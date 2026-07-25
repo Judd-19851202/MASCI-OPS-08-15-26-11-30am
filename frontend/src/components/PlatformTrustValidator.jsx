@@ -41,13 +41,13 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
-import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const BAND = {
-  green: { tone: "bg-emerald-50 border-emerald-200", pill: "bg-emerald-100 text-emerald-800 border-emerald-300", Icon: ShieldCheck, label: "Trusted" },
-  amber: { tone: "bg-amber-50 border-amber-200", pill: "bg-amber-100 text-amber-800 border-amber-300", Icon: AlertTriangle, label: "Attention" },
-  "amber-no-activity": { tone: "bg-slate-50 border-slate-200", pill: "bg-slate-100 text-slate-700 border-slate-300", Icon: Clock, label: "No activity" },
-  red: { tone: "bg-rose-50 border-rose-200", pill: "bg-rose-100 text-rose-800 border-rose-300", Icon: XCircle, label: "Critical" },
+  green: { tone: "bg-emerald-50 border-emerald-200", pill: "bg-emerald-100 text-emerald-800 border-emerald-300", Icon: ShieldCheck, label: "Validated in scope" },
+  amber: { tone: "bg-amber-50 border-amber-200", pill: "bg-amber-100 text-amber-800 border-amber-300", Icon: AlertTriangle, label: "Bounded gaps" },
+  "amber-no-activity": { tone: "bg-slate-50 border-slate-200", pill: "bg-slate-100 text-slate-700 border-slate-300", Icon: Clock, label: "No recent evidence" },
+  red: { tone: "bg-rose-50 border-rose-200", pill: "bg-rose-100 text-rose-800 border-rose-300", Icon: XCircle, label: "Contradiction detected" },
 };
 
 function Badge({ band, children }) {
@@ -79,6 +79,97 @@ function Card({ icon: Icon, title, band, children, testId }) {
         <Badge band={band} />
       </div>
       {children}
+    </div>
+  );
+}
+
+function boundedHeadline(ots) {
+  const claim = ots?.permitted_claim || "UNKNOWN";
+  const evaluation = ots?.truth_evaluation || "UNVERIFIABLE";
+
+  if (evaluation === "MISMATCH") {
+    return "Validator evidence found contradictions or failing signals in scope.";
+  }
+  if (evaluation === "DEGRADED") {
+    return "Validator evidence is bounded by gaps, stale inputs, or unresolved questions.";
+  }
+  if (claim === "VALIDATED") {
+    return "Validator evidence is validated in scope without claiming platform ownership.";
+  }
+  if (claim === "VERIFIED") {
+    return "Validator evidence is verified in scope, with bounded gaps still disclosed.";
+  }
+  if (claim === "CORRELATED") {
+    return "Validator evidence is correlated only because contradictions prevent a stronger claim.";
+  }
+  if (claim === "OBSERVED") {
+    return "Validator evidence is only observed at this time; stronger claims are not supported.";
+  }
+  return "Validator evidence is available, but the claim remains intentionally bounded.";
+}
+
+function TruthDisclosure({ ots, testidPrefix = "platform-trust-ots-disclosure" }) {
+  if (!ots) return null;
+  const unknowns = ots.unknowns || [];
+  const contradictions = ots.contradictory_evidence || [];
+
+  return (
+    <div className="space-y-2" data-testid={`${testidPrefix}-wrapper`}>
+      <div
+        className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
+        data-testid={testidPrefix}
+      >
+        <div data-testid={`${testidPrefix}-subject`}>
+          <span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-claim`}>
+          <span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-ceiling`}>
+          <span className="font-semibold text-slate-900">Claim ceiling:</span> {ots.claim_ceiling || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-confidence`}>
+          <span className="font-semibold text-slate-900">Confidence:</span> {ots.evidence_confidence || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-state`}>
+          <span className="font-semibold text-slate-900">Evidence state:</span> {ots.evidence_state || "unknown"}
+        </div>
+        <div data-testid={`${testidPrefix}-quality`}>
+          <span className="font-semibold text-slate-900">Evidence quality:</span> {ots.evidence_quality || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-basis`}>
+          <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).join(" · ") || "—"}
+        </div>
+        <div data-testid={`${testidPrefix}-audit`}>
+          <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "—"}
+        </div>
+      </div>
+      {unknowns.length > 0 && (
+        <div
+          className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
+          data-testid={`${testidPrefix}-unknowns`}
+        >
+          <div className="font-semibold">Unknowns / gaps</div>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {unknowns.map((item, index) => (
+              <li key={`${testidPrefix}-unknown-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {contradictions.length > 0 && (
+        <div
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900"
+          data-testid={`${testidPrefix}-contradictions`}
+        >
+          <div className="font-semibold">Contradictions</div>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {contradictions.map((item, index) => (
+              <li key={`${testidPrefix}-contradiction-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -166,6 +257,8 @@ export default function PlatformTrustValidator() {
   const dl = data.dead_letter_health || {};
   const redReasons = data.red_reasons || [];
   const amberReasons = data.amber_reasons || [];
+  const ots = data.ots_truth || {};
+  const headline = boundedHeadline(ots);
 
   return (
     <div data-testid="platform-trust-validator" className="space-y-4">
@@ -181,12 +274,12 @@ export default function PlatformTrustValidator() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-slate-900">
+            <h3 data-testid="platform-trust-validator-title" className="text-base font-semibold text-slate-900">
               Platform Trust Validator
             </h3>
             <Badge band={finalBand} />
           </div>
-          <p className="text-xs text-slate-500">
+          <p data-testid="platform-trust-validator-subtitle" className="text-xs text-slate-500">
             Admin-gated, read-only validator · {lastRun && `last run ${lastRun}`}
           </p>
         </div>
@@ -201,6 +294,15 @@ export default function PlatformTrustValidator() {
           Re-run validation
         </Button>
       </div>
+
+      <div
+        data-testid="platform-trust-bounded-headline"
+        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
+      >
+        <span className="font-semibold text-slate-900">Bounded validator disclosure:</span> {headline}
+      </div>
+
+      <TruthDisclosure ots={ots} />
 
       {finalBand === "red" && redReasons.length > 0 && (
         <div
@@ -362,6 +464,16 @@ export default function PlatformTrustValidator() {
           <li>shop unresolved 24h: {dl.shop_recipient_unconfigured_24h ?? 0}</li>
         </ul>
       </Card>
+
+      {data.compatibility && (
+        <div
+          data-testid="platform-trust-compatibility"
+          className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600"
+        >
+          <span className="font-semibold text-slate-900">Compatibility:</span>{" "}
+          preserved {data.compatibility.preserved_fields} fields · additive {data.compatibility.new_additive_fields} fields · breaking changes {data.compatibility.breaking_api_changes}
+        </div>
+      )}
     </div>
   );
 }

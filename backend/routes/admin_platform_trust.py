@@ -27,7 +27,17 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends
 
 from lib.archive_lineage import backup_recent_truth, build_canonical_archive_lineage
-from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
+from lib.canonical_truth import canonical_truth_surface
+from lib.ots_truth import (
+    CORRELATED,
+    OBSERVED,
+    VALIDATED,
+    VERIFIED,
+    canonical_truth_card,
+    compatibility_projection,
+    projected_truth_relationship,
+    public_ots_projection,
+)
 from lib.runtime_identity import runtime_identity_public_payload
 
 
@@ -65,6 +75,172 @@ WORKFLOW_SOURCE_COLLECTION = {
     "shop_preop_dispatch": "equipment_inspections",
 }
 
+_CLAIM_ORDER = {
+    "UNKNOWN": 0,
+    OBSERVED: 1,
+    CORRELATED: 2,
+    VERIFIED: 3,
+    VALIDATED: 4,
+    "CERTIFIED": 5,
+}
+
+
+def _lowest_claim(*claims: str) -> str:
+    valid_claims = [str(claim or "").upper() for claim in claims if str(claim or "").upper() in _CLAIM_ORDER]
+    if not valid_claims:
+        return OBSERVED
+    return min(valid_claims, key=lambda claim: _CLAIM_ORDER[claim])
+
+
+def _status_to_claim(status: Any) -> str:
+    status_text = str(status or "").upper()
+    if status_text == "MISMATCH":
+        return CORRELATED
+    if status_text == "DEGRADED":
+        return VERIFIED
+    if status_text == "VERIFIED":
+        return VERIFIED
+    return OBSERVED
+
+
+def _route_truth_projection(
+    *,
+    now_iso: str,
+    final_band: str,
+    validation_status: str,
+    system_block: Dict[str, Any],
+    email_routing: Dict[str, Any],
+    audit_integrity: Dict[str, Any],
+    workflow_health: List[Dict[str, Any]],
+    pm_cov: Dict[str, Any],
+    dead_letter_health: Dict[str, Any],
+    red_reasons: List[str],
+    amber_reasons: List[str],
+    upstream_status: str | None = None,
+) -> Dict[str, Any]:
+    contradictions: List[str] = []
+    degradation_reasons: List[str] = []
+    unknowns: List[str] = []
+    claim_basis: List[str] = [
+        "runtime_identity_public_payload",
+        "archive_lineage_backup_recent_truth",
+        "email_routes",
+        "email_routing_audit_v2",
+        "workflow_delivery_health",
+        "pm_email_coverage",
+        "dead_letter_health",
+        "platform_attestation",
+    ]
+
+    if system_block.get("scheduler") is None:
+        unknowns.append("Scheduler liveness could not be confirmed from the validator surface.")
+    if system_block.get("backup_recent") is None:
+        unknowns.append("Backup recency could not be confirmed from the validator surface.")
+    if email_routing.get("mode") != "v2":
+        unknowns.append("Email routing is not operating in the expected modern validator path.")
+    if pm_cov.get("error"):
+        unknowns.append("PM coverage could not be fully resolved from roster-aware evidence.")
+        degradation_reasons.append("PM coverage evidence was partially unavailable during validation.")
+    if audit_integrity.get("unknown_status_count", 0) > 0:
+        contradictions.append(
+            f"Audit status integrity observed {audit_integrity.get('unknown_status_count', 0)} unsupported audit status event(s)."
+        )
+
+    idle_workflows = [w for w in workflow_health if w.get("band") == "amber-no-activity"]
+    degraded_workflows = [w for w in workflow_health if w.get("band") == "amber"]
+    contradicted_workflows = [w for w in workflow_health if w.get("band") == "red"]
+    if idle_workflows:
+        unknowns.append("One or more workflows emitted no recent delivery evidence in the last 24 hours.")
+    if degraded_workflows:
+        degradation_reasons.append(
+            f"{len(degraded_workflows)} workflow(s) produced only partial or ambiguous delivery evidence."
+        )
+    if contradicted_workflows:
+        contradictions.append(
+            f"{len(contradicted_workflows)} workflow(s) emitted failing or contradictory delivery evidence in the current validation window."
+        )
+
+    if red_reasons:
+        degradation_reasons.append(f"Validator observed {len(red_reasons)} blocking issue(s).")
+    if amber_reasons:
+        degradation_reasons.append(f"Validator observed {len(amber_reasons)} bounded warning(s).")
+
+    if contradictions:
+        evidence_state = "contradicted"
+        evidence_quality = "CORRELATED"
+        evidence_confidence = "MEDIUM"
+        permitted_claim = CORRELATED
+    elif final_band == "green":
+        evidence_state = "validated"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "HIGH"
+        permitted_claim = VALIDATED
+    elif final_band == "amber":
+        evidence_state = "partial"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "MEDIUM"
+        permitted_claim = VERIFIED
+    else:
+        evidence_state = "stale"
+        evidence_quality = "DURABLE_OBSERVED"
+        evidence_confidence = "LOW"
+        permitted_claim = OBSERVED
+
+    upstream_claim = _status_to_claim(upstream_status)
+    bounded_claim = _lowest_claim(permitted_claim, upstream_claim, VALIDATED)
+
+    truth_card = canonical_truth_card(
+        truth_subject="platform_validation_truth",
+        canonical_owner="platform_attestation",
+        truth_surface_id="platform_trust_validator",
+        evidence_state=evidence_state,
+        evidence_quality=evidence_quality,
+        evidence_confidence=evidence_confidence,
+        truth_evaluation=validation_status,
+        permitted_claim=bounded_claim,
+        claim_ceiling=VALIDATED,
+        claim_basis=claim_basis,
+        prohibited_claims=[
+            "platform-wide trust ownership",
+            "platform certification",
+            "CERTIFIED",
+            "recovery certification",
+            "deployment readiness certification",
+        ],
+        degradation_reasons=degradation_reasons,
+        unknowns=unknowns,
+        contradictory_evidence=sorted(set(contradictions)),
+        evidence_timestamp=now_iso,
+        evaluation_timestamp=now_iso,
+        audit_reference="OTS-C7-PLATFORM-TRUST-VALIDATOR",
+        evidence_required_to_raise_claim=[
+            "upstream platform_attestation evidence with an equal or higher supported claim",
+            "independent certification evidence outside validator scope",
+        ],
+        notes=[
+            "Platform Trust Validator is a bounded validator and canonical consumer only.",
+            "This surface may downgrade a claim when evidence is missing or contradictory, but it may never upgrade or certify the platform.",
+        ],
+    )
+
+    return {
+        "ots_truth": public_ots_projection(truth_card),
+        "truth_relationship": projected_truth_relationship(
+            surface_id="platform_trust_validator",
+            card=truth_card,
+            canonical_owner_route="/api/admin/platform/status",
+            derivation_explanation="This validator consumes upstream platform_attestation truth and bounded admin-safe evidence. It may downgrade unsupported claims, but it may never replace, upgrade, or certify the platform owner.",
+            derived_status=truth_card["truth_evaluation"],
+        ),
+        "compatibility": compatibility_projection(
+            preserved_fields=13,
+            deprecated_fields=0,
+            new_fields=2,
+            alias_fields=[],
+            breaking_changes=0,
+        ),
+    }
+
 
 def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRouter:
     router = APIRouter()
@@ -75,13 +251,16 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
     ) -> Dict[str, Any]:
         now = datetime.now(timezone.utc)
         since_24h = (now - timedelta(hours=24)).isoformat()
+        now_iso = now.isoformat()
 
         red_reasons: List[str] = []
         amber_reasons: List[str] = []
+        upstream_validation_status = None
 
         # ----- system (no secrets) -----
         runtime_identity = runtime_identity_public_payload(get_runtime_identity()) if callable(get_runtime_identity) else {}
         identity = (runtime_identity or {}).get("identity") or {}
+        upstream_validation_status = (runtime_identity or {}).get("status") or None
         system_block: Dict[str, Any] = {
             "app_env": identity.get("app_env") or "preview",
             "db_name": identity.get("db_name") or "",
@@ -372,23 +551,29 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
             "red": "MISMATCH",
         }.get(final_band, "UNVERIFIABLE")
 
+        ots_projection = _route_truth_projection(
+            now_iso=now_iso,
+            final_band=final_band,
+            validation_status=validation_status,
+            system_block=system_block,
+            email_routing=email_routing,
+            audit_integrity=audit_integrity,
+            workflow_health=workflow_health,
+            pm_cov=pm_cov,
+            dead_letter_health=dead_letter_health,
+            red_reasons=red_reasons,
+            amber_reasons=amber_reasons,
+            upstream_status=upstream_validation_status,
+        )
+
         return {
             "track": "15.75D",
-            "generated_at": now.isoformat(),
+            "generated_at": now_iso,
             "canonical_truth": {
                 "platform_truth_owner": canonical_truth_surface("platform_attestation"),
                 "validation_surface": canonical_truth_surface("platform_trust_validator"),
             },
-            "truth_relationship": derived_truth_payload(
-                "platform_trust_validator",
-                canonical_owner_route="/api/admin/platform/status",
-                derivation_explanation="This route is a validator. It checks admin-safe evidence against canonical platform truth and must not replace the platform owner.",
-                canonical_status=validation_status,
-                derived_status=validation_status,
-                conflicts=["Validation result is separate from canonical platform truth."] if final_band in {"amber", "red"} else [],
-                evidence_age_source="generated_at",
-                stale_evidence=False,
-            )["relationship"],
+            "truth_relationship": ots_projection["truth_relationship"],
             "system": system_block,
             "email_routing": email_routing,
             "audit_status_integrity": audit_integrity,
@@ -398,6 +583,8 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
             "final_band": final_band,
             "red_reasons": red_reasons,
             "amber_reasons": amber_reasons,
+            "ots_truth": ots_projection["ots_truth"],
+            "compatibility": ots_projection["compatibility"],
         }
 
     return router
