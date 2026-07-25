@@ -523,3 +523,51 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - No deployment performed.
 - No production activation performed.
 - No production configuration changed.
+
+## 2026-07-25 — BCSS Release 2 Preparation / Program 2 Foundation / Checkpoint 3 Documentation Foundation
+
+### Scope
+- Completed the bounded **design/documentation-only** foundation for `BCSS-R08` and `BCSS-R12`.
+- No runtime behavior, migrations, API behavior, UI behavior, or consumer rewrites were performed in this checkpoint.
+
+### Implemented
+- Created the Checkpoint 3 master constitutional entry point:
+  - `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT3_MASTER_FOUNDATION.md`
+- Created supporting companion reference artifacts:
+  - `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT3_EVIDENCE_TAXONOMY.md`
+  - `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT3_CLAIM_BINDING_STANDARD.md`
+  - `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT3_TRUTH_SUBJECT_REGISTRY.md`
+  - `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT3_PLATFORM_MIGRATION_PLAN.md`
+- Established one constitutional four-layer evidence language for BCSS:
+  - Layer 1: Raw Evidence
+  - Layer 2: Evidence Quality
+  - Layer 3: Confidence
+  - Layer 4: Truth Subject
+- Established one constitutional operator claim-class model for BCSS:
+  - `Observed`
+  - `Verified`
+  - `Certified`
+- Bound the design to existing repository-backed canonical architecture rather than introducing any second evidence or truth architecture.
+
+### Verified
+- Repository discovery completed across the current BCSS and adjacent evidence/trust/certification surfaces.
+- All Checkpoint 3 companion artifacts explicitly derive authority from the master foundation artifact.
+- Self-verification only in this checkpoint because the work is documentation-only.
+
+### Current BCSS result
+- `BCSS-R08` foundation documented: shared evidence taxonomy approved as constitutional design.
+- `BCSS-R12` foundation documented: operator claim binding and claim-ceiling model approved as constitutional design.
+
+### Remaining BCSS backlog
+- P1: bounded runtime adoption waves for evidence vocabulary convergence and operator claim binding
+- P1: `BCSS-R13` recovery certification class model adoption
+- P2: `BCSS-R10` evidence manifest standardization beyond domain-local precedents
+- P2: `BCSS-R11` KPI glossary convergence
+- P2: `BCSS-R15` automatic survivability registration formalization
+
+### Boundaries honored
+- No Checkpoint 2 reopening
+- No migrations
+- No runtime behavior changes
+- No API behavior changes
+- No UI behavior changes
