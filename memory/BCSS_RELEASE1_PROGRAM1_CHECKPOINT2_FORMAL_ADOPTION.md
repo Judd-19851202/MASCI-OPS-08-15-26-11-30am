@@ -207,7 +207,7 @@ Language used for evidence claim: **ROUTE-SPECIFIC RESPONSIVE SMOKE VERIFIED** (
 - Email render evidence artifact: `/app/test_reports/bcss_checkpoint2_email_render.html`
 - Email render artifact SHA-256: `a7a24b4e2142a7bcaa57c6266ba65505a331797b0d1c0476323d3a3912688d7e`
 - Final commit-bound closeout verification report: `/app/test_reports/bcss_checkpoint2_final_closeout_sha_909f0c1_verification.md`
-- Final commit-bound report SHA-256: `f8e3c7b5a9d2e1f4c6b8a7d9e2f1c3b5a8d7e9f2c4b6a8d9e1f3c5b7a9d2e4f6`
+- Final commit-bound report SHA-256: `ea1590b50a41f48b053f2a219c756f9fb6e1de1ea061c6de30231fe575d54d26`
 - Final verification verdict: `CHECKPOINT 2 CLOSEOUT SHA VERIFIED — READY FOR FORMAL ADOPTION RECORD`
 
 ## 21. Exact SHA binding
