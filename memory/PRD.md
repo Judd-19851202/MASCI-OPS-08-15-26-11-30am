@@ -639,3 +639,26 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ## 2026-07-25 — Architectural Milestone
 - Operational Truth Spine v1.0 Constitutional Reference Baseline established.
 - See: `/app/memory/OTS_v1_0_CONSTITUTIONAL_REFERENCE_BASELINE.md`
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Checkpoint 6 Phase A + Phase B Attempt
+
+### Phase A complete
+- Repository discovery completed and recorded in `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_PHASEA_DISCOVERY.md`
+- Smallest safe repair selected by repository evidence only:
+  - `backend/routes/admin_trust_spine.py`
+  - `frontend/src/components/PlatformTrustDashboard.jsx`
+
+### Phase B implementation attempt
+- `/api/admin/trust-spine` now exposes additive canonical OTS projection fields using `backend/lib/ots_truth.py`
+- `PlatformTrustDashboard.jsx` now consumes canonical route projection and renders bounded operator disclosures
+- Added focused backend and frontend tests for Checkpoint 6
+
+### Verification outcome
+- Backend verification passed
+- Frontend component verification passed in unit tests
+- Live browser verification found a constitutional blocker: `PlatformTrustDashboard.jsx` is not mounted in the live router, and completing that step would require touching `/app/frontend/src/app/routing/AppRoutes.jsx`, which was outside the approved bounded group
+
+### Current checkpoint disposition
+- **INCOMPLETE — CONTINUE FROM CHECKPOINT**
+- Do not treat Checkpoint 6 as formally adopted yet
+- Next bounded approval required: routing-only mount of the already-implemented dashboard component, then final browser verification
