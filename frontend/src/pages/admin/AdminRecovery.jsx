@@ -199,6 +199,8 @@ export default function AdminRecovery() {
           <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
             Truth subject=<span className="font-semibold">{snap?.ots_truth?.truth_subject || "bcss_recovery_posture"}</span> · permitted claim=<span className="font-semibold">{snap?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{snap?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · does not prove recovery certification.
           </div>
+          {snap ? (
+            <>
           {(() => {
             const lineage = snap?.archive_lineage || {};
             return (
@@ -447,10 +449,7 @@ export default function AdminRecovery() {
             cached={String(snap.cached)} ·
             overlap_blocked={String(snap.scheduler?.backup_runtime?.overlap?.overlap_blocked || false)}
           </div>
-          {snap.ots_truth ? (
-            <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
-              Truth subject=<span className="font-semibold">{snap.ots_truth.truth_subject}</span> · permitted claim=<span className="font-semibold">{snap.ots_truth.permitted_claim}</span> · confidence=<span className="font-semibold">{snap.ots_truth.evidence_confidence}</span> · does not prove recovery certification.
-            </div>
+            </>
           ) : null}
         </div>
       )}
