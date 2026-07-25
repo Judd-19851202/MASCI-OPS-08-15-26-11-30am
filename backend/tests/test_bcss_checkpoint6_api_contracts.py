@@ -2,11 +2,25 @@ from __future__ import annotations
 
 import os
 import time
+from pathlib import Path
 
 import pytest
 import requests
 
-BASE_URL = os.environ.get("TEST_BASE_URL", "http://127.0.0.1:8001").rstrip("/")
+
+def _default_base_url():
+    configured = os.environ.get("TEST_BASE_URL")
+    if configured:
+        return configured.rstrip("/")
+    frontend_env = Path("/app/frontend/.env")
+    if frontend_env.exists():
+        for line in frontend_env.read_text().splitlines():
+            if line.startswith("REACT_APP_BACKEND_URL="):
+                return line.split("=", 1)[1].strip().rstrip("/")
+    return "http://127.0.0.1:8001"
+
+
+BASE_URL = _default_base_url()
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

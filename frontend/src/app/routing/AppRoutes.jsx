@@ -379,6 +379,7 @@ const PmProjectRedirect = React.lazy(() => import("@/pages/PmProjectRedirect"));
 const OperationsCenterCommand = React.lazy(() => import("@/pages/OperationsCenterCommand"));
 const OperationsMapPage = React.lazy(() => import("@/pages/OperationsMapPage"));
 const DispatchOperationsMapPage = React.lazy(() => import("@/pages/DispatchOperationsMapPage"));
+const PlatformTrustDashboard = React.lazy(() => import("@/components/PlatformTrustDashboard"));
 const PmHomeRedirect = React.lazy(() => import("@/pages/PmHomeRedirect"));
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
@@ -712,6 +713,7 @@ export function AppRoutes() {
             <Route path="/admin/ai-operations" element={A(<AdminAiOperations />)} />
             <Route path="/admin/communications" element={A(<AdminCommunications />)} />
             <Route path="/admin/identity-security" element={A(<AdminIdentitySecurity />)} />
+            <Route path="/admin/trust-spine" element={A(<PlatformTrustDashboard />)} />
             <Route path="/admin/governance-trust" element={A(<AdminGovernanceTrust />)} />
             {/* TRACK 25 · SPRINT 5/6 · Configuration · Diagnostics · Maintenance · Overview redirect. */}
             <Route path="/admin/platform-configuration" element={A(<AdminPlatformConfiguration />)} />
