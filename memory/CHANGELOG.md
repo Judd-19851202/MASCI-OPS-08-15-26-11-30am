@@ -11,3 +11,6 @@
 - Unified the Family 3B authentication contract to the secure runtime model: one acting portal token plus the bound `X-Directory-Token`.
 - Repaired Family 3B consumers to use a dedicated OA client with explicit portal scoping and directory-session forwarding.
 - Added bounded Trust Spine emission, richer history context, duplicate-assignment suppression, query reductions, owner-search parallelization, and photo-path rollback cleanup inside Family 3B only.
+- Closed Phase B with bounded verification evidence: `42/42` Family 3B tests passed locally, independent verification passed in `/app/test_reports/iteration_42.json`, and final backend regression sweep passed `19/19`.
+- Hardened the Family 3B auth gate further to reject multiple portal headers while preserving the required valid directory session pairing.
+- Recorded Phase B latency evidence: list and owner-search improved in preview; summary remained shared-infrastructure dominated.

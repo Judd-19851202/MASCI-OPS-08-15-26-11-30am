@@ -887,3 +887,44 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - preserve adjacent-family boundaries
 - improve Family 3B-owned latency without touching other families
 - preserve notification best-effort semantics without implying success before canonical persistence
+
+### Family 3B Phase B completion status — 2026-07-25
+- Phase B verification-first implementation is complete and independently verified.
+- Final bounded server-side auth rule for Family 3B:
+  - valid directory session required
+  - exactly one portal token required
+  - mismatched directory / portal combinations rejected
+  - multiple simultaneous portal headers rejected
+- Final bounded verification evidence:
+  - backend suites passed: `42/42` local Family 3B tests
+  - independent verifier passed: `/app/test_reports/iteration_42.json`
+  - backend regression sweep passed: `19/19`
+  - frontend smoke passed: admin login → list → create → detail with no 401 detail-page regression
+- Family 3B command-integrity evidence confirmed for:
+  - create
+  - patch
+  - assign
+  - status change
+  - note append
+  - photo upload / signed-url / delete
+- Family 3B audit / trust / notification evidence confirmed:
+  - append-only in-record history preserved
+  - Trust Spine stages emitted for create, update, assign, status, note, photo upload, and photo delete
+  - assignment notification written once and duplicate-assignment notification suppressed
+- Family 3B performance evidence captured against Phase A baselines:
+  - `GET /api/operations-actions/summary`
+    - before: `364.3 ms`
+    - after: avg `472.0 ms`, worst `495.6 ms`, spread `34.1 ms`
+    - classification: `Infrastructure-owned / no measurable Family 3B gain in preview`
+    - remaining bottlenecks: preview ingress variance, shared auth/session checks, aggregate count work
+  - `GET /api/operations-actions?limit=20`
+    - before: `512.7 ms`
+    - after: avg `473.5 ms`, worst `485.8 ms`, spread `19.2 ms`
+    - classification: `Improved`
+    - remaining bottlenecks: preview network overhead and shared auth/session middleware cost
+  - `GET /api/operations-actions/owner-search?q=jaymn&limit=10`
+    - before: `557.4 ms`
+    - after: avg `507.1 ms`, worst `514.9 ms`, spread `17.9 ms`
+    - classification: `Improved`
+    - remaining bottlenecks: directory fan-out + shared infrastructure latency
+- Formal status: **READY FOR FORMAL ADOPTION** for Wave 3 Family 3B Phase B.
