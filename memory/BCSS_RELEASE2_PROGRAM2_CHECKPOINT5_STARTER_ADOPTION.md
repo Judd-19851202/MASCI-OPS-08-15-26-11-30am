@@ -45,6 +45,15 @@ Status: IMPLEMENTATION COMPLETE — READY FOR FORMAL ADOPTION RECORD
 ## Future domain rule
 Future domains shall adopt the Operational Truth Spine by consuming the canonical evaluation and projection architecture. No domain may implement an independent truth, claim, confidence, certification, or evidence engine.
 
+## Transportation Operations domain correction
+Transportation Operations is one unified MASCI OPS portal and domain. Dispatch coordination, fleet operations, drivers, trucks, leased haulers, transportation assignments, tracking, telematics, transportation compliance, and related workflows belong to Transportation Operations and shall not be represented as separate Dispatch and Fleet domains.
+
+## Timed-out agent disclosure
+- The original `testing_agent` timed out.
+- It did not produce the final verification verdict.
+- No result from the timed-out agent is represented as completed verification evidence.
+- Final checkpoint verification was completed through an alternate independent verification path bound to the exact implementation SHA `d55dfaca132655c6a4c429f0f22c41a0aaed90c2`.
+
 ## Selected surface families
 1. Platform Data Truth
 2. Recovery Snapshot

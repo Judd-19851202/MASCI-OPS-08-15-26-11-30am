@@ -11,6 +11,13 @@ Status: FORMALLY VERIFIED, ADOPTED, AND CLOSED
 
 ---
 
+## Timed-out-agent disclosure
+- The original `testing_agent` timed out.
+- It did not produce the final verification verdict.
+- The checkpoint was instead reviewed through the alternate independent verification path.
+- Focused tests, health checks, OTS contract checks, browser smoke, lint review, and containment review were performed against the exact implementation SHA `d55dfaca132655c6a4c429f0f22c41a0aaed90c2`.
+- No result from the timed-out agent is being represented as completed evidence.
+
 ## Phase 1 — Implementation candidate
 - Implementation SHA: `d55dfaca132655c6a4c429f0f22c41a0aaed90c2`
 - Complete implementation/runtime/test file list:
@@ -39,6 +46,7 @@ Status: FORMALLY VERIFIED, ADOPTED, AND CLOSED
 - Raw report path: `/app/test_reports/bcss_checkpoint5_verification_report.md`
 - Raw report SHA-256: `ba7a102ded467dbab5d73f4dc1e711fde52880ac8de18dc62b21461a0ad79bf0`
 - Required verdict achieved: `CHECKPOINT 5 IMPLEMENTATION SHA VERIFIED — READY FOR FORMAL ADOPTION`
+- Verification independence: implementation work and alternate verification were separated by exact-SHA binding, raw report hashing, focused test reruns, independent browser verification, and post-fix containment review.
 
 ## Phase 3 — Documentation-only final adoption closeout
 - Final adoption-record SHA: `recorded as final HEAD of the documentation-only closeout commit`
@@ -50,6 +58,7 @@ Status: FORMALLY VERIFIED, ADOPTED, AND CLOSED
   - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT5_EVIDENCE_VOCABULARY_MAPPING.md`
   - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT5_FORMAL_ADOPTION.md`
   - `/app/memory/PRD.md`
+- Verification report tracking note: `/app/test_reports/` is preserved as immutable execution evidence in the workspace. If repository policy excludes raw test reports from commit history, the exact report path and SHA-256 above preserve immutable linkage to the reviewed evidence.
 
 ## Phase 4 — Final repository-integrity verification
 - clean worktree: verified after final documentation closeout
