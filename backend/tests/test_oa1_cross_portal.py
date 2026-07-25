@@ -2,6 +2,7 @@
 
 import base64
 import os
+import time
 
 import pytest
 import requests
@@ -27,9 +28,23 @@ TOKEN_HEADER_MAP = {
 }
 
 
+def _call(method: str, url: str, **kwargs):
+    last_exc = None
+    for _ in range(3):
+        try:
+            return requests.request(method, url, **kwargs)
+        except requests.RequestException as exc:
+            last_exc = exc
+            time.sleep(1)
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("request retry helper exhausted")
+
+
 @pytest.fixture(scope="module")
 def portal_tokens():
-    r = requests.post(
+    r = _call(
+        "POST",
         LOGIN_URL,
         json={
             "email": os.environ.get("SUPER_ADMIN_EMAIL", "jaymn.judd@mascigc.com"),
@@ -55,7 +70,8 @@ def test_summary_accepts_each_portal_token(portal_tokens, portal):
     token = portal_tokens["tokens"].get(PORTAL_RESPONSE_KEY[portal])
     if not token:
         pytest.skip(f"portal token {portal} not minted")
-    r = requests.get(
+    r = _call(
+        "GET",
         f"{BASE_URL}/api/operations-actions/summary",
         headers=_isolate_headers(portal, token, portal_tokens["directory_token"]),
         timeout=15,
@@ -76,7 +92,8 @@ def test_create_accepts_each_portal_token(portal_tokens, portal):
         "priority": "low",
         "description": f"Created via {portal} lane",
     }
-    r = requests.post(
+    r = _call(
+        "POST",
         f"{BASE_URL}/api/operations-actions",
         headers=_isolate_headers(portal, token, portal_tokens["directory_token"]),
         json=payload,
@@ -94,10 +111,41 @@ def test_directory_token_required_for_portal_lane(portal_tokens):
         pytest.skip("admin token unavailable")
     headers = {h: "" for h in TOKEN_HEADER_MAP.values()}
     headers["X-Admin-Token"] = token
-    r = requests.get(
+    r = _call(
+        "GET",
         f"{BASE_URL}/api/operations-actions/summary",
         headers=headers,
         timeout=15,
+    )
+    assert r.status_code in (401, 403)
+
+
+def test_invalid_directory_token_rejected(portal_tokens):
+    token = portal_tokens["tokens"].get("admin")
+    if not token:
+        pytest.skip("admin token unavailable")
+    headers = _isolate_headers("admin", token, "bad-directory-token")
+    r = _call(
+        "GET",
+        f"{BASE_URL}/api/operations-actions/summary",
+        headers=headers,
+        timeout=20,
+    )
+    assert r.status_code in (401, 403)
+
+
+def test_multiple_portal_tokens_rejected(portal_tokens):
+    admin_token = portal_tokens["tokens"].get("admin")
+    pm_token = portal_tokens["tokens"].get("pm")
+    if not admin_token or not pm_token:
+        pytest.skip("required portal tokens unavailable")
+    headers = _isolate_headers("admin", admin_token, portal_tokens["directory_token"])
+    headers["X-PM-Token"] = pm_token
+    r = _call(
+        "GET",
+        f"{BASE_URL}/api/operations-actions/summary",
+        headers=headers,
+        timeout=20,
     )
     assert r.status_code in (401, 403)
 
@@ -108,7 +156,8 @@ def test_photo_upload_happy_path_when_r2_configured(portal_tokens):
         pytest.skip("admin token unavailable")
     headers = _isolate_headers("admin", token, portal_tokens["directory_token"])
 
-    create = requests.post(
+    create = _call(
+        "POST",
         f"{BASE_URL}/api/operations-actions",
         headers=headers,
         json={"title": "Photo smoke", "category": "other", "priority": "normal"},
@@ -123,7 +172,8 @@ def test_photo_upload_happy_path_when_r2_configured(portal_tokens):
     )
     png_bytes = base64.b64decode(png_b64)
 
-    upload = requests.post(
+    upload = _call(
+        "POST",
         f"{BASE_URL}/api/operations-actions/{oa_id}/photos",
         headers=headers,
         files={"file": ("smoke.png", png_bytes, "image/png")},
@@ -137,7 +187,8 @@ def test_photo_upload_happy_path_when_r2_configured(portal_tokens):
     photo = upload.json()
     assert photo.get("id") and photo.get("r2_ref")
 
-    get_url = requests.get(
+    get_url = _call(
+        "GET",
         f"{BASE_URL}/api/operations-actions/{oa_id}/photos/{photo['id']}/url",
         headers=headers,
         timeout=15,
@@ -145,7 +196,8 @@ def test_photo_upload_happy_path_when_r2_configured(portal_tokens):
     assert get_url.status_code == 200, get_url.text
     assert get_url.json().get("url", "").startswith("http")
 
-    delete = requests.delete(
+    delete = _call(
+        "DELETE",
         f"{BASE_URL}/api/operations-actions/{oa_id}/photos/{photo['id']}",
         headers=headers,
         timeout=15,

@@ -1,4 +1,5 @@
 import os
+import time
 import uuid
 from typing import Any, Dict, Optional
 
@@ -8,6 +9,19 @@ from dotenv import dotenv_values
 from pymongo import MongoClient
 
 API = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com") + "/api"
+
+
+def _call(method: str, url: str, **kwargs):
+    last_exc = None
+    for _ in range(3):
+        try:
+            return requests.request(method, url, **kwargs)
+        except requests.RequestException as exc:
+            last_exc = exc
+            time.sleep(1)
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("request retry helper exhausted")
 
 
 def _req(
@@ -26,8 +40,12 @@ def _req(
         "X-Directory-Token": directory_token,
     }
     try:
-        resp = requests.request(method, url, headers=headers, json=body, timeout=15)
-        return {"status": resp.status_code, "json": resp.json()}
+        resp = _call(method, url, headers=headers, json=body, timeout=30)
+        try:
+            payload = resp.json()
+        except Exception:
+            payload = {"detail": resp.text}
+        return {"status": resp.status_code, "json": payload}
     except requests.HTTPError as e:
         payload = e.response.text if getattr(e, "response", None) else ""
         try:
@@ -39,7 +57,8 @@ def _req(
 
 @pytest.fixture(scope="module")
 def auth_bundle():
-    r = requests.post(
+    r = _call(
+        "POST",
         f"{API}/auth/multi-login",
         json={
             "email": os.environ.get("SUPER_ADMIN_EMAIL", "jaymn.judd@mascigc.com"),
@@ -89,13 +108,14 @@ def created_oa(admin_token, directory_token):
 
 
 def test_invalid_token_rejected():
-    r = _req("GET", "/operations-actions", token="not-a-real-token", directory_token="bad-dir")
+    r = _req("GET", "/operations-actions/summary", token="not-a-real-token", directory_token="bad-dir")
     assert r["status"] in (401, 403)
 
 
 def test_directory_token_required(auth_bundle):
     token = auth_bundle["portal_tokens"]["admin"]
-    r = requests.get(
+    r = _call(
+        "GET",
         f"{API}/operations-actions",
         headers={"X-Admin-Token": token},
         timeout=10,

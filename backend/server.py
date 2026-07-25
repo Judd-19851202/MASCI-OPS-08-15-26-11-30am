@@ -15173,6 +15173,32 @@ async def _require_oa_actor(
 ):
     if not x_directory_token:
         raise HTTPException(401, "Directory session required for Operations Actions")
+
+    directory_session = await db.directory_sessions.find_one(
+        {"token": x_directory_token},
+        {"_id": 0, "user_id": 1, "expires_at_ts": 1},
+    )
+    now_ts = int(datetime.now(timezone.utc).timestamp())
+    if (
+        not directory_session
+        or not directory_session.get("user_id")
+        or int(directory_session.get("expires_at_ts") or 0) < now_ts
+    ):
+        raise HTTPException(401, "Directory session required for Operations Actions")
+
+    provided_tokens = [
+        ("admin", x_admin_token),
+        ("safety", x_safety_token),
+        ("hr", x_hr_token),
+        ("dispatch", x_dispatch_token),
+        ("pm", x_pm_token),
+        ("shop", x_shop_token),
+        ("fl", x_fl_token),
+    ]
+    supplied = [(role, tok) for role, tok in provided_tokens if tok]
+    if len(supplied) != 1:
+        raise HTTPException(401, "Exactly one portal token required for Operations Actions")
+
     if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         try:
             import user_directory as _ud_local  # noqa: PLC0415
