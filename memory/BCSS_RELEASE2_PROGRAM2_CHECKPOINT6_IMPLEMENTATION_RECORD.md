@@ -3,7 +3,7 @@
 
 Date: 2026-07-25
 
-Status: INCOMPLETE — CONTINUE FROM CHECKPOINT
+Status: CHECKPOINT 6 VERIFIED — READY FOR FORMAL ADOPTION
 
 Phase A discovery reference:
 - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_PHASEA_DISCOVERY.md`
@@ -50,24 +50,25 @@ Approved bounded group:
 - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_IMPLEMENTATION_RECORD.md`
 - `/app/memory/PRD.md`
 
-## Exact blocker
+## Prior incomplete status
 
-The approved frontend runtime file is a component only. Repository evidence shows it is **not mounted** in the live router.
+The initial Phase B attempt stopped correctly under the Stop Rule because the approved frontend runtime file was a component only and was **not mounted** in the live router.
 
-Observed evidence:
+Repository evidence at that point:
 - `PlatformTrustDashboard.jsx` exists and is tested locally
 - no route exists for `/admin/trust-spine`
 - live browser verification returned `404 Not Found` for `/admin/trust-spine`
 - the currently reachable admin surfaces (`/admin/email`, `/admin/governance-trust`) do not mount `PlatformTrustDashboard.jsx`
 
-## Why the approved bounded group cannot be completed safely
+## Routing-only continuation authorization
 
-To make the approved dashboard operator-visible in the live application, repository evidence indicates that an additional runtime file would need to change:
+Continuation was separately authorized for exactly one additional runtime file:
 - `/app/frontend/src/app/routing/AppRoutes.jsx`
 
-That file was explicitly outside the approved bounded implementation group.
+Authorized purpose only:
+- mount `PlatformTrustDashboard.jsx` at `/admin/trust-spine`
 
-Per the constitutional STOP RULE, the checkpoint may not widen scope in order to complete the live UI mounting step.
+No other runtime file was authorized for continuation.
 
 ## Verification summary
 
@@ -80,9 +81,34 @@ Per the constitutional STOP RULE, the checkpoint may not widen scope in order to
 
 ### Frontend verification
 - Component unit tests: **2/2 passed**
-- Independent browser verification result:
-  - component implementation quality passed
-  - live route accessibility failed because the component is not mounted
+- Routing continuation tests: **3/3 passed**
+- Final live browser smoke passed at:
+  - desktop
+  - tablet
+  - mobile
+- Independent final frontend verification: **17/17 passed**
+
+### Live route result
+- `/admin/trust-spine` now resolves successfully
+- route remains admin-protected through the repository's existing `A(...)` admin guard wrapper
+- `PlatformTrustDashboard` renders live from the canonical backend projection
+
+## AppRoutes insertion details
+
+### Exact runtime diff for continuation
+- added lazy import:
+  - `const PlatformTrustDashboard = React.lazy(() => import("@/components/PlatformTrustDashboard"));`
+- added guarded route:
+  - `<Route path="/admin/trust-spine" element={A(<PlatformTrustDashboard />)} />`
+
+### Route behavior
+- route path established: `/admin/trust-spine`
+- route protection: existing `RequireAdmin` → `AdminPaletteShell`
+- no redirect added
+- no duplicate route added
+- no route removed
+- no permission broadened
+- no navigation entry added
 
 ## Compatibility summary
 - Preserved route fields: **11**
@@ -91,12 +117,23 @@ Per the constitutional STOP RULE, the checkpoint may not widen scope in order to
 - Deprecated fields: **0**
 
 ## OTS adoption coverage disposition
-- Before Phase B: 5 families formally adopted (Checkpoint 5)
-- After this attempt: backend trust-spine owner route is OTS-bound in code, but the approved owner-family surface is **not formally adoptable yet** because the approved dashboard component is not reachable in the live UI without expanding scope
+
+| Metric | Before | After |
+|---|---:|---:|
+| Formally adopted OTS families | 5 | 6 |
+| Trust-spine backend routes adopted | 0 | 1 |
+| Trust-spine UI surfaces adopted | 0 | 1 |
+| Approved but inaccessible UI surfaces | 1 | 0 |
+| Legacy evaluation paths in selected family | 12 | 0 |
+| Duplicate projection paths in selected family | 1 | 0 |
+| Unsupported claims in selected family | 12 | 0 |
+| Remaining Wave 3 candidate families | 7 | 7 |
+
+Coverage note:
+- the trust_spine family is now fully OTS-bound within the approved checkpoint scope
+- excluded Wave 3 families remain pending
 
 ## Remaining Wave 3 backlog
-- mount the approved dashboard via a separately approved bounded routing change
-- then re-run browser verification and final formal adoption
 - remaining future bounded families remain unchanged:
   - `admin_platform_trust.py`
   - `admin_operations_trust_center.py`
@@ -106,9 +143,20 @@ Per the constitutional STOP RULE, the checkpoint may not widen scope in order to
   - `admin_production_certification.py`
   - legacy `deploy_readiness.py`
 
-## Smallest recommended continuation track
+## SHA chain
+- initial Phase B implementation commit: `bbffc8d54bde2f89caa43e7d2b026e041eb1ffe3`
+- continuation final commit / final HEAD: `b7598abd28ba22fd9bcb5251e979edf31f41fd62`
+- parent of continuation final commit: `bbffc8d54bde2f89caa43e7d2b026e041eb1ffe3`
 
-Checkpoint 6 continuation should request a new bounded approval for:
-- `/app/frontend/src/app/routing/AppRoutes.jsx`
+## Worktree status
+- clean at closeout (`git status --short` returned no entries)
 
-Only to mount the already-implemented `PlatformTrustDashboard.jsx` at an admin route such as `/admin/trust-spine`, followed by one final browser verification pass.
+## Final constitutional disposition
+- backend trust_spine implementation remains verified
+- frontend dashboard remains unit-tested
+- `/admin/trust-spine` is mounted and live
+- admin protection is preserved
+- desktop / tablet / mobile smoke all passed
+- independent verification passed on final continuation state
+
+Checkpoint 6 is ready for formal adoption.

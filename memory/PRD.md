@@ -659,6 +659,17 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Live browser verification found a constitutional blocker: `PlatformTrustDashboard.jsx` is not mounted in the live router, and completing that step would require touching `/app/frontend/src/app/routing/AppRoutes.jsx`, which was outside the approved bounded group
 
 ### Current checkpoint disposition
-- **INCOMPLETE — CONTINUE FROM CHECKPOINT**
-- Do not treat Checkpoint 6 as formally adopted yet
-- Next bounded approval required: routing-only mount of the already-implemented dashboard component, then final browser verification
+- Initial Phase B attempt correctly stopped under the Stop Rule because the router file was outside the approved bounded group
+
+### Routing continuation and final outcome
+- A separate bounded continuation authorized only `/app/frontend/src/app/routing/AppRoutes.jsx`
+- Mounted `PlatformTrustDashboard` at `/admin/trust-spine` using the existing admin guard architecture
+- Re-ran focused backend tests, frontend tests, backend reconfirmation, and live browser smoke on desktop / tablet / mobile
+- Independent verification passed on the final continuation state
+
+### Final checkpoint disposition
+- **CHECKPOINT 6 VERIFIED — READY FOR FORMAL ADOPTION**
+- Trust Spine family is now fully OTS-bound in the approved checkpoint scope:
+  - backend owner route adopted: `/api/admin/trust-spine`
+  - operator-facing dashboard adopted: `/admin/trust-spine`
+- Remaining Wave 3 families remain pending and unchanged
