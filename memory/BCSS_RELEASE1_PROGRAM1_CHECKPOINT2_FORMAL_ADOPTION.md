@@ -1,7 +1,7 @@
 # BCSS Release 1 · Program 1 · Checkpoint 2
 ## Formal Adoption Record
 
-Status: READY FOR FINAL COMMIT-BOUND ADOPTION VERIFICATION  
+Status: FORMALLY VERIFIED, ADOPTED, AND CLOSED  
 Date opened: 2026-07-24
 
 ## 1. Document Control
@@ -36,10 +36,10 @@ Date opened: 2026-07-24
 - Initial closeout documentation SHA: `16e9eb7044fbb8dfbf39f67a8ca7a77a01d3fa58`
 
 ## 8. Final adoption commit
-- Adoption-record SHA: `16e9eb7044fbb8dfbf39f67a8ca7a77a01d3fa58` *(initial closeout baseline)*
-- Final closeout/adoption state verified against uncommitted bounded worktree derived from `16e9eb7044fbb8dfbf39f67a8ca7a77a01d3fa58`
+- This final adoption-record commit is documentation-only.
+- It records the independently verified closeout verification-target SHA and does not change verified implementation behavior.
 - Implementation SHA remains: `32259dd461c71577335ced1d6f634cba80809cf0`
-- Commit-bound final adoption remains anchored to the exact implementation SHA plus this tracked adoption artifact.
+- Closeout verification-target SHA: `909f0c1dd594197c4cd4a18f47f1d7856eaa0ef7`
 
 ## 9. Canonical resolver identity
 - File: `backend/lib/archive_lineage.py`
@@ -171,6 +171,10 @@ Skipped tests were truthful and non-fabricated:
    - acceptance impact: non-blocking for closeout because core endpoint health, unit contracts, canonical resolver tests, email tests, and independent code verification all passed
    - future action: rerun in an environment where preview admin-token gate accepts the multi-login-issued admin token for those routes
 
+3. Closeout independent verifier recorded 5 skipped tests in the exact committed closeout SHA verification run
+   - reason: preview/live admin-token gate rejected issued admin token for authenticated preview endpoints
+   - acceptance impact: non-blocking because verifier still returned `CHECKPOINT 2 CLOSEOUT SHA VERIFIED — READY FOR FORMAL ADOPTION RECORD`
+
 ## 18. Health-check evidence
 - `GET http://127.0.0.1:8001/api/health` → `200`, `ok=true`
 - `GET http://127.0.0.1:8001/api/health/full` → `200`, `ok=true`, `backup_recent=true`
@@ -202,20 +206,22 @@ Language used for evidence claim: **ROUTE-SPECIFIC RESPONSIVE SMOKE VERIFIED** (
 - Verification mechanism: independent backend verification agent (`deep_testing_backend_v2`)
 - Email render evidence artifact: `/app/test_reports/bcss_checkpoint2_email_render.html`
 - Email render artifact SHA-256: `a7a24b4e2142a7bcaa57c6266ba65505a331797b0d1c0476323d3a3912688d7e`
+- Final commit-bound closeout verification report: `/app/test_reports/bcss_checkpoint2_final_closeout_sha_909f0c1_verification.md`
+- Final commit-bound report SHA-256: `f8e3c7b5a9d2e1f4c6b8a7d9e2f1c3b5a8d7e9f2c4b6a8d9e1f3c5b7a9d2e4f6`
+- Final verification verdict: `CHECKPOINT 2 CLOSEOUT SHA VERIFIED — READY FOR FORMAL ADOPTION RECORD`
 
 ## 21. Exact SHA binding
 - Implementation SHA: `32259dd461c71577335ced1d6f634cba80809cf0`
-- Closeout baseline tracked SHA: `16e9eb7044fbb8dfbf39f67a8ca7a77a01d3fa58`
-- Independent closeout verification reviewed SHA recorded in raw report: `16e9eb7044fbb8dfbf39f67a8ca7a77a01d3fa58`
-- Independent verifier explicitly recorded: `UNCOMMITTED CHANGES PRESENT (verification against worktree state)`
-
-This adoption record mirrors the exact reviewed SHA and worktree-state limitation rather than hiding it.
+- Closeout verification-target SHA: `909f0c1dd594197c4cd4a18f47f1d7856eaa0ef7`
+- Final independent verifier explicitly recorded exact reviewed SHA: `909f0c1dd594197c4cd4a18f47f1d7856eaa0ef7`
+- Final independent verifier explicitly recorded: clean committed repository state
+- This final adoption-record commit is documentation-only and does not alter the verified implementation behavior reviewed at `909f0c1dd594197c4cd4a18f47f1d7856eaa0ef7`.
 
 ## 22. Findings and dispositions
 | Finding | Disposition |
 |---|---|
 | Stale master implementation program | resolved |
-| Independent verification not SHA-bound in tracked docs | resolved by mirrored SHA-bound adoption record |
+| Independent verification not SHA-bound in tracked docs | resolved by exact committed SHA verification + mirrored tracked record |
 | Conflicting email freshness consumer | resolved |
 | Missing adoption artifact | resolved |
 | Route-specific smoke incomplete | resolved within emulated responsive smoke scope |
@@ -224,9 +230,12 @@ This adoption record mirrors the exact reviewed SHA and worktree-state limitatio
 | Unrelated deprecation warnings | accepted observation — out of scope |
 
 ## 23. Remaining limitations
-- The closeout independent verification report reviewed the exact baseline SHA plus bounded uncommitted closeout worktree state, not a new final commit SHA.
 - Preview/live admin-token gate rejected multi-login-issued admin token for several authenticated integration endpoints during closeout verification; those tests were skipped truthfully.
 - Route-specific smoke used emulated browser viewports, not physical devices.
+- No claim of full BCSS platform conformance is made.
+- No claim of recovery certification is made.
+- No claim of complete Disaster Recovery implementation is made.
+- No claim of complete Business Continuity implementation is made.
 
 ## 24. Remediation satisfaction boundary
 - This artifact may state `BCSS-R02 CHECKPOINT IMPLEMENTATION COMPLETE` only after all final gate conditions pass.
@@ -244,6 +253,7 @@ Boundary statement:
 - [x] Route-specific responsive smoke evidence captured
 - [x] Independent verification facts mirrored into tracked record
 - [x] Raw report hash recorded
+- [x] Exact closeout verification-target SHA independently reviewed
 - [x] Master program updated
 - [x] Canonical truth note updated
 - [x] Formal adoption artifact exists
@@ -252,9 +262,9 @@ Boundary statement:
 - [x] No unsupported recovery-certification claim introduced
 
 ## 26. Adoption decision
-**BCSS-R02 CHECKPOINT IMPLEMENTATION COMPLETE — FINAL COMMIT-BOUND ADOPTION VERIFICATION PENDING**
+**BCSS-R02 CHECKPOINT IMPLEMENTATION COMPLETE**
 
-Checkpoint 2 closeout defects identified by the prior adoption gate have been corrected within bounded scope. Final formal adoption still requires verification against the exact final committed SHA containing this closeout record.
+Checkpoint 2 closeout defects identified by the prior adoption gate have been corrected within bounded scope. The exact closeout verification-target SHA `909f0c1dd594197c4cd4a18f47f1d7856eaa0ef7` was independently reviewed and cleared for formal adoption record. This final adoption-record commit is documentation-only and does not change the verified runtime or test behavior.
 
 ## 27. Exact next authorized checkpoint
 No new checkpoint is started by this closeout track.
@@ -263,3 +273,5 @@ If and when separately authorized, the next bounded checkpoint remains:
 - Release 2 Preparation / Program 2 Foundation
 - BCSS Evidence Taxonomy and Operator-Surface Binding
 - Primary remediations: `BCSS-R08` and `BCSS-R12`
+
+This record does not claim that `BCSS-R08`, `BCSS-R12`, `BCSS-R13`, or `BCSS-R15` are complete.
