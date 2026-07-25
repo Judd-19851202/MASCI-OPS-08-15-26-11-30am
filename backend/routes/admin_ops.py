@@ -23,6 +23,7 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status
+from lib.ots_truth import OBSERVED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.runtime_identity import runtime_identity_public_payload
 
 logger = logging.getLogger(__name__)
@@ -637,7 +638,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         except Exception:
             history = []
 
-        return {
+        payload = {
             "current": {
                 "version": version,
                 "built_at": built_at,
@@ -647,6 +648,44 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             "known_good_history": history,
             "checked_at": _iso(_now()),
         }
+        truth_card = canonical_truth_card(
+            truth_subject="bcss_runtime_state_authority",
+            canonical_owner="bcss_runtime_state_authority",
+            truth_surface_id="bcss_runtime_state_authority",
+            evidence_state="historical" if history else "observed",
+            evidence_quality="HISTORICAL" if history else "DIRECT_OBSERVED",
+            evidence_confidence="MEDIUM" if recent_backups else "LOW",
+            truth_evaluation="VERIFIED" if recent_backups else "UNVERIFIABLE",
+            permitted_claim=OBSERVED,
+            claim_ceiling=OBSERVED,
+            claim_basis=["deploy recovery probe", "recent backup chain", "known-good build history", "R2 status"],
+            prohibited_claims=["CORRELATED", "VERIFIED", "VALIDATED", "CERTIFIED"],
+            degradation_reasons=[] if recent_backups else ["No recent backup chain surfaced in the deploy recovery probe."],
+            unknowns=["This surface is an operator playbook and does not prove deployment readiness or recovery certification."],
+            contradictory_evidence=[],
+            evidence_timestamp=payload["checked_at"],
+            evaluation_timestamp=payload["checked_at"],
+            audit_reference="OTS-C5-DEPLOY-RECOVERY",
+            evidence_required_to_raise_claim=["explicit deployment readiness decision evidence", "recovery certification evidence under BCSS-R13"],
+            notes=["Deploy Recovery is a playbook/context surface only."],
+        )
+        compatibility = compatibility_projection(
+            preserved_fields=5,
+            deprecated_fields=0,
+            new_fields=3,
+            alias_fields=[],
+            breaking_changes=0,
+        )
+        payload["ots_truth"] = public_ots_projection(truth_card)
+        payload["truth_relationship"] = projected_truth_relationship(
+            surface_id="bcss_runtime_state_authority",
+            card=truth_card,
+            canonical_owner_route="/api/admin/deploy-recovery",
+            derivation_explanation="Deploy Recovery is a bounded operator playbook and context probe; it does not certify deployment or recovery readiness.",
+            derived_status=truth_card["truth_evaluation"],
+        )
+        payload["compatibility"] = compatibility
+        return payload
 
     # ════════════════════════════════════════════════════════════════
     # iter338 · Admin Reference Lookup
