@@ -110,8 +110,8 @@ export default function AdminRecovery() {
   const load = useCallback(async () => {
     try {
       const [r, trust] = await Promise.all([
-        api.get("/admin/recovery/snapshot", { skipSessionStatus: true }),
-        api.get("/admin/backup-trust-score", { skipSessionStatus: true }).catch(() => null),
+        api.get("/admin/recovery/snapshot", { skipSessionStatus: true, timeout: 120000 }),
+        api.get("/admin/backup-trust-score", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
       ]);
       setSnap(r.data);
       setBackupTrust(trust?.data || null);

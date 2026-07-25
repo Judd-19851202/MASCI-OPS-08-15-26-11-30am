@@ -37,6 +37,7 @@ import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
 import {
   HealthCard,
   EvidenceDrawer,
+  TruthOwnerPanel,
   TrustStatusPill,
   TRUST_STATUS_STYLES,
   worstStatus,
@@ -48,7 +49,7 @@ import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 // ── HTTP helpers ─────────────────────────────────────────────────
 async function probe(path) {
   try {
-    const r = await api.get(path, { skipSessionStatus: true });
+    const r = await api.get(path, { skipSessionStatus: true, timeout: 120000 });
     return { ok: true, body: r.data, status: r.status, error: null };
   } catch (e) {
     return {
@@ -569,6 +570,21 @@ export default function AdminStorageRecovery() {
           className="mb-6 rounded-lg border border-slate-200 bg-white p-4"
           data-testid="storage-recovery-verdict"
         >
+          {recovery?.body?.ots_truth && recovery?.body?.truth_relationship ? (
+            <div className="mb-4" data-testid="storage-recovery-ots-wrapper">
+              <TruthOwnerPanel
+                title="Operational Truth Spine"
+                surface={recovery.body.ots_truth.truth_surface}
+                relationship={recovery.body.truth_relationship}
+                checkedAt={recovery.body.ots_truth.evaluation_timestamp || recovery.body.computed_at}
+                testidPrefix="storage-recovery-ots-panel"
+              />
+              <div className="mt-2 text-xs text-slate-500" data-testid="storage-recovery-ots-disclosure">
+                Truth subject=<span className="font-semibold">{recovery.body.ots_truth.truth_subject}</span> · permitted claim=<span className="font-semibold">{recovery.body.ots_truth.permitted_claim}</span> · confidence=<span className="font-semibold">{recovery.body.ots_truth.evidence_confidence}</span> · does not prove recovery certification.
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-[220px]">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">

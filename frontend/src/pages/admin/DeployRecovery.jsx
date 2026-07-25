@@ -25,7 +25,7 @@ export default function DeployRecovery() {
 
   const load = async () => {
     setLoading(true);
-    try { setData((await api.get("/admin/deploy-recovery")).data); }
+    try { setData((await api.get("/admin/deploy-recovery", { timeout: 120000 })).data); }
     catch (e) { toast.error(operationalError(e, "Failed to load recovery state")); }
     finally { setLoading(false); }
   };
