@@ -62,7 +62,7 @@ const BAND_STYLE = {
     pill: "bg-emerald-100 text-emerald-800 border-emerald-300",
     bar: "bg-emerald-500",
     Icon: ShieldCheck,
-    label: "Trusted",
+    label: "Green score band",
     headlineColor: "#059669",
   },
   amber: {
@@ -71,7 +71,7 @@ const BAND_STYLE = {
     pill: "bg-amber-100 text-amber-800 border-amber-300",
     bar: "bg-amber-500",
     Icon: AlertTriangle,
-    label: "Missing evidence",
+    label: "Amber score band",
     headlineColor: "#d97706",
   },
   "amber-no-activity": {
@@ -80,7 +80,7 @@ const BAND_STYLE = {
     pill: "bg-slate-100 text-slate-700 border-slate-300",
     bar: "bg-slate-400",
     Icon: Hourglass,
-    label: "No activity 24h",
+    label: "Idle score band",
     headlineColor: "#475569",
   },
   red: {
@@ -89,10 +89,77 @@ const BAND_STYLE = {
     pill: "bg-rose-100 text-rose-800 border-rose-300",
     bar: "bg-rose-500",
     Icon: XCircle,
-    label: "Failing",
+    label: "Red score band",
     headlineColor: "#dc2626",
   },
 };
+
+function boundedHeadline(ots) {
+  const claim = ots?.permitted_claim || "UNKNOWN";
+  const evaluation = ots?.truth_evaluation || "UNVERIFIABLE";
+  const contradictions = ots?.contradictory_evidence || [];
+
+  if (evaluation === "UNVERIFIABLE" || claim === "UNKNOWN") {
+    return "Trust Spine owner truth is unavailable or incomplete, so this derived surface cannot advance a trust claim.";
+  }
+  if (contradictions.length > 0 || evaluation === "MISMATCH") {
+    return "Derived operational summary found contradictions. Follow Trust Spine owner truth and investigate the conflicts below.";
+  }
+  if (claim === "OBSERVED") {
+    return "Only observed operational conditions are supported right now. Stronger trust claims are intentionally blocked.";
+  }
+  if (claim === "CORRELATED") {
+    return "Operational score remains a derived summary. The bounded claim is correlated only and cannot exceed Trust Spine.";
+  }
+  return "Derived operational summary is available, but canonical truth remains bounded by Trust Spine ownership.";
+}
+
+function TruthDisclosure({ ots, scoreBandLabel, score, testidPrefix = "otc-truth-disclosure" }) {
+  if (!ots) return null;
+  const unknowns = ots.unknowns || [];
+  const contradictions = ots.contradictory_evidence || [];
+
+  return (
+    <div className="space-y-2" data-testid={`${testidPrefix}-wrapper`}>
+      <div
+        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
+        data-testid={`${testidPrefix}-score-vs-claim`}
+      >
+        <span className="font-semibold text-slate-900">Score vs claim:</span>{" "}
+        Score {score ?? 0} and {scoreBandLabel || "derived score band"} remain operator summaries. The canonical claim stays {ots.permitted_claim || "UNKNOWN"} and cannot exceed Trust Spine.
+      </div>
+      <div
+        className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
+        data-testid={testidPrefix}
+      >
+        <div className="break-words" data-testid={`${testidPrefix}-subject`}><span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-claim`}><span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-ceiling`}><span className="font-semibold text-slate-900">Claim ceiling:</span> {ots.claim_ceiling || "UNKNOWN"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-confidence`}><span className="font-semibold text-slate-900">Confidence:</span> {ots.evidence_confidence || "UNKNOWN"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-state`}><span className="font-semibold text-slate-900">Evidence state:</span> {ots.evidence_state || "unknown"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-quality`}><span className="font-semibold text-slate-900">Evidence quality:</span> {ots.evidence_quality || "UNKNOWN"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-basis`}><span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).join(" · ") || "—"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-audit`}><span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "—"}</div>
+      </div>
+      {unknowns.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900" data-testid={`${testidPrefix}-unknowns`}>
+          <div className="font-semibold">Unknowns / gaps</div>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {unknowns.map((item, index) => <li key={`${testidPrefix}-unknown-${index}`}>{item}</li>)}
+          </ul>
+        </div>
+      )}
+      {contradictions.length > 0 && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900" data-testid={`${testidPrefix}-contradictions`}>
+          <div className="font-semibold">Contradictions</div>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {contradictions.map((item, index) => <li key={`${testidPrefix}-contradiction-${index}`}>{item}</li>)}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Badge({ band, children }) {
   const cfg = BAND_STYLE[band] || BAND_STYLE.amber;
@@ -330,12 +397,11 @@ function OperatorActionPanel({ actions, totalEtaSeconds }) {
         <div className="flex items-center gap-2">
           <ShieldCheck size={16} className="text-emerald-700" />
           <h4 className="text-sm font-semibold text-emerald-900">
-            No operator action required
+            No immediate derived actions surfaced
           </h4>
         </div>
         <p className="text-xs text-emerald-800 mt-1">
-          Every operational subsystem is healthy and every monitored
-          workflow has fresh evidence.
+          The current scoring model did not surface action items. Trust Spine still remains the canonical owner for bounded trust claims.
         </p>
       </div>
     );
@@ -702,7 +768,14 @@ export default function OperationsTrustCenter() {
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 Workflow + routing + audit + master-data
-                continuous verification
+                derived operational summary
+              </p>
+              <p
+                className="text-sm text-slate-800 mt-2"
+                data-testid="otc-bounded-headline"
+              >
+                <span className="font-semibold text-slate-900">Bounded disclosure:</span>{" "}
+                {boundedHeadline(data.ots_truth || {})}
               </p>
               <p
                 className="text-sm text-slate-800 mt-2"
@@ -738,6 +811,10 @@ export default function OperationsTrustCenter() {
             checkedAt={summary.last_success_at || lastRun}
             testidPrefix="operations-trust-owner-panel"
           />
+        </div>
+
+        <div className="mt-4">
+          <TruthDisclosure ots={data.ots_truth || {}} scoreBandLabel={data.score_band_label} score={data.trust_score} />
         </div>
 
         {/* Why isn't this 100? */}

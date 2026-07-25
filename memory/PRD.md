@@ -714,3 +714,17 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - preserve derived-consumer role
   - preserve trust-spine ownership
   - tighten claim-boundary semantics in the candidate route and component only
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Checkpoint 8 Phase B
+- Implemented bounded OTS claim binding and semantic correction for the Operations Trust Center family only.
+- Runtime scope used exactly as approved:
+  - `/app/backend/routes/admin_operations_trust_center.py`
+  - `/app/frontend/src/components/OperationsTrustCenter.jsx`
+- Added additive canonical `ots_truth` and `compatibility` projection while preserving legacy route fields, scoring, routing, auth, trend, red-alert, and test-alert behavior.
+- Preserved repository-backed family identity:
+  - family role: `DERIVED_CONSUMER`
+  - truth subject: `shared_operational_trust_score`
+  - canonical owner: `trust_spine`
+- Corrected unsupported OTC runtime claim semantics by separating operational score from bounded canonical claim, making unknowns/contradictions first-class, and removing unconditional `Trusted` / verification-style wording inside the approved family.
+- Focused implementation artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT8_IMPLEMENTATION_RECORD.md`.
+- Verification is in progress for this checkpoint; Checkpoint 8 is **not** yet formally adopted or closed.

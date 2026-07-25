@@ -11168,9 +11168,9 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
 
 async def _run_backup_integrity_job(job_id: str, actor_email: str = "admin"):
     from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
-    from lib.trust_spine import emit_stage, new_correlation_id, STAGE_AUDIT_WRITTEN, STAGE_COMPLETED, STAGE_RECORD_CREATED  # noqa: PLC0415
+    from lib.trust_spine import emit_stage, STAGE_AUDIT_WRITTEN, STAGE_COMPLETED, STAGE_RECORD_CREATED  # noqa: PLC0415
     started = datetime.now(timezone.utc)
-    correlation_id = new_correlation_id()
+    correlation_id = f"backup-integrity:{job_id}"
     try:
         await db.backup_integrity_jobs.update_one(
             {"job_id": job_id},
