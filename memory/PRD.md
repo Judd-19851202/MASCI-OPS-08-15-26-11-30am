@@ -668,8 +668,13 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Independent verification passed on the final continuation state
 
 ### Final checkpoint disposition
-- **CHECKPOINT 6 VERIFIED — READY FOR FORMAL ADOPTION**
+- **CHECKPOINT 6 FORMALLY VERIFIED, ADOPTED, AND CLOSED**
 - Trust Spine family is now fully OTS-bound in the approved checkpoint scope:
   - backend owner route adopted: `/api/admin/trust-spine`
   - operator-facing dashboard adopted: `/admin/trust-spine`
 - Remaining Wave 3 families remain pending and unchanged
+
+### Formal adoption closeout
+- Formal adoption artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_FORMAL_ADOPTION.md`
+- Stop Rule history preserved in the final constitutional record
+- Repository-backed closure uses a documentation-only adoption head after the final independently reviewed implementation commit

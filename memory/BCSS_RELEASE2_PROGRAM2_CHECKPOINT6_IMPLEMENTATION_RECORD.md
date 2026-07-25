@@ -3,7 +3,7 @@
 
 Date: 2026-07-25
 
-Status: CHECKPOINT 6 VERIFIED — READY FOR FORMAL ADOPTION
+Status: CHECKPOINT 6 FORMALLY VERIFIED, ADOPTED, AND CLOSED
 
 Phase A discovery reference:
 - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_PHASEA_DISCOVERY.md`
@@ -145,8 +145,8 @@ Coverage note:
 
 ## SHA chain
 - initial Phase B implementation commit: `bbffc8d54bde2f89caa43e7d2b026e041eb1ffe3`
-- continuation final commit / final HEAD: `b7598abd28ba22fd9bcb5251e979edf31f41fd62`
-- parent of continuation final commit: `bbffc8d54bde2f89caa43e7d2b026e041eb1ffe3`
+- intermediate ready-for-adoption documentation commit preserved in chain: `b7598abd28ba22fd9bcb5251e979edf31f41fd62`
+- final independently reviewed implementation commit containing the mounted route continuation: `46d4d5668816da6dd1f9d3229dfd0565679e5f1c`
 
 ## Worktree status
 - clean at closeout (`git status --short` returned no entries)
@@ -159,4 +159,4 @@ Coverage note:
 - desktop / tablet / mobile smoke all passed
 - independent verification passed on final continuation state
 
-Checkpoint 6 is ready for formal adoption.
+Checkpoint 6 is formally adopted. See `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_FORMAL_ADOPTION.md`.
