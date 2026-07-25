@@ -106,6 +106,31 @@ export default function AdminRecovery() {
   const [backupTrust, setBackupTrust] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
+  const otsSurface = snap?.ots_truth?.truth_surface || {
+    surface_name: "Operational Truth Spine",
+    owner_endpoint: "/api/admin/recovery/snapshot",
+    owner_module: "backend/routes/recovery_dashboard.py",
+    canonical_owner_id: "bcss_recovery_posture",
+    surface_id: "bcss_recovery_posture",
+    role: "AGGREGATOR",
+    upstream_owner_ids: [
+      "bcss_backup_archive_lineage",
+      "bcss_backup_slot_execution",
+      "bcss_restore_drill_evidence",
+    ],
+  };
+  const otsRelationship = snap?.truth_relationship || {
+    role: "AGGREGATOR",
+    canonical_status: "UNVERIFIABLE",
+    derived_status: "UNVERIFIABLE",
+    derivation_explanation: loading
+      ? "Loading canonical recovery truth from Recovery Snapshot."
+      : "Canonical recovery truth is not currently available.",
+    canonical_owner_id: "bcss_recovery_posture",
+    evidence_age_source: loading ? "Pending" : "Unavailable",
+    conflicts: [],
+    has_conflict: false,
+  };
 
   const load = useCallback(async () => {
     try {
@@ -162,17 +187,18 @@ export default function AdminRecovery() {
           Failed to load snapshot: {err}
         </div>
       )}
-      {snap && (
+      {(snap || loading) && (
         <div className="space-y-4">
-          {snap.ots_truth && snap.truth_relationship ? (
-            <TruthOwnerPanel
-              title="Operational Truth Spine"
-              surface={snap.ots_truth.truth_surface}
-              relationship={snap.truth_relationship}
-              checkedAt={fmtTs(snap.ots_truth.evaluation_timestamp)}
-              testidPrefix="recovery-ots-truth-panel"
-            />
-          ) : null}
+          <TruthOwnerPanel
+            title="Operational Truth Spine"
+            surface={otsSurface}
+            relationship={otsRelationship}
+            checkedAt={snap?.ots_truth?.evaluation_timestamp ? fmtTs(snap.ots_truth.evaluation_timestamp) : (loading ? "Loading…" : "Unavailable")}
+            testidPrefix="recovery-ots-truth-panel"
+          />
+          <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
+            Truth subject=<span className="font-semibold">{snap?.ots_truth?.truth_subject || "bcss_recovery_posture"}</span> · permitted claim=<span className="font-semibold">{snap?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{snap?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · does not prove recovery certification.
+          </div>
           {(() => {
             const lineage = snap.archive_lineage || {};
             return (

@@ -457,6 +457,31 @@ export default function AdminStorageRecovery() {
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const otsSurface = recovery?.body?.ots_truth?.truth_surface || {
+    surface_name: "Operational Truth Spine",
+    owner_endpoint: "/api/admin/recovery/snapshot",
+    owner_module: "backend/routes/recovery_dashboard.py",
+    canonical_owner_id: "bcss_recovery_posture",
+    surface_id: "bcss_recovery_posture",
+    role: "AGGREGATOR",
+    upstream_owner_ids: [
+      "bcss_backup_archive_lineage",
+      "bcss_backup_slot_execution",
+      "bcss_restore_drill_evidence",
+    ],
+  };
+  const otsRelationship = recovery?.body?.truth_relationship || {
+    role: "AGGREGATOR",
+    canonical_status: "UNVERIFIABLE",
+    derived_status: "UNVERIFIABLE",
+    derivation_explanation: loading
+      ? "Loading canonical storage and recovery truth."
+      : "Storage and recovery truth is not currently available.",
+    canonical_owner_id: "bcss_recovery_posture",
+    evidence_age_source: loading ? "Pending" : "Unavailable",
+    conflicts: [],
+    has_conflict: false,
+  };
 
   const { card: drawerCard, open: drawerOpen, setOpen: setDrawerOpen, openWith } =
     useEvidenceDrawer();
@@ -570,20 +595,18 @@ export default function AdminStorageRecovery() {
           className="mb-6 rounded-lg border border-slate-200 bg-white p-4"
           data-testid="storage-recovery-verdict"
         >
-          {recovery?.body?.ots_truth && recovery?.body?.truth_relationship ? (
-            <div className="mb-4" data-testid="storage-recovery-ots-wrapper">
-              <TruthOwnerPanel
-                title="Operational Truth Spine"
-                surface={recovery.body.ots_truth.truth_surface}
-                relationship={recovery.body.truth_relationship}
-                checkedAt={recovery.body.ots_truth.evaluation_timestamp || recovery.body.computed_at}
-                testidPrefix="storage-recovery-ots-panel"
-              />
-              <div className="mt-2 text-xs text-slate-500" data-testid="storage-recovery-ots-disclosure">
-                Truth subject=<span className="font-semibold">{recovery.body.ots_truth.truth_subject}</span> · permitted claim=<span className="font-semibold">{recovery.body.ots_truth.permitted_claim}</span> · confidence=<span className="font-semibold">{recovery.body.ots_truth.evidence_confidence}</span> · does not prove recovery certification.
-              </div>
+          <div className="mb-4" data-testid="storage-recovery-ots-wrapper">
+            <TruthOwnerPanel
+              title="Operational Truth Spine"
+              surface={otsSurface}
+              relationship={otsRelationship}
+              checkedAt={recovery?.body?.ots_truth?.evaluation_timestamp || recovery?.body?.computed_at || (loading ? "Loading…" : "Unavailable")}
+              testidPrefix="storage-recovery-ots-panel"
+            />
+            <div className="mt-2 text-xs text-slate-500" data-testid="storage-recovery-ots-disclosure">
+              Truth subject=<span className="font-semibold">{recovery?.body?.ots_truth?.truth_subject || "bcss_recovery_posture"}</span> · permitted claim=<span className="font-semibold">{recovery?.body?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{recovery?.body?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · does not prove recovery certification.
             </div>
-          ) : null}
+          </div>
 
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-[220px]">

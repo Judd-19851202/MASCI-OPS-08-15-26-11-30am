@@ -22,6 +22,27 @@ const STATUS_CLS = {
 export default function DeployRecovery() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const otsSurface = data?.ots_truth?.truth_surface || {
+    surface_name: "Operational Truth Spine",
+    owner_endpoint: "/api/admin/deploy-recovery",
+    owner_module: "backend/routes/admin_ops.py",
+    canonical_owner_id: "bcss_runtime_state_authority",
+    surface_id: "bcss_runtime_state_authority",
+    role: "VALIDATOR",
+    upstream_owner_ids: [],
+  };
+  const otsRelationship = data?.truth_relationship || {
+    role: "VALIDATOR",
+    canonical_status: "UNVERIFIABLE",
+    derived_status: "UNVERIFIABLE",
+    derivation_explanation: loading
+      ? "Loading canonical deploy-recovery truth context."
+      : "Deploy-recovery truth context is not currently available.",
+    canonical_owner_id: "bcss_runtime_state_authority",
+    evidence_age_source: loading ? "Pending" : "Unavailable",
+    conflicts: [],
+    has_conflict: false,
+  };
 
   const load = async () => {
     setLoading(true);
@@ -62,20 +83,18 @@ export default function DeployRecovery() {
           </Button>
         </div>
 
-        {data?.ots_truth && data?.truth_relationship ? (
-          <div className="mb-4" data-testid="deploy-recovery-ots-wrapper">
-            <TruthOwnerPanel
-              title="Operational Truth Spine"
-              surface={data.ots_truth.truth_surface}
-              relationship={data.truth_relationship}
-              checkedAt={data.ots_truth.evaluation_timestamp || data?.checked_at}
-              testidPrefix="deploy-recovery-ots-panel"
-            />
-            <div className="mt-2 text-xs text-slate-500" data-testid="deploy-recovery-ots-disclosure">
-              Permitted claim=<span className="font-semibold">{data.ots_truth.permitted_claim}</span> · confidence=<span className="font-semibold">{data.ots_truth.evidence_confidence}</span> · this page does not prove recovery readiness or BCSS recovery certification.
-            </div>
+        <div className="mb-4" data-testid="deploy-recovery-ots-wrapper">
+          <TruthOwnerPanel
+            title="Operational Truth Spine"
+            surface={otsSurface}
+            relationship={otsRelationship}
+            checkedAt={data?.ots_truth?.evaluation_timestamp || data?.checked_at || (loading ? "Loading…" : "Unavailable")}
+            testidPrefix="deploy-recovery-ots-panel"
+          />
+          <div className="mt-2 text-xs text-slate-500" data-testid="deploy-recovery-ots-disclosure">
+            Permitted claim=<span className="font-semibold">{data?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{data?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · this page does not prove recovery readiness or BCSS recovery certification.
           </div>
-        ) : null}
+        </div>
 
         {/* Current state probe */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-4">
