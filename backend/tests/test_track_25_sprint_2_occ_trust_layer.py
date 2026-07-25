@@ -7,6 +7,9 @@ passthrough, fan-out) is covered by the frontend testing agent.
 """
 from __future__ import annotations
 
+from fastapi import APIRouter, FastAPI
+from fastapi.testclient import TestClient
+
 from routes.occ_health_aggregator import (
     CARDS,
     SECTIONS,
@@ -23,6 +26,7 @@ from routes.occ_health_aggregator import (
     _eval_sessions,
     _eval_version,
     _worst_status,
+    register_occ_health_routes,
 )
 
 
@@ -241,3 +245,39 @@ class TestWorstStatus:
 
     def test_unknown_wins_over_green(self):
         assert _worst_status([{"status": "green"}, {"status": "unknown"}]) == "UNVERIFIABLE"
+
+
+class _FakeResponse:
+    def __init__(self, body, status_code=200):
+        self._body = body
+        self.status_code = status_code
+
+    def json(self):
+        return self._body
+
+
+def test_aggregator_truth_relationship_points_to_canonical_owner_route(monkeypatch):
+    async def fake_get(self, url, headers=None):  # noqa: ARG001
+        if url.endswith("/api/health"):
+            return _FakeResponse({"ok": True, "service": "svc", "ts": NOW})
+        return _FakeResponse({})
+
+    monkeypatch.setattr("routes.occ_health_aggregator.httpx.AsyncClient.get", fake_get)
+
+    app = FastAPI()
+    api_router = APIRouter(prefix="/api")
+
+    def require_admin():
+        return {"role": "admin"}
+
+    register_occ_health_routes(api_router, require_admin)
+    app.include_router(api_router)
+
+    client = TestClient(app)
+    response = client.get("/api/admin/occ/health")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["truth_relationship"]["role"] == "AGGREGATOR"
+    assert body["truth_relationship"]["canonical_owner_id"] == "platform_attestation"
+    assert body["truth_relationship"]["canonical_owner_route"] == "/api/admin/platform/status"

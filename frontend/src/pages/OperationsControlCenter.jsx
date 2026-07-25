@@ -49,6 +49,7 @@ import {
   EvidenceSummary,
   HealthCard,
   TrustStatusPill,
+  TruthOwnerPanel,
   TRUST_STATUS_STYLES,
   sortCardsByAttention,
 } from "@/components/admin/trust/TrustPrimitives";
@@ -108,6 +109,132 @@ const STATUS_STYLES = {
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
   failed: "bg-rose-50 text-rose-800 border-rose-200",
 };
+
+const TRUST_CANONICAL_TO_UI = {
+  VERIFIED: "green",
+  DEGRADED: "yellow",
+  MISMATCH: "red",
+  UNVERIFIABLE: "unknown",
+  NOT_APPLICABLE: "unknown",
+  green: "green",
+  yellow: "yellow",
+  red: "red",
+  unknown: "unknown",
+};
+
+function normalizeTrustStatus(status) {
+  if (!status) return "unknown";
+  return (
+    TRUST_CANONICAL_TO_UI[String(status).toUpperCase()] ||
+    TRUST_CANONICAL_TO_UI[String(status).toLowerCase()] ||
+    "unknown"
+  );
+}
+
+function normalizeTrustCard(card) {
+  return {
+    ...card,
+    status: normalizeTrustStatus(card?.status || card?.canonical_status),
+    raw_status: card?.status || "UNKNOWN",
+    raw_canonical_status: card?.canonical_status || "UNKNOWN",
+  };
+}
+
+function deriveTrustCounts(snapshot) {
+  const canonical = snapshot?.canonical_counts;
+  if (canonical) {
+    return {
+      green: Number(canonical.verified || 0),
+      yellow: Number(canonical.degraded || 0),
+      red: Number(canonical.mismatch || 0),
+      unknown: Number(canonical.unverifiable || 0),
+      notApplicable: Number(canonical.not_applicable || 0),
+    };
+  }
+
+  const raw = snapshot?.counts || {};
+  return {
+    green: Number(raw.green || raw.VERIFIED || 0),
+    yellow: Number(raw.yellow || raw.DEGRADED || 0),
+    red: Number(raw.red || raw.MISMATCH || 0),
+    unknown: Number(raw.unknown || raw.UNVERIFIABLE || 0),
+    notApplicable: Number(raw.NOT_APPLICABLE || 0),
+  };
+}
+
+function TrustLayerBoundedDisclosure({ snapshot }) {
+  if (!snapshot?.truth_surface || !snapshot?.truth_relationship) return null;
+
+  const surface = snapshot.truth_surface || {};
+  const relationship = snapshot.truth_relationship || {};
+  const conflicts = relationship.conflicts || [];
+  const unknownCount = Number(snapshot?.canonical_counts?.unverifiable || 0);
+  const neutralCount = Number(snapshot?.canonical_counts?.not_applicable || 0);
+
+  return (
+    <div className="space-y-4" data-testid="trust-layer-bounded-wrapper">
+      <div
+        className="rounded-2xl border border-slate-200 bg-white p-4"
+        data-testid="trust-layer-bounded-disclosure"
+      >
+        <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+          Bounded aggregate disclosure
+        </div>
+        <p
+          className="mt-2 text-sm text-slate-800"
+          data-testid="trust-layer-bounded-summary"
+        >
+          This OCC health layer is an aggregator over shared operational posture.
+          Child source owners remain authoritative, and this surface stays read-only.
+        </p>
+        <div
+          className="mt-3 grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
+          data-testid="trust-layer-bounded-grid"
+        >
+          <div data-testid="trust-layer-bounded-role"><span className="font-semibold text-slate-900">Role:</span> {relationship.role || surface.role || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-subject"><span className="font-semibold text-slate-900">Truth subject:</span> {surface.truth_subject || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-owner"><span className="font-semibold text-slate-900">Canonical owner:</span> {relationship.canonical_owner_id || surface.canonical_owner_id || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-owner-route"><span className="font-semibold text-slate-900">Canonical owner route:</span> {relationship.canonical_owner_route || "—"}</div>
+          <div data-testid="trust-layer-bounded-unknowns"><span className="font-semibold text-slate-900">Unverifiable cards:</span> {unknownCount}</div>
+          <div data-testid="trust-layer-bounded-neutral"><span className="font-semibold text-slate-900">Neutral / not applicable:</span> {neutralCount}</div>
+          <div data-testid="trust-layer-bounded-canonical"><span className="font-semibold text-slate-900">Canonical status:</span> {relationship.canonical_status || snapshot.overall_canonical || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-derived"><span className="font-semibold text-slate-900">Displayed aggregate:</span> {relationship.derived_status || snapshot.overall_status || "UNKNOWN"}</div>
+        </div>
+        <div
+          className={`mt-3 rounded-xl border p-3 text-xs ${
+            conflicts.length
+              ? "border-rose-200 bg-rose-50 text-rose-900"
+              : "border-emerald-200 bg-emerald-50 text-emerald-900"
+          }`}
+          data-testid="trust-layer-bounded-conflicts"
+        >
+          {conflicts.length ? (
+            <>
+              <div className="font-semibold">Aggregate contradictions</div>
+              <ul className="mt-1 list-disc space-y-1 pl-4">
+                {conflicts.map((conflict, index) => (
+                  <li key={`trust-layer-conflict-${index}`}>{conflict}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <div>
+              <span className="font-semibold">Conflict state:</span> No aggregate contradiction reported. Unknown or missing evidence still remains disclosed card-by-card.
+            </div>
+          )}
+        </div>
+      </div>
+
+      <TruthOwnerPanel
+        title="Aggregator truth relationship"
+        surface={surface}
+        relationship={relationship}
+        checkedAt={snapshot?.generated_at || "—"}
+        testidPrefix="trust-layer-owner-panel"
+      />
+    </div>
+  );
+}
 
 function adminToken() {
   try {
@@ -171,8 +298,17 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
     setDrawerOpen(true);
   }, []);
 
-  const filteredSections = useMemo(() => {
+  const normalizedSections = useMemo(() => {
     const list = snapshot?.sections || [];
+    return list.map((sec) => ({
+      ...sec,
+      status: normalizeTrustStatus(sec.status),
+      cards: (sec.cards || []).map(normalizeTrustCard),
+    }));
+  }, [snapshot]);
+
+  const filteredSections = useMemo(() => {
+    const list = normalizedSections || [];
     return list.map((sec) => {
       const q = query.trim().toLowerCase();
       const filtered = sortCardsByAttention(sec.cards).filter((c) => {
@@ -186,15 +322,17 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
       });
       return { ...sec, cards: filtered };
     });
-  }, [snapshot, statusFilter, query]);
+  }, [normalizedSections, statusFilter, query]);
 
   const attentionCards = useMemo(() => {
-    const all = (snapshot?.sections || []).flatMap((s) => s.cards);
+    const all = normalizedSections.flatMap((s) => s.cards);
     return sortCardsByAttention(all).filter((c) => c.status === "red").slice(0, 4);
-  }, [snapshot]);
+  }, [normalizedSections]);
 
-  const counts = snapshot?.counts || { green: 0, yellow: 0, red: 0, unknown: 0 };
-  const overall = snapshot?.overall_status || (loading ? "unknown" : "unknown");
+  const counts = deriveTrustCounts(snapshot);
+  const overall = snapshot
+    ? normalizeTrustStatus(snapshot?.overall_status || snapshot?.overall_canonical)
+    : "unknown";
 
   return (
     <section
@@ -219,6 +357,8 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
                 ? "One or more operational systems need attention."
                 : overall === "green"
                 ? "All wired operational systems report healthy."
+                : snapshot
+                ? "Operational posture is currently bounded by missing or unverifiable evidence."
                 : "Trust snapshot unavailable — press Refresh."}
             </span>
           </div>
@@ -240,6 +380,12 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
             <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Unknown</div>
             <div className="font-black text-slate-600 text-xl leading-none">{counts.unknown || 0}</div>
           </div>
+          {counts.notApplicable > 0 ? (
+            <div data-testid="trust-layer-count-neutral">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Neutral</div>
+              <div className="font-black text-slate-600 text-xl leading-none">{counts.notApplicable || 0}</div>
+            </div>
+          ) : null}
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Last refreshed</div>
             <div
@@ -270,6 +416,8 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
           {error}
         </div>
       ) : null}
+
+      {snapshot ? <TrustLayerBoundedDisclosure snapshot={snapshot} /> : null}
 
       {/* ── Attention-first strip (top RED items) ─────────── */}
       {attentionCards.length > 0 && (
@@ -339,7 +487,7 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
               </div>
               <TrustStatusPill status={sec.status} testid={`trust-section-${sec.id}-status`} />
               <div className="text-[10px] font-mono text-slate-400">
-                {sec.cards.length}/{(snapshot?.sections?.find((x) => x.id === sec.id)?.cards?.length) || 0} card(s)
+                {sec.cards.length}/{(normalizedSections.find((x) => x.id === sec.id)?.cards?.length) || 0} card(s)
               </div>
             </div>
             {sec.cards.length === 0 ? (

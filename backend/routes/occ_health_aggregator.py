@@ -743,14 +743,22 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
             if rcid:
                 root_cause_groups.setdefault(rcid, []).append(r["id"])
 
+        truth_surface = canonical_truth_surface("occ_health_aggregator")
+        canonical_owner_surface = canonical_truth_surface(
+            truth_surface.get("canonical_owner_id")
+        ) if truth_surface.get("canonical_owner_id") else None
+
         return {
             "generated_at": now_iso,
             "overall_status": overall,
             "overall_canonical": canonical_summary["highest"],
-            "truth_surface": canonical_truth_surface("occ_health_aggregator"),
+            "truth_surface": truth_surface,
             "truth_relationship": derived_truth_payload(
                 "occ_health_aggregator",
-                canonical_owner_route="/api/admin/occ/health",
+                canonical_owner_route=(
+                    (canonical_owner_surface or {}).get("owner_endpoint")
+                    or truth_surface.get("owner_endpoint")
+                ),
                 derivation_explanation="OCC health is a derived aggregator over fresh child probes; upstream canonical owners remain authoritative for their own subjects.",
                 canonical_status=canonical_summary["highest"],
                 derived_status=overall,
