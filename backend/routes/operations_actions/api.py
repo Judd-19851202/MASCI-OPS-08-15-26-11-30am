@@ -1,11 +1,14 @@
 """OA-1 · Operations Actions API surface.
 
-Cross-portal CRUD-only operational coordination layer. All endpoints
-gate on `_require_oa_actor`, which accepts ANY real portal token
-(Admin · Safety · HR · Dispatch · PM · Shop · Field-Leadership).
-Anonymous = 401. No portal-level write asymmetry in OA-1 by design —
-the constitution says any operator who sees the action can also act
-on it.
+Cross-portal CRUD-only operational coordination layer. Canonical auth
+contract for every request:
+
+  1. One valid portal token for the acting portal
+  2. The bound `X-Directory-Token` for the same logical session
+
+Anonymous or token-only calls = 401. No portal-level write asymmetry in
+OA-1 by design — the constitution says any operator who sees the action
+can also act on it.
 
 Endpoints (all under `/api/operations-actions`):
 
@@ -27,6 +30,8 @@ The 6 approved statuses are the ONLY values accepted:
 """
 from __future__ import annotations
 
+import asyncio
+
 from lib.mongo_query import safe_regex
 import logging
 import uuid
@@ -38,6 +43,7 @@ from pydantic import BaseModel, Field
 from pymongo import ReturnDocument
 
 logger = logging.getLogger(__name__)
+OA_TRUST_WORKFLOW = "operations-action"
 
 # ── Constants ────────────────────────────────────────────────────────
 APPROVED_STATUSES = ["open", "assigned", "in_progress", "waiting", "completed", "closed"]
@@ -159,7 +165,33 @@ def _actor_to_owner(actor: Dict[str, Any]) -> Dict[str, Any]:
 def _clean_oa(doc: Dict[str, Any]) -> Dict[str, Any]:
     """Strip Mongo internals before returning to API caller."""
     doc.pop("_id", None)
+    doc.pop("_trust_cid", None)
     return doc
+
+
+def _list_projection() -> Dict[str, int]:
+    return {
+        "_id": 0,
+        "id": 1,
+        "oa_number": 1,
+        "title": 1,
+        "category": 1,
+        "priority": 1,
+        "status": 1,
+        "job_number": 1,
+        "location": 1,
+        "current_owner": 1,
+        "created_at": 1,
+    }
+
+
+def _owner_key(owner: Optional[Dict[str, Any]]) -> tuple:
+    owner = owner or {}
+    return (
+        owner.get("directory") or "",
+        owner.get("id") or "",
+        owner.get("email") or "",
+    )
 
 
 def _detect_content_type(data: bytes, declared: Optional[str]) -> str:
@@ -191,18 +223,20 @@ async def _owner_search(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
     name_or_email = {"$or": [{"name": rx}, {"email": rx}]}
 
     async def _scan(coll, directory, projection):
+        rows: List[Dict[str, Any]] = []
         cursor = db[coll].find(
             {"$and": [name_or_email, {"$or": [{"is_active": True}, {"is_active": {"$exists": False}}]}]},
             projection,
         ).limit(limit)
         async for r in cursor:
-            out.append({
+            rows.append({
                 "directory": directory,
                 "id": r.get("id") or r.get("pm_id") or r.get("user_id") or "",
                 "name": r.get("name") or r.get("display_name") or "",
                 "email": r.get("email") or "",
                 "role": r.get("role") or r.get("title") or "",
             })
+        return rows
 
     # user_directory (admins + multi-portal accounts) — schema sometimes uses name OR display_name
     cursor = db.user_directory.find(
@@ -221,18 +255,22 @@ async def _owner_search(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
             "role": r.get("role") or "",
         })
 
-    await _scan("project_managers", "project_managers",
-                {"_id": 0, "id": 1, "pm_id": 1, "name": 1, "email": 1, "role": 1})
-    await _scan("dispatch_users", "dispatch_users",
-                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1})
-    await _scan("hr_users", "hr_users",
-                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1})
-    await _scan("safety_users", "safety_users",
-                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1})
-    await _scan("field_leadership_users", "field_leadership_users",
-                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1})
-    await _scan("shop_users", "shop_users",
-                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1})
+    batches = await asyncio.gather(
+        _scan("project_managers", "project_managers",
+              {"_id": 0, "id": 1, "pm_id": 1, "name": 1, "email": 1, "role": 1}),
+        _scan("dispatch_users", "dispatch_users",
+              {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}),
+        _scan("hr_users", "hr_users",
+              {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}),
+        _scan("safety_users", "safety_users",
+              {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}),
+        _scan("field_leadership_users", "field_leadership_users",
+              {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}),
+        _scan("shop_users", "shop_users",
+              {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}),
+    )
+    for batch in batches:
+        out.extend(batch)
 
     # Dedupe by directory+id, return top `limit`
     seen = set()
@@ -249,8 +287,16 @@ async def _owner_search(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
 
 
 # ── History (audit trail · append-only) ──────────────────────────────
-def _history_entry(kind: str, actor: Dict[str, Any], before=None, after=None) -> Dict[str, Any]:
-    return {
+def _history_entry(
+    kind: str,
+    actor: Dict[str, Any],
+    before=None,
+    after=None,
+    *,
+    reason: Optional[str] = None,
+    context: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    entry = {
         "id": uuid.uuid4().hex,
         "kind": kind,
         "actor": _actor_to_owner(actor),
@@ -258,10 +304,102 @@ def _history_entry(kind: str, actor: Dict[str, Any], before=None, after=None) ->
         "after": after,
         "at": _now_iso(),
     }
+    if reason:
+        entry["reason"] = reason[:400]
+    if context:
+        entry["context"] = context
+    return entry
+
+
+async def _emit_trust_mutation(
+    db,
+    *,
+    record: Dict[str, Any],
+    module: str,
+    validation_reason: str,
+    routed_to_owner: bool = False,
+    notification_attempted: bool = False,
+    notification_id: Optional[str] = None,
+) -> None:
+    try:
+        from lib.trust_spine import (  # noqa: PLC0415
+            STAGE_AUDIT_WRITTEN,
+            STAGE_COMPLETED,
+            STAGE_DASHBOARD_UPDATED,
+            STAGE_NOTIFICATION_QUEUED,
+            STAGE_RECIPIENTS_BUILT,
+            STAGE_ROUTING_RESOLVED,
+            STAGE_VALIDATION_COMPLETE,
+            emit_workflow_stage,
+        )
+
+        await emit_workflow_stage(
+            db,
+            workflow=OA_TRUST_WORKFLOW,
+            stage=STAGE_VALIDATION_COMPLETE,
+            record=record,
+            module=module,
+            status="ok",
+            remediation=validation_reason[:240],
+        )
+        if routed_to_owner:
+            await emit_workflow_stage(
+                db,
+                workflow=OA_TRUST_WORKFLOW,
+                stage=STAGE_ROUTING_RESOLVED,
+                record=record,
+                module=module,
+                status="ok",
+            )
+        if notification_attempted:
+            await emit_workflow_stage(
+                db,
+                workflow=OA_TRUST_WORKFLOW,
+                stage=STAGE_RECIPIENTS_BUILT,
+                record=record,
+                module=module,
+                status="ok",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow=OA_TRUST_WORKFLOW,
+                stage=STAGE_NOTIFICATION_QUEUED,
+                record=record,
+                module=module,
+                status="ok" if notification_id else "failed",
+                failure_reason=None if notification_id else "notification fanout failed or returned no id",
+                remediation=None if notification_id else "Inspect notification_service fanout logs and recipient routing.",
+            )
+        await emit_workflow_stage(
+            db,
+            workflow=OA_TRUST_WORKFLOW,
+            stage=STAGE_AUDIT_WRITTEN,
+            record=record,
+            module=module,
+            status="ok",
+        )
+        await emit_workflow_stage(
+            db,
+            workflow=OA_TRUST_WORKFLOW,
+            stage=STAGE_DASHBOARD_UPDATED,
+            record=record,
+            module=module,
+            status="ok",
+        )
+        await emit_workflow_stage(
+            db,
+            workflow=OA_TRUST_WORKFLOW,
+            stage=STAGE_COMPLETED,
+            record=record,
+            module=module,
+            status="ok",
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 # ── Notification (in-app only, via existing notifications collection) ─
-async def _notify_assignment(db, oa: Dict[str, Any]):
+async def _notify_assignment(db, oa: Dict[str, Any]) -> Optional[str]:
     """Best-effort in-app notification when an OA is assigned.
 
     TRACK 15.28C — rewritten to use canonical `emit_notification`
@@ -271,7 +409,7 @@ async def _notify_assignment(db, oa: Dict[str, Any]):
     Never raises — assignment must succeed even if notify fails."""
     owner = oa.get("current_owner") or {}
     if not owner.get("id"):
-        return
+        return None
     try:
         from lib.event_fanout import emit_notification  # noqa: PLC0415
         oa_id = oa.get("id")
@@ -285,10 +423,10 @@ async def _notify_assignment(db, oa: Dict[str, Any]):
             "shop_users": "shop",
             "dispatch_users": "dispatch",
             "field_leadership_users": "fl",
-            "users": "admin",
+            "user_directory": "admin",
         }
         recipient_role = role_map.get(owner_directory, "admin")
-        await emit_notification(db, {
+        return await emit_notification(db, {
             "type": "oa_assignment",
             "title": f"Action assigned: {oa.get('title', '')}",
             "message": f"{oa.get('oa_number', '')} · {oa.get('category', '')} · {oa.get('priority', '')}",
@@ -301,6 +439,7 @@ async def _notify_assignment(db, oa: Dict[str, Any]):
         })
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[oa-1] in-app notify failed: {e}")
+        return None
 
 
 # ── Route registration ───────────────────────────────────────────────
@@ -326,21 +465,30 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
         except Exception:
             pass
 
-        pipeline = [
-            {"$match": {"deleted_at": None}},
-            {"$group": {"_id": "$status", "n": {"$sum": 1}}},
-        ]
-        async for row in db.operations_actions.aggregate(pipeline):
-            counts[row["_id"]] = row["n"]
-
-        # "Assigned to me, still open-ish"
-        if owner_dir and owner_id:
-            mine_open = await db.operations_actions.count_documents({
-                "deleted_at": None,
-                "current_owner.directory": owner_dir,
-                "current_owner.id": owner_id,
-                "status": {"$in": ["assigned", "in_progress", "waiting"]},
-            })
+        pipeline = [{"$match": {"deleted_at": None}}]
+        pipeline.append(
+            {
+                "$facet": {
+                    "counts": [{"$group": {"_id": "$status", "n": {"$sum": 1}}}],
+                    "mine_open": (
+                        [{
+                            "$match": {
+                                "current_owner.directory": owner_dir,
+                                "current_owner.id": owner_id,
+                                "status": {"$in": ["assigned", "in_progress", "waiting"]},
+                            }
+                        }, {"$count": "n"}]
+                        if owner_dir and owner_id else []
+                    ),
+                }
+            }
+        )
+        agg = await db.operations_actions.aggregate(pipeline).to_list(length=1)
+        facets = agg[0] if agg else {}
+        for row in facets.get("counts") or []:
+            counts[row.get("_id") or ""] = row.get("n") or 0
+        mine_rows = facets.get("mine_open") or []
+        mine_open = int((mine_rows[0] or {}).get("n") or 0) if mine_rows else 0
 
         total_open = counts["open"] + counts["assigned"] + counts["in_progress"] + counts["waiting"]
         return {
@@ -388,18 +536,31 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             match["current_owner.directory"] = o["directory"]
             match["current_owner.id"] = o["id"]
 
-        total = await db.operations_actions.count_documents(match)
-        rows: List[Dict[str, Any]] = []
-        async for d in db.operations_actions.find(
-            match,
-            {"_id": 0, "history": 0},
-        ).sort("created_at", -1).skip(skip).limit(limit):
-            rows.append(d)
-
+        pipeline = [
+            {"$match": match},
+            {
+                "$facet": {
+                    "meta": [{"$count": "total"}],
+                    "actions": [
+                        {"$sort": {"created_at": -1}},
+                        {"$skip": skip},
+                        {"$limit": limit},
+                        {"$project": _list_projection()},
+                    ],
+                }
+            },
+        ]
+        agg = await db.operations_actions.aggregate(pipeline).to_list(length=1)
+        facets = agg[0] if agg else {}
+        rows = facets.get("actions") or []
+        meta = facets.get("meta") or []
+        total = int((meta[0] or {}).get("total") or 0) if meta else 0
         return {"count": len(rows), "total": total, "actions": rows}
 
     @router.post("/operations-actions")
     async def create_action(payload: CreatePayload, actor: Any = Depends(require_actor)):
+        from lib.trust_spine import emit_record_created  # noqa: PLC0415
+
         _validate_enum(payload.category, APPROVED_CATEGORIES, "category")
         _validate_enum(payload.priority, APPROVED_PRIORITIES, "priority")
 
@@ -429,7 +590,12 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             "closed_at": None,
             "photos": [],
             "notes": [],
-            "history": [_history_entry("created", actor, after={"status": "assigned" if owner else "open"})],
+            "history": [_history_entry(
+                "created",
+                actor,
+                after={"status": "assigned" if owner else "open"},
+                context={"command": "create_action", "owner_assigned": bool(owner)},
+            )],
             "links": {
                 "maintainx_ref": None, "fleetwatcher_ref": None, "motive_ref": None,
                 "daily_report_id": None, "excavation_id": None, "safety_meeting_id": None,
@@ -437,10 +603,26 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             },
             "deleted_at": None,
         }
+        await emit_record_created(
+            db,
+            workflow=OA_TRUST_WORKFLOW,
+            record=oa,
+            module="operations_actions.create",
+        )
 
         await db.operations_actions.insert_one(oa)
+        notification_id = None
         if owner:
-            await _notify_assignment(db, oa)
+            notification_id = await _notify_assignment(db, oa)
+        await _emit_trust_mutation(
+            db,
+            record=oa,
+            module="operations_actions.create",
+            validation_reason="create payload accepted and persisted",
+            routed_to_owner=bool(owner),
+            notification_attempted=bool(owner),
+            notification_id=notification_id,
+        )
         return _clean_oa(oa)
 
     @router.get("/operations-actions/{oa_id}")
@@ -477,12 +659,24 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             return _clean_oa(doc)
 
         updates["last_updated_at"] = _now_iso()
-        await db.operations_actions.update_one(
+        new_doc = await db.operations_actions.find_one_and_update(
             {"id": oa_id},
             {"$set": updates,
-             "$push": {"history": _history_entry("updated", actor, before=None, after=diffs)}},
+             "$push": {"history": _history_entry(
+                 "updated",
+                 actor,
+                 before=None,
+                 after=diffs,
+                 context={"command": "update_action", "changed_fields": sorted(diffs.keys())},
+             )}},
+            return_document=ReturnDocument.AFTER,
         )
-        new_doc = await db.operations_actions.find_one({"id": oa_id})
+        await _emit_trust_mutation(
+            db,
+            record=new_doc,
+            module="operations_actions.update",
+            validation_reason="field update accepted and persisted",
+        )
         return _clean_oa(new_doc)
 
     @router.post("/operations-actions/{oa_id}/assign")
@@ -495,9 +689,11 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             raise HTTPException(409, "Closed actions cannot be reassigned")
 
         owner = payload.owner.model_dump()
+        if _owner_key(doc.get("current_owner")) == _owner_key(owner) and doc.get("status") != "open":
+            return _clean_oa(doc)
         now = _now_iso()
         new_status = "assigned" if doc.get("status") == "open" else doc.get("status")
-        await db.operations_actions.update_one(
+        new_doc = await db.operations_actions.find_one_and_update(
             {"id": oa_id},
             {"$set": {
                 "current_owner": owner,
@@ -505,12 +701,25 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
                 "last_updated_at": now,
                 "status": new_status,
              },
-             "$push": {"history": _history_entry("assigned", actor,
-                                                 before={"owner": doc.get("current_owner")},
-                                                 after={"owner": owner})}},
+             "$push": {"history": _history_entry(
+                 "assigned",
+                 actor,
+                 before={"owner": doc.get("current_owner")},
+                 after={"owner": owner, "status": new_status},
+                 context={"command": "assign_action"},
+             )}},
+            return_document=ReturnDocument.AFTER,
         )
-        new_doc = await db.operations_actions.find_one({"id": oa_id})
-        await _notify_assignment(db, new_doc)
+        notification_id = await _notify_assignment(db, new_doc)
+        await _emit_trust_mutation(
+            db,
+            record=new_doc,
+            module="operations_actions.assign",
+            validation_reason="owner assignment accepted and persisted",
+            routed_to_owner=True,
+            notification_attempted=True,
+            notification_id=notification_id,
+        )
         return _clean_oa(new_doc)
 
     @router.post("/operations-actions/{oa_id}/status")
@@ -549,11 +758,17 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
                 "created_at": now,
             }
 
-        await db.operations_actions.update_one(
+        new_doc = await db.operations_actions.find_one_and_update(
             {"id": oa_id},
             {"$set": updates, "$push": push_ops},
+            return_document=ReturnDocument.AFTER,
         )
-        new_doc = await db.operations_actions.find_one({"id": oa_id})
+        await _emit_trust_mutation(
+            db,
+            record=new_doc,
+            module="operations_actions.status",
+            validation_reason=f"status transition persisted: {prev} -> {payload.status}",
+        )
         return _clean_oa(new_doc)
 
     @router.post("/operations-actions/{oa_id}/notes")
@@ -568,11 +783,24 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             "body_en": payload.body_en.strip()[:4000],
             "created_at": _now_iso(),
         }
-        await db.operations_actions.update_one(
+        new_doc = await db.operations_actions.find_one_and_update(
             {"id": oa_id},
             {"$set": {"last_updated_at": _now_iso()},
              "$push": {"notes": note,
-                       "history": _history_entry("note_added", actor, after={"note_id": note["id"]})}},
+                       "history": _history_entry(
+                           "note_added",
+                           actor,
+                           after={"note_id": note["id"]},
+                           reason=note["body_en"][:120],
+                           context={"command": "add_note"},
+                       )}},
+            return_document=ReturnDocument.AFTER,
+        )
+        await _emit_trust_mutation(
+            db,
+            record=new_doc,
+            module="operations_actions.note",
+            validation_reason="note append persisted",
         )
         return note
 
@@ -586,7 +814,7 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
         if not doc:
             raise HTTPException(404, "Operations Action not found")
 
-        data = await file.read()
+        data = await file.read(MAX_PHOTO_BYTES + 1)
         if len(data) > MAX_PHOTO_BYTES:
             raise HTTPException(413, f"Photo exceeds {MAX_PHOTO_BYTES // (1024*1024)} MB cap")
         content_type = _detect_content_type(data, file.content_type)
@@ -617,11 +845,31 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             "uploaded_at": _now_iso(),
             "uploaded_by": _actor_to_owner(actor),
         }
-        await db.operations_actions.update_one(
-            {"id": oa_id},
-            {"$set": {"last_updated_at": _now_iso()},
-             "$push": {"photos": photo,
-                       "history": _history_entry("photo_added", actor, after={"photo_id": photo["id"]})}},
+        try:
+            new_doc = await db.operations_actions.find_one_and_update(
+                {"id": oa_id},
+                {"$set": {"last_updated_at": _now_iso()},
+                 "$push": {"photos": photo,
+                           "history": _history_entry(
+                               "photo_added",
+                               actor,
+                               after={"photo_id": photo["id"]},
+                               context={"command": "upload_photo", "content_type": content_type, "size": len(data)},
+                           )}},
+                return_document=ReturnDocument.AFTER,
+            )
+        except Exception:
+            try:
+                from photo_storage import delete_photo as _r2_delete  # noqa: PLC0415
+                await _r2_delete(ref)
+            except Exception as cleanup_error:  # noqa: BLE001
+                logger.warning(f"[oa-1] photo rollback cleanup failed: {cleanup_error}")
+            raise
+        await _emit_trust_mutation(
+            db,
+            record=new_doc,
+            module="operations_actions.photo_upload",
+            validation_reason="photo uploaded and metadata persisted",
         )
         return photo
 
@@ -652,19 +900,29 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
         if not photo:
             raise HTTPException(404, "Photo not found")
 
+        new_doc = await db.operations_actions.find_one_and_update(
+            {"id": oa_id},
+            {"$set": {"last_updated_at": _now_iso()},
+             "$pull": {"photos": {"id": photo_id}},
+             "$push": {"history": _history_entry(
+                 "photo_deleted",
+                 actor,
+                 after={"photo_id": photo_id},
+                 context={"command": "delete_photo", "r2_ref": photo.get("r2_ref")},
+             )}},
+            return_document=ReturnDocument.AFTER,
+        )
+        await _emit_trust_mutation(
+            db,
+            record=new_doc,
+            module="operations_actions.photo_delete",
+            validation_reason="photo reference deleted from canonical record",
+        )
         try:
             from photo_storage import delete_photo as _r2_delete  # noqa: PLC0415
             await _r2_delete(photo["r2_ref"])
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[oa-1] R2 delete best-effort failure: {e}")
-
-        await db.operations_actions.update_one(
-            {"id": oa_id},
-            {"$set": {"last_updated_at": _now_iso()},
-             "$pull": {"photos": {"id": photo_id}},
-             "$push": {"history": _history_entry("photo_deleted", actor,
-                                                 after={"photo_id": photo_id})}},
-        )
         return {"ok": True}
 
 

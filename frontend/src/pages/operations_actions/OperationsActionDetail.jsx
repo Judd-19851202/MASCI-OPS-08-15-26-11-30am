@@ -18,7 +18,8 @@ import OwnerPicker from "@/components/oa/OwnerPicker";
 import PhotoUploader from "@/components/oa/PhotoUploader";
 import HistoryFeed from "@/components/oa/HistoryFeed";
 import {
-  oaApi, CATEGORIES, CATEGORY_LABEL, PRIORITIES, PRIORITY_LABEL,
+  inferOperationsActionsPortalFromPath,
+  oaApi, setOperationsActionsPortalScope, CATEGORIES, CATEGORY_LABEL, PRIORITIES, PRIORITY_LABEL,
   STATUSES, STATUS_LABEL, PRIORITY_TONE,
 } from "@/lib/oa";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
@@ -38,6 +39,10 @@ export default function OperationsActionDetail() {
   const [noteText, setNoteText] = useState("");
   const [showAssign, setShowAssign] = useState(false);
   const [newOwner, setNewOwner] = useState(null);
+
+  useEffect(() => {
+    setOperationsActionsPortalScope(inferOperationsActionsPortalFromPath(document.referrer || window.location.pathname));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true); setErr("");

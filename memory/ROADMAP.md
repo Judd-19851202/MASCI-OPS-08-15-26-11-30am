@@ -11,7 +11,8 @@ Repository-backed Wave 3 family structure:
 
 - Wave 3 Family 3B — Operations Actions
   - repository owner: `/app/backend/routes/operations_actions/api.py`
-  - status: future discovery track only
+  - status: Phase B implementation in progress / bounded to Family 3B only
+  - canonical auth contract: one acting portal token + bound `X-Directory-Token`
 
 - Wave 3 Family 3C — Operational Events
   - repository owner: `/app/backend/routes/operational_events.py`

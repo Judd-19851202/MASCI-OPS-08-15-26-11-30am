@@ -861,3 +861,29 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Locked roadmap
 - Complete Wave 3 families → Wave 3 Formal Closeout → Platform Survivability Program → Production Readiness Review → Wave 1 Deployment
 - Platform Survivability Program remains the absolute pre-PRR and pre-deployment gate.
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Wave 3 / Family 3B Phase B
+- Authorized family remains bounded to Operations Actions only.
+- Canonical owner remains `/app/backend/routes/operations_actions/api.py` with route-gate support in `_require_oa_actor` and direct consumers under `/frontend/src/pages/operations_actions` plus `/frontend/src/components/oa`.
+- Canonical Family 3B authentication contract recorded:
+  - exactly one acting portal token
+  - plus the bound `X-Directory-Token`
+  - enforced server-side for Family 3B
+  - used consistently by the dedicated Family 3B frontend client `/frontend/src/lib/oa.js`
+- Family 3B trust / audit contract recorded:
+  - canonical persistence before notification fanout
+  - append-only in-record history on every mutation
+  - bounded Trust Spine lifecycle emission under workflow `operations-action`
+- Family 3B performance ownership recorded:
+  - summary aggregation
+  - list query shape + payload size
+  - owner-search fan-out strategy
+  - mutation duplicate-query reduction
+  - photo metadata persistence ordering
+
+### Family 3B bounded repair goals
+- unify auth contract across runtime, consumers, tests, and docs
+- preserve mutation ownership inside `operations_actions`
+- preserve adjacent-family boundaries
+- improve Family 3B-owned latency without touching other families
+- preserve notification best-effort semantics without implying success before canonical persistence

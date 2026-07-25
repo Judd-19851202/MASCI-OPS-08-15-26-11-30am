@@ -1,29 +1,147 @@
-// OA-1 · API client wrapper. Pure delegation to the global `api`
-// axios instance which already attaches every portal token header.
-import { api } from "@/lib/api";
+import axios from "axios";
+import { getAdminToken } from "@/lib/adminAuth";
+import { getPmToken } from "@/lib/pmAuth";
+import { getHrToken } from "@/lib/hrAuth";
+import { getShopToken } from "@/lib/shopAuth";
+import { getSafetyToken } from "@/lib/safetyAuth";
+import { getDispatchToken } from "@/lib/dispatchAuth";
+import { getFlToken } from "@/lib/flAuth";
+import { getDirectoryToken } from "@/lib/directoryAuth";
+import { getPortalContext } from "@/lib/portalContext";
 
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BASE = "/operations-actions";
+const OA_SCOPE_KEY = "masci.oa.portal-scope";
+
+const OA_PORTAL_HEADER_MAP = {
+  admin: "X-Admin-Token",
+  pm: "X-PM-Token",
+  hr: "X-HR-Token",
+  safety: "X-Safety-Token",
+  shop: "X-Shop-Token",
+  dispatch: "X-Dispatch-Token",
+  fl: "X-FL-Token",
+};
+
+const OA_PORTAL_TOKEN_READERS = {
+  admin: getAdminToken,
+  pm: getPmToken,
+  hr: getHrToken,
+  safety: getSafetyToken,
+  shop: getShopToken,
+  dispatch: getDispatchToken,
+  fl: getFlToken,
+};
+
+const OA_FALLBACK_ORDER = ["admin", "pm", "dispatch", "safety", "shop", "hr", "fl"];
+
+function normalizePortalScope(value) {
+  const v = String(value || "").trim().toLowerCase();
+  if (v === "field-leadership" || v === "field_leadership") return "fl";
+  return OA_PORTAL_HEADER_MAP[v] ? v : "";
+}
+
+export function inferOperationsActionsPortalFromPath(pathname = "") {
+  const path = String(pathname || "");
+  if (path === "/admin" || path.startsWith("/admin/")) return "admin";
+  if (path === "/pm" || path.startsWith("/pm/")) return "pm";
+  if (path === "/hr" || path.startsWith("/hr/")) return "hr";
+  if (path === "/safety" || path.startsWith("/safety/") || path === "/safety-portal" || path.startsWith("/safety-portal/")) return "safety";
+  if (path === "/shop" || path.startsWith("/shop/")) return "shop";
+  if (path === "/dispatch" || path.startsWith("/dispatch/") || path === "/dispatch-portal" || path.startsWith("/dispatch-portal/")) return "dispatch";
+  if (path === "/field-leadership" || path.startsWith("/field-leadership/") || path === "/leadership" || path.startsWith("/leadership/")) return "fl";
+  return "";
+}
+
+export function setOperationsActionsPortalScope(portal) {
+  const normalized = normalizePortalScope(portal);
+  if (!normalized) return;
+  try {
+    window.sessionStorage.setItem(OA_SCOPE_KEY, normalized);
+  } catch {
+    /* ignore */
+  }
+}
+
+function getStoredOperationsActionsPortalScope() {
+  try {
+    return normalizePortalScope(window.sessionStorage.getItem(OA_SCOPE_KEY) || "");
+  } catch {
+    return "";
+  }
+}
+
+function readPortalToken(portal) {
+  const getter = OA_PORTAL_TOKEN_READERS[portal];
+  return getter ? getter() : "";
+}
+
+function resolveOperationsActionsPortal() {
+  const candidates = [];
+  const storedPortal = getStoredOperationsActionsPortalScope();
+  const pathPortal = inferOperationsActionsPortalFromPath(
+    typeof window !== "undefined" ? window.location?.pathname || "" : ""
+  );
+  const contextPortal = normalizePortalScope(getPortalContext());
+  if (storedPortal) candidates.push(storedPortal);
+  if (contextPortal && !candidates.includes(contextPortal)) candidates.push(contextPortal);
+  if (pathPortal && !candidates.includes(pathPortal)) candidates.push(pathPortal);
+
+  for (const portal of candidates) {
+    if (readPortalToken(portal)) return portal;
+  }
+
+  const available = OA_FALLBACK_ORDER.filter((portal) => !!readPortalToken(portal));
+  if (available.length === 1) return available[0];
+  if (available.includes("admin")) return "admin";
+  return available[0] || "";
+}
+
+export function buildOperationsActionsAuthHeaders(extra = {}) {
+  const portal = resolveOperationsActionsPortal();
+  const portalToken = portal ? readPortalToken(portal) : "";
+  const directoryToken = getDirectoryToken();
+  const headers = { ...extra };
+  if (portal && portalToken) {
+    headers[OA_PORTAL_HEADER_MAP[portal]] = portalToken;
+  }
+  if (directoryToken) {
+    headers["X-Directory-Token"] = directoryToken;
+  }
+  return headers;
+}
+
+const oaClient = axios.create({
+  baseURL: `${API}${BASE}`,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: false,
+  maxContentLength: 50 * 1024 * 1024,
+  maxBodyLength: 50 * 1024 * 1024,
+  timeout: 60000,
+});
+
+oaClient.interceptors.request.use((config) => {
+  config.headers = config.headers || {};
+  Object.assign(config.headers, buildOperationsActionsAuthHeaders(config.headers));
+  return config;
+});
 
 export const oaApi = {
-  list: (params = {}) => api.get(BASE, { params }),
-  summary: () => api.get(`${BASE}/summary`),
-  ownerSearch: (q, limit = 20) =>
-    api.get(`${BASE}/owner-search`, { params: { q, limit } }),
-  create: (body) => api.post(BASE, body),
-  read: (id) => api.get(`${BASE}/${id}`),
-  patch: (id, body) => api.patch(`${BASE}/${id}`, body),
-  assign: (id, owner) => api.post(`${BASE}/${id}/assign`, { owner }),
-  changeStatus: (id, status, note) =>
-    api.post(`${BASE}/${id}/status`, { status, note }),
-  addNote: (id, body_en) => api.post(`${BASE}/${id}/notes`, { body_en }),
-  photoUrl: (oaId, photoId) =>
-    api.get(`${BASE}/${oaId}/photos/${photoId}/url`),
-  deletePhoto: (oaId, photoId) =>
-    api.delete(`${BASE}/${oaId}/photos/${photoId}`),
+  list: (params = {}) => oaClient.get("", { params }),
+  summary: () => oaClient.get("/summary"),
+  ownerSearch: (q, limit = 20) => oaClient.get("/owner-search", { params: { q, limit } }),
+  create: (body) => oaClient.post("", body),
+  read: (id) => oaClient.get(`/${id}`),
+  patch: (id, body) => oaClient.patch(`/${id}`, body),
+  assign: (id, owner) => oaClient.post(`/${id}/assign`, { owner }),
+  changeStatus: (id, status, note) => oaClient.post(`/${id}/status`, { status, note }),
+  addNote: (id, body_en) => oaClient.post(`/${id}/notes`, { body_en }),
+  photoUrl: (oaId, photoId) => oaClient.get(`/${oaId}/photos/${photoId}/url`),
+  deletePhoto: (oaId, photoId) => oaClient.delete(`/${oaId}/photos/${photoId}`),
   uploadPhoto: (oaId, file) => {
     const fd = new FormData();
     fd.append("file", file);
-    return api.post(`${BASE}/${oaId}/photos`, fd, {
+    return oaClient.post(`/${oaId}/photos`, fd, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },

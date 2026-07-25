@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, ClipboardCheck } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { oaApi } from "@/lib/oa";
+import { inferOperationsActionsPortalFromPath, oaApi, setOperationsActionsPortalScope } from "@/lib/oa";
 
 export default function OperationsActionsTile({ className = "" }) {
   const { t } = useT();
@@ -29,6 +29,7 @@ export default function OperationsActionsTile({ className = "" }) {
   return (
     <Link
       to="/operations-actions"
+      onClick={() => setOperationsActionsPortalScope(inferOperationsActionsPortalFromPath(window.location.pathname))}
       data-testid="hub-tile-operations-actions"
       className={`block bg-white border border-slate-200 border-l-4 border-l-indigo-500 hover:shadow-md hover:border-slate-300 rounded-md p-4 transition-all duration-150 relative ${className}`}
     >

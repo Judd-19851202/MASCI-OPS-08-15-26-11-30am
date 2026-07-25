@@ -13,7 +13,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import CoachingPanel from "@/components/oa/CoachingPanel";
 import StatusBadge from "@/components/oa/StatusBadge";
 import {
-  oaApi, STATUSES, STATUS_LABEL, CATEGORIES, CATEGORY_LABEL,
+  inferOperationsActionsPortalFromPath,
+  oaApi, setOperationsActionsPortalScope, STATUSES, STATUS_LABEL, CATEGORIES, CATEGORY_LABEL,
   PRIORITIES, PRIORITY_LABEL, PRIORITY_TONE,
 } from "@/lib/oa";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
@@ -32,6 +33,10 @@ export default function OperationsActions() {
   const [categoryF, setCategoryF] = useState("");
   const [priorityF, setPriorityF] = useState("");
   const [mine, setMine] = useState(false);
+
+  useEffect(() => {
+    setOperationsActionsPortalScope(inferOperationsActionsPortalFromPath(document.referrer || window.location.pathname));
+  }, []);
 
   const load = useCallback(async (searchValue = q) => {
     setLoading(true); setErr("");

@@ -13,7 +13,8 @@ import { LangToggle } from "@/components/LangToggle";
 import CoachingPanel from "@/components/oa/CoachingPanel";
 import OwnerPicker from "@/components/oa/OwnerPicker";
 import {
-  oaApi, CATEGORIES, CATEGORY_LABEL, PRIORITIES, PRIORITY_LABEL,
+  inferOperationsActionsPortalFromPath,
+  oaApi, setOperationsActionsPortalScope, CATEGORIES, CATEGORY_LABEL, PRIORITIES, PRIORITY_LABEL,
 } from "@/lib/oa";
 
 export default function OperationsActionNew() {
@@ -29,6 +30,10 @@ export default function OperationsActionNew() {
   const [dueDate, setDueDate] = useState("");
   const [owner, setOwner] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    setOperationsActionsPortalScope(inferOperationsActionsPortalFromPath(document.referrer || window.location.pathname));
+  }, []);
 
   const submit = async (e) => {
     e?.preventDefault?.();

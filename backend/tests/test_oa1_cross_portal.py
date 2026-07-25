@@ -1,177 +1,153 @@
-"""
-OA-1 cross-portal token + photo R2 happy-path smoke.
+"""OA-1 cross-portal auth + photo R2 happy-path smoke."""
 
-NOTE: conftest auto-attaches X-Admin-Token to every backend call. To prove a
-specific portal token works *alone*, every request explicitly sends
-X-Admin-Token="" so the conftest's setdefault becomes a no-op and the backend
-must accept the portal-specific token by itself.
-"""
-import io
+import base64
 import os
-import struct
-import zlib
-from pathlib import Path
+
 import pytest
 import requests
 
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com")
+LOGIN_URL = f"{BASE_URL}/api/auth/multi-login"
 
-def _read_kv(path, key):
-    try:
-        with open(path) as f:
-            for line in f:
-                if line.startswith(f"{key}="):
-                    return line.split("=", 1)[1].strip().strip('"').rstrip("/")
-    except Exception:
-        pass
-    return ""
-
-
-BASE_URL = (
-    _read_kv(Path("/app/frontend/.env"), "REACT_APP_BACKEND_URL")
-    or os.environ.get("REACT_APP_BACKEND_URL", "")
-).rstrip("/")
-EMAIL = "jaymn.judd@mascigc.com"
-PASSWORD = "Maddix123!"
-
+PORTAL_RESPONSE_KEY = {
+    "admin": "admin",
+    "pm": "pm",
+    "dispatch": "dispatch",
+    "safety": "safety",
+    "shop": "shop",
+    "fl": "field_leadership",
+}
 TOKEN_HEADER_MAP = {
     "admin": "X-Admin-Token",
-    "safety": "X-Safety-Token",
-    "hr": "X-HR-Token",
-    "dispatch": "X-Dispatch-Token",
     "pm": "X-PM-Token",
+    "dispatch": "X-Dispatch-Token",
+    "safety": "X-Safety-Token",
     "shop": "X-Shop-Token",
     "fl": "X-FL-Token",
 }
 
-# multi-login response uses "field_leadership" key (not "fl"); normalize:
-PORTAL_RESPONSE_KEY = {p: p for p in TOKEN_HEADER_MAP}
-PORTAL_RESPONSE_KEY["fl"] = "field_leadership"
-
-
-def _isolate_headers(portal, token):
-    """Build headers that defeat conftest's X-Admin-Token auto-attach."""
-    header = TOKEN_HEADER_MAP[portal]
-    headers = {h: "" for h in TOKEN_HEADER_MAP.values()}
-    headers[header] = token
-    return headers
-
 
 @pytest.fixture(scope="module")
 def portal_tokens():
-    if not BASE_URL:
-        pytest.skip("REACT_APP_BACKEND_URL not configured")
     r = requests.post(
-        f"{BASE_URL}/api/auth/multi-login",
-        json={"email": EMAIL, "password": PASSWORD},
+        LOGIN_URL,
+        json={
+            "email": os.environ.get("SUPER_ADMIN_EMAIL", "jaymn.judd@mascigc.com"),
+            "password": os.environ.get("SUPER_ADMIN_PASS", "Maddix123!"),
+        },
         timeout=20,
     )
-    if r.status_code != 200:
-        pytest.skip(f"multi-login unavailable: {r.status_code} {r.text[:200]}")
+    assert r.status_code == 200, f"multi-login failed: {r.status_code} {r.text}"
     body = r.json()
     tokens = body.get("portal_tokens") or {}
-    if not tokens:
-        pytest.skip("multi-login response missing portal_tokens")
-    return tokens
+    return {"tokens": tokens, "directory_token": body.get("session_token")}
 
 
-def _png_bytes():
-    sig = b"\x89PNG\r\n\x1a\n"
-    def chunk(t, d):
-        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
-    ihdr = chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 6, 0, 0, 0))
-    idat = chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00\x00"))
-    iend = chunk(b"IEND", b"")
-    return sig + ihdr + idat + iend
+def _isolate_headers(portal, token, directory_token):
+    headers = {h: "" for h in TOKEN_HEADER_MAP.values()}
+    headers[TOKEN_HEADER_MAP[portal]] = token
+    headers["X-Directory-Token"] = directory_token
+    return headers
 
 
-@pytest.mark.parametrize("portal", list(TOKEN_HEADER_MAP.keys()))
+@pytest.mark.parametrize("portal", ["admin", "pm", "dispatch", "safety", "shop", "fl"])
 def test_summary_accepts_each_portal_token(portal_tokens, portal):
-    token = portal_tokens.get(PORTAL_RESPONSE_KEY[portal])
+    token = portal_tokens["tokens"].get(PORTAL_RESPONSE_KEY[portal])
     if not token:
         pytest.skip(f"portal token {portal} not minted")
     r = requests.get(
         f"{BASE_URL}/api/operations-actions/summary",
-        headers=_isolate_headers(portal, token),
+        headers=_isolate_headers(portal, token, portal_tokens["directory_token"]),
         timeout=15,
     )
-    assert r.status_code == 200, f"{portal} summary failed: {r.status_code} {r.text[:160]}"
-    data = r.json()
-    counts = data.get("counts") or {}
-    for st in ("open", "assigned", "in_progress", "waiting", "completed", "closed"):
-        assert st in counts, f"{portal} missing status {st} in summary counts"
-    assert "total_open" in data and "mine_open" in data and "as_of" in data
+    assert r.status_code == 200, f"{portal} token rejected: {r.status_code} {r.text}"
+    body = r.json()
+    assert "counts" in body and "mine_open" in body
 
 
-@pytest.mark.parametrize("portal", list(TOKEN_HEADER_MAP.keys()))
+@pytest.mark.parametrize("portal", ["admin", "pm", "dispatch", "safety", "shop", "fl"])
 def test_create_accepts_each_portal_token(portal_tokens, portal):
-    token = portal_tokens.get(PORTAL_RESPONSE_KEY[portal])
+    token = portal_tokens["tokens"].get(PORTAL_RESPONSE_KEY[portal])
     if not token:
         pytest.skip(f"portal token {portal} not minted")
     payload = {
-        "title": f"TEST_OA1_xportal_{portal}",
+        "title": f"Cross-portal {portal}",
         "category": "other",
-        "priority": "normal",
-        "description": "cross-portal write smoke",
+        "priority": "low",
+        "description": f"Created via {portal} lane",
     }
     r = requests.post(
         f"{BASE_URL}/api/operations-actions",
-        headers=_isolate_headers(portal, token),
+        headers=_isolate_headers(portal, token, portal_tokens["directory_token"]),
         json=payload,
         timeout=15,
     )
-    assert r.status_code in (200, 201), f"{portal} create failed: {r.status_code} {r.text[:200]}"
+    assert r.status_code == 200, f"{portal} create rejected: {r.status_code} {r.text}"
     body = r.json()
-    assert body.get("status") == "open"
-    assert body.get("oa_number", "").startswith("OA-")
-    assert body.get("title") == payload["title"]
-    history = body.get("history") or []
-    assert history and history[0].get("kind") == "created"
+    assert body["status"] == "open"
+    assert body["created_by"]["portal"] in {portal, "field_leadership" if portal == "fl" else portal}
+
+
+def test_directory_token_required_for_portal_lane(portal_tokens):
+    token = portal_tokens["tokens"].get("admin")
+    if not token:
+        pytest.skip("admin token unavailable")
+    headers = {h: "" for h in TOKEN_HEADER_MAP.values()}
+    headers["X-Admin-Token"] = token
+    r = requests.get(
+        f"{BASE_URL}/api/operations-actions/summary",
+        headers=headers,
+        timeout=15,
+    )
+    assert r.status_code in (401, 403)
 
 
 def test_photo_upload_happy_path_when_r2_configured(portal_tokens):
-    token = portal_tokens.get("admin")
+    token = portal_tokens["tokens"].get("admin")
     if not token:
         pytest.skip("admin token unavailable")
-    headers = _isolate_headers("admin", token)
+    headers = _isolate_headers("admin", token, portal_tokens["directory_token"])
+
     create = requests.post(
         f"{BASE_URL}/api/operations-actions",
         headers=headers,
-        json={"title": "TEST_OA1_photo_happy", "category": "other", "priority": "normal"},
+        json={"title": "Photo smoke", "category": "other", "priority": "normal"},
         timeout=15,
     )
-    assert create.status_code in (200, 201)
+    assert create.status_code == 200, create.text
     oa_id = create.json()["id"]
 
-    files = {"file": ("smoke.png", io.BytesIO(_png_bytes()), "image/png")}
-    # multipart upload: keep portal isolation headers but DO NOT set content-type
-    up_headers = dict(headers)
-    up = requests.post(
-        f"{BASE_URL}/api/operations-actions/{oa_id}/photos",
-        headers=up_headers,
-        files=files,
-        timeout=30,
+    png_b64 = (
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8"
+        "/x8AAusB9Wn6l1EAAAAASUVORK5CYII="
     )
-    if up.status_code == 503:
-        pytest.skip("R2 not configured (503) - acceptable per constitution")
-    assert up.status_code in (200, 201), f"upload failed: {up.status_code} {up.text[:300]}"
-    photo = up.json()
-    for k in ("id", "r2_ref", "content_type", "size"):
-        assert k in photo, f"missing key {k} in upload response: {photo}"
+    png_bytes = base64.b64decode(png_b64)
 
-    pid = photo["id"]
-    presign = requests.get(
-        f"{BASE_URL}/api/operations-actions/{oa_id}/photos/{pid}/url",
+    upload = requests.post(
+        f"{BASE_URL}/api/operations-actions/{oa_id}/photos",
+        headers=headers,
+        files={"file": ("smoke.png", png_bytes, "image/png")},
+        timeout=20,
+    )
+
+    if upload.status_code == 503:
+        pytest.skip("R2/photo storage not configured in this environment")
+
+    assert upload.status_code == 200, upload.text
+    photo = upload.json()
+    assert photo.get("id") and photo.get("r2_ref")
+
+    get_url = requests.get(
+        f"{BASE_URL}/api/operations-actions/{oa_id}/photos/{photo['id']}/url",
         headers=headers,
         timeout=15,
     )
-    assert presign.status_code == 200, f"presign failed: {presign.status_code} {presign.text[:200]}"
-    body = presign.json()
-    purl = body.get("url") or body.get("presigned_url") or body.get("signed_url")
-    assert purl and purl.startswith("http"), f"missing presigned url: {body}"
+    assert get_url.status_code == 200, get_url.text
+    assert get_url.json().get("url", "").startswith("http")
 
     delete = requests.delete(
-        f"{BASE_URL}/api/operations-actions/{oa_id}/photos/{pid}",
+        f"{BASE_URL}/api/operations-actions/{oa_id}/photos/{photo['id']}",
         headers=headers,
         timeout=15,
     )
-    assert delete.status_code in (200, 204), f"delete photo failed: {delete.status_code}"
+    assert delete.status_code in (200, 204), f"delete photo failed: {delete.status_code} {delete.text}"

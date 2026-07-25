@@ -15157,10 +15157,13 @@ app.include_router(_dcp_router)
 
 
 # ─── OA-1 · Operations Actions · cross-portal CRUD layer ────────────
-# Accepts ANY real portal token (Admin · Safety · HR · Dispatch · PM ·
-# Shop · Field-Leadership). See /app/memory/OA1_OPERATIONS_ACTIONS_CONSTITUTION.md.
+# Canonical Family 3B auth contract:
+#   • exactly one valid portal token for the acting portal
+#   • the bound X-Directory-Token for the same logical session
+# Anonymous, token-only, or mismatched directory binding = 401.
 async def _require_oa_actor(
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_directory_token: Optional[str] = Header(default=None, alias="X-Directory-Token"),
     x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
     x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
     x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
@@ -15168,11 +15171,21 @@ async def _require_oa_actor(
     x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
 ):
-    if x_admin_token and (
-        _is_valid_admin_token(x_admin_token)
-        or await _is_valid_directory_admin_token_async(x_admin_token)
-    ):
-        return {"_role": "admin", "name": "Admin", "id": "admin", "email": ""}
+    if not x_directory_token:
+        raise HTTPException(401, "Directory session required for Operations Actions")
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+        try:
+            import user_directory as _ud_local  # noqa: PLC0415
+            row = await _ud_local.is_valid_directory_admin_token_async(db, x_admin_token)
+        except Exception:  # noqa: BLE001
+            row = None
+        if row:
+            return {
+                **row,
+                "_role": "admin",
+                "_actor_kind": "admin",
+                "name": row.get("name") or row.get("display_name") or row.get("email") or "Admin",
+            }
     if x_safety_token:
         from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
         u = await is_valid_safety_user_token_async(db, x_safety_token)
