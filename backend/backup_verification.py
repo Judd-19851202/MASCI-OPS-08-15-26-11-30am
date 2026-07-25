@@ -52,6 +52,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_DAY_OF_WEEK = 0       # Monday
 DEFAULT_HOUR_UTC = 14         # 14:00 UTC ≈ 10:00 AM ET Mon
 DEFAULT_MAX_AGE_HOURS = 36
+R2_LIST_TIMEOUT_SECONDS = 5.0
+R2_MANIFEST_TIMEOUT_SECONDS = 3.0
 _BACKEND_ENV_PATH = Path(__file__).resolve().parent / ".env"
 
 
@@ -239,7 +241,10 @@ async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, An
             kwargs: Dict[str, Any] = {"Bucket": bucket, "Prefix": prefix, "MaxKeys": 1000}
             if token:
                 kwargs["ContinuationToken"] = token
-            resp = await asyncio.to_thread(s3.list_objects_v2, **kwargs)
+            resp = await asyncio.wait_for(
+                asyncio.to_thread(s3.list_objects_v2, **kwargs),
+                timeout=R2_LIST_TIMEOUT_SECONDS,
+            )
             for it in resp.get("Contents") or []:
                 lm = it.get("LastModified")
                 key = it.get("Key")
@@ -256,6 +261,9 @@ async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, An
                     break
             else:
                 break
+    except asyncio.TimeoutError:
+        logger.warning("[verify] R2 list_objects_v2 timed out after %.1fs", R2_LIST_TIMEOUT_SECONDS)
+        return out
     except Exception as e:  # noqa: BLE001
         logger.exception(f"[verify] R2 list_objects_v2 failed: {e}")
         return []
@@ -305,7 +313,10 @@ async def read_r2_backup_manifest(key: str) -> Optional[Dict[str, Any]]:
             }
 
     try:
-        return await asyncio.to_thread(_read)
+        return await asyncio.wait_for(asyncio.to_thread(_read), timeout=R2_MANIFEST_TIMEOUT_SECONDS)
+    except asyncio.TimeoutError:
+        logger.warning("[verify] timed out reading R2 backup manifest for %s after %.1fs", key, R2_MANIFEST_TIMEOUT_SECONDS)
+        return None
     except Exception as e:  # noqa: BLE001
         logger.warning("[verify] failed to read R2 backup manifest for %s: %s", key, e)
         return None
