@@ -30,17 +30,17 @@ The deterministic next phase is therefore:
 
 | Metric | Current State | Evidence Basis |
 |---|---|---|
-| Wave 3 Completion | **6 / 9 implementation slices complete** | Completed slices recorded in `PRD.md` for Family 1, Family 2, Family 3B, Family 3C, Family 3D-1 Slice 1, Family 3D-1 Slice 2 |
-| Adopted Families | **4 / 6 formally adopted implementation families** | Family 1, Family 2, Family 3B, Family 3C formal adoptions recorded in Step 1; Family 3A pending; Family 3D-1 family adoption remains open |
-| Adopted Slices | **6 / 6 completed slices adopted at current baseline** | Family 1, Family 2, Family 3B, Family 3C, Family 3D-1 Slice 1, Family 3D-1 Slice 2 |
-| Queue A Remaining | **3 total items / 2 implementation slices** | Remaining Queue A items are W3-3A-S1, W3-3D1-S3, and W3-CLOSEOUT |
+| Wave 3 Completion | **7 / 9 implementation slices complete** | Completed slices now include Family 3A Slice 1 in addition to Family 1, Family 2, Family 3B, Family 3C, Family 3D-1 Slice 1, and Family 3D-1 Slice 2 |
+| Adopted Families | **5 / 6 formally adopted implementation families** | Family 1, Family 2, Family 3A, Family 3B, and Family 3C are now formally adopted; Family 3D-1 family adoption remains open |
+| Adopted Slices | **7 / 7 completed slices adopted at current baseline** | Family 1, Family 2, Family 3A, Family 3B, Family 3C, Family 3D-1 Slice 1, Family 3D-1 Slice 2 |
+| Queue A Remaining | **2 total items / 1 implementation slice** | Remaining Queue A items are W3-3D1-S3 and W3-CLOSEOUT |
 | Deferred Items | **1** | W3-3D1-S4 remains Queue B / deferred until after W3-3D1-S3 review |
 | Rejected Items | **2** | Broad Family 3 umbrella = NO-GO; standalone Family 3D-2 = NO-GO |
 | Platform Survivability | **In Progress (pre-existing capabilities present, gate not yet closed)** | Backup/recovery runtime, monitoring, verification routes, and drills exist in repository/PRD evidence |
 | Backup & Recovery | **In Progress** | R2 archive lineage, verification cron, recovery dashboard, representative restore evidence present; full restore certification incomplete |
 | PRR Status | **Not Started** | No completed PRR register with pass/fail outcomes yet |
 | Deployment Authorization | **Not Authorized** | Remaining Wave 3 slices open; survivability and PRR still pending |
-| Current Execution Phase | **Queue A Execution · Step 1 complete · governance pause before Family 3A Slice 1** | This Step 1 adoption checkpoint |
+| Current Execution Phase | **Queue A Execution · Family 3A Slice 1 complete · next up W3-3D1-S3** | Family 3A strict-admin verification hardening adopted |
 
 ## 3. Constitutional Status
 
@@ -67,7 +67,6 @@ The following constitutional facts are frozen for all planning in this document:
 - Family 3D-1 Slice 2 — canonical contract consistency for `inspection_expiration`: implemented, verified, adopted at slice level
 
 ### Remaining Wave 3 implementation work
-- Family 3A — bounded core `admin_ops.py` read-only hardening
 - Family 3D-1 — legacy `equipment_master` overlap demotion / containment
 - Family 3D-1 — lower-priority direct-consumer UI parity for already-adopted canonical fields
 
@@ -90,7 +89,7 @@ The following constitutional facts are frozen for all planning in this document:
 
 | Work Item ID | Type | Constitutional Owner | Repository Evidence | Current Status | Operational Impact | Dependencies | Estimated ISC Slices Required | Disposition |
 |---|---|---|---|---|---|---|---|---|
-| W3-3A-S1 | Implementation | Family 3A | `PRD.md` (Wave 3 Family 3A Phase B), `FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` §§911-934 | Not started | High — closes strict-admin read-only observability contract | existing 3A discovery only | 1 | Queue A |
+| W3-3A-S1 | Implementation | Family 3A | `PRD.md` (Wave 3 Family 3A Phase B), `FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` §§911-934, `/app/test_reports/iteration_46.json` | Complete · adopted | High — strict-admin boundary is now continuously verified and preserved | existing 3A discovery only | 1 | Closed |
 | W3-3D1-S3 | Implementation | Family 3D-1 | Asset Decision Record rows 160-161, 240-243; 3D-1 discovery conditional Phase B approval | Not started | High — reduces legacy canonical-owner drift in asset registry authority | 3D-1 slices 1-2 complete; asset decision record frozen | 1 | Queue A |
 | W3-3D1-S4 | Implementation | Family 3D-1 | `PRD.md` Slice 2 deferred backlog: `inspection_expiration` UI parity | Deferred from Slice 2 intentionally | Medium — improves direct consumer parity without changing backend truth | best executed after W3-3D1-S3 | 1 | Queue B |
 | W3-ADOPT-F3D1 | Formal adoption | Family 3D-1 | Asset Decision Record + `PRD.md` §§1006-1123 + `iteration_44.json` + `iteration_45.json` | Not ready yet | High — closes Asset Spine family only after remaining bounded work is dispositioned | W3-3D1-S3 complete; W3-3D1-S4 dispositioned | 0 | Queue B |
@@ -108,7 +107,7 @@ The following constitutional facts are frozen for all planning in this document:
 | Family 3C — Operational Events | Family 3C | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3C_OPERATIONAL_EVENTS_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_43.json` | Formally adopted |
 | Family 3D-1 Slice 1 | Family 3D-1 | `BCSS_RELEASE2_PROGRAM2_WAVE3_ASSET_DOMAIN_CONSTITUTIONAL_DECISION_RECORD.md` + `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3D1_ASSET_SPINE_CANONICAL_REGISTRY_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_44.json` | Adopted at slice level; family adoption pending |
 | Family 3D-1 Slice 2 | Family 3D-1 | `BCSS_RELEASE2_PROGRAM2_WAVE3_ASSET_DOMAIN_CONSTITUTIONAL_DECISION_RECORD.md` + `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3D1_ASSET_SPINE_CANONICAL_REGISTRY_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_45.json` | Adopted at slice level; family adoption pending |
-| Family 3A | Family 3A | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` | N/A | Not adopted; implementation pending |
+| Family 3A | Family 3A | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_46.json` | Formally adopted |
 
 ## 6. Queue Classification (A / B / C / D)
 
@@ -118,7 +117,6 @@ Repository-proven, high operational value, and ready with no constitutional ambi
 
 | Item | Why it is Queue A |
 |---|---|
-| W3-3A-S1 | Discovery explicitly supports a re-scoped bounded Phase B on core `admin_ops.py`; direct consumers and read-only boundary are clear |
 | W3-3D1-S3 | Asset Decision Record explicitly preserves this as the remaining narrow 3D-1 boundary-hardening path |
 | W3-CLOSEOUT | Required program step once Queue A slices and adoption records are complete |
 
@@ -165,6 +163,7 @@ Only remaining implementation slices are listed here. Formal adoption and closeo
 |---|---|---|---|---|---|
 | W3-F1-S1 | Family 1 | OCC Health Aggregator bounded constitutional hardening | Implemented · Verified | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY1_OCC_HEALTH_AGGREGATOR_PHASEB_IMPLEMENTATION_RECORD.md`; `/app/test_reports/iteration_39.json` | Formally adopted |
 | W3-F2-S1 | Family 2 | OCC Trust Events canonical truth binding and bounded hardening | Implemented · Verified | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY2_OCC_TRUST_EVENTS_PHASEB_IMPLEMENTATION_RECORD.md`; `/app/test_reports/iteration_40.json` | Formally adopted |
+| W3-F3A-S1 | Family 3A | Strict-admin verification hardening for the already-correct Family 3A runtime boundary | Implemented · Verified | `/app/test_reports/iteration_46.json` | Formally adopted |
 | W3-F3B-S1 | Family 3B | Operations Actions bounded Phase B hardening | Implemented · Verified | `PRD.md` §§865-930; `/app/test_reports/iteration_42.json` | Formally adopted |
 | W3-F3C-S1 | Family 3C | Operational Events bounded Phase B hardening | Implemented · Verified | `PRD.md` §§932-1004; `/app/test_reports/iteration_43.json` | Formally adopted |
 | W3-F3D1-S1 | Family 3D-1 | Canonical registry write integrity for `dot_expiration` and `calibration_expiration` | Implemented · Verified | `PRD.md` §§1006-1056; `/app/test_reports/iteration_44.json` | Adopted at slice level; family remains open pending remaining bounded work |
@@ -182,10 +181,11 @@ Deterministic execution order. No overlapping implementation.
    - Family 3D-1 Slice 1 adopted at slice level
    - Family 3D-1 Slice 2 adopted at slice level
 
-2. **Execute W3-3A-S1**
-   - complete
-   - verify independently
-   - adopt formally
+2. **W3-3A-S1 complete**
+   - repository proved runtime already correct
+   - stale verification contract repaired
+   - independently verified
+   - formally adopted
 
 3. **Execute W3-3D1-S3**
    - complete
@@ -210,6 +210,13 @@ Wave 3 is considered execution-complete only when all Queue A items above are fi
 
 - Master Execution Plan, Asset Domain Constitutional Decision Record, Remaining Work Register, and Slice Closure Register are aligned after Step 1.
 - No contradiction remains between adopted families, rejected items, remaining Queue A items, or Family 3D-2 rejection status.
+
+### Step 2 Consistency Check
+
+- Family 3A is now formally adopted with verification evidence in `/app/test_reports/iteration_46.json`.
+- No runtime defect remained in `server.py` or `admin_ops.py`; repository verification proved the strict-admin boundary was already correctly enforced.
+- The slice repaired only the stale test contract and made the boundary continuously verifiable.
+- Queue A recalculation is now: one remaining implementation slice (`W3-3D1-S3`) plus `W3-CLOSEOUT`.
 
 ---
 
