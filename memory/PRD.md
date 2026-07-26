@@ -836,7 +836,7 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - `3C — Operational Events` → repository owner: `/app/backend/routes/operational_events.py`
   - `3D — Asset Mapping & Reconciliation` → repository owner: `/app/backend/routes/asset_mapping_recon.py`
 - Only **Wave 3 Family 3A Phase B** is currently authorized.
-- Families `3B`, `3C`, and `3D` remain separate future discovery tracks only; no readiness or implementation authority is recorded for them before their own discovery.
+- Families `3B`, `3C`, and `3D` remain constitutionally separate; each requires its own bounded authority and verification.
 
 ## 2026-07-25 — BCSS Release 2 / Program 2 / Wave 3 / Family 3A Phase B
 - Bounded Family 3A implementation is limited to the strict-admin, read-only Core Admin Operations surface and its direct consumers/tests/documentation only.
@@ -928,3 +928,77 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
     - classification: `Improved`
     - remaining bottlenecks: directory fan-out + shared infrastructure latency
 - Formal status: **READY FOR FORMAL ADOPTION** for Wave 3 Family 3B Phase B.
+
+## 2026-07-26 — BCSS Release 2 / Program 2 / Wave 3 / Family 3C Phase B
+- Authorized family remained bounded to Operational Events only.
+- Canonical owner remained `/app/backend/routes/operational_events.py`.
+- Canonical normalized store remained `operational_events`.
+- Repository verification confirmed the normalization boundary:
+  - raw Family 3C upstream source read by the router: `motive_events`
+  - normalization owner: `routes.operational_events`
+  - canonical normalized identities: deterministic `operational_events.id`
+  - direct public readers: `project-day`, `timeline`, `dispatch-status`
+  - direct PM consumer: `ProjectDayEventsPanel` in `/app/frontend/src/pages/PmProjectDetail.jsx`
+
+### Family 3C bounded repair goals
+- preserve one normalization owner and one canonical normalized store
+- preserve deterministic event identity and idempotent materialization
+- align Family 3C admin auth to the current repository contract
+- add bounded Trust Spine + append-only audit evidence inside Family 3C only
+- preserve public read contracts for direct consumers
+- keep adjacent families untouched
+
+### Family 3C bounded implementation result
+- Family 3C admin routes now operate against the repository-authenticated dual-token contract:
+  - `X-Admin-Token`
+  - plus the bound `X-Directory-Token`
+- Family 3C materialization now emits bounded Trust Spine lifecycle evidence under workflow `operational-events-materialization`.
+- Family 3C materialization now writes append-only evidence to `audit_events` with `kind=operational_events.materialize` including:
+  - `record_id`
+  - `correlation_id`
+  - `detail.source_collection=motive_events`
+  - `detail.canonical_collection=operational_events`
+  - `detail.normalization_owner=routes.operational_events`
+  - `detail.notification_contract=none`
+- Family 3C notification sequencing was verified as intentionally skipped in Trust Spine because materialization has no notification fanout contract.
+- Family 3C query hardening applied inside the bounded owner only:
+  - explicit Mongo projections on materialize/read paths
+  - dashboard date filter pushed into the aggregation pipeline
+  - audit endpoint reuse of loaded presence-event data for bounded analytics
+
+### Family 3C verification evidence
+- Local Family 3C suite: `18/18` passed in `/app/backend/tests/test_m2_event_router.py`
+- Independent verification report: `/app/test_reports/iteration_43.json` → PASS
+- Independent backend verification: PASS
+- Independent frontend direct-consumer verification: PASS
+
+### Family 3C performance evidence (preview)
+- `POST /api/admin/operational-events/materialize`
+  - observed after repair: avg `1335.7 ms`, median `1030.1 ms`, worst `2527.1 ms`
+  - classification: `Owned by Family 3C persistence + audit/trust publication path`
+  - residual risk: preview variance on first run remains visible
+- `GET /api/admin/operational-events/audit`
+  - observed after repair: avg `402.9 ms`, median `400.4 ms`, worst `423.2 ms`
+  - classification: `Owned by Family 3C analytical query path`
+- `GET /api/admin/operational-events/dashboard`
+  - observed after repair: avg `185.9 ms`, median `185.5 ms`, worst `187.6 ms`
+  - classification: `Owned by Family 3C dashboard aggregation path`
+- `GET /api/operational-events/project-day/{project_number}/{date}`
+  - observed after repair: avg `36.6 ms`, median `36.5 ms`, worst `37.1 ms`
+- `GET /api/operational-events/timeline/{detection_key}/{date}`
+  - observed after repair: avg `35.9 ms`, median `35.8 ms`, worst `36.4 ms`
+- `GET /api/operational-events/dispatch-status/{asset_key}`
+  - observed after repair: avg `36.1 ms`, median `36.2 ms`, worst `37.0 ms`
+
+### Family 3C constitutional result
+- canonical ownership preserved
+- normalization boundary preserved
+- deterministic event identity preserved
+- ordering/idempotency preserved
+- append-only audit evidence present
+- Trust Spine participation present
+- direct public consumers preserved
+- adjacent families untouched
+
+### Formal status
+- **READY FOR FORMAL ADOPTION** for Wave 3 Family 3C Phase B, based on bounded implementation plus independent verification.

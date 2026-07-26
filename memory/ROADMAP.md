@@ -16,7 +16,9 @@ Repository-backed Wave 3 family structure:
 
 - Wave 3 Family 3C — Operational Events
   - repository owner: `/app/backend/routes/operational_events.py`
-  - status: future discovery track only
+  - status: Phase B complete / independently verified / READY FOR FORMAL ADOPTION
+  - canonical normalized store: `operational_events`
+  - admin auth contract: `X-Admin-Token` + bound `X-Directory-Token`
 
 - Wave 3 Family 3D — Asset Mapping & Reconciliation
   - repository owner: `/app/backend/routes/asset_mapping_recon.py`
@@ -24,8 +26,7 @@ Repository-backed Wave 3 family structure:
 
 ## Locked master sequence
 
-- Next bounded track: Wave 3 Family 3C — Operational Events Phase A Discovery
-- Then: Wave 3 Family 3D — Asset Mapping & Reconciliation Phase A Discovery (only if repository evidence supports it)
+- Next bounded track: Wave 3 Family 3D — Asset Mapping & Reconciliation Phase A Discovery (only if repository evidence supports it)
 - Complete Wave 3 families
 - Wave 3 Formal Closeout
 - Platform Survivability Program
