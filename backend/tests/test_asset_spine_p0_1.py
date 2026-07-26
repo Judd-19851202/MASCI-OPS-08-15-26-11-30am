@@ -102,14 +102,30 @@ def test_create_update_retire_activate_roundtrip():
         spine = AssetSpine(db)
         actor = "pytest-spine"
         unit = f"PYTEST-{_new_id()}"
+        create_dot = "2026-12-31"
+        create_cal = "2027-01-15"
+        update_dot = "2027-12-31"
+        update_cal = "2028-01-15"
         a = await spine.create_asset(
-            {"asset_number": unit, "asset_name": "Pytest truck", "asset_type": "Truck"},
+            {
+                "asset_number": unit,
+                "asset_name": "Pytest truck",
+                "asset_type": "Truck",
+                "dot_expiration": create_dot,
+                "calibration_expiration": create_cal,
+            },
             actor=actor,
         )
         aid = a["asset_id"]
         try:
             assert a["asset_number"] == unit
             assert a["active"] is True
+            assert a["dot_expiration"] == create_dot
+            assert a["calibration_expiration"] == create_cal
+
+            created_read = await spine.get_asset(aid)
+            assert created_read["dot_expiration"] == create_dot
+            assert created_read["calibration_expiration"] == create_cal
 
             try:
                 await spine.create_asset({"asset_number": unit}, actor=actor)
@@ -117,22 +133,43 @@ def test_create_update_retire_activate_roundtrip():
             except ValueError:
                 pass
 
-            upd = await spine.update_asset(aid, {"asset_name": "Renamed", "ownership": "MGC"}, actor=actor)
+            upd = await spine.update_asset(
+                aid,
+                {
+                    "asset_name": "Renamed",
+                    "ownership": "MGC",
+                    "dot_expiration": update_dot,
+                    "calibration_expiration": update_cal,
+                },
+                actor=actor,
+            )
             assert upd["asset_name"] == "Renamed"
             assert upd["ownership"] == "MGC"
             assert upd["last_modified_by"] == actor
+            assert upd["dot_expiration"] == update_dot
+            assert upd["calibration_expiration"] == update_cal
+
+            updated_read = await spine.get_asset(aid)
+            assert updated_read["dot_expiration"] == update_dot
+            assert updated_read["calibration_expiration"] == update_cal
 
             ret = await spine.retire_asset(aid, actor=actor, reason="test")
             assert ret["active"] is False
             assert ret["asset_status"] == "RETIRED"
             assert ret["retirement_date"] is not None
+            assert ret["dot_expiration"] == update_dot
+            assert ret["calibration_expiration"] == update_cal
 
             again = await spine.retire_asset(aid, actor=actor)
             assert again["active"] is False
+            assert again["dot_expiration"] == update_dot
+            assert again["calibration_expiration"] == update_cal
 
             act = await spine.activate_asset(aid, actor=actor, reason="test-undo")
             assert act["active"] is True
             assert act["asset_status"] == "ACTIVE"
+            assert act["dot_expiration"] == update_dot
+            assert act["calibration_expiration"] == update_cal
 
             n = await db.admin_audit_log.count_documents({"target_id": aid})
             assert n >= 4

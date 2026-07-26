@@ -461,6 +461,8 @@ class AssetSpine:
             "insurance_expiration":    payload.get("insurance_expiration"),
             "title_status":            payload.get("title_status"),
             "warranty_expiration":     payload.get("warranty_expiration"),
+            "dot_expiration":          payload.get("dot_expiration"),
+            "calibration_expiration":  payload.get("calibration_expiration"),
             "lifecycle_status":        payload.get("lifecycle_status"),
             "division":                payload.get("division"),
             "region":                  payload.get("region"),
@@ -515,7 +517,7 @@ class AssetSpine:
             # ── Track 13.31B Day-1 administrative fields ────────────────
             "registration_number", "registration_state", "registration_expiration",
             "insurance_carrier", "insurance_policy_number", "insurance_expiration",
-            "title_status", "warranty_expiration",
+            "title_status", "warranty_expiration", "dot_expiration", "calibration_expiration",
             "lifecycle_status", "division", "region", "supervisor_id",
             "gps_device_id", "normalized_company",
         }
