@@ -14,6 +14,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
+import traceback
 
 import boto3
 from botocore.config import Config
@@ -78,6 +79,47 @@ def _authoritative_truth_refusal(error_code: str, diagnostics: Dict[str, Any], *
         _sync_finish_guard(db, guard, state="failed", outcome="failed", reason=error_code, slot_suffix="failed")
     print(json.dumps({"ok": False, "error": error_code, "diagnostics": diagnostics}, indent=2))
     return 2
+
+
+def _terminalize_drill_run(
+    db,
+    *,
+    drill_id: str,
+    state: str,
+    outcome: str,
+    reason: str,
+    evidence: Optional[Dict[str, Any]] = None,
+    extra: Optional[Dict[str, Any]] = None,
+) -> None:
+    payload = {
+        "state": state,
+        "outcome": outcome,
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "failure": reason if outcome != "ok" else None,
+    }
+    if evidence is not None:
+        payload["restore_certification_evidence"] = evidence
+    if extra:
+        payload.update(extra)
+    db.drill_runs.update_one({"id": drill_id}, {"$set": payload}, upsert=False)
+
+
+def _coerce_missing_owner_active_guard(active: Optional[Dict[str, Any]], *, now: Optional[datetime] = None) -> tuple[Optional[Dict[str, Any]], bool]:
+    if not active:
+        return active, False
+    state = str(active.get("state") or "").lower()
+    if state not in {"queued", "running"}:
+        return active, False
+    try:
+        owner_pid = int(active.get("pid") or 0)
+    except Exception:
+        owner_pid = 0
+    if owner_pid > 0 and Path(f"/proc/{owner_pid}").exists():
+        return active, False
+    stale = dict(active)
+    stale["lease_expires_at"] = ((now or datetime.now(timezone.utc)) - timedelta(minutes=1)).isoformat()
+    stale["owner_process_missing"] = True
+    return stale, True
 
 
 def _embedded_manifest_identity(manifest: Dict[str, Any]) -> Dict[str, Any]:
@@ -398,7 +440,7 @@ def _reconcile_backup_id(*, authoritative: Dict[str, Any], lineage: Dict[str, An
         return True, None, diagnostics, "backup_id_reconciled_exact"
 
     if embedded_backup_id and not persisted_backup_id:
-        ok = all(bool(v) for v in alias_evidence.values())
+        ok = all(bool(v) for k, v in alias_evidence.items() if k != "competing_artifact_count") and alias_evidence.get("competing_artifact_count") == 0
         diagnostics["backup_id_match"] = False
         diagnostics["backup_id_binding_mode"] = "DERIVED_FROM_CHECKSUM_BOUND_ARCHIVE"
         diagnostics["backup_id_alias_verified"] = ok
@@ -583,6 +625,62 @@ def _persist_evidence(db, drill_id: str, evidence: Dict[str, Any], **extra: Any)
     db.drill_runs.update_one({"id": drill_id}, {"$set": payload}, upsert=True)
 
 
+def _sanitize_traceback_text(value: str, *, env: Optional[Dict[str, str]] = None) -> str:
+    text = str(value or "")
+    candidates = []
+    if env:
+        for key, raw in env.items():
+            if not raw:
+                continue
+            key_upper = str(key).upper()
+            if any(token in key_upper for token in ("KEY", "SECRET", "TOKEN", "PASSWORD", "MONGO_URL", "ACCESS")):
+                candidates.append(str(raw))
+    for secret in sorted({candidate for candidate in candidates if len(candidate) >= 6}, key=len, reverse=True):
+        text = text.replace(secret, "[REDACTED]")
+    return text
+
+
+def _record_transition(db, drill_id: str, evidence: Dict[str, Any], *, env: Dict[str, str], phase: str, step: str, status: str, details: Optional[Dict[str, Any]] = None) -> None:
+    timeline = evidence.setdefault("transition_timeline", [])
+    event = {
+        "at": datetime.now(timezone.utc).isoformat(),
+        "phase": phase,
+        "step": step,
+        "status": status,
+        "details": details or {},
+    }
+    timeline.append(event)
+    evidence["last_transition_event"] = event
+    persist_restore_substep_evidence(
+        db,
+        drill_id,
+        evidence,
+        extra_updates={
+            "last_transition_event": event,
+            "transition_timeline": timeline,
+        },
+    )
+
+
+def _persist_failure_trace(db, drill_id: str, evidence: Dict[str, Any], *, env: Dict[str, str], phase: str, exc: Exception) -> Dict[str, Any]:
+    trace = _sanitize_traceback_text(traceback.format_exc(), env=env)
+    failure = {
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "phase": phase,
+        "error_type": type(exc).__name__,
+        "error_message": _sanitize_traceback_text(str(exc), env=env),
+        "traceback": trace,
+    }
+    evidence["failure_traceback"] = failure
+    persist_restore_substep_evidence(
+        db,
+        drill_id,
+        evidence,
+        extra_updates={"failure_traceback": failure},
+    )
+    return failure
+
+
 def _pre_download_authority_validation(*, authoritative: Dict[str, Any], lineage: Dict[str, Any], env: Dict[str, str], requested_env: str, archive_key: str) -> tuple[bool, Optional[str], Dict[str, Any]]:
     runtime_identity = dict(lineage.get("runtime_identity") or {})
     artifact_identity = authoritative.get("artifact_identity") or {}
@@ -763,6 +861,37 @@ def _sync_finish_guard(db, guard: dict, *, state: str, outcome: str, reason: str
     )
 
 
+def _terminalize_stale_guard_drill(db, active: Dict[str, Any], *, reason: str) -> None:
+    drill_id = str((active.get("metadata") or {}).get("owner_drill_id") or "").strip()
+    if not drill_id:
+        return
+    row = _safe_find_one(db, "drill_runs", {"id": drill_id}) or _safe_find_one(db, "drill_runs", {"drill_id": drill_id})
+    if not row:
+        return
+    evidence = dict(row.get("restore_certification_evidence") or {})
+    evidence["cleanup"] = {
+        **dict(evidence.get("cleanup") or {}),
+        "state": "ABORTED",
+        "terminalization_reason": reason,
+    }
+    evidence["failure_traceback"] = {
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "phase": evidence.get("current_phase") or evidence.get("last_started_phase") or "unknown",
+        "error_type": "ProcessAborted",
+        "error_message": reason,
+        "traceback": reason,
+    }
+    _terminalize_drill_run(
+        db,
+        drill_id=drill_id,
+        state="aborted",
+        outcome="aborted",
+        reason=reason,
+        evidence=evidence,
+        extra={"cleanup_complete": True},
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="OPS8 namespace restore drill")
     ap.add_argument("--backup", required=True)
@@ -803,14 +932,7 @@ def main() -> int:
         {"_id": 0},
         sort=[("created_at", -1)],
     )
-    if active and str(active.get("state") or "").lower() == "queued":
-        try:
-            owner_pid = int(active.get("pid") or 0)
-        except Exception:
-            owner_pid = 0
-        if owner_pid <= 0 or not Path(f"/proc/{owner_pid}").exists():
-            active = dict(active)
-            active["lease_expires_at"] = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+    active, owner_missing = _coerce_missing_owner_active_guard(active)
 
     if active and not is_restore_certification_stale(active, lease_minutes=lease_minutes):
         print(json.dumps({
@@ -825,10 +947,15 @@ def main() -> int:
             {"job_id": active.get("job_id")},
             {"$set": {
                 "state": "stale_recovered",
-                "recovery_reason": "stale_restore_certification_guard",
+                "recovery_reason": "owner_process_missing_restore_certification_guard" if owner_missing else "stale_restore_certification_guard",
                 "recovered_at": datetime.now(timezone.utc).isoformat(),
                 "ownership_revoked": True,
             }},
+        )
+        _terminalize_stale_guard_drill(
+            live_db,
+            active,
+            reason="ABORTED_OWNER_PROCESS_MISSING" if owner_missing else "ABORTED_STALE_RESTORE_CERTIFICATION_GUARD",
         )
     guard = _sync_claim_guard(
         live_db,
@@ -924,40 +1051,86 @@ def main() -> int:
     evidence["explicit_key_resolution"] = dict(diagnostics)
     _phase_finish(live_db, drill_id, evidence, guard, "lineage_validation", "completed", extra={"persisted_lineage_match": diagnostics["persisted_lineage_match"]})
 
-    live_db.drill_runs.insert_one({
-        "id": drill_id,
-        "drill_id": drill_id,
-        "state": "running",
-        "started_at": started.isoformat(),
-        "target_db": env["DB_NAME"],
-        "target_namespace_prefix": namespace_prefix,
-        "source_environment": requested_env,
-        "source_archive_key": args.backup,
-        "source_archive_id": ((authoritative.get("artifact_identity") or {}).get("artifact_id")),
-        "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
-        "policy_decision": "PENDING",
-        "policy_reason": "awaiting_namespace_restore_validation",
-        "guard_key": guard_slot,
-        "guard_job_id": guard["job_id"],
-        "guard_owner_id": guard["owner_id"],
-        "archive_filename": Path(args.backup).name,
-        "lineage_resolution_mode": diagnostics["lineage_resolution_mode"],
-        "remote_manifest_fanout_enabled": diagnostics["remote_manifest_fanout_enabled"],
-        "remote_manifest_reads_attempted": diagnostics["remote_manifest_reads_attempted"],
-        "authorized_archive_key": diagnostics["authorized_archive_key"],
-        "persisted_lineage_match": diagnostics["persisted_lineage_match"],
-        "embedded_manifest_loaded": diagnostics["embedded_manifest_loaded"],
-        "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
-        "checksum_validated": diagnostics["checksum_validated"],
-        "restore_certification_evidence": evidence,
-        "qa_status": "PENDING_INDEPENDENT_REVIEW",
-    })
-    _persist_evidence(live_db, drill_id, evidence)
+    _record_transition(
+        live_db,
+        drill_id,
+        evidence,
+        env=env,
+        phase="archive_download",
+        step="authorization_to_download_transition",
+        status="entered",
+        details={
+            "archive_download_authorized": True,
+            "lineage_validation_completed": True,
+            "authorized_archive_key": args.backup,
+            "authoritative_artifact_id": (authoritative.get("artifact_identity") or {}).get("artifact_id"),
+        },
+    )
+
+    live_db.drill_runs.update_one(
+        {"id": drill_id},
+        {"$set": {
+            "id": drill_id,
+            "drill_id": drill_id,
+            "state": "running",
+            "started_at": started.isoformat(),
+            "target_db": env["DB_NAME"],
+            "target_namespace_prefix": namespace_prefix,
+            "source_environment": requested_env,
+            "source_archive_key": args.backup,
+            "source_archive_id": ((authoritative.get("artifact_identity") or {}).get("artifact_id")),
+            "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
+            "policy_decision": "PENDING",
+            "policy_reason": "awaiting_namespace_restore_validation",
+            "guard_key": guard_slot,
+            "guard_job_id": guard["job_id"],
+            "guard_owner_id": guard["owner_id"],
+            "archive_filename": Path(args.backup).name,
+            "lineage_resolution_mode": diagnostics["lineage_resolution_mode"],
+            "remote_manifest_fanout_enabled": diagnostics["remote_manifest_fanout_enabled"],
+            "remote_manifest_reads_attempted": diagnostics["remote_manifest_reads_attempted"],
+            "authorized_archive_key": diagnostics["authorized_archive_key"],
+            "persisted_lineage_match": diagnostics["persisted_lineage_match"],
+            "embedded_manifest_loaded": diagnostics["embedded_manifest_loaded"],
+            "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
+            "checksum_validated": diagnostics["checksum_validated"],
+            "restore_certification_evidence": evidence,
+            "qa_status": "PENDING_INDEPENDENT_REVIEW",
+        }},
+        upsert=True,
+    )
 
     try:
+        _record_transition(
+            live_db,
+            drill_id,
+            evidence,
+            env=env,
+            phase="archive_download",
+            step="archive_download_invocation",
+            status="starting",
+            details={"archive_local": str(archive_local), "bucket": bucket, "object_key": args.backup},
+        )
         _phase_start(live_db, drill_id, evidence, guard, "archive_download")
+        evidence["archive_download_started"] = True
+        persist_restore_substep_evidence(
+            live_db,
+            drill_id,
+            evidence,
+            root_updates={"archive_download_started": True},
+        )
         client.download_file(bucket, args.backup, str(archive_local))
         real_archive_downloaded = True
+        _record_transition(
+            live_db,
+            drill_id,
+            evidence,
+            env=env,
+            phase="archive_download",
+            step="archive_download_invocation",
+            status="completed",
+            details={"archive_local": str(archive_local), "downloaded": archive_local.exists()},
+        )
         _phase_finish(live_db, drill_id, evidence, guard, "archive_download", "completed", extra={"archive_local": str(archive_local), "bucket": bucket})
         with zipfile.ZipFile(str(archive_local), "r") as zf:
             _phase_start(live_db, drill_id, evidence, guard, "manifest_loaded")
@@ -1197,11 +1370,31 @@ def main() -> int:
         return 0 if outcome == "ok" else 9
     except Exception as exc:
         current_phase = evidence.get("current_phase") or evidence.get("last_started_phase") or "unknown"
+        _record_transition(
+            live_db,
+            drill_id,
+            evidence,
+            env=env,
+            phase=current_phase,
+            step="exception",
+            status="failed",
+            details={"error_type": type(exc).__name__, "error": _sanitize_traceback_text(str(exc), env=env)},
+        )
+        failure = _persist_failure_trace(live_db, drill_id, evidence, env=env, phase=current_phase, exc=exc)
         if current_phase in evidence.get("phase_history", {}):
-            _phase_finish(live_db, drill_id, evidence, guard, current_phase, "failed", extra={"error": repr(exc)})
-        _persist_evidence(live_db, drill_id, evidence, failure=repr(exc))
-        _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=repr(exc), slot_suffix="failed")
-        print(json.dumps({"ok": False, "error": repr(exc), "drill_id": drill_id}, indent=2))
+            _phase_finish(live_db, drill_id, evidence, guard, current_phase, "failed", extra={"error": failure["error_message"], "failure_traceback_captured": True})
+        _persist_evidence(live_db, drill_id, evidence, failure=failure["error_message"], failure_traceback=failure)
+        _terminalize_drill_run(
+            live_db,
+            drill_id=drill_id,
+            state="failed",
+            outcome="failed",
+            reason=failure["error_message"],
+            evidence=evidence,
+            extra={"failure_traceback": failure, "cleanup_complete": True},
+        )
+        _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=failure["error_message"], slot_suffix="failed")
+        print(json.dumps({"ok": False, "error": failure["error_message"], "drill_id": drill_id, "failure_traceback": failure}, indent=2)[:24000])
         return 9
     finally:
         try:

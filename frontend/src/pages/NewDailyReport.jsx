@@ -1,0 +1,1 @@
+/app/frontend/src/pages/NewDailyReportV3.jsx

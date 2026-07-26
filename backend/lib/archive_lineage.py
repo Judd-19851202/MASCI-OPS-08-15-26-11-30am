@@ -515,6 +515,7 @@ def _build_candidate(
         "lineage_confidence": confidence,
         "environment_match": env_match,
         "legacy_classification": legacy_classification,
+        "persisted_lineage_row": dict(row) if isinstance(row, dict) else None,
         "authoritative_time": authoritative_time,
         "authoritative_time_source": evidence_quality,
         "observed_time": observed_time,

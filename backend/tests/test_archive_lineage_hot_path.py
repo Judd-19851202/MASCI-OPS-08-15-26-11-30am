@@ -200,3 +200,32 @@ def test_default_full_mode_retains_manifest_behavior(monkeypatch):
     assert lineage["manifest_reads_skipped"] == 0
     assert lineage["manifest_skip_reason"] is None
     assert lineage["authoritative_artifact"]["object_key"] == "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip"
+
+
+def test_hot_path_authoritative_artifact_preserves_persisted_lineage_row(monkeypatch):
+    async def _list_archives(*args, **kwargs):
+        return []
+
+    async def _read_manifest(*args, **kwargs):  # pragma: no cover - hot path should not call this
+        raise AssertionError("hot-path lineage must not read manifests")
+
+    monkeypatch.setattr(backup_verification, "list_r2_backup_archives", _list_archives)
+    monkeypatch.setattr(backup_verification, "read_r2_backup_manifest", _read_manifest)
+
+    source_row = _lineage_row()
+    source_row["archive_lineage"]["backup_id"] = "b4bde3a6eea34d0aa3f4e6fffcfde1ed"
+    db = _FakeDb(backup_jobs_rows=[source_row], backup_health_rows=[_backup_health_row()])
+    lineage = asyncio.run(
+        archive_lineage.build_canonical_archive_lineage(
+            db,
+            current_env="preview",
+            current_db="masci_safety_preview",
+            requested_source_environment="preview",
+            force_refresh=True,
+            include_manifest_reads=False,
+        )
+    )
+
+    authoritative = lineage["authoritative_artifact"]
+    assert authoritative["persisted_lineage_row"]["archive_lineage"]["backup_id"] == "b4bde3a6eea34d0aa3f4e6fffcfde1ed"
+    assert authoritative["artifact_identity"]["artifact_id"] == "b4bde3a6eea34d0aa3f4e6fffcfde1ed"

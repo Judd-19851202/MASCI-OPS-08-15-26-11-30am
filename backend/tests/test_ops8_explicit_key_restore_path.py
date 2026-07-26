@@ -233,7 +233,7 @@ def _lineage_payload():
     }
 
 
-def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, backup_key=None, restore_should_raise=False):
+def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, backup_key=None, restore_should_raise=False, backup_job_rows=None, drill_run_rows=None):
     manifest = manifest or _base_manifest()
     archive = _write_archive(tmp_path, manifest)
     checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
@@ -245,6 +245,8 @@ def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, bac
     lineage["authoritative_artifact"]["evidence_references"] = refs
     lineage.setdefault("runtime_identity", {})
     fake_mongo = _FakeMongoClient()
+    fake_mongo.db.backup_jobs.rows = list(backup_job_rows or [])
+    fake_mongo.db.drill_runs.rows = list(drill_run_rows or [])
     fake_s3 = _FakeS3Client(archive)
     build_calls = []
     manifest_remote_reads = {"count": 0}
@@ -460,6 +462,20 @@ def test_backup_job_id_is_not_treated_as_archive_backup_id(monkeypatch, tmp_path
     assert explicit["backup_id_binding_mode"] == "DERIVED_FROM_CHECKSUM_BOUND_ARCHIVE"
 
 
+def test_missing_persisted_backup_id_can_still_pass_via_checksum_bound_alias(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["persisted_lineage_row"]["archive_lineage"].pop("backup_id", None)
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, lineage=lineage, restore_should_raise=True)
+    explicit = out["db"].drill_runs.rows[0]["restore_certification_evidence"]["explicit_key_resolution"]
+    assert explicit["persisted_backup_id_source"] == "LEGACY_ABSENT"
+    assert explicit["backup_id_binding_mode"] == "DERIVED_FROM_CHECKSUM_BOUND_ARCHIVE"
+    assert explicit["backup_id_alias_verified"] is True
+    assert explicit["backup_id_reconciliation_passed"] is True
+    assert out["restore_calls"] == 1
+
+
 def test_lineage_row_id_is_not_treated_as_archive_backup_id(monkeypatch, tmp_path):
     manifest = _base_manifest()
     manifest["archive_key"] = ""
@@ -587,3 +603,110 @@ def test_instrumentation_evidence_is_persisted_without_self_awarding_qa(monkeypa
     assert evidence["phase_history"]["namespace_restore"]["phase_status"] in {"started", "failed"}
     assert evidence["qa_status"] == "PENDING_INDEPENDENT_REVIEW"
     assert "archive_key_binding_mode" in evidence["explicit_key_resolution"]
+
+
+def test_authoritative_lineage_preserves_persisted_backup_row_for_backup_id_reconciliation(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    drill = out["db"].drill_runs.rows[0]
+    evidence = drill["restore_certification_evidence"]
+    explicit = evidence["explicit_key_resolution"]
+    assert explicit["persisted_backup_id_raw"] == "b4bde3a6eea34d0aa3f4e6fffcfde1ed"
+    assert explicit["backup_id_binding_mode"] == "EMBEDDED_EXACT_MATCH"
+    assert explicit["backup_id_reconciliation_passed"] is True
+
+
+def test_transition_evidence_marks_download_start_before_archive_fetch(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    drill = out["db"].drill_runs.rows[0]
+    evidence = drill["restore_certification_evidence"]
+    assert evidence["archive_download_authorized"] is True
+    assert evidence["archive_download_started"] is True
+    transition_steps = [(event["phase"], event["step"], event["status"]) for event in evidence.get("transition_timeline", [])]
+    assert ("archive_download", "authorization_to_download_transition", "entered") in transition_steps
+    assert ("archive_download", "archive_download_invocation", "starting") in transition_steps
+
+
+def test_failure_traceback_is_persisted_when_restore_phase_raises(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    drill = out["db"].drill_runs.rows[0]
+    failure = drill.get("failure_traceback") or drill["restore_certification_evidence"].get("failure_traceback")
+    assert failure["phase"] == "namespace_restore"
+    assert failure["error_type"] == "RuntimeError"
+    assert "STOP_AFTER_AUTHORITY" in failure["traceback"]
+
+
+def test_failed_restore_terminalizes_drill_run_state(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    drill = out["db"].drill_runs.rows[0]
+    assert drill["state"] == "failed"
+    assert drill["outcome"] == "failed"
+    assert drill["failure"] == "STOP_AFTER_AUTHORITY"
+    assert drill["cleanup_complete"] is True
+
+
+def test_drill_run_is_upserted_without_duplicate_rows(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    matching = [row for row in out["db"].drill_runs.rows if row.get("id") == out["db"].drill_runs.rows[0].get("id")]
+    assert len(matching) == 1
+
+
+def test_missing_owner_running_guard_is_recovered_and_prior_drill_aborted(monkeypatch, tmp_path):
+    stale_guard = {
+        "job_id": "bjob-stale-running",
+        "job_type": "restore_certification",
+        "kind": "restore-drill",
+        "slot_key": "restore-certification::preview",
+        "state": "running",
+        "pid": 999999,
+        "owner_token": "stale-token",
+        "metadata": {"owner_drill_id": "stale-drill", "environment": "preview", "operation_class": "restore-certification"},
+        "created_at": "2026-07-26T00:00:00+00:00",
+        "updated_at": "2026-07-26T00:00:00+00:00",
+        "heartbeat_at": "2026-07-26T00:00:00+00:00",
+        "lease_expires_at": "2999-01-01T00:00:00+00:00",
+    }
+    stale_drill = {
+        "id": "stale-drill",
+        "drill_id": "stale-drill",
+        "state": "running",
+        "restore_certification_evidence": {"current_phase": "archive_download", "cleanup": {"state": "PENDING"}},
+    }
+    original_exists = Path.exists
+
+    def _fake_exists(path_obj):
+        if str(path_obj) == "/proc/999999":
+            return False
+        return original_exists(path_obj)
+
+    monkeypatch.setattr(Path, "exists", _fake_exists)
+    out = _run_script(
+        monkeypatch,
+        tmp_path,
+        restore_should_raise=True,
+        backup_job_rows=[stale_guard],
+        drill_run_rows=[stale_drill],
+    )
+    stale_row = next(row for row in out["db"].backup_jobs.rows if row.get("job_id") == "bjob-stale-running")
+    assert stale_row["state"] == "stale_recovered"
+    assert stale_row["recovery_reason"] == "owner_process_missing_restore_certification_guard"
+    prior_drill = next(row for row in out["db"].drill_runs.rows if row.get("id") == "stale-drill")
+    assert prior_drill["state"] == "aborted"
+    assert prior_drill["outcome"] == "aborted"
+    assert prior_drill["cleanup_complete"] is True
+    assert prior_drill["restore_certification_evidence"]["failure_traceback"]["error_message"] == "ABORTED_OWNER_PROCESS_MISSING"
+
+
+def test_missing_owner_guard_helper_marks_running_guard_stale(monkeypatch):
+    module_globals = runpy.run_path(SCRIPT_PATH, run_name="ops8_guard_module")
+    helper = module_globals["_coerce_missing_owner_active_guard"]
+    original_exists = Path.exists
+
+    def _fake_exists(path_obj):
+        if str(path_obj) == "/proc/999999":
+            return False
+        return original_exists(path_obj)
+
+    monkeypatch.setattr(Path, "exists", _fake_exists)
+    adjusted, missing = helper({"state": "running", "pid": 999999, "lease_expires_at": "2999-01-01T00:00:00+00:00"})
+    assert missing is True
+    assert adjusted["owner_process_missing"] is True
