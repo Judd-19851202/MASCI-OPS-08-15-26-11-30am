@@ -17,7 +17,7 @@ PUBLIC_HEALTH_THRESHOLD_HOURS = 26.0
 DEFAULT_POSTURE_TARGET_HOURS = 24.0
 DEFAULT_VERIFICATION_MAX_AGE_HOURS = 36.0
 MAX_RECENT_CANDIDATES = 6
-_CACHE: Dict[str, Any] = {"ts": 0.0, "payload": None}
+_CACHE: Dict[str, Dict[str, Any]] = {}
 _CACHE_TTL_SECONDS = 15.0
 
 
@@ -166,6 +166,56 @@ def _candidate_key(archive: Optional[Dict[str, Any]], row: Optional[Dict[str, An
         return archive_key
     filename = str((archive or {}).get("filename") or (row or {}).get("filename") or "").strip()
     return filename or f"candidate:{time.time()}"
+
+
+def _cache_key(
+    runtime: Dict[str, str],
+    *,
+    requested_source_environment: Optional[str],
+    include_manifest_reads: bool,
+) -> str:
+    return "|".join(
+        [
+            str(runtime.get("app_env") or ""),
+            str(runtime.get("db_name") or ""),
+            str(requested_source_environment or ""),
+            "full" if include_manifest_reads else "hot-path",
+        ]
+    )
+
+
+def _synthetic_archive_rows_from_recent_rows(
+    recent_rows: List[Dict[str, Any]],
+    runtime: Dict[str, str],
+) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    prefix = str(runtime.get("backup_prefix") or "backups/auto-90d/")
+    for row in recent_rows[:MAX_RECENT_CANDIDATES]:
+        row_lineage = _row_lineage(row)
+        filename = str(row.get("filename") or "").strip()
+        key = str(row_lineage.get("archive_key") or "").strip()
+        if not key and filename:
+            key = f"{prefix.rstrip('/')}/{filename}"
+        if not filename and key:
+            filename = key.rsplit("/", 1)[-1]
+        if not key or not filename or key in seen:
+            continue
+        seen.add(key)
+        rows.append(
+            {
+                "key": key,
+                "filename": filename,
+                "size_bytes": int(row_lineage.get("archive_size_bytes") or row.get("size_bytes") or 0),
+                "last_modified_iso": iso_or_none(
+                    row_lineage.get("uploaded_at")
+                    or row_lineage.get("created_at")
+                    or row.get("ts")
+                ),
+                "etag": None,
+            }
+        )
+    return rows
 
 
 def _derive_integrity(manifest: Dict[str, Any], archive: Optional[Dict[str, Any]], row_lineage: Dict[str, Any]) -> Tuple[str, List[str], bool]:
@@ -483,6 +533,10 @@ def resolve_archive_lineage_from_inputs(
     archive_rows: List[Dict[str, Any]],
     recent_rows: List[Dict[str, Any]],
     manifest_bundles: Dict[str, Dict[str, Any]],
+    manifest_probe_mode: str = "FULL",
+    manifest_reads_attempted: int = 0,
+    manifest_reads_skipped: int = 0,
+    manifest_skip_reason: Optional[str] = None,
     now: Optional[datetime] = None,
 ) -> Dict[str, Any]:
     current = now or datetime.now(timezone.utc)
@@ -569,6 +623,10 @@ def resolve_archive_lineage_from_inputs(
         ],
         "runtime_identity": runtime_identity,
         "thresholds": threshold_inventory(),
+        "manifest_probe_mode": manifest_probe_mode,
+        "manifest_reads_attempted": int(manifest_reads_attempted or 0),
+        "manifest_reads_skipped": int(manifest_reads_skipped or 0),
+        "manifest_skip_reason": manifest_skip_reason,
         "newest_observed_artifact": newest_observed,
         "newest_valid_recoverable_artifact": newest_valid,
         "authoritative_artifact": newest_valid,
@@ -587,7 +645,7 @@ def resolve_archive_lineage_from_inputs(
     }
 
 
-def _recent_lineage_rows_from_backup_jobs(db: Any, runtime: Dict[str, str]) -> List[Dict[str, Any]]:
+async def _recent_lineage_rows_from_backup_jobs(db: Any, runtime: Dict[str, str]) -> List[Dict[str, Any]]:
     try:
         cursor = db.backup_jobs.find(
             {
@@ -602,7 +660,10 @@ def _recent_lineage_rows_from_backup_jobs(db: Any, runtime: Dict[str, str]) -> L
             },
             sort=[("created_at", -1)],
         )
-        rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
+        if hasattr(cursor, "to_list"):
+            rows = await cursor.to_list(length=MAX_RECENT_CANDIDATES)
+        else:
+            rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
     except Exception:
         rows = []
     out: List[Dict[str, Any]] = []
@@ -632,14 +693,20 @@ async def build_canonical_archive_lineage(
     current_db: Optional[str] = None,
     requested_source_environment: Optional[str] = None,
     force_refresh: bool = False,
+    include_manifest_reads: bool = True,
 ) -> Dict[str, Any]:
     now_mono = time.time()
-    if not force_refresh and _CACHE.get("payload") is not None and (now_mono - float(_CACHE.get("ts") or 0.0)) < _CACHE_TTL_SECONDS:
-        return dict(_CACHE["payload"])
-
-    from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
-
     runtime = _runtime_identity(current_env=current_env, current_db=current_db)
+    cache_key = _cache_key(
+        runtime,
+        requested_source_environment=requested_source_environment,
+        include_manifest_reads=include_manifest_reads,
+    )
+    cached_entry = _CACHE.get(cache_key)
+    if not force_refresh and cached_entry is not None and (now_mono - float(cached_entry.get("ts") or 0.0)) < _CACHE_TTL_SECONDS:
+        return dict(cached_entry["payload"])
+
+    manifest_probe_mode = "FULL" if include_manifest_reads else "HOT_PATH"
     if requested_source_environment and requested_source_environment.lower() != runtime.get("app_env"):
         return {
             "truth_subject": TRUTH_SUBJECT,
@@ -648,6 +715,10 @@ async def build_canonical_archive_lineage(
             "runtime_identity": runtime,
             "requested_source_environment": requested_source_environment,
             "thresholds": threshold_inventory(),
+            "manifest_probe_mode": manifest_probe_mode,
+            "manifest_reads_attempted": 0,
+            "manifest_reads_skipped": 0,
+            "manifest_skip_reason": None,
             "newest_observed_artifact": None,
             "newest_valid_recoverable_artifact": None,
             "authoritative_artifact": None,
@@ -664,56 +735,75 @@ async def build_canonical_archive_lineage(
             "rejected_candidates": [],
             "all_candidates": [],
         }
-    candidate_rows = _recent_lineage_rows_from_backup_jobs(db, runtime)
+    candidate_rows = await _recent_lineage_rows_from_backup_jobs(db, runtime)
+    if hasattr(db.backup_health, "find"):
+        cursor = db.backup_health.find(
+            {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
+            {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
+            sort=[("ts", -1)],
+        )
+        if hasattr(cursor, "to_list"):
+            backup_health_rows = await cursor.to_list(length=MAX_RECENT_CANDIDATES)
+        else:
+            backup_health_rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
+    else:
+        single = await db.backup_health.find_one(
+            {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
+            {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
+            sort=[("ts", -1)],
+        )
+        backup_health_rows = [single] if single else []
+
     if candidate_rows:
-        allowed_filenames = {str(row.get("filename") or "").strip() for row in candidate_rows if row.get("filename")}
-        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or "backups/auto-90d/"))
-        archive_rows = [a for a in archives if str(a.get("filename") or "").strip() in allowed_filenames][:MAX_RECENT_CANDIDATES]
         recent_rows = candidate_rows[:MAX_RECENT_CANDIDATES]
     else:
-        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or "backups/auto-90d/"))
-        archive_rows = archives[:MAX_RECENT_CANDIDATES]
-        if hasattr(db.backup_health, "find"):
-            cursor = db.backup_health.find(
-                {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
-                {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
-                sort=[("ts", -1)],
-            )
-            if hasattr(cursor, "to_list"):
-                recent_rows = await cursor.to_list(length=MAX_RECENT_CANDIDATES)
-            else:
-                recent_rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
-        else:
-            single = await db.backup_health.find_one(
-                {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
-                {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
-                sort=[("ts", -1)],
-            )
-            recent_rows = [single] if single else []
+        recent_rows = backup_health_rows[:MAX_RECENT_CANDIDATES]
 
     manifest_bundles: Dict[str, Dict[str, Any]] = {}
-    manifest_tasks = []
-    manifest_names = []
-    for archive in archive_rows:
-        key = archive.get("key")
-        filename = archive.get("filename")
-        if not key or not filename:
-            continue
-        manifest_tasks.append(read_r2_backup_manifest(key))
-        manifest_names.append(filename)
+    manifest_reads_attempted = 0
+    manifest_reads_skipped = 0
+    manifest_skip_reason: Optional[str] = None
 
-    if manifest_tasks:
-        for filename, bundle in zip(manifest_names, await asyncio.gather(*manifest_tasks, return_exceptions=True)):
-            if isinstance(bundle, dict):
-                manifest_bundles[filename] = bundle
+    if include_manifest_reads:
+        from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
+
+        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or "backups/auto-90d/"))
+        if candidate_rows:
+            allowed_filenames = {str(row.get("filename") or "").strip() for row in candidate_rows if row.get("filename")}
+            archive_rows = [a for a in archives if str(a.get("filename") or "").strip() in allowed_filenames][:MAX_RECENT_CANDIDATES]
+        else:
+            archive_rows = archives[:MAX_RECENT_CANDIDATES]
+
+        manifest_tasks = []
+        manifest_names = []
+        for archive in archive_rows:
+            key = archive.get("key")
+            filename = archive.get("filename")
+            if not key or not filename:
+                continue
+            manifest_tasks.append(read_r2_backup_manifest(key))
+            manifest_names.append(filename)
+        manifest_reads_attempted = len(manifest_tasks)
+        if manifest_tasks:
+            for filename, bundle in zip(manifest_names, await asyncio.gather(*manifest_tasks, return_exceptions=True)):
+                if isinstance(bundle, dict):
+                    manifest_bundles[filename] = bundle
+    else:
+        archive_rows = _synthetic_archive_rows_from_recent_rows(recent_rows, runtime)
+        manifest_reads_skipped = len(archive_rows)
+        manifest_skip_reason = "HOT_PATH_BOUNDED_EVALUATION"
 
     payload = resolve_archive_lineage_from_inputs(
         runtime_identity=runtime,
         archive_rows=archive_rows,
         recent_rows=recent_rows,
         manifest_bundles=manifest_bundles,
+        manifest_probe_mode=manifest_probe_mode,
+        manifest_reads_attempted=manifest_reads_attempted,
+        manifest_reads_skipped=manifest_reads_skipped,
+        manifest_skip_reason=manifest_skip_reason,
     )
-    _CACHE.update({"ts": now_mono, "payload": payload})
+    _CACHE[cache_key] = {"ts": now_mono, "payload": payload}
     return dict(payload)
 
 
@@ -798,6 +888,10 @@ def public_archive_lineage_payload(lineage: Dict[str, Any]) -> Dict[str, Any]:
         "availability_status": lineage.get("availability_status"),
         "degradation_reasons": lineage.get("degradation_reasons") or [],
         "thresholds": thresholds,
+        "manifest_probe_mode": lineage.get("manifest_probe_mode"),
+        "manifest_reads_attempted": lineage.get("manifest_reads_attempted"),
+        "manifest_reads_skipped": lineage.get("manifest_reads_skipped"),
+        "manifest_skip_reason": lineage.get("manifest_skip_reason"),
         "newest_observed_artifact": summarize_artifact(lineage.get("newest_observed_artifact")),
         "newest_valid_recoverable_artifact": summarize_artifact(lineage.get("newest_valid_recoverable_artifact")),
         "rejected_candidates": [summarize_artifact(candidate) for candidate in (lineage.get("rejected_candidates") or [])],
