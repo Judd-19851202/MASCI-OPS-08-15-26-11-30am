@@ -31,13 +31,16 @@ The deterministic next phase is therefore:
 | Metric | Current State | Evidence Basis |
 |---|---|---|
 | Wave 3 Completion | **6 / 9 implementation slices complete** | Completed slices recorded in `PRD.md` for Family 1, Family 2, Family 3B, Family 3C, Family 3D-1 Slice 1, Family 3D-1 Slice 2 |
-| Adopted Families | **4 / 6 Phase B tracks ready for formal adoption** | Family 1, Family 2, Family 3B, Family 3C are verified and marked ready; Family 3A pending; Family 3D-1 still has remaining bounded work |
-| Rejected Family Hypotheses | **2** | Broad Family 3 umbrella = NO-GO; standalone Family 3D-2 = NO-GO |
-| Open Queue A Items | **2 implementation slices** | Family 3A core read-only hardening; Family 3D-1 legacy overlap demotion/containment |
+| Adopted Families | **4 / 6 formally adopted implementation families** | Family 1, Family 2, Family 3B, Family 3C formal adoptions recorded in Step 1; Family 3A pending; Family 3D-1 family adoption remains open |
+| Adopted Slices | **6 / 6 completed slices adopted at current baseline** | Family 1, Family 2, Family 3B, Family 3C, Family 3D-1 Slice 1, Family 3D-1 Slice 2 |
+| Queue A Remaining | **3 total items / 2 implementation slices** | Remaining Queue A items are W3-3A-S1, W3-3D1-S3, and W3-CLOSEOUT |
+| Deferred Items | **1** | W3-3D1-S4 remains Queue B / deferred until after W3-3D1-S3 review |
+| Rejected Items | **2** | Broad Family 3 umbrella = NO-GO; standalone Family 3D-2 = NO-GO |
 | Platform Survivability | **In Progress (pre-existing capabilities present, gate not yet closed)** | Backup/recovery runtime, monitoring, verification routes, and drills exist in repository/PRD evidence |
 | Backup & Recovery | **In Progress** | R2 archive lineage, verification cron, recovery dashboard, representative restore evidence present; full restore certification incomplete |
 | PRR Status | **Not Started** | No completed PRR register with pass/fail outcomes yet |
 | Deployment Authorization | **Not Authorized** | Remaining Wave 3 slices open; survivability and PRR still pending |
+| Current Execution Phase | **Queue A Execution · Step 1 complete · governance pause before Family 3A Slice 1** | This Step 1 adoption checkpoint |
 
 ## 3. Constitutional Status
 
@@ -56,12 +59,12 @@ The following constitutional facts are frozen for all planning in this document:
 ## 4. Current Platform Status
 
 ### Completed and independently verified Wave 3 implementation work
-- Family 1 — OCC Health Aggregator: implemented, verified, ready for formal adoption
-- Family 2 — OCC Trust Events: implemented, verified, ready for formal adoption
-- Family 3B — Operations Actions: implemented, verified, ready for formal adoption
-- Family 3C — Operational Events: implemented, verified, ready for formal adoption
-- Family 3D-1 Slice 1 — canonical expiration-field write integrity (`dot_expiration`, `calibration_expiration`): implemented, verified, ready for formal adoption
-- Family 3D-1 Slice 2 — canonical contract consistency for `inspection_expiration`: implemented, verified, ready for formal adoption
+- Family 1 — OCC Health Aggregator: implemented, verified, formally adopted
+- Family 2 — OCC Trust Events: implemented, verified, formally adopted
+- Family 3B — Operations Actions: implemented, verified, formally adopted
+- Family 3C — Operational Events: implemented, verified, formally adopted
+- Family 3D-1 Slice 1 — canonical expiration-field write integrity (`dot_expiration`, `calibration_expiration`): implemented, verified, adopted at slice level
+- Family 3D-1 Slice 2 — canonical contract consistency for `inspection_expiration`: implemented, verified, adopted at slice level
 
 ### Remaining Wave 3 implementation work
 - Family 3A — bounded core `admin_ops.py` read-only hardening
@@ -90,14 +93,22 @@ The following constitutional facts are frozen for all planning in this document:
 | W3-3A-S1 | Implementation | Family 3A | `PRD.md` (Wave 3 Family 3A Phase B), `FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` §§911-934 | Not started | High — closes strict-admin read-only observability contract | existing 3A discovery only | 1 | Queue A |
 | W3-3D1-S3 | Implementation | Family 3D-1 | Asset Decision Record rows 160-161, 240-243; 3D-1 discovery conditional Phase B approval | Not started | High — reduces legacy canonical-owner drift in asset registry authority | 3D-1 slices 1-2 complete; asset decision record frozen | 1 | Queue A |
 | W3-3D1-S4 | Implementation | Family 3D-1 | `PRD.md` Slice 2 deferred backlog: `inspection_expiration` UI parity | Deferred from Slice 2 intentionally | Medium — improves direct consumer parity without changing backend truth | best executed after W3-3D1-S3 | 1 | Queue B |
-| W3-ADOPT-F1 | Formal adoption | Family 1 | `FAMILY1_OCC_HEALTH_AGGREGATOR_PHASEB_IMPLEMENTATION_RECORD.md`, `iteration_39.json` | Ready | Medium — closes verified family record | none beyond existing evidence | 0 | Queue A |
-| W3-ADOPT-F2 | Formal adoption | Family 2 | `FAMILY2_OCC_TRUST_EVENTS_PHASEB_IMPLEMENTATION_RECORD.md`, `iteration_40.json` | Ready | Medium — closes verified family record | none beyond existing evidence | 0 | Queue A |
-| W3-ADOPT-F3B | Formal adoption | Family 3B | `PRD.md` §§865-930, `iteration_42.json` | Ready | Medium — closes verified family record | none beyond existing evidence | 0 | Queue A |
-| W3-ADOPT-F3C | Formal adoption | Family 3C | `PRD.md` §§932-1004, `iteration_43.json` | Ready | Medium — closes verified family record | none beyond existing evidence | 0 | Queue A |
 | W3-ADOPT-F3D1 | Formal adoption | Family 3D-1 | Asset Decision Record + `PRD.md` §§1006-1123 + `iteration_44.json` + `iteration_45.json` | Not ready yet | High — closes Asset Spine family only after remaining bounded work is dispositioned | W3-3D1-S3 complete; W3-3D1-S4 dispositioned | 0 | Queue B |
 | W3-CLOSEOUT | Formal closeout | Wave 3 Program | all completed Wave 3 family records + this master plan | Not started | High — unlocks survivability gate | all Queue A work adopted | 0 | Queue A |
 | W3-3D2-STANDALONE | Rejected hypothesis | N/A | `FAMILY3D2_EXTERNAL_ASSET_MAPPING_RECONCILIATION_PHASEA_DISCOVERY.md` §§523-547; Asset Decision Record §§124-143 | Rejected | Prevents drift | none | 0 | Queue D |
 | W3-F3-UMBRELLA | Rejected hypothesis | N/A | `FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` §§924-934 | Rejected | Prevents drift | none | 0 | Queue D |
+
+### Formal Adoption Register
+
+| Family / Slice | Constitutional Owner | Governing Constitutional Artifact | Verification Evidence | Adoption Status |
+|---|---|---|---|---|
+| Family 1 — OCC Health Aggregator | Family 1 | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY1_OCC_HEALTH_AGGREGATOR_PHASEA_DISCOVERY.md` + existing Phase B implementation record | `/app/test_reports/iteration_39.json` | Formally adopted |
+| Family 2 — OCC Trust Events | Family 2 | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY2_OCC_TRUST_EVENTS_PHASEA_DISCOVERY.md` + existing Phase B implementation record | `/app/test_reports/iteration_40.json` | Formally adopted |
+| Family 3B — Operations Actions | Family 3B | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3B_OPERATIONS_ACTIONS_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_42.json` | Formally adopted |
+| Family 3C — Operational Events | Family 3C | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3C_OPERATIONAL_EVENTS_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_43.json` | Formally adopted |
+| Family 3D-1 Slice 1 | Family 3D-1 | `BCSS_RELEASE2_PROGRAM2_WAVE3_ASSET_DOMAIN_CONSTITUTIONAL_DECISION_RECORD.md` + `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3D1_ASSET_SPINE_CANONICAL_REGISTRY_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_44.json` | Adopted at slice level; family adoption pending |
+| Family 3D-1 Slice 2 | Family 3D-1 | `BCSS_RELEASE2_PROGRAM2_WAVE3_ASSET_DOMAIN_CONSTITUTIONAL_DECISION_RECORD.md` + `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3D1_ASSET_SPINE_CANONICAL_REGISTRY_PHASEA_DISCOVERY.md` | `/app/test_reports/iteration_45.json` | Adopted at slice level; family adoption pending |
+| Family 3A | Family 3A | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` | N/A | Not adopted; implementation pending |
 
 ## 6. Queue Classification (A / B / C / D)
 
@@ -109,10 +120,6 @@ Repository-proven, high operational value, and ready with no constitutional ambi
 |---|---|
 | W3-3A-S1 | Discovery explicitly supports a re-scoped bounded Phase B on core `admin_ops.py`; direct consumers and read-only boundary are clear |
 | W3-3D1-S3 | Asset Decision Record explicitly preserves this as the remaining narrow 3D-1 boundary-hardening path |
-| W3-ADOPT-F1 | Verified and ready now |
-| W3-ADOPT-F2 | Verified and ready now |
-| W3-ADOPT-F3B | Verified and ready now |
-| W3-ADOPT-F3C | Verified and ready now |
 | W3-CLOSEOUT | Required program step once Queue A slices and adoption records are complete |
 
 ### Queue B — Planned Implementation
@@ -154,24 +161,26 @@ Only remaining implementation slices are listed here. Formal adoption and closeo
 
 ## 8. Slice Closure Register
 
-| Slice ID | Constitutional Owner | Status | Verification Evidence | Adoption Status |
-|---|---|---|---|---|
-| W3-F1-S1 | Family 1 | Implemented · Verified | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY1_OCC_HEALTH_AGGREGATOR_PHASEB_IMPLEMENTATION_RECORD.md`; `/app/test_reports/iteration_39.json` | Ready for formal adoption |
-| W3-F2-S1 | Family 2 | Implemented · Verified | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY2_OCC_TRUST_EVENTS_PHASEB_IMPLEMENTATION_RECORD.md`; `/app/test_reports/iteration_40.json` | Ready for formal adoption |
-| W3-F3B-S1 | Family 3B | Implemented · Verified | `PRD.md` §§865-930; `/app/test_reports/iteration_42.json` | Ready for formal adoption |
-| W3-F3C-S1 | Family 3C | Implemented · Verified | `PRD.md` §§932-1004; `/app/test_reports/iteration_43.json` | Ready for formal adoption |
-| W3-F3D1-S1 | Family 3D-1 | Implemented · Verified | `PRD.md` §§1006-1056; `/app/test_reports/iteration_44.json` | Ready for formal adoption at slice level; family remains open pending remaining bounded work |
-| W3-F3D1-S2 | Family 3D-1 | Implemented · Verified | `PRD.md` §§1058-1123; `/app/test_reports/iteration_45.json` | Ready for formal adoption at slice level; family remains open pending remaining bounded work |
+| Slice / Family | Constitutional Owner | Purpose | Status | Verification Artifact | Adoption Status |
+|---|---|---|---|---|---|
+| W3-F1-S1 | Family 1 | OCC Health Aggregator bounded constitutional hardening | Implemented · Verified | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY1_OCC_HEALTH_AGGREGATOR_PHASEB_IMPLEMENTATION_RECORD.md`; `/app/test_reports/iteration_39.json` | Formally adopted |
+| W3-F2-S1 | Family 2 | OCC Trust Events canonical truth binding and bounded hardening | Implemented · Verified | `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY2_OCC_TRUST_EVENTS_PHASEB_IMPLEMENTATION_RECORD.md`; `/app/test_reports/iteration_40.json` | Formally adopted |
+| W3-F3B-S1 | Family 3B | Operations Actions bounded Phase B hardening | Implemented · Verified | `PRD.md` §§865-930; `/app/test_reports/iteration_42.json` | Formally adopted |
+| W3-F3C-S1 | Family 3C | Operational Events bounded Phase B hardening | Implemented · Verified | `PRD.md` §§932-1004; `/app/test_reports/iteration_43.json` | Formally adopted |
+| W3-F3D1-S1 | Family 3D-1 | Canonical registry write integrity for `dot_expiration` and `calibration_expiration` | Implemented · Verified | `PRD.md` §§1006-1056; `/app/test_reports/iteration_44.json` | Adopted at slice level; family remains open pending remaining bounded work |
+| W3-F3D1-S2 | Family 3D-1 | Canonical registry contract consistency for `inspection_expiration` | Implemented · Verified | `PRD.md` §§1058-1123; `/app/test_reports/iteration_45.json` | Adopted at slice level; family remains open pending remaining bounded work |
 
 ## 9. Wave 3 Burn-Down Plan
 
 Deterministic execution order. No overlapping implementation.
 
-1. **Issue formal adoption records for already verified families**
-   - W3-ADOPT-F1
-   - W3-ADOPT-F2
-   - W3-ADOPT-F3B
-   - W3-ADOPT-F3C
+1. **Step 1 complete — formal adoptions recorded and baseline locked**
+   - Family 1 adopted
+   - Family 2 adopted
+   - Family 3B adopted
+   - Family 3C adopted
+   - Family 3D-1 Slice 1 adopted at slice level
+   - Family 3D-1 Slice 2 adopted at slice level
 
 2. **Execute W3-3A-S1**
    - complete
@@ -196,6 +205,11 @@ Deterministic execution order. No overlapping implementation.
    - hand off to Platform Survivability Program
 
 Wave 3 is considered execution-complete only when all Queue A items above are finished, verified, and adopted.
+
+### Step 1 Consistency Check
+
+- Master Execution Plan, Asset Domain Constitutional Decision Record, Remaining Work Register, and Slice Closure Register are aligned after Step 1.
+- No contradiction remains between adopted families, rejected items, remaining Queue A items, or Family 3D-2 rejection status.
 
 ---
 
