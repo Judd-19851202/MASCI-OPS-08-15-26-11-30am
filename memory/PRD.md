@@ -1002,3 +1002,55 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 
 ### Formal status
 - **READY FOR FORMAL ADOPTION** for Wave 3 Family 3C Phase B, based on bounded implementation plus independent verification.
+
+## 2026-07-26 — BCSS Release 2 / Program 2 / Wave 3 / Family 3D-1 Phase B
+
+### Scope
+- Completed one bounded Asset Spine Phase B repair under the frozen Asset Domain constitutional record.
+- Implemented only canonical registry write-integrity support for existing Asset Spine fields `dot_expiration` and `calibration_expiration`.
+
+### Files in scope
+- `backend/routes/asset_spine.py`
+- `backend/services/asset_spine.py`
+- `backend/tests/test_asset_spine_p0_1.py`
+- Independent verification added `backend/tests/test_asset_spine_api_live.py`
+
+### Implemented
+- Extended Asset Spine `AssetCreate` and `AssetUpdate` input contracts to accept `dot_expiration` and `calibration_expiration`.
+- Persisted both fields in `AssetSpine.create_asset()`.
+- Allowed both fields in `AssetSpine.update_asset()` patch whitelist.
+- Preserved existing canonical projection behavior so GET responses return both fields unchanged.
+- Added/updated coverage for create → read → update → read lifecycle of both fields.
+
+### Explicit boundaries honored
+- No provider transport, provider synchronization, provider mapping, or provider reconciliation changes.
+- No changes to assignments, operational status, Trust, notifications, audit architecture, or adjacent family owners.
+- No new collections, indexes, identity stores, or registry stores.
+
+### Verification evidence
+- Local Python lint: PASS for modified Asset Spine route/service/test files.
+- Local Asset Spine suite: `8 passed` via `backend/tests/test_asset_spine_p0_1.py`.
+- Independent verification report: `/app/test_reports/iteration_44.json` → PASS.
+- Independent live API verification confirmed:
+  - create persists both fields
+  - read returns both fields unchanged
+  - update persists both fields
+  - read-after-update returns updated values
+  - duplicate `asset_number` prevention still returns `409`
+  - dual-token auth enforcement remains intact
+- Frontend smoke verification: PASS (no regressions from backend-only change).
+
+### Performance evidence (preview)
+- Manual live verification observed:
+  - create: `755.55 ms`
+  - first get: `506.96 ms`
+  - update: `353.27 ms`
+  - second get: `227.91 ms`
+- No measurable regression was identified in this bounded contract repair.
+
+### Constitutional compliance
+- Implementation stayed within the narrow 3D-1 boundary: canonical asset registry write integrity only.
+- No architectural drift detected.
+
+### Status
+- **READY FOR FORMAL ADOPTION** for this bounded 3D-1 Phase B repair, with independent verification complete.
