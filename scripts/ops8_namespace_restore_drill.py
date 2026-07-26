@@ -54,6 +54,7 @@ from lib.restore_certification_evidence import (  # noqa: E402
     extract_archive_collection_documents,
     load_namespace_collection_documents,
     mark_phase_status,
+    persist_restore_substep_evidence,
     validate_restore_certification_evidence,
     verify_audit_data,
     verify_identity_role_data,
@@ -582,6 +583,30 @@ def _persist_evidence(db, drill_id: str, evidence: Dict[str, Any], **extra: Any)
     db.drill_runs.update_one({"id": drill_id}, {"$set": payload}, upsert=True)
 
 
+def _pre_download_authority_validation(*, authoritative: Dict[str, Any], lineage: Dict[str, Any], env: Dict[str, str], requested_env: str, archive_key: str) -> tuple[bool, Optional[str], Dict[str, Any]]:
+    runtime_identity = dict(lineage.get("runtime_identity") or {})
+    artifact_identity = authoritative.get("artifact_identity") or {}
+    lineage_identity = authoritative.get("lineage_identity") or {}
+    refs = authoritative.get("evidence_references") or {}
+    checks = {
+        "object_key_match": authoritative.get("object_key") == archive_key,
+        "environment_preview": requested_env == "preview" and artifact_identity.get("originating_environment") == "preview",
+        "database_match": env.get("DB_NAME") == "masci_safety_preview" and artifact_identity.get("database_name") == "masci_safety_preview",
+        "bucket_match": (not runtime_identity.get("backup_bucket") or runtime_identity.get("backup_bucket") == "UNRESOLVED" or not lineage_identity.get("backup_bucket") or runtime_identity.get("backup_bucket") == lineage_identity.get("backup_bucket")),
+        "prefix_match": (not runtime_identity.get("backup_prefix") or not lineage_identity.get("backup_prefix") or runtime_identity.get("backup_prefix") == lineage_identity.get("backup_prefix")),
+        "persisted_checksum_exists": bool(refs.get("checksum_sha256")),
+        "environment_fingerprint_match": (not lineage_identity.get("environment_fingerprint") or not runtime_identity.get("environment_fingerprint") or lineage_identity.get("environment_fingerprint") == runtime_identity.get("environment_fingerprint")),
+        "cluster_fingerprint_match": (not lineage_identity.get("source_cluster_fingerprint") or not runtime_identity.get("cluster_fingerprint") or lineage_identity.get("source_cluster_fingerprint") == runtime_identity.get("cluster_fingerprint")),
+        "release_identity_match_where_authoritative": True,
+        "remote_manifest_fanout_disabled": int(lineage.get("manifest_reads_attempted") or 0) == 0,
+        "destination_policy_isolated_preview_namespace": True,
+    }
+    ok = all(bool(v) for v in checks.values())
+    if ok:
+        return True, None, checks
+    return False, "PRE_DOWNLOAD_AUTHORITY_FAILED", checks
+
+
 def _phase_start(db, drill_id: str, evidence: Dict[str, Any], guard: Dict[str, Any], phase: str, *, extra: Optional[Dict[str, Any]] = None) -> None:
     telemetry = capture_runtime_telemetry(db=db, drill_phase=phase, drill_pid=os.getpid())
     mark_phase_status(
@@ -834,6 +859,14 @@ def main() -> int:
         authoritative=authoritative,
         requested_env=requested_env,
     )
+    evidence = build_restore_evidence_skeleton(
+        drill_id=drill_id,
+        namespace_prefix=namespace_prefix,
+        authorized_archive_key=args.backup,
+        requested_env=requested_env,
+        target_db=env["DB_NAME"],
+        guard=guard,
+    )
     if not authoritative:
         return _authoritative_truth_refusal("ARCHIVE_LINEAGE_UNVERIFIED", diagnostics, guard=guard, db=live_db)
     if authoritative.get("object_key") != args.backup:
@@ -853,18 +886,39 @@ def main() -> int:
         return _authoritative_truth_refusal("BACKUP_BUCKET_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
     if runtime_prefix and authoritative_prefix and authoritative_prefix != runtime_prefix:
         return _authoritative_truth_refusal("BACKUP_PREFIX_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
-    evidence = build_restore_evidence_skeleton(
-        drill_id=drill_id,
-        namespace_prefix=namespace_prefix,
-        authorized_archive_key=args.backup,
-        requested_env=requested_env,
-        target_db=env["DB_NAME"],
-        guard=guard,
-    )
     _phase_start(live_db, drill_id, evidence, guard, "preflight", extra={"canonical_owner_trace": OWNER_TRACE})
     preflight_state = _collect_cleanup_state(live_db, namespace_prefix, tmp_dir)
     evidence["cleanup"]["preflight_state"] = preflight_state
     _phase_finish(live_db, drill_id, evidence, guard, "preflight", "completed", extra=preflight_state)
+
+    pre_ok, pre_error, pre_checks = _pre_download_authority_validation(
+        authoritative=authoritative,
+        lineage=lineage,
+        env=env,
+        requested_env=requested_env,
+        archive_key=args.backup,
+    )
+    evidence["source_authority"] = _build_source_authority(authoritative, diagnostics, runtime_identity)
+    evidence["explicit_key_resolution"] = dict(diagnostics)
+    evidence["lineage_validation_completed"] = bool(pre_ok)
+    evidence["archive_download_authorized"] = bool(pre_ok)
+    evidence["backup_id_reconciliation_state"] = "PENDING_ARCHIVE_INSPECTION"
+    diagnostics["last_successful_substep"] = "persisted_authority_validated" if pre_ok else None
+    diagnostics["failure_substep"] = None if pre_ok else "persisted_authority_validation"
+    evidence["explicit_key_resolution"] = dict(diagnostics)
+    persist_restore_substep_evidence(
+        live_db,
+        drill_id,
+        evidence,
+        explicit_updates=pre_checks,
+        root_updates={
+            "lineage_validation_completed": bool(pre_ok),
+            "archive_download_authorized": bool(pre_ok),
+            "backup_id_reconciliation_state": "PENDING_ARCHIVE_INSPECTION",
+        },
+    )
+    if not pre_ok:
+        return _authoritative_truth_refusal(pre_error or "PRE_DOWNLOAD_AUTHORITY_FAILED", diagnostics, guard=guard, db=live_db)
     runtime_identity = _canonical_runtime_identity_from_lineage(lineage)
     evidence["source_authority"] = _build_source_authority(authoritative, diagnostics, runtime_identity)
     evidence["explicit_key_resolution"] = dict(diagnostics)

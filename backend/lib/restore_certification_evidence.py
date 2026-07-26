@@ -351,6 +351,9 @@ def build_restore_evidence_skeleton(
         "telemetry_timeline": [],
         "source_authority": {},
         "explicit_key_resolution": {},
+        "lineage_validation_completed": False,
+        "archive_download_authorized": False,
+        "backup_id_reconciliation_state": "PENDING_ARCHIVE_INSPECTION",
         "canonical_before_fingerprint": None,
         "canonical_after_fingerprint": None,
         "canonical_fingerprint_match": None,
@@ -382,6 +385,29 @@ def build_restore_evidence_skeleton(
         "contradictory_evidence_sections": [],
         "certification_eligible": False,
     }
+
+
+def persist_restore_substep_evidence(
+    db: Any,
+    drill_id: str,
+    evidence: Dict[str, Any],
+    *,
+    explicit_updates: Optional[Dict[str, Any]] = None,
+    root_updates: Optional[Dict[str, Any]] = None,
+    extra_updates: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    if explicit_updates:
+        evidence.setdefault("explicit_key_resolution", {}).update(explicit_updates)
+    if root_updates:
+        evidence.update(root_updates)
+    payload = {
+        "restore_certification_evidence": evidence,
+        "evidence_schema_version": EVIDENCE_SCHEMA_VERSION,
+    }
+    if extra_updates:
+        payload.update(extra_updates)
+    db.drill_runs.update_one({"id": drill_id}, {"$set": payload}, upsert=True)
+    return evidence
 
 
 def _phase_slot(evidence: Dict[str, Any], phase: str) -> Dict[str, Any]:

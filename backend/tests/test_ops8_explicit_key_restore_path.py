@@ -382,6 +382,31 @@ def test_missing_key_plus_checksum_mismatch_fails(monkeypatch, tmp_path):
     assert out["restore_calls"] == 0
 
 
+def test_historical_lineage_without_backup_id_may_authorize_download(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["persisted_lineage_row"]["archive_lineage"]["backup_id"] = None
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    assert evidence["lineage_validation_completed"] is True
+    assert evidence["archive_download_authorized"] is True
+    assert evidence["backup_id_reconciliation_state"] == "PENDING_ARCHIVE_INSPECTION"
+
+
+def test_different_object_key_fails_before_download(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, backup_key="backups/auto-90d/OTHER.zip")
+    assert out["rc"] == 2
+    assert out["downloads"] == []
+
+
+def test_namespace_restore_cannot_begin_before_complete_identity_reconciliation(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["backup_id"] = ""
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest)
+    assert out["restore_calls"] == 0
+
+
 def test_missing_key_plus_release_identity_mismatch_fails(monkeypatch, tmp_path):
     manifest = _base_manifest()
     manifest["archive_key"] = ""
@@ -455,6 +480,7 @@ def test_substep_truth_persists_when_backup_id_fails(monkeypatch, tmp_path):
     explicit = out["db"].drill_runs.rows[0]["restore_certification_evidence"]["explicit_key_resolution"]
     assert explicit["embedded_manifest_loaded"] is True
     assert explicit["computed_checksum"]
+    assert explicit["checksum_validated"] is True
     assert explicit["failure_substep"] == "backup_id_reconciliation_failed"
 
 
