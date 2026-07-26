@@ -1438,3 +1438,83 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Family 3D-1 Slice 3 is **FORMALLY ADOPTED**.
 - Family 3D-1 is now **FORMALLY ADOPTED** at family level.
 - Queue A implementation slices are now **ZERO**; Wave 3 Formal Closeout is the next execution phase.
+
+## 2026-07-26 — BCSS Release 2 Platform Survivability / Bounded Preview Backend Stability Stage 1
+
+### Scope
+- Completed the authorized Stage 1 bounded repair for Preview backend runtime stability only.
+- This pass was limited to removing deep archive manifest inspection from hot health consumers.
+
+### What changed
+- Extended canonical archive lineage with an explicit bounded capability flag:
+  - `build_canonical_archive_lineage(..., include_manifest_reads=False)`
+- In hot-path mode, lineage now:
+  - skips live manifest reads
+  - skips manifest fan-out / `asyncio.gather()`
+  - prefers in-process cache and persisted Preview lineage evidence
+  - preserves environment/database rejection rules
+  - reports bounded diagnostics:
+    - `manifest_probe_mode=HOT_PATH`
+    - `manifest_reads_attempted=0`
+    - `manifest_reads_skipped`
+    - `manifest_skip_reason=HOT_PATH_BOUNDED_EVALUATION`
+- Applied hot-path mode only to:
+  - `backend/routes/admin_ops.py` system-health lineage call
+  - `backend/server.py` backup-recency health path used by `/api/health/full`
+- Explicit verification/report paths were intentionally left on full manifest behavior.
+
+### Explicit non-changes
+- No restore logic changes
+- No restore drill execution
+- No Production access or Production evidence collection
+- No R2/boto timeout, retry, semaphore, or backoff changes
+- No Mongo permission changes
+- No infrastructure or storage-topology changes
+
+### Deterministic proof added
+- New bounded tests in `backend/tests/test_archive_lineage_hot_path.py` prove:
+  - health-mode lineage performs zero manifest reads
+  - health-mode lineage cannot fan out manifest probes
+  - persisted Preview lineage still resolves the authoritative archive
+  - environment mismatch remains fail-closed
+  - full mode retains manifest-read behavior by default
+
+### Verification evidence
+- Local targeted tests:
+  - `backend/tests/test_archive_lineage_hot_path.py` + `backend/tests/test_s1_0_environment_authority_lineage.py` → `16 passed`
+- Manual runtime gate after clean backend restart:
+  - zero active restore processes
+  - zero active Preview guards
+  - zero nonterminal Preview drills
+  - zero orphan certification namespaces
+- 10-cycle Preview backend stability gate passed:
+  - `/api/health` → `10/10` success, `0` timeouts
+  - `/api/healthz` → `10/10` success, `0` timeouts
+  - `/api/ready` → `10/10` success, `0` timeouts
+  - `/api/health/full` → `10/10` success, `0` timeouts
+- Observed endpoint latency during the successful gate:
+  - `/api/health` max `0.129s`
+  - `/api/healthz` max `0.005s`
+  - `/api/ready` max `0.005s`
+  - `/api/health/full` max `0.157s`
+- Independent backend verification also passed:
+  - `PREVIEW BACKEND STABILITY VERIFIED — RESTORE RETRY MAY BE AUTHORIZED`
+  - Supporting artifacts:
+    - `/app/bcss_release2_stability_test.py`
+    - `/app/bcss_release2_stability_results.json`
+    - `/app/bcss_release2_stability_verification_report.md`
+
+### Supervisor / runtime observations
+- No recurring R2 manifest-timeout storm was observed after the Stage 1 repair during the gated window.
+- Health monitor armed successfully and did not emit new manifest-timeout warnings during the observed cycle.
+- Backend process count stayed stable during the gate.
+- No restore retry was executed.
+
+### Status outcome
+- Preview backend runtime stability is now verified for the bounded Stage 1 health-path slice.
+- Restore retry remains separately governed and requires new authorization.
+
+### Next tasks
+- P0: Await separate authorization before any single controlled Preview restore retry.
+- P1: If explicit backup-verification paths later show residual R2 thread/socket drag, prepare a separate Stage 2 proposal for boto timeout/retry/concurrency hardening.
+- P1: Continue survivability program sequencing only under bounded authorization.
