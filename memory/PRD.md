@@ -1121,3 +1121,43 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 
 ### Status
 - **READY FOR FORMAL ADOPTION** for this bounded 3D-1 Slice 2 repair, with independent verification complete.
+
+## 2026-07-26 — BCSS Release 2 / Program 2 / Wave 3 Master Execution Plan
+
+### Scope
+- Created the single canonical planning artifact for the remainder of Release 2:
+  - `/app/memory/BCSS_RELEASE2_PROGRAM2_WAVE3_MASTER_EXECUTION_PLAN.md`
+- This was a planning/orchestration pass only; no runtime implementation was performed.
+
+### What the master plan contains
+- Release Dashboard
+- Wave 3 Remaining Work Register
+- Queue classification (A / B / C / D)
+- Master Implementation Slice Register
+- Slice Closure Register
+- Wave 3 Burn-Down Plan
+- Platform Survivability Register
+- Backup & Recovery Readiness
+- Monitoring & Observability
+- Disaster Recovery Readiness
+- Production Readiness Review register
+- Deployment Readiness Scorecard
+- Executive Risks
+- Final execution recommendation
+
+### Repository-backed planning conclusions
+- Remaining immediate Wave 3 implementation work is narrowed to:
+  - Family 3A bounded read-only `admin_ops.py` hardening
+  - Family 3D-1 legacy `equipment_master` overlap demotion / containment
+- Family 3D-1 direct-consumer UI parity for `inspection_expiration` remains lower-priority Queue B work.
+- Standalone Family 3D-2 remains rejected and is recorded in Queue D.
+- Platform Survivability has strong existing repository/runtime evidence but is not yet formally closed.
+- PRR and production deployment remain blocked behind Wave 3 closeout and survivability completion.
+
+### Verification
+- Independent read-back verification completed on the master execution plan.
+- Confirmed all required sections and registers are present.
+- No runtime code, schemas, tests, or constitutional decisions were modified during this planning pass.
+
+### Status
+- **READY FOR WAVE 3 EXECUTION** according to the new master plan.
