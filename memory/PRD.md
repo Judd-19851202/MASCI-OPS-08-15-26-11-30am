@@ -138,6 +138,39 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Do not use admin/test credentials for Daily Report creation testing.
 - Use the marker `LIVE-AI-DRY-RUN-NO-SUBMIT` for dry-run scenarios and avoid unintended submission during non-submit verification.
 
+## 2026-07-26 — BCSS Release 2 Platform Survivability Phase 1 Baseline Adopted
+
+### Scope
+- Completed the discovery-to-baseline conversion for Platform Survivability Program Phase 1.
+- This pass was documentation-only and created the single authoritative survivability baseline artifact.
+
+### Implemented
+- Created `/app/memory/BCSS_RELEASE2_PLATFORM_SURVIVABILITY_BASELINE_AND_DISCOVERY.md` as the sole canonical survivability baseline.
+- Preserved the final evidence-based corrections from the pause-gate sweep:
+  - Restore classification downgraded to **EXERCISED BUT FAILED / NOT CURRENTLY VERIFIED**
+  - Notification classification narrowed to **Preview SAFE_CAPTURE verified; live provider delivery unverified**
+  - Backup verification endpoint family corrected to `/preview`, `/run-now`, `/state`
+- Established the bounded survivability implementation queue (Restore Certification → Secrets/Config Recovery → Backup Verification Hardening → Notification Delivery Certification → Scheduler Resilience → Monitoring and Alert Certification → DR Exercises → Survivability Closeout).
+
+### Verified
+- Discovery coverage preserved at `10/10` survivability domains assessed.
+- Capability totals preserved exactly:
+  - `VERIFIED = 6`
+  - `CONFIGURED BUT UNVERIFIED = 4`
+  - `EXERCISED BUT FAILED = 2`
+  - `NOT YET EXERCISED = 2`
+- No runtime or infrastructure changes were made during baseline adoption.
+
+### Current PRR blockers
+- Restore certification
+- Secrets/configuration recovery certification
+
+### Next tasks
+- P0: Execute Slice 1 — Restore Certification.
+- P0: Execute Slice 2 — Secrets and Configuration Recovery.
+- P1: Execute Slice 3 — Backup Verification Hardening.
+- P1: Execute Slice 4 — Notification Delivery Certification.
+
 ## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 1 Completed
 
 ### Scope
