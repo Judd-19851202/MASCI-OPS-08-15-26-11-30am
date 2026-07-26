@@ -249,7 +249,20 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - environment = `preview`
   - database = `masci_safety_preview`
   - archive key = exact Preview archive key
-- Remaining degradation during Preview runtime exercise came from repeated manifest-read timeouts and backend starvation when too many long-running drill processes overlapped. I stopped those drills, marked the stale `drill_runs` rows as `aborted`, and recovered backend health.
+- I then completed bounded operational reconciliation of the interrupted guarded run:
+  - guard `bjob-6628f04beb384d4f88ce8a5c7493913d`
+  - owner PID missing (`/proc/1237` absent)
+  - interrupted attempt classified as `ABORTED`
+  - terminal reason `ABORTED_DUE_TO_BACKEND_RESOURCE_STARVATION`
+  - orphan namespace collections = `0`
+  - active restore processes after cleanup = `0`
+  - active preview guards after cleanup = `0`
+- After reconciliation, the backend stability gate failed across 5 sequential cycles before any replay retry was authorized:
+  - `/api/health` timed out
+  - `/api/healthz` timed out
+  - `/api/ready` timed out
+  - `/api/health/full` timed out
+- Because stability failed before replay, the one controlled retry was not authorized to proceed.
 
 ### Current classifications
 - Preview Runtime Identity: `VERIFIED`
@@ -264,10 +277,16 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Cross-Environment Separation: `PARTIALLY VERIFIED`
 
 ### Next tasks
-- P0: Produce the exact Production evidence command/procedure using the existing canonical verifier path.
-- P0: Recover or formally retire the still-active Preview `drill_runs`/guard records before another clean Preview certification attempt.
-- P0: Investigate and bound the current `R2_MANIFEST_TIMEOUT` operational instability during controlled Preview certification.
-- P1: Re-run one clean Preview namespace certification drill only after the active drill evidence is reconciled and backend health remains stable throughout the run.
+- P0: Use the canonical Production verifier in the actual Production runtime to generate the redacted evidence package.
+- P0: Investigate backend runtime instability in Preview independent of restore replay, because health endpoints timed out with zero active restore processes and zero active Preview guards.
+- P1: After backend stability is restored, resume a single clean Preview namespace certification attempt using the already authoritative Preview archive only.
+- P1: Keep Production classifications unchanged until live Production evidence is collected.
+
+### Final bounded outcome for this continuation
+- Single-drill guard: implemented and verified
+- Interrupted guard/drill evidence: reconciled and preserved historically
+- One controlled retry: **not authorized to replay** because backend stability gate failed before replay
+- Final blocking state: `PREVIEW CERTIFICATION BLOCKED — BACKEND RUNTIME INSTABILITY`
 
 ## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 1 Completed
 

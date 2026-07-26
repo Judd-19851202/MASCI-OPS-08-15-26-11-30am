@@ -583,9 +583,9 @@ These totals are discovery-baseline counts and shall not be silently modified wi
   - full clean Preview certification exercise remains blocked by active stale runtime evidence plus unstable manifest/health behavior during the controlled run window
 - Preview restore certification: **PARTIALLY CERTIFIED**
 - Production runtime identity: **CONFIGURED BUT UNVERIFIED**
-- Production backup lineage: **CONFIGURED BUT UNVERIFIED**
+- Production backup lineage: **ARCHIVE LINEAGE UNVERIFIED**
 - Production archive selection: **CONFIGURED BUT UNVERIFIED**
-- Production restore eligibility: **NOT YET EXERCISED**
+- Production restore eligibility: **NOT YET VERIFIED**
 - Cross-environment separation: **PARTIALLY VERIFIED**
 
 ### Residual risks after S1-0
@@ -606,10 +606,54 @@ These totals are discovery-baseline counts and shall not be silently modified wi
   - overlapping Preview invocation rejected before replay
   - guard evidence includes active drill ID and guard key
 - Controlled Preview certification result: **BLOCKED**
-  - classification: **PREVIEW RESTORE CERTIFICATION BLOCKED — R2 MANIFEST ACCESS UNSTABLE**
-  - attempts in this bounded continuation: 1 clean guarded attempt after guard implementation
-  - failure stage: pre-replay operational instability window (active stale drill evidence + backend health timeout + manifest timeout warnings)
-  - archive download/replay under the new single clean run did not complete to a trustworthy PASS/FAIL restore outcome
+  - reconciled interrupted attempt classified as **ABORTED**
+  - terminal reason: `ABORTED_DUE_TO_BACKEND_RESOURCE_STARVATION`
+  - stale queued guard for `ed66cb756af1` reconciled and preserved
+  - orphan namespace collections after cleanup: `0`
+  - active restore processes after cleanup: `0`
+  - active Preview guards after cleanup: `0`
+  - backend stability gate then failed across 5 consecutive cycles before any replay retry was authorized
+  - final blocking classification: **PREVIEW CERTIFICATION BLOCKED — BACKEND RUNTIME INSTABILITY**
+
+### Production evidence procedure (bounded, not executed from Preview)
+
+Use the existing canonical verifier path from the actual Production runtime and emit one deterministic redacted JSON evidence package.
+
+Required invocation pattern:
+
+```bash
+python /app/backend/scripts/verify_production_runtime.py
+```
+
+Required output package fields:
+
+- `production_runtime_identity`
+- `production_environment_fingerprint`
+- `production_cluster_fingerprint`
+- `production_database`
+- `production_runtime_user`
+- `production_backup_bucket`
+- `production_backup_prefix`
+- `production_latest_backup_job`
+- `production_archive_key`
+- `production_manifest_identity`
+- `production_checksum`
+- `production_release_identity`
+- `production_health`
+- `production_readiness`
+- `production_backup_verification`
+- `evidence_generated_at`
+- `evidence_schema_version`
+- `overall_production_evidence_state`
+
+Allowed `overall_production_evidence_state` values:
+
+- `VERIFIED`
+- `CONFIGURED_BUT_UNVERIFIED`
+- `ARCHIVE_LINEAGE_UNVERIFIED`
+- `IDENTITY_CONFLICT`
+- `STORAGE_AUTHORITY_UNVERIFIED`
+- `BACKUP_VERIFICATION_FAILED`
 
 ---
 
