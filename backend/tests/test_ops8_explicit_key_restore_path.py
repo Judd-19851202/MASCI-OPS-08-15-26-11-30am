@@ -235,7 +235,7 @@ def _lineage_payload():
     }
 
 
-def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, backup_key=None, restore_should_raise=False, backup_job_rows=None, drill_run_rows=None):
+def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, backup_key=None, restore_should_raise=False, backup_job_rows=None, drill_run_rows=None, verification_should_raise=False):
     manifest = manifest or _base_manifest()
     archive = _write_archive(tmp_path, manifest)
     checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
@@ -253,6 +253,65 @@ def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, bac
     build_calls = []
     manifest_remote_reads = {"count": 0}
     restore_calls = {"count": 0}
+
+    def _fake_verify_restored_namespace(**kwargs):
+        if verification_should_raise:
+            raise RuntimeError("VERIFICATION_STEP_FAILURE")
+        evidence = kwargs["evidence"]
+        callback = kwargs["progress_callback"]
+        for step in [
+            "verification_started",
+            "collection_parity_started",
+            "collection_parity_completed",
+            "record_count_parity_started",
+            "record_count_parity_completed",
+            "representative_content_started",
+            "representative_content_completed",
+            "audit_verification_started",
+            "audit_verification_completed",
+            "identity_verification_started",
+            "identity_verification_completed",
+            "role_verification_started",
+            "role_verification_completed",
+            "assignment_verification_started",
+            "assignment_verification_completed",
+            "reference_integrity_started",
+            "reference_integrity_completed",
+            "scheduler_verification_started",
+            "scheduler_verification_completed",
+            "photo_object_verification_started",
+            "photo_object_verification_completed",
+            "verification_completed",
+        ]:
+            callback(step, "started" if step.endswith("_started") else "completed", started_at=__import__('datetime').datetime.now(__import__('datetime').timezone.utc))
+        evidence["representative_content_verification"] = {"state": "PASS", "collections": {}}
+        evidence["audit_verification"] = {"state": "PASS", "collections": {}}
+        evidence["identity_role_verification"] = {
+            "identity_verification_state": "PASS",
+            "role_verification_state": "PASS",
+            "assignment_verification_state": "PASS",
+            "reference_integrity_state": "PASS",
+            "collections": {},
+        }
+        evidence["scheduler_state_verification"] = {"state": "PASS", "scheduler_data_restored": True, "scheduler_execution_triggered": False, "collections": {}}
+        evidence["photo_object_verification"] = {"state": "PASS", "rehydration_result": {"uploaded": 0, "skipped": 0, "failed": 0}}
+        evidence["record_count_parity_verification"] = {"state": "PASS", "expected_total": 1, "restored_total": 1, "mismatches": []}
+        evidence["collection_parity_verification"] = {"state": "PASS", "missing_collections": [], "unexpected_collections": []}
+        return {
+            "rehydration": {"uploaded": 0, "skipped": 0, "failed": 0},
+            "record_count_parity": evidence["record_count_parity_verification"],
+            "collection_parity": evidence["collection_parity_verification"],
+            "verification_states": {
+                "representative_content_state": "PASS",
+                "audit_state": "PASS",
+                "identity_state": "PASS",
+                "role_state": "PASS",
+                "assignment_state": "PASS",
+                "reference_integrity_state": "PASS",
+                "scheduler_state": "PASS",
+                "photo_state": "PASS",
+            },
+        }
 
     def _fake_build_canonical_archive_lineage(*args, **kwargs):
         build_calls.append(kwargs)
@@ -292,6 +351,7 @@ def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, bac
     monkeypatch.setitem(main_globals, "boto3", type("_Boto", (), {"client": staticmethod(_fake_boto3_client)}))
     monkeypatch.setitem(main_globals, "build_canonical_archive_lineage", lambda *a, **k: _fake_build_async(*a, **k))
     monkeypatch.setitem(main_globals, "_restore_prefixed", _fake_restore_prefixed)
+    monkeypatch.setitem(main_globals, "_verify_restored_namespace", _fake_verify_restored_namespace)
     monkeypatch.setitem(main_globals, "_rehydrate_photos", lambda zf, env, drill_id: {"uploaded": 0, "skipped": 0, "failed": 0})
     monkeypatch.setitem(main_globals, "_write_report", lambda drill_id, summary: tmp_path / f"report-{drill_id}.md")
 
@@ -693,6 +753,58 @@ def test_restore_prefixed_streams_legacy_json_members_without_grouping_everythin
     assert [call["count"] for call in audit.insert_many_calls] == [3, 1]
     assert any(event["status"] == "collection_started" and event["collection"] == "daily_reports" for event in progress)
     assert any(event["status"] == "collection_completed" and event["collection"] == "audit_events" for event in progress)
+
+
+def test_verification_path_persists_ordered_step_markers(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    steps = list((evidence.get("verification_steps") or {}).keys())
+    assert steps == [
+        "verification_started",
+        "collection_parity_started",
+        "collection_parity_completed",
+        "record_count_parity_started",
+        "record_count_parity_completed",
+        "representative_content_started",
+        "representative_content_completed",
+        "audit_verification_started",
+        "audit_verification_completed",
+        "identity_verification_started",
+        "identity_verification_completed",
+        "role_verification_started",
+        "role_verification_completed",
+        "assignment_verification_started",
+        "assignment_verification_completed",
+        "reference_integrity_started",
+        "reference_integrity_completed",
+        "scheduler_verification_started",
+        "scheduler_verification_completed",
+        "photo_object_verification_started",
+        "photo_object_verification_completed",
+        "verification_completed",
+    ]
+
+
+def test_verification_failure_persists_terminal_metadata(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, verification_should_raise=True)
+    drill = out["db"].drill_runs.rows[0]
+    evidence = drill["restore_certification_evidence"]
+    assert drill["state"] == "failed"
+    assert evidence["verification_failed"] is True
+    assert evidence["verification_completed"] is False
+    assert evidence["failure_step"] == "verification_initialization_or_execution"
+    assert evidence["failure_exception_type"] == "RuntimeError"
+    assert "VERIFICATION_STEP_FAILURE" in evidence["failure_exception_message"]
+
+
+def test_verification_streaming_helpers_use_bounded_batches():
+    module_globals = runpy.run_path(SCRIPT_PATH, run_name="ops8_verification_module")
+    helper = module_globals["_stream_namespace_collection_sample_documents"]
+    fake_db = _FakeDB()
+    coll = fake_db["ops8_drill_test__daily_reports"]
+    coll.rows = [{"id": f"row-{i}"} for i in range(50)]
+    samples = helper(fake_db, "ops8_drill_test", ["daily_reports"], sample_size=5)
+    assert len(samples["daily_reports"]) == 5
 
 
 def test_missing_owner_running_guard_is_recovered_and_prior_drill_aborted(monkeypatch, tmp_path):

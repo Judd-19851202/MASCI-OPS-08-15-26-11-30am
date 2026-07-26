@@ -23,6 +23,7 @@ EVIDENCE_SCHEMA_VERSION = "ops8-restore-certification-evidence-v1"
 FINGERPRINT_SCHEMA_VERSION = "ops8-canonical-preview-fingerprint-v1"
 QA_REVIEW_SCHEMA_VERSION = "ops8-restore-certification-qa-v1"
 REPRESENTATIVE_SAMPLE_SIZE = 5
+VERIFICATION_BATCH_SIZE = 250
 
 PHASE_SEQUENCE = [
     "preflight",
@@ -216,6 +217,17 @@ def _iter_collection_documents(collection: Any) -> Iterable[Dict[str, Any]]:
     for doc in cursor:
         if isinstance(doc, dict):
             yield dict(doc)
+
+
+def iter_collection_documents_batched(collection: Any, *, batch_size: int = VERIFICATION_BATCH_SIZE) -> Iterable[List[Dict[str, Any]]]:
+    batch: List[Dict[str, Any]] = []
+    for doc in _iter_collection_documents(collection):
+        batch.append(doc)
+        if len(batch) >= max(1, batch_size):
+            yield batch
+            batch = []
+    if batch:
+        yield batch
 
 
 def build_canonical_preview_fingerprint(
@@ -480,6 +492,25 @@ def _primary_identifier(doc: Dict[str, Any]) -> str:
 def deterministic_sample_identifiers(docs: List[Dict[str, Any]], *, sample_size: int = REPRESENTATIVE_SAMPLE_SIZE) -> Dict[str, Any]:
     keyed = sorted((_primary_identifier(doc), stable_document_hash(doc)) for doc in docs)
     ids = [item[0] for item in keyed]
+    if len(ids) <= sample_size:
+        selected = ids
+    else:
+        candidate_positions = [0, 1, len(ids) // 2, len(ids) - 2, len(ids) - 1]
+        selected = []
+        for idx in candidate_positions:
+            value = ids[idx]
+            if value not in selected:
+                selected.append(value)
+        selected = selected[:sample_size]
+    return {
+        "sampling_method": "deterministic-lowest-middle-highest-identifiers",
+        "sample_size": len(selected),
+        "sample_identifiers": selected,
+    }
+
+
+def deterministic_sample_identifiers_from_identifiers(identifiers: Iterable[str], *, sample_size: int = REPRESENTATIVE_SAMPLE_SIZE) -> Dict[str, Any]:
+    ids = sorted(str(value) for value in identifiers if value not in (None, ""))
     if len(ids) <= sample_size:
         selected = ids
     else:
@@ -954,6 +985,14 @@ def load_namespace_collection_documents(db: Any, namespace_prefix: str, collecti
         physical = f"{namespace_prefix}__{coll}"
         docs = [dict(doc) for doc in _iter_collection_documents(db[physical])]
         out[coll] = docs
+    return out
+
+
+def load_namespace_collection_document_counts(db: Any, namespace_prefix: str, collection_names: Iterable[str]) -> Dict[str, int]:
+    out: Dict[str, int] = {}
+    for coll in collection_names:
+        physical = f"{namespace_prefix}__{coll}"
+        out[coll] = int(db[physical].count_documents({}))
     return out
 
 

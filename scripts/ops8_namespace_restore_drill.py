@@ -53,7 +53,10 @@ from lib.restore_certification_evidence import (  # noqa: E402
     build_restore_evidence_skeleton,
     capture_runtime_telemetry,
     compare_fingerprints,
+    deterministic_sample_identifiers_from_identifiers,
     extract_archive_collection_documents,
+    iter_collection_documents_batched,
+    load_namespace_collection_document_counts,
     load_namespace_collection_documents,
     mark_phase_status,
     persist_restore_substep_evidence,
@@ -791,6 +794,239 @@ def _persist_failure_trace(db, drill_id: str, evidence: Dict[str, Any], *, env: 
     return failure
 
 
+def _persist_verification_step(
+    db,
+    drill_id: str,
+    evidence: Dict[str, Any],
+    guard: Dict[str, Any],
+    *,
+    step_name: str,
+    status: str,
+    collections_processed: int = 0,
+    records_processed: int = 0,
+    current_collection: Optional[str] = None,
+    current_batch: Optional[int] = None,
+    started_at: Optional[str] = None,
+    elapsed_seconds: Optional[float] = None,
+    extra: Optional[Dict[str, Any]] = None,
+) -> None:
+    now = datetime.now(timezone.utc)
+    steps = evidence.setdefault("verification_steps", {})
+    slot = dict(steps.get(step_name) or {})
+    slot.setdefault("step_name", step_name)
+    if status == "started":
+        slot["step_started_at"] = started_at or now.isoformat()
+    if status in {"completed", "failed"}:
+        slot["step_completed_at"] = now.isoformat()
+    slot["step_status"] = status
+    slot["collections_processed"] = collections_processed
+    slot["records_processed"] = records_processed
+    slot["current_collection"] = current_collection
+    slot["current_batch"] = current_batch
+    slot["elapsed_seconds"] = elapsed_seconds
+    slot["heartbeat_at"] = now.isoformat()
+    if extra:
+        slot.update(extra)
+    steps[step_name] = slot
+    evidence["verification_steps"] = steps
+    evidence["verification_last_step"] = step_name
+    evidence["verification_last_step_status"] = status
+    persist_restore_substep_evidence(
+        db,
+        drill_id,
+        evidence,
+        root_updates={
+            "verification_last_step": step_name,
+            "verification_last_step_status": status,
+        },
+        extra_updates={"verification_steps": steps},
+    )
+    _sync_heartbeat_guard(db, guard, lease_minutes=restore_certification_lease_minutes(_load_env()), phase=f"verification::{step_name}::{status}")
+
+
+def _verification_progress_callback(db, drill_id: str, evidence: Dict[str, Any], guard: Dict[str, Any]):
+    counters = {"collections": 0, "records": 0}
+
+    def _callback(step_name: str, status: str, *, current_collection: Optional[str] = None, current_batch: Optional[int] = None, records_delta: int = 0, extra: Optional[Dict[str, Any]] = None, started_at: Optional[datetime] = None) -> None:
+        if status == "started":
+            counters["collections"] = 0
+            counters["records"] = 0
+        if current_collection and status in {"completed", "failed"}:
+            counters["collections"] += 1
+        counters["records"] += max(0, records_delta)
+        elapsed = None
+        if started_at is not None:
+            elapsed = round((datetime.now(timezone.utc) - started_at).total_seconds(), 3)
+        _persist_verification_step(
+            db,
+            drill_id,
+            evidence,
+            guard,
+            step_name=step_name,
+            status=status,
+            collections_processed=counters["collections"],
+            records_processed=counters["records"],
+            current_collection=current_collection,
+            current_batch=current_batch,
+            started_at=started_at.isoformat() if started_at else None,
+            elapsed_seconds=elapsed,
+            extra=extra,
+        )
+
+    return _callback
+
+
+def _extract_archive_collection_sample_documents(zip_file: zipfile.ZipFile, collection_names: Iterable[str], *, sample_size: int = 5) -> Dict[str, List[Dict[str, Any]]]:
+    wanted = set(collection_names)
+    samples: Dict[str, List[Dict[str, Any]]] = {name: [] for name in wanted}
+    aggregated = [name for name in zip_file.namelist() if name.startswith("collections/") and name.endswith(".json")]
+    if aggregated:
+        full = extract_archive_collection_documents(zip_file)
+        return {name: list(full.get(name) or [])[:sample_size] for name in wanted}
+    for name in zip_file.namelist():
+        if name == "MANIFEST.json" or not name.endswith(".json") or "/json/" not in name:
+            continue
+        coll = name.split("/json/", 1)[0].replace("-", "_")
+        if coll not in wanted or len(samples[coll]) >= sample_size:
+            continue
+        try:
+            payload = json.loads(zip_file.read(name).decode("utf-8"))
+        except Exception:
+            continue
+        if isinstance(payload, dict):
+            samples[coll].append(dict(payload))
+    return samples
+
+
+def _stream_namespace_collection_sample_documents(db, namespace_prefix: str, collection_names: Iterable[str], *, sample_size: int = 5) -> Dict[str, List[Dict[str, Any]]]:
+    out: Dict[str, List[Dict[str, Any]]] = {}
+    for coll in collection_names:
+        physical = f"{namespace_prefix}__{coll}"
+        sample: List[Dict[str, Any]] = []
+        for batch in iter_collection_documents_batched(db[physical], batch_size=sample_size):
+            sample.extend(dict(doc) for doc in batch if isinstance(doc, dict))
+            if len(sample) >= sample_size:
+                break
+        out[coll] = sample[:sample_size]
+    return out
+
+
+def _stream_photo_reference_sets(zf: zipfile.ZipFile) -> tuple[set[str], set[str]]:
+    photo_refs: set[str] = set()
+    archive_photos: set[str] = set()
+    for info in zf.infolist():
+        if info.filename.startswith("photos/") and not info.is_dir():
+            archive_photos.add(info.filename[len("photos/"):])
+        if not info.filename.endswith(".json") or info.filename == "MANIFEST.json":
+            continue
+        try:
+            payload = json.loads(zf.read(info.filename).decode("utf-8"))
+        except Exception:
+            continue
+        for ref in _walk_photo_refs(payload):
+            try:
+                photo_refs.add(ref.split("/", 3)[3])
+            except Exception:
+                pass
+    return photo_refs, archive_photos
+
+
+def _verify_restored_namespace(*, zf: zipfile.ZipFile, db, namespace_prefix: str, env: Dict[str, str], drill_id: str, evidence: Dict[str, Any], guard: Dict[str, Any], manifest: Dict[str, Any], progress_callback) -> Dict[str, Any]:
+    expected_counts = {str(k).replace("-", "_"): int(v or 0) for k, v in (manifest.get("per_kind") or {}).items()}
+    verification_started_at = datetime.now(timezone.utc)
+    progress_callback("verification_started", "started", started_at=verification_started_at, extra={"manifest_collection_count": len(expected_counts)})
+
+    collection_parity_started = datetime.now(timezone.utc)
+    progress_callback("collection_parity_started", "started", started_at=collection_parity_started)
+    restored_counts = load_namespace_collection_document_counts(db, namespace_prefix, expected_counts.keys())
+    physical = {name[len(f"{namespace_prefix}__"): ] for name in db.list_collection_names() if name.startswith(f"{namespace_prefix}__")}
+    collection_parity = {
+        "state": "PASS" if set(expected_counts) <= physical else "FAIL",
+        "expected_collection_count": len(expected_counts),
+        "restored_collection_count": len(physical),
+        "missing_collections": sorted(set(expected_counts) - physical),
+        "unexpected_collections": sorted(physical - set(expected_counts)),
+    }
+    evidence["collection_parity_verification"] = collection_parity
+    progress_callback("collection_parity_completed", "completed" if collection_parity["state"] == "PASS" else "failed", started_at=collection_parity_started, extra=collection_parity)
+
+    record_count_started = datetime.now(timezone.utc)
+    progress_callback("record_count_parity_started", "started", started_at=record_count_started)
+    count_mismatches = []
+    expected_total = 0
+    restored_total = 0
+    for coll in sorted(expected_counts):
+        expected = int(expected_counts.get(coll) or 0)
+        actual = int(restored_counts.get(coll) or 0)
+        expected_total += expected
+        restored_total += actual
+        if expected != actual:
+            count_mismatches.append({"collection": coll, "expected": expected, "restored": actual})
+    record_count_parity = {"state": "PASS" if not count_mismatches and expected_total == restored_total else "FAIL", "expected_total": expected_total, "restored_total": restored_total, "mismatches": count_mismatches}
+    evidence["record_count_parity_verification"] = record_count_parity
+    progress_callback("record_count_parity_completed", "completed" if record_count_parity["state"] == "PASS" else "failed", started_at=record_count_started, records_delta=restored_total, extra=record_count_parity)
+
+    representative_started = datetime.now(timezone.utc)
+    progress_callback("representative_content_started", "started", started_at=representative_started)
+    representative_names = list(_representative_collection_pool({name: [] for name in expected_counts}).keys())
+    representative_expected = _extract_archive_collection_sample_documents(zf, representative_names)
+    representative_restored = _stream_namespace_collection_sample_documents(db, namespace_prefix, representative_names)
+    evidence["representative_content_verification"] = verify_representative_content(representative_expected, representative_restored)
+    progress_callback("representative_content_completed", "completed" if evidence["representative_content_verification"].get("state") == "PASS" else "failed", started_at=representative_started, records_delta=sum(len(v) for v in representative_expected.values()), extra={"collections": list(representative_expected.keys())})
+
+    audit_started = datetime.now(timezone.utc)
+    progress_callback("audit_verification_started", "started", started_at=audit_started)
+    audit_expected = _extract_archive_collection_sample_documents(zf, AUDIT_COLLECTIONS)
+    audit_restored = _stream_namespace_collection_sample_documents(db, namespace_prefix, AUDIT_COLLECTIONS)
+    evidence["audit_verification"] = verify_audit_data(audit_expected, audit_restored)
+    progress_callback("audit_verification_completed", "completed" if evidence["audit_verification"].get("state") == "PASS" else "failed", started_at=audit_started, records_delta=sum(len(v) for v in audit_expected.values()))
+
+    identity_started = datetime.now(timezone.utc)
+    identity_expected = _extract_archive_collection_sample_documents(zf, list(IDENTITY_COLLECTIONS) + list(ROLE_COLLECTIONS) + list(ASSIGNMENT_COLLECTIONS))
+    identity_restored = _stream_namespace_collection_sample_documents(db, namespace_prefix, identity_expected.keys())
+    identity_result = verify_identity_role_data(identity_expected, identity_restored)
+    evidence["identity_role_verification"] = identity_result
+    for start_name, complete_name, state_key in [
+        ("identity_verification_started", "identity_verification_completed", "identity_verification_state"),
+        ("role_verification_started", "role_verification_completed", "role_verification_state"),
+        ("assignment_verification_started", "assignment_verification_completed", "assignment_verification_state"),
+        ("reference_integrity_started", "reference_integrity_completed", "reference_integrity_state"),
+    ]:
+        progress_callback(start_name, "started", started_at=identity_started)
+        progress_callback(complete_name, "completed" if identity_result.get(state_key) == "PASS" else "failed", started_at=identity_started)
+
+    scheduler_started = datetime.now(timezone.utc)
+    progress_callback("scheduler_verification_started", "started", started_at=scheduler_started)
+    scheduler_expected = _extract_archive_collection_sample_documents(zf, SCHEDULER_STATE_COLLECTIONS)
+    scheduler_restored = _stream_namespace_collection_sample_documents(db, namespace_prefix, scheduler_expected.keys())
+    evidence["scheduler_state_verification"] = verify_scheduler_state(scheduler_expected, scheduler_restored)
+    progress_callback("scheduler_verification_completed", "completed" if evidence["scheduler_state_verification"].get("state") == "PASS" else "failed", started_at=scheduler_started)
+
+    photo_started = datetime.now(timezone.utc)
+    progress_callback("photo_object_verification_started", "started", started_at=photo_started)
+    photo_refs, archive_photos = _stream_photo_reference_sets(zf)
+    rehydration = _rehydrate_photos(zf, env, drill_id)
+    evidence["photo_object_verification"] = verify_photo_object_evidence(expected_refs=[f"photo://bucket/{key}" for key in sorted(photo_refs)], archive_object_keys=sorted(archive_photos), rehydration_result=rehydration)
+    progress_callback("photo_object_verification_completed", "completed" if evidence["photo_object_verification"].get("state") == "PASS" else "failed", started_at=photo_started, extra={"expected_refs": len(photo_refs), "archive_objects": len(archive_photos)})
+
+    progress_callback("verification_completed", "completed", started_at=verification_started_at)
+    return {
+        "rehydration": rehydration,
+        "record_count_parity": record_count_parity,
+        "collection_parity": collection_parity,
+        "verification_states": {
+            "representative_content_state": evidence["representative_content_verification"].get("state"),
+            "audit_state": evidence["audit_verification"].get("state"),
+            "identity_state": evidence["identity_role_verification"].get("identity_verification_state"),
+            "role_state": evidence["identity_role_verification"].get("role_verification_state"),
+            "assignment_state": evidence["identity_role_verification"].get("assignment_verification_state"),
+            "reference_integrity_state": evidence["identity_role_verification"].get("reference_integrity_state"),
+            "scheduler_state": evidence["scheduler_state_verification"].get("state"),
+            "photo_state": evidence["photo_object_verification"].get("state"),
+        },
+    }
+
+
 def _pre_download_authority_validation(*, authoritative: Dict[str, Any], lineage: Dict[str, Any], env: Dict[str, str], requested_env: str, archive_key: str) -> tuple[bool, Optional[str], Dict[str, Any]]:
     runtime_identity = dict(lineage.get("runtime_identity") or {})
     artifact_identity = authoritative.get("artifact_identity") or {}
@@ -1368,42 +1604,23 @@ def main() -> int:
             _phase_finish(live_db, drill_id, evidence, guard, "namespace_restore", "completed", extra={"records_restored": restored_total, "records_in_manifest": manifest_total})
 
             _phase_start(live_db, drill_id, evidence, guard, "verification")
-            photo_refs = set()
-            archive_photos = set()
-            for info in zf.infolist():
-                if info.filename.startswith("photos/") and not info.is_dir():
-                    archive_photos.add(info.filename[len("photos/"):])
-                if not info.filename.endswith(".json") or info.filename == "MANIFEST.json":
-                    continue
-                try:
-                    payload = json.loads(zf.read(info.filename).decode("utf-8"))
-                except Exception:
-                    continue
-                for ref in _walk_photo_refs(payload):
-                    try:
-                        photo_refs.add(ref.split("/", 3)[3])
-                    except Exception:
-                        pass
-            rehydration = _rehydrate_photos(zf, env, drill_id)
-            expected_by_collection = extract_archive_collection_documents(zf)
-            restored_by_collection = load_namespace_collection_documents(live_db, namespace_prefix, expected_by_collection.keys())
-            representative_pool = _representative_collection_pool(expected_by_collection)
-            representative_restored = {k: restored_by_collection.get(k, []) for k in representative_pool}
-            evidence["representative_content_verification"] = verify_representative_content(representative_pool, representative_restored)
-            evidence["audit_verification"] = verify_audit_data(expected_by_collection, restored_by_collection)
-            evidence["identity_role_verification"] = verify_identity_role_data(expected_by_collection, restored_by_collection)
-            evidence["scheduler_state_verification"] = verify_scheduler_state(expected_by_collection, restored_by_collection)
-            evidence["photo_object_verification"] = verify_photo_object_evidence(
-                expected_refs=[f"photo://bucket/{key}" for key in sorted(photo_refs)],
-                archive_object_keys=sorted(archive_photos),
-                rehydration_result=rehydration,
+            verification_progress = _verification_progress_callback(live_db, drill_id, evidence, guard)
+            verification_result = _verify_restored_namespace(
+                zf=zf,
+                db=live_db,
+                namespace_prefix=namespace_prefix,
+                env=env,
+                drill_id=drill_id,
+                evidence=evidence,
+                guard=guard,
+                manifest=manifest,
+                progress_callback=verification_progress,
             )
+            rehydration = verification_result["rehydration"]
             _phase_finish(live_db, drill_id, evidence, guard, "verification", "completed", extra={
-                "representative_content_state": evidence["representative_content_verification"].get("state"),
-                "audit_state": evidence["audit_verification"].get("state"),
-                "identity_state": evidence["identity_role_verification"].get("identity_verification_state"),
-                "scheduler_state": evidence["scheduler_state_verification"].get("state"),
-                "photo_state": evidence["photo_object_verification"].get("state"),
+                **verification_result["verification_states"],
+                "record_count_parity_state": verification_result["record_count_parity"].get("state"),
+                "collection_parity_state": verification_result["collection_parity"].get("state"),
             })
 
         _phase_start(live_db, drill_id, evidence, guard, "cleanup")
@@ -1434,9 +1651,9 @@ def main() -> int:
         axes = {
             "A1_archive_available": {"ok": True, "message": f"downloaded {args.backup}"},
             "A2_archive_integrity": {"ok": True, "message": f"manifest.total_records={manifest_total}"},
-            "A3_record_count_parity": {"ok": len(mismatches) == 0 and restored_total == manifest_total, "message": f"restored={restored_total} manifest={manifest_total} mismatches={len(mismatches)}"},
+            "A3_record_count_parity": {"ok": ((evidence.get("record_count_parity_verification") or {}).get("state") == "PASS"), "message": f"restored={restored_total} manifest={manifest_total} mismatches={len((evidence.get('record_count_parity_verification') or {}).get('mismatches') or [])}"},
             "A4_namespace_isolation": {"ok": True, "message": f"restored into collection prefix {namespace_prefix}__* within {env['DB_NAME']}"},
-            "A5_photo_refs_reconcile": {"ok": len(photo_refs - archive_photos) == 0, "message": f"unique_refs={len(photo_refs)} archive_photos={len(archive_photos)} missing={len(photo_refs - archive_photos)}"},
+            "A5_photo_refs_reconcile": {"ok": (evidence.get("photo_object_verification") or {}).get("state") == "PASS", "message": f"photo_state={(evidence.get('photo_object_verification') or {}).get('state')}"},
             "A6_photo_rehydration": {"ok": rehydration.get("failed", 0) == 0, "message": f"uploaded={rehydration['uploaded']} skipped={rehydration['skipped']} failed={rehydration['failed']}"},
         }
         outcome = "ok" if all(v["ok"] for v in axes.values()) else "failed"
@@ -1498,8 +1715,41 @@ def main() -> int:
         _phase_finish(live_db, drill_id, evidence, guard, "final_report", "completed", extra={"report_path": str(report_path), **completeness})
         print(json.dumps({"ok": outcome == "ok", "drill_id": drill_id, "report_path": str(report_path), "summary": summary}, indent=2)[:24000])
         return 0 if outcome == "ok" else 9
-    except Exception as exc:
+    except (KeyboardInterrupt, SystemExit, Exception) as exc:
         current_phase = evidence.get("current_phase") or evidence.get("last_started_phase") or "unknown"
+        if current_phase == "verification":
+            tb = traceback.extract_tb(exc.__traceback__)
+            failure_file = tb[-1].filename if tb else __file__
+            failure_line = tb[-1].lineno if tb else None
+            failure_function = tb[-1].name if tb else "main"
+            failure_step = evidence.get("verification_last_step") or "verification_initialization_or_execution"
+            evidence["verification_failed"] = True
+            evidence["verification_completed"] = False
+            evidence["failure_step"] = failure_step
+            evidence["failure_exception_type"] = type(exc).__name__
+            evidence["failure_exception_message"] = _sanitize_traceback_text(str(exc), env=env)
+            evidence["failure_file"] = failure_file
+            evidence["failure_line"] = failure_line
+            evidence["failure_function"] = failure_function
+            evidence["last_completed_verification_step"] = evidence.get("verification_last_step")
+            _persist_verification_step(
+                live_db,
+                drill_id,
+                evidence,
+                guard,
+                step_name=failure_step,
+                status="failed",
+                current_collection=((evidence.get("restore_last_event") or {}).get("collection")),
+                current_batch=((evidence.get("restore_last_event") or {}).get("batches")),
+                records_processed=int(((evidence.get("restore_last_event") or {}).get("inserted") or 0)),
+                extra={
+                    "failure_exception_type": type(exc).__name__,
+                    "failure_exception_message": _sanitize_traceback_text(str(exc), env=env),
+                    "failure_file": failure_file,
+                    "failure_line": failure_line,
+                    "failure_function": failure_function,
+                },
+            )
         _record_transition(
             live_db,
             drill_id,
