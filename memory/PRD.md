@@ -256,16 +256,18 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Preview Backup Lineage: `VERIFIED`
 - Preview Archive Selection: `VERIFIED`
 - Preview Restore Eligibility: `PARTIALLY VERIFIED`
+- Preview Restore Certification: `PARTIALLY CERTIFIED`
 - Production Runtime Identity: `CONFIGURED BUT UNVERIFIED`
-- Production Backup Lineage: `CONFIGURED BUT UNVERIFIED`
+- Production Backup Lineage: `ARCHIVE LINEAGE UNVERIFIED`
 - Production Archive Selection: `CONFIGURED BUT UNVERIFIED`
-- Production Restore Eligibility: `NOT YET EXERCISED`
+- Production Restore Eligibility: `NOT YET VERIFIED`
 - Cross-Environment Separation: `PARTIALLY VERIFIED`
 
 ### Next tasks
 - P0: Produce the exact Production evidence command/procedure using the existing canonical verifier path.
-- P0: Re-run one clean Preview namespace certification drill after adding a drill-concurrency/cleanup guard, using the authoritative Preview archive only.
-- P1: Continue namespace-model restore certification work (S1-1A) once the single-drill operational guard is in place.
+- P0: Recover or formally retire the still-active Preview `drill_runs`/guard records before another clean Preview certification attempt.
+- P0: Investigate and bound the current `R2_MANIFEST_TIMEOUT` operational instability during controlled Preview certification.
+- P1: Re-run one clean Preview namespace certification drill only after the active drill evidence is reconciled and backend health remains stable throughout the run.
 
 ## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 1 Completed
 

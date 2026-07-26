@@ -9,7 +9,7 @@ import tempfile
 import time
 import uuid
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable
 
@@ -23,6 +23,16 @@ BACKEND_ENV = REPO_ROOT / "backend" / ".env"
 MEMORY_DIR = REPO_ROOT / "memory"
 sys.path.insert(0, str(REPO_ROOT / "backend"))
 from lib.archive_lineage import build_canonical_archive_lineage  # noqa: E402
+from lib.backup_runtime import (
+    BACKUP_JOB_KIND_RESTORE_DRILL,
+    is_restore_certification_stale,
+    restore_certification_guard_slot,
+    restore_certification_lease_expires_at,
+    restore_certification_lease_minutes,
+    restore_certification_terminal_slot,
+    backup_owner_id,
+    backup_run_id,
+)
 
 
 def _load_env() -> Dict[str, str]:
@@ -160,6 +170,62 @@ def _write_report(drill_id: str, summary: Dict[str, Any]) -> Path:
     return path
 
 
+def _sync_claim_guard(db, *, guard_slot: str, drill_id: str, requested_env: str, lease_minutes: int) -> dict | None:
+    now = datetime.now(timezone.utc)
+    doc = {
+        "job_id": f"bjob-{uuid.uuid4().hex}",
+        "backup_run_id": backup_run_id(),
+        "job_type": "restore_certification",
+        "kind": BACKUP_JOB_KIND_RESTORE_DRILL,
+        "slot_key": guard_slot,
+        "trigger": "preview_namespace_restore",
+        "owner_id": backup_owner_id(),
+        "owner_token": uuid.uuid4().hex,
+        "host": os.uname().nodename,
+        "pid": os.getpid(),
+        "state": "running",
+        "attempt_count": 1,
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat(),
+        "heartbeat_at": now.isoformat(),
+        "lease_expires_at": restore_certification_lease_expires_at(now=now, lease_minutes=lease_minutes),
+        "metadata": {
+            "owner_drill_id": drill_id,
+            "environment": requested_env,
+            "operation_class": "restore-certification",
+        },
+    }
+    try:
+        db.backup_jobs.insert_one(dict(doc))
+        return doc
+    except Exception:
+        return None
+
+
+def _sync_heartbeat_guard(db, guard: dict, *, lease_minutes: int, phase: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    db.backup_jobs.update_one(
+        {"job_id": guard["job_id"], "owner_token": guard["owner_token"], "state": "running"},
+        {"$set": {"updated_at": now, "heartbeat_at": now, "lease_expires_at": restore_certification_lease_expires_at(lease_minutes=lease_minutes), "drill_phase": phase}},
+    )
+
+
+def _sync_finish_guard(db, guard: dict, *, state: str, outcome: str, reason: str, slot_suffix: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    db.backup_jobs.update_one(
+        {"job_id": guard["job_id"], "owner_token": guard["owner_token"]},
+        {"$set": {
+            "state": state,
+            "outcome": outcome,
+            "updated_at": now,
+            "heartbeat_at": now,
+            "completed_at": now,
+            "failure_reason": reason,
+            "slot_key": restore_certification_terminal_slot(str(guard.get("metadata", {}).get("environment") or "preview"), guard["job_id"], slot_suffix),
+        }},
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="OPS8 namespace restore drill")
     ap.add_argument("--backup", required=True)
@@ -192,18 +258,65 @@ def main() -> int:
     client, bucket = _r2_client(env)
     mongo = MongoClient(env["MONGO_URL"], serverSelectionTimeoutMS=20000)
     live_db = mongo[env["DB_NAME"]]
+    requested_env = (env.get("APP_ENV") or "preview").strip().lower()
+    lease_minutes = restore_certification_lease_minutes(env)
+    guard_slot = restore_certification_guard_slot(requested_env)
+    active = live_db.backup_jobs.find_one(
+        {"kind": BACKUP_JOB_KIND_RESTORE_DRILL, "slot_key": guard_slot, "state": {"$in": ["queued", "running"]}},
+        {"_id": 0},
+        sort=[("created_at", -1)],
+    )
+    if active and str(active.get("state") or "").lower() == "queued":
+        try:
+            owner_pid = int(active.get("pid") or 0)
+        except Exception:
+            owner_pid = 0
+        if owner_pid <= 0 or not Path(f"/proc/{owner_pid}").exists():
+            active = dict(active)
+            active["lease_expires_at"] = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+
+    if active and not is_restore_certification_stale(active, lease_minutes=lease_minutes):
+        print(json.dumps({
+            "ok": False,
+            "error": "BLOCKED_BY_ACTIVE_DRILL",
+            "active_drill_id": active.get("metadata", {}).get("owner_drill_id") or active.get("job_id"),
+            "guard_key": guard_slot,
+        }, indent=2))
+        return 3
+    if active and is_restore_certification_stale(active, lease_minutes=lease_minutes):
+        live_db.backup_jobs.update_one(
+            {"job_id": active.get("job_id")},
+            {"$set": {
+                "state": "stale_recovered",
+                "recovery_reason": "stale_restore_certification_guard",
+                "recovered_at": datetime.now(timezone.utc).isoformat(),
+                "ownership_revoked": True,
+            }},
+        )
+    guard = _sync_claim_guard(
+        live_db,
+        guard_slot=guard_slot,
+        drill_id=drill_id,
+        requested_env=requested_env,
+        lease_minutes=lease_minutes,
+    )
+    if guard is None:
+        print(json.dumps({"ok": False, "error": "BLOCKED_BY_ACTIVE_DRILL", "guard_key": guard_slot}, indent=2))
+        return 3
+    _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="lineage_validation")
     import asyncio
     lineage = asyncio.run(
         build_canonical_archive_lineage(
             live_db,
             current_env=env.get("APP_ENV"),
             current_db=env.get("DB_NAME"),
-            requested_source_environment=(env.get("APP_ENV") or "preview").strip().lower(),
+            requested_source_environment=requested_env,
             force_refresh=True,
         )
     )
     authoritative = lineage.get("authoritative_artifact") or {}
     if not authoritative or authoritative.get("object_key") != args.backup:
+        _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason="ARCHIVE_LINEAGE_UNVERIFIED", slot_suffix="failed")
         print(json.dumps({"ok": False, "error": "ARCHIVE_LINEAGE_UNVERIFIED"}, indent=2))
         return 2
     live_db.drill_runs.insert_one({
@@ -213,22 +326,28 @@ def main() -> int:
         "started_at": started.isoformat(),
         "target_db": env["DB_NAME"],
         "target_namespace_prefix": namespace_prefix,
-        "source_environment": (env.get("APP_ENV") or "preview").strip().lower(),
+        "source_environment": requested_env,
         "source_archive_key": args.backup,
         "source_archive_id": ((authoritative.get("artifact_identity") or {}).get("artifact_id")),
         "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
         "policy_decision": "PENDING",
         "policy_reason": "awaiting_namespace_restore_validation",
+        "guard_key": guard_slot,
+        "guard_job_id": guard["job_id"],
+        "guard_owner_id": guard["owner_id"],
         "archive_filename": Path(args.backup).name,
     })
 
     try:
         client.download_file(bucket, args.backup, str(archive_local))
+        _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="downloaded_archive")
         with zipfile.ZipFile(str(archive_local), "r") as zf:
             bad = zf.testzip()
             if bad is not None:
+                _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=f"CRC failed on {bad}", slot_suffix="failed")
                 raise RuntimeError(f"CRC failed on {bad}")
             manifest = json.loads(zf.read("MANIFEST.json").decode("utf-8"))
+            _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="manifest_loaded")
             per_kind = _restore_prefixed(zf, live_db, namespace_prefix)
             restored_total = sum(v.get("inserted", 0) for v in per_kind.values())
             manifest_total = int(manifest.get("total_records") or 0)
@@ -292,6 +411,14 @@ def main() -> int:
         }
         report_path = _write_report(drill_id, summary)
         live_db.drill_runs.update_one({"id": drill_id}, {"$set": {**summary, "report_path": str(report_path)}}, upsert=True)
+        _sync_finish_guard(
+            live_db,
+            guard,
+            state="completed" if outcome == "ok" else "failed",
+            outcome="ok" if outcome == "ok" else "failed",
+            reason="preview_namespace_restore_completed" if outcome == "ok" else "preview_namespace_restore_failed",
+            slot_suffix="released" if outcome == "ok" else "failed",
+        )
         print(json.dumps({"ok": outcome == "ok", "drill_id": drill_id, "report_path": str(report_path), "summary": summary}, indent=2)[:24000])
         return 0 if outcome == "ok" else 9
     finally:
@@ -300,6 +427,13 @@ def main() -> int:
                 if coll_name.startswith(f"{namespace_prefix}__"):
                     live_db[coll_name].drop()
             live_db.drill_runs.update_one({"id": drill_id}, {"$set": {"cleanup_complete": True}})
+        except Exception:
+            pass
+        try:
+            live_db.backup_jobs.update_one(
+                {"job_id": guard["job_id"], "owner_token": guard["owner_token"], "state": "running"},
+                {"$set": {"slot_key": restore_certification_terminal_slot(requested_env, guard["job_id"], "released")}},
+            )
         except Exception:
             pass
         try:

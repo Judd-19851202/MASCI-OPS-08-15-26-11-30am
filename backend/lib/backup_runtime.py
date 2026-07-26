@@ -14,6 +14,8 @@ BACKUP_JOB_TTL_DAYS = 120
 BACKUP_JOB_KIND_COMPLETE_R2 = "complete-r2"
 BACKUP_JOB_KIND_RESTORE_DRILL = "restore-drill"
 BACKUP_JOB_KIND_RESTORE_IMPORT = "restore-import"
+RESTORE_CERT_OPERATION_CLASS = "restore-certification"
+RESTORE_CERT_DEFAULT_LEASE_MINUTES = 45
 
 
 class BackupJobOwnershipLost(RuntimeError):
@@ -47,6 +49,53 @@ def backup_slot_key_for_hour(moment: datetime) -> str:
 def backup_slot_key_for_day(moment: datetime) -> str:
     dt = moment.astimezone(timezone.utc)
     return dt.date().isoformat()
+
+
+def restore_certification_guard_slot(environment: str) -> str:
+    return f"{RESTORE_CERT_OPERATION_CLASS}::{str(environment or 'unknown').strip().lower()}"
+
+
+def restore_certification_terminal_slot(environment: str, job_id: str, state: str) -> str:
+    return f"{restore_certification_guard_slot(environment)}::{state}::{job_id}"
+
+
+def restore_certification_lease_minutes(env: Optional[Dict[str, Any]] = None) -> int:
+    raw = None
+    if env:
+        raw = env.get("RESTORE_CERT_LEASE_MINUTES")
+    try:
+        val = int(str(raw or RESTORE_CERT_DEFAULT_LEASE_MINUTES))
+    except Exception:
+        val = RESTORE_CERT_DEFAULT_LEASE_MINUTES
+    return max(15, min(val, 180))
+
+
+def restore_certification_lease_expires_at(*, now: Optional[datetime] = None, lease_minutes: int = RESTORE_CERT_DEFAULT_LEASE_MINUTES) -> str:
+    moment = now or backup_now()
+    return (moment + timedelta(minutes=int(lease_minutes))).isoformat()
+
+
+def is_restore_certification_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime] = None, lease_minutes: int = RESTORE_CERT_DEFAULT_LEASE_MINUTES) -> bool:
+    if not row:
+        return False
+    if str(row.get("state") or "").lower() not in {"queued", "running", "downloading"}:
+        return False
+    current = now or backup_now()
+    lease_exp = row.get("lease_expires_at")
+    heartbeat = row.get("heartbeat_at")
+    try:
+        lease_dt = datetime.fromisoformat(str(lease_exp).replace("Z", "+00:00")) if lease_exp else None
+    except Exception:
+        lease_dt = None
+    try:
+        heartbeat_dt = datetime.fromisoformat(str(heartbeat).replace("Z", "+00:00")) if heartbeat else None
+    except Exception:
+        heartbeat_dt = None
+    if lease_dt and current <= lease_dt:
+        return False
+    if not heartbeat_dt:
+        return True
+    return current - heartbeat_dt > timedelta(minutes=max(int(lease_minutes), 15))
 
 
 async def ensure_backup_runtime_indexes(db: Any) -> None:
@@ -243,10 +292,17 @@ __all__ = [
     "BACKUP_JOB_KIND_COMPLETE_R2",
     "BACKUP_JOB_KIND_RESTORE_DRILL",
     "BACKUP_JOB_KIND_RESTORE_IMPORT",
+    "RESTORE_CERT_OPERATION_CLASS",
+    "RESTORE_CERT_DEFAULT_LEASE_MINUTES",
     "backup_owner_id",
     "backup_run_id",
     "backup_slot_key_for_hour",
     "backup_slot_key_for_day",
+    "restore_certification_guard_slot",
+    "restore_certification_terminal_slot",
+    "restore_certification_lease_minutes",
+    "restore_certification_lease_expires_at",
+    "is_restore_certification_stale",
     "ensure_backup_runtime_indexes",
     "claim_backup_job",
     "start_backup_job",

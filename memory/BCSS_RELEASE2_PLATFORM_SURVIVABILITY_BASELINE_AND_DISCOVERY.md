@@ -578,7 +578,10 @@ These totals are discovery-baseline counts and shall not be silently modified wi
 - Preview archive selection: **VERIFIED** for environment-bound candidate resolution
 - Preview restore eligibility: **PARTIALLY VERIFIED**
   - authoritative candidate resolution is correct
-  - full exercised restore drill evidence in this slice was impeded by repeated long-running drill starvation and existing manifest-read timeout behavior
+  - single-drill guard is now implemented and environment-scoped (`restore-certification::preview`)
+  - duplicate Preview drill invocation is rejected with `BLOCKED_BY_ACTIVE_DRILL`
+  - full clean Preview certification exercise remains blocked by active stale runtime evidence plus unstable manifest/health behavior during the controlled run window
+- Preview restore certification: **PARTIALLY CERTIFIED**
 - Production runtime identity: **CONFIGURED BUT UNVERIFIED**
 - Production backup lineage: **CONFIGURED BUT UNVERIFIED**
 - Production archive selection: **CONFIGURED BUT UNVERIFIED**
@@ -590,6 +593,23 @@ These totals are discovery-baseline counts and shall not be silently modified wi
 - Live Production evidence is still required before Production lineage can be upgraded.
 - Current manifest-read timeout behavior can slow or destabilize drill-heavy validation paths.
 - Existing older drill records were manually marked `aborted` after backend starvation during repeated local certification attempts; this is operational cleanup evidence, not a downgrade of the authoritative Preview archive selector.
+- During the bounded single-drill exercise, the remaining blocker was:
+  - one legacy `drill_runs` row still active in `downloading`
+  - one queued Preview guard record (`bjob-6628f04beb384d4f88ce8a5c7493913d`) left by interrupted hot-reload execution
+  - backend health endpoints timing out during the same window
+  - repeated `R2_MANIFEST_TIMEOUT` warnings for manifest reads in supervisor logs
+
+### Controlled Preview exercise outcome — 2026-07-26
+
+- Guard implementation result: **PASS**
+  - environment-scoped Preview guard added
+  - overlapping Preview invocation rejected before replay
+  - guard evidence includes active drill ID and guard key
+- Controlled Preview certification result: **BLOCKED**
+  - classification: **PREVIEW RESTORE CERTIFICATION BLOCKED — R2 MANIFEST ACCESS UNSTABLE**
+  - attempts in this bounded continuation: 1 clean guarded attempt after guard implementation
+  - failure stage: pre-replay operational instability window (active stale drill evidence + backend health timeout + manifest timeout warnings)
+  - archive download/replay under the new single clean run did not complete to a trustworthy PASS/FAIL restore outcome
 
 ---
 
