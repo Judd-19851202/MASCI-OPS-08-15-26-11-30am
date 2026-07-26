@@ -463,6 +463,7 @@ class AssetSpine:
             "warranty_expiration":     payload.get("warranty_expiration"),
             "dot_expiration":          payload.get("dot_expiration"),
             "calibration_expiration":  payload.get("calibration_expiration"),
+            "inspection_expiration":   payload.get("inspection_expiration"),
             "lifecycle_status":        payload.get("lifecycle_status"),
             "division":                payload.get("division"),
             "region":                  payload.get("region"),
@@ -518,6 +519,7 @@ class AssetSpine:
             "registration_number", "registration_state", "registration_expiration",
             "insurance_carrier", "insurance_policy_number", "insurance_expiration",
             "title_status", "warranty_expiration", "dot_expiration", "calibration_expiration",
+            "inspection_expiration",
             "lifecycle_status", "division", "region", "supervisor_id",
             "gps_device_id", "normalized_company",
         }

@@ -72,6 +72,7 @@ class AssetCreate(BaseModel):
     warranty_expiration: Optional[str] = None
     dot_expiration: Optional[str] = None
     calibration_expiration: Optional[str] = None
+    inspection_expiration: Optional[str] = None
     lifecycle_status: Optional[str] = None  # active|inactive|sold|retired|disposed|pending_delivery
     division: Optional[str] = None
     region: Optional[str] = None
@@ -121,6 +122,7 @@ class AssetUpdate(BaseModel):
     warranty_expiration: Optional[str] = None
     dot_expiration: Optional[str] = None
     calibration_expiration: Optional[str] = None
+    inspection_expiration: Optional[str] = None
     lifecycle_status: Optional[str] = None
     division: Optional[str] = None
     region: Optional[str] = None
