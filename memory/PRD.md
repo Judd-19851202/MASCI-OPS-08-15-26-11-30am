@@ -171,6 +171,48 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - P1: Execute Slice 3 — Backup Verification Hardening.
 - P1: Execute Slice 4 — Notification Delivery Certification.
 
+## 2026-07-26 — S1-1 Restore Certification Slice Status
+
+### Scope completed
+- Completed restore forensics, root-cause classification, bounded repair, certification reruns, and independent QA for S1-1.
+
+### Root-cause outcome
+- Historical restore failure was not caused by restore replay itself. The material older failure came from cross-domain archive/photo coverage defects on older backup lineage.
+- Current full automated isolated drill is blocked by a cross-domain MongoDB Atlas permission boundary: preview identity cannot create/write/read/drop arbitrary side databases (`masci_restore_drill_auto_*`).
+- Restore-owned defect fixed in-slice: certification harness now surfaces side-DB permission failures truthfully and side-DB restore counters no longer overstate inserted rows when writes fail.
+
+### Certification outcome
+- `ops8_namespace_restore_drill.py` passes on current archive lineage (`MASCI_complete_backup_2026-07-20_230322Z.zip`) with:
+  - archive availability PASS
+  - integrity PASS
+  - record parity PASS (`3428/3428`)
+  - namespace isolation PASS
+  - photo reference reconciliation PASS
+  - photo rehydration PASS
+- `automated_drill.py` still fails for a cross-domain reason only: side-database authorization failure.
+- Independent QA confirms:
+  - namespace drill PASS
+  - automated isolated drill FAIL due to DB permission blocker
+  - health endpoints remain green
+  - auth continuity works when admin-strict endpoints are tested with dual-token auth (`X-Admin-Token` + `X-Directory-Token`)
+
+### Classification / PRR impact
+- Slice status: `PARTIALLY CERTIFIED`
+- Restore remains an open PRR blocker because full isolated restore certification is still blocked.
+
+### Files changed in this slice
+- `/app/scripts/restore_drill.py`
+- `/app/scripts/automated_drill.py`
+- `/app/memory/BCSS_RELEASE2_PLATFORM_SURVIVABILITY_BASELINE_AND_DISCOVERY.md`
+- `/app/backend/tests/test_restore_certification_s1_1.py` (added by independent QA)
+
+### Next tasks
+- P0: Resolve the cross-domain isolated-drill blocker via one of two separately governed paths:
+  - Atlas admin grants side-database permissions to the preview runtime identity, or
+  - Explicitly authorize redesign of automated certification to use namespace isolation instead of side databases
+- P0: After that dependency is resolved, rerun full isolated restore certification and re-evaluate PRR blocker closure
+- P1: Continue Slice 2 — Secrets and Configuration Recovery only after S1 governance decides the restore blocker path
+
 ## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 1 Completed
 
 ### Scope

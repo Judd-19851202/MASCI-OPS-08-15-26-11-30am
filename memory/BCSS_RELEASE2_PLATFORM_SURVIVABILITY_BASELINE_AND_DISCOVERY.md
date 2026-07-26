@@ -586,6 +586,30 @@ Operational recovery remains to be proven.
 - Do not inflate restore posture from tooling presence.
 - No current successful end-to-end restore proof was found in this sweep.
 
+### S1-1 Restore Certification Addendum — 2026-07-26
+
+- Restore Certification slice S1-1 executed bounded forensics, bounded repair, and independent QA.
+- A restore-owned repair was applied to the automated certification harness and side-DB restore counter accounting so permission failures are surfaced truthfully instead of overstating inserted counts.
+- Current namespace certification evidence is strong:
+  - `ops8_namespace_restore_drill.py` passed against `backups/auto-90d/MASCI_complete_backup_2026-07-20_230322Z.zip`
+  - Archive availability: PASS
+  - Archive integrity: PASS
+  - Record parity: PASS (`3428/3428`)
+  - Namespace isolation: PASS
+  - Photo reference reconciliation: PASS
+  - Photo rehydration: PASS
+- Full automated certification remains blocked by a cross-domain database-permission dependency:
+  - `automated_drill.py` restores into side database `masci_restore_drill_auto_*`
+  - runtime identity `masci_preview_user` is not authorized to create/write/read/drop arbitrary side databases
+  - failure therefore occurs at authorization boundary, not restore replay correctness
+
+### Current restore-slice status
+
+- Slice result: **PARTIALLY CERTIFIED**
+- Restore replay on current archive lineage: **positively evidenced via namespace drill**
+- Full PRR-grade isolated side-database certification: **blocked by cross-domain MongoDB Atlas permissions or equivalent redesign authorization**
+- S1 PRR blocker status: **remains open** until full restore certification is completed with independently verified isolated execution
+
 ---
 
 ## 13. Notification Register
@@ -793,13 +817,21 @@ Current backup evidence exceeds restore evidence.
 
 | Identifier | Description | Severity | Owner | Evidence | Implementation Recommendation | Dependency |
 |---|---|---|---|---|---|---|
-| SVG-01 | Restore capability not currently verified | S1 | Survivability / backend ops | Latest drill failed in `drill_runs` | Certify restore against current archive/data shape | Existing restore tooling |
+| SVG-01 | Restore capability not currently fully verified | S1 | Survivability / backend ops | Historical failed drill explained; 2026-07-26 namespace drill passed; automated isolated drill still blocked by side-DB authorization | Complete full isolated restore certification after cross-domain DB permission blocker is resolved or separately authorized | Existing restore tooling + MongoDB Atlas permissions |
 | SVG-02 | Secrets/config recovery unproven | S1 | Platform / deploy / security ops | No exercised proof found | Create and certify secrets/config recovery path | Environment/config governance |
 | SVG-03 | Backup verification deep-inspection confidence reduced | S2 | Survivability / storage ops | Manifest-read timeouts in logs | Harden verification depth and timeout handling | Backup verification route family |
 | SVG-04 | Notification live-delivery certification incomplete | S2 | Notifications / ops | Preview safe-capture only verified | Certify provider acceptance, delivery, retries, escalation | Provider-routing contract |
 | SVG-05 | Scheduler resilience not fully certified | S2 | Backend platform | Scheduler evidence exists but resilience exercise absent | Certify restart/failover/lock behavior | Scheduler lock model |
 | SVG-06 | Monitoring-to-alert chain not certified | S2 | Platform ops | Monitoring surfaces broader than alert proof | Certify alert path end-to-end | Monitoring + notifications |
 | SVG-07 | Disaster-recovery exercise program incomplete | S2 | Survivability program | Partial historical drills only | Run bounded DR exercise set | Restore + notification + auth continuity |
+
+### S1-1 Root Cause Register Addendum
+
+| Root Cause ID | Description | Classification | Owner | Certification Impact | Scope |
+|---|---|---|---|---|---|
+| RC-S1-1-01 | Historical failed restore drill contained 63 missing photo objects referenced by restored JSON | Cross-domain repository defect | Backup generation / object coverage | Blocked trustworthy file recovery certification on older archive lineage | Out of restore-owned implementation scope for this slice |
+| RC-S1-1-02 | Latest automated isolated drill fails because preview Mongo identity cannot create/write/read/drop side databases `masci_restore_drill_auto_*` | Cross-domain environmental dependency | Database administration / MongoDB Atlas permissions | Blocks full isolated restore certification despite positive namespace-restore evidence | Out of restore-owned implementation scope for this slice |
+| RC-S1-1-03 | Automated certification harness previously overstated insert counts and obscured permission failure details | Restore-owned repository defect | Restore Certification | Could produce misleading A3/A10 certification evidence | Resolved in S1-1 |
 
 ---
 
@@ -816,10 +848,17 @@ Sequence rule:
 - **Scope:** certify end-to-end restore against current backup format, current durable classes, and current service continuity expectations.
 - **Out of scope:** retention redesign, storage-provider replacement, deployment redesign.
 - **Owner:** Survivability / backend ops.
-- **Acceptance criteria:** successful restore exercise; current archive parsed correctly; critical data classes restored; service continuity validated; evidence captured.
+- **Acceptance criteria:** successful isolated restore exercise; current archive parsed correctly; critical data classes restored; service continuity validated; evidence captured.
 - **Verification:** repository tests, runtime evidence, logged restore proof, artifact evidence.
 - **Independent QA:** required.
 - **Formal adoption:** required.
+
+**2026-07-26 status update:**
+
+- Bounded repair completed.
+- Namespace restore certification succeeded.
+- Full isolated side-database certification remains blocked by cross-domain MongoDB Atlas permission dependency.
+- Slice remains active until blocker is resolved or a separately authorized cross-domain path is approved.
 
 ### Slice 2 — Secrets and Configuration Recovery
 
