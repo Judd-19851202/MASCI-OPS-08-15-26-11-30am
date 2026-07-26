@@ -1,0 +1,5 @@
+{
+  "ok": false,
+  "error": "RuntimeError('EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH')",
+  "drill_id": "47a64991bb9d"
+}

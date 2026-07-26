@@ -9185,7 +9185,7 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path, *, backup_run_id: 
                 "storage_provider": "r2-s3-compatible",
                 "backup_bucket": _canonical_backup_bucket(),
                 "backup_prefix": _canonical_backup_prefix(),
-                "archive_key": None,
+                "archive_key": r2_key,
                 "source_hash": _SOURCE_HASH,
                 "git_commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
                 "release_identity": _SOURCE_HASH,
@@ -9595,6 +9595,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
     _now = datetime.now(timezone.utc)
     _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
     filename = f"MASCI_complete_backup_{_stamp}.zip"
+    r2_key = f"{_canonical_backup_prefix().rstrip('/')}/{filename}"
     out = BACKUP_COMPLETE_TMP_DIR / filename
     tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
 
@@ -9665,18 +9666,8 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         stage["name"] = "checksum"
         archive_sha256 = await _sha256_file(out)
         stage["name"] = "upload"
-        r2_key = f"{_canonical_backup_prefix().rstrip('/')}/{filename}"
         await upload_local_file(out, key=r2_key, content_type="application/zip")
         logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
-        try:
-            with zipfile.ZipFile(out, "a") as zf:
-                manifest = _json.loads(zf.read("MANIFEST.json").decode("utf-8"))
-                manifest["archive_key"] = r2_key
-                manifest["backup_bucket"] = _canonical_backup_bucket()
-                manifest["backup_prefix"] = _canonical_backup_prefix()
-                zf.writestr("MANIFEST.json", _json.dumps(manifest, indent=2))
-        except Exception:
-            logger.exception("[complete-archive] failed to backfill MANIFEST.json archive identity")
 
         # Generate a 7-day presigned URL the admin can click from email
         stage["name"] = "verification"
@@ -9685,6 +9676,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         lineage = {
             "job_id": (current_job or {}).get("job_id"),
             "backup_run_id": (current_job or {}).get("backup_run_id"),
+            "backup_id": stats.get("manifest", {}).get("backup_id"),
             "trigger": (current_job or {}).get("trigger"),
             "scheduler_slot": (current_job or {}).get("slot_key"),
             "release_sha": _SOURCE_HASH,
@@ -9711,7 +9703,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         if current_job and current_job.get("job_id"):
             await db.backup_jobs.update_one(
                 {"job_id": current_job["job_id"], "owner_token": current_job.get("owner_token")},
-                {"$set": {"archive_lineage": lineage, "updated_at": datetime.now(timezone.utc).isoformat()}},
+                {"$set": {"archive_lineage": lineage, "backup_id": stats.get("manifest", {}).get("backup_id"), "updated_at": datetime.now(timezone.utc).isoformat()}},
             )
 
         # Delete the local copy now that R2 has it — keeps worker disk clean

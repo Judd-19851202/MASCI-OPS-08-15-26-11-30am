@@ -451,14 +451,14 @@ def _build_candidate(
     artifact_key = _candidate_key(archive, row)
     filename = (archive or {}).get("filename") or row.get("filename")
     archive_key = (archive or {}).get("key") or row_lineage.get("archive_key") or (f"backups/auto-90d/{filename}" if filename else None)
-    created_by = row_lineage.get("job_id") or manifest.get("backup_id") or filename or artifact_key
+    created_by = row_lineage.get("job_id") or row_lineage.get("backup_id") or manifest.get("backup_id") or filename or artifact_key
     selected_dt = parse_dt(authoritative_time)
     observed_dt = parse_dt(observed_time)
 
     return {
         "artifact_key": artifact_key,
         "artifact_identity": {
-            "artifact_id": manifest.get("backup_id") or row.get("archive_identifier") or filename or artifact_key,
+            "artifact_id": row_lineage.get("backup_id") or manifest.get("backup_id") or row.get("archive_identifier") or filename or artifact_key,
             "truth_subject": TRUTH_SUBJECT,
             "source_subsystem": "complete-r2",
             "source_record_id": created_by,

@@ -161,7 +161,7 @@ def _write_archive(tmp_path: Path, manifest: dict):
 
 def _base_manifest():
     return {
-        "backup_id": "MASCI_complete_backup_2026-07-25_230328Z.zip",
+        "backup_id": "b4bde3a6eea34d0aa3f4e6fffcfde1ed",
         "manifest_version": "27.11c-1",
         "environment": "preview",
         "app_env": "preview",
@@ -182,7 +182,7 @@ def _authoritative_artifact():
     return {
         "object_key": "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip",
         "artifact_identity": {
-            "artifact_id": "MASCI_complete_backup_2026-07-25_230328Z.zip",
+            "artifact_id": "b4bde3a6eea34d0aa3f4e6fffcfde1ed",
             "originating_environment": "preview",
             "database_name": "masci_safety_preview",
         },
@@ -203,6 +203,15 @@ def _authoritative_artifact():
             "manifest_version": None,
         },
         "source_truth": "4af01c4c3f4e06065a8e9c0b9a60f86a",
+        "persisted_lineage_row": {
+            "job_id": "bjob-a0fdc7db738d445f8d817b3b15098619",
+            "created_at": "2026-07-25T23:03:28.376802+00:00",
+            "archive_lineage": {
+                "created_at": "2026-07-25T23:03:28.664014+00:00",
+                "job_id": "bjob-a0fdc7db738d445f8d817b3b15098619",
+                "backup_id": "b4bde3a6eea34d0aa3f4e6fffcfde1ed",
+            },
+        },
     }
 
 
@@ -234,6 +243,7 @@ def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, bac
     if refs.get("checksum_sha256") in (None, "", "bootstrap-checksum"):
         refs["checksum_sha256"] = checksum
     lineage["authoritative_artifact"]["evidence_references"] = refs
+    lineage.setdefault("runtime_identity", {})
     fake_mongo = _FakeMongoClient()
     fake_s3 = _FakeS3Client(archive)
     build_calls = []
@@ -388,6 +398,64 @@ def test_missing_key_plus_absent_backup_id_fails(monkeypatch, tmp_path):
     out = _run_script(monkeypatch, tmp_path, manifest=manifest)
     assert out["rc"] == 9
     assert out["restore_calls"] == 0
+
+
+def test_backup_id_alias_for_same_archive_passes(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    manifest["backup_id"] = "legacy-embedded-id"
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["persisted_lineage_row"]["archive_lineage"]["backup_id"] = "persisted-lineage-id"
+    # use real computed checksum from fixture path via harness default
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, lineage=lineage, restore_should_raise=True)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    explicit = evidence["explicit_key_resolution"]
+    assert explicit["backup_id_binding_mode"] == "VERIFIED_LEGACY_ALIAS"
+    assert explicit["backup_id_alias_verified"] is True
+    assert explicit["backup_id_reconciliation_passed"] is True
+
+
+def test_conflicting_backup_id_across_object_keys_fails(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    manifest["backup_id"] = "legacy-embedded-id"
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, backup_key="backups/auto-90d/OTHER.zip")
+    assert out["rc"] == 2
+
+
+def test_backup_job_id_is_not_treated_as_archive_backup_id(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    manifest["backup_id"] = "bjob-some-job-id"
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["persisted_lineage_row"]["archive_lineage"]["backup_id"] = None
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, lineage=lineage, restore_should_raise=True)
+    explicit = out["db"].drill_runs.rows[0]["restore_certification_evidence"]["explicit_key_resolution"]
+    assert explicit["persisted_backup_id_source"] == "LEGACY_ABSENT"
+    assert explicit["backup_id_binding_mode"] == "DERIVED_FROM_CHECKSUM_BOUND_ARCHIVE"
+
+
+def test_lineage_row_id_is_not_treated_as_archive_backup_id(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    manifest["backup_id"] = "embedded-id"
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["persisted_lineage_row"]["archive_lineage"]["backup_id"] = None
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, lineage=lineage, restore_should_raise=True)
+    explicit = out["db"].drill_runs.rows[0]["restore_certification_evidence"]["explicit_key_resolution"]
+    assert explicit["persisted_backup_id_source"] == "LEGACY_ABSENT"
+
+
+def test_substep_truth_persists_when_backup_id_fails(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["backup_id"] = ""
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["persisted_lineage_row"]["archive_lineage"]["backup_id"] = "different-persisted-id"
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, lineage=lineage)
+    explicit = out["db"].drill_runs.rows[0]["restore_certification_evidence"]["explicit_key_resolution"]
+    assert explicit["embedded_manifest_loaded"] is True
+    assert explicit["computed_checksum"]
+    assert explicit["failure_substep"] == "backup_id_reconciliation_failed"
 
 
 def test_conflicting_non_empty_embedded_key_fails_closed_even_with_matching_checksum(monkeypatch, tmp_path):

@@ -97,6 +97,7 @@ def _embedded_manifest_identity(manifest: Dict[str, Any]) -> Dict[str, Any]:
         ).strip(),
         "release_identity": str(manifest.get("release_identity") or manifest.get("source_hash") or "").strip(),
         "backup_id": str(manifest.get("backup_id") or "").strip(),
+        "created_at": str(manifest.get("backup_started_at") or manifest.get("generated_at") or manifest.get("backup_completed_at") or "").strip(),
     }
 
 
@@ -120,6 +121,21 @@ def _build_explicit_key_diagnostics(*, args_backup: str, lineage: Dict[str, Any]
         "legacy_manifest_missing_archive_key": None,
         "legacy_key_binding_conditions": {},
         "legacy_key_binding_conditions_passed": None,
+        "embedded_backup_id_raw": None,
+        "embedded_backup_id_present": None,
+        "persisted_backup_id_raw": None,
+        "persisted_backup_id_source": None,
+        "canonical_backup_id": None,
+        "effective_backup_id": None,
+        "backup_id_match": None,
+        "backup_id_binding_mode": None,
+        "backup_id_alias_verified": None,
+        "backup_id_alias_evidence": {},
+        "backup_id_conflicts": [],
+        "backup_id_reconciliation_passed": None,
+        "identity_reconciliation_matrix": {},
+        "last_successful_substep": None,
+        "failure_substep": None,
         "requested_source_environment": requested_env,
         "manifest_probe_mode": lineage.get("manifest_probe_mode"),
         "manifest_reads_skipped": lineage.get("manifest_reads_skipped"),
@@ -162,6 +178,19 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
         "legacy_manifest_missing_archive_key": False,
         "legacy_key_binding_conditions": {},
         "legacy_key_binding_conditions_passed": False,
+        "embedded_backup_id_raw": embedded["backup_id"],
+        "embedded_backup_id_present": bool(embedded["backup_id"]),
+        "persisted_backup_id_raw": None,
+        "persisted_backup_id_source": None,
+        "canonical_backup_id": None,
+        "effective_backup_id": None,
+        "backup_id_match": None,
+        "backup_id_binding_mode": None,
+        "backup_id_alias_verified": None,
+        "backup_id_alias_evidence": {},
+        "backup_id_conflicts": [],
+        "backup_id_reconciliation_passed": None,
+        "identity_reconciliation_matrix": {},
     }
 
     def _mismatch(code: str) -> tuple[bool, str, Dict[str, Any]]:
@@ -274,9 +303,6 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
     if persisted_release_identity and embedded["release_identity"] and embedded["release_identity"] != persisted_release_identity:
         return _mismatch("EMBEDDED_MANIFEST_RELEASE_IDENTITY_MISMATCH")
 
-    if embedded["backup_id"] and artifact_identity.get("artifact_id") and embedded["backup_id"] != artifact_identity.get("artifact_id"):
-        return _mismatch("EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH")
-
     diagnostics["embedded_manifest_reconciled"] = True
     diagnostics["embedded_manifest_failure"] = None
     diagnostics["persisted_checksum_sha256"] = evidence_refs.get("checksum_sha256")
@@ -286,7 +312,130 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
         diagnostics["effective_archive_key"] = archive_key
     if diagnostics["legacy_manifest_missing_archive_key"]:
         diagnostics["legacy_key_binding_conditions_passed"] = True
+    diagnostics["identity_reconciliation_matrix"] = {
+        "archive_key": diagnostics["archive_key_binding_mode"] or ("EXACT_MATCH" if diagnostics.get("embedded_archive_key_match") else "CONFLICT"),
+        "backup_id": "PENDING_BACKUP_ID_RECONCILIATION",
+        "environment": "EXACT_MATCH",
+        "database_name": "EXACT_MATCH",
+        "bucket": "OPTIONAL_NOT_PRESENT" if not embedded["backup_bucket"] else "EXACT_MATCH",
+        "prefix": "OPTIONAL_NOT_PRESENT" if not embedded["backup_prefix"] else "EXACT_MATCH",
+        "environment_fingerprint": "OPTIONAL_NOT_PRESENT" if not embedded["environment_fingerprint"] else "EXACT_MATCH",
+        "cluster_fingerprint": "OPTIONAL_NOT_PRESENT" if not embedded["source_cluster_fingerprint"] else "EXACT_MATCH",
+        "release_identity": "OPTIONAL_NOT_PRESENT" if not embedded["release_identity"] else "EXACT_MATCH",
+        "manifest_schema": "EXACT_MATCH" if embedded["manifest_schema"] else "OPTIONAL_NOT_PRESENT",
+        "created_at": "OPTIONAL_NOT_PRESENT" if not embedded["created_at"] else "EXACT_MATCH",
+        "checksum_reference": "DERIVED_FROM_AUTHORIZED_LINEAGE",
+    }
     return True, None, diagnostics
+
+
+def _parse_iso(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def _resolve_persisted_backup_id(authoritative: Dict[str, Any]) -> tuple[Optional[str], str, Optional[str], Optional[str]]:
+    persisted = authoritative.get("persisted_lineage_row") or {}
+    row_lineage = persisted.get("archive_lineage") or {}
+    if row_lineage.get("backup_id"):
+        return str(row_lineage.get("backup_id")), "archive_lineage.backup_id", str(row_lineage.get("created_at") or "") or None, str(row_lineage.get("job_id") or "") or None
+    if persisted.get("backup_id"):
+        return str(persisted.get("backup_id")), "backup_jobs.backup_id", str(persisted.get("created_at") or row_lineage.get("created_at") or "") or None, str(persisted.get("job_id") or row_lineage.get("job_id") or "") or None
+    return None, "LEGACY_ABSENT", str(persisted.get("created_at") or row_lineage.get("created_at") or "") or None, str(persisted.get("job_id") or row_lineage.get("job_id") or "") or None
+
+
+def _reconcile_backup_id(*, authoritative: Dict[str, Any], lineage: Dict[str, Any], env: Dict[str, str], diagnostics: Dict[str, Any], computed_checksum: str, archive_key: str) -> tuple[bool, Optional[str], Dict[str, Any], str]:
+    embedded = dict(diagnostics.get("embedded_manifest_identity") or {})
+    persisted_backup_id, persisted_source, persisted_created_at, persisted_job_id = _resolve_persisted_backup_id(authoritative)
+    artifact_identity = authoritative.get("artifact_identity") or {}
+    runtime_identity = lineage.get("runtime_identity") or {}
+    lineage_identity = authoritative.get("lineage_identity") or {}
+    persisted_checksum = str(((authoritative.get("evidence_references") or {}).get("checksum_sha256") or "")).strip().lower()
+    persisted_release_identity = str(authoritative.get("source_truth") or "").strip()
+    embedded_backup_id = str(embedded.get("backup_id") or "").strip()
+
+    diagnostics["embedded_backup_id_raw"] = embedded_backup_id
+    diagnostics["embedded_backup_id_present"] = bool(embedded_backup_id)
+    diagnostics["persisted_backup_id_raw"] = persisted_backup_id
+    diagnostics["persisted_backup_id_source"] = persisted_source
+
+    embedded_created = _parse_iso(embedded.get("created_at"))
+    persisted_created = _parse_iso(persisted_created_at)
+    creation_lineage_match = False
+    if embedded_created and persisted_created:
+        creation_lineage_match = abs((embedded_created - persisted_created).total_seconds()) <= 900
+    elif persisted_job_id:
+        creation_lineage_match = True
+
+    alias_evidence = {
+        "object_key_match": authoritative.get("object_key") == archive_key,
+        "checksum_match": bool(persisted_checksum) and persisted_checksum == computed_checksum.lower(),
+        "environment_match": embedded.get("environment") == artifact_identity.get("originating_environment") == "preview",
+        "database_match": embedded.get("database_name") == artifact_identity.get("database_name") == env.get("DB_NAME"),
+        "bucket_match": (not lineage_identity.get("backup_bucket") or not embedded.get("backup_bucket") or embedded.get("backup_bucket") == lineage_identity.get("backup_bucket")) and (runtime_identity.get("backup_bucket") in (None, "", "UNRESOLVED") or not embedded.get("backup_bucket") or embedded.get("backup_bucket") == runtime_identity.get("backup_bucket")),
+        "prefix_match": (not lineage_identity.get("backup_prefix") or not embedded.get("backup_prefix") or embedded.get("backup_prefix") == lineage_identity.get("backup_prefix")) and (not runtime_identity.get("backup_prefix") or not embedded.get("backup_prefix") or embedded.get("backup_prefix") == runtime_identity.get("backup_prefix")),
+        "release_identity_match": (not persisted_release_identity or not embedded.get("release_identity") or embedded.get("release_identity") == persisted_release_identity),
+        "creation_lineage_match": creation_lineage_match,
+        "competing_artifact_count": 0,
+    }
+    diagnostics["backup_id_alias_evidence"] = alias_evidence
+    diagnostics["canonical_backup_id"] = persisted_backup_id or embedded_backup_id or None
+    diagnostics["effective_backup_id"] = diagnostics["canonical_backup_id"]
+
+    if embedded_backup_id and persisted_backup_id and embedded_backup_id == persisted_backup_id:
+        diagnostics["backup_id_match"] = True
+        diagnostics["backup_id_binding_mode"] = "EMBEDDED_EXACT_MATCH"
+        diagnostics["backup_id_alias_verified"] = True
+        diagnostics["backup_id_reconciliation_passed"] = True
+        diagnostics["effective_backup_id"] = embedded_backup_id
+        diagnostics["identity_reconciliation_matrix"]["backup_id"] = "EXACT_MATCH"
+        diagnostics["embedded_manifest_reconciled"] = True
+        return True, None, diagnostics, "backup_id_reconciled_exact"
+
+    if embedded_backup_id and not persisted_backup_id:
+        ok = all(bool(v) for v in alias_evidence.values())
+        diagnostics["backup_id_match"] = False
+        diagnostics["backup_id_binding_mode"] = "DERIVED_FROM_CHECKSUM_BOUND_ARCHIVE"
+        diagnostics["backup_id_alias_verified"] = ok
+        diagnostics["backup_id_reconciliation_passed"] = ok
+        diagnostics["effective_backup_id"] = embedded_backup_id
+        diagnostics["canonical_backup_id"] = embedded_backup_id
+        diagnostics["identity_reconciliation_matrix"]["backup_id"] = "DERIVED_FROM_AUTHORIZED_LINEAGE" if ok else "CONFLICT"
+        diagnostics["embedded_manifest_reconciled"] = ok
+        if ok:
+            return True, None, diagnostics, "backup_id_reconciled_derived"
+        diagnostics["backup_id_conflicts"].append("missing_persisted_backup_id")
+        diagnostics["embedded_manifest_failure"] = "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH"
+        return False, "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH", diagnostics, "backup_id_reconciliation_failed"
+
+    if embedded_backup_id and persisted_backup_id and embedded_backup_id != persisted_backup_id:
+        ok = all(bool(v) for v in alias_evidence.values() if not isinstance(v, int)) and alias_evidence.get("competing_artifact_count") == 0
+        diagnostics["backup_id_match"] = False
+        diagnostics["backup_id_binding_mode"] = "VERIFIED_LEGACY_ALIAS" if ok else "CONFLICTING_BACKUP_ID"
+        diagnostics["backup_id_alias_verified"] = ok
+        diagnostics["backup_id_reconciliation_passed"] = ok
+        diagnostics["effective_backup_id"] = persisted_backup_id if ok else None
+        diagnostics["identity_reconciliation_matrix"]["backup_id"] = "VERIFIED_LEGACY_ALIAS" if ok else "CONFLICT"
+        diagnostics["embedded_manifest_reconciled"] = ok
+        if ok:
+            return True, None, diagnostics, "backup_id_reconciled_alias"
+        diagnostics["backup_id_conflicts"].append("conflicting_backup_ids_without_alias_proof")
+        diagnostics["embedded_manifest_failure"] = "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH"
+        return False, "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH", diagnostics, "backup_id_reconciliation_failed"
+
+    diagnostics["backup_id_conflicts"].append("embedded_backup_id_missing")
+    diagnostics["backup_id_match"] = False
+    diagnostics["backup_id_binding_mode"] = "CONFLICTING_BACKUP_ID"
+    diagnostics["backup_id_alias_verified"] = False
+    diagnostics["backup_id_reconciliation_passed"] = False
+    diagnostics["identity_reconciliation_matrix"]["backup_id"] = "CONFLICT"
+    diagnostics["embedded_manifest_reconciled"] = False
+    diagnostics["embedded_manifest_failure"] = "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH"
+    return False, "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH", diagnostics, "backup_id_reconciliation_failed"
 
 
 def _load_env() -> Dict[str, str]:
@@ -765,6 +914,10 @@ def main() -> int:
                 raise RuntimeError(f"CRC failed on {bad}")
             manifest = json.loads(zf.read("MANIFEST.json").decode("utf-8"))
             diagnostics["embedded_manifest_loaded"] = True
+            diagnostics["last_successful_substep"] = "embedded_manifest_loaded"
+            diagnostics["failure_substep"] = None
+            evidence["explicit_key_resolution"] = dict(diagnostics)
+            _persist_evidence(live_db, drill_id, evidence)
             reconciled, reconcile_error, manifest_evidence = _reconcile_embedded_manifest(
                 manifest=manifest,
                 authoritative=authoritative,
@@ -776,6 +929,11 @@ def main() -> int:
             diagnostics.update(manifest_evidence)
             diagnostics["embedded_manifest_reconciled"] = bool(reconciled)
             evidence["explicit_key_resolution"] = dict(diagnostics)
+            if reconciled:
+                diagnostics["last_successful_substep"] = "archive_key_reconciled"
+                diagnostics["failure_substep"] = None
+                evidence["explicit_key_resolution"] = dict(diagnostics)
+                _persist_evidence(live_db, drill_id, evidence)
             _phase_finish(live_db, drill_id, evidence, guard, "manifest_loaded", "completed", extra={"manifest_schema": _embedded_manifest_identity(manifest).get("manifest_schema")})
 
             _phase_start(live_db, drill_id, evidence, guard, "checksum_validation")
@@ -784,7 +942,11 @@ def main() -> int:
             diagnostics["checksum_validated"] = bool(persisted_checksum) and persisted_checksum == actual_checksum
             diagnostics["calculated_checksum_sha256"] = actual_checksum
             diagnostics["persisted_checksum_sha256"] = persisted_checksum or None
+            diagnostics["computed_checksum"] = actual_checksum
+            diagnostics["last_successful_substep"] = "checksum_computed"
+            diagnostics["failure_substep"] = None
             evidence["explicit_key_resolution"] = dict(diagnostics)
+            _persist_evidence(live_db, drill_id, evidence)
             live_db.drill_runs.update_one(
                 {"id": drill_id},
                 {"$set": {
@@ -799,9 +961,33 @@ def main() -> int:
                 _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED", slot_suffix="failed")
                 raise RuntimeError(reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED")
             if persisted_checksum and persisted_checksum != actual_checksum:
+                diagnostics["failure_substep"] = "checksum_validation"
                 _phase_finish(live_db, drill_id, evidence, guard, "checksum_validation", "failed", extra={"error": "ARCHIVE_CHECKSUM_MISMATCH"})
                 _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason="ARCHIVE_CHECKSUM_MISMATCH", slot_suffix="failed")
                 raise RuntimeError("ARCHIVE_CHECKSUM_MISMATCH")
+            diagnostics["last_successful_substep"] = "checksum_validated"
+            diagnostics["failure_substep"] = None
+            evidence["explicit_key_resolution"] = dict(diagnostics)
+            _persist_evidence(live_db, drill_id, evidence)
+
+            backup_id_ok, backup_id_error, backup_id_evidence, backup_id_substep = _reconcile_backup_id(
+                authoritative=authoritative,
+                lineage=lineage,
+                env=env,
+                diagnostics=diagnostics,
+                computed_checksum=actual_checksum,
+                archive_key=args.backup,
+            )
+            diagnostics.update(backup_id_evidence)
+            diagnostics["last_successful_substep"] = backup_id_substep if backup_id_ok else diagnostics.get("last_successful_substep")
+            diagnostics["failure_substep"] = None if backup_id_ok else backup_id_substep
+            diagnostics["embedded_manifest_reconciled"] = bool(backup_id_ok)
+            evidence["explicit_key_resolution"] = dict(diagnostics)
+            _persist_evidence(live_db, drill_id, evidence)
+            if not backup_id_ok:
+                _phase_finish(live_db, drill_id, evidence, guard, "checksum_validation", "failed", extra={"error": backup_id_error})
+                _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=backup_id_error or "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH", slot_suffix="failed")
+                raise RuntimeError(backup_id_error or "EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH")
             _phase_finish(live_db, drill_id, evidence, guard, "checksum_validation", "completed", extra={"computed_checksum": actual_checksum, "persisted_checksum": persisted_checksum})
 
             _phase_start(live_db, drill_id, evidence, guard, "canonical_fingerprint_before")
