@@ -6748,7 +6748,7 @@ async def equipment_master_status(_: bool = Depends(require_admin)):
 @api_router.post("/admin/equipment-master")
 async def create_equipment_master_unit(
     payload: Dict[str, Any],
-    _: bool = Depends(require_shop_or_admin),
+    operator: Any = Depends(require_shop_or_admin),
 ):
     """Add a single unit to the MASCI fleet. Mechanics + admins + PMs can
     use this to register new equipment without uploading a full xlsx.
@@ -6766,25 +6766,49 @@ async def create_equipment_master_unit(
             doc = await db.equipment_master.find_one({"unit_number": unit_number}, {"_id": 0})
             return doc or {"ok": True, "restored": True}
         raise HTTPException(status_code=409, detail=f"Unit {unit_number} already exists")
-    doc = {
-        "id": str(uuid.uuid4()),
-        "unit_number": unit_number,
-        "make": (payload.get("make") or "").strip(),
-        "model": (payload.get("model") or "").strip(),
-        "make_model": (payload.get("make_model") or f"{payload.get('make','')} {payload.get('model','')}").strip(),
-        "year": str(payload.get("year") or "").strip(),
-        "vin_serial_number": (payload.get("vin_serial_number") or "").strip(),
-        "comments": (payload.get("comments") or "").strip(),
-        "company": (payload.get("company") or "MASCI").strip(),
-        "category": (payload.get("category") or "Misc Equipment").strip(),
-        "preop_equipment_type": (payload.get("preop_equipment_type") or "Other").strip(),
-        "display_label": (payload.get("display_label") or "").strip(),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.equipment_master.insert_one(doc)
-    doc.pop("_id", None)
-    return doc
+
+    from services.asset_spine import AssetSpine  # noqa: PLC0415
+
+    make = (payload.get("make") or "").strip()
+    model = (payload.get("model") or "").strip()
+    make_model = (payload.get("make_model") or f"{make} {model}").strip()
+    display_label = (payload.get("display_label") or "").strip()
+    preop_type = (payload.get("preop_equipment_type") or "Other").strip()
+    company = (payload.get("company") or "MASCI").strip()
+    actor = "admin"
+    if isinstance(operator, dict):
+        actor = str(operator.get("email") or operator.get("id") or "admin")
+
+    spine = AssetSpine(db)
+    created = await spine.create_asset(
+        {
+            "unit_number": unit_number,
+            "asset_name": display_label or make_model or unit_number,
+            "asset_type": preop_type,
+            "asset_category": (payload.get("category") or "Misc Equipment").strip(),
+            "ownership": company,
+            "make": make,
+            "model": model,
+            "year": str(payload.get("year") or "").strip(),
+            "vin_serial_number": (payload.get("vin_serial_number") or "").strip(),
+        },
+        actor=actor,
+    )
+    asset_id = created.get("asset_id")
+    if asset_id:
+        await db.equipment_master.update_one(
+            {"id": asset_id},
+            {"$set": {
+                "make_model": make_model,
+                "comments": (payload.get("comments") or "").strip(),
+                "preop_equipment_type": preop_type,
+                "display_label": display_label,
+            }},
+        )
+        doc = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0})
+        if doc:
+            return doc
+    raise HTTPException(status_code=500, detail="Could not create equipment unit")
 
 
 @api_router.put("/admin/equipment-master/{unit_id}")

@@ -1,20 +1,35 @@
-"""Backend regression tests for MASCI Equipment Master endpoints (iteration 17).
+"""Backend regression tests for MASCI Equipment Master endpoints.
 
 Covers:
 - GET /api/equipment-master (full + category filter)
-- POST /api/admin/login -> admin token
+- POST /api/auth/multi-login -> admin + directory tokens
 - GET /api/admin/equipment-master/status (auth required)
 - POST /api/admin/equipment-master/upload (auth required, xlsx validation,
   replaces collection + seed JSON + creates .bak.json backup)
 """
 import os
 import time
+import uuid
 import urllib.request
 import urllib.error
 from pathlib import Path
 
 import pytest
 import requests
+
+
+def _request_with_retry(method, url, *, tries=5, backoff=1.5, **kwargs):
+    last = None
+    for attempt in range(tries):
+        try:
+            response = method(url, **kwargs)
+            if response.status_code != 502:
+                return response
+            last = response
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+        time.sleep(backoff * (attempt + 1))
+    raise AssertionError(f"request failed after retries: {url} :: {last}")
 
 
 def _raw_request(method, url, data=None, headers=None):
@@ -41,35 +56,67 @@ if not BASE_URL:
                 break
 
 API = f"{BASE_URL}/api"
+ADMIN_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL") or "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD") or "Maddix123!"
 XLSX_PATH = Path("/tmp/assets/Equipment List.xlsx")
 SEED_FILE = Path("/app/backend/data/equipment_master.json")
 DATA_DIR = SEED_FILE.parent
 
 
+def _live_get(path, *, headers=None, timeout=20, params=None):
+    return _request_with_retry(
+        requests.get,
+        f"{API}{path}",
+        headers=headers,
+        timeout=timeout,
+        params=params,
+    )
+
+
+def _live_post(path, *, headers=None, timeout=20, json=None, files=None):
+    return _request_with_retry(
+        requests.post,
+        f"{API}{path}",
+        headers=headers,
+        timeout=timeout,
+        json=json,
+        files=files,
+    )
+
+
+def _live_delete(path, *, headers=None, timeout=20):
+    return _request_with_retry(
+        requests.delete,
+        f"{API}{path}",
+        headers=headers,
+        timeout=timeout,
+    )
+
+
 # ---------- Fixtures ----------
 
 @pytest.fixture(scope="session")
-def admin_token():
-    r = requests.post(f"{API}/admin/login", json={"password": ADMIN_PASSWORD}, timeout=15)
-    assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
+def admin_headers():
+    r = _live_post(
+        "/auth/multi-login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+        timeout=20,
+    )
+    assert r.status_code == 200, f"admin multi-login failed: {r.status_code} {r.text}"
     data = r.json()
     assert data.get("ok") is True
-    tok = data.get("token")
-    assert isinstance(tok, str) and len(tok) >= 32
-    return tok
-
-
-@pytest.fixture(scope="session")
-def admin_headers(admin_token):
-    return {"X-Admin-Token": admin_token}
+    tok = data.get("portal_tokens", {}).get("admin")
+    dir_tok = data.get("session_token")
+    assert isinstance(tok, str) and len(tok) >= 16
+    assert isinstance(dir_tok, str) and len(dir_tok) >= 16
+    return {"X-Admin-Token": tok, "X-Directory-Token": dir_tok}
 
 
 # ---------- Public equipment-master endpoint ----------
 
 class TestEquipmentMasterList:
     def test_list_all_shape_and_count(self):
-        r = requests.get(f"{API}/equipment-master", timeout=15)
+        r = _live_get("/equipment-master", timeout=15)
         assert r.status_code == 200
         d = r.json()
         # Keys required by UI
@@ -90,7 +137,7 @@ class TestEquipmentMasterList:
         assert "_id" not in sample
 
     def test_category_filter_excavators(self):
-        r = requests.get(f"{API}/equipment-master", params={"category": "Excavators"}, timeout=15)
+        r = _live_get("/equipment-master", params={"category": "Excavators"}, timeout=15)
         assert r.status_code == 200
         d = r.json()
         assert d["count"] > 0
@@ -104,15 +151,24 @@ class TestEquipmentMasterList:
 # ---------- Admin auth ----------
 
 class TestAdminAuth:
-    def test_login_returns_token(self):
-        r = requests.post(f"{API}/admin/login", json={"password": ADMIN_PASSWORD}, timeout=15)
+    def test_multi_login_returns_admin_and_directory_tokens(self):
+        r = _live_post(
+            "/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            timeout=20,
+        )
         assert r.status_code == 200
         d = r.json()
         assert d.get("ok") is True
-        assert isinstance(d.get("token"), str) and len(d["token"]) >= 32
+        assert isinstance(d.get("session_token"), str) and len(d["session_token"]) >= 16
+        assert isinstance(d.get("portal_tokens", {}).get("admin"), str)
 
-    def test_login_bad_password(self):
-        r = requests.post(f"{API}/admin/login", json={"password": "wrong"}, timeout=15)
+    def test_multi_login_bad_password(self):
+        r = _live_post(
+            "/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": "wrong", "portal": "admin"},
+            timeout=20,
+        )
         assert r.status_code in (401, 403)
 
 
@@ -124,9 +180,7 @@ class TestEquipmentMasterStatus:
         assert status == 401
 
     def test_status_with_admin(self, admin_headers):
-        r = requests.get(
-            f"{API}/admin/equipment-master/status", headers=admin_headers, timeout=15
-        )
+        r = _live_get("/admin/equipment-master/status", headers=admin_headers, timeout=15)
         assert r.status_code == 200
         d = r.json()
         for k in ("count", "categories", "last_updated", "seed_file"):
@@ -135,6 +189,52 @@ class TestEquipmentMasterStatus:
         assert isinstance(d["categories"], dict) and len(d["categories"]) > 5
         assert d["last_updated"]  # ISO string
         assert d["seed_file"].endswith("equipment_master.json")
+
+
+class TestEquipmentMasterCreateCanonicalization:
+    def test_create_persists_canonical_mirror_fields(self, admin_headers):
+        unit = f"LEGACY-CANON-{uuid.uuid4().hex[:8].upper()}"
+        payload = {
+            "unit_number": unit,
+            "make": "Canon",
+            "model": "Probe",
+            "category": "Dump Trucks",
+            "preop_equipment_type": "Truck",
+            "company": "MASCI",
+            "comments": "legacy create canonicalization",
+        }
+        r = _live_post("/admin/equipment-master", json=payload, headers=admin_headers, timeout=20)
+        assert r.status_code == 200, f"create failed: {r.status_code} {r.text}"
+        d = r.json()
+        unit_id = d.get("id")
+        assert unit_id, "create response missing id"
+        try:
+            assert d.get("unit_number") == unit
+            assert d.get("make") == "Canon"
+            assert d.get("model") == "Probe"
+            assert d.get("category") == "Dump Trucks"
+            assert d.get("preop_equipment_type") == "Truck"
+            assert d.get("comments") == "legacy create canonicalization"
+
+            assert d.get("asset_id") == unit_id
+            assert d.get("asset_number") == unit
+            assert d.get("asset_name") == "Canon Probe"
+            assert d.get("asset_type") == "Truck"
+            assert d.get("asset_status") == "ACTIVE"
+            assert d.get("active") is True
+            assert d.get("is_active") is True
+
+            canonical = _live_get(f"/asset-spine/assets/{unit_id}", headers=admin_headers, timeout=20)
+            assert canonical.status_code == 200, f"asset-spine read failed: {canonical.status_code} {canonical.text}"
+            c = canonical.json()
+            assert c.get("asset_id") == unit_id
+            assert c.get("asset_number") == unit
+            assert c.get("asset_name") == "Canon Probe"
+            assert c.get("asset_type") == "Truck"
+            assert c.get("asset_status") == "ACTIVE"
+            assert c.get("active") is True
+        finally:
+            _live_delete(f"/admin/equipment-master/{unit_id}", headers=admin_headers, timeout=20)
 
 
 # ---------- Upload endpoint ----------
@@ -165,8 +265,8 @@ class TestEquipmentMasterUpload:
 
     def test_upload_rejects_non_xlsx(self, admin_headers):
         files = {"file": ("junk.txt", b"not an xlsx", "text/plain")}
-        r = requests.post(
-            f"{API}/admin/equipment-master/upload",
+        r = _live_post(
+            "/admin/equipment-master/upload",
             headers=admin_headers,
             files=files,
             timeout=30,
@@ -178,8 +278,8 @@ class TestEquipmentMasterUpload:
             pytest.skip("xlsx fixture missing")
 
         # Capture pre-state
-        pre_status = requests.get(
-            f"{API}/admin/equipment-master/status", headers=admin_headers, timeout=15
+        pre_status = _live_get(
+            "/admin/equipment-master/status", headers=admin_headers, timeout=15
         ).json()
         pre_count = pre_status["count"]
         pre_last_updated = pre_status["last_updated"]
@@ -197,8 +297,8 @@ class TestEquipmentMasterUpload:
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
             }
-            r = requests.post(
-                f"{API}/admin/equipment-master/upload",
+            r = _live_post(
+                "/admin/equipment-master/upload",
                 headers=admin_headers,
                 files=files,
                 timeout=120,
@@ -212,14 +312,14 @@ class TestEquipmentMasterUpload:
         upload_count = d["count"]
 
         # Public list reflects upload
-        list_after = requests.get(f"{API}/equipment-master", timeout=15).json()
+        list_after = _live_get("/equipment-master", timeout=15).json()
         assert list_after["count"] == upload_count, (
             f"public list count {list_after['count']} != upload count {upload_count}"
         )
 
         # Status reflects upload and newer last_updated
-        status_after = requests.get(
-            f"{API}/admin/equipment-master/status", headers=admin_headers, timeout=15
+        status_after = _live_get(
+            "/admin/equipment-master/status", headers=admin_headers, timeout=15
         ).json()
         assert status_after["count"] == upload_count
         assert status_after["last_updated"] != pre_last_updated
