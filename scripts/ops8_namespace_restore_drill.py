@@ -21,6 +21,8 @@ from pymongo import MongoClient, UpdateOne
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_ENV = REPO_ROOT / "backend" / ".env"
 MEMORY_DIR = REPO_ROOT / "memory"
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+from lib.archive_lineage import build_canonical_archive_lineage  # noqa: E402
 
 
 def _load_env() -> Dict[str, str]:
@@ -190,6 +192,20 @@ def main() -> int:
     client, bucket = _r2_client(env)
     mongo = MongoClient(env["MONGO_URL"], serverSelectionTimeoutMS=20000)
     live_db = mongo[env["DB_NAME"]]
+    import asyncio
+    lineage = asyncio.run(
+        build_canonical_archive_lineage(
+            live_db,
+            current_env=env.get("APP_ENV"),
+            current_db=env.get("DB_NAME"),
+            requested_source_environment=(env.get("APP_ENV") or "preview").strip().lower(),
+            force_refresh=True,
+        )
+    )
+    authoritative = lineage.get("authoritative_artifact") or {}
+    if not authoritative or authoritative.get("object_key") != args.backup:
+        print(json.dumps({"ok": False, "error": "ARCHIVE_LINEAGE_UNVERIFIED"}, indent=2))
+        return 2
     live_db.drill_runs.insert_one({
         "id": drill_id,
         "drill_id": drill_id,
@@ -197,6 +213,12 @@ def main() -> int:
         "started_at": started.isoformat(),
         "target_db": env["DB_NAME"],
         "target_namespace_prefix": namespace_prefix,
+        "source_environment": (env.get("APP_ENV") or "preview").strip().lower(),
+        "source_archive_key": args.backup,
+        "source_archive_id": ((authoritative.get("artifact_identity") or {}).get("artifact_id")),
+        "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
+        "policy_decision": "PENDING",
+        "policy_reason": "awaiting_namespace_restore_validation",
         "archive_filename": Path(args.backup).name,
     })
 
@@ -258,6 +280,12 @@ def main() -> int:
             "records_restored": restored_total,
             "photos_rehydrated": rehydration["uploaded"],
             "outcome": outcome,
+            "source_environment": (env.get("APP_ENV") or "preview").strip().lower(),
+            "source_archive_key": args.backup,
+            "source_archive_id": ((authoritative.get("artifact_identity") or {}).get("artifact_id")),
+            "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
+            "policy_decision": "PASS" if outcome == "ok" else "FAIL",
+            "policy_reason": "authoritative_environment_bound_archive_selected",
             "axes": axes,
             "per_kind": per_kind,
             "cleanup_complete": False,

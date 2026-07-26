@@ -28,6 +28,7 @@ from lib.operator_safety import require_destructive_confirmation, require_destru
 from lib.operator_safety import require_non_empty_destructive_scope
 from lib.runtime_identity import (
     assert_runtime_identity_valid,
+    build_environment_authority_fingerprint,
     build_runtime_identity_bundle,
     is_read_only_validation_active_bundle,
     runtime_identity_public_payload,
@@ -57,6 +58,44 @@ _PREVIEW_USER = 'masci_preview_user'
 _PROD_USER = 'masci_prod_user'
 _PREVIEW_DB = 'masci_safety_preview'
 _PROD_DB = 'masci_safety'
+
+
+def _canonical_backup_bucket() -> str:
+    return (os.environ.get("BACKUP_BUCKET") or os.environ.get("R2_BUCKET") or os.environ.get("S3_BUCKET") or "").strip()
+
+
+def _canonical_backup_prefix() -> str:
+    return (os.environ.get("BACKUP_PREFIX") or os.environ.get("R2_BACKUP_PREFIX") or os.environ.get("S3_BACKUP_PREFIX") or "backups/auto-90d/").strip() or "backups/auto-90d/"
+
+
+def _canonical_cluster_fingerprint() -> Optional[str]:
+    payload = _runtime_identity_safe_payload()
+    identity = (payload.get("identity") or {}) if isinstance(payload, dict) else {}
+    value = identity.get("cluster_fingerprint")
+    return str(value).strip() if value else None
+
+
+def _canonical_runtime_user_identity() -> Optional[str]:
+    payload = _runtime_identity_safe_payload()
+    identity = (payload.get("identity") or {}) if isinstance(payload, dict) else {}
+    value = identity.get("mongo_user")
+    return str(value).strip() if value else None
+
+
+def _canonical_environment_fingerprint() -> str:
+    payload = _runtime_identity_safe_payload()
+    identity = (payload.get("identity") or {}) if isinstance(payload, dict) else {}
+    existing = str(identity.get("environment_fingerprint") or "").strip()
+    if existing:
+        return existing
+    return build_environment_authority_fingerprint(
+        environment_name=_canonical_app_env(),
+        cluster_fingerprint=_canonical_cluster_fingerprint(),
+        database_name=_canonical_db_name(),
+        runtime_user_identity=_canonical_runtime_user_identity(),
+        backup_bucket=_canonical_backup_bucket(),
+        backup_prefix=_canonical_backup_prefix(),
+    )
 
 
 class RuntimeConfigError(RuntimeError):
@@ -8932,7 +8971,7 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
 # and a presigned 7-day download URL is emailed alongside the slim
 # heartbeat email.
 
-def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
+def _build_complete_archive_on_disk(db_unused, dst_zip: Path, *, backup_run_id: Optional[str] = None) -> dict:
     """Build a single self-contained zip on disk with:
       * Every Mongo collection (JSON, _id stripped) under `<kind>/json/`
       * Every R2 photo fetched and inlined under `photos/<key>`
@@ -9130,14 +9169,24 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
             manifest = {
                 "manifest_version": BACKUP_MANIFEST_VERSION,
                 "backup_id": uuid.uuid4().hex,
+                "backup_run_id": backup_run_id,
                 "backup_type": "complete-r2",
                 "classification": classification,
                 "environment": os.environ.get("APP_ENV"),
                 "app_env": os.environ.get("APP_ENV"),
+                "environment_fingerprint": _canonical_environment_fingerprint(),
+                "environment_fingerprint_version": "env-authority-v1",
                 "database_name": db_name,
                 "db_name": db_name,
+                "source_cluster_fingerprint": _canonical_cluster_fingerprint(),
+                "source_database_identity": db_name,
+                "source_runtime_user_identity": _canonical_runtime_user_identity(),
+                "storage_provider": "r2-s3-compatible",
+                "backup_bucket": _canonical_backup_bucket(),
+                "backup_prefix": _canonical_backup_prefix(),
                 "source_hash": _SOURCE_HASH,
                 "git_commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
+                "release_identity": _SOURCE_HASH,
                 "application_version": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
                 "backup_started_at": started_at.isoformat(),
                 "backup_completed_at": completed_at.isoformat(),
@@ -9577,7 +9626,12 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         if current_job and current_job.get("owner_token"):
             await assert_backup_job_ownership(db, current_job["job_id"], owner_token=current_job["owner_token"])
         stage["name"] = "archive_construction"
-        stats = await asyncio.to_thread(_build_complete_archive_on_disk, db, tmp)
+        stats = await asyncio.to_thread(
+            _build_complete_archive_on_disk,
+            db,
+            tmp,
+            backup_run_id=(current_job or {}).get("backup_run_id"),
+        )
         tmp.replace(out)
         if out.stat().st_size > BACKUP_COMPLETE_MAX_BUILD_BYTES:
             raise RuntimeError(f"complete archive exceeded bounded size ceiling {BACKUP_COMPLETE_MAX_BUILD_BYTES} bytes")
@@ -9609,7 +9663,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         stage["name"] = "checksum"
         archive_sha256 = await _sha256_file(out)
         stage["name"] = "upload"
-        r2_key = f"backups/auto-90d/{filename}"
+        r2_key = f"{_canonical_backup_prefix().rstrip('/')}/{filename}"
         await upload_local_file(out, key=r2_key, content_type="application/zip")
         logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
 
@@ -9619,11 +9673,19 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
 
         lineage = {
             "job_id": (current_job or {}).get("job_id"),
+            "backup_run_id": (current_job or {}).get("backup_run_id"),
             "trigger": (current_job or {}).get("trigger"),
             "scheduler_slot": (current_job or {}).get("slot_key"),
             "release_sha": _SOURCE_HASH,
             "environment": _canonical_app_env().lower(),
+            "environment_fingerprint": _canonical_environment_fingerprint(),
+            "environment_fingerprint_version": "env-authority-v1",
+            "source_cluster_fingerprint": _canonical_cluster_fingerprint(),
             "database_name": _canonical_db_name(),
+            "source_database_identity": _canonical_db_name(),
+            "source_runtime_user_identity": _canonical_runtime_user_identity(),
+            "backup_bucket": _canonical_backup_bucket(),
+            "backup_prefix": _canonical_backup_prefix(),
             "archive_key": r2_key,
             "archive_size_bytes": int(out.stat().st_size),
             "manifest_identity": {

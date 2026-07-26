@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+
+from lib.runtime_identity import build_environment_authority_fingerprint, ENVIRONMENT_FINGERPRINT_VERSION
 
 
 RESOLVER_VERSION = "bcss-r02-1"
@@ -91,13 +94,45 @@ def _safe_json_dict(raw: Any) -> Dict[str, Any]:
 def _row_lineage(row: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     payload = _safe_json_dict((row or {}).get("error"))
     lineage = payload.get("lineage") if isinstance(payload.get("lineage"), dict) else {}
-    return lineage if isinstance(lineage, dict) else {}
+    if isinstance(lineage, dict) and lineage:
+        return lineage
+    direct = (row or {}).get("archive_lineage")
+    return direct if isinstance(direct, dict) else {}
 
 
 def _runtime_identity(current_env: Optional[str], current_db: Optional[str]) -> Dict[str, str]:
+    host = str(os.environ.get("APPROVED_PRODUCTION_MONGO_HOST") or "").strip().lower()
+    if not host:
+        host = "unknown-host"
+    cluster_fingerprint = hashlib.sha256(f"cluster|{host}".encode("utf-8")).hexdigest()[:12]
+    runtime_user = "UNRESOLVED"
+    mongo_url = str(os.environ.get("MONGO_URL") or "")
+    if "@" in mongo_url and "://" in mongo_url:
+        try:
+            runtime_user = mongo_url.split("://", 1)[1].split(":", 1)[0].split("@", 1)[0] or "UNRESOLVED"
+        except Exception:
+            runtime_user = "UNRESOLVED"
+    backup_bucket = str(os.environ.get("BACKUP_BUCKET") or os.environ.get("R2_BUCKET") or os.environ.get("S3_BUCKET") or "").strip() or "UNRESOLVED"
+    backup_prefix = str(os.environ.get("BACKUP_PREFIX") or os.environ.get("R2_BACKUP_PREFIX") or os.environ.get("S3_BACKUP_PREFIX") or "backups/auto-90d/").strip() or "backups/auto-90d/"
+    env_name = str(current_env or os.environ.get("APP_ENV") or "").lower() or "unknown"
+    db_name = str(current_db or os.environ.get("DB_NAME") or "").strip() or "unknown"
     return {
-        "app_env": str(current_env or os.environ.get("APP_ENV") or "").lower() or "unknown",
-        "db_name": str(current_db or os.environ.get("DB_NAME") or "").strip() or "unknown",
+        "app_env": env_name,
+        "db_name": db_name,
+        "environment_name": env_name.upper(),
+        "cluster_fingerprint": cluster_fingerprint,
+        "runtime_user_identity": runtime_user,
+        "backup_bucket": backup_bucket,
+        "backup_prefix": backup_prefix,
+        "environment_fingerprint_version": ENVIRONMENT_FINGERPRINT_VERSION,
+        "environment_fingerprint": build_environment_authority_fingerprint(
+            environment_name=env_name,
+            cluster_fingerprint=cluster_fingerprint,
+            database_name=db_name,
+            runtime_user_identity=runtime_user,
+            backup_bucket=backup_bucket,
+            backup_prefix=backup_prefix,
+        ),
     }
 
 
@@ -105,6 +140,23 @@ def _manifest_identity(manifest: Dict[str, Any]) -> Dict[str, str]:
     return {
         "app_env": str(manifest.get("app_env") or manifest.get("environment") or "").lower(),
         "db_name": str(manifest.get("db_name") or manifest.get("database_name") or "").strip(),
+        "environment_fingerprint": str(manifest.get("environment_fingerprint") or "").strip(),
+        "environment_fingerprint_version": str(manifest.get("environment_fingerprint_version") or "").strip(),
+        "source_cluster_fingerprint": str(manifest.get("source_cluster_fingerprint") or "").strip(),
+        "backup_bucket": str(manifest.get("backup_bucket") or "").strip(),
+        "backup_prefix": str(manifest.get("backup_prefix") or "").strip(),
+    }
+
+
+def _lineage_identity(lineage: Dict[str, Any]) -> Dict[str, str]:
+    return {
+        "app_env": str(lineage.get("environment") or "").lower(),
+        "db_name": str(lineage.get("database_name") or lineage.get("source_database_identity") or "").strip(),
+        "environment_fingerprint": str(lineage.get("environment_fingerprint") or "").strip(),
+        "environment_fingerprint_version": str(lineage.get("environment_fingerprint_version") or "").strip(),
+        "source_cluster_fingerprint": str(lineage.get("source_cluster_fingerprint") or "").strip(),
+        "backup_bucket": str(lineage.get("backup_bucket") or "").strip(),
+        "backup_prefix": str(lineage.get("backup_prefix") or "").strip(),
     }
 
 
@@ -229,8 +281,27 @@ def _build_candidate(
     row = row or {}
     row_lineage = _row_lineage(row)
     manifest_identity = _manifest_identity(manifest)
-    env_match = not (manifest_identity["app_env"] or manifest_identity["db_name"]) or manifest_identity == runtime_identity
+    persisted_identity = _lineage_identity(row_lineage)
+    effective_identity = {
+        "app_env": manifest_identity["app_env"] or persisted_identity["app_env"],
+        "db_name": manifest_identity["db_name"] or persisted_identity["db_name"],
+    }
+    env_match = not (effective_identity["app_env"] or effective_identity["db_name"]) or {
+        "app_env": effective_identity["app_env"],
+        "db_name": effective_identity["db_name"],
+    } == {
+        "app_env": runtime_identity["app_env"],
+        "db_name": runtime_identity["db_name"],
+    }
     reasons: List[str] = []
+    expected_env_fp = str(runtime_identity.get("environment_fingerprint") or "")
+    manifest_env_fp = manifest_identity["environment_fingerprint"] or persisted_identity["environment_fingerprint"]
+    expected_cluster_fp = str(runtime_identity.get("cluster_fingerprint") or "")
+    actual_cluster_fp = manifest_identity["source_cluster_fingerprint"] or persisted_identity["source_cluster_fingerprint"]
+    expected_bucket = str(runtime_identity.get("backup_bucket") or "")
+    actual_bucket = manifest_identity["backup_bucket"] or persisted_identity["backup_bucket"]
+    expected_prefix = str(runtime_identity.get("backup_prefix") or "")
+    actual_prefix = manifest_identity["backup_prefix"] or persisted_identity["backup_prefix"]
 
     availability_status, availability_reasons, availability_ok = _derive_availability(archive, row)
     completeness_status, completeness_reasons, completeness_ok = _derive_completeness(manifest, row)
@@ -242,6 +313,14 @@ def _build_candidate(
     reasons.extend(integrity_reasons)
     if not env_match:
         reasons.append("environment_identity_mismatch")
+    if manifest_env_fp and expected_env_fp and expected_env_fp != manifest_env_fp:
+        reasons.append("environment_fingerprint_mismatch")
+    if actual_cluster_fp and expected_cluster_fp and expected_cluster_fp != actual_cluster_fp:
+        reasons.append("cluster_identity_mismatch")
+    if actual_bucket and expected_bucket not in {"", "UNRESOLVED"} and expected_bucket != actual_bucket:
+        reasons.append("bucket_identity_mismatch")
+    if actual_prefix and expected_prefix and expected_prefix != actual_prefix:
+        reasons.append("backup_prefix_mismatch")
     if failure_reason:
         reasons.append(str(failure_reason))
 
@@ -292,11 +371,31 @@ def _build_candidate(
     valid_recoverable = bool(
         availability_ok
         and env_match
+        and (not manifest_env_fp or not expected_env_fp or expected_env_fp == manifest_env_fp)
         and (integrity_ok or can_treat_legacy_complete)
         and evidence_quality != "UNKNOWN"
         and failure_state not in {"FAILED", "CORRUPT", "PARTIAL"}
         and (completeness_ok or can_treat_legacy_complete)
     )
+
+    legacy_classification = "LINEAGE_UNVERIFIED"
+    if valid_recoverable and (manifest_env_fp or persisted_identity["app_env"]):
+        legacy_classification = "LINEAGE_VERIFIED"
+    elif env_match and (effective_identity["app_env"] or row_lineage.get("environment")):
+        legacy_classification = "LINEAGE_PARTIALLY_VERIFIED"
+    elif any(
+        reason in reasons
+        for reason in {
+            "environment_identity_mismatch",
+            "environment_fingerprint_mismatch",
+            "cluster_identity_mismatch",
+            "bucket_identity_mismatch",
+            "backup_prefix_mismatch",
+        }
+    ):
+        legacy_classification = "ENVIRONMENT_CONFLICT"
+    if legacy_classification != "LINEAGE_VERIFIED":
+        reasons.append("quarantined_from_auto_selection")
 
     confidence = _lineage_confidence(manifest, row_lineage, evidence_quality, env_match)
     artifact_key = _candidate_key(archive, row)
@@ -316,8 +415,9 @@ def _build_candidate(
             "archive_type": manifest.get("backup_type") or row.get("mode") or "complete-r2",
             "capture_method": row_lineage.get("trigger") or "scheduler_or_operator",
             "storage_destination": archive_key,
-            "originating_environment": manifest_identity["app_env"] or runtime_identity["app_env"],
-            "database_name": manifest_identity["db_name"] or runtime_identity["db_name"],
+            "originating_environment": effective_identity["app_env"] or runtime_identity["app_env"],
+            "database_name": effective_identity["db_name"] or runtime_identity["db_name"],
+            "environment_fingerprint": manifest_env_fp or None,
         },
         "filename": filename,
         "archive_size_bytes": (archive or {}).get("size_bytes") or row.get("size_bytes") or 0,
@@ -352,8 +452,19 @@ def _build_candidate(
             "etag": (archive or {}).get("etag"),
             "audit_reference": row.get("audit_reference"),
         },
+        "lineage_identity": {
+            "environment": effective_identity["app_env"] or runtime_identity["app_env"],
+            "environment_fingerprint": manifest_env_fp or None,
+            "environment_fingerprint_version": manifest_identity["environment_fingerprint_version"] or persisted_identity["environment_fingerprint_version"],
+            "source_cluster_fingerprint": actual_cluster_fp or None,
+            "source_database": effective_identity["db_name"] or runtime_identity["db_name"],
+            "backup_bucket": actual_bucket or None,
+            "backup_prefix": actual_prefix or None,
+            "archive_key": archive_key,
+        },
         "lineage_confidence": confidence,
         "environment_match": env_match,
+        "legacy_classification": legacy_classification,
         "authoritative_time": authoritative_time,
         "authoritative_time_source": evidence_quality,
         "observed_time": observed_time,
@@ -476,11 +587,50 @@ def resolve_archive_lineage_from_inputs(
     }
 
 
+def _recent_lineage_rows_from_backup_jobs(db: Any, runtime: Dict[str, str]) -> List[Dict[str, Any]]:
+    try:
+        cursor = db.backup_jobs.find(
+            {
+                "archive_lineage.archive_key": {"$exists": True},
+                "archive_lineage.environment": runtime.get("app_env"),
+                "archive_lineage.database_name": runtime.get("db_name"),
+            },
+            {
+                "_id": 0,
+                "created_at": 1,
+                "archive_lineage": 1,
+            },
+            sort=[("created_at", -1)],
+        )
+        rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
+    except Exception:
+        rows = []
+    out: List[Dict[str, Any]] = []
+    for row in rows:
+        lineage = row.get("archive_lineage") or {}
+        key = str(lineage.get("archive_key") or "").strip()
+        if not key:
+            continue
+        out.append(
+            {
+                "filename": key.rsplit("/", 1)[-1],
+                "archive_identifier": key.rsplit("/", 1)[-1],
+                "mode": "complete-r2",
+                "ok": True,
+                "ts": row.get("created_at"),
+                "error": json.dumps({"lineage": lineage}),
+                "archive_lineage": lineage,
+            }
+        )
+    return out
+
+
 async def build_canonical_archive_lineage(
     db: Any,
     *,
     current_env: Optional[str] = None,
     current_db: Optional[str] = None,
+    requested_source_environment: Optional[str] = None,
     force_refresh: bool = False,
 ) -> Dict[str, Any]:
     now_mono = time.time()
@@ -490,21 +640,56 @@ async def build_canonical_archive_lineage(
     from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
 
     runtime = _runtime_identity(current_env=current_env, current_db=current_db)
-    archives = await list_r2_backup_archives(prefix="backups/auto-90d/")
-    archive_rows = archives[:MAX_RECENT_CANDIDATES]
-    if hasattr(db.backup_health, "find"):
-        recent_rows = await db.backup_health.find(
-            {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
-            {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
-            sort=[("ts", -1)],
-        ).to_list(length=MAX_RECENT_CANDIDATES)
+    if requested_source_environment and requested_source_environment.lower() != runtime.get("app_env"):
+        return {
+            "truth_subject": TRUTH_SUBJECT,
+            "resolver_version": RESOLVER_VERSION,
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
+            "runtime_identity": runtime,
+            "requested_source_environment": requested_source_environment,
+            "thresholds": threshold_inventory(),
+            "newest_observed_artifact": None,
+            "newest_valid_recoverable_artifact": None,
+            "authoritative_artifact": None,
+            "authoritative_recovery_point_time": None,
+            "authoritative_time_source": "UNKNOWN",
+            "freshness_age_minutes": None,
+            "freshness_age_hours": None,
+            "evidence_quality": "UNKNOWN",
+            "lineage_confidence": "LOW",
+            "integrity_status": "UNKNOWN",
+            "completeness_status": "UNKNOWN",
+            "availability_status": "ABSENT",
+            "degradation_reasons": ["no_valid_archive_for_requested_environment"],
+            "rejected_candidates": [],
+            "all_candidates": [],
+        }
+    candidate_rows = _recent_lineage_rows_from_backup_jobs(db, runtime)
+    if candidate_rows:
+        allowed_filenames = {str(row.get("filename") or "").strip() for row in candidate_rows if row.get("filename")}
+        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or "backups/auto-90d/"))
+        archive_rows = [a for a in archives if str(a.get("filename") or "").strip() in allowed_filenames][:MAX_RECENT_CANDIDATES]
+        recent_rows = candidate_rows[:MAX_RECENT_CANDIDATES]
     else:
-        single = await db.backup_health.find_one(
-            {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
-            {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
-            sort=[("ts", -1)],
-        )
-        recent_rows = [single] if single else []
+        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or "backups/auto-90d/"))
+        archive_rows = archives[:MAX_RECENT_CANDIDATES]
+        if hasattr(db.backup_health, "find"):
+            cursor = db.backup_health.find(
+                {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
+                {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
+                sort=[("ts", -1)],
+            )
+            if hasattr(cursor, "to_list"):
+                recent_rows = await cursor.to_list(length=MAX_RECENT_CANDIDATES)
+            else:
+                recent_rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
+        else:
+            single = await db.backup_health.find_one(
+                {"mode": "complete-r2", "filename": {"$nin": [None, ""]}},
+                {"_id": 0, "ts": 1, "ok": 1, "mode": 1, "filename": 1, "size_bytes": 1, "records": 1, "error": 1, "archive_identifier": 1, "audit_reference": 1},
+                sort=[("ts", -1)],
+            )
+            recent_rows = [single] if single else []
 
     manifest_bundles: Dict[str, Dict[str, Any]] = {}
     manifest_tasks = []

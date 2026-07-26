@@ -47,6 +47,7 @@ BACKEND_ENV = REPO_ROOT / "backend" / ".env"
 MEMORY_DIR = REPO_ROOT / "memory"
 sys.path.insert(0, str(REPO_ROOT / 'backend'))
 from lib.operator_safety import redact_target_identity  # noqa: E402
+from lib.archive_lineage import build_canonical_archive_lineage  # noqa: E402
 
 
 def _load_env() -> Dict[str, str]:
@@ -81,19 +82,35 @@ def _r2_client(env: Dict[str, str]):
     ), bucket
 
 
-def _pick_latest_healthy(client, bucket: str) -> Optional[Dict[str, Any]]:
-    """Latest archive under backups/auto-90d/ by LastModified."""
-    paginator = client.get_paginator("list_objects_v2")
-    candidates: List[Dict[str, Any]] = []
-    for page in paginator.paginate(Bucket=bucket, Prefix="backups/auto-90d/"):
-        for obj in page.get("Contents") or []:
-            key = obj.get("Key") or ""
-            if key.endswith(".zip") and "MASCI_complete_backup_" in key:
-                candidates.append(obj)
-    if not candidates:
-        return None
-    candidates.sort(key=lambda o: o.get("LastModified"), reverse=True)
-    return candidates[0]
+def _resolve_authoritative_archive(env: Dict[str, str], requested_source_environment: str, explicit_key: Optional[str] = None) -> Dict[str, Any]:
+    from pymongo import MongoClient
+    import asyncio
+    mongo = MongoClient(env["MONGO_URL"], serverSelectionTimeoutMS=10000)
+    db = mongo[env["DB_NAME"]]
+    try:
+        lineage = asyncio.run(
+            build_canonical_archive_lineage(
+                db,
+                current_env=env.get("APP_ENV"),
+                current_db=env.get("DB_NAME"),
+                requested_source_environment=requested_source_environment,
+                force_refresh=True,
+            )
+        )
+    finally:
+        mongo.close()
+    candidate = lineage.get("authoritative_artifact") or {}
+    if not candidate:
+        raise RuntimeError("NO_VALID_ARCHIVE_FOR_REQUESTED_ENVIRONMENT")
+    key = candidate.get("object_key")
+    if explicit_key and explicit_key != key:
+        raise RuntimeError("ARCHIVE_KEY_MISMATCH")
+    identity = candidate.get("lineage_identity") or {}
+    if identity.get("environment") != requested_source_environment:
+        raise RuntimeError("ENVIRONMENT_MISMATCH")
+    if identity.get("backup_prefix") and key and not str(key).startswith(str(identity.get("backup_prefix"))):
+        raise RuntimeError("BACKUP_PREFIX_MISMATCH")
+    return candidate
 
 
 def _walk_photo_refs(obj):
@@ -192,36 +209,23 @@ def run_drill(env: Dict[str, str], explicit_key: Optional[str] = None,
     client, bucket = _r2_client(env)
     axes: Dict[str, Dict[str, Any]] = {}
     notes: List[str] = []
+    requested_source_environment = (env.get("APP_ENV") or "preview").strip().lower()
 
     # === A1 · archive available ===
-    if explicit_key:
-        try:
-            head = client.head_object(Bucket=bucket, Key=explicit_key)
-            archive_key = explicit_key
-            archive_size = head["ContentLength"]
-            archive_lastmod = head["LastModified"]
-            axes["A1_archive_available"] = {
-                "ok": True,
-                "message": f"head_object → {archive_size/1e6:.2f} MB · {archive_lastmod}",
-            }
-        except Exception as e:
-            axes["A1_archive_available"] = {"ok": False, "message": f"head_object failed: {e}"}
-            return _finalize(env, drill_id, started_at_dt, t0, target_db,
-                             "—", 0, axes, {}, 0, 0, {}, notes,
-                             cleanup_db_dropped=False, cleanup_zip_removed=False)
-    else:
-        chosen = _pick_latest_healthy(client, bucket)
-        if not chosen:
-            axes["A1_archive_available"] = {"ok": False, "message": "no archive found in backups/auto-90d/"}
-            return _finalize(env, drill_id, started_at_dt, t0, target_db,
-                             "—", 0, axes, {}, 0, 0, {}, notes,
-                             cleanup_db_dropped=False, cleanup_zip_removed=False)
-        archive_key = chosen["Key"]
-        archive_size = chosen["Size"]
+    try:
+        chosen = _resolve_authoritative_archive(env, requested_source_environment=requested_source_environment, explicit_key=explicit_key)
+        archive_key = chosen["object_key"]
+        archive_size = chosen.get("archive_size_bytes") or 0
         axes["A1_archive_available"] = {
             "ok": True,
-            "message": f"latest auto-pick: {archive_key} · {archive_size/1e6:.2f} MB",
+            "message": f"authoritative lineage pick: {archive_key} · {archive_size/1e6:.2f} MB",
         }
+    except Exception as e:
+        axes["A1_archive_available"] = {"ok": False, "message": str(e)}
+        return _finalize(env, drill_id, started_at_dt, t0, target_db,
+                         "—", 0, axes, {}, 0, 0, {}, notes,
+                         cleanup_db_dropped=False, cleanup_zip_removed=False,
+                         requested_source_environment=requested_source_environment)
     archive_filename = Path(archive_key).name
     archive_size_mb = archive_size / (1024 * 1024)
     print(f"archive    = {archive_key} ({archive_size_mb:.2f} MB)")
@@ -241,14 +245,16 @@ def run_drill(env: Dict[str, str], explicit_key: Optional[str] = None,
                 axes["A2_archive_integrity"] = {"ok": False, "message": f"CRC fail on {bad}"}
                 return _finalize(env, drill_id, started_at_dt, t0, target_db,
                                  archive_filename, archive_size_mb, axes, {},
-                                 0, 0, {}, notes, False, False)
+                                 0, 0, {}, notes, False, False,
+                                 requested_source_environment=requested_source_environment)
             try:
                 manifest = json.loads(zf.read("MANIFEST.json").decode("utf-8"))
             except Exception as e:
                 axes["A2_archive_integrity"] = {"ok": False, "message": f"manifest read fail: {e}"}
                 return _finalize(env, drill_id, started_at_dt, t0, target_db,
                                  archive_filename, archive_size_mb, axes, {},
-                                 0, 0, {}, notes, False, False)
+                                 0, 0, {}, notes, False, False,
+                                 requested_source_environment=requested_source_environment)
             axes["A2_archive_integrity"] = {
                 "ok": manifest.get("failed_photos", 0) == 0,
                 "message": f"testzip OK · manifest.failed_photos={manifest.get('failed_photos',0)} · "
@@ -439,7 +445,8 @@ def run_drill(env: Dict[str, str], explicit_key: Optional[str] = None,
                          axes, per_kind, len(unique_refs), len(archive_photo_keys),
                          photo_rehydration, notes,
                          cleanup_db_dropped, cleanup_zip_removed,
-                         records_in_manifest=records_in_manifest)
+                         records_in_manifest=records_in_manifest,
+                         requested_source_environment=requested_source_environment)
 
     finally:
         # leave temp dir for inspection on failure; cleanup on success handled above
@@ -488,6 +495,7 @@ def _finalize(
     archive_size_mb, axes, per_kind, unique_refs_count, archive_photo_keys_count,
     photo_rehydration, notes, cleanup_db_dropped, cleanup_zip_removed,
     records_in_manifest=0,
+    requested_source_environment=None,
 ) -> int:
     finished_at_dt = datetime.now(timezone.utc)
     duration_minutes = round((time.time() - t0) / 60.0, 3)
@@ -522,6 +530,11 @@ def _finalize(
     _write_drill_row(env, {
         **summary,
         "state": "done",
+        "source_environment": requested_source_environment,
+        "source_archive_key": archive_filename,
+        "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
+        "policy_decision": "PASS" if outcome == "ok" else "FAIL",
+        "policy_reason": "authoritative_environment_bound_archive_selected",
         "cleanup_complete": cleanup_db_dropped and cleanup_zip_removed,
     })
 

@@ -332,7 +332,14 @@ async def build_verification_report(db) -> Dict[str, Any]:
 
     max_age_hours = _env_int("BACKUP_VERIFICATION_MAX_AGE_HOURS", DEFAULT_MAX_AGE_HOURS)
     now = datetime.now(timezone.utc)
-    lineage = await build_canonical_archive_lineage(db)
+    current_env = (os.environ.get("APP_ENV") or "").strip().lower() or None
+    current_db = (os.environ.get("DB_NAME") or "").strip() or None
+    lineage = await build_canonical_archive_lineage(
+        db,
+        current_env=current_env,
+        current_db=current_db,
+        requested_source_environment=current_env,
+    )
     authoritative = lineage.get("authoritative_artifact") or {}
     newest_valid = lineage.get("newest_valid_recoverable_artifact") or {}
     newest_observed = lineage.get("newest_observed_artifact") or {}

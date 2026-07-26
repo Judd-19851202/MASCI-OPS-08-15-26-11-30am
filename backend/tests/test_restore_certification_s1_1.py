@@ -35,7 +35,7 @@ SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"
 
 # Archive key for restore drill
-ARCHIVE_KEY = "backups/auto-90d/MASCI_complete_backup_2026-07-20_230322Z.zip"
+ARCHIVE_KEY = "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip"
 
 
 class TestHealthEndpoints:
@@ -206,7 +206,8 @@ class TestAutomatedDrillFailureMode:
     """
     Document the automated drill failure mode.
     
-    The automated drill (automated_drill.py) fails because it attempts to
+    The automated drill (automated_drill.py) now uses authoritative
+    environment-bound archive selection, then fails because it attempts to
     create a separate side database (masci_restore_drill_auto_*) which the
     MongoDB Atlas identity lacks authorization to access.
     
@@ -241,6 +242,10 @@ class TestAutomatedDrillFailureMode:
         # Verify output contains expected failure indicators
         output = result.stdout + result.stderr
         
+        # Should show authoritative selection first
+        assert "authoritative lineage pick" in output, \
+            "Expected authoritative environment-bound selection"
+
         # Should show A3 record count parity failure (0 records restored)
         assert "A3_record_count_parity" in output or "mismatches" in output, \
             "Expected A3 record count parity failure"

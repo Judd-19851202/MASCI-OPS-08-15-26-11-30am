@@ -35,6 +35,10 @@ def backup_owner_id() -> str:
     return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
 
 
+def backup_run_id() -> str:
+    return f"brun-{uuid.uuid4().hex}"
+
+
 def backup_slot_key_for_hour(moment: datetime) -> str:
     dt = moment.astimezone(timezone.utc).replace(minute=0, second=0, microsecond=0)
     return dt.isoformat()
@@ -66,6 +70,7 @@ async def claim_backup_job(
     now = backup_now()
     doc = {
         "job_id": f"bjob-{uuid.uuid4().hex}",
+        "backup_run_id": backup_run_id(),
         "job_type": job_type,
         "kind": kind,
         "slot_key": slot_key,
@@ -239,6 +244,7 @@ __all__ = [
     "BACKUP_JOB_KIND_RESTORE_DRILL",
     "BACKUP_JOB_KIND_RESTORE_IMPORT",
     "backup_owner_id",
+    "backup_run_id",
     "backup_slot_key_for_hour",
     "backup_slot_key_for_day",
     "ensure_backup_runtime_indexes",

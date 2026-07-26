@@ -213,6 +213,60 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - P0: After that dependency is resolved, rerun full isolated restore certification and re-evaluate PRR blocker closure
 - P1: Continue Slice 2 — Secrets and Configuration Recovery only after S1 governance decides the restore blocker path
 
+## 2026-07-26 — S1-0 Environment Authority & Archive Lineage Hardening
+
+### What was implemented
+- Added a stable environment-authority fingerprint to `runtime_identity.py` without changing the semantics of the existing release-sensitive `identity_fingerprint`.
+- Extended `archive_lineage.py` to:
+  - honor `requested_source_environment`
+  - derive authoritative Preview candidates from persisted Preview lineage in `backup_jobs`
+  - classify legacy artifacts (`LINEAGE_VERIFIED`, `LINEAGE_PARTIALLY_VERIFIED`, `LINEAGE_UNVERIFIED`, `ENVIRONMENT_CONFLICT`)
+  - quarantine non-verified artifacts from automatic selection
+- Extended `backup_verification.py` to call canonical lineage with explicit current env/db/requested source environment.
+- Added `backup_run_id` generation to new backup jobs.
+- Extended the existing backup manifest/lineage writer path in `server.py` for future archives with:
+  - `backup_run_id`
+  - `environment_fingerprint`
+  - `environment_fingerprint_version`
+  - `source_cluster_fingerprint`
+  - `source_database_identity`
+  - `source_runtime_user_identity`
+  - `backup_bucket`
+  - `backup_prefix`
+  - `release_identity`
+- Hardened restore drill selectors so explicit keys no longer bypass authoritative lineage checks.
+
+### Test status
+- Deterministic lineage/runtime suite: `31 passed`
+- New file: `/app/backend/tests/test_environment_lineage_s1_0.py`
+- Canonical archive-lineage unit suite remains green.
+- Restore-certification QA file was partially realigned to the new authoritative Preview archive key.
+
+### Preview exercised result in this slice
+- Canonical Preview authoritative archive now resolves deterministically to:
+  - `backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip`
+- Its persisted lineage currently proves:
+  - environment = `preview`
+  - database = `masci_safety_preview`
+  - archive key = exact Preview archive key
+- Remaining degradation during Preview runtime exercise came from repeated manifest-read timeouts and backend starvation when too many long-running drill processes overlapped. I stopped those drills, marked the stale `drill_runs` rows as `aborted`, and recovered backend health.
+
+### Current classifications
+- Preview Runtime Identity: `VERIFIED`
+- Preview Backup Lineage: `VERIFIED`
+- Preview Archive Selection: `VERIFIED`
+- Preview Restore Eligibility: `PARTIALLY VERIFIED`
+- Production Runtime Identity: `CONFIGURED BUT UNVERIFIED`
+- Production Backup Lineage: `CONFIGURED BUT UNVERIFIED`
+- Production Archive Selection: `CONFIGURED BUT UNVERIFIED`
+- Production Restore Eligibility: `NOT YET EXERCISED`
+- Cross-Environment Separation: `PARTIALLY VERIFIED`
+
+### Next tasks
+- P0: Produce the exact Production evidence command/procedure using the existing canonical verifier path.
+- P0: Re-run one clean Preview namespace certification drill after adding a drill-concurrency/cleanup guard, using the authoritative Preview archive only.
+- P1: Continue namespace-model restore certification work (S1-1A) once the single-drill operational guard is in place.
+
 ## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 1 Completed
 
 ### Scope

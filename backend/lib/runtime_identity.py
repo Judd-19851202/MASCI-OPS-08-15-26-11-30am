@@ -19,6 +19,7 @@ STATUS_MISMATCH = "MISMATCH"
 STATUS_UNVERIFIABLE = "UNVERIFIABLE"
 STATUS_NOT_APPLICABLE = "NOT_APPLICABLE"
 STATUS_DEGRADED = "DEGRADED"
+ENVIRONMENT_FINGERPRINT_VERSION = "env-authority-v1"
 
 
 def _normalized_env(value: Optional[str]) -> str:
@@ -61,6 +62,49 @@ def _read_only_validation_requested(source: Mapping[str, str]) -> bool:
 def _sha_prefix(*parts: Optional[str]) -> str:
     raw = "|".join((part or "") for part in parts)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def _normalized_environment_name(value: Optional[str]) -> str:
+    env = _normalized_env(value)
+    if env == "production":
+        return "PRODUCTION"
+    if env == "preview":
+        return "PREVIEW"
+    return (env or "UNKNOWN").upper()
+
+
+def _cluster_fingerprint(hostname: Optional[str]) -> Optional[str]:
+    safe = _safe_text((hostname or "").lower())
+    if not safe:
+        return None
+    return _sha_prefix("cluster", safe)
+
+
+def _normalize_storage_value(value: Optional[str], *, default: str = "UNRESOLVED") -> str:
+    safe = _safe_text(value)
+    if not safe:
+        return default
+    return safe.strip().lower()
+
+
+def build_environment_authority_fingerprint(
+    *,
+    environment_name: Optional[str],
+    cluster_fingerprint: Optional[str],
+    database_name: Optional[str],
+    runtime_user_identity: Optional[str],
+    backup_bucket: Optional[str],
+    backup_prefix: Optional[str],
+) -> str:
+    return _sha_prefix(
+        ENVIRONMENT_FINGERPRINT_VERSION,
+        _normalized_environment_name(environment_name),
+        _normalize_storage_value(cluster_fingerprint),
+        _normalize_storage_value(database_name),
+        _normalize_storage_value(runtime_user_identity),
+        _normalize_storage_value(backup_bucket),
+        _normalize_storage_value(backup_prefix),
+    )
 
 
 def _parse_duplicate_query_values(query: str) -> Dict[str, list[str]]:
@@ -125,11 +169,13 @@ def parse_mongo_url(mongo_url: Optional[str]) -> ParsedMongoUrl:
 @dataclass(frozen=True)
 class RuntimeIdentity:
     app_env: str
+    environment_name: str
     db_name: str
     mongo_scheme: str
     mongo_hostname_redacted: str
     mongo_hostname: Optional[str]
     mongo_username: Optional[str]
+    cluster_fingerprint: Optional[str]
     effective_database: Optional[str]
     enforce_db_isolation: bool
     release_commit: Optional[str]
@@ -144,6 +190,10 @@ class RuntimeIdentity:
     approved_db_name: str
     approved_username: str
     identity_fingerprint: str
+    environment_fingerprint: str
+    environment_fingerprint_version: str
+    backup_bucket: Optional[str]
+    backup_prefix: Optional[str]
     query_duplicates: Dict[str, list[str]]
     parse_error: Optional[str]
     is_atlas: bool
@@ -153,10 +203,12 @@ class RuntimeIdentity:
     def to_safe_dict(self) -> Dict[str, Any]:
         return {
             "app_env": self.app_env,
+            "environment_name": self.environment_name,
             "db_name": self.db_name,
             "mongo_scheme": self.mongo_scheme,
             "mongo_hostname_redacted": self.mongo_hostname_redacted,
             "mongo_user": self.mongo_username,
+            "cluster_fingerprint": self.cluster_fingerprint,
             "effective_database": self.effective_database,
             "enforce_db_isolation": self.enforce_db_isolation,
             "release_commit": self.release_commit,
@@ -171,6 +223,10 @@ class RuntimeIdentity:
             "approved_db_name": self.approved_db_name,
             "approved_username": self.approved_username,
             "identity_fingerprint": self.identity_fingerprint,
+            "environment_fingerprint": self.environment_fingerprint,
+            "environment_fingerprint_version": self.environment_fingerprint_version,
+            "backup_bucket": self.backup_bucket,
+            "backup_prefix": self.backup_prefix,
             "query_duplicates": self.query_duplicates,
             "is_atlas": self.is_atlas,
             "is_local": self.is_local,
@@ -206,8 +262,10 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
     source = env or os.environ
     release = release_identity or {}
     app_env = _normalized_env(source.get("APP_ENV"))
+    environment_name = _normalized_environment_name(app_env)
     db_name = _safe_text(source.get("DB_NAME")) or ""
     parsed = parse_mongo_url(source.get("MONGO_URL"))
+    cluster_fingerprint = _cluster_fingerprint(parsed.hostname or parsed.hostname_redacted)
     approved_hostname = _safe_text(source.get("APPROVED_PRODUCTION_MONGO_HOST")) or DEFAULT_APPROVED_PRODUCTION_HOSTNAME
     approved_db_name = _safe_text(source.get("APPROVED_PRODUCTION_DB_NAME")) or DEFAULT_APPROVED_PRODUCTION_DB
     approved_username = _safe_text(source.get("APPROVED_PRODUCTION_DB_USER")) or DEFAULT_APPROVED_PRODUCTION_USER
@@ -292,13 +350,25 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
     release_commit = _safe_text(str(release.get("commit") or ""))
     release_source_hash = _safe_text(str(release.get("source_hash") or ""))
     source_identity = release_source_hash or release_commit or "unknown-release"
+    backup_bucket = _safe_text(source.get("BACKUP_BUCKET") or source.get("R2_BUCKET") or source.get("S3_BUCKET"))
+    backup_prefix = _safe_text(source.get("BACKUP_PREFIX") or source.get("R2_BACKUP_PREFIX") or source.get("S3_BACKUP_PREFIX") or "backups/auto-90d/")
+    environment_fingerprint = build_environment_authority_fingerprint(
+        environment_name=environment_name,
+        cluster_fingerprint=cluster_fingerprint,
+        database_name=db_name,
+        runtime_user_identity=parsed.username,
+        backup_bucket=backup_bucket,
+        backup_prefix=backup_prefix,
+    )
     return RuntimeIdentity(
         app_env=app_env,
+        environment_name=environment_name,
         db_name=db_name,
         mongo_scheme=parsed.scheme,
         mongo_hostname_redacted=parsed.hostname_redacted,
         mongo_hostname=parsed.hostname,
         mongo_username=parsed.username,
+        cluster_fingerprint=cluster_fingerprint,
         effective_database=parsed.path_database,
         enforce_db_isolation=_truthy(source.get("ENFORCE_DB_ISOLATION")),
         release_commit=release_commit,
@@ -313,6 +383,10 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
         approved_db_name=approved_db_name,
         approved_username=approved_username,
         identity_fingerprint=_sha_prefix(app_env, db_name, parsed.hostname or parsed.hostname_redacted, parsed.username, source_identity),
+        environment_fingerprint=environment_fingerprint,
+        environment_fingerprint_version=ENVIRONMENT_FINGERPRINT_VERSION,
+        backup_bucket=backup_bucket,
+        backup_prefix=backup_prefix,
         query_duplicates=parsed.query_duplicates,
         parse_error=parsed.parse_error,
         is_atlas=parsed.is_atlas,
@@ -487,12 +561,14 @@ def assert_runtime_identity_valid(bundle: Mapping[str, Any]) -> None:
 
 
 __all__ = [
+    "ENVIRONMENT_FINGERPRINT_VERSION",
     "STATUS_DEGRADED",
     "STATUS_MISMATCH",
     "STATUS_NOT_APPLICABLE",
     "STATUS_UNVERIFIABLE",
     "STATUS_VERIFIED",
     "assert_runtime_identity_valid",
+    "build_environment_authority_fingerprint",
     "build_runtime_identity_bundle",
     "is_read_only_validation_active_bundle",
     "is_read_only_validation_requested_from_env",

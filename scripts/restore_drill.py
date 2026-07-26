@@ -47,6 +47,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_ENV = REPO_ROOT / "backend" / ".env"
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+from lib.archive_lineage import build_canonical_archive_lineage  # noqa: E402
 
 
 def _load_env() -> dict:
@@ -101,6 +103,18 @@ def cmd_list(args, env):
         print(f"  {o['LastModified'].isoformat()}  {size_mb:>8.1f} MB  {o['Key']}")
     print("-" * 78)
     print(f"Total objects: {len(objs)} (showing {min(len(objs), args.limit)})")
+    try:
+        from pymongo import MongoClient
+        import asyncio
+        mongo = MongoClient(env["MONGO_URL"], serverSelectionTimeoutMS=10000)
+        db = mongo[env["DB_NAME"]]
+        lineage = asyncio.run(build_canonical_archive_lineage(db, current_env=env.get("APP_ENV"), current_db=env.get("DB_NAME"), requested_source_environment=(env.get("APP_ENV") or "preview").strip().lower(), force_refresh=True))
+        auth = lineage.get("authoritative_artifact") or {}
+        if auth:
+            print(f"Authoritative candidate: {auth.get('object_key')}")
+        mongo.close()
+    except Exception:
+        pass
     return 0
 
 

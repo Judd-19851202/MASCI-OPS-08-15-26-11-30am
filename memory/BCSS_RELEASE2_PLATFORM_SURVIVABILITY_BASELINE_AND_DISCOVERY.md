@@ -556,6 +556,41 @@ These totals are discovery-baseline counts and shall not be silently modified wi
 - Current logs show repeated manifest-read timeouts during verification.
 - Backup evidence exceeds restore evidence.
 
+### S1-0 Environment Authority & Archive Lineage Hardening Addendum — 2026-07-26
+
+- Implemented a bounded lineage hardening slice across the existing canonical owners:
+  - `runtime_identity.py`
+  - `archive_lineage.py`
+  - `backup_verification.py`
+  - `backup_runtime.py`
+  - existing manifest/lineage writer path in `server.py`
+  - restore drill selectors in `automated_drill.py`, `ops8_namespace_restore_drill.py`, and `restore_drill.py`
+- Added a stable non-secret `environment_fingerprint` contract distinct from the existing release-sensitive `identity_fingerprint`.
+- Hardened archive-lineage selection so Preview authoritative candidates are now derived from persisted Preview lineage (`backup_jobs.archive_lineage`) before manifest probing.
+- Explicit key paths no longer bypass lineage selection. An explicit archive key must reconcile to the authoritative environment-bound candidate or fail closed.
+- Legacy recent Preview archives with persisted lineage can now be classified as `LINEAGE_VERIFIED` even when manifest reads time out.
+- Ambiguous or contradictory archives remain quarantined from automatic selection.
+
+### Current S1-0 state
+
+- Preview runtime identity: **VERIFIED**
+- Preview backup lineage: **VERIFIED** for recent persisted Preview archives
+- Preview archive selection: **VERIFIED** for environment-bound candidate resolution
+- Preview restore eligibility: **PARTIALLY VERIFIED**
+  - authoritative candidate resolution is correct
+  - full exercised restore drill evidence in this slice was impeded by repeated long-running drill starvation and existing manifest-read timeout behavior
+- Production runtime identity: **CONFIGURED BUT UNVERIFIED**
+- Production backup lineage: **CONFIGURED BUT UNVERIFIED**
+- Production archive selection: **CONFIGURED BUT UNVERIFIED**
+- Production restore eligibility: **NOT YET EXERCISED**
+- Cross-environment separation: **PARTIALLY VERIFIED**
+
+### Residual risks after S1-0
+
+- Live Production evidence is still required before Production lineage can be upgraded.
+- Current manifest-read timeout behavior can slow or destabilize drill-heavy validation paths.
+- Existing older drill records were manually marked `aborted` after backend starvation during repeated local certification attempts; this is operational cleanup evidence, not a downgrade of the authoritative Preview archive selector.
+
 ---
 
 ## 12. Restore Register
