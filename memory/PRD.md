@@ -1054,3 +1054,70 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 
 ### Status
 - **READY FOR FORMAL ADOPTION** for this bounded 3D-1 Phase B repair, with independent verification complete.
+
+## 2026-07-26 — BCSS Release 2 / Program 2 / Wave 3 / Family 3D-1 Phase B · Slice 2
+
+### Scope
+- Completed one additional bounded Asset Spine implementation slice under ISC v1.0.
+- Implemented only canonical registry contract consistency for the existing canonical field `inspection_expiration`.
+
+### Constitutional trace
+- Responsibility: canonical registry write integrity / read integrity / update integrity / serialization parity for one already-exposed canonical field.
+- Owner: Asset Spine.
+- Governing authority: Asset Domain Constitutional Decision Record + Family 3D-1 Phase A Discovery.
+
+### Files in scope
+- `backend/routes/asset_spine.py`
+- `backend/services/asset_spine.py`
+- `backend/tests/test_asset_spine_p0_1.py`
+- No additional implementation files entered scope; independent verification evidence is captured in `/app/test_reports/iteration_45.json`.
+
+### Implemented
+- Extended Asset Spine `AssetCreate` and `AssetUpdate` input contracts to accept `inspection_expiration`.
+- Persisted `inspection_expiration` in `AssetSpine.create_asset()`.
+- Allowed `inspection_expiration` in the `AssetSpine.update_asset()` patch whitelist.
+- Preserved existing projector behavior so create/read/update/read now return `inspection_expiration` unchanged end to end.
+- Added lifecycle assertions in `test_asset_spine_p0_1.py` for create → read → update → read.
+
+### Explicit boundaries honored
+- No frontend changes.
+- No provider transport, synchronization, mappings, or reconciliation changes.
+- No assignments, operational status, transfers, Trust, notifications, or audit-architecture changes.
+- No new asset attributes, collections, indexes, identity stores, or registry stores.
+- `CANONICAL_FIELDS` intentionally left untouched because the repair succeeded without it.
+
+### Verification evidence
+- Local Python lint: PASS for modified route/service/test files.
+- Local Asset Spine suite: `8 passed` via `backend/tests/test_asset_spine_p0_1.py`.
+- Manual live API verification confirmed:
+  - create accepts and persists `inspection_expiration`
+  - read returns the persisted value unchanged
+  - update persists the new value
+  - read-after-update returns the updated value unchanged
+  - duplicate `asset_number` prevention remains `409`
+  - missing auth remains `401`
+  - partial auth remains `401`
+- Independent verification report: `/app/test_reports/iteration_45.json` → PASS (`30/30` tests passed across local + focused + live API regression).
+- The testing agent temporarily created a focused backend verification file during QA; it was not retained in the repository so the slice remains within the approved three-file implementation scope.
+- Frontend smoke verification: PASS (backend-only slice; no UI regression observed).
+
+### Performance evidence (preview)
+- Manual live verification observed:
+  - create: `1069.9 ms`
+  - first get: `311.35 ms`
+  - update: `354.3 ms`
+  - second get: `227.4 ms`
+  - duplicate create check: `229.8 ms`
+- No measurable regression identified for the bounded repair.
+
+### Backlog intentionally deferred
+- Asset admin UI does not yet expose `inspection_expiration` create/edit controls; deferred to a future separately authorized UI slice.
+- `notes` mismatch in Add Asset UI remains legacy technical debt and was not touched in this slice.
+
+### Constitutional compliance
+- Implementation stayed inside the frozen 3D-1 boundary: canonical registry contract consistency for one existing field only.
+- No protected files were modified.
+- No architectural drift detected.
+
+### Status
+- **READY FOR FORMAL ADOPTION** for this bounded 3D-1 Slice 2 repair, with independent verification complete.
