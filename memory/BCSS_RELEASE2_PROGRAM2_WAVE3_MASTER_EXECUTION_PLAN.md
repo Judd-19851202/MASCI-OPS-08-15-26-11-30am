@@ -34,8 +34,8 @@ The deterministic next phase is therefore:
 | Adopted Families | **6 / 6 formally adopted implementation families** | Family 1, Family 2, Family 3A, Family 3B, Family 3C, and Family 3D-1 are now formally adopted |
 | Adopted Slices | **8 / 8 completed slices adopted at current baseline** | Family 1, Family 2, Family 3A, Family 3B, Family 3C, Family 3D-1 Slice 1, Family 3D-1 Slice 2, Family 3D-1 Slice 3 |
 | Queue A Remaining | **1 total item / 0 implementation slices** | Remaining Queue A item is W3-CLOSEOUT only |
-| Deferred Items | **1** | W3-3D1-S4 remains Queue B / deferred until after W3-3D1-S3 review |
-| Rejected Items | **2** | Broad Family 3 umbrella = NO-GO; standalone Family 3D-2 = NO-GO |
+| Deferred Items | **7** | Explicitly deferred items are now preserved in Queue C and the Remaining Work Register |
+| Rejected Items | **3** | Broad Family 3 umbrella = NO-GO; broad Family 3D unified implementation = NO-GO; standalone Family 3D-2 = NO-GO |
 | Platform Survivability | **In Progress (pre-existing capabilities present, gate not yet closed)** | Backup/recovery runtime, monitoring, verification routes, and drills exist in repository/PRD evidence |
 | Backup & Recovery | **In Progress** | R2 archive lineage, verification cron, recovery dashboard, representative restore evidence present; full restore certification incomplete |
 | PRR Status | **Not Started** | No completed PRR register with pass/fail outcomes yet |
@@ -69,7 +69,7 @@ The following constitutional facts are frozen for all planning in this document:
 - Family 3D-1 Slice 3 — legacy create canonicalization for `/api/admin/equipment-master`: implemented, verified, formally adopted
 
 ### Remaining Wave 3 implementation work
-- Family 3D-1 — lower-priority direct-consumer UI parity for already-adopted canonical fields
+- None in Queue A. Remaining non-closeout work is explicitly deferred or future-scoped.
 
 ### Already rejected implementation paths
 - broad Family 3 as one unified Admin Operations family
@@ -92,11 +92,18 @@ The following constitutional facts are frozen for all planning in this document:
 |---|---|---|---|---|---|---|---|---|
 | W3-3A-S1 | Implementation | Family 3A | `PRD.md` (Wave 3 Family 3A Phase B), `FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` §§911-934, `/app/test_reports/iteration_46.json` | Complete · adopted | High — strict-admin boundary is now continuously verified and preserved | existing 3A discovery only | 1 | Closed |
 | W3-3D1-S3 | Implementation | Family 3D-1 | Asset Decision Record rows 160-161, 240-243; 3D-1 discovery conditional Phase B approval; `/app/test_reports/iteration_47.json` | Complete · adopted | High — legacy create path now persists canonical mirror fields and reads cleanly through Asset Spine | 3D-1 slices 1-2 complete; asset decision record frozen | 1 | Closed |
-| W3-3D1-S4 | Implementation | Family 3D-1 | `PRD.md` Slice 2 deferred backlog: `inspection_expiration` UI parity | Deferred from Slice 2 intentionally | Medium — improves direct consumer parity without changing backend truth | best executed after W3-3D1-S3 | 1 | Queue B |
+| W3-3D1-S4 | Implementation | Family 3D-1 | `PRD.md` Slice 2 deferred backlog: `inspection_expiration` UI parity | Deferred | Medium — valid parity work, but not required for Wave 3 closeout | future authorization only | 1 | Queue C |
+| W3-3D1-D1 | Deferred overlap item | Family 3D-1 | Step 3 consistency note; Slice 3 closure evidence | Deferred | Medium — legacy update path still bypasses Asset Spine | future authorization required | 0 | Queue C |
+| W3-3D1-D2 | Deferred overlap item | Family 3D-1 | Step 3 consistency note; Slice 3 closure evidence | Deferred | Medium — legacy delete path still bypasses Asset Spine | future authorization required | 0 | Queue C |
+| W3-3D1-D3 | Deferred overlap item | Family 3D-1 | Step 3 consistency note; Slice 3 closure evidence | Deferred | Medium — legacy upload path still bypasses Asset Spine | future authorization required | 0 | Queue C |
+| W3-3D1-D4 | Deferred data-shape item | Family 3D-1 | Step 3 consistency note; Slice 3 closure evidence | Deferred | Medium — historical row normalization / backfill not authorized in Wave 3 | future authorization required | 0 | Queue C |
+| W3-3D1-D5 | Future migration item | Family 3D-1 | Step 3 consistency note; EquipmentMasterPanel legacy consumer remains active | Deferred | Low — write-flow migration is valid future work, not a Wave 3 blocker | future authorization required | 0 | Queue C |
+| W3-F1-D1 | Deferred verification debt | Family 1 | `PRD.md` Slice 3 note; Family 1 runtime smoke evidence | Deferred | Low — stale single-token test modernization is documentation / verification debt only | future authorization required | 0 | Queue C |
 | W3-ADOPT-F3D1 | Formal adoption | Family 3D-1 | Asset Decision Record + `PRD.md` §§1006-1123 + `/app/test_reports/iteration_44.json` + `/app/test_reports/iteration_45.json` + `/app/test_reports/iteration_47.json` | Complete · adopted | High — closes Asset Spine family after bounded runtime and verification slices completed | W3-3D1-S3 complete; W3-3D1-S4 explicitly deferred | 0 | Closed |
 | W3-CLOSEOUT | Formal closeout | Wave 3 Program | all completed Wave 3 family records + this master plan | Not started | High — unlocks survivability gate | all Queue A work adopted | 0 | Queue A |
 | W3-3D2-STANDALONE | Rejected hypothesis | N/A | `FAMILY3D2_EXTERNAL_ASSET_MAPPING_RECONCILIATION_PHASEA_DISCOVERY.md` §§523-547; Asset Decision Record §§124-143 | Rejected | Prevents drift | none | 0 | Queue D |
 | W3-F3-UMBRELLA | Rejected hypothesis | N/A | `FAMILY3_ADMIN_OPERATIONS_PHASEA_DISCOVERY.md` §§924-934 | Rejected | Prevents drift | none | 0 | Queue D |
+| W3-F3D-UNIFIED | Rejected hypothesis | N/A | broad Family 3D discovery split outcome preserved in Master Execution Plan and Asset Decision Record | Rejected | Prevents drift and duplicate ownership claims | none | 0 | Queue D |
 
 ### Formal Adoption Register
 
@@ -128,7 +135,7 @@ Repository-proven, legitimate, but lower operational priority or dependent on Qu
 
 | Item | Why it is Queue B |
 |---|---|
-| W3-3D1-S4 | Explicitly deferred from Slice 2; direct-consumer parity is valid, but backend canonical truth is already correct and should not block Wave 3 closeout |
+| None currently recorded | Queue B is empty after Queue A completion; remaining work is explicitly deferred in Queue C |
 
 ### Queue C — Deferred
 
@@ -136,7 +143,13 @@ Legitimate work that is outside Release 2 production scope or not required to un
 
 | Item | Why it is Queue C |
 |---|---|
-| None currently recorded for remaining Wave 3 implementation | Remaining repository-backed Wave 3 work fits Queue A or Queue B more accurately |
+| W3-3D1-S4 | Direct-consumer UI parity for `inspection_expiration` is valid but not required for Wave 3 closeout |
+| W3-3D1-D1 | Legacy update overlap requires future bounded authorization |
+| W3-3D1-D2 | Legacy delete overlap requires future bounded authorization |
+| W3-3D1-D3 | Legacy upload overlap requires future bounded authorization |
+| W3-3D1-D4 | Historical row normalization / backfill is not authorized in Wave 3 |
+| W3-3D1-D5 | EquipmentMasterPanel write-flow migration is future work |
+| W3-F1-D1 | Family 1 single-token test modernization is legacy verification debt only |
 
 ### Queue D — Rejected
 
@@ -168,6 +181,39 @@ Only remaining implementation slices are listed here. Formal adoption and closeo
 | W3-F3D1-S1 | Family 3D-1 | Canonical registry write integrity for `dot_expiration` and `calibration_expiration` | Implemented · Verified | `PRD.md` §§1006-1056; `/app/test_reports/iteration_44.json` | Adopted at slice level |
 | W3-F3D1-S2 | Family 3D-1 | Canonical registry contract consistency for `inspection_expiration` | Implemented · Verified | `PRD.md` §§1058-1123; `/app/test_reports/iteration_45.json` | Adopted at slice level |
 | W3-F3D1-S3 | Family 3D-1 | Legacy create canonicalization for `/api/admin/equipment-master` | Implemented · Verified | `/app/test_reports/iteration_47.json` | Formally adopted |
+
+## 8A. Adoption Ledger
+
+| Identifier | Family / Slice | Constitutional Owner | Purpose | Files Modified | Verification Artifact | Adoption Status |
+|---|---|---|---|---|---|---|
+| F1 | Family 1 | Family 1 | OCC Health Aggregator bounded constitutional hardening | Runtime files modified in prior Phase B (see implementation record) | `/app/test_reports/iteration_39.json` | Formally adopted |
+| F2 | Family 2 | Family 2 | OCC Trust Events canonical truth binding and bounded hardening | Runtime files modified in prior Phase B (see implementation record) | `/app/test_reports/iteration_40.json` | Formally adopted |
+| F3A | Family 3A | Family 3A | Strict-admin, read-only administrative operations | No runtime files changed in Slice 1; verification contract only | `/app/test_reports/iteration_46.json` | Formally adopted |
+| F3A-S1 | Family 3A Slice 1 | Family 3A | Runtime strict-admin enforcement was already compliant; slice repaired stale verification expectations and hardened continuous verification | `backend/tests/test_iter130_admin_ops.py` | `/app/test_reports/iteration_46.json` | Formally adopted |
+| F3B | Family 3B | Family 3B | Operations Actions bounded Phase B hardening | Runtime files modified in prior Phase B (see PRD) | `/app/test_reports/iteration_42.json` | Formally adopted |
+| F3C | Family 3C | Family 3C | Operational Events bounded Phase B hardening | Runtime files modified in prior Phase B (see PRD) | `/app/test_reports/iteration_43.json` | Formally adopted |
+| F3D1 | Family 3D-1 | Family 3D-1 | Canonical Asset Identity & Registry Authority | `backend/routes/asset_spine.py`, `backend/services/asset_spine.py`, `backend/server.py`, focused 3D-1 tests | `/app/test_reports/iteration_44.json`, `/app/test_reports/iteration_45.json`, `/app/test_reports/iteration_47.json` | Formally adopted |
+| F3D1-S1 | Family 3D-1 Slice 1 | Family 3D-1 | Canonical write integrity for `dot_expiration` and `calibration_expiration` | `backend/routes/asset_spine.py`, `backend/services/asset_spine.py`, `backend/tests/test_asset_spine_p0_1.py` | `/app/test_reports/iteration_44.json` | Adopted at slice level |
+| F3D1-S2 | Family 3D-1 Slice 2 | Family 3D-1 | Canonical contract consistency for `inspection_expiration` | `backend/routes/asset_spine.py`, `backend/services/asset_spine.py`, `backend/tests/test_asset_spine_p0_1.py` | `/app/test_reports/iteration_45.json` | Adopted at slice level |
+| F3D1-S3 | Family 3D-1 Slice 3 | Family 3D-1 | Legacy create persistence normalized to include canonical mirror fields while retaining legacy compatibility | `backend/server.py`, `backend/tests/test_equipment_master.py` | `/app/test_reports/iteration_47.json` | Formally adopted |
+
+## 8B. Verification Artifact Register
+
+| Artifact | Scope | Result | Supports Adoption | Limitations |
+|---|---|---|---|---|
+| `/app/test_reports/iteration_39.json` | Family 1 Phase B verification | PASS | Yes | Family 1 legacy single-token API-contract test modernization remains deferred elsewhere |
+| `/app/test_reports/iteration_40.json` | Family 2 Phase B verification | PASS | Yes | None material |
+| `/app/test_reports/iteration_42.json` | Family 3B verification | PASS | Yes | None material |
+| `/app/test_reports/iteration_43.json` | Family 3C verification | PASS | Yes | None material |
+| `/app/test_reports/iteration_44.json` | Family 3D-1 Slice 1 | PASS | Yes | Bounded to expiration-field write integrity |
+| `/app/test_reports/iteration_45.json` | Family 3D-1 Slice 2 | PASS | Yes | Bounded to `inspection_expiration` parity |
+| `/app/test_reports/iteration_46.json` | Family 3A Slice 1 | PASS | Yes | Runtime boundary already compliant; slice was verification hardening |
+| `/app/test_reports/iteration_47.json` | Family 3D-1 Slice 3 | PASS | Yes | 2 upload tests skipped because xlsx fixture missing |
+| `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY1_OCC_HEALTH_AGGREGATOR_PHASEB_IMPLEMENTATION_RECORD.md` | Family 1 bounded implementation record | PASS | Yes | Historical implementation record; runtime smoke maintained separately |
+| `BCSS_RELEASE2_PROGRAM2_WAVE3_FAMILY2_OCC_TRUST_EVENTS_PHASEB_IMPLEMENTATION_RECORD.md` | Family 2 bounded implementation record | PASS | Yes | Historical implementation record |
+| `PRD.md` §§1006-1123, 1210-1256 | Family 3D-1 slices 1-3 local test evidence | PASS | Yes | Consolidated evidence in PRD, not separate JSON |
+| `PRD.md` §§1126-1164 | Family 3A local test evidence | PASS | Yes | Consolidated evidence in PRD |
+| `PRD.md` Slice 3 Family 1 note + live smoke | Family 1 runtime smoke under current dual-token auth | PASS WITH LIMITATIONS | Yes | Not a dedicated standalone JSON artifact |
 
 ## 9. Wave 3 Burn-Down Plan
 
