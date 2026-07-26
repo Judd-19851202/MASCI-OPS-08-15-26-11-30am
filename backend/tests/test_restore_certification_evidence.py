@@ -9,6 +9,7 @@ from lib.restore_certification_evidence import (
     build_restore_evidence_skeleton,
     compare_fingerprints,
     mark_phase_status,
+    normalize_verification_document,
     validate_restore_certification_evidence,
     verify_audit_data,
     verify_identity_role_data,
@@ -98,6 +99,15 @@ def test_representative_sample_is_reproducible_and_detects_content_change():
     assert ok["matched"] is True
     assert bad["matched"] is False
     assert ok["sample_identifiers"] == build_collection_sample_verification(collection="daily_reports", expected_docs=expected, restored_docs=restored)["sample_identifiers"]
+
+
+def test_representative_sample_ignores_mongo_generated_id_field():
+    expected = [{"id": "dr-1", "value": 1, "nested": {"a": 1}}]
+    restored = [{"_id": "mongo-id", "id": "dr-1", "value": 1, "nested": {"a": 1}}]
+    result = build_collection_sample_verification(collection="daily_reports", expected_docs=expected, restored_docs=restored)
+    assert result["matched"] is True
+    assert result["mismatches"] == []
+    assert normalize_verification_document(restored[0]) == expected[0]
 
 
 def test_audit_identity_and_scheduler_verification_fail_closed():

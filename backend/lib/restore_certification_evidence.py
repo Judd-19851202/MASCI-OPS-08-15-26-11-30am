@@ -177,6 +177,12 @@ def _normalize_scalar(value: Any) -> Any:
     return value
 
 
+def normalize_verification_document(doc: Dict[str, Any]) -> Dict[str, Any]:
+    row = dict(doc or {})
+    row.pop("_id", None)
+    return row
+
+
 def canonicalize_for_fingerprint(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(k): canonicalize_for_fingerprint(v) for k, v in sorted(value.items(), key=lambda item: str(item[0]))}
@@ -490,8 +496,8 @@ def _primary_identifier(doc: Dict[str, Any]) -> str:
 
 
 def deterministic_sample_identifiers(docs: List[Dict[str, Any]], *, sample_size: int = REPRESENTATIVE_SAMPLE_SIZE) -> Dict[str, Any]:
-    keyed = sorted((_primary_identifier(doc), stable_document_hash(doc)) for doc in docs)
-    ids = [item[0] for item in keyed]
+    keyed = sorted((_primary_identifier(normalize_verification_document(doc)), stable_document_hash(normalize_verification_document(doc))) for doc in docs)
+    ids = sorted({item[0] for item in keyed})
     if len(ids) <= sample_size:
         selected = ids
     else:
@@ -529,7 +535,11 @@ def deterministic_sample_identifiers_from_identifiers(identifiers: Iterable[str]
 
 
 def _index_docs(docs: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-    return {_primary_identifier(doc): doc for doc in docs}
+    indexed: Dict[str, Dict[str, Any]] = {}
+    for doc in docs:
+        normalized = normalize_verification_document(doc)
+        indexed[_primary_identifier(normalized)] = normalized
+    return indexed
 
 
 def build_collection_sample_verification(
@@ -538,6 +548,8 @@ def build_collection_sample_verification(
     expected_docs: List[Dict[str, Any]],
     restored_docs: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
+    expected_docs = [normalize_verification_document(doc) for doc in expected_docs]
+    restored_docs = [normalize_verification_document(doc) for doc in restored_docs]
     sample_meta = deterministic_sample_identifiers(expected_docs)
     expected_idx = _index_docs(expected_docs)
     restored_idx = _index_docs(restored_docs)
@@ -983,7 +995,7 @@ def load_namespace_collection_documents(db: Any, namespace_prefix: str, collecti
     out: Dict[str, List[Dict[str, Any]]] = {}
     for coll in collection_names:
         physical = f"{namespace_prefix}__{coll}"
-        docs = [dict(doc) for doc in _iter_collection_documents(db[physical])]
+        docs = [normalize_verification_document(doc) for doc in _iter_collection_documents(db[physical])]
         out[coll] = docs
     return out
 
