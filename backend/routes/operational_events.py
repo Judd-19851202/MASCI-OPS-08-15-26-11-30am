@@ -19,12 +19,62 @@ Constitutional posture (per M-2 brief + MOTIVE_001_CONSTITUTIONAL_AUDIT.md §G):
 from __future__ import annotations
 
 import logging
+import uuid
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Query, Request
 
 logger = logging.getLogger(__name__)
+
+M2_TRUST_WORKFLOW = "operational-events-materialization"
+M2_AUDIT_KIND = "operational_events.materialize"
+
+MOTIVE_EVENT_PROJECTION = {
+    "_id": 0,
+    "id": 1,
+    "event_family": 1,
+    "event_kind": 1,
+    "event_at": 1,
+    "vehicle_id": 1,
+    "asset_id": 1,
+    "raw": 1,
+    "created_at": 1,
+}
+
+LOCATION_PROJECTION = {
+    "_id": 0,
+    "id": 1,
+    "location_type": 1,
+    "name": 1,
+    "project_number": 1,
+    "motive_geofence_id": 1,
+    "geocode_status": 1,
+}
+
+ASSET_MAPPING_PROJECTION = {
+    "_id": 0,
+    "provider": 1,
+    "asset_kind": 1,
+    "masci_equipment_id": 1,
+    "motive": 1,
+}
+
+PUBLIC_EVENT_PROJECTION = {
+    "_id": 0,
+    "id": 1,
+    "asset_key": 1,
+    "asset_kind": 1,
+    "asset_label": 1,
+    "masci_equipment_id": 1,
+    "occurred_at": 1,
+    "location_type": 1,
+    "location_name": 1,
+    "project_number": 1,
+    "event_type": 1,
+    "confidence": 1,
+}
 
 # ── Event taxonomy ────────────────────────────────────────────────────
 LOCATION_TYPE_TO_ARRIVAL = {
@@ -128,6 +178,74 @@ def _validate_doc(doc: Dict[str, Any]) -> None:
         for bw in FORBIDDEN_KEYWORDS:
             if bw in str(k).lower():
                 raise ValueError(f"M-2-8: forbidden keyword '{bw}' in field '{k}'")
+
+
+async def _resolve_admin_actor(db, token: Optional[str]) -> Dict[str, Any]:
+    if not token or "." not in token:
+        return {}
+    try:
+        import user_directory as _ud_local  # noqa: PLC0415
+        row = await _ud_local.is_valid_directory_admin_token_async(db, token)
+    except Exception:  # noqa: BLE001
+        return {}
+    if not row:
+        return {}
+    return {
+        "id": row.get("id"),
+        "email": row.get("email"),
+        "name": row.get("name") or row.get("full_name") or row.get("email"),
+        "portal": "admin",
+    }
+
+
+async def _write_materialize_audit(
+    db,
+    *,
+    run_id: str,
+    correlation_id: str,
+    actor: Dict[str, Any],
+    start: Optional[str],
+    end: Optional[str],
+    events_considered: int,
+    routed: int,
+    upserted: int,
+    skipped: int,
+    unknown_count: int,
+    request_path: str,
+) -> bool:
+    doc = {
+        "id": str(uuid.uuid4()),
+        "ts": _now_utc().isoformat(),
+        "kind": M2_AUDIT_KIND,
+        "category": "operational_events",
+        "action": "materialize",
+        "record_id": run_id,
+        "correlation_id": correlation_id,
+        "actor": (actor or {}).get("name") or "unknown-admin",
+        "actor_id": (actor or {}).get("id"),
+        "actor_email": (actor or {}).get("email"),
+        "route": request_path,
+        "detail": {
+            "workflow": M2_TRUST_WORKFLOW,
+            "source_collection": "motive_events",
+            "canonical_collection": "operational_events",
+            "normalization_owner": "routes.operational_events",
+            "start": start,
+            "end": end,
+            "events_considered": events_considered,
+            "routed": routed,
+            "upserted": upserted,
+            "skipped_by_storage_gate": skipped,
+            "unknown_location_events": unknown_count,
+            "notification_contract": "none",
+        },
+    }
+    try:
+        await db.audit_events.insert_one(doc)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[m2 audit] materialize audit insert failed: %s", exc)
+        return False
 
 
 # ── Pure router function (testable in isolation) ──────────────────────
@@ -297,15 +415,22 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
         async for loc in db.operational_locations.find({
             "geocode_status": "Verified",
             "motive_geofence_id": {"$nin": [None, ""]},
-        }):
-            loc.pop("_id", None)
+        }, LOCATION_PROJECTION):
+            out[str(loc["motive_geofence_id"])] = loc
+        return out
+
+    async def _load_any_locations() -> Dict[str, Dict[str, Any]]:
+        out: Dict[str, Dict[str, Any]] = {}
+        async for loc in db.operational_locations.find({
+            "motive_geofence_id": {"$nin": [None, ""]},
+        }, LOCATION_PROJECTION):
             out[str(loc["motive_geofence_id"])] = loc
         return out
 
     async def _build_resolver():
         veh_cache: Dict[str, Dict[str, Any]] = {}
         ast_cache: Dict[str, Dict[str, Any]] = {}
-        async for d in db.asset_mappings.find({"provider": "motive"}):
+        async for d in db.asset_mappings.find({"provider": "motive"}, ASSET_MAPPING_PROJECTION):
             m = d.get("motive") or {}
             if d.get("asset_kind") == "vehicle" and m.get("vehicle_id"):
                 veh_cache[str(m["vehicle_id"])] = d
@@ -336,11 +461,14 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
 
     async def _ensure_indexes():
         try:
+            await db.operational_events.create_index("id", unique=True)
             await db.operational_events.create_index("asset_key")
             await db.operational_events.create_index("occurred_at")
             await db.operational_events.create_index("project_number", sparse=True)
             await db.operational_events.create_index("event_type")
             await db.operational_events.create_index("location_type")
+            await db.operational_events.create_index([("asset_key", 1), ("occurred_at", -1)])
+            await db.operational_events.create_index([("project_number", 1), ("location_type", 1), ("occurred_at", 1)])
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[m2 indexes] {e}")
 
@@ -348,97 +476,222 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
     @router.post("/admin/operational-events/materialize",
                  dependencies=[Depends(require_admin_dep)])
     async def materialize(
+        request: Request,
         start: Optional[str] = Query(default=None),
         end: Optional[str] = Query(default=None),
+        x_admin_token: Optional[str] = Header(default=None),
     ):
         """Run the router over `[start, end)` (ISO timestamps) or the
         full window if unset. Idempotent on stable id."""
+        from lib.trust_spine import (  # noqa: PLC0415
+            STAGE_AUDIT_WRITTEN,
+            STAGE_COMPLETED,
+            STAGE_DASHBOARD_UPDATED,
+            STAGE_NOTIFICATION_QUEUED,
+            STAGE_RECIPIENTS_BUILT,
+            STAGE_ROUTING_RESOLVED,
+            STAGE_VALIDATION_COMPLETE,
+            emit_record_created,
+            emit_workflow_stage,
+        )
+
         await _ensure_indexes()
+        run = {
+            "id": f"m2-run-{uuid.uuid4().hex}",
+            "project_number": "",
+            "window_start": start,
+            "window_end": end,
+        }
+        actor = await _resolve_admin_actor(db, x_admin_token)
+        correlation_id = await emit_record_created(
+            db,
+            workflow=M2_TRUST_WORKFLOW,
+            record=run,
+            module="routes.operational_events.materialize",
+        )
         q: Dict[str, Any] = {"event_family": {"$in": list(PRESENCE_EVENTS)}}
         if start:
             q.setdefault("event_at", {})["$gte"] = start
         if end:
             q.setdefault("event_at", {})["$lt"] = end
-        events: List[Dict[str, Any]] = []
-        async for ev in db.motive_events.find(q):
-            ev.pop("_id", None)
-            events.append(ev)
-        op_by_gid = await _load_op_locations()
-        resolver = await _build_resolver()
-        routed = route_motive_events(events, op_by_gid, resolver)
-
-        upserted, skipped = 0, 0
-        for doc in routed:
-            try:
-                _validate_doc({**doc, "created_at": "x", "updated_at": "x"})
-            except ValueError as ve:  # constitutional fail
-                logger.error(f"[m2 storage gate] {ve}")
-                skipped += 1
-                continue
-            now = _now_utc().isoformat()
-            await db.operational_events.update_one(
-                {"id": doc["id"]},
-                {"$set": {**doc, "updated_at": now},
-                 "$setOnInsert": {"created_at": now}},
-                upsert=True,
+        try:
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_VALIDATION_COMPLETE,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="ok",
+                remediation="materialize window accepted for deterministic normalization",
             )
-            upserted += 1
 
-        unknown_count = sum(1 for d in routed if d["location_type"] == "UNKNOWN")
-        return {
-            "ok": True,
-            "events_considered": len(events),
-            "routed": len(routed),
-            "upserted": upserted,
-            "skipped_by_storage_gate": skipped,
-            "unknown_location_events": unknown_count,
-        }
+            events: List[Dict[str, Any]] = []
+            async for ev in db.motive_events.find(q, MOTIVE_EVENT_PROJECTION):
+                events.append(ev)
+            op_by_gid = await _load_op_locations()
+            resolver = await _build_resolver()
+            routed = route_motive_events(events, op_by_gid, resolver)
+
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_ROUTING_RESOLVED,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="ok",
+                remediation=f"routed {len(routed)} normalized events from {len(events)} raw presence events",
+            )
+
+            upserted, skipped = 0, 0
+            for doc in routed:
+                try:
+                    _validate_doc({**doc, "created_at": "x", "updated_at": "x"})
+                except ValueError as ve:  # constitutional fail
+                    logger.error(f"[m2 storage gate] {ve}")
+                    skipped += 1
+                    continue
+                now = _now_utc().isoformat()
+                await db.operational_events.update_one(
+                    {"id": doc["id"]},
+                    {"$set": {**doc, "updated_at": now},
+                     "$setOnInsert": {"created_at": now}},
+                    upsert=True,
+                )
+                upserted += 1
+
+            unknown_count = sum(1 for d in routed if d["location_type"] == "UNKNOWN")
+            audit_ok = await _write_materialize_audit(
+                db,
+                run_id=run["id"],
+                correlation_id=correlation_id,
+                actor=actor,
+                start=start,
+                end=end,
+                events_considered=len(events),
+                routed=len(routed),
+                upserted=upserted,
+                skipped=skipped,
+                unknown_count=unknown_count,
+                request_path=str(request.url.path),
+            )
+
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_RECIPIENTS_BUILT,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="skipped",
+                failure_reason="no notification recipients for operational event materialization",
+                remediation="notification sequencing is not part of the Family 3C materialization contract",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_NOTIFICATION_QUEUED,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="skipped",
+                failure_reason="no notification fanout for operational event materialization",
+                remediation="operational event materialization persists canonical rows and direct read models only",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_AUDIT_WRITTEN,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="ok" if audit_ok else "failed",
+                failure_reason=None if audit_ok else "append-only audit_events write failed",
+                remediation=None if audit_ok else "inspect audit_events write path and Mongo logs for the materialization run",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_DASHBOARD_UPDATED,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="ok",
+                remediation="admin dashboard and direct consumers now read the refreshed canonical operational events",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_COMPLETED,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="ok",
+            )
+
+            return {
+                "ok": True,
+                "events_considered": len(events),
+                "routed": len(routed),
+                "upserted": upserted,
+                "skipped_by_storage_gate": skipped,
+                "unknown_location_events": unknown_count,
+            }
+        except Exception as exc:  # noqa: BLE001
+            await emit_workflow_stage(
+                db,
+                workflow=M2_TRUST_WORKFLOW,
+                stage=STAGE_COMPLETED,
+                record=run,
+                module="routes.operational_events.materialize",
+                status="failed",
+                failure_reason=type(exc).__name__,
+                remediation="inspect routes.operational_events.materialize and MongoDB write logs for the failing materialization window",
+            )
+            raise
 
     # ── ADMIN — Operational Trust Audit (M-2 audit) ───────────────────
     @router.get("/admin/operational-events/audit",
                 dependencies=[Depends(require_admin_dep)])
     async def audit():
-        # Q1
-        pipe = [{"$group": {"_id": {"v": "$vehicle_id", "a": "$asset_id"}}},
-                {"$count": "n"}]
-        a = await db.motive_events.aggregate(pipe).to_list(1)
-        assets_emitting = a[0]["n"] if a else 0
-
-        # Q2 — presence events, total + per-day average over observed days
         pres = {"event_family": {"$in": list(PRESENCE_EVENTS)}}
-        total_presence = await db.motive_events.count_documents(pres)
-        # observed days
-        days = await db.motive_events.aggregate([
-            {"$match": pres},
-            {"$project": {"d": {"$substr": ["$event_at", 0, 10]}}},
-            {"$group": {"_id": "$d"}},
-        ]).to_list(1000)
-        observed_days = len(days)
-        avg_per_day = round(total_presence / max(1, observed_days), 2)
+        events: List[Dict[str, Any]] = []
+        async for ev in db.motive_events.find(pres, MOTIVE_EVENT_PROJECTION):
+            events.append(ev)
 
-        # Q3/Q9 — location coverage / distribution
-        op_by_gid = await _load_op_locations()
-        any_op = {}
-        async for loc in db.operational_locations.find({}):
-            if loc.get("motive_geofence_id"):
-                any_op[str(loc["motive_geofence_id"])] = loc
+        actor_pairs: Set[Tuple[str, str]] = set()
+        observed_days_set: Set[str] = set()
         ev_gids: Set[str] = set()
         bycat: Dict[str, int] = {}
-        async for ev in db.motive_events.find(pres):
+        latencies_ms: List[float] = []
+        geofence_counter: Counter[str] = Counter()
+
+        op_by_gid = await _load_op_locations()
+        any_op = await _load_any_locations()
+        for ev in events:
+            raw = ev.get("raw") or {}
+            veh_id = str(ev.get("vehicle_id") or ((raw.get("vehicle") or {}).get("id") or ""))
+            ast_id = str(ev.get("asset_id") or ((raw.get("asset") or {}).get("id") or ""))
+            actor_pairs.add((veh_id, ast_id))
+
+            event_at = str(ev.get("event_at") or "")
+            if len(event_at) >= 10:
+                observed_days_set.add(event_at[:10])
+
             gid = _event_geofence_id(ev)
             if not gid:
                 continue
             ev_gids.add(gid)
+            geofence_counter[gid] += 1
             loc = any_op.get(gid)
             cat = (loc or {}).get("location_type") or "UNKNOWN"
             bycat[cat] = bycat.get(cat, 0) + 1
+            if len(latencies_ms) < 50:
+                et = _parse_iso((raw.get("event_time")))
+                ca = _parse_iso(ev.get("created_at"))
+                if et and ca:
+                    latencies_ms.append((ca - et).total_seconds() * 1000.0)
+
+        assets_emitting = len(actor_pairs)
+        total_presence = len(events)
+        observed_days = len(observed_days_set)
+        avg_per_day = round(total_presence / max(1, observed_days), 2)
         unmatched = len(ev_gids - set(any_op.keys()))
 
-        # Q5 — dedupe savings: route the whole window and count
-        events: List[Dict[str, Any]] = []
-        async for ev in db.motive_events.find(pres):
-            ev.pop("_id", None)
-            events.append(ev)
         resolver = await _build_resolver()
         routed = route_motive_events(events, op_by_gid, resolver)
         dedupe_savings = max(0, len(events) - len(routed))
@@ -449,30 +702,17 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
             {"masci_equipment_id": {"$nin": [None, ""]}}
         )
 
-        # Q7 — webhook→storage latency (approx): compare raw.event_time
-        # vs created_at on motive_events.
-        latencies_ms: List[float] = []
-        async for ev in db.motive_events.find(pres).limit(50):
-            et = _parse_iso(((ev.get("raw") or {}).get("event_time")))
-            ca = _parse_iso(ev.get("created_at"))
-            if et and ca:
-                latencies_ms.append((ca - et).total_seconds() * 1000.0)
         avg_latency_ms = round(sum(latencies_ms) / len(latencies_ms), 1) if latencies_ms else None
 
         # Q8 — top fences
-        pipe = [{"$match": pres},
-                {"$group": {"_id": "$raw.geofence.id", "n": {"$sum": 1}}},
-                {"$sort": {"n": -1}}, {"$limit": 5}]
-        top = await db.motive_events.aggregate(pipe).to_list(5)
         top_named = []
-        for r in top:
-            gid = str(r["_id"]) if r["_id"] is not None else ""
+        for gid, count in geofence_counter.most_common(5):
             loc = any_op.get(gid)
             name = (loc or {}).get("name")
             if not name:
-                gf = await db.motive_geofences.find_one({"motive_geofence_id": gid})
+                gf = await db.motive_geofences.find_one({"motive_geofence_id": gid}, {"_id": 0, "name": 1})
                 name = (gf or {}).get("name") if gf else "(unmapped)"
-            top_named.append({"motive_geofence_id": gid, "events": r["n"],
+            top_named.append({"motive_geofence_id": gid, "events": count,
                               "name": name,
                               "location_type": (loc or {}).get("location_type") or "UNKNOWN"})
 
@@ -534,18 +774,17 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
         'at' = last operational_event for that asset is an ARRIVAL of
         that type."""
         # Per-asset latest event
-        pipe = [
+        pipe: List[Dict[str, Any]] = []
+        if date:
+            pipe.append({"$match": {"occurred_at": {"$lte": f"{date}T23:59:59+00:00"}}})
+        pipe.extend([
             {"$sort": {"asset_key": 1, "occurred_at": -1}},
             {"$group": {
                 "_id": "$asset_key",
                 "last": {"$first": "$$ROOT"},
             }},
-        ]
+        ])
         latest = await db.operational_events.aggregate(pipe).to_list(5000)
-        # If a date was given, filter events to ≤ end-of-day UTC.
-        if date:
-            cutoff = f"{date}T23:59:59+00:00"
-            latest = [r for r in latest if (r["last"].get("occurred_at") or "") <= cutoff]
         buckets: Dict[str, int] = {
             "Equipment On Projects": 0,
             "Equipment At Plants": 0,
@@ -600,8 +839,7 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
             "project_number": project_number,
             "location_type": "JOB",
             "occurred_at": {"$gte": day_start, "$lt": day_end},
-        }).sort("occurred_at", 1):
-            ev.pop("_id", None)
+        }, PUBLIC_EVENT_PROJECTION).sort("occurred_at", 1):
             rows.append(ev)
 
         # Collapse per-asset to first arrival + last departure / still-on-site
@@ -645,8 +883,7 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
         async for ev in db.operational_events.find({
             "asset_key": detection_key,
             "occurred_at": {"$gte": day_start, "$lt": day_end},
-        }).sort("occurred_at", 1):
-            ev.pop("_id", None)
+        }, PUBLIC_EVENT_PROJECTION).sort("occurred_at", 1):
             out.append(ev)
         return {"ok": True, "detection_key": detection_key, "date": date,
                 "events": out}
@@ -658,12 +895,12 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
         only. Never modifies dispatch assignments."""
         ev = await db.operational_events.find_one(
             {"asset_key": asset_key},
+            PUBLIC_EVENT_PROJECTION,
             sort=[("occurred_at", -1)],
         )
         if not ev:
             return {"ok": True, "asset_key": asset_key, "state": "UNKNOWN",
                     "detail": None}
-        ev.pop("_id", None)
         et = ev.get("event_type") or ""
         state = ("ARRIVED" if et.endswith("_ARRIVAL")
                  else "DEPARTED" if et.endswith("_DEPARTURE")

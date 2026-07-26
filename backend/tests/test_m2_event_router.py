@@ -14,6 +14,7 @@ Tests cover:
 from __future__ import annotations
 import json
 import os
+import urllib.parse
 import urllib.request
 import urllib.error
 import uuid
@@ -27,17 +28,20 @@ load_dotenv("/app/backend/.env")
 
 BACKEND = os.environ.get("BACKEND_URL", "http://127.0.0.1:8001")
 API = f"{BACKEND}/api"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "jaymn.judd@mascigc.com")
 ADMIN_PW = os.environ.get("ADMIN_PASSWORD", "Maddix123!")
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]
 
 
-def _req(method, path, *, body=None, token=""):
-    headers = {"Content-Type": "application/json"}
+def _req(method, path, *, body=None, token="", headers=None):
+    req_headers = {"Content-Type": "application/json"}
+    if headers:
+        req_headers.update(headers)
     if token:
-        headers["X-Admin-Token"] = token
+        req_headers["X-Admin-Token"] = token
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(f"{API}{path}", data=data, method=method, headers=headers)
+    req = urllib.request.Request(f"{API}{path}", data=data, method=method, headers=req_headers)
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
             return {"status": resp.status, "json": json.loads(resp.read().decode() or "{}")}
@@ -64,10 +68,26 @@ def db():
 
 
 @pytest.fixture(scope="module")
-def admin_token():
-    r = _req("POST", "/admin/login", body={"password": ADMIN_PW})
+def auth_bundle():
+    r = _req("POST", "/auth/multi-login", body={"email": ADMIN_EMAIL, "password": ADMIN_PW})
     assert r["status"] == 200, r
-    return r["json"]["token"]
+    assert r["json"].get("session_token"), r
+    return r["json"]
+
+
+@pytest.fixture(scope="module")
+def admin_token(auth_bundle):
+    tok = (auth_bundle.get("portal_tokens") or {}).get("admin") or auth_bundle.get("admin")
+    assert tok, auth_bundle
+    return tok
+
+
+@pytest.fixture(scope="module")
+def admin_headers(admin_token, auth_bundle):
+    return {
+        "X-Admin-Token": admin_token,
+        "X-Directory-Token": auth_bundle["session_token"],
+    }
 
 
 @pytest.fixture
@@ -257,17 +277,15 @@ def test_constants_correct():
 
 
 # ─── HTTP-level integration tests ────────────────────────────────────
-def test_materialize_and_project_day(world, admin_token, db):
+def test_materialize_and_project_day(world, admin_headers, db):
     s = world
-    r = _req("POST", "/admin/operational-events/materialize",
-             token=admin_token)
+    r = _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
     assert r["status"] == 200, r
     assert r["json"]["routed"] > 0
     upserted = r["json"]["upserted"]
 
     # Idempotency: re-run produces same upserts (same ids)
-    r2 = _req("POST", "/admin/operational-events/materialize",
-              token=admin_token)
+    r2 = _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
     assert r2["json"]["upserted"] == upserted
 
     # Project-day endpoint — vehicle should show first 06:47 arrival and
@@ -282,9 +300,9 @@ def test_materialize_and_project_day(world, admin_token, db):
     assert vehicle["still_on_site"] is False
 
 
-def test_timeline_endpoint(world, admin_token):
+def test_timeline_endpoint(world, admin_headers):
     s = world
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
     r = _req("GET", f"/operational-events/timeline/vehicle:{s['veh']}/{s['date']}")
     assert r["status"] == 200
     types = [e["event_type"] for e in r["json"]["events"]]
@@ -299,19 +317,19 @@ def test_timeline_endpoint(world, admin_token):
     ]
 
 
-def test_dispatch_status_endpoint(world, admin_token):
+def test_dispatch_status_endpoint(world, admin_headers):
     s = world
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
     r = _req("GET", f"/operational-events/dispatch-status/vehicle:{s['veh']}")
     assert r["status"] == 200
     # After all the events, vehicle's last event is UNKNOWN_DEPARTURE
     assert r["json"]["state"] == "DEPARTED"
 
 
-def test_dashboard_buckets(admin_token, world):
+def test_dashboard_buckets(admin_headers, world):
     s = world
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
-    r = _req("GET", "/admin/operational-events/dashboard", token=admin_token)
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
+    r = _req("GET", "/admin/operational-events/dashboard", headers=admin_headers)
     assert r["status"] == 200
     buckets = r["json"]["buckets"]
     # Buckets keyed by the brief's labels (M-2-7).
@@ -322,9 +340,9 @@ def test_dashboard_buckets(admin_token, world):
         assert label in buckets
 
 
-def test_audit_endpoint_shape(admin_token):
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
-    r = _req("GET", "/admin/operational-events/audit", token=admin_token)
+def test_audit_endpoint_shape(admin_headers):
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
+    r = _req("GET", "/admin/operational-events/audit", headers=admin_headers)
     assert r["status"] == 200
     ans = r["json"]["answers"]
     for k in ["q1_assets_generating_events", "q2_presence_events_total",
@@ -347,7 +365,7 @@ def test_admin_endpoints_require_token():
         assert r["status"] in (401, 403), f"{path} returned {r['status']}"
 
 
-def test_unknown_geofence_does_not_create_op_location(world, admin_token, db):
+def test_unknown_geofence_does_not_create_op_location(world, admin_headers, db):
     """Materializing a window with an UNKNOWN geofence must NOT create
     an op_location row for it."""
     s = world
@@ -355,23 +373,72 @@ def test_unknown_geofence_does_not_create_op_location(world, admin_token, db):
         {"motive_geofence_id": s["unknown_gid"]}
     )
     assert before == 0
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
     after = db.operational_locations.count_documents(
         {"motive_geofence_id": s["unknown_gid"]}
     )
     assert after == 0
 
 
+def test_materialize_writes_append_only_audit_and_trust(world, admin_headers, db):
+    s = world
+    start = f"{s['date']}T00:00:00+00:00"
+    end = f"{s['date']}T23:59:59+00:00"
+    before_audit = db.audit_events.count_documents({"kind": "operational_events.materialize"})
+    before_trust = db.trust_spine_events.count_documents({"workflow": "operational-events-materialization"})
+
+    r = _req(
+        "POST",
+        f"/admin/operational-events/materialize?start={urllib.parse.quote(start)}&end={urllib.parse.quote(end)}",
+        headers=admin_headers,
+    )
+    assert r["status"] == 200, r
+
+    assert db.audit_events.count_documents({"kind": "operational_events.materialize"}) == before_audit + 1
+    audit_row = db.audit_events.find_one(
+        {
+            "kind": "operational_events.materialize",
+            "detail.start": start,
+            "detail.end": end,
+        },
+        sort=[("ts", -1)],
+    )
+    assert audit_row is not None
+    assert audit_row.get("record_id", "").startswith("m2-run-")
+    assert audit_row.get("correlation_id", "").startswith("cid-")
+    assert audit_row["detail"]["source_collection"] == "motive_events"
+    assert audit_row["detail"]["canonical_collection"] == "operational_events"
+    assert audit_row["detail"]["normalization_owner"] == "routes.operational_events"
+    assert audit_row["detail"]["notification_contract"] == "none"
+
+    trust_rows = list(db.trust_spine_events.find({
+        "workflow": "operational-events-materialization",
+        "correlation_id": audit_row["correlation_id"],
+    }).sort("ts", 1))
+    assert len(trust_rows) > 0
+    assert db.trust_spine_events.count_documents({"workflow": "operational-events-materialization"}) >= before_trust + len(trust_rows)
+    stages = [row["stage"] for row in trust_rows]
+    assert stages[:3] == ["record_created", "validation_complete", "routing_resolved"]
+    assert "audit_written" in stages
+    assert "dashboard_updated" in stages
+    assert stages[-1] == "completed"
+    skipped = {row["stage"]: row["status"] for row in trust_rows if row["stage"] in {"recipients_built", "notification_queued"}}
+    assert skipped == {"recipients_built": "skipped", "notification_queued": "skipped"}
+    assert trust_rows[-1]["status"] == "ok"
+
+
 # ─── Constitutional guards ────────────────────────────────────────────
-def test_no_daily_report_or_dispatch_or_motive_writes(admin_token, db, world):
+def test_no_daily_report_or_dispatch_or_motive_writes(admin_headers, db, world):
     dr_b = db.daily_reports.count_documents({})
     da_b = db.dispatch_assignments.count_documents({})
     me_b = db.motive_events.count_documents({})
     am_b = db.asset_mappings.count_documents({})
+    ae_b = db.audit_events.count_documents({})
+    ts_b = db.trust_spine_events.count_documents({})
 
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
-    _req("GET", "/admin/operational-events/audit", token=admin_token)
-    _req("GET", "/admin/operational-events/dashboard", token=admin_token)
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
+    _req("GET", "/admin/operational-events/audit", headers=admin_headers)
+    _req("GET", "/admin/operational-events/dashboard", headers=admin_headers)
     _req("GET", f"/operational-events/project-day/{world['proj_num']}/{world['date']}")
     _req("GET", f"/operational-events/timeline/vehicle:{world['veh']}/{world['date']}")
     _req("GET", f"/operational-events/dispatch-status/vehicle:{world['veh']}")
@@ -380,6 +447,8 @@ def test_no_daily_report_or_dispatch_or_motive_writes(admin_token, db, world):
     assert db.dispatch_assignments.count_documents({}) == da_b
     assert db.motive_events.count_documents({}) == me_b
     assert db.asset_mappings.count_documents({}) == am_b
+    assert db.audit_events.count_documents({}) >= ae_b
+    assert db.trust_spine_events.count_documents({}) >= ts_b
 
 
 def test_no_motive_service_or_httpx_coupling():
@@ -411,15 +480,17 @@ def test_no_workflow_state_or_oa_writes():
         "asset_mappings.insert", "asset_mappings.update",
     ]:
         assert forbidden not in src, f"M-2 must not perform '{forbidden}'"
+    assert 'db.audit_events.insert_one' in src
+    assert 'workflow=M2_TRUST_WORKFLOW' in src
 
 
 # ─── M-3 + M-DR-1 regression sanity ───────────────────────────────────
-def test_m3_collection_untouched_by_m2(admin_token, db, world):
+def test_m3_collection_untouched_by_m2(admin_headers, db, world):
     """Materializing M-2 must not touch operational_locations rows
     beyond what we seeded."""
     s = world
     before = list(db.operational_locations.find({"name": {"$regex": s["tag"]}}))
-    _req("POST", "/admin/operational-events/materialize", token=admin_token)
+    _req("POST", "/admin/operational-events/materialize", headers=admin_headers)
     after = list(db.operational_locations.find({"name": {"$regex": s["tag"]}}))
     assert len(before) == len(after)
     for b, a in zip(before, after):

@@ -1,0 +1,134 @@
+{
+  "timestamp": "2026-07-26 00:25:48 UTC",
+  "total_tests": 21,
+  "passed": 21,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "portal_tokens.admin present",
+      "passed": true,
+      "details": "Token length: 101",
+      "severity": "normal"
+    },
+    {
+      "name": "session_token present",
+      "passed": true,
+      "details": "Token length: 43",
+      "severity": "normal"
+    },
+    {
+      "name": "Admin auth bundle complete",
+      "passed": true,
+      "details": "Both tokens present in response",
+      "severity": "normal"
+    },
+    {
+      "name": "Materialize rejects no auth",
+      "passed": true,
+      "details": "Status: 401",
+      "severity": "normal"
+    },
+    {
+      "name": "Materialize rejects partial auth (admin token only)",
+      "passed": true,
+      "details": "Status: 401",
+      "severity": "normal"
+    },
+    {
+      "name": "Materialize succeeds with valid auth",
+      "passed": true,
+      "details": "Status: 200, events_considered: 4, routed: 4, upserted: 4",
+      "severity": "normal"
+    },
+    {
+      "name": "Materialize idempotency",
+      "passed": true,
+      "details": "First run upserted: 4, Second run upserted: 4",
+      "severity": "normal"
+    },
+    {
+      "name": "Materialize deterministic routing",
+      "passed": true,
+      "details": "Both runs routed same count: 4",
+      "severity": "normal"
+    },
+    {
+      "name": "Admin audit endpoint succeeds",
+      "passed": true,
+      "details": "Status: 200, assets_generating_events: 2",
+      "severity": "normal"
+    },
+    {
+      "name": "Admin dashboard endpoint succeeds",
+      "passed": true,
+      "details": "Status: 200, total_assets_with_state: 2",
+      "severity": "normal"
+    },
+    {
+      "name": "Public project-day endpoint",
+      "passed": true,
+      "details": "Status: 200, assets: 0, total_events: 0",
+      "severity": "normal"
+    },
+    {
+      "name": "Public timeline endpoint",
+      "passed": true,
+      "details": "Status: 200, events: 0",
+      "severity": "normal"
+    },
+    {
+      "name": "Public dispatch-status endpoint",
+      "passed": true,
+      "details": "Status: 200, state: UNKNOWN",
+      "severity": "normal"
+    },
+    {
+      "name": "Trust Spine workflow exists",
+      "passed": true,
+      "details": "Found operational-events-materialization workflow",
+      "severity": "normal"
+    },
+    {
+      "name": "Trust Spine expected stages present",
+      "passed": true,
+      "details": "All 6 expected stages found: record_created, validation_complete, routing_resolved, audit_written, dashboard_updated, completed",
+      "severity": "normal"
+    },
+    {
+      "name": "Trust Spine recipients_built present",
+      "passed": true,
+      "details": "recipients_built found in stages_seen (count: 22)",
+      "severity": "normal"
+    },
+    {
+      "name": "Trust Spine notification_queued present",
+      "passed": true,
+      "details": "notification_queued found in stages_seen (count: 22)",
+      "severity": "normal"
+    },
+    {
+      "name": "Trust Spine skipped stages recorded",
+      "passed": true,
+      "details": "44 skipped events in last 24h (recipients_built and notification_queued)",
+      "severity": "normal"
+    },
+    {
+      "name": "Audit events infrastructure",
+      "passed": true,
+      "details": "Audit endpoint returns data, confirming audit_events writes",
+      "severity": "normal"
+    },
+    {
+      "name": "Boundary containment verification",
+      "passed": true,
+      "details": "Family 3C writes are contained to operational_events, audit_events, and trust_spine_events collections",
+      "severity": "normal"
+    },
+    {
+      "name": "Performance observations",
+      "passed": true,
+      "details": "All endpoints responded in reasonable time (<5s)",
+      "severity": "normal"
+    }
+  ]
+}
