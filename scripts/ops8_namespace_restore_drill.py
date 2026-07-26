@@ -112,6 +112,14 @@ def _build_explicit_key_diagnostics(*, args_backup: str, lineage: Dict[str, Any]
         "embedded_manifest_loaded": False,
         "embedded_manifest_reconciled": False,
         "checksum_validated": False,
+        "embedded_archive_key_raw": None,
+        "embedded_archive_key_present": None,
+        "embedded_archive_key_match": None,
+        "effective_archive_key": None,
+        "archive_key_binding_mode": None,
+        "legacy_manifest_missing_archive_key": None,
+        "legacy_key_binding_conditions": {},
+        "legacy_key_binding_conditions_passed": None,
         "requested_source_environment": requested_env,
         "manifest_probe_mode": lineage.get("manifest_probe_mode"),
         "manifest_reads_skipped": lineage.get("manifest_reads_skipped"),
@@ -146,6 +154,14 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
     diagnostics = {
         "embedded_manifest_identity": embedded,
         "embedded_manifest_reconciled": False,
+        "embedded_archive_key_raw": embedded["archive_key"],
+        "embedded_archive_key_present": bool(embedded["archive_key"]),
+        "embedded_archive_key_match": None,
+        "effective_archive_key": None,
+        "archive_key_binding_mode": None,
+        "legacy_manifest_missing_archive_key": False,
+        "legacy_key_binding_conditions": {},
+        "legacy_key_binding_conditions_passed": False,
     }
 
     def _mismatch(code: str) -> tuple[bool, str, Dict[str, Any]]:
@@ -157,8 +173,62 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
         return _mismatch("EMBEDDED_MANIFEST_ENVIRONMENT_MISMATCH")
     if embedded["database_name"] != env["DB_NAME"]:
         return _mismatch("EMBEDDED_MANIFEST_DATABASE_MISMATCH")
-    if embedded["archive_key"] != archive_key:
-        return _mismatch("EMBEDDED_MANIFEST_ARCHIVE_KEY_MISMATCH")
+
+    runtime_bucket = str(runtime_identity.get("backup_bucket") or "").strip()
+    persisted_bucket = str(lineage_identity.get("backup_bucket") or "").strip()
+    runtime_prefix = str(runtime_identity.get("backup_prefix") or "").strip()
+    persisted_prefix = str(lineage_identity.get("backup_prefix") or "").strip()
+    persisted_release_identity = str(authoritative.get("source_truth") or "").strip()
+
+    legacy_conditions = {
+        "persisted_lineage_exists": bool(authoritative),
+        "persisted_lineage_object_key_match": authoritative.get("object_key") == archive_key,
+        "persisted_environment_preview": artifact_identity.get("originating_environment") == "preview",
+        "embedded_environment_preview": embedded["environment"] == "preview",
+        "persisted_database_match": artifact_identity.get("database_name") == env["DB_NAME"],
+        "embedded_database_match": embedded["database_name"] == env["DB_NAME"],
+        "bucket_authority_match": (
+            (not persisted_bucket or not embedded["backup_bucket"] or embedded["backup_bucket"] == persisted_bucket)
+            and (runtime_bucket in ("", "UNRESOLVED") or not embedded["backup_bucket"] or embedded["backup_bucket"] == runtime_bucket)
+        ),
+        "prefix_authority_match": (
+            (not persisted_prefix or not embedded["backup_prefix"] or embedded["backup_prefix"] == persisted_prefix)
+            and (not runtime_prefix or not embedded["backup_prefix"] or embedded["backup_prefix"] == runtime_prefix)
+        ),
+        "environment_fingerprint_match_where_present": (
+            (not runtime_identity.get("environment_fingerprint") or not embedded["environment_fingerprint"] or embedded["environment_fingerprint"] == runtime_identity.get("environment_fingerprint"))
+            and (not lineage_identity.get("environment_fingerprint") or not embedded["environment_fingerprint"] or embedded["environment_fingerprint"] == lineage_identity.get("environment_fingerprint"))
+        ),
+        "cluster_fingerprint_match_where_present": (
+            (not runtime_identity.get("cluster_fingerprint") or not embedded["source_cluster_fingerprint"] or embedded["source_cluster_fingerprint"] == runtime_identity.get("cluster_fingerprint"))
+            and (not lineage_identity.get("source_cluster_fingerprint") or not embedded["source_cluster_fingerprint"] or embedded["source_cluster_fingerprint"] == lineage_identity.get("source_cluster_fingerprint"))
+        ),
+        "release_identity_match_where_authoritative": (not persisted_release_identity or not embedded["release_identity"] or embedded["release_identity"] == persisted_release_identity),
+        "manifest_schema_accepted": bool(embedded["manifest_schema"]),
+        "persisted_checksum_exists": bool(evidence_refs.get("checksum_sha256")),
+        "backup_id_present": bool(embedded["backup_id"]),
+        "non_conflicting_embedded_archive_key": not embedded["archive_key"],
+        "destination_policy_isolated_preview_namespace": True,
+        "remote_manifest_fanout_disabled": int(lineage.get("manifest_reads_attempted") or 0) == 0,
+    }
+    diagnostics["legacy_key_binding_conditions"] = dict(legacy_conditions)
+
+    if embedded["archive_key"]:
+        diagnostics["embedded_archive_key_present"] = True
+        diagnostics["embedded_archive_key_match"] = embedded["archive_key"] == archive_key
+        diagnostics["effective_archive_key"] = embedded["archive_key"]
+        diagnostics["archive_key_binding_mode"] = "EMBEDDED_EXACT_MATCH" if embedded["archive_key"] == archive_key else "CONFLICTING_EMBEDDED_KEY"
+        if embedded["archive_key"] != archive_key:
+            return _mismatch("EMBEDDED_MANIFEST_ARCHIVE_KEY_MISMATCH")
+    else:
+        diagnostics["embedded_archive_key_present"] = False
+        diagnostics["embedded_archive_key_match"] = False
+        diagnostics["legacy_manifest_missing_archive_key"] = True
+        diagnostics["effective_archive_key"] = archive_key
+        diagnostics["archive_key_binding_mode"] = "DERIVED_FROM_AUTHORIZED_OBJECT_KEY"
+        diagnostics["legacy_key_binding_conditions_passed"] = all(bool(v) for v in legacy_conditions.values())
+        if not diagnostics["legacy_key_binding_conditions_passed"]:
+            return _mismatch("LEGACY_MANIFEST_ARCHIVE_KEY_BINDING_FAILED")
 
     expected_env_fp = str(runtime_identity.get("environment_fingerprint") or "").strip()
     if expected_env_fp and embedded["environment_fingerprint"] and embedded["environment_fingerprint"] != expected_env_fp:
@@ -176,19 +246,15 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
     if persisted_cluster_fp and embedded["source_cluster_fingerprint"] and embedded["source_cluster_fingerprint"] != persisted_cluster_fp:
         return _mismatch("EMBEDDED_MANIFEST_PERSISTED_CLUSTER_FINGERPRINT_MISMATCH")
 
-    runtime_bucket = str(runtime_identity.get("backup_bucket") or "").strip()
     if runtime_bucket and runtime_bucket != "UNRESOLVED" and embedded["backup_bucket"] and embedded["backup_bucket"] != runtime_bucket:
         return _mismatch("EMBEDDED_MANIFEST_BUCKET_MISMATCH")
 
-    persisted_bucket = str(lineage_identity.get("backup_bucket") or "").strip()
     if persisted_bucket and embedded["backup_bucket"] and embedded["backup_bucket"] != persisted_bucket:
         return _mismatch("EMBEDDED_MANIFEST_PERSISTED_BUCKET_MISMATCH")
 
-    runtime_prefix = str(runtime_identity.get("backup_prefix") or "").strip()
     if runtime_prefix and embedded["backup_prefix"] and embedded["backup_prefix"] != runtime_prefix:
         return _mismatch("EMBEDDED_MANIFEST_PREFIX_MISMATCH")
 
-    persisted_prefix = str(lineage_identity.get("backup_prefix") or "").strip()
     if persisted_prefix and embedded["backup_prefix"] and embedded["backup_prefix"] != persisted_prefix:
         return _mismatch("EMBEDDED_MANIFEST_PERSISTED_PREFIX_MISMATCH")
 
@@ -205,7 +271,6 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
     if persisted_manifest_schema and embedded["manifest_schema"] and embedded["manifest_schema"] != persisted_manifest_schema:
         return _mismatch("EMBEDDED_MANIFEST_SCHEMA_MISMATCH")
 
-    persisted_release_identity = str(authoritative.get("source_truth") or "").strip()
     if persisted_release_identity and embedded["release_identity"] and embedded["release_identity"] != persisted_release_identity:
         return _mismatch("EMBEDDED_MANIFEST_RELEASE_IDENTITY_MISMATCH")
 
@@ -215,6 +280,12 @@ def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dic
     diagnostics["embedded_manifest_reconciled"] = True
     diagnostics["embedded_manifest_failure"] = None
     diagnostics["persisted_checksum_sha256"] = evidence_refs.get("checksum_sha256")
+    if diagnostics["archive_key_binding_mode"] is None:
+        diagnostics["archive_key_binding_mode"] = "EMBEDDED_EXACT_MATCH"
+        diagnostics["embedded_archive_key_match"] = True
+        diagnostics["effective_archive_key"] = archive_key
+    if diagnostics["legacy_manifest_missing_archive_key"]:
+        diagnostics["legacy_key_binding_conditions_passed"] = True
     return True, None, diagnostics
 
 

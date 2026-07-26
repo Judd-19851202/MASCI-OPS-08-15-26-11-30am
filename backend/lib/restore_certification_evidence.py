@@ -759,7 +759,7 @@ def validate_restore_certification_evidence(evidence: Dict[str, Any]) -> Dict[st
 
     evidence_complete = not missing and not contradictory
     certification_eligible = evidence_complete and any((review.get("qa_outcome") == "PASS") for review in qa_reviews)
-    completeness_state = "PASS" if evidence_complete else ("CONTRADICTORY" if contradictory else "INCOMPLETE")
+    completeness_state = "COMPLETE" if evidence_complete else ("CONTRADICTORY" if contradictory else "INCOMPLETE")
     return {
         "evidence_completeness_state": completeness_state,
         "missing_evidence_sections": sorted(set(missing)),

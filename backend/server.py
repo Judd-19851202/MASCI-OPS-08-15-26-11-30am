@@ -9185,6 +9185,7 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path, *, backup_run_id: 
                 "storage_provider": "r2-s3-compatible",
                 "backup_bucket": _canonical_backup_bucket(),
                 "backup_prefix": _canonical_backup_prefix(),
+                "archive_key": None,
                 "source_hash": _SOURCE_HASH,
                 "git_commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
                 "release_identity": _SOURCE_HASH,
@@ -9667,6 +9668,15 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         r2_key = f"{_canonical_backup_prefix().rstrip('/')}/{filename}"
         await upload_local_file(out, key=r2_key, content_type="application/zip")
         logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
+        try:
+            with zipfile.ZipFile(out, "a") as zf:
+                manifest = _json.loads(zf.read("MANIFEST.json").decode("utf-8"))
+                manifest["archive_key"] = r2_key
+                manifest["backup_bucket"] = _canonical_backup_bucket()
+                manifest["backup_prefix"] = _canonical_backup_prefix()
+                zf.writestr("MANIFEST.json", _json.dumps(manifest, indent=2))
+        except Exception:
+            logger.exception("[complete-archive] failed to backfill MANIFEST.json archive identity")
 
         # Generate a 7-day presigned URL the admin can click from email
         stage["name"] = "verification"

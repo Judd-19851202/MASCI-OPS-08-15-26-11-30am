@@ -164,3 +164,43 @@ def test_completeness_gate_and_independent_qa_rules():
     evidence["qa_reviews"] = [dict(review, qa_outcome="PASS")]
     final = validate_restore_certification_evidence(evidence)
     assert final["certification_eligible"] is True
+    assert final["evidence_completeness_state"] == "COMPLETE"
+
+
+def test_complete_evidence_state_uses_complete_label():
+    evidence = build_restore_evidence_skeleton(
+        drill_id="d3",
+        namespace_prefix="ops8_d3",
+        authorized_archive_key="k",
+        requested_env="preview",
+        target_db="masci_safety_preview",
+        guard={"owner_token": "token-3"},
+    )
+    evidence.update({
+        "source_authority": {"environment": "preview"},
+        "explicit_key_resolution": {
+            "remote_manifest_fanout_enabled": False,
+            "remote_manifest_reads_attempted": 0,
+            "embedded_manifest_loaded": True,
+            "embedded_manifest_reconciled": True,
+            "checksum_validated": True,
+            "persisted_checksum": "abc",
+            "computed_checksum": "abc",
+        },
+        "canonical_before_fingerprint": {"aggregate_fingerprint": "x", "per_collection_record_counts": {}, "per_collection_fingerprints": {}},
+        "canonical_after_fingerprint": {"aggregate_fingerprint": "x", "per_collection_record_counts": {}, "per_collection_fingerprints": {}},
+        "canonical_fingerprint_match": True,
+        "restore_results": {"collections": {"daily_reports": {}}, "totals": {"parity_result": True}},
+        "representative_content_verification": {"state": "PASS"},
+        "audit_verification": {"state": "PASS"},
+        "identity_role_verification": {"identity_verification_state": "PASS", "role_verification_state": "PASS", "assignment_verification_state": "PASS", "reference_integrity_state": "PASS"},
+        "scheduler_state_verification": {"state": "PASS", "scheduler_execution_triggered": False},
+        "photo_object_verification": {"state": "PASS"},
+        "cleanup": {"state": "PASS", "orphan_restore_collections": 0},
+        "final_health": {"state": "PASS"},
+        "guard_release": {"state": "PASS", "released_at": datetime.now(timezone.utc).isoformat()},
+    })
+    review = {"qa_outcome": "PASS"}
+    evidence["qa_reviews"] = [review]
+    final = validate_restore_certification_evidence(evidence)
+    assert final["evidence_completeness_state"] == "COMPLETE"

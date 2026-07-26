@@ -196,7 +196,7 @@ def _authoritative_artifact():
             "archive_key": "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip",
         },
         "evidence_references": {
-            "checksum_sha256": None,
+            "checksum_sha256": "bootstrap-checksum",
         },
         "manifest_identity": {
             "manifest_name": None,
@@ -231,7 +231,8 @@ def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, bac
     lineage = lineage or _lineage_payload()
     lineage["authoritative_artifact"] = dict(lineage.get("authoritative_artifact") or {})
     refs = dict((lineage["authoritative_artifact"].get("evidence_references") or {}))
-    refs.setdefault("checksum_sha256", checksum)
+    if refs.get("checksum_sha256") in (None, "", "bootstrap-checksum"):
+        refs["checksum_sha256"] = checksum
     lineage["authoritative_artifact"]["evidence_references"] = refs
     fake_mongo = _FakeMongoClient()
     fake_s3 = _FakeS3Client(archive)
@@ -329,6 +330,74 @@ def test_authorized_archive_key_must_exactly_match_persisted_authority(monkeypat
     assert out["restore_calls"] == 0
 
 
+def test_exact_embedded_archive_key_passes(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    explicit = evidence["explicit_key_resolution"]
+    assert explicit["archive_key_binding_mode"] == "EMBEDDED_EXACT_MATCH"
+    assert explicit["effective_archive_key"] == "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip"
+    assert explicit["embedded_manifest_reconciled"] is True
+
+
+def test_missing_embedded_archive_key_passes_only_through_legacy_binding(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest.pop("archive_key", None)
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, restore_should_raise=True)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    explicit = evidence["explicit_key_resolution"]
+    assert explicit["legacy_manifest_missing_archive_key"] is True
+    assert explicit["archive_key_binding_mode"] == "DERIVED_FROM_AUTHORIZED_OBJECT_KEY"
+    assert explicit["effective_archive_key"] == "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip"
+    assert explicit["legacy_key_binding_conditions_passed"] is True
+
+
+def test_empty_embedded_archive_key_passes_only_through_legacy_binding(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, restore_should_raise=True)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    explicit = evidence["explicit_key_resolution"]
+    assert explicit["embedded_archive_key_raw"] == ""
+    assert explicit["embedded_archive_key_present"] is False
+    assert explicit["archive_key_binding_mode"] == "DERIVED_FROM_AUTHORIZED_OBJECT_KEY"
+
+
+def test_missing_key_plus_checksum_mismatch_fails(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    lineage = _lineage_payload()
+    lineage["authoritative_artifact"]["evidence_references"] = {"checksum_sha256": "deadbeef"}
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest, lineage=lineage)
+    assert out["rc"] == 9
+    assert out["restore_calls"] == 0
+
+
+def test_missing_key_plus_release_identity_mismatch_fails(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    manifest["release_identity"] = "wrong-release"
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest)
+    assert out["rc"] == 9
+    assert out["restore_calls"] == 0
+
+
+def test_missing_key_plus_absent_backup_id_fails(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = ""
+    manifest["backup_id"] = ""
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest)
+    assert out["rc"] == 9
+    assert out["restore_calls"] == 0
+
+
+def test_conflicting_non_empty_embedded_key_fails_closed_even_with_matching_checksum(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["archive_key"] = "backups/auto-90d/OTHER.zip"
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest)
+    assert out["rc"] == 9
+    assert out["restore_calls"] == 0
+
+
 def test_production_lineage_fails_closed(monkeypatch, tmp_path):
     lineage = _lineage_payload()
     lineage["authoritative_artifact"]["artifact_identity"]["originating_environment"] = "production"
@@ -412,6 +481,7 @@ def test_valid_persisted_authority_and_embedded_manifest_can_advance_to_restore(
     assert evidence["explicit_key_resolution"]["remote_manifest_fanout_enabled"] is False
     assert evidence["explicit_key_resolution"]["remote_manifest_reads_attempted"] == 0
     assert evidence["explicit_key_resolution"]["embedded_manifest_loaded"] is True
+    assert evidence["explicit_key_resolution"]["legacy_key_binding_conditions_passed"] in {None, False}
 
 
 def test_instrumentation_evidence_is_persisted_without_self_awarding_qa(monkeypatch, tmp_path):
@@ -422,3 +492,4 @@ def test_instrumentation_evidence_is_persisted_without_self_awarding_qa(monkeypa
     assert evidence["phase_history"]["preflight"]["phase_status"] in {"completed", "started"}
     assert evidence["phase_history"]["namespace_restore"]["phase_status"] in {"started", "failed"}
     assert evidence["qa_status"] == "PENDING_INDEPENDENT_REVIEW"
+    assert "archive_key_binding_mode" in evidence["explicit_key_resolution"]
