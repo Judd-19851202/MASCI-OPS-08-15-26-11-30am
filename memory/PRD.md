@@ -1662,3 +1662,35 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
+
+## 2026-07-26 Execution checkpoint — live Preview restore still in progress
+
+### Additional repairs completed in this fork
+- Preserved `persisted_lineage_row` inside canonical archive lineage so restore reconciliation can use legacy-created-at / job lineage when persisted `backup_id` is absent.
+- Fixed derived backup-id reconciliation so valid alias proof no longer fails on `competing_artifact_count = 0`.
+- Added transition evidence + sanitized traceback persistence for the `archive_download_authorized -> archive_download_started` window.
+- Added drill terminalization for failed / stale / owner-missing restore guards.
+- Replaced duplicate `drill_runs.insert_one(...)` path with `update_one(..., upsert=True)` to eliminate split-state duplicate drill records.
+- Added streamed legacy restore path with batched `insert_many` progress persistence for very large archives (`/json/` member archives with 1.9M+ JSON members).
+
+### Restore-focused verification completed
+- `pytest /app/backend/tests/test_ops8_explicit_key_restore_path.py -q /app/backend/tests/test_archive_lineage_hot_path.py -q /app/backend/tests/test_restore_certification_evidence.py -q`
+- Result after latest streaming fix: **all passed**.
+
+### Current live Preview restore checkpoint
+- Detached live drill PID: `1012`
+- Drill ID: `11369be497b1`
+- Current phase at last observation: `namespace_restore`
+- Last completed phase: `canonical_fingerprint_before`
+- Live restore progress proof persisted in Mongo:
+  - collection `operational_facts`
+  - status `batch_inserted`
+  - inserted `63,500`
+  - files_seen `63,500`
+  - batches `254`
+- This proves the run now survives past download, manifest, checksum, and pre-restore fingerprinting, and is actively restoring namespace data via the streamed legacy path.
+
+### Exact next action
+- Continue monitoring drill `11369be497b1` to terminal state.
+- If it completes: run `ops8_restore_drill_qa_review.py` for the new drill, persist independent QA, and close Preview survivability.
+- If it exits unexpectedly: capture the last `restore_progress` event from `drill_runs`, terminalize the active guard, patch the next restore-phase defect, add a regression test, rerun the targeted restore suites, and launch the next detached Preview attempt immediately.

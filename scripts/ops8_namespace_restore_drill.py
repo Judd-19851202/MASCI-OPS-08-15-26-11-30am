@@ -19,6 +19,7 @@ import traceback
 import boto3
 from botocore.config import Config
 from pymongo import MongoClient, UpdateOne
+from pymongo.errors import BulkWriteError, OperationFailure, PyMongoError
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -521,8 +522,43 @@ def _r2_client(env: Dict[str, str]):
     ), bucket
 
 
-def _restore_prefixed(zf: zipfile.ZipFile, db, prefix: str) -> Dict[str, Dict[str, int]]:
+def _restore_prefixed(zf: zipfile.ZipFile, db, prefix: str, *, batch_size: int = 250, progress_callback=None) -> Dict[str, Dict[str, int]]:
     counts: Dict[str, Dict[str, int]] = {}
+
+    def _report(event: Dict[str, Any]) -> None:
+        if progress_callback is None:
+            return
+        progress_callback(event)
+
+    def _insert_collection(coll: str, docs: List[Dict[str, Any]], *, files_seen: int, skipped_bad: int) -> Dict[str, int]:
+        target = db[f"{prefix}__{coll}"]
+        target.drop()
+        inserted = 0
+        batches = 0
+        _report({"collection": coll, "status": "collection_started", "files_seen": files_seen, "skipped_bad": skipped_bad, "documents_expected": len(docs)})
+        for offset in range(0, len(docs), max(1, batch_size)):
+            batch = docs[offset: offset + max(1, batch_size)]
+            if not batch:
+                continue
+            try:
+                target.insert_many(batch, ordered=False)
+            except (BulkWriteError, OperationFailure, PyMongoError, ValueError, TypeError) as exc:
+                raise RuntimeError(f"RESTORE_INSERT_FAILED::{coll}::offset={offset}::{type(exc).__name__}:{exc}") from exc
+            inserted += len(batch)
+            batches += 1
+            _report({
+                "collection": coll,
+                "status": "batch_inserted",
+                "offset": offset,
+                "batch_size": len(batch),
+                "inserted": inserted,
+                "files_seen": files_seen,
+                "skipped_bad": skipped_bad,
+                "batches": batches,
+            })
+        _report({"collection": coll, "status": "collection_completed", "inserted": inserted, "files_seen": files_seen, "skipped_bad": skipped_bad, "batches": batches})
+        return {"inserted": inserted, "files_seen": files_seen, "skipped_bad": skipped_bad, "batches": batches}
+
     aggregated_members = [
         name for name in zf.namelist()
         if name.startswith("collections/") and name.endswith(".json")
@@ -538,39 +574,113 @@ def _restore_prefixed(zf: zipfile.ZipFile, db, prefix: str) -> Dict[str, Dict[st
             row = dict(doc)
             row.pop("_id", None)
             clean.append(row)
-        if clean:
-            target = db[f"{prefix}__{coll}"]
-            target.drop()
-            target.insert_many(clean, ordered=False)
-        counts[coll] = {"inserted": len(clean), "files_seen": 1, "skipped_bad": 0}
+        counts[coll] = _insert_collection(coll, clean, files_seen=1, skipped_bad=0) if clean else {"inserted": 0, "files_seen": 1, "skipped_bad": 0, "batches": 0}
     if aggregated_members:
         return counts
 
-    grouped: Dict[str, list[dict]] = {}
+    dropped_collections: set[str] = set()
+    buffers: Dict[str, List[Dict[str, Any]]] = {}
+    started_collections: set[str] = set()
+    total_scanned = 0
+
+    def _ensure_collection_started(coll: str) -> None:
+        if coll in started_collections:
+            return
+        started_collections.add(coll)
+        _report({
+            "collection": coll,
+            "status": "collection_started",
+            "files_seen": int((counts.get(coll) or {}).get("files_seen") or 0),
+            "skipped_bad": int((counts.get(coll) or {}).get("skipped_bad") or 0),
+            "documents_expected": None,
+        })
+
+    def _flush_legacy_batch(coll: str, *, final: bool = False) -> None:
+        docs = buffers.get(coll) or []
+        if not docs:
+            if final:
+                counts.setdefault(coll, {"inserted": 0, "files_seen": 0, "skipped_bad": 0, "batches": 0})
+                _report({
+                    "collection": coll,
+                    "status": "collection_completed",
+                    "inserted": int(counts[coll].get("inserted") or 0),
+                    "files_seen": int(counts[coll].get("files_seen") or 0),
+                    "skipped_bad": int(counts[coll].get("skipped_bad") or 0),
+                    "batches": int(counts[coll].get("batches") or 0),
+                })
+            return
+        target = db[f"{prefix}__{coll}"]
+        if coll not in dropped_collections:
+            target.drop()
+            dropped_collections.add(coll)
+        try:
+            target.insert_many(docs, ordered=False)
+        except (BulkWriteError, OperationFailure, PyMongoError, ValueError, TypeError) as exc:
+            raise RuntimeError(f"RESTORE_INSERT_FAILED::{coll}::batch={len(docs)}::{type(exc).__name__}:{exc}") from exc
+        counts.setdefault(coll, {"inserted": 0, "files_seen": 0, "skipped_bad": 0, "batches": 0})
+        counts[coll]["inserted"] = int(counts[coll].get("inserted") or 0) + len(docs)
+        counts[coll]["batches"] = int(counts[coll].get("batches") or 0) + 1
+        buffers[coll] = []
+        _report({
+            "collection": coll,
+            "status": "batch_inserted",
+            "batch_size": len(docs),
+            "inserted": int(counts[coll].get("inserted") or 0),
+            "files_seen": int(counts[coll].get("files_seen") or 0),
+            "skipped_bad": int(counts[coll].get("skipped_bad") or 0),
+            "batches": int(counts[coll].get("batches") or 0),
+            "final": final,
+        })
+        if final:
+            _report({
+                "collection": coll,
+                "status": "collection_completed",
+                "inserted": int(counts[coll].get("inserted") or 0),
+                "files_seen": int(counts[coll].get("files_seen") or 0),
+                "skipped_bad": int(counts[coll].get("skipped_bad") or 0),
+                "batches": int(counts[coll].get("batches") or 0),
+            })
+
     for name in zf.namelist():
         if name == "MANIFEST.json" or not name.endswith(".json"):
             continue
         if "/json/" not in name:
             continue
         coll = name.split("/json/", 1)[0].replace("-", "_")
+        total_scanned += 1
+        counts.setdefault(coll, {"inserted": 0, "files_seen": 0, "skipped_bad": 0, "batches": 0})
+        counts[coll]["files_seen"] += 1
         try:
             doc = json.loads(zf.read(name).decode("utf-8"))
         except Exception:
-            counts.setdefault(coll, {"inserted": 0, "files_seen": 0, "skipped_bad": 0})
-            counts[coll]["files_seen"] += 1
             counts[coll]["skipped_bad"] += 1
+            if counts[coll]["files_seen"] == 1 or counts[coll]["files_seen"] % 5000 == 0:
+                _ensure_collection_started(coll)
+                _report({
+                    "collection": coll,
+                    "status": "scan_progress",
+                    "files_seen": int(counts[coll].get("files_seen") or 0),
+                    "skipped_bad": int(counts[coll].get("skipped_bad") or 0),
+                    "global_files_seen": total_scanned,
+                })
             continue
         if isinstance(doc, dict):
             doc.pop("_id", None)
-            grouped.setdefault(coll, []).append(doc)
-        counts.setdefault(coll, {"inserted": 0, "files_seen": 0, "skipped_bad": 0})
-        counts[coll]["files_seen"] += 1
-    for coll, docs in grouped.items():
-        db[f"{prefix}__{coll}"].drop()
-        if docs:
-            db[f"{prefix}__{coll}"].insert_many(docs, ordered=False)
-            counts.setdefault(coll, {"inserted": 0, "files_seen": 0, "skipped_bad": 0})
-            counts[coll]["inserted"] = len(docs)
+            buffers.setdefault(coll, []).append(doc)
+            _ensure_collection_started(coll)
+            if len(buffers[coll]) >= max(1, batch_size):
+                _flush_legacy_batch(coll)
+        elif counts[coll]["files_seen"] == 1 or counts[coll]["files_seen"] % 5000 == 0:
+            _ensure_collection_started(coll)
+            _report({
+                "collection": coll,
+                "status": "scan_progress",
+                "files_seen": int(counts[coll].get("files_seen") or 0),
+                "skipped_bad": int(counts[coll].get("skipped_bad") or 0),
+                "global_files_seen": total_scanned,
+            })
+    for coll in sorted(counts.keys()):
+        _flush_legacy_batch(coll, final=True)
     return counts
 
 
@@ -922,7 +1032,12 @@ def main() -> int:
     archive_local = tmp_dir / Path(args.backup).name
 
     client, bucket = _r2_client(env)
-    mongo = MongoClient(env["MONGO_URL"], serverSelectionTimeoutMS=20000)
+    mongo = MongoClient(
+        env["MONGO_URL"],
+        serverSelectionTimeoutMS=20000,
+        connectTimeoutMS=20000,
+        socketTimeoutMS=600000,
+    )
     live_db = mongo[env["DB_NAME"]]
     requested_env = (env.get("APP_ENV") or "preview").strip().lower()
     lease_minutes = restore_certification_lease_minutes(env)
@@ -1223,7 +1338,22 @@ def main() -> int:
             _phase_finish(live_db, drill_id, evidence, guard, "canonical_fingerprint_before", "completed", extra={"aggregate_fingerprint": before_fp.get("aggregate_fingerprint")})
 
             _phase_start(live_db, drill_id, evidence, guard, "namespace_restore")
-            per_kind = _restore_prefixed(zf, live_db, namespace_prefix)
+
+            def _restore_progress(event: Dict[str, Any]) -> None:
+                progress = evidence.setdefault("restore_progress", [])
+                progress.append({"at": datetime.now(timezone.utc).isoformat(), **event})
+                evidence["restore_progress"] = progress[-40:]
+                evidence["restore_last_event"] = event
+                persist_restore_substep_evidence(
+                    live_db,
+                    drill_id,
+                    evidence,
+                    root_updates={"restore_last_event": event},
+                    extra_updates={"restore_progress": evidence["restore_progress"]},
+                )
+                _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="namespace_restore")
+
+            per_kind = _restore_prefixed(zf, live_db, namespace_prefix, progress_callback=_restore_progress)
             real_restore_executed = True
             namespace_created = True
             restored_total = sum(v.get("inserted", 0) for v in per_kind.values())

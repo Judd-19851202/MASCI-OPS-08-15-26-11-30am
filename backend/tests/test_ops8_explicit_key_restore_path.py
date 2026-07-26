@@ -25,6 +25,7 @@ class _Collection:
         self.inserted = []
         self.updates = []
         self.dropped = False
+        self.insert_many_calls = []
 
     def find_one(self, query=None, projection=None, sort=None):
         for row in reversed(self.rows):
@@ -60,6 +61,7 @@ class _Collection:
         self.rows.clear()
 
     def insert_many(self, docs, ordered=False):
+        self.insert_many_calls.append({"count": len(docs), "ordered": ordered})
         self.rows.extend(dict(doc) for doc in docs)
         return _InsertOneResult()
 
@@ -266,7 +268,7 @@ def _run_script(monkeypatch, tmp_path: Path, *, manifest=None, lineage=None, bac
         manifest_remote_reads["count"] += 1
         raise AssertionError("remote manifest reads must not be reached in explicit-key authority resolution")
 
-    def _fake_restore_prefixed(zf, db, prefix):
+    def _fake_restore_prefixed(zf, db, prefix, **kwargs):
         restore_calls["count"] += 1
         if restore_should_raise:
             raise RuntimeError("STOP_AFTER_AUTHORITY")
@@ -648,6 +650,49 @@ def test_drill_run_is_upserted_without_duplicate_rows(monkeypatch, tmp_path):
     out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
     matching = [row for row in out["db"].drill_runs.rows if row.get("id") == out["db"].drill_runs.rows[0].get("id")]
     assert len(matching) == 1
+
+
+def test_restore_prefixed_batches_large_collection_inserts(monkeypatch, tmp_path):
+    module_globals = runpy.run_path(SCRIPT_PATH, run_name="ops8_restore_module")
+    restore_prefixed = module_globals["_restore_prefixed"]
+    fake_db = _FakeDB()
+    archive = tmp_path / "batched.zip"
+    docs = [{"id": f"r-{i}"} for i in range(605)]
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("collections/daily_reports.json", json.dumps(docs))
+    progress = []
+    with zipfile.ZipFile(archive, "r") as zf:
+        counts = restore_prefixed(zf, fake_db, "ops8_drill_test", batch_size=250, progress_callback=progress.append)
+    coll = fake_db.collections["ops8_drill_test__daily_reports"]
+    assert counts["daily_reports"]["inserted"] == 605
+    assert counts["daily_reports"]["batches"] == 3
+    assert [call["count"] for call in coll.insert_many_calls] == [250, 250, 105]
+    assert progress[-1]["status"] == "collection_completed"
+
+
+def test_restore_prefixed_streams_legacy_json_members_without_grouping_everything(monkeypatch, tmp_path):
+    module_globals = runpy.run_path(SCRIPT_PATH, run_name="ops8_restore_module_legacy")
+    restore_prefixed = module_globals["_restore_prefixed"]
+    fake_db = _FakeDB()
+    archive = tmp_path / "legacy.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        for i in range(6):
+            zf.writestr(f"daily_reports/json/row_{i:03d}.json", json.dumps({"id": f"dr-{i}"}))
+        for i in range(4):
+            zf.writestr(f"audit-events/json/row_{i:03d}.json", json.dumps({"id": f"ae-{i}"}))
+    progress = []
+    with zipfile.ZipFile(archive, "r") as zf:
+        counts = restore_prefixed(zf, fake_db, "ops8_drill_test", batch_size=3, progress_callback=progress.append)
+    daily = fake_db.collections["ops8_drill_test__daily_reports"]
+    audit = fake_db.collections["ops8_drill_test__audit_events"]
+    assert counts["daily_reports"]["inserted"] == 6
+    assert counts["daily_reports"]["batches"] == 2
+    assert counts["audit_events"]["inserted"] == 4
+    assert counts["audit_events"]["batches"] == 2
+    assert [call["count"] for call in daily.insert_many_calls] == [3, 3]
+    assert [call["count"] for call in audit.insert_many_calls] == [3, 1]
+    assert any(event["status"] == "collection_started" and event["collection"] == "daily_reports" for event in progress)
+    assert any(event["status"] == "collection_completed" and event["collection"] == "audit_events" for event in progress)
 
 
 def test_missing_owner_running_guard_is_recovered_and_prior_drill_aborted(monkeypatch, tmp_path):
