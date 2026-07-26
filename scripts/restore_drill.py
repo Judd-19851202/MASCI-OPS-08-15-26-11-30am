@@ -149,13 +149,15 @@ def _restore_side_db(extracted: Path, target_uri: str, target_db: str,
         except Exception as e:
             if verbose:
                 print(f"  [{coll_name}] cleanup warnings: {e}", file=sys.stderr)
+        inserted = 0
         if docs:
             try:
                 coll.insert_many(docs, ordered=False)
+                inserted = len(docs)
             except Exception as e:
                 if verbose:
                     print(f"  [{coll_name}] insert warnings: {e}", file=sys.stderr)
-        counters[coll_name] = {"inserted": len(docs), "skipped_bad": bad,
+        counters[coll_name] = {"inserted": inserted, "skipped_bad": bad,
                                "files_seen": len(files)}
         if verbose:
             print(f"  {coll_name:<32}  inserted={len(docs):>5}  "
@@ -209,20 +211,20 @@ def _restore_zip_side_db(archive: Path, target_uri: str, target_db: str,
                     if len(batch) >= batch_size:
                         try:
                             coll.insert_many(batch, ordered=False)
+                            inserted += len(batch)
                         except Exception as e:
                             if verbose:
                                 print(f"  [{coll_name}] insert warnings: {e}", file=sys.stderr)
-                        inserted += len(batch)
                         batch = []
                 except Exception:
                     bad += 1
             if batch:
                 try:
                     coll.insert_many(batch, ordered=False)
+                    inserted += len(batch)
                 except Exception as e:
                     if verbose:
                         print(f"  [{coll_name}] insert warnings: {e}", file=sys.stderr)
-                inserted += len(batch)
             counters[coll_name] = {
                 "inserted": inserted,
                 "skipped_bad": bad,
