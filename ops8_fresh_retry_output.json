@@ -1,0 +1,5 @@
+{
+  "ok": false,
+  "error": "RuntimeError('EMBEDDED_MANIFEST_ARCHIVE_KEY_MISMATCH')",
+  "drill_id": "e8c05017d9ff"
+}
