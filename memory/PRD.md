@@ -1213,3 +1213,78 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Closure / adoption
 - Family 3A Slice 1 is **FORMALLY ADOPTED**.
 - Queue A now contains one remaining implementation slice (`W3-3D1-S3`) plus Wave 3 closeout.
+
+## 2026-07-26 — BCSS Release 2 / Program 2 / Wave 3 / Family 3D-1 Slice 3
+
+### Scope
+- Completed Family 3D-1 Slice 3 as **Legacy Create Canonicalization**.
+- Selected exactly one Class A defect: the legacy create endpoint `POST /api/admin/equipment-master` persisted incomplete non-canonical rows missing required Asset Spine mirror fields.
+
+### Constitutional trace
+- Responsibility: canonical registry mutation authority / registry integrity validation.
+- Owner: Family 3D-1 Asset Spine.
+- Governing authority: Wave 3 Master Execution Plan, Asset Domain Constitutional Decision Record, Family 3D-1 discovery, ISC v1.1.
+
+### Files modified
+- `backend/server.py`
+- `backend/tests/test_equipment_master.py`
+
+### What changed
+- Legacy create endpoint now derives canonical values from existing Asset Spine repository semantics during row creation.
+- New `equipment_master` rows created through the legacy endpoint now persist the minimum canonical mirror fields:
+  - `asset_id`
+  - `asset_number`
+  - `asset_name`
+  - `asset_type`
+  - `asset_status`
+  - `active`
+  - `is_active`
+- Legacy compatibility is preserved for:
+  - `unit_number`
+  - `make`
+  - `model`
+  - `category`
+  - `preop_equipment_type`
+  - `comments`
+- Legacy equipment-master tests were upgraded to current admin authentication and focused canonicalization verification.
+
+### Required proof achieved
+- Authorized admin caller can still create through `POST /api/admin/equipment-master`.
+- Created row retains required legacy fields.
+- Created row persists all selected canonical mirror fields in the database row.
+- `asset_id` is persisted in MongoDB, not synthesized only in the response.
+- Canonical Asset Spine read surface (`GET /api/asset-spine/assets/{asset_id}`) reads the new record successfully.
+- Active-state fields are internally consistent:
+  - `active=true`
+  - `is_active=true`
+  - `asset_status=ACTIVE`
+
+### Explicit deferrals preserved
+- Legacy update overlap — deferred
+- Legacy delete overlap — deferred
+- Legacy upload overlap — deferred
+- Existing-row normalization/backfill — not authorized
+- EquipmentMasterPanel write-flow migration — future work
+
+### Verification evidence
+- Local Python lint: PASS for `server.py` and `test_equipment_master.py`.
+- Targeted legacy endpoint suite: `8 passed, 2 skipped` via `backend/tests/test_equipment_master.py`.
+- 3A regression suite: `21 passed` via `backend/tests/test_iter130_admin_ops.py`.
+- 3D-1 regression suite: `8 passed` via `backend/tests/test_asset_spine_p0_1.py`.
+- 3C regression suite: `18 passed` via `backend/tests/test_m2_event_router.py`.
+- Family 2 regression suite: `26 passed` via `backend/tests/test_track_25_sprint_7_8_trust_events.py`.
+- Manual live verification confirmed:
+  - legacy create returns canonical mirror fields in HTTP response
+  - direct MongoDB read confirms persisted canonical mirror fields
+  - Asset Spine GET by `asset_id` returns canonical shape successfully
+- Independent verification report: `/app/test_reports/iteration_47.json`.
+  - QA conclusion: all 37 bounded tests passed (2 skipped xlsx fixture), no out-of-scope paths changed, READY FOR FORMAL ADOPTION.
+
+### Out-of-scope regression note
+- Existing Family 1 API contract tests still use stale single-token admin auth and therefore were not used as the authoritative regression source for this slice.
+- Manual live smoke against `/api/admin/occ/health` with current dual-token admin auth returned `200` and confirmed Family 1 runtime remained healthy.
+
+### Closure / adoption
+- Family 3D-1 Slice 3 is **FORMALLY ADOPTED**.
+- Family 3D-1 is now **FORMALLY ADOPTED** at family level.
+- Queue A implementation slices are now **ZERO**; Wave 3 Formal Closeout is the next execution phase.
