@@ -1518,3 +1518,85 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - P0: Await separate authorization before any single controlled Preview restore retry.
 - P1: If explicit backup-verification paths later show residual R2 thread/socket drag, prepare a separate Stage 2 proposal for boto timeout/retry/concurrency hardening.
 - P1: Continue survivability program sequencing only under bounded authorization.
+
+## 2026-07-26 — Minimal Explicit-Key Restore-Path Repair Verified
+
+### Authorized repair slice
+- Implemented the minimal explicit-key repair only in `/app/scripts/ops8_namespace_restore_drill.py`.
+- No restore replay executed in this slice.
+- No Production access, no infrastructure changes, and no runtime/config changes were made.
+
+### Root cause addressed
+- The explicit restore-certification path was still calling `build_canonical_archive_lineage(... force_refresh=True)` with full remote manifest probing enabled.
+- That caused unrelated recent-archive manifest fan-out before validating the exact authorized archive key.
+
+### Behavioral correction
+- The drill now resolves persisted Preview lineage with:
+  - `include_manifest_reads=False`
+- Authority sequence now remains:
+  1. canonical persisted Preview lineage resolution
+  2. exact authorized archive key match
+  3. source environment / database / bucket / prefix authority checks
+  4. download only the authorized archive
+  5. load embedded `MANIFEST.json`
+  6. reconcile embedded manifest against persisted authority + runtime identity
+  7. validate archive checksum before any namespace write
+
+### Preserved authority checks
+- Environment identity
+- Database identity
+- Environment fingerprint
+- Cluster fingerprint where authoritative
+- Bucket and prefix authority
+- Exact archive key
+- Persisted checksum
+- Embedded manifest identity
+- Manifest schema when authoritative
+- Release identity when authoritative
+- Source-to-destination policy and isolated namespace destination
+
+### Diagnostics added to existing drill evidence
+- `lineage_resolution_mode = EXPLICIT_KEY_PERSISTED_AUTHORITY`
+- `remote_manifest_fanout_enabled = false`
+- `remote_manifest_reads_attempted = 0`
+- `authorized_archive_key`
+- `persisted_lineage_match`
+- `embedded_manifest_loaded`
+- `embedded_manifest_reconciled`
+- `checksum_validated`
+- consolidated under existing drill evidence / `authority_diagnostics`
+
+### Files modified
+- `/app/scripts/ops8_namespace_restore_drill.py`
+- `/app/backend/tests/test_ops8_explicit_key_restore_path.py` (new)
+
+### Verification results
+- New targeted repair suite: `11 passed`
+- Combined required regression bundle: `50 passed`
+  - includes:
+    - Stage 1 hot-path stability tests
+    - environment-authority and lineage tests
+    - Preview restore guard tests
+    - runtime identity tests
+    - DB isolation failsafe behavior tests
+- Runtime reliability smoke selection remains unchanged / skipped where selector did not match a live test item.
+
+### Dry authority-path validation
+- Authorized key resolved from persisted lineage: `true`
+- Remote manifest fan-out count: `0`
+- Manifest probe mode: `HOT_PATH`
+- No archive download initiated during the post-repair dry validation
+- No guard acquired for a real execution during dry validation
+- No drill left nonterminal
+- No restore namespace collections created
+
+### Scope protection confirmed
+- No restore executed during this repair slice
+- No Production resources accessed
+- No backend/.env or infrastructure changes
+- No modifications to `backend/lib/archive_lineage.py`
+- No modifications to `backend/backup_verification.py`
+
+### Residual risk
+- Explicit restore replay still requires separate authorization.
+- If a future fully authorized replay still restarts after embedded-manifest reconciliation, the next bounded repair candidate should investigate explicit restore execution isolation and/or shared runtime restart causes.

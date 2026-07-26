@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -33,6 +34,161 @@ from lib.backup_runtime import (
     backup_owner_id,
     backup_run_id,
 )
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            if chunk:
+                h.update(chunk)
+    return h.hexdigest()
+
+
+def _authoritative_truth_refusal(error_code: str, diagnostics: Dict[str, Any], *, guard: dict | None = None, db=None) -> int:
+    if guard is not None and db is not None:
+        _sync_finish_guard(db, guard, state="failed", outcome="failed", reason=error_code, slot_suffix="failed")
+    print(json.dumps({"ok": False, "error": error_code, "diagnostics": diagnostics}, indent=2))
+    return 2
+
+
+def _embedded_manifest_identity(manifest: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "environment": str(manifest.get("environment") or manifest.get("app_env") or "").strip().lower(),
+        "database_name": str(manifest.get("database_name") or manifest.get("db_name") or "").strip(),
+        "environment_fingerprint": str(manifest.get("environment_fingerprint") or "").strip(),
+        "source_cluster_fingerprint": str(manifest.get("source_cluster_fingerprint") or "").strip(),
+        "backup_bucket": str(manifest.get("backup_bucket") or "").strip(),
+        "backup_prefix": str(manifest.get("backup_prefix") or "").strip(),
+        "archive_key": str(manifest.get("archive_key") or "").strip(),
+        "manifest_name": "MANIFEST.json",
+        "manifest_schema": str(
+            (manifest.get("manifest_identity") or {}).get("manifest_schema")
+            or manifest.get("manifest_version")
+            or manifest.get("version")
+            or ""
+        ).strip(),
+        "release_identity": str(manifest.get("release_identity") or manifest.get("source_hash") or "").strip(),
+        "backup_id": str(manifest.get("backup_id") or "").strip(),
+    }
+
+
+def _build_explicit_key_diagnostics(*, args_backup: str, lineage: Dict[str, Any], authoritative: Dict[str, Any], requested_env: str) -> Dict[str, Any]:
+    runtime_identity = lineage.get("runtime_identity") or {}
+    persisted_refs = (authoritative.get("evidence_references") or {})
+    return {
+        "lineage_resolution_mode": "EXPLICIT_KEY_PERSISTED_AUTHORITY",
+        "remote_manifest_fanout_enabled": False,
+        "remote_manifest_reads_attempted": int(lineage.get("manifest_reads_attempted") or 0),
+        "authorized_archive_key": args_backup,
+        "persisted_lineage_match": bool(authoritative) and authoritative.get("object_key") == args_backup,
+        "embedded_manifest_loaded": False,
+        "embedded_manifest_reconciled": False,
+        "checksum_validated": False,
+        "requested_source_environment": requested_env,
+        "manifest_probe_mode": lineage.get("manifest_probe_mode"),
+        "manifest_reads_skipped": lineage.get("manifest_reads_skipped"),
+        "manifest_skip_reason": lineage.get("manifest_skip_reason"),
+        "persisted_authoritative_artifact_key": authoritative.get("object_key"),
+        "persisted_authoritative_database": ((authoritative.get("artifact_identity") or {}).get("database_name")),
+        "persisted_authoritative_environment": ((authoritative.get("artifact_identity") or {}).get("originating_environment")),
+        "persisted_environment_fingerprint": ((authoritative.get("lineage_identity") or {}).get("environment_fingerprint")),
+        "persisted_cluster_fingerprint": ((authoritative.get("lineage_identity") or {}).get("source_cluster_fingerprint")),
+        "persisted_bucket": ((authoritative.get("lineage_identity") or {}).get("backup_bucket")),
+        "persisted_prefix": ((authoritative.get("lineage_identity") or {}).get("backup_prefix")),
+        "persisted_checksum_sha256": persisted_refs.get("checksum_sha256"),
+        "persisted_manifest_name": ((authoritative.get("manifest_identity") or {}).get("manifest_name")),
+        "persisted_manifest_schema": ((authoritative.get("manifest_identity") or {}).get("manifest_version")),
+        "persisted_release_identity": authoritative.get("source_truth"),
+        "runtime_environment": runtime_identity.get("app_env"),
+        "runtime_database": runtime_identity.get("db_name"),
+        "runtime_environment_fingerprint": runtime_identity.get("environment_fingerprint"),
+        "runtime_cluster_fingerprint": runtime_identity.get("cluster_fingerprint"),
+        "runtime_bucket": runtime_identity.get("backup_bucket"),
+        "runtime_prefix": runtime_identity.get("backup_prefix"),
+    }
+
+
+def _reconcile_embedded_manifest(*, manifest: Dict[str, Any], authoritative: Dict[str, Any], lineage: Dict[str, Any], env: Dict[str, str], requested_env: str, archive_key: str) -> tuple[bool, str | None, Dict[str, Any]]:
+    runtime_identity = lineage.get("runtime_identity") or {}
+    artifact_identity = authoritative.get("artifact_identity") or {}
+    lineage_identity = authoritative.get("lineage_identity") or {}
+    evidence_refs = authoritative.get("evidence_references") or {}
+    persisted_manifest_identity = authoritative.get("manifest_identity") or {}
+    embedded = _embedded_manifest_identity(manifest)
+    diagnostics = {
+        "embedded_manifest_identity": embedded,
+        "embedded_manifest_reconciled": False,
+    }
+
+    def _mismatch(code: str) -> tuple[bool, str, Dict[str, Any]]:
+        diagnostics["embedded_manifest_reconciled"] = False
+        diagnostics["embedded_manifest_failure"] = code
+        return False, code, diagnostics
+
+    if embedded["environment"] != requested_env:
+        return _mismatch("EMBEDDED_MANIFEST_ENVIRONMENT_MISMATCH")
+    if embedded["database_name"] != env["DB_NAME"]:
+        return _mismatch("EMBEDDED_MANIFEST_DATABASE_MISMATCH")
+    if embedded["archive_key"] != archive_key:
+        return _mismatch("EMBEDDED_MANIFEST_ARCHIVE_KEY_MISMATCH")
+
+    expected_env_fp = str(runtime_identity.get("environment_fingerprint") or "").strip()
+    if expected_env_fp and embedded["environment_fingerprint"] and embedded["environment_fingerprint"] != expected_env_fp:
+        return _mismatch("EMBEDDED_MANIFEST_ENVIRONMENT_FINGERPRINT_MISMATCH")
+
+    persisted_env_fp = str(lineage_identity.get("environment_fingerprint") or "").strip()
+    if persisted_env_fp and embedded["environment_fingerprint"] and embedded["environment_fingerprint"] != persisted_env_fp:
+        return _mismatch("EMBEDDED_MANIFEST_PERSISTED_ENVIRONMENT_FINGERPRINT_MISMATCH")
+
+    expected_cluster_fp = str(runtime_identity.get("cluster_fingerprint") or "").strip()
+    if expected_cluster_fp and embedded["source_cluster_fingerprint"] and embedded["source_cluster_fingerprint"] != expected_cluster_fp:
+        return _mismatch("EMBEDDED_MANIFEST_CLUSTER_FINGERPRINT_MISMATCH")
+
+    persisted_cluster_fp = str(lineage_identity.get("source_cluster_fingerprint") or "").strip()
+    if persisted_cluster_fp and embedded["source_cluster_fingerprint"] and embedded["source_cluster_fingerprint"] != persisted_cluster_fp:
+        return _mismatch("EMBEDDED_MANIFEST_PERSISTED_CLUSTER_FINGERPRINT_MISMATCH")
+
+    runtime_bucket = str(runtime_identity.get("backup_bucket") or "").strip()
+    if runtime_bucket and runtime_bucket != "UNRESOLVED" and embedded["backup_bucket"] and embedded["backup_bucket"] != runtime_bucket:
+        return _mismatch("EMBEDDED_MANIFEST_BUCKET_MISMATCH")
+
+    persisted_bucket = str(lineage_identity.get("backup_bucket") or "").strip()
+    if persisted_bucket and embedded["backup_bucket"] and embedded["backup_bucket"] != persisted_bucket:
+        return _mismatch("EMBEDDED_MANIFEST_PERSISTED_BUCKET_MISMATCH")
+
+    runtime_prefix = str(runtime_identity.get("backup_prefix") or "").strip()
+    if runtime_prefix and embedded["backup_prefix"] and embedded["backup_prefix"] != runtime_prefix:
+        return _mismatch("EMBEDDED_MANIFEST_PREFIX_MISMATCH")
+
+    persisted_prefix = str(lineage_identity.get("backup_prefix") or "").strip()
+    if persisted_prefix and embedded["backup_prefix"] and embedded["backup_prefix"] != persisted_prefix:
+        return _mismatch("EMBEDDED_MANIFEST_PERSISTED_PREFIX_MISMATCH")
+
+    if artifact_identity.get("originating_environment") and embedded["environment"] != artifact_identity.get("originating_environment"):
+        return _mismatch("EMBEDDED_MANIFEST_PERSISTED_ENVIRONMENT_MISMATCH")
+    if artifact_identity.get("database_name") and embedded["database_name"] != artifact_identity.get("database_name"):
+        return _mismatch("EMBEDDED_MANIFEST_PERSISTED_DATABASE_MISMATCH")
+
+    persisted_manifest_name = str(persisted_manifest_identity.get("manifest_name") or "").strip()
+    if persisted_manifest_name and embedded["manifest_name"] != persisted_manifest_name:
+        return _mismatch("EMBEDDED_MANIFEST_NAME_MISMATCH")
+
+    persisted_manifest_schema = str(persisted_manifest_identity.get("manifest_version") or "").strip()
+    if persisted_manifest_schema and embedded["manifest_schema"] and embedded["manifest_schema"] != persisted_manifest_schema:
+        return _mismatch("EMBEDDED_MANIFEST_SCHEMA_MISMATCH")
+
+    persisted_release_identity = str(authoritative.get("source_truth") or "").strip()
+    if persisted_release_identity and embedded["release_identity"] and embedded["release_identity"] != persisted_release_identity:
+        return _mismatch("EMBEDDED_MANIFEST_RELEASE_IDENTITY_MISMATCH")
+
+    if embedded["backup_id"] and artifact_identity.get("artifact_id") and embedded["backup_id"] != artifact_identity.get("artifact_id"):
+        return _mismatch("EMBEDDED_MANIFEST_BACKUP_ID_MISMATCH")
+
+    diagnostics["embedded_manifest_reconciled"] = True
+    diagnostics["embedded_manifest_failure"] = None
+    diagnostics["persisted_checksum_sha256"] = evidence_refs.get("checksum_sha256")
+    return True, None, diagnostics
 
 
 def _load_env() -> Dict[str, str]:
@@ -312,13 +468,35 @@ def main() -> int:
             current_db=env.get("DB_NAME"),
             requested_source_environment=requested_env,
             force_refresh=True,
+            include_manifest_reads=False,
         )
     )
     authoritative = lineage.get("authoritative_artifact") or {}
-    if not authoritative or authoritative.get("object_key") != args.backup:
-        _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason="ARCHIVE_LINEAGE_UNVERIFIED", slot_suffix="failed")
-        print(json.dumps({"ok": False, "error": "ARCHIVE_LINEAGE_UNVERIFIED"}, indent=2))
-        return 2
+    diagnostics = _build_explicit_key_diagnostics(
+        args_backup=args.backup,
+        lineage=lineage,
+        authoritative=authoritative,
+        requested_env=requested_env,
+    )
+    if not authoritative:
+        return _authoritative_truth_refusal("ARCHIVE_LINEAGE_UNVERIFIED", diagnostics, guard=guard, db=live_db)
+    if authoritative.get("object_key") != args.backup:
+        return _authoritative_truth_refusal("AUTHORIZED_ARCHIVE_KEY_MISMATCH", diagnostics, guard=guard, db=live_db)
+    artifact_identity = authoritative.get("artifact_identity") or {}
+    lineage_identity = authoritative.get("lineage_identity") or {}
+    if requested_env != "preview" or artifact_identity.get("originating_environment") != "preview":
+        return _authoritative_truth_refusal("SOURCE_ENVIRONMENT_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
+    if env["DB_NAME"] != "masci_safety_preview" or artifact_identity.get("database_name") != "masci_safety_preview":
+        return _authoritative_truth_refusal("SOURCE_DATABASE_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
+    runtime_identity = lineage.get("runtime_identity") or {}
+    runtime_bucket = str(runtime_identity.get("backup_bucket") or "").strip()
+    runtime_prefix = str(runtime_identity.get("backup_prefix") or "").strip()
+    authoritative_bucket = str(lineage_identity.get("backup_bucket") or "").strip()
+    authoritative_prefix = str(lineage_identity.get("backup_prefix") or "").strip()
+    if runtime_bucket and runtime_bucket != "UNRESOLVED" and authoritative_bucket and authoritative_bucket != runtime_bucket:
+        return _authoritative_truth_refusal("BACKUP_BUCKET_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
+    if runtime_prefix and authoritative_prefix and authoritative_prefix != runtime_prefix:
+        return _authoritative_truth_refusal("BACKUP_PREFIX_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
     live_db.drill_runs.insert_one({
         "id": drill_id,
         "drill_id": drill_id,
@@ -336,6 +514,14 @@ def main() -> int:
         "guard_job_id": guard["job_id"],
         "guard_owner_id": guard["owner_id"],
         "archive_filename": Path(args.backup).name,
+        "lineage_resolution_mode": diagnostics["lineage_resolution_mode"],
+        "remote_manifest_fanout_enabled": diagnostics["remote_manifest_fanout_enabled"],
+        "remote_manifest_reads_attempted": diagnostics["remote_manifest_reads_attempted"],
+        "authorized_archive_key": diagnostics["authorized_archive_key"],
+        "persisted_lineage_match": diagnostics["persisted_lineage_match"],
+        "embedded_manifest_loaded": diagnostics["embedded_manifest_loaded"],
+        "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
+        "checksum_validated": diagnostics["checksum_validated"],
     })
 
     try:
@@ -347,7 +533,38 @@ def main() -> int:
                 _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=f"CRC failed on {bad}", slot_suffix="failed")
                 raise RuntimeError(f"CRC failed on {bad}")
             manifest = json.loads(zf.read("MANIFEST.json").decode("utf-8"))
+            diagnostics["embedded_manifest_loaded"] = True
             _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="manifest_loaded")
+            reconciled, reconcile_error, manifest_evidence = _reconcile_embedded_manifest(
+                manifest=manifest,
+                authoritative=authoritative,
+                lineage=lineage,
+                env=env,
+                requested_env=requested_env,
+                archive_key=args.backup,
+            )
+            diagnostics.update(manifest_evidence)
+            diagnostics["embedded_manifest_reconciled"] = bool(reconciled)
+            persisted_checksum = str(((authoritative.get("evidence_references") or {}).get("checksum_sha256") or "")).strip().lower()
+            actual_checksum = _sha256_file(archive_local).lower()
+            diagnostics["checksum_validated"] = bool(persisted_checksum) and persisted_checksum == actual_checksum
+            diagnostics["calculated_checksum_sha256"] = actual_checksum
+            diagnostics["persisted_checksum_sha256"] = persisted_checksum or None
+            live_db.drill_runs.update_one(
+                {"id": drill_id},
+                {"$set": {
+                    "embedded_manifest_loaded": diagnostics["embedded_manifest_loaded"],
+                    "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
+                    "checksum_validated": diagnostics["checksum_validated"],
+                    "authority_diagnostics": diagnostics,
+                }},
+            )
+            if not reconciled:
+                _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED", slot_suffix="failed")
+                raise RuntimeError(reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED")
+            if persisted_checksum and persisted_checksum != actual_checksum:
+                _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason="ARCHIVE_CHECKSUM_MISMATCH", slot_suffix="failed")
+                raise RuntimeError("ARCHIVE_CHECKSUM_MISMATCH")
             per_kind = _restore_prefixed(zf, live_db, namespace_prefix)
             restored_total = sum(v.get("inserted", 0) for v in per_kind.values())
             manifest_total = int(manifest.get("total_records") or 0)
@@ -402,6 +619,15 @@ def main() -> int:
             "source_environment": (env.get("APP_ENV") or "preview").strip().lower(),
             "source_archive_key": args.backup,
             "source_archive_id": ((authoritative.get("artifact_identity") or {}).get("artifact_id")),
+            "lineage_resolution_mode": diagnostics["lineage_resolution_mode"],
+            "remote_manifest_fanout_enabled": diagnostics["remote_manifest_fanout_enabled"],
+            "remote_manifest_reads_attempted": diagnostics["remote_manifest_reads_attempted"],
+            "authorized_archive_key": diagnostics["authorized_archive_key"],
+            "persisted_lineage_match": diagnostics["persisted_lineage_match"],
+            "embedded_manifest_loaded": diagnostics["embedded_manifest_loaded"],
+            "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
+            "checksum_validated": diagnostics["checksum_validated"],
+            "authority_diagnostics": diagnostics,
             "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
             "policy_decision": "PASS" if outcome == "ok" else "FAIL",
             "policy_reason": "authoritative_environment_bound_archive_selected",
