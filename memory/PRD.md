@@ -1600,3 +1600,65 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Residual risk
 - Explicit restore replay still requires separate authorization.
 - If a future fully authorized replay still restarts after embedded-manifest reconciliation, the next bounded repair candidate should investigate explicit restore execution isolation and/or shared runtime restart causes.
+
+## 2026-07-26 — Restore-Certification Evidence Instrumentation Verified
+
+### Scope confirmation
+- Completed the bounded evidence-instrumentation slice only.
+- No real restore executed.
+- No real execution guard acquired.
+- No authorized archive downloaded during dry validation.
+- No Production access, infrastructure change, permission change, or archive-policy change.
+
+### Canonical ownership decision
+- Primary execution owner remains `/app/scripts/ops8_namespace_restore_drill.py`.
+- New shared evidence helpers placed in `backend/lib/restore_certification_evidence.py` because the logic is cross-cutting and deterministic (fingerprints, telemetry, completeness, QA review helpers).
+- Independent QA persistence uses `/app/scripts/ops8_restore_drill_qa_review.py`.
+- Dry validation uses `/app/scripts/ops8_restore_dry_instrumentation_validation.py`.
+
+### Evidence schema added
+- `restore_certification_evidence.evidence_schema_version = ops8-restore-certification-evidence-v1`
+- deterministic canonical fingerprint schema:
+  - `fingerprint_schema_version = ops8-canonical-preview-fingerprint-v1`
+- independent QA schema:
+  - `evidence_schema_version = ops8-restore-certification-qa-v1`
+
+### Instrumentation added
+- Canonical Preview before/after fingerprints
+- Phase start/completion heartbeat evidence for required phases
+- Representative-content verification with deterministic sample selection
+- Separate audit verification evidence
+- Identity / role / assignment / reference-integrity evidence
+- Scheduler-state evidence with inertness assertion
+- Runtime telemetry timeline captured at phase boundaries
+- Independent QA review surface with `PENDING_INDEPENDENT_REVIEW` default
+- Deterministic evidence completeness validator
+
+### Files modified
+- `/app/scripts/ops8_namespace_restore_drill.py`
+- `/app/backend/lib/restore_certification_evidence.py` (new)
+- `/app/scripts/ops8_restore_drill_qa_review.py` (new)
+- `/app/scripts/ops8_restore_dry_instrumentation_validation.py` (new)
+- `/app/backend/tests/test_restore_certification_evidence.py` (new)
+- `/app/backend/tests/test_ops8_explicit_key_restore_path.py` (updated)
+
+### Verification results
+- Instrumentation + regression bundle: `57 passed`
+- Runtime reliability selector spot-check: `1 skipped`, `0 failed`
+- Dry instrumentation validation confirmed:
+  - `real_restore_executed = false`
+  - `real_guard_acquired = false`
+  - `real_archive_downloaded = false`
+  - `namespace_created = false`
+  - `Production_accessed = false`
+  - `nonterminal_preview_drills = 0`
+  - `active_preview_guards = 0`
+  - `orphan_restore_namespaces = 0`
+
+### Certification rule clarification
+- Instrumentation does **not** itself certify restore.
+- Independent QA remains mandatory for any final certification PASS.
+- Missing canonical after-fingerprint, cleanup proof, guard release, photo/object verification, or QA review prevents certification.
+
+### Authorization state
+- The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.

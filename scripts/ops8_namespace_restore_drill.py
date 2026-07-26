@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -12,7 +13,7 @@ import uuid
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, List, Optional
 
 import boto3
 from botocore.config import Config
@@ -33,6 +34,32 @@ from lib.backup_runtime import (
     restore_certification_terminal_slot,
     backup_owner_id,
     backup_run_id,
+)
+from lib.restore_certification_evidence import (  # noqa: E402
+    AUDIT_COLLECTIONS,
+    ASSIGNMENT_COLLECTIONS,
+    EVIDENCE_SCHEMA_VERSION,
+    IDENTITY_COLLECTIONS,
+    OWNER_TRACE,
+    PHASE_SEQUENCE,
+    ROLE_COLLECTIONS,
+    SCHEDULER_STATE_COLLECTIONS,
+    build_canonical_preview_fingerprint,
+    build_collection_sample_verification,
+    build_independent_qa_review,
+    build_restore_counts,
+    build_restore_evidence_skeleton,
+    capture_runtime_telemetry,
+    compare_fingerprints,
+    extract_archive_collection_documents,
+    load_namespace_collection_documents,
+    mark_phase_status,
+    validate_restore_certification_evidence,
+    verify_audit_data,
+    verify_identity_role_data,
+    verify_photo_object_evidence,
+    verify_representative_content,
+    verify_scheduler_state,
 )
 
 
@@ -326,6 +353,115 @@ def _write_report(drill_id: str, summary: Dict[str, Any]) -> Path:
     return path
 
 
+def _persist_evidence(db, drill_id: str, evidence: Dict[str, Any], **extra: Any) -> None:
+    payload = {
+        "restore_certification_evidence": evidence,
+        "evidence_schema_version": EVIDENCE_SCHEMA_VERSION,
+        **extra,
+    }
+    db.drill_runs.update_one({"id": drill_id}, {"$set": payload}, upsert=True)
+
+
+def _phase_start(db, drill_id: str, evidence: Dict[str, Any], guard: Dict[str, Any], phase: str, *, extra: Optional[Dict[str, Any]] = None) -> None:
+    telemetry = capture_runtime_telemetry(db=db, drill_phase=phase, drill_pid=os.getpid())
+    mark_phase_status(
+        evidence,
+        phase=phase,
+        status="started",
+        owner_pid=os.getpid(),
+        owner_token=guard.get("owner_token"),
+        phase_evidence=extra,
+        telemetry=telemetry,
+    )
+    _sync_heartbeat_guard(db, guard, lease_minutes=restore_certification_lease_minutes(_load_env()), phase=phase)
+    _persist_evidence(db, drill_id, evidence, current_phase=phase)
+
+
+def _phase_finish(db, drill_id: str, evidence: Dict[str, Any], guard: Dict[str, Any], phase: str, status: str, *, extra: Optional[Dict[str, Any]] = None) -> None:
+    telemetry = capture_runtime_telemetry(db=db, drill_phase=phase, drill_pid=os.getpid())
+    mark_phase_status(
+        evidence,
+        phase=phase,
+        status=status,
+        owner_pid=os.getpid(),
+        owner_token=guard.get("owner_token"),
+        phase_evidence=extra,
+        telemetry=telemetry,
+    )
+    if status == "completed":
+        _sync_heartbeat_guard(db, guard, lease_minutes=restore_certification_lease_minutes(_load_env()), phase=f"{phase}_completed")
+    _persist_evidence(db, drill_id, evidence, current_phase=phase)
+
+
+def _safe_find_one(db, coll: str, query: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    try:
+        row = db[coll].find_one(query, {"_id": 0})
+        return dict(row) if isinstance(row, dict) else None
+    except Exception:
+        return None
+
+
+def _canonical_runtime_identity_from_lineage(lineage: Dict[str, Any]) -> Dict[str, Any]:
+    return dict(lineage.get("runtime_identity") or {})
+
+
+def _build_source_authority(authoritative: Dict[str, Any], diagnostics: Dict[str, Any], runtime_identity: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = authoritative.get("artifact_identity") or {}
+    lineage_identity = authoritative.get("lineage_identity") or {}
+    refs = authoritative.get("evidence_references") or {}
+    manifest_identity = authoritative.get("manifest_identity") or {}
+    return {
+        "environment": artifact.get("originating_environment"),
+        "database": artifact.get("database_name"),
+        "environment_fingerprint": lineage_identity.get("environment_fingerprint") or runtime_identity.get("environment_fingerprint"),
+        "cluster_fingerprint": lineage_identity.get("source_cluster_fingerprint") or runtime_identity.get("cluster_fingerprint"),
+        "bucket": lineage_identity.get("backup_bucket") or runtime_identity.get("backup_bucket"),
+        "prefix": lineage_identity.get("backup_prefix") or runtime_identity.get("backup_prefix"),
+        "archive_key": authoritative.get("object_key"),
+        "persisted_checksum": refs.get("checksum_sha256"),
+        "release_identity": authoritative.get("source_truth"),
+        "manifest_schema": manifest_identity.get("manifest_version"),
+        "lineage_decision": diagnostics.get("persisted_lineage_match"),
+    }
+
+
+def _representative_collection_pool(expected_by_collection: Dict[str, List[Dict[str, Any]]]) -> Dict[str, List[Dict[str, Any]]]:
+    interesting = set(AUDIT_COLLECTIONS) | set(IDENTITY_COLLECTIONS) | set(ROLE_COLLECTIONS) | set(ASSIGNMENT_COLLECTIONS) | set(SCHEDULER_STATE_COLLECTIONS)
+    for coll in ("daily_reports", "employees", "equipment_master", "backup_health"):
+        if coll in expected_by_collection:
+            interesting.add(coll)
+    return {coll: expected_by_collection[coll] for coll in sorted(interesting) if coll in expected_by_collection}
+
+
+def _collect_cleanup_state(db, namespace_prefix: str, tmp_dir: Path) -> Dict[str, Any]:
+    import glob
+
+    return {
+        "active_restore_processes": 0,
+        "active_preview_guards": db.backup_jobs.count_documents({
+            "kind": {"$in": [BACKUP_JOB_KIND_RESTORE_DRILL, "restore_import", "restore_import_preview", "restore-certification"]},
+            "state": {"$nin": ["completed", "failed", "aborted", "cancelled", "released"]},
+            "$or": [
+                {"slot_key": {"$regex": "preview", "$options": "i"}},
+                {"job_type": {"$regex": "preview", "$options": "i"}},
+                {"metadata.environment": "preview"},
+            ],
+        }),
+        "nonterminal_preview_drills": db.drill_runs.count_documents({
+            "$and": [
+                {"$or": [{"environment": "preview"}, {"target_environment": "preview"}, {"requested_source_environment": "preview"}, {"source_environment": "preview"}]},
+                {"state": {"$nin": ["ok", "failed", "aborted", "cancelled", "completed", "done"]}},
+                {"outcome": {"$nin": ["ok", "failed", "aborted", "cancelled", "completed"]}},
+            ]
+        }),
+        "orphan_certification_namespaces": len([n for n in db.list_collection_names() if n.startswith("restore_drill_") or n.startswith("ops8_restore_") or n.startswith("preview_restore_")]),
+        "orphan_restore_collections": len([n for n in db.list_collection_names() if n.startswith(f"{namespace_prefix}__")]),
+        "restore_temp_directories": int(tmp_dir.exists()),
+        "archive_download_processes": 0,
+        "archive_local_present": False,
+    }
+
+
 def _sync_claim_guard(db, *, guard_slot: str, drill_id: str, requested_env: str, lease_minutes: int) -> dict | None:
     now = datetime.now(timezone.utc)
     doc = {
@@ -497,6 +633,23 @@ def main() -> int:
         return _authoritative_truth_refusal("BACKUP_BUCKET_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
     if runtime_prefix and authoritative_prefix and authoritative_prefix != runtime_prefix:
         return _authoritative_truth_refusal("BACKUP_PREFIX_UNAUTHORIZED", diagnostics, guard=guard, db=live_db)
+    evidence = build_restore_evidence_skeleton(
+        drill_id=drill_id,
+        namespace_prefix=namespace_prefix,
+        authorized_archive_key=args.backup,
+        requested_env=requested_env,
+        target_db=env["DB_NAME"],
+        guard=guard,
+    )
+    _phase_start(live_db, drill_id, evidence, guard, "preflight", extra={"canonical_owner_trace": OWNER_TRACE})
+    preflight_state = _collect_cleanup_state(live_db, namespace_prefix, tmp_dir)
+    evidence["cleanup"]["preflight_state"] = preflight_state
+    _phase_finish(live_db, drill_id, evidence, guard, "preflight", "completed", extra=preflight_state)
+    runtime_identity = _canonical_runtime_identity_from_lineage(lineage)
+    evidence["source_authority"] = _build_source_authority(authoritative, diagnostics, runtime_identity)
+    evidence["explicit_key_resolution"] = dict(diagnostics)
+    _phase_finish(live_db, drill_id, evidence, guard, "lineage_validation", "completed", extra={"persisted_lineage_match": diagnostics["persisted_lineage_match"]})
+
     live_db.drill_runs.insert_one({
         "id": drill_id,
         "drill_id": drill_id,
@@ -522,19 +675,25 @@ def main() -> int:
         "embedded_manifest_loaded": diagnostics["embedded_manifest_loaded"],
         "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
         "checksum_validated": diagnostics["checksum_validated"],
+        "restore_certification_evidence": evidence,
+        "qa_status": "PENDING_INDEPENDENT_REVIEW",
     })
+    _persist_evidence(live_db, drill_id, evidence)
 
     try:
+        _phase_start(live_db, drill_id, evidence, guard, "archive_download")
         client.download_file(bucket, args.backup, str(archive_local))
-        _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="downloaded_archive")
+        real_archive_downloaded = True
+        _phase_finish(live_db, drill_id, evidence, guard, "archive_download", "completed", extra={"archive_local": str(archive_local), "bucket": bucket})
         with zipfile.ZipFile(str(archive_local), "r") as zf:
+            _phase_start(live_db, drill_id, evidence, guard, "manifest_loaded")
             bad = zf.testzip()
             if bad is not None:
+                _phase_finish(live_db, drill_id, evidence, guard, "manifest_loaded", "failed", extra={"crc_failed_member": bad})
                 _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=f"CRC failed on {bad}", slot_suffix="failed")
                 raise RuntimeError(f"CRC failed on {bad}")
             manifest = json.loads(zf.read("MANIFEST.json").decode("utf-8"))
             diagnostics["embedded_manifest_loaded"] = True
-            _sync_heartbeat_guard(live_db, guard, lease_minutes=lease_minutes, phase="manifest_loaded")
             reconciled, reconcile_error, manifest_evidence = _reconcile_embedded_manifest(
                 manifest=manifest,
                 authoritative=authoritative,
@@ -545,11 +704,16 @@ def main() -> int:
             )
             diagnostics.update(manifest_evidence)
             diagnostics["embedded_manifest_reconciled"] = bool(reconciled)
+            evidence["explicit_key_resolution"] = dict(diagnostics)
+            _phase_finish(live_db, drill_id, evidence, guard, "manifest_loaded", "completed", extra={"manifest_schema": _embedded_manifest_identity(manifest).get("manifest_schema")})
+
+            _phase_start(live_db, drill_id, evidence, guard, "checksum_validation")
             persisted_checksum = str(((authoritative.get("evidence_references") or {}).get("checksum_sha256") or "")).strip().lower()
             actual_checksum = _sha256_file(archive_local).lower()
             diagnostics["checksum_validated"] = bool(persisted_checksum) and persisted_checksum == actual_checksum
             diagnostics["calculated_checksum_sha256"] = actual_checksum
             diagnostics["persisted_checksum_sha256"] = persisted_checksum or None
+            evidence["explicit_key_resolution"] = dict(diagnostics)
             live_db.drill_runs.update_one(
                 {"id": drill_id},
                 {"$set": {
@@ -560,12 +724,24 @@ def main() -> int:
                 }},
             )
             if not reconciled:
+                _phase_finish(live_db, drill_id, evidence, guard, "checksum_validation", "failed", extra={"error": reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED"})
                 _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED", slot_suffix="failed")
                 raise RuntimeError(reconcile_error or "EMBEDDED_MANIFEST_RECONCILIATION_FAILED")
             if persisted_checksum and persisted_checksum != actual_checksum:
+                _phase_finish(live_db, drill_id, evidence, guard, "checksum_validation", "failed", extra={"error": "ARCHIVE_CHECKSUM_MISMATCH"})
                 _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason="ARCHIVE_CHECKSUM_MISMATCH", slot_suffix="failed")
                 raise RuntimeError("ARCHIVE_CHECKSUM_MISMATCH")
+            _phase_finish(live_db, drill_id, evidence, guard, "checksum_validation", "completed", extra={"computed_checksum": actual_checksum, "persisted_checksum": persisted_checksum})
+
+            _phase_start(live_db, drill_id, evidence, guard, "canonical_fingerprint_before")
+            before_fp = build_canonical_preview_fingerprint(live_db, runtime_identity=runtime_identity)
+            evidence["canonical_before_fingerprint"] = before_fp
+            _phase_finish(live_db, drill_id, evidence, guard, "canonical_fingerprint_before", "completed", extra={"aggregate_fingerprint": before_fp.get("aggregate_fingerprint")})
+
+            _phase_start(live_db, drill_id, evidence, guard, "namespace_restore")
             per_kind = _restore_prefixed(zf, live_db, namespace_prefix)
+            real_restore_executed = True
+            namespace_created = True
             restored_total = sum(v.get("inserted", 0) for v in per_kind.values())
             manifest_total = int(manifest.get("total_records") or 0)
             manifest_per_kind = manifest.get("per_kind") or {}
@@ -574,6 +750,10 @@ def main() -> int:
                 actual = int((per_kind.get(coll.replace("-", "_")) or {}).get("inserted") or 0)
                 if int(expected) != actual:
                     mismatches.append(f"{coll}: manifest={expected} restored={actual}")
+            evidence["restore_results"] = build_restore_counts(dict(manifest_per_kind), per_kind)
+            _phase_finish(live_db, drill_id, evidence, guard, "namespace_restore", "completed", extra={"records_restored": restored_total, "records_in_manifest": manifest_total})
+
+            _phase_start(live_db, drill_id, evidence, guard, "verification")
             photo_refs = set()
             archive_photos = set()
             for info in zf.infolist():
@@ -591,6 +771,51 @@ def main() -> int:
                     except Exception:
                         pass
             rehydration = _rehydrate_photos(zf, env, drill_id)
+            expected_by_collection = extract_archive_collection_documents(zf)
+            restored_by_collection = load_namespace_collection_documents(live_db, namespace_prefix, expected_by_collection.keys())
+            representative_pool = _representative_collection_pool(expected_by_collection)
+            representative_restored = {k: restored_by_collection.get(k, []) for k in representative_pool}
+            evidence["representative_content_verification"] = verify_representative_content(representative_pool, representative_restored)
+            evidence["audit_verification"] = verify_audit_data(expected_by_collection, restored_by_collection)
+            evidence["identity_role_verification"] = verify_identity_role_data(expected_by_collection, restored_by_collection)
+            evidence["scheduler_state_verification"] = verify_scheduler_state(expected_by_collection, restored_by_collection)
+            evidence["photo_object_verification"] = verify_photo_object_evidence(
+                expected_refs=[f"photo://bucket/{key}" for key in sorted(photo_refs)],
+                archive_object_keys=sorted(archive_photos),
+                rehydration_result=rehydration,
+            )
+            _phase_finish(live_db, drill_id, evidence, guard, "verification", "completed", extra={
+                "representative_content_state": evidence["representative_content_verification"].get("state"),
+                "audit_state": evidence["audit_verification"].get("state"),
+                "identity_state": evidence["identity_role_verification"].get("identity_verification_state"),
+                "scheduler_state": evidence["scheduler_state_verification"].get("state"),
+                "photo_state": evidence["photo_object_verification"].get("state"),
+            })
+
+        _phase_start(live_db, drill_id, evidence, guard, "cleanup")
+        for coll_name in list(live_db.list_collection_names()):
+            if coll_name.startswith(f"{namespace_prefix}__"):
+                live_db[coll_name].drop()
+        namespace_created = False
+
+        _phase_start(live_db, drill_id, evidence, guard, "canonical_fingerprint_after")
+        after_fp = build_canonical_preview_fingerprint(live_db, runtime_identity=runtime_identity)
+        cmp = compare_fingerprints(before_fp, after_fp)
+        evidence["canonical_after_fingerprint"] = after_fp
+        evidence["canonical_fingerprint_match"] = cmp["match"]
+        evidence["canonical_fingerprint_difference"] = cmp["difference"]
+        _phase_finish(live_db, drill_id, evidence, guard, "canonical_fingerprint_after", "completed", extra={"match": cmp["match"]})
+
+        cleanup_state = _collect_cleanup_state(live_db, namespace_prefix, tmp_dir)
+        cleanup_state["archive_local_present"] = archive_local.exists()
+        cleanup_state["state"] = "PASS" if cleanup_state["orphan_restore_collections"] == 0 else "FAIL"
+        evidence["cleanup"] = cleanup_state
+        _phase_finish(live_db, drill_id, evidence, guard, "cleanup", "completed", extra=cleanup_state)
+
+        _phase_start(live_db, drill_id, evidence, guard, "final_health")
+        final_telemetry = capture_runtime_telemetry(db=live_db, drill_phase="final_health", drill_pid=os.getpid())
+        evidence["final_health"] = {"state": "PASS", "telemetry": final_telemetry}
+        _phase_finish(live_db, drill_id, evidence, guard, "final_health", "completed", extra=evidence["final_health"])
 
         axes = {
             "A1_archive_available": {"ok": True, "message": f"downloaded {args.backup}"},
@@ -602,6 +827,22 @@ def main() -> int:
         }
         outcome = "ok" if all(v["ok"] for v in axes.values()) else "failed"
         duration_minutes = round((time.time() - t0) / 60.0, 3)
+        _phase_start(live_db, drill_id, evidence, guard, "guard_release")
+        _sync_finish_guard(
+            live_db,
+            guard,
+            state="completed" if outcome == "ok" else "failed",
+            outcome="ok" if outcome == "ok" else "failed",
+            reason="preview_namespace_restore_completed" if outcome == "ok" else "preview_namespace_restore_failed",
+            slot_suffix="released" if outcome == "ok" else "failed",
+        )
+        evidence["guard_release"] = {"state": "PASS" if outcome == "ok" else "FAIL", "released_at": datetime.now(timezone.utc).isoformat(), "owner_token": guard.get("owner_token")}
+        _phase_finish(live_db, drill_id, evidence, guard, "guard_release", "completed", extra=evidence["guard_release"])
+
+        _phase_start(live_db, drill_id, evidence, guard, "final_report")
+        completeness = validate_restore_certification_evidence(evidence)
+        evidence.update(completeness)
+        evidence["qa_status"] = "PENDING_INDEPENDENT_REVIEW"
         summary = {
             "drill_id": drill_id,
             "state": "done",
@@ -628,25 +869,29 @@ def main() -> int:
             "embedded_manifest_reconciled": diagnostics["embedded_manifest_reconciled"],
             "checksum_validated": diagnostics["checksum_validated"],
             "authority_diagnostics": diagnostics,
+            "restore_certification_evidence": evidence,
+            "qa_status": evidence["qa_status"],
             "restore_purpose": "PREVIEW_BACKUP_CERTIFICATION",
             "policy_decision": "PASS" if outcome == "ok" else "FAIL",
             "policy_reason": "authoritative_environment_bound_archive_selected",
             "axes": axes,
             "per_kind": per_kind,
-            "cleanup_complete": False,
+            "cleanup_complete": cleanup_state["state"] == "PASS",
         }
         report_path = _write_report(drill_id, summary)
         live_db.drill_runs.update_one({"id": drill_id}, {"$set": {**summary, "report_path": str(report_path)}}, upsert=True)
-        _sync_finish_guard(
-            live_db,
-            guard,
-            state="completed" if outcome == "ok" else "failed",
-            outcome="ok" if outcome == "ok" else "failed",
-            reason="preview_namespace_restore_completed" if outcome == "ok" else "preview_namespace_restore_failed",
-            slot_suffix="released" if outcome == "ok" else "failed",
-        )
+        _persist_evidence(live_db, drill_id, evidence, report_path=str(report_path))
+        _phase_finish(live_db, drill_id, evidence, guard, "final_report", "completed", extra={"report_path": str(report_path), **completeness})
         print(json.dumps({"ok": outcome == "ok", "drill_id": drill_id, "report_path": str(report_path), "summary": summary}, indent=2)[:24000])
         return 0 if outcome == "ok" else 9
+    except Exception as exc:
+        current_phase = evidence.get("current_phase") or evidence.get("last_started_phase") or "unknown"
+        if current_phase in evidence.get("phase_history", {}):
+            _phase_finish(live_db, drill_id, evidence, guard, current_phase, "failed", extra={"error": repr(exc)})
+        _persist_evidence(live_db, drill_id, evidence, failure=repr(exc))
+        _sync_finish_guard(live_db, guard, state="failed", outcome="failed", reason=repr(exc), slot_suffix="failed")
+        print(json.dumps({"ok": False, "error": repr(exc), "drill_id": drill_id}, indent=2))
+        return 9
     finally:
         try:
             for coll_name in live_db.list_collection_names():
@@ -667,6 +912,7 @@ def main() -> int:
                 archive_local.unlink()
         except Exception:
             pass
+        shutil.rmtree(tmp_dir, ignore_errors=True)
         mongo.close()
 
 

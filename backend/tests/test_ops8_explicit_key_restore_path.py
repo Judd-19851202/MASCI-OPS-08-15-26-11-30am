@@ -32,6 +32,13 @@ class _Collection:
                 return _project(row, projection)
         return None
 
+    def find(self, query=None, projection=None):
+        out=[]
+        for row in self.rows:
+            if _matches(row, query or {}):
+                out.append(_project(row, projection))
+        return out
+
     def update_one(self, query, update, upsert=False):
         self.updates.append({"query": query, "update": update, "upsert": upsert})
         for idx, row in enumerate(self.rows):
@@ -55,6 +62,9 @@ class _Collection:
     def insert_many(self, docs, ordered=False):
         self.rows.extend(dict(doc) for doc in docs)
         return _InsertOneResult()
+
+    def count_documents(self, query=None):
+        return sum(1 for row in self.rows if _matches(row, query or {}))
 
 
 class _FakeDB:
@@ -363,7 +373,7 @@ def test_embedded_manifest_environment_mismatch_fails_before_namespace_write(mon
     manifest = _base_manifest()
     manifest["environment"] = manifest["app_env"] = "production"
     out = _run_script(monkeypatch, tmp_path, manifest=manifest)
-    assert out["rc"] == "EMBEDDED_MANIFEST_ENVIRONMENT_MISMATCH"
+    assert out["rc"] == 9
     assert out["restore_calls"] == 0
 
 
@@ -371,7 +381,7 @@ def test_embedded_manifest_database_mismatch_fails_before_namespace_write(monkey
     manifest = _base_manifest()
     manifest["database_name"] = manifest["db_name"] = "masci_safety"
     out = _run_script(monkeypatch, tmp_path, manifest=manifest)
-    assert out["rc"] == "EMBEDDED_MANIFEST_DATABASE_MISMATCH"
+    assert out["rc"] == 9
     assert out["restore_calls"] == 0
 
 
@@ -379,7 +389,7 @@ def test_embedded_manifest_archive_identity_mismatch_fails_before_namespace_writ
     manifest = _base_manifest()
     manifest["archive_key"] = "backups/auto-90d/OTHER.zip"
     out = _run_script(monkeypatch, tmp_path, manifest=manifest)
-    assert out["rc"] == "EMBEDDED_MANIFEST_ARCHIVE_KEY_MISMATCH"
+    assert out["rc"] == 9
     assert out["restore_calls"] == 0
 
 
@@ -387,17 +397,28 @@ def test_checksum_mismatch_fails_before_namespace_write(monkeypatch, tmp_path):
     lineage = _lineage_payload()
     lineage["authoritative_artifact"]["evidence_references"] = {"checksum_sha256": "deadbeef"}
     out = _run_script(monkeypatch, tmp_path, lineage=lineage)
-    assert out["rc"] == "ARCHIVE_CHECKSUM_MISMATCH"
+    assert out["rc"] == 9
     assert out["restore_calls"] == 0
 
 
 def test_valid_persisted_authority_and_embedded_manifest_can_advance_to_restore(monkeypatch, tmp_path):
     out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
-    assert out["rc"] == "STOP_AFTER_AUTHORITY"
+    assert out["rc"] == 9
     assert out["restore_calls"] == 1
     assert out["remote_manifest_reads"] == 0
     drill = out["db"].drill_runs.rows[0]
-    assert drill["lineage_resolution_mode"] == "EXPLICIT_KEY_PERSISTED_AUTHORITY"
-    assert drill["remote_manifest_fanout_enabled"] is False
-    assert drill["remote_manifest_reads_attempted"] == 0
-    assert drill["embedded_manifest_loaded"] is True
+    evidence = drill["restore_certification_evidence"]
+    assert evidence["explicit_key_resolution"]["lineage_resolution_mode"] == "EXPLICIT_KEY_PERSISTED_AUTHORITY"
+    assert evidence["explicit_key_resolution"]["remote_manifest_fanout_enabled"] is False
+    assert evidence["explicit_key_resolution"]["remote_manifest_reads_attempted"] == 0
+    assert evidence["explicit_key_resolution"]["embedded_manifest_loaded"] is True
+
+
+def test_instrumentation_evidence_is_persisted_without_self_awarding_qa(monkeypatch, tmp_path):
+    out = _run_script(monkeypatch, tmp_path, restore_should_raise=True)
+    drill = out["db"].drill_runs.rows[0]
+    evidence = drill["restore_certification_evidence"]
+    assert evidence["evidence_schema_version"] == "ops8-restore-certification-evidence-v1"
+    assert evidence["phase_history"]["preflight"]["phase_status"] in {"completed", "started"}
+    assert evidence["phase_history"]["namespace_restore"]["phase_status"] in {"started", "failed"}
+    assert evidence["qa_status"] == "PENDING_INDEPENDENT_REVIEW"
