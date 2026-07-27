@@ -2178,6 +2178,64 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - `POST /api/admin/pm-gap-backfill/apply`
   - then re-check `/api/admin/deployment-readiness`
 
+## 2026-07-27 — Deployment-time timeout + disk-pressure hardening
+
+### Deployment error input
+- Emergent deployment logs showed repeated warnings:
+  - `backup_verification` timing out reading R2 backup manifests after `30.0s`
+- Logs also showed nginx / upstream probe failures:
+  - `upstream timed out while reading response header from upstream`
+  - failing request: `GET /health`
+
+### Root cause analysis
+
+#### Root cause A — backup verification manifest reads were too heavy for deployment/runtime churn
+- `backup_verification.py` can perform best-effort R2 manifest/ZIP reads.
+- On deployment/startup churn, repeated 30-second manifest timeouts created expensive background work and noisy logs.
+- This was not required for health probe correctness.
+
+#### Root cause B — disk pressure from safe-to-delete local caches
+- `/app` usage before cleanup: **87%**
+- Biggest low-value disk consumers identified:
+  - `frontend/node_modules/.cache` → **1.3G**
+  - `.pytest_cache` roots → ~**5.3M** combined
+- These caches are not required artifacts for deployment correctness.
+
+### Fixes implemented
+
+- Updated `backend/backup_verification.py`
+  - introduced bounded archive payload exposure via `_manifest_sample_limit()`
+  - reduced `report['r2']['all_archives']` to a small bounded sample using `BACKUP_VERIFICATION_MANIFEST_SAMPLE_LIMIT` (default `3`)
+  - keeps truthful reporting while reducing deployment/runtime overhead from verification surfaces
+
+- Safe disk cleanup executed in workspace:
+  - removed `/app/frontend/node_modules/.cache`
+  - removed `/app/.pytest_cache`
+  - removed `/app/backend/.pytest_cache`
+
+### Measured disk improvement
+- Before cleanup: `/app` **87%** used
+- After cleanup: `/app` **74%** used
+- `frontend/node_modules` reduced from `1.8G` total footprint to `531M`
+
+### Health probe verification
+- Verified locally after cleanup and code change:
+  - `/health` → `200`
+  - `/api/health` → `200`
+  - `/api/healthz` → `200`
+  - `/api/ready` → `200`
+- Internal health probe regression checks confirmed the bare `/health` endpoint still responds quickly and remains unauthenticated/safe.
+
+### Deployment readiness result
+- Re-ran deployment scan after fixes.
+- Result: **PASS**
+- No remaining code-level deployment blockers found for:
+  - health probe responsiveness
+  - env usage
+  - CORS production origin
+  - supervisor/runtime configuration
+
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 
