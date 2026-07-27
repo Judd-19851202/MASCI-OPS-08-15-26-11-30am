@@ -33,6 +33,11 @@ from lib.runtime_identity import (
     is_read_only_validation_active_bundle,
     runtime_identity_public_payload,
 )
+from lib.backup_paths import (
+    checksum_sidecar_key_for_archive,
+    configured_backup_prefix,
+    manifest_sidecar_key_for_archive,
+)
 from lib.database_authority import (
     build_runtime_database_authority,
     create_async_runtime_client,
@@ -65,7 +70,7 @@ def _canonical_backup_bucket() -> str:
 
 
 def _canonical_backup_prefix() -> str:
-    return (os.environ.get("BACKUP_PREFIX") or os.environ.get("R2_BACKUP_PREFIX") or os.environ.get("S3_BACKUP_PREFIX") or "backups/auto-90d/").strip() or "backups/auto-90d/"
+    return configured_backup_prefix(os.environ)
 
 
 def _canonical_cluster_fingerprint() -> Optional[str]:
@@ -8590,6 +8595,7 @@ async def _record_backup_health(
     notification_message_id: Optional[str] = None,
     archive_identifier: Optional[str] = None,
     audit_reference: Optional[str] = None,
+    archive_lineage: Optional[dict] = None,
 ) -> None:
     """Append a row to ``backup_health``. Best-effort — a Mongo write
     failure here MUST NOT block the backup itself, so we swallow errors."""
@@ -8613,6 +8619,8 @@ async def _record_backup_health(
             "archive_identifier": archive_identifier or filename,
             "audit_reference": audit_reference,
         }
+        if archive_lineage and isinstance(archive_lineage, dict):
+            doc["archive_lineage"] = dict(archive_lineage)
         await db.backup_health.insert_one(dict(doc))
         # Mongo mutates the dict in place to add _id — we don't care, doc is
         # not returned.
@@ -9253,6 +9261,7 @@ def _build_complete_archive_on_disk(
     return {
         "size_bytes": final_size,
         "total_records": total_records,
+        "manifest": manifest,
         "per_kind": per_kind,
         "per_collection_record_counts": per_collection_record_counts,
         "expected_collections": sorted(expected_collections),
@@ -9586,6 +9595,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         from photo_storage import (
             is_configured as _ps_cfg,
             presigned_get_url_for_key,
+            upload_bytes,
             upload_local_file,
         )
     except Exception:  # noqa: BLE001
@@ -9672,8 +9682,21 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         # later with explicit operator approval. See R2_RETENTION_AUDIT.md.
         stage["name"] = "checksum"
         archive_sha256 = await _sha256_file(out)
+        manifest_payload = stats.get("manifest") or {}
+        manifest_key = manifest_sidecar_key_for_archive(r2_key)
+        checksum_key = checksum_sidecar_key_for_archive(r2_key)
         stage["name"] = "upload"
         await upload_local_file(out, key=r2_key, content_type="application/zip")
+        await upload_bytes(
+            json.dumps(manifest_payload, ensure_ascii=False, sort_keys=True).encode("utf-8"),
+            key=manifest_key,
+            content_type="application/json",
+        )
+        await upload_bytes(
+            f"{archive_sha256}  {filename}\n".encode("utf-8"),
+            key=checksum_key,
+            content_type="text/plain",
+        )
         logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
 
         # Generate a 7-day presigned URL the admin can click from email
@@ -9697,6 +9720,8 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             "backup_bucket": _canonical_backup_bucket(),
             "backup_prefix": _canonical_backup_prefix(),
             "archive_key": r2_key,
+            "manifest_key": manifest_key,
+            "checksum_key": checksum_key,
             "archive_size_bytes": int(out.stat().st_size),
             "manifest_identity": {
                 "manifest_name": "MANIFEST.json",
@@ -9728,6 +9753,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             notification_reason="complete_r2_archive_has_no_direct_email_policy",
             archive_identifier=filename,
             audit_reference=f"backup_health:{filename}",
+            archive_lineage=lineage,
             error=_json.dumps({"lineage": lineage})[:1500],
         )
 

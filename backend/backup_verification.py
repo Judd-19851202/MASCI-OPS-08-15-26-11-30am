@@ -43,6 +43,7 @@ from typing import Any, Dict, List, Optional
 
 from operational_footer import render_operational_footer_html
 from lib.archive_lineage import build_canonical_archive_lineage, public_archive_lineage_payload, threshold_inventory
+from lib.backup_paths import backup_prefix_search_order, checksum_sidecar_key_for_archive, configured_backup_prefix, manifest_sidecar_key_for_archive
 from lib.backup_runtime import backup_slot_key_for_day, claim_backup_job, complete_backup_job, fail_backup_job, list_backup_jobs, start_backup_job
 from lib.ots_truth import OBSERVED, VALIDATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
@@ -225,7 +226,7 @@ def _hours_since(iso_str: str) -> Optional[float]:
 # ─────────────────────────────────────────────────────────────────────
 # R2 archive enumeration
 # ─────────────────────────────────────────────────────────────────────
-async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, Any]]:
+async def list_r2_backup_archives(prefix: Optional[str] = None) -> List[Dict[str, Any]]:
     """List every object under r2://<bucket>/backups/. Returns
     [{key, size_bytes, last_modified_iso}], newest first. Empty list when
     R2 is not configured."""
@@ -233,34 +234,36 @@ async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, An
     if s3 is None or not bucket:
         return []
     out: List[Dict[str, Any]] = []
+    prefixes = backup_prefix_search_order(_runtime_env().get("APP_ENV"), explicit_prefix=(prefix or configured_backup_prefix(_runtime_env())))
     try:
         # boto3 list_objects_v2 is sync — wrap in to_thread. Paginate by
         # ContinuationToken so we handle >1000 objects defensively.
-        token: Optional[str] = None
-        while True:
-            kwargs: Dict[str, Any] = {"Bucket": bucket, "Prefix": prefix, "MaxKeys": 1000}
-            if token:
-                kwargs["ContinuationToken"] = token
-            resp = await asyncio.wait_for(
-                asyncio.to_thread(s3.list_objects_v2, **kwargs),
-                timeout=R2_LIST_TIMEOUT_SECONDS,
-            )
-            for it in resp.get("Contents") or []:
-                lm = it.get("LastModified")
-                key = it.get("Key")
-                out.append({
-                    "key": key,
-                    "filename": (str(key).rsplit("/", 1)[-1] if key else None),
-                    "size_bytes": int(it.get("Size") or 0),
-                    "last_modified_iso": lm.isoformat() if lm else None,
-                    "etag": (it.get("ETag") or "").strip('"') or None,
-                })
-            if resp.get("IsTruncated"):
-                token = resp.get("NextContinuationToken")
-                if not token:
+        for resolved_prefix in prefixes:
+            token: Optional[str] = None
+            while True:
+                kwargs: Dict[str, Any] = {"Bucket": bucket, "Prefix": resolved_prefix, "MaxKeys": 1000}
+                if token:
+                    kwargs["ContinuationToken"] = token
+                resp = await asyncio.wait_for(
+                    asyncio.to_thread(s3.list_objects_v2, **kwargs),
+                    timeout=R2_LIST_TIMEOUT_SECONDS,
+                )
+                for it in resp.get("Contents") or []:
+                    lm = it.get("LastModified")
+                    key = it.get("Key")
+                    out.append({
+                        "key": key,
+                        "filename": (str(key).rsplit("/", 1)[-1] if key else None),
+                        "size_bytes": int(it.get("Size") or 0),
+                        "last_modified_iso": lm.isoformat() if lm else None,
+                        "etag": (it.get("ETag") or "").strip('"') or None,
+                    })
+                if resp.get("IsTruncated"):
+                    token = resp.get("NextContinuationToken")
+                    if not token:
+                        break
+                else:
                     break
-            else:
-                break
     except asyncio.TimeoutError:
         logger.warning("[verify] R2 list_objects_v2 timed out after %.1fs", R2_LIST_TIMEOUT_SECONDS)
         return out
@@ -282,6 +285,47 @@ async def read_r2_backup_manifest(key: str) -> Optional[Dict[str, Any]]:
     if s3 is None or not bucket:
         return None
 
+    sidecar_manifest_key = manifest_sidecar_key_for_archive(key)
+    sidecar_checksum_key = checksum_sidecar_key_for_archive(key)
+
+    def _read_sidecars() -> Optional[Dict[str, Any]]:
+        manifest_obj = s3.get_object(Bucket=bucket, Key=sidecar_manifest_key)
+        manifest = json.loads(manifest_obj["Body"].read().decode("utf-8"))
+        head = s3.head_object(Bucket=bucket, Key=key)
+        checksum_sha256 = head.get("ChecksumSHA256")
+        checksum_text = None
+        checksum_obj = None
+        try:
+            checksum_obj = s3.get_object(Bucket=bucket, Key=sidecar_checksum_key)
+            checksum_text = checksum_obj["Body"].read().decode("utf-8").strip() or None
+        except Exception:
+            checksum_text = None
+        etag = (head.get("ETag") or "").strip('"') or None
+        last_modified = head.get("LastModified")
+        return {
+            "key": key,
+            "manifest_name": sidecar_manifest_key.rsplit("/", 1)[-1],
+            "manifest_key": sidecar_manifest_key,
+            "checksum_key": sidecar_checksum_key,
+            "manifest": manifest,
+            "content_length": int(head.get("ContentLength") or 0),
+            "etag": etag,
+            "last_modified_iso": (
+                last_modified.astimezone(timezone.utc).isoformat()
+                if isinstance(last_modified, datetime)
+                else None
+            ),
+            "checksum_sha256": checksum_sha256,
+            "checksum_type": head.get("ChecksumType"),
+            "checksum_sidecar": checksum_text,
+            "read_mode": "SIDECAR",
+        }
+
+    try:
+        return await asyncio.wait_for(asyncio.to_thread(_read_sidecars), timeout=R2_MANIFEST_TIMEOUT_SECONDS)
+    except Exception:
+        pass
+
     def _read() -> Optional[Dict[str, Any]]:
         head = s3.head_object(Bucket=bucket, Key=key)
         size = int(head.get("ContentLength") or 0)
@@ -300,6 +344,8 @@ async def read_r2_backup_manifest(key: str) -> Optional[Dict[str, Any]]:
             return {
                 "key": key,
                 "manifest_name": manifest_name,
+                "manifest_key": None,
+                "checksum_key": None,
                 "manifest": manifest,
                 "content_length": size,
                 "etag": etag,
@@ -310,6 +356,8 @@ async def read_r2_backup_manifest(key: str) -> Optional[Dict[str, Any]]:
                 ),
                 "checksum_sha256": head.get("ChecksumSHA256"),
                 "checksum_type": head.get("ChecksumType"),
+                "checksum_sidecar": None,
+                "read_mode": "INLINE_ZIP",
             }
 
     try:

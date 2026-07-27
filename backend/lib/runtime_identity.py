@@ -5,6 +5,7 @@ import os
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional
+from lib.backup_paths import canonical_backup_prefix_for_env, configured_backup_prefix
 from urllib.parse import parse_qsl, unquote, urlparse
 
 
@@ -351,7 +352,7 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
     release_source_hash = _safe_text(str(release.get("source_hash") or ""))
     source_identity = release_source_hash or release_commit or "unknown-release"
     backup_bucket = _safe_text(source.get("BACKUP_BUCKET") or source.get("R2_BUCKET") or source.get("S3_BUCKET"))
-    backup_prefix = _safe_text(source.get("BACKUP_PREFIX") or source.get("R2_BACKUP_PREFIX") or source.get("S3_BACKUP_PREFIX") or "backups/auto-90d/")
+    backup_prefix = _safe_text(configured_backup_prefix(source))
     environment_fingerprint = build_environment_authority_fingerprint(
         environment_name=environment_name,
         cluster_fingerprint=cluster_fingerprint,
@@ -409,6 +410,10 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
     if not identity.db_name:
         errors.append("missing_db_name")
         mismatch_category = mismatch_category or "DB_NAME_MISSING"
+    expected_backup_prefix = canonical_backup_prefix_for_env(identity.app_env)
+    if identity.backup_prefix and identity.backup_prefix != expected_backup_prefix:
+        errors.append("backup_prefix_unapproved_for_environment")
+        mismatch_category = mismatch_category or "BACKUP_PREFIX_MISMATCH"
     if identity.effective_database and identity.db_name and identity.effective_database != identity.db_name:
         errors.append("path_db_mismatch")
         mismatch_category = mismatch_category or "DATABASE_NAME_MISMATCH"

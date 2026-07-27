@@ -13,6 +13,7 @@ from lib.runtime_identity import (
     ENVIRONMENT_FINGERPRINT_VERSION,
     parse_mongo_url,
 )
+from lib.backup_paths import configured_backup_prefix
 
 
 RESOLVER_VERSION = "bcss-r02-1"
@@ -115,7 +116,7 @@ def _runtime_identity(current_env: Optional[str], current_db: Optional[str]) -> 
     cluster_fingerprint = hashlib.sha256(f"cluster|{host}".encode("utf-8")).hexdigest()[:12]
     runtime_user = str(parsed.username or "").strip() or "UNRESOLVED"
     backup_bucket = str(os.environ.get("BACKUP_BUCKET") or os.environ.get("R2_BUCKET") or os.environ.get("S3_BUCKET") or "").strip() or "UNRESOLVED"
-    backup_prefix = str(os.environ.get("BACKUP_PREFIX") or os.environ.get("R2_BACKUP_PREFIX") or os.environ.get("S3_BACKUP_PREFIX") or "backups/auto-90d/").strip() or "backups/auto-90d/"
+    backup_prefix = configured_backup_prefix(os.environ)
     env_name = str(current_env or os.environ.get("APP_ENV") or "").lower() or "unknown"
     db_name = str(current_db or os.environ.get("DB_NAME") or "").strip() or "unknown"
     return {

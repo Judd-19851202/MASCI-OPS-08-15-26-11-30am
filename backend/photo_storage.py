@@ -599,6 +599,29 @@ async def upload_local_file(local_path, *, key: str, content_type: str = "applic
     return f"photo://{_bucket()}/{key}"
 
 
+async def upload_bytes(data: bytes, *, key: str, content_type: str = "application/octet-stream") -> str:
+    """Upload an in-memory object to the configured bucket.
+
+    Used for small canonical sidecar artifacts (manifest / checksum) so the
+    backup verifier can fetch direct evidence without reopening a multi-GB zip.
+    """
+    import asyncio
+
+    if not is_configured():
+        raise RuntimeError("photo_storage not configured (missing env vars)")
+    c = _client()
+    if c is None:
+        raise RuntimeError("photo_storage client failed to initialize")
+    await asyncio.to_thread(
+        c.put_object,
+        Bucket=_bucket(),
+        Key=key,
+        Body=data,
+        ContentType=content_type,
+    )
+    return f"photo://{_bucket()}/{key}"
+
+
 async def presigned_get_url_for_key(key: str, ttl_seconds: int = 7 * 24 * 3600) -> str:
     """Mint a presigned GET URL by raw key (no ``photo://`` parse). Used
     by the backup notification email to give the admin a download link
