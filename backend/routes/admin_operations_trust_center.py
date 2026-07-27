@@ -38,6 +38,11 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends
 
 from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
+from lib.email_audit_status import (
+    normalized_allowed_email_audit_statuses,
+    normalized_failure_statuses,
+    normalized_notification_attempt_statuses,
+)
 from lib.ots_truth import (
     CORRELATED,
     OBSERVED,
@@ -503,6 +508,9 @@ def _executive_narrative(
 
 def make_router(db, require_admin_only_dep) -> APIRouter:
     router = APIRouter()
+    allowed_audit_statuses = sorted(normalized_allowed_email_audit_statuses())
+    failure_statuses = sorted(normalized_failure_statuses())
+    notification_attempt_statuses = sorted(normalized_notification_attempt_statuses())
 
     @router.get("/api/admin/operations-trust-center")
     async def operations_trust_center(
@@ -541,11 +549,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         try:
             unknown_audit = await db.email_routing_audit_v2.count_documents({
                 "ts": {"$gte": since_iso},
-                "status": {"$nin": [
-                    "ok", "sent", "delivered", "failed", "skipped",
-                    "dead_letter", "dead-letter", "routed_to_dead_letter",
-                    "dry_run", "dry-run", "resolved",
-                ]},
+                "status": {"$nin": allowed_audit_statuses},
             })
         except Exception:
             unknown_audit = 0
@@ -568,10 +572,10 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         try:
             notif_total = await db.email_routing_audit_v2.count_documents({
                 "ts": {"$gte": since_iso},
-                "status": {"$in": ["sent", "delivered", "ok", "failed"]},
+                "status": {"$in": notification_attempt_statuses},
             })
             notif_failed = await db.email_routing_audit_v2.count_documents({
-                "ts": {"$gte": since_iso}, "status": "failed",
+                "ts": {"$gte": since_iso}, "status": {"$in": failure_statuses},
             })
         except Exception:
             notif_total = notif_failed = 0

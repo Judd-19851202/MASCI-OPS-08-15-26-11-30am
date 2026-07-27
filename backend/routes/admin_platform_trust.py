@@ -28,6 +28,11 @@ from fastapi import APIRouter, Depends
 
 from lib.archive_lineage import backup_recent_truth, build_canonical_archive_lineage
 from lib.canonical_truth import canonical_truth_surface
+from lib.email_audit_status import (
+    normalized_allowed_email_audit_statuses,
+    normalized_failure_statuses,
+    normalize_email_audit_status,
+)
 from lib.ots_truth import (
     CORRELATED,
     OBSERVED,
@@ -41,15 +46,13 @@ from lib.ots_truth import (
 from lib.runtime_identity import runtime_identity_public_payload
 
 
-ALLOWED_STATUSES = {
-    "sent",
-    "failed",
-    "dry_run",
-    "resolved",
-    "routed_to_dead_letter",
-    "dead_letter_unconfigured",
-    "shop_recipient_unconfigured",
-    "escalated_to_admin_dead_letter",
+ALLOWED_STATUSES = normalized_allowed_email_audit_statuses()
+FAILURE_STATUSES = normalized_failure_statuses()
+
+_PUBLIC_STATUS_LABELS = {
+    "captured_preview": "preview-captured",
+    "retryable_failure": "temporary-failure",
+    "retryable_failure_pending_retry": "temporary-failure-pending",
 }
 
 WORKFLOW_MODULES = [
@@ -101,6 +104,11 @@ def _status_to_claim(status: Any) -> str:
     if status_text == "VERIFIED":
         return VERIFIED
     return OBSERVED
+
+
+def _public_status_label(status: Any) -> str:
+    canonical = normalize_email_audit_status(status)
+    return _PUBLIC_STATUS_LABELS.get(canonical, canonical)
 
 
 def _route_truth_projection(
@@ -340,7 +348,7 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
         # 24h error count
         errors_24h = await db.email_routing_audit_v2.count_documents(
             {"ts": {"$gte": since_24h},
-             "status": {"$in": ["failed", "error"]}}
+             "status": {"$in": sorted(FAILURE_STATUSES)}}
         )
         email_routing["errors_last_24h"] = errors_24h
         if critical_empty:
@@ -357,15 +365,20 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
         ]):
             sk = r.get("_id") or ""
             if sk:
-                status_counters[sk] = int(r["n"])
+                canonical = normalize_email_audit_status(sk)
+                status_counters[canonical] = status_counters.get(canonical, 0) + int(r["n"])
         unknown_statuses = [s for s in status_counters if s not in ALLOWED_STATUSES]
         unknown_status_count = sum(status_counters[s] for s in unknown_statuses)
+        public_status_counters = {
+            _public_status_label(status): count
+            for status, count in sorted(status_counters.items())
+        }
         audit_integrity = {
-            "allowed_statuses": sorted(ALLOWED_STATUSES),
-            "observed_statuses": sorted(status_counters.keys()),
-            "unknown_statuses": unknown_statuses,
+            "allowed_statuses": [_public_status_label(status) for status in sorted(ALLOWED_STATUSES)],
+            "observed_statuses": [_public_status_label(status) for status in sorted(status_counters.keys())],
+            "unknown_statuses": [_public_status_label(status) for status in unknown_statuses],
             "unknown_status_count": unknown_status_count,
-            "status_counters": status_counters,
+            "status_counters": public_status_counters,
             "pass": not unknown_statuses,
         }
         if unknown_statuses:
@@ -442,7 +455,7 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
                 "dead_letter_24h": dead_24h,
                 "unconfigured_24h": uncfg_24h,
                 "recent_submissions_24h": recent_submissions_24h,
-                "latest_status": (latest or {}).get("status"),
+                "latest_status": _public_status_label((latest or {}).get("status")),
                 "latest_ts": (latest or {}).get("ts"),
                 "band": band,
                 "reason": reason,

@@ -388,7 +388,7 @@ async def _send_via_routing_v2(
                 "source": "transport_automation",
                 "resolved_to_count": 1,
                 "subject": (subject or "")[:240],
-                "status": "errored",
+                "status": "failed",
                 "error": str(e)[:160],
                 "calling_module": calling_module,
                 "dry_run": False, "ts": _now_iso(),

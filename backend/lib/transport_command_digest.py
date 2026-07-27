@@ -379,7 +379,7 @@ async def send_transport_command_digest(
                 "source": "transport_command_digest",
                 "resolved_to_count": 1,
                 "subject": digest["subject"][:240],
-                "status": "errored",
+                "status": "failed",
                 "error": last_error,
                 "calling_module": "transport_command_digest",
                 "dry_run": False, "ts": _now_iso(now),

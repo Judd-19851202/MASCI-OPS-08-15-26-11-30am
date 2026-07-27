@@ -72,6 +72,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
+from lib.email_audit_status import normalize_email_audit_status
+
 
 # --- Tenant resolution (Wave 3 will replace with middleware) ---------------
 DEFAULT_TENANT_KEY = "masci"
@@ -333,6 +335,7 @@ async def write_audit(
     dry_run: bool = False,
 ) -> None:
     """Append-only audit row. Best-effort — never raises."""
+    canonical_status = normalize_email_audit_status(status)
     try:
         await db.email_routing_audit_v2.insert_one({
             "route_key": route_key,
@@ -344,7 +347,7 @@ async def write_audit(
             "subject": (subject or "")[:240],
             "sender_email": sender_email,
             "resend_message_id": resend_message_id,
-            "status": status,
+            "status": canonical_status,
             "error": (error or None),
             "calling_module": calling_module,
             "dry_run": bool(dry_run),
@@ -383,7 +386,7 @@ async def resolve_and_audit(
         cc_count=len(res.cc),
         bcc_count=len(res.bcc),
         subject=subject,
-        status=("disabled" if res.source == "disabled" else "resolved"),
+        status=("configuration_blocked" if res.source == "disabled" else "resolved"),
         error=res.error,
         calling_module=calling_module,
         dry_run=dry_run,

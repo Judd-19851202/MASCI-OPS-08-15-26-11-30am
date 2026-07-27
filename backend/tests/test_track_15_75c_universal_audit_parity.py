@@ -24,6 +24,8 @@ import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
+from lib.email_audit_status import normalized_allowed_email_audit_statuses
+
 load_dotenv("/app/backend/.env")
 
 
@@ -230,12 +232,7 @@ async def test_email_routing_v2_status_endpoint_includes_sent_rows():
     # 'sent' is the post-15.75C contract; allowed but not strictly
     # required at fixture-write time. We assert that no UNEXPECTED
     # status exists. Allowed statuses:
-    allowed = {
-        "sent", "failed", "dry_run", "resolved",
-        "routed_to_dead_letter", "dead_letter_unconfigured",
-        "shop_recipient_unconfigured",
-        "escalated_to_admin_dead_letter",
-    }
+    allowed = normalized_allowed_email_audit_statuses()
     unknown = statuses - allowed
     assert not unknown, (
         f"unexpected audit statuses appeared: {unknown}. "

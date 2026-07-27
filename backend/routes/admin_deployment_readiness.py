@@ -33,10 +33,12 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
+from lib.email_audit_status import normalized_allowed_email_audit_statuses
 from lib.trust_score_v2 import compute_categorized_score
 from lib.master_data_trust import collect_findings
 from lib.notification_delivery import delivery_contract, DELIVERY_MODE_PROVIDER_LIVE, DELIVERY_MODE_SAFE_CAPTURE
@@ -69,6 +71,7 @@ CODE_DEFECT_FINDING_CODES = {
 
 def make_router(db, require_admin_only_dep) -> APIRouter:
     router = APIRouter()
+    allowed_audit_statuses = sorted(normalized_allowed_email_audit_statuses())
 
     @router.get("/api/admin/deployment-readiness")
     async def deployment_readiness(
@@ -108,20 +111,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         try:
             unknown_audit = await db.email_routing_audit_v2.count_documents({
                 "ts": {"$gte": since_iso},
-                "status": {"$nin": [
-                    "ok", "sent", "delivered", "failed", "skipped",
-                    "captured_preview", "configuration_blocked",
-                    "dead_letter", "dead-letter", "routed_to_dead_letter",
-                    "dry_run", "dry-run", "resolved",
-                    # TRACK 22.5A · `needs_configuration` is the audit
-                    # status recorded when a routing rule matches but
-                    # the target has no resolvable recipient (e.g. a
-                    # project without PM email). The underlying fact
-                    # is already surfaced as a `master_data` advisory
-                    # finding — do not double-count it as an audit
-                    # anomaly.
-                    "needs_configuration",
-                ]},
+                "status": {"$nin": allowed_audit_statuses},
             })
         except Exception:
             unknown_audit = 0
@@ -438,4 +428,13 @@ def _count_regression_gates() -> int:
     """Return a fast, repeatable count of the regression tests that
     CI/CD must run. Used purely as a transparency signal in the
     response — does not affect the pass/fail decision."""
-    return 0
+    tests_dir = Path(__file__).resolve().parents[1] / "tests"
+    patterns = (
+        "test_*.py",
+        "pw_suite/test_*.py",
+        "runtime_cert/*.py",
+    )
+    seen: set[Path] = set()
+    for pattern in patterns:
+        seen.update(tests_dir.glob(pattern))
+    return len([p for p in seen if p.is_file()])

@@ -24,6 +24,7 @@ from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
+from lib.email_audit_status import normalized_failure_statuses
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 from lib.operator_safety import require_non_empty_destructive_scope
 from lib.runtime_identity import (
@@ -63,6 +64,7 @@ _PREVIEW_USER = 'masci_preview_user'
 _PROD_USER = 'masci_prod_user'
 _PREVIEW_DB = 'masci_safety_preview'
 _PROD_DB = 'masci_safety'
+_EMAIL_AUDIT_FAILURE_STATUSES = sorted(normalized_failure_statuses())
 
 
 def _canonical_backup_bucket() -> str:
@@ -18427,7 +18429,7 @@ async def admin_v2_routes_list(_: bool = Depends(require_admin)):
             {"tenant_key": tk, "route_key": rk}, sort=[("ts", -1)]
         )
         last_fail = await db.email_routing_audit_v2.find_one(
-            {"tenant_key": tk, "route_key": rk, "status": {"$in": ["failed", "error"]}},
+            {"tenant_key": tk, "route_key": rk, "status": {"$in": _EMAIL_AUDIT_FAILURE_STATUSES}},
             sort=[("ts", -1)],
         )
         summaries[rk] = {
@@ -18962,7 +18964,7 @@ async def admin_v2_status(_: bool = Depends(require_admin)):
     )
     errors_last_24h      = await db.email_routing_audit_v2.count_documents(
         {"tenant_key": tk, "ts": {"$gte": one_day_ago_iso},
-         "status": {"$in": ["failed", "error"]}}
+         "status": {"$in": _EMAIL_AUDIT_FAILURE_STATUSES}}
     )
     db_source_last_24h   = await db.email_routing_audit_v2.count_documents(
         {"tenant_key": tk, "ts": {"$gte": one_day_ago_iso}, "source": "db"}
