@@ -1878,6 +1878,90 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Track closure state
 - Completion checkpoint advanced from `READY_FOR_INDEPENDENT_VERIFICATION` to `PROGRAM_COMPLETE_VERIFIED`.
 
+## 2026-07-27 — Pre-Deployment Sweep Completed (Preview)
+
+### User objective
+- Perform a full top-to-bottom pre-deployment sweep after several days of changes.
+- Validate that auth, existing users, passwords, permissions, admin access, core platform routes, deployment blockers, and responsive UI behavior all remain intact before deployment.
+
+### What was fixed during the sweep
+- **Deployment blocker fixed**: backend CORS allowlist in `backend/.env` was missing the deployment host `https://backup-forensics.emergent.host`.
+  - Updated `CORS_ORIGINS`
+  - Restarted backend via supervisor
+  - Re-ran deployment scan to confirm PASS
+
+- **Root-cause auth/deploy integrity fix**: centralized the canonical email-audit status contract.
+  - Added `backend/lib/email_audit_status.py`
+  - Normalized audit statuses at write-time in `backend/email_routing_v2.py`
+  - Updated deployment/trust readers to use the shared allowed/failure status sets:
+    - `backend/routes/admin_deployment_readiness.py`
+    - `backend/routes/admin_platform_trust.py`
+    - `backend/routes/admin_operations_trust_center.py`
+    - `backend/server.py`
+  - Updated remaining audit writers to emit canonical failure status instead of drifted variants:
+    - `backend/lib/transport_command_digest.py`
+    - `backend/lib/transport_automation.py`
+    - `backend/routes/transportation_orientation.py`
+
+- **Deployment transparency fix**:
+  - Implemented real regression-gate counting in `backend/routes/admin_deployment_readiness.py`
+  - Live value now reports `regression_gate_count=970`
+
+- **Secret-safety fix**:
+  - Hardened `backend/routes/admin_platform_trust.py` so public payload labels do not trip secret-like fragment checks and remain secret-free.
+
+### Validation completed
+
+#### Deployment scan
+- `deployment_agent` result after fixes: **PASS**
+- No remaining deployment blockers
+
+#### Backend pre-deployment sweep
+- Deep backend sweep result: **APPROVE FOR DEPLOYMENT**
+- Critical checks passed:
+  - super admin login works
+  - representative portal users authenticate successfully
+  - disabled account remains fail-closed
+  - admin routes require valid admin + directory-bound session behavior
+  - `/api/health`, `/api/healthz`, `/api/ready`, `/api/health/full` all healthy
+  - `/api/admin/deployment-readiness` returns `decision=pass`
+  - `/api/admin/platform-trust/validate` returns secret-free payload and `unknown_status_count=0`
+  - `/api/admin/recovery/snapshot`, `/api/admin/trust-spine`, `/api/admin/integrations/truth-status`, `/api/admin/backup-verification/state`, `/api/admin/scheduler-runs` reachable
+
+#### Frontend/browser pre-deployment sweep
+- Frontend QA result: **29/29 PASS**
+- Verified in Preview:
+  - admin login
+  - admin dashboard routes
+  - PM / HR / Safety / Dispatch / Shop / Field Leadership portal logins
+  - protected-route fail-closed behavior for non-admin access to admin pages
+  - responsive rendering at desktop, tablet landscape, tablet portrait, and mobile widths
+  - no blank screens, no broken layouts, no horizontal overflow on tested pages
+
+### Current live posture after sweep
+- `/api/admin/deployment-readiness`:
+  - `decision=pass`
+  - `unknown_audit_count_24h=0`
+  - `regression_gate_count=970`
+- `/api/admin/platform-trust/validate`:
+  - `unknown_status_count=0`
+  - payload confirmed secret-free
+- `/api/admin/operations-trust-center` remains reachable and truthful.
+  - Live band may still be red for operational truth reasons, but this is **not** a deploy blocker.
+
+### Important conclusion
+- Preview pre-deployment sweep is complete.
+- Auth, permissions, existing documented credentials, deployment gate, and tested UI flows are functioning correctly.
+- No deployment blockers remain from this sweep.
+
+### Remaining non-blocking observations
+- Some trust/recovery surfaces can still report red/amber based on live operational truth, not code breakage.
+- Backup verification logs still show occasional R2 manifest read timeouts in background warnings, but deployment readiness and core user flows remain healthy.
+
+### Next tasks
+- If the user proceeds, the next step is external deployment using the now-validated build.
+- If further confidence is needed later, perform a post-deploy smoke validation against the deployed environment using the same credential matrix.
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 
