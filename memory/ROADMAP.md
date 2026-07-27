@@ -46,12 +46,17 @@ Platform Survivability Program remains the mandatory, non-bypassable gate before
   - latest Preview drill outcome: `ok`
 - S1-2 Secrets & Configuration Recovery Certification: **verified in Preview**
 - S1-3 Backup Verification Hardening: **verified in Preview**
+- S1-4 Notification Delivery Certification: **implementation complete / blocked on invalid Resend API key**
+  - authoritative attempted run: `s1-4-cert-e217a5ffd8` / `DR-2026-03557`
+  - scoped Preview override: verified
+  - current blocker: provider returns `API key is invalid`
   - current authoritative archive: `MASCI_complete_backup_2026-07-27_111254Z.zip`
   - authoritative archive location: `backups/preview/auto-90d/`
   - confidence contract: `HIGH` only with direct sidecar manifest + checksum + lineage reconciliation
 
 ### P1 next
-- Notification Delivery Certification (S1-4) — **next survivability track, not started here**
+- Rotate `RESEND_API_KEY`, restart backend, and re-run exactly one bounded S1-4 certification message to complete provider submission + webhook/provider reconciliation
+- Append final proof source (`WEBHOOK`, `PROVIDER_API`, or `BOTH`) to `/app/memory/S1_4_NOTIFICATION_DELIVERY_CERTIFICATION_EVIDENCE.md`
 
 ### P2 later
 - Production Readiness Review (PRR) execution

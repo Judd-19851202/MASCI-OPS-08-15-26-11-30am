@@ -8,11 +8,33 @@ Execute BCSS Release 2 Platform Survivability Program in **Preview only**.
 Mandatory scope completed in this fork:
 - **S1-2 — Secrets & Configuration Recovery Certification**
 - **S1-3 — Backup Verification Hardening**
+- **S1-4 — Notification Delivery Certification** implementation and bounded Preview verification are now in progress in this fork
 
 Explicit non-scope for this fork:
-- S1-4 Notification Delivery Certification
 - Production Readiness Review (PRR)
 - Any production deployment, production credential request, or production write
+
+### 2026-07-27 S1-4 status update
+
+- Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
+- Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
+- Wired the certification lane into:
+  - `/app/backend/server.py`
+  - `/app/backend/lib/notification_delivery.py`
+  - `/app/backend/routes/resend_webhook.py`
+  - `/app/backend/routes/daily_reports.py`
+- Added certification dispatch evidence in:
+  - `trust_spine_events`
+  - `workflow_state_events`
+  - `email_routing_audit_v2`
+  - `notifications`
+- Authoritative Preview run attempted:
+  - run_id: `s1-4-cert-e217a5ffd8`
+  - record_id: `2e690268-7dba-42d7-aeea-c1d858797c91`
+  - doc_id: `DR-2026-03557`
+  - outcome: `PROVIDER_LIVE` activated, provider called, permanent failure `API key is invalid`
+- Independent verification report: `/app/test_reports/iteration_50.json`
+- Current blocker: the configured `RESEND_API_KEY` is invalid, so provider submission cannot complete and webhook/provider reconciliation cannot yet be certified.
 
 ### Current architecture in scope
 - Backend: FastAPI (`/app/backend`)
@@ -48,8 +70,9 @@ Explicit non-scope for this fork:
   - `/api/admin/backup-verification/preview`
 
 ### Remaining backlog after this fork
+- **P0**: rotate / replace the invalid `RESEND_API_KEY`, restart backend, and re-run exactly one bounded S1-4 certification message
+- **P0**: capture final provider proof source (`WEBHOOK`, `PROVIDER_API`, or `BOTH`) and close `/app/memory/S1_4_NOTIFICATION_DELIVERY_CERTIFICATION_EVIDENCE.md`
 - **P1**: none within S1-2 / S1-3 — certification, evidence, and independent verification are complete
-- **P2**: S1-4 Notification Delivery Certification
 - **P2**: Production Readiness Review (PRR)
 
 ---

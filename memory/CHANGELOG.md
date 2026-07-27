@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-07-27 — BCSS Release 2 S1-4 Notification Delivery Certification (implementation + blocker verification)
+
+- Implemented a bounded Preview-only notification certification lane in `/app/backend/lib/preview_notification_certification.py`, preserving `SAFE_CAPTURE` globally while allowing only one scoped certification send path for `jaymn.judd@mascigc.com`.
+- Wired the scoped override through `/app/backend/server.py`, `/app/backend/lib/notification_delivery.py`, `/app/backend/routes/resend_webhook.py`, and `/app/backend/routes/daily_reports.py`, including preserved original-intended recipients, workflow dispatch events, trust-spine continuity, routing audit truth, and operator-status notifications.
+- Executed the authoritative Preview certification run `s1-4-cert-e217a5ffd8` / `DR-2026-03557`; the system correctly activated `PROVIDER_LIVE`, attempted provider submission, and failed truthfully with `API key is invalid`.
+- Independent verification passed in `/app/test_reports/iteration_50.json`; S1-4 remains blocked only by the invalid external `RESEND_API_KEY`, not by the scoped override implementation.
+
 ## 2026-07-27 — BCSS Release 2 S1-2 + S1-3 Preview Certification
 
 - Completed **S1-2 Secrets & Configuration Recovery Certification** with a canonical recovery package in `/app/backend/lib/config_recovery.py`, a new admin endpoint at `/api/admin/recovery/configuration-recovery`, fail-closed Preview/Production separation checks, and the operator runbook at `/app/memory/S1_2_CONFIGURATION_RECOVERY_RUNBOOK.md`.
