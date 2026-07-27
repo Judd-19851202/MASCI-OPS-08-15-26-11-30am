@@ -34,11 +34,11 @@ def test_verify_production_script_keeps_no_retry_contract():
     assert "--retry" not in "\n".join(active_lines)
 
 
-def test_hourly_complete_archive_is_hard_locked_off_in_server_source():
+def test_hourly_complete_archive_uses_dynamic_activation_truth_in_server_source():
     src = open(SERVER_PATH, encoding="utf-8").read()
-    assert '"r2_hourly_effective": False' in src
-    assert '"r2_hourly_locked_off": True' in src
-    assert 'r2_hourly = False' in src
+    assert 'requested_raw=os.environ.get("BACKUP_R2_HOURLY")' in src
+    assert 'r2_hourly = bool(activation_state.get("r2_hourly_effective"))' in src
+    assert '"r2_hourly_effective": bool(activation_state.get("r2_hourly_effective"))' in src
 
 
 def test_backup_scheduler_state_exposes_hourly_archive_lock_truth():

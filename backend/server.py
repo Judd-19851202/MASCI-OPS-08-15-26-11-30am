@@ -1631,7 +1631,6 @@ async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
         target_db,
         current_env=_canonical_app_env(),
         current_db=_canonical_db_name(),
-        include_manifest_reads=False,
     )
     return backup_recent_truth(lineage, threshold_hours=PUBLIC_HEALTH_THRESHOLD_HOURS)
 
@@ -7898,8 +7897,17 @@ def _backup_scheduler_healthy() -> bool:
     if not _BACKUP_SCHEDULER_STATE.get("alive"):
         return False
     last_tick = _BACKUP_SCHEDULER_STATE.get("last_tick_ts")
+    last_lock = _BACKUP_SCHEDULER_STATE.get("last_lock_ts")
     if not last_tick:
-        return False
+        if not last_lock:
+            return False
+        try:
+            dt = datetime.fromisoformat(str(last_lock).replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return (datetime.now(timezone.utc) - dt) <= timedelta(minutes=10)
+        except Exception:
+            return False
     try:
         dt = datetime.fromisoformat(str(last_tick).replace("Z", "+00:00"))
         if dt.tzinfo is None:
