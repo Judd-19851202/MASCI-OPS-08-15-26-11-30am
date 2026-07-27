@@ -163,13 +163,14 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     startup hooks queued to Track 22.1L).
     """
     # ---- STARTUP: LIFECYCLE_STEPS (non-readiness) first ----------------
-    non_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group != "readiness"]
+    pre_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group not in {"readiness", "post-readiness"}]
     readiness_steps     = [s for s in LIFECYCLE_STEPS if s.group == "readiness"]
+    post_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group == "post-readiness"]
     logger.info(
         "[track-22.1e] lifespan.startup: executing %d LIFECYCLE_STEPS (non-readiness)",
-        len(non_readiness_steps),
+        len(pre_readiness_steps),
     )
-    for i, step in enumerate(non_readiness_steps):
+    for i, step in enumerate(pre_readiness_steps):
         if step.group != "runtime-config" and is_read_only_validation_active_bundle(
             getattr(app.state, "runtime_identity_bundle", None)
         ):
@@ -228,6 +229,22 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
             )
             raise
     logger.info("[track-22.1j] lifespan.startup: readiness phase complete")
+
+    # ---- STARTUP: LIFECYCLE_STEPS (post-readiness) ----------------------
+    logger.info(
+        "[track-22.1m] lifespan.startup: executing %d post-readiness LIFECYCLE_STEPS",
+        len(post_readiness_steps),
+    )
+    for i, step in enumerate(post_readiness_steps):
+        try:
+            await _run_callable(step.fn)
+        except Exception:
+            logger.exception(
+                "[track-22.1m] post-readiness LIFECYCLE_STEP #%d %s.%s raised — re-raising",
+                i, step.source_module, step.name,
+            )
+            raise
+    logger.info("[track-22.1m] lifespan.startup: post-readiness phase complete")
 
     try:
         yield

@@ -14340,7 +14340,7 @@ async def _log_operational_hygiene_at_startup():
     await _log_operational_hygiene(reason="startup", db=db)
 
 
-@register_lifecycle_step("scheduler-nonemail")
+@register_lifecycle_step("post-readiness")
 async def _start_motive_reliability_loop():
     """M-1R · Motive reliability supervisor.
 
@@ -14959,7 +14959,7 @@ app.include_router(build_trench_project_intelligence_router(
 ))
 
 
-@app.on_event("startup")
+@register_lifecycle_step("post-readiness")
 async def _track_23_10_c_trench_backfill_bootstrap():
     """Idempotent, capped backfill of trench facts. Fire-and-forget
     background task — never blocks startup readiness.
@@ -15516,7 +15516,7 @@ app.include_router(build_notifications_router(
 from health_monitor import start_health_monitor_loop  # noqa: E402
 
 
-@register_lifecycle_step("scheduler-nonemail")
+@register_lifecycle_step("post-readiness")
 async def _start_health_monitor():
     try:
         track_existing_background_task(
@@ -20233,7 +20233,7 @@ async def _iter453_6_flip_ready_flag():
     )
 
 
-@register_lifecycle_step("deployment-governance")
+@register_lifecycle_step("post-readiness")
 async def _schedule_deployment_governance_verification():
     register_background_task(
         app,
@@ -20250,7 +20250,7 @@ async def _schedule_deployment_governance_verification():
 # readiness flag so the loop only runs in a fully-booted process. The
 # loop itself short-circuits when SCHEDULER_ENABLED is off.
 # ────────────────────────────────────────────────────────────────────
-@register_lifecycle_step("email-scheduler")
+@register_lifecycle_step("post-readiness")
 async def _dispatch_reminder_scheduler_start():
     try:
         from dispatch_reminders import reminder_scheduler_loop  # noqa: PLC0415
