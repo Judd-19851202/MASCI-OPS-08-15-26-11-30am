@@ -807,6 +807,30 @@ def test_verification_streaming_helpers_use_bounded_batches():
     assert len(samples["daily_reports"]) == 5
 
 
+def test_photo_reference_streaming_keeps_bucket_relative_paths(monkeypatch, tmp_path):
+    module_globals = runpy.run_path(SCRIPT_PATH, run_name="ops8_photo_refs_module")
+    helper = module_globals["_stream_photo_reference_sets"]
+    archive = tmp_path / "photos.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("photos/photos/2026/05/test/a.jpg", b"img")
+        zf.writestr("collections/daily_reports.json", json.dumps([
+            {"id": "dr-1", "photos": ["photo://bucket/photos/2026/05/test/a.jpg"]}
+        ]))
+    with zipfile.ZipFile(archive, "r") as zf:
+        refs, objects = helper(zf)
+    assert refs == {"photos/2026/05/test/a.jpg"}
+    assert objects == {"photos/2026/05/test/a.jpg"}
+
+
+def test_collection_parity_ignores_zero_count_manifest_collections(monkeypatch, tmp_path):
+    manifest = _base_manifest()
+    manifest["per_kind"]["messages"] = 0
+    out = _run_script(monkeypatch, tmp_path, manifest=manifest)
+    evidence = out["db"].drill_runs.rows[0]["restore_certification_evidence"]
+    assert evidence["collection_parity_verification"]["state"] == "PASS"
+    assert "messages" not in evidence["collection_parity_verification"]["missing_collections"]
+
+
 def test_missing_owner_running_guard_is_recovered_and_prior_drill_aborted(monkeypatch, tmp_path):
     stale_guard = {
         "job_id": "bjob-stale-running",

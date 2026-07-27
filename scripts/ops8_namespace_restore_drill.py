@@ -924,10 +924,8 @@ def _stream_photo_reference_sets(zf: zipfile.ZipFile) -> tuple[set[str], set[str
         except Exception:
             continue
         for ref in _walk_photo_refs(payload):
-            try:
-                photo_refs.add(ref.split("/", 3)[3])
-            except Exception:
-                pass
+            if isinstance(ref, str) and ref.startswith("photo://bucket/"):
+                photo_refs.add(ref[len("photo://bucket/"):])
     return photo_refs, archive_photos
 
 
@@ -940,11 +938,13 @@ def _verify_restored_namespace(*, zf: zipfile.ZipFile, db, namespace_prefix: str
     progress_callback("collection_parity_started", "started", started_at=collection_parity_started)
     restored_counts = load_namespace_collection_document_counts(db, namespace_prefix, expected_counts.keys())
     physical = {name[len(f"{namespace_prefix}__"): ] for name in db.list_collection_names() if name.startswith(f"{namespace_prefix}__")}
+    materialized_expected = {name for name, count in expected_counts.items() if int(count or 0) > 0}
     collection_parity = {
-        "state": "PASS" if set(expected_counts) <= physical else "FAIL",
+        "state": "PASS" if materialized_expected <= physical else "FAIL",
         "expected_collection_count": len(expected_counts),
+        "expected_materialized_collection_count": len(materialized_expected),
         "restored_collection_count": len(physical),
-        "missing_collections": sorted(set(expected_counts) - physical),
+        "missing_collections": sorted(materialized_expected - physical),
         "unexpected_collections": sorted(physical - set(expected_counts)),
     }
     evidence["collection_parity_verification"] = collection_parity
