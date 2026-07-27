@@ -1962,6 +1962,58 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - If the user proceeds, the next step is external deployment using the now-validated build.
 - If further confidence is needed later, perform a post-deploy smoke validation against the deployed environment using the same credential matrix.
 
+## 2026-07-27 — Production verification package prepared
+
+### Scope
+- User requested a full live-platform verification after deployment to `https://mascidocs.com`.
+- Constraint acknowledged: production cannot be directly debugged or changed from the preview workspace; code fixes still must happen in Preview and then be redeployed.
+
+### What was prepared
+- Created `/app/memory/PRODUCTION_VERIFICATION_CHECKLIST.md`
+  - full production verification pass covering:
+    - health / runtime identity
+    - super-admin continuity
+    - admin operational surfaces
+    - PM / HR / Safety / Dispatch / Shop / Field Leadership portal logins
+    - public workflows
+    - PM schedule / cost-code / planning lane
+    - trust / recovery / survivability surfaces
+    - storage / files / PDFs / uploads
+    - responsive / UX checks
+    - severity classification
+
+- Created `/app/memory/PRODUCTION_ROOT_CAUSE_MATRIX.md`
+  - maps production failures into RCA classes:
+    - auth/session regression
+    - role/permission regression
+    - production-only config issue
+    - runtime/deploy artifact issue
+    - DB authority / live data issue
+    - API contract drift
+    - storage/file/photo issue
+    - scheduler/background job issue
+    - truth-surface defect
+    - performance/timeout issue
+    - UX/responsive issue
+
+- Created `/app/memory/PRODUCTION_DEPLOYED_SCOPE_VERIFICATION_MAP.md`
+  - maps the recently verified Preview/deployment scope into the Production verification sweep
+  - explicitly distinguishes:
+    - what was already verified in Preview
+    - what must still be verified only on Production
+    - what is built vs not yet fully proven in the PM schedule / cost-code / look-behind lane
+
+### Additional repo evidence surfaced
+- Existing production-oriented smoke artifact found:
+  - `backend/scripts/production_smoke_test.py`
+- Existing deployment governance references confirmed:
+  - post-deploy probes in `backend/scripts/generate_release_gate_governance.py`
+  - production deployment steps in `backend/ops_manual.py`
+
+### Current state
+- The production verification package is ready for operator execution against `https://mascidocs.com`.
+- Once live findings are captured, each issue can be classified through the RCA matrix and then repaired in Preview for redeploy.
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 
