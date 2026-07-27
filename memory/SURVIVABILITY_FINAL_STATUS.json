@@ -1,0 +1,77 @@
+{
+  "program": "MASCI OPS — Platform Survivability Program",
+  "environment": "preview",
+  "preview_only": true,
+  "status": "PENDING_INDEPENDENT_VERIFICATION",
+  "inventory_complete": true,
+  "decision_register_authoritative": true,
+  "dependency_graph_complete": true,
+  "failure_injections": {
+    "planned": 6,
+    "executed": 6,
+    "passed": 6,
+    "failed": 0,
+    "deferred": []
+  },
+  "measured_platform_posture": {
+    "rpo": {
+      "target_min": 60,
+      "actual_min": 162.8,
+      "status": "RED",
+      "source": "/api/admin/recovery/snapshot"
+    },
+    "rto": {
+      "target_min": 15,
+      "actual_min": 41.035,
+      "status": "AMBER",
+      "source": "/api/admin/recovery/snapshot"
+    }
+  },
+  "governance_findings": {
+    "Administrative Action": 8,
+    "External Infrastructure Dependency": 1,
+    "Accepted Risk": 2,
+    "Repository Defect": 0,
+    "Configuration Issue": 0
+  },
+  "wave3_regression_integrity": {
+    "unchanged": true,
+    "report": "/app/memory/WAVE_3_SURVIVABILITY_REGRESSION_GATE.md"
+  },
+  "open_items": [
+    {
+      "id": "PSP-DEC-008",
+      "classification": "External Infrastructure Dependency",
+      "summary": "Full automated side-database restore certification remains blocked by Atlas authorization outside restore-owned repository logic."
+    },
+    {
+      "id": "PSP-DEC-009",
+      "classification": "Accepted Risk",
+      "summary": "Preview live RPO target is not currently met (162.8 min vs 60 min target)."
+    },
+    {
+      "id": "PSP-DEC-010",
+      "classification": "Accepted Risk",
+      "summary": "Preview live bounded restore RTO is not currently met (41.035 min vs 15 min target)."
+    }
+  ],
+  "unresolved_repository_critical_survivability_defects": [],
+  "independent_verification": {
+    "status": "PENDING",
+    "report": null
+  },
+  "completion_checkpoint": "READY_FOR_INDEPENDENT_VERIFICATION",
+  "evidence": [
+    "/app/memory/CANONICAL_SURVIVABILITY_CAPABILITY_INVENTORY.md",
+    "/app/memory/PLATFORM_SURVIVABILITY_DECISION_REGISTER.md",
+    "/app/memory/OPERATIONAL_DEPENDENCY_GRAPH.md",
+    "/app/memory/FAILURE_INJECTION_REPORT.md",
+    "/app/memory/RECOVERY_VALIDATION_REPORT.md",
+    "/app/memory/RTO_RPO_MEASUREMENTS.md",
+    "/app/memory/PLATFORM_SURVIVABILITY_REPORT.md",
+    "/app/memory/SURVIVABILITY_CERTIFICATION_REGISTER.md",
+    "/app/memory/WAVE_3_SURVIVABILITY_REGRESSION_GATE.md",
+    "/app/memory/PLATFORM_SURVIVABILITY_EXECUTION_RAW.json"
+  ],
+  "generated_at": "2026-07-27T14:05:15.734997+00:00"
+}

@@ -1,0 +1,301 @@
+{
+  "executed_at": "2026-07-27T14:05:12.007974+00:00",
+  "base_url": "https://backup-forensics.preview.emergentagent.com",
+  "baseline": {
+    "wave3_hashes": {
+      "/app/memory/WAVE_3_FORMAL_CLOSEOUT.md": "dfdcc5ba749a6f49e60bd78bc1e56eb382b966078c2aa3c101c927a2d6375cc0",
+      "/app/memory/WAVE_3_CERTIFICATION_REGISTER.md": "10733be526af49207064cdddd8ab18d3a7259c712bf6af7d927576a4e7271c93",
+      "/app/memory/WAVE_3_GOVERNANCE_RECONCILIATION.md": "431aa59f056b124ca4660762dce1aefe3310a2ccebda384d6b9d790d96c5d7f2",
+      "/app/memory/WAVE_3_FINAL_STATUS.json": "a36b2b46ccac5e730d9059bdf311869d2a29feaf8a9e385ec41b207a0c9739da",
+      "/app/test_reports/iteration_50.json": "cfa253bd368381e0a0d7d13e2b39f99bb20ece52f9939747116c30208c6ea5fd",
+      "/app/test_reports/iteration_51.json": "7409a4f939d451b2d317108b48cc0cafeeef6ec3f3a6abc11a5dda9e31e60558"
+    },
+    "health": {
+      "/api/health": {
+        "status_code": 200,
+        "elapsed_ms": 78.38,
+        "body": {
+          "ok": true,
+          "service": "masci-hub",
+          "ts": "2026-07-27T14:05:12.044058+00:00",
+          "runtime_identity": {
+            "status": "NOT_APPLICABLE",
+            "valid": true,
+            "mismatch_category": null
+          }
+        }
+      },
+      "/api/healthz": {
+        "status_code": 200,
+        "elapsed_ms": 84.87,
+        "body": {
+          "ok": true
+        }
+      },
+      "/api/ready": {
+        "status_code": 200,
+        "elapsed_ms": 73.39,
+        "body": {
+          "ok": true,
+          "state": "ready",
+          "reason": "startup_complete",
+          "event_loop_ok": true,
+          "mongo_ok": true,
+          "startup_complete": true,
+          "runtime_identity": {
+            "ok": true,
+            "status": "NOT_APPLICABLE",
+            "mismatch_category": null
+          }
+        }
+      },
+      "/api/health/full": {
+        "status_code": 200,
+        "elapsed_ms": 224.99,
+        "body": {
+          "ok": true,
+          "mongo": true,
+          "scheduler": true,
+          "backup_recent": true,
+          "runtime_identity_ok": true,
+          "runtime_identity_status": "NOT_APPLICABLE"
+        }
+      }
+    },
+    "mongo_collections": {
+      "backup_health": 200,
+      "trust_spine_events": 16601,
+      "scheduler_runs": 10,
+      "backup_jobs": 44,
+      "drill_runs": 89,
+      "directory_sessions": 9957,
+      "session_activity": 676
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "PSP-FI-01",
+      "name": "Admin token without directory session fails closed",
+      "started_at": "2026-07-27T14:05:13.012130+00:00",
+      "failure_probe": {
+        "status_code": 401,
+        "body": "{\"detail\":\"Invalid admin token\"}",
+        "detection_time_ms": 231.63
+      },
+      "recovery_probe": {
+        "status_code": 200,
+        "service_restoration_time_ms": 239.64
+      },
+      "metrics": {
+        "detection_time_ms": 231.63,
+        "recovery_initiation_time_ms": 0,
+        "service_restoration_time_ms": 239.64,
+        "full_consistency_restoration_time_ms": 239.64,
+        "measured_rto_ms": 471.27,
+        "measured_rpo_seconds": 0,
+        "residual_operational_impact": "None after re-authenticated dual-token request.",
+        "confidence_level": "HIGH"
+      },
+      "result": "PASS",
+      "wave3_hashes_unchanged": true,
+      "finished_at": "2026-07-27T14:05:13.483663+00:00"
+    },
+    {
+      "scenario_id": "PSP-FI-02",
+      "name": "Synthetic stale backup/restore guard is reclaimed",
+      "started_at": "2026-07-27T14:05:13.627306+00:00",
+      "baseline_isolation_check": {
+        "other_stale_active_rows_before": 0
+      },
+      "recovery_observation": {
+        "marked_count": 1,
+        "row_state": "stale",
+        "ownership_revoked": true,
+        "failure_reason": "stale_job_recovered",
+        "active_jobs_after_count": 0
+      },
+      "metrics": {
+        "detection_time_ms": 31.31,
+        "recovery_initiation_time_ms": 0,
+        "service_restoration_time_ms": 31.31,
+        "full_consistency_restoration_time_ms": 62.54,
+        "measured_rto_ms": 31.31,
+        "measured_rpo_seconds": 0,
+        "residual_operational_impact": "Synthetic row only; deleted after validation.",
+        "confidence_level": "HIGH"
+      },
+      "result": "PASS",
+      "wave3_hashes_unchanged": true,
+      "finished_at": "2026-07-27T14:05:13.775579+00:00"
+    },
+    {
+      "scenario_id": "PSP-FI-03",
+      "name": "Duplicate scheduler slot claim is prevented deterministically",
+      "started_at": "2026-07-27T14:05:13.859303+00:00",
+      "recovery_observation": {
+        "first_claim_present": true,
+        "second_claim_present": false,
+        "dedup_attempts": 1,
+        "status": "done"
+      },
+      "metrics": {
+        "detection_time_ms": 87.54,
+        "recovery_initiation_time_ms": 0,
+        "service_restoration_time_ms": 118.62,
+        "full_consistency_restoration_time_ms": 149.59,
+        "measured_rto_ms": 118.62,
+        "measured_rpo_seconds": 0,
+        "residual_operational_impact": "No duplicate work executed; synthetic run record removed.",
+        "confidence_level": "HIGH"
+      },
+      "result": "PASS",
+      "wave3_hashes_unchanged": true,
+      "finished_at": "2026-07-27T14:05:14.097022+00:00"
+    },
+    {
+      "scenario_id": "PSP-FI-04",
+      "name": "Configuration recovery rejects preview-to-production blend",
+      "started_at": "2026-07-27T14:05:14.097031+00:00",
+      "recovery_observation": {
+        "bad_overall_status": "FAIL",
+        "blocking_issues": [
+          "environment_separation_fail_closed:Preview/Production blend detection must pass and remain fail-closed.",
+          "preview_database_identity_canonical:effective=masci_safety expected=masci_safety_preview",
+          "preview_pointing_to_production_cluster",
+          "preview_using_production_db_name",
+          "preview_using_production_user",
+          "runtime_identity_valid:env=preview host=masci-prod.1nduwmg.mongodb.net db=masci_safety expected_host=masci-prod.1nduwmg.mongodb.net expected_db=masci_safety"
+        ],
+        "good_overall_status": "PASS"
+      },
+      "metrics": {
+        "detection_time_ms": 0.23,
+        "recovery_initiation_time_ms": 0,
+        "service_restoration_time_ms": 0.15,
+        "full_consistency_restoration_time_ms": 0.15,
+        "measured_rto_ms": 0.38,
+        "measured_rpo_seconds": 0,
+        "residual_operational_impact": "Simulation only; live runtime unchanged.",
+        "confidence_level": "HIGH"
+      },
+      "result": "PASS",
+      "wave3_hashes_unchanged": true,
+      "finished_at": "2026-07-27T14:05:14.097547+00:00"
+    },
+    {
+      "scenario_id": "PSP-FI-05",
+      "name": "Archive lineage rejects checksum-corrupted candidate then recovers on corrected evidence",
+      "started_at": "2026-07-27T14:05:14.097570+00:00",
+      "recovery_observation": {
+        "bad_authoritative_artifact_present": false,
+        "bad_rejection_reasons": [
+          "direct_checksum_lineage_mismatch",
+          "no_constitutionally_acceptable_timestamp",
+          "quarantined_from_auto_selection"
+        ],
+        "good_direct_evidence_status": "VERIFIED",
+        "good_integrity_status": "PASS"
+      },
+      "metrics": {
+        "detection_time_ms": 0.1,
+        "recovery_initiation_time_ms": 0,
+        "service_restoration_time_ms": 0.07,
+        "full_consistency_restoration_time_ms": 0.07,
+        "measured_rto_ms": 0.17,
+        "measured_rpo_seconds": 0,
+        "residual_operational_impact": "Simulation only; corrupted candidate never selected.",
+        "confidence_level": "HIGH"
+      },
+      "result": "PASS",
+      "wave3_hashes_unchanged": true,
+      "finished_at": "2026-07-27T14:05:14.097881+00:00"
+    },
+    {
+      "scenario_id": "PSP-FI-06",
+      "name": "Trust Spine surfaces failed lifecycle evidence and returns to baseline after cleanup",
+      "started_at": "2026-07-27T14:05:14.097903+00:00",
+      "recovery_observation": {
+        "endpoint_status_code": 200,
+        "target_band": "red",
+        "target_failed_24h": 1,
+        "rows_after_cleanup": 0
+      },
+      "metrics": {
+        "detection_time_ms": 1543.33,
+        "recovery_initiation_time_ms": 33.7,
+        "service_restoration_time_ms": 1543.33,
+        "full_consistency_restoration_time_ms": 1574.44,
+        "measured_rto_ms": 1577.03,
+        "measured_rpo_seconds": 0,
+        "residual_operational_impact": "Synthetic failed workflow row removed after validation.",
+        "confidence_level": "HIGH"
+      },
+      "result": "PASS",
+      "wave3_hashes_unchanged": true,
+      "finished_at": "2026-07-27T14:05:15.734997+00:00"
+    }
+  ],
+  "post_execution": {
+    "wave3_hashes": {
+      "/app/memory/WAVE_3_FORMAL_CLOSEOUT.md": "dfdcc5ba749a6f49e60bd78bc1e56eb382b966078c2aa3c101c927a2d6375cc0",
+      "/app/memory/WAVE_3_CERTIFICATION_REGISTER.md": "10733be526af49207064cdddd8ab18d3a7259c712bf6af7d927576a4e7271c93",
+      "/app/memory/WAVE_3_GOVERNANCE_RECONCILIATION.md": "431aa59f056b124ca4660762dce1aefe3310a2ccebda384d6b9d790d96c5d7f2",
+      "/app/memory/WAVE_3_FINAL_STATUS.json": "a36b2b46ccac5e730d9059bdf311869d2a29feaf8a9e385ec41b207a0c9739da",
+      "/app/test_reports/iteration_50.json": "cfa253bd368381e0a0d7d13e2b39f99bb20ece52f9939747116c30208c6ea5fd",
+      "/app/test_reports/iteration_51.json": "7409a4f939d451b2d317108b48cc0cafeeef6ec3f3a6abc11a5dda9e31e60558"
+    },
+    "wave3_hashes_unchanged": true,
+    "health": {
+      "/api/health": {
+        "status_code": 200,
+        "elapsed_ms": 76.21,
+        "body": {
+          "ok": true,
+          "service": "masci-hub",
+          "ts": "2026-07-27T14:05:15.771142+00:00",
+          "runtime_identity": {
+            "status": "NOT_APPLICABLE",
+            "valid": true,
+            "mismatch_category": null
+          }
+        }
+      },
+      "/api/healthz": {
+        "status_code": 200,
+        "elapsed_ms": 72.58,
+        "body": {
+          "ok": true
+        }
+      },
+      "/api/ready": {
+        "status_code": 200,
+        "elapsed_ms": 76.26,
+        "body": {
+          "ok": true,
+          "state": "ready",
+          "reason": "startup_complete",
+          "event_loop_ok": true,
+          "mongo_ok": true,
+          "startup_complete": true,
+          "runtime_identity": {
+            "ok": true,
+            "status": "NOT_APPLICABLE",
+            "mismatch_category": null
+          }
+        }
+      },
+      "/api/health/full": {
+        "status_code": 200,
+        "elapsed_ms": 131.63,
+        "body": {
+          "ok": true,
+          "mongo": true,
+          "scheduler": true,
+          "backup_recent": true,
+          "runtime_identity_ok": true,
+          "runtime_identity_status": "NOT_APPLICABLE"
+        }
+      }
+    }
+  }
+}

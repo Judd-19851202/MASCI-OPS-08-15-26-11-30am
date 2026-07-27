@@ -1764,6 +1764,93 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Independent QA remains mandatory for any final certification PASS.
 - Missing canonical after-fingerprint, cleanup proof, guard release, photo/object verification, or QA review prevents certification.
 
+## 2026-07-27 — Platform Survivability Program Execution Checkpoint
+
+### Scope
+- Executed the Preview-only Platform Survivability Program as a constitutional validation track.
+- No Wave 3 certification artifact was modified.
+- No PRR, Production deployment, or unrelated feature work was started.
+
+### What was completed
+- Finalized the canonical survivability capability inventory and normalized execution into Domains A-L.
+- Created the one authoritative decision register for the survivability track.
+- Built the operational dependency graph with criticality, SPOF, recovery, monitoring, and ownership classification.
+- Executed six isolated, deterministic, reversible Preview-only failure injections and captured measured recovery metrics.
+- Ran the Wave 3 regression gate and confirmed frozen evidence remained byte-for-byte unchanged.
+- Produced the survivability evidence package:
+  - `/app/memory/CANONICAL_SURVIVABILITY_CAPABILITY_INVENTORY.md`
+  - `/app/memory/PLATFORM_SURVIVABILITY_DECISION_REGISTER.md`
+  - `/app/memory/OPERATIONAL_DEPENDENCY_GRAPH.md`
+  - `/app/memory/FAILURE_INJECTION_REPORT.md`
+  - `/app/memory/RECOVERY_VALIDATION_REPORT.md`
+  - `/app/memory/RTO_RPO_MEASUREMENTS.md`
+  - `/app/memory/WAVE_3_SURVIVABILITY_REGRESSION_GATE.md`
+  - `/app/memory/PLATFORM_SURVIVABILITY_REPORT.md`
+  - `/app/memory/SURVIVABILITY_CERTIFICATION_REGISTER.md`
+  - `/app/memory/SURVIVABILITY_FINAL_STATUS.json`
+  - `/app/memory/PLATFORM_SURVIVABILITY_EXECUTION_RAW.json`
+
+### Failure injection results
+- `PSP-FI-01` — Admin continuity fail-closed path:
+  - single admin token without bound directory session returned `401`
+  - dual-token recovery returned `200`
+  - measured RTO: `471.27 ms`
+- `PSP-FI-02` — Synthetic stale backup/restore guard:
+  - stale row reclaimed with `state=stale`, `ownership_revoked=true`
+  - measured RTO: `31.31 ms`
+- `PSP-FI-03` — Duplicate scheduler slot claim:
+  - first claim succeeded, second claim rejected, dedup evidence recorded
+  - measured RTO: `118.62 ms`
+- `PSP-FI-04` — Preview/production config blend simulation:
+  - fail-closed validator returned `FAIL`; valid preview config returned `PASS`
+  - measured RTO: `0.38 ms`
+- `PSP-FI-05` — Corrupted archive-lineage simulation:
+  - bad checksum quarantined; corrected evidence restored authoritative selection
+  - measured RTO: `0.17 ms`
+- `PSP-FI-06` — Trust Spine failure visibility:
+  - synthetic failed workflow surfaced as `band=red`
+  - cleanup removed synthetic evidence
+  - measured RTO: `1577.03 ms`
+
+### Live posture observed during this checkpoint
+- `/api/admin/recovery/snapshot` reported:
+  - `pill=AMBER`
+  - `RPO actual=162.8 min` vs `target=60 min` → `RED`
+  - `RTO actual=41.035 min` vs `target=15 min` → `AMBER`
+- `/api/admin/trust-spine` reported:
+  - `platform_band=red`
+  - `canonical_status=MISMATCH`
+  - degraded workflow counts were surfaced honestly
+- `/api/admin/integrations/truth-status` reported overall `VERIFIED`
+- `/api/admin/backup-verification/state` remained `ok=true` and intentionally reported canonical status `UNVERIFIABLE` because it is a scheduler/config projection rather than the certification owner.
+
+### Governance findings
+- No unresolved repository-critical survivability defect was identified.
+- Open tracked items are:
+  - **External Infrastructure Dependency** — fully automated side-database restore certification remains limited by Atlas authorization outside restore-owned repository logic
+  - **Accepted Risk** — Preview live RPO target not currently met
+  - **Accepted Risk** — Preview live bounded restore RTO target not currently met
+
+### Regression integrity
+- Hash comparison before and after the failure sequence confirmed all protected Wave 3 artifacts remained unchanged.
+- No historical Wave 3 evidence was rewritten.
+
+### Status
+- Platform Survivability implementation checkpoint is **READY FOR INDEPENDENT VERIFICATION**.
+- Final track status remains **PENDING INDEPENDENT VERIFICATION** until the testing agent confirms:
+  - inventory
+  - dependency graph
+  - decision register
+  - recovery evidence
+  - RTO/RPO measurements
+  - regression integrity
+  - governance classifications
+
+### Next tasks
+- P0: Submit the survivability backend package for independent verification.
+- P0: If independent verification finds any survivability defect, resolve it before declaring the track complete.
+- P1: Keep Production Readiness Review and deployment work out of scope for this job.
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 
