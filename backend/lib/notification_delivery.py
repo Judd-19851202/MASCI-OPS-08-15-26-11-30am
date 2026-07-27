@@ -319,7 +319,12 @@ async def deliver_notification(
         msg = str(exc)[:240]
         classification = STATUS_RETRYABLE_FAILURE
         low = msg.lower()
-        if "invalid api key" in low or "authentication" in low or "forbidden" in low:
+        if (
+            "invalid api key" in low
+            or "api key is invalid" in low
+            or "authentication" in low
+            or "forbidden" in low
+        ):
             classification = STATUS_PERMANENT_FAILURE
         return {
             "ok": False,
