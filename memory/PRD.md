@@ -25,6 +25,31 @@ Explicit non-scope for this fork:
 
 ### 2026-07-27 S1-4 status update
 
+### 2026-07-27 Backup admin truth + isolation hotfix
+
+- Fixed Preview-verified backup admin regressions for the production redeploy lane:
+  - reclaimed stale backup jobs no longer masquerade as permanent hourly-activation blockers
+  - stale scheduler lock truth now reads actual datetime lock state instead of generating phantom stale signals
+  - admin backup reads now stay inside the environment-scoped prefix instead of broad/shared prefix enumeration
+  - system-health backup card now reports a canonical recoverable point again instead of `Authoritative recovery point unknown`
+- Updated files:
+  - `/app/backend/lib/backup_paths.py`
+  - `/app/backend/lib/hourly_activation.py`
+  - `/app/backend/lib/archive_lineage.py`
+  - `/app/backend/backup_verification.py`
+  - `/app/backend/routes/admin_ops.py`
+  - `/app/backend/routes/recovery_dashboard.py`
+  - `/app/backend/server.py`
+- Added regression coverage:
+  - `/app/backend/tests/test_hourly_activation_stale_recovery.py`
+  - `/app/backend/tests/test_scheduler_lock_truth.py`
+  - `/app/backend/tests/test_backup_admin_endpoints_preview.py`
+- Verification evidence:
+  - `/app/test_reports/iteration_53.json`
+  - Deep backend verification passed on Preview for scheduler state, system health, complete-R2 state, and scoped R2 listing.
+- Production note:
+  - final confirmation of `backups/production/auto-90d/` behavior, production hourly activation, and production stale-lock cleanup still requires user redeploy + live production verification.
+
 - Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
 - Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
 - Wired the certification lane into:
