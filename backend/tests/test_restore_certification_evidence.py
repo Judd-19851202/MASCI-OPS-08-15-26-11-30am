@@ -110,6 +110,83 @@ def test_representative_sample_ignores_mongo_generated_id_field():
     assert normalize_verification_document(restored[0]) == expected[0]
 
 
+def test_audit_verification_compares_reference_field_presence_between_expected_and_restored():
+    expected = {
+        "audit_events": [{
+            "id": "evt-1",
+            "actor_id": "user-1",
+            "created_at": "2026-07-01T00:00:00Z",
+            "type": "update",
+            "linked_task_id": "task-1",
+        }]
+    }
+    restored = {
+        "audit_events": [{
+            "_id": "mongo-id",
+            "id": "evt-1",
+            "actor_id": "user-1",
+            "created_at": "2026-07-01T00:00:00Z",
+            "type": "update",
+            "linked_task_id": "task-1",
+        }]
+    }
+    result = verify_audit_data(expected, restored)
+    assert result["state"] == "PASS"
+    assert result["collections"]["audit_events"]["entity_references_survived"] is True
+
+
+def test_compare_fingerprints_ignores_runtime_mutable_notification_collection_drift():
+    before = {
+        "aggregate_fingerprint": "before",
+        "per_collection_record_counts": {"notifications": 10, "users": 2},
+        "per_collection_fingerprints": {
+            "notifications": {"collection_fingerprint": "notif-a"},
+            "users": {"collection_fingerprint": "users-a"},
+        },
+    }
+    after = {
+        "aggregate_fingerprint": "after",
+        "per_collection_record_counts": {"notifications": 9, "users": 2},
+        "per_collection_fingerprints": {
+            "notifications": {"collection_fingerprint": "notif-b"},
+            "users": {"collection_fingerprint": "users-a"},
+        },
+    }
+    cmp = compare_fingerprints(before, after)
+    assert cmp["match"] is True
+    assert cmp["difference"]["collection_differences"] == []
+    assert "notifications" in cmp["difference"]["ignored_runtime_mutable_collections"]
+
+
+def test_independent_qa_precheck_allows_review_to_be_created_before_qa_exists():
+    evidence = build_restore_evidence_skeleton(
+        drill_id="drill-1",
+        namespace_prefix="ops8_drill_test",
+        authorized_archive_key="backups/x.zip",
+        requested_env="preview",
+        target_db="masci_safety_preview",
+        guard={"owner_token": "token-1"},
+    )
+    evidence.update({
+        "source_authority": {"environment": "preview"},
+        "explicit_key_resolution": {"remote_manifest_fanout_enabled": False, "remote_manifest_reads_attempted": 0, "embedded_manifest_loaded": True, "embedded_manifest_reconciled": True, "checksum_validated": True},
+        "canonical_before_fingerprint": {"aggregate_fingerprint": "a"},
+        "canonical_after_fingerprint": {"aggregate_fingerprint": "a"},
+        "canonical_fingerprint_match": True,
+        "restore_results": {"collections": {"users": {"expected_record_count": 1}}, "totals": {"parity_result": True}},
+        "representative_content_verification": {"state": "PASS", "collections": {}},
+        "audit_verification": {"state": "PASS", "collections": {}},
+        "identity_role_verification": {"identity_verification_state": "PASS", "role_verification_state": "PASS", "assignment_verification_state": "PASS", "reference_integrity_state": "PASS", "collections": {}},
+        "scheduler_state_verification": {"state": "PASS", "scheduler_execution_triggered": False, "collections": {}},
+        "photo_object_verification": {"state": "PASS"},
+        "cleanup": {"state": "PASS", "orphan_restore_collections": 0},
+        "final_health": {"state": "PASS"},
+        "guard_release": {"state": "PASS", "released_at": "2026-07-01T00:00:00Z"},
+    })
+    review = build_independent_qa_review(evidence, reviewer_mode="independent-observer")
+    assert review["qa_outcome"] == "PASS"
+
+
 def test_audit_identity_and_scheduler_verification_fail_closed():
     expected = {
         "audit_events": [{"id": "e1", "actor_id": "u1", "ts": "2026", "kind": "edit", "entity_id": "x1"}],
@@ -170,8 +247,8 @@ def test_completeness_gate_and_independent_qa_rules():
     still_pending = validate_restore_certification_evidence(evidence)
     assert still_pending["certification_eligible"] is False
     review = build_independent_qa_review({**evidence, **still_pending}, reviewer_mode="test")
-    assert review["qa_outcome"] == "INCOMPLETE"
-    evidence["qa_reviews"] = [dict(review, qa_outcome="PASS")]
+    assert review["qa_outcome"] == "PASS"
+    evidence["qa_reviews"] = [review]
     final = validate_restore_certification_evidence(evidence)
     assert final["certification_eligible"] is True
     assert final["evidence_completeness_state"] == "COMPLETE"

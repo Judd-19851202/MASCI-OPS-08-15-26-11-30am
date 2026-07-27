@@ -43,11 +43,13 @@ def main() -> int:
         print(json.dumps({"ok": False, "error": "DRILL_NOT_FOUND", "drill_id": args.drill_id}, indent=2))
         return 2
     evidence = dict(row.get("restore_certification_evidence") or {})
-    completeness = validate_restore_certification_evidence(evidence)
-    evidence.update(completeness)
+    pre_review_completeness = validate_restore_certification_evidence(evidence, require_independent_qa=False)
+    evidence.update(pre_review_completeness)
     review = build_independent_qa_review(evidence, reviewer_mode=args.reviewer_mode, exceptions=args.exception)
     evidence.setdefault("qa_reviews", []).append(review)
     evidence["qa_status"] = review["qa_outcome"]
+    completeness = validate_restore_certification_evidence(evidence, require_independent_qa=True)
+    evidence.update(completeness)
     db.drill_runs.update_one(
         {"id": args.drill_id},
         {"$set": {

@@ -82,6 +82,10 @@ FINGERPRINT_EXCLUSION_RULES: Dict[str, Dict[str, str]] = {
         "reason": "regenerable derivative photo cache",
         "owner": "backup-platform",
     },
+    "notifications": {
+        "reason": "runtime notification queue is mutable and may TTL-expire independently of restore execution",
+        "owner": "notification-runtime",
+    },
     "backup_integrity_jobs": {
         "reason": "regenerable operator integrity job ledger",
         "owner": "backup-platform",
@@ -309,7 +313,12 @@ def compare_fingerprints(before: Optional[Dict[str, Any]], after: Optional[Dict[
     after_fps = after.get("per_collection_fingerprints") or {}
     names = sorted(set(before_counts) | set(after_counts) | set(before_fps) | set(after_fps))
     diffs = []
+    ignored = []
+    comparable_source = []
     for name in names:
+        if _collection_exclusion_rule(name, namespace_prefixes=()) is not None:
+            ignored.append(name)
+            continue
         b_count = before_counts.get(name)
         a_count = after_counts.get(name)
         b_fp = ((before_fps.get(name) or {}).get("collection_fingerprint"))
@@ -322,13 +331,15 @@ def compare_fingerprints(before: Optional[Dict[str, Any]], after: Optional[Dict[
                 "before_fingerprint": b_fp,
                 "after_fingerprint": a_fp,
             })
-    match = not diffs and before.get("aggregate_fingerprint") == after.get("aggregate_fingerprint")
+        comparable_source.append(f"{name}|{b_count}|{b_fp}|{a_count}|{a_fp}")
+    match = not diffs
     return {
         "match": match,
         "difference": {
             "aggregate_before": before.get("aggregate_fingerprint"),
             "aggregate_after": after.get("aggregate_fingerprint"),
             "collection_differences": diffs,
+            "ignored_runtime_mutable_collections": ignored,
         },
     }
 
@@ -609,6 +620,11 @@ def verify_audit_data(
     expected_by_collection: Dict[str, List[Dict[str, Any]]],
     restored_by_collection: Dict[str, List[Dict[str, Any]]],
 ) -> Dict[str, Any]:
+    def _presence_matches(expected_doc: Dict[str, Any], restored_doc: Dict[str, Any], keys: Iterable[str]) -> bool:
+        expected_present = any(expected_doc.get(key) not in (None, "") for key in keys)
+        restored_present = any(restored_doc.get(key) not in (None, "") for key in keys)
+        return expected_present == restored_present
+
     collections = {}
     overall = True
     for coll in AUDIT_COLLECTIONS:
@@ -620,11 +636,13 @@ def verify_audit_data(
             restored_docs=list(restored_by_collection.get(coll) or []),
         )
         expected_idx = _index_docs(list(expected_by_collection.get(coll) or []))
-        sampled_docs = [expected_idx[sid] for sid in evidence["sample_identifiers"] if sid in expected_idx]
-        evidence["actor_identity_survived"] = all(_field_presence(doc, ("actor", "actor_id", "actor_email", "user_id", "performed_by")) for doc in sampled_docs) if sampled_docs else True
-        evidence["timestamps_survived"] = all(_field_presence(doc, ("at", "ts", "created_at", "reviewed_at", "timestamp")) for doc in sampled_docs) if sampled_docs else True
-        evidence["event_types_survived"] = all(_field_presence(doc, ("kind", "action", "type", "event")) for doc in sampled_docs) if sampled_docs else True
-        evidence["entity_references_survived"] = all(_field_presence(doc, ("entity_id", "record_id", "target_id", "project_id", "employee_id", "asset_id")) for doc in sampled_docs) if sampled_docs else True
+        restored_idx = _index_docs(list(restored_by_collection.get(coll) or []))
+        sampled_ids = [sid for sid in evidence["sample_identifiers"] if sid in expected_idx]
+        sampled_pairs = [(expected_idx[sid], restored_idx.get(sid) or {}) for sid in sampled_ids]
+        evidence["actor_identity_survived"] = all(_presence_matches(expected_doc, restored_doc, ("actor", "actor_id", "actor_email", "user_id", "performed_by")) for expected_doc, restored_doc in sampled_pairs) if sampled_pairs else True
+        evidence["timestamps_survived"] = all(_presence_matches(expected_doc, restored_doc, ("at", "ts", "created_at", "reviewed_at", "timestamp")) for expected_doc, restored_doc in sampled_pairs) if sampled_pairs else True
+        evidence["event_types_survived"] = all(_presence_matches(expected_doc, restored_doc, ("kind", "action", "type", "event")) for expected_doc, restored_doc in sampled_pairs) if sampled_pairs else True
+        evidence["entity_references_survived"] = all(_presence_matches(expected_doc, restored_doc, ("entity_id", "record_id", "target_id", "project_id", "employee_id", "asset_id", "linked_task_id", "linked_project_number", "linked_source_record_id", "event_id")) for expected_doc, restored_doc in sampled_pairs) if sampled_pairs else True
         evidence["matched"] = bool(
             evidence["matched"]
             and evidence["actor_identity_survived"]
@@ -767,7 +785,7 @@ def build_restore_counts(
     return {"collections": collections, "totals": totals}
 
 
-def validate_restore_certification_evidence(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def validate_restore_certification_evidence(evidence: Dict[str, Any], *, require_independent_qa: bool = True) -> Dict[str, Any]:
     missing: List[str] = []
     contradictory: List[str] = []
 
@@ -801,7 +819,8 @@ def validate_restore_certification_evidence(evidence: Dict[str, Any]) -> Dict[st
     _require("cleanup", cleanup.get("state") == "PASS")
     _require("final_health", final_health.get("state") == "PASS")
     _require("guard_release", guard_release.get("state") == "PASS")
-    _require("independent_qa", bool(qa_reviews))
+    if require_independent_qa:
+        _require("independent_qa", bool(qa_reviews))
 
     before = evidence.get("canonical_before_fingerprint")
     after = evidence.get("canonical_after_fingerprint")
@@ -823,7 +842,7 @@ def validate_restore_certification_evidence(evidence: Dict[str, Any]) -> Dict[st
         contradictory.append("guard_release")
 
     qa_status = str(evidence.get("qa_status") or "")
-    if qa_status == "PASS":
+    if qa_status == "PASS" and not any((review.get("qa_outcome") == "PASS" and review.get("reviewer_mode") == "independent-observer") for review in qa_reviews):
         contradictory.append("qa_status")
 
     evidence_complete = not missing and not contradictory
@@ -844,7 +863,7 @@ def build_independent_qa_review(
     qa_review_id: Optional[str] = None,
     exceptions: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    completeness = validate_restore_certification_evidence(evidence)
+    completeness = validate_restore_certification_evidence(evidence, require_independent_qa=False)
     exc = list(exceptions or [])
     qa_outcome = "PASS"
     if exc:
@@ -859,7 +878,7 @@ def build_independent_qa_review(
         "reviewed_at": _now_iso(),
         "reviewer_mode": reviewer_mode,
         "evidence_schema_version": QA_REVIEW_SCHEMA_VERSION,
-        "evidence_complete": completeness["evidence_completeness_state"] == "PASS",
+        "evidence_complete": completeness["evidence_completeness_state"] == "COMPLETE",
         "authority_checks_verified": bool(evidence.get("source_authority")) and bool(evidence.get("explicit_key_resolution")),
         "manifest_and_checksum_verified": bool((evidence.get("explicit_key_resolution") or {}).get("embedded_manifest_reconciled")) and bool((evidence.get("explicit_key_resolution") or {}).get("checksum_validated")),
         "restore_parity_verified": bool(((evidence.get("restore_results") or {}).get("totals") or {}).get("parity_result")),

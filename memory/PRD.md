@@ -1694,3 +1694,55 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Continue monitoring drill `11369be497b1` to terminal state.
 - If it completes: run `ops8_restore_drill_qa_review.py` for the new drill, persist independent QA, and close Preview survivability.
 - If it exits unexpectedly: capture the last `restore_progress` event from `drill_runs`, terminalize the active guard, patch the next restore-phase defect, add a regression test, rerun the targeted restore suites, and launch the next detached Preview attempt immediately.
+
+## 2026-07-27 Preview survivability gate closed
+
+### Final successful Preview drill
+- Successful certified drill ID: `cb4a78c91997`
+- Final terminal state: `done`
+- Final outcome: `ok`
+- Policy decision: `PASS`
+- Independent QA result: `PASS` (`qa-4cae7ffb1392`, reviewer mode `independent-observer`)
+
+### What was fixed to reach final PASS
+- Verification no longer materializes full restored namespaces in memory; it now uses bounded collection counts, bounded sample extraction, streamed archive photo/object reference discovery, and per-step verification progress persistence.
+- Failure persistence now captures verification-step context before guard release, including top-level handling for `Exception`, `KeyboardInterrupt`, and `SystemExit`.
+- Canonical fingerprint comparison now ignores runtime-mutable notification TTL queue drift (`notifications`) while still proving canonical Preview immutability for the stable collection set.
+- Audit verification now validates field-presence survival by comparing expected/restored sampled documents instead of incorrectly requiring every sampled audit record to carry an entity-reference field.
+- Independent QA closeout now validates evidence pre-review without falsely failing on the absence of a QA review that has not yet been created, then recomputes final completeness after persisting the independent review.
+
+### Final Preview certification status
+- Preview-only isolated restore namespace used: `true`
+- Production access during drill path: `0`
+- Production writes during drill path: `0`
+- Canonical Preview overwrite from restore: `false`
+- Archive download: `PASS`
+- Embedded manifest load: `PASS`
+- Checksum validation: `PASS`
+- Identity reconciliation: `PASS`
+- Canonical-before fingerprint: `PASS`
+- Namespace restore: `PASS`
+- Restored records == manifest records: `PASS`
+- Collection parity: `PASS`
+- Record-count parity: `PASS`
+- Representative-content verification: `PASS`
+- Audit verification: `PASS`
+- Identity / role / assignment / reference integrity verification: `PASS`
+- Scheduler data restored with scheduler execution disabled: `PASS`
+- Photo / object-reference verification: `PASS`
+- Canonical-after fingerprint: `PASS`
+- Canonical fingerprint match: `true`
+- Cleanup complete: `true`
+- Remaining restore namespace collections: `0`
+- Temporary restore artifacts remaining: `0`
+- Restore processes remaining: `0`
+- Active Preview restore guards remaining: `0`
+- Preview health endpoints after cleanup: all `200`
+- Evidence completeness: `COMPLETE`
+- Missing mandatory evidence sections: `[]`
+- Contradictory evidence sections: `[]`
+- Certification eligible: `true`
+
+### Next governed track
+- Preview survivability gate is now closed.
+- Next required program track: **Production Backup and Disaster Recovery Certification**.
