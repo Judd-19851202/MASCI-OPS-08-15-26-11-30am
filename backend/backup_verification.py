@@ -53,7 +53,7 @@ DEFAULT_DAY_OF_WEEK = 0       # Monday
 DEFAULT_HOUR_UTC = 14         # 14:00 UTC ≈ 10:00 AM ET Mon
 DEFAULT_MAX_AGE_HOURS = 36
 R2_LIST_TIMEOUT_SECONDS = 5.0
-R2_MANIFEST_TIMEOUT_SECONDS = 3.0
+R2_MANIFEST_TIMEOUT_SECONDS = float((os.environ.get("BACKUP_R2_MANIFEST_TIMEOUT_SECONDS") or "30").strip() or "30")
 _BACKEND_ENV_PATH = Path(__file__).resolve().parent / ".env"
 
 

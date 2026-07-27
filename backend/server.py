@@ -8972,7 +8972,13 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
 # and a presigned 7-day download URL is emailed alongside the slim
 # heartbeat email.
 
-def _build_complete_archive_on_disk(db_unused, dst_zip: Path, *, backup_run_id: Optional[str] = None) -> dict:
+def _build_complete_archive_on_disk(
+    db_unused,
+    dst_zip: Path,
+    *,
+    backup_run_id: Optional[str] = None,
+    archive_key: Optional[str] = None,
+) -> dict:
     """Build a single self-contained zip on disk with:
       * Every Mongo collection (JSON, _id stripped) under `<kind>/json/`
       * Every R2 photo fetched and inlined under `photos/<key>`
@@ -9185,7 +9191,7 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path, *, backup_run_id: 
                 "storage_provider": "r2-s3-compatible",
                 "backup_bucket": _canonical_backup_bucket(),
                 "backup_prefix": _canonical_backup_prefix(),
-                "archive_key": r2_key,
+                "archive_key": archive_key,
                 "source_hash": _SOURCE_HASH,
                 "git_commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
                 "release_identity": _SOURCE_HASH,
@@ -9602,7 +9608,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
     try:
         current_job = await db.backup_jobs.find_one(
             {"kind": BACKUP_JOB_KIND_COMPLETE_R2, "state": "running"},
-            {"_id": 0, "job_id": 1, "owner_token": 1, "owner_id": 1, "trigger": 1, "slot_key": 1},
+            {"_id": 0, "job_id": 1, "owner_token": 1, "owner_id": 1, "trigger": 1, "slot_key": 1, "backup_run_id": 1},
             sort=[("updated_at", -1)],
         )
         if current_job and current_job.get("owner_token"):
@@ -9634,6 +9640,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             db,
             tmp,
             backup_run_id=(current_job or {}).get("backup_run_id"),
+            archive_key=r2_key,
         )
         tmp.replace(out)
         if out.stat().st_size > BACKUP_COMPLETE_MAX_BUILD_BYTES:

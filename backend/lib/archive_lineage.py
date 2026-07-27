@@ -8,7 +8,11 @@ import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from lib.runtime_identity import build_environment_authority_fingerprint, ENVIRONMENT_FINGERPRINT_VERSION
+from lib.runtime_identity import (
+    build_environment_authority_fingerprint,
+    ENVIRONMENT_FINGERPRINT_VERSION,
+    parse_mongo_url,
+)
 
 
 RESOLVER_VERSION = "bcss-r02-1"
@@ -101,17 +105,15 @@ def _row_lineage(row: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def _runtime_identity(current_env: Optional[str], current_db: Optional[str]) -> Dict[str, str]:
+    mongo_url = str(os.environ.get("MONGO_URL") or "")
+    parsed = parse_mongo_url(mongo_url)
     host = str(os.environ.get("APPROVED_PRODUCTION_MONGO_HOST") or "").strip().lower()
+    if not host:
+        host = str(parsed.hostname or "").strip().lower()
     if not host:
         host = "unknown-host"
     cluster_fingerprint = hashlib.sha256(f"cluster|{host}".encode("utf-8")).hexdigest()[:12]
-    runtime_user = "UNRESOLVED"
-    mongo_url = str(os.environ.get("MONGO_URL") or "")
-    if "@" in mongo_url and "://" in mongo_url:
-        try:
-            runtime_user = mongo_url.split("://", 1)[1].split(":", 1)[0].split("@", 1)[0] or "UNRESOLVED"
-        except Exception:
-            runtime_user = "UNRESOLVED"
+    runtime_user = str(parsed.username or "").strip() or "UNRESOLVED"
     backup_bucket = str(os.environ.get("BACKUP_BUCKET") or os.environ.get("R2_BUCKET") or os.environ.get("S3_BUCKET") or "").strip() or "UNRESOLVED"
     backup_prefix = str(os.environ.get("BACKUP_PREFIX") or os.environ.get("R2_BACKUP_PREFIX") or os.environ.get("S3_BACKUP_PREFIX") or "backups/auto-90d/").strip() or "backups/auto-90d/"
     env_name = str(current_env or os.environ.get("APP_ENV") or "").lower() or "unknown"
@@ -745,6 +747,9 @@ async def build_canonical_archive_lineage(
         )
         if hasattr(cursor, "to_list"):
             backup_health_rows = await cursor.to_list(length=MAX_RECENT_CANDIDATES)
+        elif hasattr(cursor, "__aiter__"):
+            limited = cursor.limit(MAX_RECENT_CANDIDATES) if hasattr(cursor, "limit") else cursor
+            backup_health_rows = [row async for row in limited]
         else:
             backup_health_rows = list(cursor.limit(MAX_RECENT_CANDIDATES))
     else:
