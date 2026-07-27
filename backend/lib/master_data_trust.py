@@ -61,7 +61,11 @@ async def _pm_assignment_findings(db) -> List[Dict[str, Any]]:
     try:
         active_jobs: List[Dict[str, Any]] = []
         async for j in db.jobs_master.find(
-            {"active": True, "deleted_at": {"$in": [None, ""]}},
+            {
+                "active": True,
+                "deleted_at": {"$in": [None, ""]},
+                "forensic_fixture": {"$ne": True},
+            },
             {"_id": 0, "project_number": 1, "pm_email": 1},
             limit=2000,
         ):

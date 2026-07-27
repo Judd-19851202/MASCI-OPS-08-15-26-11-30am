@@ -2128,6 +2128,56 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - This cleanup automation is ready for Production **after redeploy**.
 - Production still requires execution on the live deployment to clear those advisories there.
 
+## 2026-07-27 — PM routing gap backfill added
+
+### Problem found
+- Deployment-readiness still had a truthful `pm_missing_route` advisory for 5 projects:
+  - `22-08`
+  - `26-04`
+  - `24-08`
+  - `26-07`
+  - `ZZ-FOR-UNASSIGN-01`
+
+### Root cause
+- The first 4 projects were real active jobs with:
+  - blank `jobs_master.pm_email`
+  - no active `project_team_assignments` row for role `pm` / `co_pm`
+- `ZZ-FOR-UNASSIGN-01` was a forensic fixture and should not have been counted as a live PM-gap advisory.
+
+### Implemented
+- Updated `backend/lib/master_data_trust.py`
+  - excludes `forensic_fixture=true` rows from PM-gap truth findings
+
+- Added `backend/lib/pm_gap_backfill.py`
+  - builds a deterministic PM assignment plan for real missing-route projects
+  - current project mapping used in Preview:
+    - `22-08` → `davidjewett@mascigc.com`
+    - `24-08` → `davidjewett@mascigc.com`
+    - `26-04` → `ramonrodriguez@mascigc.com`
+    - `26-07` → `ramonrodriguez@mascigc.com`
+
+- Added `backend/routes/pm_gap_backfill.py`
+  - `GET /api/admin/pm-gap-backfill/preview`
+  - `POST /api/admin/pm-gap-backfill/apply`
+
+- Mounted router in `backend/server.py`
+
+### Preview validation
+- `/api/admin/pm-gap-backfill/preview` returned a 4-project plan
+- `/api/admin/pm-gap-backfill/apply` succeeded with `count=4`
+- `/api/admin/deployment-readiness` no longer reports:
+  - `pm_missing_route`
+
+### Current remaining advisory in Preview
+- only the expected preview-safe-capture notification advisory remains
+
+### Production follow-up required
+- Redeploy these changes to production.
+- Run:
+  - `GET /api/admin/pm-gap-backfill/preview`
+  - `POST /api/admin/pm-gap-backfill/apply`
+  - then re-check `/api/admin/deployment-readiness`
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 
