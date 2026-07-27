@@ -1746,3 +1746,62 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Next governed track
 - Preview survivability gate is now closed.
 - Next required program track: **Production Backup and Disaster Recovery Certification**.
+
+## 2026-07-27 TRACK D-02 Preview certification closed
+
+### Scope executed under the user override
+- Certification target remained **Preview only**.
+- Production credentials requested: `0`
+- Production writes performed: `0`
+- Verification authority: Preview runtime (`APP_ENV=preview`, `DB_NAME=masci_safety_preview`)
+
+### What was repaired during D-02 execution
+- Fixed the Preview complete-R2 archive build defect where the embedded manifest path referenced an undefined `r2_key` during archive construction.
+- Preserved `backup_run_id` on the active complete-R2 job lookup so the completed archive lineage stays attached to the live run.
+- Hardened `archive_lineage` runtime identity derivation to fingerprint the actual Preview Mongo runtime host/user, eliminating false `environment_fingerprint_mismatch` / `cluster_identity_mismatch` quarantine on valid Preview archives.
+- Increased R2 manifest probe timeout so large Preview complete archives can be read directly for certification evidence.
+
+### Live Preview certification evidence
+- Fresh authoritative Preview archive created and uploaded successfully:
+  - filename: `MASCI_complete_backup_2026-07-27_021533Z.zip`
+  - R2 key: `backups/auto-90d/MASCI_complete_backup_2026-07-27_021533Z.zip`
+  - size: `1,970,115,420` bytes
+  - records captured: `1,988,129`
+  - upload proof logged at `2026-07-27T02:27:57Z`
+- Latest authoritative Preview recovery point after closeout: `2026-07-27T02:27:57.166000+00:00`
+- Preview recovery posture after closeout:
+  - backup verification verdict: `pass`
+  - R2 status: `ok`
+  - ledger status: `ok`
+  - RPO status: `GREEN` (`actual_min ≈ 10.42` vs target `60`)
+  - latest drill outcome: `ok`
+- Preview scheduler posture after closeout:
+  - scheduler alive: `true`
+  - complete-R2 run in progress: `false`
+  - stale job count: `0`
+  - stale lock present: `false`
+  - resource preflight ok: `true`
+  - hourly complete-R2 activation in Preview: intentionally `DISABLED BY CONFIGURATION` with blocker `environment_not_production`
+
+### Direct manifest / integrity proof
+- Direct R2 manifest read for `MASCI_complete_backup_2026-07-27_021533Z.zip` succeeded after timeout hardening.
+- Latest manifest evidence proved:
+  - `archive_key = backups/auto-90d/MASCI_complete_backup_2026-07-27_021533Z.zip`
+  - `environment_fingerprint = 84003bfb5e21`
+  - `source_cluster_fingerprint = 3cc597c2d577`
+  - `integrity_result = PASS`
+  - `coverage_complete = true`
+
+### Testing and independent verification completed
+- Targeted backend regression suite passed: `12/12`
+- Direct Preview admin/API certification smoke verification passed.
+- Independent backend verification passed: `5/5`
+  - admin login
+  - backup state endpoint
+  - backup verification preview endpoint
+  - recovery snapshot endpoint
+  - latest archive consistency across surfaces
+
+### Result
+- TRACK D-02 Preview certification status: **VERIFIED IN PREVIEW**
+- Remaining survivability work is now limited to the next governed tracks, not the Preview D-02 gate.

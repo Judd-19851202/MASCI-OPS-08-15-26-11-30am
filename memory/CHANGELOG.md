@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-07-27 — BCSS Release 2 TRACK D-02 Preview Certification
+
+- Repaired Preview complete-R2 archive construction in `/app/backend/server.py` by binding the archive key into the manifest build path and preserving `backup_run_id` on the live job lookup.
+- Hardened preview archive-lineage truth selection in `/app/backend/lib/archive_lineage.py` so runtime identity uses the actual Mongo runtime host/user and no longer falsely quarantines valid Preview archives.
+- Increased large-archive manifest probe budget in `/app/backend/backup_verification.py` and verified the latest Preview R2 archive manifest can be read end-to-end with `integrity_result=PASS` and `coverage_complete=true`.
+- Executed a fresh Preview-only complete-R2 archive run: `MASCI_complete_backup_2026-07-27_021533Z.zip` uploaded successfully to `backups/auto-90d/`, surfaced as the authoritative recoverable artifact, and moved Preview RPO to `GREEN`.
+- Verification evidence: targeted backend suite passed `12/12`, direct admin/API smoke verification passed, and independent backend verification passed `5/5` with consistent archive evidence across backup state, verification, and recovery snapshot endpoints.
+
 ## 2026-07-26 — Wave 3 Family 3C Operational Events Phase B
 
 - Preserved bounded Family 3C ownership in `/app/backend/routes/operational_events.py` with `operational_events` as the canonical normalized store and no adjacent-family writes.
