@@ -170,6 +170,11 @@ async def deliver_notification(
     env: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: PLC0415
+    from lib.preview_notification_certification import (  # noqa: PLC0415
+        activate_send_claim,
+        clear_send_claim,
+        resolve_active_preview_live_override,
+    )
 
     source = env or os.environ
     recipient_list = [str(x).strip() for x in recipients if str(x).strip()]
@@ -177,6 +182,22 @@ async def deliver_notification(
     sender = await _resolve_sender_email(db)
     resolved_reply = reply_to or await _resolve_reply_to_email(db) or sender
     now_iso = datetime.now(timezone.utc).isoformat()
+    active_override = None
+    if canonical_app_env(source) == "preview":
+        active_override = await resolve_active_preview_live_override(
+            db,
+            workflow=workflow,
+            record_id=record_id,
+            recipients=recipient_list,
+        )
+    if active_override:
+        contract = dict(contract)
+        contract["delivery_mode"] = DELIVERY_MODE_PROVIDER_LIVE
+        contract["delivery_mode_source"] = "preview_scoped_certification_override"
+        contract["provider_validation_status"] = "certification_override"
+        contract["capture_required"] = False
+        contract["external_send_allowed"] = True
+        contract["blocking"] = False
 
     if not recipient_list:
         return {
@@ -258,7 +279,10 @@ async def deliver_notification(
     }
     if attachments:
         params["attachments"] = attachments
+    send_claim_token = None
     try:
+        if active_override:
+            send_claim_token = activate_send_claim(active_override)
         result = await asyncio.to_thread(resend.Emails.send, params)
         provider_id = ""
         if isinstance(result, dict):
@@ -287,6 +311,8 @@ async def deliver_notification(
             "failure_reason": None,
             "classification": "provider_accepted",
             "provider_response": result if isinstance(result, dict) else {"value": str(result)},
+            "certification_override": bool(active_override),
+            "certification_override_id": (active_override or {}).get("id"),
             "ts": now_iso,
         }
     except Exception as exc:  # noqa: BLE001
@@ -303,8 +329,13 @@ async def deliver_notification(
             "provider_called": True,
             "failure_reason": msg,
             "classification": "provider_error",
+            "certification_override": bool(active_override),
+            "certification_override_id": (active_override or {}).get("id"),
             "ts": now_iso,
         }
+    finally:
+        if send_claim_token is not None:
+            clear_send_claim(send_claim_token)
 
 
 __all__ = [

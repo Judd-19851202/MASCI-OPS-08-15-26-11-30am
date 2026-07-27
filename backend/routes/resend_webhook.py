@@ -50,6 +50,7 @@ from lib.field_submitter_identity import (
     write_chain_event,
     write_dispatch_event,
 )
+from lib.preview_notification_certification import record_webhook_reconciliation
 from lib.workflow_state_events import WORKFLOW_STATE_EVENTS
 
 WEBHOOK_EVENTS_COLLECTION = "resend_webhook_events"
@@ -379,6 +380,23 @@ def register_resend_webhook_routes(api_router: APIRouter, db) -> None:
                 "sig_note": sig_note,
                 "raw_payload": payload,
             })
+        except Exception:
+            pass
+
+        try:
+            await record_webhook_reconciliation(
+                db,
+                provider_message_id=provider_message_id,
+                kind=kind,
+                payload={
+                    "event_type": event_type,
+                    "provider_message_id": provider_message_id,
+                    "recipient": recipient,
+                    "bounce_type": bounce_type,
+                    "matched_chain_rows": matched,
+                    "escalated_to_dead_letter": escalated,
+                },
+            )
         except Exception:
             pass
 

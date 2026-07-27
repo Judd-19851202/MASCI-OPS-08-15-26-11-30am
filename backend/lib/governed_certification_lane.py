@@ -31,16 +31,17 @@ def _is_reserved_or_invalid_email(email: str) -> bool:
 
 
 def _governed_recipient_fallbacks() -> List[str]:
-    return _clean_emails(
-        [
-            os.environ.get("ADMIN_DEAD_LETTER_EMAIL"),
-            os.environ.get("ADMIN_DEAD_LETTER_TO"),
-            os.environ.get("BACKUP_EMAIL_TO"),
-            os.environ.get("OUTAGE_ALERT_TO"),
-            os.environ.get("REPLY_TO_EMAIL"),
-            os.environ.get("SENDER_EMAIL"),
-        ]
+    primary = _clean_email(
+        os.environ.get("ADMIN_DEAD_LETTER_EMAIL")
+        or os.environ.get("ADMIN_DEAD_LETTER_TO")
     )
+    secondary = _clean_email(os.environ.get("BACKUP_EMAIL_TO"))
+    out: List[str] = []
+    if primary and "@" in primary:
+        out.append(primary)
+    if secondary and "@" in secondary and secondary not in out:
+        out.append(secondary)
+    return out
 
 
 def _select_governed_recipients(

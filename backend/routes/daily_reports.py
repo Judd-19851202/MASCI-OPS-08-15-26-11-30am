@@ -452,6 +452,9 @@ class DailyReportCreate(BaseModel):
     certification_release_source_hash: Optional[str] = None
     certification_release_reason: Optional[str] = None
     certification_required_workflows: Optional[List[str]] = None
+    certification_delivery_override_requested: bool = False
+    certification_authorized_recipient: Optional[str] = None
+    certification_override_ttl_minutes: Optional[int] = None
 
 
 class DailyReport(DailyReportCreate):
@@ -810,6 +813,11 @@ def _apply_certification_record_safety(doc: Dict[str, Any]) -> Dict[str, Any]:
     doc["certification_run_id"] = doc.get("certification_run_id")
     doc["certification_release_source_hash"] = doc.get("certification_release_source_hash")
     doc["certification_release_reason"] = doc.get("certification_release_reason")
+    doc["certification_delivery_override_requested"] = bool(
+        doc.get("certification_delivery_override_requested")
+    )
+    doc["certification_authorized_recipient"] = doc.get("certification_authorized_recipient")
+    doc["certification_override_ttl_minutes"] = doc.get("certification_override_ttl_minutes")
     required = doc.get("certification_required_workflows")
     if required is None:
         doc["certification_required_workflows"] = []

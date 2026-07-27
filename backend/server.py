@@ -293,10 +293,19 @@ if _EMAIL_SAFETY_MODE in ("strict", "silent", "test"):
     try:
         import logging as _logging_boot  # noqa: PLC0415
         import resend as _resend_boot  # noqa: PLC0415
+        from lib.preview_notification_certification import send_claim_matches  # noqa: PLC0415
 
         _boot_log = _logging_boot.getLogger(__name__)
+        _original_resend_emails_send = getattr(_resend_boot.Emails, "send", None)
+        _original_resend_send = getattr(_resend_boot, "send", None)
 
         def _blocked_send(*args, **kwargs):
+            params = args[0] if args else kwargs.get("params") or kwargs
+            if send_claim_matches(params):
+                if _original_resend_emails_send is not None:
+                    return _original_resend_emails_send(*args, **kwargs)
+                if _original_resend_send is not None:
+                    return _original_resend_send(*args, **kwargs)
             _boot_log.warning(
                 "[Track 21.2] EMAIL_SAFETY_MODE=%s — Resend.Emails.send() blocked. "
                 "kwargs_keys=%r",
@@ -17562,6 +17571,11 @@ from lib.notification_delivery import (  # noqa: E402
     deliver_notification,
     delivery_contract,
 )
+from lib.preview_notification_certification import (  # noqa: E402
+    provision_preview_live_override,
+    record_provider_attempt_result,
+)
+from lib.field_submitter_identity import write_dispatch_event  # noqa: E402
 # _KIND_TO_COLLECTION is also re-exported for callers that reference it via
 # the server module attribute (e.g. /api/auto-email-preview).
 from lib.email_dispatch import _KIND_TO_COLLECTION as _KIND_TO_COLLECTION_LIB  # noqa: E402, F401
@@ -17650,6 +17664,7 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
     try:
         dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
+        original_intended_recipients: List[str] = list(recipients)
         routing_module = "pm_routing.recipients_for_record_async"
         routing_failure_reason = (
             None if recipients else f"no recipients resolved (kind={kind})"
@@ -17870,6 +17885,22 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         ]
         html = render_email_html(kind, record, note)
         contract = delivery_contract()
+        active_cert_override = None
+        try:
+            active_cert_override = await provision_preview_live_override(
+                db,
+                workflow=kind,
+                record=record,
+                original_intended_recipients=original_intended_recipients,
+            )
+        except Exception:  # noqa: BLE001
+            active_cert_override = None
+        if active_cert_override:
+            recipients = [str(active_cert_override.get("actual_recipient") or "").strip()]
+            contract = dict(contract)
+            contract["delivery_mode"] = DELIVERY_MODE_PROVIDER_LIVE
+            contract["delivery_mode_source"] = "preview_scoped_certification_override"
+            contract["provider_validation_status"] = "certification_override"
         delivery = await deliver_notification(
             db=db,
             workflow=kind,
@@ -17931,6 +17962,62 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 dry_run=(delivery.get("notification_state") == STATUS_CAPTURED_PREVIEW),
             )
 
+            if active_cert_override:
+                await record_provider_attempt_result(
+                    db,
+                    override=active_cert_override,
+                    delivery=delivery,
+                )
+                binding_id = str(active_cert_override.get("id") or "").strip()
+                record_id_value = str(record.get("id") or record.get("doc_id") or "")
+                record_doc_id_value = str(record.get("doc_id") or "")
+                actual_recipient = str(active_cert_override.get("actual_recipient") or "").strip().lower()
+                dispatch_extra = {
+                    "resolution_tier": "certification_override",
+                    "certification_run_id": active_cert_override.get("certification_run_id"),
+                    "certification_override": True,
+                    "original_intended_recipients": list(
+                        active_cert_override.get("original_intended_recipients") or []
+                    ),
+                }
+                await write_dispatch_event(
+                    db,
+                    workflow=kind,
+                    record_id=record_id_value,
+                    record_doc_id=record_doc_id_value,
+                    kind="notification_dispatch_attempted",
+                    binding_id=binding_id,
+                    channel="email",
+                    recipient=actual_recipient,
+                    extra=dispatch_extra,
+                )
+                if delivery.get("provider_accepted"):
+                    await write_dispatch_event(
+                        db,
+                        workflow=kind,
+                        record_id=record_id_value,
+                        record_doc_id=record_doc_id_value,
+                        kind="notification_dispatch_succeeded",
+                        binding_id=binding_id,
+                        channel="email",
+                        recipient=actual_recipient,
+                        provider_message_id=str(delivery.get("provider_message_id") or ""),
+                        extra=dispatch_extra,
+                    )
+                else:
+                    await write_dispatch_event(
+                        db,
+                        workflow=kind,
+                        record_id=record_id_value,
+                        record_doc_id=record_doc_id_value,
+                        kind="notification_dispatch_failed",
+                        binding_id=binding_id,
+                        channel="email",
+                        recipient=actual_recipient,
+                        error=str(delivery.get("failure_reason") or "notification_delivery_failed"),
+                        extra=dispatch_extra,
+                    )
+
             record_update = {
                 "notification_delivery_mode": delivery.get("delivery_mode"),
                 "notification_state": delivery.get("notification_state"),
@@ -17941,6 +18028,19 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 "notification_provider_validation_status": contract.get("provider_validation_status"),
                 "business_state": "submitted",
             }
+            if active_cert_override:
+                record_update["notification_certification_override_id"] = active_cert_override.get("id")
+                record_update["notification_certification_run_id"] = active_cert_override.get("certification_run_id")
+                record_update["notification_actual_recipient"] = active_cert_override.get("actual_recipient")
+                record_update["notification_original_intended_recipients"] = list(
+                    active_cert_override.get("original_intended_recipients") or []
+                )
+                record_update["notification_certification_override_expires_at"] = active_cert_override.get("expires_at")
+                record_update["notification_certification_override_status"] = (
+                    "used_pending_reconciliation"
+                    if delivery.get("provider_accepted")
+                    else delivery.get("notification_state")
+                )
             if delivery.get("capture_id"):
                 record_update["notification_capture_id"] = delivery.get("capture_id")
             if delivery.get("provider_message_id"):
