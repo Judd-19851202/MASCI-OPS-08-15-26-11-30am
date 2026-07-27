@@ -1,3 +1,59 @@
+# BCSS Release 2 Platform Survivability Addendum
+
+## 2026-07-27 Fork Scope
+
+### Original problem statement for this fork
+Execute BCSS Release 2 Platform Survivability Program in **Preview only**.
+
+Mandatory scope completed in this fork:
+- **S1-2 — Secrets & Configuration Recovery Certification**
+- **S1-3 — Backup Verification Hardening**
+
+Explicit non-scope for this fork:
+- S1-4 Notification Delivery Certification
+- Production Readiness Review (PRR)
+- Any production deployment, production credential request, or production write
+
+### Current architecture in scope
+- Backend: FastAPI (`/app/backend`)
+- Frontend: React (`/app/frontend`) — unchanged for this slice
+- Database: MongoDB Preview database `masci_safety_preview`
+- Object storage: Cloudflare R2 via boto3-compatible runtime
+
+### S1-2 implementation completed
+- Added canonical machine-readable recovery package builder in `/app/backend/lib/config_recovery.py`
+- Added canonical Preview recovery endpoint: `GET /api/admin/recovery/configuration-recovery`
+- Extended canonical recovery snapshot with `configuration_recovery` summary in `/app/backend/routes/recovery_dashboard.py`
+- Added Preview-only configuration inventory, secret-reference inventory, fail-closed environment-separation validator, and recovery runbook output
+- Produced operator runbook file: `/app/memory/S1_2_CONFIGURATION_RECOVERY_RUNBOOK.md`
+
+### S1-3 implementation completed
+- Hardened lineage resolver in `/app/backend/lib/archive_lineage.py` so **HIGH** confidence is granted only when manifest + checksum + persisted lineage reconcile directly
+- Preserved legacy compatibility for historical archives without sidecar evidence while preventing new canonical archives from falling back silently
+- Triggered and verified a fresh Preview complete backup:
+  - `MASCI_complete_backup_2026-07-27_111254Z.zip`
+  - location: `backups/preview/auto-90d/`
+  - direct evidence: manifest sidecar + checksum sidecar + persisted lineage
+  - result: `lineage_confidence=HIGH`, `integrity_status=PASS`, `completeness_status=COMPLETE`, `availability_status=AVAILABLE`
+
+### Verification evidence
+- Local/backend regression suite: `49 passed, 5 skipped`
+- Independent verification report: `/app/test_reports/iteration_49.json`
+- Live Preview endpoint verification passed for:
+  - `/api/health`
+  - `/api/health/full`
+  - `/api/admin/recovery/configuration-recovery`
+  - `/api/admin/recovery/snapshot`
+  - `/api/admin/backups-complete-r2-state`
+  - `/api/admin/backup-verification/preview`
+
+### Remaining backlog after this fork
+- **P1**: none within S1-2 / S1-3 — certification, evidence, and independent verification are complete
+- **P2**: S1-4 Notification Delivery Certification
+- **P2**: Production Readiness Review (PRR)
+
+---
+
 # FORGEDOPS Daily Report Recovery PRD
 
 ## Original Problem Statement

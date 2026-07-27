@@ -41,14 +41,17 @@ Platform Survivability Program remains the mandatory, non-bypassable gate before
 
 - Restore certification gate: **closed / verified in Preview**
 - TRACK D-02 Backup & DR Preview certification: **verified in Preview**
-  - latest authoritative archive: `MASCI_complete_backup_2026-07-27_021533Z.zip`
+  - superseded authoritative archive: `MASCI_complete_backup_2026-07-27_021533Z.zip`
   - latest Preview RPO: `GREEN`
   - latest Preview drill outcome: `ok`
+- S1-2 Secrets & Configuration Recovery Certification: **verified in Preview**
+- S1-3 Backup Verification Hardening: **verified in Preview**
+  - current authoritative archive: `MASCI_complete_backup_2026-07-27_111254Z.zip`
+  - authoritative archive location: `backups/preview/auto-90d/`
+  - confidence contract: `HIGH` only with direct sidecar manifest + checksum + lineage reconciliation
 
 ### P1 next
-- Secrets and Configuration Recovery Certification (S1-2)
-- Backup Verification Hardening (S1-3): raise lineage confidence from `MEDIUM` to `HIGH` by binding newest-manifest evidence directly into authoritative preview reporting paths
-- Notification Delivery Certification (S1-4)
+- Notification Delivery Certification (S1-4) — **next survivability track, not started here**
 
 ### P2 later
 - Production Readiness Review (PRR) execution

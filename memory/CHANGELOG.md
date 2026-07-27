@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-07-27 — BCSS Release 2 S1-2 + S1-3 Preview Certification
+
+- Completed **S1-2 Secrets & Configuration Recovery Certification** with a canonical recovery package in `/app/backend/lib/config_recovery.py`, a new admin endpoint at `/api/admin/recovery/configuration-recovery`, fail-closed Preview/Production separation checks, and the operator runbook at `/app/memory/S1_2_CONFIGURATION_RECOVERY_RUNBOOK.md`.
+- Completed **S1-3 Backup Verification Hardening** in `/app/backend/lib/archive_lineage.py`, requiring direct manifest sidecar + checksum sidecar + persisted lineage reconciliation before granting `lineage_confidence=HIGH`.
+- Triggered and verified a fresh Preview backup: `MASCI_complete_backup_2026-07-27_111254Z.zip` under `backups/preview/auto-90d/`, with `direct_evidence_status=VERIFIED`, `direct_evidence_read_mode=SIDECAR`, and `valid_recoverable=true`.
+- Restored `/api/health/full` compatibility while keeping the richer lineage-backed diagnostics path intact.
+- Verification evidence: local regression suite passed `49/49` relevant tests (`5 skipped`), and independent verification passed in `/app/test_reports/iteration_49.json`.
+
 ## 2026-07-27 — BCSS Release 2 TRACK D-02 Preview Certification
 
 - Repaired Preview complete-R2 archive construction in `/app/backend/server.py` by binding the archive key into the manifest build path and preserving `backup_run_id` on the live job lookup.
