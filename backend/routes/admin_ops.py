@@ -159,6 +159,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 db,
                 current_env=_canonical_app_env(),
                 current_db=_canonical_db_name(),
+                include_manifest_reads=False,
             )
             freshness = consumer_freshness_status(lineage, threshold_minutes=24 * 60.0, warning_minutes=24 * 60.0)
             hrs = lineage.get("freshness_age_hours")

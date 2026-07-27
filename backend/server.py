@@ -1631,6 +1631,7 @@ async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
         target_db,
         current_env=_canonical_app_env(),
         current_db=_canonical_db_name(),
+        include_manifest_reads=False,
     )
     return backup_recent_truth(lineage, threshold_hours=PUBLIC_HEALTH_THRESHOLD_HOURS)
 

@@ -2014,6 +2014,70 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - The production verification package is ready for operator execution against `https://mascidocs.com`.
 - Once live findings are captured, each issue can be classified through the RCA matrix and then repaired in Preview for redeploy.
 
+## 2026-07-27 — Production KPI truth regression analysis
+
+### Reported issue
+- User reported that after redeploy and enabling hourly backups, the live admin KPI / health surfaces must report truthful green/yellow/red with no fake green.
+
+### Production findings verified
+- Production `https://mascidocs.com` currently shows mixed behavior across admin KPI surfaces:
+  - `/api/admin/deployment-readiness` → **200 PASS**
+  - `/api/admin/trust-spine` → **200 AMBER/DEGRADED** with 10 workflows marked `amber-no-activity`
+  - `/api/admin/system-health` → **504 Gateway time-out**
+  - `/api/admin/recovery/snapshot` → **504 Gateway time-out**
+  - `/api/admin/backup-trust-score` → **504 Gateway time-out**
+  - `/api/admin/platform/status` → **504 Gateway time-out**
+  - `/api/admin/backups-scheduler-state` → **504 Gateway time-out**
+  - `/api/admin/backups-complete-r2-state` → **504 Gateway time-out**
+  - `/api/admin/operations-trust-center` → **504 Gateway time-out**
+  - `/api/admin/production-health` → **520 origin error**
+  - `/api/admin/persistence-health` → **504 Gateway time-out**
+
+### Root cause analysis
+
+#### Root cause A — hot admin KPI routes are too expensive for production edge timeout budget
+- The recently changed health paths were using full canonical archive lineage evaluation with manifest reads in hot admin/health surfaces.
+- That path can perform R2 archive listing plus per-archive manifest reads.
+- On production this pushed several admin KPI routes over the Cloudflare/origin timeout budget, producing 504s and a 520.
+
+#### Root cause B — trust surfaces are honest, not falsely green
+- `/api/admin/trust-spine` is not broken; it reports `platform_band=amber`, `canonical_status=DEGRADED` because 10 workflows had no lifecycle events in the last 24h.
+- This is truthful amber, not a rendering bug.
+
+#### Root cause C — deployment-readiness advisories are operator-data truth, not blockers
+- `/api/admin/deployment-readiness` still passes, but correctly reports advisory master-data gaps:
+  - missing equipment `unit_number`
+  - missing employee `employee_id`
+- These are truthful advisories and not deployment blockers.
+
+### Preview fix applied
+- Rebounded the hot admin health paths to use **bounded lineage evaluation** (`include_manifest_reads=False`) while still using canonical archive lineage:
+  - `backend/routes/admin_ops.py`
+  - `backend/server.py`
+- This preserves truthful backup-freshness logic but removes the expensive manifest-read path from latency-sensitive admin KPI endpoints.
+
+### Validation after preview fix
+- Preview now returns:
+  - `/api/admin/system-health` → green with truthful backup card
+  - `/api/health/full` → `backup_recent=true`
+- Targeted tests passed for health probe + hourly activation truth.
+
+### Production follow-up required
+- Redeploy the bounded hot-path fix to production.
+- Re-test these production endpoints immediately after redeploy:
+  - `/api/admin/system-health`
+  - `/api/admin/recovery/snapshot`
+  - `/api/admin/backup-trust-score`
+  - `/api/admin/platform/status`
+  - `/api/admin/backups-scheduler-state`
+  - `/api/admin/backups-complete-r2-state`
+  - `/api/admin/operations-trust-center`
+  - `/api/admin/persistence-health`
+
+### Truth notes for live follow-up
+- If trust-spine remains amber after redeploy, that is currently expected unless those 10 no-activity workflows emit fresh lifecycle events.
+- If deployment-readiness still shows master-data advisories, those are real data issues to clean up, not code defects.
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 
