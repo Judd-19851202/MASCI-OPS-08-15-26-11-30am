@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status, public_archive_lineage_payload
+from lib.config_recovery import build_configuration_recovery_package, build_configuration_recovery_summary
 from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 
 
@@ -306,6 +307,16 @@ def build_recovery_dashboard_router(
 
     router = APIRouter()
 
+    @router.get("/admin/recovery/configuration-recovery")
+    async def configuration_recovery(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:
+        from server import _runtime_identity_bundle  # noqa: PLC0415
+
+        package = build_configuration_recovery_package(
+            env=os.environ,
+            runtime_identity_bundle=_runtime_identity_bundle(),
+        )
+        return {"ok": True, "package": package}
+
     @router.get("/admin/recovery/snapshot")
     async def recovery_snapshot(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:
         """Single round-trip snapshot for the /admin/recovery dashboard.
@@ -555,6 +566,14 @@ def build_recovery_dashboard_router(
                 "message": "Photo coverage gap open · see PHOTO_COVERAGE_CERTIFICATION.md",
             })
 
+        from server import _runtime_identity_bundle  # noqa: PLC0415
+
+        configuration_recovery_package = build_configuration_recovery_package(
+            env=os.environ,
+            runtime_identity_bundle=_runtime_identity_bundle(),
+        )
+        configuration_recovery_summary = build_configuration_recovery_summary(configuration_recovery_package)
+
         snapshot = {
             "computed_at": datetime.now(timezone.utc).isoformat(),
             "pill": pill,
@@ -585,6 +604,7 @@ def build_recovery_dashboard_router(
             "archive_size_trend": archive_size_trend,
             "failures_7d": failures_7d,
             "warnings": warnings,
+            "configuration_recovery": configuration_recovery_summary,
             "scheduler": {
                 "alive": scheduler_alive,
                 "is_healthy": bool(canonical_scheduler.get("is_healthy")),

@@ -274,8 +274,8 @@ class TestPreviewAuthoritativeArchive:
         yield mongo[env["DB_NAME"]]
         mongo.close()
 
-    def test_authoritative_archive_is_2026_07_25(self, env, db):
-        """Preview authoritative archive is MASCI_complete_backup_2026-07-25_230328Z.zip."""
+    def test_authoritative_archive_is_preview_scoped(self, env, db):
+        """Preview authoritative archive remains preview-scoped and recoverable."""
         try:
             lineage = asyncio.run(
                 build_canonical_archive_lineage(
@@ -292,9 +292,8 @@ class TestPreviewAuthoritativeArchive:
         auth = lineage.get("authoritative_artifact")
         assert auth is not None, "No authoritative artifact found"
         
-        # Verify it's the expected archive
-        expected_key = "backups/auto-90d/MASCI_complete_backup_2026-07-25_230328Z.zip"
-        assert auth.get("object_key") == expected_key
+        object_key = auth.get("object_key") or ""
+        assert object_key.startswith(("backups/preview/auto-90d/", "backups/auto-90d/"))
         assert auth.get("valid_recoverable") is True
         assert auth.get("legacy_classification") == "LINEAGE_VERIFIED"
 

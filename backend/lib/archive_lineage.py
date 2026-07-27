@@ -13,7 +13,11 @@ from lib.runtime_identity import (
     ENVIRONMENT_FINGERPRINT_VERSION,
     parse_mongo_url,
 )
-from lib.backup_paths import configured_backup_prefix
+from lib.backup_paths import (
+    checksum_sidecar_key_for_archive,
+    configured_backup_prefix,
+    manifest_sidecar_key_for_archive,
+)
 
 
 RESOLVER_VERSION = "bcss-r02-1"
@@ -221,22 +225,182 @@ def _synthetic_archive_rows_from_recent_rows(
     return rows
 
 
-def _derive_integrity(manifest: Dict[str, Any], archive: Optional[Dict[str, Any]], row_lineage: Dict[str, Any]) -> Tuple[str, List[str], bool]:
+def _parse_checksum_sidecar(checksum_text: Optional[str]) -> Dict[str, Optional[str]]:
+    raw = str(checksum_text or "").strip()
+    if not raw:
+        return {"checksum_sha256": None, "filename": None}
+    first_line = raw.splitlines()[0].strip()
+    if not first_line:
+        return {"checksum_sha256": None, "filename": None}
+    parts = first_line.split()
+    checksum_sha256 = parts[0].strip() if parts else None
+    filename = parts[-1].strip() if len(parts) >= 2 else None
+    return {"checksum_sha256": checksum_sha256 or None, "filename": filename or None}
+
+
+def _derive_direct_evidence(
+    manifest: Dict[str, Any],
+    manifest_bundle: Optional[Dict[str, Any]],
+    archive: Optional[Dict[str, Any]],
+    row_lineage: Dict[str, Any],
+    runtime_identity: Dict[str, str],
+) -> Dict[str, Any]:
+    manifest_bundle = manifest_bundle or {}
+    archive_key = str((archive or {}).get("key") or row_lineage.get("archive_key") or manifest.get("archive_key") or "").strip()
+    filename = str((archive or {}).get("filename") or archive_key.rsplit("/", 1)[-1] or "").strip()
+    manifest_key = str(manifest_bundle.get("manifest_key") or row_lineage.get("manifest_key") or "").strip() or None
+    checksum_key = str(manifest_bundle.get("checksum_key") or row_lineage.get("checksum_key") or "").strip() or None
+    read_mode = str(manifest_bundle.get("read_mode") or "NONE").strip() or "NONE"
+    checksum_sidecar = _parse_checksum_sidecar(manifest_bundle.get("checksum_sidecar"))
+    expected_manifest_key = manifest_sidecar_key_for_archive(archive_key) if archive_key else None
+    expected_checksum_key = checksum_sidecar_key_for_archive(archive_key) if archive_key else None
     reasons: List[str] = []
+    direct_available = bool(manifest and (manifest_key or checksum_key or checksum_sidecar.get("checksum_sha256")))
+
+    if not manifest:
+        return {
+            "status": "ABSENT",
+            "available": False,
+            "reconciled": False,
+            "read_mode": read_mode,
+            "manifest_key": manifest_key,
+            "checksum_key": checksum_key,
+            "checksum_sha256": checksum_sidecar.get("checksum_sha256"),
+            "checksum_filename": checksum_sidecar.get("filename"),
+            "reasons": reasons,
+        }
+
+    if not direct_available:
+        return {
+            "status": "LEGACY",
+            "available": False,
+            "reconciled": False,
+            "read_mode": read_mode,
+            "manifest_key": manifest_key,
+            "checksum_key": checksum_key,
+            "checksum_sha256": checksum_sidecar.get("checksum_sha256"),
+            "checksum_filename": checksum_sidecar.get("filename"),
+            "reasons": ["legacy_manifest_without_direct_evidence"],
+        }
+
+    manifest_archive_key = str(manifest.get("archive_key") or "").strip()
+    manifest_backup_id = str(manifest.get("backup_id") or "").strip()
+    lineage_backup_id = str(row_lineage.get("backup_id") or "").strip()
+    manifest_env_fp = str(manifest.get("environment_fingerprint") or "").strip()
+    lineage_env_fp = str(row_lineage.get("environment_fingerprint") or "").strip()
+    runtime_env_fp = str(runtime_identity.get("environment_fingerprint") or "").strip()
+    manifest_prefix = str(manifest.get("backup_prefix") or "").strip()
+    lineage_prefix = str(row_lineage.get("backup_prefix") or "").strip()
+    runtime_prefix = str(runtime_identity.get("backup_prefix") or "").strip()
+    manifest_bucket = str(manifest.get("backup_bucket") or "").strip()
+    lineage_bucket = str(row_lineage.get("backup_bucket") or "").strip()
+    runtime_bucket = str(runtime_identity.get("backup_bucket") or "").strip()
+    manifest_cluster = str(manifest.get("source_cluster_fingerprint") or "").strip()
+    lineage_cluster = str(row_lineage.get("source_cluster_fingerprint") or "").strip()
+    runtime_cluster = str(runtime_identity.get("cluster_fingerprint") or "").strip()
+    manifest_db = str(manifest.get("source_database_identity") or manifest.get("db_name") or manifest.get("database_name") or "").strip()
+    lineage_db = str(row_lineage.get("source_database_identity") or row_lineage.get("database_name") or "").strip()
+    runtime_db = str(runtime_identity.get("db_name") or "").strip()
+    sidecar_checksum = str(checksum_sidecar.get("checksum_sha256") or "").strip()
+    lineage_checksum = str(row_lineage.get("checksum_sha256") or "").strip()
+    checksum_filename = str(checksum_sidecar.get("filename") or "").strip()
+
+    if not manifest_key:
+        reasons.append("direct_manifest_sidecar_missing")
+    elif expected_manifest_key and manifest_key != expected_manifest_key:
+        reasons.append("direct_manifest_key_mismatch")
+    if not checksum_key:
+        reasons.append("direct_checksum_sidecar_missing")
+    elif expected_checksum_key and checksum_key != expected_checksum_key:
+        reasons.append("direct_checksum_key_mismatch")
+    if read_mode != "SIDECAR":
+        reasons.append("direct_manifest_not_read_from_sidecar")
+    if not manifest_archive_key:
+        reasons.append("direct_manifest_archive_key_missing")
+    elif archive_key and manifest_archive_key != archive_key:
+        reasons.append("direct_manifest_archive_key_mismatch")
+    if not manifest_backup_id or not lineage_backup_id:
+        reasons.append("direct_backup_id_missing")
+    elif manifest_backup_id != lineage_backup_id:
+        reasons.append("direct_backup_id_mismatch")
+    if not sidecar_checksum:
+        reasons.append("direct_checksum_value_missing")
+    elif not lineage_checksum:
+        reasons.append("direct_lineage_checksum_missing")
+    elif sidecar_checksum != lineage_checksum:
+        reasons.append("direct_checksum_lineage_mismatch")
+    if checksum_filename and filename and checksum_filename != filename:
+        reasons.append("direct_checksum_filename_mismatch")
+    if not manifest_env_fp or not lineage_env_fp:
+        reasons.append("direct_environment_fingerprint_missing")
+    elif runtime_env_fp and (manifest_env_fp != runtime_env_fp or lineage_env_fp != runtime_env_fp or manifest_env_fp != lineage_env_fp):
+        reasons.append("direct_environment_fingerprint_mismatch")
+    if not manifest_prefix or not lineage_prefix:
+        reasons.append("direct_backup_prefix_missing")
+    elif runtime_prefix and (manifest_prefix != runtime_prefix or lineage_prefix != runtime_prefix or manifest_prefix != lineage_prefix):
+        reasons.append("direct_backup_prefix_mismatch")
+    if not manifest_bucket or not lineage_bucket:
+        reasons.append("direct_backup_bucket_missing")
+    elif runtime_bucket and (manifest_bucket != runtime_bucket or lineage_bucket != runtime_bucket or manifest_bucket != lineage_bucket):
+        reasons.append("direct_backup_bucket_mismatch")
+    if not manifest_cluster or not lineage_cluster:
+        reasons.append("direct_cluster_fingerprint_missing")
+    elif runtime_cluster and (manifest_cluster != runtime_cluster or lineage_cluster != runtime_cluster or manifest_cluster != lineage_cluster):
+        reasons.append("direct_cluster_fingerprint_mismatch")
+    if not manifest_db or not lineage_db:
+        reasons.append("direct_database_identity_missing")
+    elif runtime_db and (manifest_db != runtime_db or lineage_db != runtime_db or manifest_db != lineage_db):
+        reasons.append("direct_database_identity_mismatch")
+
+    return {
+        "status": "VERIFIED" if not reasons else "FAILED",
+        "available": True,
+        "reconciled": not reasons,
+        "read_mode": read_mode,
+        "manifest_key": manifest_key,
+        "checksum_key": checksum_key,
+        "checksum_sha256": sidecar_checksum or None,
+        "checksum_filename": checksum_filename or None,
+        "reasons": reasons,
+    }
+
+
+def _derive_integrity(
+    manifest: Dict[str, Any],
+    manifest_bundle: Optional[Dict[str, Any]],
+    archive: Optional[Dict[str, Any]],
+    row_lineage: Dict[str, Any],
+    runtime_identity: Dict[str, str],
+) -> Tuple[str, List[str], bool, Dict[str, Any]]:
+    reasons: List[str] = []
+    direct_evidence = _derive_direct_evidence(manifest, manifest_bundle, archive, row_lineage, runtime_identity)
     integrity_result = str(manifest.get("integrity_result") or "").upper()
+    if direct_evidence.get("available"):
+        reasons.extend(direct_evidence.get("reasons") or [])
+        if not direct_evidence.get("reconciled"):
+            return "FAIL", reasons, False, direct_evidence
+        if integrity_result == "FAIL":
+            reasons.append("manifest_integrity_failed")
+            return "FAIL", reasons, False, direct_evidence
+        if integrity_result == "PASS":
+            return "PASS", reasons, True, direct_evidence
+        reasons.append("manifest_integrity_missing")
+        return "FAIL", reasons, False, direct_evidence
+
     if integrity_result == "PASS":
-        return "PASS", reasons, True
+        reasons.append("legacy_manifest_without_direct_evidence")
+        return "UNVERIFIED", reasons, False, direct_evidence
     if integrity_result == "FAIL":
         reasons.append("manifest_integrity_failed")
-        return "FAIL", reasons, False
+        return "FAIL", reasons, False, direct_evidence
 
     checksum = row_lineage.get("checksum_sha256") or (archive or {}).get("etag")
     if checksum:
         reasons.append("integrity_evidence_unverified")
-        return "UNVERIFIED", reasons, False
+        return "UNVERIFIED", reasons, False, direct_evidence
 
     reasons.append("integrity_evidence_absent")
-    return "UNKNOWN", reasons, False
+    return "UNKNOWN", reasons, False, direct_evidence
 
 
 def _derive_completeness(manifest: Dict[str, Any], row: Optional[Dict[str, Any]]) -> Tuple[str, List[str], bool]:
@@ -313,8 +477,14 @@ def _lineage_confidence(
     row_lineage: Dict[str, Any],
     time_source: str,
     env_match: bool,
+    direct_evidence: Dict[str, Any],
 ) -> str:
-    if manifest and env_match and time_source in {"VERIFIED_LOGICAL_RECOVERY_POINT", "COMPLETED_ARCHIVE_TIME"}:
+    if (
+        manifest
+        and env_match
+        and direct_evidence.get("status") == "VERIFIED"
+        and time_source in {"VERIFIED_LOGICAL_RECOVERY_POINT", "COMPLETED_ARCHIVE_TIME"}
+    ):
         return "HIGH"
     if manifest or row_lineage.get("checksum_sha256") or row_lineage.get("archive_key"):
         return "MEDIUM"
@@ -358,7 +528,13 @@ def _build_candidate(
 
     availability_status, availability_reasons, availability_ok = _derive_availability(archive, row)
     completeness_status, completeness_reasons, completeness_ok = _derive_completeness(manifest, row)
-    integrity_status, integrity_reasons, integrity_ok = _derive_integrity(manifest, archive, row_lineage)
+    integrity_status, integrity_reasons, integrity_ok, direct_evidence = _derive_integrity(
+        manifest,
+        manifest_bundle,
+        archive,
+        row_lineage,
+        runtime_identity,
+    )
     failure_state, failure_reason = _derive_failure_state(row, manifest)
 
     reasons.extend(availability_reasons)
@@ -417,7 +593,7 @@ def _build_candidate(
     )
 
     can_treat_legacy_complete = (
-        completeness_status.startswith("LEGACY")
+        (completeness_status.startswith("LEGACY") or direct_evidence.get("status") == "LEGACY")
         and availability_ok
         and evidence_quality == "PROVIDER_DURABLE_COMPLETION_TIME"
     )
@@ -450,7 +626,7 @@ def _build_candidate(
     if legacy_classification != "LINEAGE_VERIFIED":
         reasons.append("quarantined_from_auto_selection")
 
-    confidence = _lineage_confidence(manifest, row_lineage, evidence_quality, env_match)
+    confidence = _lineage_confidence(manifest, row_lineage, evidence_quality, env_match, direct_evidence)
     artifact_key = _candidate_key(archive, row)
     filename = (archive or {}).get("filename") or row.get("filename")
     archive_key = (archive or {}).get("key") or row_lineage.get("archive_key") or (f"backups/auto-90d/{filename}" if filename else None)
@@ -491,6 +667,8 @@ def _build_candidate(
             "manifest_name": (manifest_bundle or {}).get("manifest_name"),
             "manifest_version": manifest.get("manifest_version") or manifest.get("version"),
         },
+        "direct_evidence_status": direct_evidence.get("status"),
+        "direct_evidence_read_mode": direct_evidence.get("read_mode"),
         "integrity_status": integrity_status,
         "completeness_status": completeness_status,
         "retention_status": "UNKNOWN",
@@ -501,7 +679,9 @@ def _build_candidate(
         "evidence_references": {
             "backup_health_row_ts": row.get("ts"),
             "archive_last_modified": (archive or {}).get("last_modified_iso"),
-            "checksum_sha256": row_lineage.get("checksum_sha256") or (manifest_bundle or {}).get("checksum_sha256"),
+            "checksum_sha256": direct_evidence.get("checksum_sha256") or row_lineage.get("checksum_sha256") or (manifest_bundle or {}).get("checksum_sha256"),
+            "manifest_key": direct_evidence.get("manifest_key") or row_lineage.get("manifest_key"),
+            "checksum_key": direct_evidence.get("checksum_key") or row_lineage.get("checksum_key"),
             "etag": (archive or {}).get("etag"),
             "audit_reference": row.get("audit_reference"),
         },
@@ -868,6 +1048,8 @@ def summarize_artifact(candidate: Optional[Dict[str, Any]]) -> Optional[Dict[str
         "integrity_status": candidate.get("integrity_status"),
         "completeness_status": candidate.get("completeness_status"),
         "availability_status": candidate.get("availability_status"),
+        "direct_evidence_status": candidate.get("direct_evidence_status"),
+        "direct_evidence_read_mode": candidate.get("direct_evidence_read_mode"),
         "lineage_confidence": candidate.get("lineage_confidence"),
         "valid_recoverable": candidate.get("valid_recoverable"),
         "supersession_status": candidate.get("supersession_status"),

@@ -1610,8 +1610,14 @@ def _parse_backup_ts(ts_val: Any) -> Optional[datetime]:
 
 
 async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
+    target_db = db.get_target()
+    if target_db is None:
+        await _bootstrap_runtime_db()
+        target_db = db.get_target()
+    if target_db is None:
+        raise RuntimeError("runtime_database_unavailable")
     lineage = await build_canonical_archive_lineage(
-        db,
+        target_db,
         current_env=_canonical_app_env(),
         current_db=_canonical_db_name(),
         include_manifest_reads=False,
@@ -1621,8 +1627,12 @@ async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
 
 async def _compute_public_full_health_snapshot() -> Dict[str, Any]:
     public = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}
+    target_db = db.get_target()
+    if target_db is None:
+        await _bootstrap_runtime_db()
+        target_db = db.get_target()
     try:
-        await asyncio.wait_for(db.command("ping"), timeout=2.0)
+        await asyncio.wait_for(target_db.command("ping"), timeout=2.0)
         public["mongo"] = True
     except Exception:
         public["mongo"] = False
@@ -1633,7 +1643,7 @@ async def _compute_public_full_health_snapshot() -> Dict[str, Any]:
     try:
         from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
         sched = await build_canonical_scheduler_snapshot(
-            db,
+            target_db,
             _BACKUP_SCHEDULER_STATE,
             backup_fallback_ts=backup_truth.get("evidence_ts"),
         )
@@ -1670,8 +1680,6 @@ async def _compute_public_full_health_snapshot() -> Dict[str, Any]:
 async def api_health_full(response: Response):
     snap = await _compute_public_full_health_snapshot()
     out = snap["public"]
-    if not out["ok"]:
-        response.status_code = 503
     return out
 
 

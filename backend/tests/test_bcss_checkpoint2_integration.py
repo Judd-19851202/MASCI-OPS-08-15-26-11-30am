@@ -265,6 +265,7 @@ class TestLegacyDegradation:
         if result.get("authoritative_artifact"):
             assert result["authoritative_artifact"]["authoritative_time_source"] == "PROVIDER_DURABLE_COMPLETION_TIME"
             assert "LEGACY" in result["authoritative_artifact"]["completeness_status"]
+            assert result["authoritative_artifact"]["lineage_confidence"] == "MEDIUM"
 
 
 class TestNoParallelResolver:
