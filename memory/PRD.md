@@ -2235,6 +2235,63 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - CORS production origin
   - supervisor/runtime configuration
 
+## 2026-07-27 — Startup connection-refused deployment failure fixed
+
+### Deployment error input
+- Emergent deployment logs showed repeated startup probe failures:
+  - `connect() failed (111: Connection refused) while connecting to upstream`
+  - failing probe: `GET /health` to `127.0.0.1:8001`
+
+### Real root cause
+- The backend process was not failing import/compile, but startup was too heavy and slow before the app could bind/respond consistently to early Kubernetes health checks.
+- Two main sources were identified:
+
+1. **Non-critical background work still executed before readiness**
+   - some loops/schedulers were mounted in pre-readiness lifecycle groups even though they are not required for initial health probe success
+
+2. **Trench facts backfill startup hook still ran off legacy `@app.on_event("startup")`**
+   - this created a background task before runtime DB initialization completed
+   - logs showed repeated messages:
+     - `Database accessed before runtime initialization`
+   - this did not cause a hard import crash, but contributed to noisy/fragile startup timing under deployment churn
+
+### Fixes implemented
+
+- Updated `backend/lib/lifespan_bootstrap.py`
+  - introduced a dedicated `post-readiness` lifecycle phase
+  - startup order is now:
+    - pre-readiness lifecycle steps
+    - FastAPI handlers
+    - readiness flip
+    - post-readiness lifecycle steps
+
+- Updated `backend/server.py`
+  - moved these non-critical tasks to `post-readiness`:
+    - motive reliability supervisor
+    - health monitor loop
+    - deployment governance verification scheduler
+    - dispatch reminder scheduler
+  - moved trench facts backfill bootstrap from legacy `@app.on_event("startup")` to:
+    - `@register_lifecycle_step("post-readiness")`
+
+### Verification
+- Backend imports cleanly
+- Supervisor restart succeeded
+- `/health` now returns `200` after startup settles
+- Verified post-fix endpoints:
+  - `/health` → `200`
+  - `/api/health` → `200`
+  - `/api/healthz` → `200`
+  - `/api/ready` → `200`
+- Focused startup/health regression tests passed:
+  - `test_track14_platform_stability_regression.py::test_health_endpoint_is_public_200`
+  - `test_track14_rc1_perf_regression.py`
+
+### Final deployment scan
+- Re-ran deployment readiness scan after startup hardening.
+- Result: **PASS**
+- No remaining code-level blockers found for the `connection refused` startup probe failure.
+
 
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
