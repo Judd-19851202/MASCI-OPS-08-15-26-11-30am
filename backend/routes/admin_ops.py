@@ -159,24 +159,27 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 db,
                 current_env=_canonical_app_env(),
                 current_db=_canonical_db_name(),
+                requested_source_environment=_canonical_app_env(),
                 include_manifest_reads=False,
             )
             freshness = consumer_freshness_status(lineage, threshold_minutes=24 * 60.0, warning_minutes=24 * 60.0)
             hrs = lineage.get("freshness_age_hours")
             status = "VERIFIED" if freshness.get("status") == "CURRENT" else "DEGRADED" if freshness.get("status") == "AGING" else "MISMATCH"
+            authoritative_artifact = lineage.get("authoritative_artifact") or {}
             if hrs is not None:
                 cards.append({
                     "key": "backup",
                     "label": "Last backup",
                     "status": status,
-                    "detail": f"Canonical recoverable point {hrs:.1f}h ago · {lineage.get('authoritative_time_source') or 'UNKNOWN'}",
+                    "detail": f"Canonical recoverable point {hrs:.1f}h ago · {(authoritative_artifact.get('filename') or 'archive')} · {lineage.get('authoritative_time_source') or 'UNKNOWN'}",
                 })
             else:
+                degradation = ", ".join((lineage.get("degradation_reasons") or [])[:2]) or "authoritative_recovery_point_unknown"
                 cards.append({
                     "key": "backup",
                     "label": "Last backup",
                     "status": "UNVERIFIABLE",
-                    "detail": "Authoritative recovery point unknown",
+                    "detail": f"Authoritative recovery point unknown · {degradation}",
                 })
         except Exception:  # noqa: BLE001
             cards.append({"key": "backup", "label": "Last backup",

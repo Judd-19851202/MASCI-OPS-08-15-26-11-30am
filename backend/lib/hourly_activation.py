@@ -88,6 +88,7 @@ def build_hourly_activation_state(
     backup_active: bool,
     restore_active: bool,
     stale_job_count: int,
+    reclaimable_stale_job_count: int = 0,
     stale_lock_present: bool,
     resource_preflight: Optional[Dict[str, Any]],
     r2_configured: bool,
@@ -99,6 +100,7 @@ def build_hourly_activation_state(
     moment = now or datetime.now(timezone.utc)
     requested, parse_error = parse_requested_hourly(requested_raw)
     blockers: List[Dict[str, Any]] = []
+    blocking_stale_job_count = max(int(stale_job_count or 0) - int(reclaimable_stale_job_count or 0), 0)
 
     if parse_error:
         blockers.append(
@@ -148,12 +150,12 @@ def build_hourly_activation_state(
                 detail="A restore job is currently active",
             )
         )
-    if stale_job_count > 0:
+    if blocking_stale_job_count > 0:
         blockers.append(
             build_activation_blocker(
                 "stale_backup_job_present",
                 category="stale",
-                detail=f"{stale_job_count} stale backup/restore job(s) require operator review",
+                detail=f"{blocking_stale_job_count} stale backup/restore job(s) require operator review",
             )
         )
     if stale_lock_present:
@@ -222,4 +224,6 @@ def build_hourly_activation_state(
         "resource_preflight": preflight,
         "retention_valid": bool(retention_valid),
         "retention_reason": retention_reason,
+        "blocking_stale_job_count": blocking_stale_job_count,
+        "reclaimable_stale_job_count": max(int(reclaimable_stale_job_count or 0), 0),
     }

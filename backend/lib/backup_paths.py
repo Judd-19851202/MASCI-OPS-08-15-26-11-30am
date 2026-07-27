@@ -34,11 +34,7 @@ def configured_backup_prefix(env: Optional[dict] = None) -> str:
 
 def backup_prefix_search_order(app_env: Optional[str], *, explicit_prefix: Optional[str] = None) -> List[str]:
     canonical = (explicit_prefix or canonical_backup_prefix_for_env(app_env)).strip().rstrip("/") + "/"
-    prefixes: List[str] = [canonical]
-    legacy = LEGACY_COMPLETE_BACKUP_PREFIX.strip().rstrip("/") + "/"
-    if legacy != canonical:
-        prefixes.append(legacy)
-    return prefixes
+    return [canonical]
 
 
 def dedupe_prefixes(prefixes: Iterable[str]) -> List[str]:

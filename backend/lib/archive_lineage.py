@@ -197,7 +197,7 @@ def _synthetic_archive_rows_from_recent_rows(
 ) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     seen: set[str] = set()
-    prefix = str(runtime.get("backup_prefix") or "backups/auto-90d/")
+    prefix = str(runtime.get("backup_prefix") or configured_backup_prefix(os.environ))
     for row in recent_rows[:MAX_RECENT_CANDIDATES]:
         row_lineage = _row_lineage(row)
         filename = str(row.get("filename") or "").strip()
@@ -629,7 +629,7 @@ def _build_candidate(
     confidence = _lineage_confidence(manifest, row_lineage, evidence_quality, env_match, direct_evidence)
     artifact_key = _candidate_key(archive, row)
     filename = (archive or {}).get("filename") or row.get("filename")
-    archive_key = (archive or {}).get("key") or row_lineage.get("archive_key") or (f"backups/auto-90d/{filename}" if filename else None)
+    archive_key = (archive or {}).get("key") or row_lineage.get("archive_key") or (f"{str(runtime_identity.get('backup_prefix') or configured_backup_prefix(os.environ)).rstrip('/')}/{filename}" if filename else None)
     created_by = row_lineage.get("job_id") or row_lineage.get("backup_id") or manifest.get("backup_id") or filename or artifact_key
     selected_dt = parse_dt(authoritative_time)
     observed_dt = parse_dt(observed_time)
@@ -954,7 +954,7 @@ async def build_canonical_archive_lineage(
     if include_manifest_reads:
         from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
 
-        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or "backups/auto-90d/"))
+        archives = await list_r2_backup_archives(prefix=str(runtime.get("backup_prefix") or configured_backup_prefix(os.environ)))
         if candidate_rows:
             allowed_filenames = {str(row.get("filename") or "").strip() for row in candidate_rows if row.get("filename")}
             archive_rows = [a for a in archives if str(a.get("filename") or "").strip() in allowed_filenames][:MAX_RECENT_CANDIDATES]

@@ -1537,7 +1537,7 @@ _R2_BACKUP_AGE_TTL_S = 300  # 5 minutes
 
 async def _r2_backup_age_seconds_cached() -> Optional[float]:
     """Return the age (in seconds) of the newest object under the
-    canonical complete-backup ``backups/auto-90d/`` prefix in R2, or ``None`` if R2 isn't configured /
+    canonical complete-backup prefix in R2, or ``None`` if R2 isn't configured /
     listing fails. Cached for 5 minutes per process.
 
     Crucially: a real outage where the bucket has NO recent backups
@@ -1571,7 +1571,7 @@ async def _r2_backup_age_seconds_cached() -> Optional[float]:
             # cache amortizes it to ~1 list per process per 5 min.
             paginator = c.get_paginator("list_objects_v2")
             newest = None
-            for page in paginator.paginate(Bucket=_bucket(), Prefix="backups/auto-90d/"):
+            for page in paginator.paginate(Bucket=_bucket(), Prefix=_canonical_backup_prefix()):
                 for o in (page.get("Contents") or []):
                     lm = o.get("LastModified")
                     if lm and (newest is None or lm > newest):
@@ -7847,7 +7847,7 @@ async def _latest_complete_backup_hint(db) -> Dict[str, Any]:
 
 
 async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
-    stale_before = (datetime.now(timezone.utc) - timedelta(minutes=240)).isoformat()
+    stale_before = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
     try:
         stale_marked = await mark_stale_backup_jobs(db, stale_before_iso=stale_before)
     except Exception as e:  # noqa: BLE001
@@ -7881,10 +7881,10 @@ async def _backup_persistence_available(db) -> bool:
 
 async def _stale_scheduler_lock_present(db) -> bool:
     try:
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_dt = datetime.now(timezone.utc)
         row = await asyncio.wait_for(
             db.scheduler_locks.find_one(
-                {"expires_at": {"$lt": now_iso}},
+                {"expires_at": {"$lt": now_dt}},
                 {"_id": 0, "scheduler": 1},
             ),
             timeout=2.0,
@@ -7953,6 +7953,10 @@ async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str
             "state": current.get("state"),
             "heartbeat_at": current.get("heartbeat_at"),
         }
+    reclaimable_stale_jobs = [
+        job for job in stale_jobs
+        if str(job.get("failure_reason") or "") == "stale_job_recovered"
+    ]
     state = build_hourly_activation_state(
         requested_raw=os.environ.get("BACKUP_R2_HOURLY"),
         environment=_canonical_app_env().lower(),
@@ -7961,6 +7965,7 @@ async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str
         backup_active=bool(overlap.get("backup_active")),
         restore_active=bool(overlap.get("restore_active")),
         stale_job_count=len(stale_jobs),
+        reclaimable_stale_job_count=len(reclaimable_stale_jobs),
         stale_lock_present=stale_lock_present,
         resource_preflight=preflight,
         r2_configured=bool(os.environ.get("S3_BUCKET") and os.environ.get("S3_ENDPOINT_URL")),
@@ -7970,6 +7975,7 @@ async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str
     )
     state["retention_state"] = retention
     state["stale_job_count"] = len(stale_jobs)
+    state["reclaimable_stale_job_count"] = len(reclaimable_stale_jobs)
     state["stale_lock_present"] = stale_lock_present
     state["persistence_available"] = persistence_available
     _BACKUP_SCHEDULER_STATE["r2_hourly_requested"] = state["r2_hourly_requested"]
@@ -9401,7 +9407,7 @@ async def _run_r2_tiered_retention_async() -> None:
       • weekly recovery points: 90d
       • monthly recovery points: 12m
 
-    Idempotent. Touches only ``backups/auto-90d/`` (the active R2 prefix).
+    Idempotent. Touches only the active R2 prefix for the current environment.
     Legacy ``backups/*.zip`` is out of scope by design — see comment at
     upload-site.
     """
@@ -9420,7 +9426,7 @@ async def _run_r2_tiered_retention_async() -> None:
     try:
         result = await asyncio.to_thread(
             enforce_r2_retention, s3, bucket,
-            prefix="backups/auto-90d/", dry_run=False,
+            prefix=_canonical_backup_prefix(), dry_run=False,
         )
         if result.get("ok") and (result.get("deleted") or 0) > 0:
             logger.info(
@@ -10547,7 +10553,7 @@ async def _backup_scheduler_loop(db) -> None:
                 _BACKUP_SCHEDULER_STATE["last_r2_complete"] = {
                     "filename": current_hour_r2_row.get("filename"),
                     "size_bytes": current_hour_r2_row.get("size_bytes"),
-                    "r2_key": f"backups/auto-90d/{current_hour_r2_row.get('filename')}",
+                    "r2_key": f"{_canonical_backup_prefix().rstrip('/')}/{current_hour_r2_row.get('filename')}",
                     "ts": current_hour_r2_row.get("ts"),
                 }
         if r2_hourly:
@@ -10946,7 +10952,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         sort=[("ts", -1)],
     )
 
-    r2_archives = await list_r2_backup_archives(prefix="backups/auto-90d/")
+    r2_archives = await list_r2_backup_archives(prefix=_canonical_backup_prefix())
     latest_r2 = r2_archives[0] if r2_archives else None
     latest_r2_filename = None
     if latest_r2:
@@ -11160,7 +11166,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         seen_recent_filenames.add(filename)
         recent_candidates.append({
             "filename": filename,
-            "object_key": f"backups/auto-90d/{filename}",
+            "object_key": f"{_canonical_backup_prefix().rstrip('/')}/{filename}",
             "ts": row.get("ts"),
             "size_bytes": row.get("size_bytes") or 0,
             "records": row.get("records"),
@@ -11338,7 +11344,7 @@ async def _run_backup_integrity_job(job_id: str, actor_email: str = "admin"):
             {"_id": 0, "filename": 1, "size_bytes": 1, "records": 1, "ts": 1},
             sort=[("ts", -1)],
         )
-        r2_archives = await list_r2_backup_archives(prefix="backups/auto-90d/")
+        r2_archives = await list_r2_backup_archives(prefix=_canonical_backup_prefix())
         latest_r2 = r2_archives[0] if r2_archives else None
         latest_r2_filename = None
         if latest_r2:
@@ -11831,7 +11837,7 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
             fallback_artifact = {
                 "filename": latest_r2.get("filename"),
                 "archive_size_bytes": latest_r2.get("size_bytes"),
-                "object_key": f"backups/auto-90d/{latest_r2.get('filename')}",
+                "object_key": f"{_canonical_backup_prefix().rstrip('/')}/{latest_r2.get('filename')}",
                 "authoritative_time": latest_r2.get("ts"),
                 "observed_time": latest_r2.get("ts"),
             }
@@ -11845,7 +11851,7 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
             nightly_last = {
                 "filename": fallback_artifact.get("filename"),
                 "size_bytes": fallback_artifact.get("archive_size_bytes"),
-                "r2_key": fallback_artifact.get("object_key") or f"backups/auto-90d/{fallback_artifact.get('filename')}",
+                "r2_key": fallback_artifact.get("object_key") or f"{_canonical_backup_prefix().rstrip('/')}/{fallback_artifact.get('filename')}",
                 "ts": fallback_artifact.get("authoritative_time") or fallback_artifact.get("observed_time"),
             }
             nightly_last_date = date_bucket
@@ -11891,7 +11897,7 @@ async def admin_list_r2_backups(
     limit: int = 100,
     _: bool = Depends(require_admin_strict),
 ):
-    """List backup zips currently stored in ``r2://<bucket>/backups/``.
+    """List backup zips currently stored in the current environment's R2 backup prefix.
     Returns most recent first, plus a presigned URL for each so the
     admin can click-and-download from the UI without exposing the
     bucket credentials.
@@ -11916,7 +11922,7 @@ async def admin_list_r2_backups(
 
         def _collect() -> list:
             out_local = []
-            for page in paginator.paginate(Bucket=_bucket(), Prefix="backups/"):
+            for page in paginator.paginate(Bucket=_bucket(), Prefix=_canonical_backup_prefix()):
                 out_local.extend(page.get("Contents") or [])
             return out_local
 
@@ -11940,7 +11946,7 @@ async def admin_list_r2_backups(
                               if o.get("LastModified") else None),
             "download_url": url,
         })
-    return {"count": len(out), "total_in_bucket": len(contents), "backups": out}
+    return {"count": len(out), "total_in_bucket": len(contents), "prefix": _canonical_backup_prefix(), "backups": out}
 
 @api_router.get("/admin/sessions/recent")
 async def admin_recent_sessions(

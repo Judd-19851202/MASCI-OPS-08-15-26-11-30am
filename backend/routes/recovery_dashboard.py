@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status, public_archive_lineage_payload
+from lib.backup_paths import configured_backup_prefix
 from lib.config_recovery import build_configuration_recovery_package, build_configuration_recovery_summary
 from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 
@@ -251,7 +252,7 @@ async def _newest_r2_backup_summary() -> Optional[Dict[str, Any]]:
         page = await asyncio.to_thread(
             client.list_objects_v2,
             Bucket=bucket,
-            Prefix="backups/auto-90d/",
+            Prefix=configured_backup_prefix(os.environ),
             MaxKeys=1000,
         )
         contents = page.get("Contents") or []

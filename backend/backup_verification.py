@@ -417,7 +417,7 @@ async def build_verification_report(db) -> Dict[str, Any]:
         r2_issues.append("Cloudflare R2 not configured on this deployment.")
     elif not archives:
         r2_status = "empty"
-        r2_issues.append("R2 bucket has zero objects under backups/.")
+        r2_issues.append(f"R2 bucket has zero objects under {configured_backup_prefix(_runtime_env())}.")
     elif lineage.get("authoritative_recovery_point_time") is None:
         r2_status = "warn"
         r2_issues.append("Canonical archive lineage could not prove an authoritative recovery point.")
