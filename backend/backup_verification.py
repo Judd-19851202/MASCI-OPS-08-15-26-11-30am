@@ -191,6 +191,10 @@ def _enabled() -> bool:
     return (os.environ.get("BACKUP_VERIFICATION_ENABLED") or "true").strip().lower() in ("1", "true", "yes", "on")
 
 
+def _manifest_sample_limit() -> int:
+    return max(1, _env_int("BACKUP_VERIFICATION_MANIFEST_SAMPLE_LIMIT", 3))
+
+
 def _verification_recipients() -> List[str]:
     """Recipients fall through: BACKUP_VERIFICATION_TO → BACKUP_EMAIL_TO →
     SAFETY_EMAIL_TO. Returns empty list if none configured."""
@@ -526,7 +530,7 @@ async def build_verification_report(db) -> Dict[str, Any]:
             "max_age_threshold_hrs": max_age_hours,
             "max_age_threshold_source": threshold_meta.get("source"),
             "max_age_threshold_authority": threshold_meta.get("authority"),
-            "all_archives": archives[:25],   # cap for emails
+            "all_archives": archives[: min(25, _manifest_sample_limit())],
             "all_archives_truncated": len(archives) > 25,
         },
         "ledger": {
