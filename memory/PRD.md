@@ -2078,6 +2078,56 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - If trust-spine remains amber after redeploy, that is currently expected unless those 10 no-activity workflows emit fresh lifecycle events.
 - If deployment-readiness still shows master-data advisories, those are real data issues to clean up, not code defects.
 
+## 2026-07-27 — Master-data cleanup automation added
+
+### Scope
+- User approved canonical cleanup rules for employee IDs and equipment unit numbers.
+- Goal: automate truthful cleanup with duplicate avoidance, then use the same logic on Production after redeploy.
+
+### Implemented
+- Added `backend/lib/master_data_backfill.py`
+  - employee backfill strategy:
+    - append-only canonical IDs in format `EMP-000001`
+    - next available sequence
+    - never reuses an existing ID
+    - now respects actual employee activity flags (`active` OR `is_active`)
+  - equipment backfill strategy:
+    - preserve existing meaningful identifiers only when already canonical-safe
+    - otherwise generate structured temporary identifiers by inferred class
+      - examples: `GEN-001`, `LSR-001`, `CMP-001`
+    - fallback to `EQP-000001` style when class cannot be safely determined
+    - duplicate avoidance checks against existing `unit_number`, `asset_number`, and `display_label` token space
+
+- Added `backend/routes/master_data_backfill.py`
+  - `GET /api/admin/master-data-backfill/preview`
+  - `POST /api/admin/master-data-backfill/apply`
+
+- Mounted the router in `backend/server.py`
+
+### Preview validation
+- Applied the backfill in Preview successfully:
+  - `employee_updates=409`
+  - `equipment_updates=247`
+- Post-apply preview state:
+  - `/api/admin/master-data-backfill/preview` → `employees_missing_employee_id=0`, `equipment_missing_unit_number=0`
+  - `/api/admin/deployment-readiness` no longer reports:
+    - `employee_missing_id`
+    - `equipment_missing_unit_number`
+
+### Remaining truthful master-data finding in Preview
+- `pm_missing_route`
+  - 5 active projects still have no resolvable PM / Co-PM route
+  - projects reported:
+    - `22-08`
+    - `26-04`
+    - `24-08`
+    - `26-07`
+    - `ZZ-FOR-UNASSIGN-01`
+
+### Production usage note
+- This cleanup automation is ready for Production **after redeploy**.
+- Production still requires execution on the live deployment to clear those advisories there.
+
 ### Authorization state
 - The fresh Preview retry authorization remains unconsumed and suspended pending operator decision.
 

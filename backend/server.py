@@ -15469,10 +15469,12 @@ app.include_router(build_dispatch_router(
 # Uses the STRICT admin gate (admin-only — PM tokens NOT accepted) so
 # operational/compliance-sensitive surfaces stay scoped to admins.
 from routes.admin_ops import build_admin_ops_router  # noqa: E402
+from routes.master_data_backfill import build_master_data_backfill_router  # noqa: E402
 
 _admin_ops_router = build_admin_ops_router(db, require_admin_strict)
 _admin_ops_router._get_runtime_identity = _runtime_identity_bundle  # type: ignore[attr-defined]
 app.include_router(_admin_ops_router)
+app.include_router(build_master_data_backfill_router(db, require_admin_strict))
 
 
 # ─── Phase 2 P0+P1 · Compliance Gap Detector + Governance Health ────

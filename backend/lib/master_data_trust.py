@@ -173,9 +173,23 @@ async def _employee_findings(db) -> List[Dict[str, Any]]:
         missing: List[str] = []
         async for e in db.employees.find(
             {"$and": [
-                {"is_active": {"$ne": False}},
-                {"$or": [{"employee_id": None},
-                         {"employee_id": ""}]},
+                {
+                    "$or": [
+                        {"active": True},
+                        {"is_active": True},
+                        {
+                            "$and": [
+                                {"active": {"$exists": False}},
+                                {"is_active": {"$exists": False}},
+                            ]
+                        },
+                    ]
+                },
+                {"$or": [
+                    {"employee_id": None},
+                    {"employee_id": ""},
+                    {"employee_id": {"$exists": False}},
+                ]},
             ]},
             {"_id": 0, "id": 1, "name": 1},
             limit=200,
