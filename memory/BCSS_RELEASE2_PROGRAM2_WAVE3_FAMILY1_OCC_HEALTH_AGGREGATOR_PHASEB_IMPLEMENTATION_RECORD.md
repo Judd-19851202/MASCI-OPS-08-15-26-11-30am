@@ -7,6 +7,8 @@ Date: 2026-07-25
 
 Status: IMPLEMENTED · VERIFIED · READY FOR FORMAL ADOPTION
 
+2026-07-27 closeout note: this record preserves the in-time Phase B status. Current authoritative Wave 3 disposition is **ADOPTED** in `/app/memory/WAVE_3_CERTIFICATION_REGISTER.md`.
+
 ---
 
 ## 1. Scope

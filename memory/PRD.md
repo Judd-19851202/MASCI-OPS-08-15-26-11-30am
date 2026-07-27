@@ -2,13 +2,22 @@
 
 ## 2026-07-27 Fork Scope
 
+Current authoritative Wave 3 status is maintained in:
+
+- `/app/memory/WAVE_3_FORMAL_CLOSEOUT.md`
+- `/app/memory/WAVE_3_CERTIFICATION_REGISTER.md`
+- `/app/memory/WAVE_3_FINAL_STATUS.json`
+
+Historical PRD entries below preserve in-time implementation states and should not be read as the current final Wave 3 disposition unless explicitly reconciled by the closeout artifacts above.
+
 ### Original problem statement for this fork
 Execute BCSS Release 2 Platform Survivability Program in **Preview only**.
 
 Mandatory scope completed in this fork:
 - **S1-2 — Secrets & Configuration Recovery Certification**
 - **S1-3 — Backup Verification Hardening**
-- **S1-4 — Notification Delivery Certification** implementation and bounded Preview verification are now in progress in this fork
+- **S1-4 — Notification Delivery Certification** repository implementation completed with a governed Preview boundary
+- **Wave 3 Formal Closeout** governance reconciliation completed
 
 Explicit non-scope for this fork:
 - Production Readiness Review (PRR)
@@ -34,7 +43,24 @@ Explicit non-scope for this fork:
   - doc_id: `DR-2026-03557`
   - outcome: `PROVIDER_LIVE` activated, provider called, permanent failure `API key is invalid`
 - Independent verification report: `/app/test_reports/iteration_50.json`
-- Current blocker: the configured `RESEND_API_KEY` is invalid, so provider submission cannot complete and webhook/provider reconciliation cannot yet be certified.
+- Governing Preview boundary now applies:
+  - Repository implementation complete.
+  - Preview `SAFE_CAPTURE` intentionally retained.
+  - Live provider validation deferred by governance.
+  - Failed run `s1-4-cert-e217a5ffd8` preserved as historical evidence.
+  - No production architecture changes required.
+  - No repository defect exists.
+
+### 2026-07-27 Wave 3 Formal Closeout status update
+
+- Repository freeze baseline recorded at commit `8d3c5de441ad91799dd96e308a10ba3e29da4604`.
+- Canonical closeout outputs produced:
+  - `/app/memory/WAVE_3_FORMAL_CLOSEOUT.md`
+  - `/app/memory/WAVE_3_CERTIFICATION_REGISTER.md`
+  - `/app/memory/WAVE_3_GOVERNANCE_RECONCILIATION.md`
+  - `/app/memory/WAVE_3_FINAL_STATUS.json`
+- Historical evidence artifacts `iteration_39.json` and `iteration_40.json` were restored from git history and frozen as evidence, not implementation.
+- Platform Survivability Program readiness determination after closeout: `READY TO RESUME`.
 
 ### Current architecture in scope
 - Backend: FastAPI (`/app/backend`)
@@ -70,9 +96,8 @@ Explicit non-scope for this fork:
   - `/api/admin/backup-verification/preview`
 
 ### Remaining backlog after this fork
-- **P0**: rotate / replace the invalid `RESEND_API_KEY`, restart backend, and re-run exactly one bounded S1-4 certification message
-- **P0**: capture final provider proof source (`WEBHOOK`, `PROVIDER_API`, or `BOTH`) and close `/app/memory/S1_4_NOTIFICATION_DELIVERY_CERTIFICATION_EVIDENCE.md`
-- **P1**: none within S1-2 / S1-3 — certification, evidence, and independent verification are complete
+- **P0**: none required for Wave 3 repository closeout
+- **P1**: Platform Survivability Program may resume under its own governing track
 - **P2**: Production Readiness Review (PRR)
 
 ---

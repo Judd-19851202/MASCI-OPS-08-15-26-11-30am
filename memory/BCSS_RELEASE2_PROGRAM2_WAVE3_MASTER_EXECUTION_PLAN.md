@@ -8,6 +8,19 @@ This document is the single canonical execution plan for the remainder of BCSS R
 
 It is planning and orchestration only.
 
+## 2026-07-27 Governance amendment
+
+This document remains a historical planning artifact.
+
+Current authoritative Wave 3 closeout and roadmap state now live in:
+
+- `/app/memory/WAVE_3_FORMAL_CLOSEOUT.md`
+- `/app/memory/WAVE_3_CERTIFICATION_REGISTER.md`
+- `/app/memory/WAVE_3_FINAL_STATUS.json`
+- `/app/memory/ROADMAP.md`
+
+Any in-time planning statuses below should be interpreted through those reconciled closeout artifacts.
+
 It does **not** reopen architecture, create new constitutional families, broaden existing ownership, or authorize implementation outside the already frozen constitutional record.
 
 Repository-backed current state:

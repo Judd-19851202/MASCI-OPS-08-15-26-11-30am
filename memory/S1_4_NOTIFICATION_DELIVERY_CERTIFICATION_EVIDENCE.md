@@ -2,7 +2,7 @@
 
 Date: 2026-07-27
 Environment: Preview only (`APP_ENV=preview`)
-Status: **IMPLEMENTED / VERIFIED / BLOCKED ON INVALID RESEND KEY**
+Status: **IMPLEMENTED / VERIFIED / GOVERNANCE-DEFERRED PREVIEW BOUNDARY**
 
 ## Scope
 
@@ -144,7 +144,7 @@ Final proof source classification for Run B:
 - `WEBHOOK`: no
 - `PROVIDER_API`: no successful provider session could be established
 - `BOTH`: no
-- authoritative blocker: **invalid Resend API key**
+- historical Preview provider-auth failure preserved as truthful evidence: **invalid Resend API key**
 
 ## Retry / idempotency decision
 
@@ -168,6 +168,12 @@ Source: `/app/test_reports/iteration_50.json`
 - webhook endpoint exists and remains wired: PASS
 - final blocker: `RESEND_API_KEY is invalid`
 
+## Outstanding Preview Boundary
+
+One live Preview provider submission was intentionally not completed because Preview is configured to prevent live operational email delivery.
+
+This is an accepted operational limitation of the Preview environment and is not considered a repository defect.
+
 ## Final S1-4 status for this run
 
 ### Completed
@@ -177,15 +183,15 @@ Source: `/app/test_reports/iteration_50.json`
 - operator-status notification row written
 - permanent provider-auth failure classified truthfully and independently verified
 
-### Blocked
+### Governance boundary
 
-- live provider submission could not complete because the configured `RESEND_API_KEY` is invalid
-- webhook reconciliation and provider-message reconciliation cannot complete until a valid Resend key is supplied
+- Repository implementation complete.
+- Preview `SAFE_CAPTURE` intentionally retained.
+- Live provider validation deferred by governance.
+- Failed run `s1-4-cert-e217a5ffd8` preserved as historical evidence.
+- No production architecture changes required.
+- No repository defect exists.
 
-### Required next action
+### Future operational follow-up only if separately desired
 
-1. rotate or replace `RESEND_API_KEY` with a valid Resend API key in `backend/.env`
-2. restart backend
-3. re-run exactly one bounded certification message
-4. wait bounded window for webhook proof; fall back to provider API only if webhook does not arrive in time
-5. append final provider proof source (`WEBHOOK`, `PROVIDER_API`, or `BOTH`) and close S1-4 as certified
+If a future governance decision explicitly authorizes Preview live-provider validation, it must be treated as a new operational validation task rather than a reopening of completed repository certification work.

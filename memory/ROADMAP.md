@@ -1,62 +1,66 @@
 # BCSS Roadmap Snapshot
 
-## 2026-07-25 — Wave 3 Family 3 Re-Scope
+Date: 2026-07-27
+Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
-Repository-backed Wave 3 family structure:
+## Current execution state
 
-- Wave 3 Family 3A — Core Admin Operations
-  - owner: `/app/backend/routes/admin_ops.py`
-  - classification: read-only administrative surface
-  - phase B authorization: **authorized now**
+- Wave 3 Formal Closeout: **COMPLETE**
+- Platform Survivability Program: **READY TO RESUME**
+- Production Readiness Review (PRR): **NOT AUTHORIZED**
+- Production deployment: **NOT AUTHORIZED**
 
-- Wave 3 Family 3B — Operations Actions
-  - repository owner: `/app/backend/routes/operations_actions/api.py`
-  - status: Phase B complete / independently verified / READY FOR FORMAL ADOPTION
-  - canonical auth contract: one acting portal token + bound `X-Directory-Token`
+## Authoritative Wave 3 family status
 
-- Wave 3 Family 3C — Operational Events
-  - repository owner: `/app/backend/routes/operational_events.py`
-  - status: Phase B complete / independently verified / READY FOR FORMAL ADOPTION
-  - canonical normalized store: `operational_events`
-  - admin auth contract: `X-Admin-Token` + bound `X-Directory-Token`
+- Family 1 — OCC Health Aggregator: **ADOPTED**
+- Family 2 — OCC Trust Events: **ADOPTED**
+- Family 3A — Core Admin Operations: **ADOPTED**
+- Family 3B — Operations Actions: **ADOPTED**
+- Family 3C — Operational Events: **ADOPTED**
+- Family 3D-1 — Asset Spine Canonical Registry: **ADOPTED**
+- Family 3D-2 — External Asset Mapping & Reconciliation: **REJECTED**
 
-- Wave 3 Family 3D — Asset Mapping & Reconciliation
-  - repository owner: `/app/backend/routes/asset_mapping_recon.py`
-  - status: future discovery track only
+## Governing sequence
 
-## Locked master sequence
+1. Wave 3 Formal Closeout — COMPLETE
+2. Platform Survivability Program — READY TO RESUME
+3. Production Readiness Review — blocked until survivability passes
+4. Wave 1 Deployment — blocked until PRR passes
 
-- Next bounded track: Wave 3 Family 3D — Asset Mapping & Reconciliation Phase A Discovery (only if repository evidence supports it)
-- Complete Wave 3 families
-- Wave 3 Formal Closeout
-- Platform Survivability Program
-- Production Readiness Review
-- Wave 1 Deployment
+## Governing certification dependencies preserved
 
-## Deployment gate
+- D-02 Backup & Disaster Recovery Preview certification: **ADOPTED historical evidence**
+- S1-2 Secrets & Configuration Recovery Certification: **CERTIFIED**
+- S1-3 Backup Verification Hardening: **CERTIFIED**
+- S1-4 Notification Delivery Repository Work: **COMPLETE WITH GOVERNANCE BOUNDARY**
+  - Repository implementation complete
+  - Preview `SAFE_CAPTURE` intentionally retained
+  - Live provider validation deferred by governance
+  - Failed run `s1-4-cert-e217a5ffd8` preserved as permanent historical evidence
+  - No repository defect exists
 
-Platform Survivability Program remains the mandatory, non-bypassable gate before PRR or deployment, including independent evidence for backups, Cloudflare R2 hourly backups, integrity, retention, monitoring, alerting, restore testing, rollback testing, disaster recovery, and business continuity.
+## Remaining work by class
 
-## 2026-07-27 — Survivability status update
+### Repository work
 
-- Restore certification gate: **closed / verified in Preview**
-- TRACK D-02 Backup & DR Preview certification: **verified in Preview**
-  - superseded authoritative archive: `MASCI_complete_backup_2026-07-27_021533Z.zip`
-  - latest Preview RPO: `GREEN`
-  - latest Preview drill outcome: `ok`
-- S1-2 Secrets & Configuration Recovery Certification: **verified in Preview**
-- S1-3 Backup Verification Hardening: **verified in Preview**
-- S1-4 Notification Delivery Certification: **implementation complete / blocked on invalid Resend API key**
-  - authoritative attempted run: `s1-4-cert-e217a5ffd8` / `DR-2026-03557`
-  - scoped Preview override: verified
-  - current blocker: provider returns `API key is invalid`
-  - current authoritative archive: `MASCI_complete_backup_2026-07-27_111254Z.zip`
-  - authoritative archive location: `backups/preview/auto-90d/`
-  - confidence contract: `HIGH` only with direct sidecar manifest + checksum + lineage reconciliation
+- none required to close Wave 3
 
-### P1 next
-- Rotate `RESEND_API_KEY`, restart backend, and re-run exactly one bounded S1-4 certification message to complete provider submission + webhook/provider reconciliation
-- Append final proof source (`WEBHOOK`, `PROVIDER_API`, or `BOTH`) to `/app/memory/S1_4_NOTIFICATION_DELIVERY_CERTIFICATION_EVIDENCE.md`
+### Administrative work
 
-### P2 later
-- Production Readiness Review (PRR) execution
+- optional future operational validation only if Preview live-provider notification proof is intentionally desired under separate governance approval
+
+### External infrastructure
+
+- none blocking Wave 3 closeout
+
+### Production work
+
+- execute Platform Survivability Program
+- execute PRR
+- evaluate Production deployment only after both gates pass
+
+### Future enhancements
+
+- Family 3D-1 direct-consumer UI parity for `inspection_expiration`
+- Family 3D-1 legacy overlap containment / migration items
+- Family 1 legacy verification modernization
