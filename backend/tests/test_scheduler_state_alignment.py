@@ -73,6 +73,9 @@ def test_scheduler_state_endpoint_mirrors_hourly_activation_truth(monkeypatch) -
 
     out = asyncio.run(server.admin_backups_scheduler_state(True))
     scheduler = out["scheduler"]
+    assert out["r2_hourly_requested"] is True
+    assert out["activation_environment"] == "production"
+    assert out["activation_status"] == "BLOCKED BY SAFETY GUARD"
     assert scheduler["r2_hourly_requested"] is True
     assert scheduler["activation_environment"] == "production"
     assert scheduler["activation_status"] == "BLOCKED BY SAFETY GUARD"

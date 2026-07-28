@@ -71,6 +71,26 @@ Explicit non-scope for this fork:
   - governance repair endpoints respond correctly and preserve truthful critical governance status
   - hourly complete R2 remains disabled in preview by config/environment (expected)
 
+### 2026-07-28 cross-platform continuity + scheduler truth pass
+
+- Fixed admin session continuity for multi-portal sign-in:
+  - directory session token + directory user now respect remember-me storage tiering and can be read from either localStorage or sessionStorage
+  - clearing the directory session now wipes both storage tiers consistently
+  - added frontend regression coverage in `/app/frontend/src/lib/__tests__/directoryAuth.rememberMe.test.js`
+- Fixed scheduler-state API truth alignment:
+  - `/api/admin/backups-scheduler-state` now exposes the same top-level hourly activation fields as the nested scheduler/hourly activation object
+  - removes null top-level activation fields that previously contradicted the nested production snapshot
+  - added backend regression coverage in `/app/backend/tests/test_scheduler_state_alignment.py`
+- UI quality pass:
+  - improved Governance & Trust wording (`not yet exercised` instead of `not-yet`)
+  - hardened lifecycle panel fallback so unavailable advanced lifecycle analytics show an honest informational state instead of a misleading failure path
+  - verified preview admin routes remain stable during navigation via frontend automation
+- Verification:
+  - frontend auth regression test passed
+  - backend scheduler truth tests passed
+  - preview smoke login/navigation to `/admin/storage-recovery` succeeded
+  - frontend automation sweep reported no broken admin buttons, no misleading lifecycle UI, and no preview session bounce during heavy navigation
+
 - Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
 - Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
 - Wired the certification lane into:
