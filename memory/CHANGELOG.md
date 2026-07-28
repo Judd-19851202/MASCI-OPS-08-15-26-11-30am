@@ -1,5 +1,16 @@
 # Change Log
 
+## 2026-07-28 — MASCI OPS OPPC WP-OPPC-05 through WP-OPPC-07 certification closeout
+
+- Added the five required repository-backed evidence artifacts:
+  - `/app/memory/OPPC_DAILY_PRODUCTION_CERTIFICATION.md`
+  - `/app/memory/OPPC_PAYROLL_RECONCILIATION_CERTIFICATION.md`
+  - `/app/memory/OPPC_MONDAY_LOOK_BEHIND_CERTIFICATION.md`
+  - `/app/memory/OPPC_OPERATIONAL_EXECUTION_REPORT.md`
+  - `/app/memory/OPPC_WEEKLY_REVIEW_WORKFLOW.md`
+- Verified the evidence against existing canonical owners: Daily Reports, Payroll Variance, OPPC execution workspace, Tasks, and Trust Spine.
+- Recorded readiness declaration for continuation into `WP-OPPC-08` without introducing any parallel schedule, variance, review, or recovery engines.
+
 ## 2026-07-28 — MASCI OPS OPPC WP-OPPC-01 through WP-OPPC-04 foundation
 
 - Completed `WP-OPPC-01` canonical architecture inventory with four repository-backed memory artifacts covering architecture inventory, gap register, canonical data ownership, and Trust Spine event mapping.

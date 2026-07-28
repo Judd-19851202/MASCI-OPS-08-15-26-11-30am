@@ -35,6 +35,23 @@ Governing constraints:
   - preview and apply endpoints exist on the canonical cost-code route family
   - rollover mutates only existing assignment schedule fields
   - Trust Spine workflow `oppc-weekly-rollover` is registered and emitted
+- `WP-OPPC-05` is repository-complete and certification-backed:
+  - daily production remains owned by `daily_reports`
+  - OPPC execution derives plan-vs-actual quantities, labor, equipment, truck activity, and explainable exceptions from canonical records only
+  - certification artifact: `/app/memory/OPPC_DAILY_PRODUCTION_CERTIFICATION.md`
+- `WP-OPPC-06` is repository-complete and certification-backed:
+  - payroll reconciliation remains owned by `payroll_variance_batches` + lifecycle governance
+  - OPPC execution consumes finalized payroll batches for project-scoped labor reconciliation without a second labor engine
+  - certification artifact: `/app/memory/OPPC_PAYROLL_RECONCILIATION_CERTIFICATION.md`
+- `WP-OPPC-07` is repository-complete and certification-backed:
+  - Monday review workspace is implemented over canonical schedule, daily reports, payroll variance, tasks, and Trust Spine
+  - recovery tasks route through the existing `tasks` engine
+  - certification artifact: `/app/memory/OPPC_MONDAY_LOOK_BEHIND_CERTIFICATION.md`
+- WP-05/06/07 closeout evidence package now exists:
+  - `/app/memory/OPPC_OPERATIONAL_EXECUTION_REPORT.md`
+  - `/app/memory/OPPC_WEEKLY_REVIEW_WORKFLOW.md`
+- Status declaration recorded:
+  - **WP-OPPC-05/06/07 COMPLETE — READY FOR WP-OPPC-08**
 
 ### OPPC files updated in this batch
 
@@ -52,6 +69,9 @@ Governing constraints:
 - Focused local regression:
   - `pytest -q /app/backend/tests/test_project_schedule_api.py /app/backend/tests/test_project_schedule_engine.py`
   - Result after latest batch: `11 passed`
+- Additional local regression in this fork:
+  - `pytest -q /app/backend/tests/test_oppc_execution.py`
+  - Result: `2 passed`
 - Independent verification:
   - `/app/test_reports/iteration_63.json`
 - Preview smoke validation:
@@ -59,11 +79,11 @@ Governing constraints:
 
 ### OPPC next execution order
 
-1. Continue `WP-OPPC-04` from current bounded rollover foundation as needed
-2. `WP-OPPC-05` Daily Actual Production Integration
-3. `WP-OPPC-06` Payroll and Labor Reconciliation
-4. `WP-OPPC-07` Monday Look-Behind Engine
-5. `WP-OPPC-08` Schedule Variance and Root-Cause Taxonomy
+1. `WP-OPPC-08` Schedule Variance and Root-Cause Taxonomy
+2. `WP-OPPC-09` Recovery Planning and Tasks & Actions
+3. `WP-OPPC-10` Resource Demand and Cross-Department Integration
+4. `WP-OPPC-11` Forecasting and Critical-Path Hardening
+5. `WP-OPPC-12` Production Confidence Score
 
 ## 2026-07-27 Fork Scope
 
