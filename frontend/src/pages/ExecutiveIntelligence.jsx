@@ -3,22 +3,43 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
+import { getAdminToken } from "@/lib/adminAuth";
 import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
 
+function adminConfig() {
+  const token = getAdminToken();
+  return token ? { skipSessionStatus: true, headers: { "X-Admin-Token": token } } : { skipSessionStatus: true };
+}
+
 async function loadAll() {
-  const [home, rc, capa, projects, fleet, learn, brief, portfolio, confidence] = await Promise.all([
-    api.get("/incident-intelligence/home", { skipSessionStatus: true }).then(r => r.data),
-    api.get("/incident-intelligence/root-causes", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
-    api.get("/incident-intelligence/corrective-actions", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
-    api.get("/incident-intelligence/projects", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
-    api.get("/incident-intelligence/fleet", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
-    api.get("/incident-intelligence/learning", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
-    api.get("/incident-intelligence/brief", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+  const cfg = adminConfig();
+  const [home, rc, capa, projects, fleet, learn, brief, portfolio, confidenceRows] = await Promise.all([
+    api.get("/incident-intelligence/home", cfg).then(r => r.data).catch(() => ({ company_health: {} })),
+    api.get("/incident-intelligence/root-causes", cfg).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/corrective-actions", cfg).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/projects", cfg).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/fleet", cfg).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/learning", cfg).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/brief", cfg).then(r => r.data).catch(() => null),
     // Track 19.38 · additive · portfolio attention feed. Fails soft.
-    api.get("/incident-intelligence/portfolio-attention", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
-    api.get("/ods/executive/confidence", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/portfolio-attention", cfg).then(r => r.data).catch(() => null),
+    api.get("/project-health", cfg).then((r) => ({
+      summary: {
+        average_score: r.data?.rows?.length ? Number((r.data.rows.reduce((sum, row) => sum + Number(row.production_confidence?.score || 0), 0) / r.data.rows.length).toFixed(2)) : 0,
+        high_confidence: (r.data?.rows || []).filter((row) => row.production_confidence?.band === "high_confidence").length,
+        watch: (r.data?.rows || []).filter((row) => row.production_confidence?.band === "watch").length,
+        low_confidence: (r.data?.rows || []).filter((row) => row.production_confidence?.band === "low_confidence").length,
+        critical: (r.data?.rows || []).filter((row) => row.production_confidence?.band === "critical").length,
+      },
+      projects: (r.data?.rows || []).slice(0, 12).map((row) => ({
+        project_number: row.project_number,
+        project_name: row.project_name,
+        production_confidence: row.production_confidence,
+        governance: row.production_confidence_governance,
+      })),
+    })).catch(() => null),
   ]);
-  return { home, rc, capa, projects, fleet, learn, brief, portfolio, confidence };
+  return { home, rc, capa, projects, fleet, learn, brief, portfolio, confidence: confidenceRows };
 }
 
 function KpiCard({ label, value, sub, testId, tone }) {

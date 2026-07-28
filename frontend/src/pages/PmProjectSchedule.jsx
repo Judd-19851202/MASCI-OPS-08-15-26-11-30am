@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 
+const ADMIN_FALLBACK_PROJECT = "24-06";
+
 const toInput = (v) => String(v || "").slice(0, 10);
 
 function buildWindow(window) {
@@ -98,6 +100,16 @@ export default function PmProjectSchedule() {
     const pn = params.get("project_number") || "";
     setProjectNumber(pn);
   }, [params]);
+
+  useEffect(() => {
+    if (!projectNumber && !params.get("project_number")) {
+      setParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("project_number", ADMIN_FALLBACK_PROJECT);
+        return next;
+      }, { replace: true });
+    }
+  }, [params, projectNumber, setParams]);
 
   const load = async (pn) => {
     if (!pn) return;

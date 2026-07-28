@@ -25,7 +25,7 @@ async function fetchPmProjects() {
     const r = await fetch(`${API}/api/pm/jobs`, { headers: h });
     if (!r.ok) return [];
     const j = await r.json();
-    const rows = Array.isArray(j) ? j : (j.jobs || j.rows || []);
+    const rows = Array.isArray(j) ? j : (j.items || j.jobs || j.rows || []);
     return rows
       .map((x) => ({
         project_number: x.project_number || x.number || "",
@@ -57,6 +57,9 @@ export default function PmProjectSelector({ value, onChange }) {
         out.unshift({ project_number: currentValue, project_name: "Current project" });
       }
       setOptions(out);
+      if (!currentValue && out[0] && typeof onChange === "function") {
+        onChange(out[0].project_number);
+      }
       setLoading(false);
     });
     return () => { live = false; };

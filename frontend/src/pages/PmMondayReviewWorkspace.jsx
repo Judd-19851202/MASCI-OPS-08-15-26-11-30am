@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
+const ADMIN_FALLBACK_PROJECT = "24-06";
+
 const DEFAULT_REVIEW = {
   primary_cause: "",
   contributing_causes: "",
@@ -195,6 +197,16 @@ export default function PmMondayReviewWorkspace() {
     setProjectNumber(params.get("project_number") || "");
     setWeekEnding(params.get("week_ending") || "");
   }, [params]);
+
+  useEffect(() => {
+    if (!projectNumber && !params.get("project_number")) {
+      setParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("project_number", ADMIN_FALLBACK_PROJECT);
+        return next;
+      }, { replace: true });
+    }
+  }, [params, projectNumber, setParams]);
 
   useEffect(() => { if (projectNumber) load(projectNumber, weekEnding); }, [projectNumber, weekEnding]);
 

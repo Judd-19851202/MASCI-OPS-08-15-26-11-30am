@@ -1,14 +1,12 @@
 import React from "react";
+import { api } from "@/lib/api";
 import {
   fetchAdminDashboard, fetchExecutiveHealth, fetchAdminAttention,
 } from "@/lib/odsIntelligenceApi";
-import { getAdminToken } from "@/lib/adminAuth";
 import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
 } from "@/components/ods/HorizonPrimitives";
-
-const API = process.env.REACT_APP_BACKEND_URL;
 
 /**
  * DR-ROI-001E · Executive Operational Intelligence.
@@ -40,15 +38,11 @@ export default function ExecutiveOperationalIntelligence() {
           fetchAdminAttention({ preset, limit: 15 }),
         ]);
         const [oppcRes, briefingRes] = await Promise.all([
-          fetch(`${API}/api/oppc/enterprise/executive-operations-center`, {
-            headers: { "X-Admin-Token": getAdminToken() || "" },
-          }),
-          fetch(`${API}/api/oppc/enterprise/monday-briefing`, {
-            headers: { "X-Admin-Token": getAdminToken() || "" },
-          }),
+          api.get("/oppc/enterprise/executive-operations-center").then((r) => r.data).catch(() => null),
+          api.get("/oppc/enterprise/monday-briefing").then((r) => r.data).catch(() => null),
         ]);
-        const oppcJson = oppcRes.ok ? await oppcRes.json() : null;
-        const briefingJson = briefingRes.ok ? await briefingRes.json() : null;
+        const oppcJson = oppcRes || null;
+        const briefingJson = briefingRes || null;
         if (!alive) return;
         setDash(d);
         setHealth(h);
@@ -72,16 +66,10 @@ export default function ExecutiveOperationalIntelligence() {
 
   const runBriefingAction = async (path) => {
     try {
-      const res = await fetch(`${API}/api/oppc/enterprise/monday-briefing/${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Token": getAdminToken() || "" },
-        body: JSON.stringify({}),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.detail || `${path} failed`);
-      setBriefing(json?.briefing || null);
+      const res = await api.post(`/oppc/enterprise/monday-briefing/${path}`, {});
+      setBriefing(res.data?.briefing || null);
     } catch (e) {
-      setErr(e?.message || "Briefing action failed");
+      setErr(e?.response?.data?.detail || e?.message || "Briefing action failed");
     }
   };
 
@@ -303,7 +291,7 @@ export default function ExecutiveOperationalIntelligence() {
                   <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate">Generate</button>
                   <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve">Approve</button>
                   <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze">Freeze</button>
-                  <a className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" href={`${API}/api/oppc/enterprise/monday-briefing/pdf`} target="_blank" rel="noreferrer" data-testid="exec-briefing-pdf">Open PDF</a>
+                  <a className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" href={`${process.env.REACT_APP_BACKEND_URL}/api/oppc/enterprise/monday-briefing/pdf`} target="_blank" rel="noreferrer" data-testid="exec-briefing-pdf">Open PDF</a>
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 text-sm">
