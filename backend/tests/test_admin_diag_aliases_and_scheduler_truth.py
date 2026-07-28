@@ -138,3 +138,60 @@ def test_admin_diag_aliases_call_underlying_routes(monkeypatch) -> None:
     assert persistence == {"ok": True, "source": "persistence"}
     assert runtime == {"ok": True, "source": "runtime"}
     assert database == {"ok": True, "source": "database"}
+
+
+def test_complete_r2_state_uses_canonical_scheduler_truth_for_hourly_activation(monkeypatch) -> None:
+    async def fake_build_canonical_archive_lineage(*args, **kwargs):  # noqa: ARG001
+        return {"authoritative_artifact": {}, "newest_observed_artifact": {}, "authoritative_recovery_point_time": None}
+
+    async def fake_build_canonical_scheduler_snapshot(*args, **kwargs):  # noqa: ARG001
+        return {
+            "alive": True,
+            "is_healthy": True,
+            "evidence_ts": "2099-01-01T00:00:00+00:00",
+            "last_lock_ts": "2099-01-01T00:00:00+00:00",
+            "last_tick_ts": None,
+        }
+
+    async def fake_collect_backup_runtime_state(_db):
+        return {"overlap": {"backup_active": False, "restore_active": False}, "active_jobs": []}
+
+    async def fake_build_hourly_activation_state(_db, *, runtime_state=None):
+        return {
+            "activation_status": "ACTIVE",
+            "activation_blockers": [],
+            "r2_hourly_requested": True,
+            "r2_hourly_effective": True,
+            "r2_hourly_locked_off": False,
+            "hourly_cadence_enabled": True,
+            "environment": "production",
+            "last_evaluated_at": "2099-01-01T00:00:00+00:00",
+            "next_eligible_hourly_slot": "2099-01-01T01:00:00+00:00",
+            "runtime_state_echo": runtime_state,
+        }
+
+    monkeypatch.setattr(server, "build_canonical_archive_lineage", fake_build_canonical_archive_lineage)
+    monkeypatch.setattr(server, "_collect_backup_runtime_state", fake_collect_backup_runtime_state)
+    monkeypatch.setattr(server, "_build_hourly_activation_state", fake_build_hourly_activation_state)
+    monkeypatch.setattr("routes.recovery_dashboard.build_canonical_scheduler_snapshot", fake_build_canonical_scheduler_snapshot)
+    monkeypatch.setattr(server, "_canonical_app_env", lambda: "production")
+    monkeypatch.setattr(server, "_canonical_db_name", lambda: "masci_safety")
+
+    class _FakeCollection:
+        async def find_one(self, *args, **kwargs):  # noqa: ARG002
+            return None
+
+    class _FakeDB:
+        backup_health = _FakeCollection()
+
+    old_db = server.db
+    server.db = _FakeDB()
+    try:
+        out = asyncio.run(server.admin_complete_r2_state(True))
+    finally:
+        server.db = old_db
+
+    echoed = (out.get("hourly_activation") or {}).get("runtime_state_echo") or {}
+    assert echoed.get("alive") is True
+    assert echoed.get("is_healthy") is True
+    assert out.get("hourly_activation", {}).get("activation_blockers") == []

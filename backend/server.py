@@ -11888,7 +11888,26 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
             nightly_last_hour = hour_bucket
 
     try:
-        activation_state = await _build_hourly_activation_state(db)
+        from routes.recovery_dashboard import build_canonical_scheduler_snapshot as _build_canonical_scheduler_snapshot  # noqa: PLC0415
+
+        canonical_scheduler = await _build_canonical_scheduler_snapshot(
+            db,
+            dict(_BACKUP_SCHEDULER_STATE or {}),
+            backup_fallback_ts=lineage.get("authoritative_recovery_point_time") or (newest_observed or {}).get("observed_time"),
+        )
+    except Exception:
+        canonical_scheduler = {}
+    try:
+        backup_runtime_for_activation = await _collect_backup_runtime_state(db)
+        backup_runtime_for_activation = {
+            **backup_runtime_for_activation,
+            "alive": canonical_scheduler.get("alive"),
+            "is_healthy": canonical_scheduler.get("is_healthy"),
+            "evidence_ts": canonical_scheduler.get("evidence_ts"),
+            "last_lock_ts": canonical_scheduler.get("last_lock_ts"),
+            "last_tick_ts": canonical_scheduler.get("last_tick_ts"),
+        }
+        activation_state = await _build_hourly_activation_state(db, runtime_state=backup_runtime_for_activation)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[backups-complete-r2-state] hourly activation fallback used: {e}")
         activation_state = {
@@ -11902,6 +11921,14 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         }
     try:
         backup_runtime = await _collect_backup_runtime_state(db)
+        backup_runtime = {
+            **backup_runtime,
+            "alive": canonical_scheduler.get("alive"),
+            "is_healthy": canonical_scheduler.get("is_healthy"),
+            "evidence_ts": canonical_scheduler.get("evidence_ts"),
+            "last_lock_ts": canonical_scheduler.get("last_lock_ts"),
+            "last_tick_ts": canonical_scheduler.get("last_tick_ts"),
+        }
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[backups-complete-r2-state] backup runtime fallback used: {e}")
         backup_runtime = {}

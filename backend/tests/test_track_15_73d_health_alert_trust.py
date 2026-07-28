@@ -42,14 +42,16 @@ def test_health_monitor_uses_mongo_persisted_cooldown():
     assert "health_alert_cooldowns" in src, (
         "Cooldown must be persisted to db.health_alert_cooldowns collection."
     )
+    assert 'run_with_singleton_lock(db, "synthetic_health_monitor"' in src, (
+        "Health monitor must run under singleton lock to avoid multi-worker duplicate polls/emails."
+    )
 
 
 def test_admin_ops_backup_card_consults_r2():
     src = Path("/app/backend/routes/admin_ops.py").read_text()
-    assert "_r2_backup_age_seconds_cached" in src, (
-        "admin_ops.py backup card must consult R2 newest-object age "
-        "before falling back to backup_health DB row — otherwise alerts "
-        "fire when R2 is healthy but the DB audit write-path is broken."
+    assert "build_canonical_archive_lineage" in src, (
+        "admin_ops.py backup card must consult canonical archive lineage "
+        "before falling back — otherwise alerts can drift from real R2 truth."
     )
 
 

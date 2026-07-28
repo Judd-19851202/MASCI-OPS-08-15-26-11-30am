@@ -20,6 +20,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Set
 
+from lib.singleton_scheduler import run_with_singleton_lock
 
 async def _resolve_sender_email_safe(db) -> str:
     """Tenant-safe sender resolution wrapper. Falls back to env value
@@ -223,7 +224,7 @@ def start_health_monitor_loop(
         except Exception:  # noqa: BLE001
             pass
 
-    async def loop():
+    async def monitor_loop():
         # Stagger initial start so multiple workers don't all alert at once
         await asyncio.sleep(15)
         logger.info("[health_monitor] iter132 synthetic monitor armed (60s poll, 30m cooldown · Mongo-persisted)")
@@ -289,7 +290,10 @@ def start_health_monitor_loop(
 
             await asyncio.sleep(POLL_INTERVAL_SEC)
 
-    return asyncio.create_task(loop())
+    async def singleton_wrapped(_db):
+        await monitor_loop()
+
+    return asyncio.create_task(run_with_singleton_lock(db, "synthetic_health_monitor", singleton_wrapped))
 
 
 __all__ = ["start_health_monitor_loop", "POLL_INTERVAL_SEC", "COOLDOWN_MINUTES"]
