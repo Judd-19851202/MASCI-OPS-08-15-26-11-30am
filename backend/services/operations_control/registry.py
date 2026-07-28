@@ -11,6 +11,7 @@ class OperationCategory(str, Enum):
     STORAGE = "storage"
     R2 = "r2"
     BACKUPS = "backups"
+    GOVERNANCE = "governance"
     DAILY_REPORTS = "daily_reports"
     AI = "ai"
     DOCUMENTS = "documents"
@@ -106,6 +107,7 @@ def build_registry(db) -> Dict[str, Operation]:
         daily_reports as dr_mod,
         deploy as deploy_mod,
         email as email_mod,
+        governance as governance_mod,
         health as health_mod,
         integrations as integrations_mod,
         queues as queues_mod,
@@ -128,7 +130,7 @@ def build_registry(db) -> Dict[str, Operation]:
     # read-only operations.
     for module in (
         health_mod, deploy_mod, integrations_mod, queues_mod,
-        storage_mod, r2_mod, backups_mod, dr_mod,
+        storage_mod, governance_mod, r2_mod, backups_mod, dr_mod,
         ai_mod, email_mod, security_mod,
     ):
         for op in module.operations(db):

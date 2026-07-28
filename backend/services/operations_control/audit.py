@@ -27,6 +27,8 @@ async def ensure_indexes(db) -> None:
     await coll.create_index([("ts", -1)])
     await coll.create_index([("operation_id", 1), ("ts", -1)])
     await coll.create_index([("actor_id", 1), ("ts", -1)])
+    await coll.create_index([("mode", 1), ("ts", -1)])
+    await coll.create_index([("dry_run_id", 1), ("ts", -1)])
     await coll.create_index("action_id", unique=True)
 
 
@@ -77,3 +79,18 @@ async def get(db, action_id: str) -> Optional[Dict[str, Any]]:
     return await db[COLLECTION].find_one(
         {"action_id": action_id}, {"_id": 0},
     )
+
+
+async def latest_for_operation(
+    db,
+    *,
+    operation_id: str,
+    mode: Optional[str] = None,
+    dry_run_id: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    q: Dict[str, Any] = {"operation_id": operation_id}
+    if mode:
+        q["mode"] = mode
+    if dry_run_id:
+        q["dry_run_id"] = dry_run_id
+    return await db[COLLECTION].find_one(q, {"_id": 0}, sort=[("ts", -1)])

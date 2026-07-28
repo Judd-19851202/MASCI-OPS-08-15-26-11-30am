@@ -12,9 +12,9 @@
 //   5. Trigger a fresh scan (idempotent · zero deletes)
 //
 // Every timestamp routes through `platformTime.js` (zero-UTC rule).
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { RefreshCw, HardDrive, ShieldCheck, AlertTriangle, Database, Layers } from "lucide-react";
+import { RefreshCw, HardDrive, ShieldCheck, AlertTriangle, Database, Layers, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 
 import { getAdminToken } from "@/lib/adminAuth";
@@ -57,6 +57,7 @@ export default function R2LifecyclePanel() {
   const [latest, setLatest] = useState(null);
   const [intel, setIntel] = useState(null);
   const [dryRun, setDryRun] = useState(null);
+  const [retention, setRetention] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [err, setErr] = useState(null);
@@ -74,6 +75,7 @@ export default function R2LifecyclePanel() {
       setLatest(l.data);
       setIntel(i.data);
       setDryRun(d.data);
+      setRetention(l.data?.retention || null);
       setUnavailable(false);
     } catch (e) {
       if (Number(e?.response?.status || 0) === 404) {
@@ -88,6 +90,8 @@ export default function R2LifecyclePanel() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const retentionRows = useMemo(() => (retention?.decisions || []).slice(0, 8), [retention]);
 
   const runScan = useCallback(async (maxPages) => {
     setScanning(true);
@@ -127,11 +131,10 @@ export default function R2LifecyclePanel() {
   const health = latest?.health;
   const bandStyle = _band(health?.band);
   const cls = latest?.classification?.counts || {};
-  const inv = latest?.inventory || {};
   const objects = health?.objects || {};
 
   return (
-    <div className="space-y-4" data-testid="r2-lifecycle-panel">
+    <div className="space-y-4" data-testid="r2-lifecycle-panel" aria-busy={loading ? "true" : "false"}>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
@@ -255,6 +258,85 @@ export default function R2LifecyclePanel() {
             </table>
           </div>
         )}
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-white p-4" data-testid="r2-lifecycle-retention-card">
+        <div className="flex items-center justify-between mb-3 gap-3">
+          <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+            <ArchiveRestore className="w-4 h-4" /> Authoritative Retention Policy
+          </h3>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500" data-testid="r2-lifecycle-retention-generated-at">
+            {retention?.generated_at ? `Generated ${formatRelativeTime(retention.generated_at)}` : "No retention snapshot"}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div className="rounded border border-slate-200 bg-slate-50 p-2" data-testid="r2-lifecycle-policy-hourly">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Hourly keep</div>
+            <div className="font-black text-slate-900 mt-0.5">{retention?.policy?.hourly_hours ?? "—"}h</div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-2" data-testid="r2-lifecycle-policy-daily">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Daily keep</div>
+            <div className="font-black text-slate-900 mt-0.5">{retention?.policy?.daily_days ?? "—"}d</div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-2" data-testid="r2-lifecycle-policy-weekly">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Weekly keep</div>
+            <div className="font-black text-slate-900 mt-0.5">{retention?.policy?.weekly_days ?? "—"}d</div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-2" data-testid="r2-lifecycle-policy-monthly">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Monthly keep</div>
+            <div className="font-black text-slate-900 mt-0.5">{retention?.policy?.monthly_months ?? "—"}m</div>
+          </div>
+        </div>
+        <div className="mt-3 grid md:grid-cols-3 gap-2 text-xs text-slate-700">
+          <div data-testid="r2-lifecycle-retention-archive-count">Archives considered: <strong>{retention?.archive_count ?? 0}</strong></div>
+          <div data-testid="r2-lifecycle-retention-keep-count">Preserved: <strong>{retention?.kept_count ?? 0}</strong> · {retention?.kept_bytes_human || "0 B"}</div>
+          <div data-testid="r2-lifecycle-retention-delete-count">Would delete: <strong>{retention?.would_delete_count ?? 0}</strong> · {retention?.would_delete_bytes_human || "0 B"}</div>
+        </div>
+        <div className="mt-3 grid md:grid-cols-2 gap-3">
+          <div className="rounded border border-slate-200 bg-slate-50 p-3" data-testid="r2-lifecycle-survivor-tiers">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">Survivors by tier</div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {Object.entries(retention?.survivors_by_tier || {}).map(([tier, count]) => (
+                <div key={tier} className="flex justify-between"><span>{tier}</span><strong>{count}</strong></div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-3" data-testid="r2-lifecycle-delete-tiers">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">Would delete by tier</div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {Object.entries(retention?.deleted_by_tier || {}).map(([tier, count]) => (
+                <div key={tier} className="flex justify-between"><span>{tier}</span><strong>{count}</strong></div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {retentionRows.length > 0 ? (
+          <div className="mt-3 overflow-x-auto border border-slate-100 rounded" data-testid="r2-lifecycle-retention-table">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-50 text-slate-500 font-mono uppercase tracking-wide text-[9px]">
+                <tr>
+                  <th className="text-left px-2 py-1">Archive</th>
+                  <th className="text-left px-2 py-1">Window</th>
+                  <th className="text-left px-2 py-1">Decision</th>
+                  <th className="text-left px-2 py-1">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {retentionRows.map((row) => (
+                  <tr key={row.key} className="border-t border-slate-100">
+                    <td className="px-2 py-1 font-mono text-[10px] max-w-[360px] truncate" title={row.key}>{row.key}</td>
+                    <td className="px-2 py-1">{row.window}</td>
+                    <td className="px-2 py-1">{row.keep ? "KEEP" : "DELETE"}</td>
+                    <td className="px-2 py-1 text-slate-600">{row.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+        <div className="mt-2 text-[10px] text-slate-500 italic" data-testid="r2-lifecycle-retention-footnote">
+          Snapshot is derived from authoritative complete-R2 backup evidence and the governed 72h / 30d / 90d / 12m retention architecture.
+        </div>
       </div>
 
       {/* Executive intel */}

@@ -45,6 +45,7 @@ from services.r2_lifecycle import (
     top_prefixes,
     top_projects,
 )
+from lib.r2_retention_authority import latest_retention_snapshot, retention_policy_payload
 
 logger = logging.getLogger(__name__)
 
@@ -107,12 +108,37 @@ def build_r2_lifecycle_router(db, require_admin_strict_dep) -> APIRouter:
         inv = await inventory_summary(db)
         cls = await classification_counts(db)
         health = await compute_storage_health(db)
+        retention = await latest_retention_snapshot(db)
         return {
             "inventory": inv,
             "classification": cls,
             "health": health,
+            "retention": retention,
             "latest_inventory_run": await latest_run_id(db, "inventory"),
             "latest_classification_run": await latest_run_id(db, "classification"),
+        }
+
+    @router.get("/retention")
+    async def retention(
+        limit: int = Query(250, ge=1, le=2000),
+        _: bool = Depends(require_admin_strict_dep),
+    ) -> Dict[str, Any]:
+        snapshot = await latest_retention_snapshot(db, limit=limit)
+        return {
+            **snapshot,
+            "policy": retention_policy_payload(),
+            "decisions": list(snapshot.get("decisions") or [])[:limit],
+        }
+
+    @router.get("/retention/policy")
+    async def retention_policy(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:
+        snapshot = await latest_retention_snapshot(db)
+        return {
+            "policy": retention_policy_payload(),
+            "latest_generated_at": snapshot.get("generated_at"),
+            "archive_count": snapshot.get("archive_count"),
+            "survivors_by_tier": snapshot.get("survivors_by_tier"),
+            "deleted_by_tier": snapshot.get("deleted_by_tier"),
         }
 
     # ── Inventory list ───────────────────────────────────────────────

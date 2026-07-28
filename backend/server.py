@@ -44,6 +44,13 @@ from lib.database_authority import (
     create_async_runtime_client,
     database_authority_public_payload,
 )
+from lib.backup_scheduler_truth import (
+    backup_scheduler_healthy,
+    build_default_retention_policy,
+    build_default_scheduler_state,
+    build_hourly_activation_snapshot,
+    retention_policy_state,
+)
 # Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
 from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
@@ -7900,120 +7907,36 @@ async def _stale_scheduler_lock_present(db) -> bool:
 
 
 def _backup_scheduler_healthy(runtime_state: Optional[Dict[str, Any]] = None) -> bool:
-    state = runtime_state or _BACKUP_SCHEDULER_STATE
-    if not state.get("alive"):
-        return False
-    explicit_health = state.get("is_healthy")
-    if explicit_health is False:
-        return False
-    if explicit_health is True:
-        return True
-    last_tick = state.get("last_tick_ts")
-    last_lock = state.get("last_lock_ts") or state.get("evidence_ts")
-    if not last_tick:
-        if not last_lock:
-            return False
-        try:
-            dt = datetime.fromisoformat(str(last_lock).replace("Z", "+00:00"))
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            return (datetime.now(timezone.utc) - dt) <= timedelta(minutes=10)
-        except Exception:
-            return False
-    try:
-        dt = datetime.fromisoformat(str(last_tick).replace("Z", "+00:00"))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return (datetime.now(timezone.utc) - dt) <= timedelta(minutes=10)
-    except Exception:
-        return False
+    return backup_scheduler_healthy(runtime_state or _BACKUP_SCHEDULER_STATE)
 
 
 def _retention_policy_state() -> Dict[str, Any]:
-    policy = dict(_BACKUP_RETENTION_POLICY)
-    valid = bool(
-        policy.get("hourly_hours") == 72
-        and policy.get("daily_days") == 30
-        and policy.get("weekly_days") == 90
-        and policy.get("monthly_months") == 12
-        and policy.get("architecture") == "selected_surviving_hourly_archives"
-    )
-    return {
-        "valid": valid,
-        "reason": "approved_tiered_retention" if valid else "retention_policy_invalid",
-        "policy": policy,
-    }
+    return retention_policy_state(_BACKUP_RETENTION_POLICY)
 
 
 async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    runtime_state = runtime_state or await _collect_backup_runtime_state(db)
-    if not runtime_state.get("alive") or runtime_state.get("is_healthy") is None:
-        try:
-            from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
+    try:
+        from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[hourly-activation] canonical scheduler import failed: {exc}")
 
-            canonical_scheduler = await build_canonical_scheduler_snapshot(db, runtime_state)
-            runtime_state = {
-                **runtime_state,
-                "alive": canonical_scheduler.get("alive"),
-                "is_healthy": canonical_scheduler.get("is_healthy"),
-                "evidence_ts": canonical_scheduler.get("evidence_ts"),
-                "last_lock_ts": canonical_scheduler.get("last_lock_ts"),
-                "last_tick_ts": canonical_scheduler.get("last_tick_ts"),
-            }
-        except Exception as exc:  # noqa: BLE001
-            logger.warning(f"[hourly-activation] canonical scheduler merge failed: {exc}")
-    overlap = runtime_state.get("overlap") or {}
-    stale_jobs = await list_stale_backup_jobs(db, limit=10)
-    stale_lock_present = await _stale_scheduler_lock_present(db)
-    persistence_available = await _backup_persistence_available(db)
-    retention = _retention_policy_state()
-    latest_hint = await _latest_complete_backup_hint(db)
-    preflight = _backup_resource_preflight(archive_size_bytes=latest_hint.get("size_bytes"))
-    active_job = None
-    active_jobs = runtime_state.get("active_jobs") or []
-    if active_jobs:
-        current = active_jobs[0]
-        active_job = {
-            "job_id": current.get("job_id"),
-            "kind": current.get("kind"),
-            "state": current.get("state"),
-            "heartbeat_at": current.get("heartbeat_at"),
-        }
-    reclaimable_stale_jobs = [
-        job for job in stale_jobs
-        if str(job.get("failure_reason") or "") == "stale_job_recovered"
-    ]
-    state = build_hourly_activation_state(
-        requested_raw=os.environ.get("BACKUP_R2_HOURLY"),
-        environment=_canonical_app_env().lower(),
-        scheduler_healthy=_backup_scheduler_healthy(runtime_state),
-        persistence_available=persistence_available,
-        backup_active=bool(overlap.get("backup_active")),
-        restore_active=bool(overlap.get("restore_active")),
-        stale_job_count=len(stale_jobs),
-        reclaimable_stale_job_count=len(reclaimable_stale_jobs),
-        stale_lock_present=stale_lock_present,
-        resource_preflight=preflight,
-        r2_configured=bool(os.environ.get("S3_BUCKET") and os.environ.get("S3_ENDPOINT_URL")),
-        retention_valid=bool(retention.get("valid")),
-        retention_reason=str(retention.get("reason") or "retention_unknown"),
-        current_active_job=active_job,
+        async def build_canonical_scheduler_snapshot(_db, state):
+            return state
+
+    return await build_hourly_activation_snapshot(
+        db,
+        runtime_state=runtime_state,
+        scheduler_state=_BACKUP_SCHEDULER_STATE,
+        retention_policy=_BACKUP_RETENTION_POLICY,
+        collect_runtime_state=_collect_backup_runtime_state,
+        canonical_scheduler_builder=build_canonical_scheduler_snapshot,
+        list_stale_jobs=lambda inner_db: list_stale_backup_jobs(inner_db, limit=10),
+        stale_lock_present=_stale_scheduler_lock_present,
+        persistence_available=_backup_persistence_available,
+        latest_complete_backup_hint=_latest_complete_backup_hint,
+        backup_resource_preflight=_backup_resource_preflight,
+        canonical_app_env=_canonical_app_env,
     )
-    state["retention_state"] = retention
-    state["stale_job_count"] = len(stale_jobs)
-    state["reclaimable_stale_job_count"] = len(reclaimable_stale_jobs)
-    state["stale_lock_present"] = stale_lock_present
-    state["persistence_available"] = persistence_available
-    _BACKUP_SCHEDULER_STATE["r2_hourly_requested"] = state["r2_hourly_requested"]
-    _BACKUP_SCHEDULER_STATE["r2_hourly_effective"] = state["r2_hourly_effective"]
-    _BACKUP_SCHEDULER_STATE["r2_hourly_locked_off"] = state["r2_hourly_locked_off"]
-    _BACKUP_SCHEDULER_STATE["hourly_cadence_enabled"] = state["hourly_cadence_enabled"]
-    _BACKUP_SCHEDULER_STATE["activation_blockers"] = state["activation_blockers"]
-    _BACKUP_SCHEDULER_STATE["activation_status"] = state["activation_status"]
-    _BACKUP_SCHEDULER_STATE["activation_environment"] = state["environment"]
-    _BACKUP_SCHEDULER_STATE["last_activation_evaluated_at"] = state["last_evaluated_at"]
-    _BACKUP_SCHEDULER_STATE["next_eligible_hourly_slot"] = state["next_eligible_hourly_slot"]
-    return state
 
 
 async def _run_job_heartbeat(db, *, job_id: str, owner_token: str, stage_fn, interval_seconds: float = 30.0):
@@ -10244,62 +10167,13 @@ def _hours_since_last_backup() -> Optional[float]:
 # admin console can confirm the scheduler is alive WITHOUT firing a fresh
 # backup. Populated by `_backup_scheduler_loop` on every tick.
 _BACKUP_SCHEDULER_STATE: dict = {
-    "alive": False,
-    "armed_at": None,
-    "last_tick_ts": None,
-    "in_progress": False,
-    "last_attempt_started_at": None,
-    "last_attempt_outcome": None,
-    "last_run_for_hour": {},
-    "failed_attempts": {},
-    # TRACK 27.05 · P0-2 · Observability counters. Every time the
-    # supervisor detects `task.done()` and respawns the loop, it bumps
-    # `resurrect_count` and stamps `last_resurrect_ts`. The recovery
-    # snapshot surfaces these — silent scheduler death now has a
-    # visible trail.
-    "resurrect_count": 0,
-    "last_resurrect_ts": None,
-    # iter462 · 2026-02-01 · Batch A Phase 1 hardening · boot-trace
-    # instrumentation. ``boot_step`` records the most recent boot stage
-    # the loop reached before exiting. ``boot_step_ts`` is the ISO
-    # timestamp of that stage. ``boot_exception`` captures the repr of
-    # any unhandled exception that escaped the loop body (Phase 2
-    # defensive wrapping). All three are surfaced by
-    # ``GET /api/admin/backups-scheduler-state`` so operators can see
-    # where the loop died WITHOUT triggering a fresh backup.
+    **build_default_scheduler_state(),
     "boot_step": None,
     "boot_step_ts": None,
     "boot_exception": None,
-    "r2_hourly_requested": False,
-    "r2_hourly_effective": False,
-    "r2_hourly_locked_off": True,
-    "hourly_cadence_enabled": False,
-    "activation_blockers": [],
-    "activation_status": "DISABLED BY CONFIGURATION",
-    "activation_environment": "unknown",
-    "last_activation_evaluated_at": None,
-    "next_eligible_hourly_slot": None,
-    "backup_runtime": {
-        "stale_marked": 0,
-        "active_jobs": [],
-        "overlap": {
-            "backup_active": False,
-            "restore_active": False,
-            "active_backups": [],
-            "active_restores": [],
-            "overlap_blocked": False,
-        },
-        "recent_complete_jobs": [],
-    },
 }
 
-_BACKUP_RETENTION_POLICY = {
-    "architecture": "selected_surviving_hourly_archives",
-    "hourly_hours": 72,
-    "daily_days": 30,
-    "weekly_days": 90,
-    "monthly_months": 12,
-}
+_BACKUP_RETENTION_POLICY = build_default_retention_policy()
 
 
 def _record_boot_step(step: str, *, exc: Optional[Exception] = None) -> None:

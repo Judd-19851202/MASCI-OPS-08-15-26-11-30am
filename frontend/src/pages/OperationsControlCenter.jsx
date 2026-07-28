@@ -64,6 +64,7 @@ const API = (
 const CATEGORY_LABELS = {
   health: "System Health",
   storage: "Storage & Disk",
+  governance: "Operations Repair Console",
   r2: "R2 Object Storage",
   backups: "Backups",
   daily_reports: "Daily Reports",
@@ -79,6 +80,7 @@ const CATEGORY_LABELS = {
 const CATEGORY_ORDER = [
   "health",
   "storage",
+  "governance",
   "r2",
   "backups",
   "daily_reports",
@@ -542,12 +544,41 @@ function StatusPill({ status, children }) {
   );
 }
 
+function RepairHistory({ contract, operationId }) {
+  const lastDryRun = contract?.last_dry_run;
+  const lastApply = contract?.last_apply;
+  if (!lastDryRun && !lastApply) return null;
+  return (
+    <div
+      className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3"
+      data-testid={`occ-repair-history-${operationId}`}
+    >
+      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+        Audit-linked repair history
+      </div>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2 text-[11px] text-slate-700">
+        <div data-testid={`occ-repair-history-dry-run-${operationId}`}>
+          <div className="font-semibold text-slate-900">Latest dry-run</div>
+          <div>{lastDryRun ? formatPlatformTime(lastDryRun.ts) : "No preview yet"}</div>
+          <div className="font-mono text-slate-500 break-words">{lastDryRun?.actor_email || lastDryRun?.actor_id || "—"}</div>
+        </div>
+        <div data-testid={`occ-repair-history-apply-${operationId}`}>
+          <div className="font-semibold text-slate-900">Latest apply</div>
+          <div>{lastApply ? formatPlatformTime(lastApply.ts) : "No apply yet"}</div>
+          <div className="font-mono text-slate-500 break-words">{lastApply?.actor_email || lastApply?.actor_id || "—"}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }) {
   const [expanded, setExpanded] = useState(false);
   const [confirmPhrase, setConfirmPhrase] = useState("");
   const [reason, setReason] = useState("");
   const snapshot = op.status_snapshot || {};
   const capability = op.capability || {};
+  const contract = op.repair_contract || {};
   const canDryRun = op.has_dry_run;
   const canApply =
     op.has_apply &&
@@ -601,6 +632,14 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
           {snapshot.summary}
         </div>
       )}
+      {snapshot.candidate_count > 0 ? (
+        <div
+          className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+          data-testid={`occ-candidate-count-${op.id}`}
+        >
+          {snapshot.candidate_count} candidate change(s) currently eligible for repair.
+        </div>
+      ) : null}
       {snapshot.warnings && snapshot.warnings.length > 0 && (
         <ul className="mt-2 space-y-1 text-xs text-amber-800">
           {snapshot.warnings.map((w, i) => (
@@ -687,8 +726,18 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
             <span className="text-slate-400">never touches:</span>{" "}
             {op.never_touches.length ? op.never_touches.join(" · ") : "—"}
           </div>
+          <div>
+            <span className="text-slate-400">dry-run required:</span>{" "}
+            {op.requires_dry_run ? "yes" : "no"}
+          </div>
+          <div>
+            <span className="text-slate-400">confirmation phrase:</span>{" "}
+            {contract.confirmation_phrase || "—"}
+          </div>
         </div>
       )}
+
+      <RepairHistory contract={contract} operationId={op.id} />
 
       {dryRunState?.last_result && (
         <details className="mt-2 rounded-md bg-slate-900 text-slate-100 px-3 py-2">
@@ -973,7 +1022,7 @@ export default function OperationsControlCenter() {
         <div className="mb-4 flex items-center justify-between">
           <p className="text-xs text-slate-600 max-w-2xl">
             Every operation below is dry-run first. Applies require the exact
-            confirmation phrase and are recorded in the immutable audit log.
+            repair contract and are recorded in the immutable audit log.
           </p>
           <button
             type="button"

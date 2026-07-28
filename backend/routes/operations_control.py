@@ -65,11 +65,27 @@ def register_operations_control_routes(
         cards = []
         for op in registry.values():
             card: Dict[str, Any] = {**op.to_public_dict()}
+            latest_dry_run = await occ_audit.latest_for_operation(
+                db,
+                operation_id=op.id,
+                mode="dry_run",
+            )
+            latest_apply = await occ_audit.latest_for_operation(
+                db,
+                operation_id=op.id,
+                mode="apply",
+            )
             card["capability"] = occ_operation_capability(
                 {**op.to_public_dict(), "confirmation_phrase": op.confirmation_phrase},
                 available=bool(op.status_fn or op.apply_fn or op.dry_run_fn),
                 disabled_reason=op.manual_reason or "",
             )
+            card["repair_contract"] = {
+                "dry_run_required": bool(op.requires_dry_run),
+                "confirmation_phrase": op.confirmation_phrase,
+                "last_dry_run": latest_dry_run,
+                "last_apply": latest_apply,
+            }
             if op.status_fn:
                 try:
                     card["status_snapshot"] = await op.status_fn(_payload_envelope())
@@ -168,6 +184,15 @@ def register_operations_control_routes(
         # Enforce dry-run + confirmation contracts.
         if op.requires_dry_run and not p.get("dry_run_id"):
             raise HTTPException(400, "dry_run_id required")
+        if op.requires_dry_run:
+            recent_dry_run = await occ_audit.latest_for_operation(
+                db,
+                operation_id=operation_id,
+                mode="dry_run",
+                dry_run_id=str(p.get("dry_run_id") or ""),
+            )
+            if not recent_dry_run:
+                raise HTTPException(400, "dry_run_id is missing, expired, or does not belong to this operation")
         if op.confirmation_phrase and (
             p.get("confirmation_phrase") != op.confirmation_phrase
         ):
@@ -209,6 +234,30 @@ def register_operations_control_routes(
             db, limit=limit, operation_id=operation_id, actor_id=actor_id,
         )
         return {"count": len(rows), "audit": rows}
+
+    @api_router.get("/admin/operations-control/audit/summary")
+    async def audit_summary(limit: int = 200, actor=Depends(require_admin)):
+        rows = await occ_audit.list_recent(db, limit=limit)
+        by_mode: Dict[str, int] = {}
+        by_operation: Dict[str, int] = {}
+        failures = 0
+        for row in rows:
+            mode = str(row.get("mode") or "unknown")
+            op_id = str(row.get("operation_id") or "unknown")
+            by_mode[mode] = by_mode.get(mode, 0) + 1
+            by_operation[op_id] = by_operation.get(op_id, 0) + 1
+            if row.get("error"):
+                failures += 1
+        top_operations = [
+            {"operation_id": op_id, "count": count}
+            for op_id, count in sorted(by_operation.items(), key=lambda item: (-item[1], item[0]))[:10]
+        ]
+        return {
+            "count": len(rows),
+            "by_mode": by_mode,
+            "failure_count": failures,
+            "top_operations": top_operations,
+        }
 
     @api_router.get("/admin/operations-control/audit/{action_id}")
     async def audit_get(action_id: str, actor=Depends(require_admin)):

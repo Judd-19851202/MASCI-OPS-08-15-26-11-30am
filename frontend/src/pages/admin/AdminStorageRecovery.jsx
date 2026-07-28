@@ -23,6 +23,7 @@ import {
   Database,
   HardDrive,
   History,
+  ShieldAlert,
   RefreshCw,
   Search as SearchIcon,
   ShieldCheck,
@@ -144,42 +145,38 @@ function bR2Bucket(recovery, integrations) {
   };
 }
 
-function bR2Retention(recovery) {
-  const endpoint = "/api/admin/recovery/snapshot (warnings)";
-  if (!recovery.ok) {
+function bR2Retention(retentionResp) {
+  const endpoint = "/api/admin/r2/lifecycle/retention";
+  if (!retentionResp?.ok) {
     return _unknownCard("r2-retention", "R2 Retention",
-      endpoint, "/admin/recovery",
-      "Recovery snapshot unreachable.", recovery.error);
+      endpoint, "/admin/storage-recovery",
+      "R2 retention endpoint unreachable.", retentionResp?.error);
   }
-  const warnings = recovery.body?.warnings || [];
-  const retention = warnings.filter((w) =>
-    String(w.kind || w.message || "").toLowerCase().includes("retention"),
-  );
-  const bu = recovery.body?.bucket_usage || {};
-  const bucketRed = String(bu.status || "").toUpperCase() === "RED";
-  let status, summary, action = "";
-  if (retention.length > 0) {
-    status = retention.some((w) => w.severity === "red") ? "red" : "yellow";
-    summary = retention.map((w) => w.message).join(" · ");
-    action = "Wire the R2 retention runner (Track 27.06 P1).";
-  } else if (bucketRed) {
-    status = "yellow";
-    summary = "Bucket past alert threshold but no retention warning surfaced.";
-    action = "Confirm retention runner is wired and scheduled (Track 27.06).";
-  } else {
-    // Honest gap: no dedicated retention endpoint yet.
+  const retention = retentionResp.body || {};
+  const wouldDelete = Number(retention.would_delete_count || 0);
+  const archiveCount = Number(retention.archive_count || 0);
+  let status = "green";
+  let summary = `Retention policy evaluated across ${archiveCount} archive(s).`;
+  let action = "";
+  if (archiveCount === 0) {
     status = "unknown";
-    summary = "No dedicated retention endpoint — inferred from warnings only.";
-    action = "Retention signal is inferred from live recovery warnings until a dedicated endpoint is introduced.";
+    summary = "No complete-R2 archive evidence available for retention evaluation.";
+    action = "Run or verify complete-R2 backups before trusting retention outcomes.";
+  } else if (wouldDelete > 0) {
+    status = "yellow";
+    summary = `${wouldDelete} archive(s) currently fall outside the governed retention windows.`;
+    action = "Review the authoritative retention snapshot before any deletion workflow is considered.";
+  } else {
+    summary = "All evaluated archives are currently protected by the governed retention windows.";
   }
   return {
     id: "r2-retention",
     title: "R2 Retention",
     endpoint,
-    drilldown: "/admin/recovery",
+    drilldown: "/admin/storage-recovery",
     status, summary, recommended_action: action,
-    checked_at: recovery.body?.computed_at || null,
-    evidence: { retention_warnings: retention, bucket_usage: bu },
+    checked_at: retention.generated_at || null,
+    evidence: retention,
   };
 }
 
@@ -451,6 +448,7 @@ export default function AdminStorageRecovery() {
   const [recovery, setRecovery] = useState(null);
   const [scheduler, setScheduler] = useState(null);
   const [integrations, setIntegrations] = useState(null);
+  const [retention, setRetention] = useState(null);
   const [auditRows, setAuditRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshingAt, setRefreshingAt] = useState(null);
@@ -490,15 +488,17 @@ export default function AdminStorageRecovery() {
     setLoading(true);
     setError(null);
     try {
-      const [rc, sc, ih, au] = await Promise.all([
+      const [rc, sc, ih, au, rt] = await Promise.all([
         probe("/admin/recovery/snapshot"),
         probe("/admin/backups-scheduler-state"),
         probe("/admin/integrations/health"),
         probe("/admin/operations-control/audit?limit=25"),
+        probe("/admin/r2/lifecycle/retention"),
       ]);
       setRecovery(rc);
       setScheduler(sc);
       setIntegrations(ih);
+      setRetention(rt);
       setAuditRows((au.body?.audit || []).filter((r) =>
         ["storage", "r2", "backups"].some((k) => String(r.operation_id || "").startsWith(k))
       ));
@@ -519,17 +519,17 @@ export default function AdminStorageRecovery() {
   }, [reload]);
 
   const cards = useMemo(() => {
-    if (!recovery || !scheduler || !integrations) return [];
+    if (!recovery || !scheduler || !integrations || !retention) return [];
     return [
       bDiskPreflight(recovery),
       bR2Bucket(recovery, integrations),
-      bR2Retention(recovery),
+      bR2Retention(retention),
       bBackupFreshness(recovery),
       bScheduler(scheduler),
       bRpoRto(recovery),
       bRestoreDrill(recovery),
     ];
-  }, [recovery, scheduler, integrations]);
+  }, [recovery, scheduler, integrations, retention]);
 
   const cardsById = useMemo(() =>
     Object.fromEntries(cards.map((c) => [c.id, c])), [cards]);
@@ -606,6 +606,14 @@ export default function AdminStorageRecovery() {
             <div className="mt-2 text-xs text-slate-500" data-testid="storage-recovery-ots-disclosure">
               Truth subject=<span className="font-semibold">{recovery?.body?.ots_truth?.truth_subject || "bcss_recovery_posture"}</span> · permitted claim=<span className="font-semibold">{recovery?.body?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{recovery?.body?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · does not prove recovery certification.
             </div>
+          {retention?.body?.generated_at ? (
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700" data-testid="storage-recovery-retention-banner">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
+                Authoritative retention truth active · latest snapshot {formatPlatformTime(retention.body.generated_at)} · {retention.body.archive_count || 0} archive(s) evaluated.
+              </div>
+            </div>
+          ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -675,7 +683,7 @@ export default function AdminStorageRecovery() {
             className="mt-3 text-[11px] font-mono text-slate-500"
             data-testid="storage-recovery-verdict-sources"
           >
-            Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/operations-control/audit
+            Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit
           </div>
         </section>
 
