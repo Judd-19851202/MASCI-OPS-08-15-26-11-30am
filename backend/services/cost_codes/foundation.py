@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import uuid
 import logging
+import hashlib
+import json
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -30,6 +32,11 @@ OPPC_RECOMMENDED_ASSIGNMENT_FIELDS = (
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _payload_hash(payload: Dict[str, Any]) -> str:
+    normalized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def _slug(value: Any) -> str:
@@ -730,8 +737,9 @@ def build_forecast_snapshot_record(
     note: str = "",
     source: str = "manual_snapshot",
 ) -> Dict[str, Any]:
-    return {
+    payload = {
         "snapshot_id": f"forecast-{uuid.uuid4().hex[:12]}",
+        "version": 1,
         "project_number": project_number,
         "scenario_key": _slug(scenario_key) or "calculated_truth",
         "scenario_label": _clean_str(scenario_label) or "Calculated Truth",
@@ -749,6 +757,8 @@ def build_forecast_snapshot_record(
         "source": _clean_str(source) or "manual_snapshot",
         "truth_basis": "canonical_operational_data",
     }
+    payload["content_hash"] = _payload_hash(payload)
+    return payload
 
 
 async def persist_project_forecast_snapshot(
@@ -838,6 +848,7 @@ def normalize_forecast_override(
     )
     return {
         "override_id": _clean_str(previous.get("override_id") or f"override-{uuid.uuid4().hex[:12]}"),
+        "version": 1,
         "cost_code": code,
         "status": _slug(status) or "active",
         "calculated_start_date": _clean_str(calculated_start_date),
@@ -855,6 +866,14 @@ def normalize_forecast_override(
         "updated_role": actor_role,
         "history": history,
         "truth_basis": "authorized_management_override",
+        "content_hash": _payload_hash({
+            "cost_code": code,
+            "adjusted_start_date": _clean_str(adjusted_start_date),
+            "adjusted_finish_date": adj_finish,
+            "reason": reason_text,
+            "status": _slug(status) or "active",
+            "history": history,
+        }),
     }
 
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import uuid
+import hashlib
+import json
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -49,6 +51,10 @@ def _parse_date(value: Any) -> Optional[date]:
 
 def _clamp(score: float, low: float, high: float) -> float:
     return max(low, min(high, score))
+
+
+def _hash(payload: Dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
 
 
 def _score_band(score: float) -> str:
@@ -329,8 +335,9 @@ def build_confidence_snapshot_record(
     note: str = "",
     source: str = "confidence_snapshot",
 ) -> Dict[str, Any]:
-    return {
+    payload = {
         "snapshot_id": f"confidence-{uuid.uuid4().hex[:12]}",
+        "version": 1,
         "project_number": project_number,
         "score": round(_to_float(confidence.get("score"), 0.0), 2),
         "band": _clean(confidence.get("band")) or "critical",
@@ -345,6 +352,8 @@ def build_confidence_snapshot_record(
         "source": _clean(source) or "confidence_snapshot",
         "truth_basis": "canonical_operational_data",
     }
+    payload["content_hash"] = _hash(payload)
+    return payload
 
 
 def summarize_confidence_portfolio(rows: List[Dict[str, Any]]) -> Dict[str, Any]:

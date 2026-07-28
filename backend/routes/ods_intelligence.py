@@ -7,6 +7,7 @@ neutral. No model/provider names leak to callers by default.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from datetime import datetime, timedelta, timezone
@@ -290,9 +291,9 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         agg = await _aggregate_snapshots(db, project_ids=pids, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=pids, date_from=df, date_to=dt)
         jobs = await _load_jobs(db, pids)
+        confidence_values = await asyncio.gather(*(build_project_confidence_payload(db, job) for job in jobs)) if jobs else []
         confidence_rows = []
-        for job in jobs:
-            confidence = await build_project_confidence_payload(db, job)
+        for job, confidence in zip(jobs, confidence_values):
             confidence_rows.append({
                 "project_number": job.get("project_number"),
                 "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
@@ -317,9 +318,9 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         agg = await _aggregate_snapshots(db, project_ids=None, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
         jobs = await _load_jobs(db, None)
+        confidence_values = await asyncio.gather(*(build_project_confidence_payload(db, job) for job in jobs)) if jobs else []
         confidence_rows = []
-        for job in jobs:
-            confidence = await build_project_confidence_payload(db, job)
+        for job, confidence in zip(jobs, confidence_values):
             confidence_rows.append({
                 "project_number": job.get("project_number"),
                 "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
@@ -371,9 +372,10 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         agg = await _aggregate_snapshots(db, project_ids=None, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
         jobs = await _load_jobs(db, None)
+        sampled_jobs = jobs[:50]
+        confidence_values = await asyncio.gather(*(build_project_confidence_payload(db, job) for job in sampled_jobs)) if sampled_jobs else []
         confidence_rows = []
-        for job in jobs[:50]:
-            confidence = await build_project_confidence_payload(db, job)
+        for job, confidence in zip(sampled_jobs, confidence_values):
             confidence_rows.append({
                 "project_number": job.get("project_number"),
                 "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
@@ -397,9 +399,9 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         df, dt = _resolve_range(preset, date_from, date_to)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
         jobs = await _load_jobs(db, None)
+        confidence_values = await asyncio.gather(*(build_project_confidence_payload(db, job) for job in jobs)) if jobs else []
         confidence_rows = []
-        for job in jobs:
-            confidence = await build_project_confidence_payload(db, job)
+        for job, confidence in zip(jobs, confidence_values):
             confidence_rows.append({
                 "project_number": job.get("project_number"),
                 "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
@@ -418,10 +420,10 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
     ) -> Dict[str, Any]:
         pids = [p.strip() for p in (project_ids or "").split(",") if p.strip()] or None
         jobs = await _load_jobs(db, pids)
+        confidence_values = await asyncio.gather(*(build_project_confidence_payload(db, job) for job in jobs)) if jobs else []
+        histories = await asyncio.gather(*(load_project_confidence_history(db, str(job.get("project_number") or "")) for job in jobs)) if jobs else []
         rows = []
-        for job in jobs:
-            confidence = await build_project_confidence_payload(db, job)
-            history = await load_project_confidence_history(db, str(job.get("project_number") or ""))
+        for job, confidence, history in zip(jobs, confidence_values, histories):
             rows.append({
                 "project_number": job.get("project_number"),
                 "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),

@@ -216,14 +216,18 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
             _agg_incidents_open_high(),
             _agg_ca_overdue(),
         )
+        confidence_payloads = await asyncio.gather(*(build_project_confidence_payload(db, p) for p in projects)) if projects else []
+        confidence_histories = await asyncio.gather(*(load_project_confidence_history(db, p["project_number"]) for p in projects)) if projects else []
+        confidence_by_project = {p["project_number"]: payload for p, payload in zip(projects, confidence_payloads)}
+        confidence_history_by_project = {p["project_number"]: history for p, history in zip(projects, confidence_histories)}
 
         # ── Assemble per-project rows + apply status ladder ──────
         rows: List[Dict[str, Any]] = []
         summary = {"green": 0, "amber": 0, "red": 0, "total": 0}
         for p in projects:
             pn = p["project_number"]
-            confidence = await build_project_confidence_payload(db, p)
-            confidence_history = await load_project_confidence_history(db, pn)
+            confidence = confidence_by_project.get(pn) or {}
+            confidence_history = confidence_history_by_project.get(pn) or {}
             ind = {
                 "tasks_overdue":        tasks_overdue.get(pn, 0),
                 "pos_pending_approval": pos_pending.get(pn, 0),
@@ -329,10 +333,60 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
             actor_label=actor.get("email") or actor.get("full_name") or actor.get("id") or role,
             note="Confidence snapshot from project-health",
         )
+        record = {"id": snapshot["snapshot_id"], "doc_id": snapshot["snapshot_id"], "project_number": project_number}
+        try:
+            from lib.trust_spine import emit_record_created, emit_workflow_stage  # noqa: PLC0415
+
+            await emit_record_created(
+                db,
+                workflow="oppc-production-confidence",
+                record=record,
+                module="routes/project_health.py:snapshot_project_confidence",
+                event_name="confidence_snapshot_created",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-production-confidence",
+                stage="validation_complete",
+                record=record,
+                module="routes/project_health.py:snapshot_project_confidence",
+                event_name="confidence_explainability_verified",
+            )
+        except Exception:
+            pass
         try:
             await persist_project_confidence_snapshot(db, project_number=project_number, snapshot=snapshot)
         except LookupError as exc:
             raise HTTPException(404, str(exc)) from exc
+        try:
+            from lib.trust_spine import emit_workflow_stage  # noqa: PLC0415
+
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-production-confidence",
+                stage="audit_written",
+                record=record,
+                module="jobs_master.oppc_confidence_history",
+                event_name="confidence_snapshot_persisted",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-production-confidence",
+                stage="dashboard_updated",
+                record=record,
+                module="routes/project_health.py:snapshot_project_confidence",
+                event_name="confidence_dashboard_updated",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-production-confidence",
+                stage="completed",
+                record=record,
+                module="routes/project_health.py:snapshot_project_confidence",
+                event_name="confidence_snapshot_completed",
+            )
+        except Exception:
+            pass
         return {"ok": True, "snapshot": snapshot, "production_confidence": confidence}
 
     return router
