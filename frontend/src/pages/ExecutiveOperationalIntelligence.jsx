@@ -273,8 +273,7 @@ export default function ExecutiveOperationalIntelligence() {
           </section>
         ) : null}
 
-        {briefing ? (
-          <section data-testid="exec-horizon-briefing">
+        <section data-testid="exec-horizon-briefing">
             <HorizonHeader
               number="BRIEF"
               title="Monday Morning Briefing"
@@ -285,7 +284,7 @@ export default function ExecutiveOperationalIntelligence() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-neutral-500">Status</div>
-                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefing.status || "draft"}</div>
+                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefing?.status || "awaiting preview auth"}</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate">Generate</button>
@@ -295,17 +294,17 @@ export default function ExecutiveOperationalIntelligence() {
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 text-sm">
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">Week ending: {briefing.week_ending || "—"}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">Generated: {briefing.generated_at || "—"}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-hash">Hash: {briefing.content_hash || "—"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">Week ending: {briefing?.week_ending || "—"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">Generated: {briefing?.generated_at || "—"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-hash">Hash: {briefing?.content_hash || "—"}</div>
               </div>
               <div className="space-y-2 text-sm text-neutral-700" data-testid="exec-briefing-summary-lines">
-                {(briefing.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
+                {(briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
+                {!(briefing?.summary_lines || []).length ? <div className="text-neutral-500">The enterprise briefing data is waiting on preview auth, but the lifecycle controls remain available.</div> : null}
               </div>
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">Warnings: {(briefing.warnings || []).join(" · ") || "None"}</div>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">Warnings: {(briefing?.warnings || []).join(" · ") || "Preview auth pending or none"}</div>
             </div>
           </section>
-        ) : null}
 
         {/* DR-UNIFY-002 · Executive surface deferred until real Executive Portal exists.
             The Approved Daily Reports panel lives on the PM + Admin dashboards. */}

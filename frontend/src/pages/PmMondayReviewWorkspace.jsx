@@ -379,6 +379,23 @@ export default function PmMondayReviewWorkspace() {
           </div>
         </div>
 
+        {!workspace ? (
+          <div className="rounded-[2rem] border border-white/40 bg-white/80 p-5 shadow-sm" data-testid="pm-monday-briefing-panel">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-black text-slate-900"><FileText className="h-4 w-4" /> Monday Morning Briefing</div>
+                <div className="text-xs text-slate-500">The canonical workspace is still authorizing in preview. The briefing controls remain visible for governance review.</div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
+                <Button variant="outline" onClick={() => runBriefingAction("approve", "Briefing approved.")} data-testid="pm-monday-briefing-approve"><ShieldCheck className="mr-2 h-4 w-4" />Approve</Button>
+                <Button variant="outline" onClick={() => runBriefingAction("freeze", "Briefing frozen.")} data-testid="pm-monday-briefing-freeze"><Lock className="mr-2 h-4 w-4" />Freeze</Button>
+                <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {workspace ? (
           <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-4">

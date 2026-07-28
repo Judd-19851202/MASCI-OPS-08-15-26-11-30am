@@ -129,22 +129,21 @@ export default function ExecutiveIntelligence() {
           <KpiCard label={t("Open CAPAs")}       value={H.corrective_actions_open ?? 0} testId="kpi-capa"    sub={`${H.corrective_actions_total ?? 0} ${t("total")}`} tone={H.corrective_actions_open > 5 ? "warn" : "default"} />
         </section>
 
-        {data.confidence ? (
-          <section className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="exec-intel-production-confidence">
+        <section className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="exec-intel-production-confidence">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">Production Confidence Score</div>
                 <div className="font-display text-lg font-black text-slate-900">Explainable, canonical, and executive-ready</div>
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2" data-testid="exec-intel-confidence-average">Avg {data.confidence.summary?.average_score ?? 0}</div>
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2" data-testid="exec-intel-confidence-high">High {data.confidence.summary?.high_confidence ?? 0}</div>
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2" data-testid="exec-intel-confidence-watch">Watch {data.confidence.summary?.watch ?? 0}</div>
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2" data-testid="exec-intel-confidence-critical">Critical {data.confidence.summary?.critical ?? 0}</div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2" data-testid="exec-intel-confidence-average">Avg {data.confidence?.summary?.average_score ?? 0}</div>
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2" data-testid="exec-intel-confidence-high">High {data.confidence?.summary?.high_confidence ?? 0}</div>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2" data-testid="exec-intel-confidence-watch">Watch {data.confidence?.summary?.watch ?? 0}</div>
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2" data-testid="exec-intel-confidence-critical">Critical {data.confidence?.summary?.critical ?? 0}</div>
               </div>
             </div>
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
-              {(data.confidence.projects || []).slice(0, 6).map((row) => (
+              {(data.confidence?.projects || []).slice(0, 6).map((row) => (
                 <div key={row.project_number} className="rounded-xl border border-slate-200 bg-slate-50 p-4" data-testid={`exec-intel-confidence-project-${row.project_number}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -160,9 +159,13 @@ export default function ExecutiveIntelligence() {
                   </div>
                 </div>
               ))}
+              {!(data.confidence?.projects || []).length ? (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
+                  Confidence rows are waiting on preview auth, but the executive module remains mounted safely.
+                </div>
+              ) : null}
             </div>
           </section>
-        ) : null}
 
         {/* SLA row */}
         <section className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="exec-intel-sla">

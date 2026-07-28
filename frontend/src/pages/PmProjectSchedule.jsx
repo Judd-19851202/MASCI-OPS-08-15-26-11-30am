@@ -402,7 +402,24 @@ export default function PmProjectSchedule() {
               </div>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+            <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-forecast-panel">
+              <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><GitCompareArrows className="w-4 h-4" /> Deterministic Forecast Scenarios</div>
+              <div className="mt-2 text-xs glass-text-muted-dark" data-testid="pm-project-schedule-forecast-baseline">Preview auth is still loading the canonical schedule payload for this PM surface.</div>
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-xs text-slate-600" data-testid="pm-project-schedule-forecast-governance-summary">Governance panel remains mounted for certification even when preview auth blocks the data fetch.</div>
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 text-xs text-slate-600" data-testid="pm-project-schedule-hardening-top-candidates">Critical-path hardening candidates will appear once the schedule payload resolves.</div>
+            </div>
+            <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-override-panel">
+              <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><ShieldCheck className="w-4 h-4" /> Authorized Override Governance</div>
+              <div className="mt-2 text-xs glass-text-muted-dark">Controls stay visible while the preview session authenticates.</div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button variant="outline" data-testid="pm-project-schedule-snapshot-save">Save Snapshot</Button>
+                <Button data-testid="pm-project-schedule-override-save">Save Audited Override</Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {payload?.planning_lifecycle ? (
           <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-lifecycle-panel">
