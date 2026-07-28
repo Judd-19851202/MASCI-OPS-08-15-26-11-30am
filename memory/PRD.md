@@ -52,6 +52,24 @@ Governing constraints:
   - `/app/memory/OPPC_WEEKLY_REVIEW_WORKFLOW.md`
 - Status declaration recorded:
   - **WP-OPPC-05/06/07 COMPLETE — READY FOR WP-OPPC-08**
+- `WP-OPPC-08` is now complete on a single canonical variance intelligence layer:
+  - backend service: `/app/backend/services/cost_codes/oppc_intelligence.py`
+  - workspace embedding through `/app/backend/services/cost_codes/oppc_execution.py`
+  - stable APIs through `/app/backend/routes/oppc_execution.py`
+  - certification artifact: `/app/memory/OPPC_VARIANCE_INTELLIGENCE_CERTIFICATION.md`
+- `WP-OPPC-09` is now complete by extending the existing Tasks & Actions engine:
+  - variance review updates can create governed recovery tasks through `task_service.create(...)`
+  - Trust Spine recovery events emitted without a duplicate action engine
+  - certification artifact: `/app/memory/OPPC_RECOVERY_INTELLIGENCE_CERTIFICATION.md`
+- `WP-OPPC-10` is now complete by extending cross-project planning, dispatch, staffing, equipment, shop, and executive intelligence:
+  - enterprise resource coordination and executive operations center APIs are live
+  - executive UI route exposed at `/admin/executive-operational-intelligence`
+  - certification artifacts:
+    - `/app/memory/OPPC_ENTERPRISE_RESOURCE_COORDINATION.md`
+    - `/app/memory/OPPC_OPERATIONAL_TIMELINE.md`
+    - `/app/memory/OPPC_EXECUTIVE_OPERATIONS_CENTER.md`
+- Permanent constitutional rule added for future OPPC work:
+  - every new capability must be evaluated for MASCI-wide reuse before implementation and generalized into a canonical service when feasible
 
 ### OPPC files updated in this batch
 
@@ -71,19 +89,21 @@ Governing constraints:
   - Result after latest batch: `11 passed`
 - Additional local regression in this fork:
   - `pytest -q /app/backend/tests/test_oppc_execution.py`
-  - Result: `2 passed`
+  - Result: `6 passed`
 - Independent verification:
   - `/app/test_reports/iteration_63.json`
+  - `/app/test_reports/iteration_65.json`
 - Preview smoke validation:
   - root preview loaded successfully at `REACT_APP_BACKEND_URL`
+  - `/operations-center` loaded successfully in screenshot smoke test
 
 ### OPPC next execution order
 
-1. `WP-OPPC-08` Schedule Variance and Root-Cause Taxonomy
-2. `WP-OPPC-09` Recovery Planning and Tasks & Actions
-3. `WP-OPPC-10` Resource Demand and Cross-Department Integration
-4. `WP-OPPC-11` Forecasting and Critical-Path Hardening
-5. `WP-OPPC-12` Production Confidence Score
+1. `WP-OPPC-11` Forecasting and Critical-Path Hardening
+2. `WP-OPPC-12` Production Confidence Score
+3. `WP-OPPC-13` Monday Morning Briefing
+4. `WP-OPPC-14` Notifications and Escalations
+5. `WP-OPPC-15` Permissions and Governance
 
 ## 2026-07-27 Fork Scope
 

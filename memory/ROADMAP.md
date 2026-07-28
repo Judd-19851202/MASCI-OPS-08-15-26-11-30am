@@ -11,25 +11,25 @@
 - `WP-OPPC-05 — Daily Actual Production Integration`: **COMPLETE**
 - `WP-OPPC-06 — Payroll and Labor Reconciliation`: **COMPLETE**
 - `WP-OPPC-07 — Monday Look-Behind Engine`: **COMPLETE**
-- `WP-OPPC-08 — Schedule Variance and Root-Cause Taxonomy`: **IN PROGRESS**
+- `WP-OPPC-08 — Schedule Variance and Root-Cause Taxonomy`: **COMPLETE**
+- `WP-OPPC-09 — Recovery Planning and Tasks & Actions`: **COMPLETE**
+- `WP-OPPC-10 — Resource Demand and Cross-Department Integration`: **COMPLETE**
+- `WP-OPPC-11 — Forecasting and Critical-Path Hardening`: **READY**
 
 ### OPPC P0 sequence
 
-1. `WP-OPPC-08 — Schedule Variance and Root-Cause Taxonomy`
-2. `WP-OPPC-09 — Recovery Planning and Tasks & Actions`
-3. `WP-OPPC-10 — Resource Demand and Cross-Department Integration`
-4. `WP-OPPC-11 — Forecasting and Critical-Path Hardening`
-5. `WP-OPPC-12 — Production Confidence Score`
-6. `WP-OPPC-13 — Monday Morning Briefing`
-7. `WP-OPPC-14 — Notifications and Escalations`
-8. `WP-OPPC-15 — Permissions and Governance`
-9. `WP-OPPC-16 — User Experience`
-10. `WP-OPPC-17 — Data, Audit, Retention, and Survivability`
-11. `WP-OPPC-18 — Trust Center and Operational Observability`
-12. `WP-OPPC-19 — Testing and Certification`
-13. `WP-OPPC-20 — Regression Gate`
-14. `WP-OPPC-21 — Independent Verification`
-15. `WP-OPPC-22 — Evidence Package`
+1. `WP-OPPC-11 — Forecasting and Critical-Path Hardening`
+2. `WP-OPPC-12 — Production Confidence Score`
+3. `WP-OPPC-13 — Monday Morning Briefing`
+4. `WP-OPPC-14 — Notifications and Escalations`
+5. `WP-OPPC-15 — Permissions and Governance`
+6. `WP-OPPC-16 — User Experience`
+7. `WP-OPPC-17 — Data, Audit, Retention, and Survivability`
+8. `WP-OPPC-18 — Trust Center and Operational Observability`
+9. `WP-OPPC-19 — Testing and Certification`
+10. `WP-OPPC-20 — Regression Gate`
+11. `WP-OPPC-21 — Independent Verification`
+12. `WP-OPPC-22 — Evidence Package`
 
 ### OPPC governing constraints preserved
 

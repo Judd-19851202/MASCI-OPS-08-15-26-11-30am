@@ -1,5 +1,18 @@
 # Change Log
 
+## 2026-07-28 — MASCI OPS OPPC WP-OPPC-08 through WP-OPPC-10
+
+- Added one canonical enterprise operational intelligence service at `/app/backend/services/cost_codes/oppc_intelligence.py` for variance intelligence, recovery intelligence, and enterprise resource coordination.
+- Extended `/api/oppc/*` with stable canonical APIs for project variance intelligence, variance review updates, enterprise resource coordination, and executive operations center.
+- Embedded `variance_intelligence` into the existing OPPC execution workspace and extended PM + Executive UIs to consume canonical APIs.
+- Added certification reports:
+  - `/app/memory/OPPC_VARIANCE_INTELLIGENCE_CERTIFICATION.md`
+  - `/app/memory/OPPC_RECOVERY_INTELLIGENCE_CERTIFICATION.md`
+  - `/app/memory/OPPC_ENTERPRISE_RESOURCE_COORDINATION.md`
+  - `/app/memory/OPPC_OPERATIONAL_TIMELINE.md`
+  - `/app/memory/OPPC_EXECUTIVE_OPERATIONS_CENTER.md`
+- Fixed testing-agent finding by routing `ExecutiveOperationalIntelligence` in `AppRoutes.jsx`.
+
 ## 2026-07-28 — MASCI OPS OPPC WP-OPPC-05 through WP-OPPC-07 certification closeout
 
 - Added the five required repository-backed evidence artifacts:

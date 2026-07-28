@@ -118,6 +118,7 @@ import SafetyCaseWorkspace from "@/pages/SafetyCaseWorkspace";
 // layer over certified incident-case + safety_morning_digest endpoints.
 import SafetyIncidentThread from "@/pages/SafetyIncidentThread";
 import ExecutiveIntelligence from "@/pages/ExecutiveIntelligence";
+import ExecutiveOperationalIntelligence from "@/pages/ExecutiveOperationalIntelligence";
 import ExecutiveCaseReport from "@/pages/ExecutiveCaseReport";
 import IncidentReportViewer from "@/pages/IncidentReportViewer";
 import ViewIncident from "@/pages/ViewIncident";
@@ -885,6 +886,7 @@ export function AppRoutes() {
                 Asset normalization · backed by /api/operations-center/
                 command/* (admin / any portal token). */}
             <Route path="/operations-center" element={A(<OperationsCenterCommand />)} />
+            <Route path="/admin/executive-operational-intelligence" element={A(<ExecutiveOperationalIntelligence />)} />
             <Route path="/operations-map" element={A(<OperationsMapPage />)} />
             <Route path="/pm/field-leadership"   element={P(<PmFieldLeadership />)} />
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
