@@ -20,6 +20,7 @@ from services.cost_codes.foundation import (
     build_planning_readiness,
     build_progress_snapshot,
     build_project_cost_code_option,
+    build_weekly_rollover_preview,
     load_project_assignments,
     load_project_cost_code_actuals,
     load_project_planning_lifecycle,
@@ -92,6 +93,11 @@ class PlanningPublishBody(BaseModel):
     note: Optional[str] = ""
 
 
+class WeeklyRolloverApplyBody(BaseModel):
+    confirm: str = Field(min_length=1)
+    note: Optional[str] = ""
+
+
 async def _is_admin_actor(actor: Any) -> bool:
     if actor is True:
         return True
@@ -127,6 +133,7 @@ def _actor_label(actor: Any) -> str:
 async def _emit_oppc_plan_stage(
     db,
     *,
+    workflow: str = "oppc-cost-code-plan",
     stage: str,
     record: Dict[str, Any],
     module: str,
@@ -139,7 +146,7 @@ async def _emit_oppc_plan_stage(
 
         await emit_workflow_stage(
             db,
-            workflow="oppc-cost-code-plan",
+            workflow=workflow,
             stage=stage,
             record=record,
             module=module,
@@ -152,18 +159,28 @@ async def _emit_oppc_plan_stage(
 
 
 async def _open_oppc_plan_lifecycle(db, *, project_number: str, module: str) -> Dict[str, Any]:
+    return await _open_oppc_workflow_lifecycle(
+        db,
+        workflow="oppc-cost-code-plan",
+        project_number=project_number,
+        module=module,
+    )
+
+
+async def _open_oppc_workflow_lifecycle(db, *, workflow: str, project_number: str, module: str) -> Dict[str, Any]:
     record = {"id": project_number, "doc_id": project_number, "project_number": project_number}
     try:
         from lib.trust_spine import emit_record_created, STAGE_VALIDATION_COMPLETE  # noqa: PLC0415
 
         await emit_record_created(
             db,
-            workflow="oppc-cost-code-plan",
+            workflow=workflow,
             record=record,
             module=module,
         )
         await _emit_oppc_plan_stage(
             db,
+            workflow=workflow,
             stage=STAGE_VALIDATION_COMPLETE,
             record=record,
             module=module,
@@ -171,6 +188,21 @@ async def _open_oppc_plan_lifecycle(db, *, project_number: str, module: str) -> 
     except Exception:  # noqa: BLE001
         pass
     return record
+
+
+def _public_rollover_payload(preview: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "status": preview.get("status") or "blocked",
+        "blocked_reason": preview.get("blocked_reason") or "",
+        "supports_apply": bool(preview.get("supports_apply")),
+        "current_anchor_date": preview.get("current_anchor_date") or "",
+        "rollover_anchor_date": preview.get("rollover_anchor_date") or "",
+        "changed_count": int(preview.get("changed_count") or 0),
+        "action_count": int(preview.get("action_count") or 0),
+        "summary": dict(preview.get("summary") or {}),
+        "actions": list(preview.get("actions") or []),
+        "next_schedule": dict(preview.get("next_schedule") or {}),
+    }
 
 
 async def _resolve_project_schedule(db, project_number: str) -> Dict[str, Any]:
@@ -537,6 +569,125 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
             module="routes/cost_codes.py:publish_project_schedule",
         )
         return {"ok": True, **payload}
+
+    @api_router.get("/cost-codes/projects/{project_number}/weekly-rollover/preview")
+    async def preview_weekly_rollover(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        raw_assignments = await load_project_assignments(db, project_number)
+        payload = await _resolve_project_schedule(db, project_number)
+        preview = build_weekly_rollover_preview(
+            raw_assignments,
+            payload.get("progress"),
+            payload.get("planning_readiness") or {},
+            anchor_date=(payload.get("schedule") or {}).get("window", {}).get("anchor_date"),
+        )
+        return {
+            "ok": True,
+            "project_number": project_number,
+            "planning_readiness": payload.get("planning_readiness") or {},
+            "planning_lifecycle": payload.get("planning_lifecycle") or {},
+            "weekly_rollover": _public_rollover_payload(preview),
+        }
+
+    @api_router.post("/cost-codes/projects/{project_number}/weekly-rollover/apply")
+    async def apply_weekly_rollover(project_number: str, body: WeeklyRolloverApplyBody, actor=Depends(read_dep)) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        if str(body.confirm or "").strip() != "APPLY_WEEKLY_ROLLOVER":
+            raise HTTPException(status_code=422, detail="confirm must equal APPLY_WEEKLY_ROLLOVER")
+        raw_assignments = await load_project_assignments(db, project_number)
+        payload = await _resolve_project_schedule(db, project_number)
+        preview = build_weekly_rollover_preview(
+            raw_assignments,
+            payload.get("progress"),
+            payload.get("planning_readiness") or {},
+            anchor_date=(payload.get("schedule") or {}).get("window", {}).get("anchor_date"),
+        )
+        if preview.get("status") != "ready":
+            blocked_reason = preview.get("blocked_reason") or "weekly_rollover_blocked"
+            raise HTTPException(status_code=409, detail=blocked_reason)
+        spine_record = await _open_oppc_workflow_lifecycle(
+            db,
+            workflow="oppc-weekly-rollover",
+            project_number=project_number,
+            module="routes/cost_codes.py:apply_weekly_rollover",
+        )
+        try:
+            await persist_project_assignments(db, project_number, preview.get("updated_assignments") or [])
+        except LookupError as exc:
+            await _emit_oppc_plan_stage(
+                db,
+                workflow="oppc-weekly-rollover",
+                stage="audit_written",
+                record=spine_record,
+                module="jobs_master.assigned_cost_codes",
+                status="failed",
+                failure_reason=str(exc),
+                remediation="Verify the project exists before applying weekly rollover.",
+            )
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        refreshed_payload = await _resolve_project_schedule(db, project_number)
+        refreshed_lifecycle = build_planning_lifecycle_snapshot(
+            planning_readiness=refreshed_payload.get("planning_readiness") or {},
+            stored={
+                **(await load_project_planning_lifecycle(db, project_number)),
+                "has_unpublished_changes": True,
+                "last_mutated_at": now_iso(),
+                "last_mutated_by": _actor_label(actor),
+                "last_rollover_anchor_date": preview.get("rollover_anchor_date") or "",
+                "last_rollover_note": str(body.note or "").strip(),
+            },
+            schedule_window=(preview.get("next_schedule") or {}).get("window") or {},
+        )
+        await persist_project_planning_lifecycle(db, project_number, refreshed_lifecycle)
+        await db.jobs_master.update_one(
+            {"project_number": project_number},
+            {"$set": {
+                "oppc_last_weekly_rollover": {
+                    "rollover_anchor_date": preview.get("rollover_anchor_date") or "",
+                    "changed_count": int(preview.get("changed_count") or 0),
+                    "action_count": int(preview.get("action_count") or 0),
+                    "summary": dict(preview.get("summary") or {}),
+                    "applied_at": now_iso(),
+                    "applied_by": _actor_label(actor),
+                    "note": str(body.note or "").strip(),
+                }
+            }},
+            upsert=False,
+        )
+        refreshed_payload["planning_lifecycle"] = refreshed_lifecycle
+        refreshed_payload["weekly_rollover"] = _public_rollover_payload(preview)
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-weekly-rollover",
+            stage="audit_written",
+            record=spine_record,
+            module="jobs_master.oppc_last_weekly_rollover",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-weekly-rollover",
+            stage="dashboard_updated",
+            record=spine_record,
+            module="services.cost_codes.schedule_engine.build_schedule_snapshot",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-weekly-rollover",
+            stage="completed",
+            record=spine_record,
+            module="routes/cost_codes.py:apply_weekly_rollover",
+        )
+        return {"ok": True, **refreshed_payload}
 
     @api_router.get("/cost-codes/projects/{project_number}/schedule/dot-report.pdf")
     async def export_project_schedule_pdf(project_number: str, actor=Depends(read_dep)):

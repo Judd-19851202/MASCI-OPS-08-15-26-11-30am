@@ -88,6 +88,7 @@ export default function PmProjectSchedule() {
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState(null);
   const [draft, setDraft] = useState({});
+  const [rolloverPreview, setRolloverPreview] = useState(null);
 
   useEffect(() => {
     const pn = params.get("project_number") || "";
@@ -100,6 +101,7 @@ export default function PmProjectSchedule() {
     try {
       const r = await api.get(`/cost-codes/projects/${encodeURIComponent(pn)}/schedule`);
       setPayload(r.data || null);
+      setRolloverPreview(null);
       const next = {};
       for (const task of r.data?.schedule?.tasks || []) {
         next[task.code] = {
@@ -144,6 +146,7 @@ export default function PmProjectSchedule() {
     try {
       const r = await api.put(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule`, { tasks: Object.values(draft) });
       setPayload(r.data || null);
+      setRolloverPreview(null);
       toast.success("Project Schedule updated.");
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not save Project Schedule.");
@@ -155,9 +158,36 @@ export default function PmProjectSchedule() {
     try {
       const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/planning-lifecycle/publish`, { note: "Published from PM Project Schedule" });
       setPayload(r.data || null);
+      setRolloverPreview(null);
       toast.success("14-day plan published.");
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not publish the 14-day plan.");
+    }
+  };
+
+  const previewRollover = async () => {
+    if (!projectNumber) return;
+    try {
+      const r = await api.get(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/weekly-rollover/preview`);
+      setRolloverPreview(r.data?.weekly_rollover || null);
+      toast.success("Weekly rollover preview ready.");
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Could not build weekly rollover preview.");
+    }
+  };
+
+  const applyRollover = async () => {
+    if (!projectNumber) return;
+    try {
+      const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/weekly-rollover/apply`, {
+        confirm: "APPLY_WEEKLY_ROLLOVER",
+        note: "Applied from PM Project Schedule",
+      });
+      setPayload(r.data || null);
+      setRolloverPreview(r.data?.weekly_rollover || null);
+      toast.success("Weekly rollover applied.");
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Could not apply weekly rollover.");
     }
   };
 
@@ -174,6 +204,8 @@ export default function PmProjectSchedule() {
               <PmProjectSelector value={projectNumber} onChange={onSelectProject} />
               <Button variant="outline" onClick={() => load(projectNumber)} data-testid="pm-project-schedule-refresh"><RefreshCw className="w-4 h-4 mr-2" />Refresh</Button>
               <Button variant="outline" onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}/api/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule/dot-report.pdf`, "_blank")} disabled={!projectNumber} data-testid="pm-project-schedule-dot-export"><Download className="w-4 h-4 mr-2" />DOT Schedule Report</Button>
+              <Button variant="outline" onClick={previewRollover} disabled={!projectNumber || !payload?.planning_readiness?.supports_weekly_rollover} data-testid="pm-project-schedule-rollover-preview"><CalendarRange className="w-4 h-4 mr-2" />Preview Weekly Rollover</Button>
+              <Button variant="outline" onClick={applyRollover} disabled={!projectNumber || !rolloverPreview?.supports_apply} data-testid="pm-project-schedule-rollover-apply"><CalendarRange className="w-4 h-4 mr-2" />Apply Weekly Rollover</Button>
               <Button variant="outline" onClick={publish} disabled={!projectNumber || !payload?.planning_lifecycle?.supports_publish} data-testid="pm-project-schedule-publish"><CalendarRange className="w-4 h-4 mr-2" />Publish 14-Day Plan</Button>
               <Button onClick={save} disabled={!projectNumber || !editable} data-testid="pm-project-schedule-save"><Save className="w-4 h-4 mr-2" />Save Schedule</Button>
             </div>
@@ -217,6 +249,24 @@ export default function PmProjectSchedule() {
                 <div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Unpublished changes</div>
                 <div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-lifecycle-dirty">{payload.planning_lifecycle.has_unpublished_changes ? "Yes" : "No"}</div>
               </div>
+            </div>
+          </div>
+        ) : null}
+
+        {rolloverPreview ? (
+          <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-rollover-panel">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-sm font-black glass-text-dark">Weekly Rollover Preview</div>
+                <div className="text-xs glass-text-muted-dark" data-testid="pm-project-schedule-rollover-anchor">{rolloverPreview.current_anchor_date || "—"} → {rolloverPreview.rollover_anchor_date || "—"}</div>
+              </div>
+              <div className={`rounded-full px-3 py-1 text-xs font-bold ${rolloverPreview.status === "ready" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`} data-testid="pm-project-schedule-rollover-status">{rolloverPreview.status}</div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Changed tasks</div><div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-rollover-changed-count">{rolloverPreview.changed_count || 0}</div></div>
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Actions reviewed</div><div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-rollover-action-count">{rolloverPreview.action_count || 0}</div></div>
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Rolled forward</div><div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-rollover-forward-count">{rolloverPreview.summary?.rolled_forward || 0}</div></div>
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Next projected finish</div><div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-rollover-finish">{rolloverPreview.next_schedule?.projected_finish_date || "—"}</div></div>
             </div>
           </div>
         ) : null}

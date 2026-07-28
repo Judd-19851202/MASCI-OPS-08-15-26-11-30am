@@ -1,5 +1,15 @@
 # Change Log
 
+## 2026-07-28 — MASCI OPS OPPC WP-OPPC-01 through WP-OPPC-04 foundation
+
+- Completed `WP-OPPC-01` canonical architecture inventory with four repository-backed memory artifacts covering architecture inventory, gap register, canonical data ownership, and Trust Spine event mapping.
+- Completed `WP-OPPC-02` bounded cost-code foundation hardening inside the existing owner path (`jobs_master.assigned_cost_codes`) with aggregated `planning_readiness`, assignment-level readiness, and Trust Spine workflow `oppc-cost-code-plan`.
+- Completed `WP-OPPC-03` rolling two-week planning lifecycle extension with publish-state tracking (`unconfigured`, `needs_attention`, `ready_to_publish`, `published`) and PM schedule UI lifecycle cards/actions.
+- Started `WP-OPPC-04` with bounded weekly rollover preview/apply flows on the canonical cost-code route family and Trust Spine workflow `oppc-weekly-rollover`.
+- Verification evidence:
+  - local focused regression: `11 passed`
+  - independent verification report: `/app/test_reports/iteration_63.json`
+
 ## 2026-07-27 — BCSS Release 2 S1-4 Notification Delivery Certification (implementation + blocker verification)
 
 - Implemented a bounded Preview-only notification certification lane in `/app/backend/lib/preview_notification_certification.py`, preserving `SAFE_CAPTURE` globally while allowing only one scoped certification send path for `jaymn.judd@mascigc.com`.

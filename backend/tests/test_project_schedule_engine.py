@@ -1,5 +1,5 @@
 from services.cost_codes.schedule_engine import build_schedule_snapshot, render_dot_schedule_pdf
-from services.cost_codes.foundation import build_planning_lifecycle_snapshot, build_planning_readiness
+from services.cost_codes.foundation import build_planning_lifecycle_snapshot, build_planning_readiness, build_weekly_rollover_preview
 
 
 def _assignment(code, start, duration, predecessors=None):
@@ -80,3 +80,39 @@ def test_planning_lifecycle_promotes_ready_projects_to_publishable_state():
     )
     assert lifecycle["status"] == "ready_to_publish"
     assert lifecycle["supports_publish"] is True
+
+
+def test_weekly_rollover_preview_rolls_not_started_work_forward():
+    readiness = build_planning_readiness([
+        {
+            "code": "CC-1",
+            "item_name": "Drainage",
+            "unit_of_measure": "LF",
+            "authorized_quantity": 150,
+            "schedule_start_date": "2026-07-10",
+            "duration_days": 2,
+            "schedule_phase": "Phase 1",
+            "planned_performer": "Crew A",
+        }
+    ])
+    preview = build_weekly_rollover_preview(
+        [
+            {
+                "code": "CC-1",
+                "item_name": "Drainage",
+                "unit_of_measure": "LF",
+                "authorized_quantity": 150,
+                "schedule_start_date": "2026-07-10",
+                "duration_days": 2,
+                "schedule_phase": "Phase 1",
+                "planned_performer": "Crew A",
+            }
+        ],
+        {"codes": [{"code": "CC-1", "authorized_quantity": 150, "installed_quantity": 0, "progress_percent": 0.0}]},
+        readiness,
+        anchor_date="2026-07-18",
+    )
+    assert preview["status"] == "ready"
+    assert preview["rollover_anchor_date"] == "2026-07-20"
+    assert preview["actions"][0]["rule_applied"] == "roll_to_next_anchor"
+    assert preview["actions"][0]["proposed_start_date"] == "2026-07-20"

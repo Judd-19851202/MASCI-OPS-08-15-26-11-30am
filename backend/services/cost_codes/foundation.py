@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 import logging
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
@@ -47,6 +47,27 @@ def _clean_str(value: Any) -> str:
 
 def _clean_upper(value: Any) -> str:
     return _clean_str(value).upper()
+
+
+def _parse_date(value: Any) -> Optional[date]:
+    text = _clean_str(value)[:10]
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _date_str(value: Optional[date]) -> str:
+    return value.isoformat() if isinstance(value, date) else ""
+
+
+def _next_monday(anchor: date) -> date:
+    days = (7 - anchor.weekday()) % 7
+    if days == 0:
+        days = 7
+    return anchor + timedelta(days=days)
 
 
 def _coerce_string_list(value: Any) -> List[str]:
@@ -248,6 +269,123 @@ def build_planning_lifecycle_snapshot(
         "anchor_date": _clean_str((schedule_window or {}).get("anchor_date")),
         "window_start_date": _clean_str((schedule_window or {}).get("start_date")),
         "window_end_date": _clean_str((schedule_window or {}).get("end_date")),
+    }
+
+
+def build_weekly_rollover_preview(
+    assignments: List[Dict[str, Any]],
+    progress: Optional[Dict[str, Any]],
+    planning_readiness: Dict[str, Any],
+    *,
+    anchor_date: Optional[str] = None,
+) -> Dict[str, Any]:
+    from services.cost_codes.schedule_engine import build_schedule_snapshot  # noqa: PLC0415
+
+    current_schedule = build_schedule_snapshot(assignments, progress, anchor_date=anchor_date)
+    current_anchor = _parse_date((current_schedule.get("window") or {}).get("anchor_date")) or datetime.now(timezone.utc).date()
+    rollover_anchor = _next_monday(current_anchor)
+    if not assignments:
+        return {
+            "status": "blocked",
+            "blocked_reason": "no_assignments",
+            "supports_apply": False,
+            "current_anchor_date": _date_str(current_anchor),
+            "rollover_anchor_date": _date_str(rollover_anchor),
+            "changed_count": 0,
+            "action_count": 0,
+            "summary": {"completed_kept": 0, "carried_in_progress": 0, "rolled_forward": 0, "unchanged": 0},
+            "actions": [],
+            "updated_assignments": [],
+            "current_schedule": current_schedule,
+            "next_schedule": current_schedule,
+        }
+    if planning_readiness.get("status") != "ready":
+        return {
+            "status": "blocked",
+            "blocked_reason": "planning_readiness_incomplete",
+            "supports_apply": False,
+            "current_anchor_date": _date_str(current_anchor),
+            "rollover_anchor_date": _date_str(rollover_anchor),
+            "changed_count": 0,
+            "action_count": 0,
+            "summary": {"completed_kept": 0, "carried_in_progress": 0, "rolled_forward": 0, "unchanged": len(assignments)},
+            "actions": [],
+            "updated_assignments": [dict(row) for row in assignments],
+            "current_schedule": current_schedule,
+            "next_schedule": current_schedule,
+        }
+
+    tasks_by_code = {
+        _clean_str(task.get("code")): task
+        for task in (current_schedule.get("tasks") or [])
+        if _clean_str(task.get("code"))
+    }
+    actions: List[Dict[str, Any]] = []
+    updated_assignments: List[Dict[str, Any]] = []
+    summary = {"completed_kept": 0, "carried_in_progress": 0, "rolled_forward": 0, "unchanged": 0}
+    changed_count = 0
+
+    for row in assignments or []:
+        item = dict(row)
+        code = _clean_str(item.get("code"))
+        task = tasks_by_code.get(code, {})
+        current_start = _clean_str(item.get("schedule_start_date"))
+        current_start_date = _parse_date(current_start)
+        actual_start = _parse_date(task.get("actual_start_date"))
+        forecast_start = _parse_date(task.get("forecast_start_date")) or current_start_date or rollover_anchor
+        progress_percent = float(task.get("progress_percent") or 0.0)
+        schedule_status = _clean_str(task.get("schedule_status")) or "queued"
+
+        if progress_percent >= 100.0 or schedule_status == "complete":
+            proposed_date = current_start_date or actual_start or forecast_start
+            rule = "keep_complete"
+            summary["completed_kept"] += 1
+        elif progress_percent > 0.0 or actual_start is not None:
+            proposed_date = actual_start or current_start_date or forecast_start
+            rule = "carry_in_progress"
+            summary["carried_in_progress"] += 1
+        else:
+            proposed_date = forecast_start
+            rule = "preserve_forecast_start"
+            if proposed_date < rollover_anchor:
+                proposed_date = rollover_anchor
+                rule = "roll_to_next_anchor"
+            if rule == "roll_to_next_anchor":
+                summary["rolled_forward"] += 1
+
+        proposed_start = _date_str(proposed_date)
+        changed = bool(proposed_start and proposed_start != current_start)
+        if changed:
+            changed_count += 1
+            item["schedule_start_date"] = proposed_start
+        else:
+            summary["unchanged"] += 1
+        updated_assignments.append(item)
+        actions.append({
+            "code": code,
+            "current_start_date": current_start,
+            "forecast_start_date": _clean_str(task.get("forecast_start_date")),
+            "proposed_start_date": proposed_start or current_start,
+            "progress_percent": round(progress_percent, 2),
+            "schedule_status": schedule_status,
+            "rule_applied": rule,
+            "changed": changed,
+        })
+
+    next_schedule = build_schedule_snapshot(updated_assignments, progress, anchor_date=_date_str(rollover_anchor))
+    return {
+        "status": "ready",
+        "blocked_reason": "",
+        "supports_apply": True,
+        "current_anchor_date": _date_str(current_anchor),
+        "rollover_anchor_date": _date_str(rollover_anchor),
+        "changed_count": changed_count,
+        "action_count": len(actions),
+        "summary": summary,
+        "actions": actions,
+        "updated_assignments": updated_assignments,
+        "current_schedule": current_schedule,
+        "next_schedule": next_schedule,
     }
 
 

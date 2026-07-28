@@ -1,5 +1,70 @@
 # BCSS Release 2 Platform Survivability Addendum
 
+## 2026-07-28 OPPC Program Addendum
+
+### Current authoritative OPPC scope
+
+Original problem statement:
+
+> MASCI OPS — OPERATIONAL PLANNING & PRODUCTION CONTROL PROGRAM (OPPC). Complete end-to-end build, certification, and deployment of a canonical cost-code, rolling planning, production-control, Monday Look-Behind, recovery, resource coordination, and executive briefing system.
+
+Governing constraints:
+
+- Inventory and extend existing canonical systems rather than creating parallel replacements.
+- Connect every material action to the existing Trust Spine.
+- Begin strictly with `WP-OPPC-01` and do not write implementation code until the canonical inventory is complete.
+
+### 2026-07-28 OPPC status update
+
+- `WP-OPPC-01` completed with four repository-backed architecture artifacts:
+  - `/app/memory/OPPC_CANONICAL_ARCHITECTURE_INVENTORY.md`
+  - `/app/memory/OPPC_GAP_REGISTER.md`
+  - `/app/memory/OPPC_CANONICAL_DATA_OWNERSHIP.md`
+  - `/app/memory/OPPC_TRUST_SPINE_EVENT_MAP.md`
+- Internal validation recorded in those artifacts confirms:
+  - no secondary schedule, cost-code, task/action, dispatch, or trust engines are proposed
+  - all new OPPC workflows are mapped back to the existing Trust Spine model
+- `WP-OPPC-02` started and completed as a bounded canonical hardening pass on the existing cost-code foundation:
+  - planning readiness now derives from `jobs_master.assigned_cost_codes`
+  - readiness is exposed through project assignment, progress, and schedule APIs
+  - Trust Spine workflow `oppc-cost-code-plan` is registered and emitted on canonical plan mutations
+- `WP-OPPC-03` started and completed as a bounded rolling two-week planning lifecycle extension:
+  - planning lifecycle status now tracks `unconfigured`, `needs_attention`, `ready_to_publish`, and `published`
+  - PM schedule UI exposes OPPC foundation readiness, lifecycle state, and publish actions without creating a parallel planner
+- `WP-OPPC-04` has begun with a bounded weekly rollover engine over the existing owner model:
+  - preview and apply endpoints exist on the canonical cost-code route family
+  - rollover mutates only existing assignment schedule fields
+  - Trust Spine workflow `oppc-weekly-rollover` is registered and emitted
+
+### OPPC files updated in this batch
+
+- Backend:
+  - `/app/backend/services/cost_codes/foundation.py`
+  - `/app/backend/routes/cost_codes.py`
+  - `/app/backend/lib/trust_spine.py`
+  - `/app/backend/tests/test_project_schedule_api.py`
+  - `/app/backend/tests/test_project_schedule_engine.py`
+- Frontend:
+  - `/app/frontend/src/pages/PmProjectSchedule.jsx`
+
+### OPPC verification evidence
+
+- Focused local regression:
+  - `pytest -q /app/backend/tests/test_project_schedule_api.py /app/backend/tests/test_project_schedule_engine.py`
+  - Result after latest batch: `11 passed`
+- Independent verification:
+  - `/app/test_reports/iteration_63.json`
+- Preview smoke validation:
+  - root preview loaded successfully at `REACT_APP_BACKEND_URL`
+
+### OPPC next execution order
+
+1. Continue `WP-OPPC-04` from current bounded rollover foundation as needed
+2. `WP-OPPC-05` Daily Actual Production Integration
+3. `WP-OPPC-06` Payroll and Labor Reconciliation
+4. `WP-OPPC-07` Monday Look-Behind Engine
+5. `WP-OPPC-08` Schedule Variance and Root-Cause Taxonomy
+
 ## 2026-07-27 Fork Scope
 
 Current authoritative Wave 3 status is maintained in:

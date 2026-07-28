@@ -1,5 +1,42 @@
 # BCSS Roadmap Snapshot
 
+## 2026-07-28 OPPC roadmap overlay
+
+### Current OPPC execution state
+
+- `WP-OPPC-01 — Canonical Architecture and Gap Inventory`: **COMPLETE**
+- `WP-OPPC-02 — Cost-Code Foundation Hardening`: **COMPLETE**
+- `WP-OPPC-03 — Rolling Two-Week Planning Lifecycle`: **COMPLETE**
+- `WP-OPPC-04 — Weekly Rollover Engine`: **IN PROGRESS**
+
+### OPPC P0 sequence
+
+1. `WP-OPPC-04 — Weekly Rollover Engine`
+2. `WP-OPPC-05 — Daily Actual Production Integration`
+3. `WP-OPPC-06 — Payroll and Labor Reconciliation`
+4. `WP-OPPC-07 — Monday Look-Behind Engine`
+5. `WP-OPPC-08 — Schedule Variance and Root-Cause Taxonomy`
+6. `WP-OPPC-09 — Recovery Planning and Tasks & Actions`
+7. `WP-OPPC-10 — Resource Demand and Cross-Department Integration`
+8. `WP-OPPC-11 — Forecasting and Critical-Path Hardening`
+9. `WP-OPPC-12 — Production Confidence Score`
+10. `WP-OPPC-13 — Monday Morning Briefing`
+11. `WP-OPPC-14 — Notifications and Escalations`
+12. `WP-OPPC-15 — Permissions and Governance`
+13. `WP-OPPC-16 — User Experience`
+14. `WP-OPPC-17 — Data, Audit, Retention, and Survivability`
+15. `WP-OPPC-18 — Trust Center and Operational Observability`
+16. `WP-OPPC-19 — Testing and Certification`
+17. `WP-OPPC-20 — Regression Gate`
+18. `WP-OPPC-21 — Independent Verification`
+19. `WP-OPPC-22 — Evidence Package`
+
+### OPPC governing constraints preserved
+
+- No duplicate schedule, cost-code, task/action, dispatch, audit, or observability engines
+- Every material OPPC workflow must map to the existing Trust Spine
+- All new OPPC logic must extend current canonical owners first
+
 Date: 2026-07-27
 Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 

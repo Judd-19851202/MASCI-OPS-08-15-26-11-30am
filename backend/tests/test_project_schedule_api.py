@@ -175,3 +175,22 @@ def test_pdf_export_returns_pdf_bytes_for_admin():
     assert r.status_code == 200
     assert r.headers["content-type"] == "application/pdf"
     assert r.content.startswith(b"%PDF")
+
+
+def test_weekly_rollover_preview_and_apply():
+    client, db = _client({"_actor": "pm", "role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    preview = client.get("/api/cost-codes/projects/20-07/weekly-rollover/preview")
+    assert preview.status_code == 200
+    preview_body = preview.json()
+    assert preview_body["weekly_rollover"]["status"] in {"ready", "blocked"}
+    assert "changed_count" in preview_body["weekly_rollover"]
+
+    apply = client.post(
+        "/api/cost-codes/projects/20-07/weekly-rollover/apply",
+        json={"confirm": "APPLY_WEEKLY_ROLLOVER", "note": "Weekly rollover"},
+    )
+    assert apply.status_code == 200
+    body = apply.json()
+    assert body["weekly_rollover"]["status"] == "ready"
+    assert body["planning_lifecycle"]["has_unpublished_changes"] is True
+    assert "oppc_last_weekly_rollover" in db.jobs_master.rows[0]
