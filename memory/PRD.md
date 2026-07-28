@@ -97,6 +97,33 @@ Explicit non-scope for this fork:
   - `/api/admin/occ/health` returns 200 with `UNVERIFIABLE=0`; remaining amber/red cards are real preview evidence, not contradictions
   - deployment readiness scan passed with no blockers
 
+### 2026-07-28 production overnight health-email RCA + final scheduler-truth repair
+
+- Live production RCA performed against `https://mascidocs.com` with the super admin account.
+- Confirmed exact contradiction causing repeated false investigative churn:
+  - production `/api/admin/recovery/snapshot` and `/api/admin/backups-complete-r2-state` were still deriving hourly activation from an incomplete runtime payload and falsely emitted `scheduler_unhealthy`
+  - production `/api/admin/backups-scheduler-state` simultaneously reported the scheduler as `alive=true`, `is_healthy=true`, activation `ACTIVE`
+  - this proved the same scheduler truth was being computed differently across endpoints
+- Root cause fixed in code:
+  - `backend/server.py`
+    - `_build_hourly_activation_state(...)` now backfills canonical scheduler truth (`alive`, `is_healthy`, `evidence_ts`, `last_lock_ts`, `last_tick_ts`) whenever the passed runtime state is incomplete
+  - `backend/routes/recovery_dashboard.py`
+    - recovery snapshot now merges canonical scheduler fields into `backup_runtime` before calling the shared hourly activation builder
+- Important production finding from live verification:
+  - the overnight emails were not random spam — production really was red on backup freshness (`~5h` old canonical recoverable point vs `60m` target)
+  - however, the surfaced cause was misleading because the UI/endpoints falsely blamed `scheduler_unhealthy`
+  - after this fix deploys, production will show the real blocker/cause cleanly instead of the fake scheduler blocker
+- Added regression coverage for the exact recurring bug:
+  - `/app/backend/tests/test_admin_diag_aliases_and_scheduler_truth.py`
+  - `/app/backend/tests/test_track_27_09b_integrity_scheduler_closeout.py`
+  - verification report: `/app/test_reports/iteration_56.json`
+- Preview verification outcome:
+  - all three endpoints now agree on scheduler truth:
+    - `/api/admin/backups-scheduler-state`
+    - `/api/admin/recovery/snapshot`
+    - `/api/admin/backups-complete-r2-state`
+  - false `scheduler_unhealthy` is gone when the scheduler is actually alive/healthy
+
 ### 2026-07-28 cross-platform continuity + scheduler truth pass
 
 - Fixed admin session continuity for multi-portal sign-in:
