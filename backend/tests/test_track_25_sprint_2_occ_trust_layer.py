@@ -247,6 +247,25 @@ class TestWorstStatus:
         assert _worst_status([{"status": "green"}, {"status": "unknown"}]) == "UNVERIFIABLE"
 
 
+class _RuntimeIdentityObj:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def to_safe_dict(self):
+        return self._payload
+
+
+class _RuntimeValidationObj:
+    def __init__(self, *, status, valid, mismatch_category, detail):
+        self.status = status
+        self.valid = valid
+        self.mismatch_category = mismatch_category
+        self._detail = detail
+
+    def to_safe_dict(self):
+        return {"detail": self._detail}
+
+
 class _FakeResponse:
     def __init__(self, body, status_code=200):
         self._body = body
@@ -281,3 +300,89 @@ def test_aggregator_truth_relationship_points_to_canonical_owner_route(monkeypat
     assert body["truth_relationship"]["role"] == "AGGREGATOR"
     assert body["truth_relationship"]["canonical_owner_id"] == "platform_attestation"
     assert body["truth_relationship"]["canonical_owner_route"] == "/api/admin/platform/status"
+
+
+def test_occ_overall_prefers_actionable_verified_truth_over_standalone_unknown(monkeypatch):
+    payloads = {
+        "/api/health": {"ok": True, "service": "svc", "ts": NOW},
+        "/api/version": {"service": "svc", "uptime_s": 3600, "started_at": NOW},
+        "/api/admin/operations-control/overview": {"operations": []},
+        "/api/admin/recovery/snapshot": {
+            "pill": "GREEN",
+            "backup_age_minutes": 10,
+            "backup_age_target_minutes": 60,
+            "archive_count": {"r2_total": 3},
+            "rpo": {"status": "GREEN"},
+            "rto": {"status": "GREEN", "last_drill_min": 12},
+            "bucket_usage": {"status": "GREEN", "gb": 10, "warn_gb": 50, "alert_gb": 80},
+            "scheduler": {"alive": True, "is_healthy": True},
+            "last_backup": {"ok": True, "ts": NOW},
+            "computed_at": NOW,
+            "hourly_activation": {"activation_status": "ACTIVE"},
+        },
+        "/api/admin/r2/lifecycle/health": {
+            "band": "green",
+            "overall_score": 98,
+            "capacity": {"gb": 10},
+            "objects": {"total": 10, "verified_orphan": 0},
+            "generated_at": NOW,
+        },
+        "/api/admin/backups-scheduler-state": {
+            "scheduler": {"alive": True, "in_progress": False, "resurrect_count": 0, "last_tick_ts": NOW}
+        },
+        "/api/admin/email-routing/v2/status": {
+            "band": "green",
+            "mode": "live",
+            "route_counts": {"total": 3},
+            "critical_empty_route_keys": [],
+            "ts": NOW,
+        },
+        "/api/ai/gateway/status": {
+            "gateway_enabled": True,
+            "tenant_ai_default_enabled": True,
+            "resolved_provider_available": True,
+            "resolved_selected_provider": "provider",
+        },
+        "/api/admin/draft-health": {
+            "buckets": {"abandoned_gt_24h": 0, "failed_last_24h": 0, "stale_1h_to_24h": 0},
+            "generated_at": NOW,
+        },
+        "/api/admin/sessions/recent": {"count": 4, "timeouts_enabled": True, "server_now": NOW},
+        "/api/admin/governance/summary": {"severity_counts": {}, "health_label": "healthy"},
+        "/api/admin/production-certification": {"platform_band": "green", "counters": {"workflows_certified": 3}, "generated_at": NOW},
+        "/api/admin/integrations/health": {"overall_status": "healthy", "probes": []},
+    }
+
+    async def fake_get(self, url, headers=None):  # noqa: ARG001
+        for path, body in payloads.items():
+            if url.endswith(path):
+                return _FakeResponse(body)
+        return _FakeResponse({}, status_code=404)
+
+    monkeypatch.setattr("routes.occ_health_aggregator.httpx.AsyncClient.get", fake_get)
+
+    app = FastAPI()
+    api_router = APIRouter(prefix="/api")
+
+    def require_admin():
+        return {"role": "admin"}
+
+    register_occ_health_routes(api_router, require_admin)
+    app.include_router(api_router)
+    app.state.runtime_identity_bundle = {
+        "identity": _RuntimeIdentityObj({"db_name": "masci_safety", "is_atlas": True}),
+        "validation": _RuntimeValidationObj(
+            status="UNVERIFIABLE",
+            valid=False,
+            mismatch_category="missing_probe",
+            detail="runtime identity unavailable",
+        ),
+    }
+
+    client = TestClient(app)
+    response = client.get("/api/admin/occ/health")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["overall_status"] == "VERIFIED"
+    assert body["overall_canonical"] == "UNVERIFIABLE"
+    assert body["truth_relationship"]["conflicts"]

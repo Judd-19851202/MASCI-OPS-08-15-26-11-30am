@@ -7899,11 +7899,17 @@ async def _stale_scheduler_lock_present(db) -> bool:
         return True
 
 
-def _backup_scheduler_healthy() -> bool:
-    if not _BACKUP_SCHEDULER_STATE.get("alive"):
+def _backup_scheduler_healthy(runtime_state: Optional[Dict[str, Any]] = None) -> bool:
+    state = runtime_state or _BACKUP_SCHEDULER_STATE
+    if not state.get("alive"):
         return False
-    last_tick = _BACKUP_SCHEDULER_STATE.get("last_tick_ts")
-    last_lock = _BACKUP_SCHEDULER_STATE.get("last_lock_ts")
+    explicit_health = state.get("is_healthy")
+    if explicit_health is False:
+        return False
+    if explicit_health is True:
+        return True
+    last_tick = state.get("last_tick_ts")
+    last_lock = state.get("last_lock_ts") or state.get("evidence_ts")
     if not last_tick:
         if not last_lock:
             return False
@@ -7965,7 +7971,7 @@ async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str
     state = build_hourly_activation_state(
         requested_raw=os.environ.get("BACKUP_R2_HOURLY"),
         environment=_canonical_app_env().lower(),
-        scheduler_healthy=_backup_scheduler_healthy(),
+        scheduler_healthy=_backup_scheduler_healthy(runtime_state),
         persistence_available=persistence_available,
         backup_active=bool(overlap.get("backup_active")),
         restore_active=bool(overlap.get("restore_active")),
@@ -12093,7 +12099,15 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[scheduler-state] health history read failed: {e}")
 
-    activation_state = await _build_hourly_activation_state(db, runtime_state=state.get("backup_runtime") or await _collect_backup_runtime_state(db))
+    activation_runtime_state = dict(state.get("backup_runtime") or await _collect_backup_runtime_state(db))
+    activation_runtime_state.update({
+        "alive": state.get("alive"),
+        "is_healthy": state.get("is_healthy"),
+        "evidence_ts": state.get("evidence_ts"),
+        "last_lock_ts": state.get("last_lock_ts"),
+        "last_tick_ts": state.get("last_tick_ts"),
+    })
+    activation_state = await _build_hourly_activation_state(db, runtime_state=activation_runtime_state)
     state["r2_hourly_requested"] = activation_state.get("r2_hourly_requested")
     state["r2_hourly_effective"] = activation_state.get("r2_hourly_effective")
     state["r2_hourly_locked_off"] = activation_state.get("r2_hourly_locked_off")
@@ -15564,7 +15578,9 @@ async def _start_health_monitor():
         # to /admin/system-health/recent doesn't pay a 36 s cold-start
         # cost (motor lazy-allocates collections on first use).
         try:
-            await db.health_monitor_runs.create_index("at")
+            await db.health_monitor_runs.create_index([("at", -1)], name="ix_health_monitor_runs_at_desc")
+            await db.health_monitor_runs.create_index([("overall", 1), ("at", -1)], name="ix_health_monitor_runs_overall_at")
+            await db.health_alert_cooldowns.create_index("subsystem", unique=True, name="ix_health_alert_cooldowns_subsystem")
         except Exception:  # noqa: BLE001
             pass
     except Exception as e:  # noqa: BLE001
@@ -16526,6 +16542,26 @@ app.include_router(build_admin_persistence_health_router(
     require_admin_strict_dep=require_admin_strict,
 ))
 
+
+@app.get("/api/admin/persistence-health")
+async def admin_persistence_health_alias(_: bool = Depends(require_admin_strict)):
+    builder = globals().get("build_admin_persistence_health_router")
+    if builder is None:
+        from routes.admin_persistence_health import build_admin_persistence_health_router as builder  # noqa: PLC0415
+
+    router = builder(
+        app=app,
+        db=db,
+        require_admin_strict_dep=require_admin_strict,
+    )
+    for route in router.routes:
+        if getattr(route, "path", "") == "/api/admin-strict/diag/persistence-health":
+            endpoint = route.endpoint
+            break
+    else:
+        raise HTTPException(status_code=500, detail="Persistence health endpoint unavailable")
+    return await endpoint()
+
 # iter439 · Item I · admin-strict production health probe (HTTP probes
 # against mascidocs.com, NOT preview's own Mongo). Powers the calm
 # read-only line on /admin/system so preview-vs-production drift is
@@ -16541,6 +16577,45 @@ app.include_router(build_runtime_reliability_router(
     db=db,
     require_admin_dep=require_admin_strict,
 ))
+
+
+@app.get("/api/admin/runtime-reliability")
+async def admin_runtime_reliability_alias(_: bool = Depends(require_admin_strict)):
+    builder = globals().get("build_runtime_reliability_router")
+    if builder is None:
+        from routes.admin_runtime_reliability import build_runtime_reliability_router as builder  # noqa: PLC0415
+
+    router = builder(
+        app=app,
+        db=db,
+        require_admin_dep=require_admin_strict,
+    )
+    for route in router.routes:
+        if getattr(route, "path", "") == "/api/admin-strict/diag/runtime-health":
+            endpoint = route.endpoint
+            break
+    else:
+        raise HTTPException(status_code=500, detail="Runtime reliability endpoint unavailable")
+    return await endpoint()
+
+
+@app.get("/api/admin/database")
+async def admin_database_alias(_: bool = Depends(require_admin_strict)):
+    builder = globals().get("build_cluster_capacity_router")
+    if builder is None:
+        from routes.cluster_capacity import build_cluster_capacity_router as builder  # noqa: PLC0415
+
+    router = builder(
+        get_client=lambda: client,
+        get_runtime_identity=_runtime_identity_bundle,
+    )
+    for route in router.routes:
+        if getattr(route, "path", "") == "/api/cluster/capacity":
+            endpoint = route.endpoint
+            break
+    else:
+        raise HTTPException(status_code=500, detail="Database capacity endpoint unavailable")
+    return await endpoint()
 
 # iter440 · Last Activity probe · powers the calm "Last submission · N
 # minutes ago" indicator on every role hub. Per-portal scoping ·
@@ -19714,9 +19789,9 @@ async def _create_safety_indexes():
         # on EVERY authenticated request. Production has 1,949 session rows
         # → COLLSCAN per request. Token values are unique in prod (verified
         # 2026-06-09 via $group aggregate · zero duplicates). Adding as a
-        # non-unique index for boot safety; operator may promote to unique
-        # in a future maintenance window.
         await db.directory_sessions.create_index("token")
+        await db.directory_sessions.create_index([("expires_at_ts", 1)], name="ix_directory_sessions_expires_at_ts")
+        await db.directory_sessions.create_index([("expires_at", 1)], name="ix_directory_sessions_expires_at")
         # PERFORMANCE-HARDEN-002 (refresh): integration sync log filter path.
         # /app/backend/routes/integrations/logs.py:30 filters by
         # {integration, status?} then sorts by started_at desc. Current

@@ -276,7 +276,7 @@ def start_health_monitor_loop(
                     # Stamp the last run as alerted=True
                     try:
                         await db.health_monitor_runs.update_one(
-                            {}, {"$set": {"alerted": sent}}, sort=[("at", -1)],
+                            {"at": now_dt}, {"$set": {"alerted": sent}},
                         )
                     except Exception:  # noqa: BLE001
                         pass

@@ -34,16 +34,16 @@ from lib.database_authority import database_authority_public_payload
 from lib.runtime_identity import runtime_identity_public_payload
 
 
-def _is_atlas_url(url: str) -> bool:
-    # MongoDB Atlas SRV connection strings always start with mongodb+srv://
-    # and the hostname carries `.mongodb.net`. We treat both signals as
-    # truth — neither alone is enough to false-positive a local Atlas
-    # tunnel or a self-hosted SRV record.
-    if not url:
+def _is_atlas_runtime_identity(identity: Dict[str, Any]) -> bool:
+    if not isinstance(identity, dict):
         return False
-    if not url.startswith("mongodb+srv://"):
-        return False
-    return ".mongodb.net" in url.lower()
+    if identity.get("is_atlas") is True:
+        return True
+    scheme = str(identity.get("mongo_scheme") or "").strip().lower()
+    if scheme == "mongodb+srv":
+        return True
+    mongo_url = str(identity.get("mongo_url_redacted") or "").strip().lower()
+    return mongo_url.startswith("mongodb+srv://") or ".mongodb.net" in mongo_url
 
 
 async def _safe_mongo_version(db) -> Optional[str]:
@@ -167,11 +167,16 @@ def build_admin_persistence_health_router(
         """Return a tiny JSON object that lets the operator verify
         production Atlas + R2 backup continuity with one curl. Never
         raises — always returns 200 with the captured field values."""
-        runtime_identity = runtime_identity_public_payload(getattr(app.state, "runtime_identity_bundle", None))
+        bundle = getattr(app.state, "runtime_identity_bundle", None)
+        runtime_identity = runtime_identity_public_payload(bundle) if bundle else {}
         identity = (runtime_identity or {}).get("identity") or {}
-        mongo_url = identity.get("mongo_url_redacted") or ""
-        db_name = identity.get("db_name") or ""
-        atlas_connected = _is_atlas_url(mongo_url)
+        mongo_url = identity.get("mongo_url_redacted") or (os.environ.get("MONGO_URL") or "")
+        db_name = identity.get("db_name") or (os.environ.get("DB_NAME") or "")
+        atlas_connected = _is_atlas_runtime_identity(identity)
+        if not atlas_connected:
+            atlas_connected = _is_atlas_runtime_identity(
+                {"mongo_url_redacted": os.environ.get("MONGO_URL") or ""}
+            )
 
         mongo_version = await _safe_mongo_version(db)
         collections = await _list_collections(db)
@@ -203,6 +208,11 @@ def build_admin_persistence_health_router(
         return {
             "captured_at": datetime.now(timezone.utc).isoformat(),
             "atlas_connected": atlas_connected,
+            "atlas_detection_basis": {
+                "runtime_identity_is_atlas": bool(identity.get("is_atlas")),
+                "mongo_scheme": identity.get("mongo_scheme"),
+                "mongo_hostname": identity.get("mongo_hostname_redacted"),
+            },
             "atlas_host": (
                 re.sub(r"://[^@]+@", "://***@", mongo_url) if mongo_url else None
             ),

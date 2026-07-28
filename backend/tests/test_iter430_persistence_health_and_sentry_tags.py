@@ -17,7 +17,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from routes.admin_persistence_health import (
-    _is_atlas_url,
+    _is_atlas_runtime_identity,
     build_admin_persistence_health_router,
 )
 from sentry_tags import (
@@ -72,11 +72,12 @@ async def _admin_strict_fail():
 # ─────────────────────────────────────────────────────────────────────
 # 1 · Atlas URL classifier
 # ─────────────────────────────────────────────────────────────────────
-def test_iter430_is_atlas_url():
-    assert _is_atlas_url("mongodb+srv://u:p@cluster.mongodb.net/?x=1") is True  # secret-scan: allow-line
-    assert _is_atlas_url("mongodb://localhost:27017") is False
-    assert _is_atlas_url("mongodb+srv://u:p@self-hosted.example.com/?x=1") is False  # secret-scan: allow-line
-    assert _is_atlas_url("") is False
+def test_iter430_is_atlas_runtime_identity():
+    assert _is_atlas_runtime_identity({"is_atlas": True}) is True
+    assert _is_atlas_runtime_identity({"mongo_scheme": "mongodb+srv"}) is True
+    assert _is_atlas_runtime_identity({"mongo_url_redacted": "mongodb+srv://<redacted>@cluster.mongodb.net/?x=1"}) is True
+    assert _is_atlas_runtime_identity({"mongo_scheme": "mongodb", "mongo_url_redacted": "mongodb://localhost:27017"}) is False
+    assert _is_atlas_runtime_identity({}) is False
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -87,7 +88,9 @@ def test_iter430_persistence_health_authorised(monkeypatch):
     monkeypatch.setenv("DB_NAME", "masci_safety")
 
     app = FastAPI()
+    app.state.runtime_identity_bundle = None
     app.include_router(build_admin_persistence_health_router(
+        app=app,
         db=_FakeDB(),
         require_admin_strict_dep=_admin_strict_ok,
     ))
@@ -115,7 +118,9 @@ def test_iter430_persistence_health_authorised(monkeypatch):
 # ─────────────────────────────────────────────────────────────────────
 def test_iter430_persistence_health_unauth():
     app = FastAPI()
+    app.state.runtime_identity_bundle = None
     app.include_router(build_admin_persistence_health_router(
+        app=app,
         db=_FakeDB(),
         require_admin_strict_dep=_admin_strict_fail,
     ))

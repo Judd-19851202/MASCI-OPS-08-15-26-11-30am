@@ -194,7 +194,7 @@ const manifest = {
       current_status: "Not measured.", blocks_production: false },
     { id: "gap-diag-cluster-capacity", title: "Mongo cluster capacity & connection pool surface",
       severity: "P2", owner: "platform-observability", target_track: "27.13", risk: "low",
-      current_status: "Not exposed. /api/admin/database returns 404.", blocks_production: false },
+      current_status: "Read-only cluster capacity surface is now exposed through /api/admin/database.", blocks_production: false },
   ],
   source_endpoints_line: "/api/health · /api/version · /api/admin/system-health · /api/admin/occ/health · /api/admin/scheduler-runs · /api/admin/production-certification · /api/admin/deploy-readiness",
 };

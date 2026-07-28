@@ -186,6 +186,22 @@ def _eval_recovery_snapshot(body, err, checked_at):
     last_drill = body.get("last_drill")
     last_backup_ok = last_backup.get("ok")
     hourly_activation = body.get("hourly_activation") or {}
+    failures_7d = body.get("failures_7d") or 0
+    if isinstance(failures_7d, list):
+        failures_7d = len(failures_7d)
+    elif isinstance(failures_7d, dict):
+        total_failures = 0
+        for value in failures_7d.values():
+            try:
+                total_failures += int(value or 0)
+            except Exception:  # noqa: BLE001
+                continue
+        failures_7d = total_failures
+    else:
+        try:
+            failures_7d = int(failures_7d or 0)
+        except Exception:  # noqa: BLE001
+            failures_7d = 0
 
     # Derive the primary reason for the observed status. Order matters —
     # highest-severity, most-specific cause wins.
@@ -210,9 +226,9 @@ def _eval_recovery_snapshot(body, err, checked_at):
     elif str(hourly_activation.get("activation_status", "")).upper() == "BLOCKED BY SAFETY GUARD":
         reason_code = "hourly_blocked_by_safety_guard"
         reason_text = "Hourly complete R2 is blocked by a safety guard."
-    elif int(body.get("failures_7d") or 0) > 0:
+    elif failures_7d > 0:
         reason_code = "recent_failures"
-        reason_text = f"{body.get('failures_7d')} backup failure(s) in last 7 days."
+        reason_text = f"{failures_7d} backup failure(s) in last 7 days."
     elif str(bucket_usage.get("status", "")).upper() == "AMBER":
         reason_code = "bucket_over_warn"
         reason_text = (
@@ -549,17 +565,25 @@ def _eval_production_cert(body, err, checked_at):
     band = str(body.get("platform_band") or "").lower()
     if band in ("green", "healthy"):
         status = "VERIFIED"
-    elif band in ("yellow", "warning"):
+    elif band in ("yellow", "amber", "warning"):
         status = "DEGRADED"
     elif band in ("red", "critical"):
         status = "MISMATCH"
     else:
         status = "UNVERIFIABLE"
     counters = body.get("counters") or {}
+    workflows = body.get("workflows") or body.get("workflows_summary") or []
+    if isinstance(workflows, list):
+        workflows_len = len(workflows)
+    else:
+        try:
+            workflows_len = int(workflows or 0)
+        except Exception:  # noqa: BLE001
+            workflows_len = 0
     summary = f"Platform band: {band or 'unknown'} · {counters.get('workflows_certified', 0)} workflows certified"
     return _mk(status, summary,
                {"platform_band": band, "counters": counters,
-                "workflows_summary_len": len(body.get("workflows") or [])},
+                "workflows_summary_len": workflows_len},
                "", body.get("generated_at") or checked_at)
 
 
@@ -680,7 +704,7 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
         # X-Admin-Token or the legacy Authorization: Bearer <token>
         # header (both are already used elsewhere).
         headers: Dict[str, str] = {}
-        for h in ("x-admin-token", "authorization"):
+        for h in ("x-admin-token", "x-directory-token", "authorization"):
             v = request.headers.get(h)
             if v:
                 headers[h.replace("x-", "X-").title().replace("Token", "Token")] = v
@@ -727,8 +751,18 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
                 "cards": cards,
             })
 
-        # Overall posture = worst status across all cards.
-        overall = _worst_status(results)
+        # Overall posture should reflect actionable verified child truth.
+        # A single UNVERIFIABLE card must not outrank fresh VERIFIED/DEGRADED
+        # child surfaces and collapse the whole OCC snapshot to UNKNOWN.
+        canonical_overall = _worst_status(results)
+        if any(r.get("status") == "MISMATCH" for r in results):
+            overall = "MISMATCH"
+        elif any(r.get("status") == "DEGRADED" for r in results):
+            overall = "DEGRADED"
+        elif any(r.get("status") == "VERIFIED" for r in results):
+            overall = "VERIFIED"
+        else:
+            overall = canonical_overall
         counts = {"VERIFIED": 0, "DEGRADED": 0, "MISMATCH": 0, "UNVERIFIABLE": 0, "NOT_APPLICABLE": 0}
         for r in results:
             counts[r["status"]] = counts.get(r["status"], 0) + 1
@@ -768,7 +802,7 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
                 derivation_explanation="OCC health is a derived aggregator over fresh child probes; upstream canonical owners remain authoritative for their own subjects.",
                 canonical_status=canonical_summary["highest"],
                 derived_status=overall,
-                conflicts=[] if overall == canonical_summary["highest"] else ["Aggregate status differs from canonical summary; review child cards for contradiction."],
+                conflicts=[] if overall == canonical_overall else ["Aggregate status differs from canonical severity ordering because OCC prefers actionable verified child truth over standalone unknown cards."],
                 evidence_age_source="generated_at",
                 stale_evidence=False,
             )["relationship"],
