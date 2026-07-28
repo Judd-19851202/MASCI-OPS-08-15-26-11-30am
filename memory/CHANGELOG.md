@@ -1,5 +1,39 @@
 # Change Log
 
+## 2026-07-28 — WP-OPPC-14 Operations Control Plane v1 foundation slice
+
+- Built the constitutional WP-14 control-plane foundation in `/app/backend/services/operations_control/registry.py` and `/app/backend/services/operations_control/control_plane.py`.
+- Added the strict Operational Registry + Event Catalog with permanent principles for:
+  - registry-before-execution
+  - operational truth first
+  - operational transport independence
+  - operational intent separation
+  - preview fail-safe capture
+- Registered the first canonical workflow: `oppc.daily_report_to_oppc`.
+- Registered initial event catalog entries:
+  - `oppc.daily_report.submitted`
+  - `oppc.daily_report.pending_review`
+  - `oppc.daily_report.ack_overdue`
+- Registered initial communication intents:
+  - `oppc.daily_report.notify_project_team`
+  - `oppc.daily_report.review_queue`
+  - `oppc.daily_report.escalate_review_board`
+- Added preview-safe Communications Engine persistence + APIs for:
+  - operational events
+  - communication intents
+  - transport captures
+  - baseline snapshots
+  - readiness evidence packages
+- Refactored the Daily Report → OPPC proof chain so Daily Report submission now emits registered operational events and suppresses the legacy direct daily-report email dispatch for this migrated workflow.
+- Refactored Daily Report `PENDING_REVIEW` fan-out to route through the registered control-plane path instead of direct notification emission.
+- Upgraded `/api/notifications/{notif_id}/acknowledge` so control-plane bell notifications bridge back to the canonical communication acknowledgement ledger.
+- Added admin control-plane endpoints under `/api/admin/operations-control/*` for registry, events, communications, evidence, baselines, and escalation execution.
+- Extended the Operations Control Center UI with a verified Registry Card showing constitutional principles, counts, recent communications, baselines, and evidence actions.
+- Verification evidence:
+  - `/app/test_reports/iteration_69.json`
+  - `auto_frontend_testing_agent`: 12/12 UI checks passed
+  - `deep_testing_backend_v2`: 13/13 backend checks passed
+
 ## 2026-07-28 — MASCI OPS OPPC WP-OPPC-11 through WP-OPPC-13 closeout
 
 - Completed `WP-OPPC-11` by extending the canonical schedule engine with deterministic forecasting, scenario comparison, critical-path hardening, forecast snapshots, and audited override governance.

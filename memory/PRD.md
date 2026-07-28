@@ -75,6 +75,70 @@ Governing constraints:
 - Permanent constitutional rule added for future OPPC work:
   - every new capability must be evaluated for MASCI-wide reuse before implementation and generalized into a canonical service when feasible
 
+### 2026-07-28 WP-OPPC-14 Operations Control Plane v1 status update
+
+Original problem statement for this phase:
+
+> Build the constitutional Operations Control Plane with five foundational capabilities: Operational Communications Engine, Escalation Intelligence, Operational Event Catalog, Operational Readiness Evidence System, and Operational Baseline Manager. Build the strict Operational Registry first, then prove the Daily Report → OPPC chain. Communications must derive from operational truth, remain transport-independent, and preview must always use captured/auditable delivery.
+
+User-approved constitutional rules now embedded in the implementation:
+
+- Operational Transport Independence Principle
+- Operational Intent Principle
+- Operational truth first / no second source of truth
+- Registry and Event Catalog before execution
+- Preview fail-safe capture by default
+
+Implemented in this slice:
+
+- Strict code-backed Operational Registry in `/app/backend/services/operations_control/registry.py`
+  - registered workflows
+  - registered event catalog entries
+  - registered communication intents
+  - registered templates
+  - registered transport providers
+  - registered escalation policies
+- Communications Engine in `/app/backend/services/operations_control/control_plane.py`
+  - event → intent → recipient resolution → transport selection → delivery → acknowledgement ledger
+  - preview-safe captured email transport
+  - in-app notification materialization as a downstream transport
+  - readiness evidence package persistence
+  - baseline snapshot persistence
+- Daily Report → OPPC proof chain migrated to registered events
+  - Daily Report submission now emits `oppc.daily_report.submitted`
+  - Daily Report pending-review fan-out now emits `oppc.daily_report.pending_review`
+  - acknowledgement now bridges from `/api/notifications/{notif_id}/acknowledge` back into the communications ledger
+- Admin Operations Control Center visibility
+  - registry panel with counts + principles
+  - recent communications
+  - baseline snapshot list
+  - readiness evidence list
+
+Verified behavior in preview:
+
+- registry endpoint returns counts + constitutional principles
+- Daily Report submission creates registered event + communication intent
+- email transport remains `SAFE_CAPTURE` / preview-captured
+- PM notification acknowledgement closes the linked communication intent
+- baseline snapshot creation works
+- readiness evidence package creation works
+- OCC frontend renders the new constitutional panel correctly
+
+Current WP-14 P0 status:
+
+- `WP-14C Operational Registry & Event Catalog`: **FOUNDATION LIVE**
+- `WP-14A Operational Communications Engine`: **FOUNDATION LIVE IN PREVIEW CAPTURE MODE**
+- `WP-14B Escalation Intelligence`: **INITIAL SWEEP ENDPOINT LIVE; DEEPER POLICY EXPANSION REMAINS**
+- `WP-14D Operational Readiness Evidence System`: **INITIAL PACKAGE ENDPOINT LIVE**
+- `WP-14E Operational Baseline Manager`: **INITIAL SNAPSHOT ENDPOINT LIVE**
+
+Next WP-14 tasks:
+
+- expand registered workflows beyond Daily Report → OPPC
+- deepen escalation intelligence with richer severity-aware timing and multi-step role routing
+- add more transport providers behind the existing provider-independent transport contract
+- strengthen regression coverage around lifecycle transitions and overdue escalation scenarios
+
 ### OPPC files updated in this batch
 
 - Backend:

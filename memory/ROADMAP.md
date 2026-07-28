@@ -20,7 +20,21 @@
 
 ### OPPC P0 sequence
 
-1. `WP-OPPC-14 — Notifications and Escalations`
+1. `WP-OPPC-14 — Operations Control Plane`
+   - **IN PROGRESS / FOUNDATION LIVE**
+   - Complete now:
+     - constitutional Operational Registry
+     - Operational Event Catalog
+     - Daily Report → OPPC proof chain on registered events
+     - preview-safe Communications Engine
+     - acknowledgement bridge from notifications → communications ledger
+     - readiness evidence packaging endpoint
+     - Operations Control Plane v1 baseline snapshot endpoint
+     - OCC registry/evidence/baseline UI visibility
+   - Remaining P0 inside WP-14:
+     - richer severity-aware escalation intelligence beyond the first sweep endpoint
+     - broaden provider abstraction from preview-safe email capture to additional transports
+     - expand the registered workflow set beyond Daily Report → OPPC
 2. `WP-OPPC-15 — Permissions and Governance`
 3. Executive latency optimization for portfolio confidence rollups
 4. `WP-OPPC-16 — User Experience`
@@ -35,7 +49,7 @@
 
 - WP-11/12/13 are functionally complete and certified in preview.
 - Operational release gate for Cost Codes + Scheduling on project `24-06` is now **GO** with no remaining P0 defects.
-- WP-14 planning is governance-unlocked only after user acceptance of `/app/memory/OPPC_OPERATIONAL_READINESS_GATE_24-06.md`.
+- WP-14 governance unlock is complete; the first constitutional foundation slice is now implemented and verified in preview.
 - Portfolio-wide executive confidence refresh remains the main performance optimization candidate for WP-14.
 
 ### OPPC governing constraints preserved
