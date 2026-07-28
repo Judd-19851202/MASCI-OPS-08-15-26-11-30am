@@ -172,6 +172,7 @@ Explicit non-scope for this fork:
       - `/app/backend/data`
       - `/app/memory`
     - restore now maps `disk_files/storage|static|data|memory/...` back to the correct original roots
+    - restore now rehydrates both embedded `photos/` and embedded `documents/` payloads back into object storage during import
     - manual `/api/admin/backups/run-now` now blocks if another backup or restore is active
     - scheduled zip backup helper now defers on active backup/restore overlap
     - scheduled complete-R2 now defers on backup/restore overlap and manual zip in-progress state
@@ -203,11 +204,12 @@ Explicit non-scope for this fork:
 - Final verification artifacts:
   - `/app/test_reports/iteration_59.json`
   - `/app/test_reports/iteration_60.json`
+  - `/app/test_reports/iteration_61.json`
 - Final verified outcome:
   - no remaining code-level backup interference or restore-scope gaps identified in preview
   - all backup entry points now have overlap guards or explicit deferral behavior
   - complete standalone archive now includes Mongo + object-store refs + disk-backed files
-  - restore correctly routes disk files back to original roots and rehydrates embedded document objects
+  - restore correctly routes disk files back to original roots and rehydrates embedded photo + document objects
 
 ### 2026-07-28 cross-platform continuity + scheduler truth pass
 
