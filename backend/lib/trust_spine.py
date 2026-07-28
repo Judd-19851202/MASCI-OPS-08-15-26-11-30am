@@ -173,6 +173,21 @@ WORKFLOW_EXPECTED_STAGES: Dict[str, list] = {
         STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
         STAGE_COMPLETED,
     ],
+    "oppc-variance-intelligence": [
+        STAGE_RECORD_CREATED, STAGE_VALIDATION_COMPLETE,
+        STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
+        STAGE_COMPLETED,
+    ],
+    "oppc-recovery-intelligence": [
+        STAGE_RECORD_CREATED, STAGE_VALIDATION_COMPLETE,
+        STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
+        STAGE_COMPLETED,
+    ],
+    "oppc-enterprise-resource-coordination": [
+        STAGE_RECORD_CREATED, STAGE_VALIDATION_COMPLETE,
+        STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
+        STAGE_COMPLETED,
+    ],
 }
 
 

@@ -24,6 +24,20 @@ const DEFAULT_REVIEW = {
   link_existing_task_id: "",
 };
 
+const DEFAULT_VARIANCE_REVIEW = {
+  status: "under_review",
+  primary_cause: "",
+  contributing_causes: "",
+  controllability: "",
+  cause_notes: "",
+  recovery_strategy: "",
+  recovery_priority: "high",
+  recovery_owner_role: "pm",
+  recovery_due_date: "",
+  requires_executive_review: false,
+  executive_notes: "",
+};
+
 function ActivityReviewCard({ activity, causes, controllability, draft, onChange, onSave, saving }) {
   const review = draft || DEFAULT_REVIEW;
   return (
@@ -109,8 +123,10 @@ export default function PmMondayReviewWorkspace() {
   const [loading, setLoading] = useState(false);
   const [workspace, setWorkspace] = useState(null);
   const [reviewDrafts, setReviewDrafts] = useState({});
+  const [varianceDrafts, setVarianceDrafts] = useState({});
   const [metaDraft, setMetaDraft] = useState({ critical_path_reviewed: false, executive_actions: "", notes: "" });
   const [savingCode, setSavingCode] = useState("");
+  const [savingVarianceKey, setSavingVarianceKey] = useState("");
 
   const load = async (pn, we = weekEnding) => {
     if (!pn) return;
@@ -124,6 +140,7 @@ export default function PmMondayReviewWorkspace() {
         notes: r.data?.monday_review?.workspace?.notes || "",
       });
       const nextDrafts = {};
+      const nextVarianceDrafts = {};
       for (const activity of r.data?.monday_review?.activities || []) {
         const review = activity.review || {};
         nextDrafts[activity.code] = {
@@ -144,7 +161,24 @@ export default function PmMondayReviewWorkspace() {
           link_existing_task_id: review.recovery_task_id || "",
         };
       }
+      for (const variance of r.data?.variance_intelligence?.variances || []) {
+        nextVarianceDrafts[variance.variance_key] = {
+          ...DEFAULT_VARIANCE_REVIEW,
+          status: variance.status || "under_review",
+          primary_cause: variance.primary_cause || "",
+          contributing_causes: (variance.contributing_causes || []).join(", "),
+          controllability: variance.controllability || "",
+          cause_notes: variance.supporting_review?.notes || "",
+          recovery_strategy: variance.supporting_review?.recovery_strategy || "",
+          recovery_priority: variance.supporting_review?.recovery_priority || "high",
+          recovery_owner_role: variance.supporting_review?.recovery_owner_role || "pm",
+          recovery_due_date: variance.supporting_review?.recovery_date || "",
+          requires_executive_review: !!variance.requires_executive_review,
+          executive_notes: (variance.supporting_review?.executive_actions || []).join("\n"),
+        };
+      }
       setReviewDrafts(nextDrafts);
+      setVarianceDrafts(nextVarianceDrafts);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not load the Monday review workspace.");
       setWorkspace(null);
@@ -236,12 +270,41 @@ export default function PmMondayReviewWorkspace() {
     }
   };
 
+  const saveVariance = async (varianceKey) => {
+    if (!projectNumber) return;
+    const draft = varianceDrafts[varianceKey] || DEFAULT_VARIANCE_REVIEW;
+    setSavingVarianceKey(varianceKey);
+    try {
+      await api.put(`/oppc/projects/${encodeURIComponent(projectNumber)}/variances/${encodeURIComponent(varianceKey)}`, {
+        status: draft.status,
+        primary_cause: draft.primary_cause,
+        contributing_causes: draft.contributing_causes.split(",").map((x) => x.trim()).filter(Boolean),
+        controllability: draft.controllability,
+        cause_notes: draft.cause_notes,
+        recovery_strategy: draft.recovery_strategy,
+        recovery_priority: draft.recovery_priority,
+        recovery_owner_role: draft.recovery_owner_role,
+        recovery_due_date: draft.recovery_due_date,
+        requires_executive_review: draft.requires_executive_review,
+        executive_notes: draft.executive_notes.split("\n").map((x) => x.trim()).filter(Boolean),
+        recovery_plan: { planning_cycle: workspace?.review_week?.week_ending, strategy: draft.recovery_strategy },
+      });
+      toast.success("Variance review saved.");
+      await load(projectNumber, weekEnding);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Could not save variance review.");
+    } finally {
+      setSavingVarianceKey("");
+    }
+  };
+
   const activities = workspace?.monday_review?.activities || [];
   const health = workspace?.project_health || {};
   const readiness = workspace?.monday_review || {};
   const causes = workspace?.root_cause_types || [];
   const controllability = workspace?.controllability_options || [];
   const canComplete = !!workspace?.monday_review?.ready;
+  const varianceItems = workspace?.variance_intelligence?.variances || [];
 
   const summaryCards = useMemo(() => ([
     { key: "health", label: "Project Health", value: health.status || "—" },
@@ -313,6 +376,87 @@ export default function PmMondayReviewWorkspace() {
                     saving={savingCode === activity.code}
                   />
                 ))}
+              </div>
+
+              <div className="rounded-[2rem] border border-white/40 bg-white/80 p-5 shadow-sm" data-testid="pm-monday-review-variance-panel">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-black text-slate-900">Canonical Variance Intelligence</div>
+                    <div className="text-xs text-slate-500">One reusable variance engine across production, labor, schedule, and recovery.</div>
+                  </div>
+                  <div className="text-xs text-slate-500" data-testid="pm-monday-review-variance-count">{varianceItems.length} tracked variances</div>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {varianceItems.slice(0, 8).map((variance) => {
+                    const draft = varianceDrafts[variance.variance_key] || DEFAULT_VARIANCE_REVIEW;
+                    const suffix = `${variance.activity}-${variance.variance_type}`;
+                    return (
+                      <div key={variance.variance_key} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4" data-testid={`pm-monday-review-variance-${suffix}`}>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-black text-slate-900">{variance.activity} · {variance.variance_type}</div>
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{variance.severity} · {variance.status}</div>
+                          </div>
+                          <div className="text-right text-xs text-slate-500">
+                            <div data-testid={`pm-monday-review-variance-percent-${suffix}`}>{variance.variance_percent}%</div>
+                            <div>{variance.primary_cause || "unknown"}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 grid gap-3 md:grid-cols-2">
+                          <label className="text-xs font-semibold text-slate-600">Status
+                            <select data-testid={`pm-monday-review-variance-status-${suffix}`} value={draft.status} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), status: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                              {(workspace?.variance_intelligence?.taxonomy?.statuses || []).map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600">Primary cause
+                            <select data-testid={`pm-monday-review-variance-primary-${suffix}`} value={draft.primary_cause} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), primary_cause: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                              <option value="">Select cause</option>
+                              {(workspace?.variance_intelligence?.taxonomy?.root_causes || []).map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600 md:col-span-2">Contributing causes
+                            <input data-testid={`pm-monday-review-variance-contributing-${suffix}`} value={draft.contributing_causes} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), contributing_causes: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" />
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600">Controllability
+                            <select data-testid={`pm-monday-review-variance-controllability-${suffix}`} value={draft.controllability} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), controllability: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                              <option value="">Select</option>
+                              {(workspace?.variance_intelligence?.taxonomy?.controllability || []).map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600">Recovery strategy
+                            <select data-testid={`pm-monday-review-variance-strategy-${suffix}`} value={draft.recovery_strategy} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), recovery_strategy: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                              <option value="">Select strategy</option>
+                              {[
+                                "crew_increase","equipment_increase","equipment_substitution","weekend_work","night_work","additional_shift","sequence_revision","material_acceleration","supplier_change","survey_acceleration","inspection_acceleration","qa_acceleration","subcontract_supplementation","owner_decision","engineer_decision","approved_extension","approved_deferment","custom"
+                              ].map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600">Recovery due date
+                            <input data-testid={`pm-monday-review-variance-due-${suffix}`} type="date" value={draft.recovery_due_date} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), recovery_due_date: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" />
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600">Recovery priority
+                            <select data-testid={`pm-monday-review-variance-priority-${suffix}`} value={draft.recovery_priority} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), recovery_priority: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                              {["low","medium","high","critical"].map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold text-slate-600">Recovery owner role
+                            <input data-testid={`pm-monday-review-variance-owner-role-${suffix}`} value={draft.recovery_owner_role} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), recovery_owner_role: e.target.value } }))} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" />
+                          </label>
+                          <label className="md:col-span-2 text-xs font-semibold text-slate-600">Cause / action notes
+                            <textarea data-testid={`pm-monday-review-variance-notes-${suffix}`} value={draft.cause_notes} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), cause_notes: e.target.value } }))} rows={2} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" />
+                          </label>
+                          <label className="md:col-span-2 flex items-center gap-2 text-xs font-semibold text-slate-600">
+                            <input data-testid={`pm-monday-review-variance-executive-${suffix}`} type="checkbox" checked={draft.requires_executive_review} onChange={(e) => setVarianceDrafts((prev) => ({ ...prev, [variance.variance_key]: { ...(prev[variance.variance_key] || DEFAULT_VARIANCE_REVIEW), requires_executive_review: e.target.checked } }))} />
+                            Requires executive review
+                          </label>
+                          <div className="md:col-span-2 flex justify-end">
+                            <Button onClick={() => saveVariance(variance.variance_key)} disabled={savingVarianceKey === variance.variance_key} data-testid={`pm-monday-review-variance-save-${suffix}`}>{savingVarianceKey === variance.variance_key ? "Saving…" : "Save variance"}</Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

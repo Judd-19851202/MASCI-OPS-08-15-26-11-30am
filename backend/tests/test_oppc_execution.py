@@ -215,6 +215,22 @@ class _DB:
                 ],
             }
         ])
+        self.operational_variance_reviews = _Collection([])
+        self.project_team_assignments = _Collection([
+            {"project_number": "20-07", "assignment_role": "superintendent", "display_name": "Sup 1", "active": True},
+            {"project_number": "20-07", "assignment_role": "foreman", "display_name": "Foreman 1", "active": True},
+        ])
+        self.dispatch_assignments = _Collection([
+            {"project_number": "20-07", "truck_id": "TRUCK-1", "current_state": "assigned"},
+            {"project_number": "20-08", "truck_id": "TRUCK-1", "current_state": "assigned"},
+        ])
+        self.equipment_master = _Collection([
+            {"unit_number": "MILLER-1", "current_project_number": "20-07", "is_active": True},
+            {"unit_number": "MILLER-1", "current_project_number": "20-08", "is_active": True},
+        ])
+        self.fleet_defects = _Collection([
+            {"truck_unit_number": "TRUCK-1", "status": "open"},
+        ])
         self.tasks = _Collection([])
         self.trust_spine_events = _Collection([])
 
@@ -272,3 +288,68 @@ def test_activity_review_creates_recovery_task_and_updates_workspace():
     mill = next(row for row in body["monday_review"]["activities"] if row["code"] == "MILL")
     assert mill["review"]["primary_cause"] == "weather"
     assert db.tasks.rows
+
+
+def test_variance_intelligence_returns_canonical_variances():
+    client, _ = _client({"role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    r = client.get("/api/oppc/projects/20-07/variance-intelligence", params={"week_ending": "2026-07-19"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["summary"]["total_variances"] >= 4
+    assert any(row["variance_type"] == "schedule" for row in body["variances"])
+    assert any(row["variance_type"] == "production" for row in body["variances"])
+
+
+def test_variance_review_creates_canonical_recovery_task():
+    client, db = _client({"role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    intelligence = client.get("/api/oppc/projects/20-07/variance-intelligence", params={"week_ending": "2026-07-19"})
+    variance_key = next(row["variance_key"] for row in intelligence.json()["variances"] if row["variance_type"] == "schedule")
+    r = client.put(
+        f"/api/oppc/projects/20-07/variances/{variance_key}",
+        json={
+            "status": "recovery_required",
+            "primary_cause": "weather",
+            "contributing_causes": ["planning"],
+            "controllability": "not_preventable",
+            "cause_notes": "Rain impacted paving window",
+            "recovery_strategy": "weekend_work",
+            "recovery_priority": "high",
+            "recovery_owner_role": "pm",
+            "recovery_due_date": "2026-07-22",
+            "requires_executive_review": True,
+            "executive_notes": ["Review sequencing with leadership"],
+            "recovery_plan": {"planning_cycle": "2026-07-19", "strategy": "weekend_work", "estimated_schedule_gain": 1.5},
+        },
+    )
+    assert r.status_code == 200
+    assert db.operational_variance_reviews.rows
+    assert db.tasks.rows
+
+
+def test_enterprise_resource_coordination_returns_conflicts_for_admin():
+    client, _ = _client(True)
+    r = client.get("/api/oppc/enterprise/resource-coordination", params={"week_ending": "2026-07-19"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["summary"]["resource_conflicts"] >= 1
+    assert any(row["conflict_type"] in {"truck_conflict", "equipment_conflict"} for row in body["conflicts"])
+
+
+def test_executive_operations_center_returns_summary_for_admin():
+    client, db = _client(True)
+    db.operational_variance_reviews.rows.append(
+        {
+            "variance_key": "20-07:2026-07-19:schedule:MILL",
+            "project_number": "20-07",
+            "status": "recovery_required",
+            "requires_executive_review": True,
+            "recovery_priority": "critical",
+            "recovery_task_id": "task-1",
+            "recovery_status": "Open",
+        }
+    )
+    r = client.get("/api/oppc/enterprise/executive-operations-center", params={"week_ending": "2026-07-19"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["summary"]["open_variances"] >= 1
+    assert body["summary"]["leadership_projects"] >= 1

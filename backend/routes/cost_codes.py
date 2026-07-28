@@ -66,6 +66,8 @@ class ProjectAssignmentIn(BaseModel):
     cpm_activity_name: Optional[str] = ""
     schedule_phase: Optional[str] = ""
     planned_performer: Optional[str] = ""
+    planned_equipment_units: List[str] = Field(default_factory=list)
+    resource_demand: Dict[str, Any] = Field(default_factory=dict)
     notes: Optional[str] = ""
 
 

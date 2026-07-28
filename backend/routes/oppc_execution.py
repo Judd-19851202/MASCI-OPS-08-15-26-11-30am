@@ -16,6 +16,17 @@ from services.cost_codes.oppc_execution import (
     load_monday_review_doc,
     persist_monday_review_doc,
 )
+from services.cost_codes.oppc_intelligence import (
+    CONTROLLABILITY_OPTIONS,
+    RECOVERY_PRIORITIES,
+    RECOVERY_STRATEGIES,
+    ROOT_CAUSE_TAXONOMY,
+    VARIANCE_STATUSES,
+    build_enterprise_resource_coordination,
+    build_executive_operations_center,
+    build_project_variance_intelligence,
+    upsert_variance_review,
+)
 
 
 class MondayReviewStartBody(BaseModel):
@@ -52,8 +63,32 @@ class MondayReviewCompleteBody(BaseModel):
     week_ending: Optional[str] = ""
 
 
+class VarianceReviewBody(BaseModel):
+    status: Optional[str] = "under_review"
+    primary_cause: Optional[str] = ""
+    contributing_causes: List[str] = Field(default_factory=list)
+    controllability: Optional[str] = ""
+    cause_notes: Optional[str] = ""
+    recovery_strategy: Optional[str] = ""
+    recovery_priority: Optional[str] = "high"
+    recovery_owner_role: Optional[str] = ""
+    recovery_owner_user_id: Optional[str] = ""
+    recovery_due_date: Optional[str] = ""
+    requires_executive_review: bool = False
+    executive_notes: List[str] = Field(default_factory=list)
+    linked_dispatch_records: List[str] = Field(default_factory=list)
+    linked_shop_records: List[str] = Field(default_factory=list)
+    linked_documents: List[str] = Field(default_factory=list)
+    approval: Dict[str, Any] = Field(default_factory=dict)
+    recovery_plan: Dict[str, Any] = Field(default_factory=dict)
+
+
 def _clean(value: Any) -> str:
     return str(value or "").strip()
+
+
+def _slug(value: Any) -> str:
+    return _clean(value).lower().replace(" ", "_")
 
 
 def _actor_role(actor: Any) -> str:
@@ -75,6 +110,26 @@ def _actor_label(actor: Any) -> str:
 def _week_ending(raw: str) -> str:
     text = _clean(raw)
     return text[:10] if text else _default_week_ending()
+
+
+def _validate_variance_taxonomy(payload: VarianceReviewBody) -> None:
+    if _slug(payload.status) not in VARIANCE_STATUSES:
+        raise HTTPException(status_code=422, detail="variance status is not in the approved canonical taxonomy")
+    primary = _slug(payload.primary_cause)
+    if primary and primary not in ROOT_CAUSE_TAXONOMY:
+        raise HTTPException(status_code=422, detail="primary_cause is not in the approved canonical taxonomy")
+    bad_contributing = [item for item in [_slug(x) for x in payload.contributing_causes] if item and item not in ROOT_CAUSE_TAXONOMY]
+    if bad_contributing:
+        raise HTTPException(status_code=422, detail=f"Invalid contributing causes: {', '.join(bad_contributing)}")
+    controllability = _slug(payload.controllability)
+    if controllability and controllability not in CONTROLLABILITY_OPTIONS:
+        raise HTTPException(status_code=422, detail="controllability is not in the approved canonical taxonomy")
+    strategy = _slug(payload.recovery_strategy)
+    if strategy and strategy not in RECOVERY_STRATEGIES:
+        raise HTTPException(status_code=422, detail="recovery_strategy is not in the approved canonical taxonomy")
+    priority = _slug(payload.recovery_priority)
+    if priority and priority not in RECOVERY_PRIORITIES:
+        raise HTTPException(status_code=422, detail="recovery_priority is not in the approved canonical taxonomy")
 
 
 async def _ensure_project_access(db, project_number: str, actor: Any) -> None:
@@ -130,6 +185,21 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
     ) -> Dict[str, Any]:
         await _ensure_project_access(db, project_number, actor)
         return await build_project_execution_workspace(db, project_number, _week_ending(week_ending or ""))
+
+    @api_router.get("/oppc/projects/{project_number}/variance-intelligence")
+    async def get_variance_intelligence(
+        project_number: str,
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        await _ensure_project_access(db, project_number, actor)
+        workspace = await build_project_execution_workspace(db, project_number, _week_ending(week_ending or ""))
+        return await build_project_variance_intelligence(
+            db,
+            project_number=project_number,
+            workspace=workspace,
+            week_ending=_week_ending(week_ending or ""),
+        )
 
     @api_router.post("/oppc/projects/{project_number}/monday-review/start")
     async def start_monday_review(
@@ -369,6 +439,166 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         )
         fresh = await build_project_execution_workspace(db, project_number, week_ending)
         return {"ok": True, **fresh}
+
+    @api_router.put("/oppc/projects/{project_number}/variances/{variance_key}")
+    async def update_variance_review(
+        project_number: str,
+        variance_key: str,
+        body: VarianceReviewBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        await _ensure_project_access(db, project_number, actor)
+        _validate_variance_taxonomy(body)
+        variance_key = _clean(variance_key)
+        week_ending = _clean((body.recovery_plan or {}).get("planning_cycle")) or (variance_key.split(":")[1] if len(variance_key.split(":")) > 1 else "")
+        workspace = await build_project_execution_workspace(db, project_number, _week_ending(week_ending))
+        intelligence = await build_project_variance_intelligence(
+            db,
+            project_number=project_number,
+            workspace=workspace,
+            week_ending=_week_ending(week_ending),
+        )
+        variance = next((row for row in (intelligence.get("variances") or []) if _clean(row.get("variance_key")) == variance_key), None)
+        if not variance:
+            raise HTTPException(status_code=404, detail="Variance was not found in the canonical variance engine")
+
+        recovery_task_id = ""
+        recovery_status = ""
+        if _slug(body.status) in {"recovery_required", "closed"} and _slug(body.recovery_strategy) and _clean(body.recovery_owner_role):
+            existing_task_id = _clean((variance.get("supporting_review") or {}).get("recovery_task_id"))
+            if existing_task_id:
+                recovery_task_id = existing_task_id
+                task = await db.tasks.find_one({"id": existing_task_id}, {"_id": 0, "status": 1})
+                recovery_status = _clean((task or {}).get("status")) or "Open"
+            else:
+                recovery_task_id = await task_service.create(
+                    db,
+                    {
+                        "title": f"Operational Recovery — {project_number} · {_clean(variance.get('activity'))} · {_clean(variance.get('variance_type')).title()}",
+                        "description": _clean(body.cause_notes or body.recovery_strategy)[:4000],
+                        "source_module": "oppc.variance_intelligence",
+                        "source_record_id": variance_key,
+                        "linked_project_number": project_number,
+                        "assignee_role": _clean(body.recovery_owner_role) or "pm",
+                        "assignee_user_id": _clean(body.recovery_owner_user_id) or None,
+                        "priority": (_slug(body.recovery_priority) or "high").title(),
+                        "due_at": _clean(body.recovery_due_date) or None,
+                        "created_by": {"role": _actor_role(actor), "name": _actor_label(actor)},
+                    },
+                )
+                recovery_status = "Open"
+
+        review_doc = await upsert_variance_review(
+            db,
+            project_number=project_number,
+            planning_cycle=intelligence.get("planning_cycle") or _week_ending(week_ending),
+            variance_key=variance_key,
+            payload={
+                **body.model_dump(),
+                "recovery_task_id": recovery_task_id or _clean((variance.get("supporting_review") or {}).get("recovery_task_id")),
+                "recovery_status": recovery_status or _clean((variance.get("supporting_review") or {}).get("recovery_status")),
+            },
+            actor_label=_actor_label(actor),
+            actor_role=_actor_role(actor),
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-variance-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="variance_review_started",
+            stage="record_created",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-variance-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="variance_cause_recorded",
+            stage="validation_complete",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-variance-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="variance_review_completed",
+            stage="audit_written",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-recovery-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="recovery_required" if _slug(review_doc.get("status")) == "recovery_required" else "variance_closed",
+            stage="dashboard_updated",
+        )
+        if _slug(review_doc.get("status")) == "closed":
+            await _emit_workflow_event(
+                db,
+                workflow="oppc-variance-intelligence",
+                project_number=project_number,
+                record_id=variance_key,
+                module="routes/oppc_execution.py:update_variance_review",
+                event_name="variance_closed",
+                stage="completed",
+            )
+        workspace = await build_project_execution_workspace(db, project_number, intelligence.get("planning_cycle") or _week_ending(week_ending))
+        return {
+            "ok": True,
+            "review": review_doc,
+            "workspace": workspace,
+            "variance_intelligence": await build_project_variance_intelligence(
+                db,
+                project_number=project_number,
+                workspace=workspace,
+                week_ending=intelligence.get("planning_cycle") or _week_ending(week_ending),
+            ),
+        }
+
+    @api_router.get("/oppc/enterprise/resource-coordination")
+    async def get_enterprise_resource_coordination(
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for enterprise resource coordination")
+        payload = await build_enterprise_resource_coordination(db, _week_ending(week_ending or ""))
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=f"enterprise:{payload.get('planning_cycle')}",
+            module="routes/oppc_execution.py:get_enterprise_resource_coordination",
+            event_name="variance_detected",
+            stage="dashboard_updated",
+        )
+        return payload
+
+    @api_router.get("/oppc/enterprise/executive-operations-center")
+    async def get_executive_operations_center(
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for the executive operations center")
+        payload = await build_executive_operations_center(db, _week_ending(week_ending or ""))
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=f"executive:{payload.get('planning_cycle')}",
+            module="routes/oppc_execution.py:get_executive_operations_center",
+            event_name="variance_review_completed",
+            stage="dashboard_updated",
+        )
+        return payload
 
 
 __all__ = ["register_oppc_execution_routes"]

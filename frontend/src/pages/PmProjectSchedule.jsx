@@ -90,6 +90,7 @@ export default function PmProjectSchedule() {
   const [draft, setDraft] = useState({});
   const [rolloverPreview, setRolloverPreview] = useState(null);
   const [mondayReviewSummary, setMondayReviewSummary] = useState(null);
+  const [varianceSummary, setVarianceSummary] = useState(null);
 
   useEffect(() => {
     const pn = params.get("project_number") || "";
@@ -107,6 +108,7 @@ export default function PmProjectSchedule() {
       const r = scheduleResponse;
       setPayload(r.data || null);
       setMondayReviewSummary(reviewResponse?.data?.monday_review || null);
+      setVarianceSummary(reviewResponse?.data?.variance_intelligence?.summary || null);
       setRolloverPreview(null);
       const next = {};
       for (const task of r.data?.schedule?.tasks || []) {
@@ -127,6 +129,7 @@ export default function PmProjectSchedule() {
       toast.error(e?.response?.data?.detail || "Could not load Project Schedule.");
       setPayload(null);
       setMondayReviewSummary(null);
+      setVarianceSummary(null);
     } finally {
       setLoading(false);
     }
@@ -228,12 +231,13 @@ export default function PmProjectSchedule() {
             </div>
           ) : null}
           {payload ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-5">
+            <div className="mt-4 grid gap-3 md:grid-cols-6">
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Projected Finish</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-projected-finish">{payload.schedule.projected_finish_date || "—"}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Critical Path</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-critical-path-count">{(payload.schedule.critical_path || []).length}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">% Complete</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-overall-progress">{Number(payload.progress?.overall_percent_complete || 0).toFixed(2)}%</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Monday Look-Behind</div><div className={`text-lg font-black ${mondayReviewSummary?.ready ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-look-behind-ready">{mondayReviewSummary?.ready ? "Ready" : `${Number(mondayReviewSummary?.completion_percent || 0).toFixed(0)}%`}</div><div className="text-[11px] glass-text-muted-dark mt-1" data-testid="pm-project-schedule-look-behind-blockers">{(mondayReviewSummary?.blocking_items || []).slice(0, 2).join(", ") || "Open the workspace"}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">OPPC Foundation</div><div className={`text-lg font-black ${payload.planning_readiness?.status === "ready" ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-foundation-status">{payload.planning_readiness?.status === "ready" ? "Hardened" : "Needs fields"}</div><div className="text-[11px] glass-text-muted-dark mt-1" data-testid="pm-project-schedule-foundation-summary">{payload.planning_readiness?.ready_assignments || 0}/{payload.planning_readiness?.assignment_count || 0} ready</div></div>
+              <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Variance Intel</div><div className={`text-lg font-black ${(varianceSummary?.critical_variances || 0) > 0 ? "text-red-700" : "text-slate-900"}`} data-testid="pm-project-schedule-variance-open">{varianceSummary?.open_variances ?? "—"}</div><div className="text-[11px] glass-text-muted-dark mt-1" data-testid="pm-project-schedule-variance-summary">Critical: {varianceSummary?.critical_variances || 0} · Recovery: {varianceSummary?.recovery_required || 0}</div></div>
             </div>
           ) : null}
         </div>

@@ -14,6 +14,7 @@ from services.cost_codes.foundation import (
     load_project_planning_lifecycle,
     now_iso,
 )
+from services.cost_codes.oppc_intelligence import build_project_variance_intelligence
 from services.cost_codes.schedule_engine import build_schedule_snapshot
 
 ACTIVITY_REVIEW_STATES = {
@@ -623,7 +624,7 @@ async def build_project_execution_workspace(db, project_number: str, week_ending
     completion_pct = round((sum(1 for ok in readiness_checks.values() if ok) / len(readiness_checks)) * 100.0, 1)
     health_status = "GREEN" if monday_ready and not critical_path_changes else ("RED" if blocking_items else "AMBER")
 
-    return {
+    result = {
         "project_number": project_number,
         "review_week": {
             "week_start": week_start,
@@ -696,6 +697,25 @@ async def build_project_execution_workspace(db, project_number: str, week_ending
         "root_cause_types": ROOT_CAUSE_TYPES,
         "controllability_options": CONTROLLABILITY,
     }
+    try:
+        variance_intelligence = await build_project_variance_intelligence(
+            db,
+            project_number=project_number,
+            workspace=result,
+            week_ending=week_ending,
+        )
+        result["variance_intelligence"] = {
+            "summary": variance_intelligence.get("summary") or {},
+            "variances": variance_intelligence.get("variances") or [],
+            "taxonomy": variance_intelligence.get("taxonomy") or {},
+        }
+    except Exception:
+        result["variance_intelligence"] = {
+            "summary": {},
+            "variances": [],
+            "taxonomy": {},
+        }
+    return result
 
 
 __all__ = [

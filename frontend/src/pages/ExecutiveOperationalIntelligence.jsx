@@ -2,10 +2,13 @@ import React from "react";
 import {
   fetchAdminDashboard, fetchExecutiveHealth, fetchAdminAttention,
 } from "@/lib/odsIntelligenceApi";
+import { getAdminToken } from "@/lib/adminAuth";
 import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
 } from "@/components/ods/HorizonPrimitives";
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 /**
  * DR-ROI-001E · Executive Operational Intelligence.
@@ -20,6 +23,7 @@ export default function ExecutiveOperationalIntelligence() {
   const [dash, setDash] = React.useState(null);
   const [health, setHealth] = React.useState(null);
   const [attention, setAttention] = React.useState(null);
+  const [oppc, setOppc] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState(null);
 
@@ -34,10 +38,15 @@ export default function ExecutiveOperationalIntelligence() {
           fetchExecutiveHealth({ preset }),
           fetchAdminAttention({ preset, limit: 15 }),
         ]);
+        const oppcRes = await fetch(`${API}/api/oppc/enterprise/executive-operations-center`, {
+          headers: { "X-Admin-Token": getAdminToken() || "" },
+        });
+        const oppcJson = oppcRes.ok ? await oppcRes.json() : null;
         if (!alive) return;
         setDash(d);
         setHealth(h);
         setAttention(a);
+        setOppc(oppcJson);
       } catch (e) {
         if (alive) setErr(e?.message || "Load failed");
       } finally {
@@ -51,6 +60,7 @@ export default function ExecutiveOperationalIntelligence() {
   const atRisk = health?.top_at_risk || [];
   const totalProjects = health?.total_projects || 0;
   const items = attention?.items || {};
+  const oppcSummary = oppc?.summary || {};
 
   return (
     <div className="min-h-screen bg-neutral-50" data-testid="exec-intel-page">
@@ -108,6 +118,11 @@ export default function ExecutiveOperationalIntelligence() {
               label="Photos captured"
               value={kpis.photo_count ?? 0}
               testid="exec-kpi-photos"
+            />
+            <KpiTile
+              label="OPPC open variances"
+              value={oppcSummary.open_variances ?? 0}
+              testid="exec-kpi-oppc-variances"
             />
           </div>
         </section>
@@ -200,6 +215,52 @@ export default function ExecutiveOperationalIntelligence() {
             />
           </div>
         </section>
+
+        {oppc ? (
+          <section data-testid="exec-horizon-oppc">
+            <HorizonHeader
+              number="OPPC"
+              title="Enterprise Operations Center"
+              subtitle="Canonical variance, recovery, and resource coordination"
+              testid="exec-horizon-oppc-header"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-lg border border-neutral-200 bg-white p-4" data-testid="exec-oppc-risk">
+                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Projects at risk</div>
+                <div className="mt-3 space-y-2 text-sm text-neutral-700">
+                  {(oppc.what_is_at_risk || []).slice(0, 6).map((item) => (
+                    <div key={item.project_number} className="flex items-center justify-between gap-3">
+                      <span>{item.project_number}</span>
+                      <span className="text-xs text-neutral-500">Recovery {item.recovery_overdue || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-neutral-200 bg-white p-4" data-testid="exec-oppc-conflicts">
+                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Resource conflicts</div>
+                <div className="mt-3 space-y-2 text-sm text-neutral-700">
+                  {(oppc.resource_conflicts || []).slice(0, 6).map((item, idx) => (
+                    <div key={`${item.resource_key}-${idx}`}>
+                      <div className="font-semibold">{item.conflict_type.replaceAll("_", " ")}</div>
+                      <div className="text-xs text-neutral-500">{item.project_number} · {item.why}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-neutral-200 bg-white p-4" data-testid="exec-oppc-recovery">
+                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Recovery overdue</div>
+                <div className="mt-3 space-y-2 text-sm text-neutral-700">
+                  {(oppc.recovery_overdue || []).slice(0, 6).map((item) => (
+                    <div key={item.variance_key}>
+                      <div className="font-semibold">{item.project_number} · {item.strategy || "strategy pending"}</div>
+                      <div className="text-xs text-neutral-500">{item.recovery_status} · {item.recovery_priority}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* DR-UNIFY-002 · Executive surface deferred until real Executive Portal exists.
             The Approved Daily Reports panel lives on the PM + Admin dashboards. */}

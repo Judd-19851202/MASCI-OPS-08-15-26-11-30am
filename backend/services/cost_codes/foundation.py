@@ -158,6 +158,26 @@ def normalize_job_assignment(
         "duration_days": max(1, int(_to_float(src.get("duration_days"), default=1))),
         "predecessor_codes": _coerce_string_list(src.get("predecessor_codes") or src.get("predecessors")),
         "planned_performer": _clean_str(src.get("planned_performer") or src.get("performer_plan")),
+        "planned_equipment_units": _coerce_string_list(src.get("planned_equipment_units") or src.get("planned_equipment") or src.get("equipment_units")),
+        "resource_demand": {
+            "labor_hours": round(_to_float((src.get("resource_demand") or {}).get("labor_hours"), default=_to_float(src.get("target_man_hours"))), 4),
+            "required_foreman": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_foreman"), default=1 if _clean_str(src.get("planned_performer") or src.get("performer_plan")) else 0))),
+            "required_superintendent": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_superintendent"), default=1 if _clean_str(src.get("schedule_phase")) else 0))),
+            "required_drivers": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_drivers"), default=_to_float(src.get("required_drivers"), default=0)))),
+            "required_dump_trucks": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_dump_trucks"), default=_to_float(src.get("required_trucks"), default=0)))),
+            "required_lowboys": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_lowboys"), default=0))),
+            "required_roll_offs": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_roll_offs"), default=0))),
+            "required_survey": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_survey"), default=0))),
+            "required_traffic_control": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_traffic_control"), default=0))),
+            "required_qaqc": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_qaqc"), default=0))),
+            "required_testing": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_testing"), default=0))),
+            "required_safety": max(0, int(_to_float((src.get("resource_demand") or {}).get("required_safety"), default=0))),
+            "required_materials": _coerce_string_list((src.get("resource_demand") or {}).get("required_materials") or src.get("required_materials")),
+            "required_plants": _coerce_string_list((src.get("resource_demand") or {}).get("required_plants") or src.get("required_plants")),
+            "required_subcontractors": _coerce_string_list((src.get("resource_demand") or {}).get("required_subcontractors") or src.get("required_subcontractors")),
+            "required_special_equipment": _coerce_string_list((src.get("resource_demand") or {}).get("required_special_equipment") or src.get("required_special_equipment")),
+            "required_equipment_units": _coerce_string_list((src.get("resource_demand") or {}).get("required_equipment_units") or src.get("planned_equipment_units") or src.get("planned_equipment") or src.get("equipment_units")),
+        },
         "notes": str(src.get("notes") or "").strip(),
     }
 
@@ -410,6 +430,8 @@ def serialize_assignment(row: Dict[str, Any], *, include_financial: bool = False
         "duration_days": max(1, int(_to_float(row.get("duration_days"), default=1))),
         "predecessor_codes": _coerce_string_list(row.get("predecessor_codes") or row.get("predecessors")),
         "planned_performer": _clean_str(row.get("planned_performer") or row.get("performer_plan")),
+        "planned_equipment_units": _coerce_string_list(row.get("planned_equipment_units") or row.get("planned_equipment") or row.get("equipment_units")),
+        "resource_demand": dict(row.get("resource_demand") or {}),
         "notes": _clean_str(row.get("notes")),
     }
     if include_financial:
