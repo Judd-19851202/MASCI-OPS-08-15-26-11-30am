@@ -2905,3 +2905,61 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Result
 - TRACK D-02 Preview certification status: **VERIFIED IN PREVIEW**
 - Remaining survivability work is now limited to the next governed tracks, not the Preview D-02 gate.
+
+## 2026-07-28 — OPPC Operational Go-Live Release Gate (Project 24-06)
+
+### Scope
+- Governed release gate run for Cost Codes + Scheduling on canonical project `24-06`.
+- User-mandated validation sequence: smallest safe fix, targeted regression, full live UI rerun, Trust Spine evidence, persistence checks, and operational readiness determination before any WP-14 planning.
+
+### Defects recorded and fixed during gate
+- **Defect RG-01 (P0)**: Cost code registry saves and PM/shared operational pages were missing portal + directory auth on shared route families because frontend auth inference expected `/api/...` paths while axios requests were sent as `/<route>`.
+  - Smallest safe fix applied in `/app/frontend/src/lib/portalAuthScope.js`
+  - Shared route families now correctly scope auth for `/cost-codes`, `/oppc`, and `/ods`
+  - Result: registry persistence, PM schedule loading, and shared operational requests now succeed in the live UI.
+- **Defect RG-02 (P0)**: Frozen Monday briefing could not be regenerated after new operational data landed, blocking the release gate.
+  - Smallest safe fix applied in `/app/backend/routes/oppc_execution.py`
+  - Admin / super-admin actors may now regenerate frozen project + enterprise Monday briefings, preserving audit lineage of the frozen source
+  - Result: project `24-06` and enterprise Monday briefings were regenerated, re-approved, and re-frozen with fresh Trust Spine evidence.
+
+### Live operator evidence captured
+- Cost code created and persisted through the UI: `ZZ-GATE-203758`
+- Project `24-06` assignment saved through PM UI and survived refresh
+- Schedule loaded through PM UI, task persisted, weekly rollover preview/apply completed, forecast snapshot + override evidence captured
+- Daily report submitted through live UI:
+  - `doc_id = DR-2026-03558`
+  - project `24-06`
+  - quantity recorded against `ZZ-GATE-203758`
+- Project Monday briefing regenerated after new operational data, then approved + frozen again
+- Enterprise Monday briefing regenerated after project-level gate completion, then approved + frozen again
+
+### Trust Spine / audit evidence
+- `oppc-daily-actuals`
+  - `record_created` → `validation_complete` → `audit_written` → `dashboard_updated` → `completed`
+  - record id: `24-06:DR-2026-03558:ZZ-GATE-203758`
+- `oppc-monday-morning-briefing`
+  - fresh project events emitted at `2026-07-28T21:07:14Z` / `21:07:15Z`
+  - fresh enterprise events emitted at `2026-07-28T21:09:28Z` / `21:09:29Z`
+- Approval histories preserved for both project and enterprise briefings after regenerate → approve → freeze.
+
+### Operational readiness gate outcome
+- **Cost Code System operational**: PASS
+- **Project Scheduling operational**: PASS
+- **Cost Code ↔ Schedule integration verified**: PASS
+- **Daily Reports update production correctly**: PASS (daily actuals landed in cost-code progress + Trust Spine)
+- **Weekly rollover verified**: PASS
+- **Forecast recalculation verified**: PASS
+- **Monday Briefing reflects operational changes**: PASS after frozen-briefing admin regeneration fix
+- **Production Confidence Score updates correctly**: PASS for operational freshness / confidence refresh; see P1 note below for metric nuance
+- **Executive dashboards display correct information**: PASS (enterprise briefing + executive operations center refreshed)
+- **No remaining P0 defects**: PASS
+
+### Remaining P1/P2 items documented
+- **P1**: Some confidence/briefing freshness subfields still show conservative/stale production-detail values (example: `actual_quantity` / `latest_report_date` nuance in certain rollups) even though canonical daily actuals, Trust Spine events, and project health confidence refreshed correctly.
+  - Impact: explanatory detail may lag behind canonical progress truth on some surfaces.
+  - Does **not** block operational use of cost codes + scheduling.
+- **P2**: Portfolio briefing warnings still reflect broader enterprise stale-input reality across other projects, which is accurate but noisy during project-specific release-gate review.
+
+### Recommendation
+- **GO** for operational use of Cost Codes + Scheduling on project `24-06`.
+- WP-14 planning remains governance-blocked until the user accepts this release gate determination.

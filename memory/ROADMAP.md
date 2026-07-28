@@ -34,6 +34,8 @@
 ### Current advisory note
 
 - WP-11/12/13 are functionally complete and certified in preview.
+- Operational release gate for Cost Codes + Scheduling on project `24-06` is now **GO** with no remaining P0 defects.
+- WP-14 planning is governance-unlocked only after user acceptance of `/app/memory/OPPC_OPERATIONAL_READINESS_GATE_24-06.md`.
 - Portfolio-wide executive confidence refresh remains the main performance optimization candidate for WP-14.
 
 ### OPPC governing constraints preserved

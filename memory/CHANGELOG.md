@@ -22,6 +22,13 @@
   - `/app/test_reports/iteration_68.json`
   - final frontend certification rerun: all required OPPC preview panels verified
 
+## 2026-07-28 — OPPC Operational Go-Live Release Gate (24-06)
+
+- Fixed live shared-route auth scoping in `/app/frontend/src/lib/portalAuthScope.js`, restoring registry persistence and PM/shared operational UI flows for `/cost-codes/*`, `/oppc/*`, and `/ods/*`.
+- Fixed frozen-briefing admin regeneration in `/app/backend/routes/oppc_execution.py`, allowing project + enterprise Monday briefings to refresh after new operational data while preserving approval/freeze audit history.
+- Executed the user-mandated operational gate on project `24-06` with live UI + backend evidence: registry create/persist, assignment save, schedule save, weekly rollover, forecast governance, live daily report `DR-2026-03558`, project health confidence refresh, Trust Spine validation, and project + enterprise Monday briefing refresh.
+- Added release-gate evidence file: `/app/memory/OPPC_OPERATIONAL_READINESS_GATE_24-06.md`
+
 ## 2026-07-28 — MASCI OPS OPPC WP-OPPC-08 through WP-OPPC-10
 
 - Added one canonical enterprise operational intelligence service at `/app/backend/services/cost_codes/oppc_intelligence.py` for variance intelligence, recovery intelligence, and enterprise resource coordination.
