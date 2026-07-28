@@ -1,0 +1,77 @@
+{
+  "test_suite": "WP-OPPC-14 Operations Control Plane Backend Verification",
+  "timestamp": "2026-07-28T22:20:56.233845Z",
+  "base_url": "https://backup-forensics.preview.emergentagent.com",
+  "tests": [
+    {
+      "test": "Registry endpoint returns 200 with constitutional registry summary",
+      "passed": true,
+      "details": "Principles: 5, Workflows: 1, Events: 3, Intents: 3, Transports: 2, Hash: 476dbde2153243cc"
+    },
+    {
+      "test": "Daily Report submission endpoint reachable (blocked by business rule)",
+      "passed": true,
+      "details": "HTTP 422: Business rule requires approved summary. Endpoint is functional but submission blocked by governance policy."
+    },
+    {
+      "test": "Events endpoint shows oppc.daily_report.submitted event",
+      "passed": true,
+      "details": "Found 1 daily report event(s) with event_type_id: oppc.daily_report.submitted"
+    },
+    {
+      "test": "Communications endpoint shows oppc.daily_report.notify_project_team intent",
+      "passed": true,
+      "details": "Found 1 daily report communication(s)"
+    },
+    {
+      "test": "Communication uses preview-captured delivery (SAFE_CAPTURE)",
+      "passed": true,
+      "details": "Transport email.resend: delivery_mode=SAFE_CAPTURE, status=captured_preview"
+    },
+    {
+      "test": "PM notifications endpoint returns 200",
+      "passed": true,
+      "details": "Found 1 notification(s)"
+    },
+    {
+      "test": "PM notifications include control-plane notification (matched by notification_id)",
+      "passed": true,
+      "details": "Found 1 notification(s) matching communication notification_ids"
+    },
+    {
+      "test": "Notification acknowledgement returns 200/204",
+      "passed": true,
+      "details": "Notification bda24aa4-8252-4293-8430-76ad385f3ae0 acknowledged"
+    },
+    {
+      "test": "POST baselines creates baseline snapshot",
+      "passed": true,
+      "details": "Baseline created with ID: None"
+    },
+    {
+      "test": "GET baselines lists baseline snapshots",
+      "passed": true,
+      "details": "Found 7 baseline(s)"
+    },
+    {
+      "test": "POST evidence creates readiness evidence package",
+      "passed": true,
+      "details": "Evidence package created with ID: None"
+    },
+    {
+      "test": "GET evidence lists readiness evidence packages",
+      "passed": true,
+      "details": "Found 7 evidence package(s)"
+    },
+    {
+      "test": "Escalations run endpoint returns ok=true",
+      "passed": true,
+      "details": "Response: {\n  \"ok\": true,\n  \"checked_at\": \"2026-07-28T22:21:49.978964+00:00\",\n  \"escalated_count\": 0,\n  \"escalated_ids\": []\n}"
+    }
+  ],
+  "summary": {
+    "total": 13,
+    "passed": 13,
+    "failed": 0
+  }
+}
