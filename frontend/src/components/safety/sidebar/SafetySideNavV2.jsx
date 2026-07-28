@@ -90,8 +90,8 @@ export const SAFETY_DOMAINS_V2 = [
   },
   {
     id: "audits-guidance",
-    label: "Audits & Guidance",
-    subline: "Inspections, topic prep, fleet visibility, operator guides.",
+    label: "Training Center & Systems",
+    subline: "Inspections, topic prep, fleet visibility, and how-to guides.",
     stripe: "#475569", // slate-600
     icon: ShieldAlert,
     routes: [
