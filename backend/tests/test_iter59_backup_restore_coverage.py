@@ -145,3 +145,12 @@ def test_restore_rehydrates_embedded_doc_objects(monkeypatch, tmp_path):
         "size": 9,
         "content_type": "application/octet-stream",
     }]
+
+
+def test_restore_disk_files_map_to_original_roots():
+    src = __import__('pathlib').Path('/app/backend/server.py').read_text()
+    assert 'disk_root_map = {' in src
+    assert '"storage": Path("/app/backend/storage")' in src
+    assert '"static": Path("/app/backend/static")' in src
+    assert '"data": Path("/app/backend/data")' in src
+    assert '"memory": Path("/app/memory")' in src

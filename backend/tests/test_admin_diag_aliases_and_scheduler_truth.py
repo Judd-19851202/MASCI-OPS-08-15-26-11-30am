@@ -218,6 +218,12 @@ def test_run_scheduled_backup_defers_when_complete_or_restore_job_active(monkeyp
     assert result["reason"] == "overlap_backup_active"
 
 
+def test_manual_run_now_has_active_job_guard():
+    src = __import__('pathlib').Path('/app/backend/server.py').read_text()
+    assert 'active_jobs = await get_active_backup_jobs(db)' in src
+    assert 'Another backup or restore job is already active.' in src
+
+
 def test_iter_photo_refs_discovers_nested_doc_refs_and_photo_refs():
     doc = {
         "attachments": [

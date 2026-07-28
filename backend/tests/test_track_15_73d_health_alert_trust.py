@@ -55,6 +55,14 @@ def test_admin_ops_backup_card_consults_r2():
     )
 
 
+def test_complete_archive_includes_disk_backed_files_and_object_storage_notice():
+    src = Path("/app/backend/server.py").read_text()
+    assert 'disk_files/' in src, "Complete archive must include disk-backed files in disk_files/."
+    assert 'disk-backed' in src and 'object storage' in src, (
+        "Complete archive notice must truthfully describe disk-backed and object-storage coverage."
+    )
+
+
 def test_health_alert_cooldowns_collection_shape(db):
     """If the cooldown collection has any docs, each must carry the
     expected schema."""

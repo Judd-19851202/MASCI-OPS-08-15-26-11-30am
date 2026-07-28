@@ -9116,6 +9116,8 @@ def _build_complete_archive_on_disk(
     inlined_photos = 0
     inlined_photo_bytes = 0
     failed_photos = 0
+    disk_files_count = 0
+    disk_files_bytes = 0
     seen_keys: set = set()  # dedupe — same photo referenced from 2 docs
 
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
@@ -9251,6 +9253,36 @@ def _build_complete_archive_on_disk(
                 captured_collections.append(coll_name)
                 captured_archive_members.append(f"{kind}/json/")
 
+            DISK_BACKUP_ROOTS = [
+                ("/app/backend/storage", "storage"),
+                ("/app/backend/static", "static"),
+                ("/app/backend/data", "data"),
+                ("/app/memory", "memory"),
+            ]
+            for root_path_str, archive_prefix in DISK_BACKUP_ROOTS:
+                root_path = Path(root_path_str)
+                if not root_path.is_dir():
+                    continue
+                for f in root_path.rglob("*"):
+                    if not f.is_file():
+                        continue
+                    if "__pycache__" in f.parts or f.name.endswith(".pyc"):
+                        continue
+                    try:
+                        rel = f.relative_to(root_path)
+                        size = f.stat().st_size
+                        arcname = f"disk_files/{archive_prefix}/{rel.as_posix()}"
+                        with zf.open(arcname, "w", force_zip64=True) as zdst, f.open("rb") as src:
+                            while True:
+                                chunk = src.read(1024 * 1024)
+                                if not chunk:
+                                    break
+                                zdst.write(chunk)
+                        disk_files_count += 1
+                        disk_files_bytes += size
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning(f"[complete-archive] disk file {f} failed: {e}")
+
             # iter425 · log every excluded collection so audit trail is
             # NEVER silent. R2_BACKUP_CONTINUITY_AUDIT.md §9 documents reasons.
             if excluded_logged:
@@ -9331,10 +9363,13 @@ def _build_complete_archive_on_disk(
                 "inlined_photos": inlined_photos,
                 "inlined_photo_bytes": inlined_photo_bytes,
                 "failed_photos": failed_photos,
+                "disk_files_count": disk_files_count,
+                "disk_files_bytes": disk_files_bytes,
                 "notice": (
                     "Complete standalone backup. Contains every Mongo "
-                    "collection (JSON) via auto-discovery (iter425) plus "
-                    "the actual binary photos previously stored in R2. "
+                    "collection (JSON) via auto-discovery (iter425), disk-backed "
+                    "files (storage/static/data/memory), and external binary "
+                    "objects previously stored in object storage. "
                     "No external dependency — you can restore the entire "
                     "MASCI Hub from this single zip even if Cloudflare R2 "
                     "becomes unreachable. MFA secrets, password hashes, "
@@ -10566,7 +10601,20 @@ async def _backup_scheduler_loop(db) -> None:
                         result = await _run_scheduled_backup(db)
                     finally:
                         _BACKUP_SCHEDULER_STATE["in_progress"] = False
-                    if result:
+                    if result and result.get("skipped"):
+                        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = f"SKIPPED ({result.get('reason', '?')})"
+                        await scheduler_mark_completed(
+                            db,
+                            "backup_scheduler_zip",
+                            slot_key,
+                            recipients=0,
+                            status="skipped",
+                            meta={
+                                "reason": result.get("reason"),
+                                "overlap": result.get("overlap"),
+                            },
+                        )
+                    elif result:
                         last_run_for_hour[due_hour] = today
                         # Collapse earlier same-day slots into this run.
                         for h in BACKUP_HOURS_UTC:
@@ -10658,9 +10706,12 @@ async def _backup_scheduler_loop(db) -> None:
             try:
                 active_jobs = await get_active_backup_jobs(db)
                 overlap = classify_backup_overlap(active_jobs)
-                if overlap.get("restore_active"):
-                    logger.warning("[scheduled-backup] complete-archive deferred — restore job active")
-                    _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = "COMPLETE_ARCHIVE_DEFERRED_RESTORE_ACTIVE"
+                if overlap.get("backup_active") or overlap.get("restore_active") or _BACKUP_RUNNOW_IN_PROGRESS:
+                    reason = (
+                        "BACKUP_ACTIVE" if overlap.get("backup_active") or _BACKUP_RUNNOW_IN_PROGRESS else "RESTORE_ACTIVE"
+                    )
+                    logger.warning(f"[scheduled-backup] complete-archive deferred — {reason.lower()}")
+                    _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = f"COMPLETE_ARCHIVE_DEFERRED_{reason}"
                     await asyncio.sleep(300)
                     continue
                 if overlap.get("reclaimable_backups"):
@@ -11759,6 +11810,10 @@ async def admin_run_backup_now(
             "Another manual backup is already in progress. "
             "Check /api/admin/backups/scheduler-state for status.",
         )
+    active_jobs = await get_active_backup_jobs(db)
+    overlap = classify_backup_overlap(active_jobs)
+    if overlap.get("backup_active") or overlap.get("restore_active") or _COMPLETE_R2_IN_PROGRESS:
+        raise HTTPException(409, "Another backup or restore job is already active.")
 
     use_lite = _lite_mode_default() if lite is None else bool(lite)
     _BACKUP_RUNNOW_IN_PROGRESS = True
@@ -13028,14 +13083,23 @@ async def exports_restore(
 
     # 2e. Disk-backed files — restore the storage tree (Oxford big PDFs etc.)
     disk_restored = 0
-    disk_storage_root = Path("/app/backend/storage")
+    disk_root_map = {
+        "storage": Path("/app/backend/storage"),
+        "static": Path("/app/backend/static"),
+        "data": Path("/app/backend/data"),
+        "memory": Path("/app/memory"),
+    }
     for n in names:
         if not n.startswith("disk_files/") or n.endswith("/"):
             continue
         rel = n[len("disk_files/"):]
         if not rel:
             continue
-        target = disk_storage_root / rel
+        parts = rel.split("/", 1)
+        if len(parts) != 2 or parts[0] not in disk_root_map:
+            logger.warning(f"restore: skipped unknown disk file root {n}")
+            continue
+        target = disk_root_map[parts[0]] / parts[1]
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(zf.read(n))
