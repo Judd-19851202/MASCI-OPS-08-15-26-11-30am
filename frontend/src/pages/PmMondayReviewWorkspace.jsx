@@ -5,9 +5,15 @@ import PmShell from "@/components/PmShell";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 
 const ADMIN_FALLBACK_PROJECT = "24-06";
+
+function portalConfig(extra = {}) {
+  const admin = getAdminToken();
+  return admin ? { ...extra, headers: { ...(extra.headers || {}), "X-Admin-Token": admin } } : extra;
+}
 
 const DEFAULT_REVIEW = {
   primary_cause: "",
@@ -135,7 +141,7 @@ export default function PmMondayReviewWorkspace() {
     if (!pn) return;
     setLoading(true);
     try {
-      const r = await api.get(`/oppc/projects/${encodeURIComponent(pn)}/execution-workspace`, { params: { week_ending: we || undefined } });
+      const r = await api.get(`/oppc/projects/${encodeURIComponent(pn)}/execution-workspace`, portalConfig({ params: { week_ending: we || undefined } }));
       setWorkspace(r.data || null);
       setMetaDraft({
         critical_path_reviewed: !!r.data?.monday_review?.workspace?.critical_path_reviewed_at,
@@ -182,7 +188,7 @@ export default function PmMondayReviewWorkspace() {
       }
       setReviewDrafts(nextDrafts);
       setVarianceDrafts(nextVarianceDrafts);
-      const brief = await api.get(`/oppc/projects/${encodeURIComponent(pn)}/monday-briefing`, { params: { week_ending: we || undefined } });
+      const brief = await api.get(`/oppc/projects/${encodeURIComponent(pn)}/monday-briefing`, portalConfig({ params: { week_ending: we || undefined } }));
       setBriefing(brief.data?.briefing || null);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not load the Monday review workspace.");
@@ -220,7 +226,7 @@ export default function PmMondayReviewWorkspace() {
   const startReview = async () => {
     if (!projectNumber) return;
     try {
-      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-review/start`, { week_ending: weekEnding || undefined });
+      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-review/start`, { week_ending: weekEnding || undefined }, portalConfig());
       setWorkspace(r.data || null);
       toast.success("Monday review started.");
     } catch (e) {
@@ -236,7 +242,7 @@ export default function PmMondayReviewWorkspace() {
         critical_path_reviewed: metaDraft.critical_path_reviewed,
         executive_actions: metaDraft.executive_actions.split("\n").map((x) => x.trim()).filter(Boolean),
         notes: metaDraft.notes,
-      });
+      }, portalConfig());
       setWorkspace(r.data || null);
       toast.success("Monday review metadata updated.");
     } catch (e) {
@@ -265,7 +271,7 @@ export default function PmMondayReviewWorkspace() {
         executive_actions: draft.executive_actions.split("\n").map((x) => x.trim()).filter(Boolean),
         notes: draft.notes,
         link_existing_task_id: draft.link_existing_task_id,
-      });
+      }, portalConfig());
       setWorkspace(r.data || null);
       toast.success(`${code} review saved.`);
     } catch (e) {
@@ -278,7 +284,7 @@ export default function PmMondayReviewWorkspace() {
   const completeReview = async () => {
     if (!projectNumber) return;
     try {
-      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-review/complete`, { week_ending: weekEnding || undefined });
+      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-review/complete`, { week_ending: weekEnding || undefined }, portalConfig());
       setWorkspace(r.data || null);
       toast.success("Monday review completed.");
     } catch (e) {
@@ -304,7 +310,7 @@ export default function PmMondayReviewWorkspace() {
         requires_executive_review: draft.requires_executive_review,
         executive_notes: draft.executive_notes.split("\n").map((x) => x.trim()).filter(Boolean),
         recovery_plan: { planning_cycle: workspace?.review_week?.week_ending, strategy: draft.recovery_strategy },
-      });
+      }, portalConfig());
       toast.success("Variance review saved.");
       await load(projectNumber, weekEnding);
     } catch (e) {
@@ -325,7 +331,7 @@ export default function PmMondayReviewWorkspace() {
   const runBriefingAction = async (path, successMessage) => {
     if (!projectNumber) return;
     try {
-      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-briefing/${path}`, { week_ending: weekEnding || undefined });
+      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-briefing/${path}`, { week_ending: weekEnding || undefined }, portalConfig());
       setBriefing(r.data?.briefing || null);
       toast.success(successMessage);
     } catch (e) {

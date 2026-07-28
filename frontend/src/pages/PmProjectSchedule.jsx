@@ -3,11 +3,17 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CalendarRange, Download, Save, RefreshCw, AlertTriangle, ShieldCheck, GitCompareArrows } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import { api } from "@/lib/api";
+import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 
 const ADMIN_FALLBACK_PROJECT = "24-06";
+
+function portalConfig(extra = {}) {
+  const admin = getAdminToken();
+  return admin ? { ...extra, headers: { ...(extra.headers || {}), "X-Admin-Token": admin } } : extra;
+}
 
 const toInput = (v) => String(v || "").slice(0, 10);
 
@@ -116,8 +122,8 @@ export default function PmProjectSchedule() {
     setLoading(true);
     try {
       const [scheduleResponse, reviewResponse] = await Promise.all([
-        api.get(`/cost-codes/projects/${encodeURIComponent(pn)}/schedule`),
-        api.get(`/oppc/projects/${encodeURIComponent(pn)}/execution-workspace`).catch(() => ({ data: null })),
+        api.get(`/cost-codes/projects/${encodeURIComponent(pn)}/schedule`, portalConfig()),
+        api.get(`/oppc/projects/${encodeURIComponent(pn)}/execution-workspace`, portalConfig()).catch(() => ({ data: null })),
       ]);
       const r = scheduleResponse;
       setPayload(r.data || null);
@@ -179,7 +185,7 @@ export default function PmProjectSchedule() {
   const save = async () => {
     if (!projectNumber) return;
     try {
-      const r = await api.put(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule`, { tasks: Object.values(draft) });
+      const r = await api.put(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule`, { tasks: Object.values(draft) }, portalConfig());
       setPayload(r.data || null);
       setMondayReviewSummary(null);
       setRolloverPreview(null);
@@ -192,7 +198,7 @@ export default function PmProjectSchedule() {
   const publish = async () => {
     if (!projectNumber) return;
     try {
-      const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/planning-lifecycle/publish`, { note: "Published from PM Project Schedule" });
+      const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/planning-lifecycle/publish`, { note: "Published from PM Project Schedule" }, portalConfig());
       setPayload(r.data || null);
       setMondayReviewSummary(null);
       setRolloverPreview(null);
@@ -205,7 +211,7 @@ export default function PmProjectSchedule() {
   const previewRollover = async () => {
     if (!projectNumber) return;
     try {
-      const r = await api.get(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/weekly-rollover/preview`);
+      const r = await api.get(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/weekly-rollover/preview`, portalConfig());
       setRolloverPreview(r.data?.weekly_rollover || null);
       toast.success("Weekly rollover preview ready.");
     } catch (e) {
@@ -219,7 +225,7 @@ export default function PmProjectSchedule() {
       const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/weekly-rollover/apply`, {
         confirm: "APPLY_WEEKLY_ROLLOVER",
         note: "Applied from PM Project Schedule",
-      });
+      }, portalConfig());
       setPayload(r.data || null);
       setMondayReviewSummary(null);
       setRolloverPreview(r.data?.weekly_rollover || null);
@@ -235,7 +241,7 @@ export default function PmProjectSchedule() {
       const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/forecast/snapshots`, {
         scenario_key: snapshotScenario,
         note: "Forecast snapshot from PM Project Schedule",
-      });
+      }, portalConfig());
       setPayload((prev) => ({ ...prev, forecasting: r.data?.forecasting || prev?.forecasting, schedule: r.data?.schedule || prev?.schedule }));
       toast.success("Forecast snapshot saved.");
       await load(projectNumber);
@@ -253,7 +259,7 @@ export default function PmProjectSchedule() {
         note: overrideDraft.note,
         adjusted_start_date: selectedOverrideTask?.forecast_start_date || selectedOverrideTask?.committed_start_date || "",
         evidence_links: [],
-      });
+      }, portalConfig());
       setPayload((prev) => ({ ...prev, forecasting: r.data?.forecasting || prev?.forecasting, schedule: r.data?.schedule || prev?.schedule }));
       toast.success("Forecast override recorded and audited.");
       await load(projectNumber);
