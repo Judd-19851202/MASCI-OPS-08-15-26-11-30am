@@ -153,6 +153,62 @@ Explicit non-scope for this fork:
   - health monitor is singletonized to avoid duplicate polling/emails in scaled deployments
   - exhaustive backend verification passed: 57/57 tests
 
+### 2026-07-28 backup system scope + interference verification
+
+- User-required pre-deploy audit completed against **preview code** plus **live production read-only comparison**.
+- Production comparison findings before redeploy:
+  - production still reflected older code on several backup truth surfaces (expected until redeploy)
+  - this let us identify and fix additional preview gaps before shipping:
+    1. complete archive still missed disk-backed files in the R2 standalone archive
+    2. restore mapped `disk_files/` back into `/app/backend/storage` only instead of original roots
+    3. manual zip backup lacked the same active-job overlap guard as the other backup entry points
+    4. scheduled complete-R2 needed an explicit deferral path when manual zip or another backup was active
+    5. standalone archive / restore coverage for nested `doc://` refs had to be proven end to end
+- Fixes implemented:
+  - `backend/server.py`
+    - complete archive now includes disk-backed files from all four roots:
+      - `/app/backend/storage`
+      - `/app/backend/static`
+      - `/app/backend/data`
+      - `/app/memory`
+    - restore now maps `disk_files/storage|static|data|memory/...` back to the correct original roots
+    - manual `/api/admin/backups/run-now` now blocks if another backup or restore is active
+    - scheduled zip backup helper now defers on active backup/restore overlap
+    - scheduled complete-R2 now defers on backup/restore overlap and manual zip in-progress state
+    - recursive object-ref discovery now captures nested `photo://` and `doc://` refs for complete archives
+    - restore continues to rehydrate embedded `documents/` payloads back into object storage
+  - `backend/safety_doc_storage.py`
+    - added explicit-key `upload_bytes(...)` helper for restore-time doc object rehydration
+- Verified backup system scope (code truth after fixes):
+  - **Legacy zip backup** (`/api/admin/backups/run-now`, scheduled `backup_scheduler_zip`)
+    - captures Mongo JSON exports + backup manifests + disk-backed files (`storage/static/data/memory`)
+    - operator/export convenience path; not the primary disaster-recovery artifact
+  - **Complete R2 archive** (manual complete, scheduled nightly, scheduled hourly when enabled)
+    - captures every Mongo collection via auto-discovery except explicit exclusions
+    - captures nested `photo://` refs into `photos/<key>`
+    - captures nested `doc://` refs into `documents/<key>`
+    - captures disk-backed files into `disk_files/{storage|static|data|memory}/...`
+    - this is now the primary shell-to-full-platform restore artifact
+  - **Restore path** (`/api/exports/restore`)
+    - restores Mongo collections
+    - restores disk-backed files to original roots
+    - rehydrates embedded `documents/` objects back into object storage
+    - preserves active-job overlap guard so restores cannot collide with active backups
+- Intentional exclusions remain truthful and explicit:
+  - `system.*` → Mongo internal
+  - `usage_events` → regenerable API telemetry
+  - `health_monitor_runs` → regenerable scheduler health series
+  - `job_photo_thumb_cache` → regenerable derivative cache
+  - `backup_integrity_jobs` → regenerable operator ledger
+- Final verification artifacts:
+  - `/app/test_reports/iteration_59.json`
+  - `/app/test_reports/iteration_60.json`
+- Final verified outcome:
+  - no remaining code-level backup interference or restore-scope gaps identified in preview
+  - all backup entry points now have overlap guards or explicit deferral behavior
+  - complete standalone archive now includes Mongo + object-store refs + disk-backed files
+  - restore correctly routes disk files back to original roots and rehydrates embedded document objects
+
 ### 2026-07-28 cross-platform continuity + scheduler truth pass
 
 - Fixed admin session continuity for multi-portal sign-in:

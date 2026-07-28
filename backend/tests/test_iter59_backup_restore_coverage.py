@@ -70,6 +70,7 @@ def _archive_bytes():
         zf.writestr("collections/safety_documents.json", json.dumps([
             {"id": "doc-1", "file_data": "doc://bucket/safety-docs/2026/07/doc-1/file.pdf"}
         ]))
+        zf.writestr("photos/photos/2026/07/image-1.jpg", b"img-bytes")
         zf.writestr("documents/safety-docs/2026/07/doc-1/file.pdf", b"pdf-bytes")
     return buf.getvalue()
 
@@ -80,13 +81,20 @@ def test_restore_rehydrates_embedded_doc_objects(monkeypatch, tmp_path):
     archive.write_bytes(_archive_bytes())
 
     uploaded = []
+    photo_uploaded = []
 
     async def fake_upload_bytes(data, *, key, content_type="application/octet-stream"):
         uploaded.append({"key": key, "size": len(data), "content_type": content_type})
         return f"doc://bucket/{key}"
 
+    async def fake_photo_upload_bytes(data, *, key, content_type="application/octet-stream"):
+        photo_uploaded.append({"key": key, "size": len(data), "content_type": content_type})
+        return f"photo://bucket/{key}"
+
     monkeypatch.setattr("safety_doc_storage.is_configured", lambda: True)
     monkeypatch.setattr("safety_doc_storage.upload_bytes", fake_upload_bytes)
+    monkeypatch.setattr("photo_storage.is_configured", lambda: True)
+    monkeypatch.setattr("photo_storage.upload_bytes", fake_photo_upload_bytes)
     monkeypatch.setattr(server, "require_non_empty_destructive_scope", lambda *a, **k: None)
     async def fake_get_active_backup_jobs(_db):
         return []
@@ -139,7 +147,13 @@ def test_restore_rehydrates_embedded_doc_objects(monkeypatch, tmp_path):
     ))
 
     assert result["ok"] is True
+    assert result["photos_rehydrated"] == 1
     assert result["documents_rehydrated"] == 1
+    assert photo_uploaded == [{
+        "key": "photos/2026/07/image-1.jpg",
+        "size": 9,
+        "content_type": "application/octet-stream",
+    }]
     assert uploaded == [{
         "key": "safety-docs/2026/07/doc-1/file.pdf",
         "size": 9,

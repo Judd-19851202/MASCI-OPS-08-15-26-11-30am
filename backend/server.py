@@ -13107,7 +13107,37 @@ async def exports_restore(
         except Exception as e:  # noqa: BLE001
             logger.warning(f"restore: disk file {n} failed: {e}")
 
-    # 2f. Rehydrate doc://-backed object storage files from embedded archive
+    # 2f. Rehydrate photo://-backed object storage files from embedded archive
+    #     copies so a full restore does not depend on the old bucket still
+    #     containing those keys.
+    photos_rehydrated = 0
+    photo_storage_available = False
+    try:
+        import photo_storage as _restore_ps  # noqa: PLC0415
+
+        photo_storage_available = bool(_restore_ps.is_configured())
+    except Exception:  # noqa: BLE001
+        _restore_ps = None
+        photo_storage_available = False
+
+    if photo_storage_available and _restore_ps is not None:
+        for n in names:
+            if not n.startswith("photos/") or n.endswith("/"):
+                continue
+            rel = n[len("photos/"):]
+            if not rel:
+                continue
+            try:
+                await _restore_ps.upload_bytes(
+                    zf.read(n),
+                    key=rel,
+                    content_type="application/octet-stream",
+                )
+                photos_rehydrated += 1
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"restore: photo object {n} failed: {e}")
+
+    # 2g. Rehydrate doc://-backed object storage files from embedded archive
     #     copies so a full restore does not depend on the old bucket still
     #     containing those keys.
     docs_rehydrated = 0
@@ -13170,6 +13200,7 @@ async def exports_restore(
             "collections": preflight_collections,
             "total_processed": sum(v["incoming_records"] for v in preflight_collections.values()),
             "disk_files": disk_restored,
+            "photos_rehydrated": photos_rehydrated,
             "documents_rehydrated": docs_rehydrated,
         }
         await _record_audit("accepted", f"dry_run merge={merge}; collections={len(preflight_collections)}")
@@ -13284,6 +13315,7 @@ async def exports_restore(
         "total_failed": total_failed,
         "failed_docs": failed_docs,
         "disk_files": disk_restored,
+        "photos_rehydrated": photos_rehydrated,
         "documents_rehydrated": docs_rehydrated,
         "status": "partial_failure" if total_failed else "success",
     }

@@ -61,6 +61,9 @@ def test_complete_archive_includes_disk_backed_files_and_object_storage_notice()
     assert 'disk-backed' in src and 'object storage' in src, (
         "Complete archive notice must truthfully describe disk-backed and object-storage coverage."
     )
+    assert 'photos_rehydrated' in src and 'documents_rehydrated' in src, (
+        "Restore path must rehydrate both photo:// and doc:// embedded object payloads."
+    )
 
 
 def test_health_alert_cooldowns_collection_shape(db):
