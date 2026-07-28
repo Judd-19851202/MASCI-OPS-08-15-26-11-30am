@@ -7,6 +7,7 @@
  */
 import React, { useEffect, useState } from "react";
 import { getAdminToken } from "@/lib/adminAuth";
+import { getDirectoryToken } from "@/lib/directoryAuth";
 import { getPmToken } from "@/lib/pmAuth";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -15,8 +16,10 @@ async function fetchPmProjects() {
   const h = { "Content-Type": "application/json" };
   const a = getAdminToken();
   const p = getPmToken();
+  const d = getDirectoryToken();
   if (a) h["X-Admin-Token"] = a;
   if (p) h["X-PM-Token"] = p;
+  if (d) h["X-Directory-Token"] = d;
   // /api/pm/jobs returns either array or { jobs: [...] }; handle both.
   try {
     const r = await fetch(`${API}/api/pm/jobs`, { headers: h });
@@ -43,26 +46,30 @@ export default function PmProjectSelector({ value, onChange }) {
       // Deduplicate by project_number, preserve order
       const seen = new Set();
       const out = [];
+      const currentValue = value || "";
       for (const r of rows) {
         if (!seen.has(r.project_number)) {
           seen.add(r.project_number);
           out.push(r);
         }
       }
+      if (currentValue && !seen.has(currentValue)) {
+        out.unshift({ project_number: currentValue, project_name: "Current project" });
+      }
       setOptions(out);
       setLoading(false);
     });
     return () => { live = false; };
-  }, []);
+  }, [value]);
 
   return (
-    <div className="flex items-center gap-2" data-testid="pm-cc-project-selector">
+    <div className="flex items-center gap-2" data-testid="pm-project-selector-wrapper">
       <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500" htmlFor="pm-cc-project-select">
         Project
       </label>
       <select
         id="pm-cc-project-select"
-        data-testid="pm-cc-project-select"
+        data-testid="pm-project-selector"
         value={value || ""}
         onChange={(e) => onChange(e.target.value || null)}
         className="text-xs sm:text-sm border border-slate-300 rounded px-2 py-1 bg-white text-slate-900 focus:border-slate-500 focus:ring-1 focus:ring-slate-400 focus:outline-none max-w-xs"
