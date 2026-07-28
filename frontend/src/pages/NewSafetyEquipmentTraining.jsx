@@ -181,12 +181,11 @@ export default function NewSafetyEquipmentTraining() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" data-testid="trn-form">
-          {/* iter275 · form-root coaching */}
+          {/* concise workflow coaching */}
           <HelpTipBlock formKey="equipment-training" className="mb-3" showCounter />
           <Section title={t("Employee")}>
             <Row>
               <Field label={t("Employee Name")} required>
-                {/* iter362 · linkage continuity — atomic name + id capture */}
                 <EmployeeRosterField
                   value={{
                     id: data.employee_id || "",
@@ -197,7 +196,7 @@ export default function NewSafetyEquipmentTraining() {
                     update({ employee_name: name, employee_id: id });
                   }}
                   label=""
-                  placeholder={t("Type name to search roster")}
+                  placeholder={t("Search the roster by employee name")}
                   required
                   testId="trn-employee-roster"
                 />

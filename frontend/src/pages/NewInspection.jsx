@@ -335,7 +335,7 @@ export default function NewInspection({ publicMode = false }) {
 
         {/* Section 1: Project / Inspection Information */}
         <Section number="01" title={t("Project / Inspection Information")}>
-          {/* iter273 · form-root + Section 01 coaching */}
+          {/* concise workflow coaching + context */}
           <HelpTipBlock formKey="inspection" className="mb-3" showCounter />
           <HelpTipBlock formKey="inspection.context" className="mb-3" />
           <div>
@@ -349,8 +349,8 @@ export default function NewInspection({ publicMode = false }) {
                 onSelect={applyJob}
               />
             </div>
-            <p className="text-xs text-slate-500 mt-1.5">
-              Pick a current job to auto-fill name + number — or choose Custom Job to type your own.
+            <p className="text-sm text-slate-500 mt-1.5">
+              Pick a current job to auto-fill the project name and number, or choose Custom Job and type your own.
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">

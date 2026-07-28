@@ -245,15 +245,13 @@ export default function NewSafetyEquipmentIssuance() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" data-testid="iss-form">
-          {/* iter275 · form-root coaching · canonical 4 kinds */}
+          {/* concise workflow coaching */}
           <HelpTipBlock formKey="equipment-issuance" className="mb-3" showCounter />
           {/* Employee */}
           <Section title={t("Employee")}>
             <HelpTipBlock formKey="equipment-issuance.employee" className="mb-3" />
             <Row>
               <Field label={t("Employee Name")} required>
-                {/* iter361 · linkage continuity — atomic name + employee_id
-                    capture with downstream-consequence coaching at entry time. */}
                 <EmployeeRosterField
                   value={{
                     id: data.employee_id || "",
@@ -267,7 +265,7 @@ export default function NewSafetyEquipmentIssuance() {
                     });
                   }}
                   label=""
-                  placeholder={t("Type name to search roster")}
+                  placeholder={t("Search the roster by employee name")}
                   required
                   testId="iss-employee-roster"
                 />

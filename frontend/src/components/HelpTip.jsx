@@ -202,7 +202,7 @@ export function HelpTipBlock({ formKey, kinds, className = "", showCounter = fal
   const counterLabel =
     lang === "es"
       ? `${filtered.length} consejos disponibles · toca para expandir`
-      : `${filtered.length} coaching tips available · tap to expand`;
+      : `${filtered.length} workflow tips available · tap to expand`;
 
   return (
     <div

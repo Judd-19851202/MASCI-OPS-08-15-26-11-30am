@@ -57,7 +57,7 @@ export function FormShell({
               </div>
             )}
             <h1
-              className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900 leading-tight truncate"
+              className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900 leading-tight"
               data-testid={`${containerTestId}-title`}
             >
               {title}

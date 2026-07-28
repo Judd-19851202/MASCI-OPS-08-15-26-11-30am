@@ -589,8 +589,8 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               <HelpDrawer
                 open={helpDrawerOpen}
                 onOpenChange={setHelpDrawerOpen}
-                triggerLabel={t("Open help")}
-                title={t("DVIR · Guidance")}
+                triggerLabel={t("Open guide")}
+                title={t("DVIR guide")}
                 testIdPrefix="dvir-help-drawer"
                 sections={[
                   {

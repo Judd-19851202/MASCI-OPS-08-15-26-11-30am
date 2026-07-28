@@ -42,7 +42,7 @@ export function FormSection({
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
               {t("Section")} {number}
             </span>
             <h2 className="font-display text-base font-bold text-slate-500 truncate">
@@ -73,7 +73,7 @@ export function FormSection({
             <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
               <Check className="w-3.5 h-3.5" aria-hidden />
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-800">
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-800">
               {t("Section")} {number}
             </span>
             <h2 className="font-display text-base font-bold text-slate-900 truncate">
@@ -99,7 +99,7 @@ export function FormSection({
       <header className="space-y-1">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700">
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-red-700">
               {t("Section")} {number}
             </span>
             <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">
@@ -112,7 +112,7 @@ export function FormSection({
         {warning && (
           <div className="flex items-start gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2">
             <AlertOctagon className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden />
-            <p className="text-xs text-amber-900 leading-snug">{warning}</p>
+            <p className="text-sm text-amber-900 leading-snug">{warning}</p>
           </div>
         )}
       </header>
