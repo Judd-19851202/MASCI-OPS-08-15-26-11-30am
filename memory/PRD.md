@@ -111,6 +111,21 @@ Explicit non-scope for this fork:
 - External verification:
   - multiple frontend automation sweeps passed with no broken buttons, no visible regressions, and only minor wording items that were then fixed in this pass
 
+### 2026-07-28 legacy/non-admin form pass + field microcopy harmonization
+
+- Completed a final shared-pass across field/public workflow surfaces and form primitives:
+  - `HelpTipBlock` counter now uses `workflow tips available` instead of heavier coaching phrasing
+  - `FormSection` typography and warning copy were bumped for readability and calmer density
+  - `FormShell` titles now wrap naturally instead of truncating long workflow names
+  - inspection, issuance, training, and DVIR flows received clearer action-oriented placeholders and guide labels
+  - DVIR help drawer now uses `Open guide` / `DVIR guide`
+- Confirmed via frontend automation:
+  - Incident report form copy remains strong and field-friendly
+  - Fleet DVIR help drawer is concise and high quality
+  - no visual regressions were introduced on the reachable field/public forms
+- Limitation of preview verification:
+  - some Safety-portal-owned pages remain auth-gated to safety-specific credentials in preview, so those exact surfaces could not be fully automated in this run despite the shared component fixes landing underneath them
+
 - Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
 - Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
 - Wired the certification lane into:
