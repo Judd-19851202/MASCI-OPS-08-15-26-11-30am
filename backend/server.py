@@ -12094,6 +12094,15 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
         logger.warning(f"[scheduler-state] health history read failed: {e}")
 
     activation_state = await _build_hourly_activation_state(db, runtime_state=state.get("backup_runtime") or await _collect_backup_runtime_state(db))
+    state["r2_hourly_requested"] = activation_state.get("r2_hourly_requested")
+    state["r2_hourly_effective"] = activation_state.get("r2_hourly_effective")
+    state["r2_hourly_locked_off"] = activation_state.get("r2_hourly_locked_off")
+    state["hourly_cadence_enabled"] = activation_state.get("hourly_cadence_enabled")
+    state["activation_blockers"] = activation_state.get("activation_blockers")
+    state["activation_status"] = activation_state.get("activation_status")
+    state["activation_environment"] = activation_state.get("environment")
+    state["last_activation_evaluated_at"] = activation_state.get("last_evaluated_at")
+    state["next_eligible_hourly_slot"] = activation_state.get("next_eligible_hourly_slot")
     return {
         "alive": state.get("alive"),
         "is_healthy": state.get("is_healthy"),

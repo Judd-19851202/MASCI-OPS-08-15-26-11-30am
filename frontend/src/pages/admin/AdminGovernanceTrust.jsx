@@ -31,7 +31,7 @@ function _prod_cert(probes) {
     : band === "red" || band === "critical" ? "red" : "unknown";
   const counters = b.counters || {};
   return { status,
-    summary: `Platform band: ${band || "unknown"} · verified=${counters.verified || 0} failed=${counters.failed || 0} not-yet=${counters.not_yet_exercised || 0}`,
+    summary: `Platform band: ${band || "unknown"} · verified=${counters.verified || 0} failed=${counters.failed || 0} not yet exercised=${counters.not_yet_exercised || 0}`,
     checked_at: b.generated_at,
     evidence: { platform_band: band, counters, workflows_summary_len: (b.workflows || []).length,
       track: b.track } };

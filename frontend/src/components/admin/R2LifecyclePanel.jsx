@@ -60,6 +60,7 @@ export default function R2LifecyclePanel() {
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [err, setErr] = useState(null);
+  const [unavailable, setUnavailable] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,8 +74,14 @@ export default function R2LifecyclePanel() {
       setLatest(l.data);
       setIntel(i.data);
       setDryRun(d.data);
+      setUnavailable(false);
     } catch (e) {
-      setErr(e?.response?.data?.detail || e?.message || "Failed to load lifecycle data");
+      if (Number(e?.response?.status || 0) === 404) {
+        setUnavailable(true);
+        setErr(null);
+      } else {
+        setErr(e?.response?.data?.detail || e?.message || "Failed to load lifecycle data");
+      }
     } finally {
       setLoading(false);
     }
@@ -95,6 +102,18 @@ export default function R2LifecyclePanel() {
       setScanning(false);
     }
   }, [load]);
+
+  if (unavailable) {
+    return (
+      <div className="rounded-lg border border-slate-300 bg-slate-50 p-4 text-sm text-slate-700" data-testid="r2-lifecycle-unavailable">
+        <div className="font-semibold mb-1">R2 lifecycle analytics not available on this environment</div>
+        <div className="text-xs leading-relaxed">
+          Storage and backup truth are still being reported from the live recovery snapshot and integration health signals.
+          This advanced lifecycle scanner is not enabled here, so the panel stays hidden instead of linking to dead data.
+        </div>
+      </div>
+    );
+  }
 
   if (err) {
     return (

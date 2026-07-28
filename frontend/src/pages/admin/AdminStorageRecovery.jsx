@@ -170,7 +170,7 @@ function bR2Retention(recovery) {
     // Honest gap: no dedicated retention endpoint yet.
     status = "unknown";
     summary = "No dedicated retention endpoint — inferred from warnings only.";
-    action = "Track 27.06 will expose /api/admin/r2/retention.";
+    action = "Retention signal is inferred from live recovery warnings until a dedicated endpoint is introduced.";
   }
   return {
     id: "r2-retention",
@@ -815,7 +815,7 @@ export default function AdminStorageRecovery() {
               Lifecycle Governance
             </div>
             <div className="text-[10px] font-mono text-slate-400">
-              /api/admin/r2/lifecycle
+              /api/admin/r2/lifecycle/*
             </div>
           </div>
           <R2LifecyclePanel />

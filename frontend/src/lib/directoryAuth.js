@@ -16,19 +16,48 @@ import { setFlToken } from "./flAuth";
 
 const DIR_TOKEN_KEY = "masci.directory.token";
 const DIR_USER_KEY = "masci.directory.user";
+const DIR_REMEMBER_KEY = "masci.directory.remember";
+
+function storageForDirectory() {
+  try {
+    if (typeof window === "undefined") return null;
+    return window.sessionStorage.getItem(DIR_REMEMBER_KEY) === "0"
+      ? window.sessionStorage
+      : window.localStorage;
+  } catch {
+    return typeof window !== "undefined" ? window.localStorage : null;
+  }
+}
 
 export function getDirectoryToken() {
   try {
-    return localStorage.getItem(DIR_TOKEN_KEY) || "";
+    return (
+      window.localStorage.getItem(DIR_TOKEN_KEY) ||
+      window.sessionStorage.getItem(DIR_TOKEN_KEY) ||
+      ""
+    );
   } catch {
     return "";
   }
 }
 
-export function setDirectoryToken(token) {
+export function setDirectoryToken(token, rememberMe = true) {
   try {
-    if (token) localStorage.setItem(DIR_TOKEN_KEY, token);
-    else localStorage.removeItem(DIR_TOKEN_KEY);
+    const store = storageForDirectory();
+    if (!store) return;
+    if (rememberMe) {
+      window.localStorage.setItem(DIR_TOKEN_KEY, token || "");
+      window.sessionStorage.removeItem(DIR_TOKEN_KEY);
+      window.sessionStorage.setItem(DIR_REMEMBER_KEY, "1");
+    } else {
+      window.sessionStorage.setItem(DIR_TOKEN_KEY, token || "");
+      window.localStorage.removeItem(DIR_TOKEN_KEY);
+      window.sessionStorage.setItem(DIR_REMEMBER_KEY, "0");
+    }
+    if (!token) {
+      window.localStorage.removeItem(DIR_TOKEN_KEY);
+      window.sessionStorage.removeItem(DIR_TOKEN_KEY);
+    }
   } catch {
     /* localStorage unavailable — ignore */
   }
@@ -36,17 +65,28 @@ export function setDirectoryToken(token) {
 
 export function getDirectoryUser() {
   try {
-    const raw = localStorage.getItem(DIR_USER_KEY);
+    const raw = localStorage.getItem(DIR_USER_KEY) || sessionStorage.getItem(DIR_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-export function setDirectoryUser(user) {
+export function setDirectoryUser(user, rememberMe = true) {
   try {
-    if (user) localStorage.setItem(DIR_USER_KEY, JSON.stringify(user));
-    else localStorage.removeItem(DIR_USER_KEY);
+    if (user) {
+      const raw = JSON.stringify(user);
+      if (rememberMe) {
+        localStorage.setItem(DIR_USER_KEY, raw);
+        sessionStorage.removeItem(DIR_USER_KEY);
+      } else {
+        sessionStorage.setItem(DIR_USER_KEY, raw);
+        localStorage.removeItem(DIR_USER_KEY);
+      }
+    } else {
+      localStorage.removeItem(DIR_USER_KEY);
+      sessionStorage.removeItem(DIR_USER_KEY);
+    }
   } catch {
     /* ignore */
   }
@@ -55,6 +95,12 @@ export function setDirectoryUser(user) {
 export function clearDirectorySession() {
   setDirectoryToken("");
   setDirectoryUser(null);
+  try {
+    localStorage.removeItem(DIR_REMEMBER_KEY);
+    sessionStorage.removeItem(DIR_REMEMBER_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 /**
@@ -68,8 +114,8 @@ export function clearDirectorySession() {
  */
 export function applyMultiLoginResponse(response, rememberMe = true) {
   if (!response?.ok) return;
-  setDirectoryToken(response.session_token);
-  setDirectoryUser(response.user);
+  setDirectoryToken(response.session_token, rememberMe);
+  setDirectoryUser(response.user, rememberMe);
   const t = response.portal_tokens || {};
   // The per-portal token setters have inconsistent signatures: PM/Shop/Admin
   // take an `opts = {}` object while HR takes a plain boolean. Normalize.
