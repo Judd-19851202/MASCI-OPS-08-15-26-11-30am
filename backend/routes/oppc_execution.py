@@ -122,6 +122,18 @@ def _actor_label(actor: Any) -> str:
     return "system"
 
 
+def _is_admin_actor(actor: Any) -> bool:
+    if actor is True:
+        return True
+    if isinstance(actor, dict):
+        if bool(actor.get("is_super_admin")):
+            return True
+        role = _clean(actor.get("role")).lower()
+        actor_kind = _clean(actor.get("_actor") or actor.get("_actor_kind")).lower()
+        return role in {"admin", "super_admin"} or actor_kind == "admin"
+    return False
+
+
 def _week_ending(raw: str) -> str:
     text = _clean(raw)
     return text[:10] if text else _default_week_ending()
@@ -225,10 +237,15 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
-        if existing.get("frozen"):
+        if existing.get("frozen") and not _is_admin_actor(actor):
             raise HTTPException(status_code=409, detail="Frozen briefings cannot be regenerated without administrative intervention")
         doc = await build_project_monday_briefing(db, project_number=project_number, week_ending=week, actor_label=_actor_label(actor))
         doc["approval_history"] = list(existing.get("approval_history") or [])
+        if existing.get("frozen"):
+            doc["regenerated_from_frozen_briefing"] = True
+            doc["regenerated_from_content_hash"] = existing.get("content_hash") or ""
+            doc["regenerated_by"] = _actor_label(actor)
+            doc["regenerated_note"] = _clean(body.note) or "Administrative regenerate from frozen briefing"
         saved = await persist_monday_briefing_doc(db, doc)
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_generated", stage="record_created")
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_generated", stage="dashboard_updated")
@@ -725,10 +742,15 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
-        if existing.get("frozen"):
+        if existing.get("frozen") and not _is_admin_actor(actor):
             raise HTTPException(status_code=409, detail="Frozen briefings cannot be regenerated without administrative intervention")
         doc = await build_enterprise_monday_briefing(db, week_ending=week, actor_label=_actor_label(actor))
         doc["approval_history"] = list(existing.get("approval_history") or [])
+        if existing.get("frozen"):
+            doc["regenerated_from_frozen_briefing"] = True
+            doc["regenerated_from_content_hash"] = existing.get("content_hash") or ""
+            doc["regenerated_by"] = _actor_label(actor)
+            doc["regenerated_note"] = _clean(body.note) or "Administrative regenerate from frozen briefing"
         saved = await persist_monday_briefing_doc(db, doc)
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_generated", stage="record_created")
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_generated", stage="dashboard_updated")
