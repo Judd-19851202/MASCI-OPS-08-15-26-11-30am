@@ -1413,6 +1413,13 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     "registry_event_id": "oppc.daily_report.submitted",
                     "registry_version": "operations-control-plane-v1",
                     "last_processed_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+                    "case_id": ((control_plane_result.get("case_result") or {}).get("case") or {}).get("id") or "",
+                    "case_number": ((control_plane_result.get("case_result") or {}).get("case") or {}).get("case_number") or "",
+                    "case_event_id": ((control_plane_result.get("case_result") or {}).get("case_event") or {}).get("id") or "",
+                    "case_communication_ids": [
+                        row.get("id") for row in (((control_plane_result.get("case_result") or {}).get("case_communications") or [])) if row.get("id")
+                    ],
+                    "case_policy_decision": (control_plane_result.get("case_result") or {}).get("decision") or {},
                 }
                 doc["email_dispatch_suppressed"] = True
                 if control_plane_result.get("communications"):

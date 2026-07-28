@@ -29,6 +29,9 @@ from services.operations_control.registry import (
     get_registered_transport,
     get_registered_workflow,
 )
+from services.operations_control.case_management import (
+    maybe_auto_create_case_from_control_plane_event,
+)
 
 COLLECTION_EVENTS = "operations_control_plane_events"
 COLLECTION_COMMUNICATIONS = "operations_control_plane_communications"
@@ -301,7 +304,13 @@ async def run_due_escalations(db) -> Dict[str, Any]:
             await emit_operational_event(
                 db,
                 event_id=overdue_event_id,
-                record=communication.get("record_snapshot") or {},
+                record={
+                    **(communication.get("record_snapshot") or {}),
+                    "id": communication.get("record_id") or (communication.get("record_snapshot") or {}).get("id"),
+                    "doc_id": communication.get("record_doc_id") or (communication.get("record_snapshot") or {}).get("doc_id"),
+                    "project_number": communication.get("project_number") or (communication.get("record_snapshot") or {}).get("project_number"),
+                    "project_name": communication.get("project_name") or (communication.get("record_snapshot") or {}).get("project_name"),
+                },
                 actor_label="system-escalation",
                 context={
                     "communication_id": communication.get("id"),
@@ -376,6 +385,34 @@ async def _resolve_recipients(
             "cc": [],
             "all": escalation_to,
             "resolution": {"escalated_from": _clean(prior.get("id")) or None},
+        }
+    if strategy_id == "case_primary_owner_and_admin":
+        owner_email = _clean(record.get("case_owner_email") or record.get("owner_email")).lower()
+        emails = _dedupe_emails([owner_email]) if owner_email else []
+        return {
+            "strategy_id": strategy_id,
+            "recipient_roles": [record.get("assigned_role") or "pm", "admin"],
+            "to": emails,
+            "cc": [],
+            "all": emails,
+            "resolution": {
+                "case_owner_name": _clean(record.get("case_owner_name")),
+                "case_owner_email": owner_email,
+            },
+        }
+    if strategy_id == "case_escalation_path":
+        owner_email = _clean(record.get("case_owner_email") or record.get("owner_email")).lower()
+        emails = _dedupe_emails([owner_email]) if owner_email else []
+        return {
+            "strategy_id": strategy_id,
+            "recipient_roles": ["admin", record.get("assigned_role") or "pm"],
+            "to": emails,
+            "cc": [],
+            "all": emails,
+            "resolution": {
+                "escalation_count": int((record.get("escalation_state") or {}).get("escalation_count") or 0),
+                "case_owner_email": owner_email,
+            },
         }
     return {
         "strategy_id": strategy_id,
@@ -548,9 +585,24 @@ async def emit_operational_event(
         status="ok",
         event_name=event_doc.get("event_type_id"),
     )
+    case_result = None
+    if _clean(event_id) == "oppc.daily_report.submitted":
+        try:
+            case_result = await maybe_auto_create_case_from_control_plane_event(
+                db,
+                event_doc=event_doc,
+                record=record,
+                actor_label=actor_label,
+            )
+        except Exception:
+            case_result = {
+                "created": False,
+                "decision": {"outcome": "failed", "reason": "case_auto_create_failed"},
+            }
     return {
         "event": event_doc,
         "communications": communication_rows,
+        "case_result": case_result,
     }
 
 
@@ -581,6 +633,11 @@ async def create_communication_from_event(
     transport_ids = [str(x) for x in (intent.get("transport_ids") or [])]
     ack_required = bool(intent.get("ack_required"))
     ack_sla_minutes = int(intent.get("ack_sla_minutes") or 0)
+    if ack_required and record.get("preview_ack_sla_minutes"):
+        try:
+            ack_sla_minutes = max(1, int(record.get("preview_ack_sla_minutes")))
+        except Exception:
+            ack_sla_minutes = int(intent.get("ack_sla_minutes") or 0)
     created_at = _now()
     communication = {
         "id": str(uuid.uuid4()),

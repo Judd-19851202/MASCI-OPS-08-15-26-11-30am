@@ -184,6 +184,8 @@ const AdminGeofenceReconciliation = React.lazy(() => import("@/pages/admin/Admin
 const AdminOperationsDashboard = React.lazy(() => import("@/pages/admin/AdminOperationsDashboard"));
 // TRACK 24.17 · Operations Control Center — unified super-admin maintenance console.
 const OperationsControlCenter = React.lazy(() => import("@/pages/OperationsControlCenter"));
+const OperationsControlCasesRoute = React.lazy(() => import("@/pages/OperationsControlCasesRoute"));
+const OperationsControlCaseDetail = React.lazy(() => import("@/pages/OperationsControlCaseDetail"));
 const AdminAssetMapping = React.lazy(() => import("@/pages/admin/AdminAssetMapping"));
 // FORGEDOPS-P0.1 · Asset Spine Health dashboard.
 const AdminAssetSpineHealth = React.lazy(() => import("@/pages/admin/AdminAssetSpineHealth"));
@@ -698,6 +700,9 @@ export function AppRoutes() {
             <Route path="/admin/operations-dashboard" element={A(LB("/admin/operations-dashboard", <AdminOperationsDashboard />))} />
             {/* TRACK 24.17 · Operations Control Center — unified maintenance console. */}
             <Route path="/admin/operations-control" element={A(<OperationsControlCenter />)} />
+            <Route path="/admin/operations-control/cases/:caseId" element={A(<OperationsControlCaseDetail />)} />
+            <Route path="/operations-control/cases" element={A(<OperationsControlCasesRoute />)} />
+            <Route path="/operations-control/cases/:caseId" element={A(<OperationsControlCaseDetail />)} />
             {/* MOTIVE-DATA-002 · Asset Mapping Admin Center */}
             <Route path="/admin/asset-mapping" element={A(<AdminAssetMapping />)} />
             <Route path="/admin/asset-spine" element={A(<AdminAssetSpineHealth />)} />

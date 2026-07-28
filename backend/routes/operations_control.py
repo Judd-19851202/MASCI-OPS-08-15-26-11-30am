@@ -19,6 +19,7 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from lib.trust_reconciliation import reconcile_shared_foundation
 from lib.shared_capabilities import occ_operation_capability, shell_signout_capability, truth_action_capability
@@ -35,7 +36,54 @@ from services.operations_control.control_plane import (
     list_recent_evidence_packages,
     run_due_escalations,
 )
+from services.operations_control.case_management import (
+    acknowledge_case_communication,
+    build_case_assembly,
+    build_case_relationship_graph,
+    build_case_timeline,
+    capture_case_evidence_package,
+    create_case_task,
+    create_preview_case_certification_record,
+    ensure_case_management_indexes,
+    export_case_evidence_package,
+    get_case_by_id,
+    include_case_in_baseline,
+    link_related_case,
+    list_cases,
+    run_case_certification_chain,
+    transition_case,
+)
 from services.operations_control.registry import operations_control_plane_registry_summary
+
+
+class CaseTransitionBody(BaseModel):
+    to_status: str = Field(..., min_length=2, max_length=64)
+    reason: str = ""
+    resolution_summary: str = ""
+    root_cause: str = ""
+    verification_notes: str = ""
+    duplicate_of_case_id: str = ""
+
+
+class CaseTaskBody(BaseModel):
+    title: str = Field(..., min_length=2, max_length=200)
+    description: str = ""
+    assignee_role: str = "pm"
+    priority: str = "High"
+    due_minutes: int = 1440
+
+
+class CaseCommunicationAckBody(BaseModel):
+    note: str = ""
+
+
+class CaseLinkBody(BaseModel):
+    related_case_id: str = Field(..., min_length=4, max_length=120)
+    note: str = ""
+
+
+class CaseBaselineBody(BaseModel):
+    baseline_name: str = "Operations Control Plane v1"
 
 
 def register_operations_control_routes(
@@ -110,11 +158,204 @@ def register_operations_control_routes(
 
     @api_router.get("/admin/operations-control/registry")
     async def control_plane_registry(actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
         snapshot = await ensure_registry_snapshot(db)
         return {
             "registry": operations_control_plane_registry_summary(),
             "snapshot": snapshot,
         }
+
+    @api_router.get("/admin/operations-control/cases")
+    async def control_plane_cases(
+        status: Optional[str] = None,
+        severity: Optional[str] = None,
+        project_number: Optional[str] = None,
+        limit: int = 200,
+        actor=Depends(require_admin),
+    ):
+        await ensure_case_management_indexes(db)
+        return await list_cases(
+            db,
+            status=status,
+            severity=severity,
+            project_number=project_number,
+            limit=min(max(limit, 1), 500),
+        )
+
+    @api_router.get("/admin/operations-control/cases/{case_id}")
+    async def control_plane_case_detail(case_id: str, actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        row = await get_case_by_id(db, case_id)
+        if not row:
+            raise HTTPException(404, f"unknown case_id: {case_id}")
+        return row
+
+    @api_router.get("/admin/operations-control/cases/{case_id}/assembly")
+    async def control_plane_case_assembly(case_id: str, actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        try:
+            return await build_case_assembly(db, case_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.get("/admin/operations-control/cases/{case_id}/timeline")
+    async def control_plane_case_timeline(case_id: str, actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        try:
+            rows = await build_case_timeline(db, case_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"count": len(rows), "timeline": rows}
+
+    @api_router.get("/admin/operations-control/cases/{case_id}/graph")
+    async def control_plane_case_graph(case_id: str, actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        try:
+            return await build_case_relationship_graph(db, case_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/transitions")
+    async def control_plane_case_transition(
+        case_id: str,
+        body: CaseTransitionBody,
+        actor=Depends(require_admin),
+    ):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            row = await transition_case(
+                db,
+                case_id=case_id,
+                to_status=body.to_status,
+                actor=actor_dict,
+                reason=body.reason,
+                resolution_summary=body.resolution_summary,
+                root_cause=body.root_cause,
+                verification_notes=body.verification_notes,
+                duplicate_of_case_id=body.duplicate_of_case_id,
+            )
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return {"ok": True, "case": row}
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/tasks")
+    async def control_plane_case_create_task(
+        case_id: str,
+        body: CaseTaskBody,
+        actor=Depends(require_admin),
+    ):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            return await create_case_task(
+                db,
+                case_id=case_id,
+                actor=actor_dict,
+                title=body.title,
+                description=body.description,
+                assignee_role=body.assignee_role,
+                priority=body.priority,
+                due_minutes=body.due_minutes,
+            )
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/communications/{communication_id}/ack")
+    async def control_plane_case_ack_communication(
+        case_id: str,
+        communication_id: str,
+        body: CaseCommunicationAckBody,
+        actor=Depends(require_admin),
+    ):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            row = await acknowledge_case_communication(
+                db,
+                case_id=case_id,
+                communication_id=communication_id,
+                actor=actor_dict,
+                note=body.note,
+            )
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"ok": True, "case": row}
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/related")
+    async def control_plane_case_link_related(
+        case_id: str,
+        body: CaseLinkBody,
+        actor=Depends(require_admin),
+    ):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            row = await link_related_case(
+                db,
+                case_id=case_id,
+                related_case_id=body.related_case_id,
+                actor=actor_dict,
+                note=body.note,
+            )
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return {"ok": True, "case": row}
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/evidence")
+    async def control_plane_case_capture_evidence(case_id: str, actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            evidence = await capture_case_evidence_package(db, case_id=case_id, actor=actor_dict)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"ok": True, "evidence": evidence}
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/baseline")
+    async def control_plane_case_include_baseline(
+        case_id: str,
+        body: CaseBaselineBody,
+        actor=Depends(require_admin),
+    ):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            baseline = await include_case_in_baseline(
+                db,
+                case_id=case_id,
+                actor=actor_dict,
+                baseline_name=body.baseline_name,
+            )
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"ok": True, "baseline": baseline}
+
+    @api_router.post("/admin/operations-control/cases/{case_id}/export")
+    async def control_plane_case_export(case_id: str, actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        try:
+            export_row = await export_case_evidence_package(db, case_id=case_id, actor=actor_dict)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"ok": True, "export": export_row}
+
+    @api_router.post("/admin/operations-control/certifications/preview-daily-report")
+    async def control_plane_create_preview_case_certification(actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        return await create_preview_case_certification_record(db, actor=actor_dict)
+
+    @api_router.post("/admin/operations-control/certifications/run")
+    async def control_plane_run_certification(actor=Depends(require_admin)):
+        await ensure_case_management_indexes(db)
+        actor_dict = await _actor_dict(actor)
+        return await run_case_certification_chain(db, actor=actor_dict)
 
     @api_router.get("/admin/operations-control/events")
     async def control_plane_events(

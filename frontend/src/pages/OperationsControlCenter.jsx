@@ -38,6 +38,7 @@ import {
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 import { getDirectoryToken } from "@/lib/directoryAuth";
+import OperationsControlCases from "@/pages/OperationsControlCases";
 
 // TRACK 25A · Universal Admin OS shell so OCC matches every other
 // domain page (PortalShell + SideNavV3 + breadcrumb).
@@ -1277,6 +1278,10 @@ export default function OperationsControlCenter() {
           capturingBaseline={capturingBaseline}
           capturingEvidence={capturingEvidence}
         />
+
+        <div className="mb-8" data-testid="occ-case-queue-section">
+          <OperationsControlCases />
+        </div>
 
         {/* Divider between Trust Layer (read-only) and Maintenance Console (mutating). */}
         <div
