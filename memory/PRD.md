@@ -91,6 +91,26 @@ Explicit non-scope for this fork:
   - preview smoke login/navigation to `/admin/storage-recovery` succeeded
   - frontend automation sweep reported no broken admin buttons, no misleading lifecycle UI, and no preview session bounce during heavy navigation
 
+### 2026-07-28 whole-platform wording + coaching density polish sweep
+
+- Completed a broader shared-platform polish pass across non-admin routes, login helpers, training/help surfaces, sidebars, and empty states.
+- Global wording cleanup:
+  - standardized action-oriented helper copy (`Start first-week onboarding`, `How this portal works`, `Fix sign-in problems`)
+  - reduced overbearing coaching phrasing (`workflow tips available` instead of heavier coaching phrasing)
+  - replaced lingering generic `Guidance` labels in key portal surfaces with `Training Center` / `Training Center & Systems` where appropriate
+  - improved clarity on empty/help states and contextual banners
+- Layout / visual consistency:
+  - normalized sidebar padding/spacing for Dispatch / HR / Safety shared V2 navs
+  - improved hover/focus readability on login helper links and drawer actions
+  - preserved honest lifecycle fallback messaging instead of dead or misleading advanced-analytics states
+- Verified routes/surfaces:
+  - sign-in + leadership login helper text
+  - Training Hub and Operational Guidance Center entry points
+  - Admin / HR / Safety / Dispatch / PM / Shop sidebar naming consistency
+  - Safety sidebar final wording now shows `Training Center & Systems`
+- External verification:
+  - multiple frontend automation sweeps passed with no broken buttons, no visible regressions, and only minor wording items that were then fixed in this pass
+
 - Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
 - Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
 - Wired the certification lane into:
