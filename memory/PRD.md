@@ -132,6 +132,52 @@ Current WP-14 P0 status:
 - `WP-14D Operational Readiness Evidence System`: **INITIAL PACKAGE ENDPOINT LIVE**
 - `WP-14E Operational Baseline Manager`: **INITIAL SNAPSHOT ENDPOINT LIVE**
 
+### 2026-07-28 WP-OPPC-14F Operational Case Management closeout
+
+Final release determination:
+
+- **OPERATIONS CONTROL PLANE v1 — VERIFIED COMPLETE**
+
+Implemented and independently verified in this closeout:
+
+- Canonical Operational Case engine in `/app/backend/services/operations_control/case_management.py`
+  - governed Case identity model
+  - server-validated lifecycle + transitions
+  - immutable history
+  - severity / priority governance
+  - ownership metadata and one-event / one-governed-outcome idempotency
+- Automatic Case creation from registered `oppc.daily_report.submitted` events using a fresh preview Daily Report certification record.
+- Trust Spine-linked Case events with correlation / causation IDs, authoritative assembly, unified timeline, and relationship graph.
+- Case APIs for:
+  - queue / detail / assembly / timeline / graph
+  - transitions
+  - communication acknowledgement
+  - linked corrective tasks
+  - evidence capture + export
+  - baseline inclusion
+  - preview certification record creation
+  - full certification chain execution
+- Dedicated frontend surfaces:
+  - embedded Case Queue on `/admin/operations-control`
+  - dedicated queue route `/operations-control/cases`
+  - dedicated detail route `/operations-control/cases/:caseId`
+  - OCC proof-chain drilldown with persisted actions only
+
+Verified proof-chain coverage in preview:
+
+- Daily Report → registered event → policy decision → Operational Case → communication intent → recipient resolution → captured delivery → acknowledgement → task linkage / corrective action → resolution → closure → reopening → evidence export → baseline inclusion
+
+Independent verification evidence:
+
+- `/app/test_reports/iteration_70.json`
+- `/app/backend/tests/test_oppc_wp14f_case_management.py`
+- `/app/test_reports/pytest/oppc_wp14f_case_management.xml`
+- `/app/wp_oppc_14f_backend_test_results.json`
+
+Post-closeout note:
+
+- Do not begin WP-15 unless the user explicitly starts that next phase.
+
 Next WP-14 tasks:
 
 - expand registered workflows beyond Daily Report → OPPC

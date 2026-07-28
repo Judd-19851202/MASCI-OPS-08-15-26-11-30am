@@ -1,5 +1,31 @@
 # Change Log
 
+## 2026-07-28 — WP-OPPC-14F Operational Case Management certification + OCP v1 closeout
+
+- Built the canonical Operational Case Management engine in `/app/backend/services/operations_control/case_management.py` with:
+  - governed Case identity + lifecycle
+  - immutable case history
+  - severity / priority governance
+  - one-event / one-governed-outcome idempotency
+  - authoritative assembly, unified timeline, and relationship graph
+- Extended the Operations Control Plane backend with:
+  - case auto-creation from registered `oppc.daily_report.submitted` events
+  - preview-safe Daily Report certification record creation
+  - full certification chain execution endpoint returning a release determination
+  - case task linkage, communication acknowledgement, evidence capture, baseline inclusion, duplicate handling, related-case linkage, and evidence export
+- Extended the Operations Control Center UI with:
+  - embedded dedicated Case Queue section on `/admin/operations-control`
+  - dedicated queue route `/operations-control/cases`
+  - dedicated detail route `/operations-control/cases/:caseId`
+  - OCC proof-chain drilldown, timeline, graph, and persisted action controls
+- Verification evidence:
+  - `/app/test_reports/iteration_70.json`
+  - `/app/backend/tests/test_oppc_wp14f_case_management.py`
+  - `/app/test_reports/pytest/oppc_wp14f_case_management.xml`
+  - `/app/wp_oppc_14f_backend_test_results.json`
+- Final certification result:
+  - **OPERATIONS CONTROL PLANE v1 — VERIFIED COMPLETE**
+
 ## 2026-07-28 — WP-OPPC-14 Operations Control Plane v1 foundation slice
 
 - Built the constitutional WP-14 control-plane foundation in `/app/backend/services/operations_control/registry.py` and `/app/backend/services/operations_control/control_plane.py`.

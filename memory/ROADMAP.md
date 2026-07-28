@@ -21,7 +21,7 @@
 ### OPPC P0 sequence
 
 1. `WP-OPPC-14 — Operations Control Plane`
-   - **IN PROGRESS / FOUNDATION LIVE**
+   - **COMPLETE / VERIFIED COMPLETE**
    - Complete now:
      - constitutional Operational Registry
      - Operational Event Catalog
@@ -31,10 +31,14 @@
      - readiness evidence packaging endpoint
      - Operations Control Plane v1 baseline snapshot endpoint
      - OCC registry/evidence/baseline UI visibility
-   - Remaining P0 inside WP-14:
-     - richer severity-aware escalation intelligence beyond the first sweep endpoint
-     - broaden provider abstraction from preview-safe email capture to additional transports
-     - expand the registered workflow set beyond Daily Report → OPPC
+     - WP-OPPC-14F Operational Case Management complete:
+       - canonical Case model, lifecycle, immutable history, authorization + governance hooks
+       - Trust Spine case events, correlation / causation IDs, idempotency controls
+       - Case Assembly service, unified timeline, relationship graph, and core APIs
+       - fresh preview Daily Report certification record + policy-controlled automatic Case creation
+       - communications / acknowledgement / task / evidence / baseline / duplicate / related-case handling
+       - dedicated Case Queue and dedicated Case Detail route with OCC proof-chain drilldown
+       - certified end-to-end preview chain returning `OPERATIONS CONTROL PLANE v1 — VERIFIED COMPLETE`
 2. `WP-OPPC-15 — Permissions and Governance`
 3. Executive latency optimization for portfolio confidence rollups
 4. `WP-OPPC-16 — User Experience`
@@ -49,7 +53,7 @@
 
 - WP-11/12/13 are functionally complete and certified in preview.
 - Operational release gate for Cost Codes + Scheduling on project `24-06` is now **GO** with no remaining P0 defects.
-- WP-14 governance unlock is complete; the first constitutional foundation slice is now implemented and verified in preview.
+- WP-14 + WP-14F are now certified complete in preview; Operations Control Plane v1 closeout is achieved.
 - Portfolio-wide executive confidence refresh remains the main performance optimization candidate for WP-14.
 
 ### OPPC governing constraints preserved
