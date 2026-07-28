@@ -14,6 +14,9 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
+from services.cost_codes.foundation import build_confidence_governance_summary, load_project_confidence_history
+from services.cost_codes.oppc_confidence import summarize_confidence_portfolio
+from services.cost_codes.oppc_confidence_data import build_project_confidence_payload
 from services.ai_gateway import get_gateway
 from services.ai_gateway.env import gateway_enabled
 from services.ods_spine import ods_enabled
@@ -143,6 +146,17 @@ async def _project_health_rows(
         r["readiness_blocker_count"] += int(s.get("readiness_blocker_count") or 0)
         r["days_reported"] += 1
     return sorted(per.values(), key=lambda r: (-r["delay_hours"], -r["safety_flag_count"]))
+
+
+async def _load_jobs(db, project_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    q: Dict[str, Any] = {"active": True}
+    if project_ids is not None:
+        q["project_number"] = {"$in": project_ids}
+    rows: List[Dict[str, Any]] = []
+    async for job in db.jobs_master.find(q, {"_id": 0}):
+        if str(job.get("project_number") or "").strip():
+            rows.append(job)
+    return rows
 
 
 def _brief_evidence_hash(payload: Dict[str, Any]) -> str:
@@ -275,9 +289,22 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         pids = [p.strip() for p in (project_ids or "").split(",") if p.strip()] or None
         agg = await _aggregate_snapshots(db, project_ids=pids, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=pids, date_from=df, date_to=dt)
+        jobs = await _load_jobs(db, pids)
+        confidence_rows = []
+        for job in jobs:
+            confidence = await build_project_confidence_payload(db, job)
+            confidence_rows.append({
+                "project_number": job.get("project_number"),
+                "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
+                "production_confidence": confidence,
+            })
         return {"enabled": ods_enabled(), "role": "pm",
                 "range": {"from": df, "to": dt, "preset": preset},
-                "kpis": agg, "projects": health}
+                "kpis": agg, "projects": health,
+                "production_confidence": {
+                    "summary": summarize_confidence_portfolio(confidence_rows),
+                    "projects": confidence_rows,
+                }}
 
     # ----- Admin: company-wide ----------------------------------------
     @api_router.get("/ods/admin/dashboard")
@@ -289,9 +316,22 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         df, dt = _resolve_range(preset, date_from, date_to)
         agg = await _aggregate_snapshots(db, project_ids=None, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
+        jobs = await _load_jobs(db, None)
+        confidence_rows = []
+        for job in jobs:
+            confidence = await build_project_confidence_payload(db, job)
+            confidence_rows.append({
+                "project_number": job.get("project_number"),
+                "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
+                "production_confidence": confidence,
+            })
         return {"enabled": ods_enabled(), "role": "admin",
                 "range": {"from": df, "to": dt, "preset": preset},
-                "company_kpis": agg, "projects_health": health}
+                "company_kpis": agg, "projects_health": health,
+                "production_confidence": {
+                    "summary": summarize_confidence_portfolio(confidence_rows),
+                    "projects": confidence_rows,
+                }}
 
     @api_router.get("/ods/admin/delays")
     async def admin_delays(
@@ -330,13 +370,23 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         df, dt = _resolve_range(preset, date_from, date_to)
         agg = await _aggregate_snapshots(db, project_ids=None, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
+        jobs = await _load_jobs(db, None)
+        confidence_rows = []
+        for job in jobs[:50]:
+            confidence = await build_project_confidence_payload(db, job)
+            confidence_rows.append({
+                "project_number": job.get("project_number"),
+                "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
+                "production_confidence": confidence,
+            })
         payload = {"role": "executive", "range": {"from": df, "to": dt},
-                   "kpis": agg, "projects_health": health[:20]}
+                   "kpis": agg, "projects_health": health[:20],
+                   "production_confidence": summarize_confidence_portfolio(confidence_rows)}
         result = await _brief_via_gateway(
             db, task="executive_brief", audience="executive",
             payload=payload, session_id=f"exec-{df}-{dt}",
         )
-        return {"range": {"from": df, "to": dt, "preset": preset}, **result}
+        return {"range": {"from": df, "to": dt, "preset": preset}, "production_confidence": {"summary": summarize_confidence_portfolio(confidence_rows), "projects": confidence_rows[:20]}, **result}
 
     @api_router.get("/ods/executive/health")
     async def executive_health(
@@ -346,8 +396,44 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
     ) -> Dict[str, Any]:
         df, dt = _resolve_range(preset, date_from, date_to)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
+        jobs = await _load_jobs(db, None)
+        confidence_rows = []
+        for job in jobs:
+            confidence = await build_project_confidence_payload(db, job)
+            confidence_rows.append({
+                "project_number": job.get("project_number"),
+                "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
+                "production_confidence": confidence,
+            })
         return {"range": {"from": df, "to": dt, "preset": preset},
-                "top_at_risk": health[:10], "total_projects": len(health)}
+                "top_at_risk": health[:10], "total_projects": len(health),
+                "production_confidence": {
+                    "summary": summarize_confidence_portfolio(confidence_rows),
+                    "projects": sorted(confidence_rows, key=lambda row: float((row.get('production_confidence') or {}).get('score') or 0.0))[:20],
+                }}
+
+    @api_router.get("/ods/executive/confidence")
+    async def executive_confidence(
+        project_ids: Optional[str] = Query(default=None, description="csv list"),
+    ) -> Dict[str, Any]:
+        pids = [p.strip() for p in (project_ids or "").split(",") if p.strip()] or None
+        jobs = await _load_jobs(db, pids)
+        rows = []
+        for job in jobs:
+            confidence = await build_project_confidence_payload(db, job)
+            history = await load_project_confidence_history(db, str(job.get("project_number") or ""))
+            rows.append({
+                "project_number": job.get("project_number"),
+                "project_name": job.get("project_name") or job.get("name") or job.get("project_number"),
+                "production_confidence": confidence,
+                "governance": build_confidence_governance_summary(history),
+            })
+        rows.sort(key=lambda row: float((row.get("production_confidence") or {}).get("score") or 0.0))
+        return {
+            "summary": summarize_confidence_portfolio(rows),
+            "projects": rows,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     # ----- Attention (What Needs Attention horizon) -------------------
     async def _attention_items(

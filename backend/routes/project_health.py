@@ -55,6 +55,14 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from services.cost_codes.foundation import (
+    build_confidence_governance_summary,
+    load_project_confidence_history,
+    persist_project_confidence_snapshot,
+)
+from services.cost_codes.oppc_confidence import build_confidence_snapshot_record
+from services.cost_codes.oppc_confidence_data import build_project_confidence_payload
+
 logger = logging.getLogger(__name__)
 
 # Roles that may view the project-health dashboard at all.
@@ -214,6 +222,8 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
         summary = {"green": 0, "amber": 0, "red": 0, "total": 0}
         for p in projects:
             pn = p["project_number"]
+            confidence = await build_project_confidence_payload(db, p)
+            confidence_history = await load_project_confidence_history(db, pn)
             ind = {
                 "tasks_overdue":        tasks_overdue.get(pn, 0),
                 "pos_pending_approval": pos_pending.get(pn, 0),
@@ -254,6 +264,8 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
                 "project_name": p.get("project_name") or p.get("name") or pn,
                 "status": status,
                 "indicators": ind,
+                "production_confidence": confidence,
+                "production_confidence_governance": build_confidence_governance_summary(confidence_history),
                 "updated_at": p.get("updated_at"),
             })
 
@@ -272,6 +284,56 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
             "generated_at": now.isoformat(),
             "role": role,
         }
+
+    @router.get("/api/project-health/{project_number}/confidence")
+    async def project_confidence_detail(
+        project_number: str,
+        actor: Dict[str, Any] = Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        role = _role(actor)
+        if role not in ALLOWED_ROLES:
+            raise HTTPException(403, "Project confidence is restricted to admin/PM/safety/exec.")
+        whitelist = await _project_numbers_for_actor(actor, role)
+        if whitelist is not None and project_number not in whitelist:
+            raise HTTPException(403, "Project not in actor scope.")
+        job = await db.jobs_master.find_one({"project_number": project_number}, {"_id": 0})
+        if not job:
+            raise HTTPException(404, "Project not found.")
+        confidence = await build_project_confidence_payload(db, job)
+        history = await load_project_confidence_history(db, project_number)
+        return {
+            "project_number": project_number,
+            "project_name": job.get("project_name") or job.get("name") or project_number,
+            "production_confidence": confidence,
+            "governance": build_confidence_governance_summary(history),
+        }
+
+    @router.post("/api/project-health/{project_number}/confidence/snapshots")
+    async def snapshot_project_confidence(
+        project_number: str,
+        actor: Dict[str, Any] = Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        role = _role(actor)
+        if role not in ALLOWED_ROLES:
+            raise HTTPException(403, "Project confidence is restricted to admin/PM/safety/exec.")
+        whitelist = await _project_numbers_for_actor(actor, role)
+        if whitelist is not None and project_number not in whitelist:
+            raise HTTPException(403, "Project not in actor scope.")
+        job = await db.jobs_master.find_one({"project_number": project_number}, {"_id": 0})
+        if not job:
+            raise HTTPException(404, "Project not found.")
+        confidence = await build_project_confidence_payload(db, job)
+        snapshot = build_confidence_snapshot_record(
+            project_number=project_number,
+            confidence=confidence,
+            actor_label=actor.get("email") or actor.get("full_name") or actor.get("id") or role,
+            note="Confidence snapshot from project-health",
+        )
+        try:
+            await persist_project_confidence_snapshot(db, project_number=project_number, snapshot=snapshot)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"ok": True, "snapshot": snapshot, "production_confidence": confidence}
 
     return router
 

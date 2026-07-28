@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
 
 async function loadAll() {
-  const [home, rc, capa, projects, fleet, learn, brief, portfolio] = await Promise.all([
+  const [home, rc, capa, projects, fleet, learn, brief, portfolio, confidence] = await Promise.all([
     api.get("/incident-intelligence/home", { skipSessionStatus: true }).then(r => r.data),
     api.get("/incident-intelligence/root-causes", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
     api.get("/incident-intelligence/corrective-actions", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
@@ -16,8 +16,9 @@ async function loadAll() {
     api.get("/incident-intelligence/brief", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
     // Track 19.38 · additive · portfolio attention feed. Fails soft.
     api.get("/incident-intelligence/portfolio-attention", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/ods/executive/confidence", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
   ]);
-  return { home, rc, capa, projects, fleet, learn, brief, portfolio };
+  return { home, rc, capa, projects, fleet, learn, brief, portfolio, confidence };
 }
 
 function KpiCard({ label, value, sub, testId, tone }) {
@@ -106,6 +107,41 @@ export default function ExecutiveIntelligence() {
           <KpiCard label={t("Avg readiness")}    value={`${H.avg_readiness_pct ?? 0}%`} testId="kpi-readiness" tone={(H.avg_readiness_pct||0) >= 70 ? "ok" : "warn"} />
           <KpiCard label={t("Open CAPAs")}       value={H.corrective_actions_open ?? 0} testId="kpi-capa"    sub={`${H.corrective_actions_total ?? 0} ${t("total")}`} tone={H.corrective_actions_open > 5 ? "warn" : "default"} />
         </section>
+
+        {data.confidence ? (
+          <section className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="exec-intel-production-confidence">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">Production Confidence Score</div>
+                <div className="font-display text-lg font-black text-slate-900">Explainable, canonical, and executive-ready</div>
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2" data-testid="exec-intel-confidence-average">Avg {data.confidence.summary?.average_score ?? 0}</div>
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2" data-testid="exec-intel-confidence-high">High {data.confidence.summary?.high_confidence ?? 0}</div>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2" data-testid="exec-intel-confidence-watch">Watch {data.confidence.summary?.watch ?? 0}</div>
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2" data-testid="exec-intel-confidence-critical">Critical {data.confidence.summary?.critical ?? 0}</div>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              {(data.confidence.projects || []).slice(0, 6).map((row) => (
+                <div key={row.project_number} className="rounded-xl border border-slate-200 bg-slate-50 p-4" data-testid={`exec-intel-confidence-project-${row.project_number}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-mono text-[11px] uppercase tracking-widest text-slate-500">{row.project_number}</div>
+                      <div className="font-semibold text-slate-900">{row.project_name}</div>
+                    </div>
+                    <div className={`text-2xl font-black ${Number(row.production_confidence?.score || 0) >= 85 ? "text-emerald-700" : Number(row.production_confidence?.score || 0) >= 70 ? "text-amber-700" : "text-red-700"}`}>{Math.round(Number(row.production_confidence?.score || 0))}</div>
+                  </div>
+                  <div className="mt-2 text-xs text-slate-600">{(row.production_confidence?.explainability || []).slice(0, 2).join(" • ")}</div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-500">
+                    <span className="rounded-full border border-slate-200 bg-white px-2 py-1">Band: {String(row.production_confidence?.band || "critical").replaceAll("_", " ")}</span>
+                    <span className="rounded-full border border-slate-200 bg-white px-2 py-1">Snapshots: {row.governance?.snapshot_count || 0}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* SLA row */}
         <section className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="exec-intel-sla">

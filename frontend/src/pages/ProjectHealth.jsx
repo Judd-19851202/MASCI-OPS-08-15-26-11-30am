@@ -21,7 +21,7 @@ import { PortalShell } from "@/design-system";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import {
   Activity, RefreshCw, ArrowUpDown, ChevronRight,
-  AlertTriangle, Loader2,
+  AlertTriangle, Loader2, ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -167,7 +167,7 @@ export default function ProjectHealth() {
 
       {/* Summary strip */}
       {data?.summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-4" data-testid="project-health-summary">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-3 mb-4" data-testid="project-health-summary">
           {["red", "amber", "green"].map((s) => (
             <button
               key={s}
@@ -188,6 +188,13 @@ export default function ProjectHealth() {
             <div className="text-2xl font-bold leading-none mt-1">
               {data.summary.total ?? 0}
             </div>
+          </div>
+          <div className="border-2 border-slate-300 bg-white text-slate-700 rounded-md p-3" data-testid="project-health-summary-confidence">
+            <div className="text-[10px] font-mono uppercase tracking-[0.16em] font-bold">Avg Confidence</div>
+            <div className="text-2xl font-bold leading-none mt-1">
+              {data.rows?.length ? `${Math.round(data.rows.reduce((sum, row) => sum + Number(row.production_confidence?.score || 0), 0) / data.rows.length)}` : "0"}
+            </div>
+            <div className="text-[11px] mt-1 text-slate-500">Deterministic · canonical</div>
           </div>
         </div>
       )}
@@ -252,6 +259,7 @@ export default function ProjectHealth() {
                 <tr>
                   <th className="text-left p-2 font-mono uppercase tracking-wider text-[10px] text-slate-600 w-20">Status</th>
                   <th className="text-left p-2 font-mono uppercase tracking-wider text-[10px] text-slate-600 sticky left-0 bg-slate-50">Project</th>
+                  <th className="text-center p-2 font-mono uppercase tracking-wider text-[10px] text-slate-600 whitespace-nowrap">Confidence</th>
                   {INDICATORS.map((i) => (
                     <th
                       key={i.key}
@@ -307,6 +315,12 @@ function ProjectRow({ row, onNavigate }) {
           {row.project_name}
         </div>
       </td>
+      <td className="p-2 align-middle text-center" data-testid={`project-health-row-${row.project_number}-confidence`}>
+        <div className="inline-flex flex-col items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 min-w-[76px]">
+          <span className={`text-base font-black ${Number(row.production_confidence?.score || 0) >= 85 ? "text-emerald-700" : Number(row.production_confidence?.score || 0) >= 70 ? "text-amber-700" : "text-red-700"}`}>{Math.round(Number(row.production_confidence?.score || 0))}</span>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">{String(row.production_confidence?.band || "critical").replaceAll("_", " ")}</span>
+        </div>
+      </td>
       {INDICATORS.map((ind) => {
         const v = row.indicators?.[ind.key] ?? 0;
         const isHot = v > 0;
@@ -333,7 +347,10 @@ function ProjectRow({ row, onNavigate }) {
         );
       })}
       <td className="p-2 align-middle text-slate-300">
-        <ChevronRight className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-end gap-1 text-slate-400">
+          {row.production_confidence_governance?.snapshot_count ? <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" data-testid={`project-health-row-${row.project_number}-confidence-governance`} /> : null}
+          <ChevronRight className="w-3.5 h-3.5" />
+        </div>
       </td>
     </tr>
   );

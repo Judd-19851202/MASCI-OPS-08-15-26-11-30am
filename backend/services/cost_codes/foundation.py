@@ -702,6 +702,24 @@ async def load_project_forecast_history(db, project_number: str) -> Dict[str, An
     }
 
 
+async def load_project_confidence_history(db, project_number: str) -> Dict[str, Any]:
+    project_number = _clean_str(project_number)
+    if not project_number:
+        return {"snapshots": [], "settings": {}}
+    try:
+        job = await db.jobs_master.find_one(
+            {"project_number": project_number},
+            {"_id": 0, "oppc_confidence_history": 1, "oppc_confidence_settings": 1},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] confidence history load failed for %s: %s", project_number, exc)
+        return {"snapshots": [], "settings": {}}
+    return {
+        "snapshots": list((job or {}).get("oppc_confidence_history") or []),
+        "settings": dict((job or {}).get("oppc_confidence_settings") or {}),
+    }
+
+
 def build_forecast_snapshot_record(
     *,
     project_number: str,
@@ -746,6 +764,26 @@ async def persist_project_forecast_snapshot(
     result = await db.jobs_master.update_one(
         {"project_number": project_number},
         {"$set": {"oppc_forecast_history": snapshots, "updated_at": now_iso()}},
+        upsert=False,
+    )
+    if not result.matched_count:
+        raise LookupError(f"Project {project_number} was not found in jobs_master")
+    return dict(snapshot or {})
+
+
+async def persist_project_confidence_snapshot(
+    db,
+    *,
+    project_number: str,
+    snapshot: Dict[str, Any],
+) -> Dict[str, Any]:
+    project_number = _clean_str(project_number)
+    current = await load_project_confidence_history(db, project_number)
+    snapshots = list(current.get("snapshots") or [])
+    snapshots.append(dict(snapshot or {}))
+    result = await db.jobs_master.update_one(
+        {"project_number": project_number},
+        {"$set": {"oppc_confidence_history": snapshots, "updated_at": now_iso()}},
         upsert=False,
     )
     if not result.matched_count:
@@ -847,6 +885,16 @@ def build_forecast_governance_summary(history: Dict[str, Any]) -> Dict[str, Any]
         "latest_snapshot": dict(snapshots[-1]) if snapshots else {},
         "active_override_count": len(active_overrides),
         "overrides": overrides,
+        "snapshot_history": snapshots[-12:],
+        "settings": dict(history.get("settings") or {}),
+    }
+
+
+def build_confidence_governance_summary(history: Dict[str, Any]) -> Dict[str, Any]:
+    snapshots = list(history.get("snapshots") or [])
+    return {
+        "snapshot_count": len(snapshots),
+        "latest_snapshot": dict(snapshots[-1]) if snapshots else {},
         "snapshot_history": snapshots[-12:],
         "settings": dict(history.get("settings") or {}),
     }
