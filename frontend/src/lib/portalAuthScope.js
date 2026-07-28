@@ -31,6 +31,9 @@ const SHARED_API_PREFIXES = [
   "/notifications/",
   "/tasks/",
   "/workflows/",
+  "/cost-codes",
+  "/oppc",
+  "/ods",
   "/operations-actions",
   "/operations-map/",
   "/operations/",
@@ -77,18 +80,21 @@ export function inferActivePortalForAuth(pathname = "") {
 export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   const path = normalizePath(pathname);
   if (!path) return [];
-  if (path.startsWith("/api/admin/") || path === "/api/admin") return ["admin"];
-  if (path.startsWith("/api/hr/") || path === "/api/hr") return ["hr"];
-  if (path.startsWith("/api/safety/") || path === "/api/safety") return ["safety"];
-  if (path.startsWith("/api/pm/") || path === "/api/pm") return ["pm"];
-  if (path.startsWith("/api/shop/") || path === "/api/shop") return ["shop"];
-  if (path.startsWith("/api/dispatch/") || path === "/api/dispatch") return ["dispatch"];
-  if (path.startsWith("/api/field-leadership/") || path === "/api/field-leadership") return ["fl"];
-  if (path.startsWith("/api/leadership/") || path === "/api/leadership") return ["leadership"];
-  if (path.startsWith("/api/auth/me-directory")) return ["directory"];
-  if (path.startsWith("/api/auth/issue-portal-token")) return ["directory"];
-  if (path.startsWith("/api/auth/")) return [];
-  if (activePortal && SHARED_API_PREFIXES.some((prefix) => path === `/api${prefix}` || path.startsWith(`/api${prefix}`))) {
+  const routePath = path.startsWith("/api/") ? path.slice(4) : path;
+
+  if (routePath.startsWith("/admin/") || routePath === "/admin") return ["admin"];
+  if (routePath.startsWith("/hr/") || routePath === "/hr") return ["hr"];
+  if (routePath.startsWith("/safety/") || routePath === "/safety") return ["safety"];
+  if (routePath.startsWith("/pm/") || routePath === "/pm") return ["pm"];
+  if (routePath.startsWith("/shop/") || routePath === "/shop") return ["shop"];
+  if (routePath.startsWith("/dispatch/") || routePath === "/dispatch") return ["dispatch"];
+  if (routePath.startsWith("/field-leadership/") || routePath === "/field-leadership") return ["fl"];
+  if (routePath.startsWith("/leadership/") || routePath === "/leadership") return ["leadership"];
+  if (routePath.startsWith("/auth/me-directory")) return ["directory"];
+  if (routePath.startsWith("/auth/issue-portal-token")) return ["directory"];
+  if (routePath.startsWith("/auth/")) return [];
+
+  if (activePortal && SHARED_API_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(prefix))) {
     return [activePortal];
   }
   return [];
