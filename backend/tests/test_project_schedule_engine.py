@@ -1,4 +1,4 @@
-from services.cost_codes.schedule_engine import build_schedule_snapshot, render_dot_schedule_pdf
+from services.cost_codes.schedule_engine import build_schedule_scenario_comparison, build_schedule_snapshot, render_dot_schedule_pdf
 from services.cost_codes.foundation import build_planning_lifecycle_snapshot, build_planning_readiness, build_weekly_rollover_preview
 
 
@@ -116,3 +116,66 @@ def test_weekly_rollover_preview_rolls_not_started_work_forward():
     assert preview["rollover_anchor_date"] == "2026-07-20"
     assert preview["actions"][0]["rule_applied"] == "roll_to_next_anchor"
     assert preview["actions"][0]["proposed_start_date"] == "2026-07-20"
+
+
+def test_forecast_uses_canonical_actual_rate_and_surfaces_explainability():
+    assignments = [
+        {
+            "code": "PIPE",
+            "item_name": "Pipe",
+            "schedule_start_date": "2026-07-01",
+            "duration_days": 10,
+            "authorized_quantity": 100,
+            "forecast_quantity": 100,
+        }
+    ]
+    progress = {
+        "codes": [
+            {
+                "code": "PIPE",
+                "authorized_quantity": 100,
+                "installed_quantity": 40,
+                "progress_percent": 40.0,
+                "actual_start_date": "2026-07-01",
+                "last_progress_date": "2026-07-04",
+            }
+        ]
+    }
+    daily_rows = [
+        {"cost_code": "PIPE", "installed_quantity": 10, "report_date": "2026-07-01", "source_record_id": "dr-1"},
+        {"cost_code": "PIPE", "installed_quantity": 10, "report_date": "2026-07-02", "source_record_id": "dr-2"},
+        {"cost_code": "PIPE", "installed_quantity": 10, "report_date": "2026-07-03", "source_record_id": "dr-3"},
+        {"cost_code": "PIPE", "installed_quantity": 10, "report_date": "2026-07-04", "source_record_id": "dr-4"},
+    ]
+    snap = build_schedule_snapshot(assignments, progress, daily_rows=daily_rows, anchor_date="2026-07-05")
+    task = snap["tasks"][0]
+    assert task["actual_rate_per_day"] == 10.0
+    assert task["remaining_quantity"] == 60.0
+    assert task["explainability"]["rate_selection"]["used_duration_fallback"] is False
+    assert task["explainability"]["source_records"] == ["dr-1", "dr-2", "dr-3", "dr-4"]
+
+
+def test_scenario_comparison_shows_days_gained_against_baseline():
+    assignments = [{
+        "code": "PIPE",
+        "item_name": "Pipe",
+        "schedule_start_date": "2026-07-01",
+        "duration_days": 10,
+        "authorized_quantity": 100,
+        "forecast_quantity": 100,
+    }]
+    progress = {"codes": [{"code": "PIPE", "authorized_quantity": 100, "installed_quantity": 20, "progress_percent": 20.0, "actual_start_date": "2026-07-01", "last_progress_date": "2026-07-02"}]}
+    daily_rows = [
+        {"cost_code": "PIPE", "installed_quantity": 10, "report_date": "2026-07-01"},
+        {"cost_code": "PIPE", "installed_quantity": 10, "report_date": "2026-07-02"},
+    ]
+    comparison = build_schedule_scenario_comparison(
+        assignments,
+        progress,
+        daily_rows=daily_rows,
+        anchor_date="2026-07-03",
+        scenario_keys=["additional_crew"],
+    )
+    assert comparison["baseline"]["projected_finish_date"]
+    assert comparison["scenarios"][0]["scenario_key"] == "additional_crew"
+    assert comparison["scenarios"][0]["days_gained_against_baseline"] >= 0

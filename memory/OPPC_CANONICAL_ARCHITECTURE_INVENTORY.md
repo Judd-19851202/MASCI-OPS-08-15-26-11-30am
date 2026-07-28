@@ -27,6 +27,9 @@
 3. **No secondary recovery-task engine should be introduced.** Recovery work items must use the existing `tasks` and `notifications` engine in `backend/routes/tasks_notifications.py`.
 4. **No secondary audit/tracing engine should be introduced.** Workflow accountability must route through the existing `lib/trust_spine.py` and, where state-machine control applies, `lib/workflow_state_events.py`.
 5. **No secondary resource-coordination engine should be introduced.** Dispatch and assignment state already exist in `backend/routes/dispatch_lifecycle.py` and related continuity routes.
+6. **Forecasts may only be generated from canonical operational data.** Forecasts must never depend on manually maintained forecast-only fields, hidden assumptions, disconnected spreadsheets, duplicate calculations, or unexplained overrides.
+7. **Forecast overrides are governed evidence, not silent truth replacement.** Any manual forecast adjustment must require permission, reason, prior calculated value preservation, separate adjusted value storage, actor/time attribution, supporting evidence, Trust Spine emission, and visible audit history.
+8. **Forecast truth classes must remain separate.** `CALCULATED FORECAST`, `AUTHORIZED MANAGEMENT OVERRIDE`, `APPROVED CONTRACTUAL DATE`, `ORIGINAL BASELINE DATE`, and `CURRENT COMMITTED DATE` may never collapse into one ambiguous field.
 
 ## Canonical subsystem inventory
 
@@ -239,6 +242,39 @@
 5. **Authoritative resource/assignment engine remains dispatch lifecycle and continuity.**
 6. **Authoritative workflow evidence remains Trust Spine plus governed workflow state events where explicit state machines exist.**
 7. **Executive OPPC summaries must be composed as derived views over these systems, not stored as a separate primary truth.**
+
+## 2026-07-28 WP-OPPC-11/12/13 bounded owner audit
+
+### Canonical owner confirmations
+
+- **Schedule / CPM owner** → `EXTEND_EXISTING`
+  - `backend/services/cost_codes/schedule_engine.py`
+  - Existing owner already computes predecessor-constrained baseline/forecast dates, remaining days, slack, critical path, warnings, and projected finish.
+- **Project Health owner** → `EXTEND_EXISTING`
+  - `backend/routes/project_health.py`
+  - Existing deterministic health ladder is the canonical project-health owner and must be extended, not replaced.
+- **Executive Intelligence / reporting owners** → `EXTEND_EXISTING`
+  - `backend/routes/executive_overview.py`
+  - `frontend/src/pages/ExecutiveOperationalIntelligence.jsx`
+  - `backend/routes/dr_v2_pdf.py`
+  - `backend/routes/notifications.py`
+- **Timeline owner** → `REUSE_EXISTING` / `REPAIR_EXISTING AS NEEDED`
+  - `backend/routes/operational_timeline.py`
+  - Trust Spine remains the event owner.
+
+### Planned reuse / extension / repair classification
+
+- WP-OPPC-11 Forecasting and Critical-Path Hardening → `EXTEND_EXISTING`
+- WP-OPPC-12 Production Confidence Score → `EXTEND_EXISTING`
+- WP-OPPC-13 Monday Morning Briefing → `EXTEND_EXISTING`
+- `NEW_CANONICAL_COMPONENT_REQUIRED` at batch start → **none**
+
+### No-secondary-engine confirmation
+
+- No secondary forecasting engine proposed.
+- No duplicate project-health engine proposed.
+- No duplicate briefing engine proposed.
+- All material lifecycle actions remain required to map to the Trust Spine.
 
 ## Internal validation checklist
 

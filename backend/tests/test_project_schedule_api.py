@@ -67,7 +67,8 @@ class _Collection:
     async def update_one(self, query, update, upsert=False):
         for row in self.rows:
             if all(row.get(k) == v for k, v in query.items()):
-                row.update((update or {}).get("$set", {}))
+                for key, value in (update or {}).get("$set", {}).items():
+                    row[key] = value
                 return type("R", (), {"matched_count": 1})()
         if upsert:
             doc = dict(query)
@@ -194,3 +195,39 @@ def test_weekly_rollover_preview_and_apply():
     assert body["weekly_rollover"]["status"] == "ready"
     assert body["planning_lifecycle"]["has_unpublished_changes"] is True
     assert "oppc_last_weekly_rollover" in db.jobs_master.rows[0]
+
+
+def test_project_forecast_endpoint_exposes_scenarios_and_governance():
+    client, _ = _client({"_actor": "pm", "role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    r = client.get("/api/cost-codes/projects/20-07/forecast")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["truth_basis"] == "canonical_operational_data"
+    assert body["schedule"]["scenario"]["key"] == "calculated_truth"
+    assert "scenario_comparison" in body
+    assert "governance" in body
+
+
+def test_forecast_snapshot_and_override_persist_on_project():
+    client, db = _client({"_actor": "pm", "role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    snap = client.post(
+        "/api/cost-codes/projects/20-07/forecast/snapshots",
+        json={"scenario_key": "weekend_work", "note": "Weekly executive hold point"},
+    )
+    assert snap.status_code == 200
+    assert db.jobs_master.rows[0]["oppc_forecast_history"]
+
+    override = client.put(
+        "/api/cost-codes/projects/20-07/forecast/overrides/MILL",
+        json={
+            "adjusted_start_date": "2026-07-10",
+            "adjusted_finish_date": "2026-07-25",
+            "reason": "Approved contractual shift",
+            "note": "Owner directed sequence change",
+            "evidence_links": ["doc://directive-1"],
+        },
+    )
+    assert override.status_code == 200
+    overrides = db.jobs_master.rows[0]["oppc_forecast_overrides"]
+    assert overrides[0]["cost_code"] == "MILL"
+    assert overrides[0]["truth_basis"] == "authorized_management_override"

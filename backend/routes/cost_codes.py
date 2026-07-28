@@ -16,14 +16,20 @@ from pm_auth import compute_pm_scope
 from services.cost_codes import get_provider
 from services.cost_codes.foundation import (
     ALLOWED_UNITS,
+    build_forecast_governance_summary,
+    build_forecast_snapshot_record,
     build_planning_lifecycle_snapshot,
     build_planning_readiness,
     build_progress_snapshot,
     build_project_cost_code_option,
     build_weekly_rollover_preview,
+    load_project_forecast_history,
     load_project_assignments,
     load_project_cost_code_actuals,
     load_project_planning_lifecycle,
+    normalize_forecast_override,
+    persist_project_forecast_overrides,
+    persist_project_forecast_snapshot,
     persist_project_assignments,
     persist_project_planning_lifecycle,
     recompute_project_progress as recompute_project_progress_snapshot,
@@ -32,7 +38,12 @@ from services.cost_codes.foundation import (
     now_iso,
     serialize_assignment,
 )
-from services.cost_codes.schedule_engine import build_schedule_snapshot, render_dot_schedule_pdf
+from services.cost_codes.schedule_engine import (
+    SCENARIO_PROFILES,
+    build_schedule_scenario_comparison,
+    build_schedule_snapshot,
+    render_dot_schedule_pdf,
+)
 
 REGISTRY_COLLECTION = "cost_code_registry"
 logger = logging.getLogger(__name__)
@@ -98,6 +109,19 @@ class PlanningPublishBody(BaseModel):
 class WeeklyRolloverApplyBody(BaseModel):
     confirm: str = Field(min_length=1)
     note: Optional[str] = ""
+
+
+class ForecastSnapshotBody(BaseModel):
+    scenario_key: Optional[str] = "calculated_truth"
+    note: Optional[str] = ""
+
+
+class ForecastOverrideBody(BaseModel):
+    adjusted_start_date: Optional[str] = ""
+    adjusted_finish_date: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    note: Optional[str] = ""
+    evidence_links: List[str] = Field(default_factory=list)
 
 
 async def _is_admin_actor(actor: Any) -> bool:
@@ -209,8 +233,19 @@ def _public_rollover_payload(preview: Dict[str, Any]) -> Dict[str, Any]:
 
 async def _resolve_project_schedule(db, project_number: str) -> Dict[str, Any]:
     assignments = await load_project_assignments(db, project_number)
-    progress = build_progress_snapshot(assignments, await load_project_cost_code_actuals(db, project_number)) if assignments else None
-    schedule = build_schedule_snapshot(assignments, progress)
+    daily_rows = await load_project_cost_code_actuals(db, project_number)
+    progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
+    forecast_history = await load_project_forecast_history(db, project_number)
+    overrides = forecast_history.get("overrides") or []
+    schedule = build_schedule_snapshot(assignments, progress, daily_rows=daily_rows, overrides=overrides)
+    scenario_comparison = build_schedule_scenario_comparison(
+        assignments,
+        progress,
+        daily_rows=daily_rows,
+        anchor_date=(schedule.get("window") or {}).get("anchor_date"),
+        scenario_keys=["additional_crew", "weekend_work", "additional_shift"],
+        overrides=overrides,
+    )
     planning_readiness = build_planning_readiness(assignments)
     stored_lifecycle = await load_project_planning_lifecycle(db, project_number)
     planning_lifecycle = build_planning_lifecycle_snapshot(
@@ -226,6 +261,20 @@ async def _resolve_project_schedule(db, project_number: str) -> Dict[str, Any]:
         "planning_readiness": planning_readiness,
         "planning_lifecycle": planning_lifecycle,
         "schedule": schedule,
+        "forecasting": {
+            "constitutional_rule": "Forecasts derive only from canonical operational data. Overrides remain audited evidence and never replace calculated truth.",
+            "scenario_comparison": scenario_comparison,
+            "governance": build_forecast_governance_summary(forecast_history),
+            "scenario_library": [
+                {
+                    "key": item.get("key"),
+                    "label": item.get("label"),
+                    "notes": item.get("notes"),
+                    "rate_multiplier": item.get("rate_multiplier"),
+                }
+                for item in SCENARIO_PROFILES.values()
+            ],
+        },
         "monday_look_behind_ready": bool(planning_readiness.get("supports_monday_look_behind")),
     }
 
@@ -429,6 +478,202 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         payload["can_edit"] = True
         payload["master_control"] = await _is_admin_actor(actor)
         return payload
+
+    @api_router.get("/cost-codes/projects/{project_number}/forecast")
+    async def get_project_forecast(
+        project_number: str,
+        scenario: Optional[str] = None,
+        actor=Depends(read_dep),
+    ) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        assignments = await load_project_assignments(db, project_number)
+        daily_rows = await load_project_cost_code_actuals(db, project_number)
+        progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
+        forecast_history = await load_project_forecast_history(db, project_number)
+        overrides = forecast_history.get("overrides") or []
+        schedule = build_schedule_snapshot(assignments, progress, daily_rows=daily_rows, overrides=overrides, scenario_key=scenario)
+        comparison = build_schedule_scenario_comparison(
+            assignments,
+            progress,
+            daily_rows=daily_rows,
+            anchor_date=(schedule.get("window") or {}).get("anchor_date"),
+            scenario_keys=["additional_crew", "weekend_work", "additional_shift"],
+            overrides=overrides,
+        )
+        return {
+            "project_number": project_number,
+            "schedule": schedule,
+            "scenario_comparison": comparison,
+            "governance": build_forecast_governance_summary(forecast_history),
+            "truth_basis": "canonical_operational_data",
+        }
+
+    @api_router.post("/cost-codes/projects/{project_number}/forecast/snapshots")
+    async def create_project_forecast_snapshot(
+        project_number: str,
+        body: ForecastSnapshotBody,
+        actor=Depends(read_dep),
+    ) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        assignments = await load_project_assignments(db, project_number)
+        daily_rows = await load_project_cost_code_actuals(db, project_number)
+        progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
+        history = await load_project_forecast_history(db, project_number)
+        schedule = build_schedule_snapshot(
+            assignments,
+            progress,
+            daily_rows=daily_rows,
+            overrides=history.get("overrides") or [],
+            scenario_key=body.scenario_key,
+        )
+        snapshot = build_forecast_snapshot_record(
+            project_number=project_number,
+            schedule=schedule,
+            scenario_key=(schedule.get("scenario") or {}).get("key") or "calculated_truth",
+            scenario_label=(schedule.get("scenario") or {}).get("label") or "Calculated Truth",
+            actor_label=_actor_label(actor),
+            note=str(body.note or "").strip(),
+            source="forecast_snapshot",
+        )
+        spine_record = await _open_oppc_workflow_lifecycle(
+            db,
+            workflow="oppc-forecasting",
+            project_number=project_number,
+            module="routes/cost_codes.py:create_project_forecast_snapshot",
+        )
+        try:
+            await persist_project_forecast_snapshot(db, project_number=project_number, snapshot=snapshot)
+        except LookupError as exc:
+            await _emit_oppc_plan_stage(
+                db,
+                workflow="oppc-forecasting",
+                stage="audit_written",
+                record=spine_record,
+                module="jobs_master.oppc_forecast_history",
+                status="failed",
+                failure_reason=str(exc),
+                remediation="Verify the project exists before snapshotting the forecast.",
+            )
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-forecasting",
+            stage="audit_written",
+            record=spine_record,
+            module="jobs_master.oppc_forecast_history",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-forecasting",
+            stage="dashboard_updated",
+            record=spine_record,
+            module="services.cost_codes.schedule_engine.build_schedule_snapshot",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-forecasting",
+            stage="completed",
+            record=spine_record,
+            module="routes/cost_codes.py:create_project_forecast_snapshot",
+        )
+        latest = await _resolve_project_schedule(db, project_number)
+        return {"ok": True, "snapshot": snapshot, "forecasting": latest.get("forecasting") or {}, "schedule": latest.get("schedule") or {}}
+
+    @api_router.put("/cost-codes/projects/{project_number}/forecast/overrides/{cost_code}")
+    async def upsert_project_forecast_override(
+        project_number: str,
+        cost_code: str,
+        body: ForecastOverrideBody,
+        actor=Depends(read_dep),
+    ) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        assignments = await load_project_assignments(db, project_number)
+        daily_rows = await load_project_cost_code_actuals(db, project_number)
+        progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
+        history = await load_project_forecast_history(db, project_number)
+        current_schedule = build_schedule_snapshot(assignments, progress, daily_rows=daily_rows, overrides=history.get("overrides") or [])
+        current_task = next((row for row in (current_schedule.get("tasks") or []) if str(row.get("code") or "").strip() == str(cost_code or "").strip()), None)
+        if not current_task:
+            raise HTTPException(status_code=404, detail="Cost code forecast activity not found")
+        existing_rows = list(history.get("overrides") or [])
+        existing_map = {str(row.get("cost_code") or "").strip(): row for row in existing_rows if str(row.get("cost_code") or "").strip()}
+        try:
+            override = normalize_forecast_override(
+                cost_code=cost_code,
+                calculated_start_date=str(current_task.get("forecast_start_date") or ""),
+                calculated_finish_date=str(current_task.get("forecast_finish_date") or ""),
+                adjusted_start_date=str(body.adjusted_start_date or current_task.get("forecast_start_date") or "").strip(),
+                adjusted_finish_date=str(body.adjusted_finish_date or "").strip(),
+                reason=str(body.reason or "").strip(),
+                actor_label=_actor_label(actor),
+                actor_role=_actor_role(actor),
+                evidence_links=body.evidence_links,
+                note=str(body.note or "").strip(),
+                existing=existing_map.get(str(cost_code or "").strip()),
+                status="active",
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        existing_map[str(cost_code or "").strip()] = override
+        ordered = [existing_map[key] for key in sorted(existing_map)]
+        spine_record = await _open_oppc_workflow_lifecycle(
+            db,
+            workflow="oppc-forecasting",
+            project_number=project_number,
+            module="routes/cost_codes.py:upsert_project_forecast_override",
+        )
+        try:
+            await persist_project_forecast_overrides(db, project_number=project_number, overrides=ordered)
+        except LookupError as exc:
+            await _emit_oppc_plan_stage(
+                db,
+                workflow="oppc-forecasting",
+                stage="audit_written",
+                record=spine_record,
+                module="jobs_master.oppc_forecast_overrides",
+                status="failed",
+                failure_reason=str(exc),
+                remediation="Verify the project exists before saving forecast overrides.",
+            )
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-forecasting",
+            stage="audit_written",
+            record=spine_record,
+            module="jobs_master.oppc_forecast_overrides",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-forecasting",
+            stage="dashboard_updated",
+            record=spine_record,
+            module="services.cost_codes.schedule_engine.build_schedule_snapshot",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            workflow="oppc-forecasting",
+            stage="completed",
+            record=spine_record,
+            module="routes/cost_codes.py:upsert_project_forecast_override",
+        )
+        latest = await _resolve_project_schedule(db, project_number)
+        return {"ok": True, "override": override, "forecasting": latest.get("forecasting") or {}, "schedule": latest.get("schedule") or {}}
 
     @api_router.put("/cost-codes/projects/{project_number}/schedule")
     async def put_project_schedule(project_number: str, body: ProjectScheduleBody, actor=Depends(read_dep)) -> Dict[str, Any]:

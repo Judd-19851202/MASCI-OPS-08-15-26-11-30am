@@ -32,6 +32,10 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _slug(value: Any) -> str:
+    return _clean_str(value).lower().replace(" ", "_")
+
+
 def _to_float(value: Any, *, default: float = 0.0) -> float:
     try:
         if value in (None, ""):
@@ -677,6 +681,175 @@ async def load_project_planning_lifecycle(db, project_number: str) -> Dict[str, 
         logger.warning("[cost-codes] planning lifecycle load failed for %s: %s", project_number, exc)
         return {}
     return dict((job or {}).get("oppc_planning_lifecycle") or {})
+
+
+async def load_project_forecast_history(db, project_number: str) -> Dict[str, Any]:
+    project_number = _clean_str(project_number)
+    if not project_number:
+        return {"snapshots": [], "overrides": [], "settings": {}}
+    try:
+        job = await db.jobs_master.find_one(
+            {"project_number": project_number},
+            {"_id": 0, "oppc_forecast_history": 1, "oppc_forecast_overrides": 1, "oppc_forecast_settings": 1},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] forecast history load failed for %s: %s", project_number, exc)
+        return {"snapshots": [], "overrides": [], "settings": {}}
+    return {
+        "snapshots": list((job or {}).get("oppc_forecast_history") or []),
+        "overrides": list((job or {}).get("oppc_forecast_overrides") or []),
+        "settings": dict((job or {}).get("oppc_forecast_settings") or {}),
+    }
+
+
+def build_forecast_snapshot_record(
+    *,
+    project_number: str,
+    schedule: Dict[str, Any],
+    scenario_key: str,
+    scenario_label: str,
+    actor_label: str,
+    note: str = "",
+    source: str = "manual_snapshot",
+) -> Dict[str, Any]:
+    return {
+        "snapshot_id": f"forecast-{uuid.uuid4().hex[:12]}",
+        "project_number": project_number,
+        "scenario_key": _slug(scenario_key) or "calculated_truth",
+        "scenario_label": _clean_str(scenario_label) or "Calculated Truth",
+        "projected_finish_date": _clean_str(schedule.get("projected_finish_date")),
+        "committed_finish_date": _clean_str(schedule.get("committed_finish_date")),
+        "critical_path": list(schedule.get("critical_path") or []),
+        "critical_path_count": len(schedule.get("critical_path") or []),
+        "override_count": int(schedule.get("override_count") or 0),
+        "warnings": list(schedule.get("warnings") or []),
+        "hardening_summary": dict(schedule.get("hardening_summary") or {}),
+        "window": dict(schedule.get("window") or {}),
+        "created_at": now_iso(),
+        "created_by": actor_label,
+        "note": _clean_str(note),
+        "source": _clean_str(source) or "manual_snapshot",
+        "truth_basis": "canonical_operational_data",
+    }
+
+
+async def persist_project_forecast_snapshot(
+    db,
+    *,
+    project_number: str,
+    snapshot: Dict[str, Any],
+) -> Dict[str, Any]:
+    project_number = _clean_str(project_number)
+    current = await load_project_forecast_history(db, project_number)
+    snapshots = list(current.get("snapshots") or [])
+    snapshots.append(dict(snapshot or {}))
+    result = await db.jobs_master.update_one(
+        {"project_number": project_number},
+        {"$set": {"oppc_forecast_history": snapshots, "updated_at": now_iso()}},
+        upsert=False,
+    )
+    if not result.matched_count:
+        raise LookupError(f"Project {project_number} was not found in jobs_master")
+    return dict(snapshot or {})
+
+
+def normalize_forecast_override(
+    *,
+    cost_code: str,
+    calculated_start_date: str,
+    calculated_finish_date: str,
+    adjusted_start_date: str,
+    adjusted_finish_date: str,
+    reason: str,
+    actor_label: str,
+    actor_role: str,
+    evidence_links: Optional[List[str]] = None,
+    note: str = "",
+    existing: Optional[Dict[str, Any]] = None,
+    status: str = "active",
+) -> Dict[str, Any]:
+    code = _clean_str(cost_code)
+    if not code:
+        raise ValueError("cost_code is required")
+    reason_text = _clean_str(reason)
+    if not reason_text:
+        raise ValueError("Override reason is required")
+    calc_finish = _clean_str(calculated_finish_date)
+    adj_finish = _clean_str(adjusted_finish_date)
+    if not calc_finish:
+        raise ValueError("calculated_finish_date is required")
+    if not adj_finish:
+        raise ValueError("adjusted_finish_date is required")
+    links = [item for item in (_coerce_string_list(evidence_links or [])) if item]
+    previous = dict(existing or {})
+    history = list(previous.get("history") or [])
+    history.append(
+        {
+            "at": now_iso(),
+            "by": actor_label,
+            "role": actor_role,
+            "status": _slug(status) or "active",
+            "calculated_start_date": _clean_str(calculated_start_date),
+            "calculated_finish_date": calc_finish,
+            "adjusted_start_date": _clean_str(adjusted_start_date),
+            "adjusted_finish_date": adj_finish,
+            "reason": reason_text,
+            "note": _clean_str(note),
+            "evidence_links": links,
+        }
+    )
+    return {
+        "override_id": _clean_str(previous.get("override_id") or f"override-{uuid.uuid4().hex[:12]}"),
+        "cost_code": code,
+        "status": _slug(status) or "active",
+        "calculated_start_date": _clean_str(calculated_start_date),
+        "calculated_finish_date": calc_finish,
+        "adjusted_start_date": _clean_str(adjusted_start_date),
+        "adjusted_finish_date": adj_finish,
+        "reason": reason_text,
+        "note": _clean_str(note),
+        "evidence_links": links,
+        "created_at": _clean_str(previous.get("created_at") or now_iso()),
+        "created_by": _clean_str(previous.get("created_by") or actor_label),
+        "created_role": _clean_str(previous.get("created_role") or actor_role),
+        "updated_at": now_iso(),
+        "updated_by": actor_label,
+        "updated_role": actor_role,
+        "history": history,
+        "truth_basis": "authorized_management_override",
+    }
+
+
+async def persist_project_forecast_overrides(
+    db,
+    *,
+    project_number: str,
+    overrides: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    project_number = _clean_str(project_number)
+    rows = [dict(row) for row in (overrides or [])]
+    result = await db.jobs_master.update_one(
+        {"project_number": project_number},
+        {"$set": {"oppc_forecast_overrides": rows, "updated_at": now_iso()}},
+        upsert=False,
+    )
+    if not result.matched_count:
+        raise LookupError(f"Project {project_number} was not found in jobs_master")
+    return rows
+
+
+def build_forecast_governance_summary(history: Dict[str, Any]) -> Dict[str, Any]:
+    snapshots = list(history.get("snapshots") or [])
+    overrides = list(history.get("overrides") or [])
+    active_overrides = [row for row in overrides if _slug(row.get("status")) in {"active", "approved", "authorized"}]
+    return {
+        "snapshot_count": len(snapshots),
+        "latest_snapshot": dict(snapshots[-1]) if snapshots else {},
+        "active_override_count": len(active_overrides),
+        "overrides": overrides,
+        "snapshot_history": snapshots[-12:],
+        "settings": dict(history.get("settings") or {}),
+    }
 
 
 async def recompute_project_progress(db, project_number: str) -> Optional[Dict[str, Any]]:
