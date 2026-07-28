@@ -111,9 +111,9 @@ const TILE_DEFS = {
     desc: "Issue, reset, deactivate Field Leadership logins.",
     stripe: "border-l-amber-700", btn: "bg-slate-800 hover:bg-slate-900" },
 
-  // ── Guidance (slate-600) ────────────────────────────────────
-  guidance: { to: "/guidance?from=hr", icon: BookOpen, label: "Training Center & Guides",
-    desc: "Step-by-step HR operator guides.",
+  // ── Training Center (slate-600) ─────────────────────────────
+  guidance: { to: "/guidance?from=hr", icon: BookOpen, label: "Training Center",
+    desc: "How-to guides and troubleshooting.",
     stripe: "border-l-slate-600", btn: "bg-slate-800 hover:bg-slate-900" },
 };
 
@@ -146,8 +146,8 @@ const TILE_GROUPS = [
   },
   {
     key: "guidance",
-    heading: "Guidance",
-    sub: "Operator guides and supporting documentation.",
+    heading: "Training Center",
+    sub: "How-to guides and supporting documentation.",
     tiles: ["guidance"],
     muted: true,
   },

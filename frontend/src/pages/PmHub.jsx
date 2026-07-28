@@ -112,7 +112,7 @@ const HUB_V2_TIER3_MORE = [
   { to: "/pm/jha-plans",        icon: FileText,     label: "JHA Plans",        countKey: "jhaPlans" },
   { to: "/pm/trench-boxes",     icon: Box,          label: "Trench Boxes",     countKey: "trenchBoxes" },
   { to: "/pm/field-leadership", icon: UserCheck,    label: "Field Leadership", countKey: null },
-  { to: "/guidance",            icon: GraduationCap, label: "Guidance",        countKey: null },
+  { to: "/guidance",            icon: GraduationCap, label: "Training Center",        countKey: null },
 ];
 
 function HubV2QuickTile({ to, icon: Icon, title, count, subline, stripe, testId }) {

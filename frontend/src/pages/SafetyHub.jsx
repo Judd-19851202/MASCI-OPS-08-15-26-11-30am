@@ -445,7 +445,7 @@ export default function SafetyHub() {
         </div>
       </section>
 
-      {/* ─── Group 04 · Guidance & Systems (DEMOTED) ──────────────────── */}
+      {/* ─── Group 04 · Training Center & Systems (DEMOTED) ────────────── */}
       {/*
          Per UX_GOVERNANCE_RULES Rule 6: integrations + guidance must
          support the hub, not compete with operational workflows. Rendered
@@ -456,8 +456,8 @@ export default function SafetyHub() {
         className="pt-6 border-t border-slate-200"
       >
         <SectionHeading
-          title={t("Guidance & Systems")}
-          sub={t("Supporting tools · operator guides · cross-portal integration visibility")}
+          title={t("Training Center & Systems")}
+          sub={t("Supporting tools, how-to guides, and cross-portal integration visibility")}
           muted
           testId="safety-group-heading-systems"
         />
@@ -465,8 +465,8 @@ export default function SafetyHub() {
           <SafetyTile
             to="/guidance?from=safety"
             icon={GraduationCap}
-            title={t("Training Center & Guides")}
-            desc={t("Step-by-step Safety operator guides. Download any guide as a PDF.")}
+            title={t("Training Center")}
+            desc={t("How-to guides, troubleshooting, and downloadable PDFs for Safety workflows.")}
             accent="audits"
             ctaLabel={t("OPEN")}
             testId="safety-tile-training-center"
