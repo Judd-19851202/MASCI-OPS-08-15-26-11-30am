@@ -24,6 +24,7 @@ export default function ExecutiveOperationalIntelligence() {
   const [health, setHealth] = React.useState(null);
   const [attention, setAttention] = React.useState(null);
   const [oppc, setOppc] = React.useState(null);
+  const [briefing, setBriefing] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState(null);
 
@@ -38,15 +39,22 @@ export default function ExecutiveOperationalIntelligence() {
           fetchExecutiveHealth({ preset }),
           fetchAdminAttention({ preset, limit: 15 }),
         ]);
-        const oppcRes = await fetch(`${API}/api/oppc/enterprise/executive-operations-center`, {
-          headers: { "X-Admin-Token": getAdminToken() || "" },
-        });
+        const [oppcRes, briefingRes] = await Promise.all([
+          fetch(`${API}/api/oppc/enterprise/executive-operations-center`, {
+            headers: { "X-Admin-Token": getAdminToken() || "" },
+          }),
+          fetch(`${API}/api/oppc/enterprise/monday-briefing`, {
+            headers: { "X-Admin-Token": getAdminToken() || "" },
+          }),
+        ]);
         const oppcJson = oppcRes.ok ? await oppcRes.json() : null;
+        const briefingJson = briefingRes.ok ? await briefingRes.json() : null;
         if (!alive) return;
         setDash(d);
         setHealth(h);
         setAttention(a);
         setOppc(oppcJson);
+        setBriefing(briefingJson?.briefing || null);
       } catch (e) {
         if (alive) setErr(e?.message || "Load failed");
       } finally {
@@ -61,6 +69,21 @@ export default function ExecutiveOperationalIntelligence() {
   const totalProjects = health?.total_projects || 0;
   const items = attention?.items || {};
   const oppcSummary = oppc?.summary || {};
+
+  const runBriefingAction = async (path) => {
+    try {
+      const res = await fetch(`${API}/api/oppc/enterprise/monday-briefing/${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Token": getAdminToken() || "" },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.detail || `${path} failed`);
+      setBriefing(json?.briefing || null);
+    } catch (e) {
+      setErr(e?.message || "Briefing action failed");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50" data-testid="exec-intel-page">
@@ -258,6 +281,40 @@ export default function ExecutiveOperationalIntelligence() {
                   ))}
                 </div>
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {briefing ? (
+          <section data-testid="exec-horizon-briefing">
+            <HorizonHeader
+              number="BRIEF"
+              title="Monday Morning Briefing"
+              subtitle="Portfolio briefing lifecycle, freeze state, and executive narrative"
+              testid="exec-horizon-briefing-header"
+            />
+            <div className="rounded-lg border border-neutral-200 bg-white p-4 space-y-4" data-testid="exec-briefing-panel">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest text-neutral-500">Status</div>
+                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefing.status || "draft"}</div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate">Generate</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve">Approve</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze">Freeze</button>
+                  <a className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" href={`${API}/api/oppc/enterprise/monday-briefing/pdf`} target="_blank" rel="noreferrer" data-testid="exec-briefing-pdf">Open PDF</a>
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3 text-sm">
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">Week ending: {briefing.week_ending || "—"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">Generated: {briefing.generated_at || "—"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-hash">Hash: {briefing.content_hash || "—"}</div>
+              </div>
+              <div className="space-y-2 text-sm text-neutral-700" data-testid="exec-briefing-summary-lines">
+                {(briefing.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
+              </div>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">Warnings: {(briefing.warnings || []).join(" · ") || "None"}</div>
             </div>
           </section>
         ) : null}

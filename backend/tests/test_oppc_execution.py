@@ -216,6 +216,7 @@ class _DB:
             }
         ])
         self.operational_variance_reviews = _Collection([])
+        self.oppc_monday_briefings = _Collection([])
         self.project_team_assignments = _Collection([
             {"project_number": "20-07", "assignment_role": "superintendent", "display_name": "Sup 1", "active": True},
             {"project_number": "20-07", "assignment_role": "foreman", "display_name": "Foreman 1", "active": True},
@@ -353,3 +354,33 @@ def test_executive_operations_center_returns_summary_for_admin():
     body = r.json()
     assert body["summary"]["open_variances"] >= 1
     assert body["summary"]["leadership_projects"] >= 1
+
+
+def test_project_monday_briefing_lifecycle_and_pdf():
+    client, db = _client({"role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    generated = client.post("/api/oppc/projects/20-07/monday-briefing/generate", json={"week_ending": "2026-07-19"})
+    assert generated.status_code == 200
+    assert generated.json()["briefing"]["status"] == "draft"
+
+    approved = client.post("/api/oppc/projects/20-07/monday-briefing/approve", json={"week_ending": "2026-07-19"})
+    assert approved.status_code == 200
+    assert approved.json()["briefing"]["status"] == "approved"
+
+    frozen = client.post("/api/oppc/projects/20-07/monday-briefing/freeze", json={"week_ending": "2026-07-19"})
+    assert frozen.status_code == 200
+    assert frozen.json()["briefing"]["status"] == "frozen"
+    assert db.oppc_monday_briefings.rows[0]["content_hash"]
+
+    pdf = client.get("/api/oppc/projects/20-07/monday-briefing/pdf", params={"week_ending": "2026-07-19"})
+    assert pdf.status_code == 200
+    assert pdf.headers["content-type"] == "application/pdf"
+    assert pdf.content.startswith(b"%PDF")
+
+
+def test_enterprise_monday_briefing_generate_returns_portfolio_brief():
+    client, _ = _client(True)
+    r = client.post("/api/oppc/enterprise/monday-briefing/generate", json={"week_ending": "2026-07-19"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["briefing"]["scope_type"] == "enterprise"
+    assert body["briefing"]["sections"]["confidence_summary"]["average_score"] >= 0

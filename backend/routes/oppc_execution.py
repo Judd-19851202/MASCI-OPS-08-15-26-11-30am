@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from pm_auth import compute_pm_scope
@@ -15,6 +15,16 @@ from services.cost_codes.oppc_execution import (
     build_project_execution_workspace,
     load_monday_review_doc,
     persist_monday_review_doc,
+)
+from services.cost_codes.oppc_briefings import (
+    approve_briefing,
+    build_enterprise_monday_briefing,
+    build_project_monday_briefing,
+    ensure_monday_briefing_indexes,
+    freeze_briefing,
+    load_monday_briefing_doc,
+    persist_monday_briefing_doc,
+    render_monday_briefing_pdf,
 )
 from services.cost_codes.oppc_intelligence import (
     CONTROLLABILITY_OPTIONS,
@@ -61,6 +71,11 @@ class ActivityReviewBody(BaseModel):
 
 class MondayReviewCompleteBody(BaseModel):
     week_ending: Optional[str] = ""
+
+
+class BriefingActionBody(BaseModel):
+    week_ending: Optional[str] = ""
+    note: Optional[str] = ""
 
 
 class VarianceReviewBody(BaseModel):
@@ -185,6 +200,90 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
     ) -> Dict[str, Any]:
         await _ensure_project_access(db, project_number, actor)
         return await build_project_execution_workspace(db, project_number, _week_ending(week_ending or ""))
+
+    @api_router.get("/oppc/projects/{project_number}/monday-briefing")
+    async def get_project_monday_briefing(
+        project_number: str,
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        await _ensure_project_access(db, project_number, actor)
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(week_ending or "")
+        doc = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
+        if not doc:
+            doc = await build_project_monday_briefing(db, project_number=project_number, week_ending=week, actor_label=_actor_label(actor))
+        return {"briefing": doc, "scope": {"type": "project", "key": project_number, "week_ending": week}}
+
+    @api_router.post("/oppc/projects/{project_number}/monday-briefing/generate")
+    async def generate_project_monday_briefing(
+        project_number: str,
+        body: BriefingActionBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        await _ensure_project_access(db, project_number, actor)
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(body.week_ending or "")
+        existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
+        if existing.get("frozen"):
+            raise HTTPException(status_code=409, detail="Frozen briefings cannot be regenerated without administrative intervention")
+        doc = await build_project_monday_briefing(db, project_number=project_number, week_ending=week, actor_label=_actor_label(actor))
+        doc["approval_history"] = list(existing.get("approval_history") or [])
+        saved = await persist_monday_briefing_doc(db, doc)
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_generated", stage="record_created")
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_generated", stage="dashboard_updated")
+        return {"ok": True, "briefing": saved}
+
+    @api_router.post("/oppc/projects/{project_number}/monday-briefing/approve")
+    async def approve_project_monday_briefing(
+        project_number: str,
+        body: BriefingActionBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        await _ensure_project_access(db, project_number, actor)
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(body.week_ending or "")
+        existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
+        if not existing:
+            existing = await build_project_monday_briefing(db, project_number=project_number, week_ending=week, actor_label=_actor_label(actor))
+        if existing.get("frozen"):
+            raise HTTPException(status_code=409, detail="Frozen briefings cannot be re-approved")
+        saved = await persist_monday_briefing_doc(db, approve_briefing(existing, actor_label=_actor_label(actor), note=body.note or ""))
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:approve_project_monday_briefing", event_name="briefing_approved", stage="audit_written")
+        return {"ok": True, "briefing": saved}
+
+    @api_router.post("/oppc/projects/{project_number}/monday-briefing/freeze")
+    async def freeze_project_monday_briefing(
+        project_number: str,
+        body: BriefingActionBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        await _ensure_project_access(db, project_number, actor)
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(body.week_ending or "")
+        existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
+        if not existing:
+            raise HTTPException(status_code=404, detail="Generate the briefing before freezing it")
+        if _clean(existing.get("status")) != "approved":
+            raise HTTPException(status_code=409, detail="Approve the briefing before freezing it")
+        saved = await persist_monday_briefing_doc(db, freeze_briefing(existing, actor_label=_actor_label(actor), note=body.note or ""))
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:freeze_project_monday_briefing", event_name="briefing_frozen", stage="completed")
+        return {"ok": True, "briefing": saved}
+
+    @api_router.get("/oppc/projects/{project_number}/monday-briefing/pdf")
+    async def get_project_monday_briefing_pdf(
+        project_number: str,
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Response:
+        await _ensure_project_access(db, project_number, actor)
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(week_ending or "")
+        doc = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
+        if not doc:
+            doc = await build_project_monday_briefing(db, project_number=project_number, week_ending=week, actor_label=_actor_label(actor))
+        pdf_bytes = render_monday_briefing_pdf(doc)
+        return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"inline; filename=OPPC_Monday_Briefing_{project_number}_{week}.pdf"})
 
     @api_router.get("/oppc/projects/{project_number}/variance-intelligence")
     async def get_variance_intelligence(
@@ -599,6 +698,95 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
             stage="dashboard_updated",
         )
         return payload
+
+    @api_router.get("/oppc/enterprise/monday-briefing")
+    async def get_enterprise_monday_briefing(
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(week_ending or "")
+        doc = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
+        if not doc:
+            doc = await build_enterprise_monday_briefing(db, week_ending=week, actor_label=_actor_label(actor))
+        return {"briefing": doc, "scope": {"type": "enterprise", "key": "enterprise", "week_ending": week}}
+
+    @api_router.post("/oppc/enterprise/monday-briefing/generate")
+    async def generate_enterprise_monday_briefing(
+        body: BriefingActionBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(body.week_ending or "")
+        existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
+        if existing.get("frozen"):
+            raise HTTPException(status_code=409, detail="Frozen briefings cannot be regenerated without administrative intervention")
+        doc = await build_enterprise_monday_briefing(db, week_ending=week, actor_label=_actor_label(actor))
+        doc["approval_history"] = list(existing.get("approval_history") or [])
+        saved = await persist_monday_briefing_doc(db, doc)
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_generated", stage="record_created")
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_generated", stage="dashboard_updated")
+        return {"ok": True, "briefing": saved}
+
+    @api_router.post("/oppc/enterprise/monday-briefing/approve")
+    async def approve_enterprise_monday_briefing(
+        body: BriefingActionBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(body.week_ending or "")
+        existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
+        if not existing:
+            existing = await build_enterprise_monday_briefing(db, week_ending=week, actor_label=_actor_label(actor))
+        if existing.get("frozen"):
+            raise HTTPException(status_code=409, detail="Frozen briefings cannot be re-approved")
+        saved = await persist_monday_briefing_doc(db, approve_briefing(existing, actor_label=_actor_label(actor), note=body.note or ""))
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:approve_enterprise_monday_briefing", event_name="briefing_approved", stage="audit_written")
+        return {"ok": True, "briefing": saved}
+
+    @api_router.post("/oppc/enterprise/monday-briefing/freeze")
+    async def freeze_enterprise_monday_briefing(
+        body: BriefingActionBody,
+        actor=Depends(require_any_portal_token),
+    ) -> Dict[str, Any]:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(body.week_ending or "")
+        existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
+        if not existing:
+            raise HTTPException(status_code=404, detail="Generate the briefing before freezing it")
+        if _clean(existing.get("status")) != "approved":
+            raise HTTPException(status_code=409, detail="Approve the briefing before freezing it")
+        saved = await persist_monday_briefing_doc(db, freeze_briefing(existing, actor_label=_actor_label(actor), note=body.note or ""))
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:freeze_enterprise_monday_briefing", event_name="briefing_frozen", stage="completed")
+        return {"ok": True, "briefing": saved}
+
+    @api_router.get("/oppc/enterprise/monday-briefing/pdf")
+    async def get_enterprise_monday_briefing_pdf(
+        week_ending: Optional[str] = None,
+        actor=Depends(require_any_portal_token),
+    ) -> Response:
+        scope = await compute_pm_scope(db, actor)
+        if not getattr(scope, "is_admin", False):
+            raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await ensure_monday_briefing_indexes(db)
+        week = _week_ending(week_ending or "")
+        doc = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
+        if not doc:
+            doc = await build_enterprise_monday_briefing(db, week_ending=week, actor_label=_actor_label(actor))
+        pdf_bytes = render_monday_briefing_pdf(doc)
+        return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"inline; filename=OPPC_Enterprise_Monday_Briefing_{week}.pdf"})
 
 
 __all__ = ["register_oppc_execution_routes"]

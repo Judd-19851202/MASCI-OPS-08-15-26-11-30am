@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CalendarRange, CheckCircle2, RefreshCw } from "lucide-react";
+import { CalendarRange, CheckCircle2, RefreshCw, FileText, Lock, ShieldCheck } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 import { Button } from "@/components/ui/button";
@@ -127,6 +127,7 @@ export default function PmMondayReviewWorkspace() {
   const [metaDraft, setMetaDraft] = useState({ critical_path_reviewed: false, executive_actions: "", notes: "" });
   const [savingCode, setSavingCode] = useState("");
   const [savingVarianceKey, setSavingVarianceKey] = useState("");
+  const [briefing, setBriefing] = useState(null);
 
   const load = async (pn, we = weekEnding) => {
     if (!pn) return;
@@ -179,9 +180,12 @@ export default function PmMondayReviewWorkspace() {
       }
       setReviewDrafts(nextDrafts);
       setVarianceDrafts(nextVarianceDrafts);
+      const brief = await api.get(`/oppc/projects/${encodeURIComponent(pn)}/monday-briefing`, { params: { week_ending: we || undefined } });
+      setBriefing(brief.data?.briefing || null);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not load the Monday review workspace.");
       setWorkspace(null);
+      setBriefing(null);
     } finally {
       setLoading(false);
     }
@@ -306,6 +310,23 @@ export default function PmMondayReviewWorkspace() {
   const canComplete = !!workspace?.monday_review?.ready;
   const varianceItems = workspace?.variance_intelligence?.variances || [];
 
+  const runBriefingAction = async (path, successMessage) => {
+    if (!projectNumber) return;
+    try {
+      const r = await api.post(`/oppc/projects/${encodeURIComponent(projectNumber)}/monday-briefing/${path}`, { week_ending: weekEnding || undefined });
+      setBriefing(r.data?.briefing || null);
+      toast.success(successMessage);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || `Could not ${path.replaceAll("/", " ")}.`);
+    }
+  };
+
+  const openBriefingPdf = () => {
+    if (!projectNumber) return;
+    const query = weekEnding ? `?week_ending=${encodeURIComponent(weekEnding)}` : "";
+    window.open(`/api/oppc/projects/${encodeURIComponent(projectNumber)}/monday-briefing/pdf${query}`, "_blank", "noopener,noreferrer");
+  };
+
   const summaryCards = useMemo(() => ([
     { key: "health", label: "Project Health", value: health.status || "—" },
     { key: "production", label: "Actual Qty", value: workspace?.production_summary?.actual_quantity ?? "—" },
@@ -361,6 +382,31 @@ export default function PmMondayReviewWorkspace() {
                   </label>
                 </div>
                 <div className="mt-4 flex justify-end"><Button variant="outline" onClick={saveMeta} data-testid="pm-monday-review-save-meta">Save readiness context</Button></div>
+              </div>
+
+              <div className="rounded-[2rem] border border-white/40 bg-white/80 p-5 shadow-sm" data-testid="pm-monday-briefing-panel">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-black text-slate-900"><FileText className="h-4 w-4" /> Monday Morning Briefing</div>
+                    <div className="text-xs text-slate-500">Project briefing sourced from the canonical schedule, confidence, production, payroll, and variance engines.</div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
+                    <Button variant="outline" onClick={() => runBriefingAction("approve", "Briefing approved.")} data-testid="pm-monday-briefing-approve"><ShieldCheck className="mr-2 h-4 w-4" />Approve</Button>
+                    <Button variant="outline" onClick={() => runBriefingAction("freeze", "Briefing frozen.")} data-testid="pm-monday-briefing-freeze"><Lock className="mr-2 h-4 w-4" />Freeze</Button>
+                    <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-3 text-sm">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" data-testid="pm-monday-briefing-status">Status: {briefing?.status || "draft"}</div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" data-testid="pm-monday-briefing-generated-at">Generated: {briefing?.generated_at || "—"}</div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" data-testid="pm-monday-briefing-content-hash">Hash: {briefing?.content_hash || "pending"}</div>
+                </div>
+                <div className="mt-4 space-y-2 text-sm text-slate-700" data-testid="pm-monday-briefing-summary-lines">
+                  {(briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
+                  {!(briefing?.summary_lines || []).length ? <div className="text-slate-500">Generate the briefing to capture the Monday executive package.</div> : null}
+                </div>
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600" data-testid="pm-monday-briefing-warnings">Warnings: {(briefing?.warnings || []).join(" · ") || "None"}</div>
               </div>
 
               <div className="space-y-4" data-testid="pm-monday-review-activities-list">
