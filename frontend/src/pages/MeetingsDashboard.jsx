@@ -131,14 +131,14 @@ export default function MeetingsDashboard() {
                 No meetings logged yet
               </h3>
               <p className="text-slate-600 mt-2 max-w-md mx-auto">
-                Run a toolbox talk and document who attended.
+                Record the first toolbox talk and document who attended.
               </p>
               <Button
                 onClick={() => navigate("/meetings/new")}
                 className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
                 data-testid="empty-cta"
               >
-                <Plus className="w-5 h-5 mr-2" /> Log First Meeting
+                <Plus className="w-5 h-5 mr-2" /> Create first meeting record
               </Button>
             </div>
           ) : (

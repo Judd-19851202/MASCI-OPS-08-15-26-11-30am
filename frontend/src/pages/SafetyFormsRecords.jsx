@@ -279,7 +279,7 @@ export default function SafetyFormsRecords() {
           )}
         </div>
 
-        <p className="text-xs text-slate-500 font-mono">
+        <p className="text-sm text-slate-500 font-mono">
           {filtered.length} {t("of")} {items.length} {t("records shown")}
         </p>
       </div>

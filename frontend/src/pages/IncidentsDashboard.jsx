@@ -148,14 +148,14 @@ export default function IncidentsDashboard() {
                 Nothing filed yet today.
               </h3>
               <p className="text-slate-600 mt-2 max-w-md mx-auto">
-                Every near miss, injury, property damage, or environmental release belongs here. Small details written now save big problems later.
+                Log every near miss, injury, property damage event, or environmental release here. Small details captured now prevent larger problems later.
               </p>
               <Button
                 onClick={() => navigate("/incidents/report")}
                 className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
                 data-testid="empty-cta"
               >
-                <Plus className="w-5 h-5 mr-2" /> Report First Incident
+                <Plus className="w-5 h-5 mr-2" /> Create first incident report
               </Button>
             </div>
           ) : (

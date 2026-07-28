@@ -1202,7 +1202,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 type="button"
                 onClick={onDismissCrewSetup}
                 data-testid="dr-v3-crew-setup-dismiss"
-                className="rounded-md px-3 py-1.5 text-xs text-emerald-800 hover:bg-emerald-100"
+                className="rounded-md px-3 py-1.5 text-sm text-emerald-800 hover:bg-emerald-100"
               >
                 {t("Not today")}
               </button>

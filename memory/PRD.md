@@ -126,6 +126,29 @@ Explicit non-scope for this fork:
 - Limitation of preview verification:
   - some Safety-portal-owned pages remain auth-gated to safety-specific credentials in preview, so those exact surfaces could not be fully automated in this run despite the shared component fixes landing underneath them
 
+### 2026-07-28 all-portal super-admin sweep
+
+- Verified super-admin access across Preview and Production exposes all major portal tokens: admin, dispatch, field leadership, HR, PM, safety, and shop.
+- Ran a comprehensive preview audit across 32 representative routes spanning:
+  - Admin
+  - PM
+  - HR
+  - Safety
+  - Dispatch
+  - Shop
+  - public/field forms
+  - training/guidance
+- Result: the earlier reported `/admin/diagnostics`, `/safety-portal/hub_v2`, and `/fleet/dvir/submit` failures were false positives from text-based detection; browser verification confirmed all three routes work normally.
+- Final copy refinements after the all-portal sweep:
+  - incidents empty state CTA now says `Create first incident report`
+  - meetings empty state CTA now says `Create first meeting record`
+  - safety forms record footer readability improved
+  - daily report crew setup dismiss action readability improved
+- Current honest state after the full super-admin sweep:
+  - no confirmed broken core portal routes in the audited set
+  - no confirmed sidebar/layout regressions in the audited set
+  - no confirmed false KPI states in the audited set beyond the already-known legitimate operational findings (governance/data-quality issues)
+
 - Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
 - Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
 - Wired the certification lane into:
