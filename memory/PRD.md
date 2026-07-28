@@ -50,6 +50,27 @@ Explicit non-scope for this fork:
 - Production note:
   - final confirmation of `backups/production/auto-90d/` behavior, production hourly activation, and production stale-lock cleanup still requires user redeploy + live production verification.
 
+### 2026-07-28 P0/P1 recovery truth + governance repair pass
+
+- Implemented strict recovery-truth alignment so backup/admin KPI surfaces stop disagreeing:
+  - stale running backup jobs are now classified as reclaimable instead of permanent blockers
+  - system-health backup card now evaluates against the hourly RPO target (`BACKUP_RPO_TARGET_MINUTES`, default 60)
+  - recovery snapshot pill is forced RED when RPO is RED, preventing green-vs-red contradiction
+  - OCC storage/recovery reasoning now explicitly calls out `hourly_blocked_by_safety_guard`
+- Added real governance repair tooling without faking legitimacy:
+  - new admin repair endpoint: `POST /api/admin/compliance/issue-missing-ppe`
+  - governance summary now exposes recommended repair endpoints for employee-link backfill and PPE issuance catch-up
+  - dry-run verification on preview found 397 employees currently missing PPE issuance records
+- Adjusted production certification semantics so stale-only evidence is `REVIEW` rather than being conflated with failed evidence; true blocked workflows still remain `HOLD`
+- New regression coverage:
+  - `/app/backend/tests/test_backup_truth_alignment.py`
+  - `/app/backend/tests/test_governance_repair_endpoints.py`
+  - testing-agent verification report: `/app/test_reports/iteration_54.json`
+- Preview verification outcome:
+  - system-health backup card and recovery snapshot both show RED when RPO target is missed
+  - governance repair endpoints respond correctly and preserve truthful critical governance status
+  - hourly complete R2 remains disabled in preview by config/environment (expected)
+
 - Implemented a bounded Preview-only certification override in `/app/backend/lib/preview_notification_certification.py`.
 - Preserved `SAFE_CAPTURE` globally while allowing a fail-closed scoped live-provider path only for one certification notification record, one run ID, one authorized recipient, and a short expiration window.
 - Wired the certification lane into:
