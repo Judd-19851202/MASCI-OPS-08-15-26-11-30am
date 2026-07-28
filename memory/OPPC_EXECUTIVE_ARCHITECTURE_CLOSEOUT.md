@@ -38,11 +38,10 @@
 - PM/admin scope checks remain enforced through existing portal auth and `compute_pm_scope`.
 - Enterprise briefing routes are admin-gated.
 - Project briefing routes stay project-scoped.
-- Final frontend certification showed auth-environment blockers on some preview cross-portal routes, but not rendering regressions in the new OPPC panels.
+- Final preview certification verified the required OPPC surfaces after adding an admin route alias and auth-safe frontend fallbacks.
 
 ## 7. Remaining Technical Debt
 - Portfolio-wide confidence endpoints remain slower than ideal in preview.
-- Executive Intelligence route availability in preview remains environment-dependent.
 - Auth-safe fallbacks were added on the frontend so the new OPPC panels still render without blank-screen regressions.
 
 ## 8. Recommendations for WP-14

@@ -68,6 +68,10 @@ Governing constraints:
     - `/app/memory/OPPC_ENTERPRISE_RESOURCE_COORDINATION.md`
     - `/app/memory/OPPC_OPERATIONAL_TIMELINE.md`
     - `/app/memory/OPPC_EXECUTIVE_OPERATIONS_CENTER.md`
+- `WP-OPPC-11` is now complete by extending the existing schedule engine with deterministic forecasting, scenario comparison, critical-path hardening, snapshot governance, and Trust Spine audit continuity.
+- `WP-OPPC-12` is now complete with a shared Production Confidence Score engine exposed through Project Health and ODS executive/admin/PM surfaces, including snapshot history and explainability.
+- `WP-OPPC-13` is now complete with project + enterprise Monday Morning Briefings, approval/freeze lifecycle, PDF export, and canonical evidence composition.
+- Performance, survivability, executive closeout, and end-to-end preview certification have been recorded for the WP-11/12/13 batch.
 - Permanent constitutional rule added for future OPPC work:
   - every new capability must be evaluated for MASCI-wide reuse before implementation and generalized into a canonical service when feasible
 
@@ -79,8 +83,36 @@ Governing constraints:
   - `/app/backend/lib/trust_spine.py`
   - `/app/backend/tests/test_project_schedule_api.py`
   - `/app/backend/tests/test_project_schedule_engine.py`
+  - `/app/backend/services/cost_codes/oppc_confidence.py`
+  - `/app/backend/services/cost_codes/oppc_confidence_data.py`
+  - `/app/backend/services/cost_codes/oppc_briefings.py`
+  - `/app/backend/routes/project_health.py`
+  - `/app/backend/routes/ods_intelligence.py`
+  - `/app/backend/routes/oppc_execution.py`
+  - `/app/backend/tests/test_oppc_confidence.py`
+  - `/app/backend/tests/test_wp12_confidence_api.py`
+  - `/app/backend/tests/test_oppc_survivability.py`
+  - `/app/backend/tests/oppc_scale_benchmark_runner.py`
 - Frontend:
   - `/app/frontend/src/pages/PmProjectSchedule.jsx`
+  - `/app/frontend/src/pages/ProjectHealth.jsx`
+  - `/app/frontend/src/pages/PmMondayReviewWorkspace.jsx`
+  - `/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx`
+  - `/app/frontend/src/pages/ExecutiveIntelligence.jsx`
+  - `/app/frontend/src/components/pm/command/PmProjectSelector.jsx`
+  - `/app/frontend/src/lib/odsIntelligenceApi.js`
+  - `/app/frontend/src/app/routing/AppRoutes.jsx`
+- Evidence / certification:
+  - `/app/memory/OPPC_FORECASTING_CRITICAL_PATH_CERTIFICATION.md`
+  - `/app/memory/OPPC_PRODUCTION_CONFIDENCE_SCORE_CERTIFICATION.md`
+  - `/app/memory/OPPC_MONDAY_MORNING_BRIEFING_CERTIFICATION.md`
+  - `/app/memory/OPPC_WP11_REGRESSION_GATE.md`
+  - `/app/memory/OPPC_WP12_REGRESSION_GATE.md`
+  - `/app/memory/OPPC_WP13_REGRESSION_GATE.md`
+  - `/app/memory/OPPC_PERFORMANCE_SCALABILITY_VALIDATION.md`
+  - `/app/memory/OPPC_SURVIVABILITY_VALIDATION.md`
+  - `/app/memory/OPPC_EXECUTIVE_ARCHITECTURE_CLOSEOUT.md`
+  - `/app/memory/OPPC_END_TO_END_PREVIEW_CERTIFICATION.md`
 
 ### OPPC verification evidence
 
@@ -93,17 +125,21 @@ Governing constraints:
 - Independent verification:
   - `/app/test_reports/iteration_63.json`
   - `/app/test_reports/iteration_65.json`
+- WP-11 regression + independent verification: `/app/test_reports/iteration_66.json`
+- WP-12 regression + independent verification: `/app/test_reports/iteration_67.json`
+- WP-13 regression + independent verification: `/app/test_reports/iteration_68.json`
 - Preview smoke validation:
   - root preview loaded successfully at `REACT_APP_BACKEND_URL`
   - `/operations-center` loaded successfully in screenshot smoke test
+  - final frontend narrow certification passed after route + auth-safe fallback fixes
 
 ### OPPC next execution order
 
-1. `WP-OPPC-11` Forecasting and Critical-Path Hardening
-2. `WP-OPPC-12` Production Confidence Score
-3. `WP-OPPC-13` Monday Morning Briefing
-4. `WP-OPPC-14` Notifications and Escalations
-5. `WP-OPPC-15` Permissions and Governance
+1. `WP-OPPC-14` Notifications and Escalations
+2. `WP-OPPC-15` Permissions and Governance
+3. Executive latency optimization for portfolio confidence rollups
+4. `WP-OPPC-16` User Experience
+5. `WP-OPPC-17` Data, Audit, Retention, and Survivability
 
 ## 2026-07-27 Fork Scope
 

@@ -1,5 +1,27 @@
 # Change Log
 
+## 2026-07-28 — MASCI OPS OPPC WP-OPPC-11 through WP-OPPC-13 closeout
+
+- Completed `WP-OPPC-11` by extending the canonical schedule engine with deterministic forecasting, scenario comparison, critical-path hardening, forecast snapshots, and audited override governance.
+- Completed `WP-OPPC-12` by adding a shared production confidence engine, project-health exposure, ODS rollups, confidence history persistence, and Trust Spine-backed snapshot evidence.
+- Completed `WP-OPPC-13` by adding project + enterprise Monday Morning Briefings with approval/freeze lifecycle, PDF export, and canonical evidence composition.
+- Added closeout evidence artifacts:
+  - `/app/memory/OPPC_FORECASTING_CRITICAL_PATH_CERTIFICATION.md`
+  - `/app/memory/OPPC_PRODUCTION_CONFIDENCE_SCORE_CERTIFICATION.md`
+  - `/app/memory/OPPC_MONDAY_MORNING_BRIEFING_CERTIFICATION.md`
+  - `/app/memory/OPPC_WP11_REGRESSION_GATE.md`
+  - `/app/memory/OPPC_WP12_REGRESSION_GATE.md`
+  - `/app/memory/OPPC_WP13_REGRESSION_GATE.md`
+  - `/app/memory/OPPC_PERFORMANCE_SCALABILITY_VALIDATION.md`
+  - `/app/memory/OPPC_SURVIVABILITY_VALIDATION.md`
+  - `/app/memory/OPPC_EXECUTIVE_ARCHITECTURE_CLOSEOUT.md`
+  - `/app/memory/OPPC_END_TO_END_PREVIEW_CERTIFICATION.md`
+- Final verification evidence:
+  - `/app/test_reports/iteration_66.json`
+  - `/app/test_reports/iteration_67.json`
+  - `/app/test_reports/iteration_68.json`
+  - final frontend certification rerun: all required OPPC preview panels verified
+
 ## 2026-07-28 — MASCI OPS OPPC WP-OPPC-08 through WP-OPPC-10
 
 - Added one canonical enterprise operational intelligence service at `/app/backend/services/cost_codes/oppc_intelligence.py` for variance intelligence, recovery intelligence, and enterprise resource coordination.

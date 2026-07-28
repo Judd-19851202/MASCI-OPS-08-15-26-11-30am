@@ -14,22 +14,27 @@
 - `WP-OPPC-08 — Schedule Variance and Root-Cause Taxonomy`: **COMPLETE**
 - `WP-OPPC-09 — Recovery Planning and Tasks & Actions`: **COMPLETE**
 - `WP-OPPC-10 — Resource Demand and Cross-Department Integration`: **COMPLETE**
-- `WP-OPPC-11 — Forecasting and Critical-Path Hardening`: **READY**
+- `WP-OPPC-11 — Forecasting and Critical-Path Hardening`: **COMPLETE**
+- `WP-OPPC-12 — Production Confidence Score`: **COMPLETE**
+- `WP-OPPC-13 — Monday Morning Briefing`: **COMPLETE**
 
 ### OPPC P0 sequence
 
-1. `WP-OPPC-11 — Forecasting and Critical-Path Hardening`
-2. `WP-OPPC-12 — Production Confidence Score`
-3. `WP-OPPC-13 — Monday Morning Briefing`
-4. `WP-OPPC-14 — Notifications and Escalations`
-5. `WP-OPPC-15 — Permissions and Governance`
-6. `WP-OPPC-16 — User Experience`
-7. `WP-OPPC-17 — Data, Audit, Retention, and Survivability`
-8. `WP-OPPC-18 — Trust Center and Operational Observability`
-9. `WP-OPPC-19 — Testing and Certification`
-10. `WP-OPPC-20 — Regression Gate`
-11. `WP-OPPC-21 — Independent Verification`
-12. `WP-OPPC-22 — Evidence Package`
+1. `WP-OPPC-14 — Notifications and Escalations`
+2. `WP-OPPC-15 — Permissions and Governance`
+3. Executive latency optimization for portfolio confidence rollups
+4. `WP-OPPC-16 — User Experience`
+5. `WP-OPPC-17 — Data, Audit, Retention, and Survivability`
+6. `WP-OPPC-18 — Trust Center and Operational Observability`
+7. `WP-OPPC-19 — Testing and Certification`
+8. `WP-OPPC-20 — Regression Gate`
+9. `WP-OPPC-21 — Independent Verification`
+10. `WP-OPPC-22 — Evidence Package`
+
+### Current advisory note
+
+- WP-11/12/13 are functionally complete and certified in preview.
+- Portfolio-wide executive confidence refresh remains the main performance optimization candidate for WP-14.
 
 ### OPPC governing constraints preserved
 
