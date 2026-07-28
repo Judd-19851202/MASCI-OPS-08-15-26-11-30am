@@ -89,6 +89,7 @@ export default function PmProjectSchedule() {
   const [payload, setPayload] = useState(null);
   const [draft, setDraft] = useState({});
   const [rolloverPreview, setRolloverPreview] = useState(null);
+  const [mondayReviewSummary, setMondayReviewSummary] = useState(null);
 
   useEffect(() => {
     const pn = params.get("project_number") || "";
@@ -99,8 +100,13 @@ export default function PmProjectSchedule() {
     if (!pn) return;
     setLoading(true);
     try {
-      const r = await api.get(`/cost-codes/projects/${encodeURIComponent(pn)}/schedule`);
+      const [scheduleResponse, reviewResponse] = await Promise.all([
+        api.get(`/cost-codes/projects/${encodeURIComponent(pn)}/schedule`),
+        api.get(`/oppc/projects/${encodeURIComponent(pn)}/execution-workspace`).catch(() => ({ data: null })),
+      ]);
+      const r = scheduleResponse;
       setPayload(r.data || null);
+      setMondayReviewSummary(reviewResponse?.data?.monday_review || null);
       setRolloverPreview(null);
       const next = {};
       for (const task of r.data?.schedule?.tasks || []) {
@@ -120,6 +126,7 @@ export default function PmProjectSchedule() {
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not load Project Schedule.");
       setPayload(null);
+      setMondayReviewSummary(null);
     } finally {
       setLoading(false);
     }
@@ -146,6 +153,7 @@ export default function PmProjectSchedule() {
     try {
       const r = await api.put(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule`, { tasks: Object.values(draft) });
       setPayload(r.data || null);
+      setMondayReviewSummary(null);
       setRolloverPreview(null);
       toast.success("Project Schedule updated.");
     } catch (e) {
@@ -158,6 +166,7 @@ export default function PmProjectSchedule() {
     try {
       const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/planning-lifecycle/publish`, { note: "Published from PM Project Schedule" });
       setPayload(r.data || null);
+      setMondayReviewSummary(null);
       setRolloverPreview(null);
       toast.success("14-day plan published.");
     } catch (e) {
@@ -184,6 +193,7 @@ export default function PmProjectSchedule() {
         note: "Applied from PM Project Schedule",
       });
       setPayload(r.data || null);
+      setMondayReviewSummary(null);
       setRolloverPreview(r.data?.weekly_rollover || null);
       toast.success("Weekly rollover applied.");
     } catch (e) {
@@ -208,6 +218,7 @@ export default function PmProjectSchedule() {
               <Button variant="outline" onClick={applyRollover} disabled={!projectNumber || !rolloverPreview?.supports_apply} data-testid="pm-project-schedule-rollover-apply"><CalendarRange className="w-4 h-4 mr-2" />Apply Weekly Rollover</Button>
               <Button variant="outline" onClick={publish} disabled={!projectNumber || !payload?.planning_lifecycle?.supports_publish} data-testid="pm-project-schedule-publish"><CalendarRange className="w-4 h-4 mr-2" />Publish 14-Day Plan</Button>
               <Button onClick={save} disabled={!projectNumber || !editable} data-testid="pm-project-schedule-save"><Save className="w-4 h-4 mr-2" />Save Schedule</Button>
+              {projectNumber ? <Link to={`/pm/monday-review?project_number=${encodeURIComponent(projectNumber)}`} className="text-xs font-semibold text-amber-700 hover:underline" data-testid="pm-project-schedule-open-monday-review">Open Monday Review</Link> : null}
             </div>
           </div>
           {payload?.schedule?.warnings?.length ? (
@@ -221,7 +232,7 @@ export default function PmProjectSchedule() {
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Projected Finish</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-projected-finish">{payload.schedule.projected_finish_date || "—"}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Critical Path</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-critical-path-count">{(payload.schedule.critical_path || []).length}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">% Complete</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-overall-progress">{Number(payload.progress?.overall_percent_complete || 0).toFixed(2)}%</div></div>
-              <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Monday Look-Behind</div><div className={`text-lg font-black ${payload.planning_readiness?.supports_monday_look_behind ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-look-behind-ready">{payload.planning_readiness?.supports_monday_look_behind ? "Ready" : "Needs setup"}</div></div>
+              <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Monday Look-Behind</div><div className={`text-lg font-black ${mondayReviewSummary?.ready ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-look-behind-ready">{mondayReviewSummary?.ready ? "Ready" : `${Number(mondayReviewSummary?.completion_percent || 0).toFixed(0)}%`}</div><div className="text-[11px] glass-text-muted-dark mt-1" data-testid="pm-project-schedule-look-behind-blockers">{(mondayReviewSummary?.blocking_items || []).slice(0, 2).join(", ") || "Open the workspace"}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">OPPC Foundation</div><div className={`text-lg font-black ${payload.planning_readiness?.status === "ready" ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-foundation-status">{payload.planning_readiness?.status === "ready" ? "Hardened" : "Needs fields"}</div><div className="text-[11px] glass-text-muted-dark mt-1" data-testid="pm-project-schedule-foundation-summary">{payload.planning_readiness?.ready_assignments || 0}/{payload.planning_readiness?.assignment_count || 0} ready</div></div>
             </div>
           ) : null}

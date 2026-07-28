@@ -1341,6 +1341,59 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 )
             except Exception:  # noqa: BLE001
                 pass
+            try:
+                from lib.trust_spine import emit_record_created, emit_workflow_stage  # noqa: PLC0415
+
+                for actual_row in (doc.get("cost_code_quantities") or []):
+                    code = str(actual_row.get("cost_code") or actual_row.get("code") or "").strip()
+                    if not code:
+                        continue
+                    actual_record = {
+                        "id": f"{doc.get('project_number') or ''}:{doc.get('doc_id') or doc.get('id') or ''}:{code}",
+                        "doc_id": f"{doc.get('project_number') or ''}:{doc.get('doc_id') or doc.get('id') or ''}:{code}",
+                        "project_number": doc.get("project_number") or "",
+                    }
+                    await emit_record_created(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        record=actual_record,
+                        module="routes/daily_reports.py:cost_code_quantities",
+                        event_name="daily_actual_recorded",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="validation_complete",
+                        record=actual_record,
+                        module="routes/daily_reports.py:cost_code_quantities",
+                        event_name="quantity_updated",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="audit_written",
+                        record=actual_record,
+                        module="routes/daily_reports.py:masci_crews",
+                        event_name="labor_actual_updated",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="dashboard_updated",
+                        record=actual_record,
+                        module="routes/daily_reports.py:equipment",
+                        event_name="equipment_actual_updated",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="completed",
+                        record=actual_record,
+                        module="routes/daily_reports.py",
+                        event_name="completed",
+                    )
+            except Exception:  # noqa: BLE001
+                pass
             if _should_schedule_daily_report_email(doc):
                 schedule_auto_email("daily-report", doc)
 

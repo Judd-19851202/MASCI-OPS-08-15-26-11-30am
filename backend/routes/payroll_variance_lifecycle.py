@@ -27,6 +27,7 @@ from lib.workflow_state_events import (
     list_state_events,
     write_state_event,
 )
+from lib.trust_spine import emit_workflow_stage
 from lib.workflow_state_machine import (
     PAYROLL_VARIANCE_DEFAULT_STATE,
     PAYROLL_VARIANCE_STATES,
@@ -151,6 +152,31 @@ def register_payroll_variance_lifecycle_routes(
             evidence=evidence,
             request=request,
         )
+        try:
+            spine_record = {
+                "id": canonical_id,
+                "doc_id": canonical_id,
+                "project_number": "",
+            }
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-payroll-reconciliation",
+                stage="audit_written",
+                record=spine_record,
+                module="routes/payroll_variance_lifecycle.py:transition_payroll_variance",
+                event_name="payroll_variance_detected",
+            )
+            if to_state == "FINALIZED":
+                await emit_workflow_stage(
+                    db,
+                    workflow="oppc-payroll-reconciliation",
+                    stage="completed",
+                    record=spine_record,
+                    module="routes/payroll_variance_lifecycle.py:transition_payroll_variance",
+                    event_name="completed",
+                )
+        except Exception:
+            pass
 
         return {
             "ok": True,

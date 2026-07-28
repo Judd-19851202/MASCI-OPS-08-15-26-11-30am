@@ -158,6 +158,21 @@ WORKFLOW_EXPECTED_STAGES: Dict[str, list] = {
         STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
         STAGE_COMPLETED,
     ],
+    "oppc-daily-actuals": [
+        STAGE_RECORD_CREATED, STAGE_VALIDATION_COMPLETE,
+        STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
+        STAGE_COMPLETED,
+    ],
+    "oppc-payroll-reconciliation": [
+        STAGE_RECORD_CREATED, STAGE_VALIDATION_COMPLETE,
+        STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
+        STAGE_COMPLETED,
+    ],
+    "oppc-monday-look-behind": [
+        STAGE_RECORD_CREATED, STAGE_VALIDATION_COMPLETE,
+        STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
+        STAGE_COMPLETED,
+    ],
 }
 
 
@@ -212,6 +227,7 @@ async def emit_stage(
     duration_ms: Optional[int] = None,
     failure_reason: Optional[str] = None,
     remediation: Optional[str] = None,
+    event_name: Optional[str] = None,
 ) -> None:
     """Write one Trust Spine lifecycle event.
 
@@ -238,6 +254,8 @@ async def emit_stage(
         }
         if remediation:
             doc["remediation"] = remediation[:240]
+        if event_name:
+            doc["event_name"] = event_name[:120]
         await db.trust_spine_events.insert_one(doc)
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -254,14 +272,14 @@ async def emit_stage(
 
 
 async def emit_record_created(
-    db, *, workflow: str, record: dict, module: str
+    db, *, workflow: str, record: dict, module: str, event_name: Optional[str] = None
 ) -> str:
     """Open a record's lifecycle. Returns the correlation_id."""
     cid = attach_correlation(record)
     ids = _ids_from_record(record)
     await emit_stage(
         db, workflow=workflow, stage=STAGE_RECORD_CREATED,
-        correlation_id=cid, module=module, status="ok", **ids,
+        correlation_id=cid, module=module, status="ok", event_name=event_name, **ids,
     )
     return cid
 
@@ -276,6 +294,7 @@ async def emit_workflow_stage(
     status: str = "ok",
     failure_reason: Optional[str] = None,
     remediation: Optional[str] = None,
+    event_name: Optional[str] = None,
 ) -> None:
     """Emit any subsequent stage for a record, using its threaded cid."""
     cid = attach_correlation(record)
@@ -284,6 +303,7 @@ async def emit_workflow_stage(
         db, workflow=workflow, stage=stage, correlation_id=cid,
         module=module, status=status,
         failure_reason=failure_reason, remediation=remediation,
+        event_name=event_name,
         **ids,
     )
 

@@ -352,6 +352,55 @@ def build_payroll_variance_router(db, require_hr_user_dep: Callable) -> APIRoute
             })
         except Exception:
             pass
+        try:
+            from lib.trust_spine import emit_record_created, emit_workflow_stage  # noqa: PLC0415
+
+            spine_record = {
+                "id": doc["id"],
+                "doc_id": doc["id"],
+                "project_number": ",".join(sorted({p for row in variance for p in (row.get('masci_jobs') or []) if p}))[:64],
+            }
+            await emit_record_created(
+                db,
+                workflow="oppc-payroll-reconciliation",
+                record=spine_record,
+                module="routes/payroll_variance.py:upload",
+                event_name="payroll_variance_detected",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-payroll-reconciliation",
+                stage="validation_complete",
+                record=spine_record,
+                module="routes/payroll_variance.py:build_variance_rows",
+                event_name="payroll_variance_detected",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-payroll-reconciliation",
+                stage="audit_written",
+                record=spine_record,
+                module="routes/payroll_variance.py:upload",
+                event_name="labor_actual_updated",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-payroll-reconciliation",
+                stage="dashboard_updated",
+                record=spine_record,
+                module="routes/payroll_variance.py:upload",
+                event_name="forecast_updated",
+            )
+            await emit_workflow_stage(
+                db,
+                workflow="oppc-payroll-reconciliation",
+                stage="completed",
+                record=spine_record,
+                module="routes/payroll_variance.py:upload",
+                event_name="completed",
+            )
+        except Exception:
+            pass
         return {"ok": True, "batch": doc}
 
     @router.get("/recent")

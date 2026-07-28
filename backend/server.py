@@ -14904,6 +14904,11 @@ _require_any_portal_token = make_require_any_portal_token(
 )
 app.include_router(build_tasks_notifications_router(db, _require_any_portal_token))
 
+from routes.oppc_execution import register_oppc_execution_routes  # noqa: E402
+_oppc_exec_router = APIRouter(prefix="/api", tags=["oppc-execution"])
+register_oppc_execution_routes(_oppc_exec_router, db, _require_any_portal_token)
+app.include_router(_oppc_exec_router)
+
 # TRACK 14.0-S1 Amendment A — bilingual record sidecar (original-language
 # preservation for free-text fields submitted in Spanish or any future
 # non-English language). Additive collection · zero coupling to the
