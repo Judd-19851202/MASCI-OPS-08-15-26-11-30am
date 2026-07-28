@@ -71,6 +71,32 @@ Explicit non-scope for this fork:
   - governance repair endpoints respond correctly and preserve truthful critical governance status
   - hourly complete R2 remains disabled in preview by config/environment (expected)
 
+### 2026-07-28 admin health contradiction repair pass
+
+- Implemented the production-redeploy repair pass for the five traced admin health issues:
+  - `backend/server.py`
+    - hourly activation now reuses canonical scheduler truth inside `/api/admin/backups-scheduler-state`
+    - added live alias routes for `/api/admin/persistence-health`, `/api/admin/runtime-reliability`, and `/api/admin/database`
+    - tightened health-monitor/index startup coverage for `health_monitor_runs`, `health_alert_cooldowns`, and directory-session expiry paths
+  - `backend/routes/admin_persistence_health.py`
+    - Atlas connectivity now trusts runtime identity (`is_atlas`, `mongo_scheme=mongodb+srv`) and reports the detection basis
+  - `backend/routes/occ_health_aggregator.py`
+    - child probes now forward both admin and directory tokens
+    - aggregate OCC no longer collapses to false `UNVERIFIABLE` from auth passthrough or parsing bugs
+    - recovery snapshot and production-certification evidence parsing now tolerates list/array shapes truthfully
+  - `backend/health_monitor.py`
+    - alert stamping now updates the current run directly instead of a broad sorted write
+- Added / refreshed regression coverage:
+  - `/app/backend/tests/test_admin_diag_aliases_and_scheduler_truth.py`
+  - `/app/backend/tests/test_iter430_persistence_health_and_sentry_tags.py`
+  - `/app/backend/tests/test_track_25_sprint_2_occ_trust_layer.py`
+  - backend verification report: `/app/test_reports/iteration_55.json`
+- Preview verification outcome:
+  - `/api/admin/backups-scheduler-state` returns `alive=true`, `is_healthy=true`, and no false `scheduler_unhealthy` blocker
+  - `/api/admin/persistence-health`, `/api/admin/runtime-reliability`, `/api/admin/database` all return 200
+  - `/api/admin/occ/health` returns 200 with `UNVERIFIABLE=0`; remaining amber/red cards are real preview evidence, not contradictions
+  - deployment readiness scan passed with no blockers
+
 ### 2026-07-28 cross-platform continuity + scheduler truth pass
 
 - Fixed admin session continuity for multi-portal sign-in:
