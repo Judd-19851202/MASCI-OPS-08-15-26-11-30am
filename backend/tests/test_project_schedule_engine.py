@@ -1,4 +1,5 @@
 from services.cost_codes.schedule_engine import build_schedule_snapshot, render_dot_schedule_pdf
+from services.cost_codes.foundation import build_planning_lifecycle_snapshot, build_planning_readiness
 
 
 def _assignment(code, start, duration, predecessors=None):
@@ -39,3 +40,43 @@ def test_dot_schedule_pdf_renders_binary():
     snap = build_schedule_snapshot([_assignment("CC-1", "2026-07-18", 2)], {"codes": []}, anchor_date="2026-07-18")
     pdf = render_dot_schedule_pdf("20-07", snap)
     assert pdf.startswith(b"%PDF")
+
+
+def test_planning_readiness_flags_missing_oppc_fields():
+    readiness = build_planning_readiness([
+        {
+            "code": "CC-1",
+            "item_name": "Drainage",
+            "unit_of_measure": "LF",
+            "authorized_quantity": 150,
+            "schedule_start_date": "2026-07-18",
+            "duration_days": 2,
+            "schedule_phase": "",
+            "planned_performer": "",
+        }
+    ])
+    assert readiness["status"] == "needs_attention"
+    assert readiness["missing_required_counts"]["planned_performer"] == 1
+    assert readiness["missing_required_counts"]["schedule_phase"] == 1
+
+
+def test_planning_lifecycle_promotes_ready_projects_to_publishable_state():
+    readiness = build_planning_readiness([
+        {
+            "code": "CC-1",
+            "item_name": "Drainage",
+            "unit_of_measure": "LF",
+            "authorized_quantity": 150,
+            "schedule_start_date": "2026-07-18",
+            "duration_days": 2,
+            "schedule_phase": "Phase 1",
+            "planned_performer": "Crew A",
+        }
+    ])
+    lifecycle = build_planning_lifecycle_snapshot(
+        planning_readiness=readiness,
+        stored={"has_unpublished_changes": True},
+        schedule_window={"anchor_date": "2026-07-18", "start_date": "2026-07-11", "end_date": "2026-07-25", "history_days": 7, "forecast_days": 7, "visible_days": 15},
+    )
+    assert lifecycle["status"] == "ready_to_publish"
+    assert lifecycle["supports_publish"] is True

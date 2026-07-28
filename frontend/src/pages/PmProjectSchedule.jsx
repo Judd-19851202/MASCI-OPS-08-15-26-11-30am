@@ -49,6 +49,15 @@ function TaskRow({ task, days, editable, onChange }) {
             <div className={`h-full ${task.critical ? "bg-red-600" : "bg-emerald-500"}`} style={{ width: `${Math.max(0, Math.min(100, task.progress_percent || 0))}%` }} />
           </div>
         </div>
+        {task.planning_readiness?.status !== "ready" ? (
+          <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50/90 px-3 py-2 text-[11px] text-amber-900" data-testid={`pm-project-schedule-readiness-${task.code}`}>
+            Missing: {(task.planning_readiness?.missing_required || []).join(", ") || "Planning fields"}
+          </div>
+        ) : (
+          <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-[11px] text-emerald-800" data-testid={`pm-project-schedule-readiness-${task.code}`}>
+            OPPC plan foundation ready
+          </div>
+        )}
       </div>
       <div className="glass-blur glass-bg glass-dark elite-glass-panel rounded-2xl border border-white/20 p-4 overflow-x-auto">
         <div className="grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(52px, 1fr))` }}>
@@ -141,6 +150,17 @@ export default function PmProjectSchedule() {
     }
   };
 
+  const publish = async () => {
+    if (!projectNumber) return;
+    try {
+      const r = await api.post(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/planning-lifecycle/publish`, { note: "Published from PM Project Schedule" });
+      setPayload(r.data || null);
+      toast.success("14-day plan published.");
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Could not publish the 14-day plan.");
+    }
+  };
+
   return (
     <PmShell title="Project Schedule" section="jobs" intro={<p className="text-xs text-slate-500">14-day rolling CPM schedule with cost-code progress and Monday Look-Behind readiness.</p>}>
       <div className="space-y-4" data-testid="pm-project-schedule-page">
@@ -154,6 +174,7 @@ export default function PmProjectSchedule() {
               <PmProjectSelector value={projectNumber} onChange={onSelectProject} />
               <Button variant="outline" onClick={() => load(projectNumber)} data-testid="pm-project-schedule-refresh"><RefreshCw className="w-4 h-4 mr-2" />Refresh</Button>
               <Button variant="outline" onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}/api/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule/dot-report.pdf`, "_blank")} disabled={!projectNumber} data-testid="pm-project-schedule-dot-export"><Download className="w-4 h-4 mr-2" />DOT Schedule Report</Button>
+              <Button variant="outline" onClick={publish} disabled={!projectNumber || !payload?.planning_lifecycle?.supports_publish} data-testid="pm-project-schedule-publish"><CalendarRange className="w-4 h-4 mr-2" />Publish 14-Day Plan</Button>
               <Button onClick={save} disabled={!projectNumber || !editable} data-testid="pm-project-schedule-save"><Save className="w-4 h-4 mr-2" />Save Schedule</Button>
             </div>
           </div>
@@ -164,14 +185,47 @@ export default function PmProjectSchedule() {
             </div>
           ) : null}
           {payload ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-4">
+            <div className="mt-4 grid gap-3 md:grid-cols-5">
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Projected Finish</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-projected-finish">{payload.schedule.projected_finish_date || "—"}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Critical Path</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-critical-path-count">{(payload.schedule.critical_path || []).length}</div></div>
               <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">% Complete</div><div className="text-lg font-black glass-text-dark" data-testid="pm-project-schedule-overall-progress">{Number(payload.progress?.overall_percent_complete || 0).toFixed(2)}%</div></div>
-              <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Monday Look-Behind</div><div className="text-lg font-black text-emerald-700" data-testid="pm-project-schedule-look-behind-ready">Ready</div></div>
+              <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Monday Look-Behind</div><div className={`text-lg font-black ${payload.planning_readiness?.supports_monday_look_behind ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-look-behind-ready">{payload.planning_readiness?.supports_monday_look_behind ? "Ready" : "Needs setup"}</div></div>
+              <div className="rounded-2xl bg-white/70 border border-slate-200 px-4 py-3"><div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">OPPC Foundation</div><div className={`text-lg font-black ${payload.planning_readiness?.status === "ready" ? "text-emerald-700" : "text-amber-700"}`} data-testid="pm-project-schedule-foundation-status">{payload.planning_readiness?.status === "ready" ? "Hardened" : "Needs fields"}</div><div className="text-[11px] glass-text-muted-dark mt-1" data-testid="pm-project-schedule-foundation-summary">{payload.planning_readiness?.ready_assignments || 0}/{payload.planning_readiness?.assignment_count || 0} ready</div></div>
             </div>
           ) : null}
         </div>
+
+        {payload?.planning_lifecycle ? (
+          <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-lifecycle-panel">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-sm font-black glass-text-dark">Rolling Two-Week Planning Lifecycle</div>
+                <div className="text-xs glass-text-muted-dark" data-testid="pm-project-schedule-lifecycle-window">{payload.planning_lifecycle.window_start_date || "—"} → {payload.planning_lifecycle.window_end_date || "—"}</div>
+              </div>
+              <div className={`rounded-full px-3 py-1 text-xs font-bold ${payload.planning_lifecycle.status === "published" ? "bg-emerald-100 text-emerald-800" : payload.planning_lifecycle.status === "ready_to_publish" ? "bg-sky-100 text-sky-800" : payload.planning_lifecycle.status === "needs_attention" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`} data-testid="pm-project-schedule-lifecycle-status">{payload.planning_lifecycle.status}</div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Publish readiness</div>
+                <div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-lifecycle-publish-ready">{payload.planning_lifecycle.supports_publish ? "Ready" : "Blocked"}</div>
+              </div>
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Published at</div>
+                <div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-lifecycle-published-at">{payload.planning_lifecycle.published_at || "Not yet published"}</div>
+              </div>
+              <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Unpublished changes</div>
+                <div className="text-base font-black glass-text-dark" data-testid="pm-project-schedule-lifecycle-dirty">{payload.planning_lifecycle.has_unpublished_changes ? "Yes" : "No"}</div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {payload?.planning_readiness?.status && payload.planning_readiness.status !== "ready" ? (
+          <div className="rounded-[2rem] border border-amber-300 bg-amber-50/90 px-5 py-4 text-sm text-amber-950" data-testid="pm-project-schedule-foundation-alert">
+            OPPC hardening found missing planning fields across this project. Fill schedule phase, planned performer, dates, and quantities before rollover and Monday look-behind workflows rely on it.
+          </div>
+        ) : null}
 
         {!projectNumber ? (
           <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-6 text-sm glass-text-muted-dark" data-testid="pm-project-schedule-empty">Choose one assigned project to open its rolling schedule dashboard.</div>

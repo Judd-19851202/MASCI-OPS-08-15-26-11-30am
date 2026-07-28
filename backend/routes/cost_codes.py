@@ -16,14 +16,19 @@ from pm_auth import compute_pm_scope
 from services.cost_codes import get_provider
 from services.cost_codes.foundation import (
     ALLOWED_UNITS,
+    build_planning_lifecycle_snapshot,
+    build_planning_readiness,
     build_progress_snapshot,
     build_project_cost_code_option,
     load_project_assignments,
     load_project_cost_code_actuals,
+    load_project_planning_lifecycle,
     persist_project_assignments,
+    persist_project_planning_lifecycle,
     recompute_project_progress as recompute_project_progress_snapshot,
     normalize_job_assignment,
     normalize_registry_item,
+    now_iso,
     serialize_assignment,
 )
 from services.cost_codes.schedule_engine import build_schedule_snapshot, render_dot_schedule_pdf
@@ -83,6 +88,10 @@ class ProjectScheduleBody(BaseModel):
     tasks: List[ScheduleTaskUpdateIn] = Field(default_factory=list)
 
 
+class PlanningPublishBody(BaseModel):
+    note: Optional[str] = ""
+
+
 async def _is_admin_actor(actor: Any) -> bool:
     if actor is True:
         return True
@@ -107,16 +116,83 @@ def _actor_role(actor: Any) -> str:
     return ""
 
 
+def _actor_label(actor: Any) -> str:
+    if actor is True:
+        return "admin"
+    if isinstance(actor, dict):
+        return str(actor.get("email") or actor.get("name") or actor.get("id") or actor.get("role") or "system")
+    return "system"
+
+
+async def _emit_oppc_plan_stage(
+    db,
+    *,
+    stage: str,
+    record: Dict[str, Any],
+    module: str,
+    status: str = "ok",
+    failure_reason: Optional[str] = None,
+    remediation: Optional[str] = None,
+) -> None:
+    try:
+        from lib.trust_spine import emit_workflow_stage  # noqa: PLC0415
+
+        await emit_workflow_stage(
+            db,
+            workflow="oppc-cost-code-plan",
+            stage=stage,
+            record=record,
+            module=module,
+            status=status,
+            failure_reason=failure_reason,
+            remediation=remediation,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
+async def _open_oppc_plan_lifecycle(db, *, project_number: str, module: str) -> Dict[str, Any]:
+    record = {"id": project_number, "doc_id": project_number, "project_number": project_number}
+    try:
+        from lib.trust_spine import emit_record_created, STAGE_VALIDATION_COMPLETE  # noqa: PLC0415
+
+        await emit_record_created(
+            db,
+            workflow="oppc-cost-code-plan",
+            record=record,
+            module=module,
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage=STAGE_VALIDATION_COMPLETE,
+            record=record,
+            module=module,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+    return record
+
+
 async def _resolve_project_schedule(db, project_number: str) -> Dict[str, Any]:
     assignments = await load_project_assignments(db, project_number)
     progress = build_progress_snapshot(assignments, await load_project_cost_code_actuals(db, project_number)) if assignments else None
     schedule = build_schedule_snapshot(assignments, progress)
+    planning_readiness = build_planning_readiness(assignments)
+    stored_lifecycle = await load_project_planning_lifecycle(db, project_number)
+    planning_lifecycle = build_planning_lifecycle_snapshot(
+        planning_readiness=planning_readiness,
+        stored=stored_lifecycle,
+        schedule_window=schedule.get("window") or {},
+    )
+    schedule["monday_look_behind_ready"] = bool(planning_readiness.get("supports_monday_look_behind"))
     return {
         "project_number": project_number,
         "assignments": [serialize_assignment(row, include_financial=False) for row in assignments],
         "progress": progress,
+        "planning_readiness": planning_readiness,
+        "planning_lifecycle": planning_lifecycle,
         "schedule": schedule,
-        "monday_look_behind_ready": True,
+        "monday_look_behind_ready": bool(planning_readiness.get("supports_monday_look_behind")),
     }
 
 
@@ -187,10 +263,12 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         await _ensure_spine_indexes(db)
         assignments = await load_project_assignments(db, project_number)
         progress = await recompute_project_progress_snapshot(db, project_number)
+        planning_readiness = build_planning_readiness(assignments)
         return {
             "project_number": project_number,
             "assignments": [serialize_assignment(row, include_financial=False) for row in assignments],
             "progress": progress,
+            "planning_readiness": planning_readiness,
             "supports_future_cpm": True,
             "financials_included": False,
         }
@@ -230,22 +308,80 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
                 raise HTTPException(status_code=422, detail=str(exc)) from exc
             merged["sort_order"] = idx
             rows.append(merged)
+        spine_record = await _open_oppc_plan_lifecycle(
+            db,
+            project_number=project_number,
+            module="routes/cost_codes.py:put_project_assignments",
+        )
         try:
             await persist_project_assignments(db, project_number, rows)
         except LookupError as exc:
+            await _emit_oppc_plan_stage(
+                db,
+                stage="audit_written",
+                record=spine_record,
+                module="jobs_master.assigned_cost_codes",
+                status="failed",
+                failure_reason=str(exc),
+                remediation="Verify the project exists before updating assigned cost codes.",
+            )
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         progress = await recompute_project_progress_snapshot(db, project_number)
+        planning_readiness = build_planning_readiness(rows)
+        schedule = build_schedule_snapshot(rows, progress)
+        next_lifecycle = build_planning_lifecycle_snapshot(
+            planning_readiness=planning_readiness,
+            stored={
+                **(await load_project_planning_lifecycle(db, project_number)),
+                "has_unpublished_changes": True,
+                "last_mutated_at": now_iso(),
+                "last_mutated_by": _actor_label(actor),
+            },
+            schedule_window=schedule.get("window") or {},
+        )
+        await persist_project_planning_lifecycle(db, project_number, next_lifecycle)
+        await _emit_oppc_plan_stage(
+            db,
+            stage="audit_written",
+            record=spine_record,
+            module="jobs_master.assigned_cost_codes",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage="dashboard_updated",
+            record=spine_record,
+            module="services.cost_codes.foundation.recompute_project_progress",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage="completed",
+            record=spine_record,
+            module="routes/cost_codes.py:put_project_assignments",
+        )
         return {
             "ok": True,
             "assignments": [serialize_assignment(row, include_financial=True) for row in rows],
             "progress": progress,
+            "planning_readiness": planning_readiness,
+            "planning_lifecycle": next_lifecycle,
         }
 
     @api_router.get("/cost-codes/projects/{project_number}/progress")
     async def get_project_progress(project_number: str) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
         progress = await recompute_project_progress_snapshot(db, project_number)
-        return {"project_number": project_number, "progress": progress}
+        assignments = await load_project_assignments(db, project_number)
+        schedule = build_schedule_snapshot(assignments, progress) if assignments else {"window": {}}
+        return {
+            "project_number": project_number,
+            "progress": progress,
+            "planning_readiness": build_planning_readiness(assignments),
+            "planning_lifecycle": build_planning_lifecycle_snapshot(
+                planning_readiness=build_planning_readiness(assignments),
+                stored=await load_project_planning_lifecycle(db, project_number),
+                schedule_window=schedule.get("window") or {},
+            ),
+        }
 
     @api_router.get("/cost-codes/projects/{project_number}/schedule")
     async def get_project_schedule(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
@@ -291,15 +427,116 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         rows = [existing_map[str(row.get("code") or "").strip()] for row in existing if str(row.get("code") or "").strip() in existing_map]
         for idx, row in enumerate(rows):
             row["sort_order"] = idx
+        spine_record = await _open_oppc_plan_lifecycle(
+            db,
+            project_number=project_number,
+            module="routes/cost_codes.py:put_project_schedule",
+        )
         try:
             await persist_project_assignments(db, project_number, rows)
         except LookupError as exc:
+            await _emit_oppc_plan_stage(
+                db,
+                stage="audit_written",
+                record=spine_record,
+                module="jobs_master.assigned_cost_codes",
+                status="failed",
+                failure_reason=str(exc),
+                remediation="Verify the project exists before updating schedule fields.",
+            )
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         payload = await _resolve_project_schedule(db, project_number)
         payload["ok"] = True
         payload["can_edit"] = True
         payload["master_control"] = await _is_admin_actor(actor)
+        next_lifecycle = build_planning_lifecycle_snapshot(
+            planning_readiness=payload.get("planning_readiness") or {},
+            stored={
+                **(await load_project_planning_lifecycle(db, project_number)),
+                "has_unpublished_changes": True,
+                "last_mutated_at": now_iso(),
+                "last_mutated_by": _actor_label(actor),
+            },
+            schedule_window=(payload.get("schedule") or {}).get("window") or {},
+        )
+        await persist_project_planning_lifecycle(db, project_number, next_lifecycle)
+        payload["planning_lifecycle"] = next_lifecycle
+        await _emit_oppc_plan_stage(
+            db,
+            stage="audit_written",
+            record=spine_record,
+            module="jobs_master.assigned_cost_codes",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage="dashboard_updated",
+            record=spine_record,
+            module="services.cost_codes.schedule_engine.build_schedule_snapshot",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage="completed",
+            record=spine_record,
+            module="routes/cost_codes.py:put_project_schedule",
+        )
         return payload
+
+    @api_router.post("/cost-codes/projects/{project_number}/planning-lifecycle/publish")
+    async def publish_project_schedule(project_number: str, body: PlanningPublishBody, actor=Depends(read_dep)) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        payload = await _resolve_project_schedule(db, project_number)
+        planning_readiness = payload.get("planning_readiness") or {}
+        if int(planning_readiness.get("assignment_count") or 0) <= 0:
+            raise HTTPException(status_code=404, detail="Project has no assigned cost codes to publish")
+        if planning_readiness.get("status") != "ready":
+            raise HTTPException(status_code=409, detail="Planning foundation is incomplete; fix required fields before publishing")
+        spine_record = await _open_oppc_plan_lifecycle(
+            db,
+            project_number=project_number,
+            module="routes/cost_codes.py:publish_project_schedule",
+        )
+        next_lifecycle = build_planning_lifecycle_snapshot(
+            planning_readiness=planning_readiness,
+            stored={
+                **(await load_project_planning_lifecycle(db, project_number)),
+                "published_at": now_iso(),
+                "published_by": _actor_label(actor),
+                "last_mutated_at": now_iso(),
+                "last_mutated_by": _actor_label(actor),
+                "has_unpublished_changes": False,
+                "publish_note": str(body.note or "").strip(),
+            },
+            schedule_window=(payload.get("schedule") or {}).get("window") or {},
+        )
+        try:
+            await persist_project_planning_lifecycle(db, project_number, next_lifecycle)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        payload["planning_lifecycle"] = next_lifecycle
+        await _emit_oppc_plan_stage(
+            db,
+            stage="audit_written",
+            record=spine_record,
+            module="jobs_master.oppc_planning_lifecycle",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage="dashboard_updated",
+            record=spine_record,
+            module="routes/cost_codes.py:publish_project_schedule",
+        )
+        await _emit_oppc_plan_stage(
+            db,
+            stage="completed",
+            record=spine_record,
+            module="routes/cost_codes.py:publish_project_schedule",
+        )
+        return {"ok": True, **payload}
 
     @api_router.get("/cost-codes/projects/{project_number}/schedule/dot-report.pdf")
     async def export_project_schedule_pdf(project_number: str, actor=Depends(read_dep)):

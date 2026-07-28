@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 import logging
+from collections import Counter
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -11,6 +12,20 @@ from services.ods_spine.store import COLL_PROJECT_CFG
 ALLOWED_UNITS = {"LF", "CY", "TONS", "LS"}
 FINANCIAL_FIELDS = {"bid_unit_price", "target_man_hours", "contract_value", "margin", "margin_percent"}
 logger = logging.getLogger(__name__)
+OPPC_REQUIRED_ASSIGNMENT_FIELDS = (
+    "code",
+    "item_name",
+    "unit_of_measure",
+    "authorized_quantity",
+    "schedule_start_date",
+    "duration_days",
+    "schedule_phase",
+    "planned_performer",
+)
+OPPC_RECOMMENDED_ASSIGNMENT_FIELDS = (
+    "cpm_activity_id",
+    "cpm_activity_name",
+)
 
 
 def now_iso() -> str:
@@ -126,6 +141,116 @@ def normalize_job_assignment(
     }
 
 
+def _field_missing_for_oppc(row: Dict[str, Any], field: str) -> bool:
+    if field == "authorized_quantity":
+        return _to_float(row.get(field), default=0.0) <= 0.0
+    if field == "duration_days":
+        return int(_to_float(row.get(field), default=0)) < 1
+    if field == "unit_of_measure":
+        return not _clean_upper(row.get(field) or row.get("unit"))
+    return not _clean_str(row.get(field))
+
+
+def build_assignment_planning_readiness(row: Dict[str, Any]) -> Dict[str, Any]:
+    required_missing = [
+        field for field in OPPC_REQUIRED_ASSIGNMENT_FIELDS
+        if _field_missing_for_oppc(row, field)
+    ]
+    recommended_missing = [
+        field for field in OPPC_RECOMMENDED_ASSIGNMENT_FIELDS
+        if _field_missing_for_oppc(row, field)
+    ]
+    ready = len(required_missing) == 0
+    return {
+        "status": "ready" if ready else "needs_attention",
+        "missing_required": required_missing,
+        "missing_recommended": recommended_missing,
+        "supports_weekly_rollover": ready,
+        "supports_monday_look_behind": ready,
+    }
+
+
+def build_planning_readiness(assignments: List[Dict[str, Any]]) -> Dict[str, Any]:
+    rows = [build_assignment_planning_readiness(row) for row in (assignments or [])]
+    if not rows:
+        return {
+            "status": "unconfigured",
+            "assignment_count": 0,
+            "ready_assignments": 0,
+            "needs_attention_assignments": 0,
+            "supports_weekly_rollover": False,
+            "supports_monday_look_behind": False,
+            "required_fields": list(OPPC_REQUIRED_ASSIGNMENT_FIELDS),
+            "recommended_fields": list(OPPC_RECOMMENDED_ASSIGNMENT_FIELDS),
+            "missing_required_counts": {},
+            "missing_recommended_counts": {},
+        }
+
+    required_counts: Counter[str] = Counter()
+    recommended_counts: Counter[str] = Counter()
+    ready_assignments = 0
+    for row in rows:
+        if row["status"] == "ready":
+            ready_assignments += 1
+        required_counts.update(row.get("missing_required") or [])
+        recommended_counts.update(row.get("missing_recommended") or [])
+
+    assignment_count = len(rows)
+    needs_attention = assignment_count - ready_assignments
+    foundation_ready = assignment_count > 0 and needs_attention == 0
+    return {
+        "status": "ready" if foundation_ready else "needs_attention",
+        "assignment_count": assignment_count,
+        "ready_assignments": ready_assignments,
+        "needs_attention_assignments": needs_attention,
+        "supports_weekly_rollover": foundation_ready,
+        "supports_monday_look_behind": foundation_ready,
+        "required_fields": list(OPPC_REQUIRED_ASSIGNMENT_FIELDS),
+        "recommended_fields": list(OPPC_RECOMMENDED_ASSIGNMENT_FIELDS),
+        "missing_required_counts": dict(sorted(required_counts.items())),
+        "missing_recommended_counts": dict(sorted(recommended_counts.items())),
+    }
+
+
+def build_planning_lifecycle_snapshot(
+    *,
+    planning_readiness: Dict[str, Any],
+    stored: Optional[Dict[str, Any]] = None,
+    schedule_window: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    existing = dict(stored or {})
+    assignment_count = int(planning_readiness.get("assignment_count") or 0)
+    published_at = _clean_str(existing.get("published_at"))
+    last_mutated_at = _clean_str(existing.get("last_mutated_at"))
+    has_unpublished_changes = bool(existing.get("has_unpublished_changes", assignment_count > 0 and not published_at))
+    if assignment_count <= 0:
+        status = "unconfigured"
+    elif planning_readiness.get("status") != "ready":
+        status = "needs_attention"
+    elif published_at and not has_unpublished_changes:
+        status = "published"
+    else:
+        status = "ready_to_publish"
+    return {
+        "status": status,
+        "assignment_count": assignment_count,
+        "supports_publish": assignment_count > 0 and planning_readiness.get("status") == "ready",
+        "supports_weekly_rollover": bool(planning_readiness.get("supports_weekly_rollover")),
+        "supports_monday_look_behind": bool(planning_readiness.get("supports_monday_look_behind")),
+        "has_unpublished_changes": has_unpublished_changes,
+        "published_at": published_at,
+        "published_by": _clean_str(existing.get("published_by")),
+        "last_mutated_at": last_mutated_at,
+        "last_mutated_by": _clean_str(existing.get("last_mutated_by")),
+        "window_days": int(((schedule_window or {}).get("visible_days") or 14)),
+        "history_days": int(((schedule_window or {}).get("history_days") or 7)),
+        "forecast_days": int(((schedule_window or {}).get("forecast_days") or 7)),
+        "anchor_date": _clean_str((schedule_window or {}).get("anchor_date")),
+        "window_start_date": _clean_str((schedule_window or {}).get("start_date")),
+        "window_end_date": _clean_str((schedule_window or {}).get("end_date")),
+    }
+
+
 def serialize_assignment(row: Dict[str, Any], *, include_financial: bool = False) -> Dict[str, Any]:
     item = {
         "id": _clean_str(row.get("id")),
@@ -152,6 +277,7 @@ def serialize_assignment(row: Dict[str, Any], *, include_financial: bool = False
     if include_financial:
         item["bid_unit_price"] = round(_to_float(row.get("bid_unit_price")), 4)
         item["target_man_hours"] = round(_to_float(row.get("target_man_hours")), 4)
+    item["planning_readiness"] = build_assignment_planning_readiness(item)
     return item
 
 
@@ -170,6 +296,7 @@ def build_project_cost_code_option(row: Dict[str, Any]) -> Dict[str, Any]:
         "schedule_start_date": assignment.get("schedule_start_date") or "",
         "duration_days": assignment.get("duration_days") or 1,
         "predecessor_codes": assignment.get("predecessor_codes") or [],
+        "planning_readiness": assignment.get("planning_readiness") or {},
     }
 
 
@@ -377,6 +504,21 @@ async def load_project_cost_code_actuals(db, project_number: str) -> List[Dict[s
     return rows
 
 
+async def load_project_planning_lifecycle(db, project_number: str) -> Dict[str, Any]:
+    project_number = _clean_str(project_number)
+    if not project_number:
+        return {}
+    try:
+        job = await db.jobs_master.find_one(
+            {"project_number": project_number},
+            {"_id": 0, "oppc_planning_lifecycle": 1},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] planning lifecycle load failed for %s: %s", project_number, exc)
+        return {}
+    return dict((job or {}).get("oppc_planning_lifecycle") or {})
+
+
 async def recompute_project_progress(db, project_number: str) -> Optional[Dict[str, Any]]:
     project_number = _clean_str(project_number)
     if not project_number:
@@ -476,6 +618,7 @@ async def sync_ods_project_cost_code_projection(db, project_number: str, assignm
 async def persist_project_assignments(db, project_number: str, assignments: List[Dict[str, Any]]) -> Dict[str, Any]:
     project_number = _clean_str(project_number)
     rows = [dict(row) for row in assignments or []]
+    planning_readiness = build_planning_readiness(rows)
     result = await db.jobs_master.update_one(
         {"project_number": project_number},
         {"$set": {
@@ -483,6 +626,8 @@ async def persist_project_assignments(db, project_number: str, assignments: List
             "cost_codes": build_legacy_cost_code_projection(rows),
             "schedule_cost_spine_ready": True,
             "dot_cpm_ready": {"fdot": True, "txdot": True, "updated_at": now_iso()},
+            "oppc_planning_readiness": planning_readiness,
+            "oppc_cost_code_hardened_at": now_iso(),
             "updated_at": now_iso(),
         }},
         upsert=False,
@@ -490,3 +635,17 @@ async def persist_project_assignments(db, project_number: str, assignments: List
     if not result.matched_count:
         raise LookupError(f"Project {project_number} was not found in jobs_master")
     return await sync_ods_project_cost_code_projection(db, project_number, rows)
+
+
+async def persist_project_planning_lifecycle(db, project_number: str, lifecycle: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    project_number = _clean_str(project_number)
+    payload = dict(lifecycle or {})
+    payload["updated_at"] = now_iso()
+    result = await db.jobs_master.update_one(
+        {"project_number": project_number},
+        {"$set": {"oppc_planning_lifecycle": payload, "updated_at": now_iso()}},
+        upsert=False,
+    )
+    if not result.matched_count:
+        raise LookupError(f"Project {project_number} was not found in jobs_master")
+    return payload

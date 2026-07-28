@@ -96,6 +96,8 @@ class _DB:
                         "schedule_start_date": "2026-07-10",
                         "duration_days": 4,
                         "predecessor_codes": [],
+                        "schedule_phase": "Phase 1",
+                        "planned_performer": "Paving Crew",
                     },
                     {
                         "id": "2",
@@ -108,6 +110,8 @@ class _DB:
                         "schedule_start_date": "2026-07-12",
                         "duration_days": 2,
                         "predecessor_codes": ["MILL"],
+                        "schedule_phase": "Phase 2",
+                        "planned_performer": "Asphalt Crew",
                     },
                 ],
             }
@@ -142,6 +146,27 @@ def test_pm_can_read_project_schedule():
     body = r.json()
     assert body["project_number"] == "20-07"
     assert body["schedule"]["monday_look_behind_ready"] is True
+    assert body["planning_readiness"]["status"] == "ready"
+    assert body["planning_readiness"]["supports_weekly_rollover"] is True
+
+
+def test_assignment_readiness_is_exposed_for_project_assignments():
+    client, _ = _client({"_actor": "pm", "role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    r = client.get("/api/cost-codes/projects/20-07/assignments")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["planning_readiness"]["assignment_count"] == 2
+    assert all(item.get("planning_readiness", {}).get("status") == "ready" for item in body["assignments"])
+
+
+def test_publish_project_schedule_sets_lifecycle_status():
+    client, db = _client({"_actor": "pm", "role": "pm", "email": "pm@example.com", "id": "pm-1"})
+    r = client.post("/api/cost-codes/projects/20-07/planning-lifecycle/publish", json={"note": "Weekly publish"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["planning_lifecycle"]["status"] == "published"
+    assert body["planning_lifecycle"]["has_unpublished_changes"] is False
+    assert db.jobs_master.rows[0]["oppc_planning_lifecycle"]["status"] == "published"
 
 
 def test_pdf_export_returns_pdf_bytes_for_admin():
