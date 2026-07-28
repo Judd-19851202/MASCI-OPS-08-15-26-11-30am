@@ -279,6 +279,213 @@ async function fetchAudit(limit = 50) {
   return r.data;
 }
 
+async function fetchControlPlaneRegistry() {
+  const r = await axios.get(`${API}/admin/operations-control/registry`, {
+    headers: authHeaders(),
+  });
+  return r.data;
+}
+
+async function fetchControlPlaneEvents(limit = 20) {
+  const r = await axios.get(`${API}/admin/operations-control/events?limit=${limit}`, {
+    headers: authHeaders(),
+  });
+  return r.data;
+}
+
+async function fetchControlPlaneCommunications(limit = 20) {
+  const r = await axios.get(`${API}/admin/operations-control/communications?limit=${limit}`, {
+    headers: authHeaders(),
+  });
+  return r.data;
+}
+
+async function fetchControlPlaneBaselines(limit = 10) {
+  const r = await axios.get(`${API}/admin/operations-control/baselines?limit=${limit}`, {
+    headers: authHeaders(),
+  });
+  return r.data;
+}
+
+async function fetchControlPlaneEvidence(limit = 10) {
+  const r = await axios.get(`${API}/admin/operations-control/evidence?limit=${limit}`, {
+    headers: authHeaders(),
+  });
+  return r.data;
+}
+
+async function captureControlPlaneBaseline(baselineName) {
+  const r = await axios.post(
+    `${API}/admin/operations-control/baselines`,
+    { baseline_name: baselineName },
+    { headers: { "Content-Type": "application/json", ...authHeaders() } },
+  );
+  return r.data;
+}
+
+async function captureControlPlaneEvidence(recordId = "") {
+  const r = await axios.post(
+    `${API}/admin/operations-control/evidence`,
+    { workflow_id: "oppc.daily_report_to_oppc", record_id: recordId || undefined },
+    { headers: { "Content-Type": "application/json", ...authHeaders() } },
+  );
+  return r.data;
+}
+
+function RegistryCard({ registryData, eventsData, communicationsData, baselinesData, evidenceData, onCaptureBaseline, onCaptureEvidence, capturingBaseline, capturingEvidence }) {
+  const registry = registryData?.registry;
+  const snapshot = registryData?.snapshot;
+  const recentEvents = eventsData?.events || [];
+  const recentCommunications = communicationsData?.communications || [];
+  const baselines = baselinesData?.baselines || [];
+  const evidence = evidenceData?.evidence || [];
+
+  return (
+    <section className="mb-8 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm" data-testid="occ-control-plane-registry">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <div className="text-[10px] uppercase tracking-[0.28em] text-slate-500 font-mono font-bold">
+            WP-OPPC-14 constitutional layer
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-950" data-testid="occ-control-plane-registry-title">
+            Operational Registry + Event Catalog
+          </h2>
+          <p className="mt-2 text-sm text-slate-600" data-testid="occ-control-plane-registry-summary">
+            Events now express intent only. Communications, routing, acknowledgement, escalation, and baseline evidence are governed by one registered control-plane contract.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onCaptureEvidence}
+            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition-colors hover:bg-slate-100"
+            data-testid="occ-capture-evidence-button"
+          >
+            {capturingEvidence ? "Packaging…" : "Capture evidence package"}
+          </button>
+          <button
+            type="button"
+            onClick={onCaptureBaseline}
+            className="rounded-full border border-slate-300 bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+            data-testid="occ-capture-baseline-button"
+          >
+            {capturingBaseline ? "Capturing…" : "Capture baseline snapshot"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4" data-testid="occ-control-plane-registry-counts">
+        {[
+          ["Workflows", registry?.counts?.workflows || 0],
+          ["Registered events", registry?.counts?.events || 0],
+          ["Communication intents", registry?.counts?.communication_intents || 0],
+          ["Transport providers", registry?.counts?.transports || 0],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`occ-registry-count-${String(label).toLowerCase().replace(/\s+/g, "-")}`}>
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">{label}</div>
+            <div className="mt-2 text-3xl font-semibold text-slate-950">{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[1.3fr_1fr]">
+        <div className="rounded-2xl border border-slate-200 bg-[#f6f7f2] p-4" data-testid="occ-registry-principles">
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Constitutional principles</div>
+          <ul className="mt-3 space-y-3 text-sm text-slate-700">
+            {(registry?.principles || []).map((principle) => (
+              <li key={principle.id} className="rounded-2xl border border-slate-200 bg-white p-3" data-testid={`occ-registry-principle-${principle.id}`}>
+                <div className="font-semibold text-slate-950">{principle.title}</div>
+                <div className="mt-1 leading-6">{principle.statement}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="occ-registry-snapshot">
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">Registry snapshot</div>
+            <div className="mt-3 space-y-2 text-sm text-slate-700">
+              <div data-testid="occ-registry-version"><span className="font-semibold text-slate-950">Version:</span> {registry?.version || "—"}</div>
+              <div data-testid="occ-registry-baseline-name"><span className="font-semibold text-slate-950">Baseline:</span> {registry?.baseline_name || "—"}</div>
+              <div data-testid="occ-registry-hash"><span className="font-semibold text-slate-950">Registry hash:</span> {registry?.registry_hash || "—"}</div>
+              <div data-testid="occ-registry-captured-at"><span className="font-semibold text-slate-950">Captured at:</span> {snapshot?.captured_at ? formatPlatformTime(snapshot.captured_at) : "—"}</div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="occ-registry-events-list">
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">Recent registered events</div>
+            <div className="mt-3 space-y-2">
+              {recentEvents.length === 0 && <div className="text-sm text-slate-500">No control-plane events yet.</div>}
+              {recentEvents.slice(0, 5).map((row) => (
+                <div key={row.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm" data-testid={`occ-registry-event-${row.id}`}>
+                  <div className="font-semibold text-slate-950">{row.event_type_id}</div>
+                  <div className="mt-1 text-slate-600">{row.record_doc_id || row.record_id} · {row.project_number || "No project"}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-communications-list">
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Daily Report → OPPC proof chain</div>
+          <div className="mt-3 space-y-3">
+            {recentCommunications.length === 0 && <div className="text-sm text-slate-500">No control-plane communications yet.</div>}
+            {recentCommunications.slice(0, 6).map((row) => (
+              <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`occ-registry-communication-${row.id}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-semibold text-slate-950">{row.communication_intent_id}</div>
+                  <div className="rounded-full border border-slate-300 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-700" data-testid={`occ-registry-communication-status-${row.id}`}>
+                    {row.status}
+                  </div>
+                </div>
+                <div className="mt-2 text-sm text-slate-600">{row.record_doc_id || row.record_id} · {row.project_number || "No project"}</div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                  <span data-testid={`occ-registry-communication-ack-${row.id}`}>ack: {row.ack_status}</span>
+                  <span data-testid={`occ-registry-communication-transport-${row.id}`}>transport: {(row.transport_ids || []).join(", ") || "—"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-baselines-list">
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Baseline snapshots</div>
+          <div className="mt-3 space-y-3">
+            {baselines.length === 0 && <div className="text-sm text-slate-500">No baseline snapshots yet.</div>}
+            {baselines.slice(0, 5).map((row) => (
+              <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`occ-baseline-${row.id}`}>
+                <div className="font-semibold text-slate-950">{row.baseline_name}</div>
+                <div className="mt-1 text-sm text-slate-600">{formatPlatformTime(row.created_at)} · {row.created_by}</div>
+                <div className="mt-2 text-xs text-slate-500">hash: {row.registry_hash || "—"}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-evidence-list">
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Readiness evidence</div>
+          <div className="mt-3 space-y-3">
+            {evidence.length === 0 && <div className="text-sm text-slate-500">No evidence packages yet.</div>}
+            {evidence.slice(0, 5).map((row) => (
+              <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`occ-evidence-${row.id}`}>
+                <div className="font-semibold text-slate-950">{row.workflow_id}</div>
+                <div className="mt-1 text-sm text-slate-600">{formatPlatformTime(row.created_at)} · {row.created_by}</div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                  <span data-testid={`occ-evidence-events-${row.id}`}>events: {row.event_count}</span>
+                  <span data-testid={`occ-evidence-communications-${row.id}`}>communications: {row.communication_count}</span>
+                  <span data-testid={`occ-evidence-captures-${row.id}`}>captures: {row.capture_count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 async function runOperation(operationId, mode, payload) {
   const r = await axios.post(
     `${API}/admin/operations-control/operations/${encodeURIComponent(operationId)}/${mode}`,
@@ -832,6 +1039,13 @@ function AuditPanel({ rows }) {
 export default function OperationsControlCenter() {
   const [overview, setOverview] = useState(null);
   const [audit, setAudit] = useState([]);
+  const [registryData, setRegistryData] = useState(null);
+  const [controlPlaneEvents, setControlPlaneEvents] = useState(null);
+  const [controlPlaneCommunications, setControlPlaneCommunications] = useState(null);
+  const [controlPlaneBaselines, setControlPlaneBaselines] = useState(null);
+  const [controlPlaneEvidence, setControlPlaneEvidence] = useState(null);
+  const [capturingBaseline, setCapturingBaseline] = useState(false);
+  const [capturingEvidence, setCapturingEvidence] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dryRunState, setDryRunState] = useState({}); // op.id -> { dry_run_id, confirmation_phrase, last_result }
   const [error, setError] = useState(null);
@@ -858,9 +1072,22 @@ export default function OperationsControlCenter() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [o, a] = await Promise.all([fetchOverview(), fetchAudit(60)]);
+      const [o, a, r, e, c, b, ev] = await Promise.all([
+        fetchOverview(),
+        fetchAudit(60),
+        fetchControlPlaneRegistry(),
+        fetchControlPlaneEvents(20),
+        fetchControlPlaneCommunications(20),
+        fetchControlPlaneBaselines(10),
+        fetchControlPlaneEvidence(10),
+      ]);
       setOverview(o);
       setAudit(a.audit || []);
+      setRegistryData(r);
+      setControlPlaneEvents(e);
+      setControlPlaneCommunications(c);
+      setControlPlaneBaselines(b);
+      setControlPlaneEvidence(ev);
       setError(null);
     } catch (e) {
       setError(
@@ -975,6 +1202,33 @@ export default function OperationsControlCenter() {
     return groups;
   }, [overview]);
 
+  const onCaptureBaseline = useCallback(async () => {
+    setCapturingBaseline(true);
+    try {
+      const result = await captureControlPlaneBaseline("Operations Control Plane v1");
+      toast.success(`Baseline captured: ${result?.baseline?.baseline_name || "Operations Control Plane v1"}`);
+      reload();
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || e?.message || "Failed to capture baseline");
+    } finally {
+      setCapturingBaseline(false);
+    }
+  }, [reload]);
+
+  const onCaptureEvidence = useCallback(async () => {
+    setCapturingEvidence(true);
+    try {
+      const latestRecordId = controlPlaneCommunications?.communications?.[0]?.record_id || "";
+      const result = await captureControlPlaneEvidence(latestRecordId);
+      toast.success(`Evidence captured: ${result?.evidence?.workflow_id || "oppc.daily_report_to_oppc"}`);
+      reload();
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || e?.message || "Failed to capture evidence");
+    } finally {
+      setCapturingEvidence(false);
+    }
+  }, [controlPlaneCommunications, reload]);
+
   return (
     <div
       className="min-h-screen bg-slate-50"
@@ -1010,6 +1264,18 @@ export default function OperationsControlCenter() {
           error={trustError}
           onRefresh={reloadTrust}
           lastFetchedAt={trustFetchedAt}
+        />
+
+        <RegistryCard
+          registryData={registryData}
+          eventsData={controlPlaneEvents}
+          communicationsData={controlPlaneCommunications}
+          baselinesData={controlPlaneBaselines}
+          evidenceData={controlPlaneEvidence}
+          onCaptureBaseline={onCaptureBaseline}
+          onCaptureEvidence={onCaptureEvidence}
+          capturingBaseline={capturingBaseline}
+          capturingEvidence={capturingEvidence}
         />
 
         {/* Divider between Trust Layer (read-only) and Maintenance Console (mutating). */}

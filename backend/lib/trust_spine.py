@@ -203,6 +203,14 @@ WORKFLOW_EXPECTED_STAGES: Dict[str, list] = {
         STAGE_AUDIT_WRITTEN, STAGE_DASHBOARD_UPDATED,
         STAGE_COMPLETED,
     ],
+    "oppc-daily-report-proof-chain": [
+        STAGE_RECORD_CREATED,
+        STAGE_ROUTING_RESOLVED,
+        STAGE_RECIPIENTS_BUILT,
+        STAGE_NOTIFICATION_QUEUED,
+        STAGE_AUDIT_WRITTEN,
+        STAGE_COMPLETED,
+    ],
 }
 
 

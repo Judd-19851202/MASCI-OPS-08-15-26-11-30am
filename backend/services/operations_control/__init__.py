@@ -29,7 +29,9 @@ from .registry import (  # noqa: F401
     OperationCategory,
     OperationStatus,
     RiskLevel,
+    build_operations_control_plane_registry,
     build_registry,
+    operations_control_plane_registry_summary,
 )
 
 __all__ = [
@@ -37,5 +39,7 @@ __all__ = [
     "OperationCategory",
     "OperationStatus",
     "RiskLevel",
+    "build_operations_control_plane_registry",
     "build_registry",
+    "operations_control_plane_registry_summary",
 ]

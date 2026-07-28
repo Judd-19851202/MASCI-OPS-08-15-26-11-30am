@@ -24,6 +24,18 @@ from lib.trust_reconciliation import reconcile_shared_foundation
 from lib.shared_capabilities import occ_operation_capability, shell_signout_capability, truth_action_capability
 from services.operations_control import build_registry
 from services.operations_control import audit as occ_audit
+from services.operations_control.control_plane import (
+    build_baseline_snapshot,
+    build_readiness_evidence_package,
+    ensure_registry_snapshot,
+    get_communication_by_id,
+    list_recent_baselines,
+    list_recent_communications,
+    list_recent_control_plane_events,
+    list_recent_evidence_packages,
+    run_due_escalations,
+)
+from services.operations_control.registry import operations_control_plane_registry_summary
 
 
 def register_operations_control_routes(
@@ -95,6 +107,88 @@ def register_operations_control_routes(
                     }
             cards.append(card)
         return {"count": len(cards), "operations": cards}
+
+    @api_router.get("/admin/operations-control/registry")
+    async def control_plane_registry(actor=Depends(require_admin)):
+        snapshot = await ensure_registry_snapshot(db)
+        return {
+            "registry": operations_control_plane_registry_summary(),
+            "snapshot": snapshot,
+        }
+
+    @api_router.get("/admin/operations-control/events")
+    async def control_plane_events(
+        workflow_id: Optional[str] = None,
+        limit: int = 50,
+        actor=Depends(require_admin),
+    ):
+        rows = await list_recent_control_plane_events(db, workflow_id=workflow_id, limit=limit)
+        return {"count": len(rows), "events": rows}
+
+    @api_router.get("/admin/operations-control/communications")
+    async def control_plane_communications(
+        workflow_id: Optional[str] = None,
+        limit: int = 50,
+        actor=Depends(require_admin),
+    ):
+        rows = await list_recent_communications(db, workflow_id=workflow_id, limit=limit)
+        return {"count": len(rows), "communications": rows}
+
+    @api_router.get("/admin/operations-control/communications/{communication_id}")
+    async def control_plane_communication_get(communication_id: str, actor=Depends(require_admin)):
+        row = await get_communication_by_id(db, communication_id)
+        if not row:
+            raise HTTPException(404, f"unknown communication_id: {communication_id}")
+        return row
+
+    @api_router.post("/admin/operations-control/escalations/run")
+    async def control_plane_run_escalations(actor=Depends(require_admin)):
+        return await run_due_escalations(db)
+
+    @api_router.get("/admin/operations-control/evidence")
+    async def control_plane_evidence(
+        workflow_id: Optional[str] = None,
+        limit: int = 10,
+        actor=Depends(require_admin),
+    ):
+        rows = await list_recent_evidence_packages(db, workflow_id=workflow_id, limit=limit)
+        return {"count": len(rows), "evidence": rows}
+
+    @api_router.post("/admin/operations-control/evidence")
+    async def control_plane_capture_evidence(
+        payload: Optional[Dict[str, Any]] = Body(default=None),
+        actor=Depends(require_admin),
+    ):
+        actor_dict = await _actor_dict(actor)
+        body = payload or {}
+        workflow_id = str(body.get("workflow_id") or "oppc.daily_report_to_oppc").strip() or "oppc.daily_report_to_oppc"
+        record_id = str(body.get("record_id") or "").strip() or None
+        evidence = await build_readiness_evidence_package(
+            db,
+            workflow_id=workflow_id,
+            actor_label=actor_dict.get("email") or actor_dict.get("id") or "admin",
+            record_id=record_id,
+        )
+        return {"ok": True, "evidence": evidence}
+
+    @api_router.get("/admin/operations-control/baselines")
+    async def control_plane_baselines(limit: int = 10, actor=Depends(require_admin)):
+        rows = await list_recent_baselines(db, limit=limit)
+        return {"count": len(rows), "baselines": rows}
+
+    @api_router.post("/admin/operations-control/baselines")
+    async def control_plane_capture_baseline(
+        payload: Optional[Dict[str, Any]] = Body(default=None),
+        actor=Depends(require_admin),
+    ):
+        actor_dict = await _actor_dict(actor)
+        baseline_name = str((payload or {}).get("baseline_name") or "Operations Control Plane v1").strip() or "Operations Control Plane v1"
+        baseline = await build_baseline_snapshot(
+            db,
+            baseline_name=baseline_name,
+            actor_label=actor_dict.get("email") or actor_dict.get("id") or "admin",
+        )
+        return {"ok": True, "baseline": baseline}
 
     @api_router.get("/admin/shared-capabilities")
     async def shared_capabilities(actor=Depends(require_admin)):

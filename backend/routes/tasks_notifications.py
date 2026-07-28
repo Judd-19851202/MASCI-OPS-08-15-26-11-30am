@@ -1057,6 +1057,9 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         role = _actor_role(actor)
+        notif = await db.notifications.find_one({"id": notif_id}, {"_id": 0})
+        if not notif:
+            raise HTTPException(404, "Notification not found")
         res = await db.notifications.update_one(
             {"id": notif_id},
             {"$set": {
@@ -1068,8 +1071,23 @@ def build_tasks_notifications_router(db, require_any_portal_token):
                 },
             }},
         )
-        if res.matched_count == 0:
-            raise HTTPException(404, "Notification not found")
+        linked_comm_id = str(notif.get("linked_request_id") or "").strip()
+        if linked_comm_id:
+            try:
+                from services.operations_control.control_plane import acknowledge_communication  # noqa: PLC0415
+
+                await acknowledge_communication(
+                    db,
+                    communication_id=linked_comm_id,
+                    actor={
+                        "role": role,
+                        "id": actor.get("id"),
+                        "name": actor.get("name") or actor.get("email"),
+                    },
+                    note="Acknowledged from notification center",
+                )
+            except Exception:
+                pass
         return {"ok": True}
 
     return router

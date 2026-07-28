@@ -3921,6 +3921,10 @@ from routes.operations_control import (  # noqa: E402
 from services.operations_control.audit import (  # noqa: E402
     ensure_indexes as ensure_occ_audit_indexes,
 )
+from services.operations_control.control_plane import (  # noqa: E402
+    ensure_control_plane_indexes,
+    ensure_registry_snapshot,
+)
 api_router._get_runtime_identity = _runtime_identity_bundle  # type: ignore[attr-defined]
 register_operations_control_routes(api_router, db, require_admin, get_database_authority_plan=lambda: getattr(app.state, "database_authority_plan", None))
 
@@ -3928,6 +3932,12 @@ register_operations_control_routes(api_router, db, require_admin, get_database_a
 @register_lifecycle_step("index-ensure")
 async def _ensure_occ_audit_indexes_step():
     await ensure_occ_audit_indexes(db)
+
+
+@register_lifecycle_step("index-ensure")
+async def _ensure_operations_control_plane_indexes_step():
+    await ensure_control_plane_indexes(db)
+    await ensure_registry_snapshot(db)
 
 
 @register_lifecycle_step("index-ensure")

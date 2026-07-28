@@ -30,6 +30,7 @@ from lib.async_jobs import (
 )
 from pm_auth import compute_pm_scope
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from services.operations_control.control_plane import ingest_daily_report_submission
 from services.cost_codes.foundation import (
     FINANCIAL_FIELDS,
     load_project_assignments,
@@ -1393,6 +1394,63 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                         event_name="completed",
                     )
             except Exception:  # noqa: BLE001
+                pass
+            try:
+                control_plane_result = await ingest_daily_report_submission(
+                    db,
+                    report=doc,
+                    actor_label=str(payload.prepared_by or doc.get("prepared_by") or "field").strip() or "field",
+                )
+                doc["operations_control_plane"] = {
+                    "enabled": True,
+                    "workflow_id": "oppc.daily_report_to_oppc",
+                    "event_ids": [
+                        control_plane_result.get("event", {}).get("id")
+                    ],
+                    "communication_ids": [
+                        row.get("id") for row in (control_plane_result.get("communications") or []) if row.get("id")
+                    ],
+                    "registry_event_id": "oppc.daily_report.submitted",
+                    "registry_version": "operations-control-plane-v1",
+                    "last_processed_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+                }
+                doc["email_dispatch_suppressed"] = True
+                if control_plane_result.get("communications"):
+                    first_comm = (control_plane_result.get("communications") or [])[0]
+                    first_transport = (first_comm.get("transport_results") or [{}])[-1]
+                    doc["notification_state"] = first_transport.get("notification_state") or first_comm.get("status") or doc.get("notification_state")
+                    doc["notification_delivery_mode"] = first_transport.get("delivery_mode") or doc.get("notification_delivery_mode")
+                    doc["notification_provider_accepted"] = bool(first_transport.get("provider_accepted"))
+                    doc["notification_provider_called"] = bool(first_transport.get("provider_called"))
+                    doc["notification_failure_reason"] = first_transport.get("failure_reason")
+                    doc["notification_capture_id"] = first_transport.get("capture_id") or doc.get("notification_capture_id")
+                    doc["notification_last_updated_at"] = first_transport.get("ts") or doc.get("notification_last_updated_at")
+                    report_dict.update({
+                        "operations_control_plane": doc.get("operations_control_plane"),
+                        "email_dispatch_suppressed": True,
+                        "notification_state": doc.get("notification_state"),
+                        "notification_delivery_mode": doc.get("notification_delivery_mode"),
+                        "notification_provider_accepted": doc.get("notification_provider_accepted"),
+                        "notification_provider_called": doc.get("notification_provider_called"),
+                        "notification_failure_reason": doc.get("notification_failure_reason"),
+                        "notification_capture_id": doc.get("notification_capture_id"),
+                        "notification_last_updated_at": doc.get("notification_last_updated_at"),
+                    })
+                    await db.daily_reports.update_one(
+                        {"id": doc.get("id")},
+                        {"$set": {
+                            "operations_control_plane": doc.get("operations_control_plane"),
+                            "email_dispatch_suppressed": True,
+                            "notification_state": doc.get("notification_state"),
+                            "notification_delivery_mode": doc.get("notification_delivery_mode"),
+                            "notification_provider_accepted": doc.get("notification_provider_accepted"),
+                            "notification_provider_called": doc.get("notification_provider_called"),
+                            "notification_failure_reason": doc.get("notification_failure_reason"),
+                            "notification_capture_id": doc.get("notification_capture_id"),
+                            "notification_last_updated_at": doc.get("notification_last_updated_at"),
+                        }}
+                    )
+            except Exception:
                 pass
             if _should_schedule_daily_report_email(doc):
                 schedule_auto_email("daily-report", doc)

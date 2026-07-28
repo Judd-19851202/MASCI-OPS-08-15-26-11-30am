@@ -26,6 +26,7 @@ from lib.workflow_state_events import (
     list_state_events,
     write_state_event,
 )
+from services.operations_control.control_plane import ingest_daily_report_pending_review
 from lib.workflow_state_machine import (
     DAILY_REPORT_DEFAULT_STATE,
     DAILY_REPORT_STATES,
@@ -132,25 +133,27 @@ def register_daily_report_lifecycle_routes(
         # Safety reviewers see the queue grow. Fire-and-forget.
         if to_state == "PENDING_REVIEW":
             try:
-                from lib.event_fanout import emit_notification  # noqa: PLC0415
-                project_label = doc.get("project_name") or doc.get("project_number") or "—"
-                title = f"Daily Report submitted for review — {project_label}"[:200]
-                msg = (
-                    f"DR {doc_id or canonical_id[:8]} · "
-                    f"date {doc.get('report_date') or doc.get('date') or '—'} · "
-                    f"submitted by {(actor.get('name') if isinstance(actor, dict) else 'Office')}"
-                )[:200]
-                for recipient in ("admin", "pm", "safety"):
-                    await emit_notification(db, {
-                        "type": "daily_report.pending_review",
-                        "title": title,
-                        "message": msg,
-                        "severity": "Info",
-                        "recipient_role": recipient,
-                        "linked_source_module": "daily_reports",
-                        "linked_source_record_id": canonical_id,
-                        "linked_project_number": doc.get("project_number") or None,
-                    })
+                control_plane_result = await ingest_daily_report_pending_review(
+                    db,
+                    report={
+                        **doc,
+                        "lifecycle_state": to_state,
+                    },
+                    actor_label=(actor.get("name") if isinstance(actor, dict) else "Office") or "Office",
+                )
+                communication_ids = [
+                    row.get("id") for row in (control_plane_result.get("communications") or []) if row.get("id")
+                ]
+                await db.daily_reports.update_one(
+                    {"id": canonical_id},
+                    {
+                        "$set": {
+                            "operations_control_plane.review_queue_event_id": control_plane_result.get("event", {}).get("id"),
+                            "operations_control_plane.review_queue_communication_ids": communication_ids,
+                            "operations_control_plane.review_queue_last_processed_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    },
+                )
             except Exception:
                 pass
 
