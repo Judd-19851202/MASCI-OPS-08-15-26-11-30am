@@ -78,6 +78,68 @@ Explicit non-scope for this fork:
     - hourly activation now reuses canonical scheduler truth inside `/api/admin/backups-scheduler-state`
     - added live alias routes for `/api/admin/persistence-health`, `/api/admin/runtime-reliability`, and `/api/admin/database`
     - tightened health-monitor/index startup coverage for `health_monitor_runs`, `health_alert_cooldowns`, and directory-session expiry paths
+
+### 2026-07-28 Operations Repair Console + authoritative retention + scheduler truth refactor
+
+- Delivered the approved next-phase P0 work in order:
+  1. **Operations Repair Console**
+     - added OCC governance repair operations for:
+       - `governance.employee_link_backfill`
+       - `governance.issue_missing_ppe`
+     - both operations now expose dry-run previews, apply handlers, candidate counts, repair-contract metadata, and audit-linked history in the OCC UI
+     - OCC audit gained summary aggregation via `GET /api/admin/operations-control/audit/summary`
+     - OCC frontend auth fix: admin maintenance calls now send both `X-Admin-Token` and `X-Directory-Token`, matching the live admin session contract
+
+  2. **Authoritative R2 retention/lifecycle endpoints**
+     - added read-side retention authority helper: `/app/backend/lib/r2_retention_authority.py`
+     - `GET /api/admin/r2/lifecycle/latest` now includes `retention`
+     - added:
+       - `GET /api/admin/r2/lifecycle/retention`
+       - `GET /api/admin/r2/lifecycle/retention/policy`
+     - Admin Storage & Recovery and R2 Lifecycle UI now consume authoritative retention truth instead of fallback-only copy
+
+  3. **Scheduler / truth refactor**
+     - extracted backup scheduler truth helpers into `/app/backend/lib/backup_scheduler_truth.py`
+     - moved default scheduler-state construction, retention-policy truth validation, scheduler-health evaluation, and hourly-activation snapshot building out of `server.py`
+     - retained runtime behavior while reducing monolith ownership of scheduler truth logic
+
+- New/updated files:
+  - backend
+    - `/app/backend/services/operations_control/governance.py`
+    - `/app/backend/services/operations_control/audit.py`
+    - `/app/backend/services/operations_control/registry.py`
+    - `/app/backend/routes/operations_control.py`
+    - `/app/backend/routes/admin_r2_lifecycle.py`
+    - `/app/backend/lib/r2_retention_authority.py`
+    - `/app/backend/lib/backup_scheduler_truth.py`
+    - `/app/backend/server.py`
+  - frontend
+    - `/app/frontend/src/pages/OperationsControlCenter.jsx`
+    - `/app/frontend/src/components/admin/R2LifecyclePanel.jsx`
+    - `/app/frontend/src/pages/admin/AdminStorageRecovery.jsx`
+
+- Regression / verification evidence:
+  - focused pytest pass:
+    - `/app/backend/tests/test_track_28_22_operations_repair_console.py`
+    - `/app/backend/tests/test_governance_repair_endpoints.py`
+    - `/app/backend/tests/test_track_15_28a_r2_retention.py`
+  - new backend E2E test from testing agent:
+    - `/app/backend/tests/test_track_28_22_operations_repair_console_e2e.py`
+  - testing reports:
+    - `/app/test_reports/iteration_62.json`
+  - frontend smoke verification confirmed:
+    - admin login
+    - `/admin/operations-control`
+    - `/admin/storage-recovery`
+
+- Verified current live truths on preview after implementation:
+  - OCC governance repairs are visible and actionable with dry-run-first behavior
+  - Storage & Recovery now shows authoritative retention truth and active archive counts
+  - admin routes require both `X-Admin-Token` and `X-Directory-Token` after `/api/auth/multi-login`
+
+- Remaining backlog after this pass:
+  - P1: broaden OCC repair registry with additional legitimate repair families
+  - P2: surface regression / CI status directly in the admin UI
   - `backend/routes/admin_persistence_health.py`
     - Atlas connectivity now trusts runtime identity (`is_atlas`, `mongo_scheme=mongodb+srv`) and reports the detection basis
   - `backend/routes/occ_health_aggregator.py`
