@@ -121,7 +121,7 @@ export const ASSET_ADMIN_DOMAIN = {
 
 export const FOOTER_RAIL_V2 = [
   { to: "/tasks",       label: "My Tasks",    desc: "Action items across all domains.",  icon: ClipboardCheck },
-  { to: "/guidance",    label: "Guidance",    desc: "Doctrine · SOPs · training.",       icon: GraduationCap },
+  { to: "/guidance",    label: "Training Center",    desc: "How-to guides and troubleshooting.",       icon: GraduationCap },
 ];
 
 // Returns the domain id whose routes contain the given pathname, or null.

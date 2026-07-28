@@ -87,24 +87,24 @@ export default function LeadershipLogin() {
             </div>
             <Link
               to="/guidance/onboard-leadership-first-week"
-              className="block text-sm text-amber-700 hover:underline"
+              className="block text-sm text-amber-700 hover:text-amber-900 hover:underline"
               data-testid="leadership-login-onboarding-link"
             >
-              {t("First-Week Onboarding")} →
+              {t("Start first-week onboarding")} →
             </Link>
             <Link
               to="/guidance/portal-leadership-identity"
-              className="block text-sm text-amber-700 hover:underline"
+              className="block text-sm text-amber-700 hover:text-amber-900 hover:underline"
               data-testid="leadership-login-identity-link"
             >
-              {t("What does Field Leadership do?")} →
+              {t("How this portal works")} →
             </Link>
             <Link
               to="/guidance/tshoot-leadership-login"
-              className="block text-sm text-slate-600 hover:underline"
+              className="block text-sm text-slate-600 hover:text-slate-900 hover:underline"
               data-testid="leadership-login-troubleshoot-link"
             >
-              {t("Can't sign in?")} →
+              {t("Fix sign-in problems")} →
             </Link>
           </div>
 

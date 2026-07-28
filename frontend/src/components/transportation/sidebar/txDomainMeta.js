@@ -34,7 +34,7 @@ export const TX_DOMAIN_META = {
     subline: "Drivers · carriers · qualifications.",
   },
   compliance: {
-    stripe: "#0d9488", // teal-600
+    stripe: "#059669", // emerald-600
     icon: ShieldCheck,
     subline: "Compliance · orientation · academy.",
   },

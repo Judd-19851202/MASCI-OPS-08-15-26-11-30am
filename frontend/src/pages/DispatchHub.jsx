@@ -507,7 +507,7 @@ function Section({ testId, accent = "slate", icon: Icon, kicker, title, subtitle
 // ─────────────────────────────────────────────────────────────────────
 // CoachingBlock · collapsible Dispatch Command coaching.
 // iter504 · Collapsed-by-default · production-density.
-// When collapsed: single compact line — "6 coaching tips available".
+// When collapsed: single compact line — "6 workflow tips available".
 // When expanded: full Dispatch Command content.
 // ─────────────────────────────────────────────────────────────────────
 function CoachingBlock({ collapsed, onToggle, t }) {
@@ -527,7 +527,7 @@ function CoachingBlock({ collapsed, onToggle, t }) {
           className="flex-1 text-left font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600"
           data-testid="ds-coaching-counter"
         >
-          {TIP_COUNT} {t("coaching tips available · tap to expand")}
+          {TIP_COUNT} {t("workflow tips available · tap to expand")}
         </span>
         <ChevronDown className="w-4 h-4 text-slate-400" data-testid="ds-coaching-icon-down" />
       </button>

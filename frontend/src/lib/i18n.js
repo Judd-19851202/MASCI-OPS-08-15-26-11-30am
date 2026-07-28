@@ -3327,6 +3327,7 @@ const ES = {
   "How this portal works": "Cómo funciona este portal",
   "Can't sign in?": "¿No puede iniciar sesión?",
   "Fix sign-in problems": "Resolver problemas de inicio de sesión",
+  "workflow tips available · tap to expand": "consejos del flujo de trabajo disponibles · toque para expandir",
   "Admin tokens and PM tokens also satisfy the Field Leadership gate — Operations Managers and PMs can read leadership records without re-signing in.": "Los tokens de Admin y PM también satisfacen la puerta de Liderazgo de Campo — los Gerentes de Operaciones y PMs pueden leer registros de liderazgo sin volver a iniciar sesión.",
   "Step-by-step": "Paso a paso",
   "Tips": "Consejos",
