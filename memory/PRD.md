@@ -124,6 +124,35 @@ Explicit non-scope for this fork:
     - `/api/admin/backups-complete-r2-state`
   - false `scheduler_unhealthy` is gone when the scheduler is actually alive/healthy
 
+### 2026-07-28 exhaustive pre-redeploy backup alert hardening pass
+
+- Additional backup-health / alerting issues traced and fixed before redeploy:
+  - `backend/routes/recovery_dashboard.py`
+    - `backup_age_target_minutes` now uses the same 60m RPO target as `system-health` / `rpo.target_min` instead of the old 24h posture target, eliminating the `60m vs 1440m` contradiction
+    - hourly-disabled warnings now include the real blocker codes for clearer root-cause reporting
+  - `backend/server.py`
+    - `/api/admin/backups-complete-r2-state` now merges canonical scheduler truth into runtime state before evaluating hourly activation, matching `/api/admin/backups-scheduler-state` and `/api/admin/recovery/snapshot`
+  - `backend/health_monitor.py`
+    - synthetic monitor now runs under `run_with_singleton_lock(db, "synthetic_health_monitor", ...)` so multi-worker / multi-replica deployments do not double-poll and multiply email alerts
+  - `backend/routes/occ_health_aggregator.py`
+    - stale-backup recommendation text was tightened so it reflects a real fresh-archive action instead of generic scheduler blame
+- Extra verification performed:
+  - live production read-only investigation confirmed `system-health/recent` cadence strongly suggested duplicate monitor execution and justified singletonizing the monitor loop
+  - preview now shows consistent backup truth across:
+    - `/api/admin/system-health`
+    - `/api/admin/recovery/snapshot`
+    - `/api/admin/backups-complete-r2-state`
+    - `/api/admin/backups-scheduler-state`
+- Final verification artifacts:
+  - `/app/test_reports/iteration_57.json`
+  - `/app/test_reports/iteration_58.json`
+  - `/app/backend/tests/test_iter58_backup_health_final_verification.py`
+- Final verified outcome on Preview:
+  - no false `scheduler_unhealthy` blocker when scheduler is alive/healthy
+  - all backup freshness targets agree on 60 minutes
+  - health monitor is singletonized to avoid duplicate polling/emails in scaled deployments
+  - exhaustive backend verification passed: 57/57 tests
+
 ### 2026-07-28 cross-platform continuity + scheduler truth pass
 
 - Fixed admin session continuity for multi-portal sign-in:
