@@ -206,6 +206,64 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
                 "must not risk unintended live notifications."
             ),
         },
+        {
+            "id": "operational_case_principle",
+            "title": "Operational Case Principle",
+            "statement": (
+                "Every significant operational event shall be capable of being reconstructed as a "
+                "complete Operational Case from canonical records. Operational Cases do not create "
+                "or replace operational truth. They assemble, link, preserve, and present "
+                "authoritative records, communications, acknowledgements, escalations, decisions, "
+                "recovery actions, evidence, and Trust Spine events into one governed investigative "
+                "and operational view. No Case may silently alter, duplicate, reinterpret, or "
+                "supersede the authoritative source records it references."
+            ),
+        },
+        {
+            "id": "canonical_truth_rule",
+            "title": "Canonical Truth Rule",
+            "statement": "Every value displayed in an Operational Case must identify its canonical source.",
+        },
+        {
+            "id": "no_silent_mutation_rule",
+            "title": "No Silent Mutation Rule",
+            "statement": "A Case may not directly modify authoritative records unless it invokes the existing authorized workflow owned by that canonical system.",
+        },
+        {
+            "id": "reconstruction_rule",
+            "title": "Reconstruction Rule",
+            "statement": "A Case must be reconstructable from persisted canonical records and Trust Spine evidence after refresh, restart, logout/login, deployment, restore, or operator change.",
+        },
+        {
+            "id": "referential_integrity_rule",
+            "title": "Referential Integrity Rule",
+            "statement": "Every Case link must resolve to a valid canonical record or explicitly surface unavailable, archived, deleted-under-policy, or access-restricted state.",
+        },
+        {
+            "id": "immutable_history_rule",
+            "title": "Immutable History Rule",
+            "statement": "Case history, acknowledgement history, escalation history, ownership changes, severity changes, and closure decisions must be append-only and auditable.",
+        },
+        {
+            "id": "case_assembly_rule",
+            "title": "Case Assembly Rule",
+            "statement": "Operational Cases assemble truth. They do not invent truth.",
+        },
+        {
+            "id": "case_creation_policy_principle",
+            "title": "Case Creation Policy Principle",
+            "statement": "Automatic Operational Case creation must be driven only by versioned registry policy applied to registered operational events. The decision to create, suppress, suggest, link, or update a Case must be deterministic, explainable, auditable, and reproducible from persisted inputs.",
+        },
+        {
+            "id": "one_event_one_governed_outcome",
+            "title": "One Event, One Governed Outcome",
+            "statement": "For the same originating event and policy version, repeated processing must produce the same governed result: create one Case, update the existing Case, link to an existing Case, suggest Case creation, or suppress Case creation with a recorded reason. Retries and replays must not create duplicates.",
+        },
+        {
+            "id": "proof_record_isolation",
+            "title": "Proof Record Isolation",
+            "statement": "Preview proof records must remain clearly identified as certification evidence, use preview-safe communications, allow accelerated SLA only within test scope, preserve production defaults, remain visible in Trust Spine/evidence, and never masquerade as production records.",
+        },
     ]
 
     workflows = {
@@ -220,6 +278,25 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
             "trust_workflow": "oppc-daily-report-proof-chain",
             "compatibility_workflows": ["daily-report"],
             "record_type": "daily_report",
+        },
+        "oppc.operational_case_management": {
+            "id": "oppc.operational_case_management",
+            "title": "Operational Case Management",
+            "source_of_truth": [
+                "daily_reports",
+                "operations_control_plane_events",
+                "operations_control_plane_communications",
+                "operational_variance_reviews",
+                "trust_spine_events",
+                "tasks",
+            ],
+            "description": (
+                "Governed assembly of authoritative operational truth into one reconstructable "
+                "Operational Case without duplicating the source systems."
+            ),
+            "trust_workflow": "oppc-operational-case-management",
+            "compatibility_workflows": [],
+            "record_type": "operational_case",
         },
     }
 
@@ -279,6 +356,83 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
                 "communication.escalation_policy_id",
             ],
         },
+        "operational_case.created": {
+            "id": "operational_case.created",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case created",
+            "severity": "warning",
+            "operational_intent": "case_created",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.opened"],
+            "description": "A governed Operational Case was created from a registered policy decision.",
+            "evidence_contract": ["case.case_id", "case.origin.originating_event_id", "case.policy_decision"],
+        },
+        "operational_case.assigned": {
+            "id": "operational_case.assigned",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case assigned",
+            "severity": "info",
+            "operational_intent": "case_assignment_required",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.assigned"],
+            "description": "A Case owner or assigned role changed under governed policy.",
+            "evidence_contract": ["case.case_id", "case.case_owner", "case.assigned_role"],
+        },
+        "operational_case.escalated": {
+            "id": "operational_case.escalated",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case escalated",
+            "severity": "critical",
+            "operational_intent": "case_escalation_required",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.escalated"],
+            "description": "A Case crossed an escalation threshold and requires higher attention.",
+            "evidence_contract": ["case.case_id", "case.status", "case.escalation_state"],
+        },
+        "operational_case.pending_verification": {
+            "id": "operational_case.pending_verification",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case pending verification",
+            "severity": "warning",
+            "operational_intent": "case_pending_verification",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.pending_verification"],
+            "description": "A Case is awaiting final verification before resolution/closure.",
+            "evidence_contract": ["case.case_id", "case.status", "case.lifecycle"],
+        },
+        "operational_case.resolved": {
+            "id": "operational_case.resolved",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case resolved",
+            "severity": "info",
+            "operational_intent": "case_resolved",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.resolved"],
+            "description": "A Case resolution was proposed or recorded.",
+            "evidence_contract": ["case.case_id", "case.closure", "case.status"],
+        },
+        "operational_case.closed": {
+            "id": "operational_case.closed",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case closed",
+            "severity": "info",
+            "operational_intent": "case_closed",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.closed"],
+            "description": "A Case closure was authorized and recorded.",
+            "evidence_contract": ["case.case_id", "case.closure", "case.audit"],
+        },
+        "operational_case.reopened": {
+            "id": "operational_case.reopened",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case reopened",
+            "severity": "warning",
+            "operational_intent": "case_reopened",
+            "source_collection": "operations_control_plane_cases",
+            "communication_intent_ids": ["operational_case.reopened"],
+            "description": "A previously closed Case was reopened under governed policy.",
+            "evidence_contract": ["case.case_id", "case.reopened_at", "case.closure"],
+        },
     }
 
     communication_intents = {
@@ -331,6 +485,104 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
                 "Escalate overdue Daily Report communications to the operational admin lane."
             ),
         },
+        "operational_case.opened": {
+            "id": "operational_case.opened",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case opened",
+            "recipient_strategy": "case_primary_owner_and_admin",
+            "policy_evaluator": "default_case_open_policy",
+            "template_id": "operational_case.opened.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": True,
+            "ack_sla_minutes": 240,
+            "closure_mode": "ack_or_escalate",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Notify accountable ownership that a new Operational Case has been opened.",
+        },
+        "operational_case.assigned": {
+            "id": "operational_case.assigned",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case assigned",
+            "recipient_strategy": "case_primary_owner_and_admin",
+            "policy_evaluator": "default_case_assignment_policy",
+            "template_id": "operational_case.assigned.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": False,
+            "ack_sla_minutes": 0,
+            "closure_mode": "delivery_only",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Notify Case ownership changes.",
+        },
+        "operational_case.escalated": {
+            "id": "operational_case.escalated",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case escalated",
+            "recipient_strategy": "case_escalation_path",
+            "policy_evaluator": "default_case_escalation_policy",
+            "template_id": "operational_case.escalated.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": True,
+            "ack_sla_minutes": 120,
+            "closure_mode": "ack_or_escalate",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Escalate a Case to higher operational authority.",
+        },
+        "operational_case.pending_verification": {
+            "id": "operational_case.pending_verification",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case pending verification",
+            "recipient_strategy": "case_primary_owner_and_admin",
+            "policy_evaluator": "default_case_pending_verification_policy",
+            "template_id": "operational_case.pending_verification.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": False,
+            "ack_sla_minutes": 0,
+            "closure_mode": "delivery_only",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Notify pending verification status for a Case.",
+        },
+        "operational_case.resolved": {
+            "id": "operational_case.resolved",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case resolved",
+            "recipient_strategy": "case_primary_owner_and_admin",
+            "policy_evaluator": "default_case_resolution_policy",
+            "template_id": "operational_case.resolved.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": False,
+            "ack_sla_minutes": 0,
+            "closure_mode": "delivery_only",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Notify that a Case has been resolved.",
+        },
+        "operational_case.closed": {
+            "id": "operational_case.closed",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case closed",
+            "recipient_strategy": "case_primary_owner_and_admin",
+            "policy_evaluator": "default_case_closure_policy",
+            "template_id": "operational_case.closed.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": False,
+            "ack_sla_minutes": 0,
+            "closure_mode": "delivery_only",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Notify that a Case has been closed.",
+        },
+        "operational_case.reopened": {
+            "id": "operational_case.reopened",
+            "workflow_id": "oppc.operational_case_management",
+            "title": "Operational Case reopened",
+            "recipient_strategy": "case_primary_owner_and_admin",
+            "policy_evaluator": "default_case_reopen_policy",
+            "template_id": "operational_case.reopened.v1",
+            "transport_ids": ["in_app.notification_feed", "email.resend"],
+            "ack_required": True,
+            "ack_sla_minutes": 240,
+            "closure_mode": "ack_or_escalate",
+            "escalation_policy_id": "operational_case.ack",
+            "description": "Notify that a Case has been reopened.",
+        },
     }
 
     templates = {
@@ -370,6 +622,55 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
                 "This escalation was generated by canonical policy after an acknowledgement SLA breach."
             ),
         },
+        "operational_case.opened.v1": {
+            "id": "operational_case.opened.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case opened — {doc_id}",
+            "message_template": "A governed Operational Case has been opened for {project_label}.",
+            "email_note": "This Case was created automatically by registered policy and remains linked to canonical operational truth.",
+        },
+        "operational_case.assigned.v1": {
+            "id": "operational_case.assigned.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case assigned — {doc_id}",
+            "message_template": "Ownership or assignment changed for Operational Case {doc_id}.",
+            "email_note": "Assignment was recorded through the Operations Control Plane case workflow.",
+        },
+        "operational_case.escalated.v1": {
+            "id": "operational_case.escalated.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case escalated — {doc_id}",
+            "message_template": "Operational Case {doc_id} crossed an escalation threshold and needs action now.",
+            "email_note": "This escalation was generated by canonical Case policy.",
+        },
+        "operational_case.pending_verification.v1": {
+            "id": "operational_case.pending_verification.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case pending verification — {doc_id}",
+            "message_template": "Operational Case {doc_id} is waiting for verification before closure.",
+            "email_note": "Verification remains required before policy-driven closure.",
+        },
+        "operational_case.resolved.v1": {
+            "id": "operational_case.resolved.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case resolved — {doc_id}",
+            "message_template": "Operational Case {doc_id} has a proposed or recorded resolution.",
+            "email_note": "Resolution was recorded in the canonical Case ledger.",
+        },
+        "operational_case.closed.v1": {
+            "id": "operational_case.closed.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case closed — {doc_id}",
+            "message_template": "Operational Case {doc_id} has been closed under policy.",
+            "email_note": "Closure was authorized and captured by the Operations Control Plane.",
+        },
+        "operational_case.reopened.v1": {
+            "id": "operational_case.reopened.v1",
+            "channel_family": "operational_case",
+            "title_template": "Operational Case reopened — {doc_id}",
+            "message_template": "Operational Case {doc_id} has been reopened and requires attention again.",
+            "email_note": "The original closure record remains preserved; this is a governed reopening event.",
+        },
     }
 
     transport_providers = {
@@ -400,6 +701,120 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
             "overdue_event_id": "oppc.daily_report.ack_overdue",
             "max_escalations": 1,
         },
+        "operational_case.ack": {
+            "id": "operational_case.ack",
+            "title": "Operational Case acknowledgement SLA",
+            "description": "Escalate when a required Case acknowledgement is not completed within policy.",
+            "overdue_transport_ids": ["in_app.notification_feed", "email.resend"],
+            "overdue_event_id": "operational_case.escalated",
+            "max_escalations": 1,
+        },
+    }
+
+    case_types_raw = [
+        ("daily_report_exception", "Daily Report Exception", "daily_reports", "moderate", ["informational", "low", "moderate", "high", "critical"]),
+        ("schedule_variance", "Schedule Variance", "oppc_variance", "moderate", ["low", "moderate", "high", "critical", "emergency"]),
+        ("forecast_change", "Forecast Change", "forecasting", "moderate", ["low", "moderate", "high", "critical"]),
+        ("production_shortfall", "Production Shortfall", "oppc_variance", "high", ["moderate", "high", "critical", "emergency"]),
+        ("cost_code_variance", "Cost Code Variance", "oppc_variance", "moderate", ["low", "moderate", "high", "critical"]),
+        ("recovery_plan", "Recovery Plan", "recovery", "high", ["moderate", "high", "critical"]),
+        ("payroll_exception", "Payroll Exception", "payroll", "moderate", ["low", "moderate", "high"]),
+        ("labor_staffing_constraint", "Labor or Staffing Constraint", "staffing", "moderate", ["low", "moderate", "high", "critical"]),
+        ("equipment_failure", "Equipment Failure", "equipment", "high", ["moderate", "high", "critical", "emergency"]),
+        ("fleet_dispatch_conflict", "Fleet or Dispatch Conflict", "dispatch", "moderate", ["low", "moderate", "high"]),
+        ("material_delay", "Material Delay", "materials", "moderate", ["low", "moderate", "high", "critical"]),
+        ("plant_capacity_constraint", "Plant Capacity Constraint", "plant", "moderate", ["low", "moderate", "high", "critical"]),
+        ("survey_constraint", "Survey Constraint", "survey", "moderate", ["low", "moderate", "high"]),
+        ("testing_inspection_constraint", "Testing or Inspection Constraint", "inspection", "moderate", ["low", "moderate", "high", "critical"]),
+        ("quality_issue", "Quality Issue", "quality", "high", ["moderate", "high", "critical", "emergency"]),
+        ("safety_event", "Safety Event", "safety", "critical", ["high", "critical", "emergency"]),
+        ("environmental_event", "Environmental Event", "environment", "high", ["moderate", "high", "critical", "emergency"]),
+        ("utility_conflict", "Utility Conflict", "utilities", "moderate", ["moderate", "high", "critical"]),
+        ("owner_engineer_delay", "Owner or Engineer Delay", "owner_engineer", "moderate", ["low", "moderate", "high"]),
+        ("subcontractor_performance_issue", "Subcontractor Performance Issue", "subcontractor", "moderate", ["low", "moderate", "high", "critical"]),
+        ("executive_decision", "Executive Decision", "executive", "high", ["moderate", "high", "critical"]),
+        ("operational_communication_failure", "Operational Communication Failure", "communications", "high", ["moderate", "high", "critical"]),
+        ("escalation_failure", "Escalation Failure", "communications", "critical", ["high", "critical", "emergency"]),
+        ("data_trust_integrity_issue", "Data Trust or Integrity Issue", "data_trust", "high", ["moderate", "high", "critical"]),
+        ("general_operational_exception", "General Operational Exception", "operations", "moderate", ["informational", "low", "moderate", "high"]),
+    ]
+    case_allowed_statuses = [
+        "DRAFT", "OPEN", "ACKNOWLEDGEMENT_REQUIRED", "UNDER_REVIEW", "INVESTIGATING",
+        "ACTION_REQUIRED", "RECOVERY_ACTIVE", "ESCALATED", "MONITORING", "PENDING_VERIFICATION",
+        "RESOLVED", "CLOSED", "REOPENED", "ARCHIVED", "CANCELLED", "DUPLICATE",
+    ]
+    case_types = {
+        type_id: {
+            "id": type_id,
+            "display_name": label,
+            "description": label,
+            "canonical_owning_domain": owner,
+            "default_severity": default_severity,
+            "allowed_severity_range": severity_range,
+            "eligible_originating_event_types": ["oppc.daily_report.submitted", "oppc.daily_report.pending_review"],
+            "eligible_related_record_types": ["daily_report", "communication", "variance", "task", "baseline", "evidence_package"],
+            "acknowledgement_expectations": "required_when_case_opened",
+            "escalation_eligibility": True,
+            "retention_class": "operations_control_plane_v1",
+            "closure_requirements": ["status_history", "root_cause_or_reason", "evidence_package"],
+            "evidence_requirements": ["trust_spine", "communications", "source_record"],
+            "required_roles": ["admin", "pm"],
+            "allowed_statuses": case_allowed_statuses,
+            "state": "active",
+            "version": "1.0",
+        }
+        for type_id, label, owner, default_severity, severity_range in case_types_raw
+    }
+
+    case_lifecycle = {
+        "statuses": case_allowed_statuses,
+        "default_status": "OPEN",
+        "transitions": {
+            "DRAFT": ["OPEN", "CANCELLED"],
+            "OPEN": ["ACKNOWLEDGEMENT_REQUIRED", "UNDER_REVIEW", "DUPLICATE"],
+            "ACKNOWLEDGEMENT_REQUIRED": ["UNDER_REVIEW", "ESCALATED"],
+            "UNDER_REVIEW": ["INVESTIGATING", "ACTION_REQUIRED", "ESCALATED"],
+            "INVESTIGATING": ["ACTION_REQUIRED", "RECOVERY_ACTIVE", "ESCALATED"],
+            "ACTION_REQUIRED": ["RECOVERY_ACTIVE", "MONITORING", "ESCALATED"],
+            "RECOVERY_ACTIVE": ["MONITORING", "PENDING_VERIFICATION", "ESCALATED"],
+            "ESCALATED": ["UNDER_REVIEW", "ACTION_REQUIRED", "RECOVERY_ACTIVE", "PENDING_VERIFICATION"],
+            "MONITORING": ["PENDING_VERIFICATION", "ESCALATED"],
+            "PENDING_VERIFICATION": ["RESOLVED", "ESCALATED"],
+            "RESOLVED": ["CLOSED", "REOPENED"],
+            "CLOSED": ["REOPENED", "ARCHIVED"],
+            "REOPENED": ["UNDER_REVIEW", "INVESTIGATING"],
+            "DUPLICATE": ["ARCHIVED"],
+            "CANCELLED": [],
+            "ARCHIVED": [],
+        },
+        "severity_levels": ["informational", "low", "moderate", "high", "critical", "emergency"],
+        "priority_levels": ["P4", "P3", "P2", "P1", "P0"],
+    }
+
+    case_creation_policies = {
+        "oppc.daily_report.submitted": {
+            "id": "oppc.daily_report.submitted.case_policy.v1",
+            "version": "1.0",
+            "event_id": "oppc.daily_report.submitted",
+            "default_case_type_id": "daily_report_exception",
+            "decision_mode": "auto",
+            "eligible_outcomes": ["create", "update", "link", "suggest", "suppress"],
+            "create_threshold": 3,
+            "proof_scope_accelerated_ack_sla_minutes": 1,
+            "proof_scope_requires_flags": ["certification_record", "synthetic_record", "hidden_from_operations"],
+            "evaluation_factors": [
+                "severity",
+                "variance_threshold",
+                "forecast_impact",
+                "confidence_impact",
+                "critical_path_impact",
+                "acknowledgement_requirement",
+                "escalation_eligibility",
+                "recurrence",
+                "executive_attention_requirement",
+            ],
+            "one_event_one_outcome": True,
+        }
     }
 
     registry = {
@@ -412,6 +827,9 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
         "templates": templates,
         "transport_providers": transport_providers,
         "escalation_policies": escalation_policies,
+        "case_types": case_types,
+        "case_lifecycle": case_lifecycle,
+        "case_creation_policies": case_creation_policies,
     }
     registry["registry_hash"] = _registry_hash(registry)
     return registry
@@ -431,6 +849,7 @@ def operations_control_plane_registry_summary() -> Dict[str, Any]:
             "templates": len(registry["templates"]),
             "transports": len(registry["transport_providers"]),
             "escalation_policies": len(registry["escalation_policies"]),
+            "case_types": len(registry.get("case_types") or {}),
         },
         "workflow_ids": sorted(registry["workflows"].keys()),
         "event_ids": sorted(registry["event_catalog"].keys()),
@@ -438,6 +857,7 @@ def operations_control_plane_registry_summary() -> Dict[str, Any]:
         "transport_ids": sorted(registry["transport_providers"].keys()),
         "template_ids": sorted(registry["templates"].keys()),
         "escalation_policy_ids": sorted(registry["escalation_policies"].keys()),
+        "case_type_ids": sorted((registry.get("case_types") or {}).keys()),
     }
 
 
