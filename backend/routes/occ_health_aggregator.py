@@ -249,7 +249,7 @@ def _eval_recovery_snapshot(body, err, checked_at):
         "backup_failed": "Open Storage & Recovery → run backup verification, then re-trigger backup.",
         "no_backup_evidence": "Open Storage & Recovery to trigger a fresh backup and confirm evidence.",
         "bucket_over_alert": "Open Storage & Recovery → R2 Lifecycle to review capacity and rotate old archives.",
-        "backup_stale_critical": "Trigger a fresh backup and verify the scheduler is running.",
+        "backup_stale_critical": "Trigger a fresh backup immediately and confirm a new recoverable archive lands.",
         "backup_stale": "Verify the next backup completes on schedule.",
         "hourly_blocked_by_safety_guard": "Open Storage & Recovery → Backup Scheduler and clear the active/stale blocker before trusting hourly cadence.",
         "recent_failures": "Open Storage & Recovery → Backup History to inspect recent failures.",

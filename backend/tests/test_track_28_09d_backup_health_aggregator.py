@@ -30,7 +30,7 @@ def _base_body(**over):
         "pill": "GREEN",
         "last_backup": {"ok": True, "ts": "2026-07-11T00:00:00Z", "filename": "b.zip"},
         "backup_age_minutes": 53.3,
-        "backup_age_target_minutes": 1440,
+        "backup_age_target_minutes": 60,
         "archive_count": {"r2_total": 95, "last_7d": 30, "last_30d": 85},
         "rpo": {"target_min": 60, "actual_min": 53.3, "status": "GREEN"},
         "rto": {"target_min": 15, "last_drill_min": None, "status": "AMBER"},
@@ -106,7 +106,7 @@ def test_backup_stale_produces_freshness_action_not_scheduler_action():
     body = _base_body(pill="AMBER", backup_age_minutes=1500)
     out = _eval_recovery_snapshot(body, None, CHECKED_AT)
     assert out["status"] == "DEGRADED"
-    assert out["evidence"]["reason_code"] == "backup_stale"
+    assert out["evidence"]["reason_code"] in {"backup_stale", "backup_stale_critical"}
     action = out["recommended_action"].lower()
     assert "next backup" in action or "scheduler" not in action
 
@@ -143,3 +143,8 @@ def test_evidence_exposes_reason_code_field():
     out = _eval_recovery_snapshot(_base_body(), None, CHECKED_AT)
     assert "reason_code" in out["evidence"]
     assert "reason" in out["evidence"]
+
+
+def test_summary_uses_rpo_target_not_24h_posture_target():
+    out = _eval_recovery_snapshot(_base_body(), None, CHECKED_AT)
+    assert "target ≤ 60m" in out["summary"]

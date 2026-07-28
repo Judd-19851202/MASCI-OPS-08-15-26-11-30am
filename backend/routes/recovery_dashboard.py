@@ -334,7 +334,7 @@ def build_recovery_dashboard_router(
 
         rpo_target = int(os.environ.get("BACKUP_RPO_TARGET_MINUTES", "60") or "60")
         rto_target = int(os.environ.get("BACKUP_RTO_TARGET_MINUTES", "15") or "15")
-        age_target = int(os.environ.get("BACKUP_AGE_TARGET_HOURS", "24") or "24") * 60
+        posture_target = int(os.environ.get("BACKUP_AGE_TARGET_HOURS", "24") or "24") * 60
         warn_gb = float(os.environ.get("R2_USAGE_WARN_GB", "350") or "350")
         alert_gb = float(os.environ.get("R2_USAGE_ALERT_GB", "450") or "450")
         from server import _canonical_app_env, _canonical_db_name  # noqa: PLC0415
@@ -345,7 +345,11 @@ def build_recovery_dashboard_router(
         )
         authoritative_artifact = archive_lineage.get("authoritative_artifact") or {}
         newest_observed = archive_lineage.get("newest_observed_artifact") or {}
-        freshness = consumer_freshness_status(archive_lineage, threshold_minutes=float(age_target))
+        freshness = consumer_freshness_status(
+            archive_lineage,
+            threshold_minutes=float(rpo_target),
+            warning_minutes=float(rpo_target),
+        )
 
         last_backup: Optional[Dict[str, Any]] = None
         backup_age_minutes: Optional[float] = archive_lineage.get("freshness_age_minutes")
@@ -521,7 +525,7 @@ def build_recovery_dashboard_router(
         pill = _compute_pill(
             last_backup_ok=last_backup_ok,
             backup_age_minutes=backup_age_minutes,
-            backup_age_target_minutes=float(age_target),
+            backup_age_target_minutes=float(rpo_target),
             failures_7d=len(failures_7d),
             bucket_usage_status=usage_status,
         )
@@ -556,10 +560,16 @@ def build_recovery_dashboard_router(
         elif rpo_status == "AMBER" and pill == "GREEN":
             pill = "AMBER"
         if hourly_activation.get("activation_status") != "ACTIVE":
+            blocker_codes = [
+                str((blocker or {}).get("code") or "").strip()
+                for blocker in (hourly_activation.get("activation_blockers") or [])
+                if (blocker or {}).get("code")
+            ]
+            blocker_suffix = f" ({', '.join(blocker_codes)})" if blocker_codes else ""
             warnings.append({
                 "kind": "hourly-disabled",
                 "severity": "red" if str(hourly_activation.get("activation_status") or "").upper() == "BLOCKED BY SAFETY GUARD" else "info",
-                "message": f"Hourly complete R2 is {hourly_activation.get('activation_status')}",
+                "message": f"Hourly complete R2 is {hourly_activation.get('activation_status')}{blocker_suffix}",
             })
         if not scheduler_alive:
             warnings.append({
@@ -597,7 +607,7 @@ def build_recovery_dashboard_router(
             "last_backup": last_backup,
             "last_drill": last_drill,
             "backup_age_minutes": backup_age_minutes,
-            "backup_age_target_minutes": age_target,
+            "backup_age_target_minutes": rpo_target,
             "archive_lineage": public_archive_lineage_payload(archive_lineage),
             "rpo": {
                 "target_min": rpo_target,

@@ -166,3 +166,9 @@ def test_recovery_snapshot_hourly_activation_uses_same_canonical_scheduler_truth
     assert out["scheduler"]["alive"] is True
     assert out["scheduler"]["is_healthy"] is True
     assert "scheduler_unhealthy" not in blocker_codes
+
+
+def test_recovery_snapshot_uses_rpo_target_for_backup_age_target_minutes():
+    out = asyncio.run(_call_recovery_snapshot(_FakeDB()))
+    assert out["rpo"]["target_min"] == 60
+    assert out["backup_age_target_minutes"] == 60
