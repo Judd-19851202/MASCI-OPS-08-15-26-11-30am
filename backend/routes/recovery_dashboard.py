@@ -504,6 +504,14 @@ def build_recovery_dashboard_router(
             backup_runtime = await _collect_backup_runtime_state(db)
         except Exception:
             backup_runtime = {}
+        backup_runtime = {
+            **backup_runtime,
+            "alive": canonical_scheduler.get("alive"),
+            "is_healthy": canonical_scheduler.get("is_healthy"),
+            "evidence_ts": canonical_scheduler.get("evidence_ts"),
+            "last_lock_ts": canonical_scheduler.get("last_lock_ts"),
+            "last_tick_ts": canonical_scheduler.get("last_tick_ts"),
+        }
         scheduler_alive = bool(canonical_scheduler.get("alive"))
 
         # --- hourly cadence flag (read-only — never modifies) ---

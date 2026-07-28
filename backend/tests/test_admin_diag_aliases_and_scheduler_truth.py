@@ -56,6 +56,46 @@ def test_hourly_activation_uses_passed_runtime_state_for_scheduler_truth(monkeyp
     assert "scheduler_unhealthy" not in blocker_codes
 
 
+def test_hourly_activation_backfills_canonical_scheduler_truth_when_runtime_state_is_incomplete(monkeypatch) -> None:
+    async def fake_list_stale_backup_jobs(_db, limit=10):  # noqa: ARG001
+        return []
+
+    async def fake_stale_scheduler_lock_present(_db):
+        return False
+
+    async def fake_backup_persistence_available(_db):
+        return True
+
+    async def fake_latest_complete_backup_hint(_db):
+        return {"size_bytes": 123}
+
+    async def fake_build_canonical_scheduler_snapshot(_db, _state):
+        return {
+            "alive": True,
+            "is_healthy": True,
+            "evidence_ts": "2099-01-01T00:00:00+00:00",
+            "last_lock_ts": "2099-01-01T00:00:00+00:00",
+            "last_tick_ts": None,
+        }
+
+    monkeypatch.setattr(server, "list_stale_backup_jobs", fake_list_stale_backup_jobs)
+    monkeypatch.setattr(server, "_stale_scheduler_lock_present", fake_stale_scheduler_lock_present)
+    monkeypatch.setattr(server, "_backup_persistence_available", fake_backup_persistence_available)
+    monkeypatch.setattr(server, "_latest_complete_backup_hint", fake_latest_complete_backup_hint)
+    monkeypatch.setattr(server, "_canonical_app_env", lambda: "production")
+    monkeypatch.setattr(server, "_backup_resource_preflight", lambda archive_size_bytes=None: {"ok": True, "reasons": [], "archive_size_bytes": archive_size_bytes})
+    monkeypatch.setattr("routes.recovery_dashboard.build_canonical_scheduler_snapshot", fake_build_canonical_scheduler_snapshot)
+
+    runtime_state = {
+        "overlap": {"backup_active": False, "restore_active": False},
+        "active_jobs": [],
+    }
+
+    result = asyncio.run(server._build_hourly_activation_state(SimpleNamespace(), runtime_state=runtime_state))
+    blocker_codes = {b["code"] for b in result["activation_blockers"]}
+    assert "scheduler_unhealthy" not in blocker_codes
+
+
 def test_admin_diag_aliases_call_underlying_routes(monkeypatch) -> None:
     async def fake_persistence_endpoint():
         return {"ok": True, "source": "persistence"}

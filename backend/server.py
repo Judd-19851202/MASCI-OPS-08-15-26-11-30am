@@ -7947,6 +7947,21 @@ def _retention_policy_state() -> Dict[str, Any]:
 
 async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     runtime_state = runtime_state or await _collect_backup_runtime_state(db)
+    if not runtime_state.get("alive") or runtime_state.get("is_healthy") is None:
+        try:
+            from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
+
+            canonical_scheduler = await build_canonical_scheduler_snapshot(db, runtime_state)
+            runtime_state = {
+                **runtime_state,
+                "alive": canonical_scheduler.get("alive"),
+                "is_healthy": canonical_scheduler.get("is_healthy"),
+                "evidence_ts": canonical_scheduler.get("evidence_ts"),
+                "last_lock_ts": canonical_scheduler.get("last_lock_ts"),
+                "last_tick_ts": canonical_scheduler.get("last_tick_ts"),
+            }
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[hourly-activation] canonical scheduler merge failed: {exc}")
     overlap = runtime_state.get("overlap") or {}
     stale_jobs = await list_stale_backup_jobs(db, limit=10)
     stale_lock_present = await _stale_scheduler_lock_present(db)

@@ -69,13 +69,30 @@ class _AsyncCollection:
     def find(self, *args, **kwargs):
         return _AsyncCursor(self._docs)
 
+    async def update_many(self, *args, **kwargs):  # noqa: ARG002
+        return None
+
 
 class _AsyncCursor:
     def __init__(self, docs):
         self._docs = list(docs)
+        self._iter = iter(self._docs)
 
     def sort(self, *args, **kwargs):
         return self
+
+    def limit(self, value):  # noqa: ARG002
+        return self
+
+    def __aiter__(self):
+        self._iter = iter(self._docs)
+        return self
+
+    async def __anext__(self):
+        try:
+            return next(self._iter)
+        except StopIteration as exc:
+            raise StopAsyncIteration from exc
 
     async def to_list(self, length=0):
         return list(self._docs[:length or None])
@@ -102,6 +119,10 @@ class _FakeDB:
             }
         ])
         self.drill_runs = _AsyncCollection([])
+        self.backup_jobs = _AsyncCollection([])
+
+    def __getitem__(self, name):
+        return getattr(self, name)
 
 
 async def _call_recovery_snapshot(fake_db):
@@ -135,4 +156,13 @@ def test_recovery_snapshot_prefers_canonical_scheduler_state_over_stale_lock():
     assert out["scheduler"]["alive"] is True
     assert out["scheduler"]["is_healthy"] is True
     assert out["scheduler"]["signal_source"] == "backup_scheduler_state"
-    assert all((warning or {}).get("severity") == "info" for warning in out["warnings"])
+    scheduler_warnings = [w for w in out["warnings"] if (w or {}).get("kind") == "scheduler-quiet"]
+    assert scheduler_warnings == []
+
+
+def test_recovery_snapshot_hourly_activation_uses_same_canonical_scheduler_truth():
+    out = asyncio.run(_call_recovery_snapshot(_FakeDB()))
+    blocker_codes = {b.get("code") for b in (out.get("hourly_activation") or {}).get("activation_blockers", [])}
+    assert out["scheduler"]["alive"] is True
+    assert out["scheduler"]["is_healthy"] is True
+    assert "scheduler_unhealthy" not in blocker_codes
