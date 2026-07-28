@@ -37,6 +37,7 @@ import {
 
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
+import { getDirectoryToken } from "@/lib/directoryAuth";
 
 // TRACK 25A · Universal Admin OS shell so OCC matches every other
 // domain page (PortalShell + SideNavV3 + breadcrumb).
@@ -256,7 +257,11 @@ function adminToken() {
 
 function authHeaders() {
   const t = adminToken();
-  return t ? { "X-Admin-Token": t } : {};
+  const directoryToken = getDirectoryToken();
+  const headers = {};
+  if (t) headers["X-Admin-Token"] = t;
+  if (directoryToken) headers["X-Directory-Token"] = directoryToken;
+  return headers;
 }
 
 async function fetchOverview() {
