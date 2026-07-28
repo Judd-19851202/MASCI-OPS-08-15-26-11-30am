@@ -680,6 +680,7 @@ export function AppRoutes() {
             {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
             <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />
             <Route path="/admin/executive-overview" element={A(<ExecutiveOverview />)} />
+            <Route path="/admin/executive-intelligence" element={A(<ExecutiveIntelligence />)} />
             {/* Track 13.22 · Phase D · Material Movement Ledger · Admin Data-Quality + CSV. */}
             <Route path="/admin/material-ledger-quality" element={A(<AdminMaterialLedgerQuality />)} />
             <Route path="/admin/people" element={A(<AdminPeople />)} />
