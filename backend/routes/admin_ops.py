@@ -162,16 +162,18 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 requested_source_environment=_canonical_app_env(),
                 include_manifest_reads=False,
             )
-            freshness = consumer_freshness_status(lineage, threshold_minutes=24 * 60.0, warning_minutes=24 * 60.0)
+            rpo_target_minutes = float(os.environ.get("BACKUP_RPO_TARGET_MINUTES", "60") or "60")
+            freshness = consumer_freshness_status(lineage, threshold_minutes=rpo_target_minutes, warning_minutes=rpo_target_minutes)
             hrs = lineage.get("freshness_age_hours")
             status = "VERIFIED" if freshness.get("status") == "CURRENT" else "DEGRADED" if freshness.get("status") == "AGING" else "MISMATCH"
             authoritative_artifact = lineage.get("authoritative_artifact") or {}
             if hrs is not None:
+                mins = float(lineage.get("freshness_age_minutes") or (hrs * 60.0))
                 cards.append({
                     "key": "backup",
                     "label": "Last backup",
                     "status": status,
-                    "detail": f"Canonical recoverable point {hrs:.1f}h ago · {(authoritative_artifact.get('filename') or 'archive')} · {lineage.get('authoritative_time_source') or 'UNKNOWN'}",
+                    "detail": f"Canonical recoverable point {hrs:.1f}h ago ({mins:.0f}m vs target ≤ {rpo_target_minutes:.0f}m) · {(authoritative_artifact.get('filename') or 'archive')} · {lineage.get('authoritative_time_source') or 'UNKNOWN'}",
                 })
             else:
                 degradation = ", ".join((lineage.get("degradation_reasons") or [])[:2]) or "authoritative_recovery_point_unknown"

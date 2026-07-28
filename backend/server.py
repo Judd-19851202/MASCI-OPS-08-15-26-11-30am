@@ -419,6 +419,7 @@ from lib.backup_runtime import (  # noqa: E402
     ensure_backup_runtime_indexes,
     fail_backup_job,
     get_active_backup_jobs,
+    is_backup_job_stale,
     heartbeat_backup_job,
     list_backup_jobs,
     list_stale_backup_jobs,
@@ -7858,6 +7859,8 @@ async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[backup-runtime] active jobs read failed: {e}")
         active_jobs = []
+    reclaimable_active_jobs = [row for row in active_jobs if is_backup_job_stale(row)]
+    blocking_active_jobs = [row for row in active_jobs if not is_backup_job_stale(row)]
     try:
         recent_complete_jobs = await list_backup_jobs(db, kind=BACKUP_JOB_KIND_COMPLETE_R2, limit=10)
     except Exception as e:  # noqa: BLE001
@@ -7866,6 +7869,8 @@ async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
     return {
         "stale_marked": stale_marked,
         "active_jobs": active_jobs,
+        "blocking_active_jobs": blocking_active_jobs,
+        "reclaimable_active_jobs": reclaimable_active_jobs,
         "overlap": classify_backup_overlap(active_jobs),
         "recent_complete_jobs": recent_complete_jobs,
     }
@@ -10575,6 +10580,10 @@ async def _backup_scheduler_loop(db) -> None:
                     _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = "COMPLETE_ARCHIVE_DEFERRED_RESTORE_ACTIVE"
                     await asyncio.sleep(300)
                     continue
+                if overlap.get("reclaimable_backups"):
+                    logger.warning(
+                        f"[scheduled-backup] ignoring {len(overlap.get('reclaimable_backups') or [])} reclaimable stale backup job(s) for slot {hour_bucket}"
+                    )
                 slot_key = backup_slot_key_for_hour(now)
                 job = await claim_backup_job(
                     db,

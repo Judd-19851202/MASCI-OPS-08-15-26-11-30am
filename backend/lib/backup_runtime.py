@@ -256,6 +256,24 @@ async def list_stale_backup_jobs(db: Any, *, limit: int = 20) -> list[Dict[str, 
     return [row async for row in cursor]
 
 
+def is_backup_job_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime] = None, stale_after_minutes: int = 90) -> bool:
+    if not row:
+        return False
+    if str(row.get("state") or "").lower() not in {"queued", "running"}:
+        return False
+    current = now or backup_now()
+    heartbeat = row.get("heartbeat_at") or row.get("updated_at") or row.get("created_at")
+    try:
+        heartbeat_dt = datetime.fromisoformat(str(heartbeat).replace("Z", "+00:00")) if heartbeat else None
+    except Exception:
+        heartbeat_dt = None
+    if not heartbeat_dt:
+        return True
+    if heartbeat_dt.tzinfo is None:
+        heartbeat_dt = heartbeat_dt.replace(tzinfo=timezone.utc)
+    return (current - heartbeat_dt) > timedelta(minutes=max(int(stale_after_minutes or 90), 15))
+
+
 async def mark_stale_backup_jobs(db: Any, *, stale_before_iso: str) -> int:
     result = await db[BACKUP_JOBS_COLLECTION].update_many(
         {
@@ -279,12 +297,20 @@ async def mark_stale_backup_jobs(db: Any, *, stale_before_iso: str) -> int:
 def classify_backup_overlap(active_jobs: list[Dict[str, Any]]) -> Dict[str, Any]:
     backups = [j for j in active_jobs if j.get("kind") == BACKUP_JOB_KIND_COMPLETE_R2]
     restores = [j for j in active_jobs if j.get("kind") in {BACKUP_JOB_KIND_RESTORE_DRILL, BACKUP_JOB_KIND_RESTORE_IMPORT}]
+    reclaimable_backups = [j for j in backups if is_backup_job_stale(j)]
+    reclaimable_restores = [j for j in restores if is_backup_job_stale(j)]
+    blocking_backups = [j for j in backups if not is_backup_job_stale(j)]
+    blocking_restores = [j for j in restores if not is_backup_job_stale(j)]
     return {
-        "backup_active": bool(backups),
-        "restore_active": bool(restores),
+        "backup_active": bool(blocking_backups),
+        "restore_active": bool(blocking_restores),
         "active_backups": backups,
         "active_restores": restores,
-        "overlap_blocked": bool(backups and restores),
+        "blocking_backups": blocking_backups,
+        "blocking_restores": blocking_restores,
+        "reclaimable_backups": reclaimable_backups,
+        "reclaimable_restores": reclaimable_restores,
+        "overlap_blocked": bool(blocking_backups and blocking_restores),
     }
 
 
@@ -311,6 +337,7 @@ __all__ = [
     "fail_backup_job",
     "list_backup_jobs",
     "list_stale_backup_jobs",
+    "is_backup_job_stale",
     "get_active_backup_jobs",
     "mark_stale_backup_jobs",
     "BackupJobLease",

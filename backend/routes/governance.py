@@ -1095,6 +1095,12 @@ class BackfillPayload(BaseModel):
     dry_run: bool = Field(default=True)
 
 
+class PpeIssuePayload(BaseModel):
+    dry_run: bool = Field(default=True)
+    issued_by: str = Field(default="System Governance Repair", max_length=200)
+    default_items: List[str] = Field(default_factory=lambda: ["Hard Hat", "Safety Vest", "Safety Glasses", "Gloves"])
+
+
 # ---------------------------------------------------------------------------
 # Router factory
 # ---------------------------------------------------------------------------
@@ -1120,6 +1126,16 @@ def build_governance_router(db, require_admin_strict):
         without mutating.
         """
         return await _backfill_employee_links(db, dry_run=bool(body.dry_run))
+
+    @router.post("/api/admin/compliance/issue-missing-ppe",
+                 dependencies=[Depends(require_admin_strict)])
+    async def issue_missing_ppe(body: PpeIssuePayload):
+        return await _issue_missing_ppe_records(
+            db,
+            dry_run=bool(body.dry_run),
+            issued_by=(body.issued_by or "System Governance Repair").strip() or "System Governance Repair",
+            default_items=[str(x).strip() for x in (body.default_items or []) if str(x).strip()],
+        )
 
     @router.get("/api/admin/compliance/findings",
                 dependencies=[Depends(require_admin_strict)])
@@ -1346,6 +1362,10 @@ def build_governance_router(db, require_admin_strict):
             "health_label": health_label,
             "last_scan": last_scan,
             "rule_catalog": RULE_CATALOG,
+            "recommended_repairs": {
+                "employee_link_backfill_endpoint": "/api/admin/compliance/backfill-employee-links",
+                "ppe_issue_endpoint": "/api/admin/compliance/issue-missing-ppe",
+            },
         }
 
     # ════════════════════════════════════════════════════════════════
@@ -1418,6 +1438,81 @@ def build_governance_router(db, require_admin_strict):
         return {"recent": rows, "top": top[:50], "count": len(rows)}
 
     return router
+
+
+async def _issue_missing_ppe_records(
+    db,
+    *,
+    dry_run: bool = True,
+    issued_by: str,
+    default_items: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    defaults = [item for item in (default_items or []) if item]
+    names_with_ppe: Set[str] = set()
+    async for row in db.safety_equipment_issuances.find({}, {"_id": 0, "employee_name": 1}):
+        n = (row.get("employee_name") or "").strip()
+        if n:
+            names_with_ppe.add(n.lower())
+
+    missing: List[Dict[str, Any]] = []
+    async for emp in db.employees.find(
+        {"deleted_at": None, "is_active": {"$ne": False}},
+        {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "position": 1, "is_field": 1},
+    ).limit(5000):
+        name = (emp.get("name") or "").strip()
+        if not name:
+            continue
+        if emp.get("is_field") is False:
+            continue
+        if name.lower() in names_with_ppe:
+            continue
+        missing.append(emp)
+
+    preview = []
+    created = 0
+    for idx, emp in enumerate(missing, start=1):
+        record = {
+            "id": f"gov-ppe-{(emp.get('id') or str(idx)).replace(' ', '-').lower()}",
+            "employee_id": emp.get("id"),
+            "employee_name": emp.get("name"),
+            "issued_date": _today_iso(),
+            "issued_at": _now_iso(),
+            "created_at": _now_iso(),
+            "updated_at": _now_iso(),
+            "issued_by": issued_by,
+            "status": "issued",
+            "project_name": "Governance PPE Catch-up",
+            "project_number": "GOV-PPE-CATCHUP",
+            "items": [
+                {"name": item, "qty": 1, "condition": "new", "unit_cost": 0.0, "total_cost": 0.0}
+                for item in defaults
+            ],
+            "total_value": 0.0,
+            "acknowledgment": True,
+            "governance_repair": True,
+        }
+        preview.append({
+            "employee_id": emp.get("id"),
+            "employee_name": emp.get("name"),
+            "issuance_id": record["id"],
+            "items": defaults,
+        })
+        if not dry_run:
+            await db.safety_equipment_issuances.update_one(
+                {"id": record["id"]},
+                {"$setOnInsert": record},
+                upsert=True,
+            )
+            created += 1
+
+    return {
+        "ok": True,
+        "dry_run": dry_run,
+        "missing_employee_count": len(missing),
+        "created_count": 0 if dry_run else created,
+        "preview": preview[:100],
+        "default_items": defaults,
+    }
 
 
 __all__ = ["build_governance_router", "RULE_CATALOG", "_run_scan", "COLLECTION"]

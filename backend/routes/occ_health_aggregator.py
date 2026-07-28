@@ -185,6 +185,7 @@ def _eval_recovery_snapshot(body, err, checked_at):
     warnings = body.get("warnings") or []
     last_drill = body.get("last_drill")
     last_backup_ok = last_backup.get("ok")
+    hourly_activation = body.get("hourly_activation") or {}
 
     # Derive the primary reason for the observed status. Order matters —
     # highest-severity, most-specific cause wins.
@@ -206,6 +207,9 @@ def _eval_recovery_snapshot(body, err, checked_at):
     elif target is not None and age > target:
         reason_code = "backup_stale"
         reason_text = f"Backup age {age:.1f}m exceeds target ({target}m)."
+    elif str(hourly_activation.get("activation_status", "")).upper() == "BLOCKED BY SAFETY GUARD":
+        reason_code = "hourly_blocked_by_safety_guard"
+        reason_text = "Hourly complete R2 is blocked by a safety guard."
     elif int(body.get("failures_7d") or 0) > 0:
         reason_code = "recent_failures"
         reason_text = f"{body.get('failures_7d')} backup failure(s) in last 7 days."
@@ -231,6 +235,7 @@ def _eval_recovery_snapshot(body, err, checked_at):
         "bucket_over_alert": "Open Storage & Recovery → R2 Lifecycle to review capacity and rotate old archives.",
         "backup_stale_critical": "Trigger a fresh backup and verify the scheduler is running.",
         "backup_stale": "Verify the next backup completes on schedule.",
+        "hourly_blocked_by_safety_guard": "Open Storage & Recovery → Backup Scheduler and clear the active/stale blocker before trusting hourly cadence.",
         "recent_failures": "Open Storage & Recovery → Backup History to inspect recent failures.",
         "bucket_over_warn": "Plan R2 capacity review; usage approaching alert threshold.",
         "scheduler_quiet": "Check /admin/scheduler-runs; scheduler heartbeat is quiet.",
@@ -270,6 +275,7 @@ def _eval_recovery_snapshot(body, err, checked_at):
                    "last_drill": last_drill,
                    "warnings": warnings,
                    "hourly_cadence_enabled": body.get("hourly_cadence_enabled"),
+                   "hourly_activation": hourly_activation,
                },
                action,
                last_backup.get("ts") or body.get("computed_at") or checked_at,

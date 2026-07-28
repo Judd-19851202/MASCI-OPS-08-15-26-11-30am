@@ -539,10 +539,18 @@ def build_recovery_dashboard_router(
                 ),
             })
         hourly_activation = await _build_hourly_activation_state(db, runtime_state=backup_runtime)
+        rpo_status = (
+            "GREEN" if freshness.get("status") == "CURRENT" and backup_age_minutes is not None and backup_age_minutes <= rpo_target
+            else ("AMBER" if freshness.get("status") == "AGING" and backup_age_minutes is not None else "RED")
+        )
+        if rpo_status == "RED":
+            pill = "RED"
+        elif rpo_status == "AMBER" and pill == "GREEN":
+            pill = "AMBER"
         if hourly_activation.get("activation_status") != "ACTIVE":
             warnings.append({
                 "kind": "hourly-disabled",
-                "severity": "info",
+                "severity": "red" if str(hourly_activation.get("activation_status") or "").upper() == "BLOCKED BY SAFETY GUARD" else "info",
                 "message": f"Hourly complete R2 is {hourly_activation.get('activation_status')}",
             })
         if not scheduler_alive:
@@ -586,10 +594,7 @@ def build_recovery_dashboard_router(
             "rpo": {
                 "target_min": rpo_target,
                 "actual_min": backup_age_minutes,
-                "status": (
-                    "GREEN" if freshness.get("status") == "CURRENT" and backup_age_minutes is not None and backup_age_minutes <= rpo_target
-                    else ("AMBER" if freshness.get("status") == "AGING" and backup_age_minutes is not None else "RED")
-                ),
+                "status": rpo_status,
             },
             "rto": {
                 "target_min": rto_target,

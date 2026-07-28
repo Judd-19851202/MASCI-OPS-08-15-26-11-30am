@@ -258,7 +258,7 @@ def _release_reason_for_scope(release_scope: Dict[str, Any]) -> str:
     if release_scope["release_blocked_workflows"]:
         return "release_contains_blocked_workflows"
     if release_scope["release_stale_workflows"]:
-        return "release_contains_stale_workflows"
+        return "release_contains_stale_evidence"
     if release_scope["release_touched_workflows"]:
         return "release_scope_verified"
     return "release_scope_not_yet_exercised"
@@ -381,7 +381,9 @@ async def build_certification(db) -> Dict[str, Any]:
         "FAIL"
         if release_scope["release_counters"]["failed"] > 0
         else "HOLD"
-        if release_scope["release_counters"]["blocked"] > 0 or release_scope["release_counters"]["stale"] > 0
+        if release_scope["release_counters"]["blocked"] > 0
+        else "REVIEW"
+        if release_scope["release_counters"]["stale"] > 0
         else "PASS"
     )
     release_not_yet_exercised = [row["workflow"] for row in rows if row.get("status") == STATUS_NOT_YET_EXERCISED]
