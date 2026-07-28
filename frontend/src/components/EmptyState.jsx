@@ -21,13 +21,13 @@ export function EmptyState({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-10 px-4 text-center bg-white rounded-md border-2 border-dashed border-slate-200 ${className}`}
+      className={`flex flex-col items-center justify-center py-10 px-6 text-center bg-white rounded-md border-2 border-dashed border-slate-200 ${className}`}
       data-testid={testId}
     >
       <Icon className="w-10 h-10 text-slate-300 mb-3" strokeWidth={1.5} />
-      <div className="text-sm font-bold text-slate-700 mb-1">{title}</div>
+      <div className="text-sm font-semibold text-slate-800 mb-1">{title}</div>
       {hint && (
-        <div className="text-xs text-slate-500 max-w-md leading-relaxed">
+        <div className="text-sm text-slate-500 max-w-md leading-relaxed">
           {hint}
         </div>
       )}

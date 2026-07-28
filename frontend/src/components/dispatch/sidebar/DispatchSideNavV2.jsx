@@ -62,7 +62,7 @@ export const DISPATCH_DOMAINS_V2 = [
     stripe: "#475569", // slate-600
     icon: ShieldEllipsis,
     routes: [
-      { to: "/guidance?from=dispatch",            label: "Training Center",   desc: "Step-by-step Dispatch operator guides.",      icon: GraduationCap },
+      { to: "/guidance?from=dispatch",            label: "Training Center",   desc: "How-to guides and troubleshooting.",      icon: GraduationCap },
       { to: "/dispatch-portal/change-password",   label: "Change Password",   desc: "Update your Transportation Operations password.",       icon: KeyRound },
     ],
   },
@@ -128,7 +128,7 @@ const DomainGroup = ({ domain }) => (
 export default function DispatchSideNavV2({ className = "" }) {
   return (
     <nav
-      className={`bg-slate-900 border-r border-slate-800 overflow-y-auto py-5 glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem] ${className}`}
+      className={`space-y-3 p-3 bg-slate-900 border border-slate-800 overflow-y-auto glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem] ${className}`}
       data-testid="dispatch-side-nav-desktop"
       aria-label="Dispatch sidebar"
     >

@@ -97,7 +97,7 @@ export default function PortalContextBanner({ currentLabel }) {
         {t("Back to")} {label}
       </Link>
       <span className="hidden sm:inline-block h-4 w-px bg-slate-200" aria-hidden="true" />
-      <span className="text-xs text-slate-500 italic">
+      <span className="text-sm text-slate-500">
         {currentLabel || t("You are viewing platform Guidance")}
       </span>
     </div>

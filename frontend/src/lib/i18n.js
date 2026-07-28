@@ -3322,8 +3322,11 @@ const ES = {
   "Uses a shared leadership password — every record you submit is individually signed inside the form (your name, your signature). Accountability is at the record, not the door.": "Usa una contraseña compartida de liderazgo — todo registro que envía se firma individualmente dentro del formulario (su nombre, su firma). La rendición de cuentas pasa al nivel del registro, no en la puerta.",
   "New to Field Leadership?": "¿Nuevo en Liderazgo de Campo?",
   "First-Week Onboarding": "Orientación de Primera Semana",
+  "Start first-week onboarding": "Comenzar la orientación de la primera semana",
   "What does Field Leadership do?": "¿Qué hace el Liderazgo de Campo?",
+  "How this portal works": "Cómo funciona este portal",
   "Can't sign in?": "¿No puede iniciar sesión?",
+  "Fix sign-in problems": "Resolver problemas de inicio de sesión",
   "Admin tokens and PM tokens also satisfy the Field Leadership gate — Operations Managers and PMs can read leadership records without re-signing in.": "Los tokens de Admin y PM también satisfacen la puerta de Liderazgo de Campo — los Gerentes de Operaciones y PMs pueden leer registros de liderazgo sin volver a iniciar sesión.",
   "Step-by-step": "Paso a paso",
   "Tips": "Consejos",
@@ -4905,6 +4908,7 @@ const ES = {
   "Not available": "No disponible",
   "This guidance isn't available for your access level.": "Esta guía no está disponible para su nivel de acceso.",
   "Back to Guidance": "Regresar a la Guía",
+  "Hide this guide": "Ocultar esta guía",
   "No articles in this section for your access level.": "No hay artículos en esta sección para su nivel de acceso.",
   "Related guidance": "Guía relacionada",
 
@@ -6679,6 +6683,8 @@ const ES = {
   "Section": "Sección",
   "No guidance available for this section.":
     "No hay orientación disponible para esta sección.",
+  "No guidance has been added for this section yet.":
+    "Todavía no se ha agregado orientación para esta sección.",
   "Open help": "Abrir ayuda",
   "Equipment Pre-Op · Guidance": "Pre-Operación de Equipo · Orientación",
 

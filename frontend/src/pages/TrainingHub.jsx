@@ -101,7 +101,7 @@ export default function TrainingHub() {
             )}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-4 leading-relaxed">
-            {t("Short, focused lessons for every role — Field Crews, Shop, Project Managers, and Admins. Written walk-throughs, printable cheat sheets, and video tutorials. Pick your track.")}
+            {t("Short, focused lessons for every role — field crews, shop, project managers, and admins. Use written walk-throughs, printable cheat sheets, and video tutorials to get the job done faster.")}
           </p>
 
           {/* iter190 — Operational Guidance Center entry banner.
@@ -109,7 +109,7 @@ export default function TrainingHub() {
               existing role-track URLs (/training/<slug> still works). */}
           <Link
             to="/guidance"
-            className="mt-5 flex items-center gap-3 bg-amber-50 border border-amber-300 border-l-4 border-l-amber-600 rounded-md p-4 hover:bg-amber-100 hover:border-l-amber-700 hover:shadow-md transition-all group"
+            className="mt-5 flex items-center gap-3 bg-amber-50 border border-amber-300 border-l-4 border-l-amber-600 rounded-md p-4 hover:bg-amber-100 hover:border-l-amber-700 transition-colors group"
             data-testid="training-hub-guidance-banner"
           >
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
@@ -117,13 +117,13 @@ export default function TrainingHub() {
             </div>
             <div className="flex-1 text-left">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-700 font-bold">
-                {t("New · Operational Guidance Center")}
+                {t("Operational Guidance Center")}
               </div>
               <div className="font-display text-lg font-black text-slate-900">
-                {t("How and why to run MASCI operations")}
+                {t("How to run MASCI operations")}
               </div>
               <div className="text-[13px] text-slate-600 mt-0.5">
-                {t("Role-based training · task-based help · troubleshooting · why each workflow matters. Filtered to your portal access.")}
+                {t("Role-based training, task-based help, and troubleshooting. Filtered to your portal access.")}
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-amber-700 group-hover:translate-x-1 transition-transform" />

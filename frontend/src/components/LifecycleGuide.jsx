@@ -119,10 +119,10 @@ export function LifecycleGuide({
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="text-[11px] text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
+                className="text-[11px] text-slate-500 hover:text-slate-800 inline-flex items-center gap-1 transition-colors"
                 data-testid={`lifecycle-guide-dismiss-${id || "anon"}`}
               >
-                <X className="w-3 h-3" /> {t("Don't show this again")}
+                <X className="w-3 h-3" /> {t("Hide this guide")}
               </button>
             </div>
           ) : null}

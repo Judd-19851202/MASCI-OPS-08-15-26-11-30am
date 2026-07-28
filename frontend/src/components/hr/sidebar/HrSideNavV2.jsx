@@ -76,7 +76,7 @@ export const HR_DOMAINS_V2 = [
     stripe: "#475569", // slate-600
     icon: BookOpen,
     routes: [
-      { to: "/guidance?from=hr", label: "Training Center", desc: "Step-by-step HR operator guides.", icon: BookOpen },
+      { to: "/guidance?from=hr", label: "Training Center", desc: "How-to guides and troubleshooting.", icon: BookOpen },
       { to: "/hr/change-password", label: "Change Password", desc: "Rotate your sign-in credentials.", icon: KeyRound },
     ],
   },
@@ -146,7 +146,7 @@ const DomainGroup = ({ domain }) => (
 export default function HrSideNavV2({ className = "" }) {
   return (
     <nav
-      className={`bg-slate-900 border-r border-slate-800 overflow-y-auto py-5 glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem] ${className}`}
+      className={`space-y-3 p-3 bg-slate-900 border border-slate-800 overflow-y-auto glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem] ${className}`}
       data-testid="hr-side-nav-desktop"
       aria-label="HR sidebar"
     >

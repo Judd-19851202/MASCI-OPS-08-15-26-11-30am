@@ -30,7 +30,7 @@ export function HelpDrawer({
       <button
         type="button"
         onClick={() => onOpenChange(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-700 hover:border-slate-500 hover:text-slate-900"
+        className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-700 hover:border-slate-500 hover:text-slate-900 transition-colors"
         data-testid={`${testIdPrefix}-trigger`}
         aria-expanded={open}
         aria-controls={`${testIdPrefix}-panel`}
@@ -58,7 +58,7 @@ export function HelpDrawer({
             <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-200 bg-white">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
-                  {t("Help")}
+                  {t("Guidance")}
                 </div>
                 <div className="font-display text-lg font-black tracking-tight text-slate-900 leading-tight">
                   {title || t("Guidance")}
@@ -77,7 +77,7 @@ export function HelpDrawer({
             <div className="p-4 space-y-4">
               {sections.length === 0 && (
                 <p className="text-sm text-slate-600">
-                  {t("No guidance available for this section.")}
+                  {t("No guidance has been added for this section yet.")}
                 </p>
               )}
               {sections.map((s, i) => (

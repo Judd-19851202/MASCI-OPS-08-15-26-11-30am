@@ -70,30 +70,30 @@ export function PortalLoginHelp({ portal, identityId, onboardId, tshootId }) {
       </div>
       <Link
         to={onboardHref}
-        className="block text-sm text-amber-700 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
+        className="block text-sm text-amber-700 hover:text-amber-900 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
         data-testid={`portal-login-help-${portal}-onboarding`}
       >
         <GraduationCap className="w-3.5 h-3.5" />
-        {t("First-Week Onboarding")} →
+        {t("Start first-week onboarding")} →
       </Link>
       <Link
         to={identityHref}
-        className="block text-sm text-amber-700 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
+        className="block text-sm text-amber-700 hover:text-amber-900 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
         data-testid={`portal-login-help-${portal}-identity`}
       >
         <BookOpen className="w-3.5 h-3.5" />
         {portalLabel
-          ? (lang === "es" ? `¿Qué hace el ${portalLabel}?` : `What does ${portalLabel} do?`)
-          : t("What does this portal do?")}
+          ? (lang === "es" ? `Cómo funciona ${portalLabel}` : `How ${portalLabel} works`)
+          : t("How this portal works")}
         {" →"}
       </Link>
       <Link
         to={tshootHref}
-        className="block text-sm text-slate-600 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
+        className="block text-sm text-slate-600 hover:text-slate-900 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
         data-testid={`portal-login-help-${portal}-troubleshoot`}
       >
         <LifeBuoy className="w-3.5 h-3.5" />
-        {t("Can't sign in?")} →
+        {t("Fix sign-in problems")} →
       </Link>
     </div>
   );
