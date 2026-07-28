@@ -158,6 +158,7 @@ def _write_archive(tmp_path: Path, manifest: dict):
         zf.writestr("MANIFEST.json", json.dumps(manifest))
         zf.writestr("collections/daily_reports.json", json.dumps([{"id": "dr-1", "photo": "photo://bucket/photos/2026/07/a.jpg"}]))
         zf.writestr("photos/photos/2026/07/a.jpg", b"fake-photo")
+        zf.writestr("documents/safety-docs/2026/07/doc-1/file.pdf", b"fake-doc")
     return archive
 
 

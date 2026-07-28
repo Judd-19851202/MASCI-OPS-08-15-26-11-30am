@@ -8282,6 +8282,21 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
     if not lite_mode:
         lite_mode = _lite_mode_default()
     try:
+        active_jobs = await get_active_backup_jobs(db)
+        overlap = classify_backup_overlap(active_jobs)
+        if overlap.get("backup_active") or overlap.get("restore_active"):
+            reason = "overlap_backup_active" if overlap.get("backup_active") else "overlap_restore_active"
+            logger.warning(f"[scheduled-backup] deferred due to active backup/restore overlap ({reason})")
+            return {
+                "filename": None,
+                "size_bytes": 0,
+                "records": 0,
+                "pruned_old": 0,
+                "emailed_to": None,
+                "skipped": True,
+                "reason": reason,
+                "overlap": overlap,
+            }
         BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
 
         # PRE-FLIGHT PRUNE — clean up before writing so we never run out of
@@ -9068,6 +9083,11 @@ def _build_complete_archive_on_disk(
         def read_photo_bytes_sync(_):
             raise RuntimeError("photo_storage unavailable")
 
+    try:
+        import safety_doc_storage as _sds  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        _sds = None
+
     plan = getattr(app.state, "database_authority_plan", None)
     if plan is None:
         runtime_bundle = _runtime_identity_bundle()
@@ -9188,23 +9208,37 @@ def _build_complete_archive_on_disk(
                         kind_count += 1
                         # Walk this doc for photo:// refs to inline later
                         for ref in _iter_photo_refs(doc):
-                            if not is_storage_ref(ref):
-                                continue
-                            try:
-                                key = ref.split("/", 3)[3]
-                            except (IndexError, AttributeError):
+                            key = None
+                            raw = None
+                            archive_member = None
+                            if isinstance(ref, str) and ref.startswith("photo://") and is_storage_ref(ref):
+                                try:
+                                    key = ref.split("/", 3)[3]
+                                    archive_member = f"photos/{key}"
+                                    raw = read_photo_bytes_sync(ref)
+                                except (IndexError, AttributeError):
+                                    continue
+                                except Exception as e:  # noqa: BLE001
+                                    logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
+                                    failed_photos += 1
+                                    continue
+                            elif isinstance(ref, str) and ref.startswith("doc://") and _sds is not None:
+                                try:
+                                    _bucket, key = _sds._parse_ref(ref)  # noqa: SLF001
+                                    archive_member = f"documents/{key}"
+                                    raw = asyncio.run(_sds.read_doc_bytes(ref))
+                                except Exception as e:  # noqa: BLE001
+                                    logger.warning(f"[complete-archive] document inline failed for {ref[:80]}: {e}")
+                                    failed_photos += 1
+                                    continue
+                            else:
                                 continue
                             if key in seen_keys:
                                 continue
                             seen_keys.add(key)
-                            try:
-                                raw = read_photo_bytes_sync(ref)
-                                zf.writestr(f"photos/{key}", raw)
-                                inlined_photos += 1
-                                inlined_photo_bytes += len(raw)
-                            except Exception as e:  # noqa: BLE001
-                                logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
-                                failed_photos += 1
+                            zf.writestr(str(archive_member), raw)
+                            inlined_photos += 1
+                            inlined_photo_bytes += len(raw)
                 except Exception as e:  # noqa: BLE001
                     failed_collections.append(coll_name)
                     failed_collection_errors[coll_name] = repr(e)
@@ -9422,6 +9456,34 @@ def _iter_photo_refs(doc):
             continue
         if v.startswith("photo://"):
             yield v
+
+    # iter460 — recursively discover any nested photo:// or doc:// refs so
+    # complete archives stay self-contained even as new attachment/document
+    # schemas are added outside the legacy fixed paths above.
+    stack = [doc]
+    seen_ids = set()
+    while stack:
+        current = stack.pop()
+        ident = id(current)
+        if ident in seen_ids:
+            continue
+        seen_ids.add(ident)
+        if isinstance(current, dict):
+            for value in current.values():
+                if isinstance(value, str) and (
+                    value.startswith("photo://") or value.startswith("doc://")
+                ):
+                    yield value
+                elif isinstance(value, (dict, list)):
+                    stack.append(value)
+        elif isinstance(current, list):
+            for value in current:
+                if isinstance(value, str) and (
+                    value.startswith("photo://") or value.startswith("doc://")
+                ):
+                    yield value
+                elif isinstance(value, (dict, list)):
+                    stack.append(value)
 
 
 async def _run_r2_tiered_retention_async() -> None:
@@ -12981,6 +13043,36 @@ async def exports_restore(
         except Exception as e:  # noqa: BLE001
             logger.warning(f"restore: disk file {n} failed: {e}")
 
+    # 2f. Rehydrate doc://-backed object storage files from embedded archive
+    #     copies so a full restore does not depend on the old bucket still
+    #     containing those keys.
+    docs_rehydrated = 0
+    doc_storage_available = False
+    try:
+        import safety_doc_storage as _restore_sds  # noqa: PLC0415
+
+        doc_storage_available = bool(_restore_sds.is_configured())
+    except Exception:  # noqa: BLE001
+        _restore_sds = None
+        doc_storage_available = False
+
+    if doc_storage_available and _restore_sds is not None:
+        for n in names:
+            if not n.startswith("documents/") or n.endswith("/"):
+                continue
+            rel = n[len("documents/"):]
+            if not rel:
+                continue
+            try:
+                await _restore_sds.upload_bytes(
+                    zf.read(n),
+                    key=rel,
+                    content_type="application/octet-stream",
+                )
+                docs_rehydrated += 1
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"restore: document object {n} failed: {e}")
+
     if not bucket and disk_restored == 0:
         raise HTTPException(
             400,
@@ -13014,6 +13106,7 @@ async def exports_restore(
             "collections": preflight_collections,
             "total_processed": sum(v["incoming_records"] for v in preflight_collections.values()),
             "disk_files": disk_restored,
+            "documents_rehydrated": docs_rehydrated,
         }
         await _record_audit("accepted", f"dry_run merge={merge}; collections={len(preflight_collections)}")
         await complete_backup_job(db, restore_job["job_id"], outcome="dry_run_ok", result=result, state="completed", owner_token=restore_lease.owner_token)
@@ -13126,6 +13219,8 @@ async def exports_restore(
         "total_processed": sum(s["processed"] for s in summary.values()),
         "total_failed": total_failed,
         "failed_docs": failed_docs,
+        "disk_files": disk_restored,
+        "documents_rehydrated": docs_rehydrated,
         "status": "partial_failure" if total_failed else "success",
     }
     # Track 14.0-I1: success audit (counterpart to the rejection audits above).

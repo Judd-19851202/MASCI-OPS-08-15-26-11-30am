@@ -195,3 +195,38 @@ def test_complete_r2_state_uses_canonical_scheduler_truth_for_hourly_activation(
     assert echoed.get("alive") is True
     assert echoed.get("is_healthy") is True
     assert out.get("hourly_activation", {}).get("activation_blockers") == []
+
+
+def test_run_scheduled_backup_defers_when_complete_or_restore_job_active(monkeypatch) -> None:
+    async def fake_get_active_backup_jobs(_db):
+        return [{"kind": server.BACKUP_JOB_KIND_COMPLETE_R2, "state": "running"}]
+
+    monkeypatch.setattr(server, "get_active_backup_jobs", fake_get_active_backup_jobs)
+    monkeypatch.setattr(server, "classify_backup_overlap", lambda jobs: {
+        "backup_active": True,
+        "restore_active": False,
+        "active_backups": jobs,
+        "active_restores": [],
+        "blocking_backups": jobs,
+        "blocking_restores": [],
+        "reclaimable_backups": [],
+        "reclaimable_restores": [],
+        "overlap_blocked": False,
+    })
+    result = asyncio.run(server._run_scheduled_backup(SimpleNamespace(), lite_mode=True))
+    assert result["skipped"] is True
+    assert result["reason"] == "overlap_backup_active"
+
+
+def test_iter_photo_refs_discovers_nested_doc_refs_and_photo_refs():
+    doc = {
+        "attachments": [
+            {"file_data": "doc://bucket/documents/2026/07/a.pdf"},
+            {"meta": {"image": "photo://bucket/photos/2026/07/a.jpg"}},
+        ],
+        "source_file_ref": "photo://bucket/photos/2026/07/b.jpg",
+    }
+    refs = list(server._iter_photo_refs(doc))
+    assert "doc://bucket/documents/2026/07/a.pdf" in refs
+    assert "photo://bucket/photos/2026/07/a.jpg" in refs
+    assert "photo://bucket/photos/2026/07/b.jpg" in refs

@@ -134,6 +134,29 @@ async def upload_doc_bytes(
     return ref
 
 
+async def upload_bytes(data: bytes, *, key: str, content_type: str = "application/octet-stream") -> str:
+    """Upload raw bytes to an explicit key and return the matching doc:// ref.
+
+    Used by restore paths that need to rehydrate archived document objects back
+    into object storage without inventing new keys that would break persisted
+    document references.
+    """
+    if not is_configured():
+        raise RuntimeError("safety_doc_storage not configured (missing R2 env vars)")
+    c = _client()
+    if c is None:
+        raise RuntimeError("safety_doc_storage client failed to initialize")
+    await asyncio.to_thread(
+        c.put_object,
+        Bucket=_bucket(),
+        Key=key,
+        Body=data,
+        ContentType=content_type,
+        CacheControl="private, max-age=300",
+    )
+    return f"doc://{_bucket()}/{key}"
+
+
 async def read_doc_bytes(ref: str) -> bytes:
     """Read doc bytes from a ``doc://`` reference OR a base64
     ``data:`` URL (backward compatibility with pre-R2 records)."""
