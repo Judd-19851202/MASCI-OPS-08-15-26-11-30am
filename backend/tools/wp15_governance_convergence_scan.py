@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path("/app/backend")
+FRONTEND_ROOT = Path("/app/frontend/src")
 SKIP_PARTS = {"tests", "__pycache__"}
 SPECIAL_CASE_NAMES = {"auth.py", "pm_auth.py", "mfa.py"}
 SPECIAL_CASE_DIR_FRAGMENTS = ("/routes/", "/lib/", "/services/")
@@ -44,6 +45,55 @@ def _is_display_only(text: str, nearby: str) -> bool:
     return any(token in hay for token in DISPLAY_ONLY_TOKENS)
 
 
+def _frontend_header_builder_findings() -> list[dict]:
+    findings: list[dict] = []
+    if not FRONTEND_ROOT.exists():
+        raise RuntimeError(f"Frontend scan root missing: {FRONTEND_ROOT}")
+    canonical_builder_tokens = (
+        "buildScopedPortalAuthHeaders(",
+        "buildPortalAuthHeaders(",
+        "api.get(",
+        "api.post(",
+        "api.put(",
+        "api.patch(",
+        "api.delete(",
+    )
+    manual_header_tokens = (
+        "X-Admin-Token",
+        "X-PM-Token",
+        "X-HR-Token",
+        "X-Safety-Token",
+        "X-Shop-Token",
+        "X-Dispatch-Token",
+        "X-FL-Token",
+        "X-Directory-Token",
+    )
+    for path in FRONTEND_ROOT.rglob("*"):
+        if path.suffix not in {".js", ".jsx", ".ts", ".tsx"}:
+            continue
+        if should_skip(path):
+            continue
+        rel = f"/{path.relative_to(Path('/app')).as_posix()}"
+        lines = path.read_text(errors="ignore").splitlines()
+        text = "\n".join(lines)
+        if not any(token in text for token in manual_header_tokens):
+            continue
+        if any(token in text for token in canonical_builder_tokens):
+            continue
+        for line_no, line in enumerate(lines, 1):
+            if any(token in line for token in manual_header_tokens):
+                findings.append(
+                    {
+                        "path": rel,
+                        "line": line_no,
+                        "category": "legacy_migratable",
+                        "reason": "Manual governed-request header construction",
+                        "snippet": line.strip()[:220],
+                    }
+                )
+    return findings
+
+
 def classify(path: Path, lines: list[str], line_no: int) -> tuple[str, str] | None:
     line = lines[line_no - 1]
     text = line.strip()
@@ -65,6 +115,8 @@ def classify(path: Path, lines: list[str], line_no: int) -> tuple[str, str] | No
     if ("build_notif_filter(" in text or "_scope_filter(" in text) and "def " not in text:
         return ("legacy_migratable", "Module-specific notification/task scope filter")
     if re.search(r"\brole\b\s*==\s*['\"](?:admin|pm)['\"]", text):
+        if "def _search_url_for_role" in nearby:
+            return None
         if _is_display_only(text, nearby):
             return None
         if _has_auth_context(text, nearby):
@@ -111,6 +163,8 @@ def main() -> None:
                 }
             )
 
+    findings.extend(_frontend_header_builder_findings())
+
     summary = {
         "total_authorization_decision_points_discovered": len(findings),
         "canonical_governance_engine": sum(1 for row in findings if row["category"] == "canonical"),
@@ -118,6 +172,7 @@ def main() -> None:
         "special_case_infrastructure": sum(1 for row in findings if row["category"] == "special_case_infrastructure"),
         "governance_candidate_manual_review": sum(1 for row in findings if row["category"] == "governance_candidate"),
         "dead_or_unused_code": 0,
+        "manual_auth_header_construction": sum(1 for row in findings if row["reason"] == "Manual governed-request header construction"),
         "findings": findings,
     }
     print(json.dumps(summary, indent=2))

@@ -34,6 +34,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.enterprise_governance import governance_project_scope_numbers
+
 from services.certifications.qualification_registry import (
     list_active_qualifications,
 )
@@ -66,14 +68,7 @@ async def _pm_project_numbers(db, actor: Dict[str, Any]) -> Optional[List[str]]:
     """None = unrestricted (admin/safety). List = PM's assigned projects."""
     if _role(actor) in SAFETY_ADMIN_ROLES:
         return None
-    try:
-        from pm_auth import compute_pm_scope                        # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if getattr(scope, "is_admin", False):
-            return None
-        return list(scope.project_numbers or [])
-    except Exception:                                              # noqa: BLE001
-        return []
+    return await governance_project_scope_numbers(db, actor)
 
 
 def _facts_query(project_number: str, fact_type: str) -> Dict[str, Any]:

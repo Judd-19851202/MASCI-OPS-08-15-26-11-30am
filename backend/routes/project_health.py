@@ -53,7 +53,12 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from lib.enterprise_governance import (
+    governance_project_scope_numbers,
+    require_governed_action,
+)
 
 from services.cost_codes.foundation import (
     build_confidence_governance_summary,
@@ -79,29 +84,20 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
     def _role(actor: Dict[str, Any]) -> str:
         return actor.get("_actor") or actor.get("role") or "admin"
 
-    async def _project_numbers_for_actor(
-        actor: Dict[str, Any], role: str,
-    ) -> Optional[List[str]]:
-        """Return the project_number whitelist for this actor, or None
-        for unrestricted (admin/exec/safety)."""
-        if role in ("admin", "executive", "safety"):
-            return None
-        if role == "pm":
-            try:
-                from pm_auth import compute_pm_scope  # noqa: PLC0415
-                scope = await compute_pm_scope(db, actor)
-                if getattr(scope, "is_admin", False):
-                    return None
-                return list(scope.project_numbers or [])
-            except Exception as e:  # noqa: BLE001
-                logger.warning("[project-health] PM scope failed: %s", e)
-                return []
-        return []
-
     @router.get("/api/project-health")
     async def project_health(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="operations_center.view",
+            resource_type="project_health_dashboard",
+            resource={"id": "project-health-dashboard", "project_number": ""},
+            requested_context={"workspace": "project_health"},
+            request=request,
+        )
         role = _role(actor)
         if role not in ALLOWED_ROLES:
             raise HTTPException(403,
@@ -113,7 +109,7 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
 
         # ── Load active projects ──────────────────────────────────
         proj_filter: Dict[str, Any] = {"active": True}
-        whitelist = await _project_numbers_for_actor(actor, role)
+        whitelist = await governance_project_scope_numbers(db, actor)
         if whitelist is not None:
             if not whitelist:
                 return {
@@ -297,7 +293,7 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
         role = _role(actor)
         if role not in ALLOWED_ROLES:
             raise HTTPException(403, "Project confidence is restricted to admin/PM/safety/exec.")
-        whitelist = await _project_numbers_for_actor(actor, role)
+        whitelist = await governance_project_scope_numbers(db, actor)
         if whitelist is not None and project_number not in whitelist:
             raise HTTPException(403, "Project not in actor scope.")
         job = await db.jobs_master.find_one({"project_number": project_number}, {"_id": 0})
@@ -320,7 +316,7 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
         role = _role(actor)
         if role not in ALLOWED_ROLES:
             raise HTTPException(403, "Project confidence is restricted to admin/PM/safety/exec.")
-        whitelist = await _project_numbers_for_actor(actor, role)
+        whitelist = await governance_project_scope_numbers(db, actor)
         if whitelist is not None and project_number not in whitelist:
             raise HTTPException(403, "Project not in actor scope.")
         job = await db.jobs_master.find_one({"project_number": project_number}, {"_id": 0})

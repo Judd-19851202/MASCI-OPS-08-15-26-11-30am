@@ -33,6 +33,7 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
+from lib.enterprise_governance import governance_project_scope_numbers
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -291,11 +292,9 @@ def build_pm_router(
             (matches `compute_pm_scope`).
         Read-only. No write surface. No `/api/admin/*` dependency."""
         from jobs_master import list_jobs
-        from pm_auth import compute_pm_scope
         items = await list_jobs(db, only_active=not include_inactive)
-        scope = await compute_pm_scope(db, actor)
-        if not scope.is_admin:
-            nums = scope.project_numbers or set()
+        nums = await governance_project_scope_numbers(db, actor)
+        if nums is not None:
             items = [j for j in items if (j.get("project_number") or "") in nums]
         for item in items:
             item["cost_code_progress_percent"] = item.get("cost_code_progress_percent") or 0
@@ -304,7 +303,7 @@ def build_pm_router(
             "ok": True,
             "items": items,
             "count": len(items),
-            "scope": "admin_all" if scope.is_admin else "pm_assigned",
+            "scope": "admin_all" if nums is None else "pm_assigned",
         }
 
     # ════════════════════════════════════════════════════════════════

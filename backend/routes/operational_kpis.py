@@ -23,6 +23,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.enterprise_governance import governance_project_scope_allows
+
 from services.operational_kpis.aggregator import (
     aggregate_project_kpis,
     _resolve_window,
@@ -77,24 +79,19 @@ def register_operational_kpis_routes(
         safety_sources. PMs only see assigned projects (PmScope).
         Admins see any project. NO cost data ever.
         """
-        # PmScope enforcement — TRACK 23.8 P0 fix. When the caller is a
-        # per-PM token, refuse to serve KPIs for a project they are
-        # not assigned to. Legacy admin/shared-PM tokens
-        # (`actor is True`) bypass scope.
+        # Governance-scoped project enforcement — the canonical actor
+        # context owns whether this caller is global or project-bound.
         try:
-            if actor is not True:
-                from pm_auth import compute_pm_scope  # noqa: PLC0415
-                scope = await compute_pm_scope(db, actor)
-                if not scope.allows(project_number):
-                    raise HTTPException(
-                        status_code=403,
-                        detail="PM is not assigned to this project",
-                    )
+            if not await governance_project_scope_allows(db, actor, project_number):
+                raise HTTPException(
+                    status_code=403,
+                    detail="PM is not assigned to this project",
+                )
         except HTTPException:
             raise
         except Exception:
-            # If scope resolution errored on a legacy admin token,
-            # log-and-continue (admin bypass semantics).
+            # Scope resolution failures stay backward-compatible for
+            # legacy admin sentinels while convergence continues.
             pass
 
         payload = await aggregate_project_kpis(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, Request
 
@@ -122,3 +122,44 @@ async def require_governed_action(
 
 async def build_governance_actor_context(db, actor: Dict[str, Any]) -> Dict[str, Any]:
     return await resolve_governance_actor_context(db, actor)
+
+
+async def governance_project_scope_numbers(db, actor: Any) -> Optional[List[str]]:
+    if actor is True:
+        return None
+    if not isinstance(actor, dict):
+        return []
+    resolved = await resolve_governance_actor_context(db, actor)
+    if str(resolved.get("governance_scope_mode") or "") == "global":
+        return None
+    return list(resolved.get("project_numbers") or [])
+
+
+async def governance_project_scope_filter(
+    db,
+    actor: Any,
+    *,
+    field_name: str = "project_number",
+    base_filter: Optional[Dict[str, Any]] = None,
+) -> Optional[Dict[str, Any]]:
+    query = dict(base_filter or {})
+    project_numbers = await governance_project_scope_numbers(db, actor)
+    if project_numbers is None:
+        return query
+    if not project_numbers:
+        return None
+    query[field_name] = {"$in": project_numbers}
+    return query
+
+
+async def governance_project_scope_allows(
+    db,
+    actor: Any,
+    project_number: Optional[str],
+) -> bool:
+    project_numbers = await governance_project_scope_numbers(db, actor)
+    if project_numbers is None:
+        return True
+    if not project_number:
+        return False
+    return str(project_number) in set(project_numbers)

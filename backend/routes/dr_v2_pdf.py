@@ -38,6 +38,11 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path
 
+from lib.enterprise_governance import (
+    governance_project_scope_allows,
+    governance_project_scope_numbers,
+)
+
 from lib.async_jobs import (
     complete_async_job_binary,
     create_async_job,
@@ -310,9 +315,8 @@ def register_dr_v2_pdf_routes(
         is_admin = actor is True
         is_hr = isinstance(actor, dict) and actor.get("_actor_kind") == "hr_user"
         if not is_admin and not is_hr and isinstance(actor, dict):
-            scope = await compute_pm_scope(db, actor)
-            if not scope.is_admin:
-                nums = list(scope.project_numbers or [])
+            nums = await governance_project_scope_numbers(db, actor)
+            if nums is not None:
                 if not nums:
                     return {"items": []}
                 pm_project_filter = {"$in": nums}
@@ -430,8 +434,7 @@ def register_dr_v2_pdf_routes(
         # 2. Enforce PM scope. Admin sentinel (True) and HR actor
         # (`_actor_kind == "hr_user"`) bypass this check.
         if isinstance(actor, dict) and actor.get("_actor_kind") != "hr_user":
-            scope = await compute_pm_scope(db, actor)
-            if not scope.allows(record_project):
+            if not await governance_project_scope_allows(db, actor, record_project):
                 raise HTTPException(status_code=404, detail="report not found")
 
         try:

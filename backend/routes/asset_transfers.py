@@ -42,6 +42,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from lib.enterprise_governance import governance_project_scope_numbers
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,14 +123,7 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
         role = _role(actor)
         if role != "pm":
             return None
-        try:
-            from pm_auth import compute_pm_scope  # noqa: PLC0415
-            scope = await compute_pm_scope(db, actor)
-            if getattr(scope, "is_admin", False):
-                return None
-            return list(scope.project_numbers or [])
-        except Exception:  # noqa: BLE001
-            return []
+        return await governance_project_scope_numbers(db, actor)
 
     async def _ensure_indexes():
         await db.asset_transfers.create_index("id", unique=True)
