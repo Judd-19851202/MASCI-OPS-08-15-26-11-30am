@@ -957,14 +957,14 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 </div>
 </body></html>"""
 
-    async def _scope_filter(auth: Dict[str, Any]) -> Dict[str, Any]:
-        """Build a Mongo filter that respects PM scoping."""
-        f: Dict[str, Any] = {"deleted_at": None}
-        if auth["role"] == "pm" and compute_pm_scope is not None:
-            pm = auth.get("pm") or {}
-            scope = await compute_pm_scope(pm.get("email"))
-            f["project_number"] = {"$in": list(scope or [])}
-        return f
+    async def _base_record_filter(auth: Dict[str, Any]) -> Dict[str, Any]:
+        """Field Leadership routes no longer expose a PM-scoped read path.
+
+        The canonical portal gate above only returns `admin` or
+        `leadership`, so the historical PM-scope branch is unreachable and
+        has been retired to preserve a single constitutional auth path.
+        """
+        return {"deleted_at": None}
 
     @router.get("")
     async def list_records(
@@ -980,7 +980,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     ):
         # Supervisor Notes are gated by the leadership password (no extra
         # admin requirement — leadership token grants access).
-        f = await _scope_filter(auth)
+        f = await _base_record_filter(auth)
         if kind:
             f["kind"] = kind
         if employee:
@@ -1016,7 +1016,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         # current `kind` selector) so the dashboard tile row reflects the
         # full breakdown the user can see, not just the slice they're
         # currently filtering to.
-        scope_only = await _scope_filter(auth)
+        scope_only = await _base_record_filter(auth)
         counts_pipeline = [
             {"$match": apply_synthetic_flr_exclusion(scope_only)},
             {"$group": {"_id": "$kind", "n": {"$sum": 1}}},
@@ -1068,7 +1068,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         s = (serial or "").strip()
         if not s:
             raise HTTPException(status_code=400, detail="Serial / asset ID is required")
-        scope = await _scope_filter(auth)
+        scope = await _base_record_filter(auth)
         scope["kind"] = "equipment_checkout"
         # We only care about lines whose serial matches AND that haven't
         # been returned yet (returned=true is set when a Return form is
@@ -1108,7 +1108,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     async def get_record(rec_id: str, auth: Dict[str, Any] = Depends(_is_authed)):
         if rec_id in _RESERVED_REC_IDS:
             raise HTTPException(status_code=404, detail="Not a record id")
-        f = await _scope_filter(auth)
+        f = await _base_record_filter(auth)
         f["id"] = rec_id
         rec = await db.field_leadership_records.find_one(f, {"_id": 0})
         if not rec:
@@ -1117,7 +1117,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
     @router.get("/{rec_id}/pdf")
     async def get_pdf(rec_id: str, auth: Dict[str, Any] = Depends(_is_authed)):
-        f = await _scope_filter(auth)
+        f = await _base_record_filter(auth)
         f["id"] = rec_id
         rec = await db.field_leadership_records.find_one(f, {"_id": 0})
         if not rec:
@@ -1157,7 +1157,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         kind: Optional[str] = Query(default=None),
         employee: Optional[str] = Query(default=None),
     ):
-        f = await _scope_filter(auth)
+        f = await _base_record_filter(auth)
         if kind:
             f["kind"] = kind
         if employee:

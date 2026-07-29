@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-07-29T12:12:09.112558",
+  "test_suite": "WP-15 Governance Convergence Backend Verification",
+  "tests": {
+    "test_1": {
+      "name": "Multi-login directory session + portal tokens",
+      "status": "PASS",
+      "details": [
+        "\u2705 Admin-only: Directory session token present (length: 43)",
+        "\u2705 Admin-only: Admin portal token present (length: 101)",
+        "\u2705 Admin-only: Has exactly 1 portal token (admin)",
+        "\u2705 Super admin: Directory session token present (length: 43)",
+        "\u2705 Super admin: Admin portal token present",
+        "\u2705 Super admin: Has 8 portal tokens: ['admin', 'pm', 'shop', 'hr', 'safety', 'dispatch', 'field_leadership', 'fl']"
+      ],
+      "errors": []
+    },
+    "test_2": {
+      "name": "Governed admin API positive control",
+      "status": "PASS",
+      "details": [
+        "\u2705 Obtained directory token (length: 43)",
+        "\u2705 Obtained admin token (length: 101)",
+        "\u2705 GET /api/admin/governance/overview returned 200 OK",
+        "Response keys: ['registry_version', 'counts', 'recent_decisions']"
+      ],
+      "errors": []
+    },
+    "test_3": {
+      "name": "Negative request-lifecycle control",
+      "status": "PASS",
+      "details": [
+        "\u2705 Missing X-Directory-Token correctly denied with 401",
+        "\u2705 Mismatched X-Directory-Token correctly denied with 401",
+        "\u2705 Missing X-Admin-Token correctly denied with 401"
+      ],
+      "errors": []
+    },
+    "test_4": {
+      "name": "Emergency override API",
+      "status": "PASS",
+      "details": [
+        "\u2705 POST /api/admin/governance/emergency-overrides returned 200",
+        "Response keys: ['ok', 'override']"
+      ],
+      "errors": []
+    },
+    "test_5": {
+      "name": "PM governed workflow smoke test",
+      "status": "PASS",
+      "details": [
+        "\u2705 PM login successful",
+        "\u2705 Obtained directory token (length: 43)",
+        "\u2705 Obtained PM token (length: 101)",
+        "\u2705 PM governed read with valid headers returned 200 OK"
+      ],
+      "errors": []
+    },
+    "test_6": {
+      "name": "Safety and Dispatch representative protected reads",
+      "status": "PASS",
+      "details": [
+        "\u2705 Safety login successful",
+        "\u2705 Safety protected read returned 200 OK",
+        "\u2705 Dispatch login successful",
+        "\u2705 Dispatch protected read returned 200 OK"
+      ],
+      "errors": []
+    },
+    "test_7": {
+      "name": "No unexpected sign-in loops or 401 storms",
+      "status": "PASS",
+      "details": [
+        "\u2705 No 401/403 errors in 5 sequential requests"
+      ],
+      "errors": []
+    }
+  },
+  "overall_status": "PASS",
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  }
+}

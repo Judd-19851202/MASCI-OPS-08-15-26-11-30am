@@ -10,6 +10,7 @@ makes correct allow/deny decisions.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 from datetime import datetime, timedelta, timezone
@@ -94,17 +95,15 @@ def test_middleware_noop_when_disabled():
     assert db._store == {}
 
 
-def test_middleware_first_seen_creates_row(monkeypatch):
+def test_middleware_missing_row_fails_closed(monkeypatch):
     monkeypatch.setenv("SESSION_TIMEOUTS_ENABLED", "true")
     db = _FakeDB()
     client = TestClient(_make_app(db))
     r = client.get("/api/secured", headers={"X-Admin-Token": "abc"})
-    assert r.status_code == 200
-    assert len(db._store) == 1
-    row = list(db._store.values())[0]
-    assert row["tier"] == "ADMIN_HR"
-    assert "first_seen_at" in row
-    assert "last_seen_at" in row
+    assert r.status_code == 401
+    body = r.json()
+    assert body["detail"] == "session_not_active"
+    assert db._store == {}
 
 
 def test_middleware_idle_timeout_enforced(monkeypatch):
@@ -172,12 +171,16 @@ def test_middleware_anonymous_passes(monkeypatch):
 def test_middleware_tier_picks_strictest(monkeypatch):
     """If both Admin and PM tokens are sent, Admin tier wins."""
     monkeypatch.setenv("SESSION_TIMEOUTS_ENABLED", "true")
+    from session_timeout import reset_session_activity
+
     db = _FakeDB()
+    asyncio.run(reset_session_activity(db, "admin-abc", "ADMIN_HR"))
     client = TestClient(_make_app(db))
-    client.get("/api/secured", headers={
+    r = client.get("/api/secured", headers={
         "X-Admin-Token": "admin-abc",
         "X-PM-Token": "pm-xyz",
     })
+    assert r.status_code == 200
     # Only one session row, tagged ADMIN_HR
     rows = list(db._store.values())
     assert len(rows) == 1

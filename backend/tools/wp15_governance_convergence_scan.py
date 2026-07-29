@@ -165,6 +165,26 @@ def scan_backend() -> List[Dict[str, object]]:
                     layer="backend",
                 )
                 continue
+            if any(
+                token in text
+                for token in (
+                    "governance_project_scope_filter(",
+                    "governance_project_scope_allows(",
+                    "governance_project_scope(",
+                )
+            ):
+                append_raw(
+                    findings,
+                    path=rel,
+                    line=line_no,
+                    category="canonical",
+                    reason="Canonical governance scope adapter",
+                    snippet=text,
+                    symbol=symbol,
+                    domain="business_authorization",
+                    layer="backend",
+                )
+                continue
             if "WP15_SPECIAL_CASE_INFRASTRUCTURE" in nearby:
                 append_raw(
                     findings,
@@ -175,6 +195,71 @@ def scan_backend() -> List[Dict[str, object]]:
                     snippet=text,
                     symbol=symbol,
                     domain="request_lifecycle",
+                    layer="backend",
+                )
+                continue
+            if path.name == "legacy_imports.py" and "_li_scope_filter(" in text:
+                append_raw(
+                    findings,
+                    path=rel,
+                    line=line_no,
+                    category="special_case_infrastructure",
+                    reason="Upload-portal partition after canonical actor gate",
+                    snippet=text,
+                    symbol=symbol,
+                    domain="manual_review",
+                    layer="backend",
+                )
+                continue
+            if rel.endswith("/odr/routes.py") and "build_odr_scope_filter(" in text:
+                append_raw(
+                    findings,
+                    path=rel,
+                    line=line_no,
+                    category="special_case_infrastructure",
+                    reason="Read-visibility projector after auth gate",
+                    snippet=text,
+                    symbol=symbol,
+                    domain="manual_review",
+                    layer="backend",
+                )
+                continue
+            if path.name == "integration_truth.py" and symbol == "_retirement_recommendation":
+                append_raw(
+                    findings,
+                    path=rel,
+                    line=line_no,
+                    category="special_case_infrastructure",
+                    reason="Environment heuristic, not business authorization",
+                    snippet=text,
+                    symbol=symbol,
+                    domain="manual_review",
+                    layer="backend",
+                )
+                continue
+            if path.name == "enterprise_governance.py" and symbol == "_projection_defaults" and "is_super_admin" in text:
+                append_raw(
+                    findings,
+                    path=rel,
+                    line=line_no,
+                    category="special_case_infrastructure",
+                    reason="Identity projection snapshot field",
+                    snippet=text,
+                    symbol=symbol,
+                    domain="manual_review",
+                    layer="backend",
+                )
+                continue
+            if path.name == "admin_directory_k4.py" and symbol == "_directory_full_view" and "is_super_admin" in text:
+                append_raw(
+                    findings,
+                    path=rel,
+                    line=line_no,
+                    category="special_case_infrastructure",
+                    reason="Directory view projection field",
+                    snippet=text,
+                    symbol=symbol,
+                    domain="manual_review",
                     layer="backend",
                 )
                 continue

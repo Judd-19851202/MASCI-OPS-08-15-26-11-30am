@@ -40,10 +40,10 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Set, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.enterprise_governance import governance_project_scope
 from lib.runtime_identity import runtime_identity_public_payload
 
 import dispatch_lifecycle as DLS
-from pm_auth import compute_pm_scope
 from routes.pm_command_center import (
     normalize_asset_kind, ROAD_PLATE_CANONICAL, _map_ready,
     specialty_family_of, is_specialty_asset, SPECIALTY_ASSET_FAMILY,
@@ -425,13 +425,13 @@ def build_operations_map_contract_router(
         # ─── 1 · Build PM scope when scope=pm ───────────────────────
         pm_scope_pns: Optional[Set[str]] = None
         if scope == "pm":
-            ps = await compute_pm_scope(db, actor)
+            ps = await governance_project_scope(db, actor)
             if ps.is_admin and not project_number:
                 # Admin in PM mode without explicit filter — show
                 # everything (matches existing PM CC admin doctrine).
                 pm_scope_pns = None
             elif not ps.is_admin:
-                pm_scope_pns = ps.project_numbers
+                pm_scope_pns = set(ps.project_numbers or [])
                 # Empty-scope PM → empty contract (no leak).
                 if not pm_scope_pns:
                     return _empty_envelope(scope, project_number, asset_kind,

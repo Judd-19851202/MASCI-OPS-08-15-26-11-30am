@@ -31,6 +31,8 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import hashlib
+from datetime import datetime, timezone
 
 import pytest
 
@@ -393,8 +395,25 @@ class TestLiveBehavior:
                 "created_at": "2026-01-01T00:00:00+00:00",
                 "updated_at": "2026-01-01T00:00:00+00:00",
             })
+        token = make_shop_user_token(uid, pw_hash)
+        now = datetime.now(timezone.utc)
+        sdb.session_activity.update_one(
+            {"token_hash": hashlib.sha256(token.encode("utf-8")).hexdigest()},
+            {
+                "$set": {
+                    "token_hash": hashlib.sha256(token.encode("utf-8")).hexdigest(),
+                    "tier": "OPERATIONS",
+                    "first_seen_at": now,
+                    "last_seen_at": now,
+                    "user_id": uid,
+                    "email": email,
+                    "actor_label": "shop",
+                }
+            },
+            upsert=True,
+        )
         sync.close()
-        return uid, make_shop_user_token(uid, pw_hash)
+        return uid, token
 
     @pytest.fixture
     def live_base_url(self):
@@ -481,6 +500,22 @@ class TestLiveBehavior:
                 "updated_at": "2026-01-01T00:00:00+00:00",
             })
             hr_tok = make_hr_user_token(uid, pw_hash)
+            now = datetime.now(timezone.utc)
+            sdb.session_activity.update_one(
+                {"token_hash": hashlib.sha256(hr_tok.encode("utf-8")).hexdigest()},
+                {
+                    "$set": {
+                        "token_hash": hashlib.sha256(hr_tok.encode("utf-8")).hexdigest(),
+                        "tier": "ADMIN_HR",
+                        "first_seen_at": now,
+                        "last_seen_at": now,
+                        "user_id": uid,
+                        "email": email,
+                        "actor_label": "hr",
+                    }
+                },
+                upsert=True,
+            )
             dr_id = f"dr-track1513e-{_uuid.uuid4().hex[:8]}"
             sdb.daily_reports.delete_many({"id": dr_id})
             sdb.daily_reports.insert_one({

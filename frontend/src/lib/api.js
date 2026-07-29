@@ -9,6 +9,7 @@ import { getHrToken, clearHrToken } from "@/lib/hrAuth";
 import { getFlToken, clearFlToken } from "@/lib/flAuth";
 import { getSafetyToken, clearSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken, clearDispatchToken } from "@/lib/dispatchAuth";
+import { clearLeadershipToken } from "@/lib/leadershipAuth";
 import { setMustChange, redirectToChangePassword } from "@/lib/mustChangePassword";
 import { getDeviceId } from "@/lib/resiliency/deviceId";
 import { getDirectoryToken, clearDirectorySession } from "@/lib/directoryAuth";
@@ -282,6 +283,7 @@ api.interceptors.response.use(
         _namespacedHandled = true;
       } else if (isLeadershipNamespace) {
         if (authFailure.shouldClearPortal && cfg.headers?.["X-FL-Token"]) clearFlToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
         if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isSafetyFormsNamespace) {
@@ -356,6 +358,7 @@ api.interceptors.response.use(
           if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-FL-Token"]) clearFlToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
           if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
           if (cfg.headers?.Authorization) clearJwt();
         }
