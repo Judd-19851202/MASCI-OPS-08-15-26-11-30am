@@ -13,8 +13,7 @@
 //   - Issues do NOT clear the unit (Shop Repair ≠ RTS doctrine).
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import ShopSelector from "@/components/shop/ShopSelector";
@@ -22,12 +21,7 @@ import ShopSelector from "@/components/shop/ShopSelector";
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "shop"], { "Content-Type": "application/json" });
 }
 
 const EMPTY_LINE = {

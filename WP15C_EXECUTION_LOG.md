@@ -130,3 +130,50 @@ Every non-compliant authorization decision must be classified as one of:
   - Resolve the final Category F path with structural scanner refinement or code simplification
   - Burn down remaining manual builders, especially infrastructure/bootstrap vs governed-path distinctions
   - Add disabled-user and broader session-expiry/recovery verification
+
+## Batch WP15C-2026-07-29-B4
+- Timestamp: 2026-07-29 UTC
+- Scope:
+  - Continue continuous closeout campaign on highest-value shared frontend builder families
+  - Modernize stale certification suite to current canonical contracts
+  - Preserve existing-user continuity while reducing legacy governance and request-lifecycle drift
+- Shared patterns changed:
+  - shop family auth builders → canonical scoped builder
+  - PM dashboard/workspace auth builders → canonical scoped builder
+  - executive/admin config helpers → canonical scoped builder
+  - directory grant / portal hydration bootstrap hooks → canonical directory scoped builder
+- Files changed:
+  - `ShopHubV2.jsx`, `shop/PmDashboard.jsx`, `shop/PmSchedules.jsx`, `shop/FuelLubeVisitForm.jsx`, `shop/ShopManagerQueue.jsx`
+  - `PmHubV2.jsx`, `PmDueTodayV2.jsx`, `PmHoldsV2.jsx`, `PmProjectThread.jsx`, `PmMondayReviewWorkspace.jsx`, `PmProjectSchedule.jsx`, `PmFieldLeadership.jsx`, `LeadershipHubV2.jsx`
+  - `ExecutiveIntelligence.jsx`, `ExecutiveOverview.jsx`, `EmployeeProfile.jsx`, `HrEmployeeThread.jsx`, `OperationsControlCenter.jsx`
+  - `MultiPortalHydrator.jsx`, `usePortalHydration.js`, `useRedirectIfDirectoryGrant.js`
+  - `backend/tests/test_full_cert_auth_sweep.py`
+- Previous metrics:
+  - Legacy: `71`
+  - Manual governed builders: `29`
+  - Canonical builder adoption: `15 / 71 = 21.13%`
+  - Category F: `0`
+- Current metrics:
+  - Legacy: `62`
+  - Manual governed builders: `20`
+  - Canonical builder adoption: `18 / 65 = 27.69%`
+  - Category F: `0`
+- Deltas:
+  - Legacy delta: `-9`
+  - Manual-builder delta: `-9`
+  - Builder-adoption delta: `+6.56%`
+- Existing-user tests:
+  - Multi-login continuity remains successful for Admin, PM, Safety, HR, Dispatch, Shop, FL
+  - PM bad password remains `401`
+  - Existing governed suite remains stable
+- Governance tests:
+  - `test_wp15_enterprise_governance.py` → `5 passed`
+  - `test_full_cert_auth_sweep.py` → `40 passed`
+- Remaining risks:
+  - 20 manual governed builders remain
+  - 62 normalized legacy governance findings remain
+  - lockout, recovery, emergency override, and full Trust Spine verification still incomplete
+- Next work in progress:
+  - admin-only export/download widget family
+  - safety dialog/manual uploader family
+  - remaining backend route-local authorization helpers and legacy scope families

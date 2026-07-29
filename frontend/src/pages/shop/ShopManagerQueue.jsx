@@ -11,8 +11,7 @@
 //
 // Reference: TRACK_13_28A · TRACK_13_28 · TRACK_13_28_PHASE_2.
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
@@ -21,12 +20,7 @@ import { formatPlatformTime } from "@/lib/platformTime";
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "shop"], { "Content-Type": "application/json" });
 }
 
 async function api(path, opts = {}) {

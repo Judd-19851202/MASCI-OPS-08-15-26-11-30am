@@ -4,15 +4,15 @@ Last updated: 2026-07-29
 Status: Active working register
 
 ## Current Normalized Totals
-- Legacy governance findings: **71**
-- Manual governed builders: **29**
+- Legacy governance findings: **62**
+- Manual governed builders: **20**
 - Category F: **0**
 
 ## Pattern-Level Register
 | Finding ID | Severity | Category | Description | Current Count | Canonical Replacement | Status |
 |---|---:|---|---|---:|---|---|
-| RG-001 | P0 | Request lifecycle | Manual governed header construction | 29 | `buildScopedPortalAuthHeaders` | In progress |
-| RG-002 | P0 | Governance scope | Remaining module-local PM scope families | 2+ families | `governance_project_scope` / `governance_project_scope_filter` | In progress |
+| RG-001 | P0 | Request lifecycle | Manual governed header construction | 20 | `buildScopedPortalAuthHeaders` | In progress |
+| RG-002 | P0 | Governance scope | Remaining module-local PM scope families | fewer, not zero | `governance_project_scope` / `governance_project_scope_filter` | In progress |
 | RG-003 | P1 | Governance drift | Route-local authorization helpers | 4 | Enterprise Governance evaluation | In progress |
 | RG-004 | P1 | Governance drift | Inline role branches / checks | residual | Enterprise Governance evaluation | In progress |
 | RG-005 | P1 | Governance drift | Custom 403 auth gates | residual | Canonical deny path | In progress |

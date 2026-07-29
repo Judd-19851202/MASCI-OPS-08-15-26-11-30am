@@ -3,12 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
 
 function adminConfig() {
-  const token = getAdminToken();
-  return token ? { skipSessionStatus: true, headers: { "X-Admin-Token": token } } : { skipSessionStatus: true };
+  return { skipSessionStatus: true, headers: buildScopedPortalAuthHeaders(["admin"]) };
 }
 
 async function loadAll() {

@@ -34,9 +34,10 @@ import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import AccessDenied from "@/pages/AccessDenied";
-import { isHr, getHrToken } from "@/lib/hrAuth";
-import { isSafety, getSafetyToken } from "@/lib/safetyAuth";
-import { isAdmin, getAdminToken } from "@/lib/adminAuth";
+import { isHr } from "@/lib/hrAuth";
+import { isSafety } from "@/lib/safetyAuth";
+import { isAdmin } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { operationalError } from "@/lib/errors";
@@ -46,11 +47,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Auth headers — identical to the certified Accountability page.
 function authHeaders() {
-  const h = {};
-  const a = getAdminToken();  if (a)  h["X-Admin-Token"]  = a;
-  const hr = getHrToken();    if (hr) h["X-HR-Token"]     = hr;
-  const sf = getSafetyToken();if (sf) h["X-Safety-Token"] = sf;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "hr", "safety"]);
 }
 
 // ─────────────────────────────────────────────────────────────

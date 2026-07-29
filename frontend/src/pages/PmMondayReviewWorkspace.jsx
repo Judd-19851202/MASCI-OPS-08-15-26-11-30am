@@ -5,14 +5,13 @@ import PmShell from "@/components/PmShell";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 
 const ADMIN_FALLBACK_PROJECT = "24-06";
 
 function portalConfig(extra = {}) {
-  const admin = getAdminToken();
-  return admin ? { ...extra, headers: { ...(extra.headers || {}), "X-Admin-Token": admin } } : extra;
+  return { ...extra, headers: buildScopedPortalAuthHeaders(["admin", "pm"], extra.headers || {}) };
 }
 
 const DEFAULT_REVIEW = {

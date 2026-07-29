@@ -40,8 +40,9 @@ import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import PmShell from "@/components/PmShell";
 import AccessDenied from "@/pages/AccessDenied";
-import { isPm, getPmToken } from "@/lib/pmAuth";
-import { isAdmin, getAdminToken } from "@/lib/adminAuth";
+import { isPm } from "@/lib/pmAuth";
+import { isAdmin } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { operationalError } from "@/lib/errors";
 import OperationalThreadPage from "@/components/operational_intelligence/OperationalThreadPage";
 
@@ -51,10 +52,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // PM portal is the primary caller; Admin token accepted for
 // cross-portal reads (matches PmJobsRead + PmProjectStaffing).
 function authHeaders() {
-  const h = {};
-  const a = getAdminToken(); if (a) h["X-Admin-Token"] = a;
-  const p = getPmToken();    if (p) h["X-PM-Token"]    = p;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "pm"]);
 }
 
 // Render YYYY-MM-DD for the local user's calendar day. Same helper

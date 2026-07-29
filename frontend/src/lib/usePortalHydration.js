@@ -28,6 +28,7 @@
 // the token is silently re-issued, then render the destination.
 
 import { useEffect, useRef, useState } from "react";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { getDirectoryUser, getDirectoryToken } from "@/lib/directoryAuth";
 import { api } from "@/lib/api";
 import { setAdminToken } from "@/lib/adminAuth";
@@ -116,7 +117,7 @@ export function usePortalHydration(portal, hasToken) {
         const r = await api.post(
           "/auth/issue-portal-token",
           { portal: canonical },
-          { headers: { "X-Directory-Token": dirToken }, skipSessionStatus: true }
+          { headers: buildScopedPortalAuthHeaders(["directory"]), skipSessionStatus: true }
         );
         if (cancelled) return;
         if (r?.data?.ok && r.data.token) {

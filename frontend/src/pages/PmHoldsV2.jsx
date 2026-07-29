@@ -14,8 +14,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getPmToken } from "@/lib/pmAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   PortalShell,
   StatusChip,
@@ -29,12 +28,7 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const p = getPmToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (p) h["X-PM-Token"] = p;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "pm"], { "Content-Type": "application/json" });
 }
 
 function severityChip(sev) {

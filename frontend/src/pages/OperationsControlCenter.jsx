@@ -40,6 +40,7 @@ import { formatPlatformTime } from "@/lib/platformTime";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 import OperationsControlCases from "@/pages/OperationsControlCases";
 import { fetchGovernanceHealth } from "@/lib/enterpriseGovernanceApi";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 // TRACK 25A · Universal Admin OS shell so OCC matches every other
 // domain page (PortalShell + SideNavV3 + breadcrumb).
@@ -258,12 +259,7 @@ function adminToken() {
 }
 
 function authHeaders() {
-  const t = adminToken();
-  const directoryToken = getDirectoryToken();
-  const headers = {};
-  if (t) headers["X-Admin-Token"] = t;
-  if (directoryToken) headers["X-Directory-Token"] = directoryToken;
-  return headers;
+  return buildScopedPortalAuthHeaders(["admin"]);
 }
 
 async function fetchOverview() {

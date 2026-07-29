@@ -15,9 +15,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { getHrToken } from "@/lib/hrAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   fetchEmployeeRecords, downloadPackagePdf,
 } from "@/lib/employeeRecordsApi";
@@ -68,11 +66,7 @@ function composeEmployeeStory(emp, current, t) {
 }
 
 function _authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const hr = getHrToken(); if (hr) h["X-HR-Token"] = hr;
-  const sf = getSafetyToken(); if (sf) h["X-Safety-Token"] = sf;
-  const ad = getAdminToken(); if (ad) h["X-Admin-Token"] = ad;
-  return h;
+  return buildScopedPortalAuthHeaders(["hr", "safety", "admin"], { "Content-Type": "application/json" });
 }
 
 export default function EmployeeProfile() {

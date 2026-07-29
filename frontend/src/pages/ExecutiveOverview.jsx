@@ -15,7 +15,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { AlertTriangle, CheckCircle2, AlertOctagon, RefreshCw } from "lucide-react";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -93,7 +93,7 @@ export default function ExecutiveOverview() {
     const t0 = performance.now();
     try {
       const r = await fetch(`${API}/api/admin/executive/overview`, {
-        headers: { "X-Admin-Token": getAdminToken() || "" },
+        headers: buildScopedPortalAuthHeaders(["admin"]),
       });
       const t1 = performance.now();
       setTookMs(Math.round(t1 - t0));

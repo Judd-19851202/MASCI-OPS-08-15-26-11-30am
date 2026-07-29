@@ -2,18 +2,13 @@
 // Route: /shop/pm/schedules (RequireShop).
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken(); const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "shop"], { "Content-Type": "application/json" });
 }
 
 const STATUS_TONE = {

@@ -19,6 +19,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { getDirectoryUser, getDirectoryToken } from "@/lib/directoryAuth";
 import { getAdminToken, setAdminToken } from "@/lib/adminAuth";
 import { getPmToken, setPmToken } from "@/lib/pmAuth";
@@ -76,7 +77,7 @@ export default function MultiPortalHydrator() {
           const r = await api.post(
             "/auth/issue-portal-token",
             { portal },
-            { headers: { "X-Directory-Token": dirToken }, skipSessionStatus: true }
+            { headers: buildScopedPortalAuthHeaders(["directory"]), skipSessionStatus: true }
           );
           if (!cancelled && r?.data?.ok && r.data.token) {
             setter(r.data.token);

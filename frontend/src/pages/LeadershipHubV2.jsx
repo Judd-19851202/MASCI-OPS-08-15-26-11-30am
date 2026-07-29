@@ -9,18 +9,13 @@
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getFlToken } from "@/lib/flAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function h() {
-  const out = { "Content-Type": "application/json" };
-  const a = getAdminToken(); const lt = getFlToken();
-  if (a) out["X-Admin-Token"] = a;
-  if (lt) out["X-FL-Token"] = lt;
-  return out;
+  return buildScopedPortalAuthHeaders(["admin", "fl"], { "Content-Type": "application/json" });
 }
 async function j(p) {
   try { const r = await fetch(`${API}${p}`, { headers: h() }); return { ok: r.ok, body: r.ok ? await r.json() : null }; }

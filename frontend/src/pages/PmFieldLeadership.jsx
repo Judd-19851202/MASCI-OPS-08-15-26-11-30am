@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import PmShell from "@/components/PmShell";
-import { getPmToken } from "@/lib/pmAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 
 const KINDS = [
@@ -43,8 +43,7 @@ const KINDS = [
 const KIND_LABEL = Object.fromEntries(KINDS.map((k) => [k.value, k.label]));
 
 function authedFetch(path) {
-  const tok = getPmToken();
-  return fetch(`${API}${path}`, { headers: { "X-PM-Token": tok || "" } });
+  return fetch(`${API}${path}`, { headers: buildScopedPortalAuthHeaders(["pm"]) });
 }
 
 export default function PmFieldLeadership() {
@@ -216,11 +215,10 @@ function DetailDrawer({ record, onClose }) {
             className="inline-flex items-center h-10 px-4 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide text-sm"
             data-testid="pm-fl-download-pdf"
             onClick={(e) => {
-              // Append PM token so the GET is authed
-              const tok = getPmToken();
-              if (tok) {
+              const headers = buildScopedPortalAuthHeaders(["pm"]);
+              if (headers["X-PM-Token"]) {
                 e.preventDefault();
-                fetch(`${API}/field-leadership/${record.id}/pdf`, { headers: { "X-PM-Token": tok } })
+                fetch(`${API}/field-leadership/${record.id}/pdf`, { headers })
                   .then((r) => r.blob())
                   .then((b) => {
                     const url = URL.createObjectURL(b);

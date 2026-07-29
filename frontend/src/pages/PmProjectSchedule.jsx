@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CalendarRange, Download, Save, RefreshCw, AlertTriangle, ShieldCheck, GitCompareArrows } from "lucide-react";
 import PmShell from "@/components/PmShell";
 import { api } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
@@ -11,8 +11,7 @@ import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 const ADMIN_FALLBACK_PROJECT = "24-06";
 
 function portalConfig(extra = {}) {
-  const admin = getAdminToken();
-  return admin ? { ...extra, headers: { ...(extra.headers || {}), "X-Admin-Token": admin } } : extra;
+  return { ...extra, headers: buildScopedPortalAuthHeaders(["admin", "pm"], extra.headers || {}) };
 }
 
 const toInput = (v) => String(v || "").slice(0, 10);

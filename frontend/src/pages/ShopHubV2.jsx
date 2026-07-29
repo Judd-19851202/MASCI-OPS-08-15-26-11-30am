@@ -17,8 +17,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
 import ShopSideNavV2, { isShopSidebarV2Enabled } from "@/components/shop/sidebar/ShopSideNavV2";
 // Track 13.7B · Shop Recovery Map lens — reuse the certified
@@ -33,12 +32,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const EMPTY_MAP_FILTERS = { types: [], status: [], driver: null, project: null };
 
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "shop"], { "Content-Type": "application/json" });
 }
 
 async function safeJson(path) {
@@ -636,12 +630,12 @@ export default function ShopHubV2() {
   // but the tiles were creating confusing "click and blocked" UX.
   //
   // Visibility rule:
-  //   - Admin token holders (getAdminToken) → always see (super-admins).
+  //   - Admin token holders → always see (super-admins).
   //   - Shop users with masci.is_asset_admin=true → see it.
   //   - Everyone else → hidden.
   const isAssetAdmin = React.useMemo(() => {
     try {
-      if (getAdminToken()) return true;
+      if (buildScopedPortalAuthHeaders(["admin"])["X-Admin-Token"]) return true;
       if (typeof window !== "undefined") {
         return window.localStorage.getItem("masci.is_asset_admin") === "true";
       }
