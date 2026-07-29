@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 
@@ -47,7 +48,7 @@ def classify(path: Path, lines: list[str], line_no: int) -> tuple[str, str] | No
     line = lines[line_no - 1]
     text = line.strip()
     rel = f"/{path.relative_to(ROOT.parent).as_posix()}"
-    nearby = "\n".join(lines[max(0, line_no - 9):line_no])
+    nearby = "\n".join(lines[max(0, line_no - 20):line_no])
     if not text or text.startswith("#"):
         return None
     if "require_governed_action(" in text or "evaluate_governance_action(" in text:
@@ -59,21 +60,25 @@ def classify(path: Path, lines: list[str], line_no: int) -> tuple[str, str] | No
             return ("special_case_infrastructure", "Authentication/token boundary")
     if "compute_pm_scope(" in text:
         return ("legacy_migratable", "Module-specific PM scope authorization")
+    if path.name == "tasks_notifications.py" and ("build_notif_filter(" in text or "_scope_filter(" in text):
+        return ("special_case_infrastructure", "Documented governed-scope adapter")
     if ("build_notif_filter(" in text or "_scope_filter(" in text) and "def " not in text:
         return ("legacy_migratable", "Module-specific notification/task scope filter")
-    if "if role == \"admin\"" in text or "if role == \"pm\"" in text:
+    if re.search(r"\brole\b\s*==\s*['\"](?:admin|pm)['\"]", text):
         if _is_display_only(text, nearby):
             return None
         if _has_auth_context(text, nearby):
             return ("legacy_migratable", "Inline role branch")
         return ("governance_candidate", "Role branch needs manual governance review")
-    if "role in {" in text or "role in (" in text:
+    if re.search(r"\brole\b\s+in\s+[\({]", text):
         if _is_display_only(text, nearby):
             return None
         if _has_auth_context(text, nearby):
             return ("legacy_migratable", "Inline role set check")
         return ("governance_candidate", "Role set check needs manual governance review")
     if "is_super_admin" in text and "bool(" in text:
+        if "{" in text and ":" in text and "permission" not in nearby.lower() and "allowed" not in nearby.lower():
+            return None
         if _has_auth_context(text, nearby):
             return ("legacy_migratable", "Hard-coded super-admin branch")
         return ("governance_candidate", "Super-admin handling needs manual governance review")
