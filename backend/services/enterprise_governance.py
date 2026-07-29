@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
@@ -17,6 +19,14 @@ COLLECTION_AUDIT = "enterprise_governance_audit"
 COLLECTION_ORG = "enterprise_governance_organization"
 
 REGISTRY_DOC_ID = "enterprise-governance-v1"
+GOVERNANCE_POLICY_EFFECTIVE_AT = "2026-07-29T00:00:00+00:00"
+POLICY_ACTION_MAP = {
+    "operational_case.close": "operational_case_close_policy",
+    "evidence.export": "evidence_export_policy",
+    "schedule.update": "schedule_change_policy",
+    "forecast.approve": "forecast_approval_policy",
+    "baseline.capture": "baseline_protection_policy",
+}
 
 
 def _now() -> datetime:
@@ -50,6 +60,165 @@ def _dedupe_texts(values: List[Any]) -> List[str]:
         if text and text not in seen:
             seen.append(text)
     return seen
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): _json_safe(val) for key, val in value.items() if str(key) != "_id"}
+    if isinstance(value, list):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, tuple):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if type(value).__name__ == "ObjectId":
+        return str(value)
+    return str(value)
+
+
+def _stable_hash(payload: Dict[str, Any]) -> str:
+    body = json.dumps(_json_safe(payload), sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+
+def _policy_snapshot(policy_id: str, policy: Dict[str, Any]) -> Dict[str, Any]:
+    approval_flow_id = _clean(policy.get("require_approval_flow"))
+    return {
+        "policy_id": policy_id,
+        "action_key": _clean(policy.get("action_key")),
+        "version": _clean(policy.get("version") or "1.0"),
+        "effective_at": _clean(policy.get("effective_at") or GOVERNANCE_POLICY_EFFECTIVE_AT),
+        "required_permissions": _dedupe_texts(_ensure_list(policy.get("required_permissions"))),
+        "require_project_access": bool(policy.get("require_project_access")),
+        "approval_flow_id": approval_flow_id,
+        "approval_required": bool(approval_flow_id),
+        "separation_rules": _dedupe_texts(_ensure_list(policy.get("separation_rules"))),
+    }
+
+
+def _identity_snapshot(projection: Dict[str, Any], effective_permissions: List[str]) -> Dict[str, Any]:
+    authority_chain = _dedupe_texts(
+        [
+            projection.get("reports_to_user_id"),
+            projection.get("division_id"),
+            projection.get("department_id"),
+            projection.get("region_id"),
+        ]
+    )
+    return {
+        "canonical_user_id": _clean(projection.get("canonical_user_id")),
+        "email": _clean(projection.get("email")).lower(),
+        "display_name": _clean(projection.get("display_name")),
+        "roles": _dedupe_texts(_ensure_list(projection.get("active_roles"))),
+        "permissions": _dedupe_texts(effective_permissions),
+        "delegated_permissions": _dedupe_texts(_ensure_list(projection.get("delegated_permissions"))),
+        "temporary_authority": _dedupe_texts(_ensure_list(projection.get("temporary_authority"))),
+        "delegations": [_json_safe(row) for row in (projection.get("delegations") or [])],
+        "organization": {
+            "tenant_id": _clean(projection.get("tenant_id")),
+            "company_id": _clean(projection.get("company_id")),
+            "division_id": _clean(projection.get("division_id")),
+            "department_id": _clean(projection.get("department_id")),
+            "region_id": _clean(projection.get("region_id")),
+            "reports_to_user_id": _clean(projection.get("reports_to_user_id")),
+        },
+        "project_assignments": _dedupe_texts(_ensure_list(projection.get("project_numbers"))),
+        "crew_ids": _dedupe_texts(_ensure_list(projection.get("crew_ids"))),
+        "team_ids": _dedupe_texts(_ensure_list(projection.get("team_ids"))),
+        "authority_chain": authority_chain,
+        "policy_attributes": _json_safe(dict(projection.get("policy_attributes") or {})),
+        "snapshot_at": _now_iso(),
+    }
+
+
+def _build_decision_explanation(
+    *,
+    decision: str,
+    reason: str,
+    denial_code: str,
+    identity_snapshot: Dict[str, Any],
+    policy_snapshot: Dict[str, Any],
+    resource_snapshot: Dict[str, Any],
+    required_permissions: List[str],
+    effective_permissions: List[str],
+    approval_row: Optional[Dict[str, Any]],
+    approval_required: bool,
+    delegation_used: bool,
+    override_used: bool,
+    separation_rule_blocked: str,
+    project_scope_status: str,
+) -> Dict[str, Any]:
+    approval_roles = _dedupe_texts(_ensure_list((approval_row or {}).get("required_roles")))
+    active_projects = identity_snapshot.get("project_assignments") or []
+    resource_project = _clean(resource_snapshot.get("project_number"))
+    approval_status = _clean((approval_row or {}).get("status") or ("not_required" if not approval_required else "pending"))
+    return {
+        "decision": "APPROVED" if decision == "allow" else "DENIED",
+        "decision_reason": reason,
+        "denial_code": denial_code,
+        "identity": {
+            "name": identity_snapshot.get("display_name") or identity_snapshot.get("email") or "Unknown",
+            "email": identity_snapshot.get("email") or "",
+            "roles": identity_snapshot.get("roles") or [],
+            "authority_chain": identity_snapshot.get("authority_chain") or [],
+        },
+        "policy": {
+            "policy_id": policy_snapshot.get("policy_id"),
+            "version": policy_snapshot.get("version"),
+            "effective_at": policy_snapshot.get("effective_at"),
+            "required_permissions": required_permissions,
+            "granted_permissions": _dedupe_texts(effective_permissions),
+        },
+        "project_assignment": {
+            "resource_project_number": resource_project,
+            "actor_projects": active_projects,
+            "status": project_scope_status or "not_required",
+        },
+        "delegation": {
+            "used": delegation_used,
+            "permissions": identity_snapshot.get("delegated_permissions") or [],
+            "active_ids": identity_snapshot.get("temporary_authority") or [],
+            "status": "active" if delegation_used else "none",
+        },
+        "separation_of_duties": {
+            "status": "blocked" if separation_rule_blocked else "satisfied",
+            "rule_id": separation_rule_blocked or "",
+        },
+        "approval": {
+            "required": approval_required,
+            "flow_id": policy_snapshot.get("approval_flow_id") or "",
+            "required_roles": approval_roles,
+            "status": approval_status,
+            "approvals_recorded": int(len((approval_row or {}).get("approvals") or [])),
+        },
+        "override": {
+            "used": override_used,
+            "status": "active" if override_used else "none",
+        },
+        "trust_spine": {
+            "recorded": True,
+            "workflow": "enterprise-governance",
+        },
+    }
+
+
+def _determinism_snapshot(
+    *,
+    action_key: str,
+    policy_snapshot: Dict[str, Any],
+    identity_snapshot: Dict[str, Any],
+    resource_snapshot: Dict[str, Any],
+    requested_context: Dict[str, Any],
+) -> Dict[str, Any]:
+    return {
+        "action_key": action_key,
+        "policy": policy_snapshot,
+        "identity": identity_snapshot,
+        "resource": _json_safe(resource_snapshot),
+        "requested_context": _json_safe(requested_context),
+    }
 
 
 def build_enterprise_governance_registry() -> Dict[str, Any]:
@@ -150,7 +319,9 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
     }
     policies = {
         "operational_case_close_policy": {
+            "policy_id": "operational_case_close_policy",
             "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
             "action_key": "operational_case.close",
             "required_permissions": ["operational_case.close"],
             "require_project_access": True,
@@ -158,7 +329,9 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "separation_rules": ["creator_cannot_close_without_override_review", "audit_closer_separation"],
         },
         "evidence_export_policy": {
+            "policy_id": "evidence_export_policy",
             "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
             "action_key": "evidence.export",
             "required_permissions": ["evidence.export"],
             "require_project_access": False,
@@ -166,7 +339,9 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "separation_rules": [],
         },
         "schedule_change_policy": {
+            "policy_id": "schedule_change_policy",
             "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
             "action_key": "schedule.update",
             "required_permissions": ["schedule.update"],
             "require_project_access": True,
@@ -174,7 +349,9 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "separation_rules": ["submitter_cannot_self_approve"],
         },
         "forecast_approval_policy": {
+            "policy_id": "forecast_approval_policy",
             "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
             "action_key": "forecast.approve",
             "required_permissions": ["forecast.approve"],
             "require_project_access": True,
@@ -182,7 +359,9 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "separation_rules": ["submitter_cannot_self_approve"],
         },
         "baseline_protection_policy": {
+            "policy_id": "baseline_protection_policy",
             "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
             "action_key": "baseline.capture",
             "required_permissions": ["baseline.capture"],
             "require_project_access": False,
@@ -255,6 +434,7 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "denials_are_governed_outcomes",
             "no_module_may_keep_an_ungoverned_alternate_path",
             "no_emergency_override_is_silent_permanent_self_approved_or_unaudited",
+            "governance_determinism_principle",
         ],
         "permissions": permissions,
         "roles": roles,
@@ -509,18 +689,52 @@ async def record_governance_decision(
     resource_id: str,
     resource: Dict[str, Any],
     policy_id: str,
+    policy_snapshot: Dict[str, Any],
     decision: str,
     reason: str,
     required_permissions: List[str],
+    effective_permissions: List[str],
     approval_required: bool,
+    approval_row: Optional[Dict[str, Any]],
     delegation_used: bool,
     override_used: bool,
+    separation_rule_blocked: str = "",
+    project_scope_status: str = "",
     denial_code: str = "",
     evidence: Optional[Dict[str, Any]] = None,
+    requested_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     correlation_id = attach_correlation({"id": resource_id, "doc_id": resource_id, "project_number": _clean(resource.get("project_number"))})
+    resource_snapshot = _json_safe(resource)
+    identity_snapshot = _identity_snapshot(projection, effective_permissions)
+    determinism_input = _determinism_snapshot(
+        action_key=action_key,
+        policy_snapshot=policy_snapshot,
+        identity_snapshot=identity_snapshot,
+        resource_snapshot=resource_snapshot,
+        requested_context=dict(requested_context or {}),
+    )
+    explanation = _build_decision_explanation(
+        decision=decision,
+        reason=reason,
+        denial_code=denial_code,
+        identity_snapshot=identity_snapshot,
+        policy_snapshot=policy_snapshot,
+        resource_snapshot=resource_snapshot,
+        required_permissions=required_permissions,
+        effective_permissions=effective_permissions,
+        approval_row=approval_row,
+        approval_required=approval_required,
+        delegation_used=delegation_used,
+        override_used=override_used,
+        separation_rule_blocked=separation_rule_blocked,
+        project_scope_status=project_scope_status,
+    )
+    decision_id = str(uuid.uuid4())
+    now_iso = _now_iso()
     row = {
-        "id": str(uuid.uuid4()),
+        "id": decision_id,
+        "decision_id": decision_id,
         "canonical_user_id": projection.get("canonical_user_id"),
         "actor_email": projection.get("email"),
         "actor_roles": list(projection.get("active_roles") or []),
@@ -528,18 +742,37 @@ async def record_governance_decision(
         "resource_type": resource_type,
         "resource_id": resource_id,
         "policy_id": policy_id,
-        "policy_version": _clean(resource.get("policy_version") or "1.0"),
+        "policy_version": _clean(policy_snapshot.get("version") or "1.0"),
+        "policy_effective_at": _clean(policy_snapshot.get("effective_at") or GOVERNANCE_POLICY_EFFECTIVE_AT),
+        "policy_snapshot": policy_snapshot,
+        "policy_evaluation": {
+            "policy_id": policy_id,
+            "version": _clean(policy_snapshot.get("version") or "1.0"),
+            "effective_at": _clean(policy_snapshot.get("effective_at") or GOVERNANCE_POLICY_EFFECTIVE_AT),
+            "evaluation_outcome": decision,
+        },
         "decision": decision,
         "reason": reason,
         "denial_code": denial_code,
         "required_permissions": required_permissions,
+        "effective_permissions": _dedupe_texts(effective_permissions),
         "approval_required": approval_required,
         "delegation_used": delegation_used,
         "override_used": override_used,
         "correlation_id": correlation_id,
+        "causation_id": _clean(resource_id) or _clean(resource.get("id")),
         "causation_ids": _dedupe_texts([resource_id, _clean(resource.get("id"))]),
         "evidence": dict(evidence or {}),
-        "decided_at": _now_iso(),
+        "requested_context_snapshot": _json_safe(dict(requested_context or {})),
+        "resource_snapshot": resource_snapshot,
+        "identity_snapshot": identity_snapshot,
+        "explanation": explanation,
+        "determinism_input": determinism_input,
+        "determinism_fingerprint": _stable_hash(determinism_input),
+        "record_mode": "append_only",
+        "immutable": True,
+        "decided_at": now_iso,
+        "decision_timestamp": now_iso,
     }
     await db[COLLECTION_DECISIONS].insert_one(dict(row))
     await _write_audit(db, kind="decision", payload=row)
@@ -554,7 +787,25 @@ async def record_governance_decision(
     await emit_workflow_stage(
         db,
         workflow="enterprise-governance",
-        stage="actor_reviewed",
+        stage="validation_complete",
+        record=governance_ref,
+        module="services/enterprise_governance.py:record_governance_decision",
+        status="ok",
+        event_name=f"governance.decision.{decision}",
+    )
+    await emit_workflow_stage(
+        db,
+        workflow="enterprise-governance",
+        stage="audit_written",
+        record=governance_ref,
+        module="services/enterprise_governance.py:record_governance_decision",
+        status="ok",
+        event_name=f"governance.decision.{decision}",
+    )
+    await emit_workflow_stage(
+        db,
+        workflow="enterprise-governance",
+        stage="completed_for_environment",
         record=governance_ref,
         module="services/enterprise_governance.py:record_governance_decision",
         status="ok" if decision == "allow" else "failed",
@@ -577,16 +828,14 @@ async def evaluate_governance_action(
     registry = await get_enterprise_governance_registry(db)
     projection = await ensure_identity_projection(db, actor)
     projection = await _load_dynamic_context(db, projection, actor)
-    policy = dict((registry.get("policies") or {}).get(action_key if action_key in (registry.get("policies") or {}) else {
-        "operational_case.close": "operational_case_close_policy",
-        "evidence.export": "evidence_export_policy",
-        "schedule.update": "schedule_change_policy",
-        "forecast.approve": "forecast_approval_policy",
-        "baseline.capture": "baseline_protection_policy",
-    }.get(action_key, "")) or {})
+    policy_id = action_key if action_key in (registry.get("policies") or {}) else POLICY_ACTION_MAP.get(action_key, "")
+    policy = dict((registry.get("policies") or {}).get(policy_id) or {})
     if not policy:
+        policy_id = _clean(action_key) or "ad_hoc_policy"
         policy = {
+            "policy_id": policy_id,
             "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
             "action_key": action_key,
             "required_permissions": [action_key],
             "require_project_access": False,
@@ -597,12 +846,16 @@ async def evaluate_governance_action(
     resource_doc = dict(resource or {})
     resource_doc.setdefault("id", resource_id)
     resource_doc.setdefault("project_number", _clean((requested_context or {}).get("project_number") or resource_doc.get("project_number")))
+    policy_snapshot = _policy_snapshot(policy_id, policy)
     reason = "allowed"
     decision = "allow"
     denial_code = ""
     approval_required = bool(policy.get("require_approval_flow"))
+    approval_row: Optional[Dict[str, Any]] = None
     delegation_used = bool(projection.get("delegated_permissions"))
     override_used = False
+    separation_rule_blocked = ""
+    project_scope_status = "not_required"
     required_permissions = _ensure_list(policy.get("required_permissions"))
     missing = [perm for perm in required_permissions if perm not in effective_permissions]
     if projection.get("policy_attributes", {}).get("disabled"):
@@ -614,6 +867,7 @@ async def evaluate_governance_action(
     elif policy.get("require_project_access"):
         project_number = _clean(resource_doc.get("project_number") or (requested_context or {}).get("project_number"))
         allowed_projects = set(_ensure_list(projection.get("project_numbers")))
+        project_scope_status = "satisfied" if not project_number or project_number in allowed_projects or not allowed_projects else "denied"
         if project_number and allowed_projects and project_number not in allowed_projects and "system_administrator" not in (projection.get("active_roles") or []):
             decision, reason, denial_code = "deny", f"Project {project_number} is outside the actor governance boundary.", "project_scope_denied"
     if decision == "allow":
@@ -622,6 +876,7 @@ async def evaluate_governance_action(
         for rule_id in _ensure_list(policy.get("separation_rules")):
             rule = dict((registry.get("separation_rules") or {}).get(rule_id) or {})
             if _actor_matches_rule(actor_user_id, actor_email, resource_doc, _ensure_list(rule.get("forbidden_actor_match"))):
+                separation_rule_blocked = rule_id
                 decision, reason, denial_code = "deny", f"Separation-of-duties blocked action via {rule_id}.", "separation_of_duties"
                 break
     if decision == "allow" and approval_required:
@@ -633,6 +888,7 @@ async def evaluate_governance_action(
             resource_type=resource_type,
             resource_id=resource_id,
             resource=resource_doc,
+            policy_snapshot=policy_snapshot,
         )
         if approval_row.get("status") != "approved":
             decision, reason, denial_code = "deny", "Approval flow is required and is not yet approved.", "approval_required"
@@ -643,15 +899,21 @@ async def evaluate_governance_action(
         resource_type=resource_type,
         resource_id=resource_id,
         resource=resource_doc,
-        policy_id=_clean(policy.get("action_key") or action_key),
+        policy_id=policy_id,
+        policy_snapshot=policy_snapshot,
         decision=decision,
         reason=reason,
         required_permissions=required_permissions,
+        effective_permissions=effective_permissions,
         approval_required=approval_required,
+        approval_row=approval_row,
         delegation_used=delegation_used,
         override_used=override_used,
+        separation_rule_blocked=separation_rule_blocked,
+        project_scope_status=project_scope_status,
         denial_code=denial_code,
         evidence={"requested_context": requested_context or {}},
+        requested_context=requested_context or {},
     )
     return {
         "decision": decision,
@@ -660,7 +922,8 @@ async def evaluate_governance_action(
         "denial_code": denial_code,
         "projection": projection,
         "effective_permissions": effective_permissions,
-        "policy": policy,
+        "policy": policy_snapshot,
+        "explanation": decision_row.get("explanation") or {},
         "decision_record": decision_row,
     }
 
@@ -674,6 +937,7 @@ async def ensure_approval_request(
     resource_type: str,
     resource_id: str,
     resource: Dict[str, Any],
+    policy_snapshot: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     registry = await get_enterprise_governance_registry(db)
     flow = dict((registry.get("approval_flows") or {}).get(approval_flow_id) or {})
@@ -687,27 +951,34 @@ async def ensure_approval_request(
         return existing
     row = {
         "id": str(uuid.uuid4()),
+        "request_id": str(uuid.uuid4()),
         "approval_flow_id": approval_flow_id,
         "action_key": action_key,
         "resource_type": resource_type,
         "resource_id": resource_id,
-        "resource_snapshot": resource,
+        "resource_snapshot": _json_safe(resource),
         "requested_by": {
             "user_id": actor_projection.get("canonical_user_id"),
             "email": actor_projection.get("email"),
             "roles": list(actor_projection.get("active_roles") or []),
         },
+        "requested_by_snapshot": _identity_snapshot(actor_projection, _ensure_list(actor_projection.get("direct_permissions"))),
+        "policy_snapshot": _json_safe(policy_snapshot or {}),
         "required_roles": list(flow.get("required_roles") or []),
         "min_approvals": int(flow.get("min_approvals") or 1),
         "status": "pending",
         "approvals": [],
         "communications": [],
+        "correlation_id": attach_correlation({"id": resource_id, "doc_id": resource_id, "project_number": _clean(resource.get("project_number"))}),
+        "causation_id": _clean(resource_id),
+        "causation_ids": _dedupe_texts([resource_id, actor_projection.get("canonical_user_id")]),
+        "record_mode": "append_only",
         "created_at": _now_iso(),
         "updated_at": _now_iso(),
     }
     await db[COLLECTION_APPROVAL_REQUESTS].insert_one(dict(row))
     await _write_audit(db, kind="approval_request_created", payload=row)
-    await _emit_governance_communication(
+    communication_result = await _emit_governance_communication(
         db,
         event_id="operational_case.pending_verification",
         record={
@@ -726,6 +997,13 @@ async def ensure_approval_request(
         },
         actor_label=actor_projection.get("display_name") or actor_projection.get("email") or "governance",
     )
+    row["communications"] = _json_safe(communication_result.get("communications") or [])
+    row["communication_event"] = _json_safe(communication_result.get("event") or {})
+    row["communication_error"] = _clean(communication_result.get("error"))
+    await db[COLLECTION_APPROVAL_REQUESTS].update_one(
+        {"id": row["id"]},
+        {"$set": {"communications": row["communications"], "communication_event": row["communication_event"], "communication_error": row["communication_error"], "updated_at": _now_iso()}},
+    )
     return row
 
 
@@ -737,6 +1015,9 @@ async def approve_request(
     note: str = "",
 ) -> Dict[str, Any]:
     projection = await ensure_identity_projection(db, actor)
+    registry = await get_enterprise_governance_registry(db)
+    projection = await _load_dynamic_context(db, projection, actor)
+    effective_permissions = _effective_permissions(registry, projection)
     row = await db[COLLECTION_APPROVAL_REQUESTS].find_one({"id": request_id}, {"_id": 0})
     if not row:
         raise LookupError(f"Unknown approval request: {request_id}")
@@ -751,6 +1032,7 @@ async def approve_request(
                 "user_id": projection.get("canonical_user_id"),
                 "email": projection.get("email"),
                 "roles": list(actor_roles),
+                "identity_snapshot": _identity_snapshot(projection, effective_permissions),
                 "note": _clean(note),
                 "approved_at": _now_iso(),
             }
@@ -780,6 +1062,7 @@ async def create_delegation(
     await ensure_enterprise_governance_registry(db)
     row = {
         "id": str(uuid.uuid4()),
+        "delegation_id": str(uuid.uuid4()),
         "delegator_user_id": delegator_projection.get("canonical_user_id"),
         "delegator_email": delegator_projection.get("email"),
         "delegate_user_id": _clean(delegate_user_id),
@@ -789,6 +1072,7 @@ async def create_delegation(
         "reason": _clean(reason),
         "created_by": _clean(actor.get("email") or actor.get("name") or actor.get("role")),
         "status": "active",
+        "delegator_snapshot": _identity_snapshot(delegator_projection, _ensure_list(delegator_projection.get("direct_permissions"))),
         "created_at": _now_iso(),
         "starts_at": _now_iso(),
         "expires_at": _clean(expires_at),
@@ -815,8 +1099,20 @@ async def create_emergency_override(
     evidence: List[str],
     expires_at: str,
 ) -> Dict[str, Any]:
+    policy_snapshot = _policy_snapshot(_clean(denied_policy_id) or "emergency_override_policy", {
+        "policy_id": _clean(denied_policy_id) or "emergency_override_policy",
+        "action_key": action_key,
+        "version": "1.0",
+        "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+        "required_permissions": [action_key],
+        "require_project_access": True,
+        "require_approval_flow": "emergency_override_review",
+        "separation_rules": ["override_requestor_cannot_self_approve"],
+    })
+    identity_snapshot = _identity_snapshot(projection, _ensure_list(projection.get("direct_permissions")))
     row = {
         "id": str(uuid.uuid4()),
+        "override_id": str(uuid.uuid4()),
         "requesting_identity": {
             "user_id": projection.get("canonical_user_id"),
             "email": projection.get("email"),
@@ -842,16 +1138,22 @@ async def create_emergency_override(
         "starts_at": _now_iso(),
         "expires_at": _clean(expires_at),
         "resulting_action": "",
+        "policy_snapshot": policy_snapshot,
+        "identity_snapshot": identity_snapshot,
         "correlation_id": attach_correlation({"id": record_id, "doc_id": record_id, "project_number": _clean(project_number)}),
+        "causation_id": _clean(record_id),
         "causation_ids": _dedupe_texts([record_id, projection.get("canonical_user_id")]),
         "communications": [],
+        "communication_event": {},
+        "communication_error": "",
         "disposition": {},
+        "record_mode": "append_only",
         "created_at": _now_iso(),
         "updated_at": _now_iso(),
     }
     await db[COLLECTION_OVERRIDES].insert_one(dict(row))
     await _write_audit(db, kind="override_created", payload=row)
-    await _emit_governance_communication(
+    communication_result = await _emit_governance_communication(
         db,
         event_id="operational_case.escalated",
         record={
@@ -866,6 +1168,13 @@ async def create_emergency_override(
         },
         context={"override_id": row["id"], "requested_capability": action_key, "denied_policy_id": denied_policy_id},
         actor_label=projection.get("display_name") or projection.get("email") or "governance-override",
+    )
+    row["communications"] = _json_safe(communication_result.get("communications") or [])
+    row["communication_event"] = _json_safe(communication_result.get("event") or {})
+    row["communication_error"] = _clean(communication_result.get("error"))
+    await db[COLLECTION_OVERRIDES].update_one(
+        {"id": row["id"]},
+        {"$set": {"communications": row["communications"], "communication_event": row["communication_event"], "communication_error": row["communication_error"], "updated_at": _now_iso()}},
     )
     return row
 
@@ -882,8 +1191,8 @@ async def _emit_governance_communication(
         from services.operations_control.control_plane import emit_operational_event  # noqa: PLC0415
 
         return await emit_operational_event(db, event_id=event_id, record=record, actor_label=actor_label, context=context)
-    except Exception:
-        return {"event": None, "communications": []}
+    except Exception as exc:  # noqa: BLE001
+        return {"event": None, "communications": [], "error": repr(exc)}
 
 
 async def seed_governance_admin_surface(db) -> Dict[str, Any]:

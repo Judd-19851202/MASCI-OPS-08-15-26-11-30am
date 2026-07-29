@@ -98,12 +98,20 @@ async def require_governed_action(
         requested_context=requested_context,
     )
     if not result.get("allowed"):
+        decision_record = result.get("decision_record") or {}
+        explanation = result.get("explanation") or decision_record.get("explanation") or {}
+        policy = result.get("policy") or decision_record.get("policy_snapshot") or {}
         detail = {
             "code": result.get("denial_code") or "governance_denied",
             "reason": result.get("reason") or "Governance policy denied the action.",
             "action_key": action_key,
             "resource_type": resource_type,
-            "decision_id": ((result.get("decision_record") or {}).get("id") or ""),
+            "decision_id": (decision_record.get("decision_id") or decision_record.get("id") or ""),
+            "policy_id": policy.get("policy_id") or decision_record.get("policy_id") or "",
+            "policy_version": policy.get("version") or decision_record.get("policy_version") or "",
+            "approval_flow_id": policy.get("approval_flow_id") or "",
+            "required_permissions": policy.get("required_permissions") or result.get("required_permissions") or [],
+            "explanation": explanation,
         }
         raise HTTPException(status_code=403, detail=detail)
     return result

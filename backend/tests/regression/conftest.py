@@ -120,7 +120,10 @@ def tokens(base_url: str, super_admin_creds: dict, env_identity: dict) -> dict:
 
 @pytest.fixture(scope="session")
 def admin_headers(tokens: dict) -> dict:
-    return {"X-Admin-Token": tokens["portal_tokens"]["admin"]}
+    headers = {"X-Admin-Token": tokens["portal_tokens"]["admin"]}
+    if tokens.get("session_token"):
+        headers["X-Directory-Token"] = tokens["session_token"]
+    return headers
 
 
 @pytest.fixture(scope="session")

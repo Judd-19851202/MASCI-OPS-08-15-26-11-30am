@@ -6,7 +6,7 @@ import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { formatPlatformTime } from "@/lib/platformTime";
 import { operationalError } from "@/lib/errors";
-import { approveGovernanceRequest, fetchGovernanceApprovalFlows, fetchGovernanceDecisions, fetchGovernanceHealth, fetchGovernanceOverview, fetchGovernanceOverrides } from "@/lib/enterpriseGovernanceApi";
+import { approveGovernanceRequest, fetchGovernanceApprovalFlows, fetchGovernanceDecisions, fetchGovernanceDelegations, fetchGovernanceHealth, fetchGovernanceOverview, fetchGovernanceOverrides } from "@/lib/enterpriseGovernanceApi";
 
 function StatCard({ label, value, icon: Icon, testId }) {
   return (
@@ -23,6 +23,7 @@ export default function AdminGovernanceOperatingSystem() {
   const [health, setHealth] = useState(null);
   const [approvalFlows, setApprovalFlows] = useState(null);
   const [overrides, setOverrides] = useState(null);
+  const [delegations, setDelegations] = useState(null);
   const [decisions, setDecisions] = useState(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
@@ -32,17 +33,19 @@ export default function AdminGovernanceOperatingSystem() {
     setLoading(true);
     setError("");
     try {
-      const [ov, hl, flows, ovs, dec] = await Promise.all([
+      const [ov, hl, flows, ovs, dels, dec] = await Promise.all([
         fetchGovernanceOverview(),
         fetchGovernanceHealth(),
         fetchGovernanceApprovalFlows(),
         fetchGovernanceOverrides(),
+        fetchGovernanceDelegations(),
         fetchGovernanceDecisions(),
       ]);
       setOverview(ov);
       setHealth(hl);
       setApprovalFlows(flows);
       setOverrides(ovs);
+      setDelegations(dels);
       setDecisions(dec);
     } catch (e) {
       setError(operationalError(e, "Could not load Enterprise Governance."));
@@ -72,6 +75,12 @@ export default function AdminGovernanceOperatingSystem() {
   const counts = overview?.counts || {};
   const recentDecisions = decisions?.items || health?.recent_decisions || [];
   const recentOverrides = overrides?.items || [];
+  const recentDelegations = delegations?.items || [];
+
+  const delegationState = (row) => {
+    if (!row?.expires_at) return "Active";
+    return new Date(row.expires_at).getTime() <= Date.now() ? "Expired" : "Active";
+  };
 
   return (
     <LegacyAdminModernShell
@@ -90,6 +99,7 @@ export default function AdminGovernanceOperatingSystem() {
       </div>
 
       {error ? <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" data-testid="gov-error-banner">{error}</div> : null}
+      {loading ? <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600" data-testid="gov-loading-banner">Refreshing governed state…</div> : null}
 
       <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-6" data-testid="gov-overview-stats">
         <StatCard label="Identity Projections" value={counts.identity_projections || 0} icon={Users} testId="gov-stat-identities" />
@@ -116,7 +126,14 @@ export default function AdminGovernanceOperatingSystem() {
                   <div className="text-sm font-semibold text-slate-950">{row.action_key}</div>
                   <div className={`rounded-full px-2.5 py-1 text-xs font-semibold ${row.decision === "allow" ? "bg-emerald-100 text-emerald-900" : "bg-rose-100 text-rose-900"}`}>{row.decision}</div>
                 </div>
-                <div className="mt-1 text-sm text-slate-600">{row.reason}</div>
+                <div className="mt-1 text-sm text-slate-600" data-testid={`gov-decision-reason-${row.id}`}>{row.explanation?.decision_reason || row.reason}</div>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-600" data-testid={`gov-decision-meta-${row.id}`}>
+                  <span className="rounded-full bg-white px-2 py-1">Policy {row.policy_id || row.policy_snapshot?.policy_id || "—"} v{row.policy_version || row.policy_snapshot?.version || "—"}</span>
+                  <span className="rounded-full bg-white px-2 py-1">Decision {row.decision_id || row.id}</span>
+                  <span className="rounded-full bg-white px-2 py-1">Approval {row.explanation?.approval?.status || (row.approval_required ? "pending" : "not_required")}</span>
+                  <span className="rounded-full bg-white px-2 py-1">Delegation {row.explanation?.delegation?.status || "none"}</span>
+                  <span className="rounded-full bg-white px-2 py-1">Project {row.explanation?.project_assignment?.status || "not_required"}</span>
+                </div>
                 <div className="mt-2 text-xs text-slate-500">{row.actor_email} · {row.decided_at ? formatPlatformTime(row.decided_at) : "—"}</div>
               </div>
             ))}
@@ -132,19 +149,47 @@ export default function AdminGovernanceOperatingSystem() {
                 <div className="text-sm font-semibold text-slate-950">{pendingRequest.approval_flow_id}</div>
                 <div className="mt-1 text-sm text-slate-600">{pendingRequest.action_key} · {pendingRequest.resource_type}</div>
                 <div className="mt-1 text-xs text-slate-500">Requested by {pendingRequest.requested_by?.email || "—"}</div>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-600" data-testid="gov-pending-request-meta">
+                  <span className="rounded-full bg-white px-2 py-1">Required roles: {(pendingRequest.required_roles || []).join(", ") || "—"}</span>
+                  <span className="rounded-full bg-white px-2 py-1">Communications: {(pendingRequest.communications || []).length}</span>
+                </div>
                 <button type="button" onClick={approvePending} disabled={acting} className="mt-3 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 disabled:opacity-60" data-testid="gov-approve-request-button">Approve request</button>
               </div>
             ) : <div className="mt-4 text-sm text-slate-500" data-testid="gov-no-pending-approvals">No pending approval requests.</div>}
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="gov-delegation-panel">
+            <div className="flex items-center gap-2 text-slate-500"><ArrowRight className="h-4 w-4" /><span className="text-[11px] uppercase tracking-[0.24em]">Delegated authority</span></div>
+            <div className="mt-4 space-y-3" data-testid="gov-delegation-list">
+              {recentDelegations.slice(0, 4).map((row) => {
+                const state = delegationState(row);
+                return (
+                  <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`gov-delegation-${row.id}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-sm font-semibold text-slate-950">{row.delegate_email || row.delegate_user_id}</div>
+                      <div className={`rounded-full px-2.5 py-1 text-xs font-semibold ${state === "Expired" ? "bg-rose-100 text-rose-900" : "bg-emerald-100 text-emerald-900"}`}>{state}</div>
+                    </div>
+                    <div className="mt-1 text-sm text-slate-600">{(row.permissions || []).join(", ") || "No delegated permissions"}</div>
+                    <div className="mt-1 text-xs text-slate-500">Delegated by {row.delegator_email || row.delegator_user_id} · Expires {row.expires_at ? formatPlatformTime(row.expires_at) : "—"}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="gov-override-panel">
             <div className="flex items-center gap-2 text-slate-500"><Ban className="h-4 w-4" /><span className="text-[11px] uppercase tracking-[0.24em]">Emergency overrides</span></div>
             <div className="mt-4 space-y-3">
               {recentOverrides.slice(0, 6).map((row) => (
-                <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`gov-override-${row.id}`}>
+                <div key={row.id} className="rounded-2xl border border-amber-200 bg-amber-50 p-3" data-testid={`gov-override-${row.id}`}>
                   <div className="text-sm font-semibold text-slate-950">{row.requested_capability}</div>
                   <div className="mt-1 text-sm text-slate-600">{row.module_key} · {row.status}</div>
                   <div className="mt-1 text-xs text-slate-500">{row.justification}</div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-600" data-testid={`gov-override-meta-${row.id}`}>
+                    <span className="rounded-full bg-white px-2 py-1">Policy {row.policy_snapshot?.policy_id || row.denied_policy_id || "—"}</span>
+                    <span className="rounded-full bg-white px-2 py-1">Comms {(row.communications || []).length}</span>
+                    <span className="rounded-full bg-white px-2 py-1">Expires {row.expires_at ? formatPlatformTime(row.expires_at) : "—"}</span>
+                  </div>
                 </div>
               ))}
             </div>

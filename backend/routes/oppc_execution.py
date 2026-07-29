@@ -123,18 +123,6 @@ def _actor_label(actor: Any) -> str:
     return "system"
 
 
-def _is_admin_actor(actor: Any) -> bool:
-    if actor is True:
-        return True
-    if isinstance(actor, dict):
-        if bool(actor.get("is_super_admin")):
-            return True
-        role = _clean(actor.get("role")).lower()
-        actor_kind = _clean(actor.get("_actor") or actor.get("_actor_kind")).lower()
-        return role in {"admin", "super_admin"} or actor_kind == "admin"
-    return False
-
-
 def _week_ending(raw: str) -> str:
     text = _clean(raw)
     return text[:10] if text else _default_week_ending()
@@ -230,6 +218,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
 
     @api_router.post("/oppc/projects/{project_number}/monday-briefing/generate")
     async def generate_project_monday_briefing(
+        request: Request,
         project_number: str,
         body: BriefingActionBody,
         actor=Depends(require_any_portal_token),
@@ -238,8 +227,16 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
-        if existing.get("frozen") and not _is_admin_actor(actor):
-            raise HTTPException(status_code=409, detail="Frozen briefings cannot be regenerated without administrative intervention")
+        if existing.get("frozen"):
+            await require_governed_action(
+                db,
+                actor=actor,
+                action_key="governance.admin",
+                resource_type="project_monday_briefing",
+                resource={"id": f"brief:{project_number}:{week}", "project_number": project_number, "submitted_by": {"user_id": actor.get("id")}, "status": "frozen"},
+                requested_context={"project_number": project_number, "week_ending": week, "regeneration_reason": "frozen_briefing_regenerate"},
+                request=request,
+            )
         doc = await build_project_monday_briefing(db, project_number=project_number, week_ending=week, actor_label=_actor_label(actor))
         doc["approval_history"] = list(existing.get("approval_history") or [])
         if existing.get("frozen"):
@@ -754,6 +751,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
 
     @api_router.post("/oppc/enterprise/monday-briefing/generate")
     async def generate_enterprise_monday_briefing(
+        request: Request,
         body: BriefingActionBody,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
@@ -763,8 +761,16 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
-        if existing.get("frozen") and not _is_admin_actor(actor):
-            raise HTTPException(status_code=409, detail="Frozen briefings cannot be regenerated without administrative intervention")
+        if existing.get("frozen"):
+            await require_governed_action(
+                db,
+                actor=actor,
+                action_key="governance.admin",
+                resource_type="enterprise_monday_briefing",
+                resource={"id": f"brief:enterprise:{week}", "project_number": "enterprise", "submitted_by": {"user_id": actor.get("id")}, "status": "frozen"},
+                requested_context={"project_number": "enterprise", "week_ending": week, "regeneration_reason": "frozen_briefing_regenerate"},
+                request=request,
+            )
         doc = await build_enterprise_monday_briefing(db, week_ending=week, actor_label=_actor_label(actor))
         doc["approval_history"] = list(existing.get("approval_history") or [])
         if existing.get("frozen"):
