@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import {
   listNotifications, markRead, markAllRead, getUnreadCount,
 } from "@/lib/tasksApi";
-import { isSignedInAnywhere } from "@/lib/permissions";
+import { activePortals, isSignedInAnywhere } from "@/lib/permissions";
 import { onQueueChange } from "@/lib/resiliency";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -221,9 +221,10 @@ export default function NotificationBell({ accent = "slate" }) {
   const navigate = useNavigate();
 
   const muted = muteUntil > Date.now();
+  const hasLivePortalSession = activePortals().length > 0;
 
   const refreshCount = useCallback(async () => {
-    if (!isSignedInAnywhere()) return;
+    if (!hasLivePortalSession) return;
     const n = await getUnreadCount();
     setUnread(n);
     // Audible cue only when count strictly increases AND not muted
@@ -234,7 +235,7 @@ export default function NotificationBell({ accent = "slate" }) {
     }
     lastCountRef.current = n;
     try { sessionStorage.setItem(LAST_COUNT_KEY, String(n)); } catch { /* noop */ }
-  }, []);
+  }, [hasLivePortalSession]);
 
   // Light polling — 60s. Pauses when tab is hidden.
   useEffect(() => {
@@ -294,6 +295,10 @@ export default function NotificationBell({ accent = "slate" }) {
   }, [readRecentMap]);
 
   const fetchItems = useCallback(async () => {
+    if (!hasLivePortalSession) {
+      setItems([]);
+      return;
+    }
     setLoading(true);
     try {
       const r = await listNotifications({ limit: 30 });
@@ -307,7 +312,7 @@ export default function NotificationBell({ accent = "slate" }) {
     } finally {
       setLoading(false);
     }
-  }, [readRecentMap]);
+  }, [hasLivePortalSession, readRecentMap]);
 
   const handleOpenChange = (v) => {
     setOpen(v);
@@ -346,7 +351,7 @@ export default function NotificationBell({ accent = "slate" }) {
   };
 
   // Don't render anything when fully signed-out.
-  if (!isSignedInAnywhere()) return null;
+  if (!isSignedInAnywhere() || !hasLivePortalSession) return null;
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
