@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from lib.enterprise_governance import require_governed_action
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
-from pm_auth import compute_pm_scope
 from services.cost_codes import get_provider
 from services.cost_codes.foundation import (
     ALLOWED_UNITS,
@@ -301,17 +301,37 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     provider = get_provider(db)
     read_dep = require_admin_pm_or_hr_read or require_admin
 
+    async def _require_cost_codes_read(actor: Any, project_number: str = "") -> None:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="cost_codes.read",
+            resource_type="cost_code_workspace",
+            resource={"id": project_number or "cost-code-workspace", "project_number": project_number or ""},
+            requested_context={"project_number": project_number or "", "module": "cost_codes"},
+        )
+
+    async def _require_cost_codes_manage(actor: Any, project_number: str = "") -> None:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="cost_codes.manage",
+            resource_type="cost_code_workspace",
+            resource={"id": project_number or "cost-code-workspace", "project_number": project_number or ""},
+            requested_context={"project_number": project_number or "", "module": "cost_codes"},
+        )
+
     @api_router.get("/cost-codes/registry")
     async def list_registry(actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
+        await _require_cost_codes_read(actor)
         rows = await _load_registry(db)
         return {"items": rows, "units": sorted(ALLOWED_UNITS)}
 
     @api_router.post("/cost-codes/registry")
     async def upsert_registry(body: CostRegistryItemIn, actor=Depends(require_admin)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if not await _is_admin_actor(actor):
-            raise HTTPException(status_code=403, detail="Admin login required")
+        await _require_cost_codes_manage(actor)
         item = normalize_registry_item(body.model_dump())
         await db[REGISTRY_COLLECTION].update_one({"code": item["code"]}, {"$set": item}, upsert=True)
         return {"ok": True, "item": item}
@@ -319,8 +339,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.put("/cost-codes/registry/bulk-replace")
     async def replace_registry(body: CostRegistryBulkBody, actor=Depends(require_admin)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if not await _is_admin_actor(actor):
-            raise HTTPException(status_code=403, detail="Admin login required")
+        await _require_cost_codes_manage(actor)
         require_destructive_confirmation(
             body.model_dump(),
             expected_confirm="REPLACE_COST_CODE_REGISTRY",
@@ -342,8 +361,9 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         return {"project_number": project_number, "codes": codes}
 
     @api_router.get("/cost-codes/projects/{project_number}/assignments")
-    async def get_project_assignments(project_number: str) -> Dict[str, Any]:
+    async def get_project_assignments(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
+        await _require_cost_codes_read(actor, project_number)
         assignments = await load_project_assignments(db, project_number)
         progress = await recompute_project_progress_snapshot(db, project_number)
         planning_readiness = build_planning_readiness(assignments)
@@ -359,11 +379,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.put("/cost-codes/projects/{project_number}/assignments")
     async def put_project_assignments(project_number: str, body: ProjectAssignmentsBody, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if isinstance(actor, dict) and actor.get("role") == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         registry = await _registry_index(db)
         existing_assignments = {
             str(row.get("code") or "").strip(): row
@@ -450,8 +466,9 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         }
 
     @api_router.get("/cost-codes/projects/{project_number}/progress")
-    async def get_project_progress(project_number: str) -> Dict[str, Any]:
+    async def get_project_progress(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
+        await _require_cost_codes_read(actor, project_number)
         progress = await recompute_project_progress_snapshot(db, project_number)
         assignments = await load_project_assignments(db, project_number)
         schedule = build_schedule_snapshot(assignments, progress) if assignments else {"window": {}}
@@ -469,11 +486,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.get("/cost-codes/projects/{project_number}/schedule")
     async def get_project_schedule(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_read(actor, project_number)
         payload = await _resolve_project_schedule(db, project_number)
         payload["can_edit"] = True
         payload["master_control"] = await _is_admin_actor(actor)
@@ -486,11 +499,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         actor=Depends(read_dep),
     ) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_read(actor, project_number)
         assignments = await load_project_assignments(db, project_number)
         daily_rows = await load_project_cost_code_actuals(db, project_number)
         progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
@@ -520,11 +529,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         actor=Depends(read_dep),
     ) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         assignments = await load_project_assignments(db, project_number)
         daily_rows = await load_project_cost_code_actuals(db, project_number)
         progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
@@ -597,11 +602,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         actor=Depends(read_dep),
     ) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         assignments = await load_project_assignments(db, project_number)
         daily_rows = await load_project_cost_code_actuals(db, project_number)
         progress = build_progress_snapshot(assignments, daily_rows) if assignments else None
@@ -678,11 +679,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.put("/cost-codes/projects/{project_number}/schedule")
     async def put_project_schedule(project_number: str, body: ProjectScheduleBody, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         existing = await load_project_assignments(db, project_number)
         if not existing:
             raise HTTPException(status_code=404, detail="Project has no assigned cost codes to schedule")
@@ -763,11 +760,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.post("/cost-codes/projects/{project_number}/planning-lifecycle/publish")
     async def publish_project_schedule(project_number: str, body: PlanningPublishBody, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         payload = await _resolve_project_schedule(db, project_number)
         planning_readiness = payload.get("planning_readiness") or {}
         if int(planning_readiness.get("assignment_count") or 0) <= 0:
@@ -820,11 +813,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.get("/cost-codes/projects/{project_number}/weekly-rollover/preview")
     async def preview_weekly_rollover(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_read(actor, project_number)
         raw_assignments = await load_project_assignments(db, project_number)
         payload = await _resolve_project_schedule(db, project_number)
         preview = build_weekly_rollover_preview(
@@ -844,11 +833,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.post("/cost-codes/projects/{project_number}/weekly-rollover/apply")
     async def apply_weekly_rollover(project_number: str, body: WeeklyRolloverApplyBody, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         if str(body.confirm or "").strip() != "APPLY_WEEKLY_ROLLOVER":
             raise HTTPException(status_code=422, detail="confirm must equal APPLY_WEEKLY_ROLLOVER")
         raw_assignments = await load_project_assignments(db, project_number)
@@ -939,11 +924,7 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.get("/cost-codes/projects/{project_number}/schedule/dot-report.pdf")
     async def export_project_schedule_pdf(project_number: str, actor=Depends(read_dep)):
         await _ensure_spine_indexes(db)
-        if _actor_role(actor) == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_read(actor, project_number)
         payload = await _resolve_project_schedule(db, project_number)
         pdf = render_dot_schedule_pdf(project_number, payload["schedule"])
         return Response(
@@ -955,10 +936,6 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.post("/cost-codes/projects/{project_number}/progress/recompute")
     async def recompute_project_progress(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        if isinstance(actor, dict) and actor.get("role") == "hr":
-            raise HTTPException(status_code=403, detail="PM or admin access required")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(project_number):
-            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        await _require_cost_codes_manage(actor, project_number)
         progress = await recompute_project_progress_snapshot(db, project_number)
         return {"ok": True, "project_number": project_number, "progress": progress}

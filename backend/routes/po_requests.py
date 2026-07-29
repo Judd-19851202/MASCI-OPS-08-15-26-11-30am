@@ -31,9 +31,11 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import (
-    APIRouter, Depends, File, Form, HTTPException, Query, UploadFile,
+    APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile,
 )
 from pydantic import BaseModel, Field, field_validator
+
+from lib.enterprise_governance import build_governance_actor_context, require_governed_action
 
 logger = logging.getLogger(__name__)
 
@@ -178,6 +180,10 @@ def _actor_role(actor: Dict[str, Any]) -> str:
 
 def _actor_name(actor: Dict[str, Any]) -> str:
     return actor.get("name") or actor.get("email") or _actor_role(actor)
+
+
+def _governed_actor_id(actor: Dict[str, Any]) -> str:
+    return str(actor.get("canonical_user_id") or actor.get("id") or actor.get("user_id") or "")
 
 
 async def _audit_push(db, po_id: str, action: str,
@@ -333,33 +339,69 @@ def build_po_requests_router(
     """
     router = APIRouter(tags=["po-requests"])
 
-    def _can_approve(actor: Dict[str, Any]) -> bool:
-        return _actor_role(actor) in ("pm", "hr", "admin")
+    async def _governed_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+        return await build_governance_actor_context(db, actor)
 
-    def _can_submit(actor: Dict[str, Any]) -> bool:
-        # Field Leadership is the primary submitter, but anyone with a
-        # portal token can submit (a CA-spawned PO from PM, for example).
-        return _actor_role(actor) in ("leadership", "pm", "hr", "admin",
-                                       "shop", "safety")
-
-    def _scope_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
-        """Default-narrow scope per role; admin sees everything."""
+    # WP15_SPECIAL_CASE_INFRASTRUCTURE:
+    # PO list/read visibility is a read-model shaping concern after the
+    # Governance Engine has already authorized access to the PO domain.
+    # This helper preserves existing user-facing visibility slices without
+    # duplicating business authorization decisions.
+    def _po_read_model_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
+        """Default-narrow scope per role; admin/HR see company-wide slices."""
         role = _actor_role(actor)
         if role == "admin":
             return {}
+        if role == "hr":
+            return {}
+        if role == "pm":
+            project_numbers = list(actor.get("project_numbers") or [])
+            return {"project_number": {"$in": project_numbers}} if project_numbers else {"__pm_empty_scope__": True}
         if role == "leadership":
             return {"$or": [
                 {"requested_by_role": "leadership"},
-                {"requested_by_user_id": actor.get("id")},
+                {"requested_by_user_id": _governed_actor_id(actor)},
             ]}
-        # PM / HR see everything they can approve. Safety/Shop see narrow.
-        if role in ("pm", "hr"):
-            return {}
-        return {"requested_by_role": role}
+        governed_user_id = _governed_actor_id(actor)
+        own_clauses = [{"requested_by_role": role}]
+        if governed_user_id:
+            own_clauses.append({"requested_by_user_id": governed_user_id})
+        return {"$or": own_clauses}
+
+    async def _require_po_action(request: Request, actor: Dict[str, Any], action_key: str, resource: Dict[str, Any]) -> None:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key=action_key,
+            resource_type="po_request",
+            resource=resource,
+            requested_context={"project_number": resource.get("project_number") or "", "status": resource.get("status") or ""},
+            request=request,
+        )
+
+    def _po_visible_to_actor(actor: Dict[str, Any], po: Dict[str, Any]) -> bool:
+        scope = _po_read_model_filter(actor)
+        if not scope:
+            return True
+        if scope.get("__pm_empty_scope__"):
+            return False
+        if "project_number" in scope:
+            allowed = set((scope.get("project_number") or {}).get("$in") or [])
+            return str(po.get("project_number") or "") in allowed
+        clauses = list(scope.get("$or") or [])
+        requested_by_role = str(po.get("requested_by_role") or "")
+        requested_by_user_id = str(po.get("requested_by_user_id") or "")
+        for clause in clauses:
+            if clause.get("requested_by_role") == requested_by_role:
+                return True
+            if clause.get("requested_by_user_id") == requested_by_user_id:
+                return True
+        return False
 
     # ── PO CRUD ───────────────────────────────────────────────────
     @router.get("/api/po-requests")
     async def list_pos(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         status: Optional[str] = Query(default=None),
         project_number: Optional[str] = Query(default=None),
@@ -374,8 +416,10 @@ def build_po_requests_router(
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=200, ge=1, le=500),
     ) -> Dict[str, Any]:
+        await _require_po_action(request, actor, "po_requests.read", {"id": "po-feed", "project_number": project_number or ""})
+        governed_actor = await _governed_actor(actor)
         clauses: List[Dict[str, Any]] = []
-        scope = _scope_filter(actor)
+        scope = _po_read_model_filter(governed_actor)
         if scope:
             clauses.append(scope)
         if status:
@@ -392,8 +436,8 @@ def build_po_requests_router(
                 "$regex": re.escape(requested_by_name), "$options": "i"}})
         if requested_by_employee_id:
             clauses.append({"requested_by_employee_id": requested_by_employee_id})
-        if mine_only and actor.get("id"):
-            clauses.append({"requested_by_user_id": actor.get("id")})
+        if mine_only and _governed_actor_id(governed_actor):
+            clauses.append({"requested_by_user_id": _governed_actor_id(governed_actor)})
         if missing_receipt_only:
             clauses.append({
                 "status": {"$in": ["Approved", "Pending Receipt",
@@ -413,8 +457,10 @@ def build_po_requests_router(
         return {"items": items, "count": len(items)}
 
     @router.get("/api/po-requests/summary")
-    async def summary(actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
-        scope = _scope_filter(actor)
+    async def summary(request: Request, actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
+        await _require_po_action(request, actor, "po_requests.read", {"id": "po-summary", "project_number": ""})
+        governed_actor = await _governed_actor(actor)
+        scope = _po_read_model_filter(governed_actor)
         pipeline = [{"$match": scope} if scope else {"$match": {}},
                     {"$group": {"_id": "$status", "count": {"$sum": 1}}}]
         by_status: Dict[str, int] = {}
@@ -435,6 +481,7 @@ def build_po_requests_router(
     # po_id and return 404 from get_po.
     @router.get("/api/po-requests/export.csv")
     async def export_csv(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         status: Optional[str] = Query(default=None),
         project_number: Optional[str] = Query(default=None),
@@ -449,8 +496,10 @@ def build_po_requests_router(
         import io as _io
         from fastapi.responses import StreamingResponse  # noqa: PLC0415
 
+        await _require_po_action(request, actor, "po_requests.read", {"id": "po-export", "project_number": project_number or ""})
+        governed_actor = await _governed_actor(actor)
         clauses: List[Dict[str, Any]] = []
-        scope = _scope_filter(actor)
+        scope = _po_read_model_filter(governed_actor)
         if scope:
             clauses.append(scope)
         if status:
@@ -518,19 +567,23 @@ def build_po_requests_router(
         )
 
     @router.get("/api/po-requests/{po_id}")
-    async def get_po(po_id: str, actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
+    async def get_po(po_id: str, request: Request, actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
         doc = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
         if not doc:
+            raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.read", doc)
+        governed_actor = await _governed_actor(actor)
+        if not _po_visible_to_actor(governed_actor, doc):
             raise HTTPException(404, "PO not found")
         return _strip(doc)
 
     @router.post("/api/po-requests")
     async def create_po(
+        request: Request,
         body: PoRequestCreate,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        if not _can_submit(actor):
-            raise HTTPException(403, "Not authorized to submit PO requests")
+        await _require_po_action(request, actor, "po_requests.submit", {"id": "po-create", "project_number": body.project_number, "status": "Submitted"})
         now = datetime.now(timezone.utc)
         po = {
             "id": str(uuid.uuid4()),
@@ -548,7 +601,7 @@ def build_po_requests_router(
             "supervisor_signature": body.supervisor_signature,
             "status": "Submitted",
             "requested_by_role": _actor_role(actor),
-            "requested_by_user_id": actor.get("id"),
+            "requested_by_user_id": (await _governed_actor(actor)).get("canonical_user_id") or actor.get("id"),
             "requested_by_employee_id": actor.get("employee_id"),
             "requested_by_name": _actor_name(actor),
             "approved_by": None, "approved_at": None,
@@ -581,15 +634,15 @@ def build_po_requests_router(
 
     @router.post("/api/po-requests/{po_id}/approve")
     async def approve_po(
+        request: Request,
         po_id: str,
         body: PoApprovalAction,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        if not _can_approve(actor):
-            raise HTTPException(403, "Not authorized to approve POs")
         existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
         if not existing:
             raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.approve", existing)
         if existing["status"] in ("Closed", "Cancelled", "Rejected"):
             raise HTTPException(409, f"PO is {existing['status']} — cannot change")
 
@@ -655,10 +708,11 @@ def build_po_requests_router(
                 )
         except Exception:
             pass
-        return await get_po(po_id, actor=actor)
+        return await get_po(po_id, request=request, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/receipt")
     async def upload_receipt(
+        request: Request,
         po_id: str,
         file: UploadFile = File(...),
         receipt_amount: Optional[float] = Form(default=None),
@@ -667,6 +721,10 @@ def build_po_requests_router(
     ) -> Dict[str, Any]:
         existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
         if not existing:
+            raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.receipt.upload", existing)
+        governed_actor = await _governed_actor(actor)
+        if not _po_visible_to_actor(governed_actor, existing) and _actor_role(governed_actor) not in ("pm", "hr", "admin"):
             raise HTTPException(404, "PO not found")
         if existing["status"] not in ("Approved", "Pending Receipt",
                                        "Overdue Receipt"):
@@ -746,10 +804,11 @@ def build_po_requests_router(
             )
         except Exception:
             pass
-        return await get_po(po_id, actor=actor)
+        return await get_po(po_id, request=request, actor=actor)
 
     @router.get("/api/po-requests/{po_id}/receipt")
     async def get_receipt(
+        request: Request,
         po_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ):
@@ -776,6 +835,10 @@ def build_po_requests_router(
 
         po = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
         if not po:
+            raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.read", po)
+        governed_actor = await _governed_actor(actor)
+        if not _po_visible_to_actor(governed_actor, po):
             raise HTTPException(404, "PO not found")
         receipt_url = po.get("receipt_url") or ""
         if not receipt_url:
@@ -825,6 +888,7 @@ def build_po_requests_router(
 
     @router.post("/api/po-requests/{po_id}/respond-clarification")
     async def respond_clarification(
+        request: Request,
         po_id: str,
         body: PoClarificationResponse,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
@@ -836,13 +900,14 @@ def build_po_requests_router(
         existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
         if not existing:
             raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.submit", existing)
         if existing["status"] != "Clarification Needed":
             raise HTTPException(409,
                 "PO is not awaiting clarification")
         # Allow the original requester OR a teammate in the same role
         # (so multiple supervisors can collaborate on a job's POs).
         actor_role = _actor_role(actor)
-        actor_id = actor.get("id")
+        actor_id = (await _governed_actor(actor)).get("canonical_user_id") or actor.get("id")
         if not (actor_role == "admin"
                 or actor_role == existing.get("requested_by_role")
                 or actor_id == existing.get("requested_by_user_id")):
@@ -860,16 +925,18 @@ def build_po_requests_router(
         await _fan_out_task(db, existing, "approval_needed",
                             priority="High", assignee_role="pm",
                             cc_roles=["hr"])
-        return await get_po(po_id, actor=actor)
+        return await get_po(po_id, request=request, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/close")
     async def close_po(
+        request: Request,
         po_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        if not _can_approve(actor):
-            raise HTTPException(403, "Not authorized to close POs")
         existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
+        if not existing:
+            raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.close", existing)
         now = datetime.now(timezone.utc)
         await db.po_requests.update_one({"id": po_id}, {"$set": {
             "status": "Closed",
@@ -888,10 +955,11 @@ def build_po_requests_router(
             )
         except Exception:
             pass
-        return await get_po(po_id, actor=actor)
+        return await get_po(po_id, request=request, actor=actor)
 
     @router.post("/api/po-requests/{po_id}/cancel")
     async def cancel_po(
+        request: Request,
         po_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
@@ -899,8 +967,10 @@ def build_po_requests_router(
         # approver action (it terminates the workflow); Field Leadership
         # must NOT be able to cancel. The original implementation was
         # missing this check — a real backend authority leak.
-        if not _can_approve(actor):
-            raise HTTPException(403, "Not authorized to cancel POs")
+        existing = await db.po_requests.find_one({"id": po_id}, {"_id": 0})
+        if not existing:
+            raise HTTPException(404, "PO not found")
+        await _require_po_action(request, actor, "po_requests.cancel", existing)
         await db.po_requests.update_one({"id": po_id}, {"$set": {
             "status": "Cancelled",
             "updated_at": datetime.now(timezone.utc),
@@ -916,7 +986,7 @@ def build_po_requests_router(
             )
         except Exception:
             pass
-        return await get_po(po_id, actor=actor)
+        return await get_po(po_id, request=request, actor=actor)
 
     # Admin-only scanner
     @router.post("/api/admin/po-requests/scan-missing-receipts",

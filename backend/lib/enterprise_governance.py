@@ -4,7 +4,10 @@ from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, Request
 
-from services.enterprise_governance import evaluate_governance_action, ensure_identity_projection
+from services.enterprise_governance import (
+    evaluate_governance_action,
+    resolve_governance_actor_context,
+)
 
 
 async def resolve_actor_from_request(db, request: Optional[Request], actor: Any) -> Dict[str, Any]:
@@ -118,4 +121,4 @@ async def require_governed_action(
 
 
 async def build_governance_actor_context(db, actor: Dict[str, Any]) -> Dict[str, Any]:
-    return await ensure_identity_projection(db, actor)
+    return await resolve_governance_actor_context(db, actor)

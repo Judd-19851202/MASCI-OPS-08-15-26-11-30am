@@ -30,8 +30,9 @@ import logging
 import re
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query, Request
 
+from lib.enterprise_governance import build_governance_actor_context, require_governed_action
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 from masci.identity import format_employee_identity
@@ -315,19 +316,16 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
     def _role(a: Dict[str, Any]) -> str:
         return a.get("_actor") or a.get("role") or "admin"
 
-    async def _pm_project_numbers(actor: Dict[str, Any]) -> Optional[List[str]]:
-        """Resolve PM scope. Returns None when unrestricted (admin/legacy)."""
-        try:
-            from pm_auth import compute_pm_scope  # noqa: PLC0415
-        except Exception:
-            return None
-        try:
-            scope = await compute_pm_scope(db, actor)
-            if getattr(scope, "is_admin", False):
-                return None
-            return list(scope.project_numbers or [])
-        except Exception:
-            return None
+    def _search_url_for_role(role: str, *, admin_url: str, pm_url: str, safety_url: Optional[str] = None, hr_url: Optional[str] = None, default_url: Optional[str] = None) -> str:
+        if role == "admin":
+            return admin_url
+        if role == "hr" and hr_url:
+            return hr_url
+        if role == "safety" and safety_url:
+            return safety_url
+        if role == "pm":
+            return pm_url
+        return default_url or pm_url
 
     # ─── PROBES ───────────────────────────────────────────────────
     # Each probe is short, well-bounded, and returns (kind, [rows]).
@@ -351,13 +349,24 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
 
     @router.get("/api/search")
     async def search(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         q: str = Query(..., min_length=2, max_length=80),
         kinds: Optional[str] = Query(default=None,
             description="CSV filter — restricts to a subset of kinds the actor already has access to."),
         limit: int = Query(default=6, ge=1, le=15),
     ) -> Dict[str, Any]:
-        role = _role(actor)
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="global_search.use",
+            resource_type="global_search",
+            resource={"id": "global-search", "project_number": ""},
+            requested_context={"query": q[:80], "kinds": kinds or "", "limit": limit},
+            request=request,
+        )
+        governed_actor = await build_governance_actor_context(db, actor)
+        role = _role(governed_actor)
         visible = list(KIND_VISIBILITY.get(role, ()))
         if not visible:
             return {
@@ -379,18 +388,18 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
 
         # PM scope (project numbers) — None means unrestricted.
         pm_proj: Optional[List[str]] = None
-        if role == "pm":
-            pm_proj = await _pm_project_numbers(actor)
+        if str(governed_actor.get("governance_scope_mode") or "") != "global":
+            pm_proj = list(governed_actor.get("project_numbers") or [])
 
         # Leadership actor id (for own-records scoping). Field Leadership
         # has no user record, so we fall back to "leadership" role match.
-        actor_id = actor.get("id")
+        actor_id = governed_actor.get("canonical_user_id") or governed_actor.get("id")
 
         # ── Per-kind probe runners ─────────────────────────────────
         async def run_tasks() -> List[Dict[str, Any]]:
             clauses = [{"$or": [{"title": rx}, {"source_module": rx}, {"linked_record_id": rx}]}]
             scope: List[Dict[str, Any]] = []
-            if role != "admin":
+            if str(governed_actor.get("governance_scope_mode") or "") != "global":
                 scope.append({"$or": [
                     {"assignee_role": role},
                     {"assignee_role": None},
@@ -417,7 +426,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
         async def run_notifications() -> List[Dict[str, Any]]:
             clauses = [{"$or": [{"title": rx}, {"body": rx}, {"type": rx}]}]
             scope: List[Dict[str, Any]] = []
-            if role != "admin":
+            if str(governed_actor.get("governance_scope_mode") or "") != "global":
                 scope.append({"$or": [
                     {"recipient_role": role},
                     {"recipient_role": None},
@@ -492,7 +501,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                     "projects", d,
                     title=d.get("project_number") or d.get("name") or "—",
                     subtitle=" · ".join(p for p in [d.get("name") if d.get("project_number") else None, d.get("location")] if p) or None,
-                    url=f"/admin/jobs?id={d.get('id')}",
+                    url=_search_url_for_role(role, admin_url=f"/admin/jobs?id={d.get('id')}", pm_url=f"/pm/job/{d.get('project_number')}", default_url=f"/admin/jobs?id={d.get('id') if role == 'admin' else d.get('project_number')}") if d.get("project_number") else f"/admin/jobs?id={d.get('id')}",
                     status=d.get("status"),
                 ))
             return rows
@@ -686,7 +695,6 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             if role == "pm" and pm_proj is not None:
                 q_doc["$and"].append({"project_number": {"$in": pm_proj}})
             rows = []
-            base_url = "/admin/jobs" if role == "admin" else "/pm/job"
             async for d in db.project_team_assignments.find(q_doc, {"_id": 0}).limit(limit * 2):
                 pn = d.get("project_number") or "—"
                 # Apply same role label as project_team_assignments service
@@ -702,7 +710,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                     title=f"{d.get('display_name') or d.get('email') or '—'} · {role_label}",
                     subtitle=f"Project {pn}"
                     + (" · primary" if d.get("is_primary") else ""),
-                    url=f"{base_url}/{pn}/team",
+                    url=_search_url_for_role(role, admin_url=f"/admin/jobs/{pn}/team", pm_url=f"/pm/job/{pn}/team", default_url=f"/admin/jobs/{pn}/team"),
                     status="active" if d.get("active") else "inactive",
                     badge=d.get("assignment_role"),
                 ))
@@ -734,9 +742,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                     subtitle=" · ".join(p for p in [
                         d.get("project_number"), d.get("report_date"), d.get("prepared_by"),
                     ] if p) or None,
-                    url=(f"/hr/daily-reports/{d.get('id')}" if role == "hr"
-                         else f"/admin/daily/{d.get('id')}" if role == "admin"
-                         else f"/pm/daily/{d.get('id')}"),
+                    url=_search_url_for_role(role, admin_url=f"/admin/daily/{d.get('id')}", pm_url=f"/pm/daily/{d.get('id')}", hr_url=f"/hr/daily-reports/{d.get('id')}", default_url=f"/pm/daily/{d.get('id')}"),
                     status=d.get("status"),
                 ))
             return rows
@@ -759,9 +765,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                         d.get("project_name") or d.get("project_number"),
                         d.get("meeting_date"), d.get("conducted_by"),
                     ] if p) or None,
-                    url=(f"/safety-portal/meetings/{d.get('id')}" if role == "safety"
-                         else f"/admin/meetings/{d.get('id')}" if role == "admin"
-                         else f"/pm/meetings/{d.get('id')}"),
+                    url=_search_url_for_role(role, admin_url=f"/admin/meetings/{d.get('id')}", pm_url=f"/pm/meetings/{d.get('id')}", safety_url=f"/safety-portal/meetings/{d.get('id')}", default_url=f"/pm/meetings/{d.get('id')}"),
                 ))
             return rows
 
@@ -783,9 +787,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                         d.get("project_name") or d.get("project_number"),
                         d.get("inspection_date"), d.get("inspector_name"),
                     ] if p) or None,
-                    url=(f"/safety-portal/inspections/{d.get('id')}" if role == "safety"
-                         else f"/admin/inspections/{d.get('id')}" if role == "admin"
-                         else f"/pm/inspections/{d.get('id')}"),
+                    url=_search_url_for_role(role, admin_url=f"/admin/inspections/{d.get('id')}", pm_url=f"/pm/inspections/{d.get('id')}", safety_url=f"/safety-portal/inspections/{d.get('id')}", default_url=f"/pm/inspections/{d.get('id')}"),
                 ))
             return rows
 
@@ -810,9 +812,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                         d.get("model"), d.get("manufacturer"),
                         d.get("operational_status"),
                     ] if p) or None,
-                    url=(f"/admin/trench-safety/assets/{aid}" if role == "admin"
-                         else f"/safety/trench-safety/assets/{aid}" if role == "safety"
-                         else f"/trench-safety/assets/{aid}"),
+                    url=_search_url_for_role(role, admin_url=f"/admin/trench-safety/assets/{aid}", pm_url=f"/trench-safety/assets/{aid}", safety_url=f"/safety/trench-safety/assets/{aid}", default_url=f"/trench-safety/assets/{aid}"),
                     status=d.get("operational_status"),
                     badge=d.get("asset_type"),
                 ))
@@ -837,9 +837,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                         d.get("project_name") or d.get("project_number"),
                         d.get("jha_date"), d.get("crew_lead") or d.get("prepared_by"),
                     ] if p) or None,
-                    url=(f"/admin/jha-plans?focus={d.get('id')}" if role in ("admin", "pm")
-                         else f"/safety-portal/jha-plans?focus={d.get('id')}" if role == "safety"
-                         else "/jha"),
+                    url=_search_url_for_role(role, admin_url=f"/admin/jha-plans?focus={d.get('id')}", pm_url=f"/admin/jha-plans?focus={d.get('id')}", safety_url=f"/safety-portal/jha-plans?focus={d.get('id')}", default_url="/jha"),
                 ))
             return rows
 

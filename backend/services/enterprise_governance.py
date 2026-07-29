@@ -27,8 +27,22 @@ POLICY_ACTION_MAP = {
     "forecast.approve": "forecast_approval_policy",
     "baseline.capture": "baseline_protection_policy",
     "oppc.view": "oppc_view_policy",
+    "operations_center.view": "operations_center_view_policy",
+    "safety.read": "safety_read_policy",
+    "cost_codes.read": "cost_codes_read_policy",
+    "cost_codes.manage": "cost_codes_manage_policy",
+    "po_requests.read": "po_requests_read_policy",
+    "po_requests.submit": "po_requests_submit_policy",
+    "po_requests.approve": "po_requests_approve_policy",
+    "po_requests.receipt.upload": "po_requests_receipt_upload_policy",
+    "po_requests.close": "po_requests_close_policy",
+    "po_requests.cancel": "po_requests_cancel_policy",
+    "global_search.use": "global_search_use_policy",
     "task.read": "task_read_policy",
 }
+
+PROJECT_SCOPE_ASSIGNMENT_ROLES = {"pm", "co_pm"}
+CROSS_PROJECT_PORTALS = {"admin", "hr", "safety", "shop"}
 
 
 def _now() -> datetime:
@@ -64,6 +78,35 @@ def _dedupe_texts(values: List[Any]) -> List[str]:
     return seen
 
 
+def _portal_hints(actor: Dict[str, Any], projection: Optional[Dict[str, Any]] = None) -> List[str]:
+    hints = _dedupe_texts(
+        [
+            actor.get("_actor"),
+            actor.get("role"),
+            actor.get("_actor_kind"),
+            *(_ensure_list((projection or {}).get("portals"))),
+        ]
+    )
+    if "field_leadership" in hints and "fl" not in hints:
+        hints.append("fl")
+    return hints
+
+
+def _is_cross_project_actor(actor: Dict[str, Any], projection: Dict[str, Any]) -> bool:
+    active_roles = set(_ensure_list(projection.get("active_roles")))
+    if "system_administrator" in active_roles or "executive" in active_roles:
+        return True
+    return bool(set(_portal_hints(actor, projection)).intersection(CROSS_PROJECT_PORTALS))
+
+
+def _requires_project_scope(actor: Dict[str, Any], projection: Dict[str, Any]) -> bool:
+    active_roles = set(_ensure_list(projection.get("active_roles")))
+    if "project_manager" in active_roles:
+        return True
+    hints = set(_portal_hints(actor, projection))
+    return bool(hints.intersection({"pm", "co_pm", "pm_user"}))
+
+
 def _json_safe(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(key): _json_safe(val) for key, val in value.items() if str(key) != "_id"}
@@ -78,6 +121,62 @@ def _json_safe(value: Any) -> Any:
     if type(value).__name__ == "ObjectId":
         return str(value)
     return str(value)
+
+
+async def _resolve_project_numbers_from_governance_sources(
+    db,
+    actor: Dict[str, Any],
+    projection: Dict[str, Any],
+) -> List[str]:
+    numbers = set(
+        _dedupe_texts(
+            [
+                *_ensure_list(actor.get("project_numbers") or actor.get("projects")),
+                *_ensure_list(projection.get("project_numbers")),
+            ]
+        )
+    )
+    if _is_cross_project_actor(actor, projection) or not _requires_project_scope(actor, projection):
+        return sorted(numbers)
+
+    actor_user_id = _clean(actor.get("id") or actor.get("user_id") or projection.get("canonical_user_id"))
+    actor_email = _clean(actor.get("email") or projection.get("email")).lower()
+    roster_or: List[Dict[str, Any]] = []
+    if actor_user_id:
+        roster_or.append({"user_id": actor_user_id})
+    if actor_email:
+        roster_or.append({"email": actor_email})
+    if roster_or:
+        try:
+            async for row in db.project_team_assignments.find(
+                {
+                    "active": True,
+                    "assignment_role": {"$in": sorted(PROJECT_SCOPE_ASSIGNMENT_ROLES)},
+                    "$or": roster_or,
+                },
+                {"_id": 0, "project_number": 1},
+            ):
+                project_number = _clean(row.get("project_number"))
+                if project_number:
+                    numbers.add(project_number)
+        except Exception:
+            pass
+
+    if actor_email:
+        try:
+            async for row in db.jobs_master.find(
+                {
+                    "deleted_at": {"$in": [None, ""]},
+                    "$or": [{"pm_email": actor_email}, {"co_pm_emails": actor_email}],
+                },
+                {"_id": 0, "project_number": 1},
+            ):
+                project_number = _clean(row.get("project_number"))
+                if project_number:
+                    numbers.add(project_number)
+        except Exception:
+            pass
+    return sorted(numbers)
 
 
 def _stable_hash(payload: Dict[str, Any]) -> str:
@@ -243,6 +342,17 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
         "task.assign": {"label": "Assign Tasks", "domain": "tasks", "action": "assign"},
         "task.close": {"label": "Close Tasks", "domain": "tasks", "action": "close"},
         "notification.ack": {"label": "Acknowledge Notifications", "domain": "notifications", "action": "acknowledge"},
+        "operations_center.view": {"label": "View Operations Center", "domain": "operations_center", "action": "read"},
+        "safety.read": {"label": "Read Safety Records", "domain": "safety", "action": "read"},
+        "cost_codes.read": {"label": "Read Cost Code Planning", "domain": "cost_codes", "action": "read"},
+        "cost_codes.manage": {"label": "Manage Cost Code Planning", "domain": "cost_codes", "action": "manage"},
+        "po_requests.read": {"label": "Read PO Requests", "domain": "po_requests", "action": "read"},
+        "po_requests.submit": {"label": "Submit PO Requests", "domain": "po_requests", "action": "submit"},
+        "po_requests.approve": {"label": "Approve PO Requests", "domain": "po_requests", "action": "approve"},
+        "po_requests.receipt.upload": {"label": "Upload PO Receipts", "domain": "po_requests", "action": "upload_receipt"},
+        "po_requests.close": {"label": "Close PO Requests", "domain": "po_requests", "action": "close"},
+        "po_requests.cancel": {"label": "Cancel PO Requests", "domain": "po_requests", "action": "cancel"},
+        "global_search.use": {"label": "Use Global Search", "domain": "global_search", "action": "search"},
         "baseline.capture": {"label": "Capture Baselines", "domain": "baseline", "action": "create"},
         "baseline.export": {"label": "Export Baselines", "domain": "baseline", "action": "export"},
         "evidence.export": {"label": "Export Evidence", "domain": "evidence", "action": "export"},
@@ -267,6 +377,9 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
                 "executive.view",
                 "admin_reporting.view",
                 "audit.view",
+                "operations_center.view",
+                "po_requests.read",
+                "global_search.use",
                 "operational_case.read",
                 "task.read",
                 "evidence.export",
@@ -284,6 +397,17 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
                 "forecast.approve",
                 "briefing.approve",
                 "oppc.view",
+                "operations_center.view",
+                "safety.read",
+                "cost_codes.read",
+                "cost_codes.manage",
+                "po_requests.read",
+                "po_requests.submit",
+                "po_requests.approve",
+                "po_requests.receipt.upload",
+                "po_requests.close",
+                "po_requests.cancel",
+                "global_search.use",
                 "operational_case.read",
                 "task.read",
                 "task.assign",
@@ -294,31 +418,31 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
         "hr": {
             "label": "HR",
             "portal_hints": ["hr", "admin"],
-            "permissions": ["daily_reports.read", "admin_reporting.view", "audit.view", "notification.ack", "task.read"],
+            "permissions": ["daily_reports.read", "admin_reporting.view", "audit.view", "notification.ack", "task.read", "operations_center.view", "cost_codes.read", "po_requests.read", "po_requests.approve", "po_requests.close", "po_requests.cancel", "global_search.use"],
             "authority_level": "department",
         },
         "safety": {
             "label": "Safety",
             "portal_hints": ["safety", "admin"],
-            "permissions": ["daily_reports.read", "operational_case.read", "notification.ack", "evidence.export", "task.read"],
+            "permissions": ["daily_reports.read", "operational_case.read", "notification.ack", "evidence.export", "task.read", "operations_center.view", "safety.read", "po_requests.submit", "po_requests.read", "global_search.use"],
             "authority_level": "department",
         },
         "shop": {
             "label": "Shop",
             "portal_hints": ["shop", "admin"],
-            "permissions": ["task.read", "task.assign", "task.close", "notification.ack"],
+            "permissions": ["task.read", "task.assign", "task.close", "notification.ack", "operations_center.view", "po_requests.submit", "po_requests.read", "po_requests.receipt.upload", "global_search.use"],
             "authority_level": "department",
         },
         "dispatch": {
             "label": "Dispatcher",
             "portal_hints": ["dispatch", "admin"],
-            "permissions": ["notification.ack", "task.read", "task.assign"],
+            "permissions": ["notification.ack", "task.read", "task.assign", "operations_center.view", "global_search.use"],
             "authority_level": "department",
         },
         "field_leadership": {
             "label": "Field Leadership",
             "portal_hints": ["field_leadership", "admin"],
-            "permissions": ["daily_reports.read", "notification.ack", "task.read"],
+            "permissions": ["daily_reports.read", "notification.ack", "task.read", "po_requests.read", "po_requests.submit", "po_requests.receipt.upload", "global_search.use"],
             "authority_level": "project",
         },
     }
@@ -380,6 +504,116 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "action_key": "oppc.view",
             "required_permissions": ["oppc.view"],
             "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "operations_center_view_policy": {
+            "policy_id": "operations_center_view_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "operations_center.view",
+            "required_permissions": ["operations_center.view"],
+            "require_project_access": False,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "safety_read_policy": {
+            "policy_id": "safety_read_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "safety.read",
+            "required_permissions": ["safety.read"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "cost_codes_read_policy": {
+            "policy_id": "cost_codes_read_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "cost_codes.read",
+            "required_permissions": ["cost_codes.read"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "cost_codes_manage_policy": {
+            "policy_id": "cost_codes_manage_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "cost_codes.manage",
+            "required_permissions": ["cost_codes.manage"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": ["submitter_cannot_self_approve"],
+        },
+        "po_requests_read_policy": {
+            "policy_id": "po_requests_read_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "po_requests.read",
+            "required_permissions": ["po_requests.read"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "po_requests_submit_policy": {
+            "policy_id": "po_requests_submit_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "po_requests.submit",
+            "required_permissions": ["po_requests.submit"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "po_requests_approve_policy": {
+            "policy_id": "po_requests_approve_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "po_requests.approve",
+            "required_permissions": ["po_requests.approve"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": ["submitter_cannot_self_approve"],
+        },
+        "po_requests_receipt_upload_policy": {
+            "policy_id": "po_requests_receipt_upload_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "po_requests.receipt.upload",
+            "required_permissions": ["po_requests.receipt.upload"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "po_requests_close_policy": {
+            "policy_id": "po_requests_close_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "po_requests.close",
+            "required_permissions": ["po_requests.close"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "po_requests_cancel_policy": {
+            "policy_id": "po_requests_cancel_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "po_requests.cancel",
+            "required_permissions": ["po_requests.cancel"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "global_search_use_policy": {
+            "policy_id": "global_search_use_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "global_search.use",
+            "required_permissions": ["global_search.use"],
+            "require_project_access": False,
             "require_approval_flow": "",
             "separation_rules": [],
         },
@@ -641,6 +875,18 @@ async def ensure_identity_projection(db, actor: Dict[str, Any]) -> Dict[str, Any
     return merged
 
 
+async def resolve_governance_actor_context(db, actor: Dict[str, Any]) -> Dict[str, Any]:
+    projection = await ensure_identity_projection(db, actor)
+    context = await _load_dynamic_context(db, projection, actor)
+    context.setdefault("_actor", _clean(actor.get("_actor") or actor.get("role") or actor.get("_actor_kind")))
+    context.setdefault("role", _clean(actor.get("role") or actor.get("_actor") or actor.get("_actor_kind")))
+    context.setdefault("id", _clean(actor.get("id") or actor.get("user_id") or context.get("canonical_user_id")))
+    context.setdefault("user_id", _clean(actor.get("user_id") or actor.get("id") or context.get("canonical_user_id")))
+    context.setdefault("email", _clean(actor.get("email") or context.get("email")).lower())
+    context.setdefault("name", _clean(actor.get("name") or context.get("display_name")))
+    return context
+
+
 async def list_identity_projections(db, *, limit: int = 200) -> List[Dict[str, Any]]:
     cur = db[COLLECTION_IDENTITY_PROJECTIONS].find({"identity_source": {"$ne": ""}}, {"_id": 0}).sort("updated_at", -1).limit(limit)
     return [row async for row in cur]
@@ -648,15 +894,9 @@ async def list_identity_projections(db, *, limit: int = 200) -> List[Dict[str, A
 
 async def _load_dynamic_context(db, projection: Dict[str, Any], actor: Dict[str, Any]) -> Dict[str, Any]:
     context = dict(projection)
-    try:
-        if "project_manager" in (projection.get("active_roles") or []) or actor.get("_actor") == "pm":
-            from pm_auth import compute_pm_scope  # noqa: PLC0415
-
-            scope = await compute_pm_scope(db, actor)
-            if getattr(scope, "project_numbers", None):
-                context["project_numbers"] = _dedupe_texts(list(scope.project_numbers or []))
-    except Exception:
-        pass
+    context["project_numbers"] = await _resolve_project_numbers_from_governance_sources(db, actor, projection)
+    context["governance_portal_hints"] = _portal_hints(actor, projection)
+    context["governance_scope_mode"] = "global" if _is_cross_project_actor(actor, projection) else "project"
     active_delegations = [
         row
         async for row in db[COLLECTION_DELEGATIONS].find(

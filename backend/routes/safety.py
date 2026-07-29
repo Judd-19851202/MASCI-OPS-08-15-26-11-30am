@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from pm_auth import compute_pm_scope
+from lib.enterprise_governance import build_governance_actor_context, require_governed_action
 
 
 # ============================================================
@@ -442,6 +442,35 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     # NOT changed by this fix.
     _read_gate = require_safety_admin_or_pm or require_admin
 
+    async def _read_context(request: Request, actor: Dict[str, Any]) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="safety.read",
+            resource_type="safety_workspace",
+            resource={"id": "safety-workspace", "project_number": ""},
+            requested_context={"workspace": "safety_read"},
+            request=request,
+        )
+        return await build_governance_actor_context(db, actor)
+
+    def _project_filter(governed_actor: Dict[str, Any], base_filter: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        query = dict(base_filter or {})
+        if str(governed_actor.get("governance_scope_mode") or "") == "global":
+            return query
+        project_numbers = list(governed_actor.get("project_numbers") or [])
+        if not project_numbers:
+            return None
+        query["project_number"] = {"$in": project_numbers}
+        return query
+
+    def _project_allowed(governed_actor: Dict[str, Any], project_number: Optional[str]) -> bool:
+        if str(governed_actor.get("governance_scope_mode") or "") == "global":
+            return True
+        if not project_number:
+            return False
+        return str(project_number) in set(governed_actor.get("project_numbers") or [])
+
     # ---------- Inspections ----------
     # iter236 · Site Inspection moved fully into Safety portal ownership.
     # If require_safety_or_admin is provided, the endpoint requires Safety or
@@ -584,13 +613,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="inspection")
 
     @api_router.get("/inspections", response_model=List[InspectionSummary])
-    async def list_inspections(actor=Depends(_read_gate)):
+    async def list_inspections(request: Request, actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_inspection_exclusion  # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        governed_actor = await _read_context(request, actor)
+        project_filter = _project_filter(governed_actor, {})
+        if project_filter is None:
             return []
         pipeline = [
-            {"$match": apply_synthetic_inspection_exclusion(scope.filter({}))},
+            {"$match": apply_synthetic_inspection_exclusion(project_filter)},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -626,12 +656,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/inspections/{inspection_id}")
-    async def get_inspection(inspection_id: str, actor=Depends(_read_gate)):
+    async def get_inspection(inspection_id: str, request: Request, actor=Depends(_read_gate)):
         doc = await db.inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Inspection not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        governed_actor = await _read_context(request, actor)
+        if not _project_allowed(governed_actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Inspection not found")
         return doc
 
@@ -734,13 +764,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="meeting")
 
     @api_router.get("/meetings", response_model=List[MeetingSummary])
-    async def list_meetings(actor=Depends(_read_gate)):
+    async def list_meetings(request: Request, actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_meeting_exclusion  # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        governed_actor = await _read_context(request, actor)
+        project_filter = _project_filter(governed_actor, {})
+        if project_filter is None:
             return []
         cursor = db.meetings.find(
-            apply_synthetic_meeting_exclusion(scope.filter({})),
+            apply_synthetic_meeting_exclusion(project_filter),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "meeting_date": 1,
              "conducted_by": 1, "topic": 1, "topic_category": 1, "attendees": 1, "created_at": 1},
         ).sort("created_at", -1)
@@ -761,12 +792,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/meetings/{meeting_id}")
-    async def get_meeting(meeting_id: str, actor=Depends(_read_gate)):
+    async def get_meeting(meeting_id: str, request: Request, actor=Depends(_read_gate)):
         doc = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Meeting not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        governed_actor = await _read_context(request, actor)
+        if not _project_allowed(governed_actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Meeting not found")
         return doc
 
@@ -858,13 +889,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
 
     @api_router.get("/jhas", response_model=List[JhaSummary])
-    async def list_jhas(actor=Depends(_read_gate)):
+    async def list_jhas(request: Request, actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_jha_exclusion  # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        governed_actor = await _read_context(request, actor)
+        project_filter = _project_filter(governed_actor, {})
+        if project_filter is None:
             return []
         cursor = db.jhas.find(
-            apply_synthetic_jha_exclusion(scope.filter({})),
+            apply_synthetic_jha_exclusion(project_filter),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "jha_date": 1,
              "crew_lead": 1, "job_title": 1, "task_steps": 1, "crew_signoffs": 1, "created_at": 1},
         ).sort("created_at", -1)
@@ -885,12 +917,12 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/jhas/{jha_id}")
-    async def get_jha(jha_id: str, actor=Depends(_read_gate)):
+    async def get_jha(jha_id: str, request: Request, actor=Depends(_read_gate)):
         doc = await db.jhas.find_one({"id": jha_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="JHP not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        governed_actor = await _read_context(request, actor)
+        if not _project_allowed(governed_actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="JHP not found")
         return doc
 
@@ -1262,13 +1294,14 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="incident")
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
-    async def list_incidents(actor=Depends(_read_gate)):
+    async def list_incidents(request: Request, actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        governed_actor = await _read_context(request, actor)
+        project_filter = _project_filter(governed_actor, {})
+        if project_filter is None:
             return []
         pipeline = [
-            {"$match": apply_synthetic_incident_exclusion(scope.filter({}))},
+            {"$match": apply_synthetic_incident_exclusion(project_filter)},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -1297,17 +1330,17 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         ]
 
     @api_router.get("/incidents/{incident_id}")
-    async def get_incident(incident_id: str, actor=Depends(_read_gate)):
+    async def get_incident(incident_id: str, request: Request, actor=Depends(_read_gate)):
         doc = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Incident not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        governed_actor = await _read_context(request, actor)
+        if not _project_allowed(governed_actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Incident not found")
         return doc
 
     @api_router.get("/incidents.csv")
-    async def list_incidents_csv(actor=Depends(_read_gate)):
+    async def list_incidents_csv(request: Request, actor=Depends(_read_gate)):
         """Phase 5 · W8 · CSV export of incidents.
 
         Same auth gate + same PM scope as the JSON list. Safety/Admin/PM
@@ -1316,8 +1349,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         import io as _io    # noqa: PLC0415
         from fastapi.responses import Response as _Resp  # noqa: PLC0415
         from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        governed_actor = await _read_context(request, actor)
+        project_filter = _project_filter(governed_actor, {})
+        if project_filter is None:
             buf = _io.StringIO()
             fields = [
                 "doc_id", "incident_date", "incident_time", "project_number",
@@ -1337,7 +1371,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                 },
             )
         pipeline = [
-            {"$match": apply_synthetic_incident_exclusion(scope.filter({}))},
+            {"$match": apply_synthetic_incident_exclusion(project_filter)},
             {"$sort": {"created_at": -1}},
             {"$limit": 5000},
             {"$project": {

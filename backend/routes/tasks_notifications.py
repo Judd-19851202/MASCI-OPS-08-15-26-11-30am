@@ -68,7 +68,7 @@ from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
-from lib.enterprise_governance import require_governed_action
+from lib.enterprise_governance import build_governance_actor_context, require_governed_action
 
 logger = logging.getLogger(__name__)
 
@@ -618,6 +618,10 @@ def actor_role(actor: Dict[str, Any]) -> str:
     return actor.get("_actor") or actor.get("role") or "admin"
 
 
+def actor_is_global_scope(actor: Dict[str, Any]) -> bool:
+    return str(actor.get("governance_scope_mode") or "") == "global"
+
+
 def actor_eligibility(actor: Dict[str, Any]) -> Optional[datetime]:
     """TRACK 14.0-NOTIF-NEW-USER-SCOPE — returns the actor's
     notification-eligibility cutoff as a timezone-aware UTC datetime,
@@ -710,7 +714,7 @@ async def build_notif_filter_async(
         plus explicit company-wide PM broadcasts only.
     """
     role = actor_role(actor)
-    if role == "admin":
+    if actor_is_global_scope(actor):
         return {}
     scope_roles = [role]
     if actor.get("is_asset_admin") is True:
@@ -764,7 +768,7 @@ def build_notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
         further constrained to ``created_at >= actor_eligibility(actor)``.
     """
     role = actor_role(actor)
-    if role == "admin":
+    if actor_is_global_scope(actor):
         return {}
     scope_roles = [role]
     if actor.get("is_asset_admin") is True:
@@ -814,7 +818,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         notifications targeted to asset_admin are filtered by
         recipient_role at write time."""
         role = _actor_role(actor)
-        if role == "admin":
+        if actor_is_global_scope(actor):
             return {}
         extra_roles: List[str] = []
         if actor.get("is_asset_admin") is True:
@@ -852,7 +856,8 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             requested_context={"project_number": linked_project_number or "", "view": "list"},
             request=request,
         )
-        filt = _scope_filter(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        filt = _scope_filter(governed_actor)
         and_clauses: List[Dict[str, Any]] = []
         if filt:
             and_clauses.append(filt)
@@ -893,7 +898,8 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             requested_context={"view": "summary"},
             request=request,
         )
-        filt = _scope_filter(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        filt = _scope_filter(governed_actor)
         now = datetime.now(timezone.utc)
         # Counts by status
         pipeline = [
@@ -1069,8 +1075,9 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             requested_context={"portal_role": _actor_role(actor)},
             request=request,
         )
-        role = _actor_role(actor)
-        filt = await _notif_filter_async(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        role = _actor_role(governed_actor)
+        filt = await _notif_filter_async(governed_actor)
         cur = db.notifications.find(filt, {"_id": 0}).sort("created_at", -1).limit(limit)
         items: List[Dict[str, Any]] = []
         async for d in cur:
@@ -1098,8 +1105,9 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             requested_context={"portal_role": _actor_role(actor), "view": "unread_count"},
             request=request,
         )
-        role = _actor_role(actor)
-        filt = await _notif_filter_async(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        role = _actor_role(governed_actor)
+        filt = await _notif_filter_async(governed_actor)
         # Approximate: not-acknowledged & role-marker absent from read_by
         cnt = 0
         cur = db.notifications.find(
@@ -1131,10 +1139,11 @@ def build_tasks_notifications_router(db, require_any_portal_token):
                 requested_context={"project_number": doc.get("project_number") or ""},
                 request=request,
             )
-        role = _actor_role(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        role = _actor_role(governed_actor)
         marker = {
             "role": role,
-            "user_id": actor.get("id"),
+            "user_id": governed_actor.get("canonical_user_id") or actor.get("id"),
             "at": datetime.now(timezone.utc),
         }
         res = await db.notifications.update_one(
@@ -1157,15 +1166,16 @@ def build_tasks_notifications_router(db, require_any_portal_token):
             requested_context={"portal_role": _actor_role(actor), "view": "mark_all_read"},
             request=request,
         )
-        role = _actor_role(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        role = _actor_role(governed_actor)
         marker = {
             "role": role,
-            "user_id": actor.get("id"),
+            "user_id": governed_actor.get("canonical_user_id") or actor.get("id"),
             "at": datetime.now(timezone.utc),
         }
         # Use the same D2/D3-aware filter as the list endpoint so users
         # can only mark-read what they can actually see.
-        filt: Dict[str, Any] = await _notif_filter_async(actor)
+        filt: Dict[str, Any] = await _notif_filter_async(governed_actor)
         if filt:
             filt = {"$and": [filt, {"read_by.role": {"$ne": role}}]}
         else:
@@ -1192,7 +1202,8 @@ def build_tasks_notifications_router(db, require_any_portal_token):
                 requested_context={"project_number": doc.get("project_number") or ""},
                 request=request,
             )
-        role = _actor_role(actor)
+        governed_actor = await build_governance_actor_context(db, actor)
+        role = _actor_role(governed_actor)
         notif = await db.notifications.find_one({"id": notif_id}, {"_id": 0})
         if not notif:
             raise HTTPException(404, "Notification not found")
@@ -1202,7 +1213,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
                 "acknowledged_at": datetime.now(timezone.utc),
                 "acknowledged_by": {
                     "role": role,
-                    "user_id": actor.get("id"),
+                    "user_id": governed_actor.get("canonical_user_id") or actor.get("id"),
                     "name": actor.get("name") or actor.get("email"),
                 },
             }},
@@ -1217,7 +1228,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
                     communication_id=linked_comm_id,
                     actor={
                         "role": role,
-                        "id": actor.get("id"),
+                        "id": governed_actor.get("canonical_user_id") or actor.get("id"),
                         "name": actor.get("name") or actor.get("email"),
                     },
                     note="Acknowledged from notification center",

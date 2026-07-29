@@ -35,7 +35,13 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
+
+from lib.enterprise_governance import (
+    build_governance_actor_context,
+    require_governed_action,
+    resolve_actor_from_request,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -107,10 +113,20 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
     # FORGEDOPS-P0.5 · Asset Spine Health Tile for the Operations Center.
     @router.get("/api/operations-center/asset-spine-tile")
     async def asset_spine_tile(
-        _actor: Dict[str, Any] = Depends(require_any_portal_token),
+        request: Request,
+        actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         """One canonical tile sourced from /api/asset-spine/health plus the
         latest persisted scan summary. Lean projection for the OC board."""
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="operations_center.view",
+            resource_type="operations_center_tile",
+            resource={"id": "asset-spine-tile", "project_number": ""},
+            requested_context={"tile": "asset_spine_health"},
+            request=request,
+        )
         from services.asset_spine import AssetSpine  # noqa: PLC0415
         spine = AssetSpine(db)
         h = await spine.health()
@@ -140,36 +156,47 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
     def _role(a: Dict[str, Any]) -> str:
         return a.get("_actor") or a.get("role") or "admin"
 
-    async def _pm_project_numbers(actor: Dict[str, Any]) -> Optional[List[str]]:
-        try:
-            from pm_auth import compute_pm_scope  # noqa: PLC0415
-        except Exception:
-            return None
-        try:
-            scope = await compute_pm_scope(db, actor)
-            if getattr(scope, "is_admin", False):
-                return None
-            return list(scope.project_numbers or [])
-        except Exception:
-            return None
+    async def _governed_actor_context(request: Request, actor: Dict[str, Any]) -> Dict[str, Any]:
+        resolved_actor = await resolve_actor_from_request(db, request, actor)
+        return await build_governance_actor_context(db, resolved_actor)
 
     @router.get("/api/operations-center")
     async def operations_center(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         role_override: Optional[str] = Query(default=None,
             description="Admin only — view another role's center."),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="operations_center.view",
+            resource_type="operations_center",
+            resource={"id": "operations-center", "project_number": ""},
+            requested_context={"portal_role": _role(actor), "role_override": role_override or ""},
+            request=request,
+        )
         role = _role(actor)
-        # Admin can preview another role's center; non-admin overrides ignored.
-        if role_override and role == "admin":
-            role = role_override
+        governed_context = await _governed_actor_context(request, actor)
+        if role_override:
+            override_decision = await require_governed_action(
+                db,
+                actor=actor,
+                action_key="governance.admin",
+                resource_type="operations_center_role_override",
+                resource={"id": "operations-center-role-override", "project_number": ""},
+                requested_context={"portal_role": role, "target_role": role_override},
+                request=request,
+            )
+            if override_decision.get("allowed"):
+                role = role_override
         visible = ROLE_VISIBILITY.get(role, ())
         if not visible:
             return {"role": role, "cards": [], "total": 0}
 
         pm_proj: Optional[List[str]] = None
         if role == "pm":
-            pm_proj = await _pm_project_numbers(actor)
+            pm_proj = list(governed_context.get("project_numbers") or [])
 
         now = datetime.now(timezone.utc)
         seven_days_ago = now - timedelta(days=7)

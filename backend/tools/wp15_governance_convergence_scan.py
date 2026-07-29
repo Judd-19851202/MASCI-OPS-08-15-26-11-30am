@@ -8,10 +8,39 @@ ROOT = Path("/app/backend")
 SKIP_PARTS = {"tests", "__pycache__"}
 SPECIAL_CASE_NAMES = {"auth.py", "pm_auth.py", "mfa.py"}
 SPECIAL_CASE_DIR_FRAGMENTS = ("/routes/", "/lib/", "/services/")
+AUTH_DECISION_TOKENS = (
+    "authorize",
+    "authorization",
+    "permission",
+    "scope",
+    "allowed",
+    "approval",
+    "governance",
+    "access",
+)
+DISPLAY_ONLY_TOKENS = (
+    "url=",
+    "base_url",
+    "label",
+    "subtitle",
+    "title",
+    "recipient_role",
+    "assignee_role",
+)
 
 
 def should_skip(path: Path) -> bool:
-    return any(part in SKIP_PARTS for part in path.parts)
+    return any(part in SKIP_PARTS for part in path.parts) or path.name == "wp15_governance_convergence_scan.py"
+
+
+def _has_auth_context(text: str, nearby: str) -> bool:
+    hay = f"{text}\n{nearby}".lower()
+    return any(token in hay for token in AUTH_DECISION_TOKENS)
+
+
+def _is_display_only(text: str, nearby: str) -> bool:
+    hay = f"{text}\n{nearby}".lower()
+    return any(token in hay for token in DISPLAY_ONLY_TOKENS)
 
 
 def classify(path: Path, lines: list[str], line_no: int) -> tuple[str, str] | None:
@@ -30,14 +59,24 @@ def classify(path: Path, lines: list[str], line_no: int) -> tuple[str, str] | No
             return ("special_case_infrastructure", "Authentication/token boundary")
     if "compute_pm_scope(" in text:
         return ("legacy_migratable", "Module-specific PM scope authorization")
-    if "build_notif_filter(" in text or "_scope_filter(" in text:
+    if ("build_notif_filter(" in text or "_scope_filter(" in text) and "def " not in text:
         return ("legacy_migratable", "Module-specific notification/task scope filter")
     if "if role == \"admin\"" in text or "if role == \"pm\"" in text:
-        return ("legacy_migratable", "Inline role branch")
+        if _is_display_only(text, nearby):
+            return None
+        if _has_auth_context(text, nearby):
+            return ("legacy_migratable", "Inline role branch")
+        return ("governance_candidate", "Role branch needs manual governance review")
     if "role in {" in text or "role in (" in text:
-        return ("legacy_migratable", "Inline role set check")
+        if _is_display_only(text, nearby):
+            return None
+        if _has_auth_context(text, nearby):
+            return ("legacy_migratable", "Inline role set check")
+        return ("governance_candidate", "Role set check needs manual governance review")
     if "is_super_admin" in text and "bool(" in text:
-        return ("legacy_migratable", "Hard-coded super-admin branch")
+        if _has_auth_context(text, nearby):
+            return ("legacy_migratable", "Hard-coded super-admin branch")
+        return ("governance_candidate", "Super-admin handling needs manual governance review")
     if "HTTPException(status_code=403" in text and ("scope" in text.lower() or "admin" in text.lower() or "pm" in text.lower()):
         return ("legacy_migratable", "Custom 403 authorization gate")
     return None
@@ -72,6 +111,7 @@ def main() -> None:
         "canonical_governance_engine": sum(1 for row in findings if row["category"] == "canonical"),
         "legacy_but_migratable": sum(1 for row in findings if row["category"] == "legacy_migratable"),
         "special_case_infrastructure": sum(1 for row in findings if row["category"] == "special_case_infrastructure"),
+        "governance_candidate_manual_review": sum(1 for row in findings if row["category"] == "governance_candidate"),
         "dead_or_unused_code": 0,
         "findings": findings,
     }
