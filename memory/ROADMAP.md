@@ -1,21 +1,22 @@
 # WP15 Immediate Next Actions — 2026-07-29
 
 ## P0
-- Continue repository-wide governance convergence on the largest remaining legacy clusters:
-  - `backend/routes/cost_codes.py`
-  - `backend/routes/global_search.py`
-  - `backend/routes/safety.py`
-  - `backend/routes/tasks_notifications.py`
-  - `backend/routes/po_requests.py`
-  - `backend/routes/operations_center.py`
-- Re-run `wp15_governance_convergence_scan.py` after each migration batch and update `WP15_AUTHORIZATION_DRIFT_REPORT.md`.
-- Once zero-drift convergence is achieved, run frontend/browser verification, cross-module governance regression, and independent certification.
+- WP15 constitutional closeout is now shipped and verified:
+  - zero legacy drift
+  - zero governance candidates
+  - zero manual governed frontend header builders
+  - Operational Health Dashboard live at `/admin/governance`
+  - CI/CD governance protection wired into PR, nightly, release-candidate, and production gates
+  - architecture freeze and closeout documents published
+- Preserve the new hard-fail CI scanner policy and keep the dashboard evidence contract intact on future changes.
 
 ## P1
-- Surface richer governance explanations and delegation/override states across admin and executive UI flows.
+- Add Golden Path monitoring hooks and additional longitudinal trend/history views on the shared Operational Health Dashboard framework.
+- Expand retained certification history as future verification events are appended.
 
 ## P2
-- WP-16 Operator Experience only after WP-15 is fully certified closed.
+- Plug additional constitutional systems into the shared Operational Health Dashboard framework without creating duplicate status engines.
+- WP-16 Operator Experience only after WP-15 remains stable under the frozen governance architecture.
 
 # BCSS Roadmap Snapshot
 

@@ -1,5 +1,40 @@
 # 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
 
+## 2026-07-29 Final constitutional closeout — operational dashboard + CI freeze
+
+- Built the shared **Operational Health Dashboard** framework and shipped **Enterprise Governance** as the first live module at `/admin/governance`.
+- Added backend evidence aggregation at `/api/admin/operational-health/modules/enterprise-governance` with 8 KPI sections:
+  - Constitutional Status
+  - Governance Drift
+  - Certification Health
+  - Trust Spine Integrity
+  - Identity Health
+  - Authorization Health
+  - Operator Experience
+  - Constitutional Exemptions
+- Every KPI now exposes: current state, evidence timestamp, evidence source, last successful refresh, producer, affected assets, root-cause explanation, and remediation guidance when applicable.
+- Dashboard drill-down contract verified: every KPI card is clickable and opens a metadata-complete investigation drawer.
+- Added future-proof module catalog for later constitutional systems: Backup & Disaster Recovery, Trust Spine, Operational Awareness, Scheduling, Academy, and Operational Intelligence.
+- Integrated `backend/tools/wp15_governance_convergence_scan.py` into CI/CD with hard-fail enforcement through:
+  - pull request validation
+  - nightly scheduled CI
+  - release candidate certification gate
+  - production deployment gate
+- Added `scripts/assert_wp15_governance_convergence.py` so CI surfaces exact drift findings and fails when legacy drift, governance candidates, or manual governed header builders reappear.
+- Published closeout artifacts:
+  - `/app/WP15_ARCHITECTURE_FREEZE.md`
+  - `/app/ENTERPRISE_GOVERNANCE_HEALTH.md`
+  - `/app/WP15_CONTINUOUS_CERTIFICATION.md`
+  - `/app/WP15_GOVERNANCE_DASHBOARD.md`
+  - `/app/WP15_CONSTITUTIONAL_GOVERNANCE_STANDARD.md`
+- Corrected the constitutional exemptions register so its reason counts now reconcile to `special_case_infrastructure = 52`.
+- Fixed a backend startup blocker in `backend/routes/operational_constraints.py` (argument order syntax error) discovered during restart.
+- Fixed a pre-existing reload shutdown race in `backend/lib/motive_reliability.py` by cancelling child reliability loops during supervisor teardown, preventing orphan tasks from using a closed Mongo client after reload.
+- Verification status:
+  - backend + frontend QA: `/app/test_reports/iteration_72.json`
+  - operational dashboard backend tests: `/app/backend/tests/test_wp15_operational_health.py`
+  - result: **PASS** (29/29 backend assertions, frontend dashboard verification pass)
+
 ## 2026-07-29 Final closeout update — WP-15D continuous campaign
 
 - Final manual governed frontend builder wave completed: **manual_auth_header_construction = 0**.
