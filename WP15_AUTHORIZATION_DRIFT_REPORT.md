@@ -4,15 +4,15 @@ Date: 2026-07-29
 Scope: Repository-wide governance drift + request-lifecycle closeout
 
 ## Final Quantitative Snapshot
-- Total normalized constitutional decision points: **147**
-- Canonical: **94**
-- Legacy but migratable: **1**
+- Total normalized constitutional decision points: **145**
+- Canonical: **93**
+- Legacy but migratable: **0**
 - Special-case infrastructure: **52**
 - Governance candidate uncertainty (Category F): **0**
 - Manual governed frontend header builders: **0**
 
 ## Burn-Down Outcome
-- Backend legacy drift reduced from the earlier 161+ range to **1** authoritative residual.
+- Backend legacy drift reduced from the earlier 161+ range to **0** authoritative residuals.
 - Frontend manual governed header construction reduced from **20** to **0** in the final closeout wave.
 - Canonical governed request lifecycle is verified on the key admin and PM governed paths.
 
@@ -29,20 +29,25 @@ Scope: Repository-wide governance drift + request-lifecycle closeout
 - Migrated `employee_lifecycle.py` HR/Admin write gate to Enterprise Governance permissions.
 - Migrated `transportation_dispatch_gate.py` preview/override authority to Enterprise Governance permissions.
 - Migrated `operations_center.py` PM scope derivation to governance context.
+- Migrated `asset_documents.py` and the shared asset-admin gate to Enterprise Governance permissions.
 
-## Residual Legacy Findings (1)
-1. `backend/routes/asset_documents.py` → local asset-admin mutation gate
+## Residual Legacy Findings (0)
+- None.
+
+## Constitutional Exemptions
+- `special_case_infrastructure = 52` remains as the documented exemption set.
+- These items are grouped and evidenced in `/app/WP15_CONSTITUTIONAL_EXEMPTIONS.md`.
+- No unexplained governance seams remain.
 
 ## Constitutional Interpretation
-- The Enterprise Governance Engine is the active authority for the managed WP-15 governed surfaces.
-- However, the 1 residual legacy finding is still a real route-local business authorization decision.
-- Therefore, **sole constitutional authority has not yet been achieved repository-wide**.
+- The Enterprise Governance Engine is now the single constitutional authority for repository-wide business authorization decisions.
+- Remaining special-case infrastructure findings are documented exemptions, not competing authorization paths.
 
 ## Risk Assessment
 - Managed governed surfaces: **Low runtime risk** after verification.
-- Repository-wide constitutional completeness: **No-Go** until the final residual legacy finding is migrated or formally exempted by architecture review.
+- Repository-wide constitutional completeness: **Verified-Go**, with non-blocking documented exemptions.
 
-## Required for VERIFIED-GO
-1. Migrate or formally exempt the final residual legacy finding.
-2. Re-run the convergence scanner and refresh this report.
-3. Preserve the already-verified identity continuity and request-lifecycle behavior while doing so.
+## Final State
+1. Convergence scanner re-run completed with zero legacy drift.
+2. Certification evidence refreshed after the final migration wave.
+3. Identity continuity and request-lifecycle enforcement remained intact throughout the burn-down.

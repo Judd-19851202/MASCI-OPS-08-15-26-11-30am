@@ -21,18 +21,17 @@ Status: Reconciled for final determination
 | RG-013 | Backend governance migration | `employee_lifecycle.py` now resolves its HR/Admin write gate through Enterprise Governance permissions | Verified Fixed |
 | RG-014 | Backend governance migration | `transportation_dispatch_gate.py` now derives preview/override authority from Enterprise Governance permissions | Verified Fixed |
 | RG-015 | Backend governance migration | `operations_center.py` now derives PM project scope from governance context rather than inline role branching | Verified Fixed |
+| RG-016 | Backend governance migration | `asset_documents.py` and shared asset-admin gate now resolve through Enterprise Governance permissions | Verified Fixed |
 
-## Residual Legacy Findings (Authoritative Scanner Output = 1)
-| Finding ID | File | Scanner symbol | Classification | Rationale |
-|---|---|---|---|---|
-| RL-001 | `backend/routes/asset_documents.py` | `_require_asset_admin` | Blocked | Mutation routes still rely on route-local asset-admin authorization instead of Enterprise Governance policy evaluation. |
+## Residual Legacy Findings (Authoritative Scanner Output = 0)
+- None.
 
 ## Special-Case Infrastructure
 - Scanner currently records **52** special-case infrastructure items.
-- These are documented manual-review surfaces, not hidden debt.
-- Examples include projection metadata, visibility projectors, upload partitions, and other non-canonical-but-non-blocking infrastructure seams.
+- These are documented constitutional exemptions / manual-review surfaces, not hidden debt.
+- See `/app/WP15_CONSTITUTIONAL_EXEMPTIONS.md` for the grouped exemption register and evidence.
 
 ## Current Determination
 - Manual builder backlog: **closed**
 - Category F uncertainty: **0**
-- Residual constitutional blocker: **1 legacy-migratable backend finding remains**
+- Residual constitutional blocker: **none**

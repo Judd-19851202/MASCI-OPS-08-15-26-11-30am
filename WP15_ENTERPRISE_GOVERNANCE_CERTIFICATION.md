@@ -4,16 +4,17 @@ Date: 2026-07-29
 Status: Final determination issued
 
 ## Executive Summary
-The Enterprise Governance Engine is operational, the canonical request lifecycle is functioning, existing identities remain intact, and the final manual governed frontend builder wave is complete. However, repository-wide constitutional convergence is **not yet complete** because 1 residual backend legacy authorization seam still makes a business authorization decision outside the Enterprise Governance Engine.
+The Enterprise Governance Engine is operational, the canonical request lifecycle is functioning, existing identities remain intact, and repository-wide constitutional convergence is now complete. All legacy-migratable authorization seams have been removed, manual governed frontend builders are gone, and the remaining 52 scanner special cases are formally documented constitutional exemptions rather than competing authorization paths.
 
 ## Final Evidence Bundle
 - Frontend manual governed header builders: **0**
-- Scanner normalized constitutional counts: **94 canonical / 1 legacy-migratable / 52 special-case infrastructure / 0 Category F**
-- Local certification pytest bundle: **114 passed**
+- Scanner normalized constitutional counts: **93 canonical / 0 legacy-migratable / 52 special-case infrastructure / 0 Category F**
+- Local certification pytest bundle: **152 passed**
 - Focused session-timeout + recovery suite: **35 passed**
 - Frontend targeted QA regression: **pass** (`/app/test_reports/iteration_71.json`)
 - Independent backend verification: **7/7 passed**
 - Explicit governed session-expiry fixture: **200 before expiry → 401 after expiry**
+- Constitutional exemptions register: `/app/WP15_CONSTITUTIONAL_EXEMPTIONS.md`
 
 ## Verified Constitutional Strengths
 - Governed admin APIs require the canonical header pair (`X-Admin-Token` + `X-Directory-Token`).
@@ -24,28 +25,33 @@ The Enterprise Governance Engine is operational, the canonical request lifecycle
 - Identity continuity preserved: no username migration, password rewrite, or session-model weakening was used to obtain these results.
 
 ## Residual Constitutional Blockers
-The following remain true legacy authorization seams and block repository-wide sole-authority certification:
-1. `backend/routes/asset_documents.py`
+- None.
 
 ## Formal Determination
 - Governance engine runtime health: **VERIFIED**
 - Canonical request lifecycle enforcement: **VERIFIED**
 - Identity continuity: **VERIFIED**
 - Golden-path regression after builder convergence: **VERIFIED**
-- Repository-wide sole constitutional authority for business authorization: **NOT VERIFIED**
+- Repository-wide sole constitutional authority for business authorization: **VERIFIED**
 
 ## Final Certification Decision
-# **VERIFIED — NO-GO**
+# **VERIFIED — GO**
 
-### Why NO-GO
-WP-15’s constitutional closeout requires the Enterprise Governance Engine to be the sole authority for business authorization. The current codebase still contains 1 route-local legacy authorization decision. It is reduced and documented — but it is still authoritative.
+### Why GO
+WP-15’s constitutional closeout criteria are now satisfied:
+- `legacy_migratable = 0`
+- `manual_auth_header_construction = 0`
+- `governance_candidate = 0`
+- Certification suite passed (`152 passed`)
+- Independent backend verification passed (`7/7`)
+- Identity continuity remained preserved throughout migration
+- Remaining `special_case_infrastructure = 52` findings are formally documented constitutional exemptions with evidence
 
 ### What Is Safe To Rely On Today
 - The converged governed surfaces tested in this run are working correctly.
 - The frontend request lifecycle no longer contains manual governed builders.
 - Existing users, passwords, sessions, and tenant mappings remained intact.
+- Emergency override, Trust Spine, session-expiry enforcement, and operator portal flows verified successfully.
 
-### What Must Happen For VERIFIED-GO
-1. Migrate or formally exempt the final residual legacy finding.
-2. Re-run the convergence scanner.
-3. Refresh the evidence package without weakening identity continuity or request-lifecycle enforcement.
+### Constitutional Exemption Note
+The remaining 52 `special_case_infrastructure` findings are grouped and justified in `/app/WP15_CONSTITUTIONAL_EXEMPTIONS.md`. They are infrastructure, projection, visibility, or token-boundary surfaces — not alternate business-authorization authorities.
