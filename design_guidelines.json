@@ -1,138 +1,174 @@
 {
-  "theme_architecture": {
-    "archetype": "Swiss High-Contrast & The Command Center Hybrid",
-    "rationale": "Enterprise operations spanning Dispatch, HR, PM, and Shop require intense clarity, operational precision, and strict hierarchy. A clean, high-contrast structural aesthetic ensures critical KPI visibility and mitigates cognitive load across multi-portal navigation.",
-    "global_directive": "Uniformity over variation. Every portal (Admin or Non-Admin) MUST adhere to a singular, predictable visual vocabulary. Prevent 'portal drift'."
-  },
+  "theme": "light",
   "typography": {
-    "font_families": {
-      "headings": "Chivo, sans-serif",
-      "body": "IBM Plex Sans, sans-serif",
-      "monospace": "IBM Plex Mono, monospace"
+    "strategy": "The 'Swiss Brutalist' adapted for heavy civil operations. High legibility in direct sunlight, industrial strength, and extreme clarity.",
+    "fonts": {
+      "headings": {
+        "family": "Chivo",
+        "description": "Industrial, sturdy, highly legible under harsh conditions.",
+        "weights": ["400", "700", "900"],
+        "usage": "Use tight letter spacing (tracking-tight) for H1-H3. Never center-align by default."
+      },
+      "body": {
+        "family": "IBM Plex Sans",
+        "description": "Technical, precise, and easily readable for dense data tables and forms.",
+        "weights": ["400", "500", "600"],
+        "usage": "Use leading-relaxed for long text, tracking-normal for standard inputs."
+      },
+      "mono": {
+        "family": "IBM Plex Mono",
+        "description": "For IDs, timestamps, and Trust Spine hashes.",
+        "weights": ["400", "500"]
+      }
     },
     "hierarchy": {
-      "h1_hero": "text-4xl sm:text-5xl font-black tracking-tighter leading-none text-slate-900 dark:text-white",
-      "h2_section": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100",
-      "h3_widget": "text-lg sm:text-xl font-semibold tracking-tight text-slate-800 dark:text-slate-200",
-      "body_main": "text-base font-normal leading-relaxed text-slate-700 dark:text-slate-300",
-      "data_labels": "text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400"
-    },
-    "rules": [
-      "BANNED: Inter or Space Grotesk for Headings.",
-      "CRITICAL: Maintain strict tracking and tight leading for headings.",
-      "Tabular Data: Always use 'tabular-nums' class for numbers in tables, KPIs, and charts to prevent jitter.",
-      "Never center-align long blocks of text or forms. Stick to strong left alignments."
-    ]
-  },
-  "colors": {
-    "base": "Stark White/Off-white (bg-slate-50) for Light Mode; Deep Obsidian (bg-slate-950) for Dark Mode.",
-    "primary_accent": "Use stark, high-contrast structural colors (Slate, Emerald, Red, Amber) based on data state.",
-    "status_colors": {
-      "success": "emerald-600 dark:emerald-500",
-      "warning": "amber-600 dark:amber-500",
-      "error": "red-600 dark:red-500",
-      "info": "blue-600 dark:blue-500"
-    },
-    "rules": [
-      "No full-screen gradients. Function over decoration.",
-      "The 'Tinted Grey' Rule: Neutral grays must have a slight cool tint (Slate) to feel alive.",
-      "Hover states MUST explicitly define text colors (e.g., hover:bg-slate-900 hover:text-white).",
-      "BANNED: Teal Green (#1B93A4) for dashboards."
-    ]
-  },
-  "visual enhancers": {
-    "surfaces": "Use 'Grid Borders' (The Technical Look). Flat backgrounds, 1px subtle border (border-slate-200 dark:border-slate-800), minimal to no shadows. Focus on crispness.",
-    "radius": "Subtle roundness. max 'rounded-md' or 'rounded-lg' (8px border-radius). Sharp, utilitarian, precise.",
-    "depth": "Avoid 'Glassmorphism' in these dense operational screens to prevent visual fatigue. Rely on solid colors and borders to delineate space.",
-    "background_opacity": "CRITICAL: DO NOT use complete transparent background in header, overlays, dropdowns, or any surface that has content under it."
-  },
-  "component name": {
-    "cards": "Remove default drop shadows. Use 1px borders. `shadow-none border border-slate-200 dark:border-slate-800`.",
-    "tables": "Dense rows. `py-2 px-3` for table cells to fit more data. Sticky headers.",
-    "buttons": "Sharp or slightly rounded corners (`rounded-md`). Clear distinction between primary (solid fill) and secondary (outline).",
-    "navigation_sidebar": "Persistent left sidebar. Must enforce uniform width, typography, and active state styles across all portals."
-  },
-  "grids": {
-    "dashboard_density": {
-      "strategy": "High Density Grid (For Dashboards / Analytics).",
-      "grid_classes": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-    },
-    "spacing": "Generous container padding (p-6 or p-8) but tight internal widget spacing. Maximize screen real estate without feeling cluttered."
-  },
-  "layouts": {
-    "multi_portal_navigation": {
-      "sidebar": "Persistent, collapsible left sidebar. width: 16rem expanded, 4rem collapsed. Active states must be clearly marked with a vertical accent bar on the left and a highlighted background.",
-      "header": "Sticky top bar with user profile, portal switcher, global search, and breadcrumbs. Solid background with a hard bottom border (border-b border-border/40). No transparent headers."
-    },
-    "forms_and_workflows": {
-      "strategy": "Single-column or rigid 2-column layouts for complex data entry. Group related fields into distinct bordered panels. Always left-aligned labels."
+      "h1": "text-4xl sm:text-5xl font-black tracking-tight",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-bold tracking-tight",
+      "h4": "text-lg sm:text-xl font-semibold",
+      "body": "text-base sm:text-lg",
+      "small": "text-sm font-medium",
+      "overline": "text-xs font-bold uppercase tracking-[0.2em]"
     }
   },
+  "colors": {
+    "archetype": "The Performance Pro (Adapted for Heavy Civil / Field-First)",
+    "description": "High-contrast, tactical, and glare-resistant. Optimized for mud, bright sunlight, and quick scanning. Teal green/blue is strictly forbidden.",
+    "palette": {
+      "background": {
+        "primary": "#FFFFFF",
+        "secondary": "#F4F4F5",
+        "tertiary": "#E4E4E7"
+      },
+      "text": {
+        "primary": "#0A0A0A",
+        "secondary": "#3F3F46",
+        "tertiary": "#71717A"
+      },
+      "brand": {
+        "primary": "#0A0A0A",
+        "accent": "#EA580C"
+      },
+      "status": {
+        "success": "#16A34A",
+        "warning": "#EAB308",
+        "error": "#DC2626",
+        "info": "#2563EB"
+      },
+      "border": {
+        "default": "#D4D4D8",
+        "heavy": "#A1A1AA"
+      }
+    },
+    "rules": {
+      "contrast": "Minimum 4.5:1 for normal text, 3:1 for large text. Never use pure transparent backgrounds for headers/overlays.",
+      "hover_states": "Hover states must be explicitly defined and have HIGHER contrast than default.",
+      "forbidden_colors": ["#1B93A4", "teal", "cyan", "#7351B7"]
+    }
+  },
+  "visual_enhancers": {
+    "borders": "Hard, 1px or 2px solid borders. No soft shadows. Use sharp edges or max 4px border-radius.",
+    "shadows": "Minimal. Use flat solid backgrounds with borders. Avoid glassmorphism as it fails in sunlight. Use solid colored backgrounds (e.g., bg-white) with border-b for sticky headers.",
+    "surfaces": "Grid Borders (The 'Technical' Look): Expose the skeleton for data-heavy views. Flat backgrounds, 1px subtle border, no shadow for dashboard cards.",
+    "icons": "Phosphor Icons (@phosphor-icons/react) - crisp, recognizable, solid weights for high visibility."
+  },
+  "components": {
+    "strategy": "Shadcn UI base, heavily customized for 'field-first' operations.",
+    "buttons": {
+      "touch_targets": "Massive. Minimum h-12 (48px) to h-14 (56px) for primary actions. Glove-friendly.",
+      "style": "Rectangular, dense, solid background. No pill shapes. 1px border on secondary buttons."
+    },
+    "forms": {
+      "inputs": "Minimum h-12. Avoid native inputs, use customized Shadcn Input/Select. Prefill wherever possible. Minimize typing.",
+      "labels": "Large, bold text (text-base or text-lg).",
+      "validation": "Error states must clearly explain: What happened? Why? What next? (No vague messages)."
+    },
+    "tables": {
+      "style": "Border-collapse layout. Dense but clear row height. Zebra striping (bg-zinc-50) for readability in sunlight.",
+      "mobile": "On mobile, transform tables into stackable cards for vertical scrolling."
+    },
+    "status_chips": {
+      "style": "Solid background with contrasting text and an accompanying icon (never rely on color alone)."
+    },
+    "dialogs": {
+      "style": "Full-screen on mobile, centered modal on desktop. Always include explicit 'Cancel' and 'Confirm' buttons.",
+      "confirmation": "Must show 'What changed', 'When', 'By whom', and 'Evidence reference' for Trust Spine correlation."
+    },
+    "toasts": {
+      "library": "sonner",
+      "position": "top-center on mobile for immediate visibility, bottom-right on desktop."
+    }
+  },
+  "grids": {
+    "strategy": "High Density Grid for Dashboards, Linear Vertical for Mobile Forms.",
+    "desktop": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4 or 12-column subgrid. gap-4 or gap-6.",
+    "mobile": "Strictly grid-cols-1. Stack everything. Full-width touch targets."
+  },
+  "layouts": {
+    "navigation": "Sticky top header with solid background (bg-white border-b border-zinc-200). Bottom tab bar for mobile (thumb-friendly). No hamburger-only menus on desktop.",
+    "page_anatomy": "Header -> Breadcrumbs -> Title/Action Bar -> Content -> Footer.",
+    "spacing": "Generous container padding (p-4 to p-8) but tight relational spacing within widgets (gap-2 to gap-4) to maximize viewport usage."
+  },
   "motion": {
-    "interactions": "Micro-interactions only. Hover states (-translate-y-[1px], border color changes), focus rings for accessibility.",
-    "transitions": "Use specific transition properties. (e.g., 'transition-colors duration-200'). No 'transition-all'.",
-    "loaders": "Use skeleton screens that match the final content structure rather than generic spinning circles."
+    "strategy": "Minimalist and purposeful. Instantaneous feedback.",
+    "rules": [
+      "No long, sweeping animations.",
+      "Use micro-interactions for button presses (scale down slightly).",
+      "Immediate visual response to taps (bg color change).",
+      "Use loading skeletons (progressive loading) instead of spinners where possible.",
+      "Respect prefers-reduced-motion."
+    ]
   },
   "accessibility": {
-    "contrast": "Minimum 4.5:1 for normal text. APCA adherence. Critical data must pop.",
-    "interactive": "All buttons/links must have visible :focus-visible rings (ring-2 ring-primary ring-offset-2 ring-offset-background).",
-    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute to facilitate robust automated testing."
+    "testing": "All interactive and key informational elements MUST include a 'data-testid' attribute (e.g., data-testid='submit-daily-report-button').",
+    "vision": "Do not rely on color alone for status. Always pair with text/icons.",
+    "contrast": "Enforce strict WCAG AA or APCA contrast ratios. Text over backgrounds must be fully legible in direct sunlight.",
+    "keyboard": "Full keyboard navigation required for desktop operators (estimators/executives)."
   },
   "media": {
-    "icons": "For dense dashboards and multi-portal operations, prioritize Phosphor Icons (`@phosphor-icons/react`) for crisp readability at small sizes.",
-    "graphics": "Keep graphics minimal. Use clear status indicators over illustrative graphics."
+    "strategy": "Utilitarian. Photos used as evidence or reference, not decoration.",
+    "images": "Images must not exceed 80vh on mobile. Use max-h-[80vh] md:max-h-none."
   },
-  "3d libraries": {
-    "usage": "Not recommended for dense, data-heavy enterprise portals unless required for specific logistics mapping.",
-    "recommendation": "If spatial mapping of fleet/transportation is required, prefer Visx or React Map GL tailored for performance, rather than 3D canvases."
+  "image_urls": {
+    "description": "Curated images for heavy civil operations (Daily Reports, Photos, Dispatch, Equipment). DO NOT USE PLACEHOLDERS.",
+    "categories": {
+      "equipment_inspections": [
+        "https://images.unsplash.com/photo-1575281923032-f40d94ef6160?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDN8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwaGVhdnklMjBlcXVpcG1lbnR8ZW58MHx8fHwxNzgyMzAwNDk4fDA&ixlib=rb-4.1.0&q=85",
+        "https://images.pexels.com/photos/1009926/pexels-photo-1009926.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+      ],
+      "site_overview": [
+        "https://images.pexels.com/photos/69483/pexels-photo-69483.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+      ],
+      "field_operator": [
+        "https://images.unsplash.com/photo-1628158088791-89567a8e84ec?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwd29ya2VyJTIwaXBhZHxlbnwwfHx8fDE3ODM4NDExMTZ8MA&ixlib=rb-4.1.0&q=85"
+      ]
+    }
   },
-  "image urls": {
-    "user_avatars": "Do not use placeholders. Fall back to initial-based typographic avatars if images are not provided.",
-    "logos": "Use actual brand logos. No placeholder images."
+  "3d_libraries": {
+    "strategy": "None for the core field operator application. The focus is speed and cognitive ease.",
+    "libraries_to_use": []
   },
-  "coaching_and_help": {
-    "directive": "Calibration & Reduction. Do not overload users with excessive onboarding text or persistent helper blocks.",
-    "implementation": [
-      "Remove giant 'How to use this page' alert boxes taking up vertical space.",
-      "Use Progressive Disclosure: Move help text into '?' tooltip icons, tooltips, or slide-out help drawers.",
-      "Empty states: Provide concise 1-2 sentence instructions and a primary CTA, not a wall of text.",
-      "Inline help: Use muted, small text directly below complex inputs, strictly limited to formatting requirements."
-    ]
-  },
-  "verbiage_and_wording": {
-    "directive": "Plain, Action-Oriented, Consistent.",
-    "rules": [
-      "Use strong verbs for buttons (e.g., 'Save Configuration' instead of 'Submit', 'Approve Time' instead of 'OK').",
-      "Ensure consistent terminology across ALL portals (e.g., standardizing 'Personnel' vs 'Crew' based on global app context).",
-      "Eliminate jargon where a simpler term works.",
-      "Sentence case for labels and buttons. Title case for Page Titles and Major Widgets."
-    ]
-  },
-  "steps": [
-    "Phase 1: Sweep ALL `.js` non-admin route files (Dispatch, Shop, Transportation, PM, HR, Safety, Forms) to ensure they share the same typography scale and layout structures.",
-    "Phase 2: Unify the Navigation/Sidebar components. Eliminate portal drift by replacing custom portal sidebars with a single, highly-configurable standard sidebar pattern.",
-    "Phase 3: Calibrate all Help and Coaching texts. Convert long paragraphs into popovers, tooltips, and concise bullet lists.",
-    "Phase 4: Perform a verbiage audit. Replace all generic button terms with direct, action-oriented verbs. Standardize naming across domains.",
-    "Phase 5: Apply visibility and spacing improvements. Enforce consistent `gap-x`, `p-x` padding conventions, and rigid table cell definitions.",
-    "Phase 6: Ensure `data-testid` is mapped to every single new or updated interactive element."
-  ],
   "instructions_to_main_agent": [
-    "You MUST sweep every non-admin route across the entire platform (Dispatch, HR, Shop, PM, Transportation, Safety, Training). Nothing is too big or too small.",
-    "You are working with `.js` files, not `.tsx`. Respect the existing React JavaScript syntax.",
-    "Standardize font classes on all major headings, strictly adhering to the defined typography and removing random occurrences.",
-    "Unify the sidebar layout across portals. Ensure the collapsible mechanism, active state styling, and spacing are 100% identical everywhere.",
-    "Calibrate coaching text: Find heavy paragraphs of help text and refactor them into Tooltips, Popovers, or succinct bullet points.",
-    "Fix Verbiage: Ensure terminology is consistent. Replace ambiguous button texts with clear, action-oriented verbs.",
-    "Add `data-testid` to all newly polished interactive elements.",
-    "DO NOT break existing API calls, functional hooks, or internal state variables while rewriting the UI layers."
+    "You are executing WP-16 (OPERATOR EXPERIENCE CONSTITUTION). The platform must feel invisible, allowing the work to command attention.",
+    "Enforce Field-First Hardening: All controls must be glove-friendly (large touch targets, min h-12) and sunlight-readable (high contrast, light mode).",
+    "Never use `transparent` background in headers, sticky elements, or overlays. Use solid backgrounds with borders (e.g., `bg-white border-b border-zinc-200`).",
+    "Implement the 'Golden Path' UI: Reduce clicks, avoid duplicate entries, prefer pickers over typing.",
+    "Error Messages: Every error MUST answer 'What happened?', 'Why?', and 'What next?'. Never expose stack traces or vague messages.",
+    "Trust Spine Visibility: Important actions must show confirmation with evidence (What changed, When, By Whom, Evidence Ref).",
+    "No feature ships without an operator walkthrough setup (conceptually). Keep layouts predictable and rigid.",
+    "Mobile Experience: Stack everything. Use bottom navigation bars if necessary. No complex horizontal scrolling.",
+    "Add 'data-testid' to every button, link, form input, and status chip.",
+    "Do NOT make it prettier for its own sake. Optimize for correctness, clarity, and operations-first efficiency."
   ],
   "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
-    "Do not converge toward generic outputs. Use the defined typography and spacing rigorously.",
-    "Never apply universal 'transition: all'.",
-    "Never center align the app container; do not add `.App { text-align: center; }`.",
-    "Use 2-3x more spacing (p-6, p-8) around major container edges to prevent a cramped feel, while keeping widget data dense internally.",
-    "Always explicitly define text colors on hover/active states.",
-    "Always use 'data-testid' on interactive elements.",
-    "CRITICAL: DO NOT use complete `transparent` background in header, overlays, any surface that has content under it."
+    "Avoid generic 'AI slop' aesthetics. Do not use simplistic gradients or centered layouts.",
+    "Use solid background headers. NO glassmorphism—it looks muddy in direct sunlight.",
+    "DO NOT apply universal transitions (e.g., `transition: all`). Target specific properties (`transition-colors`, `transition-transform`).",
+    "DO NOT center align the app container. Text and forms should align left for natural reading flow.",
+    "Use modern but rugged UI components—sharp corners or max 4px radius, no pill shapes.",
+    "NEVER use emojis for icons. Use Phosphor Icons.",
+    "Do not use placeholder URLs for images. Use the provided 'image_urls' for dummy data.",
+    "Use 'sonner' for toasts, located in /app/frontend/src/components/ui/sonner.js (or .tsx if applicable, adjust based on actual file extensions).",
+    "Check components in src/components/ui before creating new ones. Build on Shadcn primitives."
   ]
 }
