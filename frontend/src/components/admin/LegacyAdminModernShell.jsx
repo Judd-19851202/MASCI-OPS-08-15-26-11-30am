@@ -57,7 +57,7 @@ export default function LegacyAdminModernShell({
     <div className="flex items-center gap-2">
       <Link
         to="/admin"
-        className="inline-flex items-center gap-1.5 px-3 py-2 border border-zinc-300 bg-white rounded-sm text-xs font-semibold text-zinc-800 hover:bg-zinc-50 wp16-focus-ring"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100"
         data-testid={`${testidPrefix}-back-adminos`}
       >
         <ArrowLeft className="w-3.5 h-3.5" />
@@ -68,10 +68,10 @@ export default function LegacyAdminModernShell({
   );
 
   return (
-    <div className="min-h-screen" data-testid={`${testidPrefix}-root`}>
+    <div className="min-h-screen bg-slate-50" data-testid={`${testidPrefix}-root`}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Admin OS"
+        portalRole="Admin"
         pageTitle={title}
         subtitle={subtitle}
         primaryActions={actions}

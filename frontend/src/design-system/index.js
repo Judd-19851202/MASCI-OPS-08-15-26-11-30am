@@ -6,13 +6,6 @@ export { StatusChip } from "./StatusChip";
 export { Card } from "./Card";
 export { EmptyState } from "./EmptyState";
 export { DataTable } from "./DataTable";
-export { PageHeader } from "./PageHeader";
-export { ActionBar } from "./ActionBar";
-export { SearchToolbar } from "./SearchToolbar";
-export { FormField } from "./FormField";
-export { ErrorBanner } from "./ErrorBanner";
-export { MobileNavigation } from "./MobileNavigation";
-export { PlatformIcon, resolvePlatformIcon } from "./icons";
 export {
   STATUS_REGISTRY,
   STATUS_FAMILY,

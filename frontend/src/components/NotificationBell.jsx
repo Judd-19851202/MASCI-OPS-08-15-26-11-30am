@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import {
   listNotifications, markRead, markAllRead, getUnreadCount,
 } from "@/lib/tasksApi";
-import { activePortals, isSignedInAnywhere } from "@/lib/permissions";
+import { isSignedInAnywhere } from "@/lib/permissions";
 import { onQueueChange } from "@/lib/resiliency";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -221,10 +221,9 @@ export default function NotificationBell({ accent = "slate" }) {
   const navigate = useNavigate();
 
   const muted = muteUntil > Date.now();
-  const hasLivePortalSession = activePortals().length > 0;
 
   const refreshCount = useCallback(async () => {
-    if (!hasLivePortalSession) return;
+    if (!isSignedInAnywhere()) return;
     const n = await getUnreadCount();
     setUnread(n);
     // Audible cue only when count strictly increases AND not muted
@@ -235,7 +234,7 @@ export default function NotificationBell({ accent = "slate" }) {
     }
     lastCountRef.current = n;
     try { sessionStorage.setItem(LAST_COUNT_KEY, String(n)); } catch { /* noop */ }
-  }, [hasLivePortalSession]);
+  }, []);
 
   // Light polling — 60s. Pauses when tab is hidden.
   useEffect(() => {
@@ -295,10 +294,6 @@ export default function NotificationBell({ accent = "slate" }) {
   }, [readRecentMap]);
 
   const fetchItems = useCallback(async () => {
-    if (!hasLivePortalSession) {
-      setItems([]);
-      return;
-    }
     setLoading(true);
     try {
       const r = await listNotifications({ limit: 30 });
@@ -312,7 +307,7 @@ export default function NotificationBell({ accent = "slate" }) {
     } finally {
       setLoading(false);
     }
-  }, [hasLivePortalSession, readRecentMap]);
+  }, [readRecentMap]);
 
   const handleOpenChange = (v) => {
     setOpen(v);
@@ -351,14 +346,14 @@ export default function NotificationBell({ accent = "slate" }) {
   };
 
   // Don't render anything when fully signed-out.
-  if (!isSignedInAnywhere() || !hasLivePortalSession) return null;
+  if (!isSignedInAnywhere()) return null;
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         <button
           type="button"
-          className={`relative inline-flex items-center justify-center w-10 h-10 rounded-sm border ${accent === "white" ? "border-white/20 text-white hover:bg-white/10" : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"} transition-colors wp16-focus-ring`}
+          className={`relative inline-flex items-center justify-center w-9 h-9 rounded-md ${accent === "white" ? "text-white hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"} transition-colors`}
           title={muted ? "Notifications · sound muted" : "Notifications"}
           data-testid="notification-bell"
           aria-label="Notifications"
@@ -383,8 +378,8 @@ export default function NotificationBell({ accent = "slate" }) {
           )}
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-white" data-testid="notification-drawer">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b-2 border-zinc-900 bg-zinc-50">
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col" data-testid="notification-drawer">
+        <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
           {/* Track 15.1 (2026-06-16) — Defect 3 iPad layout fix:
               pr-12 reserves space for the Shadcn close X (absolute
               right-4 top-4); flex-wrap on the sound row prevents
@@ -448,16 +443,16 @@ export default function NotificationBell({ accent = "slate" }) {
             </Button>
           </div>
           {muted && (
-            <p className="text-[10px] text-zinc-500 mt-1" data-testid="notification-mute-status">
+            <p className="text-[10px] text-slate-500 mt-1" data-testid="notification-mute-status">
               Sound muted until {formatPlatformTime(muteUntil)}. Notifications still arrive silently.
             </p>
           )}
         </SheetHeader>
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="text-center text-zinc-500 py-10 text-sm">Loading…</div>
+            <div className="text-center text-slate-500 py-10 text-sm">Loading…</div>
           ) : items.length === 0 ? (
-            <div className="text-center text-zinc-500 py-10 text-sm" data-testid="notification-empty">
+            <div className="text-center text-slate-500 py-10 text-sm" data-testid="notification-empty">
               You&apos;re all caught up.
             </div>
           ) : (
@@ -473,7 +468,7 @@ export default function NotificationBell({ accent = "slate" }) {
                   <li
                     key={n.id}
                     onClick={() => onItemClick(n)}
-                    className={`px-5 py-3.5 cursor-pointer hover:bg-zinc-50 transition-colors ${n.is_read ? "" : "bg-blue-50/50"}`}
+                    className={`px-5 py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${n.is_read ? "" : "bg-blue-50/50"}`}
                     data-testid={`notification-item-${n.id}`}
                     data-read={n.is_read ? "true" : "false"}
                     data-recently-read={recentlyRead ? "true" : "false"}
@@ -548,10 +543,10 @@ export default function NotificationBell({ accent = "slate" }) {
             </ul>
           )}
         </div>
-        <div className="border-t border-zinc-200 px-5 py-3 flex items-center justify-between bg-zinc-50">
+        <div className="border-t border-slate-200 px-5 py-3 flex items-center justify-between">
           <Link
             to="/tasks"
-            className="inline-flex items-center text-xs font-bold uppercase tracking-wide text-zinc-700 hover:text-zinc-900"
+            className="inline-flex items-center text-xs font-bold uppercase tracking-wide text-slate-700 hover:text-slate-900"
             onClick={() => setOpen(false)}
             data-testid="notification-tasks-link"
           >
