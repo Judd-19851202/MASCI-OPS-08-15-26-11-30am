@@ -22,6 +22,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 3 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -47,6 +49,10 @@ jobs:
       - name: Canonical release identity verifier
         run: |
           python3 backend/scripts/verify_release_identity.py --strict
+      - name: WP15 governance convergence scan
+        run: |
+          python3 backend/tools/wp15_governance_convergence_scan.py > /tmp/wp15-governance-scan.json
+          python3 scripts/assert_wp15_governance_convergence.py /tmp/wp15-governance-scan.json
 
   frontend-build:
     name: Frontend lint + build
@@ -98,6 +104,10 @@ jobs:
       - name: Generate canonical D5/D6 governance artifacts
         run: |
           python3 backend/scripts/generate_release_gate_governance.py
+      - name: WP15 governance release-candidate lock
+        run: |
+          python3 backend/tools/wp15_governance_convergence_scan.py > /tmp/wp15-governance-scan.json
+          python3 scripts/assert_wp15_governance_convergence.py /tmp/wp15-governance-scan.json
       - name: Run canonical release gate
         run: |
           python3 scripts/release_gate.py --target preview --json

@@ -456,8 +456,8 @@ def build_operational_constraints_router(
     @router.post("/{constraint_id}/chronology", response_model=ConstraintOut)
     async def append_chronology(
         constraint_id: str,
-        body: Dict[str, Any] = Body(...),
         request: Request,
+        body: Dict[str, Any] = Body(...),
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> ConstraintOut:
         """Append an operator-supplied chronology note (e.g., "owner

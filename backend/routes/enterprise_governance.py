@@ -240,7 +240,10 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         return {
             "governance_registry_version": registry.get("version"),
             "baseline_reference": "/app/memory/MASCI_OPS_PLATFORM_BASELINE_1_0.md",
-            "status": "wp15-in-progress",
+            "architecture_freeze_reference": "/app/WP15_ARCHITECTURE_FREEZE.md",
+            "constitutional_standard_reference": "/app/WP15_CONSTITUTIONAL_GOVERNANCE_STANDARD.md",
+            "operational_health_dashboard_route": "/admin/governance",
+            "status": "wp15-architecture-frozen",
         }
 
     @api_router.get("/api/admin/governance/health")

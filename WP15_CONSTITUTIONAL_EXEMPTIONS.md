@@ -15,16 +15,16 @@ They are **not unexplained authorization seams**. They are formally documented e
 ## Exemption Groups
 | Reason | Count | Representative paths | Constitutional interpretation |
 |---|---:|---|---|
-| Documented governed-scope adapter | 64 | `backend/routes/tasks_notifications.py`, `backend/routes/po_requests.py` | Uses documented scope adapters after constitutional migration; manual review only. |
-| Authentication/token boundary | 40 | `backend/lib/enterprise_governance.py`, `backend/routes/safety_portal/_deps.py`, `backend/routes/fleet_ops_deps.py` | Auth/token plumbing and boundary adapters, not alternate business-authorization authority. |
-| Environment heuristic, not business authorization | 18 | `backend/routes/integration_truth.py` | Operational heuristics only; no business action authorization decision. |
+| Authentication/token boundary | 14 | `backend/lib/enterprise_governance.py`, `backend/routes/safety_portal/_deps.py`, `backend/routes/fleet_ops_deps.py` | Auth/token plumbing and boundary adapters, not alternate business-authorization authority. |
 | Upload-portal partition after canonical actor gate | 8 | `backend/routes/legacy_imports.py` | Post-auth data partitioning, not a competing authorization authority. |
+| Documented governed-scope adapter | 7 | `backend/routes/tasks_notifications.py`, `backend/routes/po_requests.py` | Uses documented scope adapters after constitutional migration; manual review only. |
 | Canonical request-lifecycle infrastructure | 7 | `frontend/src/lib/api.js`, `frontend/src/lib/authHeaders.js`, `frontend/src/lib/xhrPortalAuth.js` | First-party lifecycle infrastructure required to propagate canonical headers. |
-| Domain classification branch | 5 | `backend/routes/daily_reports.py`, `backend/routes/project_team_assignments.py` | Domain data-shaping/classification logic, not alternate business authorization. |
 | Governed scope application branch | 5 | `backend/routes/operations_center.py`, `backend/routes/global_search.py` | Governed scope is being applied, not bypassed. |
+| Domain classification branch | 4 | `backend/routes/daily_reports.py`, `backend/routes/project_team_assignments.py` | Domain data-shaping/classification logic, not alternate business authorization. |
 | Read-visibility projector after auth gate | 3 | `backend/routes/odr/routes.py` | Post-auth visibility projector; authority remains upstream. |
-| Identity projection snapshot field | 2 | `backend/services/enterprise_governance.py` | Snapshot/projection metadata only. |
+| Identity projection snapshot field | 1 | `backend/services/enterprise_governance.py` | Snapshot/projection metadata only. |
 | Directory view projection field | 1 | `backend/routes/admin_directory_k4.py` | Directory projection output, not authorization. |
+| Environment heuristic, not business authorization | 1 | `backend/routes/integration_truth.py` | Operational heuristics only; no business action authorization decision. |
 | Infrastructure portal-token probe | 1 | `backend/routes/integrations/_deps.py` | Token-boundary infrastructure only. |
 
 ## Evidence

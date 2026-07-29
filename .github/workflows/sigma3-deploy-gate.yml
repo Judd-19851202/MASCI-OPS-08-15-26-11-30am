@@ -55,6 +55,10 @@ jobs:
         run: |
           ruff check backend/server.py backend/routes \
             --select=E9,F63,F7,F82
+      - name: WP15 governance production deploy lock
+        run: |
+          python3 backend/tools/wp15_governance_convergence_scan.py > /tmp/wp15-governance-scan.json
+          python3 scripts/assert_wp15_governance_convergence.py /tmp/wp15-governance-scan.json
 
   iteration-summary-discipline:
     name: PRD iteration summary lint
@@ -158,6 +162,10 @@ jobs:
       - name: Generate canonical D5/D6 governance artifacts
         run: |
           python3 backend/scripts/generate_release_gate_governance.py
+      - name: Re-assert WP15 governance convergence
+        run: |
+          python3 backend/tools/wp15_governance_convergence_scan.py > /tmp/wp15-governance-scan.json
+          python3 scripts/assert_wp15_governance_convergence.py /tmp/wp15-governance-scan.json
       - name: Verify manifest-driven regression files exist (no skips, no bypass)
         run: |
           python3 - <<'PY'

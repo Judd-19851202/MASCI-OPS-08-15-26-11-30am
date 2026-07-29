@@ -285,6 +285,15 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
         >
           {card.summary || "No summary."}
         </p>
+        {card.root_cause_explanation && card.root_cause_explanation !== card.summary ? (
+          <p
+            className="text-[11px] text-slate-500 leading-snug"
+            data-testid={`${testidPrefix}-${card.id}-root-cause`}
+          >
+            <span className="font-semibold text-slate-600">Why: </span>
+            {card.root_cause_explanation}
+          </p>
+        ) : null}
         {card.recommended_action ? (
           <p
             className="text-[11px] text-slate-500 leading-snug"
@@ -298,10 +307,10 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
           <div className="min-w-0 flex-1">
             <div
               className="text-[10px] font-mono text-slate-500 truncate"
-              title={card.endpoint || ""}
+              title={card.evidence_source_label || card.endpoint || ""}
               data-testid={`${testidPrefix}-${card.id}-endpoint`}
             >
-              {card.endpoint || "—"}
+              {card.evidence_source_label || card.endpoint || "—"}
             </div>
             {card.checked_at ? (
               <div
@@ -309,7 +318,16 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
                 title="Last checked (your local time)"
                 data-testid={`${testidPrefix}-${card.id}-stamp`}
               >
-                {formatRelativeTime(card.checked_at)}
+                Evidence {formatRelativeTime(card.checked_at)}
+              </div>
+            ) : null}
+            {card.last_successful_refresh ? (
+              <div
+                className="text-[10px] font-mono text-slate-400"
+                title="Last successful refresh"
+                data-testid={`${testidPrefix}-${card.id}-refresh`}
+              >
+                Refreshed {formatRelativeTime(card.last_successful_refresh)}
               </div>
             ) : null}
           </div>
@@ -352,19 +370,24 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
         <div className="mt-5 space-y-4 text-sm">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Source endpoint
+              Evidence source
             </div>
             <div
               className="font-mono text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 break-all"
               data-testid={`${testidPrefix}-endpoint`}
             >
-              {card.endpoint || "—"}
+              {card.evidence_source_label || card.endpoint || "—"}
             </div>
+            {card.endpoint && card.evidence_source_label && card.evidence_source_label !== card.endpoint ? (
+              <div className="mt-2 text-xs text-slate-500 break-all" data-testid={`${testidPrefix}-endpoint-raw`}>
+                {card.endpoint}
+              </div>
+            ) : null}
           </div>
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Last checked
+              Evidence timestamp
             </div>
             <div
               className="text-xs text-slate-800"
@@ -376,15 +399,53 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Last successful refresh
+            </div>
+            <div className="text-xs text-slate-800" data-testid={`${testidPrefix}-last-refresh`}>
+              {card.last_successful_refresh ? formatPlatformTime(card.last_successful_refresh) : "—"}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Last verified
+            </div>
+            <div className="text-xs text-slate-800" data-testid={`${testidPrefix}-verified-at`}>
+              {card.verified_at ? formatPlatformTime(card.verified_at) : (card.checked_at ? formatPlatformTime(card.checked_at) : "—")}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Produced by
+            </div>
+            <div className="text-xs text-slate-800 break-words" data-testid={`${testidPrefix}-producer`}>
+              {card.producer || "—"}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
               Why this status
             </div>
             <div
               className={`text-xs rounded px-2 py-1.5 border ${style.bg} ${style.text} ring-1 ${style.ring}`}
               data-testid={`${testidPrefix}-reason`}
             >
-              {card.summary}
+              {card.root_cause_explanation || card.summary}
             </div>
           </div>
+
+          {card.affected_assets ? (
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+                Affected assets
+              </div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
+                <EvidenceSummary value={card.affected_assets} testidPrefix={`${testidPrefix}-affected-assets`} />
+              </div>
+            </div>
+          ) : null}
 
           {card.recommended_action ? (
             <div>

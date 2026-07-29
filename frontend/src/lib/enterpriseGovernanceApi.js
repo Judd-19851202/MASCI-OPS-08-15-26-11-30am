@@ -94,3 +94,8 @@ export async function fetchGovernanceHealth() {
   const { data } = await api.get("/admin/governance/health");
   return data;
 }
+
+export async function fetchOperationalHealthModule(moduleId = "enterprise-governance") {
+  const { data } = await api.get(`/admin/operational-health/modules/${encodeURIComponent(moduleId)}`);
+  return data;
+}

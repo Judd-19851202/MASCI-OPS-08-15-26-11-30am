@@ -15686,6 +15686,10 @@ from routes.governance_health import build_governance_health_router  # noqa: E40
 
 app.include_router(build_governance_health_router())
 
+from routes.admin_operational_health import make_router as _operational_health_make_router  # noqa: E402
+
+app.include_router(_operational_health_make_router(require_admin_strict))
+
 # ─── WP-15 · Enterprise Governance Engine admin domain ───────────────
 from routes.enterprise_governance import register_enterprise_governance_routes  # noqa: E402
 
