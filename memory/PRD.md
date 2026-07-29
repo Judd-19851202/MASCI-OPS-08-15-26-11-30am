@@ -22,6 +22,33 @@
   - platform is back to **recovery-stable baseline**
   - WP-16 may proceed only in **inventory/review mode** until explicit approval of canonical standards
 
+## 2026-07-29 WP-16 read-only audit package — census first
+
+- Operated under the user-approved **STRICT READ-ONLY AUDIT DIRECTIVE**.
+- No runtime UI, CSS, component, routing, or behavior files were modified.
+- Completed the P0/P0.5 audit deliverables for the restored baseline:
+  - `/app/memory/WP16_BASELINE_CENSUS_REFRESH.md`
+  - `/app/memory/WP16_COVERAGE_REGISTER.md`
+  - `/app/memory/WP16_VISUAL_PATTERN_ATLAS.md`
+  - `/app/memory/WP16_ACTIVE_DEFECT_LOG.md`
+  - `/app/memory/WP16_SCREEN_REGISTRY.md`
+- Captured and preserved screenshot evidence in `/app/memory/wp16_evidence/` for public, admin, PM, HR, safety, dispatch, and shop shells.
+- Census outcome recorded from source + preview evidence:
+  - **480** discoverable route patterns inventoried
+  - **14** exercised routes
+  - **2** blocked routes (`/hr`, `/hr/employees`)
+  - **464** not yet exercised routes
+- Active defects documented only in this phase; no fixes attempted:
+  - known `/api/notifications` 403 scope on some HR pages
+  - observed HR 403s on employee-completeness and employee list data endpoints
+  - observed Dispatch 401 on MaintainX defect coverage endpoint
+- Post-documentation smoke verification completed via frontend QA:
+  - all key public/admin/PM/HR/safety/dispatch/shop smoke routes passed
+  - result: runtime remained stable after documentation-only work
+- Next constitutional state:
+  - stop at presentation/review
+  - wait for user approval before any canonical design decisions or implementation work begins
+
 ## 2026-07-29 Final constitutional closeout — operational dashboard + CI freeze
 
 ### Truth reconciliation + final administrative freeze
