@@ -9,18 +9,16 @@
  *   - Returns parsed JSON; raises on non-2xx so callers can surface
  *     calm error toasts via the existing trust contract.
  */
-import { getAdminToken } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders(extra = {}) {
-  const h = { "Content-Type": "application/json", ...extra };
-  const a = getAdminToken();
-  const d = getDispatchToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (d) h["X-Dispatch-Token"] = d;
-  return h;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+    ...extra,
+  };
 }
 
 async function _get(path) {

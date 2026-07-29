@@ -1,29 +1,15 @@
 // TRACK 23.10-B · Professional Qualifications Engine API client.
 // Reads: any authenticated portal token. Writes: HR / Safety-Training-admin / Admin.
 import axios from "axios";
-import { getHrToken } from "@/lib/hrAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function authHeaders() {
-  // HR Portal is the primary write surface. Attach both HR and Admin
-  // headers when available so the multi-role gate resolves cleanly.
-  const headers = { "Content-Type": "application/json" };
-  const hr = getHrToken();
-  if (hr) headers["X-HR-Token"] = hr;
-  try {
-    const adm = window.localStorage.getItem("adminToken");
-    if (adm) headers["X-Admin-Token"] = adm;
-  } catch (e) {
-    // localStorage may be blocked — ignore.
-  }
-  try {
-    const saf = window.localStorage.getItem("safety_token");
-    if (saf) headers["X-Safety-Token"] = saf;
-  } catch (e) {
-    // ignore
-  }
-  return headers;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["hr", "admin", "safety"]),
+  };
 }
 
 export async function listQualificationTypes() {

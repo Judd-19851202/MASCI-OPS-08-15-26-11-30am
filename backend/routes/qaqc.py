@@ -20,7 +20,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
-from pm_auth import compute_pm_scope
+from lib.enterprise_governance import governance_project_scope_allows, governance_project_scope_filter
 
 
 _ALLOWED_KINDS = {"concrete_form", "rebar", "subcontractor_work"}
@@ -307,10 +307,10 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
 
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])
     async def list_qaqc(actor=Depends(require_admin)):
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        project_filter = await governance_project_scope_filter(db, actor)
+        if project_filter is None:
             return []
-        cursor = db.qaqc_inspections.find(scope.filter({}), {"_id": 0}).sort("created_at", -1).limit(2000)
+        cursor = db.qaqc_inspections.find(project_filter, {"_id": 0}).sort("created_at", -1).limit(2000)
         out: List[QaqcInspectionSummary] = []
         async for d in cursor:
             out.append(_summary_from_doc(d))
@@ -354,8 +354,7 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         doc = await db.qaqc_inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="QA/QC inspection not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        if not await governance_project_scope_allows(db, actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="QA/QC inspection not found")
         return doc
 
@@ -368,10 +367,9 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
 
     @api_router.get("/admin/qaqc-inspections/stats")
     async def qaqc_stats(actor=Depends(require_admin)):
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        base = await governance_project_scope_filter(db, actor)
+        if base is None:
             return {"total": 0, "by_kind": [], "last": None}
-        base = scope.filter({})
         total = await db.qaqc_inspections.count_documents(base)
         rows = []
         for k in ("concrete_form", "rebar", "subcontractor_work"):
@@ -386,7 +384,7 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
 
     @api_router.get("/admin/qaqc-inspections/export.csv")
     async def qaqc_export(actor=Depends(require_admin)):
-        scope = await compute_pm_scope(db, actor)
+        base = await governance_project_scope_filter(db, actor)
         buf = io.StringIO()
         w = _csv.writer(buf)
         w.writerow([
@@ -394,14 +392,14 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
             "Location", "Inspector", "Subcontractor", "Pass", "Fail", "N/A",
             "Photos", "Deficiencies",
         ])
-        if scope.is_definitively_empty():
+        if base is None:
             buf.seek(0)
             return Response(
                 content=buf.read(),
                 media_type="text/csv",
                 headers={"Content-Disposition": 'attachment; filename="masci-qaqc-inspections.csv"'},
             )
-        cursor = db.qaqc_inspections.find(scope.filter({}), {"_id": 0}).sort("created_at", -1)
+        cursor = db.qaqc_inspections.find(base, {"_id": 0}).sort("created_at", -1)
         async for d in cursor:
             w.writerow([
                 d.get("created_at", ""),

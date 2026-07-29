@@ -1,24 +1,12 @@
 // docExpirationsApi.js — Iter151 (Phase B). Thin client for the
 // /api/document-expirations service.
 import axios from "axios";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getHrToken } from "@/lib/hrAuth";
-import { getPmToken } from "@/lib/pmAuth";
-import { getShopToken } from "@/lib/shopAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function authHeaders() {
-  const h = {};
-  const a = getAdminToken(); if (a) h["X-Admin-Token"] = a;
-  const s = getSafetyToken(); if (s) h["X-Safety-Token"] = s;
-  const hr = getHrToken(); if (hr) h["X-HR-Token"] = hr;
-  const p = getPmToken(); if (p) h["X-PM-Token"] = p;
-  const sh = getShopToken(); if (sh) h["X-Shop-Token"] = sh;
-  const d = getDispatchToken(); if (d) h["X-Dispatch-Token"] = d;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "safety", "hr", "pm", "shop", "dispatch"]);
 }
 
 export async function listExpirations(params = {}) {

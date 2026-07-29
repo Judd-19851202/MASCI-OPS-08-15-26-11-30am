@@ -4,6 +4,7 @@
 // shared helper.
 
 import axios from "axios";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -11,16 +12,7 @@ const API = `${BACKEND_URL}/api`;
 // Pull whichever portal token is present. Order mirrors the backend
 // `make_require_safety_admin_or_pm` gate.
 function _authHeaders() {
-  const h = {};
-  try {
-    const safety = window.localStorage.getItem("safety_token");
-    const admin = window.localStorage.getItem("admin_token");
-    const pm = window.localStorage.getItem("pm_token");
-    if (safety) h["X-Safety-Token"] = safety;
-    if (admin) h["X-Admin-Token"] = admin;
-    if (pm) h["X-PM-Token"] = pm;
-  } catch { /* noop */ }
-  return h;
+  return buildScopedPortalAuthHeaders(["safety", "admin", "pm"]);
 }
 
 function _client() {
@@ -77,12 +69,11 @@ export async function addEvidence(caseId, payload) {
 // Directory identity of the current user (name / email / role).
 export async function fetchDirectoryMe() {
   try {
-    const directory = window.localStorage.getItem("masci.directory.token");
-    if (!directory) return null;
+    const headers = buildScopedPortalAuthHeaders(["directory"]);
+    if (!headers["X-Directory-Token"]) return null;
     const c = axios.create({
       baseURL: API,
-      headers: { "Content-Type": "application/json",
-                 "X-Directory-Token": directory },
+      headers: { "Content-Type": "application/json", ...headers },
       timeout: 6000,
     });
     const { data } = await c.get("/auth/me-directory");

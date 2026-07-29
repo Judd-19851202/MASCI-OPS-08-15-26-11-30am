@@ -1,26 +1,13 @@
 // src/lib/teamRosterApi.js — Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 1.
 // Client for the project_team_assignments backend.
 
-import { getAdminToken } from "./adminAuth";
-import { getPmToken } from "./pmAuth";
-import { getSafetyToken } from "./safetyAuth";
-import { getHrToken } from "./hrAuth";
-import { getShopToken } from "./shopAuth";
-import { getDispatchToken } from "./dispatchAuth";
-import { getFlToken } from "./flAuth";
+import { buildScopedPortalAuthHeaders } from "./authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function headers(json = false) {
-  const h = {};
+  const h = buildScopedPortalAuthHeaders(["admin", "pm", "safety", "hr", "shop", "dispatch", "fl"]);
   if (json) h["Content-Type"] = "application/json";
-  const a = getAdminToken(); if (a) h["X-Admin-Token"] = a;
-  const p = getPmToken(); if (p) h["X-PM-Token"] = p;
-  const s = getSafetyToken(); if (s) h["X-Safety-Token"] = s;
-  const hr = getHrToken(); if (hr) h["X-HR-Token"] = hr;
-  const sh = getShopToken(); if (sh) h["X-Shop-Token"] = sh;
-  const d = getDispatchToken(); if (d) h["X-Dispatch-Token"] = d;
-  const fl = getFlToken(); if (fl) h["X-FL-Token"] = fl;
   return h;
 }
 

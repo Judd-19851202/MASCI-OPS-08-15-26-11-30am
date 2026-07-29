@@ -15,13 +15,13 @@ import {
   GraduationCap, ListChecks, Activity, Lock,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { getAdminToken, isAdmin } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { isAdmin } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 export const TENANT = "masci";
 
 export function adminHeaders() {
-  return { "X-Admin-Token": getAdminToken() || "" };
+  return buildScopedPortalAuthHeaders(["admin"]);
 }
 
 // TRACK 18.12C · Cross-role header bundle.
@@ -32,10 +32,7 @@ export function adminHeaders() {
 // both — the empty-string short-circuit is fine because the gate
 // requires a "." in the token, which empty strings don't have.
 export function txHeaders() {
-  return {
-    "X-Admin-Token": getAdminToken() || "",
-    "X-Dispatch-Token": getDispatchToken() || "",
-  };
+  return buildScopedPortalAuthHeaders(["admin", "dispatch"]);
 }
 
 export const STATE_LABEL = {

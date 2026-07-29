@@ -2,18 +2,16 @@
  * operations/ocCommandApi.js — REST client for the Operations Center
  * Phase 4C backend endpoints (/api/operations-center/command/*).
  */
-import { getAdminToken } from "@/lib/adminAuth";
-import { getPmToken } from "@/lib/pmAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders(extra = {}) {
-  const h = { "Content-Type": "application/json", ...extra };
-  const a = getAdminToken();
-  const p = getPmToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (p) h["X-PM-Token"] = p;
-  return h;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "pm"]),
+    ...extra,
+  };
 }
 
 function qs(o) {

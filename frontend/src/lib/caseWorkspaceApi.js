@@ -1,20 +1,15 @@
 // Track 19.16 · Phase C · Safety Case Workspace — HTTP client.
 import axios from "axios";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 function headers() {
-  const h = { "Content-Type": "application/json" };
-  try {
-    const s = localStorage.getItem("safety_token");
-    const a = localStorage.getItem("admin_token");
-    const p = localStorage.getItem("pm_token");
-    if (s) h["X-Safety-Token"] = s;
-    if (a) h["X-Admin-Token"] = a;
-    if (p) h["X-PM-Token"] = p;
-  } catch { /* noop */ }
-  return h;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["safety", "admin", "pm"]),
+  };
 }
 const c = () => axios.create({ baseURL: API, headers: headers(), timeout: 20000 });
 

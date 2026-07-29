@@ -15,6 +15,8 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.enterprise_governance import governance_project_scope_numbers
+
 from services.safety_portal_trench import (
     company_trench_safety_kpis,
     project_trench_safety_kpis,
@@ -34,14 +36,7 @@ async def _pm_project_scope(db, actor: Dict[str, Any]) -> Optional[list]:
     """None = unrestricted (admin/safety). List = PM's projects."""
     if _role(actor) in SAFETY_ADMIN_ROLES:
         return None
-    try:
-        from pm_auth import compute_pm_scope                      # noqa: PLC0415
-        scope = await compute_pm_scope(db, actor)
-        if getattr(scope, "is_admin", False):
-            return None
-        return list(scope.project_numbers or [])
-    except Exception:                                            # noqa: BLE001
-        return []
+    return await governance_project_scope_numbers(db, actor)
 
 
 def build_safety_trench_intelligence_router(

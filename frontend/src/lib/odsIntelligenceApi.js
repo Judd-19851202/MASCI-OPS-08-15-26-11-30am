@@ -1,19 +1,12 @@
 import axios from "axios";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getPmToken } from "@/lib/pmAuth";
-import { getDirectoryToken } from "@/lib/directoryAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/ods`;
 const client = axios.create({ baseURL: BASE, timeout: 45000 });
 
 client.interceptors.request.use((config) => {
   config.headers = config.headers || {};
-  const admin = getAdminToken();
-  const pm = getPmToken();
-  const directory = getDirectoryToken();
-  if (admin) config.headers["X-Admin-Token"] = admin;
-  if (pm) config.headers["X-PM-Token"] = pm;
-  if (directory) config.headers["X-Directory-Token"] = directory;
+  Object.assign(config.headers, buildScopedPortalAuthHeaders(["admin", "pm"]));
   return config;
 });
 
