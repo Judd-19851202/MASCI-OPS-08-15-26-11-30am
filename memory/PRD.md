@@ -137,6 +137,7 @@ Current WP-14 P0 status:
 Final release determination:
 
 - **OPERATIONS CONTROL PLANE v1 — VERIFIED COMPLETE**
+- Permanent architectural baseline reference for this certified state: `/app/memory/MASCI_OPS_PLATFORM_BASELINE_1_0.md`
 
 Implemented and independently verified in this closeout:
 
@@ -177,6 +178,7 @@ Independent verification evidence:
 Post-closeout note:
 
 - Do not begin WP-15 unless the user explicitly starts that next phase.
+- Future work must treat Platform Baseline 1.0 as the authoritative architectural reference for the certified MASCI OPS platform state through `WP-OPPC-14F`.
 
 Next WP-14 tasks:
 

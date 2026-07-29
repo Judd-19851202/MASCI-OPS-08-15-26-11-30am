@@ -54,7 +54,13 @@
 - WP-11/12/13 are functionally complete and certified in preview.
 - Operational release gate for Cost Codes + Scheduling on project `24-06` is now **GO** with no remaining P0 defects.
 - WP-14 + WP-14F are now certified complete in preview; Operations Control Plane v1 closeout is achieved.
+- Platform master architectural reference is now frozen at `/app/memory/MASCI_OPS_PLATFORM_BASELINE_1_0.md`.
 - Portfolio-wide executive confidence refresh remains the main performance optimization candidate for WP-14.
+
+### Platform Baseline governance note
+
+- Platform Baseline 1.0 is established as the immutable architectural reference for MASCI OPS through the certified `WP-OPPC-14F` scope.
+- Future platform evolution must reference `/app/memory/MASCI_OPS_PLATFORM_BASELINE_1_0.md` and create a new baseline version rather than redefining Baseline 1.0 in place.
 
 ### OPPC governing constraints preserved
 

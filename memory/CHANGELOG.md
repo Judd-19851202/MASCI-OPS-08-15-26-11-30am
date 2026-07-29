@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-07-28 — Platform Baseline 1.0 architectural freeze established
+
+- Created the permanent master architectural reference: `/app/memory/MASCI_OPS_PLATFORM_BASELINE_1_0.md`.
+- Baseline 1.0 records the repository-verified certified state through `WP-OPPC-14F` and **OPERATIONS CONTROL PLANE v1 — VERIFIED COMPLETE**.
+- Cross-reference rule established: future architectural evolution must reference Baseline 1.0 and create a new baseline version instead of overwriting this reference state.
+- No platform behavior changed; this was a documentation / governance-only baseline establishment step.
+
 ## 2026-07-28 — WP-OPPC-14F Operational Case Management certification + OCP v1 closeout
 
 - Built the canonical Operational Case Management engine in `/app/backend/services/operations_control/case_management.py` with:
