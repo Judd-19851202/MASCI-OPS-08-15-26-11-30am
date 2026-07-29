@@ -77,3 +77,38 @@ Largest remaining legacy clusters from the scan:
 1. Migrate `tasks_notifications.py` read-scope filters to governance-backed identity and permission evaluation
 2. Audit remaining route families flagged by repository scan for inline role/admin branching
 3. Re-run repository-wide drift verification after each migration batch
+
+---
+
+## 2026-07-29 — WP-15C Baseline Expansion — Frontend Request-Lifecycle Surface Added
+
+This checkpoint expands scanner coverage beyond backend-only authorization drift and now includes frontend governed-request construction patterns. The raw increase after expansion is a **baseline-model change**, not an automatic code regression.
+
+### Identity Continuity Snapshot
+- No credential rewrite or account migration was performed in this batch.
+- Authoritative password ownership remains in the existing source collections:
+  - `user_directory.password_hash`
+  - `project_managers.password_hash`
+  - `hr_users.password_hash`
+  - `shop_users.password_hash`
+  - `safety_users.password_hash`
+  - `dispatch_users.password_hash`
+  - `field_leadership_users.password_hash`
+- Cross-identity email linkage inventory shows `161/161` portal records with email currently link to `user_directory` by email.
+
+### Canonical Findings Model (normalized constitutional decision points)
+- Scanner schema version: `2.0.0`
+- Detection rules version: `2.0.0`
+- Metric model version: `2.0.0`
+- Comparable to previous scan: **No**
+- Non-comparability reason: **WP-15C Baseline Expansion — Frontend Request-Lifecycle Surface Added**
+
+### Migration and Lifecycle Notes
+- Shared governance scope helpers were added and used to replace another batch of `compute_pm_scope` consumers.
+- Shared governed frontend reads that previously missed `X-Directory-Token` were converged onto the canonical scoped header builder.
+- A production-shaped identity continuity inventory was generated without exposing credentials.
+
+### Risks still blocking certification
+- Manual governed-request header construction remains present in many frontend surfaces and must be converged.
+- Repository-wide governance convergence is still incomplete.
+- Existing-user regression verification is still incomplete for several supported portal patterns.

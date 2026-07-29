@@ -50,3 +50,14 @@ The Enterprise Governance Engine backend is operational and now records explaina
 2. Re-run repository-wide drift scan and update `WP15_AUTHORIZATION_DRIFT_REPORT.md`
 3. Run full frontend/browser verification after user approval
 4. Run independent end-to-end regression across governed modules
+
+## 2026-07-29 Continuity Gate Addition
+- Existing Identity Continuity is now a constitutional P0 requirement for WP-15C completion.
+- Governance convergence may not break existing usernames, existing passwords, valid accounts, legitimate portal membership, or legitimate project/role access.
+- The request-lifecycle fix for cross-portal governed reads was implemented by correcting canonical client header forwarding, not by weakening backend validation.
+- `WP15_EXISTING_IDENTITY_CONTINUITY.md` now tracks authoritative identity sources, continuity rules, and production-shaped inventory evidence.
+
+## Current Withhold Reasons
+- Repository-wide governance convergence still incomplete
+- Frontend governed-request construction still contains manual header builders outside the canonical shared path
+- Existing-user regression matrix is only partially verified so far

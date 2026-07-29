@@ -46,3 +46,31 @@ Every non-compliant authorization decision must be classified as one of:
 - Coverage Dashboard missing
 - CI/CD governance gate not yet enforcing constitutional failure conditions
 - Independent Constitutional Audit not yet executed
+
+## Batch WP15C-2026-07-29-B2
+- Timestamp: 2026-07-29 UTC
+- Scope:
+  - Normalize scanner findings into durable constitutional decision points
+  - Add frontend request-lifecycle surface scanning
+  - Generate existing identity continuity inventory
+  - Document canonical request lifecycle and identity continuity guardrails
+- Findings before:
+  - Backend-centric scan with raw occurrence emphasis
+  - Cross-portal 401 root cause already traced to incomplete directory-session context forwarding
+- Findings after:
+  - Scanner model upgraded with schema/version metadata and baseline expansion labeling
+  - Existing identity inventory captured without exposing secrets
+  - Canonical lifecycle and continuity documents created
+- Migrations completed:
+  - Shared governance scope helper introduced in `lib.enterprise_governance`
+  - Additional `compute_pm_scope` consumers migrated in `project_health.py`, `operational_kpis.py`, `asset_transfers.py`, `trench_project_intelligence.py`, `dr_v2_pdf.py`, and `pm_routes.py`
+- Tests:
+  - `pytest /app/backend/tests/test_wp15_enterprise_governance.py -q` → `5 passed`
+- Remaining risks:
+  - Manual governed-request header construction remains widespread in frontend code
+  - Category F findings still require individual disposition
+  - Existing-user regression matrix still needs broader portal login coverage
+- Next batch:
+  - Finish scanner normalization outputs and use them as the new constitutional baseline
+  - Converge the highest-volume manual frontend header builders onto the canonical scoped builder
+  - Add existing-user login/session continuity tests for HR, Dispatch, Shop, and Field Leadership
