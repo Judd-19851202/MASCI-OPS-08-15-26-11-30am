@@ -23,6 +23,7 @@ Date: 2026-07-29
 - Reconciled route inventory ↔ screen registry with **0** unresolved mismatches.
 - Verified all **16** accepted screenshot files map to known registry entries.
 - Created campaign scaffolds for navigation trace, state coverage, device evidence, and progress tracking.
+- Confirmed the frozen runtime still behaves as before: **Phase 1 smoke verification passed 8/8 routes** (`/`, `/daily/submit`, `/admin`, `/pm`, `/hr`, `/safety-portal`, `/dispatch-portal`, `/shop`).
 
 ## What remains before readiness can improve
 - Zero-evidence portal sections still pending: **7**

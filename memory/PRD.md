@@ -81,6 +81,48 @@
   - do not begin canonical design selection yet
   - next approved step should be a read-only evidence expansion pass, not implementation
 
+## 2026-07-29 WP-16 evidence expansion — Phase 1 checkpoint
+
+- Executed **Phase 1 — Registry & Route Validation** under the user-approved staged checkpoint model.
+- No runtime UI, CSS, route, auth, API, or seed-data files were changed.
+- Added Phase 1 evidence-expansion documents:
+  - `/app/memory/WP16_ROUTE_EXERCISE_REGISTER.md`
+  - `/app/memory/WP16_NAVIGATION_TRACE_REGISTER.md`
+  - `/app/memory/WP16_STATE_COVERAGE_REGISTER.md`
+  - `/app/memory/WP16_DEVICE_EVIDENCE_REGISTER.md`
+  - `/app/memory/WP16_EVIDENCE_EXPANSION_PROGRESS.md`
+- Updated Phase 1 checkpoint artifacts:
+  - `/app/memory/WP16_SCREEN_REGISTRY.md`
+  - `/app/memory/WP16_COVERAGE_REGISTER.md`
+  - `/app/memory/WP16_VISUAL_PATTERN_ATLAS.md`
+  - `/app/memory/WP16_ACTIVE_DEFECT_LOG.md`
+  - `/app/memory/WP16_AUDIT_COVERAGE_CLOSEOUT.md`
+- Phase 1 normalized every discovered route into one final, non-overlapping classification:
+  - **13** `FULLY_EXERCISED`
+  - **1** `PARTIALLY_EXERCISED`
+  - **2** `BLOCKED_API_FAILURE`
+  - **7** `ALIAS_ROUTE`
+  - **58** `REDIRECT_ONLY`
+  - **399** `NOT_YET_EXERCISED`
+- Phase 1 contradictions resolved:
+  - prior overlapping observational totals replaced with a singular route taxonomy totaling **480** exactly
+  - transportation child-route reconciliation corrected by storing exact raw child route patterns plus mounted-context metadata
+- Zero-evidence portal sections prioritized for Phase 2:
+  - Field Leadership
+  - Training / Guidance
+  - Transportation Ops wrapper
+  - Transportation Ops child
+  - Driver
+  - Executive
+  - Dev
+- Newly discovered defects in Phase 1: **none**
+- Runtime verification after documentation-only work:
+  - smoke verification passed **8/8** checkpoint routes
+  - baseline remains intact and stable
+- Next constitutional state:
+  - pause for human review before Phase 2
+  - if approved, proceed to the seven zero-evidence portal sections first
+
 ## 2026-07-29 Final constitutional closeout — operational dashboard + CI freeze
 
 ### Truth reconciliation + final administrative freeze
