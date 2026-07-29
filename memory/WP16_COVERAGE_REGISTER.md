@@ -26,13 +26,13 @@ Date: 2026-07-29
 | Safety | 54 | 2 | 0 | 0 | 0 | 5 | 47 | 2 |
 | Dispatch | 14 | 1 | 1 | 0 | 0 | 0 | 12 | 2 |
 | Shop | 26 | 2 | 0 | 0 | 0 | 0 | 24 | 2 |
-| Field Leadership | 12 | 0 | 0 | 0 | 0 | 1 | 11 | 0 |
-| Training / Guidance | 8 | 0 | 0 | 0 | 0 | 1 | 7 | 0 |
-| Transportation Ops wrapper | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0 |
-| Transportation Ops child | 36 | 0 | 0 | 0 | 0 | 6 | 30 | 0 |
-| Driver | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0 |
-| Executive | 3 | 0 | 0 | 0 | 0 | 3 | 0 | 0 |
-| Dev | 2 | 0 | 0 | 0 | 0 | 0 | 2 | 0 |
+| Field Leadership | 12 | 11 | 0 | 0 | 0 | 1 | 0 | 0 |
+| Training / Guidance | 8 | 7 | 0 | 0 | 0 | 1 | 0 | 0 |
+| Transportation Ops wrapper | 3 | 1 | 2 | 0 | 0 | 0 | 0 | 0 |
+| Transportation Ops child | 36 | 30 | 0 | 0 | 0 | 6 | 0 | 0 |
+| Driver | 3 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Executive | 3 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Dev | 2 | 0 | 2 | 0 | 0 | 0 | 0 | 0 |
 | Public / Shared | 99 | 2 | 0 | 0 | 7 | 29 | 61 | 2 |
 
 ## Reconciliation notes

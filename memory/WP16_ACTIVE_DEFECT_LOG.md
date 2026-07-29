@@ -2,10 +2,10 @@
 
 Date: 2026-07-29
 
-## Phase 1 checkpoint note
+## Phase 2 checkpoint note
 - No runtime fixes were attempted.
-- No new route-level defects were discovered during registry/route reconciliation.
-- Existing accepted defects are retained and restructured below for the evidence-expansion campaign.
+- Existing accepted HR and Dispatch API defects remain open and unchanged.
+- One additional preview-config defect was documented while auditing the Dev portal family.
 
 | Defect ID | Affected portal | Affected routes | Affected roles | Affected components / surfaces | Evidence impact | Screen rendered? | Partially or fully blocked? | Visual review possible? | Prevents constitutional comparison? | Screenshot refs | Current status | Proposed repair phase | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -13,3 +13,4 @@ Date: 2026-07-29
 | WP16-DEF-002 | HR | /hr | HR authenticated | HR overview dashboard / employee completeness-fed regions | Prevents full data-backed inspection of the HR overview route | Yes | Partially blocked by API failure | Yes — partial | Yes, for HR dashboard comparison breadth | WP16-EVID-HR-HOME.jpeg | Open / documented only | Post-audit defect remediation | 403 responses from `/api/hr/employee-completeness`. |
 | WP16-DEF-003 | HR | /hr/employees | HR authenticated | Employee list, facets, active bucket regions | Prevents full data-backed inspection of HR employee-list behavior | Yes | Partially blocked by API failure | Yes — partial | Yes, for HR table/list comparison breadth | WP16-EVID-HR-EMPLOYEES.jpeg | Open / documented only | Post-audit defect remediation | 403 responses from `/api/hr/employees/facets` and `/api/hr/employees?bucket=active`. |
 | WP16-DEF-004 | Dispatch | /dispatch-portal | Dispatch authenticated | MaintainX defect-coverage-backed panel on Dispatch home | Leaves a meaningful home-screen sub-surface partially hidden during inspection | Yes | Partially blocked by API failure | Yes — partial | Partially, for Dispatch integrations comparison | WP16-EVID-DISPATCH-HOME.jpeg | Open / documented only | Post-audit defect remediation | 401 response from `/api/integrations/maintainx/defect-coverage?sample_limit=1&since_days=60`. |
+| WP16-DEF-005 | Dev | /dev/login, /dev | Internal / development context | Dev password login flow and protected Dev hub | Blocks the Dev family from progressing past login because the preview disables the backing endpoints | Login shell yes; hub no | Fully blocked beyond login shell | Yes — login shell and blocked error are visible | Yes, for dev-only surface comparison breadth | `wp16_dev_01_login_page.jpeg`, `wp16_dev_02_login_blocked_error.jpeg`, `wp16_dev_03_dev_route_redirected_login.jpeg` | Open / documented only | Post-audit defect remediation | Preview config has `DEV_ENDPOINTS_ENABLED=false`; POST `/api/dev/login` remains unavailable, so no valid X-Dev-Token can be issued during this audit pass. |
