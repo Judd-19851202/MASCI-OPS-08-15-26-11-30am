@@ -2,56 +2,47 @@
 
 Date: 2026-07-29
 
-## Audit scope
-This register reports coverage status for the restored `f97ab297` baseline. Coverage is evidence-based only. Unopened routes remain `NOT YET EXERCISED`; blocking runtime failures are recorded as `BLOCKED`.
+## Phase 1 checkpoint
+- Coverage reporting has been normalized from overlapping summary labels into one final route classification per discovered route.
+- Exact route total remains **480** and reconciles 1:1 with `WP16_ROUTE_CENSUS_RAW.json` and the enriched Screen Registry.
 
-## Totals
-- Total discoverable route patterns inventoried: **480**
-- `EXERCISED`: **14**
-- `BLOCKED`: **2**
-- `UNKNOWN`: **0**
-- `NOT YET EXERCISED`: **464**
+## Exact route classification totals
+| Classification | Exact total | Qualification |
+| --- | ---: | --- |
+| FULLY_EXERCISED | 13 | Opened, visually inspectable, and not materially limited by defects in the captured baseline state. |
+| PARTIALLY_EXERCISED | 1 | Opened, but some meaningful sub-surface remained limited during inspection. |
+| BLOCKED_API_FAILURE | 2 | Route opened, but API/data failures materially blocked full inspection. |
+| ALIAS_ROUTE | 7 | Synthetic detail-route alias redirecting to a canonical route with carried-through identifier context. |
+| REDIRECT_ONLY | 58 | Legacy or convenience route that immediately redirects and does not present its own distinct UI surface. |
+| NOT_YET_EXERCISED | 399 | Route-backed surface still awaiting direct evidence. |
 
-## Portal coverage summary
+## Portal summary by final route classification
 
-| Portal | Routes inventoried | Exercised | Blocked | Unknown | Not yet exercised | Evidence refs |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| Admin | 141 | 3 | 0 | 0 | 138 | WP16-EVID-ADMIN-GOVERNANCE.jpeg, WP16-EVID-ADMIN-HOME.jpeg, WP16-EVID-ADMIN-LOGIN.jpeg |
-| PM | 47 | 2 | 0 | 0 | 45 | WP16-EVID-PM-HOME.jpeg, WP16-EVID-PM-LOGIN.jpeg |
-| HR | 32 | 1 | 2 | 0 | 29 | WP16-EVID-HR-EMPLOYEES.jpeg, WP16-EVID-HR-HOME.jpeg, WP16-EVID-HR-LOGIN.jpeg |
-| Safety | 54 | 2 | 0 | 0 | 52 | WP16-EVID-SAFETY-HOME.jpeg, WP16-EVID-SAFETY-LOGIN.jpeg |
-| Dispatch | 14 | 2 | 0 | 0 | 12 | WP16-EVID-DISPATCH-HOME.jpeg, WP16-EVID-DISPATCH-LOGIN.jpeg |
-| Shop | 26 | 2 | 0 | 0 | 24 | WP16-EVID-SHOP-HOME.jpeg, WP16-EVID-SHOP-LOGIN.jpeg |
-| Field Leadership | 12 | 0 | 0 | 0 | 12 | — |
-| Training / Guidance | 8 | 0 | 0 | 0 | 8 | — |
-| Transportation Ops wrapper | 3 | 0 | 0 | 0 | 3 | — |
-| Driver | 3 | 0 | 0 | 0 | 3 | — |
-| Executive | 3 | 0 | 0 | 0 | 3 | — |
-| Dev | 2 | 0 | 0 | 0 | 2 | — |
-| Public / Shared | 135 | 2 | 0 | 0 | 133 | WP16-EVID-PUBLIC-DAILY-FORM.jpeg, WP16-EVID-PUBLIC-HUB.jpeg |
+| Portal / experience section | Total routes | Fully exercised | Partially exercised | Blocked API failure | Alias routes | Redirect-only routes | Not yet exercised | Screenshot-backed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Admin | 141 | 3 | 0 | 0 | 0 | 13 | 125 | 3 |
+| PM | 47 | 2 | 0 | 0 | 0 | 0 | 45 | 2 |
+| HR | 32 | 1 | 0 | 2 | 0 | 0 | 29 | 3 |
+| Safety | 54 | 2 | 0 | 0 | 0 | 5 | 47 | 2 |
+| Dispatch | 14 | 1 | 1 | 0 | 0 | 0 | 12 | 2 |
+| Shop | 26 | 2 | 0 | 0 | 0 | 0 | 24 | 2 |
+| Field Leadership | 12 | 0 | 0 | 0 | 0 | 1 | 11 | 0 |
+| Training / Guidance | 8 | 0 | 0 | 0 | 0 | 1 | 7 | 0 |
+| Transportation Ops wrapper | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0 |
+| Transportation Ops child | 36 | 0 | 0 | 0 | 0 | 6 | 30 | 0 |
+| Driver | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0 |
+| Executive | 3 | 0 | 0 | 0 | 0 | 3 | 0 | 0 |
+| Dev | 2 | 0 | 0 | 0 | 0 | 0 | 2 | 0 |
+| Public / Shared | 99 | 2 | 0 | 0 | 7 | 29 | 61 | 2 |
 
-## Exercised routes in this audit pass
+## Reconciliation notes
+- Earlier closeout numbers (`14 fully exercised`, `3 partially exercised`, `2 blocked`, `464 not yet exercised`) were **overlapping observational metrics**, not singular route classes.
+- Phase 1 resolves that contradiction by assigning every route exactly one final classification.
+- Transportation workspace child routes now reconcile cleanly because the registry stores their **exact raw child route pattern** plus mounted-context metadata, instead of embedding the mounted note inside the route string itself.
 
-- `/admin` — EXERCISED — opened successfully — `WP16-EVID-ADMIN-HOME.jpeg`
-- `/admin/governance` — EXERCISED — opened successfully — `WP16-EVID-ADMIN-GOVERNANCE.jpeg`
-- `/admin/login` — EXERCISED — opened successfully — `WP16-EVID-ADMIN-LOGIN.jpeg`
-- `/pm` — EXERCISED — opened successfully — `WP16-EVID-PM-HOME.jpeg`
-- `/pm/login` — EXERCISED — opened successfully — `WP16-EVID-PM-LOGIN.jpeg`
-- `/hr` — BLOCKED — blocking runtime errors observed — `WP16-EVID-HR-HOME.jpeg`
-- `/hr/employees` — BLOCKED — blocking runtime errors observed — `WP16-EVID-HR-EMPLOYEES.jpeg`
-- `/hr/login` — EXERCISED — opened successfully — `WP16-EVID-HR-LOGIN.jpeg`
-- `/safety-portal` — EXERCISED — opened successfully — `WP16-EVID-SAFETY-HOME.jpeg`
-- `/safety-portal/login` — EXERCISED — opened successfully — `WP16-EVID-SAFETY-LOGIN.jpeg`
-- `/dispatch-portal` — EXERCISED — opened successfully — `WP16-EVID-DISPATCH-HOME.jpeg`
-- `/dispatch-portal/login` — EXERCISED — opened successfully — `WP16-EVID-DISPATCH-LOGIN.jpeg`
-- `/shop` — EXERCISED — opened successfully — `WP16-EVID-SHOP-HOME.jpeg`
-- `/shop/login` — EXERCISED — opened successfully — `WP16-EVID-SHOP-LOGIN.jpeg`
-- `/` — EXERCISED — opened successfully — `WP16-EVID-PUBLIC-HUB.jpeg`
-- `/daily/submit` — EXERCISED — opened successfully — `WP16-EVID-PUBLIC-DAILY-FORM.jpeg`
-
-## Coverage gaps
-
-- The inventory is complete at the route/source level, but most routes remain **not yet exercised in preview**.
-- Mobile-specific verification has not been performed in this pass; every exercised screen is desktop-only evidence so far.
-- Transportation child routes exist as nested screens inside the shared transportation shell; many remain inventoried-only.
-- Dialog/drawer/sheet variants are inventoried from source but only shell-level evidence was captured in this pass.
+## Remaining evidence gap summary after Phase 1
+- Screenshot-backed route-backed surfaces: **16**
+- Desktop-backed surfaces: **16**
+- Tablet-backed surfaces: **0**
+- Mobile-backed surfaces: **0**
+- Zero-evidence portal sections still pending Phase 2: **7** — Field Leadership, Training / Guidance, Transportation Ops wrapper, Transportation Ops child, Driver, Executive, Dev
