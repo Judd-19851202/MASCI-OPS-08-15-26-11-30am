@@ -10,12 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SafetyShell from "@/components/SafetyShell";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety"]) });
 
 export default function SafetyDigest() {
   const { t } = useT();

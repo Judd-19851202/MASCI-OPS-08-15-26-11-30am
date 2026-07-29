@@ -11,18 +11,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { formatPlatformTime } from "@/lib/platformTime";
 import { Sparkles, Info, AlertTriangle, X, ListChecks, ShieldOff } from "lucide-react";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
 function authHeaders() {
-  const headers = { "Content-Type": "application/json" };
-  const d = getDispatchToken?.();
-  if (d) headers["X-Dispatch-Token"] = d;
-  const a = getAdminToken?.();
-  if (a) headers["X-Admin-Token"] = a;
-  return headers;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+  };
 }
 
 const GRADE_PALETTE = {

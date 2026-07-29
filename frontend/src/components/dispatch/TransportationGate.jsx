@@ -11,18 +11,15 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ShieldAlert, ShieldCheck, AlertTriangle, X, Hourglass, Lock } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function gateHeaders() {
-  const headers = { "Content-Type": "application/json" };
-  const admin = getAdminToken();
-  const dispatch = getDispatchToken();
-  if (admin) headers["X-Admin-Token"] = admin;
-  if (dispatch) headers["X-Dispatch-Token"] = dispatch;
-  return headers;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+  };
 }
 
 const CHIP_STYLES = {
@@ -234,6 +231,5 @@ export function OverrideRequiredModal({ block, driverRefId, truckRefId,
 }
 
 export function isOverrideAuthorized() {
-  // Admin tokens are universal. Dispatch-only is not authorized.
-  return Boolean(getAdminToken());
+  return Boolean(buildScopedPortalAuthHeaders(["admin"])["X-Admin-Token"]);
 }

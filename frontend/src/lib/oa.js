@@ -1,12 +1,5 @@
 import axios from "axios";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getPmToken } from "@/lib/pmAuth";
-import { getHrToken } from "@/lib/hrAuth";
-import { getShopToken } from "@/lib/shopAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getFlToken } from "@/lib/flAuth";
-import { getDirectoryToken } from "@/lib/directoryAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { getPortalContext } from "@/lib/portalContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -21,16 +14,6 @@ const OA_PORTAL_HEADER_MAP = {
   shop: "X-Shop-Token",
   dispatch: "X-Dispatch-Token",
   fl: "X-FL-Token",
-};
-
-const OA_PORTAL_TOKEN_READERS = {
-  admin: getAdminToken,
-  pm: getPmToken,
-  hr: getHrToken,
-  safety: getSafetyToken,
-  shop: getShopToken,
-  dispatch: getDispatchToken,
-  fl: getFlToken,
 };
 
 const OA_FALLBACK_ORDER = ["admin", "pm", "dispatch", "safety", "shop", "hr", "fl"];
@@ -72,8 +55,8 @@ function getStoredOperationsActionsPortalScope() {
 }
 
 function readPortalToken(portal) {
-  const getter = OA_PORTAL_TOKEN_READERS[portal];
-  return getter ? getter() : "";
+  const headers = buildScopedPortalAuthHeaders([portal]);
+  return headers[OA_PORTAL_HEADER_MAP[portal]] || "";
 }
 
 function resolveOperationsActionsPortal() {
@@ -99,16 +82,9 @@ function resolveOperationsActionsPortal() {
 
 export function buildOperationsActionsAuthHeaders(extra = {}) {
   const portal = resolveOperationsActionsPortal();
-  const portalToken = portal ? readPortalToken(portal) : "";
-  const directoryToken = getDirectoryToken();
   const headers = { ...extra };
-  if (portal && portalToken) {
-    headers[OA_PORTAL_HEADER_MAP[portal]] = portalToken;
-  }
-  if (directoryToken) {
-    headers["X-Directory-Token"] = directoryToken;
-  }
-  return headers;
+  if (!portal) return headers;
+  return buildScopedPortalAuthHeaders([portal], headers);
 }
 
 const oaClient = axios.create({

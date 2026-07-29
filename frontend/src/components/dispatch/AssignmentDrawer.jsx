@@ -17,8 +17,7 @@ import {
   X, Link2, Copy, Ban, Replace, ShieldOff, Clock, CheckCircle2, AlertTriangle, Pencil, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import AttachmentStrip from "@/components/dispatch/AttachmentStrip";
@@ -30,11 +29,10 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders(tenantOverride) {
-  const headers = { "Content-Type": "application/json" };
-  const admin = getAdminToken();
-  const disp = getDispatchToken();
-  if (admin) headers["X-Admin-Token"] = admin;
-  if (disp) headers["X-Dispatch-Token"] = disp;
+  const headers = {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+  };
   if (tenantOverride) headers["X-Tenant-Id"] = tenantOverride;
   return headers;
 }

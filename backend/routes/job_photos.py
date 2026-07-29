@@ -56,7 +56,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
-from pm_auth import compute_pm_scope
+from lib.enterprise_governance import governance_project_scope_allows, governance_project_scope_filter
 
 # Register HEIF/HEIC opener once at import. Without this, iPhone photos
 # (default HEIC format) cannot be decoded by Pillow and end up rendered
@@ -828,7 +828,6 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         WITHOUT a per-thumb axios round-trip, and is the single biggest
         wire-time speedup vs. iter44's blob-via-axios approach.
         """
-        scope = await compute_pm_scope(db, actor)
         q: Dict[str, Any] = {}
         if source:
             q["source"] = source
@@ -845,10 +844,10 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             if date_to:
                 rng["$lte"] = date_to
             q["record_date"] = rng
-        if scope.is_definitively_empty():
+        scope_query = await governance_project_scope_filter(db, actor, base_filter=q)
+        if scope_query is None:
             return {"items": [], "count": 0}
-        q = scope.filter(q)
-        cursor = db.job_photos.find(q, {"_id": 0}).sort("record_date", -1).limit(5000)
+        cursor = db.job_photos.find(scope_query, {"_id": 0}).sort("record_date", -1).limit(5000)
         items = await cursor.to_list(length=5000)
         # Mint a 1h thumb token per item so the gallery can render via
         # plain <img src> with no axios overhead.
@@ -875,11 +874,10 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
           `no-store` here prevents any future poisoning regardless of
           intermediate proxy behaviour.
         """
-        scope = await compute_pm_scope(db, actor)
         meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
         if not meta:
             raise HTTPException(404, "photo not found")
-        if not scope.allows(meta.get("project_number")):
+        if not await governance_project_scope_allows(db, actor, meta.get("project_number")):
             raise HTTPException(403, "not in scope")
         url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
         if not url:
@@ -919,11 +917,10 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
 
         Hits the Mongo cache first; only renders through Pillow on miss.
         """
-        scope = await compute_pm_scope(db, actor)
         meta = await db.job_photos.find_one({"id": photo_id}, {"_id": 0})
         if not meta:
             raise HTTPException(404, "photo not found")
-        if not scope.allows(meta.get("project_number")):
+        if not await governance_project_scope_allows(db, actor, meta.get("project_number")):
             raise HTTPException(403, "not in scope")
         return await _serve_thumb(db, photo_id, meta, request.headers.get("accept", ""))
 
@@ -971,7 +968,6 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         if not ids:
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             return {"items": []}
-        scope = await compute_pm_scope(db, actor)
         metas = await db.job_photos.find(
             {"id": {"$in": ids}}, {"_id": 0}
         ).to_list(length=len(ids))
@@ -985,7 +981,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         except Exception:
             presigned_get_url = None  # type: ignore[assignment]
         for meta in metas:
-            if not scope.allows(meta.get("project_number")):
+            if not await governance_project_scope_allows(db, actor, meta.get("project_number")):
                 continue
             url = await _load_photo(db, meta["source"], meta["source_id"], meta["photo_index"])
             if not url:
@@ -1012,14 +1008,13 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         ``<job_number>__<job_name>/<week>/<source>__<date>__N.<ext>`` so
         the recipient can drop the zip into their file system and get a
         sane structure right away."""
-        scope = await compute_pm_scope(db, actor)
         ids = body.photo_ids[:1000]  # safety: cap to 1000 per zip
         if not ids:
             raise HTTPException(400, "no photos selected")
         metas = await db.job_photos.find(
             {"id": {"$in": ids}}, {"_id": 0}
         ).to_list(length=len(ids))
-        metas = [m for m in metas if scope.allows(m.get("project_number"))]
+        metas = [m for m in metas if await governance_project_scope_allows(db, actor, m.get("project_number"))]
         if not metas:
             raise HTTPException(403, "no accessible photos in selection")
 
@@ -1061,14 +1056,13 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
     ):
         """Email the selected photos as a single ZIP attachment (capped at
         ~25 MB — anything larger should be downloaded directly via /zip)."""
-        scope = await compute_pm_scope(db, actor)
         if not body.to or "@" not in body.to:
             raise HTTPException(400, "invalid email")
         ids = body.photo_ids[:200]  # email cap
         if not ids:
             raise HTTPException(400, "no photos selected")
         metas = await db.job_photos.find({"id": {"$in": ids}}, {"_id": 0}).to_list(length=len(ids))
-        metas = [m for m in metas if scope.allows(m.get("project_number"))]
+        metas = [m for m in metas if await governance_project_scope_allows(db, actor, m.get("project_number"))]
         if not metas:
             raise HTTPException(403, "no accessible photos")
 
@@ -1128,8 +1122,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         up any photos that were previously failing (e.g. iPhone HEIC
         before pillow-heif was installed).
         """
-        scope = await compute_pm_scope(db, actor)
-        if not scope.is_admin:
+        if await governance_project_scope_filter(db, actor, base_filter={}) != {}:
             raise HTTPException(403, "admin only")
         try:
             await db.job_photo_thumb_cache.delete_many({})
@@ -1156,8 +1149,7 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
 
         Returns ``{warmed, skipped, failed, elapsed_seconds}``.
         """
-        scope = await compute_pm_scope(db, actor)
-        if not scope.is_admin:
+        if await governance_project_scope_filter(db, actor, base_filter={}) != {}:
             raise HTTPException(403, "admin only")
 
         q: Dict[str, Any] = {}

@@ -23,13 +23,13 @@ import { HelpTip } from "@/components/ui/HelpTip";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { formatEmployeeIdentity } from "@/lib/identity";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety"]) });
 
 const CERT_TYPES = [
   "OSHA 10", "OSHA 30", "First Aid / CPR", "Confined Space",

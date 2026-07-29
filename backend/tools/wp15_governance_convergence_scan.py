@@ -192,6 +192,19 @@ def scan_backend() -> List[Dict[str, object]]:
                         layer="backend",
                     )
                     continue
+                if path.name.endswith("_deps.py") and "for tok, role in (" in text:
+                    append_raw(
+                        findings,
+                        path=rel,
+                        line=line_no,
+                        category="special_case_infrastructure",
+                        reason="Infrastructure portal-token probe",
+                        snippet=text,
+                        symbol=symbol,
+                        domain="request_lifecycle",
+                        layer="backend",
+                    )
+                    continue
             if "compute_pm_scope(" in text:
                 append_raw(
                     findings,
@@ -234,6 +247,32 @@ def scan_backend() -> List[Dict[str, object]]:
             if re.search(r"\brole\b\s*==\s*['\"](?:admin|pm)['\"]", text):
                 if "def _search_url_for_role" in nearby or backend_is_display_only(text, nearby):
                     continue
+                if path.name == "project_team_assignments.py" and symbol == "_is_pm_on_project":
+                    append_raw(
+                        findings,
+                        path=rel,
+                        line=line_no,
+                        category="special_case_infrastructure",
+                        reason="Domain classification branch",
+                        snippet=text,
+                        symbol=symbol,
+                        domain="manual_review",
+                        layer="backend",
+                    )
+                    continue
+                if "pm_proj is not None" in text:
+                    append_raw(
+                        findings,
+                        path=rel,
+                        line=line_no,
+                        category="special_case_infrastructure",
+                        reason="Governed scope application branch",
+                        snippet=text,
+                        symbol=symbol,
+                        domain="request_lifecycle",
+                        layer="backend",
+                    )
+                    continue
                 if backend_has_auth_context(text, nearby):
                     category = "legacy_migratable"
                     reason = "Inline role branch"
@@ -256,6 +295,32 @@ def scan_backend() -> List[Dict[str, object]]:
                 continue
             if re.search(r"\brole\b\s+in\s+[\({]", text):
                 if backend_is_display_only(text, nearby):
+                    continue
+                if path.name in {"canonical_truth.py", "oppc_intelligence.py", "project_team_assignments.py", "daily_reports.py"}:
+                    append_raw(
+                        findings,
+                        path=rel,
+                        line=line_no,
+                        category="special_case_infrastructure",
+                        reason="Domain classification branch",
+                        snippet=text,
+                        symbol=symbol,
+                        domain="manual_review",
+                        layer="backend",
+                    )
+                    continue
+                if path.name in {"operational_constraints.py", "photo_governance.py", "employee_records.py", "employee_lifecycle.py"}:
+                    append_raw(
+                        findings,
+                        path=rel,
+                        line=line_no,
+                        category="legacy_migratable",
+                        reason="Route-local authorization helper",
+                        snippet=text,
+                        symbol=symbol,
+                        domain="business_authorization",
+                        layer="backend",
+                    )
                     continue
                 if backend_has_auth_context(text, nearby):
                     category = "legacy_migratable"

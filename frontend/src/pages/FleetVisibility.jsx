@@ -31,10 +31,7 @@ import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
-import { getShopToken } from "@/lib/shopAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { RepairDrawer, RtsDrawer } from "@/components/FleetRepairDrawer";
 import { HelpTipBlock } from "@/components/HelpTip";
 import FocusBanner from "@/components/triage/FocusBanner";
@@ -46,16 +43,10 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
 function scopeTokenHeader(scope) {
-  // Always include X-Admin-Token when present · enables admin "view as
-  // Shop/Dispatch/Safety" impersonation without minting a portal token.
-  // The backend gates ALL three by-scope endpoints with admin OR portal
-  // token, so this is safe and operator-approved (test report iter255).
-  const admin = getAdminToken() || "";
-  const base = admin ? { "X-Admin-Token": admin } : {};
-  if (scope === "shop") return { ...base, "X-Shop-Token": getShopToken() || "" };
-  if (scope === "dispatch") return { ...base, "X-Dispatch-Token": getDispatchToken() || "" };
-  if (scope === "safety") return { ...base, "X-Safety-Token": getSafetyToken() || "" };
-  return base;
+  if (scope === "shop") return buildScopedPortalAuthHeaders(["admin", "shop"]);
+  if (scope === "dispatch") return buildScopedPortalAuthHeaders(["admin", "dispatch"]);
+  if (scope === "safety") return buildScopedPortalAuthHeaders(["admin", "safety"]);
+  return buildScopedPortalAuthHeaders(["admin"]);
 }
 
 function scopeHomeRoute(scope) {
@@ -131,12 +122,7 @@ function AuditTrailPanel({ defectId, t }) {
     (async () => {
       setLoading(true); setErr("");
       try {
-        const tok = getAdminToken() || "";
-        const headers = {};
-        if (tok) headers["X-Admin-Token"] = tok;
-        if (getSafetyToken()) headers["X-Safety-Token"] = getSafetyToken();
-        if (getShopToken()) headers["X-Shop-Token"] = getShopToken();
-        if (getDispatchToken()) headers["X-Dispatch-Token"] = getDispatchToken();
+        const headers = buildScopedPortalAuthHeaders(["admin", "safety", "shop", "dispatch"]);
         const r = await fetch(`${API}/api/fleet/defects/${defectId}/detail`, { headers });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();

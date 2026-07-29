@@ -15,13 +15,13 @@ import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import HrPageShell from "@/components/HrPageShell";
-import { getHrToken } from "@/lib/hrAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { formatEmployeeIdentity } from "@/lib/identity";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-HR-Token": getHrToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["hr"]) });
 
 function bytes(n) {
   if (!n) return "0 B";
@@ -177,7 +177,7 @@ function UploadDocForm({ onUploaded, onCancel, t }) {
       fd.append("description", description);
       fd.append("tags", tags);
       const r = await axios.post(`${API}/safety/documents`, fd, {
-        headers: { "X-HR-Token": getHrToken() },
+        headers: { ...buildScopedPortalAuthHeaders(["hr"]), "Content-Type": "multipart/form-data" },
       });
       toast.success(t("Document uploaded."));
       onUploaded(r.data);

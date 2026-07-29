@@ -13,7 +13,7 @@ Doctrine:
     normalizer recognizes the canonical value AND legacy strings
     (Road Plate, Steel Plate, Plate, Plates, Trench Plate,
     Traffic Plate, Roadplate, ROAD PLATE).
-  - compute_pm_scope() is the PM authorization boundary.
+  - Governance project scope is the PM authorization boundary.
   - Every operational row carries the map-ready field set:
     asset_id · project_id · project_number · assignment_id · status ·
     location_ref · timestamp · operational_state · trust_state ·
@@ -30,7 +30,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from pm_auth import compute_pm_scope, PmScope
+from lib.enterprise_governance import GovernanceProjectScope, governance_project_scope
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 import dispatch_lifecycle as DLS
 
@@ -189,7 +189,7 @@ def _map_ready(*, asset_id=None, project_id=None, project_number=None,
 # Helpers
 # ════════════════════════════════════════════════════════════════════
 
-def _scope_filter_q(scope: PmScope, project_number: Optional[str]) -> Optional[Dict[str, Any]]:
+def _scope_filter_q(scope: GovernanceProjectScope, project_number: Optional[str]) -> Optional[Dict[str, Any]]:
     """Return the project_number Mongo filter. None when no projects."""
     if scope.is_admin:
         if project_number:
@@ -205,7 +205,7 @@ def _scope_filter_q(scope: PmScope, project_number: Optional[str]) -> Optional[D
     return {"project_number": {"$in": nums}}
 
 
-async def _pm_scope_project_numbers(scope: PmScope,
+async def _pm_scope_project_numbers(scope: GovernanceProjectScope,
                                      project_number: Optional[str]) -> List[str]:
     if scope.is_admin and project_number:
         return [project_number]
@@ -351,8 +351,8 @@ def build_pm_command_center_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/pm/command-center", tags=["pm-command-center"])
 
-    async def _scope(actor) -> PmScope:
-        return await compute_pm_scope(db, actor)
+    async def _scope(actor) -> GovernanceProjectScope:
+        return await governance_project_scope(db, actor)
 
     # ────────────────────────────────────────────────────────────
     # /overview — top strip KPIs

@@ -20,12 +20,12 @@ import {
 import SafetyShell from "@/components/SafetyShell";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import { HelpTipBlock } from "@/components/HelpTip";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety"]) });
 
 const CATEGORIES = [
   "OSHA 300", "SDS", "Emergency Action Plan", "Competent Person",
@@ -90,7 +90,7 @@ export default function SafetyDocuments() {
       fd.append("description", form.description);
       fd.append("tags", form.tags);
       await axios.post(`${API}/safety/documents`, fd, {
-        headers: { "X-Safety-Token": getSafetyToken(), "Content-Type": "multipart/form-data" },
+        headers: { ...buildScopedPortalAuthHeaders(["safety"]), "Content-Type": "multipart/form-data" },
       });
       toast.success("Document uploaded");
       setUploadDlg(false);

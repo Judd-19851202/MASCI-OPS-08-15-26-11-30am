@@ -90,13 +90,21 @@ Snapshot source: preview database inventory on 2026-07-29.
 | Existing Admin | Required pass | Preserved | Must pass | Correct | Verified |
 | Existing PM | Required pass | Preserved | Must pass | Project-scoped | Verified |
 | Existing Safety user | Required pass | Preserved | Must pass | Policy-scoped | Verified |
-| Existing HR user | Required pass | Preserved | Must pass | Policy-scoped | Pending live check |
-| Existing Dispatch user | Required pass | Preserved | Must pass | Policy-scoped | Pending live check |
-| Existing Shop user | Required pass | Preserved | Must pass | Policy-scoped | Pending live check |
-| Existing Field Leadership user | Required pass | Preserved | Must pass | Policy-scoped | Pending live check |
+| Existing HR user | Required pass | Preserved | Must pass | Policy-scoped | Verified |
+| Existing Dispatch user | Required pass | Preserved | Must pass | Policy-scoped | Verified |
+| Existing Shop user | Required pass | Preserved | Must pass | Policy-scoped | Verified |
+| Existing Field Leadership user | Required pass | Preserved | Must pass | Policy-scoped | Verified |
 | Multi-portal user | Required pass | Preserved | All granted portals valid | Context-correct | Verified |
-| Disabled user | Must remain denied | Unchanged | Denied | Denied | Pending |
+| Disabled user | Must remain denied | Unchanged | Denied | Denied | Verified |
 | Delegated user | Pending | Preserved | Pending | Time-bounded | Pending |
+
+### Additional verified continuity checks
+- Incorrect PM password returns `401` and does not mutate credentials.
+- Disabled directory fixture login remains denied (`401`) through multi-login and HR portal paths.
+- PM portal token combined with an HR directory session returns `401`.
+- PM portal token without directory context returns `401`.
+- PM portal token combined with the matching PM directory session returns `200` on governed reads.
+- Repeated multi-login for verified fixture identities remains idempotent.
 
 ## Known Anomalies (Recorded, not auto-fixed)
 - 36 directory users currently have no linked portal collection by email.
@@ -111,6 +119,8 @@ Snapshot source: preview database inventory on 2026-07-29.
 ## Deployment Evidence
 - 2026-07-29: Multi-portal governed client header path corrected to preserve directory-session context on shared governed reads.
 - 2026-07-29: Existing identity inventory generated without exposing secrets.
+- 2026-07-29: Shared dispatch, safety-only, FL-only, and cross-portal governed clients converged onto the canonical scoped auth-header builder without changing credentials, identifiers, or portal mappings.
+- 2026-07-29: Existing PM, HR, Dispatch, Shop, Field Leadership, and multi-portal login continuity re-verified after builder and governance-scope migrations.
 
 ## Final Identity-Continuity Certification
 Not yet certified. Additional portal login continuity checks and disabled-user regression checks remain required.

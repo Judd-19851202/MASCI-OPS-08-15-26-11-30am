@@ -28,7 +28,7 @@ from lib.async_jobs import (
     fail_async_job,
     mark_async_job_processing,
 )
-from pm_auth import compute_pm_scope
+from lib.enterprise_governance import governance_project_scope_allows, governance_project_scope_filter
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from services.operations_control.control_plane import ingest_daily_report_submission
 from services.cost_codes.foundation import (
@@ -716,8 +716,8 @@ async def _run_daily_reports_csv_export(db, actor: Any) -> Dict[str, Any]:
     import csv as _csv  # noqa: PLC0415
     import io as _io    # noqa: PLC0415
 
-    scope = await compute_pm_scope(db, actor)
-    if scope.is_definitively_empty():
+    scope_query = await governance_project_scope_filter(db, actor)
+    if scope_query is None:
         buf = _io.StringIO()
         fields = [
             "report_number", "report_date", "project_number", "project_name",
@@ -735,7 +735,7 @@ async def _run_daily_reports_csv_export(db, actor: Any) -> Dict[str, Any]:
             "content_type": "text/csv; charset=utf-8",
             "rows": 0,
         }
-    match_stage = apply_synthetic_dr_exclusion(scope.filter({}))
+    match_stage = apply_synthetic_dr_exclusion(scope_query)
     pipeline = [
         {"$match": match_stage},
         {"$sort": {"report_date": -1, "created_at": -1}},
@@ -1490,15 +1490,15 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
     @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
     async def list_daily_reports(actor=Depends(require_admin)):
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        scope_query = await governance_project_scope_filter(db, actor)
+        if scope_query is None:
             return []
         # TRACK 24.9 · Exclude synthetic/test records from user-
         # facing operational listings. Preserves audit history —
         # marked records remain in the collection with
         # `synthetic_record=true` / `hidden_from_operations=true`
         # so admin audit surfaces can still see them.
-        match_stage = apply_synthetic_dr_exclusion(scope.filter({}))
+        match_stage = apply_synthetic_dr_exclusion(scope_query)
         pipeline = [
             {"$match": match_stage},
             {"$sort": {"created_at": -1}},
@@ -1733,8 +1733,8 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         from datetime import datetime as _dt, timedelta as _td
         from collections import Counter
         cutoff = (_dt.utcnow() - _td(days=max(1, min(days, 90)))).strftime("%Y-%m-%d")
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        scope_query = await governance_project_scope_filter(db, actor, base_filter={"report_date": {"$gte": cutoff}})
+        if scope_query is None:
             return {
                 "window_days": days,
                 "reports_with_constraints": 0,
@@ -1748,7 +1748,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             }
         # TRACK 28.02B · exclude synthetic/certification DRs — an admin
         # exposure rollup is a user-facing surface even for admins.
-        q = apply_synthetic_dr_exclusion(scope.filter({"report_date": {"$gte": cutoff}}))
+        q = apply_synthetic_dr_exclusion(scope_query)
         cur = db.daily_reports.find(
             q,
             {"_id": 0, "constraints": 1, "report_date": 1, "project_number": 1},
@@ -1982,10 +1982,10 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         doc = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Daily report not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        if not await governance_project_scope_allows(db, actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Daily report not found")
-        if bool(doc.get("hidden_from_operations")) and not scope.is_admin:
+        is_global_scope = (await governance_project_scope_filter(db, actor, base_filter={})) == {}
+        if bool(doc.get("hidden_from_operations")) and not is_global_scope:
             raise HTTPException(status_code=404, detail="Daily report not found")
         return _sanitize_daily_report_for_actor(doc, actor)
 

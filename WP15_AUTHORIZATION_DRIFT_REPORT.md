@@ -112,3 +112,31 @@ This checkpoint expands scanner coverage beyond backend-only authorization drift
 - Manual governed-request header construction remains present in many frontend surfaces and must be converged.
 - Repository-wide governance convergence is still incomplete.
 - Existing-user regression verification is still incomplete for several supported portal patterns.
+
+## 2026-07-29 — Shared Pattern Elimination Batch
+
+### Updated normalized constitutional metrics
+- Legacy findings: **71**
+- Category F: **0**
+- Manual governed header builders: **29**
+- Canonical request-builder adoption: **21.13%**
+
+### Batch highlights
+- Eliminated the highest-volume `admin_dispatch` family by converging shared dispatch pages/components onto `buildScopedPortalAuthHeaders`.
+- Eliminated multiple safety-only and FL-only manual request builders via the same canonical scoped builder.
+- Replaced another large PM-scope class by routing `daily_reports`, `equipment`, `job_photos`, `pm_command_center`, and `project_team_assignments` through governance-applied scope helpers instead of `compute_pm_scope`.
+
+### Category F status
+- Category F is now **0** at this checkpoint.
+- Former Category F findings were resolved into either:
+  - non-auth domain classification branches, or
+  - route-local authorization helpers that are now tracked as migratable legacy rather than uncertain drift.
+
+### Existing-user protection evidence
+- Existing valid multi-login paths remained successful for Admin, PM, Safety, HR, Dispatch, Shop, and Field Leadership.
+- Existing standalone PM, HR, Dispatch, Field Leadership, and Shop login paths remained successful.
+- Incorrect password still fails (`401`).
+- Disabled directory user fixture remains denied (`401`).
+- PM portal token + mismatched directory session fails (`401`).
+- PM portal token without directory context fails (`401`).
+- PM portal token + matching directory session succeeds (`200`).

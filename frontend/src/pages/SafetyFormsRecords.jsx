@@ -16,17 +16,17 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import SafetyShell from "@/components/SafetyShell";
-import { getSafetyToken } from "@/lib/safetyAuth";
 import { useT } from "@/lib/i18n";
 import {
   isAgingAccountability,
   accountabilityClassLabels,
 } from "@/lib/safetyAccountabilityClass";
 import { operationalError } from "@/lib/errors";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety"]) });
 
 const STATUS_PILL = {
   issued:   "bg-amber-100 text-amber-900 border-amber-300",

@@ -13,7 +13,7 @@ import {
   CircleSlash, ArrowRight, X, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getFlToken } from "@/lib/flAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 
@@ -68,7 +68,7 @@ export default function FlAccountabilityWidget({ employeeId, onClose, compact = 
       try {
         const r = await axios.get(
           `${API}/field-leadership/portal/employee/${employeeId}/snapshot`,
-          { headers: { "X-FL-Token": getFlToken() || "" } },
+          { headers: buildScopedPortalAuthHeaders(["fl"]) },
         );
         if (alive) setData(r.data);
       } catch (e) {

@@ -27,8 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { stagePhoto, flushStaged, StagedPhotoBadge } from "@/lib/resiliency";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -55,12 +54,7 @@ const TYPE_LABELS = {
 const TYPE_ORDER = Object.keys(TYPE_LABELS);
 
 function _authHeaders() {
-  const headers = {};
-  const admin = getAdminToken();
-  const disp = getDispatchToken();
-  if (admin) headers["X-Admin-Token"] = admin;
-  if (disp) headers["X-Dispatch-Token"] = disp;
-  return headers;
+  return buildScopedPortalAuthHeaders(["admin", "dispatch"]);
 }
 
 function _fmt(iso) {

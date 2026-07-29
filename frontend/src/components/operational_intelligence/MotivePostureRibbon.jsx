@@ -13,8 +13,7 @@
 //   • Never blocks the map or the dispatch primary actions.
 import React, { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, RefreshCcw, Loader2 } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -108,11 +107,10 @@ function messageFor(payload) {
 }
 
 async function fetchPosture({ timeoutMs = 3000 } = {}) {
-  const admin = getAdminToken?.();
-  const dispatch = getDispatchToken?.();
-  const headers = { "Content-Type": "application/json" };
-  if (admin) headers["X-Admin-Token"] = admin;
-  if (dispatch) headers["X-Dispatch-Token"] = dispatch;
+  const headers = {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+  };
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

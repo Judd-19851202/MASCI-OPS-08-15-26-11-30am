@@ -23,8 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { paletteFor } from "@/lib/portalPalette";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { toast } from "sonner";
 import AssignmentDrawer from "@/components/dispatch/AssignmentDrawer";
@@ -74,11 +73,10 @@ const STATE_TONE = {
 };
 
 function authHeaders(tenantOverride) {
-  const headers = { "Content-Type": "application/json" };
-  const admin = getAdminToken();
-  const disp = getDispatchToken();
-  if (admin) headers["X-Admin-Token"] = admin;
-  if (disp) headers["X-Dispatch-Token"] = disp;
+  const headers = {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+  };
   if (tenantOverride) headers["X-Tenant-Id"] = tenantOverride;
   return headers;
 }

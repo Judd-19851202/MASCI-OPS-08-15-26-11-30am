@@ -77,6 +77,12 @@ Directory Session Context is the verified link between a portal token and the au
 - Mismatched directory context: request fails with 401.
 - Expired or revoked directory context: request fails with 401.
 
+### Verified continuity evidence
+- PM portal token + mismatched HR directory session → `401`
+- PM portal token without directory context → `401`
+- PM portal token + matching PM directory session → `200`
+- Existing multi-portal logins continue to mint valid directory-bound sessions without altering usernames or passwords.
+
 ## 7. Governance decision contract
 Governance input must include:
 - canonical actor identity

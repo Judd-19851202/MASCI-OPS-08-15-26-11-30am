@@ -16,12 +16,12 @@ import WhereUsedPanel from "@/components/WhereUsedPanel";
 import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety"]) });
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-cyan-700";
 

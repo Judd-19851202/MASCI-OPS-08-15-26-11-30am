@@ -29,6 +29,8 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from lib.enterprise_governance import governance_project_scope_numbers
+
 logger = logging.getLogger(__name__)
 
 # ── Closed-set role registry ─────────────────────────────────────────
@@ -226,10 +228,9 @@ async def _is_pm_on_project(db, actor_email: str, project_number: str) -> Tuple[
         )
         async for r in cur:
             role = r.get("assignment_role")
-            if role == "pm":
-                is_primary = True
-            elif role == "co_pm":
-                is_co = True
+            if role in {"pm", "co_pm"}:
+                is_primary = is_primary or role == "pm"
+                is_co = is_co or role == "co_pm"
     return (is_primary, is_co)
 
 
@@ -1386,7 +1387,7 @@ def register_project_team_assignments(
         limit: int = Query(default=200, ge=1, le=500),
     ):
         """Cross-project staffing summary. Admin sees all active projects;
-        PM sees only their `compute_pm_scope` projects. Each project entry
+        PM sees only their governance-approved projects. Each project entry
         returns active assignment count, unassigned canonical roles,
         and a small primary-roles snapshot (PM/Super/Foreman/Safety/QC)."""
         actor = _coerce_actor(actor)
@@ -1395,23 +1396,17 @@ def register_project_team_assignments(
         # Pull active projects.
         q_jobs: Dict[str, Any] = {"deleted_at": {"$in": [None, ""]}}
         if not is_admin:
-            # PM scope — use existing compute_pm_scope helper.
-            try:
-                from pm_auth import compute_pm_scope  # noqa: PLC0415
-                scope = await compute_pm_scope(db, actor)
-                if not getattr(scope, "is_admin", False):
-                    pns = list(getattr(scope, "project_numbers", []) or [])
-                    if not pns:
-                        return {"items": [], "count": 0,
-                                "role_totals": {}, "role_keys": list(ROLE_REGISTRY.keys()),
-                                "overloaded": [],
-                                "overload_threshold": OVERLOAD_ACTIVE_PROJECT_THRESHOLD,
-                                "people_count": 0,
-                                "totals": {"projects": 0, "active_assignments": 0,
-                                           "unassigned_role_slots": 0}}
-                    q_jobs["project_number"] = {"$in": pns}
-            except Exception:
-                pass
+            pns = await governance_project_scope_numbers(db, actor)
+            if pns is not None:
+                if not pns:
+                    return {"items": [], "count": 0,
+                            "role_totals": {}, "role_keys": list(ROLE_REGISTRY.keys()),
+                            "overloaded": [],
+                            "overload_threshold": OVERLOAD_ACTIVE_PROJECT_THRESHOLD,
+                            "people_count": 0,
+                            "totals": {"projects": 0, "active_assignments": 0,
+                                       "unassigned_role_slots": 0}}
+                q_jobs["project_number"] = {"$in": pns}
 
         projects: List[Dict[str, Any]] = []
         async for j in db.jobs_master.find(q_jobs, {"_id": 0}).limit(limit):

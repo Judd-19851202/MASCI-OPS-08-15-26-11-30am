@@ -32,7 +32,7 @@ import {
 import DispatchIntegrationsTab from "@/components/DispatchIntegrationsTab";
 import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer";
 import { clearDispatchToken, getDispatchUser, getDispatchToken } from "@/lib/dispatchAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
@@ -57,12 +57,10 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const COACH_LS_KEY = "masci.dispatch.coaching.collapsed";
 
 function authHeaders() {
-  const headers = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const d = getDispatchToken();
-  if (a) headers["X-Admin-Token"] = a;
-  if (d) headers["X-Dispatch-Token"] = d;
-  return headers;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),
+  };
 }
 
 // Coaching collapse state (per-device, localStorage).

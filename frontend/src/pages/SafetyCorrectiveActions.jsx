@@ -39,14 +39,14 @@ import { friendlyError } from "@/lib/friendlyErrors";
 import { Link, useLocation } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { WhyItMattersPanel } from "@/components/guidance";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety"]) });
 
 const STATUS_OPTIONS = ["Open", "In Progress", "Pending Review", "Verified", "Closed"];
 const STATUS_COLORS = {

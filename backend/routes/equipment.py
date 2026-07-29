@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
-from pm_auth import compute_pm_scope
+from lib.enterprise_governance import governance_project_scope_allows, governance_project_scope_filter
 
 
 # ============================================================
@@ -373,13 +373,10 @@ def register_equipment_routes(
         # Iter520 · Phase V.5 · P0-2A — apply PM scope filter so PM sees
         # only inspections for projects they manage (matches the detail
         # endpoint's behavior; prevents 404-bounce on row click).
-        scope = await compute_pm_scope(db, actor)
-        match_stage = {}
-        if not scope.is_admin and scope.project_numbers is not None:
-            allowed = list(scope.project_numbers or [])
-            if not allowed:
-                return []
-            match_stage = {"project_number": {"$in": allowed}}
+        scope_query = await governance_project_scope_filter(db, actor)
+        if scope_query is None:
+            return []
+        match_stage = dict(scope_query)
         pipeline = []
         if match_stage:
             pipeline.append({"$match": match_stage})
@@ -422,8 +419,7 @@ def register_equipment_routes(
         doc = await db.equipment_inspections.find_one({"id": inspection_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="Equipment inspection not found")
-        scope = await compute_pm_scope(db, actor)
-        if not scope.allows(doc.get("project_number")):
+        if not await governance_project_scope_allows(db, actor, doc.get("project_number")):
             raise HTTPException(status_code=404, detail="Equipment inspection not found")
         return doc
 
@@ -443,8 +439,9 @@ def register_equipment_routes(
         """Three leaderboards: most-problematic equipment units, operators with
         most failed inspections, and jobsites trending bad. Last `days` days.
         """
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        scope_query = await governance_project_scope_filter(db, actor, base_filter={"created_at": {"$gte": since}})
+        if scope_query is None:
             return {
                 "window_days": days,
                 "totals": {
@@ -456,9 +453,8 @@ def register_equipment_routes(
                 "operators": [],
                 "jobsites": [],
             }
-        since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
         cursor = db.equipment_inspections.find(
-            scope.filter({"created_at": {"$gte": since}}),
+            scope_query,
             {"_id": 0},
         )
         eq: Dict[str, Dict[str, Any]] = {}
@@ -535,11 +531,11 @@ def register_equipment_routes(
     ):
         """Every still-open FAIL item (no shop sign-off yet) across all
         equipment inspections, sorted by inspection date desc."""
-        scope = await compute_pm_scope(db, actor)
-        if scope.is_definitively_empty():
+        scope_query = await governance_project_scope_filter(db, actor, base_filter={"fail_count": {"$gt": 0}})
+        if scope_query is None:
             return {"items": [], "count": 0}
         cursor = db.equipment_inspections.find(
-            scope.filter({"fail_count": {"$gt": 0}}), {"_id": 0}
+            scope_query, {"_id": 0}
         ).sort("created_at", -1)
         out: List[Dict[str, Any]] = []
         async for d in cursor:

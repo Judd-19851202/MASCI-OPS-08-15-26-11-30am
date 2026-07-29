@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, Request
@@ -163,3 +164,34 @@ async def governance_project_scope_allows(
     if not project_number:
         return False
     return str(project_number) in set(project_numbers)
+
+
+@dataclass
+class GovernanceProjectScope:
+    is_admin: bool
+    project_numbers: Optional[List[str]]
+
+    def is_definitively_empty(self) -> bool:
+        return self.project_numbers == []
+
+    def allows(self, project_number: Optional[str]) -> bool:
+        if self.is_admin:
+            return True
+        if not project_number:
+            return False
+        return str(project_number) in set(self.project_numbers or [])
+
+    def filter(self, base_filter: Optional[Dict[str, Any]] = None, *, field_name: str = "project_number") -> Dict[str, Any]:
+        query = dict(base_filter or {})
+        if self.is_admin:
+            return query
+        query[field_name] = {"$in": list(self.project_numbers or [])}
+        return query
+
+
+async def governance_project_scope(db, actor: Any) -> GovernanceProjectScope:
+    project_numbers = await governance_project_scope_numbers(db, actor)
+    return GovernanceProjectScope(
+        is_admin=project_numbers is None,
+        project_numbers=None if project_numbers is None else list(project_numbers),
+    )
