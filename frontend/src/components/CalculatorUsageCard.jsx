@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Calculator, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -41,7 +41,7 @@ export default function CalculatorUsageCard() {
     try {
       const res = await api.get("/admin/calculators/export.csv", {
         responseType: "blob",
-        headers: { "X-Admin-Token": getAdminToken() || "" },
+        headers: buildScopedPortalAuthHeaders(["admin"]),
       });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement("a");

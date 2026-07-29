@@ -17,7 +17,7 @@ import axios from "axios";
 import { RefreshCw, HardDrive, ShieldCheck, AlertTriangle, Database, Layers, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -42,13 +42,13 @@ function _gb(bytes) {
 
 async function _get(path) {
   return axios.get(`${API}${path}`, {
-    headers: { "X-Admin-Token": getAdminToken() || "" },
+    headers: buildScopedPortalAuthHeaders(["admin"]),
     timeout: 60000,
   });
 }
 async function _post(path) {
   return axios.post(`${API}${path}`, {}, {
-    headers: { "X-Admin-Token": getAdminToken() || "" },
+    headers: buildScopedPortalAuthHeaders(["admin"]),
     timeout: 120000,
   });
 }

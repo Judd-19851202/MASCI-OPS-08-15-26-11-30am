@@ -14,6 +14,7 @@ import { RefKicker } from "@/components/RefKicker";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api, API } from "@/lib/api";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { isSafetyForms, getSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { isAdmin, getAdminToken } from "@/lib/adminAuth";
 import { isSafety, getSafetyToken } from "@/lib/safetyAuth";
@@ -72,15 +73,11 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
   const downloadPdf = async (subPath = "/pdf", suffix = "") => {
     setDownloading(true);
     try {
-      const headers = {};
-      const adminTok = getAdminToken();
       const sfTok = getSafetyFormsToken();
-      const safetyTok = getSafetyToken();
-      if (adminTok) headers["X-Admin-Token"] = adminTok;
-      if (sfTok) headers["X-Safety-Forms-Token"] = sfTok;
-      // iter323 · include Safety Portal token so PDF downloads work
-      // for signed-in Safety reviewers (backend already accepts it).
-      if (safetyTok) headers["X-Safety-Token"] = safetyTok;
+      const headers = {
+        ...buildScopedPortalAuthHeaders(["admin", "safety"]),
+        ...(sfTok ? { "X-Safety-Forms-Token": sfTok } : {}),
+      };
       const res = await fetch(`${API}${apiBase}/${id}${subPath}`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();

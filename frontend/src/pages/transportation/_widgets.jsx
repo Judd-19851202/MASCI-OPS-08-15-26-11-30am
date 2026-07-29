@@ -29,6 +29,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { Chip, adminHeaders, txGet } from "./_shared";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -62,8 +63,10 @@ export function DocumentDropzone({ kind, parentId, documentTypes, onUploaded, te
       form.append("file", file);
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `${API}/api${url}`, true);
-      const tok = adminHeaders()["X-Admin-Token"];
-      if (tok) xhr.setRequestHeader("X-Admin-Token", tok);
+      const headers = buildScopedPortalAuthHeaders(["admin"]);
+      Object.entries(headers).forEach(([key, value]) => {
+        if (value) xhr.setRequestHeader(key, value);
+      });
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
           setProgress(Math.round((e.loaded / e.total) * 90) + 5);

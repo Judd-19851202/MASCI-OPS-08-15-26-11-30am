@@ -29,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   useFormDraft, getActorId, DraftStatusPill, DraftRestorePrompt,
 } from "@/lib/resiliency";
@@ -132,15 +132,15 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
   // Fetch canonical question list on mount (admin source of truth).
   useEffect(() => {
     let cancelled = false;
-    const token = getAdminToken();
-    if (!token) return;
+    const headers = buildScopedPortalAuthHeaders(["admin"]);
+    if (!headers["X-Admin-Token"]) return;
     // Reset state when variant changes (route swap).
     setQuestions(cfg.fallback);
     setAnswers({});
     setResult(null);
     setError("");
     fetch(`${API}${cfg.questionsPath}`, {
-      headers: { "X-Admin-Token": token },
+      headers,
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -161,8 +161,10 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
     setError("");
     setResult(null);
     setSubmitting(true);
-    const token = getAdminToken();
-    if (!token) {
+    const headers = buildScopedPortalAuthHeaders(["admin"], {
+      "Content-Type": "application/json",
+    });
+    if (!headers["X-Admin-Token"]) {
       setError(t("Admin sign-in required."));
       setSubmitting(false);
       return;
@@ -170,10 +172,7 @@ export default function AdminDlsDay1Debrief({ variant = "day-1" }) {
     try {
       const r = await fetch(`${API}${cfg.submitPath}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Token": token,
-        },
+        headers,
         body: JSON.stringify({
           answers,
           operational_notes: operationalNotes,

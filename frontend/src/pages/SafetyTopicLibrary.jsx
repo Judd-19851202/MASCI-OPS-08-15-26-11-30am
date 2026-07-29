@@ -35,8 +35,7 @@ import { Label } from "@/components/ui/label";
 import { useT } from "@/lib/i18n";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { usePageTitle } from "@/lib/usePageTitle";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { TOPIC_LIBRARY } from "@/lib/topics/index";
 import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
 import { toast } from "sonner";
@@ -232,11 +231,9 @@ export default function SafetyTopicLibrary() {
 
     setGenerating(true);
     try {
-      const headers = { "Content-Type": "application/json" };
-      const safetyTok = getSafetyToken();
-      const adminTok = getAdminToken();
-      if (safetyTok) headers["X-Safety-Token"] = safetyTok;
-      else if (adminTok) headers["X-Admin-Token"] = adminTok;
+      const headers = buildScopedPortalAuthHeaders(["safety", "admin"], {
+        "Content-Type": "application/json",
+      });
 
       const resp = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/api/safety/library/pack`,

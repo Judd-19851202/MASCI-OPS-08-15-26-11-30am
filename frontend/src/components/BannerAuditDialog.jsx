@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { API } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
@@ -99,8 +99,9 @@ const browserOf = (ua) => {
  */
 async function downloadFile(url, filename) {
   try {
-    const token = getAdminToken() || "";
-    const r = await fetch(url, { headers: { "X-Admin-Token": token } });
+    const r = await fetch(url, {
+      headers: buildScopedPortalAuthHeaders(["admin"]),
+    });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const blob = await r.blob();
     const objUrl = URL.createObjectURL(blob);

@@ -20,7 +20,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -43,7 +43,7 @@ export default function ProductionHealthLine({ testId = "production-health-line"
   const probe = useCallback(async () => {
     try {
       const r = await fetch(`${API}/api/admin-strict/diag/production-health`, {
-        headers: { "X-Admin-Token": getAdminToken() || "" },
+        headers: buildScopedPortalAuthHeaders(["admin"]),
       });
       if (!r.ok) {
         setState({ status: "error", data: { httpCode: r.status } });

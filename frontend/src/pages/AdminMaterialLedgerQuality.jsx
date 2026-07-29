@@ -21,7 +21,7 @@ import {
   ArrowLeft, Truck, FileCheck2, AlertTriangle, CheckCircle2,
   Search, RefreshCcw, Download,
 } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -124,7 +124,7 @@ export default function AdminMaterialLedgerQuality() {
     });
     const params = buildParams();
     fetch(`${API}/dispatch/haul-ledger?${params.toString()}`, {
-      headers: { "X-Admin-Token": getAdminToken() },
+      headers: buildScopedPortalAuthHeaders(["admin"]),
     })
       .then(async (r) => {
         if (cancelled) return;
@@ -157,7 +157,7 @@ export default function AdminMaterialLedgerQuality() {
       const params = buildParams();
       params.set("format", "csv");
       const res = await fetch(`${API}/dispatch/haul-ledger?${params.toString()}`, {
-        headers: { "X-Admin-Token": getAdminToken() },
+        headers: buildScopedPortalAuthHeaders(["admin"]),
       });
       if (!res.ok) {
         alert(`Export failed · HTTP ${res.status}`);

@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { api } from "@/lib/api";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   applyMultiLoginResponse,
   getDirectoryToken,
@@ -75,7 +76,7 @@ export default function DirectoryChangePassword() {
         { current_password: current, new_password: next },
         {
           timeout: 30000,
-          headers: { "X-Directory-Token": getDirectoryToken() },
+          headers: buildScopedPortalAuthHeaders([]),
         }
       );
       if (res?.data?.ok) {

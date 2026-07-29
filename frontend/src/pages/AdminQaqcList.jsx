@@ -8,7 +8,7 @@ import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const KIND_LABEL = {
   concrete_form: "Concrete Form",
@@ -63,7 +63,7 @@ export default function AdminQaqcList() {
     try {
       const res = await api.get("/admin/qaqc-inspections/export.csv", {
         responseType: "blob",
-        headers: { "X-Admin-Token": getAdminToken() || "" },
+        headers: buildScopedPortalAuthHeaders(["admin"]),
       });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement("a");

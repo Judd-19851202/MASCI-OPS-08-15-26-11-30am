@@ -21,7 +21,7 @@ import {
   ArrowLeft, Truck, FileCheck2, AlertTriangle, CheckCircle2,
   Search, RefreshCcw,
 } from "lucide-react";
-import { getDispatchToken } from "@/lib/dispatchAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 // TRACK 18.00 · Phase F · Transportation Operations unified branding.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
@@ -110,7 +110,7 @@ export default function DispatchHaulLedger() {
     if (truck.trim()) params.set("truck", truck.trim());
     if (verification) params.set("verification_status", verification);
     fetch(`${API}/dispatch/haul-ledger?${params.toString()}`, {
-      headers: { "X-Dispatch-Token": getDispatchToken() },
+      headers: buildScopedPortalAuthHeaders(["dispatch"]),
     })
       .then(async (r) => {
         if (cancelled) return;

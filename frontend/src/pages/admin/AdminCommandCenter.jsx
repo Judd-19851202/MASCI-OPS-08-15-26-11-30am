@@ -13,7 +13,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import AdminShell from "@/components/AdminShell";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { Button } from "@/components/ui/button";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
@@ -179,7 +179,7 @@ export default function AdminCommandCenter() {
   const load = useCallback(async () => {
     try {
       const r = await fetch(`${API}/admin/command-center/snapshot`, {
-        headers: { "X-Admin-Token": getAdminToken() || "" },
+        headers: buildScopedPortalAuthHeaders(["admin"]),
       });
       if (!r.ok) {
         setErr(`HTTP ${r.status}`);

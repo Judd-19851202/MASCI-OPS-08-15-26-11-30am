@@ -36,7 +36,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { X, AlertTriangle, ExternalLink, BookOpen, Users } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import AttentionChip from "./AttentionChip";
 import TrendChip from "./TrendChip";
 import { rolesFor, deepLinksFor } from "./guidanceMap";
@@ -46,11 +46,13 @@ const DECISION_BOUNDARY =
   "This information supports operational decision-making. The platform never makes operational decisions.";
 
 async function _get(path) {
-  const token = getAdminToken();
-  if (!token) return { ok: false, status: 401, body: null };
+  const headers = buildScopedPortalAuthHeaders(["admin"], {
+    "Content-Type": "application/json",
+  });
+  if (!headers["X-Admin-Token"]) return { ok: false, status: 401, body: null };
   try {
     const r = await fetch(`${API}${path}`, {
-      headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      headers,
     });
     const body = r.ok ? await r.json().catch(() => null) : null;
     return { ok: r.ok, status: r.status, body };

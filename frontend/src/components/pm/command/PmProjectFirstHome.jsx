@@ -39,6 +39,7 @@ import {
   ClipboardList, ArrowRight, ExternalLink, BookMarked,
   ChevronLeft, ChevronRight, X as XIcon,
 } from "lucide-react";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -54,23 +55,7 @@ const thumbSrc = (p) =>
     : (p?.thumb_url || p?.url || null);
 
 function _authHeaders() {
-  // Track 15.11C fix: previously this helper only checked sessionStorage
-  // and forwarded any found token as `X-Admin-Token`. PMs who logged
-  // in with "Remember me" checked (the default) have their token in
-  // localStorage and the backend rejects PM tokens sent under the
-  // admin header — so the Field Truth tiles silently went blank for
-  // every real PM. Read from both tiers and pick the right header
-  // for each portal token.
-  const _read = (k) =>
-    (typeof sessionStorage !== "undefined" && sessionStorage.getItem(k)) ||
-    (typeof localStorage !== "undefined" && localStorage.getItem(k)) ||
-    "";
-  const headers = {};
-  const adminTok = _read("masci.admin.token");
-  if (adminTok) headers["X-Admin-Token"] = adminTok;
-  const pmTok = _read("masci.pm.token");
-  if (pmTok) headers["X-PM-Token"] = pmTok;
-  return headers;
+  return buildScopedPortalAuthHeaders(["admin", "pm"]);
 }
 
 // ── shared visual primitives (inherit platform baseline) ──────────

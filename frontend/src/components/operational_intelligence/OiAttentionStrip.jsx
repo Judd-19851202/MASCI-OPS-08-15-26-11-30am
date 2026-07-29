@@ -37,7 +37,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Activity, ArrowRight } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import GuidanceCard from "./GuidanceCard";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -65,13 +65,17 @@ function ArrowGlyph({ direction }) {
 }
 
 async function fetchOiSummary({ timeoutMs = 3000 } = {}) {
-  const token = getAdminToken();
-  if (!token) return { ok: false, status: 401, body: null, reason: "no_token" };
+  const headers = buildScopedPortalAuthHeaders(["admin"], {
+    "Content-Type": "application/json",
+  });
+  if (!headers["X-Admin-Token"]) {
+    return { ok: false, status: 401, body: null, reason: "no_token" };
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const r = await fetch(`${API}/api/operational-intelligence/summary`, {
-      headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      headers,
       signal: controller.signal,
     });
     const body = r.ok ? await r.json().catch(() => null) : null;

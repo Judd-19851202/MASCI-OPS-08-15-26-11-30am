@@ -57,7 +57,7 @@ import {
   formatCoords,
 } from "@/lib/geolocation";
 import { cn } from "@/lib/utils";
-import { getFlToken } from "@/lib/flAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
   persistIdempotencyKey, loadIdempotencyKey,
@@ -309,7 +309,7 @@ export default function NewIncident({ publicMode = false }) {
       const r = await enqueueUpload({
         method: "POST",
         url: "/incidents",
-        headers: getFlToken() ? { "X-FL-Token": getFlToken() } : {},
+        headers: buildScopedPortalAuthHeaders(["field_leadership"]),
         body: payload,
         idempotencyKey: idempotencyKeyRef.current,
         formKey: "incident-new",
