@@ -1,3 +1,10 @@
+# 2026-07-29 WP-16 recovery status
+
+- **P0 Immediate status:** visual recovery complete; baseline restored to `f97ab297` behavior
+- **WP-16 execution status:** paused from rollout/migration
+- **Allowed next work only:** inventory, classification of competing patterns, constitutional review
+- **Not allowed until approval:** new shell migration, shared-component replacement, visual redesign, cross-portal restyling
+
 # WP15 Immediate Next Actions — 2026-07-29
 
 ## P0

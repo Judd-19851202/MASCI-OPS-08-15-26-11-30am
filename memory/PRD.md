@@ -1,5 +1,27 @@
 # 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
 
+## 2026-07-29 Emergency WP-16 recovery — visual baseline restored
+
+- WP-16 rollout is constitutionally **paused**.
+- Rollback was unavailable in the platform UI, so recovery was executed **in place** using evidence from baseline commit `f97ab297`, the WP-16 change manifest, screenshots, and recovery documents.
+- Runtime visual files were restored directly to their `f97ab297` contents for the shared shell, admin sidebar/breadcrumb/command palette, global search, notification bell, portal switcher, HR shell, Safety shell, design-system exports, and global CSS/token files.
+- Recovery documentation created and preserved:
+  - `/app/memory/WP16_RECOVERY_REPORT.md`
+  - `/app/memory/WP16_CHANGE_MANIFEST.md`
+- Recovery verification completed via frontend QA:
+  - `/app/test_reports/iteration_75.json`
+  - Result: **PASS**
+- Verified recovery outcome:
+  - Admin / HR / Safety all render on the prior dark/navy baseline
+  - no active WP-16 white/light shell treatment remains in runtime
+  - no WP-16 mobile bottom dock remains active
+  - shared chrome (search, notifications, switcher) is back on baseline behavior
+- Important audit note:
+  - WP-16 experimental files still exist in the repo as **unwired artifacts** and part of the audit trail, but they are no longer imported/exported into the active runtime.
+- Next constitutional state:
+  - platform is back to **recovery-stable baseline**
+  - WP-16 may proceed only in **inventory/review mode** until explicit approval of canonical standards
+
 ## 2026-07-29 Final constitutional closeout — operational dashboard + CI freeze
 
 ### Truth reconciliation + final administrative freeze

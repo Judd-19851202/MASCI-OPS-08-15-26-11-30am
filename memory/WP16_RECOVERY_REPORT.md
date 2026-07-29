@@ -1,7 +1,7 @@
 # WP-16 Recovery Report
 
 Date: 2026-07-29
-Status: Recovery planning only — **no further visual rollout approved**
+Status: Recovery executed and verified — **no further visual rollout approved**
 
 ## Executive summary
 Per the emergency directive, all WP-16 design rollout work is now paused.
@@ -84,6 +84,15 @@ These are the changes that altered the live UI and created the mixed-state probl
 
 ## Recovery conclusion
 The current mixed visuals are not a mystery: the platform is caught between **old shell families** and a **new incomplete shell system**. The fastest path back to coherence is **rollback to `f97ab297` or `ff9719bc`**, then perform inventory and design review without further rollout.
+
+## Recovery execution result
+- Because platform rollback was unavailable, the visual baseline was reconstructed **in place** from commit `f97ab297`.
+- The restored runtime files were verified by frontend QA in `/app/test_reports/iteration_75.json`.
+- Verified outcome:
+  - prior dark/navy baseline restored on Admin / HR / Safety
+  - no active WP-16 white/light shell treatment remains
+  - no WP-16 mobile bottom dock remains active
+  - shared chrome is back on baseline behavior
 
 ## Required next sequence
 1. Use **Rollback** to restore the chosen baseline checkpoint.
