@@ -27,12 +27,12 @@ import { HelpTip } from "@/components/ui/HelpTip";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useRememberedFilter, useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety", "admin"]) });
 
 const STATUS_OPTIONS = ["Pass", "Fail", "Needs Service"];
 const STATUS_COLOR = {

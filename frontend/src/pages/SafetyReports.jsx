@@ -11,14 +11,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SafetyShell from "@/components/SafetyShell";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["safety", "admin", "pm"]) });
 
 const REPORTS = [
   {
