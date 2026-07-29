@@ -1,0 +1,2789 @@
+{
+  "routes": [
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/",
+      "element_hint": "Hub"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/revise/:token",
+      "element_hint": "Revise"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety",
+      "element_hint": "SafetySection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms/login",
+      "element_hint": "SafetyFormsLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms",
+      "element_hint": "SafetyFormsHub"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms/equipment-issuance/new",
+      "element_hint": "NewSafetyEquipmentIssuance"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms/equipment-issuance/:id",
+      "element_hint": "ViewSafetyForm"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms/equipment-issuance/:id/return",
+      "element_hint": "ReturnEquipment"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms/equipment-training/new",
+      "element_hint": "NewSafetyEquipmentTraining"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/forms/equipment-training/:id",
+      "element_hint": "ViewSafetyForm"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/cards",
+      "element_hint": "FieldSafetyCards"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field",
+      "element_hint": "FieldSection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field/calculators",
+      "element_hint": "MaterialCalculators"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/qaqc",
+      "element_hint": "QaqcSection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/qa-qc",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/qaqc/:slug/new",
+      "element_hint": "NewQaqcInspection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/qaqc/:id",
+      "element_hint": "ViewQaqcInspection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/qaqc",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/transportation/*",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/transportation-operations/*",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/photos",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/constraints",
+      "element_hint": "Constraints"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/constraints/new",
+      "element_hint": "NewConstraint"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/constraints/:id",
+      "element_hint": "ConstraintDetail"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/leadership",
+      "element_hint": "FieldLeadershipHub"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/leadership/hub_v2",
+      "element_hint": "LeadershipHubV2"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/leadership/records",
+      "element_hint": "FieldLeadershipRecords"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/leadership/records/:id",
+      "element_hint": "FieldLeadershipView"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/leadership/:kind/new",
+      "element_hint": "FieldLeadershipFormPage"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/inspections/new",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/inspect/new",
+      "element_hint": "InspectionLegacyRedirect"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/submit",
+      "element_hint": "InspectionLegacyRedirect"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/inspections/submit",
+      "element_hint": "InspectionLegacyRedirect"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/inspections/new",
+      "element_hint": "InspectionLegacyRedirect"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/meetings/new",
+      "element_hint": "NewMeeting"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/meetings/submit",
+      "element_hint": "NewMeeting"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/jha",
+      "element_hint": "JhaPlansHub"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/jha/submit",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/jha/new",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-boxes",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-safety",
+      "element_hint": "PublicTrenchSafetyDashboard"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-safety/tabulated-data",
+      "element_hint": "PublicTrenchSafetyTabulatedData"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-safety/references",
+      "element_hint": "PublicTrenchSafetyReferences"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-safety/report",
+      "element_hint": "PublicTrenchSafetyReport"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-safety/assets/:assetId",
+      "element_hint": "TrenchSafetyQrLanding"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/transport-invite/:token",
+      "element_hint": "ExternalCarrierInvite"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/transport-verify/:cnum",
+      "element_hint": "CertificateVerify"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/incidents/new",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/incidents/submit",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/incidents/report",
+      "element_hint": "IncidentReport"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/near-miss",
+      "element_hint": "NearMissKiosk"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/cases/:caseId",
+      "element_hint": "SafetyCaseWorkspace"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/incidents/:caseId/thread",
+      "element_hint": "SafetyIncidentThread"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/executive-intelligence",
+      "element_hint": "ExecutiveIntelligence"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/cases/:caseId/reports/:reportType",
+      "element_hint": "IncidentReportViewer"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/cases/:caseId/executive-report",
+      "element_hint": "ExecutiveCaseReport"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily/new",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily/submit",
+      "element_hint": "NewDailyReportV3"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/equipment/new",
+      "element_hint": "NewEquipmentInspection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/equipment/submit",
+      "element_hint": "NewEquipmentInspection"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/equipment/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet/dvir/new",
+      "element_hint": "NewFleetDVIR"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet/dvir/submit",
+      "element_hint": "NewFleetDVIR"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet/weekly-lead/new",
+      "element_hint": "NewFleetDVIR"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet/weekly-emergency/new",
+      "element_hint": "NewFleetDVIR"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet/dvir/submitted/:id",
+      "element_hint": "FleetDVIRConfirmation"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/thank-you",
+      "element_hint": "ThankYou"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/cheatsheet",
+      "element_hint": "PosterErrorBoundary"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/cheat-sheet",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/reports/daily/new",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily-reports/new",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily-reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily-reports/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/jha",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-boxes",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/assets",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/assets/:assetId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/tabulated-data",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/excavations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/excavations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/trench-safety/excavation/new",
+      "element_hint": "PublicExcavationForm"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/repair-review",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety/trench-safety/field-reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/trench-safety",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/trench-safety/assets",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/trench-safety/tabulated-data",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/app/*",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/login",
+      "element_hint": "AdminLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/hub_v1",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/hub_v2",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/executive-overview",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/executive-intelligence",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/material-ledger-quality",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/people",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/mfa",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/promo-assets",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jobs",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/cost-registry",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jobs/:projectNumber/team",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/project-staffing",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/geofence-reconciliation",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operations-dashboard",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operations-control",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operations-control/cases/:caseId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-control/cases",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-control/cases/:caseId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/asset-mapping",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/asset-spine",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/equipment",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/email",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/training",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/compliance",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/system",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/ai-configuration",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/integration-truth",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/preview-validation-identities",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/recovery",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/storage-recovery",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/ai-operations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/communications",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/identity-security",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trust-spine",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance-trust",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/platform-configuration",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/diagnostics",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/maintenance",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/platform-overview",
+      "element_hint": "AdminPlatformOverview"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/recovery-stream",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jha-acknowledgements",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/command-center",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/database",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/integrations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/dispatch",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/dls/shift-qr",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/dls/day-1-debrief",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/dls/week-1-debrief",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/profile",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operations-events",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/digest-config",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operational-intelligence",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operational-intelligence/recipients",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/system-health",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/audit-log",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/scheduler-runs",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/legacy-imports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/sessions",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/guidance-coverage",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operational-inventory",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/notifications",
+      "element_hint": "NotificationsDigest"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/overview",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/organization",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/identities",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/roles",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/permissions",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/policies",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/approval-flows",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/delegations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/separation-of-duties",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/authority",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/emergency-overrides",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/decisions",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/audit",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/registry",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/versions",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/health",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/legacy-health",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/project-identity",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/governance/self-protection",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/compliance-findings",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/operational-language",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/guidance",
+      "element_hint": "OperationalGuidanceCenter"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/guidance/section/:sectionId",
+      "element_hint": "OperationalGuidanceCenter"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/guidance/:articleId",
+      "element_hint": "OperationalGuidanceCenter"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/deploy-recovery",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/assets/:assetId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/asset-admin",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/driver-intel/:driverKey",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/equipment/:id/history",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/employees/:id/history",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/analytics",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/leadership-equipment",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/terminations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/guide",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/pnl",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/inspections",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/inspections/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/meetings",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/meetings/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jha-plans",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jha",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jha/:id",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-boxes",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-boxes/poster",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/assets",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/assets/:assetId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/tabulated-data",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/repair-review",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety/field-reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/jha-plans/poster",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/posters/print-all",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/incidents",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/incidents/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/daily",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/daily/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/equipment-inspections",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/equipment/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/qaqc/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/leadership/records/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/safety/issuance/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/safety/training/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/login",
+      "element_hint": "PmLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/reset/:token",
+      "element_hint": "PmResetPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/change-password",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/hub",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/hub_legacy",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/hub_v2",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/holds",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/due-today",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/crew-compliance",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/jobs",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/job/:projectNumber/team",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/project-staffing",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/project-schedule",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/monday-review",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/projects/:projectNumber",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/projects-legacy/:projectNumber",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/project/:projectNumber",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/project/:projectNumber/thread",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/command-center",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-center",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/executive-operational-intelligence",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-map",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/field-leadership",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/fleet",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/people",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/suppliers",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/vendors/:vendorId/thread",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/assets/:assetRef/thread",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/posters",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/qaqc",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/photos",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/daily",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/daily/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/incidents",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/incidents/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/meetings",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/meetings/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/inspections",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/inspections/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/jha-plans",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-boxes",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/equipment",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/equipment/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-safety",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-safety/assets",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-safety/assets/:assetId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-safety/tabulated-data",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-safety/reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/trench-safety/excavations",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/login",
+      "element_hint": "ShopLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/reset/:token",
+      "element_hint": "ShopResetPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/change-password",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/hub_legacy",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/hub_v2",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/asset-care",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/manager/queue",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/me",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/units/history",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/units/:unitNumber/history",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/fuel-lube/new",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/fuel-lube",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/fuel-lube/:visitId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/service-truck-reconciliation/new",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/service-truck-reconciliation",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/service-truck-reconciliation/:recId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/pm",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/pm/templates",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/pm/schedules",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/pm/work-orders",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/pm/work-orders/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/trench-safety-repairs",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/fleet",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet/unit/:unit_number",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/equipment",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shop/equipment/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/login",
+      "element_hint": "HrLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/sign-in",
+      "element_hint": "SignIn"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/change-password",
+      "element_hint": "DirectoryChangePassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/forgot",
+      "element_hint": "HrForgotPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/reset/:token",
+      "element_hint": "HrResetPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/change-password",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/hub_legacy",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/hub_v2",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/field-leadership",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/field-leadership-users",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/employee-accountability",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/time-verification",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/time-off",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/payroll-variance",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/training-records",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/qualifications",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/driver-qualification",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/driver-qualification/import",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/daily-reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/daily-reports/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/motive-drivers",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/driver/:driverKey",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/time-off/public/:token",
+      "element_hint": "PublicTimeOff"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field-leadership/portal/login",
+      "element_hint": "FieldLeadershipPortalLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field-leadership/portal/change-password",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field-leadership/portal/dashboard",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field-leadership/portal",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field-leadership/portal/driver-qualification",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/login",
+      "element_hint": "SafetyLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/forgot-password",
+      "element_hint": "SafetyForgotPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/reset/:token",
+      "element_hint": "SafetyResetPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/change-password",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/hub_legacy",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/hub_v2",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/fleet",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/corrective-actions",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/fire-extinguishers",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/fire-extinguishers/import",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/documents",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/training",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/incidents",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/incidents/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/meetings/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/audits",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/forms-records",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/reports",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/library",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/employees",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/digest",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/inspections",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/inspections/:id",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/jha-plans",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/driver/:driverKey",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/safety-records",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/login",
+      "element_hint": "DispatchLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/leadership/login",
+      "element_hint": "FieldLeadershipPortalLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/forgot-password",
+      "element_hint": "DispatchForgotPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/reset/:token",
+      "element_hint": "DispatchResetPassword"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/change-password",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/hub_legacy",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/hub_v2",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/board",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/command",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/fleet",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/map",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/haul-ledger",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/driver-qualification",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dispatch-portal/driver/:driverKey",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/training",
+      "element_hint": "TrainingHub"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/training-hub",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/training/:track",
+      "element_hint": "TrainingTrack"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/training/:track/poster",
+      "element_hint": "TrainingQrPoster"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/training/:track/packet",
+      "element_hint": "TrainingPacketDownload"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/training-videos",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/deploy-readiness",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/ops-training",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/ops-training/:slug",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dev/login",
+      "element_hint": "DevLogin"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/dev",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/inspections",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/inspect/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/inspections/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/meetings",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/meetings/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/incidents",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/incidents/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily/:id",
+      "element_hint": "RedirectWithId"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/safety-portal/meetings",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/daily-reports",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/trench-safety-assets",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/legal/terms",
+      "element_hint": "TermsOfService"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/legal/privacy",
+      "element_hint": "PrivacyPolicy"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/tasks",
+      "element_hint": "Tasks"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/document-expirations",
+      "element_hint": "DocumentExpirations"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/employees",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/employee-requests",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/employees/:id/accountability",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/employees/:id/thread",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/employees/:empId/profile",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/historical-records/intake",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/historical-records/queue",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/historical-records/batches",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/historical-records/batches/:batchId",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/hr/incidents",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/po-requests",
+      "element_hint": "PoRequests"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/project-health",
+      "element_hint": "ProjectHealth"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/asset-transfers",
+      "element_hint": "AssetTransfers"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/access-denied",
+      "element_hint": "AccessDenied"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/audit",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/health",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/d/:token",
+      "element_hint": "DriverMagicLanding"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/driver",
+      "element_hint": "DriverShift"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/shift",
+      "element_hint": "ShiftStart"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/field-leadership",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/odr/new",
+      "element_hint": "OdrNew"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/odr/center",
+      "element_hint": "OdrCenter"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/odr",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/odr/public/:doc_id",
+      "element_hint": "OdrPublicViewer"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/odr/:id/done",
+      "element_hint": "OdrDone"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/odr/:id",
+      "element_hint": "OdrDetail"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operational-records",
+      "element_hint": "OperationalRecords"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-actions",
+      "element_hint": "OperationsActions"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-actions/new",
+      "element_hint": "OperationsActionNew"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/operations-actions/:id",
+      "element_hint": "OperationsActionDetail"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/_internal/design-system",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/_internal/pm-v2-preview",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/_internal/hr-v2-preview",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/_internal/v2-index",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/_internal/v2-compare/:portal",
+      "element_hint": null
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily-report/v2",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily/v1",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily/v2",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily/v3",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily-report/v1",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/daily-report/v3",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/pm/operational-intelligence",
+      "element_hint": "PmOperationalIntelligence"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/ods-intelligence",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/executive/ods-intelligence",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/occ",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/executive",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/executive-dashboard",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/executive",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fleet",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/ai",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/admin/storage",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "/fl",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "app/routing/AppRoutes.jsx",
+      "path": "*",
+      "element_hint": "NotFound"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "dispatch",
+      "element_hint": "DispatchBridgeWorkspace"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "live-operations",
+      "element_hint": "LiveOperationsWorkspace"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "trucks",
+      "element_hint": "TrucksList"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "trucks/:id",
+      "element_hint": "TruckWorkspace"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "drivers",
+      "element_hint": "DriversList"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "drivers/:id",
+      "element_hint": "DriverWorkspace"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "carriers",
+      "element_hint": "CarriersList"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "carriers/:id",
+      "element_hint": "CarrierWorkspace"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "compliance",
+      "element_hint": "ComplianceDashboard"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "orientation/*",
+      "element_hint": "OrientationCenter"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "academy",
+      "element_hint": "TransportationAcademy"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "academy/:moduleKey",
+      "element_hint": "TransportationAcademyModule"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "intelligence/*",
+      "element_hint": "IntelligenceCenter"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "command-queue/*",
+      "element_hint": "CommandQueueCenter"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "reports",
+      "element_hint": "ReportsView"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "audit",
+      "element_hint": "AuditTimeline"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "documents",
+      "element_hint": "DocumentCenter"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "inspections",
+      "element_hint": "InspectionCenter"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "rate-schedules",
+      "element_hint": "RateScheduleCenter"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "compliance/documents",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "compliance/rate-schedules",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "fleet",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "fleet/trucks",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "fleet/inspections",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "pages/transportation/TransportationApp.jsx",
+      "path": "administration/audit",
+      "element_hint": "Navigate"
+    },
+    {
+      "file": "pages/transportation/_command_queue.jsx",
+      "path": "health",
+      "element_hint": "AutomationHealth"
+    },
+    {
+      "file": "pages/transportation/_command_queue.jsx",
+      "path": "forecast",
+      "element_hint": "ComplianceForecast"
+    },
+    {
+      "file": "pages/transportation/_orientation.jsx",
+      "path": "modules",
+      "element_hint": "ModuleManager"
+    },
+    {
+      "file": "pages/transportation/_orientation.jsx",
+      "path": "modules/:mid",
+      "element_hint": "ModuleDetail"
+    },
+    {
+      "file": "pages/transportation/_orientation.jsx",
+      "path": "assignments",
+      "element_hint": "AssignmentsView"
+    },
+    {
+      "file": "pages/transportation/_orientation.jsx",
+      "path": "certificates",
+      "element_hint": "CertificatesView"
+    },
+    {
+      "file": "pages/transportation/_orientation.jsx",
+      "path": "emails",
+      "element_hint": "EmailRoutesPanel"
+    },
+    {
+      "file": "pages/transportation/_intelligence.jsx",
+      "path": "recommendations",
+      "element_hint": "RecommendationsPanel"
+    },
+    {
+      "file": "pages/transportation/_intelligence.jsx",
+      "path": "predictions",
+      "element_hint": "PredictionsPanel"
+    },
+    {
+      "file": "pages/transportation/_intelligence.jsx",
+      "path": "learning",
+      "element_hint": "LearningLoopPanel"
+    },
+    {
+      "file": "pages/transportation/_intelligence.jsx",
+      "path": "cleanup",
+      "element_hint": "CleanupCompanionPanel"
+    }
+  ],
+  "pages": [
+    "pages/V2Compare.jsx",
+    "pages/PmLogin.jsx",
+    "pages/JhaPlansPoster.jsx",
+    "pages/HrDriverQualificationImport.jsx",
+    "pages/SafetyForgotPassword.jsx",
+    "pages/FieldLeadershipPortalChangePassword.jsx",
+    "pages/ReturnEquipment.jsx",
+    "pages/HrIncidents.jsx",
+    "pages/HrEmployees.jsx",
+    "pages/MaterialCalculators.jsx",
+    "pages/OperationsCenterCommand.jsx",
+    "pages/AdminLegacyImports.jsx",
+    "pages/DispatchHub.jsx",
+    "pages/AdminMaterialLedgerQuality.jsx",
+    "pages/HrForgotPassword.jsx",
+    "pages/ExecutiveOperationalIntelligence.jsx",
+    "pages/HrEmployeeAccountability.jsx",
+    "pages/NewIncident.jsx",
+    "pages/DispatchHaulLedger.jsx",
+    "pages/HrSafetyRecords.jsx",
+    "pages/LeadershipLogin.jsx",
+    "pages/AdminAssetThread.jsx",
+    "pages/SafetyFireExtImport.jsx",
+    "pages/HrEmployeeAccountabilityTimeline.jsx",
+    "pages/OpsTrainingCenter.jsx",
+    "pages/NotificationsDigest.jsx",
+    "pages/DispatchForgotPassword.jsx",
+    "pages/SafetyCaseWorkspace.jsx",
+    "pages/DispatchBoard.jsx",
+    "pages/QaqcSection.jsx",
+    "pages/NotFound.jsx",
+    "pages/ShopHubV2.jsx",
+    "pages/SafetyDocuments.jsx",
+    "pages/PmOperationalIntelligence.jsx",
+    "pages/ShopHub.jsx",
+    "pages/PmProjectRedirect.jsx",
+    "pages/ViewEquipmentInspection.jsx",
+    "pages/AdminHub.jsx",
+    "pages/DispatchCommandCenter.jsx",
+    "pages/HrTrainingRecords.jsx",
+    "pages/Tasks.jsx",
+    "pages/AccessDenied.jsx",
+    "pages/SafetyTrainingRecords.jsx",
+    "pages/SafetyIncidents.jsx",
+    "pages/HrLogin.jsx",
+    "pages/PmCommandCenter.jsx",
+    "pages/AdminVendorThread.jsx",
+    "pages/FleetDVIRConfirmation.jsx",
+    "pages/SafetyReports.jsx",
+    "pages/OperationsControlCasesRoute.jsx",
+    "pages/PmChangePassword.jsx",
+    "pages/SafetyFormsLogin.jsx",
+    "pages/SafetyEmployeeProfiles.jsx",
+    "pages/DevLogin.jsx",
+    "pages/AdminTerminations.jsx",
+    "pages/ShopChangePassword.jsx",
+    "pages/SafetyFormsHub.jsx",
+    "pages/HrHub.jsx",
+    "pages/ViewQaqcInspection.jsx",
+    "pages/HistoricalRecordsBatches.jsx",
+    "pages/PmHomeRedirect.jsx",
+    "pages/HrEmployeeThread.jsx",
+    "pages/TrainingPacketDownload.jsx",
+    "pages/FieldSafetyCards.jsx",
+    "pages/FleetVisibility.jsx",
+    "pages/SafetyCorrectiveActions.jsx",
+    "pages/AdminSchedulerRuns.jsx",
+    "pages/SafetyTopicLibrary.jsx",
+    "pages/NewConstraint.jsx",
+    "pages/FieldLeadershipRecords.jsx",
+    "pages/CheatSheet.jsx",
+    "pages/ShopLogin.jsx",
+    "pages/PmCrewCompliance.jsx",
+    "pages/PmV2Preview.jsx",
+    "pages/JobPhotosLibrary.jsx",
+    "pages/FieldLeadershipPortalLogin.jsx",
+    "pages/PmProjectThread.jsx",
+    "pages/OpsTrainingGuide.jsx",
+    "pages/ViewIncident.jsx",
+    "pages/PmFieldLeadership.jsx",
+    "pages/ViewSafetyForm.jsx",
+    "pages/IncidentReportViewer.jsx",
+    "pages/EmployeeProfile.jsx",
+    "pages/HrMotiveDrivers.jsx",
+    "pages/TrainingQrPoster.jsx",
+    "pages/NewMeeting.jsx",
+    "pages/HrPayrollVariance.jsx",
+    "pages/TrenchBoxPoster.jsx",
+    "pages/SafetyDigest.jsx",
+    "pages/ProjectStaffingHub.jsx",
+    "pages/PmHoldsV2.jsx",
+    "pages/ViewInspection.jsx",
+    "pages/DispatchDriverQualification.jsx",
+    "pages/SafetyFireExtinguishers.jsx",
+    "pages/AdminTransportation.jsx",
+    "pages/SafetyHub.jsx",
+    "pages/HrFieldLeadership.jsx",
+    "pages/ExecutiveCaseReport.jsx",
+    "pages/HrDailyReports.jsx",
+    "pages/DispatchDriverProfile.jsx",
+    "pages/EquipmentDashboard.jsx",
+    "pages/ConstraintDetail.jsx",
+    "pages/ThankYou.jsx",
+    "pages/TrainingTrack.jsx",
+    "pages/HrDriverQualificationDashboard.jsx",
+    "pages/HistoricalRecordsQueue.jsx",
+    "pages/ViewMeeting.jsx",
+    "pages/HrDriverProfile.jsx",
+    "pages/DailyReportsDashboard.jsx",
+    "pages/ProjectHealth.jsx",
+    "pages/HrChangePassword.jsx",
+    "pages/AdminDeployReadiness.jsx",
+    "pages/SignIn.jsx",
+    "pages/HistoricalRecordsBatchDetail.jsx",
+    "pages/NewFleetDVIR.jsx",
+    "pages/FieldLeadershipView.jsx",
+    "pages/AdminTrainingVideos.jsx",
+    "pages/NewDailyReport.jsx",
+    "pages/PmProjectDetail.jsx",
+    "pages/FieldSection.jsx",
+    "pages/DispatchChangePassword.jsx",
+    "pages/AdminGuide.jsx",
+    "pages/HrEmployeeRequestsQueue.jsx",
+    "pages/SafetyLogin.jsx",
+    "pages/AdminHubSwitcher.jsx",
+    "pages/NewInspection.jsx",
+    "pages/DispatchLogin.jsx",
+    "pages/ShopResetPassword.jsx",
+    "pages/DocumentExpirations.jsx",
+    "pages/LeadershipHubV2.jsx",
+    "pages/SafetyHubV2.jsx",
+    "pages/ProjectPnlPage.jsx",
+    "pages/PmQaqcList.jsx",
+    "pages/AdminHubV2.jsx",
+    "pages/ViewDailyReport.jsx",
+    "pages/TrenchBoxes.jsx",
+    "pages/AdminLeadershipEquipment.jsx",
+    "pages/HrV2Preview.jsx",
+    "pages/HrTimeOff.jsx",
+    "pages/JhaPlansHub.jsx",
+    "pages/Constraints.jsx",
+    "pages/Hub.jsx",
+    "pages/PmHubV2.jsx",
+    "pages/SafetyIncidentThread.jsx",
+    "pages/AdminQaqcList.jsx",
+    "pages/TrenchBoxesAdmin.jsx",
+    "pages/HrHubV2.jsx",
+    "pages/Dashboard.jsx",
+    "pages/NewSafetyEquipmentTraining.jsx",
+    "pages/DevHub.jsx",
+    "pages/PmMondayReviewWorkspace.jsx",
+    "pages/OperationsControlCenter.jsx",
+    "pages/OperationsMapPage.jsx",
+    "pages/NewSafetyEquipmentIssuance.jsx",
+    "pages/AssetTransfers.jsx",
+    "pages/DispatchOperationsMapPage.jsx",
+    "pages/HrTimeVerification.jsx",
+    "pages/HistoricalRecordsIntake.jsx",
+    "pages/DirectoryChangePassword.jsx",
+    "pages/SafetySection.jsx",
+    "pages/EmployeeLifecycleQualifications.jsx",
+    "pages/FieldLeadershipPortalDashboard.jsx",
+    "pages/ExecutiveIntelligence.jsx",
+    "pages/NewEquipmentInspection.jsx",
+    "pages/OperationsControlCases.jsx",
+    "pages/SafetyResetPassword.jsx",
+    "pages/PmHub.jsx",
+    "pages/PoRequests.jsx",
+    "pages/PublicTimeOff.jsx",
+    "pages/FieldLeadershipDriverQualification.jsx",
+    "pages/FieldLeadershipHub.jsx",
+    "pages/AdminLogin.jsx",
+    "pages/NearMissKiosk.jsx",
+    "pages/SafetyAudits.jsx",
+    "pages/V2Index.jsx",
+    "pages/AdminHubV3.jsx",
+    "pages/DispatchResetPassword.jsx",
+    "pages/DesignSystemDemo.jsx",
+    "pages/HrFieldLeadershipUsers.jsx",
+    "pages/HrResetPassword.jsx",
+    "pages/IncidentReport.jsx",
+    "pages/AllPostersPrint.jsx",
+    "pages/PmDueTodayV2.jsx",
+    "pages/OperationsControlCaseDetail.jsx",
+    "pages/NewDailyReportV3.jsx",
+    "pages/FieldLeadershipFormPage.jsx",
+    "pages/IncidentsDashboard.jsx",
+    "pages/PmResetPassword.jsx",
+    "pages/NewQaqcInspection.jsx",
+    "pages/PmProjectSchedule.jsx",
+    "pages/ExecutiveOverview.jsx",
+    "pages/SafetyDriverProfile.jsx",
+    "pages/SafetyFormsRecords.jsx",
+    "pages/JhaPlansAdmin.jsx",
+    "pages/SafetyChangePassword.jsx",
+    "pages/Revise.jsx",
+    "pages/DispatchHubV2.jsx",
+    "pages/TrainingHub.jsx",
+    "pages/MeetingsDashboard.jsx",
+    "pages/shop/PmTemplates.jsx",
+    "pages/shop/ShopAssetCare.jsx",
+    "pages/shop/FuelLubeVisitRecords.jsx",
+    "pages/shop/FuelLubeVisitForm.jsx",
+    "pages/shop/ServiceTruckReconciliationDetail.jsx",
+    "pages/shop/ShopManagerQueue.jsx",
+    "pages/shop/ShopTrenchSafetyRepairs.jsx",
+    "pages/shop/PmWorkOrders.jsx",
+    "pages/shop/ShopMyAssignments.jsx",
+    "pages/shop/ServiceTruckReconciliationForm.jsx",
+    "pages/shop/UnitHistoryTimeline.jsx",
+    "pages/shop/UnitHistoryLanding.jsx",
+    "pages/shop/ServiceTruckReconciliationRecords.jsx",
+    "pages/shop/FuelLubeVisitDetail.jsx",
+    "pages/shop/PmSchedules.jsx",
+    "pages/shop/PmDashboard.jsx",
+    "pages/admin/AdminGovernanceOperatingSystem.jsx",
+    "pages/admin/AdminOS.jsx",
+    "pages/admin/AdminTraining.jsx",
+    "pages/admin/AdminDigestConfig.jsx",
+    "pages/admin/AdminIntegrationCenter.jsx",
+    "pages/admin/AdminDlsShiftQR.jsx",
+    "pages/admin/AdminProjectStaffing.jsx",
+    "pages/admin/AdminAuditLog.jsx",
+    "pages/admin/AdminComplianceFindings.jsx",
+    "pages/admin/AdminJobTeam.jsx",
+    "pages/admin/AdminGeofenceReconciliation.jsx",
+    "pages/admin/AdminGuidanceCoverage.jsx",
+    "pages/admin/AdminJhaAcknowledgements.jsx",
+    "pages/admin/AdminEmail.jsx",
+    "pages/admin/AdminOperationalIntelligenceRecipients.jsx",
+    "pages/admin/AdminPeople.jsx",
+    "pages/admin/AdminOperationalInventory.jsx",
+    "pages/admin/AdminDispatch.jsx",
+    "pages/admin/AdminCompliance.jsx",
+    "pages/admin/AdminCommandCenter.jsx",
+    "pages/admin/AdminMasterHistory.jsx",
+    "pages/admin/SystemHealth.jsx",
+    "pages/admin/AdminAiOperations.jsx",
+    "pages/admin/AdminDiagnostics.jsx",
+    "pages/admin/AdminAnalytics.jsx",
+    "pages/admin/AdminPlatformOverview.jsx",
+    "pages/admin/AdminPlatformConfiguration.jsx",
+    "pages/admin/AdminRecoveryStream.jsx",
+    "pages/admin/AdminMfa.jsx",
+    "pages/admin/PreviewValidationIdentities.jsx",
+    "pages/admin/AdminEquipment.jsx",
+    "pages/admin/AdminRecovery.jsx",
+    "pages/admin/AdminGovernanceRegistryPage.jsx",
+    "pages/admin/AdminJobs.jsx",
+    "pages/admin/SelfProtection.jsx",
+    "pages/admin/AdminIdentitySecurity.jsx",
+    "pages/admin/AdminAIConfiguration.jsx",
+    "pages/admin/AdminOperationsDashboard.jsx",
+    "pages/admin/AdminGovernance.jsx",
+    "pages/admin/AdminDriverIntel.jsx",
+    "pages/admin/AdminCommunications.jsx",
+    "pages/admin/AdminAssetAdmin.jsx",
+    "pages/admin/IntegrationTruth.jsx",
+    "pages/admin/AdminOperationalIntelligence.jsx",
+    "pages/admin/AdminCostRegistry.jsx",
+    "pages/admin/AdminGovernanceTrust.jsx",
+    "pages/admin/AdminAssetMapping.jsx",
+    "pages/admin/AdminStorageRecovery.jsx",
+    "pages/admin/AdminSessions.jsx",
+    "pages/admin/AssetProfile.jsx",
+    "pages/admin/AdminProfile.jsx",
+    "pages/admin/AdminMaintenance.jsx",
+    "pages/admin/AdminPromoAssets.jsx",
+    "pages/admin/AdminDlsDay1Debrief.jsx",
+    "pages/admin/AdminOperationsEvents.jsx",
+    "pages/admin/AdminGovernanceListPage.jsx",
+    "pages/admin/AdminAssetSpineHealth.jsx",
+    "pages/admin/AdminSystem.jsx",
+    "pages/admin/AdminOperationalLanguage.jsx",
+    "pages/admin/DeployRecovery.jsx",
+    "pages/admin/AdminGovernanceSectionRoutes.jsx",
+    "pages/admin/AdminDatabase.jsx",
+    "pages/admin/AdminProjectIdentityGovernance.jsx",
+    "pages/operations_actions/OperationsActions.jsx",
+    "pages/operations_actions/OperationsActionNew.jsx",
+    "pages/operations_actions/OperationsActionDetail.jsx",
+    "pages/fleet/FleetUnitThread.jsx",
+    "pages/daily-report-v2/DailyReportV2.jsx",
+    "pages/daily-report-v2/_ui.jsx",
+    "pages/daily-report-v2/panels/PhotoIntelligencePanel.jsx",
+    "pages/daily-report-v2/sections/TomorrowReadinessSection.jsx",
+    "pages/daily-report-v2/sections/ConstraintChipsSection.jsx",
+    "pages/daily-report-v2/sections/SafetyQualitySection.jsx",
+    "pages/daily-report-v2/sections/CrewTimeSection.jsx",
+    "pages/daily-report-v2/sections/ActivityCardsSection.jsx",
+    "pages/daily-report-v2/sections/PhotosSection.jsx",
+    "pages/daily-report-v2/sections/DaySetupSection.jsx",
+    "pages/daily-report-v2/sections/EquipmentSection.jsx",
+    "pages/daily-report-v2/sections/AISummarySection.jsx",
+    "pages/daily-report-v2/sections/SignatureSubmitSection.jsx",
+    "pages/daily-report-v2/hooks/useDrV2.js",
+    "pages/trench_safety/TrenchSafetyAssetDetail.jsx",
+    "pages/trench_safety/TrenchSafetyActions.jsx",
+    "pages/trench_safety/TrenchSafetyReportDistribution.jsx",
+    "pages/trench_safety/TrenchSafetyTabulatedData.jsx",
+    "pages/trench_safety/PublicReportModal.jsx",
+    "pages/trench_safety/TrenchSafetyAssignDialogs.jsx",
+    "pages/trench_safety/TrenchSafetyFieldReportsPage.jsx",
+    "pages/trench_safety/TrenchSafetyOpsCenter.jsx",
+    "pages/trench_safety/PublicTrenchSafetyTabulatedData.jsx",
+    "pages/trench_safety/TrenchSafetyHub.jsx",
+    "pages/trench_safety/TrenchSafetyPulse.jsx",
+    "pages/trench_safety/TrenchSafetyRepairReviewPage.jsx",
+    "pages/trench_safety/PublicAssetLookup.jsx",
+    "pages/trench_safety/PublicTrenchSafetyReport.jsx",
+    "pages/trench_safety/TrenchSafetyReports.jsx",
+    "pages/trench_safety/PublicTrenchSafetyDashboard.jsx",
+    "pages/trench_safety/TrenchSafetyShell.jsx",
+    "pages/trench_safety/TrenchSafetyAssetsList.jsx",
+    "pages/trench_safety/TrenchSafetyPolish.jsx",
+    "pages/trench_safety/PublicTrenchSafetyReferences.jsx",
+    "pages/trench_safety/PublicExcavationForm.jsx",
+    "pages/trench_safety/ExcavationOversight.jsx",
+    "pages/trench_safety/TrenchSafetyQrLanding.jsx",
+    "pages/operational_records/OperationalRecords.jsx",
+    "pages/guidance/OperationalGuidanceCenter.jsx",
+    "pages/driver/DriverMagicLanding.jsx",
+    "pages/driver/DriverShift.jsx",
+    "pages/driver/ShiftStart.jsx",
+    "pages/odr/OdrDone.jsx",
+    "pages/odr/OdrCenter.jsx",
+    "pages/odr/OdrNew.jsx",
+    "pages/odr/OdrDetail.jsx",
+    "pages/odr/OdrPublicViewer.jsx",
+    "pages/odr/OdrPmPanel.jsx",
+    "pages/pm/PmJobTeam.jsx",
+    "pages/pm/PmSections.jsx",
+    "pages/pm/PmProjectStaffing.jsx",
+    "pages/transportation/TransportationAcademy.jsx",
+    "pages/transportation/_widgets.jsx",
+    "pages/transportation/CertificateVerify.jsx",
+    "pages/transportation/_shared.jsx",
+    "pages/transportation/_modals.jsx",
+    "pages/transportation/TransportationApp.jsx",
+    "pages/transportation/_views.jsx",
+    "pages/transportation/_dispatch_bridge.jsx",
+    "pages/transportation/_command_queue.jsx",
+    "pages/transportation/ExternalCarrierInvite.jsx",
+    "pages/transportation/_lists.jsx",
+    "pages/transportation/TransportationSearch.jsx",
+    "pages/transportation/_orientation.jsx",
+    "pages/transportation/_intelligence.jsx",
+    "pages/transportation/MissionControl.jsx",
+    "pages/transportation/TransportationWorkspaceShell.jsx",
+    "pages/transportation/_live_operations.jsx",
+    "pages/legal/TermsOfService.jsx",
+    "pages/legal/PrivacyPolicy.jsx"
+  ],
+  "sidebars": [
+    "components/safety/sidebar/SafetySideNavV2.jsx",
+    "components/shop/sidebar/domainMap.js",
+    "components/shop/sidebar/ShopSideNavV2.jsx",
+    "components/admin/sidebar/SideNavV2.jsx",
+    "components/admin/sidebar/domainMap.js",
+    "components/admin/sidebar/SideNavV3.jsx",
+    "components/hr/sidebar/HrSideNavV2.jsx",
+    "components/pm/sidebar/SideNavV2.jsx",
+    "components/pm/sidebar/domainMap.js",
+    "components/transportation/sidebar/txDomainMeta.js",
+    "components/transportation/sidebar/TransportationSideNavV2.jsx",
+    "components/dispatch/sidebar/DispatchSideNavV2.jsx"
+  ],
+  "shells": [
+    "design-system/PortalShell.jsx",
+    "design-system/PublicShell.jsx",
+    "components/PmShell.jsx",
+    "components/HrPageShell.jsx",
+    "components/FormShell.jsx",
+    "components/SafetyShell.jsx",
+    "components/PortalLoginShell.jsx",
+    "components/AdminShell.jsx",
+    "components/admin/LegacyAdminModernShell.jsx",
+    "components/admin/trust/DomainLandingShell.jsx",
+    "components/admin/operational-health/OperationalHealthDashboardShell.jsx",
+    "components/pm/command/PmBoardShell.jsx",
+    "components/dispatch/command/BoardShell.jsx",
+    "pages/trench_safety/TrenchSafetyShell.jsx",
+    "pages/transportation/TransportationWorkspaceShell.jsx"
+  ]
+}

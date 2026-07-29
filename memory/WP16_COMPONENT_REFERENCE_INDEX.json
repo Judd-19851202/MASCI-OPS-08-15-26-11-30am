@@ -1,0 +1,685 @@
+[
+  {
+    "file": "SitePostersPanel.jsx",
+    "hits": [
+      "Sheet"
+    ]
+  },
+  {
+    "file": "EmailRoutingV2Panel.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "AdminSafetyUsersPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminJobMasterPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "CrewRecoveryPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "QueueStatusPill.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "AdminSafetyFormsPanel.jsx",
+    "hits": [
+      "Tabs"
+    ]
+  },
+  {
+    "file": "PmShell.jsx",
+    "hits": [
+      "GlobalSearch",
+      "NotificationBell",
+      "Sheet",
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "HrCompletenessTile.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "HrPageShell.jsx",
+    "hits": [
+      "Dialog",
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "JhaAcknowledgeButton.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminPMPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "LifecyclePanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "BackupHeroPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "FormShell.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "ComplianceExportPanel.jsx",
+    "hits": [
+      "Sheet"
+    ]
+  },
+  {
+    "file": "FleetRepairDrawer.jsx",
+    "hits": [
+      "Drawer",
+      "Shell"
+    ]
+  },
+  {
+    "file": "IncidentLifecyclePanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "SafetyShell.jsx",
+    "hits": [
+      "Dialog",
+      "GlobalSearch",
+      "NotificationBell",
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "AdminHRUsersPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminFieldLeadershipUsersPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminDispatchUsersPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "SiteInspectionLifecyclePanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "PhotoLightbox.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AttendeeBulkAddDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminBannersPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "CheatSheetCard.jsx",
+    "hits": [
+      "Sheet"
+    ]
+  },
+  {
+    "file": "BannerAuditDialog.jsx",
+    "hits": [
+      "Dialog",
+      "Sheet"
+    ]
+  },
+  {
+    "file": "NotificationBell.jsx",
+    "hits": [
+      "NotificationBell",
+      "Sheet"
+    ]
+  },
+  {
+    "file": "HelpDrawer.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "AdminGlobalSearch.jsx",
+    "hits": [
+      "GlobalSearch"
+    ]
+  },
+  {
+    "file": "ShareFormDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "JobPicker.jsx",
+    "hits": [
+      "Popover"
+    ]
+  },
+  {
+    "file": "AdminShopUsersPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "UndoLastTransitionButton.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "EquipmentMasterPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminAccessControlPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "PortalLoginShell.jsx",
+    "hits": [
+      "Dialog",
+      "Shell"
+    ]
+  },
+  {
+    "file": "EmailReportDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "RestoreBackupPanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "FilterBar.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "AdminPasswordConfirm.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "SystemHealthBadge.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "EditProjectDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "QaqcLifecyclePanel.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "CompanyInfoDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "AdminShell.jsx",
+    "hits": [
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "EquipmentTrendsPanel.jsx",
+    "hits": [
+      "Tabs"
+    ]
+  },
+  {
+    "file": "SafetyFireExtManageDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "GlobalSearch.jsx",
+    "hits": [
+      "GlobalSearch"
+    ]
+  },
+  {
+    "file": "TopicPicker.jsx",
+    "hits": [
+      "Popover"
+    ]
+  },
+  {
+    "file": "safety/sidebar/SafetySideNavV2.jsx",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "shop/sidebar/domainMap.js",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "shop/sidebar/ShopSideNavV2.jsx",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "admin/MaintainxDefectCoverageSection.jsx",
+    "hits": [
+      "Drawer",
+      "Sheet"
+    ]
+  },
+  {
+    "file": "admin/MappingCleanupTab.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "admin/MaintainxP0Tab.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "admin/LegacyAdminModernShell.jsx",
+    "hits": [
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "admin/CommandPalette.jsx",
+    "hits": [
+      "CommandPalette"
+    ]
+  },
+  {
+    "file": "admin/sidebar/SideNavV2.jsx",
+    "hits": [
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "admin/sidebar/domainMap.js",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "admin/sidebar/SideNavV3.jsx",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "admin/trust/DomainLandingShell.jsx",
+    "hits": [
+      "Drawer",
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "admin/trust/TrustPrimitives.jsx",
+    "hits": [
+      "Drawer",
+      "Sheet"
+    ]
+  },
+  {
+    "file": "admin/operational-health/OperationalHealthDashboardShell.jsx",
+    "hits": [
+      "Drawer",
+      "Shell"
+    ]
+  },
+  {
+    "file": "daily-report-v3/UnitCombo.jsx",
+    "hits": [
+      "Popover"
+    ]
+  },
+  {
+    "file": "daily-report-v3/sections.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "hr/sidebar/HrSideNavV2.jsx",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "triage/FocusBanner.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "iam/IamStandardCells.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "iam/IamUserDetailDrawer.jsx",
+    "hits": [
+      "Drawer",
+      "Sheet"
+    ]
+  },
+  {
+    "file": "ui/dialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "ui/sheet.jsx",
+    "hits": [
+      "Sheet"
+    ]
+  },
+  {
+    "file": "ui/command.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "ui/drawer.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "ui/HelpTip.jsx",
+    "hits": [
+      "Popover"
+    ]
+  },
+  {
+    "file": "ui/popover.jsx",
+    "hits": [
+      "Popover"
+    ]
+  },
+  {
+    "file": "ui/alert-dialog.jsx",
+    "hits": [
+      "AlertDialog",
+      "Dialog"
+    ]
+  },
+  {
+    "file": "ui/tabs.jsx",
+    "hits": [
+      "Tabs"
+    ]
+  },
+  {
+    "file": "team/JobTeamRosterPanel.jsx",
+    "hits": [
+      "Dialog",
+      "Drawer",
+      "Popover"
+    ]
+  },
+  {
+    "file": "team/AssignmentHistoryDrawer.jsx",
+    "hits": [
+      "Drawer",
+      "Sheet"
+    ]
+  },
+  {
+    "file": "team/RemoveReasonDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "operations-map/AssetCardSheet.jsx",
+    "hits": [
+      "Sheet"
+    ]
+  },
+  {
+    "file": "pm/sidebar/SideNavV2.jsx",
+    "hits": [
+      "Shell",
+      "SideNav"
+    ]
+  },
+  {
+    "file": "pm/command/PmMaterialsBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmProjectFirstHome.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmBoardShell.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmShopImpactBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmTimelineBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmResourcesBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmHaulsBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "pm/command/PmSafetyImpactBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "transportation/sidebar/TransportationSideNavV2.jsx",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "dispatch/AssignmentDrawer.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "dispatch/AttachmentStrip.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "dispatch/AssignmentCreateDrawer.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "dispatch/OperationalMomentsRail.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "dispatch/DispatchDecisionChip.jsx",
+    "hits": [
+      "Drawer"
+    ]
+  },
+  {
+    "file": "dispatch/sidebar/DispatchSideNavV2.jsx",
+    "hits": [
+      "SideNav"
+    ]
+  },
+  {
+    "file": "dispatch/command/FleetBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "dispatch/command/BoardShell.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "dispatch/command/ShopFeedBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "dispatch/command/HaulBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "dispatch/command/JobBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "dispatch/command/CommunicationsTab.jsx",
+    "hits": [
+      "Shell",
+      "Tabs"
+    ]
+  },
+  {
+    "file": "dispatch/command/DriverBoard.jsx",
+    "hits": [
+      "Shell"
+    ]
+  },
+  {
+    "file": "asset/AssetDocumentsTab.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "asset/AddAssetDialog.jsx",
+    "hits": [
+      "Dialog"
+    ]
+  },
+  {
+    "file": "trench/EmployeePicker.jsx",
+    "hits": [
+      "Popover"
+    ]
+  }
+]
