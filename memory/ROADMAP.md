@@ -1,3 +1,22 @@
+# WP15 Immediate Next Actions — 2026-07-29
+
+## P0
+- Continue repository-wide governance convergence on the largest remaining legacy clusters:
+  - `backend/routes/cost_codes.py`
+  - `backend/routes/global_search.py`
+  - `backend/routes/safety.py`
+  - `backend/routes/tasks_notifications.py`
+  - `backend/routes/po_requests.py`
+  - `backend/routes/operations_center.py`
+- Re-run `wp15_governance_convergence_scan.py` after each migration batch and update `WP15_AUTHORIZATION_DRIFT_REPORT.md`.
+- Once zero-drift convergence is achieved, run frontend/browser verification, cross-module governance regression, and independent certification.
+
+## P1
+- Surface richer governance explanations and delegation/override states across admin and executive UI flows.
+
+## P2
+- WP-16 Operator Experience only after WP-15 is fully certified closed.
+
 # BCSS Roadmap Snapshot
 
 ## 2026-07-28 OPPC roadmap overlay

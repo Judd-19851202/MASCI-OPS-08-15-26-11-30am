@@ -3,6 +3,13 @@
 Date: 2026-07-29
 Scope: Enterprise Governance managed surfaces + repository-wide drift scan
 
+## Quantitative Convergence Snapshot
+- Total authorization decision points discovered: **249**
+- Canonical Governance Engine: **37**
+- Legacy but migratable: **161**
+- Special-case infrastructure: **51**
+- Dead code removed: **1** (`_is_admin_actor` OPPC bypass helper)
+
 ## Managed-Scope Migration Completed
 - Fixed broken governance APIs: delegation, emergency override, approval request approval
 - Added immutable governance decision records with `decision_id`, `correlation_id`, `causation_id`, `decision_timestamp`, `policy_version`, `policy_effective_at`, `identity_snapshot`, `policy_snapshot`, and `determinism_fingerprint`
@@ -19,6 +26,10 @@ Verified governed surfaces:
 - `backend/routes/ods_intelligence.py`
 - `backend/routes/oppc_execution.py`
 
+Convergence notes:
+- `oppc_execution.py` legacy scope and frozen-regeneration bypasses were migrated to Governance Engine enforcement
+- task and notification entry points now require governed actions for read/write/ack flows
+
 Result: No confirmed alternate write-path authorization bypass remains in the verified WP-15 managed scope after the OPPC fix above.
 
 ## Remaining Legacy Checks Found
@@ -26,8 +37,8 @@ Repository-wide scan still found legacy authorization patterns outside the fully
 
 Examples:
 - `backend/routes/tasks_notifications.py`
-  - role-based notification/task visibility filters still use inline role branching (`role == "admin"`, `role == "pm"`)
-  - this is authorization-related read scoping that is not yet delegated to the canonical Governance Engine
+  - remaining legacy points are concentrated here (`9` scanner hits)
+  - the remaining logic is read-side scope shaping for task/notification visibility and is still migratable to the canonical Governance Engine
 - `backend/routes/asset_documents.py`
   - inline admin role branching remains
 - `backend/routes/project_team_assignments.py`
@@ -50,6 +61,17 @@ Examples:
 ## Final Certification
 - Managed WP-15 scope: **PASS**
 - Repository-wide zero authorization drift: **NOT YET CERTIFIED**
+
+## Remaining Technical Debt
+- **Non-zero** — concentrated in legacy read-side visibility logic and older route families outside the converged core.
+
+Largest remaining legacy clusters from the scan:
+- `backend/routes/cost_codes.py` — 35
+- `backend/routes/global_search.py` — 18
+- `backend/routes/safety.py` — 10
+- `backend/routes/tasks_notifications.py` — 9
+- `backend/routes/po_requests.py` — 8
+- `backend/routes/operations_center.py` — 8
 
 ## Required Next Migration Targets
 1. Migrate `tasks_notifications.py` read-scope filters to governance-backed identity and permission evaluation

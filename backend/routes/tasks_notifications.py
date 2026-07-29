@@ -685,6 +685,12 @@ async def _pm_assigned_project_numbers(
 async def build_notif_filter_async(
     db, actor: Dict[str, Any],
 ) -> Dict[str, Any]:
+    # WP15_SPECIAL_CASE_INFRASTRUCTURE:
+    # This helper no longer decides whether a caller may access the
+    # notification surface. Entry-point authorization is enforced by the
+    # Governance Engine. This function only translates the already-
+    # governed identity projection into a Mongo query shape so the read
+    # model can stay efficient.
     """TRACK 15.28C — async read-side notification filter.
 
     Rules:
@@ -740,6 +746,9 @@ async def build_notif_filter_async(
 
 
 def build_notif_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
+    # WP15_SPECIAL_CASE_INFRASTRUCTURE:
+    # This sync adapter exists for tests and read-model shaping only.
+    # Canonical authorization must happen before it is used.
     """Public read-side notification filter (the same logic the router
     uses). Exposed at module scope so regression tests don't have to
     walk into the router closure.
@@ -787,6 +796,10 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         return actor_role(actor)
 
     def _scope_filter(actor: Dict[str, Any]) -> Dict[str, Any]:
+        # WP15_SPECIAL_CASE_INFRASTRUCTURE:
+        # Governed task-read access is enforced at the route boundary.
+        # This remaining helper converts that governed scope into Mongo
+        # selectors for legacy task documents.
         """Role-aware filter. Admin sees everything; portal users see
         tasks assigned to their role OR created by them OR linked to
         a record in their domain (kept lightweight for v1).
@@ -818,6 +831,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
     # ── Tasks ────────────────────────────────────────────────────────
     @router.get("/api/tasks")
     async def list_tasks(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         status: Optional[str] = Query(default=None),
         assignee_role: Optional[str] = Query(default=None),
@@ -829,6 +843,15 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=100, ge=1, le=500),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="task.read",
+            resource_type="task_feed",
+            resource={"id": "task-feed", "project_number": linked_project_number or ""},
+            requested_context={"project_number": linked_project_number or "", "view": "list"},
+            request=request,
+        )
         filt = _scope_filter(actor)
         and_clauses: List[Dict[str, Any]] = []
         if filt:
@@ -858,8 +881,18 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.get("/api/tasks/summary")
     async def tasks_summary(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="task.read",
+            resource_type="task_summary",
+            resource={"id": "task-summary", "project_number": ""},
+            requested_context={"view": "summary"},
+            request=request,
+        )
         filt = _scope_filter(actor)
         now = datetime.now(timezone.utc)
         # Counts by status
@@ -893,12 +926,22 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.get("/api/tasks/{task_id}")
     async def get_task(
+        request: Request,
         task_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         doc = await db.tasks.find_one({"id": task_id}, {"_id": 0})
         if not doc:
             raise HTTPException(404, "Task not found")
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="task.read",
+            resource_type="task",
+            resource=doc,
+            requested_context={"project_number": doc.get("linked_project_number") or ""},
+            request=request,
+        )
         return doc
 
     @router.post("/api/tasks")
@@ -959,10 +1002,22 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.post("/api/tasks/{task_id}/comment")
     async def comment_task(
+        request: Request,
         task_id: str,
         payload: TaskComment,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        existing = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+        if existing:
+            await require_governed_action(
+                db,
+                actor=actor,
+                action_key="task.read",
+                resource_type="task",
+                resource=existing,
+                requested_context={"project_number": existing.get("linked_project_number") or ""},
+                request=request,
+            )
         updated = await task_service.append_comment(
             db, task_id, payload.body,
             actor={"role": _actor_role(actor),
@@ -1031,8 +1086,18 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.get("/api/notifications/unread-count")
     async def unread_count(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="notification.ack",
+            resource_type="notification_feed",
+            resource={"id": _actor_role(actor), "project_number": ""},
+            requested_context={"portal_role": _actor_role(actor), "view": "unread_count"},
+            request=request,
+        )
         role = _actor_role(actor)
         filt = await _notif_filter_async(actor)
         # Approximate: not-acknowledged & role-marker absent from read_by
@@ -1051,9 +1116,21 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.post("/api/notifications/{notif_id}/read")
     async def mark_read(
+        request: Request,
         notif_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        doc = await db.notifications.find_one({"id": notif_id}, {"_id": 0})
+        if doc:
+            await require_governed_action(
+                db,
+                actor=actor,
+                action_key="notification.ack",
+                resource_type="notification",
+                resource=doc,
+                requested_context={"project_number": doc.get("project_number") or ""},
+                request=request,
+            )
         role = _actor_role(actor)
         marker = {
             "role": role,
@@ -1068,8 +1145,18 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.post("/api/notifications/read-all")
     async def mark_all_read(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="notification.ack",
+            resource_type="notification_feed",
+            resource={"id": _actor_role(actor), "project_number": ""},
+            requested_context={"portal_role": _actor_role(actor), "view": "mark_all_read"},
+            request=request,
+        )
         role = _actor_role(actor)
         marker = {
             "role": role,

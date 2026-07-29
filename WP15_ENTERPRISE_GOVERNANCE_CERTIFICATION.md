@@ -34,7 +34,8 @@ The Enterprise Governance Engine backend is operational and now records explaina
 
 ## Remaining Risks
 - Repository-wide zero authorization drift is not yet certified
-- Legacy inline authorization/read-scope logic remains in additional route families outside the fully migrated WP-15 managed scope
+- Current convergence scan still reports `249` authorization decision points, including `161` legacy-but-migratable locations and `51` documented infrastructure adapters
+- Highest remaining legacy clusters are outside the converged core: `cost_codes.py`, `global_search.py`, `safety.py`, `tasks_notifications.py`, `po_requests.py`, `operations_center.py`
 
 ## Accepted Risks
 - None for final WP-15 closure

@@ -1,3 +1,15 @@
+# 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
+
+- Governance API integrity restored for delegation, emergency override, and approval actions.
+- Governance decisions now persist immutable metadata: `decision_id`, `correlation_id`, `causation_id`, `decision_timestamp`, `policy_version`, `policy_effective_at`, `identity_snapshot`, `policy_snapshot`, and `determinism_fingerprint`.
+- Structured authorization explanations are now returned in decision records and denial payloads.
+- Approval requests and emergency overrides now persist preview-safe communication results rather than dropping workflow outcomes.
+- OPPC frozen-briefing regeneration bypass removed; enterprise OPPC read surfaces now pass through governed authorization checks.
+- Task read/comment/notification acknowledgement entry points now require governed authorization, but repository-wide convergence is still incomplete.
+- Quantitative scan snapshot: 249 decision points discovered / 37 canonical / 161 legacy-but-migratable / 51 documented infrastructure adapters.
+- Current largest legacy clusters: `cost_codes.py`, `global_search.py`, `safety.py`, `tasks_notifications.py`, `po_requests.py`, `operations_center.py`.
+- WP-15 final certification remains blocked until repository-wide zero-drift convergence, frontend/browser verification, and independent regression are completed.
+
 # BCSS Release 2 Platform Survivability Addendum
 
 ## 2026-07-28 OPPC Program Addendum

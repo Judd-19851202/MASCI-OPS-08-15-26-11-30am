@@ -1,3 +1,14 @@
+# 2026-07-29 — WP15 Convergence Checkpoint
+
+- Fixed governance API 500s on `/api/admin/governance/delegations`, `/emergency-overrides`, and approval actions.
+- Added explainable + immutable governance decision recording with policy/identity snapshots and determinism fingerprints.
+- Persisted preview-safe communication outcomes on governance approval and emergency override records.
+- Converged OPPC enterprise and frozen-regeneration authorization onto the Governance Engine.
+- Added governed task-read enforcement on task and notification entry points.
+- Added repository convergence scanner: `/app/backend/tools/wp15_governance_convergence_scan.py`.
+- Generated/update reports: `/app/WP15_AUTHORIZATION_DRIFT_REPORT.md`, `/app/WP15_ENTERPRISE_GOVERNANCE_CERTIFICATION.md`.
+- Verification: backend pytest `5/5`, deep backend verification `13/13`, governance smoke screenshot captured.
+
 # Change Log
 
 ## 2026-07-28 — Platform Baseline 1.0 architectural freeze established

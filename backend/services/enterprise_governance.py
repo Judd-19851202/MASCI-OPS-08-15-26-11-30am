@@ -26,6 +26,8 @@ POLICY_ACTION_MAP = {
     "schedule.update": "schedule_change_policy",
     "forecast.approve": "forecast_approval_policy",
     "baseline.capture": "baseline_protection_policy",
+    "oppc.view": "oppc_view_policy",
+    "task.read": "task_read_policy",
 }
 
 
@@ -237,6 +239,7 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
         "operational_case.transition": {"label": "Transition Operational Cases", "domain": "operational_case", "action": "update"},
         "operational_case.close": {"label": "Close Operational Cases", "domain": "operational_case", "action": "close"},
         "operational_case.export": {"label": "Export Operational Case Evidence", "domain": "operational_case", "action": "export"},
+        "task.read": {"label": "Read Tasks", "domain": "tasks", "action": "read"},
         "task.assign": {"label": "Assign Tasks", "domain": "tasks", "action": "assign"},
         "task.close": {"label": "Close Tasks", "domain": "tasks", "action": "close"},
         "notification.ack": {"label": "Acknowledge Notifications", "domain": "notifications", "action": "acknowledge"},
@@ -265,6 +268,7 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
                 "admin_reporting.view",
                 "audit.view",
                 "operational_case.read",
+                "task.read",
                 "evidence.export",
             ],
             "authority_level": "executive",
@@ -281,6 +285,7 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
                 "briefing.approve",
                 "oppc.view",
                 "operational_case.read",
+                "task.read",
                 "task.assign",
                 "notification.ack",
             ],
@@ -289,31 +294,31 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
         "hr": {
             "label": "HR",
             "portal_hints": ["hr", "admin"],
-            "permissions": ["daily_reports.read", "admin_reporting.view", "audit.view", "notification.ack"],
+            "permissions": ["daily_reports.read", "admin_reporting.view", "audit.view", "notification.ack", "task.read"],
             "authority_level": "department",
         },
         "safety": {
             "label": "Safety",
             "portal_hints": ["safety", "admin"],
-            "permissions": ["daily_reports.read", "operational_case.read", "notification.ack", "evidence.export"],
+            "permissions": ["daily_reports.read", "operational_case.read", "notification.ack", "evidence.export", "task.read"],
             "authority_level": "department",
         },
         "shop": {
             "label": "Shop",
             "portal_hints": ["shop", "admin"],
-            "permissions": ["task.assign", "task.close", "notification.ack"],
+            "permissions": ["task.read", "task.assign", "task.close", "notification.ack"],
             "authority_level": "department",
         },
         "dispatch": {
             "label": "Dispatcher",
             "portal_hints": ["dispatch", "admin"],
-            "permissions": ["notification.ack", "task.assign"],
+            "permissions": ["notification.ack", "task.read", "task.assign"],
             "authority_level": "department",
         },
         "field_leadership": {
             "label": "Field Leadership",
             "portal_hints": ["field_leadership", "admin"],
-            "permissions": ["daily_reports.read", "notification.ack"],
+            "permissions": ["daily_reports.read", "notification.ack", "task.read"],
             "authority_level": "project",
         },
     }
@@ -367,6 +372,26 @@ def build_enterprise_governance_registry() -> Dict[str, Any]:
             "require_project_access": False,
             "require_approval_flow": "baseline_control_review",
             "separation_rules": ["baseline_approver_cannot_be_requestor"],
+        },
+        "oppc_view_policy": {
+            "policy_id": "oppc_view_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "oppc.view",
+            "required_permissions": ["oppc.view"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
+        },
+        "task_read_policy": {
+            "policy_id": "task_read_policy",
+            "version": "1.0",
+            "effective_at": GOVERNANCE_POLICY_EFFECTIVE_AT,
+            "action_key": "task.read",
+            "required_permissions": ["task.read"],
+            "require_project_access": True,
+            "require_approval_flow": "",
+            "separation_rules": [],
         },
     }
     approval_flows = {
