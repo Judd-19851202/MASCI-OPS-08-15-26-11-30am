@@ -1,10 +1,10 @@
 # WP15 Architecture Freeze
 
 Date: 2026-07-29
-Status: Frozen
+Status: Constitutional Infrastructure — Frozen
 
 ## Enterprise Governance as Constitutional Authority
-Enterprise Governance is the constitutional authority for business authorization decisions across the platform. Trust Spine remains the authoritative record for governed lifecycle evidence. The Operational Health Dashboard consumes these authorities and may summarize, downgrade, or surface UNKNOWN, but it may not replace source truth.
+Enterprise Governance is the constitutional authority for business authorization decisions across the platform. Trust Spine remains the authoritative record for governed lifecycle evidence. The Operational Health Dashboard consumes these authorities and may summarize, downgrade, or surface UNKNOWN, but it may not replace source truth. Future work packages may integrate with or formally extend this authority, but they may not replace it.
 
 ## Frozen Runtime Boundaries
 - Canonical governance authority: `/api/admin/governance/*` backed by `backend/services/enterprise_governance.py`

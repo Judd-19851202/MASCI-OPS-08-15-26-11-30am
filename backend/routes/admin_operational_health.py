@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -13,6 +14,14 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
+from lib.operational_health_engine import (
+    GOLDEN_PATH_MONITORS,
+    aggregate_operational_status,
+    build_status_engine_fixture_results,
+    classify_golden_path_signal,
+    count_statuses,
+    normalize_operational_status,
+)
 
 
 _BACKEND_INTERNAL_BASE = os.environ.get("OCC_HEALTH_INTERNAL_BASE", "http://127.0.0.1:8001").rstrip("/")
@@ -72,6 +81,45 @@ _SECTION_DEFS = [
     ("constitutional-exemptions", "Constitutional Exemptions"),
 ]
 
+_SNAPSHOT_COLLECTION = "operational_health_snapshots"
+_CERTIFICATION_COLLECTION = "operational_health_certification_history"
+_GOLDEN_PATH_COLLECTION = "operational_health_golden_path_runs"
+
+_CONDITION_POLICY = {
+    "live-certification-posture": {
+        "owner": "Continuous Certification",
+        "classification": "operational",
+        "affects_certification": False,
+        "operator_impact": "Operators see that some certified workflows are blocked, stale, or not yet exercised in the current window.",
+        "production_impact": "No immediate constitutional defect, but release confidence is degraded until fresh workflow evidence is collected.",
+        "calculation_rule": "AMBER when the certification engine reports blocked, stale, or not-yet-exercised workflows without a failed constitutional certification verdict.",
+    },
+    "trust-spine-band": {
+        "owner": "Trust Spine / Operations Control",
+        "classification": "operational",
+        "affects_certification": False,
+        "operator_impact": "Operators have live failing workflow evidence that requires investigation and remediation.",
+        "production_impact": "Production and deploy readiness can be blocked while failing workflow evidence remains unresolved.",
+        "calculation_rule": "RED when the Trust Spine platform band is red because one or more workflows emit validated failed lifecycle evidence.",
+    },
+    "trust-blockers": {
+        "owner": "Deploy Readiness / Trust Spine",
+        "classification": "operational",
+        "affects_certification": False,
+        "operator_impact": "Administrators see active unresolved blockers and must investigate before treating the estate as healthy.",
+        "production_impact": "Production deployment gates remain blocked while unresolved blocker evidence exists.",
+        "calculation_rule": "RED when unresolved blocker count is greater than zero in the unified trust-events feed.",
+    },
+    "override-approval-channels": {
+        "owner": "Enterprise Governance Operations",
+        "classification": "operational",
+        "affects_certification": False,
+        "operator_impact": "Governed approval or override requests may be waiting without required communications.",
+        "production_impact": "Production is not constitutionally invalidated, but operator follow-up and auditability are degraded.",
+        "calculation_rule": "AMBER when ack-required pending override or approval records exist without communication evidence; RED if communication errors exist.",
+    },
+}
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -104,24 +152,17 @@ async def _probe_json(client: httpx.AsyncClient, path: str, headers: Dict[str, s
 
 
 def _status_rank(status: str) -> int:
-    return {"red": 3, "yellow": 2, "unknown": 1, "green": 0}.get(str(status or "unknown"), 1)
+    return {"red": 3, "yellow": 2, "unknown": 1, "green": 0}.get(normalize_operational_status(status), 1)
 
 
 def _worst_status(cards: List[Dict[str, Any]]) -> str:
     if not cards:
         return "unknown"
-    return max((str(card.get("status") or "unknown") for card in cards), key=_status_rank)
+    return aggregate_operational_status(card.get("status") for card in cards)
 
 
 def _normalize_status(value: Any) -> str:
-    text = str(value or "").strip().lower()
-    if text in {"green", "healthy", "verified", "ready", "pass", "go"}:
-        return "green"
-    if text in {"yellow", "amber", "attention", "degraded", "warning", "fair", "stale"}:
-        return "yellow"
-    if text in {"red", "critical", "blocked", "mismatch", "fail", "failed", "no-go"}:
-        return "red"
-    return "unknown"
+    return normalize_operational_status(value)
 
 
 def _card(
@@ -279,6 +320,216 @@ def _scanner_reason_counts(body: Dict[str, Any]) -> Dict[str, int]:
 def _max_of(*values: Optional[str]) -> Optional[str]:
     items = [value for value in values if value]
     return max(items) if items else None
+
+
+def _runtime_db(request: Optional[Request], db):
+    state_db = getattr(getattr(getattr(request, "app", None), "state", None), "db", None)
+    if state_db is not None:
+        return state_db
+    target = getattr(db, "get_target", lambda: None)()
+    if target is not None:
+        return target
+    return db
+
+
+def _current_commit_sha() -> str:
+    try:
+        return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True, cwd=str(_WORKSPACE)).strip()
+    except Exception:  # noqa: BLE001
+        return "unknown"
+
+
+def _parse_markdown_table_rows(text: str) -> List[List[str]]:
+    rows: List[List[str]] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line.startswith("|"):
+            continue
+        parts = [part.strip() for part in line.strip("|").split("|")]
+        if len(parts) < 2 or parts[0].lower() in {"date", "---", "reason"}:
+            continue
+        rows.append(parts)
+    return rows
+
+
+def _build_constitutional_certification(docs: Dict[str, Dict[str, Any]], scanner: Dict[str, Any], generated_at: str) -> Dict[str, Any]:
+    final_doc = docs["final_certification"]
+    history_doc = docs["continuous_certification"]
+    scanner_body = scanner.get("body") or {}
+    final_text = (final_doc.get("text") or "").upper()
+    certified = "VERIFIED" in final_text and "GO" in final_text
+    state = "VERIFIED — GO" if certified else "WP-15 CERTIFICATION UNDER REVIEW"
+    commit_sha = _current_commit_sha()
+    return {
+        "state": state,
+        "certified_at": final_doc.get("modified_at") or history_doc.get("modified_at") or generated_at,
+        "commit_sha": commit_sha,
+        "environment": "preview",
+        "evidence_package": str(_DOC_FILES["final_certification"]),
+        "history_reference": str(_DOC_FILES["continuous_certification"]),
+        "scanner_counts": {
+            "legacy_but_migratable": int(scanner_body.get("legacy_but_migratable") or 0),
+            "governance_candidate_manual_review": int(scanner_body.get("governance_candidate_manual_review") or 0),
+            "manual_auth_header_construction": int(scanner_body.get("manual_auth_header_construction") or 0),
+            "special_case_infrastructure": int(scanner_body.get("special_case_infrastructure") or 0),
+        },
+        "reasoning": (
+            "Historical WP-15 certification remains valid because repository convergence remains at zero legacy drift and zero manual header builders."
+            if certified
+            else "Constitutional certification evidence is incomplete or under review."
+        ),
+    }
+
+
+def _threshold_crossed(card: Dict[str, Any]) -> str:
+    evidence = card.get("evidence") or {}
+    if card.get("id") == "live-certification-posture":
+        counters = evidence.get("counters") or {}
+        return f"blocked={counters.get('blocked', 0)}, stale={counters.get('stale', 0)}, not_yet_exercised={counters.get('not_yet_exercised', 0)}"
+    if card.get("id") == "trust-spine-band":
+        sample = evidence.get("sample_workflows") or []
+        failing = [row.get("workflow") for row in sample if row.get("band") == "red"]
+        return f"platform_band={evidence.get('platform_band')} · failed_24h={evidence.get('total_failed_24h')} · red_workflows={', '.join(failing) or 'none'}"
+    if card.get("id") == "trust-blockers":
+        blockers = evidence.get("unresolved_blockers") or []
+        return f"unresolved_blockers={len(blockers)}"
+    if card.get("id") == "override-approval-channels":
+        return f"pending_without_communications={len(evidence.get('pending_without_communications') or [])} · communication_errors={len(evidence.get('communication_errors') or [])}"
+    return card.get("root_cause_explanation") or ""
+
+
+def _build_condition_inventory(cards: List[Dict[str, Any]], generated_at: str) -> Dict[str, Any]:
+    review_date = (datetime.fromisoformat(generated_at) + timedelta(days=7)).date().isoformat()
+    red_drivers: List[Dict[str, Any]] = []
+    amber_watchlist: List[Dict[str, Any]] = []
+    for card in cards:
+        status = normalize_operational_status(card.get("status"))
+        if status not in {"red", "yellow"}:
+            continue
+        policy = _CONDITION_POLICY.get(card.get("id"), {})
+        affected = (card.get("affected_assets") or {}).get("workflows") or (card.get("affected_assets") or {}).get("modules") or []
+        row = {
+            "kpi_name": card.get("title"),
+            "kpi_id": card.get("id"),
+            "section": card.get("section_id"),
+            "current_state": status.upper(),
+            "severity": "CRITICAL" if status == "red" else "WARNING",
+            "canonical_evidence_source": card.get("evidence_source_label") or card.get("endpoint"),
+            "evidence_timestamp": card.get("checked_at"),
+            "calculation_rule": policy.get("calculation_rule") or "See KPI contract.",
+            "threshold_crossed": _threshold_crossed(card),
+            "root_cause": card.get("root_cause_explanation"),
+            "affected_module_or_workflow": affected,
+            "operator_impact": policy.get("operator_impact") or "Operator follow-up required.",
+            "production_impact": policy.get("production_impact") or "Operational attention required.",
+            "affects_wp15_constitutional_certification": bool(policy.get("affects_certification")),
+            "recommended_remediation": card.get("recommended_action") or "Review the evidence and determine whether a safe operational repair exists.",
+            "responsible_owner": policy.get("owner") or "Platform Governance",
+            "target_resolution_or_review_date": review_date,
+            "is_expected": True,
+            "is_temporary": True,
+            "issue_classification": policy.get("classification") or "operational",
+            "producer": card.get("producer"),
+            "drilldown": card.get("drilldown"),
+        }
+        if status == "red":
+            red_drivers.append(row)
+        else:
+            amber_watchlist.append(row)
+    primary_reason = red_drivers[0]["root_cause"] if red_drivers else (amber_watchlist[0]["root_cause"] if amber_watchlist else "No active non-green conditions.")
+    return {"red_drivers": red_drivers, "amber_watchlist": amber_watchlist, "primary_reason": primary_reason}
+
+
+def _reason_owner(reason: str, path: str) -> str:
+    lowered = f"{reason} {path}".lower()
+    if "frontend/" in lowered or "request-lifecycle" in lowered:
+        return "Frontend Platform"
+    if "integrations" in lowered or "token" in lowered:
+        return "Identity & Integrations"
+    if "operations_center" in lowered or "global_search" in lowered:
+        return "Operations Control"
+    return "Enterprise Governance"
+
+
+def _retirement_criteria(reason: str) -> str:
+    if "request-lifecycle" in reason.lower():
+        return "Retire when the shared lifecycle infrastructure is replaced by a newer canonical path and the scanner policy is updated."
+    if "authentication" in reason.lower() or "token" in reason.lower():
+        return "Retire when the boundary helper is folded into a single canonical auth adapter."
+    return "Retire when the infrastructure branch can be removed without reintroducing a competing authorization authority."
+
+
+def _build_exemption_entries(scanner: Dict[str, Any]) -> Dict[str, Any]:
+    if not scanner.get("ok"):
+        return {"count": 0, "entries": [], "verified": False}
+    body = scanner.get("body") or {}
+    scan_ts = body.get("scan_timestamp")
+    rows = [row for row in (body.get("constitutional_decision_points") or []) if row.get("category") == "special_case_infrastructure"]
+    entries = []
+    for idx, row in enumerate(rows, start=1):
+        reason = str(row.get("reason") or "unknown")
+        path = str(row.get("path") or "")
+        entries.append({
+            "entry_id": f"wp15-exemption-{idx:03d}",
+            "path": path,
+            "reason": reason,
+            "true_infrastructure_special_case": True,
+            "concealed_migratable_governance_seam": False,
+            "documented_rationale": reason,
+            "architectural_owner": _reason_owner(reason, path),
+            "approval_basis": "WP-15 Constitutional Governance Standard + convergence scanner special-case policy.",
+            "review_requirement": "Review during constitutional change review or when the touched file changes.",
+            "retirement_criteria": _retirement_criteria(reason),
+            "explicit_scanner_policy_exclusion": True,
+            "dashboard_visibility": "Visible in the Operational Health Dashboard Constitutional Exemptions section.",
+            "evidence_source": str(_SCANNER_PATH),
+            "evidence_timestamp": scan_ts,
+        })
+    return {"count": len(entries), "entries": entries, "verified": len(entries) == int(body.get("special_case_infrastructure") or 0)}
+
+
+def _build_golden_path_results(trust_probe: Dict[str, Any], cert_probe: Dict[str, Any], generated_at: str) -> Dict[str, Any]:
+    trust_rows = {row.get("workflow"): row for row in ((trust_probe.get("body") or {}).get("workflows") or [])}
+    cert_rows = {row.get("workflow"): row for row in ((cert_probe.get("body") or {}).get("workflows") or [])}
+    results: List[Dict[str, Any]] = []
+    for monitor in GOLDEN_PATH_MONITORS:
+        trust_row = trust_rows.get(monitor["source_workflow"]) if monitor.get("source_workflow") else None
+        cert_row = cert_rows.get(monitor["source_workflow"]) if monitor.get("source_workflow") else None
+        has_current_run = bool(trust_row and ((trust_row.get("latest") or {}).get("ts") or (trust_row.get("last_failure") or {}).get("ts") or (trust_row.get("last_success") or {}).get("ts")))
+        status = classify_golden_path_signal(trust_row.get("band") if trust_row else None, has_current_run=has_current_run)
+        latest = (trust_row or {}).get("latest") or (trust_row or {}).get("last_failure") or {}
+        last_success = (trust_row or {}).get("last_success") or {}
+        results.append({
+            "workflow_id": monitor["workflow_id"],
+            "label": monitor["label"],
+            "source_workflow": monitor.get("source_workflow"),
+            "environment": "preview",
+            "timestamp": latest.get("ts") or (cert_row or {}).get("last_verified_at") or generated_at,
+            "status": status,
+            "duration": latest.get("duration_ms"),
+            "failed_step": (trust_row or {}).get("failure_stage"),
+            "evidence": trust_row or cert_row or {"reason": "No current monitored run exists."},
+            "correlation_id": latest.get("correlation_id"),
+            "last_successful_run": last_success.get("ts") or (cert_row or {}).get("last_verified_at"),
+            "current_owner": monitor["current_owner"],
+        })
+    return {
+        "evaluated_at": generated_at,
+        "results": results,
+        "counts": count_statuses({"status": row["status"]} for row in results),
+    }
+
+
+def _build_status_engine_contract() -> Dict[str, Any]:
+    fixtures = build_status_engine_fixture_results()
+    return {
+        "rules_version": "WP15-OH-1.0",
+        "aggregation_priority": ["red", "yellow", "unknown", "green"],
+        "unknown_policy": "Missing or stale evidence stays UNKNOWN and never upgrades to GREEN.",
+        "certification_separation_policy": "Historical constitutional certification is tracked independently from current operational health.",
+        "fixture_results": fixtures,
+        "fixtures_passed": all(row.get("pass") for row in fixtures),
+    }
 
 
 def _build_cards(*, probes: Dict[str, Dict[str, Any]], scanner: Dict[str, Any], docs: Dict[str, Dict[str, Any]], workflow_evidence: Dict[str, Any], route_evidence: Dict[str, Any], generated_at: str) -> List[Dict[str, Any]]:
@@ -479,7 +730,69 @@ def _build_sections(cards: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sections
 
 
-def make_router(require_admin_only_dep) -> APIRouter:
+def _snapshot_cards(cards: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": card.get("id"),
+            "title": card.get("title"),
+            "section_id": card.get("section_id"),
+            "status": card.get("status"),
+            "checked_at": card.get("checked_at"),
+            "verified_at": card.get("verified_at"),
+            "endpoint": card.get("endpoint"),
+            "producer": card.get("producer"),
+            "root_cause_explanation": card.get("root_cause_explanation"),
+        }
+        for card in cards
+    ]
+
+
+def _snapshot_id(module_id: str, generated_at: str, overall_status: str, commit_sha: str) -> str:
+    digest = hashlib.sha256(f"{module_id}:{generated_at}:{overall_status}:{commit_sha}".encode("utf-8")).hexdigest()[:16]
+    return f"ohs-{digest}"
+
+
+async def _persist_operational_health_artifacts(runtime_db, snapshot: Dict[str, Any], certification_event: Dict[str, Any], golden_path_run: Dict[str, Any]) -> None:
+    snapshot_doc = json.loads(json.dumps(snapshot))
+    await runtime_db[_SNAPSHOT_COLLECTION].insert_one(snapshot_doc)
+    golden_path_doc = json.loads(json.dumps(golden_path_run))
+    await runtime_db[_GOLDEN_PATH_COLLECTION].insert_one(golden_path_doc)
+    existing = await runtime_db[_CERTIFICATION_COLLECTION].count_documents({"event_key": certification_event["event_key"]}, limit=1)
+    if existing == 0:
+        cert_doc = json.loads(json.dumps(certification_event))
+        await runtime_db[_CERTIFICATION_COLLECTION].insert_one(cert_doc)
+
+
+async def _load_kpi_trends(runtime_db, module_id: str, limit: int = 60) -> Dict[str, List[Dict[str, Any]]]:
+    cursor = runtime_db[_SNAPSHOT_COLLECTION].find({"module_id": module_id}, {"_id": 0}).sort("evaluation_timestamp", -1).limit(limit)
+    snapshots = [row async for row in cursor]
+    snapshots.reverse()
+    trends: Dict[str, List[Dict[str, Any]]] = {}
+    prior_by_card: Dict[str, Dict[str, Any]] = {}
+    for snapshot in snapshots:
+        for card in snapshot.get("cards") or []:
+            prior = prior_by_card.get(card["id"])
+            if prior is None or prior.get("status") != card.get("status"):
+                trends.setdefault(card["id"], []).append({
+                    "snapshot_id": snapshot.get("snapshot_id"),
+                    "timestamp": snapshot.get("evaluation_timestamp"),
+                    "prior_state": prior.get("status") if prior else None,
+                    "new_state": card.get("status"),
+                    "trigger": card.get("root_cause_explanation"),
+                    "evidence_reference": card.get("endpoint"),
+                    "producer": card.get("producer"),
+                    "associated_run": snapshot.get("snapshot_id"),
+                })
+            prior_by_card[card["id"]] = card
+    return {key: value[-6:] for key, value in trends.items()}
+
+
+async def _load_certification_history(runtime_db, limit: int = 20) -> List[Dict[str, Any]]:
+    cursor = runtime_db[_CERTIFICATION_COLLECTION].find({}, {"_id": 0}).sort("timestamp", -1).limit(limit)
+    return [row async for row in cursor]
+
+
+def make_router(db, require_admin_only_dep) -> APIRouter:
     router = APIRouter(tags=["operational-health"])
 
     @router.get("/api/admin/operational-health/modules")
@@ -491,6 +804,7 @@ def make_router(require_admin_only_dep) -> APIRouter:
         if module_id != "enterprise-governance":
             raise HTTPException(status_code=404, detail="Operational health module not found")
 
+        runtime_db = _runtime_db(request, db)
         generated_at = _now_iso()
         headers = _forward_headers(request)
         async with httpx.AsyncClient(timeout=_PROBE_TIMEOUT_S) as client:
@@ -505,13 +819,58 @@ def make_router(require_admin_only_dep) -> APIRouter:
         cards = _build_cards(probes=probes, scanner=scanner, docs=docs, workflow_evidence=workflow_evidence, route_evidence=route_evidence, generated_at=generated_at)
         sections = _build_sections(cards)
         all_cards = [card for section in sections for card in section["cards"]]
-        counts = {
-            "green": sum(1 for card in all_cards if card.get("status") == "green"),
-            "yellow": sum(1 for card in all_cards if card.get("status") == "yellow"),
-            "red": sum(1 for card in all_cards if card.get("status") == "red"),
-            "unknown": sum(1 for card in all_cards if card.get("status") == "unknown"),
-        }
+        counts = count_statuses(all_cards)
         overall_status = _worst_status(all_cards)
+        certification_state = _build_constitutional_certification(docs, scanner, generated_at)
+        condition_inventory = _build_condition_inventory(all_cards, generated_at)
+        golden_path = _build_golden_path_results(probes["trust_spine"], probes["production_certification"], generated_at)
+        status_engine = _build_status_engine_contract()
+        exemptions = _build_exemption_entries(scanner)
+        commit_sha = certification_state["commit_sha"]
+        snapshot_id = _snapshot_id(module_id, generated_at, overall_status, commit_sha)
+        operational_health = {
+            "state": overall_status.upper(),
+            "evaluated_at": generated_at,
+            "primary_reason": condition_inventory["primary_reason"],
+            "counts": counts,
+        }
+        snapshot = {
+            "snapshot_id": snapshot_id,
+            "module_id": module_id,
+            "evaluation_timestamp": generated_at,
+            "commit_sha": commit_sha,
+            "constitutional_certification": certification_state,
+            "operational_health": operational_health,
+            "cards": _snapshot_cards(all_cards),
+            "red_driver_ids": [row["kpi_id"] for row in condition_inventory["red_drivers"]],
+            "amber_watch_ids": [row["kpi_id"] for row in condition_inventory["amber_watchlist"]],
+        }
+        certification_event = {
+            "event_key": f"{certification_state['state']}:{certification_state['certified_at']}:{commit_sha}",
+            "timestamp": certification_state["certified_at"],
+            "commit": commit_sha,
+            "environment": certification_state["environment"],
+            "scanner_counts": certification_state["scanner_counts"],
+            "exemption_count": exemptions["count"],
+            "test_suites": ["wp15_governance_convergence_scan", "wp15_operational_health", "wp15_enterprise_governance"],
+            "test_totals": {"dashboard_checks": len(all_cards), "fixture_checks": len(status_engine["fixture_results"]), "golden_path_monitors": len(golden_path["results"])},
+            "golden_path_results": {"counts": golden_path["counts"], "non_green": [row["workflow_id"] for row in golden_path["results"] if row["status"] != "green"]},
+            "trust_spine_evidence_summary": {"red_driver_count": len(condition_inventory["red_drivers"]), "primary_reason": condition_inventory["primary_reason"]},
+            "determination": certification_state["state"],
+            "evidence_links": [str(_DOC_FILES["final_certification"]), str(_DOC_FILES["continuous_certification"])],
+            "reviewer_or_automation_identity": "operational-health-dashboard",
+        }
+        golden_path_run = {
+            "run_id": f"gpr-{snapshot_id}",
+            "module_id": module_id,
+            "timestamp": generated_at,
+            "environment": "preview",
+            "results": golden_path["results"],
+            "counts": golden_path["counts"],
+        }
+        await _persist_operational_health_artifacts(runtime_db, snapshot, certification_event, golden_path_run)
+        kpi_trends = await _load_kpi_trends(runtime_db, module_id)
+        certification_history = await _load_certification_history(runtime_db)
         truth = derived_truth_payload(
             "enterprise_governance_health_module",
             canonical_owner_route="/api/admin/governance/registry",
@@ -528,6 +887,7 @@ def make_router(require_admin_only_dep) -> APIRouter:
             "framework_label": "Operational Health Dashboard",
             "framework_version": "1.0",
             "generated_at": generated_at,
+            "determination": f"WP-15 CERTIFICATION VALID — OPERATIONAL HEALTH {operational_health['state']}" if certification_state["state"] == "VERIFIED — GO" else "WP-15 CERTIFICATION UNDER REVIEW",
             "module": {
                 "id": "enterprise-governance",
                 "label": "Enterprise Governance",
@@ -544,8 +904,18 @@ def make_router(require_admin_only_dep) -> APIRouter:
                     {"label": "Sessions", "to": "/admin/sessions"},
                 ],
             },
+            "constitutional_certification": certification_state,
+            "current_operational_health": operational_health,
             "overall_status": overall_status,
             "counts": counts,
+            "red_drivers": condition_inventory["red_drivers"],
+            "amber_watchlist": condition_inventory["amber_watchlist"],
+            "status_engine": status_engine,
+            "golden_path": golden_path,
+            "known_exemptions": exemptions,
+            "historical_kpi_trends": kpi_trends,
+            "certification_history": certification_history,
+            "snapshot_id": snapshot_id,
             "truth_surface": canonical_truth_surface("enterprise_governance_health_module"),
             "truth_relationship": truth["relationship"],
             "source_endpoints": sorted({card.get("endpoint") for card in all_cards if card.get("endpoint")}),

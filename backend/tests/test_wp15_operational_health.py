@@ -3,12 +3,24 @@ WP-15 Operational Health Dashboard Backend Tests
 Tests the Enterprise Governance module on the shared Operational Health Dashboard framework.
 """
 import os
+from pathlib import Path
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
-if not BASE_URL:
-    BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+
+def _base_url() -> str:
+    env_value = os.environ.get("REACT_APP_BACKEND_URL")
+    if env_value:
+        return env_value.rstrip("/")
+    env_file = Path("/app/frontend/.env")
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            if line.startswith("REACT_APP_BACKEND_URL="):
+                return line.split("=", 1)[1].strip().rstrip("/")
+    raise RuntimeError("REACT_APP_BACKEND_URL is required for operational health integration tests")
+
+
+BASE_URL = _base_url()
 
 # Test credentials
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -140,6 +152,21 @@ class TestEnterpriseGovernanceModule:
         ]
         for expected in expected_sections:
             assert expected in section_ids, f"Missing section: {expected}"
+
+        # Certification and operational health are separated
+        assert data.get("constitutional_certification", {}).get("state")
+        assert data.get("current_operational_health", {}).get("state")
+        assert data.get("current_operational_health", {}).get("primary_reason")
+        assert data.get("determination")
+
+        # Reconciliation evidence
+        assert "red_drivers" in data
+        assert "amber_watchlist" in data
+        assert "status_engine" in data
+        assert "golden_path" in data
+        assert "known_exemptions" in data
+        assert "historical_kpi_trends" in data
+        assert "certification_history" in data
     
     def test_module_cards_have_drilldown_metadata(self, admin_session):
         """Every KPI card should have required drill-down metadata."""
@@ -192,6 +219,36 @@ class TestEnterpriseGovernanceModule:
         """Unknown module ID should return 404."""
         response = admin_session.get(f"{BASE_URL}/api/admin/operational-health/modules/unknown-module")
         assert response.status_code == 404
+
+    def test_reconciliation_payload_is_evidence_complete(self, admin_session):
+        response = admin_session.get(f"{BASE_URL}/api/admin/operational-health/modules/enterprise-governance")
+        assert response.status_code == 200
+        data = response.json()
+
+        for driver in data.get("red_drivers", []) + data.get("amber_watchlist", []):
+            assert driver.get("kpi_name")
+            assert driver.get("canonical_evidence_source")
+            assert driver.get("calculation_rule")
+            assert driver.get("threshold_crossed")
+            assert driver.get("root_cause")
+            assert driver.get("responsible_owner")
+
+        status_engine = data.get("status_engine", {})
+        assert status_engine.get("fixtures_passed") is True
+        assert status_engine.get("fixture_results")
+
+        golden_path = data.get("golden_path", {})
+        results = golden_path.get("results", [])
+        assert len(results) >= 13
+        for row in results:
+            assert row.get("workflow_id")
+            assert row.get("status") in ["green", "yellow", "red", "unknown"]
+            assert "current_owner" in row
+
+        exemptions = data.get("known_exemptions", {})
+        assert exemptions.get("count") == 52
+        assert exemptions.get("verified") is True
+        assert len(exemptions.get("entries", [])) == 52
 
 
 class TestGovernanceVersionsEndpoint:
