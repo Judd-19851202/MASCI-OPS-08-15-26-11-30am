@@ -2,6 +2,33 @@
 
 ## 2026-07-29 Final constitutional closeout — operational dashboard + CI freeze
 
+### Truth reconciliation + final administrative freeze
+
+- Reconciled the live RED state without suppressing it. Final determination is now explicit in the dashboard and records:
+  - **WP-15 CERTIFICATION VALID — OPERATIONAL HEALTH RED**
+- Split the runtime model into two independent evidence tracks:
+  - **Constitutional Certification** (`VERIFIED — GO`)
+  - **Current Operational Health** (`RED`)
+- Added explicit RED-driver inventory and AMBER watchlist with exact evidence source, thresholds crossed, owner, operator impact, production impact, certification impact, remediation, and review date.
+- Added status engine verification fixtures and documented aggregation rules (`RED > YELLOW > UNKNOWN > GREEN`, with UNKNOWN preserved for missing/stale evidence).
+- Added Golden Path monitoring registry for 13 representative workflows; absent current runs now remain `UNKNOWN` by policy.
+- Added append-only backend evidence storage for:
+  - operational health snapshots
+  - certification history events
+  - Golden Path monitoring runs
+- Added bounded historical KPI trend rendering from immutable evidence snapshots.
+- Added permanent PR safeguard at `.github/workflows/governance-regression-gate.yml`:
+  - runs governance convergence scanner
+  - runs governance certification suite
+  - runs Golden Path regression suite
+- Published final closeout artifacts:
+  - `/app/WP15_GOVERNANCE_HEALTH_TRUTH_RECONCILIATION.md`
+  - `/app/WP15_FINAL_ADMINISTRATIVE_FREEZE.md`
+  - `/app/WP15_EXEMPTION_RECONCILIATION.md`
+- Verification status:
+  - `/app/test_reports/iteration_73.json`
+  - result: **PASS** (36/36 backend checks, frontend reconciliation dashboard pass)
+
 - Built the shared **Operational Health Dashboard** framework and shipped **Enterprise Governance** as the first live module at `/admin/governance`.
 - Added backend evidence aggregation at `/api/admin/operational-health/modules/enterprise-governance` with 8 KPI sections:
   - Constitutional Status

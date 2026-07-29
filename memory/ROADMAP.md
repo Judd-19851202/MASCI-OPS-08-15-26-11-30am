@@ -7,12 +7,16 @@
   - zero manual governed frontend header builders
   - Operational Health Dashboard live at `/admin/governance`
   - CI/CD governance protection wired into PR, nightly, release-candidate, and production gates
+  - dedicated governance regression gate added for pull requests
   - architecture freeze and closeout documents published
+  - final determination documented as **WP-15 CERTIFICATION VALID — OPERATIONAL HEALTH RED**
+  - WP-15 classified as **Constitutional Infrastructure — Frozen**
 - Preserve the new hard-fail CI scanner policy and keep the dashboard evidence contract intact on future changes.
 
 ## P1
 - Add Golden Path monitoring hooks and additional longitudinal trend/history views on the shared Operational Health Dashboard framework.
 - Expand retained certification history as future verification events are appended.
+- Work down the current operational RED/AMBER conditions through normal operations ownership, not through architectural rollback.
 
 ## P2
 - Plug additional constitutional systems into the shared Operational Health Dashboard framework without creating duplicate status engines.
