@@ -1,0 +1,1782 @@
+[
+  {
+    "line": 509,
+    "text": "// App.js so the parity extractor sees identical `<Route path=... />`"
+  },
+  {
+    "line": 517,
+    "text": "<Route path=\"/\" element={<Hub />} />"
+  },
+  {
+    "line": 518,
+    "text": "<Route path=\"/revise/:token\" element={<Revise />} />"
+  },
+  {
+    "line": 519,
+    "text": "<Route path=\"/safety\" element={<SafetySection />} />"
+  },
+  {
+    "line": 520,
+    "text": "<Route path=\"/safety/forms/login\" element={<SafetyFormsLogin />} />"
+  },
+  {
+    "line": 521,
+    "text": "<Route path=\"/safety/forms\" element={<SafetyFormsHub />} />"
+  },
+  {
+    "line": 522,
+    "text": "<Route path=\"/safety/forms/equipment-issuance/new\" element={<NewSafetyEquipmentIssuance />} />"
+  },
+  {
+    "line": 523,
+    "text": "<Route path=\"/safety/forms/equipment-issuance/:id\" element={<ViewSafetyForm kind=\"issuance\" />} />"
+  },
+  {
+    "line": 524,
+    "text": "<Route path=\"/safety/forms/equipment-issuance/:id/return\" element={<ReturnEquipment />} />"
+  },
+  {
+    "line": 525,
+    "text": "<Route path=\"/safety/forms/equipment-training/new\" element={<NewSafetyEquipmentTraining />} />"
+  },
+  {
+    "line": 526,
+    "text": "<Route path=\"/safety/forms/equipment-training/:id\" element={<ViewSafetyForm kind=\"training\" />} />"
+  },
+  {
+    "line": 527,
+    "text": "<Route path=\"/safety/cards\" element={<FieldSafetyCards />} />"
+  },
+  {
+    "line": 528,
+    "text": "<Route path=\"/field\" element={<FieldSection />} />"
+  },
+  {
+    "line": 529,
+    "text": "<Route path=\"/field/calculators\" element={<MaterialCalculators />} />"
+  },
+  {
+    "line": 530,
+    "text": "<Route path=\"/qaqc\" element={<QaqcSection />} />"
+  },
+  {
+    "line": 531,
+    "text": "<Route path=\"/qa-qc\" element={<Navigate to=\"/qaqc\" replace />} />"
+  },
+  {
+    "line": 532,
+    "text": "<Route path=\"/qaqc/:slug/new\" element={<NewQaqcInspection />} />"
+  },
+  {
+    "line": 533,
+    "text": "<Route path=\"/qaqc/:id\" element={<ViewQaqcInspection />} />"
+  },
+  {
+    "line": 534,
+    "text": "<Route path=\"/admin/qaqc\" element={A(<AdminQaqcList />)} />"
+  },
+  {
+    "line": 535,
+    "text": "<Route path=\"/admin/transportation/*\" element={A(<AdminTransportation />)} />"
+  },
+  {
+    "line": 540,
+    "text": "<Route path=\"/transportation-operations/*\" element={TX(<AdminTransportation />)} />"
+  },
+  {
+    "line": 541,
+    "text": "<Route path=\"/admin/photos\" element={A(<JobPhotosLibrary portalKey=\"admin\" />)} />"
+  },
+  {
+    "line": 549,
+    "text": "<Route path=\"/constraints\" element={<Constraints />} />"
+  },
+  {
+    "line": 550,
+    "text": "<Route path=\"/constraints/new\" element={<NewConstraint />} />"
+  },
+  {
+    "line": 551,
+    "text": "<Route path=\"/constraints/:id\" element={<ConstraintDetail />} />"
+  },
+  {
+    "line": 554,
+    "text": "<Route path=\"/leadership\" element={<FieldLeadershipHub />} />"
+  },
+  {
+    "line": 557,
+    "text": "<Route path=\"/leadership/hub_v2\" element={<LeadershipHubV2 />} />"
+  },
+  {
+    "line": 561,
+    "text": "<Route path=\"/leadership/records\" element={<FieldLeadershipRecords />} />"
+  },
+  {
+    "line": 562,
+    "text": "<Route path=\"/leadership/records/:id\" element={<FieldLeadershipView />} />"
+  },
+  {
+    "line": 563,
+    "text": "<Route path=\"/leadership/:kind/new\" element={<FieldLeadershipFormPage />} />"
+  },
+  {
+    "line": 568,
+    "text": "<Route path=\"/safety/inspections/new\" element={SF(<NewInspection />)} />"
+  },
+  {
+    "line": 569,
+    "text": "<Route path=\"/inspect/new\" element={<InspectionLegacyRedirect />} />"
+  },
+  {
+    "line": 570,
+    "text": "<Route path=\"/submit\" element={<InspectionLegacyRedirect />} />"
+  },
+  {
+    "line": 571,
+    "text": "<Route path=\"/inspections/submit\" element={<InspectionLegacyRedirect />} />"
+  },
+  {
+    "line": 572,
+    "text": "<Route path=\"/inspections/new\" element={<InspectionLegacyRedirect />} />"
+  },
+  {
+    "line": 574,
+    "text": "<Route path=\"/meetings/new\" element={<NewMeeting />} />"
+  },
+  {
+    "line": 575,
+    "text": "<Route path=\"/meetings/submit\" element={<NewMeeting publicMode />} />"
+  },
+  {
+    "line": 577,
+    "text": "<Route path=\"/jha\" element={<JhaPlansHub />} />"
+  },
+  {
+    "line": 578,
+    "text": "<Route path=\"/jha/submit\" element={<Navigate to=\"/jha\" replace />} />"
+  },
+  {
+    "line": 579,
+    "text": "<Route path=\"/jha/new\" element={<Navigate to=\"/jha\" replace />} />"
+  },
+  {
+    "line": 581,
+    "text": "<Route path=\"/trench-boxes\" element={<Navigate to=\"/trench-safety/tabulated-data\" replace />} />"
+  },
+  {
+    "line": 583,
+    "text": "<Route path=\"/trench-safety\" element={<PublicTrenchSafetyDashboard />} />"
+  },
+  {
+    "line": 585,
+    "text": "<Route path=\"/trench-safety/tabulated-data\" element={<PublicTrenchSafetyTabulatedData />} />"
+  },
+  {
+    "line": 586,
+    "text": "<Route path=\"/trench-safety/references\"     element={<PublicTrenchSafetyReferences />} />"
+  },
+  {
+    "line": 587,
+    "text": "<Route path=\"/trench-safety/report\"         element={<PublicTrenchSafetyReport />} />"
+  },
+  {
+    "line": 589,
+    "text": "<Route path=\"/trench-safety/assets/:assetId\" element={<TrenchSafetyQrLanding />} />"
+  },
+  {
+    "line": 591,
+    "text": "<Route path=\"/transport-invite/:token\" element={<ExternalCarrierInvite />} />"
+  },
+  {
+    "line": 592,
+    "text": "<Route path=\"/transport-verify/:cnum\" element={<CertificateVerify />} />"
+  },
+  {
+    "line": 600,
+    "text": "<Route path=\"/incidents/new\" element={<Navigate to=\"/incidents/report\" replace />} />"
+  },
+  {
+    "line": 601,
+    "text": "<Route path=\"/incidents/submit\" element={<Navigate to=\"/incidents/report\" replace />} />"
+  },
+  {
+    "line": 603,
+    "text": "<Route path=\"/incidents/report\" element={<IncidentReport />} />"
+  },
+  {
+    "line": 605,
+    "text": "<Route path=\"/near-miss\" element={<NearMissKiosk />} />"
+  },
+  {
+    "line": 607,
+    "text": "<Route path=\"/safety/cases/:caseId\" element={<SafetyCaseWorkspace />} />"
+  },
+  {
+    "line": 612,
+    "text": "<Route path=\"/safety/incidents/:caseId/thread\" element={<SafetyIncidentThread />} />"
+  },
+  {
+    "line": 614,
+    "text": "<Route path=\"/safety/executive-intelligence\" element={<ExecutiveIntelligence />} />"
+  },
+  {
+    "line": 616,
+    "text": "<Route path=\"/safety/cases/:caseId/reports/:reportType\" element={<IncidentReportViewer />} />"
+  },
+  {
+    "line": 618,
+    "text": "<Route path=\"/safety/cases/:caseId/executive-report\" element={<ExecutiveCaseReport />} />"
+  },
+  {
+    "line": 624,
+    "text": "<Route path=\"/daily/new\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 625,
+    "text": "<Route path=\"/daily/submit\" element={<NewDailyReportV3 publicMode />} />"
+  },
+  {
+    "line": 627,
+    "text": "<Route path=\"/equipment/new\" element={<NewEquipmentInspection />} />"
+  },
+  {
+    "line": 628,
+    "text": "<Route path=\"/equipment/submit\" element={<NewEquipmentInspection publicMode />} />"
+  },
+  {
+    "line": 629,
+    "text": "<Route path=\"/equipment/:id\" element={<RedirectWithId base=\"/admin/equipment\" />} />"
+  },
+  {
+    "line": 632,
+    "text": "<Route path=\"/fleet/dvir/new\" element={<NewFleetDVIR />} />"
+  },
+  {
+    "line": 633,
+    "text": "<Route path=\"/fleet/dvir/submit\" element={<NewFleetDVIR />} />"
+  },
+  {
+    "line": 635,
+    "text": "<Route path=\"/fleet/weekly-lead/new\" element={<NewFleetDVIR kind=\"weekly_lead\" />} />"
+  },
+  {
+    "line": 636,
+    "text": "<Route path=\"/fleet/weekly-emergency/new\" element={<NewFleetDVIR kind=\"weekly_emergency\" />} />"
+  },
+  {
+    "line": 637,
+    "text": "<Route path=\"/fleet/dvir/submitted/:id\" element={<FleetDVIRConfirmation />} />"
+  },
+  {
+    "line": 639,
+    "text": "<Route path=\"/thank-you\" element={<ThankYou />} />"
+  },
+  {
+    "line": 640,
+    "text": "<Route path=\"/cheatsheet\" element={<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>} />"
+  },
+  {
+    "line": 641,
+    "text": "<Route path=\"/cheat-sheet\" element={<Navigate to=\"/cheatsheet\" replace />} />"
+  },
+  {
+    "line": 647,
+    "text": "<Route path=\"/reports/daily/new\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 648,
+    "text": "<Route path=\"/daily-reports/new\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 656,
+    "text": "<Route path=\"/daily-reports\" element={AP(<DailyReportsDashboard />)} />"
+  },
+  {
+    "line": 657,
+    "text": "<Route path=\"/daily-reports/:id\" element={<RedirectWithId base=\"/pm/daily\" />} />"
+  },
+  {
+    "line": 658,
+    "text": "<Route path=\"/safety/jha\" element={<Navigate to=\"/jha\" replace />} />"
+  },
+  {
+    "line": 659,
+    "text": "<Route path=\"/safety/trench-boxes\" element={<Navigate to=\"/trench-boxes\" replace />} />"
+  },
+  {
+    "line": 661,
+    "text": "<Route path=\"/safety/trench-safety\"                       element={SF(<TrenchSafetyHub />)} />"
+  },
+  {
+    "line": 662,
+    "text": "<Route path=\"/safety/trench-safety/assets\"                element={SF(<TrenchSafetyAssetsList />)} />"
+  },
+  {
+    "line": 663,
+    "text": "<Route path=\"/safety/trench-safety/assets/:assetId\"       element={SF(<TrenchSafetyAssetDetail />)} />"
+  },
+  {
+    "line": 664,
+    "text": "<Route path=\"/safety/trench-safety/tabulated-data\"        element={SF(<TrenchSafetyTabulatedData />)} />"
+  },
+  {
+    "line": 665,
+    "text": "<Route path=\"/safety/trench-safety/reports\"               element={SF(<TrenchSafetyReports />)} />"
+  },
+  {
+    "line": 666,
+    "text": "<Route path=\"/safety/trench-safety/excavations\"           element={SF(<ExcavationOversight />)} />"
+  },
+  {
+    "line": 667,
+    "text": "<Route path=\"/admin/trench-safety/excavations\"            element={AP(<ExcavationOversight />)} />"
+  },
+  {
+    "line": 668,
+    "text": "<Route path=\"/trench-safety/excavation/new\"               element={<PublicExcavationForm />} />"
+  },
+  {
+    "line": 670,
+    "text": "<Route path=\"/safety/trench-safety/repair-review\"          element={SF(<TrenchSafetyRepairReviewPage />)} />"
+  },
+  {
+    "line": 671,
+    "text": "<Route path=\"/safety/trench-safety/field-reports\"          element={SF(<TrenchSafetyFieldReportsPage />)} />"
+  },
+  {
+    "line": 673,
+    "text": "<Route path=\"/safety-portal/trench-safety\"                element={<Navigate to=\"/safety/trench-safety\" replace />} />"
+  },
+  {
+    "line": 674,
+    "text": "<Route path=\"/safety-portal/trench-safety/assets\"         element={<Navigate to=\"/safety/trench-safety/assets\" replace />} />"
+  },
+  {
+    "line": 675,
+    "text": "<Route path=\"/safety-portal/trench-safety/tabulated-data\" element={<Navigate to=\"/safety/trench-safety/tabulated-data\" replace />} />"
+  },
+  {
+    "line": 684,
+    "text": "<Route path=\"/app/*\" element={<Navigate to=\"/\" replace />} />"
+  },
+  {
+    "line": 689,
+    "text": "<Route path=\"/admin/login\" element={<AdminLogin />} />"
+  },
+  {
+    "line": 698,
+    "text": "<Route path=\"/admin\" element={A(<AdminOS />)} />"
+  },
+  {
+    "line": 699,
+    "text": "<Route path=\"/admin/hub_v1\" element={<Navigate to=\"/admin\" replace />} />"
+  },
+  {
+    "line": 701,
+    "text": "<Route path=\"/admin/hub_v2\" element={<Navigate to=\"/admin\" replace />} />"
+  },
+  {
+    "line": 702,
+    "text": "<Route path=\"/admin/executive-overview\" element={A(<ExecutiveOverview />)} />"
+  },
+  {
+    "line": 703,
+    "text": "<Route path=\"/admin/executive-intelligence\" element={A(<ExecutiveIntelligence />)} />"
+  },
+  {
+    "line": 705,
+    "text": "<Route path=\"/admin/material-ledger-quality\" element={A(<AdminMaterialLedgerQuality />)} />"
+  },
+  {
+    "line": 706,
+    "text": "<Route path=\"/admin/people\" element={A(<AdminPeople />)} />"
+  },
+  {
+    "line": 707,
+    "text": "<Route path=\"/admin/mfa\" element={A(<AdminMfa />)} />"
+  },
+  {
+    "line": 708,
+    "text": "<Route path=\"/admin/promo-assets\" element={A(<AdminPromoAssets />)} />"
+  },
+  {
+    "line": 709,
+    "text": "<Route path=\"/admin/jobs\" element={A(<AdminJobs />)} />"
+  },
+  {
+    "line": 710,
+    "text": "<Route path=\"/admin/cost-registry\" element={A(<AdminCostRegistry />)} />"
+  },
+  {
+    "line": 711,
+    "text": "<Route path=\"/admin/jobs/:projectNumber/team\" element={A(<AdminJobTeam />)} />"
+  },
+  {
+    "line": 713,
+    "text": "<Route path=\"/admin/project-staffing\" element={A(<AdminProjectStaffing />)} />"
+  },
+  {
+    "line": 715,
+    "text": "<Route path=\"/admin/geofence-reconciliation\" element={A(<AdminGeofenceReconciliation />)} />"
+  },
+  {
+    "line": 718,
+    "text": "<Route path=\"/admin/operations-dashboard\" element={A(LB(\"/admin/operations-dashboard\", <AdminOperationsDashboard />))} />"
+  },
+  {
+    "line": 720,
+    "text": "<Route path=\"/admin/operations-control\" element={A(<OperationsControlCenter />)} />"
+  },
+  {
+    "line": 721,
+    "text": "<Route path=\"/admin/operations-control/cases/:caseId\" element={A(<OperationsControlCaseDetail />)} />"
+  },
+  {
+    "line": 722,
+    "text": "<Route path=\"/operations-control/cases\" element={A(<OperationsControlCasesRoute />)} />"
+  },
+  {
+    "line": 723,
+    "text": "<Route path=\"/operations-control/cases/:caseId\" element={A(<OperationsControlCaseDetail />)} />"
+  },
+  {
+    "line": 725,
+    "text": "<Route path=\"/admin/asset-mapping\" element={A(<AdminAssetMapping />)} />"
+  },
+  {
+    "line": 726,
+    "text": "<Route path=\"/admin/asset-spine\" element={A(<AdminAssetSpineHealth />)} />"
+  },
+  {
+    "line": 727,
+    "text": "<Route path=\"/admin/equipment\" element={A(<AdminEquipment />)} />"
+  },
+  {
+    "line": 728,
+    "text": "<Route path=\"/admin/email\" element={A(<AdminEmail />)} />"
+  },
+  {
+    "line": 729,
+    "text": "<Route path=\"/admin/training\" element={A(<AdminTraining />)} />"
+  },
+  {
+    "line": 730,
+    "text": "<Route path=\"/admin/compliance\" element={A(<AdminCompliance />)} />"
+  },
+  {
+    "line": 731,
+    "text": "<Route path=\"/admin/system\" element={A(LB(\"/admin/system\", <AdminSystem />))} />"
+  },
+  {
+    "line": 732,
+    "text": "<Route path=\"/admin/ai-configuration\" element={A(<AdminAIConfiguration />)} />"
+  },
+  {
+    "line": 733,
+    "text": "<Route path=\"/admin/integration-truth\" element={A(LB(\"/admin/integration-truth\", <IntegrationTruth />))} />"
+  },
+  {
+    "line": 734,
+    "text": "<Route path=\"/admin/preview-validation-identities\" element={A(<PreviewValidationIdentities />)} />"
+  },
+  {
+    "line": 735,
+    "text": "<Route path=\"/admin/recovery\" element={A(LB(\"/admin/recovery\", <AdminRecovery />))} />"
+  },
+  {
+    "line": 737,
+    "text": "<Route path=\"/admin/storage-recovery\" element={A(<AdminStorageRecovery />)} />"
+  },
+  {
+    "line": 739,
+    "text": "<Route path=\"/admin/ai-operations\" element={A(<AdminAiOperations />)} />"
+  },
+  {
+    "line": 740,
+    "text": "<Route path=\"/admin/communications\" element={A(<AdminCommunications />)} />"
+  },
+  {
+    "line": 741,
+    "text": "<Route path=\"/admin/identity-security\" element={A(<AdminIdentitySecurity />)} />"
+  },
+  {
+    "line": 742,
+    "text": "<Route path=\"/admin/trust-spine\" element={A(<PlatformTrustDashboard />)} />"
+  },
+  {
+    "line": 743,
+    "text": "<Route path=\"/admin/governance-trust\" element={A(<AdminGovernanceTrust />)} />"
+  },
+  {
+    "line": 745,
+    "text": "<Route path=\"/admin/platform-configuration\" element={A(<AdminPlatformConfiguration />)} />"
+  },
+  {
+    "line": 746,
+    "text": "<Route path=\"/admin/diagnostics\" element={A(<AdminDiagnostics />)} />"
+  },
+  {
+    "line": 747,
+    "text": "<Route path=\"/admin/maintenance\" element={A(<AdminMaintenance />)} />"
+  },
+  {
+    "line": 748,
+    "text": "<Route path=\"/admin/platform-overview\" element={<AdminPlatformOverview />} />"
+  },
+  {
+    "line": 749,
+    "text": "<Route path=\"/admin/recovery-stream\" element={A(LB(\"/admin/recovery-stream\", <AdminRecoveryStream />))} />"
+  },
+  {
+    "line": 750,
+    "text": "<Route path=\"/admin/jha-acknowledgements\" element={A(<AdminJhaAcknowledgements />)} />"
+  },
+  {
+    "line": 751,
+    "text": "<Route path=\"/admin/command-center\" element={A(<AdminCommandCenter />)} />"
+  },
+  {
+    "line": 752,
+    "text": "<Route path=\"/admin/database\" element={A(<AdminDatabase />)} />"
+  },
+  {
+    "line": 753,
+    "text": "<Route path=\"/admin/integrations\" element={A(<AdminIntegrationCenter />)} />"
+  },
+  {
+    "line": 754,
+    "text": "<Route path=\"/admin/dispatch\" element={A(<AdminDispatch />)} />"
+  },
+  {
+    "line": 755,
+    "text": "<Route path=\"/admin/dls/shift-qr\" element={A(<AdminDlsShiftQR />)} />"
+  },
+  {
+    "line": 756,
+    "text": "<Route path=\"/admin/dls/day-1-debrief\" element={A(<AdminDlsDay1Debrief variant=\"day-1\" />)} />"
+  },
+  {
+    "line": 757,
+    "text": "<Route path=\"/admin/dls/week-1-debrief\" element={A(<AdminDlsDay1Debrief variant=\"week-1\" />)} />"
+  },
+  {
+    "line": 758,
+    "text": "<Route path=\"/admin/profile\" element={A(<AdminProfile />)} />"
+  },
+  {
+    "line": 759,
+    "text": "<Route path=\"/admin/operations-events\" element={A(<AdminOperationsEvents />)} />"
+  },
+  {
+    "line": 760,
+    "text": "<Route path=\"/admin/digest-config\" element={A(<AdminDigestConfig />)} />"
+  },
+  {
+    "line": 761,
+    "text": "<Route path=\"/admin/operational-intelligence\" element={A(<AdminOperationalIntelligence />)} />"
+  },
+  {
+    "line": 762,
+    "text": "<Route path=\"/admin/operational-intelligence/recipients\" element={A(<AdminOperationalIntelligenceRecipients />)} />"
+  },
+  {
+    "line": 763,
+    "text": "<Route path=\"/admin/system-health\" element={A(LB(\"/admin/system-health\", <SystemHealth />))} />"
+  },
+  {
+    "line": 764,
+    "text": "<Route path=\"/admin/audit-log\" element={A(<AdminAuditLog />)} />"
+  },
+  {
+    "line": 767,
+    "text": "<Route path=\"/admin/scheduler-runs\" element={A(LB(\"/admin/scheduler-runs\", <AdminSchedulerRuns />))} />"
+  },
+  {
+    "line": 768,
+    "text": "<Route path=\"/admin/legacy-imports\" element={A(<AdminLegacyImports />)} />"
+  },
+  {
+    "line": 769,
+    "text": "<Route path=\"/admin/sessions\" element={A(<AdminSessions />)} />"
+  },
+  {
+    "line": 770,
+    "text": "<Route path=\"/admin/guidance-coverage\" element={A(<AdminGuidanceCoverage />)} />"
+  },
+  {
+    "line": 771,
+    "text": "<Route path=\"/admin/operational-inventory\" element={A(<AdminOperationalInventory />)} />"
+  },
+  {
+    "line": 773,
+    "text": "<Route path=\"/notifications\" element={<NotificationsDigest />} />"
+  },
+  {
+    "line": 775,
+    "text": "<Route path=\"/admin/governance\" element={A(<AdminGovernanceOperatingSystem />)} />"
+  },
+  {
+    "line": 776,
+    "text": "<Route path=\"/admin/governance/overview\" element={A(<AdminGovernanceOperatingSystem />)} />"
+  },
+  {
+    "line": 777,
+    "text": "<Route path=\"/admin/governance/organization\" element={A(<AdminGovernanceOrganizationPage />)} />"
+  },
+  {
+    "line": 778,
+    "text": "<Route path=\"/admin/governance/identities\" element={A(<AdminGovernanceIdentitiesPage />)} />"
+  },
+  {
+    "line": 779,
+    "text": "<Route path=\"/admin/governance/roles\" element={A(<AdminGovernanceRolesPage />)} />"
+  },
+  {
+    "line": 780,
+    "text": "<Route path=\"/admin/governance/permissions\" element={A(<AdminGovernancePermissionsPage />)} />"
+  },
+  {
+    "line": 781,
+    "text": "<Route path=\"/admin/governance/policies\" element={A(<AdminGovernancePoliciesPage />)} />"
+  },
+  {
+    "line": 782,
+    "text": "<Route path=\"/admin/governance/approval-flows\" element={A(<AdminGovernanceApprovalFlowsPage />)} />"
+  },
+  {
+    "line": 783,
+    "text": "<Route path=\"/admin/governance/delegations\" element={A(<AdminGovernanceDelegationsPage />)} />"
+  },
+  {
+    "line": 784,
+    "text": "<Route path=\"/admin/governance/separation-of-duties\" element={A(<AdminGovernanceSodPage />)} />"
+  },
+  {
+    "line": 785,
+    "text": "<Route path=\"/admin/governance/authority\" element={A(<AdminGovernanceAuthorityPage />)} />"
+  },
+  {
+    "line": 786,
+    "text": "<Route path=\"/admin/governance/emergency-overrides\" element={A(<AdminGovernanceOverridesPage />)} />"
+  },
+  {
+    "line": 787,
+    "text": "<Route path=\"/admin/governance/decisions\" element={A(<AdminGovernanceDecisionsPage />)} />"
+  },
+  {
+    "line": 788,
+    "text": "<Route path=\"/admin/governance/audit\" element={A(<AdminGovernanceAuditPage />)} />"
+  },
+  {
+    "line": 789,
+    "text": "<Route path=\"/admin/governance/registry\" element={A(<AdminGovernanceRegistryPage />)} />"
+  },
+  {
+    "line": 790,
+    "text": "<Route path=\"/admin/governance/versions\" element={A(<AdminGovernanceVersionsPage />)} />"
+  },
+  {
+    "line": 791,
+    "text": "<Route path=\"/admin/governance/health\" element={A(<AdminGovernanceHealthPage />)} />"
+  },
+  {
+    "line": 792,
+    "text": "<Route path=\"/admin/governance/legacy-health\" element={A(<AdminGovernance />)} />"
+  },
+  {
+    "line": 793,
+    "text": "<Route path=\"/admin/project-identity\" element={A(<AdminProjectIdentityGovernance />)} />"
+  },
+  {
+    "line": 794,
+    "text": "<Route path=\"/admin/governance/self-protection\" element={A(<SelfProtection />)} />"
+  },
+  {
+    "line": 795,
+    "text": "<Route path=\"/admin/compliance-findings\" element={A(<AdminComplianceFindings />)} />"
+  },
+  {
+    "line": 796,
+    "text": "<Route path=\"/admin/operational-language\" element={A(<AdminOperationalLanguage />)} />"
+  },
+  {
+    "line": 800,
+    "text": "<Route path=\"/guidance\" element={<OperationalGuidanceCenter />} />"
+  },
+  {
+    "line": 801,
+    "text": "<Route path=\"/guidance/section/:sectionId\" element={<OperationalGuidanceCenter />} />"
+  },
+  {
+    "line": 802,
+    "text": "<Route path=\"/guidance/:articleId\" element={<OperationalGuidanceCenter />} />"
+  },
+  {
+    "line": 803,
+    "text": "<Route path=\"/admin/deploy-recovery\" element={A(LB(\"/admin/deploy-recovery\", <DeployRecovery />))} />"
+  },
+  {
+    "line": 804,
+    "text": "<Route path=\"/admin/assets/:assetId\" element={A(<AssetProfile />)} />"
+  },
+  {
+    "line": 805,
+    "text": "<Route path=\"/admin/asset-admin\" element={A(<AdminAssetAdmin />)} />"
+  },
+  {
+    "line": 806,
+    "text": "<Route path=\"/admin/driver-intel/:driverKey\" element={A(<AdminDriverIntel />)} />"
+  },
+  {
+    "line": 807,
+    "text": "<Route path=\"/admin/equipment/:id/history\" element={A(<AdminMasterHistory kind=\"equipment\" />)} />"
+  },
+  {
+    "line": 808,
+    "text": "<Route path=\"/admin/employees/:id/history\" element={A(<AdminMasterHistory kind=\"employee\" />)} />"
+  },
+  {
+    "line": 809,
+    "text": "<Route path=\"/admin/analytics\" element={A(<AdminAnalytics />)} />"
+  },
+  {
+    "line": 810,
+    "text": "<Route path=\"/admin/leadership-equipment\" element={A(<AdminLeadershipEquipment />)} />"
+  },
+  {
+    "line": 811,
+    "text": "<Route path=\"/admin/terminations\" element={A(<AdminTerminations />)} />"
+  },
+  {
+    "line": 812,
+    "text": "<Route path=\"/admin/guide\" element={A(<AdminGuide />)} />"
+  },
+  {
+    "line": 813,
+    "text": "<Route path=\"/admin/pnl\" element={AP(<ProjectPnlPage />)} />"
+  },
+  {
+    "line": 815,
+    "text": "<Route path=\"/admin/inspections\" element={AP(<Dashboard />)} />"
+  },
+  {
+    "line": 816,
+    "text": "<Route path=\"/admin/inspections/:id\" element={APS(<ViewInspection />)} />"
+  },
+  {
+    "line": 818,
+    "text": "<Route path=\"/admin/meetings\" element={AP(<MeetingsDashboard />)} />"
+  },
+  {
+    "line": 819,
+    "text": "<Route path=\"/admin/meetings/:id\" element={APS(<ViewMeeting />)} />"
+  },
+  {
+    "line": 821,
+    "text": "<Route path=\"/admin/jha-plans\" element={AP(<JhaPlansAdmin />)} />"
+  },
+  {
+    "line": 822,
+    "text": "<Route path=\"/admin/jha\" element={<Navigate to=\"/admin/jha-plans\" replace />} />"
+  },
+  {
+    "line": 823,
+    "text": "<Route path=\"/admin/jha/:id\" element={<Navigate to=\"/admin/jha-plans\" replace />} />"
+  },
+  {
+    "line": 825,
+    "text": "<Route path=\"/admin/trench-boxes\" element={AP(<TrenchBoxesAdmin />)} />"
+  },
+  {
+    "line": 826,
+    "text": "<Route path=\"/admin/trench-boxes/poster\" element={AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)} />"
+  },
+  {
+    "line": 831,
+    "text": "<Route path=\"/admin/trench-safety\"                  element={AP(<TrenchSafetyHub />)} />"
+  },
+  {
+    "line": 832,
+    "text": "<Route path=\"/admin/trench-safety/assets\"           element={AP(<TrenchSafetyAssetsList />)} />"
+  },
+  {
+    "line": 833,
+    "text": "<Route path=\"/admin/trench-safety/assets/:assetId\"  element={AP(<TrenchSafetyAssetDetail />)} />"
+  },
+  {
+    "line": 834,
+    "text": "<Route path=\"/admin/trench-safety/tabulated-data\"   element={AP(<TrenchSafetyTabulatedData />)} />"
+  },
+  {
+    "line": 835,
+    "text": "<Route path=\"/admin/trench-safety/reports\"          element={AP(<TrenchSafetyReports />)} />"
+  },
+  {
+    "line": 836,
+    "text": "<Route path=\"/admin/trench-safety/repair-review\"    element={AP(<TrenchSafetyRepairReviewPage adminPortal={true} />)} />"
+  },
+  {
+    "line": 837,
+    "text": "<Route path=\"/admin/trench-safety/field-reports\"    element={AP(<TrenchSafetyFieldReportsPage adminPortal={true} />)} />"
+  },
+  {
+    "line": 839,
+    "text": "<Route path=\"/admin/jha-plans/poster\" element={AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)} />"
+  },
+  {
+    "line": 841,
+    "text": "<Route path=\"/admin/posters/print-all\" element={AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)} />"
+  },
+  {
+    "line": 843,
+    "text": "<Route path=\"/admin/incidents\" element={A(<IncidentsDashboard />)} />"
+  },
+  {
+    "line": 844,
+    "text": "<Route path=\"/admin/incidents/:id\" element={APS(<ViewIncident />)} />"
+  },
+  {
+    "line": 846,
+    "text": "<Route path=\"/admin/daily\" element={AP(<DailyReportsDashboard />)} />"
+  },
+  {
+    "line": 847,
+    "text": "<Route path=\"/admin/daily/:id\" element={AP(<ViewDailyReport />)} />"
+  },
+  {
+    "line": 853,
+    "text": "<Route path=\"/admin/equipment-inspections\" element={AP(<EquipmentDashboard />)} />"
+  },
+  {
+    "line": 854,
+    "text": "<Route path=\"/admin/equipment/:id\" element={AP(<ViewEquipmentInspection context=\"admin\" />)} />"
+  },
+  {
+    "line": 862,
+    "text": "<Route path=\"/admin/qaqc/:id\" element={AP(<ViewQaqcInspection />)} />"
+  },
+  {
+    "line": 863,
+    "text": "<Route path=\"/admin/leadership/records/:id\" element={AP(<FieldLeadershipView />)} />"
+  },
+  {
+    "line": 864,
+    "text": "<Route path=\"/admin/safety/issuance/:id\" element={AP(<ViewSafetyForm kind=\"issuance\" />)} />"
+  },
+  {
+    "line": 865,
+    "text": "<Route path=\"/admin/safety/training/:id\" element={AP(<ViewSafetyForm kind=\"training\" />)} />"
+  },
+  {
+    "line": 872,
+    "text": "<Route path=\"/pm/login\" element={<PmLogin />} />"
+  },
+  {
+    "line": 873,
+    "text": "<Route path=\"/pm/reset/:token\" element={<PmResetPassword />} />"
+  },
+  {
+    "line": 874,
+    "text": "<Route path=\"/pm/change-password\" element={P(<PmChangePassword />)} />"
+  },
+  {
+    "line": 875,
+    "text": "<Route path=\"/pm\" element={P(<PmHomeRedirect />)} />"
+  },
+  {
+    "line": 877,
+    "text": "<Route path=\"/pm/hub\" element={P(<PmHubV2 />)} />"
+  },
+  {
+    "line": 878,
+    "text": "<Route path=\"/pm/hub_legacy\" element={P(<PmHub />)} />"
+  },
+  {
+    "line": 880,
+    "text": "<Route path=\"/pm/hub_v2\" element={P(<PmHubV2 />)} />"
+  },
+  {
+    "line": 883,
+    "text": "<Route path=\"/pm/holds\" element={AP(<PmHoldsV2 />)} />"
+  },
+  {
+    "line": 884,
+    "text": "<Route path=\"/pm/due-today\" element={AP(<PmDueTodayV2 />)} />"
+  },
+  {
+    "line": 886,
+    "text": "<Route path=\"/pm/crew-compliance\" element={P(<PmCrewCompliance />)} />"
+  },
+  {
+    "line": 894,
+    "text": "<Route path=\"/pm/jobs\"               element={P(<PmJobs />)} />"
+  },
+  {
+    "line": 895,
+    "text": "<Route path=\"/pm/job/:projectNumber/team\" element={P(<PmJobTeam />)} />"
+  },
+  {
+    "line": 897,
+    "text": "<Route path=\"/pm/project-staffing\"  element={P(<PmProjectStaffing />)} />"
+  },
+  {
+    "line": 898,
+    "text": "<Route path=\"/pm/project-schedule\"  element={P(<PmProjectSchedule />)} />"
+  },
+  {
+    "line": 899,
+    "text": "<Route path=\"/pm/monday-review\"  element={P(<PmMondayReviewWorkspace />)} />"
+  },
+  {
+    "line": 910,
+    "text": "<Route path=\"/pm/projects/:projectNumber\" element={P(<PmProjectRedirect />)} />"
+  },
+  {
+    "line": 911,
+    "text": "<Route path=\"/pm/projects-legacy/:projectNumber\" element={P(<PmProjectDetail />)} />"
+  },
+  {
+    "line": 915,
+    "text": "<Route path=\"/pm/project/:projectNumber\" element={P(<PmProjectDetail />)} />"
+  },
+  {
+    "line": 920,
+    "text": "<Route path=\"/pm/project/:projectNumber/thread\" element={P(<PmProjectThread />)} />"
+  },
+  {
+    "line": 924,
+    "text": "<Route path=\"/pm/command-center\" element={P(<PmCommandCenter />)} />"
+  },
+  {
+    "line": 929,
+    "text": "<Route path=\"/operations-center\" element={A(<OperationsCenterCommand />)} />"
+  },
+  {
+    "line": 930,
+    "text": "<Route path=\"/admin/executive-operational-intelligence\" element={A(<ExecutiveOperationalIntelligence />)} />"
+  },
+  {
+    "line": 931,
+    "text": "<Route path=\"/operations-map\" element={A(<OperationsMapPage />)} />"
+  },
+  {
+    "line": 932,
+    "text": "<Route path=\"/pm/field-leadership\"   element={P(<PmFieldLeadership />)} />"
+  },
+  {
+    "line": 933,
+    "text": "<Route path=\"/pm/fleet\"              element={P(<PmFleet />)} />"
+  },
+  {
+    "line": 934,
+    "text": "<Route path=\"/pm/people\"             element={P(<PmPeople />)} />"
+  },
+  {
+    "line": 935,
+    "text": "<Route path=\"/pm/suppliers\"          element={P(<PmSuppliers />)} />"
+  },
+  {
+    "line": 940,
+    "text": "<Route path=\"/admin/vendors/:vendorId/thread\" element={A(<AdminVendorThread />)} />"
+  },
+  {
+    "line": 941,
+    "text": "<Route path=\"/admin/assets/:assetRef/thread\" element={A(<AdminAssetThread />)} />"
+  },
+  {
+    "line": 942,
+    "text": "<Route path=\"/pm/posters\"            element={P(<PmPosters />)} />"
+  },
+  {
+    "line": 943,
+    "text": "<Route path=\"/pm/qaqc\" element={P(<PmQaqcList />)} />"
+  },
+  {
+    "line": 944,
+    "text": "<Route path=\"/pm/photos\" element={P(<JobPhotosLibrary portalKey=\"pm\" />)} />"
+  },
+  {
+    "line": 953,
+    "text": "<Route path=\"/pm/daily\" element={AP(<DailyReportsDashboard />)} />"
+  },
+  {
+    "line": 954,
+    "text": "<Route path=\"/pm/daily/:id\" element={AP(<ViewDailyReport />)} />"
+  },
+  {
+    "line": 955,
+    "text": "<Route path=\"/pm/incidents\" element={AP(<IncidentsDashboard />)} />"
+  },
+  {
+    "line": 956,
+    "text": "<Route path=\"/pm/incidents/:id\" element={AP(<ViewIncident />)} />"
+  },
+  {
+    "line": 957,
+    "text": "<Route path=\"/pm/meetings\" element={AP(<MeetingsDashboard />)} />"
+  },
+  {
+    "line": 958,
+    "text": "<Route path=\"/pm/meetings/:id\" element={AP(<ViewMeeting />)} />"
+  },
+  {
+    "line": 959,
+    "text": "<Route path=\"/pm/inspections\" element={AP(<Dashboard />)} />"
+  },
+  {
+    "line": 960,
+    "text": "<Route path=\"/pm/inspections/:id\" element={AP(<ViewInspection />)} />"
+  },
+  {
+    "line": 961,
+    "text": "<Route path=\"/pm/jha-plans\" element={AP(<JhaPlansAdmin />)} />"
+  },
+  {
+    "line": 962,
+    "text": "<Route path=\"/pm/trench-boxes\" element={AP(<TrenchBoxesAdmin />)} />"
+  },
+  {
+    "line": 963,
+    "text": "<Route path=\"/pm/equipment\" element={AP(<EquipmentDashboard />)} />"
+  },
+  {
+    "line": 964,
+    "text": "<Route path=\"/pm/equipment/:id\" element={AP(<ViewEquipmentInspection context=\"admin\" />)} />"
+  },
+  {
+    "line": 970,
+    "text": "<Route path=\"/pm/trench-safety\"                  element={AP(<TrenchSafetyHub />)} />"
+  },
+  {
+    "line": 971,
+    "text": "<Route path=\"/pm/trench-safety/assets\"           element={AP(<TrenchSafetyAssetsList />)} />"
+  },
+  {
+    "line": 972,
+    "text": "<Route path=\"/pm/trench-safety/assets/:assetId\"  element={AP(<TrenchSafetyAssetDetail />)} />"
+  },
+  {
+    "line": 973,
+    "text": "<Route path=\"/pm/trench-safety/tabulated-data\"   element={AP(<TrenchSafetyTabulatedData />)} />"
+  },
+  {
+    "line": 974,
+    "text": "<Route path=\"/pm/trench-safety/reports\"          element={AP(<TrenchSafetyReports />)} />"
+  },
+  {
+    "line": 975,
+    "text": "<Route path=\"/pm/trench-safety/excavations\"      element={AP(<ExcavationOversight />)} />"
+  },
+  {
+    "line": 981,
+    "text": "<Route path=\"/shop/login\" element={<ShopLogin />} />"
+  },
+  {
+    "line": 982,
+    "text": "<Route path=\"/shop/reset/:token\" element={<ShopResetPassword />} />"
+  },
+  {
+    "line": 983,
+    "text": "<Route path=\"/shop/change-password\" element={S(<ShopChangePassword />)} />"
+  },
+  {
+    "line": 989,
+    "text": "<Route path=\"/shop\" element={S(<ShopHubV2 />)} />"
+  },
+  {
+    "line": 990,
+    "text": "<Route path=\"/shop/hub_legacy\" element={S(<ShopHub />)} />"
+  },
+  {
+    "line": 991,
+    "text": "<Route path=\"/shop/hub_v2\" element={S(<ShopHubV2 />)} />"
+  },
+  {
+    "line": 995,
+    "text": "<Route path=\"/shop/asset-care\" element={S(<ShopAssetCare />)} />"
+  },
+  {
+    "line": 999,
+    "text": "<Route path=\"/shop/manager/queue\" element={S(<ShopManagerQueue />)} />"
+  },
+  {
+    "line": 1000,
+    "text": "<Route path=\"/shop/me\" element={S(<ShopMyAssignments />)} />"
+  },
+  {
+    "line": 1002,
+    "text": "<Route path=\"/shop/units/history\" element={S(<UnitHistoryLanding />)} />"
+  },
+  {
+    "line": 1003,
+    "text": "<Route path=\"/shop/units/:unitNumber/history\" element={S(<UnitHistoryTimeline />)} />"
+  },
+  {
+    "line": 1005,
+    "text": "<Route path=\"/shop/fuel-lube/new\" element={S(<FuelLubeVisitForm />)} />"
+  },
+  {
+    "line": 1007,
+    "text": "<Route path=\"/shop/fuel-lube\" element={S(<FuelLubeVisitRecords />)} />"
+  },
+  {
+    "line": 1008,
+    "text": "<Route path=\"/shop/fuel-lube/:visitId\" element={S(<FuelLubeVisitDetail />)} />"
+  },
+  {
+    "line": 1010,
+    "text": "<Route path=\"/shop/service-truck-reconciliation/new\"         element={S(<ServiceTruckReconciliationForm />)} />"
+  },
+  {
+    "line": 1011,
+    "text": "<Route path=\"/shop/service-truck-reconciliation\"             element={S(<ServiceTruckReconciliationRecords />)} />"
+  },
+  {
+    "line": 1012,
+    "text": "<Route path=\"/shop/service-truck-reconciliation/:recId\"      element={S(<ServiceTruckReconciliationDetail />)} />"
+  },
+  {
+    "line": 1014,
+    "text": "<Route path=\"/shop/pm\"                              element={S(<PmDashboard />)} />"
+  },
+  {
+    "line": 1015,
+    "text": "<Route path=\"/shop/pm/templates\"                    element={S(<PmTemplates />)} />"
+  },
+  {
+    "line": 1016,
+    "text": "<Route path=\"/shop/pm/schedules\"                    element={S(<PmSchedules />)} />"
+  },
+  {
+    "line": 1017,
+    "text": "<Route path=\"/shop/pm/work-orders\"                  element={S(<PmWorkOrders />)} />"
+  },
+  {
+    "line": 1018,
+    "text": "<Route path=\"/shop/pm/work-orders/:id\"              element={S(<PmWorkOrders />)} />"
+  },
+  {
+    "line": 1019,
+    "text": "<Route path=\"/shop/trench-safety-repairs\" element={S(<ShopTrenchSafetyRepairs />)} />"
+  },
+  {
+    "line": 1020,
+    "text": "<Route path=\"/shop/fleet\" element={S(<FleetVisibility scope=\"shop\" />)} />"
+  },
+  {
+    "line": 1024,
+    "text": "<Route path=\"/fleet/unit/:unit_number\" element={S(<FleetUnitThread />)} />"
+  },
+  {
+    "line": 1028,
+    "text": "<Route path=\"/shop/equipment\" element={S(<EquipmentDashboard />)} />"
+  },
+  {
+    "line": 1029,
+    "text": "<Route path=\"/shop/equipment/:id\" element={S(<ViewEquipmentInspection context=\"shop\" />)} />"
+  },
+  {
+    "line": 1038,
+    "text": "<Route path=\"/hr/login\" element={<HrLogin />} />"
+  },
+  {
+    "line": 1039,
+    "text": "<Route path=\"/sign-in\" element={<SignIn />} />"
+  },
+  {
+    "line": 1040,
+    "text": "<Route path=\"/change-password\" element={<DirectoryChangePassword />} />"
+  },
+  {
+    "line": 1041,
+    "text": "<Route path=\"/hr/forgot\" element={<HrForgotPassword />} />"
+  },
+  {
+    "line": 1042,
+    "text": "<Route path=\"/hr/reset/:token\" element={<HrResetPassword />} />"
+  },
+  {
+    "line": 1043,
+    "text": "<Route path=\"/hr/change-password\" element={H(<HrChangePassword />)} />"
+  },
+  {
+    "line": 1045,
+    "text": "<Route path=\"/hr\" element={H(<HrHubV2 />)} />"
+  },
+  {
+    "line": 1046,
+    "text": "<Route path=\"/hr/hub_legacy\" element={H(<HrHub />)} />"
+  },
+  {
+    "line": 1048,
+    "text": "<Route path=\"/hr/hub_v2\" element={H(<HrHubV2 />)} />"
+  },
+  {
+    "line": 1049,
+    "text": "<Route path=\"/hr/field-leadership\" element={H(<HrFieldLeadership />)} />"
+  },
+  {
+    "line": 1050,
+    "text": "<Route path=\"/hr/field-leadership-users\" element={H(<HrFieldLeadershipUsers />)} />"
+  },
+  {
+    "line": 1051,
+    "text": "<Route path=\"/hr/employee-accountability\" element={H(<HrEmployeeAccountability />)} />"
+  },
+  {
+    "line": 1052,
+    "text": "<Route path=\"/hr/time-verification\" element={H(<HrTimeVerification />)} />"
+  },
+  {
+    "line": 1053,
+    "text": "<Route path=\"/hr/time-off\" element={H(<HrTimeOff />)} />"
+  },
+  {
+    "line": 1054,
+    "text": "<Route path=\"/hr/payroll-variance\" element={H(<HrPayrollVariance />)} />"
+  },
+  {
+    "line": 1055,
+    "text": "<Route path=\"/hr/training-records\" element={H(<HrTrainingRecords />)} />"
+  },
+  {
+    "line": 1056,
+    "text": "<Route path=\"/hr/qualifications\" element={H(<EmployeeLifecycleQualifications />)} />"
+  },
+  {
+    "line": 1057,
+    "text": "<Route path=\"/hr/driver-qualification\" element={H(<HrDriverQualificationDashboard />)} />"
+  },
+  {
+    "line": 1058,
+    "text": "<Route path=\"/hr/driver-qualification/import\" element={H(<HrDriverQualificationImport />)} />"
+  },
+  {
+    "line": 1074,
+    "text": "<Route path=\"/hr/daily-reports\" element={H(<HrDailyReports />)} />"
+  },
+  {
+    "line": 1075,
+    "text": "<Route path=\"/hr/daily-reports/:id\" element={H(<ViewDailyReport />)} />"
+  },
+  {
+    "line": 1077,
+    "text": "<Route path=\"/hr/motive-drivers\" element={H(<HrMotiveDrivers />)} />"
+  },
+  {
+    "line": 1079,
+    "text": "<Route path=\"/hr/driver/:driverKey\" element={H(<HrDriverProfile />)} />"
+  },
+  {
+    "line": 1080,
+    "text": "<Route path=\"/time-off/public/:token\" element={<PublicTimeOff />} />"
+  },
+  {
+    "line": 1087,
+    "text": "<Route path=\"/field-leadership/portal/login\" element={<FieldLeadershipPortalLogin />} />"
+  },
+  {
+    "line": 1088,
+    "text": "<Route path=\"/field-leadership/portal/change-password\" element={FL(<FieldLeadershipPortalChangePassword />)} />"
+  },
+  {
+    "line": 1089,
+    "text": "<Route path=\"/field-leadership/portal/dashboard\" element={FL(<FieldLeadershipPortalDashboard />)} />"
+  },
+  {
+    "line": 1090,
+    "text": "<Route path=\"/field-leadership/portal\" element={FL(<FieldLeadershipPortalDashboard />)} />"
+  },
+  {
+    "line": 1092,
+    "text": "<Route path=\"/field-leadership/portal/driver-qualification\" element={FL(<FieldLeadershipDriverQualification />)} />"
+  },
+  {
+    "line": 1102,
+    "text": "<Route path=\"/safety-portal/login\" element={<SafetyLogin />} />"
+  },
+  {
+    "line": 1103,
+    "text": "<Route path=\"/safety-portal/forgot-password\" element={<SafetyForgotPassword />} />"
+  },
+  {
+    "line": 1104,
+    "text": "<Route path=\"/safety-portal/reset/:token\" element={<SafetyResetPassword />} />"
+  },
+  {
+    "line": 1105,
+    "text": "<Route path=\"/safety-portal/change-password\" element={SF(<SafetyChangePassword />)} />"
+  },
+  {
+    "line": 1110,
+    "text": "<Route path=\"/safety-portal\" element={SF(<SafetyHubV2 />)} />"
+  },
+  {
+    "line": 1111,
+    "text": "<Route path=\"/safety-portal/hub_legacy\" element={SF(<SafetyHub />)} />"
+  },
+  {
+    "line": 1112,
+    "text": "<Route path=\"/safety-portal/hub_v2\" element={SF(<SafetyHubV2 />)} />"
+  },
+  {
+    "line": 1113,
+    "text": "<Route path=\"/safety-portal/fleet\" element={SF(<FleetVisibility scope=\"safety\" />)} />"
+  },
+  {
+    "line": 1114,
+    "text": "<Route path=\"/safety-portal/corrective-actions\" element={SF(<SafetyCorrectiveActions />)} />"
+  },
+  {
+    "line": 1115,
+    "text": "<Route path=\"/safety-portal/fire-extinguishers\" element={SF(<SafetyFireExtinguishers />)} />"
+  },
+  {
+    "line": 1116,
+    "text": "<Route path=\"/safety-portal/fire-extinguishers/import\" element={SF(<SafetyFireExtImport />)} />"
+  },
+  {
+    "line": 1117,
+    "text": "<Route path=\"/safety-portal/documents\" element={SF(<SafetyDocuments />)} />"
+  },
+  {
+    "line": 1118,
+    "text": "<Route path=\"/safety-portal/training\" element={SF(<SafetyTrainingRecords />)} />"
+  },
+  {
+    "line": 1119,
+    "text": "<Route path=\"/safety-portal/incidents\" element={SF(<SafetyIncidents />)} />"
+  },
+  {
+    "line": 1125,
+    "text": "<Route path=\"/safety-portal/incidents/:id\" element={SF(<ViewIncident />)} />"
+  },
+  {
+    "line": 1126,
+    "text": "<Route path=\"/safety-portal/meetings/:id\" element={SF(<ViewMeeting />)} />"
+  },
+  {
+    "line": 1127,
+    "text": "<Route path=\"/safety-portal/audits\" element={SF(<SafetyAudits />)} />"
+  },
+  {
+    "line": 1128,
+    "text": "<Route path=\"/safety-portal/forms-records\" element={SF(<SafetyFormsRecords />)} />"
+  },
+  {
+    "line": 1129,
+    "text": "<Route path=\"/safety-portal/reports\" element={SF(<SafetyReports />)} />"
+  },
+  {
+    "line": 1130,
+    "text": "<Route path=\"/safety-portal/library\" element={SF(<SafetyTopicLibrary />)} />"
+  },
+  {
+    "line": 1131,
+    "text": "<Route path=\"/safety-portal/employees\" element={SF(<SafetyEmployeeProfiles />)} />"
+  },
+  {
+    "line": 1132,
+    "text": "<Route path=\"/safety-portal/digest\" element={SF(<SafetyDigest />)} />"
+  },
+  {
+    "line": 1139,
+    "text": "<Route path=\"/safety-portal/inspections\" element={SF(<Dashboard />)} />"
+  },
+  {
+    "line": 1140,
+    "text": "<Route path=\"/safety-portal/inspections/:id\" element={SF(<ViewInspection />)} />"
+  },
+  {
+    "line": 1141,
+    "text": "<Route path=\"/safety-portal/jha-plans\" element={SF(<JhaPlansAdmin />)} />"
+  },
+  {
+    "line": 1143,
+    "text": "<Route path=\"/safety-portal/driver/:driverKey\" element={SF(<SafetyDriverProfile />)} />"
+  },
+  {
+    "line": 1146,
+    "text": "<Route path=\"/hr/safety-records\" element={H(<HrSafetyRecords />)} />"
+  },
+  {
+    "line": 1152,
+    "text": "<Route path=\"/dispatch-portal/login\" element={<DispatchLogin />} />"
+  },
+  {
+    "line": 1158,
+    "text": "<Route path=\"/leadership/login\" element={<FieldLeadershipPortalLogin />} />"
+  },
+  {
+    "line": 1159,
+    "text": "<Route path=\"/dispatch-portal/forgot-password\" element={<DispatchForgotPassword />} />"
+  },
+  {
+    "line": 1160,
+    "text": "<Route path=\"/dispatch-portal/reset/:token\" element={<DispatchResetPassword />} />"
+  },
+  {
+    "line": 1161,
+    "text": "<Route path=\"/dispatch-portal/change-password\" element={DP(<DispatchChangePassword />)} />"
+  },
+  {
+    "line": 1167,
+    "text": "<Route path=\"/dispatch-portal\" element={DP(<DispatchHub />)} />"
+  },
+  {
+    "line": 1168,
+    "text": "<Route path=\"/dispatch-portal/hub_legacy\" element={DP(<DispatchHub />)} />"
+  },
+  {
+    "line": 1169,
+    "text": "<Route path=\"/dispatch-portal/hub_v2\" element={DP(<DispatchHubV2 />)} />"
+  },
+  {
+    "line": 1170,
+    "text": "<Route path=\"/dispatch-portal/board\" element={DP(<DispatchBoard />)} />"
+  },
+  {
+    "line": 1171,
+    "text": "<Route path=\"/dispatch-portal/command\" element={DP(<DispatchCommandCenter />)} />"
+  },
+  {
+    "line": 1172,
+    "text": "<Route path=\"/dispatch-portal/fleet\" element={DP(<><TransportationOpsTopBar /><FleetVisibility scope=\"dispatch\" /></>)} />"
+  },
+  {
+    "line": 1184,
+    "text": "<Route path=\"/dispatch-portal/map\" element={DP(<DispatchOperationsMapPage />)} />"
+  },
+  {
+    "line": 1187,
+    "text": "<Route path=\"/dispatch-portal/haul-ledger\" element={DP(<DispatchHaulLedger />)} />"
+  },
+  {
+    "line": 1189,
+    "text": "<Route path=\"/dispatch-portal/driver-qualification\" element={DP(<DispatchDriverQualification />)} />"
+  },
+  {
+    "line": 1191,
+    "text": "<Route path=\"/dispatch-portal/driver/:driverKey\" element={DP(<DispatchDriverProfile />)} />"
+  },
+  {
+    "line": 1198,
+    "text": "<Route path=\"/training\" element={<TrainingHub />} />"
+  },
+  {
+    "line": 1199,
+    "text": "<Route path=\"/training-hub\" element={<Navigate to=\"/training\" replace />} />"
+  },
+  {
+    "line": 1200,
+    "text": "<Route path=\"/training/:track\" element={<TrainingTrack />} />"
+  },
+  {
+    "line": 1201,
+    "text": "<Route path=\"/training/:track/poster\" element={<TrainingQrPoster />} />"
+  },
+  {
+    "line": 1202,
+    "text": "<Route path=\"/training/:track/packet\" element={<TrainingPacketDownload />} />"
+  },
+  {
+    "line": 1203,
+    "text": "<Route path=\"/admin/training-videos\" element={A(<AdminTrainingVideos />)} />"
+  },
+  {
+    "line": 1204,
+    "text": "<Route path=\"/admin/deploy-readiness\" element={A(LB(\"/admin/deploy-readiness\", <AdminDeployReadiness />))} />"
+  },
+  {
+    "line": 1219,
+    "text": "<Route path=\"/ops-training\" element={<Navigate to=\"/guidance\" replace />} />"
+  },
+  {
+    "line": 1220,
+    "text": "<Route path=\"/ops-training/:slug\" element={<Navigate to=\"/guidance\" replace />} />"
+  },
+  {
+    "line": 1229,
+    "text": "<Route path=\"/dev/login\" element={<DevLogin />} />"
+  },
+  {
+    "line": 1230,
+    "text": "<Route path=\"/dev\" element={D(<DevHub />)} />"
+  },
+  {
+    "line": 1233,
+    "text": "<Route path=\"/inspections\" element={<Navigate to=\"/admin/inspections\" replace />} />"
+  },
+  {
+    "line": 1234,
+    "text": "<Route path=\"/inspect/:id\" element={<RedirectWithId base=\"/admin/inspections\" />} />"
+  },
+  {
+    "line": 1235,
+    "text": "<Route path=\"/inspections/:id\" element={<RedirectWithId base=\"/admin/inspections\" />} />"
+  },
+  {
+    "line": 1236,
+    "text": "<Route path=\"/meetings\" element={<Navigate to=\"/admin/meetings\" replace />} />"
+  },
+  {
+    "line": 1237,
+    "text": "<Route path=\"/meetings/:id\" element={<RedirectWithId base=\"/admin/meetings\" />} />"
+  },
+  {
+    "line": 1238,
+    "text": "<Route path=\"/incidents\" element={<Navigate to=\"/admin/incidents\" replace />} />"
+  },
+  {
+    "line": 1239,
+    "text": "<Route path=\"/incidents/:id\" element={<RedirectWithId base=\"/admin/incidents\" />} />"
+  },
+  {
+    "line": 1240,
+    "text": "<Route path=\"/daily\" element={<Navigate to=\"/admin/daily\" replace />} />"
+  },
+  {
+    "line": 1241,
+    "text": "<Route path=\"/daily/:id\" element={<RedirectWithId base=\"/admin/daily\" />} />"
+  },
+  {
+    "line": 1251,
+    "text": "<Route path=\"/safety-portal/meetings\" element={SF(<MeetingsDashboard />)} />"
+  },
+  {
+    "line": 1252,
+    "text": "<Route path=\"/admin/daily-reports\" element={<Navigate to=\"/admin/daily\" replace />} />"
+  },
+  {
+    "line": 1253,
+    "text": "<Route path=\"/admin/trench-safety-assets\" element={<Navigate to=\"/safety/trench-safety/assets\" replace />} />"
+  },
+  {
+    "line": 1256,
+    "text": "<Route path=\"/legal/terms\" element={<TermsOfService />} />"
+  },
+  {
+    "line": 1257,
+    "text": "<Route path=\"/legal/privacy\" element={<PrivacyPolicy />} />"
+  },
+  {
+    "line": 1263,
+    "text": "<Route path=\"/tasks\" element={<Tasks />} />"
+  },
+  {
+    "line": 1265,
+    "text": "<Route path=\"/document-expirations\" element={<DocumentExpirations />} />"
+  },
+  {
+    "line": 1267,
+    "text": "<Route path=\"/hr/employees\" element={H(<HrEmployees />)} />"
+  },
+  {
+    "line": 1269,
+    "text": "<Route path=\"/hr/employee-requests\" element={H(<HrEmployeeRequestsQueue />)} />"
+  },
+  {
+    "line": 1272,
+    "text": "<Route path=\"/hr/employees/:id/accountability\" element={H(<HrEmployeeAccountabilityTimeline />)} />"
+  },
+  {
+    "line": 1277,
+    "text": "<Route path=\"/hr/employees/:id/thread\" element={H(<HrEmployeeThread />)} />"
+  },
+  {
+    "line": 1279,
+    "text": "<Route path=\"/hr/employees/:empId/profile\" element={H(<EmployeeProfile />)} />"
+  },
+  {
+    "line": 1281,
+    "text": "<Route path=\"/hr/historical-records/intake\" element={H(<HistoricalRecordsIntake />)} />"
+  },
+  {
+    "line": 1282,
+    "text": "<Route path=\"/hr/historical-records/queue\" element={H(<HistoricalRecordsQueue />)} />"
+  },
+  {
+    "line": 1284,
+    "text": "<Route path=\"/hr/historical-records/batches\" element={H(<HistoricalRecordsBatches />)} />"
+  },
+  {
+    "line": 1285,
+    "text": "<Route path=\"/hr/historical-records/batches/:batchId\" element={H(<HistoricalRecordsBatchDetail />)} />"
+  },
+  {
+    "line": 1287,
+    "text": "<Route path=\"/hr/incidents\" element={H(<HrIncidents />)} />"
+  },
+  {
+    "line": 1289,
+    "text": "<Route path=\"/po-requests\" element={<PoRequests />} />"
+  },
+  {
+    "line": 1292,
+    "text": "<Route path=\"/project-health\" element={<ProjectHealth />} />"
+  },
+  {
+    "line": 1296,
+    "text": "<Route path=\"/asset-transfers\" element={<AssetTransfers />} />"
+  },
+  {
+    "line": 1300,
+    "text": "<Route path=\"/access-denied\" element={<AccessDenied />} />"
+  },
+  {
+    "line": 1308,
+    "text": "<Route path=\"/admin/audit\" element={<Navigate to=\"/admin/audit-log\" replace />} />"
+  },
+  {
+    "line": 1309,
+    "text": "<Route path=\"/admin/health\" element={<Navigate to=\"/admin/system-health\" replace />} />"
+  },
+  {
+    "line": 1311,
+    "text": "<Route path=\"/d/:token\" element={<DriverMagicLanding />} />"
+  },
+  {
+    "line": 1312,
+    "text": "<Route path=\"/driver\" element={<DriverShift />} />"
+  },
+  {
+    "line": 1316,
+    "text": "<Route path=\"/shift\" element={<ShiftStart />} />"
+  },
+  {
+    "line": 1317,
+    "text": "<Route path=\"/field-leadership\" element={<Navigate to=\"/leadership\" replace />} />"
+  },
+  {
+    "line": 1320,
+    "text": "<Route path=\"/odr/new\" element={<OdrNew />} />"
+  },
+  {
+    "line": 1321,
+    "text": "<Route path=\"/odr/center\" element={<OdrCenter />} />"
+  },
+  {
+    "line": 1322,
+    "text": "<Route path=\"/pm/odr\" element={P(<OdrPmPanel />)} />"
+  },
+  {
+    "line": 1323,
+    "text": "<Route path=\"/odr/public/:doc_id\" element={<OdrPublicViewer />} />"
+  },
+  {
+    "line": 1324,
+    "text": "<Route path=\"/odr/:id/done\" element={<OdrDone />} />"
+  },
+  {
+    "line": 1325,
+    "text": "<Route path=\"/odr/:id\" element={<OdrDetail />} />"
+  },
+  {
+    "line": 1329,
+    "text": "<Route path=\"/operational-records\" element={<OperationalRecords />} />"
+  },
+  {
+    "line": 1332,
+    "text": "<Route path=\"/operations-actions\" element={<OperationsActions />} />"
+  },
+  {
+    "line": 1333,
+    "text": "<Route path=\"/operations-actions/new\" element={<OperationsActionNew />} />"
+  },
+  {
+    "line": 1334,
+    "text": "<Route path=\"/operations-actions/:id\" element={<OperationsActionDetail />} />"
+  },
+  {
+    "line": 1348,
+    "text": "<Route path=\"/_internal/design-system\" element={D(<DesignSystemDemo />)} />"
+  },
+  {
+    "line": 1349,
+    "text": "<Route path=\"/_internal/pm-v2-preview\" element={D(<PmV2Preview />)} />"
+  },
+  {
+    "line": 1350,
+    "text": "<Route path=\"/_internal/hr-v2-preview\" element={D(<HrV2Preview />)} />"
+  },
+  {
+    "line": 1351,
+    "text": "<Route path=\"/_internal/v2-index\" element={D(<V2Index />)} />"
+  },
+  {
+    "line": 1352,
+    "text": "<Route path=\"/_internal/v2-compare/:portal\" element={D(<V2Compare />)} />"
+  },
+  {
+    "line": 1355,
+    "text": "<Route path=\"/daily-report/v2\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 1356,
+    "text": "<Route path=\"/daily/v1\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 1357,
+    "text": "<Route path=\"/daily/v2\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 1358,
+    "text": "<Route path=\"/daily/v3\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 1359,
+    "text": "<Route path=\"/daily-report/v1\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 1360,
+    "text": "<Route path=\"/daily-report/v3\" element={<Navigate to=\"/daily/submit\" replace />} />"
+  },
+  {
+    "line": 1361,
+    "text": "<Route path=\"/pm/operational-intelligence\" element={<PmOperationalIntelligence />} />"
+  },
+  {
+    "line": 1363,
+    "text": "<Route path=\"/admin/ods-intelligence\" element={<Navigate to=\"/admin/operational-intelligence\" replace />} />"
+  },
+  {
+    "line": 1366,
+    "text": "<Route path=\"/executive/ods-intelligence\" element={<Navigate to=\"/admin/operational-intelligence\" replace />} />"
+  },
+  {
+    "line": 1371,
+    "text": "<Route path=\"/admin/occ\" element={<Navigate to=\"/admin/operations-control\" replace />} />"
+  },
+  {
+    "line": 1375,
+    "text": "<Route path=\"/executive\" element={<Navigate to=\"/admin/executive-overview\" replace />} />"
+  },
+  {
+    "line": 1376,
+    "text": "<Route path=\"/executive-dashboard\" element={<Navigate to=\"/admin/executive-overview\" replace />} />"
+  },
+  {
+    "line": 1377,
+    "text": "<Route path=\"/admin/executive\" element={<Navigate to=\"/admin/executive-overview\" replace />} />"
+  },
+  {
+    "line": 1385,
+    "text": "<Route path=\"/fleet\" element={<Navigate to=\"/dispatch-portal\" replace />} />"
+  },
+  {
+    "line": 1386,
+    "text": "<Route path=\"/admin/ai\" element={<Navigate to=\"/admin/ai-operations\" replace />} />"
+  },
+  {
+    "line": 1387,
+    "text": "<Route path=\"/admin/storage\" element={<Navigate to=\"/admin/storage-recovery\" replace />} />"
+  },
+  {
+    "line": 1388,
+    "text": "<Route path=\"/fl\" element={<Navigate to=\"/leadership\" replace />} />"
+  },
+  {
+    "line": 1389,
+    "text": "<Route path=\"*\" element={<NotFound />} />"
+  }
+]

@@ -256,7 +256,7 @@ function CommandPaletteInner({ open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center bg-slate-950/70 backdrop-blur-sm px-4 pt-[8vh]"
+      className="fixed inset-0 z-[60] flex items-start justify-center bg-black/35 backdrop-blur-[2px] px-4 pt-[8vh]"
       role="dialog"
       aria-modal="true"
       aria-label="Universal search"
@@ -265,12 +265,12 @@ function CommandPaletteInner({ open, onClose }) {
       onClick={onBackdropClick}
     >
       <div
-        className="w-full max-w-2xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl rounded-sm border-2 border-zinc-900 bg-white shadow-2xl overflow-hidden"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 border-b border-slate-800 px-3 py-2.5">
-          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+        <div className="flex items-center gap-2 border-b-2 border-zinc-900 px-3 py-3 bg-zinc-50">
+          <Search className="w-4 h-4 text-zinc-500 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -278,18 +278,18 @@ function CommandPaletteInner({ open, onClose }) {
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Search pages · operations · projects · employees · equipment…"
-            className="flex-1 bg-transparent outline-none text-sm text-slate-100 placeholder-slate-500"
+            className="flex-1 bg-transparent outline-none text-sm text-zinc-900 placeholder-zinc-500"
             data-testid="admin-command-palette-input"
             autoComplete="off"
             spellCheck="false"
           />
-          <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-slate-700 text-slate-400 font-mono">
+          <kbd className="text-[10px] px-1.5 py-0.5 rounded-sm border border-zinc-300 text-zinc-500 font-mono">
             Esc
           </kbd>
           <button
             type="button"
             onClick={onClose}
-            className="ml-1 rounded p-1 hover:bg-slate-800 text-slate-400"
+            className="ml-1 rounded-sm p-1 hover:bg-zinc-100 text-zinc-500"
             aria-label="Close search"
             data-testid="admin-command-palette-close"
           >
@@ -302,14 +302,14 @@ function CommandPaletteInner({ open, onClose }) {
           data-testid="admin-command-palette-results"
         >
           {grouped.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm text-slate-500" data-testid="admin-command-palette-empty">
+            <div className="px-4 py-8 text-center text-sm text-zinc-500" data-testid="admin-command-palette-empty">
               {entityLoading ? "Searching…" : "No matches. Try a different search."}
             </div>
           )}
           {grouped.map((g) => (
             <div key={g.id} className="py-1">
               <div
-                className="flex items-center gap-2 px-3 pt-2 pb-1 text-[10px] uppercase tracking-widest text-slate-500 font-semibold"
+                className="flex items-center gap-2 px-3 pt-2 pb-1 text-[10px] uppercase tracking-[0.16em] text-zinc-500 font-semibold"
                 data-testid={`admin-command-palette-group-${g.id}`}
               >
                 <span
@@ -324,21 +324,21 @@ function CommandPaletteInner({ open, onClose }) {
                   key={item.id}
                   type="button"
                   onClick={() => activate(item)}
-                  className="w-full flex items-start gap-3 px-3 py-2 hover:bg-slate-800/70 text-left"
+                  className="w-full flex items-start gap-3 px-3 py-2.5 hover:bg-zinc-50 text-left border-t border-zinc-100 first:border-t-0"
                   data-testid={`admin-command-palette-item-${item.id}`}
                   data-route={item.route}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-slate-100 font-medium truncate">
+                    <div className="text-sm text-zinc-950 font-semibold truncate">
                       {item.label}
                     </div>
                     {item.description ? (
-                      <div className="text-[11px] text-slate-500 truncate">
+                      <div className="text-[11px] text-zinc-500 truncate">
                         {item.description}
                       </div>
                     ) : null}
                   </div>
-                  <div className="text-[10px] text-slate-500 shrink-0 mt-1 font-mono">
+                  <div className="text-[10px] text-zinc-500 shrink-0 mt-1 font-mono uppercase tracking-[0.14em]">
                     {item.kind === "operation" ? "OCC" : item.kind === "page" ? "Page" : "Entity"}
                   </div>
                 </button>
@@ -347,9 +347,9 @@ function CommandPaletteInner({ open, onClose }) {
           ))}
         </div>
 
-        <div className="border-t border-slate-800 px-3 py-2 flex items-center justify-between text-[10px] text-slate-500">
+        <div className="border-t border-zinc-200 bg-zinc-50 px-3 py-2 flex items-center justify-between text-[10px] text-zinc-500">
           <span>
-            <kbd className="px-1 py-0.5 rounded border border-slate-700 mr-1">↵</kbd>
+            <kbd className="px-1 py-0.5 rounded-sm border border-zinc-300 mr-1">↵</kbd>
             open the top match
           </span>
           <span>Tip: type a page, an operation, a project, or a person.</span>

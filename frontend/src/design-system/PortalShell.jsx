@@ -1,17 +1,13 @@
-// MASCI Operations Platform · <PortalShell>
-//
-// Unified authenticated portal chrome.
-// Backward-compatible API: old call sites (portalName + portalRole + pageTitle + subtitle)
-// keep working unchanged. New props (showHome, showBack, providerLine, hideProviderLine)
-// fill in the SV-04/SV-05/SV-06 gaps catalogued in UXS-1 by lighting up MASCI mark +
-// "Powered by ForgedOps" footer + Home button across every consumer.
-//
-// Local-time rendering: `lastActivity` accepts a string OR a Date/ISO that we format
-// with `toLocaleTimeString()` so dashboard timestamps display in the user's device tz.
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home as HomeIcon, ArrowLeft, LogOut, Clock, User as UserIcon, MoreHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  Home as HomeIcon,
+  LogOut,
+  MoreHorizontal,
+  User as UserIcon,
+} from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
@@ -21,8 +17,9 @@ import { LangToggle } from "@/components/LangToggle";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useBranding } from "@/lib/BrandingProvider";
 import { clearAllSessions } from "@/lib/sessionReset";
-// TRACK 27.03 · Final Completion · canonical local-time formatter.
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
+import { PageHeader } from "./PageHeader";
+import { MobileNavigation } from "./MobileNavigation";
 
 function useLocalClock() {
   const [now, setNow] = React.useState(() => new Date());
@@ -35,7 +32,6 @@ function useLocalClock() {
 
 function resolveSignedInName() {
   if (typeof window === "undefined") return null;
-  // Probe known portal identity caches without coupling to any one auth lib.
   const keys = [
     "masci.directory.user",
     "masci.admin.user",
@@ -46,32 +42,42 @@ function resolveSignedInName() {
     "masci.dispatch.user",
     "masci.fl.user",
   ];
-  for (const k of keys) {
+  for (const key of keys) {
     try {
-      const raw = localStorage.getItem(k) || sessionStorage.getItem(k);
+      const raw = localStorage.getItem(key) || sessionStorage.getItem(key);
       if (!raw) continue;
       const parsed = JSON.parse(raw);
       const candidate = parsed?.name || parsed?.full_name || parsed?.email || parsed?.user?.name || parsed?.user?.email;
       if (candidate) return candidate;
-    } catch { /* noop */ }
+    } catch {
+      /* ignore malformed storage */
+    }
   }
   return null;
 }
 
 function formatLastActivity(value) {
   if (value == null) return null;
-  if (typeof value === "string") {
-    // Already a label like "Refreshed 2:14 PM"
-    return value;
-  }
+  if (typeof value === "string") return value;
   if (value instanceof Date || typeof value === "number") {
-    const d = value instanceof Date ? value : new Date(value);
-    if (!Number.isNaN(d.getTime())) {
-      return `Updated ${formatPlatformTimeOnly(d)}`;
+    const date = value instanceof Date ? value : new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return `Updated ${formatPlatformTimeOnly(date)}`;
     }
   }
-  // React node — render as-is
   return value;
+}
+
+function UtilityButton({ children, className = "", ...props }) {
+  return (
+    <button
+      type="button"
+      className={`hidden sm:inline-flex wp16-focus-ring items-center gap-1 px-2.5 h-10 rounded-sm border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-xs font-bold uppercase tracking-wide shrink-0 ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
 }
 
 export function PortalShell({
@@ -99,12 +105,12 @@ export function PortalShell({
   className = "",
 }) {
   const branding = useBranding();
-  const platformShort = branding.platform_short_name || portalName;
   const platformDisplay = branding.platform_display_name || "Operations Platform";
   const renderedLastActivity = formatLastActivity(lastActivity);
   const clock = useLocalClock();
   const localTimeLabel = formatPlatformTimeOnly(clock);
   const signedInName = React.useMemo(() => resolveSignedInName(), []);
+
   const handleSignOut = async () => {
     if (signOutCapability && signOutCapability.available !== true) return;
     if (typeof onSignOut === "function") {
@@ -118,85 +124,71 @@ export function PortalShell({
   return (
     <div
       data-testid="ds-portal-shell"
-      className={className}
-      style={{ background: "var(--paper-base)", color: "var(--ink-regular)", minHeight: "100vh", display: "flex", flexDirection: "column" }}
+      className={`wp16-shell wp16-mobile-safe ${className}`}
+      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
     >
-      {/* MASCI top chrome — unified across all authenticated portals */}
-      <header
-        data-testid="ds-portal-shell-header"
-        className="sticky top-0 z-30 border-b-4 border-red-700 shadow-md overflow-hidden elite-shell-header"
-      >
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex items-center gap-2 sm:gap-3 min-w-0">
-          {/* MASCI mark — anchors brand identity in every portal */}
+      <header data-testid="ds-portal-shell-header" className="sticky top-0 z-30 wp16-topbar">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex items-center gap-3 min-w-0">
           <MasciLogo variant="mark" size="md" className="hidden sm:block shrink-0" homeLink={homeHref} />
           <MasciLogo variant="mark" size="sm" className="sm:hidden shrink-0" homeLink={homeHref} />
 
-          <div className="hidden md:block min-w-0 flex-1">
-            <div
-              className="font-mono uppercase tracking-[0.18em] font-bold text-[10px] text-red-300"
-              data-testid="ds-portal-shell-portal-name"
-            >
+          <div className="min-w-0 flex-1">
+            <div className="wp16-kicker" data-testid="ds-portal-shell-portal-name">
               {portalName} · {portalRole}
             </div>
-            {pageTitle && (
-              <div className="text-white font-bold truncate text-sm" data-testid="ds-portal-shell-page-name">
-                {pageTitle}
-              </div>
-            )}
+            <div className="text-sm sm:text-base font-semibold text-zinc-950 truncate" data-testid="ds-portal-shell-page-name">
+              {pageTitle || platformDisplay}
+            </div>
           </div>
 
-          {/* Right-side nav cluster — unified MASCI chrome.
-              TRACK 28.08 · Phase 0 · D4-PORTALSHELL-MOBILE-OVERFLOW:
-              on <md viewports, secondary controls (SEARCH, PortalSwitcher,
-              clock, LangToggle, user name) collapse into a "•••" overflow
-              popover so the row can never push past a 390px viewport. */}
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
-            {showSearch && (
-              <div className="hidden lg:block shrink-0" data-testid="ds-portal-shell-search">
-                <GlobalSearch accent="dark" />
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+            {showSearch ? (
+              <div className="hidden xl:block" data-testid="ds-portal-shell-search">
+                <GlobalSearch accent="light" />
               </div>
-            )}
-            {showNotifications && (
-              <div className="shrink-0" data-testid="ds-portal-shell-notifications">
-                <NotificationBell accent="white" />
+            ) : null}
+
+            {showNotifications ? (
+              <div data-testid="ds-portal-shell-notifications">
+                <NotificationBell accent="slate" />
               </div>
-            )}
-            {showPortalSwitcher && (
-              <div className="hidden md:block shrink-0" data-testid="ds-portal-shell-portal-switcher">
-                <PortalSwitcher current={portalSwitcherCurrent} />
+            ) : null}
+
+            {showPortalSwitcher ? (
+              <div className="hidden lg:block" data-testid="ds-portal-shell-portal-switcher">
+                <PortalSwitcher current={portalSwitcherCurrent} variant="light" />
               </div>
-            )}
+            ) : null}
+
             <div
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-mono tracking-widest tabular-nums shrink-0"
+              className="hidden lg:inline-flex items-center gap-1 px-2.5 h-10 rounded-sm border border-zinc-300 bg-white text-zinc-700 text-xs font-mono tracking-widest tabular-nums shrink-0"
               data-testid="ds-portal-shell-local-time"
               title="Local device time"
             >
               <Clock className="w-3 h-3 opacity-70" />
               {localTimeLabel}
             </div>
-            <div className="hidden md:block shrink-0" data-testid="ds-portal-shell-lang-toggle">
-              <LangToggle variant="dark" className="h-9" />
+
+            <div className="hidden lg:block" data-testid="ds-portal-shell-lang-toggle">
+              <LangToggle variant="light" className="h-10" />
             </div>
-            {signedInName && (
+
+            {signedInName ? (
               <div
-                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-bold tracking-wide max-w-[160px] shrink-0"
+                className="hidden 2xl:inline-flex items-center gap-1.5 px-2.5 h-10 rounded-sm border border-zinc-300 bg-white text-zinc-700 text-xs font-bold tracking-wide max-w-[180px] shrink-0"
                 data-testid="ds-portal-shell-user"
                 title={signedInName}
               >
                 <UserIcon className="w-3.5 h-3.5 opacity-70" />
                 <span className="truncate">{signedInName}</span>
               </div>
-            )}
+            ) : null}
 
-            {/* Mobile overflow popover — surfaces the secondary controls
-                that are hidden on <md (SEARCH, PortalSwitcher, clock,
-                LangToggle, signed-in name). Visible only on <md so it
-                doesn't clutter tablet/desktop chrome. */}
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="md:hidden inline-flex items-center justify-center w-9 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 shrink-0"
+                  className="lg:hidden wp16-focus-ring inline-flex items-center justify-center w-10 h-10 rounded-sm border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"
                   aria-label="More options"
                   title="More"
                   data-testid="ds-portal-shell-mobile-more"
@@ -207,167 +199,132 @@ export function PortalShell({
               <PopoverContent
                 align="end"
                 sideOffset={8}
-                className="w-64 p-3 bg-slate-900/78 border-slate-700 text-slate-100 elite-glass-modal"
+                className="w-72 p-3 border-zinc-300 bg-white text-zinc-900 shadow-xl"
                 data-testid="ds-portal-shell-mobile-more-menu"
               >
                 <div className="flex flex-col gap-3">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-red-300">
-                    {portalName} · {portalRole}
-                  </div>
-                  {signedInName && (
-                    <div className="inline-flex items-center gap-1.5 text-xs text-slate-200 font-bold">
+                  <div className="wp16-kicker">{portalName} · {portalRole}</div>
+                  {signedInName ? (
+                    <div className="inline-flex items-center gap-1.5 text-xs text-zinc-700 font-bold">
                       <UserIcon className="w-3.5 h-3.5 opacity-70" />
                       <span className="truncate">{signedInName}</span>
                     </div>
-                  )}
-                  <div className="inline-flex items-center gap-1 text-xs font-mono tracking-widest tabular-nums text-slate-300">
+                  ) : null}
+                  <div className="inline-flex items-center gap-1 text-xs font-mono tracking-widest tabular-nums text-zinc-600">
                     <Clock className="w-3 h-3 opacity-70" />
                     {localTimeLabel}
                   </div>
-                  {showSearch && (
+                  {showSearch ? (
                     <div data-testid="ds-portal-shell-mobile-search">
-                      <GlobalSearch accent="dark" />
+                      <GlobalSearch accent="light" className="w-full justify-between" />
                     </div>
-                  )}
+                  ) : null}
                   <div className="flex items-center justify-between gap-2">
-                    {showPortalSwitcher && (
+                    {showPortalSwitcher ? (
                       <div data-testid="ds-portal-shell-mobile-portal-switcher">
-                        <PortalSwitcher current={portalSwitcherCurrent} />
+                        <PortalSwitcher current={portalSwitcherCurrent} variant="light" />
                       </div>
-                    )}
+                    ) : null}
                     <div data-testid="ds-portal-shell-mobile-lang-toggle">
-                      <LangToggle variant="dark" className="h-9" />
+                      <LangToggle variant="light" className="h-10" />
                     </div>
                   </div>
                 </div>
               </PopoverContent>
             </Popover>
 
-            {showBack && backHref && (
+            {showBack && backHref ? (
               <Link
                 to={backHref}
-                className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
+                className="hidden sm:inline-flex wp16-focus-ring items-center gap-1 px-2.5 h-10 rounded-sm border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Go back"
                 title="Back"
                 data-testid="ds-portal-shell-back"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back
               </Link>
-            )}
-            {showHome && (
+            ) : null}
+
+            {showHome ? (
               <Link
                 to={homeHref}
-                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
+                className="hidden sm:inline-flex wp16-focus-ring items-center gap-1 px-2.5 h-10 rounded-sm border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Home"
                 title="Home"
                 data-testid="ds-portal-shell-home"
               >
-                <HomeIcon className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Home</span>
+                <HomeIcon className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Home</span>
               </Link>
-            )}
-            {showSignOut && (
-              <button
-                type="button"
+            ) : null}
+
+            {showSignOut ? (
+              <UtilityButton
                 onClick={handleSignOut}
                 disabled={!!signOutCapability && signOutCapability.available !== true}
-                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Sign out"
                 title={signOutCapability?.disabled_reason || "Sign out"}
                 data-testid="ds-portal-shell-signout"
               >
                 <LogOut className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Sign out</span>
-              </button>
-            )}
+              </UtilityButton>
+            ) : null}
           </div>
         </div>
       </header>
 
-      <section style={{ padding: "var(--pad-section)" }} className="flex-1 blueprint-bg min-w-0">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 min-w-0">
-          <div className={sideNav ? "lg:grid lg:grid-cols-[260px_1fr] lg:gap-6 min-w-0" : "min-w-0"}>
-            {sideNav && (
+      <section className="flex-1 px-3 sm:px-6 py-4 sm:py-6 min-w-0">
+        <div className="max-w-[1600px] mx-auto min-w-0">
+          <div className={sideNav ? "wp16-grid-columns--shell min-w-0" : "min-w-0"}>
+            {sideNav ? (
               <aside
-                className="hidden lg:block sticky top-[4.25rem] h-[calc(100vh-4.25rem)] overflow-y-auto text-slate-100 -ml-4 sm:-ml-6 pl-4 sm:pl-6 pr-2 py-4 border-r border-slate-800 elite-glass-sidebar"
+                className="hidden lg:block sticky top-[5.5rem] self-start max-h-[calc(100vh-7rem)] overflow-y-auto"
                 data-testid="ds-portal-shell-sidenav"
               >
                 {sideNav}
               </aside>
-            )}
+            ) : null}
+
             <div className="min-w-0">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4" style={{ marginBottom: 16 }}>
-            <div className="min-w-0 flex-1">
-              {/* Mobile-only portal kicker (already in header on desktop) */}
-              <div
-                className="md:hidden font-mono uppercase tracking-[0.18em] font-bold text-[10px] text-slate-500 mb-1"
-                data-testid="ds-portal-shell-portal-name-mobile"
-              >
-                {portalName} · {portalRole}
-              </div>
-              {pageTitle && (
-                <h1
-                  // TRACK 22.4c mobile responsiveness — the shell H1
-                  // must never extrude past its flex parent. Long
-                  // question-style titles ("What requires the
-                  // dispatcher's attention right now?") can render at
-                  // >500px in the display font before whitespace
-                  // wrapping settles, briefly pushing the layout past
-                  // a 390px viewport. `overflowWrap:anywhere` +
-                  // `minWidth:0` on the flex child force early wrap.
-                  style={{
-                    fontSize: 28, fontWeight: 700, margin: 0,
-                    color: "var(--ink-strong)", fontFamily: "var(--font-display)",
-                    overflowWrap: "anywhere",
-                    wordBreak: "break-word",
-                    hyphens: "auto",
-                    lineHeight: 1.15,
-                  }}
-                >
-                  {pageTitle}
-                </h1>
-              )}
-              {subtitle && (
-                <p style={{ color: "var(--ink-soft)", margin: "4px 0 0", fontSize: 14 }}>
-                  {subtitle}
-                </p>
-              )}
-            </div>
-            {/* TRACK 28.08 · Phase 0 · D4 — on <md, the primary actions cluster
-                stacks below the title (flex-col wrapper above) so the H1 can
-                claim the full row width and never collapses to 0. It also
-                `flex-wrap` internally so multi-button clusters like the Admin
-                OS (Search/Refresh/Export snapshot) don't extrude past a 390px
-                viewport. `min-w-0` lets any child shrink cleanly. */}
-            <div className="flex flex-row md:flex-col md:items-end flex-wrap items-center gap-2 min-w-0">
-              {primaryActions}
-              {renderedLastActivity && (
-                <aside style={{ color: "var(--ink-soft)", fontSize: 12 }} data-testid="ds-portal-shell-last-activity">
-                  {renderedLastActivity}
-                </aside>
-              )}
-            </div>
-          </div>
+              {pageTitle || subtitle || primaryActions || renderedLastActivity ? (
+                <PageHeader
+                  kicker={`${portalName} · ${portalRole}`}
+                  title={pageTitle || platformDisplay}
+                  description={subtitle}
+                  actions={primaryActions}
+                  meta={renderedLastActivity ? <span data-testid="ds-portal-shell-last-activity">{renderedLastActivity}</span> : null}
+                  className="mb-4"
+                  data-testid="ds-portal-shell-page-header"
+                />
+              ) : null}
 
-          {alertSlot && <div style={{ marginBottom: 16 }}>{alertSlot}</div>}
+              {alertSlot ? <div style={{ marginBottom: 16 }}>{alertSlot}</div> : null}
 
-          <main data-testid="ds-portal-shell-content">{children}</main>
+              <main data-testid="ds-portal-shell-content">{children}</main>
             </div>
           </div>
         </div>
       </section>
 
-      {!hideProviderLine && (
-        <footer
-          data-testid="ds-portal-shell-footer"
-          className="border-t border-slate-200 bg-slate-50 py-3 mt-6"
-        >
+      {!hideProviderLine ? (
+        <footer data-testid="ds-portal-shell-footer" className="border-t border-zinc-300 bg-white/90 py-3 mt-6">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 flex items-center justify-between">
-            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-              {platformDisplay}
-            </div>
+            <div className="wp16-kicker">{platformDisplay}</div>
             <ForgedOpsAttribution variant="login" />
           </div>
         </footer>
-      )}
+      ) : null}
+
+      <MobileNavigation
+        portalName={portalName}
+        portalRole={portalRole}
+        homeHref={homeHref}
+        backHref={backHref}
+        showHome={showHome}
+        showBack={showBack}
+        showSearch={showSearch}
+        showNotifications={showNotifications}
+        sideNav={sideNav}
+      />
     </div>
   );
 }

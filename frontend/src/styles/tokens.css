@@ -105,8 +105,8 @@
    * Two families: display (poppins-style heavy) + mono (UI chrome).
    * Body uses system stack (already default — don't override).
    */
-  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:    'Courier New', ui-monospace, 'SF Mono', monospace;
+  --font-display: 'Chivo', 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
   /* Kicker = the small, all-caps, letter-spaced label above any
    * page title. Used 1659+ times — codify the size + tracking. */

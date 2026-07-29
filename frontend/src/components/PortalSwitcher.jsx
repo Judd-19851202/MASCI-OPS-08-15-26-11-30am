@@ -80,8 +80,9 @@ function _emailOf(user) {
  * @param {Object} props
  * @param {"admin"|"pm"|"shop"|"hr"|"safety"|"dispatch"|undefined} props.current
  * @param {string} props.className — wrapper class overrides
+ * @param {"dark"|"light"} props.variant
  */
-export default function PortalSwitcher({ current, className = "" }) {
+export default function PortalSwitcher({ current, className = "", variant = "dark" }) {
   const user = getDirectoryUser();
   const dirToken = getDirectoryToken();
   if (!dirToken || !user || !Array.isArray(user.portals) || user.portals.length < 2) {
@@ -117,7 +118,7 @@ export default function PortalSwitcher({ current, className = "" }) {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className={`inline-flex items-center gap-1.5 px-3 h-8 rounded-md bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wide border border-white/20 transition-colors ${className}`}
+          className={`inline-flex items-center gap-1.5 px-3 h-10 rounded-sm text-xs font-bold uppercase tracking-wide border transition-colors wp16-focus-ring ${variant === "light" ? "bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-300" : "bg-white/10 hover:bg-white/20 text-white border-white/20"} ${className}`}
           data-testid="portal-switcher-trigger"
         >
           <LayoutGrid className="w-3.5 h-3.5" />
@@ -125,7 +126,7 @@ export default function PortalSwitcher({ current, className = "" }) {
           <ChevronDown className="w-3.5 h-3.5 opacity-70" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56" data-testid="portal-switcher-menu">
+      <DropdownMenuContent align="end" className="w-56 border-zinc-300" data-testid="portal-switcher-menu">
         <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
           {user.name || user.email} · Access
         </DropdownMenuLabel>
