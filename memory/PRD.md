@@ -49,6 +49,38 @@
   - stop at presentation/review
   - wait for user approval before any canonical design decisions or implementation work begins
 
+## 2026-07-29 WP-16 audit coverage closeout — readiness determination
+
+- Continued under the **STRICT READ-ONLY AUDIT DIRECTIVE**.
+- No runtime UI, CSS, component, route, auth, API, or data behavior files were changed.
+- Created the authoritative closeout report:
+  - `/app/memory/WP16_AUDIT_COVERAGE_CLOSEOUT.md`
+- Closeout findings now explicitly reconcile the existing audit package:
+  - **480** route-backed screen-registry entries classified
+  - **16** screenshot-backed opened screens
+  - **14** fully exercised screens
+  - **3** partially exercised screens
+  - **2** blocked screens
+  - **464** not-yet-exercised screens
+  - **0** tablet screenshots
+  - **0** mobile screenshots
+- Readiness determination recorded in the closeout:
+  - **NOT READY FOR CONSTITUTIONAL DESIGN REVIEW**
+- Primary blockers identified in the closeout:
+  - route exercise coverage remains materially incomplete
+  - mobile/tablet evidence is absent
+  - navigation exhaustiveness is incomplete
+  - state / copy / icon / sub-family pattern normalization is incomplete
+  - documented HR and Dispatch access defects still limit some inspection areas
+- Material gap register created with **12** open read-only audit gaps.
+- Post-closeout smoke verification completed:
+  - `/`, `/admin/login`, `/admin`, `/hr/login`, `/hr` all passed after documentation-only work
+  - baseline remains intact; no runtime regression introduced
+- Next constitutional state:
+  - keep runtime frozen
+  - do not begin canonical design selection yet
+  - next approved step should be a read-only evidence expansion pass, not implementation
+
 ## 2026-07-29 Final constitutional closeout — operational dashboard + CI freeze
 
 ### Truth reconciliation + final administrative freeze
