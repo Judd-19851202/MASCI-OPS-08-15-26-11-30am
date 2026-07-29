@@ -26,7 +26,9 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+
+from lib.enterprise_governance import require_governed_action
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
@@ -42,7 +44,16 @@ def register(app, *, db=None, require_admin_dep=None):
         raise RuntimeError("Executive overview requires canonical runtime database injection")
 
     @router.get("/api/admin/executive/overview")
-    async def executive_overview(actor=Depends(require_admin_dep)):  # noqa: ARG001
+    async def executive_overview(request: Request, actor=Depends(require_admin_dep)):  # noqa: ARG001
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="executive.view",
+            resource_type="executive_overview",
+            resource={"id": "executive-overview", "project_number": "enterprise"},
+            requested_context={"scope": "enterprise"},
+            request=request,
+        )
         now = datetime.now(timezone.utc)
         today_iso = now.date().isoformat()
         yesterday_iso = (now.date() - timedelta(days=1)).isoformat()

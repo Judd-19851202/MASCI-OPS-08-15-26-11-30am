@@ -66,8 +66,9 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+from lib.enterprise_governance import require_governed_action
 
 logger = logging.getLogger(__name__)
 
@@ -902,10 +903,24 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.post("/api/tasks")
     async def create_task(
+        request: Request,
         payload: TaskCreate,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         data = payload.model_dump()
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="task.assign",
+            resource_type="task",
+            resource={
+                "id": data.get("source_record_id") or data.get("linked_project_number") or "task-create",
+                "project_number": data.get("linked_project_number") or "",
+                "created_by": {"user_id": actor.get("id")},
+            },
+            requested_context={"project_number": data.get("linked_project_number") or ""},
+            request=request,
+        )
         data["created_by"] = {
             "role": _actor_role(actor),
             "name": actor.get("name") or actor.get("email"),
@@ -917,10 +932,22 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.patch("/api/tasks/{task_id}")
     async def patch_task(
+        request: Request,
         task_id: str,
         payload: TaskPatch,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        existing = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+        if existing:
+            await require_governed_action(
+                db,
+                actor=actor,
+                action_key="task.close" if str(payload.status or "").lower() == "completed" else "task.assign",
+                resource_type="task",
+                resource=existing,
+                requested_context={"project_number": existing.get("linked_project_number") or ""},
+                request=request,
+            )
         updated = await task_service.update(
             db, task_id, payload.model_dump(exclude_none=True),
             actor={"role": _actor_role(actor),
@@ -973,10 +1000,20 @@ def build_tasks_notifications_router(db, require_any_portal_token):
     # ── Notifications ────────────────────────────────────────────────
     @router.get("/api/notifications")
     async def list_notifications(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         unread_only: bool = Query(default=False),
         limit: int = Query(default=50, ge=1, le=200),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="notification.ack",
+            resource_type="notification_feed",
+            resource={"id": _actor_role(actor), "project_number": ""},
+            requested_context={"portal_role": _actor_role(actor)},
+            request=request,
+        )
         role = _actor_role(actor)
         filt = await _notif_filter_async(actor)
         cur = db.notifications.find(filt, {"_id": 0}).sort("created_at", -1).limit(limit)
@@ -1053,9 +1090,21 @@ def build_tasks_notifications_router(db, require_any_portal_token):
 
     @router.post("/api/notifications/{notif_id}/acknowledge")
     async def acknowledge(
+        request: Request,
         notif_id: str,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
+        doc = await db.notifications.find_one({"id": notif_id}, {"_id": 0})
+        if doc:
+            await require_governed_action(
+                db,
+                actor=actor,
+                action_key="notification.ack",
+                resource_type="notification",
+                resource=doc,
+                requested_context={"project_number": doc.get("project_number") or ""},
+                request=request,
+            )
         role = _actor_role(actor)
         notif = await db.notifications.find_one({"id": notif_id}, {"_id": 0})
         if not notif:

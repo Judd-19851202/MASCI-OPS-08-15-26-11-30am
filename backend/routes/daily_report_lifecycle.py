@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
+from lib.enterprise_governance import require_governed_action
 
 from lib.workflow_state_events import (
     list_state_events,
@@ -79,6 +80,22 @@ def register_daily_report_lifecycle_routes(
         to_state = (payload.to_state or "").strip().upper()
         reason = (payload.reason or "").strip()
         evidence = dict(payload.evidence or {})
+
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key=(
+                "daily_reports.close"
+                if to_state == "CLOSED"
+                else "daily_reports.review"
+                if to_state in {"PENDING_REVIEW", "REVIEWED"}
+                else "daily_reports.update"
+            ),
+            resource_type="daily_report",
+            resource=doc,
+            requested_context={"project_number": doc.get("project_number") or "", "to_state": to_state},
+            request=request,
+        )
 
         ok, err = validate_daily_report_transition(
             from_state=from_state,

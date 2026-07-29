@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Response
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from pm_auth import compute_pm_scope
@@ -37,6 +37,7 @@ from services.cost_codes.oppc_intelligence import (
     build_project_variance_intelligence,
     upsert_variance_review,
 )
+from lib.enterprise_governance import require_governed_action
 
 
 class MondayReviewStartBody(BaseModel):
@@ -253,11 +254,21 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
 
     @api_router.post("/oppc/projects/{project_number}/monday-briefing/approve")
     async def approve_project_monday_briefing(
+        request: Request,
         project_number: str,
         body: BriefingActionBody,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         await _ensure_project_access(db, project_number, actor)
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="forecast.approve",
+            resource_type="project_monday_briefing",
+            resource={"id": f"brief:{project_number}:{body.week_ending or ''}", "project_number": project_number, "submitted_by": {"user_id": actor.get("id")}},
+            requested_context={"project_number": project_number, "week_ending": body.week_ending or ""},
+            request=request,
+        )
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
@@ -271,11 +282,21 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
 
     @api_router.post("/oppc/projects/{project_number}/monday-briefing/freeze")
     async def freeze_project_monday_briefing(
+        request: Request,
         project_number: str,
         body: BriefingActionBody,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         await _ensure_project_access(db, project_number, actor)
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="briefing.approve",
+            resource_type="project_monday_briefing",
+            resource={"id": f"brief:{project_number}:{body.week_ending or ''}", "project_number": project_number, "submitted_by": {"user_id": actor.get("id")}},
+            requested_context={"project_number": project_number, "week_ending": body.week_ending or ""},
+            request=request,
+        )
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
@@ -758,12 +779,22 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
 
     @api_router.post("/oppc/enterprise/monday-briefing/approve")
     async def approve_enterprise_monday_briefing(
+        request: Request,
         body: BriefingActionBody,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         scope = await compute_pm_scope(db, actor)
         if not getattr(scope, "is_admin", False):
             raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="executive.view",
+            resource_type="enterprise_monday_briefing",
+            resource={"id": f"brief:enterprise:{body.week_ending or ''}", "project_number": "enterprise", "submitted_by": {"user_id": actor.get("id")}},
+            requested_context={"project_number": "enterprise", "week_ending": body.week_ending or ""},
+            request=request,
+        )
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)
@@ -777,12 +808,22 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
 
     @api_router.post("/oppc/enterprise/monday-briefing/freeze")
     async def freeze_enterprise_monday_briefing(
+        request: Request,
         body: BriefingActionBody,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         scope = await compute_pm_scope(db, actor)
         if not getattr(scope, "is_admin", False):
             raise HTTPException(status_code=403, detail="Admin visibility is required for the enterprise briefing")
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="briefing.approve",
+            resource_type="enterprise_monday_briefing",
+            resource={"id": f"brief:enterprise:{body.week_ending or ''}", "project_number": "enterprise", "submitted_by": {"user_id": actor.get("id")}},
+            requested_context={"project_number": "enterprise", "week_ending": body.week_ending or ""},
+            request=request,
+        )
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(body.week_ending or "")
         existing = await load_monday_briefing_doc(db, scope_type="enterprise", scope_key="enterprise", week_ending=week)

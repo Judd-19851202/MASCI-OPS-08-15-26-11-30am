@@ -4131,7 +4131,7 @@ register_operational_kpis_routes(
 # operational_facts only. Never mutates source records.
 # ============================================================
 from routes.ods_intelligence import register_ods_intelligence_routes  # noqa: E402
-register_ods_intelligence_routes(api_router, db)
+register_ods_intelligence_routes(api_router, db, require_admin_pm_or_hr_read)
 
 
 # ============================================================
@@ -15662,6 +15662,11 @@ app.include_router(build_governance_router(db, require_admin_strict))
 from routes.governance_health import build_governance_health_router  # noqa: E402
 
 app.include_router(build_governance_health_router())
+
+# ─── WP-15 · Enterprise Governance Engine admin domain ───────────────
+from routes.enterprise_governance import register_enterprise_governance_routes  # noqa: E402
+
+register_enterprise_governance_routes(app, db, require_admin_strict)
 
 
 # ─── Phase 2 P1 · Operational Intelligence Notifications ─────────────

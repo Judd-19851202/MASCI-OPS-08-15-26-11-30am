@@ -13,7 +13,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from lib.enterprise_governance import require_governed_action
 
 from services.cost_codes.foundation import build_confidence_governance_summary, load_project_confidence_history
 from services.cost_codes.oppc_confidence import summarize_confidence_portfolio
@@ -218,7 +219,7 @@ async def _brief_via_gateway(
     return {"cached": False, "brief": brief}
 
 
-def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
+def register_ods_intelligence_routes(api_router: APIRouter, db, require_access_actor) -> None:
 
     # ----- PM: project intelligence -----------------------------------
     @api_router.get("/ods/pm/projects/{project_id}/kpis")
@@ -310,10 +311,21 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
     # ----- Admin: company-wide ----------------------------------------
     @api_router.get("/ods/admin/dashboard")
     async def admin_dashboard(
+        request: Request,
         preset: Optional[str] = Query(default="today"),
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
+        actor: Dict[str, Any] = Depends(require_access_actor),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="admin_reporting.view",
+            resource_type="ods_admin_dashboard",
+            resource={"id": "ods-admin-dashboard", "project_number": "enterprise"},
+            requested_context={"scope": "enterprise"},
+            request=request,
+        )
         df, dt = _resolve_range(preset, date_from, date_to)
         agg = await _aggregate_snapshots(db, project_ids=None, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
@@ -336,10 +348,21 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
 
     @api_router.get("/ods/admin/delays")
     async def admin_delays(
+        request: Request,
         preset: Optional[str] = Query(default="month"),
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
+        actor: Dict[str, Any] = Depends(require_access_actor),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="admin_reporting.view",
+            resource_type="ods_admin_delays",
+            resource={"id": "ods-admin-delays", "project_number": "enterprise"},
+            requested_context={"scope": "enterprise"},
+            request=request,
+        )
         df, dt = _resolve_range(preset, date_from, date_to)
         q: Dict[str, Any] = {"tenant_id": TENANT_DEFAULT, "fact_type": "delay_fact", "is_current": True}
         if df or dt:
@@ -364,10 +387,21 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
     # ----- Executive --------------------------------------------------
     @api_router.get("/ods/executive/brief")
     async def executive_brief(
+        request: Request,
         preset: Optional[str] = Query(default="month"),
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
+        actor: Dict[str, Any] = Depends(require_access_actor),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="executive.view",
+            resource_type="ods_executive_brief",
+            resource={"id": "ods-executive-brief", "project_number": "enterprise"},
+            requested_context={"scope": "enterprise"},
+            request=request,
+        )
         df, dt = _resolve_range(preset, date_from, date_to)
         agg = await _aggregate_snapshots(db, project_ids=None, date_from=df, date_to=dt)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
@@ -392,10 +426,21 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
 
     @api_router.get("/ods/executive/health")
     async def executive_health(
+        request: Request,
         preset: Optional[str] = Query(default="month"),
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
+        actor: Dict[str, Any] = Depends(require_access_actor),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="executive.view",
+            resource_type="ods_executive_health",
+            resource={"id": "ods-executive-health", "project_number": "enterprise"},
+            requested_context={"scope": "enterprise"},
+            request=request,
+        )
         df, dt = _resolve_range(preset, date_from, date_to)
         health = await _project_health_rows(db, project_ids=None, date_from=df, date_to=dt)
         jobs = await _load_jobs(db, None)
@@ -416,8 +461,19 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
 
     @api_router.get("/ods/executive/confidence")
     async def executive_confidence(
+        request: Request,
         project_ids: Optional[str] = Query(default=None, description="csv list"),
+        actor: Dict[str, Any] = Depends(require_access_actor),
     ) -> Dict[str, Any]:
+        await require_governed_action(
+            db,
+            actor=actor,
+            action_key="executive.view",
+            resource_type="ods_executive_confidence",
+            resource={"id": "ods-executive-confidence", "project_number": "enterprise"},
+            requested_context={"scope": "enterprise", "project_ids": project_ids or ""},
+            request=request,
+        )
         pids = [p.strip() for p in (project_ids or "").split(",") if p.strip()] or None
         jobs = await _load_jobs(db, pids)
         confidence_values = await asyncio.gather(*(build_project_confidence_payload(db, job) for job in jobs)) if jobs else []

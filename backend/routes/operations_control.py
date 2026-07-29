@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from lib.trust_reconciliation import reconcile_shared_foundation
@@ -54,6 +54,7 @@ from services.operations_control.case_management import (
     transition_case,
 )
 from services.operations_control.registry import operations_control_plane_registry_summary
+from lib.enterprise_governance import require_governed_action
 
 
 class CaseTransitionBody(BaseModel):
@@ -217,6 +218,7 @@ def register_operations_control_routes(
 
     @api_router.post("/admin/operations-control/cases/{case_id}/transitions")
     async def control_plane_case_transition(
+        request: Request,
         case_id: str,
         body: CaseTransitionBody,
         actor=Depends(require_admin),
@@ -224,6 +226,18 @@ def register_operations_control_routes(
         await ensure_case_management_indexes(db)
         actor_dict = await _actor_dict(actor)
         try:
+            case_doc = await get_case_by_id(db, case_id)
+            if not case_doc:
+                raise HTTPException(404, f"unknown case_id: {case_id}")
+            await require_governed_action(
+                db,
+                actor=actor_dict,
+                action_key="operational_case.close" if str(body.to_status).upper() == "CLOSED" else "operational_case.transition",
+                resource_type="operational_case",
+                resource=case_doc,
+                requested_context={"project_number": case_doc.get("project_number"), "target_status": body.to_status},
+                request=request,
+            )
             row = await transition_case(
                 db,
                 case_id=case_id,
@@ -318,6 +332,7 @@ def register_operations_control_routes(
 
     @api_router.post("/admin/operations-control/cases/{case_id}/baseline")
     async def control_plane_case_include_baseline(
+        request: Request,
         case_id: str,
         body: CaseBaselineBody,
         actor=Depends(require_admin),
@@ -325,6 +340,18 @@ def register_operations_control_routes(
         await ensure_case_management_indexes(db)
         actor_dict = await _actor_dict(actor)
         try:
+            case_doc = await get_case_by_id(db, case_id)
+            if not case_doc:
+                raise HTTPException(404, f"unknown case_id: {case_id}")
+            await require_governed_action(
+                db,
+                actor=actor_dict,
+                action_key="baseline.capture",
+                resource_type="operational_case",
+                resource=case_doc,
+                requested_context={"project_number": case_doc.get("project_number"), "baseline_name": body.baseline_name},
+                request=request,
+            )
             baseline = await include_case_in_baseline(
                 db,
                 case_id=case_id,
@@ -336,10 +363,22 @@ def register_operations_control_routes(
         return {"ok": True, "baseline": baseline}
 
     @api_router.post("/admin/operations-control/cases/{case_id}/export")
-    async def control_plane_case_export(case_id: str, actor=Depends(require_admin)):
+    async def control_plane_case_export(request: Request, case_id: str, actor=Depends(require_admin)):
         await ensure_case_management_indexes(db)
         actor_dict = await _actor_dict(actor)
         try:
+            case_doc = await get_case_by_id(db, case_id)
+            if not case_doc:
+                raise HTTPException(404, f"unknown case_id: {case_id}")
+            await require_governed_action(
+                db,
+                actor=actor_dict,
+                action_key="evidence.export",
+                resource_type="operational_case",
+                resource=case_doc,
+                requested_context={"project_number": case_doc.get("project_number")},
+                request=request,
+            )
             export_row = await export_case_evidence_package(db, case_id=case_id, actor=actor_dict)
         except LookupError as exc:
             raise HTTPException(404, str(exc)) from exc
@@ -352,9 +391,18 @@ def register_operations_control_routes(
         return await create_preview_case_certification_record(db, actor=actor_dict)
 
     @api_router.post("/admin/operations-control/certifications/run")
-    async def control_plane_run_certification(actor=Depends(require_admin)):
+    async def control_plane_run_certification(request: Request, actor=Depends(require_admin)):
         await ensure_case_management_indexes(db)
         actor_dict = await _actor_dict(actor)
+        await require_governed_action(
+            db,
+            actor=actor_dict,
+            action_key="baseline.capture",
+            resource_type="operations_control_certification",
+            resource={"id": "oppc-v1-certification", "project_number": ""},
+            requested_context={"scope": "platform_certification"},
+            request=request,
+        )
         return await run_case_certification_chain(db, actor=actor_dict)
 
     @api_router.get("/admin/operations-control/events")

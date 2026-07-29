@@ -39,6 +39,7 @@ import {
 import { formatPlatformTime } from "@/lib/platformTime";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 import OperationsControlCases from "@/pages/OperationsControlCases";
+import { fetchGovernanceHealth } from "@/lib/enterpriseGovernanceApi";
 
 // TRACK 25A · Universal Admin OS shell so OCC matches every other
 // domain page (PortalShell + SideNavV3 + breadcrumb).
@@ -1047,6 +1048,7 @@ export default function OperationsControlCenter() {
   const [controlPlaneEvidence, setControlPlaneEvidence] = useState(null);
   const [capturingBaseline, setCapturingBaseline] = useState(false);
   const [capturingEvidence, setCapturingEvidence] = useState(false);
+  const [governanceHealth, setGovernanceHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dryRunState, setDryRunState] = useState({}); // op.id -> { dry_run_id, confirmation_phrase, last_result }
   const [error, setError] = useState(null);
@@ -1073,7 +1075,7 @@ export default function OperationsControlCenter() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [o, a, r, e, c, b, ev] = await Promise.all([
+      const [o, a, r, e, c, b, ev, gh] = await Promise.all([
         fetchOverview(),
         fetchAudit(60),
         fetchControlPlaneRegistry(),
@@ -1081,6 +1083,7 @@ export default function OperationsControlCenter() {
         fetchControlPlaneCommunications(20),
         fetchControlPlaneBaselines(10),
         fetchControlPlaneEvidence(10),
+        fetchGovernanceHealth().catch(() => null),
       ]);
       setOverview(o);
       setAudit(a.audit || []);
@@ -1089,6 +1092,7 @@ export default function OperationsControlCenter() {
       setControlPlaneCommunications(c);
       setControlPlaneBaselines(b);
       setControlPlaneEvidence(ev);
+      setGovernanceHealth(gh);
       setError(null);
     } catch (e) {
       setError(
@@ -1281,6 +1285,23 @@ export default function OperationsControlCenter() {
 
         <div className="mb-8" data-testid="occ-case-queue-section">
           <OperationsControlCases />
+        </div>
+
+        <div className="mb-8 rounded-[1.75rem] border border-slate-200 bg-white/90 p-5 shadow-sm" data-testid="occ-governance-status-section">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Enterprise Governance</div>
+              <h2 className="mt-2 text-2xl font-black text-slate-950">Governance boundary status</h2>
+              <p className="mt-2 text-sm text-slate-600">Operations Control displays governance denials, approvals, and override pressure, while canonical governance administration lives under `/admin/governance/*`.</p>
+            </div>
+            <a href="/admin/governance" className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-testid="occ-governance-open-admin-link">Open governance admin</a>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm text-slate-700">
+            <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-health-status">Status: {governanceHealth?.status || "unknown"}</div>
+            <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-pending-approvals">Pending approvals: {governanceHealth?.counts?.pending_approvals || 0}</div>
+            <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-pending-overrides">Pending overrides: {governanceHealth?.counts?.pending_overrides || 0}</div>
+            <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-recent-denials">Recent denials: {governanceHealth?.counts?.recent_denials || 0}</div>
+          </div>
         </div>
 
         {/* Divider between Trust Layer (read-only) and Maintenance Console (mutating). */}

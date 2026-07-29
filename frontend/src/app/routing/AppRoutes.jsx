@@ -47,6 +47,8 @@ const AdminAiOperations = React.lazy(() => import("@/pages/admin/AdminAiOperatio
 const AdminCommunications = React.lazy(() => import("@/pages/admin/AdminCommunications"));
 const AdminIdentitySecurity = React.lazy(() => import("@/pages/admin/AdminIdentitySecurity"));
 const AdminGovernanceTrust = React.lazy(() => import("@/pages/admin/AdminGovernanceTrust"));
+const AdminGovernanceOperatingSystem = React.lazy(() => import("@/pages/admin/AdminGovernanceOperatingSystem"));
+const AdminGovernanceRegistryPage = React.lazy(() => import("@/pages/admin/AdminGovernanceRegistryPage"));
 // TRACK 25 · SPRINT 5/6 · Configuration, Diagnostics, Maintenance, Platform Overview redirect.
 const AdminPlatformConfiguration = React.lazy(() => import("@/pages/admin/AdminPlatformConfiguration"));
 const AdminDiagnostics = React.lazy(() => import("@/pages/admin/AdminDiagnostics"));
@@ -219,6 +221,22 @@ const AdminGuidanceCoverage = React.lazy(() => import("@/pages/admin/AdminGuidan
 const AdminOperationalInventory = React.lazy(() => import("@/pages/admin/AdminOperationalInventory"));
 const AdminGovernance = React.lazy(() => import("@/pages/admin/AdminGovernance"));
 const AdminProjectIdentityGovernance = React.lazy(() => import("@/pages/admin/AdminProjectIdentityGovernance"));
+import {
+  AdminGovernanceApprovalFlowsPage,
+  AdminGovernanceAuditPage,
+  AdminGovernanceAuthorityPage,
+  AdminGovernanceDecisionsPage,
+  AdminGovernanceDelegationsPage,
+  AdminGovernanceHealthPage,
+  AdminGovernanceIdentitiesPage,
+  AdminGovernanceOrganizationPage,
+  AdminGovernanceOverridesPage,
+  AdminGovernancePermissionsPage,
+  AdminGovernancePoliciesPage,
+  AdminGovernanceRolesPage,
+  AdminGovernanceSodPage,
+  AdminGovernanceVersionsPage,
+} from "@/pages/admin/AdminGovernanceSectionRoutes";
 const SelfProtection = React.lazy(() => import("@/pages/admin/SelfProtection"));
 const AdminComplianceFindings = React.lazy(() => import("@/pages/admin/AdminComplianceFindings"));
 const AdminOperationalLanguage = React.lazy(() => import("@/pages/admin/AdminOperationalLanguage"));
@@ -754,7 +772,24 @@ export function AppRoutes() {
             {/* Phase 2 P1 · Operational Intelligence Notifications — role-aware in-platform digest */}
             <Route path="/notifications" element={<NotificationsDigest />} />
             {/* Phase 2 · Compliance Gap Detector + Governance Health (admin-strict) */}
-            <Route path="/admin/governance" element={A(<AdminGovernance />)} />
+            <Route path="/admin/governance" element={A(<AdminGovernanceOperatingSystem />)} />
+            <Route path="/admin/governance/overview" element={A(<AdminGovernanceOperatingSystem />)} />
+            <Route path="/admin/governance/organization" element={A(<AdminGovernanceOrganizationPage />)} />
+            <Route path="/admin/governance/identities" element={A(<AdminGovernanceIdentitiesPage />)} />
+            <Route path="/admin/governance/roles" element={A(<AdminGovernanceRolesPage />)} />
+            <Route path="/admin/governance/permissions" element={A(<AdminGovernancePermissionsPage />)} />
+            <Route path="/admin/governance/policies" element={A(<AdminGovernancePoliciesPage />)} />
+            <Route path="/admin/governance/approval-flows" element={A(<AdminGovernanceApprovalFlowsPage />)} />
+            <Route path="/admin/governance/delegations" element={A(<AdminGovernanceDelegationsPage />)} />
+            <Route path="/admin/governance/separation-of-duties" element={A(<AdminGovernanceSodPage />)} />
+            <Route path="/admin/governance/authority" element={A(<AdminGovernanceAuthorityPage />)} />
+            <Route path="/admin/governance/emergency-overrides" element={A(<AdminGovernanceOverridesPage />)} />
+            <Route path="/admin/governance/decisions" element={A(<AdminGovernanceDecisionsPage />)} />
+            <Route path="/admin/governance/audit" element={A(<AdminGovernanceAuditPage />)} />
+            <Route path="/admin/governance/registry" element={A(<AdminGovernanceRegistryPage />)} />
+            <Route path="/admin/governance/versions" element={A(<AdminGovernanceVersionsPage />)} />
+            <Route path="/admin/governance/health" element={A(<AdminGovernanceHealthPage />)} />
+            <Route path="/admin/governance/legacy-health" element={A(<AdminGovernance />)} />
             <Route path="/admin/project-identity" element={A(<AdminProjectIdentityGovernance />)} />
             <Route path="/admin/governance/self-protection" element={A(<SelfProtection />)} />
             <Route path="/admin/compliance-findings" element={A(<AdminComplianceFindings />)} />
