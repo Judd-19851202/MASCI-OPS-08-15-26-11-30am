@@ -24,8 +24,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
+
+from lib.enterprise_governance import require_governed_action
 
 logger = logging.getLogger(__name__)
 
@@ -142,14 +144,24 @@ def _actor_id(actor: Dict[str, Any]) -> str:
     )
 
 
-def _can_write(actor: Dict[str, Any]) -> bool:
-    """Write-capable roles: admin · pm · safety · fl · leadership.
-
-    NO AUTH EXPANSION (Wave 1 hard rule) — we reuse the existing
-    `_require_any_portal_token` resolver and just check the role tag.
-    """
-    role = (actor or {}).get("_actor")
-    return role in {"admin", "pm", "safety", "fl", "leadership", "hr"}
+def _governed_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+    raw = dict(actor or {})
+    role = str(raw.get("_actor") or raw.get("role") or "").strip().lower()
+    role = {
+        "fl": "field_leadership",
+        "leadership": "executive",
+        "dispatcher": "dispatch",
+        "shop manager": "shop",
+        "project manager": "pm",
+        "safety": "safety",
+        "hr": "hr",
+        "admin": "admin",
+    }.get(role, role)
+    raw.setdefault("id", _actor_id(actor))
+    raw.setdefault("email", f"{role or 'operator'}@constraints.local")
+    raw["_actor"] = role or "admin"
+    raw["role"] = role or "admin"
+    return raw
 
 
 def _compute_age_days(created_at: str, now: Optional[datetime] = None) -> int:
@@ -219,13 +231,44 @@ def build_operational_constraints_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/constraints", tags=["operational-constraints"])
 
+    async def _require_constraints_access(
+        *,
+        actor: Dict[str, Any],
+        request: Request,
+        action_key: str,
+        project_id: str,
+        constraint_id: str = "",
+    ) -> None:
+        await require_governed_action(
+            db,
+            actor=_governed_actor(actor),
+            action_key=action_key,
+            resource_type="operational_constraint",
+            resource={
+                "id": constraint_id or project_id or "constraint",
+                "project_number": project_id or "",
+                "project_id": project_id or "",
+            },
+            requested_context={
+                "module": "operational_constraints",
+                "project_number": project_id or "",
+                "constraint_id": constraint_id or "",
+            },
+            request=request,
+        )
+
     @router.post("", response_model=ConstraintOut)
     async def create_constraint(
         body: ConstraintCreate,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> ConstraintOut:
-        if not _can_write(actor):
-            raise HTTPException(403, "Not permitted to create constraints")
+        await _require_constraints_access(
+            actor=actor,
+            request=request,
+            action_key="operational_constraints.manage",
+            project_id=body.project_id,
+        )
         _validate_enums(body.discipline, body.kind, body.severity)
 
         now_iso = _utc_iso()
@@ -258,6 +301,7 @@ def build_operational_constraints_router(
 
     @router.get("", response_model=List[ConstraintOut])
     async def list_constraints(
+        request: Request,
         project_id: Optional[str] = Query(default=None),
         status: Optional[str] = Query(default=None),
         severity: Optional[str] = Query(default=None),
@@ -265,6 +309,12 @@ def build_operational_constraints_router(
         limit: int = Query(default=200, ge=1, le=500),
         actor: Dict[str, Any] = Depends(require_actor),  # noqa: ARG001
     ) -> List[ConstraintOut]:
+        await _require_constraints_access(
+            actor=actor,
+            request=request,
+            action_key="operational_constraints.read",
+            project_id=project_id or "",
+        )
         q: Dict[str, Any] = {}
         if project_id:
             q["project_id"] = project_id
@@ -289,6 +339,7 @@ def build_operational_constraints_router(
     @router.get("/{constraint_id}", response_model=ConstraintOut)
     async def get_constraint(
         constraint_id: str,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),  # noqa: ARG001
     ) -> ConstraintOut:
         doc = await db.operational_constraints.find_one(
@@ -296,22 +347,35 @@ def build_operational_constraints_router(
         )
         if not doc:
             raise HTTPException(404, "Constraint not found")
+        await _require_constraints_access(
+            actor=actor,
+            request=request,
+            action_key="operational_constraints.read",
+            project_id=doc.get("project_id") or "",
+            constraint_id=constraint_id,
+        )
         return _to_out(doc)
 
     @router.patch("/{constraint_id}", response_model=ConstraintOut)
     async def patch_constraint(
         constraint_id: str,
         body: ConstraintPatch,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> ConstraintOut:
-        if not _can_write(actor):
-            raise HTTPException(403, "Not permitted to edit constraints")
         _validate_enums(body.discipline, body.kind, body.severity)
         existing = await db.operational_constraints.find_one(
             {"id": constraint_id}, {"_id": 0}
         )
         if not existing:
             raise HTTPException(404, "Constraint not found")
+        await _require_constraints_access(
+            actor=actor,
+            request=request,
+            action_key="operational_constraints.manage",
+            project_id=existing.get("project_id") or "",
+            constraint_id=constraint_id,
+        )
         if existing.get("status") in {"resolved", "void"}:
             raise HTTPException(
                 409,
@@ -350,15 +414,21 @@ def build_operational_constraints_router(
     async def resolve_constraint(
         constraint_id: str,
         body: ResolveBody,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> ConstraintOut:
-        if not _can_write(actor):
-            raise HTTPException(403, "Not permitted to resolve constraints")
         existing = await db.operational_constraints.find_one(
             {"id": constraint_id}, {"_id": 0}
         )
         if not existing:
             raise HTTPException(404, "Constraint not found")
+        await _require_constraints_access(
+            actor=actor,
+            request=request,
+            action_key="operational_constraints.manage",
+            project_id=existing.get("project_id") or "",
+            constraint_id=constraint_id,
+        )
         if existing.get("status") == "resolved":
             return _to_out(existing)
         if existing.get("status") == "void":
@@ -387,12 +457,11 @@ def build_operational_constraints_router(
     async def append_chronology(
         constraint_id: str,
         body: Dict[str, Any] = Body(...),
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> ConstraintOut:
         """Append an operator-supplied chronology note (e.g., "owner
         contacted"). Read-only fields above stay untouched."""
-        if not _can_write(actor):
-            raise HTTPException(403, "Not permitted")
         action = str(body.get("action", "note") or "note").strip()[:80]
         note = str(body.get("note", "") or "").strip()[:500]
         if not action and not note:
@@ -402,6 +471,13 @@ def build_operational_constraints_router(
         )
         if not existing:
             raise HTTPException(404, "Constraint not found")
+        await _require_constraints_access(
+            actor=actor,
+            request=request,
+            action_key="operational_constraints.manage",
+            project_id=existing.get("project_id") or "",
+            constraint_id=constraint_id,
+        )
 
         now_iso = _utc_iso()
         chronology = existing.get("chronology", []) + [{

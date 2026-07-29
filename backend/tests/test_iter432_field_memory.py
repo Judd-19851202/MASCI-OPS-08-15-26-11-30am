@@ -54,6 +54,10 @@ class _Coll:
     async def insert_one(self, doc):
         self.rows.append(dict(doc))
 
+    async def insert_many(self, docs):
+        for doc in docs:
+            self.rows.append(dict(doc))
+
     async def find_one(self, q, projection=None):
         for r in self.rows:
             if all(r.get(k) == v for k, v in q.items() if not isinstance(v, dict)):
@@ -81,10 +85,36 @@ class _Coll:
                 return type("R", (), {"modified_count": 1})
         return type("R", (), {"modified_count": 0})
 
+    async def create_index(self, *_a, **_k):
+        return None
+
+    async def count_documents(self, q):
+        total = 0
+        for r in self.rows:
+            ok = True
+            for k, v in q.items():
+                if isinstance(v, dict) and "$in" in v:
+                    if r.get(k) not in set(v["$in"]):
+                        ok = False
+                        break
+                    continue
+                if r.get(k) != v:
+                    ok = False
+                    break
+            if ok:
+                total += 1
+        return total
+
 
 class _DB:
     def __init__(self):
         self.field_memory_notes = _Coll()
+        self._collections = {"field_memory_notes": self.field_memory_notes}
+
+    def __getitem__(self, name: str):
+        if name not in self._collections:
+            self._collections[name] = _Coll()
+        return self._collections[name]
 
 
 def _build_app(role: str):

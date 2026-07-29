@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+from lib.enterprise_governance import build_governance_actor_context
 
 from lib.transport_dispatch_gate import (
     evaluate_dispatch_gate, HUMAN_REASONS,
@@ -147,16 +148,19 @@ def _now() -> str:
 
 
 def _is_override_authorized(actor: Dict[str, Any]) -> bool:
-    """A pure helper. Admin tokens always allowed. Dispatch-only is NOT.
-    Operations/Transportation leadership roles are also accepted."""
     if not actor:
         return False
     if actor.get("is_admin"):
         return True
-    role = (actor.get("role") or "").lower()
-    if role in ("operations_leadership", "transportation_admin", "admin"):
+    return "transportation_dispatch_gate.override" in set(actor.get("_governance_permissions") or [])
+
+
+def _can_preview_dispatch_gate(actor: Dict[str, Any]) -> bool:
+    if not actor:
+        return False
+    if actor.get("is_admin"):
         return True
-    return False
+    return "transportation_dispatch_gate.preview" in set(actor.get("_governance_permissions") or [])
 
 
 # ===========================================================================
@@ -165,6 +169,17 @@ def _is_override_authorized(actor: Dict[str, Any]) -> bool:
 def register_track_16_09_routes(app, db, *, require_dispatch_or_admin_dep,
                                   require_admin_dep) -> APIRouter:
     router = APIRouter(prefix="/api", tags=["transportation-dispatch-gate"])
+
+    async def _enrich_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+        raw = dict(actor or {})
+        role = str(raw.get("role") or raw.get("_actor") or "").strip().lower() or "dispatch"
+        raw.setdefault("id", raw.get("user_id") or raw.get("email") or role)
+        raw.setdefault("email", f"{role}@dispatch-gate.local")
+        raw["role"] = role
+        raw["_actor"] = role
+        context = await build_governance_actor_context(db, raw)
+        raw["_governance_permissions"] = list(context.get("permissions") or [])
+        return raw
 
     # Inline dispatch-or-admin resolver — works around the server.py
     # wrapper that drops the FastAPI Request injection when it
@@ -179,7 +194,7 @@ def register_track_16_09_routes(app, db, *, require_dispatch_or_admin_dep,
             _is_valid_directory_admin_token_async,
         )
         if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
-            return {"role": "admin", "is_admin": True, "email": "admin"}
+            return await _enrich_actor({"role": "admin", "is_admin": True, "email": "admin"})
         if x_dispatch_token:
             try:
                 from dispatch_users import (  # noqa: PLC0415
@@ -187,7 +202,7 @@ def register_track_16_09_routes(app, db, *, require_dispatch_or_admin_dep,
                 )
                 u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
                 if u:
-                    return {"role": "dispatch", "is_admin": False, **u}
+                    return await _enrich_actor({"role": "dispatch", "is_admin": False, **u})
             except Exception:  # noqa: BLE001
                 pass
         raise HTTPException(401, "Dispatch or Admin auth required")
@@ -198,6 +213,8 @@ def register_track_16_09_routes(app, db, *, require_dispatch_or_admin_dep,
     @router.post("/dispatch/transportation/check")
     async def gate_check(body: GateCheckBody,
                           actor: Any = Depends(_resolve_actor)):
+        if not _can_preview_dispatch_gate(actor):
+            raise HTTPException(403, "Not permitted to preview dispatch gate")
         result = await evaluate_dispatch_gate(
             db, driver_id=body.driver_id, truck_id=body.truck_id,
             carrier_id=body.carrier_id, override_id=body.override_id)

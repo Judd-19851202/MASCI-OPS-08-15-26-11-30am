@@ -52,6 +52,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
+from lib.enterprise_governance import build_governance_actor_context
 
 # TRACK 27.03 · Phase 2b · HR employee package PDF header uses the
 # canonical local formatter so the "Generated" stamp shown to HR /
@@ -150,6 +151,22 @@ LANE_APPROVERS: Dict[str, set] = {
     "corporate_import": {"hr", "admin"},
     # Track 19.59 · Vendor lane approvers.
     "vendor":           {"hr", "admin"},
+}
+
+LANE_READ_PERMISSIONS: Dict[str, str] = {
+    "hr": "employee_records.read.hr",
+    "safety": "employee_records.read.safety",
+    "asset": "employee_records.read.asset",
+    "corporate_import": "employee_records.read.corporate_import",
+    "vendor": "employee_records.read.vendor",
+}
+
+LANE_APPROVER_PERMISSIONS: Dict[str, str] = {
+    "hr": "employee_records.approve.hr",
+    "safety": "employee_records.approve.safety",
+    "asset": "employee_records.approve.asset",
+    "corporate_import": "employee_records.approve.corporate_import",
+    "vendor": "employee_records.approve.vendor",
 }
 
 # Whitelisted record_type slugs per lane. Additive — new types may be
@@ -311,24 +328,54 @@ def _actor_role(actor: Dict[str, Any]) -> str:
     return (actor.get("_actor") or actor.get("role") or "").lower()
 
 
+def _normalize_employee_records_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+    raw = dict(actor or {})
+    role = str(raw.get("_actor") or raw.get("role") or "").strip().lower()
+    role = {
+        "asset_admin": "asset_admin",
+        "dispatcher": "dispatch",
+        "shop manager": "shop",
+        "project manager": "pm",
+        "leadership": "executive",
+        "admin": "admin",
+        "hr": "hr",
+        "safety": "safety",
+    }.get(role, role)
+    raw.setdefault("id", raw.get("user_id") or raw.get("email") or role or "employee-records")
+    raw.setdefault("email", f"{role or 'operator'}@employee-records.local")
+    raw["_actor"] = role or "admin"
+    raw["role"] = role or "admin"
+    return raw
+
+
+def _actor_permissions(actor: Dict[str, Any]) -> set[str]:
+    return set(actor.get("_governance_permissions") or [])
+
+
 def _actor_can_approve(actor: Dict[str, Any], lane: str) -> bool:
+    perm = LANE_APPROVER_PERMISSIONS.get(lane)
+    perms = _actor_permissions(actor)
+    if perm and perm in perms:
+        return True
     role = _actor_role(actor)
     approvers = LANE_APPROVERS.get(lane, set())
     return role in approvers
 
 
 def _actor_can_read_lane(actor: Dict[str, Any], lane: str) -> bool:
+    perm = LANE_READ_PERMISSIONS.get(lane)
+    perms = _actor_permissions(actor)
+    if perm and perm in perms:
+        return True
     role = _actor_role(actor)
-    # HR + admin can read every lane.
-    if role in {"hr", "admin"}:
-        return True
-    # Safety can read Safety lane.
-    if role == "safety" and lane == "safety":
-        return True
-    # Asset Administrator can read Asset lane.
-    if role == "asset_admin" and lane == "asset":
-        return True
-    return False
+    fallback_map = {
+        "hr": {"hr", "admin"},
+        "safety": {"safety", "hr", "admin"},
+        "asset": {"asset_admin", "hr", "admin"},
+        "corporate_import": {"hr", "admin"},
+        "vendor": {"hr", "admin"},
+    }
+    return role in fallback_map.get(lane, set())
 
 
 def _validate_lane_and_type(lane: str, record_type: Optional[str]) -> None:
@@ -369,8 +416,12 @@ def build_employee_records_router(*, db, require_actor):
     """
     router = APIRouter(prefix="/api/employee-records", tags=["employee-records"])
 
-    def _actor_dep():
-        return Depends(require_actor)
+    async def _actor_dep(actor: Dict[str, Any] = Depends(require_actor)):
+        normalized = _normalize_employee_records_actor(actor)
+        context = await build_governance_actor_context(db, normalized)
+        enriched = dict(normalized)
+        enriched["_governance_permissions"] = list(context.get("permissions") or [])
+        return enriched
 
     # ── Vocabulary (public within the router) ─────────────────────
     # Exposes lanes + valid record_types + approver matrix to the

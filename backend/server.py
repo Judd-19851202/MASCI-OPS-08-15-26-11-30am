@@ -25,6 +25,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
 from lib.email_audit_status import normalized_failure_statuses
+from lib.enterprise_governance import build_governance_actor_context
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 from lib.operator_safety import require_non_empty_destructive_scope
 from lib.runtime_identity import (
@@ -1215,11 +1216,27 @@ async def require_admin_or_asset_admin(
     {"admin_token", "directory_flag", "legacy_shop_role"} so route
     handlers and tests can verify which path resolved.
     """
+    async def _authorize(actor: Dict[str, Any]) -> Dict[str, Any]:
+        context = await build_governance_actor_context(db, actor)
+        if "asset_documents.read" in set(context.get("permissions") or []):
+            return actor
+        raise HTTPException(
+            status_code=403,
+            detail="Asset Administrator access required.",
+        )
+
     if x_admin_token and (
         _is_valid_admin_token(x_admin_token)
         or await _is_valid_directory_admin_token_async(x_admin_token)
     ):
-        return {"_actor": "admin", "name": "Admin", "_auth_path": "admin_token"}
+        return await _authorize({
+            "id": "asset-admin-admin",
+            "email": "admin@masci.local",
+            "_actor": "admin",
+            "role": "admin",
+            "name": "Admin",
+            "_auth_path": "admin_token",
+        })
 
     if not x_shop_token or "." not in x_shop_token:
         # Shared shop token (no `.`) doesn't identify a user, so we
@@ -1248,12 +1265,15 @@ async def require_admin_or_asset_admin(
             )
             if dir_row and dir_row.get("is_asset_admin") is True:
                 enforce_password_change_required(request, user)
-                return {
+                return await _authorize({
                     **user,
+                    "id": user.get("id") or email_norm,
+                    "email": email_norm,
                     "_actor_kind": "shop_user",
                     "_actor": "asset_admin",
+                    "role": "asset_admin",
                     "_auth_path": "directory_flag",
-                }
+                })
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"require_admin_or_asset_admin directory lookup failed: {exc}"
@@ -1263,12 +1283,15 @@ async def require_admin_or_asset_admin(
     # Asset Admin users may not yet have a directory mirror row.
     if _role_implies_asset_admin(user.get("role")):
         enforce_password_change_required(request, user)
-        return {
+        return await _authorize({
             **user,
+            "id": user.get("id") or email_norm or "asset-admin-legacy",
+            "email": email_norm or f"asset-admin-{user.get('id') or 'shop'}@masci.local",
             "_actor_kind": "shop_user",
             "_actor": "asset_admin",
+            "role": "asset_admin",
             "_auth_path": "legacy_shop_role",
-        }
+        })
 
     # Authenticated as a Shop user but not an Asset Admin —
     # straight 403 (not 401) so the SPA does NOT clear the Shop

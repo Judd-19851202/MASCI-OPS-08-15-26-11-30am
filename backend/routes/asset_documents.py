@@ -47,6 +47,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 # TRACK 27.03 · Phase 2b · Asset profile PDF "Generated" stamp uses the
 # canonical local formatter.
+from lib.enterprise_governance import build_governance_actor_context, require_governed_action
 from lib.platform_time import format_platform_stamp
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile
@@ -128,6 +129,37 @@ def _is_admin_or_asset_admin(actor: Any) -> bool:
     return False
 
 
+def _normalize_asset_documents_actor(actor: Any) -> Dict[str, Any]:
+    if actor is True:
+        return {
+            "id": "asset-documents-admin",
+            "email": "admin@asset-documents.local",
+            "role": "admin",
+            "_actor": "admin",
+            "is_admin": True,
+        }
+    raw = dict(actor or {}) if isinstance(actor, dict) else {}
+    role = str(raw.get("portal") or raw.get("role") or raw.get("_actor") or "").strip().lower()
+    role = {
+        "asset_admin": "asset_admin",
+        "shop manager": "shop",
+        "dispatcher": "dispatch",
+        "project manager": "pm",
+        "leadership": "executive",
+        "admin": "admin",
+        "hr": "hr",
+        "safety": "safety",
+    }.get(role, role)
+    if _is_admin_or_asset_admin(raw) and role == "shop":
+        role = "asset_admin"
+    raw.setdefault("id", raw.get("user_id") or raw.get("email") or role or "asset-documents")
+    raw.setdefault("email", f"{role or 'operator'}@asset-documents.local")
+    raw["role"] = role or "admin"
+    raw["_actor"] = role or "admin"
+    raw["is_admin"] = bool(raw.get("is_admin"))
+    return raw
+
+
 def _public_doc(d: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": d.get("id"),
@@ -190,17 +222,52 @@ def register_asset_documents_routes(
     router_prefix = "/asset-spine" if parent_has_prefix else "/api/asset-spine"
     router = APIRouter(prefix=router_prefix, tags=["asset-documents"])
 
-    async def _require_asset_admin(actor=Depends(require_admin_dep)):
-        # Admin always satisfies the asset-admin gate; once the platform
-        # exposes a non-admin asset_admin role, _is_admin_or_asset_admin
-        # will accept it transparently.
-        if not _is_admin_or_asset_admin(actor):
-            raise HTTPException(status_code=403, detail="Asset Administrator access required.")
-        return actor
+    async def _governed_asset_actor(actor: Any) -> Dict[str, Any]:
+        normalized = _normalize_asset_documents_actor(actor)
+        context = await build_governance_actor_context(db, normalized)
+        enriched = dict(normalized)
+        enriched["_governance_permissions"] = list(context.get("permissions") or [])
+        return enriched
+
+    async def _require_asset_documents_read(actor=Depends(require_any_portal_dep)):
+        governed_actor = await _governed_asset_actor(actor)
+        await require_governed_action(
+            db,
+            actor=governed_actor,
+            action_key="asset_documents.read",
+            resource_type="asset_document",
+            resource={"id": "asset-documents", "project_number": ""},
+            requested_context={"module": "asset_documents", "scope": "read"},
+        )
+        return governed_actor
+
+    async def _require_asset_admin(actor=Depends(require_any_portal_dep)):
+        governed_actor = await _governed_asset_actor(actor)
+        await require_governed_action(
+            db,
+            actor=governed_actor,
+            action_key="asset_documents.manage",
+            resource_type="asset_document",
+            resource={"id": "asset-documents", "project_number": ""},
+            requested_context={"module": "asset_documents", "scope": "manage"},
+        )
+        return governed_actor
+
+    async def _require_asset_documents_delete(actor=Depends(require_any_portal_dep)):
+        governed_actor = await _governed_asset_actor(actor)
+        await require_governed_action(
+            db,
+            actor=governed_actor,
+            action_key="asset_documents.delete",
+            resource_type="asset_document",
+            resource={"id": "asset-documents", "project_number": ""},
+            requested_context={"module": "asset_documents", "scope": "delete"},
+        )
+        return governed_actor
 
     # TRACK 15.13E — read dep for the 4 dashboard endpoints. Defaults
     # to the legacy gate when the new dep isn't supplied.
-    _dashboard_read_dep = require_admin_or_asset_admin_dep or _require_asset_admin
+    _dashboard_read_dep = require_admin_or_asset_admin_dep or _require_asset_documents_read
 
     async def _get_asset_or_404(asset_id: str) -> Dict[str, Any]:
         doc = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0})
@@ -440,7 +507,7 @@ def register_asset_documents_routes(
     async def delete_asset_document(
         asset_id: str,
         attachment_id: str,
-        actor: Dict[str, Any] = Depends(require_admin_dep),  # admin only for delete
+        actor: Dict[str, Any] = Depends(_require_asset_documents_delete),
     ):
         doc = await db.operational_attachments.find_one(
             {"id": attachment_id, "host_id": asset_id, "host_kind": ASSET_HOST_KIND,

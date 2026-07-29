@@ -42,6 +42,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field, field_validator
+from lib.enterprise_governance import build_governance_actor_context
 
 logger = logging.getLogger(__name__)
 
@@ -905,10 +906,30 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
     """
     router = APIRouter(tags=["employee-lifecycle"])
 
+    def _normalize_lifecycle_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+        raw = dict(actor or {})
+        role = str(raw.get("_actor") or raw.get("role") or "").strip().lower()
+        role = {
+            "project manager": "pm",
+            "shop manager": "shop",
+            "dispatcher": "dispatch",
+            "leadership": "executive",
+            "admin": "admin",
+            "hr": "hr",
+            "safety": "safety",
+        }.get(role, role)
+        raw.setdefault("id", raw.get("user_id") or raw.get("email") or role or "employee-lifecycle")
+        raw.setdefault("email", f"{role or 'operator'}@employee-lifecycle.local")
+        raw["_actor"] = role or "admin"
+        raw["role"] = role or "admin"
+        return raw
+
     async def require_hr_or_admin(actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
-        role = actor.get("_actor") or actor.get("role") or ""
-        if role in ("hr", "admin"):
-            return actor
+        normalized = _normalize_lifecycle_actor(actor)
+        context = await build_governance_actor_context(db, normalized)
+        perms = set(context.get("permissions") or [])
+        if "employee_lifecycle.manage" in perms:
+            return normalized
         raise HTTPException(403, "HR or Admin only")
 
     # ── Shared HR roster query ────────────────────────────────────────

@@ -34,8 +34,13 @@ import uuid
 from datetime import datetime, timezone, date, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field, field_validator
+
+from lib.enterprise_governance import (
+    build_governance_actor_context,
+    require_governed_action,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -308,27 +313,63 @@ async def ensure_document_expirations_indexes(db) -> None:
 def build_document_expirations_router(db, require_any_portal_token, require_admin):
     router = APIRouter(tags=["document-expirations"])
 
-    def _role(actor: Dict[str, Any]) -> str:
-        return actor.get("_actor") or actor.get("role") or "admin"
+    def _governed_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+        raw = dict(actor or {})
+        role = str(raw.get("_actor") or raw.get("role") or "").strip().lower()
+        role = {
+            "leadership": "executive",
+            "dispatcher": "dispatch",
+            "project manager": "pm",
+            "shop manager": "shop",
+            "safety": "safety",
+            "hr": "hr",
+            "admin": "admin",
+        }.get(role, role)
+        raw.setdefault("id", raw.get("user_id") or raw.get("email") or role or "document-expirations")
+        raw.setdefault("email", f"{role or 'operator'}@document-expirations.local")
+        raw["_actor"] = role or "admin"
+        raw["role"] = role or "admin"
+        return raw
 
-    def _scope(actor: Dict[str, Any]) -> Dict[str, Any]:
-        role = _role(actor)
-        if role == "admin":
+    async def _read_scope(actor: Dict[str, Any]) -> Dict[str, Any]:
+        governed_actor = _governed_actor(actor)
+        context = await build_governance_actor_context(db, governed_actor)
+        perms = set(context.get("permissions") or [])
+        if context.get("is_super_admin") or context.get("authority_level") == "global":
             return {}
-        cats = {
-            "hr":     ["employee", "training_cert"],
-            "safety": ["safety", "training_cert", "employee"],
-            "shop":   ["equipment"],
-            "pm":     ["project", "company"],
-            "dispatch": ["equipment"],
-            "leadership": ["employee", "safety"],
-        }.get(role, [])
+        category_map = {
+            "employee": "document_expirations.read.employee",
+            "training_cert": "document_expirations.read.training_cert",
+            "safety": "document_expirations.read.safety",
+            "equipment": "document_expirations.read.equipment",
+            "project": "document_expirations.read.project",
+            "company": "document_expirations.read.company",
+        }
+        cats = [category for category, perm in category_map.items() if perm in perms]
         if not cats:
             return {"_unreachable": True}
         return {"category": {"$in": cats}}
 
+    async def _require_doc_expiration_access(
+        *,
+        actor: Dict[str, Any],
+        request: Request,
+        action_key: str,
+        resource: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        await require_governed_action(
+            db,
+            actor=_governed_actor(actor),
+            action_key=action_key,
+            resource_type="document_expiration",
+            resource=resource or {"id": "document-expirations", "project_number": ""},
+            requested_context={"module": "document_expirations"},
+            request=request,
+        )
+
     @router.get("/api/document-expirations")
     async def list_expirations(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         status: Optional[str] = Query(default=None),
         category: Optional[str] = Query(default=None),
@@ -337,7 +378,12 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=200, ge=1, le=500),
     ) -> Dict[str, Any]:
-        filt = _scope(actor)
+        await _require_doc_expiration_access(
+            actor=actor,
+            request=request,
+            action_key="document_expirations.read",
+        )
+        filt = await _read_scope(actor)
         if filt.get("_unreachable"):
             return {"items": [], "count": 0}
         clauses: List[Dict[str, Any]] = []
@@ -364,9 +410,15 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
 
     @router.get("/api/document-expirations/summary")
     async def summary(
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        filt = _scope(actor)
+        await _require_doc_expiration_access(
+            actor=actor,
+            request=request,
+            action_key="document_expirations.read",
+        )
+        filt = await _read_scope(actor)
         if filt.get("_unreachable"):
             return {"by_status": {}, "expiring_30d": 0, "expired": 0}
         today = datetime.now(timezone.utc).date()
@@ -394,15 +446,21 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
     @router.post("/api/document-expirations")
     async def create_expiration(
         body: DocExpirationCreate,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        # Anonymous-portal can't be here (require_any_portal_token); but
-        # restrict write to admin/hr/safety/shop/pm only — read-only roles
-        # like 'leadership' may not write.
-        role = _role(actor)
-        if role not in ("admin", "hr", "safety", "shop", "pm"):
-            raise HTTPException(403, "Not authorized to create expirations")
+        await _require_doc_expiration_access(
+            actor=actor,
+            request=request,
+            action_key="document_expirations.manage",
+            resource={
+                "id": body.linked_project_number or body.linked_employee_id or body.linked_equipment_id or "document-expirations",
+                "project_number": body.linked_project_number or "",
+                "category": body.category,
+            },
+        )
         now = datetime.now(timezone.utc)
+        role = _governed_actor(actor).get("role") or "admin"
         doc = {
             "id": str(uuid.uuid4()),
             "document_type": body.document_type.strip(),
@@ -432,12 +490,23 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
     async def patch_expiration(
         doc_id: str,
         body: DocExpirationPatch,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
         existing = await db.document_expirations.find_one(
             {"id": doc_id}, {"_id": 0})
         if not existing:
             raise HTTPException(404, "Not found")
+        await _require_doc_expiration_access(
+            actor=actor,
+            request=request,
+            action_key="document_expirations.manage",
+            resource={
+                "id": doc_id,
+                "project_number": existing.get("linked_project_number") or "",
+                "category": existing.get("category") or "",
+            },
+        )
         update: Dict[str, Any] = {"updated_at": datetime.now(timezone.utc)}
         for k, v in body.model_dump(exclude_none=True).items():
             if k in ("issue_date", "expiration_date") and isinstance(v, date):
@@ -466,11 +535,21 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
     @router.delete("/api/document-expirations/{doc_id}")
     async def archive_expiration(
         doc_id: str,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        role = _role(actor)
-        if role not in ("admin", "hr", "safety", "shop", "pm"):
-            raise HTTPException(403, "Not authorized")
+        existing = await db.document_expirations.find_one({"id": doc_id}, {"_id": 0})
+        await _require_doc_expiration_access(
+            actor=actor,
+            request=request,
+            action_key="document_expirations.manage",
+            resource={
+                "id": doc_id,
+                "project_number": (existing or {}).get("linked_project_number") or "",
+                "category": (existing or {}).get("category") or "",
+            },
+        )
+        role = _governed_actor(actor).get("role") or "admin"
         await db.document_expirations.update_one(
             {"id": doc_id},
             {"$set": {

@@ -30,8 +30,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
+
+from lib.enterprise_governance import require_governed_action
 
 logger = logging.getLogger(__name__)
 
@@ -121,9 +123,25 @@ def _actor_id(actor: Dict[str, Any]) -> str:
     )
 
 
-def _can_write(actor: Dict[str, Any]) -> bool:
-    role = (actor or {}).get("_actor")
-    return role in {"admin", "pm", "safety", "fl", "leadership", "hr"}
+def _governed_actor(actor: Dict[str, Any]) -> Dict[str, Any]:
+    raw = dict(actor or {})
+    role = str(raw.get("_actor") or raw.get("role") or "").strip().lower()
+    role_aliases = {
+        "fl": "field_leadership",
+        "leadership": "executive",
+        "dispatcher": "dispatch",
+        "shop manager": "shop",
+        "project manager": "pm",
+        "safety": "safety",
+        "hr": "hr",
+        "admin": "admin",
+    }
+    role = role_aliases.get(role, role)
+    raw.setdefault("id", _actor_id(actor))
+    raw.setdefault("email", f"{role or 'operator'}@photo-governance.local")
+    raw["_actor"] = role or "admin"
+    raw["role"] = role or "admin"
+    return raw
 
 
 def _sanitize_tags(tags: List[str]) -> List[str]:
@@ -173,14 +191,39 @@ def build_photo_governance_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/photos", tags=["photo-governance"])
 
+    async def _require_photo_access(
+        *,
+        actor: Dict[str, Any],
+        request: Request,
+        action_key: str,
+        photo_doc: Dict[str, Any],
+    ) -> None:
+        await require_governed_action(
+            db,
+            actor=_governed_actor(actor),
+            action_key=action_key,
+            resource_type="photo_governance",
+            resource={
+                "id": photo_doc.get("photo_id") or photo_doc.get("id") or "photo",
+                "photo_id": photo_doc.get("photo_id") or photo_doc.get("id") or "photo",
+                "project_number": photo_doc.get("project_number") or photo_doc.get("project_id") or "",
+                "source_kind": photo_doc.get("source_kind") or photo_doc.get("parent_kind") or "",
+            },
+            requested_context={
+                "module": "photo_governance",
+                "project_number": photo_doc.get("project_number") or photo_doc.get("project_id") or "",
+                "photo_id": photo_doc.get("photo_id") or photo_doc.get("id") or "photo",
+            },
+            request=request,
+        )
+
     @router.patch("/{photo_id}", response_model=PhotoGovernanceOut)
     async def patch_photo(
         photo_id: str,
         body: PhotoPatch,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> PhotoGovernanceOut:
-        if not _can_write(actor):
-            raise HTTPException(403, "Not permitted")
         if body.discipline is not None and body.discipline not in DISCIPLINES:
             raise HTTPException(422, f"Invalid discipline: {body.discipline}")
         if (
@@ -196,6 +239,12 @@ def build_photo_governance_router(
         )
         if not existing:
             raise HTTPException(404, "Photo not found")
+        await _require_photo_access(
+            actor=actor,
+            request=request,
+            action_key="photo_governance.manage",
+            photo_doc=existing,
+        )
 
         gov = existing.get("governance", {}) or {}
         if body.caption is not None:
@@ -220,10 +269,9 @@ def build_photo_governance_router(
     async def link_photo(
         photo_id: str,
         body: PhotoLinkRequest,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),
     ) -> Dict[str, Any]:
-        if not _can_write(actor):
-            raise HTTPException(403, "Not permitted")
         # Verify the photo exists. We do NOT mutate it — the linkage is
         # recorded in operational_links per doctrine §1.
         existing = await db.job_photos.find_one(
@@ -231,6 +279,12 @@ def build_photo_governance_router(
         )
         if not existing:
             raise HTTPException(404, "Photo not found")
+        await _require_photo_access(
+            actor=actor,
+            request=request,
+            action_key="photo_governance.manage",
+            photo_doc=existing,
+        )
 
         # Import lazily to avoid circular import on router build.
         from routes.operational_links import (
@@ -270,6 +324,7 @@ def build_photo_governance_router(
     @router.get("/{photo_id}/governance", response_model=PhotoGovernanceOut)
     async def get_governance(
         photo_id: str,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_actor),  # noqa: ARG001
     ) -> PhotoGovernanceOut:
         existing = await db.job_photos.find_one(
@@ -277,6 +332,12 @@ def build_photo_governance_router(
         )
         if not existing:
             raise HTTPException(404, "Photo not found")
+        await _require_photo_access(
+            actor=actor,
+            request=request,
+            action_key="photo_governance.read",
+            photo_doc=existing,
+        )
         return await _build_governance_out(db, existing)
 
     return router

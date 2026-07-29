@@ -66,8 +66,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from pydantic import BaseModel, Field
+
+from lib.enterprise_governance import require_governed_action
 
 logger = logging.getLogger("field_memory")
 
@@ -112,22 +114,8 @@ def _actor_meta(actor: Dict[str, Any]) -> Dict[str, str]:
     }
 
 
-def _can_write_subject(role: str, subject_kind: str) -> bool:
-    """Role × subject_kind write matrix.
-
-    Field Leadership, PM, Safety, Admin can write to anything.
-    Shop can write to equipment + recovery_event only.
-    Dispatch can write to assignment + recovery_event only.
-    HR cannot write field memory (no operational scope here).
-    """
-    role = (role or "").lower()
-    if role in ("admin", "field_leadership", "pm", "safety"):
-        return True
-    if role == "shop" and subject_kind in ("equipment", "recovery_event"):
-        return True
-    if role == "dispatch" and subject_kind in ("assignment", "recovery_event"):
-        return True
-    return False
+def _write_action_for_subject(subject_kind: str) -> str:
+    return f"field_memory.write.{subject_kind}"
 
 
 class FieldMemoryCreate(BaseModel):
@@ -156,9 +144,44 @@ def build_field_memory_router(
         out = {k: v for k, v in doc.items() if k != "_id"}
         return out
 
+    async def _require_field_memory_access(
+        *,
+        actor: Dict[str, Any],
+        request: Request,
+        action_key: str,
+        subject_kind: Optional[str],
+        subject_id: Optional[str],
+        subject_label: str = "",
+    ) -> None:
+        meta = _actor_meta(actor)
+        governed_actor = dict(actor or {})
+        governed_actor.setdefault("id", f"field-memory-{meta['role']}")
+        governed_actor.setdefault("email", f"{meta['role']}@field-memory.local")
+        governed_actor["_actor"] = meta["role"]
+        governed_actor["role"] = meta["role"]
+        await require_governed_action(
+            db,
+            actor=governed_actor,
+            action_key=action_key,
+            resource_type="field_memory_note",
+            resource={
+                "id": subject_id or "field-memory",
+                "subject_kind": subject_kind or "all",
+                "subject_id": subject_id or "",
+                "subject_label": subject_label or "",
+            },
+            requested_context={
+                "module": "field_memory",
+                "subject_kind": subject_kind or "all",
+                "subject_id": subject_id or "",
+            },
+            request=request,
+        )
+
     @router.post("")
     async def create_note(
         body: FieldMemoryCreate,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token_dep),
         x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
     ):
@@ -173,11 +196,14 @@ def build_field_memory_router(
             raise HTTPException(400, f"body exceeds {_BODY_MAX} chars")
 
         meta = _actor_meta(actor)
-        if not _can_write_subject(meta["role"], body.subject_kind):
-            raise HTTPException(
-                403,
-                f"{meta['role']!r} cannot record field memory for {body.subject_kind!r}",
-            )
+        await _require_field_memory_access(
+            actor=actor,
+            request=request,
+            action_key=_write_action_for_subject(body.subject_kind),
+            subject_kind=body.subject_kind,
+            subject_id=body.subject_id.strip(),
+            subject_label=(body.subject_label or "").strip(),
+        )
 
         tags = []
         for t in (body.tags or []):
@@ -208,6 +234,7 @@ def build_field_memory_router(
 
     @router.get("/recent")
     async def recent_notes(
+        request: Request,
         limit: int = 5,
         subject_kind: Optional[str] = None,
         actor: Dict[str, Any] = Depends(require_any_portal_token_dep),  # noqa: ARG001
@@ -231,6 +258,13 @@ def build_field_memory_router(
             if subject_kind not in _VALID_SUBJECT_KINDS:
                 raise HTTPException(400, f"subject_kind must be one of {sorted(_VALID_SUBJECT_KINDS)}")
             q["subject_kind"] = subject_kind
+        await _require_field_memory_access(
+            actor=actor,
+            request=request,
+            action_key="field_memory.read",
+            subject_kind=subject_kind,
+            subject_id=None,
+        )
         items: List[Dict[str, Any]] = []
         cur = db.field_memory_notes.find(q, {"_id": 0}).sort("captured_at", -1).limit(n)
         async for d in cur:
@@ -239,6 +273,7 @@ def build_field_memory_router(
 
     @router.get("")
     async def list_notes(
+        request: Request,
         subject_kind: str,
         subject_id: str,
         include_resolved: bool = False,
@@ -247,6 +282,13 @@ def build_field_memory_router(
     ):
         if subject_kind not in _VALID_SUBJECT_KINDS:
             raise HTTPException(400, f"subject_kind must be one of {sorted(_VALID_SUBJECT_KINDS)}")
+        await _require_field_memory_access(
+            actor=actor,
+            request=request,
+            action_key="field_memory.read",
+            subject_kind=subject_kind,
+            subject_id=subject_id.strip(),
+        )
         q: Dict[str, Any] = {
             "tenant_id": _resolve_tenant(x_tenant_id),
             "subject_kind": subject_kind,
@@ -269,6 +311,7 @@ def build_field_memory_router(
     async def resolve_note(
         note_id: str,
         body: FieldMemoryResolve,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_any_portal_token_dep),
         x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
     ):
@@ -284,12 +327,14 @@ def build_field_memory_router(
         if existing.get("resolved"):
             raise HTTPException(400, "field memory note is already resolved")
         meta = _actor_meta(actor)
-        if not _can_write_subject(meta["role"], existing.get("subject_kind") or ""):
-            raise HTTPException(
-                403,
-                f"{meta['role']!r} cannot resolve field memory for "
-                f"{existing.get('subject_kind')!r}",
-            )
+        await _require_field_memory_access(
+            actor=actor,
+            request=request,
+            action_key=_write_action_for_subject(existing.get("subject_kind") or ""),
+            subject_kind=existing.get("subject_kind"),
+            subject_id=existing.get("subject_id"),
+            subject_label=existing.get("subject_label") or "",
+        )
         await db.field_memory_notes.update_one(
             {"id": note_id, "tenant_id": tenant_id},
             {"$set": {

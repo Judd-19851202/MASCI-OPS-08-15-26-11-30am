@@ -13,19 +13,19 @@ Status: Reconciled for final determination
 | RG-005 | Scanner normalization | ODR visibility projector and legacy-import upload partition moved to special-case infrastructure classification | Verified Not Applicable |
 | RG-006 | Security evidence | Session-expiry, negative lifecycle, and recovery verification expanded | Verified Fixed |
 | RG-007 | Override evidence | Emergency override exercised and independently verified | Verified Fixed |
+| RG-008 | Backend governance migration | `field_memory.py` now routes read/write/resolve authority through Enterprise Governance permissions | Verified Fixed |
+| RG-009 | Backend governance migration | `photo_governance.py` now routes read/manage authority through Enterprise Governance permissions | Verified Fixed |
+| RG-010 | Backend governance migration | `operational_constraints.py` now routes read/manage authority through Enterprise Governance permissions | Verified Fixed |
+| RG-011 | Backend governance migration | `document_expirations.py` now routes read/manage authority through Enterprise Governance permissions and permission-derived category scope | Verified Fixed |
+| RG-012 | Backend governance migration | `employee_records.py` now derives lane access from Enterprise Governance permissions instead of route-local role checks | Verified Fixed |
+| RG-013 | Backend governance migration | `employee_lifecycle.py` now resolves its HR/Admin write gate through Enterprise Governance permissions | Verified Fixed |
+| RG-014 | Backend governance migration | `transportation_dispatch_gate.py` now derives preview/override authority from Enterprise Governance permissions | Verified Fixed |
+| RG-015 | Backend governance migration | `operations_center.py` now derives PM project scope from governance context rather than inline role branching | Verified Fixed |
 
-## Residual Legacy Findings (Authoritative Scanner Output = 9)
+## Residual Legacy Findings (Authoritative Scanner Output = 1)
 | Finding ID | File | Scanner symbol | Classification | Rationale |
 |---|---|---|---|---|
 | RL-001 | `backend/routes/asset_documents.py` | `_require_asset_admin` | Blocked | Mutation routes still rely on route-local asset-admin authorization instead of Enterprise Governance policy evaluation. |
-| RL-002 | `backend/routes/operations_center.py` | `operations_center` | Accepted Risk | Residual inline PM narrowing is read-only and already derives from governed context; no privilege expansion observed in testing. |
-| RL-003 | `backend/routes/operational_constraints.py` | `_can_write` | Blocked | Write authority remains route-local role matrix. |
-| RL-004 | `backend/routes/document_expirations.py` | `_scope` | Accepted Risk | Read-only category partition remains route-local; no write authority, but not yet policyized. |
-| RL-005 | `backend/routes/photo_governance.py` | `_can_write` | Blocked | Write authority remains route-local role matrix. |
-| RL-006 | `backend/routes/field_memory.py` | `_can_write_subject` | Blocked | Subject-level write permissions remain route-local and materially authoritative. |
-| RL-007 | `backend/routes/employee_records.py` | `_actor_can_read_lane` | Blocked | Lane visibility and ownership checks remain route-local authority. |
-| RL-008 | `backend/routes/employee_lifecycle.py` | `require_hr_or_admin` | Blocked | HR/Admin mutation gate is still local to the router. |
-| RL-009 | `backend/routes/transportation_dispatch_gate.py` | `_is_override_authorized` | Blocked | Dispatch override authorization remains inline and has not yet been moved to governance policy. |
 
 ## Special-Case Infrastructure
 - Scanner currently records **52** special-case infrastructure items.
@@ -35,4 +35,4 @@ Status: Reconciled for final determination
 ## Current Determination
 - Manual builder backlog: **closed**
 - Category F uncertainty: **0**
-- Residual constitutional blocker: **9 legacy-migratable backend findings remain**
+- Residual constitutional blocker: **1 legacy-migratable backend finding remains**

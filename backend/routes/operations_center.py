@@ -194,9 +194,8 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
         if not visible:
             return {"role": role, "cards": [], "total": 0}
 
-        pm_proj: Optional[List[str]] = None
-        if role == "pm":
-            pm_proj = list(governed_context.get("project_numbers") or [])
+        scope_mode = str(governed_context.get("governance_scope_mode") or "")
+        pm_proj: Optional[List[str]] = None if scope_mode == "global" else list(governed_context.get("project_numbers") or [])
 
         now = datetime.now(timezone.utc)
         seven_days_ago = now - timedelta(days=7)
