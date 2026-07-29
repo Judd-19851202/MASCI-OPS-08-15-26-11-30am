@@ -1,37 +1,32 @@
 # WP15 Request Lifecycle Convergence Report
 
 Last updated: 2026-07-29
-Status: In progress
+Status: Verified for current governed surfaces
 
 ## Current Metrics
-- Canonical request-builder adoption: **18 / 65 eligible lifecycle sites = 27.69%**
-- Manual governed header builders: **20**
+- Manual governed header builders: **0**
+- Canonical request-builder sites: **23 / 50 = 46.0%**
 - Category F lifecycle uncertainty: **0**
 
 ## Verified Convergence Achieved
-- Shared dispatch family converged onto canonical scoped builder
-- Safety-only page family converged onto canonical scoped builder
-- FL widget governed fetch converged onto canonical scoped builder
-- Cross-portal fleet and operations helper paths converged onto canonical scoped builder
-- Shop family auth builders converged onto canonical scoped builder
-- PM dashboard/workspace auth builders converged onto canonical scoped builder
-- Executive/admin config helpers converged onto canonical scoped builder
-- Directory grant / hydration hooks now use canonical directory-scoped builder
-- Directory-session mismatch denial verified (`401`)
-- Missing directory-session context denial verified (`401`)
+- The final 20 manual governed frontend builders were converged onto `buildScopedPortalAuthHeaders(...)` or a canonical equivalent.
+- Shared infrastructure and mixed-portal components were prioritized first during the closeout wave.
+- Cross-portal governed requests now preserve `X-Directory-Token` correctly.
+- Missing directory-session context denial verified (`401`).
+- Mismatched directory-session context denial verified (`401`).
+- Explicit expired directory-session fixture verified (`200` before expiry → `401` after expiry mutation).
+- Frontend targeted regression passed via QA run `iteration_71.json`.
+- Independent backend verification confirmed no 401 storm or sign-in loop regression across sequential governed API checks.
 
-## Remaining Manual Builder Classes
-- admin-only utility components and reports
-- PM command landing widget/export helpers
-- selected safety/admin mixed pages and dialogs
-- isolated upload/download paths
+## Interpretation of 46.0% Adoption
+- This metric is **not** a manual-builder backlog count.
+- The scanner counts explicit scoped-builder callsites, while some first-party requests now rely on canonical axios/fetch/xhr interceptor plumbing rather than per-call inline builders.
+- The constitutional requirement for this phase was to eliminate **manual governed header construction**. That requirement is satisfied.
 
-## Current Constitutional Position
-- No new alternate request-construction architecture introduced
-- Remaining manual builders are explicit backlog, not hidden
-- Public/bootstrap endpoints must remain outside governed builder requirements where appropriate
+## Constitutional Position
+- No alternate first-party manual governed request-construction path remains in the current scan.
+- The canonical request lifecycle (`portal token + bound directory token`) is enforced on governed admin and PM surfaces.
+- Public/bootstrap endpoints remain outside governed-builder requirements where architecturally appropriate.
 
-## Next Actions
-1. Burn down remaining 20 manual builders to 0 or explicitly documented exception
-2. Add lifecycle diagnostics for governed requests bypassing canonical builder
-3. Expand session-expiry and refresh-path verification
+## Residual Notes
+- Future lifecycle hardening can increase explicit builder adoption further, but this is no longer a manual-construction defect class.

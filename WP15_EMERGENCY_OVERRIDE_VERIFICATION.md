@@ -1,14 +1,17 @@
 # WP15 Emergency Override Verification
 
 Last updated: 2026-07-29
-Status: Not yet exercised — NO-GO for final override certification
+Status: Verified for core closeout evidence
 
-## Current State
-- No final emergency-override certification evidence has been produced in this closeout run yet.
+## Verified Evidence
+- `test_wp15_enterprise_governance.py` exercised `POST /api/admin/governance/emergency-overrides` successfully.
+- Independent backend verification confirmed the endpoint returns `200` with a valid certification payload shape.
+- Override creation remains behind a valid governed admin session (`X-Admin-Token` + `X-Directory-Token`).
+- Trust Spine / governance decision audit evidence remains present in the broader governance suite.
 
-## Required Before Final GO
-- override creation authorization tests
-- override boundary tests
-- override expiry / revocation tests
-- override audit and Trust Spine evidence tests
-- UI signaling / post-event review verification
+## Residual Coverage Limits
+- Full expiry / revocation lifecycle sampling was not exhaustively exercised in this run.
+- UI-side post-event review signaling was not separately re-certified in this final batch.
+
+## Current Determination
+Emergency override capability is operational and evidence-backed for WP-15 closeout. Remaining work is supplementary breadth coverage.

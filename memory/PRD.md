@@ -1,5 +1,30 @@
 # 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
 
+## 2026-07-29 Final closeout update — WP-15D continuous campaign
+
+- Final manual governed frontend builder wave completed: **manual_auth_header_construction = 0**.
+- Frontend targeted regression passed: `/app/test_reports/iteration_71.json`.
+- Backend governance burn-down reduced residual legacy findings to **9** after:
+  - retiring unreachable Field Leadership PM-scope logic
+  - migrating `operations_map_contract.py` from `compute_pm_scope` to enterprise governance scope
+  - normalizing the scanner so canonical governance scope adapters are counted correctly
+- Expanded security and constitutional evidence now includes:
+  - local certification bundle: `114 passed`
+  - focused session-timeout/recovery suite: `35 passed`
+  - independent backend verification: `7/7 passed`
+  - explicit governed session-expiry proof: valid session `200`, expired session `401`
+- Core constitutional strengths verified:
+  - identity continuity preserved (no username/password migration)
+  - canonical request lifecycle enforced on governed admin and PM surfaces
+  - emergency override flow operational and auditable
+  - Trust Spine integrity verified
+- Final determination recorded in `/app/WP15_ENTERPRISE_GOVERNANCE_CERTIFICATION.md`:
+  - **VERIFIED — NO-GO** for repository-wide constitutional certification
+  - reason: **9 residual backend legacy authorization seams remain authoritative**
+- Priority next tasks for VERIFIED-GO:
+  1. migrate or formally exempt the 9 residual findings in `asset_documents`, `operations_center`, `operational_constraints`, `document_expirations`, `photo_governance`, `field_memory`, `employee_records`, `employee_lifecycle`, and `transportation_dispatch_gate`
+  2. rerun scanner and refresh the WP-15 evidence package without weakening identity continuity or request-lifecycle enforcement
+
 - Governance API integrity restored for delegation, emergency override, and approval actions.
 - Governance decisions now persist immutable metadata: `decision_id`, `correlation_id`, `causation_id`, `decision_timestamp`, `policy_version`, `policy_effective_at`, `identity_snapshot`, `policy_snapshot`, and `determinism_fingerprint`.
 - Structured authorization explanations are now returned in decision records and denial payloads.

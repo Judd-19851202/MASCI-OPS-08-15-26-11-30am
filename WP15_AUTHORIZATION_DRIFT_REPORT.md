@@ -1,142 +1,48 @@
 # WP15 Authorization Drift Report
 
 Date: 2026-07-29
-Scope: Enterprise Governance managed surfaces + repository-wide drift scan
+Scope: Repository-wide governance drift + request-lifecycle closeout
 
-## Quantitative Convergence Snapshot
-- Total authorization decision points discovered: **249**
-- Canonical Governance Engine: **37**
-- Legacy but migratable: **161**
-- Special-case infrastructure: **51**
-- Dead code removed: **1** (`_is_admin_actor` OPPC bypass helper)
+## Final Quantitative Snapshot
+- Total normalized constitutional decision points: **147**
+- Canonical: **86**
+- Legacy but migratable: **9**
+- Special-case infrastructure: **52**
+- Governance candidate uncertainty (Category F): **0**
+- Manual governed frontend header builders: **0**
 
-## Managed-Scope Migration Completed
-- Fixed broken governance APIs: delegation, emergency override, approval request approval
-- Added immutable governance decision records with `decision_id`, `correlation_id`, `causation_id`, `decision_timestamp`, `policy_version`, `policy_effective_at`, `identity_snapshot`, `policy_snapshot`, and `determinism_fingerprint`
-- Added structured authorization explanations to decisions and denial payloads
-- Persisted preview-safe communication outcomes on approval requests and emergency overrides
-- Removed OPPC frozen-briefing regeneration admin bypass and routed it through canonical governance evaluation
+## Burn-Down Outcome
+- Backend legacy drift reduced from the earlier 161+ range to **9** authoritative residuals.
+- Frontend manual governed header construction reduced from **20** to **0** in the final closeout wave.
+- Canonical governed request lifecycle is verified on the key admin and PM governed paths.
 
-## Managed-Scope Verification Result
-Verified governed surfaces:
-- `backend/routes/enterprise_governance.py`
-- `backend/routes/operations_control.py`
-- `backend/routes/daily_report_lifecycle.py`
-- `backend/routes/executive_overview.py`
-- `backend/routes/ods_intelligence.py`
-- `backend/routes/oppc_execution.py`
+## Verified Repairs in This Run
+- Retired unreachable PM-scope logic in `backend/routes/field_leadership.py`.
+- Migrated `backend/routes/operations_map_contract.py` from `compute_pm_scope` to Enterprise Governance scope resolution.
+- Normalized the scanner so `governance_project_scope*` adapters count as canonical.
+- Reclassified documented visibility/partition infrastructure seams as manual-review special cases rather than false legacy debt.
 
-Convergence notes:
-- `oppc_execution.py` legacy scope and frozen-regeneration bypasses were migrated to Governance Engine enforcement
-- task and notification entry points now require governed actions for read/write/ack flows
+## Residual Legacy Findings (9)
+1. `backend/routes/asset_documents.py` → local asset-admin mutation gate
+2. `backend/routes/operations_center.py` → inline PM read narrowing
+3. `backend/routes/operational_constraints.py` → local write-role matrix
+4. `backend/routes/document_expirations.py` → local read-scope category partition
+5. `backend/routes/photo_governance.py` → local write-role matrix
+6. `backend/routes/field_memory.py` → local subject/write matrix
+7. `backend/routes/employee_records.py` → local lane-read authority
+8. `backend/routes/employee_lifecycle.py` → local HR/Admin mutation dependency
+9. `backend/routes/transportation_dispatch_gate.py` → local override authorization gate
 
-Result: No confirmed alternate write-path authorization bypass remains in the verified WP-15 managed scope after the OPPC fix above.
-
-## Remaining Legacy Checks Found
-Repository-wide scan still found legacy authorization patterns outside the fully remediated WP-15 scope.
-
-Examples:
-- `backend/routes/tasks_notifications.py`
-  - remaining legacy points are concentrated here (`9` scanner hits)
-  - the remaining logic is read-side scope shaping for task/notification visibility and is still migratable to the canonical Governance Engine
-- `backend/routes/asset_documents.py`
-  - inline admin role branching remains
-- `backend/routes/project_team_assignments.py`
-  - inline PM role branching remains
-- `backend/routes/trench_project_intelligence.py`
-  - PM role gating remains
-- `backend/routes/global_search.py`
-  - PM role-specific branching remains
-- additional route families still rely on legacy portal-token or role-specific logic patterns discovered by static scan
-
-## Exceptions
-- Some findings are authentication boundary modules or portal token plumbing rather than business-action authorization.
-- However, several findings are still true authorization or read-scope decisions and therefore block a strict repository-wide zero-drift certification.
+## Constitutional Interpretation
+- The Enterprise Governance Engine is the active authority for the managed WP-15 governed surfaces.
+- However, the 9 residual legacy findings are still real route-local business authorization decisions.
+- Therefore, **sole constitutional authority has not yet been achieved repository-wide**.
 
 ## Risk Assessment
-- Managed WP-15 governance admin and core governed decision paths: **Low residual risk** after fixes and backend verification
-- Repository-wide authorization drift risk: **Medium**
-  - reason: legacy role-based read/write scope logic still exists outside the fully migrated governance path
+- Managed governed surfaces: **Low runtime risk** after verification.
+- Repository-wide constitutional completeness: **No-Go** until the 9 residual legacy findings are migrated or formally exempted by architecture review.
 
-## Final Certification
-- Managed WP-15 scope: **PASS**
-- Repository-wide zero authorization drift: **NOT YET CERTIFIED**
-
-## Remaining Technical Debt
-- **Non-zero** — concentrated in legacy read-side visibility logic and older route families outside the converged core.
-
-Largest remaining legacy clusters from the scan:
-- `backend/routes/cost_codes.py` — 35
-- `backend/routes/global_search.py` — 18
-- `backend/routes/safety.py` — 10
-- `backend/routes/tasks_notifications.py` — 9
-- `backend/routes/po_requests.py` — 8
-- `backend/routes/operations_center.py` — 8
-
-## Required Next Migration Targets
-1. Migrate `tasks_notifications.py` read-scope filters to governance-backed identity and permission evaluation
-2. Audit remaining route families flagged by repository scan for inline role/admin branching
-3. Re-run repository-wide drift verification after each migration batch
-
----
-
-## 2026-07-29 — WP-15C Baseline Expansion — Frontend Request-Lifecycle Surface Added
-
-This checkpoint expands scanner coverage beyond backend-only authorization drift and now includes frontend governed-request construction patterns. The raw increase after expansion is a **baseline-model change**, not an automatic code regression.
-
-### Identity Continuity Snapshot
-- No credential rewrite or account migration was performed in this batch.
-- Authoritative password ownership remains in the existing source collections:
-  - `user_directory.password_hash`
-  - `project_managers.password_hash`
-  - `hr_users.password_hash`
-  - `shop_users.password_hash`
-  - `safety_users.password_hash`
-  - `dispatch_users.password_hash`
-  - `field_leadership_users.password_hash`
-- Cross-identity email linkage inventory shows `161/161` portal records with email currently link to `user_directory` by email.
-
-### Canonical Findings Model (normalized constitutional decision points)
-- Scanner schema version: `2.0.0`
-- Detection rules version: `2.0.0`
-- Metric model version: `2.0.0`
-- Comparable to previous scan: **No**
-- Non-comparability reason: **WP-15C Baseline Expansion — Frontend Request-Lifecycle Surface Added**
-
-### Migration and Lifecycle Notes
-- Shared governance scope helpers were added and used to replace another batch of `compute_pm_scope` consumers.
-- Shared governed frontend reads that previously missed `X-Directory-Token` were converged onto the canonical scoped header builder.
-- A production-shaped identity continuity inventory was generated without exposing credentials.
-
-### Risks still blocking certification
-- Manual governed-request header construction remains present in many frontend surfaces and must be converged.
-- Repository-wide governance convergence is still incomplete.
-- Existing-user regression verification is still incomplete for several supported portal patterns.
-
-## 2026-07-29 — Shared Pattern Elimination Batch
-
-### Updated normalized constitutional metrics
-- Legacy findings: **71**
-- Category F: **0**
-- Manual governed header builders: **29**
-- Canonical request-builder adoption: **21.13%**
-
-### Batch highlights
-- Eliminated the highest-volume `admin_dispatch` family by converging shared dispatch pages/components onto `buildScopedPortalAuthHeaders`.
-- Eliminated multiple safety-only and FL-only manual request builders via the same canonical scoped builder.
-- Replaced another large PM-scope class by routing `daily_reports`, `equipment`, `job_photos`, `pm_command_center`, and `project_team_assignments` through governance-applied scope helpers instead of `compute_pm_scope`.
-
-### Category F status
-- Category F is now **0** at this checkpoint.
-- Former Category F findings were resolved into either:
-  - non-auth domain classification branches, or
-  - route-local authorization helpers that are now tracked as migratable legacy rather than uncertain drift.
-
-### Existing-user protection evidence
-- Existing valid multi-login paths remained successful for Admin, PM, Safety, HR, Dispatch, Shop, and Field Leadership.
-- Existing standalone PM, HR, Dispatch, Field Leadership, and Shop login paths remained successful.
-- Incorrect password still fails (`401`).
-- Disabled directory user fixture remains denied (`401`).
-- PM portal token + mismatched directory session fails (`401`).
-- PM portal token without directory context fails (`401`).
-- PM portal token + matching directory session succeeds (`200`).
+## Required for VERIFIED-GO
+1. Migrate or formally exempt the 9 residual legacy findings.
+2. Re-run the convergence scanner and refresh this report.
+3. Preserve the already-verified identity continuity and request-lifecycle behavior while doing so.

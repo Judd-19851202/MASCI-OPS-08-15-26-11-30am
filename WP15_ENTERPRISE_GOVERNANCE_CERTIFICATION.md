@@ -1,77 +1,59 @@
 # WP15 Enterprise Governance Certification
 
 Date: 2026-07-29
-Status: Conditional / in progress
+Status: Final determination issued
 
 ## Executive Summary
-The Enterprise Governance Engine backend is operational and now records explainable, immutable, deterministic governance decisions. Governance admin APIs are healthy, emergency overrides persist preview-safe communication outcomes, and core decision records include identity and policy snapshots.
+The Enterprise Governance Engine is operational, the canonical request lifecycle is functioning, existing identities remain intact, and the final manual governed frontend builder wave is complete. However, repository-wide constitutional convergence is **not yet complete** because 9 residual backend legacy authorization seams still make business authorization decisions outside the Enterprise Governance Engine.
 
-## Verified Areas
-- Governance API health restored:
-  - `/api/admin/governance/overview`
-  - `/api/admin/governance/registry`
-  - `/api/admin/governance/delegations`
-  - `/api/admin/governance/emergency-overrides`
-  - `/api/admin/governance/approval-flows`
-  - `/api/admin/governance/approval-flows/requests/{id}/approve`
-  - `/api/admin/governance/decisions`
-- Explainable authorization enabled
-- Immutable decision metadata enabled
-- Policy version/effective-date capture enabled
-- Identity snapshot capture enabled
-- Determinism fingerprint capture enabled
-- Preview-safe communication persistence enabled for approval and override flows
-- OPPC frozen-briefing governance bypass removed
+## Final Evidence Bundle
+- Frontend manual governed header builders: **0**
+- Scanner normalized constitutional counts: **86 canonical / 9 legacy-migratable / 52 special-case infrastructure / 0 Category F**
+- Local certification pytest bundle: **114 passed**
+- Focused session-timeout + recovery suite: **35 passed**
+- Frontend targeted QA regression: **pass** (`/app/test_reports/iteration_71.json`)
+- Independent backend verification: **7/7 passed**
+- Explicit governed session-expiry fixture: **200 before expiry → 401 after expiry**
 
-## Independent Verification Evidence
-- Targeted backend pytest suite: `5 passed`
-- Deep backend verification: `13/13 checks passed`
-- Frontend governance smoke screenshot captured successfully on `/admin/governance`
+## Verified Constitutional Strengths
+- Governed admin APIs require the canonical header pair (`X-Admin-Token` + `X-Directory-Token`).
+- Missing or mismatched directory-token context is denied.
+- Emergency override flow is operational and auditable.
+- Trust Spine integrity is verified in automated tests.
+- Golden-path admin, PM, safety, and dispatch workflows remained functional after the frontend convergence wave.
+- Identity continuity preserved: no username migration, password rewrite, or session-model weakening was used to obtain these results.
 
-## Trust Spine Verification
-- Decision records now persist trust-linked identifiers and structured explanation context
-- One historical warning remains visible in logs from pre-fix execution (`actor_reviewed` stage). New governance decision records were migrated to valid stage handling in code, but a fresh end-to-end decision-path verification should be rerun after the next backend reload cycle to clear historical ambiguity.
+## Residual Constitutional Blockers
+The following remain true legacy authorization seams and block repository-wide sole-authority certification:
+1. `backend/routes/asset_documents.py`
+2. `backend/routes/operations_center.py`
+3. `backend/routes/operational_constraints.py`
+4. `backend/routes/document_expirations.py`
+5. `backend/routes/photo_governance.py`
+6. `backend/routes/field_memory.py`
+7. `backend/routes/employee_records.py`
+8. `backend/routes/employee_lifecycle.py`
+9. `backend/routes/transportation_dispatch_gate.py`
 
-## Remaining Risks
-- Repository-wide zero authorization drift is not yet certified
-- Current convergence scan still reports `249` authorization decision points, including `161` legacy-but-migratable locations and `51` documented infrastructure adapters
-- Highest remaining legacy clusters are outside the converged core: `cost_codes.py`, `global_search.py`, `safety.py`, `tasks_notifications.py`, `po_requests.py`, `operations_center.py`
+## Formal Determination
+- Governance engine runtime health: **VERIFIED**
+- Canonical request lifecycle enforcement: **VERIFIED**
+- Identity continuity: **VERIFIED**
+- Golden-path regression after builder convergence: **VERIFIED**
+- Repository-wide sole constitutional authority for business authorization: **NOT VERIFIED**
 
-## Accepted Risks
-- None for final WP-15 closure
+## Final Certification Decision
+# **VERIFIED — NO-GO**
 
-## Certification Decision
-- Governance backend functionality: **PASS**
-- Governance admin surface smoke verification: **PASS**
-- Repository-wide zero-drift certification: **WITHHELD**
+### Why NO-GO
+WP-15’s constitutional closeout requires the Enterprise Governance Engine to be the sole authority for business authorization. The current codebase still contains 9 route-local legacy authorization decisions. They are reduced, classified, and documented — but they are still authoritative.
 
-## Required Before Final WP-15 Closeout
-1. Complete repository-wide drift remediation for remaining legacy authorization paths
-2. Re-run repository-wide drift scan and update `WP15_AUTHORIZATION_DRIFT_REPORT.md`
-3. Run full frontend/browser verification after user approval
-4. Run independent end-to-end regression across governed modules
+### What Is Safe To Rely On Today
+- The converged governed surfaces tested in this run are working correctly.
+- The frontend request lifecycle no longer contains manual governed builders.
+- Existing users, passwords, sessions, and tenant mappings remained intact.
 
-## 2026-07-29 Continuity Gate Addition
-- Existing Identity Continuity is now a constitutional P0 requirement for WP-15C completion.
-- Governance convergence may not break existing usernames, existing passwords, valid accounts, legitimate portal membership, or legitimate project/role access.
-- The request-lifecycle fix for cross-portal governed reads was implemented by correcting canonical client header forwarding, not by weakening backend validation.
-- `WP15_EXISTING_IDENTITY_CONTINUITY.md` now tracks authoritative identity sources, continuity rules, and production-shaped inventory evidence.
-
-## Current Withhold Reasons
-- Repository-wide governance convergence still incomplete
-- Frontend governed-request construction still contains manual header builders outside the canonical shared path
-- Existing-user regression matrix is only partially verified so far
-
-## 2026-07-29 Shared Pattern Convergence Checkpoint
-- Normalized legacy drift reduced from `82` to `71` during the latest shared-pattern-first batch.
-- Manual governed header builders reduced from `37` to `29`.
-- Canonical request-builder adoption increased from `18.99%` to `21.13%`.
-- Category F reduced from `1` to `0`.
-- Existing-user continuity remained intact across the verified Admin, PM, Safety, HR, Dispatch, Shop, and Field Leadership login paths.
-
-## 2026-07-29 Continuous Closeout Milestone
-- Normalized legacy drift further reduced to `62`.
-- Manual governed header builders further reduced to `20`.
-- Canonical request-builder adoption increased to `18 / 65 = 27.69%`.
-- Modernized certification suite now passes: `40 passed`.
-- Existing-user continuity remains preserved after shared shop, PM, executive, and directory-hydration convergence.
+### What Must Happen For VERIFIED-GO
+1. Migrate or formally exempt the 9 residual legacy findings.
+2. Re-run the convergence scanner.
+3. Refresh the evidence package without weakening identity continuity or request-lifecycle enforcement.
