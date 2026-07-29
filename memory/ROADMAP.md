@@ -1,3 +1,15 @@
+# 2026-07-29 WP-16 Phase 2 checkpoint roadmap
+
+- **P0 Current state:** Phase 2 zero-evidence portal family pass is complete and reconciled.
+- **Must stop here:** do **not** begin Phase 3 until the user approves this checkpoint.
+- **Phase 2 completed families:** Field Leadership; Transportation Operations; Driver; Training / Guidance; Executive; Dev (to blocked-state standard).
+- **Remaining P0 after approval only:**
+  - Phase 3 — Remaining Desktop Coverage
+  - Phase 4 — Interaction & State Coverage
+  - Phase 5 — Responsive Evidence
+  - Phase 6 — Pattern Enumeration & Final Reconciliation
+- **Open accepted blockers/document-only defects:** HR 403s, Dispatch MaintainX 401, Dev login/dev hub preview-config block.
+
 # 2026-07-29 WP-16 recovery status
 
 - **P0 Immediate status:** visual recovery complete; baseline restored to `f97ab297` behavior

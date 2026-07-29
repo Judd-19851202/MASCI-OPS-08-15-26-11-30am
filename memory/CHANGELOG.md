@@ -1,3 +1,10 @@
+# 2026-07-29 — WP-16 Phase 2 zero-evidence portal checkpoint
+
+- Completed the read-only Phase 2 evidence pass for Field Leadership, Transportation Operations, Driver, Training / Guidance, Executive, and Dev.
+- Captured and reconciled 117 new Phase 2 screenshots in `/app/memory/wp16_evidence/` and updated all WP16 audit registries.
+- Documented new defect `WP16-DEF-005` for preview-blocked Dev login / Dev hub access (`DEV_ENDPOINTS_ENABLED=false`).
+- Verification: read-only frontend audit verification passed **22/22** representative checks; no blank crashes observed.
+
 # 2026-07-29 — WP15 Convergence Checkpoint
 
 - Fixed governance API 500s on `/api/admin/governance/delegations`, `/emergency-overrides`, and approval actions.

@@ -1,3 +1,42 @@
+# 2026-07-29 — WP-16 Phase 2 zero-evidence portal checkpoint
+
+## 2026-07-29 WP-16 Phase 2 checkpoint — read-only evidence expansion complete
+
+- Continued under the user-approved **ABSOLUTE READ-ONLY AUDIT DIRECTIVE**.
+- No runtime UI, backend, routing, CSS, or data-model code was modified.
+- Completed the full Phase 2 evidence pass for the zero-evidence portal families in the approved sequence:
+  - Field Leadership
+  - Transportation Operations (wrapper + child registry sections treated as one operator family)
+  - Driver
+  - Training / Guidance
+  - Executive
+  - Dev
+- New evidence was captured and copied into `/app/memory/wp16_evidence/`.
+- Audit registries updated:
+  - `/app/memory/WP16_SCREEN_REGISTRY.md`
+  - `/app/memory/WP16_ROUTE_EXERCISE_REGISTER.md`
+  - `/app/memory/WP16_COVERAGE_REGISTER.md`
+  - `/app/memory/WP16_ACTIVE_DEFECT_LOG.md`
+  - `/app/memory/WP16_NAVIGATION_TRACE_REGISTER.md`
+  - `/app/memory/WP16_STATE_COVERAGE_REGISTER.md`
+  - `/app/memory/WP16_EVIDENCE_EXPANSION_PROGRESS.md`
+- Reconciled Phase 2 checkpoint totals:
+  - **480** total route patterns
+  - **68** fully exercised
+  - **5** partially exercised
+  - **2** blocked API-failure routes retained from Phase 1
+  - **58** redirect-only routes
+  - **340** not yet exercised
+  - **133** screenshot-backed surfaces total
+- New documented defect:
+  - `WP16-DEF-005` — Dev portal blocked past login because preview config keeps `DEV_ENDPOINTS_ENABLED=false`, preventing issuance of a dev token.
+- Verification completed via read-only frontend audit verification:
+  - Phase 2 portal-family verification passed **22/22** checks
+  - invalid-token / blocked states render as expected instead of blank crashes
+- Next constitutional state:
+  - stop at Phase 2 checkpoint closeout
+  - **do not begin Phase 3** until explicit user approval
+
 # 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
 
 ## 2026-07-29 Emergency WP-16 recovery — visual baseline restored
