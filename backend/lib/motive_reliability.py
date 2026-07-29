@@ -134,8 +134,6 @@ async def motive_reliability_supervisor(db) -> None:
         f"boot_delay={BOOT_DELAY}s"
     )
 
-    await asyncio.sleep(BOOT_DELAY)
-
     tasks: dict[str, asyncio.Task] = {}
     cadence_for = {
         "events": CADENCE_EVENTS,
@@ -143,31 +141,40 @@ async def motive_reliability_supervisor(db) -> None:
         "users": CADENCE_USERS,
         "geofences": CADENCE_GEOFENCES,
     }
-    for kind, cad in cadence_for.items():
-        tasks[kind] = asyncio.create_task(_kind_loop(db, kind, cad))
+    try:
+        await asyncio.sleep(BOOT_DELAY)
 
-    # Resurrection — every 5 min check each task. Respawn if dead.
-    while True:
-        try:
-            await asyncio.sleep(300)
-            for kind, task in list(tasks.items()):
-                if task.done():
-                    exc_repr = "(no exception)"
-                    try:
-                        exc = task.exception()
-                        if exc is not None:
-                            exc_repr = repr(exc)
-                    except Exception:
-                        pass
-                    logger.critical(
-                        f"[motive-reliability] {kind} task DEAD — respawning. "
-                        f"Last state: {exc_repr}"
-                    )
-                    tasks[kind] = asyncio.create_task(_kind_loop(db, kind, cadence_for[kind]))
-        except asyncio.CancelledError:
-            raise
-        except Exception as e:  # noqa: BLE001
-            logger.exception(f"[motive-reliability] supervisor tick failed: {e}")
+        for kind, cad in cadence_for.items():
+            tasks[kind] = asyncio.create_task(_kind_loop(db, kind, cad))
+
+        # Resurrection — every 5 min check each task. Respawn if dead.
+        while True:
+            try:
+                await asyncio.sleep(300)
+                for kind, task in list(tasks.items()):
+                    if task.done():
+                        exc_repr = "(no exception)"
+                        try:
+                            exc = task.exception()
+                            if exc is not None:
+                                exc_repr = repr(exc)
+                        except Exception:
+                            pass
+                        logger.critical(
+                            f"[motive-reliability] {kind} task DEAD — respawning. "
+                            f"Last state: {exc_repr}"
+                        )
+                        tasks[kind] = asyncio.create_task(_kind_loop(db, kind, cadence_for[kind]))
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:  # noqa: BLE001
+                logger.exception(f"[motive-reliability] supervisor tick failed: {e}")
+    finally:
+        STATE["alive"] = False
+        for task in tasks.values():
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks.values(), return_exceptions=True)
 
 
 def reliability_state_snapshot() -> dict:
