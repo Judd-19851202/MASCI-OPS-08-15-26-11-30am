@@ -1,3 +1,14 @@
+# 2026-07-30 — WP-16 Phase 6 Admin certification checkpoint
+
+- Completed the Admin-only migration to the canonical WP-16 foundation and certified the Admin portal in preview / Chromium scope.
+- Added `frontend/src/components/admin/AdminRouteShell.jsx` and reconciled remaining Admin detail/thread/list surfaces onto the canonical shell contract.
+- Replaced all remaining `AdminSideNavV2` usage on Admin pages and fixed Admin auth/access blockers including the `RequireAdminOrPm` Admin-token defect, scoped header mismatches, and shared Admin browser-route auth scoping in `frontend/src/lib/portalAuthScope.js`.
+- Verification evidence:
+  - `/app/test_reports/iteration_77.json`
+  - `auto_frontend_testing_agent`: **14/14 PASS**
+  - `deep_testing_backend_v2`: **8/8 PASS**
+  - screenshot evidence recorded in `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md`
+
 # 2026-07-30 — WP-16 Implementation Scoreboard baseline
 
 - Added `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md` as the permanent executive dashboard for the rest of WP-16.

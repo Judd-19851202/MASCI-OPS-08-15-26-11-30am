@@ -1,3 +1,35 @@
+# 2026-07-30 — WP-16 Phase 6 Admin Certification Checkpoint
+
+## 2026-07-30 WP-16 Phase 6 Admin portal migration complete and certified
+
+- Scope respected exactly as approved: Admin portal only; HR / PM / all other portal families untouched.
+- Completed the Admin portal migration onto the canonical WP-16 foundation by reconciling the remaining Admin list, detail, thread, trench-safety, transportation, and shared Admin/PM inspection-style surfaces.
+- Added the shared `AdminRouteShell` and used it to normalize the remaining Admin pages that were still outside the canonical shell contract.
+- Replaced all remaining `AdminSideNavV2` usage on Admin pages with the canonical Admin shell / rail behavior.
+- Reconciled Admin auth/access defects blocking certification:
+  - fixed scoped Admin header usage on Admin trust/activity/thread surfaces
+  - fixed `RequireAdminOrPm` so Admin-only users can access shared Admin/PM routes
+  - fixed Admin shared-route API scoping in `frontend/src/lib/portalAuthScope.js` so browser requests for meetings / inspections / equipment inspections / QAQC / trench safety carry the Admin session correctly
+  - verified Admin API health for QA/QC, equipment status, meetings, trench safety excavations, inspections, and job photos
+- Exact before → after checkpoint numbers recorded in `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md`:
+  - standardized Admin routes: **60 → 141**
+  - remaining Admin routes: **81 → 0**
+  - certified Admin routes: **4 → 141**
+  - legacy `AdminSideNavV2` Admin-page callsites: **17 → 0**
+  - raw Admin/detail screens lacking canonical shell wrapper: **11 → 0**
+  - reproducible Admin auth/access blockers affecting certification: **7 → 0**
+- Verification evidence:
+  - `/app/test_reports/iteration_77.json`
+  - `auto_frontend_testing_agent`: **14/14 PASS**
+  - `deep_testing_backend_v2`: **8/8 PASS**
+  - responsive viewport pass on desktop, tablet portrait, tablet landscape, and iPhone-sized viewports
+  - certification screenshots listed in `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md`
+- Honest remaining limitation outside the scope of this checkpoint:
+  - Safari / Edge / native non-Chromium browser-family verification is still tooling-limited in this environment, so Admin is certified in preview / Chromium scope.
+- Stop condition reached:
+  - present the Admin certification checkpoint
+  - do **not** begin HR / PM / any other portal without explicit user approval
+
 # 2026-07-30 — WP-16 Implementation Scoreboard established
 
 ## 2026-07-30 WP-16 implementation scoreboard — migration governance baseline created

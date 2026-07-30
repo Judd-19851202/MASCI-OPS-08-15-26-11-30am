@@ -40,14 +40,25 @@ const SHARED_API_PREFIXES = [
   "/operations-center",
   "/employees",
   "/daily-reports",
+  "/inspections",
+  "/meetings",
+  "/equipment-inspections",
+  "/qaqc-inspections",
   "/job-photos",
   "/incidents",
+  "/trench-safety",
   "/project-health",
   "/asset-transfers",
   "/odr",
   "/operational-records",
   "/operational-intelligence/",
   "/jobs-master",
+];
+
+const ADMIN_SHARED_CROSS_PORTAL_PREFIXES = [
+  "/safety/corrective-actions",
+  "/safety/issuance",
+  "/safety/training",
 ];
 
 function normalizePath(pathname = "") {
@@ -93,6 +104,15 @@ export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   if (routePath.startsWith("/auth/me-directory")) return ["directory"];
   if (routePath.startsWith("/auth/issue-portal-token")) return ["directory"];
   if (routePath.startsWith("/auth/")) return [];
+
+  if (
+    activePortal === "admin" &&
+    ADMIN_SHARED_CROSS_PORTAL_PREFIXES.some(
+      (prefix) => routePath === prefix || routePath.startsWith(prefix)
+    )
+  ) {
+    return ["admin"];
+  }
 
   if (activePortal && SHARED_API_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(prefix))) {
     return [activePortal];
