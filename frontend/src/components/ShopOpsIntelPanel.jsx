@@ -18,6 +18,10 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
 const SHOP_INTEL_TIMEOUT_MS = 5_000;
 
 function describeShopIntelError(error) {
+  const status = Number(error?.response?.status || 0);
+  if (status === 401 || status === 403) {
+    return { code: "auth", message: "" };
+  }
   if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
     return { code: "cancelled", message: "Cancelled" };
   }
@@ -65,6 +69,7 @@ export default function ShopOpsIntelPanel({ className = "" }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [errCode, setErrCode] = useState("");
   const requestRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -73,6 +78,7 @@ export default function ShopOpsIntelPanel({ className = "" }) {
     requestRef.current = controller;
     setLoading(true);
     setErr("");
+    setErrCode("");
     try {
       const r = await api.get("/operations/intelligence/shop", {
         signal: controller.signal,
@@ -83,6 +89,7 @@ export default function ShopOpsIntelPanel({ className = "" }) {
     } catch (e) {
       const next = describeShopIntelError(e);
       if (next.code !== "cancelled") {
+        setErrCode(next.code);
         setErr(next.message);
       }
     } finally {
@@ -102,6 +109,7 @@ export default function ShopOpsIntelPanel({ className = "" }) {
       <div className="inline-flex items-center text-slate-500 text-sm"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading shop intelligence…</div>
     </div>
   );
+  if (errCode === "auth") return null;
   if (err) return (
     <div className={`bg-rose-50 border-2 border-rose-200 rounded-md p-4 text-sm text-rose-800 ${className}`} data-testid="ois-shop-panel-error">
       <div className="flex items-center justify-between gap-3">
