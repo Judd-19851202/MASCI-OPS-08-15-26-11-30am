@@ -1,3 +1,18 @@
+# 2026-07-30 WP-16 Wave 3 executive lock + Wave 4 proposal
+
+- **Current state:** Wave 3 (Admin) is **EXECUTIVE LOCKED** as read-only certification history.
+- **Authoritative lock evidence:** `/app/test_reports/iteration_81.json`
+- **Authoritative lock package:** `/app/memory/WP16_WAVE3_EXECUTIVE_REPAIR_SUMMARY.md`
+- **Deferred Process / Hardening backlog item:** add a route-context assertion for portal-switcher inputs so future shell/context mismatches fail safely before clearing a live session. **Record only; no implementation without separate authorization.**
+- **Proposed next wave only (not yet authorized):** Wave 4 — HR Certification
+  - Proposed scope basis: `26` HR route-pattern screens currently assigned in `WP16_PHASE_B_CONTROL.md`
+  - Proposed Phase 1 inventory plan:
+    - enumerate all Wave 4 HR routes from the certification register and routing map
+    - reconcile the authoritative Wave 4 denominator
+    - assign permanent `W4-XXX` identifiers without renumbering
+    - publish the authoritative Wave 4 inventory package
+  - Hard stop: do **not** begin Wave 4 inventory until explicit Executive Authorization is granted.
+
 # 2026-07-30 WP-16 Admin certification roadmap
 
 - **P0 Current state:** Admin portal migration is complete, the visual corrective repair is implemented, and the Admin checkpoint is now pending explicit user approval.

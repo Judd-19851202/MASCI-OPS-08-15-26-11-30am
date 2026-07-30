@@ -47,3 +47,4 @@ This is the authoritative Phase B issue ledger. No repair is valid unless the is
 ## Change-control note
 - Foundation changes are frozen unless root-cause analysis proves a shared defect across multiple pages.
 - Every future repair must reference this punch list before code changes are made.
+- Wave 3 was **EXECUTIVE LOCKED** on `2026-07-30`. Wave 3 entries above are now read-only certification history unless reopened through documented regression / change control.
