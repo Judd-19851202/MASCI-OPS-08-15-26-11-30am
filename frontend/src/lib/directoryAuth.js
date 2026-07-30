@@ -40,6 +40,15 @@ function readDirectoryTokenFromStorage() {
   }
 }
 
+function readDirectoryTokenWithRetry() {
+  const attempts = 3;
+  for (let i = 0; i < attempts; i += 1) {
+    const stored = readDirectoryTokenFromStorage();
+    if (stored) return stored;
+  }
+  return "";
+}
+
 function storageForDirectory() {
   try {
     if (typeof window === "undefined") return null;
@@ -53,7 +62,7 @@ function storageForDirectory() {
 
 export function getDirectoryToken() {
   try {
-    const stored = readDirectoryTokenFromStorage();
+    const stored = readDirectoryTokenWithRetry();
     if (stored) {
       cacheDirectoryToken(stored);
       return stored;
@@ -215,7 +224,7 @@ export function landingFor(user) {
 
 try {
   if (typeof window !== "undefined") {
-    const bootToken = readDirectoryTokenFromStorage();
+    const bootToken = readDirectoryTokenWithRetry();
     if (bootToken) cacheDirectoryToken(bootToken);
   }
 } catch {

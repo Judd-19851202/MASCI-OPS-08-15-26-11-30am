@@ -27,7 +27,9 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import BackLink from "@/components/BackLink";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { PortalShell } from "@/design-system";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
+const API_BASE = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, "");
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
 
 export default function FieldLeadershipRecords() {
@@ -76,11 +78,22 @@ export default function FieldLeadershipRecords() {
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
       if (q) params.q = q;
-      const r = await api.get("/field-leadership", { params });
-      setItems(r.data?.items || []);
-      setCounts(r.data?.counts_by_kind || {});
+      if (adminRoute) {
+        const query = new URLSearchParams(params).toString();
+        const response = await fetch(`${API_BASE}/api/field-leadership${query ? `?${query}` : ""}`, {
+          headers: buildWave3AdminHeaders(),
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body?.detail || t("Could not load records"));
+        setItems(body?.items || []);
+        setCounts(body?.counts_by_kind || {});
+      } else {
+        const r = await api.get("/field-leadership", { params });
+        setItems(r.data?.items || []);
+        setCounts(r.data?.counts_by_kind || {});
+      }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || t("Could not load records"));
+      toast.error(err?.response?.data?.detail || err?.message || t("Could not load records"));
     } finally {
       setLoading(false);
     }
@@ -103,8 +116,14 @@ export default function FieldLeadershipRecords() {
 
   const downloadPdf = async (id) => {
     try {
-      const r = await api.get(`/field-leadership/${id}/pdf`, { responseType: "blob" });
-      const url = URL.createObjectURL(new Blob([r.data], { type: "application/pdf" }));
+      const response = adminRoute
+        ? await fetch(`${API_BASE}/api/field-leadership/${id}/pdf`, { headers: buildWave3AdminHeaders() })
+        : await api.get(`/field-leadership/${id}/pdf`, { responseType: "blob" });
+      const blob = adminRoute
+        ? await response.blob()
+        : new Blob([response.data], { type: "application/pdf" });
+      if (adminRoute && !response.ok) throw new Error(t("Could not open PDF"));
+      const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
       setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch (err) {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Wrench, AlertOctagon, ChevronDown, ChevronRight, Clock, CheckCircle2, Siren } from "lucide-react";
 import { api } from "@/lib/api";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
 const formatDaysAgo = (n) => {
   if (n === null || n === undefined) return "Never";
@@ -69,12 +70,15 @@ export default function EquipmentStatusBoard() {
   const [filter, setFilter] = useState("all"); // all | fail | overdue
   // TRACK 19.16 · Closeout · unit_number → [incident summary rows].
   const [incidentMap, setIncidentMap] = useState({});
+  const adminHeaders = typeof window !== "undefined" && window.location.pathname.startsWith("/admin/")
+    ? { headers: buildWave3AdminHeaders() }
+    : {};
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const r = await api.get("/equipment-status-board");
+        const r = await api.get("/equipment-status-board", adminHeaders);
         if (alive) setData(r.data);
       } catch {
         /* silently fail — admin sees the standard load state */
@@ -84,7 +88,7 @@ export default function EquipmentStatusBoard() {
       // Read-only cross-link. Silent-fail so the Board still renders
       // even if the engine endpoint is temporarily unreachable.
       try {
-        const r = await api.get("/equipment-status-board/incidents-by-unit");
+        const r = await api.get("/equipment-status-board/incidents-by-unit", adminHeaders);
         if (alive && r?.data?.by_unit) setIncidentMap(r.data.by_unit);
       } catch {
         /* ignore */

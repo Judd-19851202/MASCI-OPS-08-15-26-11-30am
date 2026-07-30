@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
 // ── Module display metadata ─────────────────────────────────────────
 const MODULE_META = [
@@ -152,7 +153,8 @@ export default function AdminAIConfiguration() {
     setHealthLoading(true);
     try {
       const url = opts.force ? "/ai/health/refresh" : "/ai/health";
-      const { data } = opts.force ? await api.post(url) : await api.get(url);
+      const auth = { headers: buildWave3AdminHeaders() };
+      const { data } = opts.force ? await api.post(url, undefined, auth) : await api.get(url, auth);
       setHealth(data);
     } catch (e) {
       setHealth({ error: operationalError(e, "Failed to load AI health") });

@@ -22,9 +22,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PortalShell } from "@/design-system";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -87,6 +89,9 @@ export default function JhaPlansAdmin() {
   // the authenticated endpoint with full upload capability.
   const isSafetyContext = typeof window !== "undefined"
     && window.location.pathname.startsWith("/safety-portal/");
+  const adminRoute = typeof window !== "undefined"
+    && window.location.pathname.startsWith("/admin/");
+  const adminAuth = adminRoute ? { headers: buildWave3AdminHeaders() } : undefined;
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -94,8 +99,8 @@ export default function JhaPlansAdmin() {
       const [r, j] = await Promise.all([
         isSafetyContext
           ? api.get("/job-hazard-files/public/grouped").then((res) => ({ data: { projects: res.data } }))
-          : api.get("/job-hazard-files"),
-        api.get("/jobs").catch(() => ({ data: { items: [] } })),
+          : api.get("/job-hazard-files", adminAuth),
+        api.get("/jobs", adminAuth).catch(() => ({ data: { items: [] } })),
       ]);
       setGroups(r.data?.projects || []);
       setJobs(j.data?.items || []);
@@ -222,13 +227,7 @@ export default function JhaPlansAdmin() {
   const downloadHref = (id) =>
     `${REACT_APP_BACKEND_URL}/api/job-hazard-files/${id}/download`;
 
-  return (
-    <PortalShell
-      portalName="MASCI" portalRole="Safety Portal · Job Hazard Library"
-      pageTitle="JHP Plans & Files"
-      subtitle="Project hazard plans · attached files"
-      sideNav={<SafetySideNavV2 />}
-    >
+  const content = (
     <main className="min-h-screen">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
         <div className="flex items-center gap-3">
@@ -447,6 +446,32 @@ export default function JhaPlansAdmin() {
         )}
       </section>
     </main>
+  );
+
+  if (adminRoute) {
+    return (
+      <LegacyAdminModernShell
+        title="JHP Plans & Files"
+        subtitle="Project hazard plans · attached files"
+        breadcrumb={[
+          { label: "Safety & Compliance", to: "/admin" },
+          { label: "JHA / JHP Plans" },
+        ]}
+        testidPrefix="admin-jha-plans"
+      >
+        {content}
+      </LegacyAdminModernShell>
+    );
+  }
+
+  return (
+    <PortalShell
+      portalName="MASCI" portalRole="Safety Portal · Job Hazard Library"
+      pageTitle="JHP Plans & Files"
+      subtitle="Project hazard plans · attached files"
+      sideNav={<SafetySideNavV2 />}
+    >
+      {content}
     </PortalShell>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Mail, ChevronDown, ChevronRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
 export default function AutoEmailRoutingPanel() {
   const [data, setData] = useState(null);
@@ -11,7 +12,7 @@ export default function AutoEmailRoutingPanel() {
     let alive = true;
     (async () => {
       try {
-        const r = await api.get("/auto-email/routing-table");
+        const r = await api.get("/auto-email/routing-table", { headers: buildWave3AdminHeaders() });
         if (alive) setData(r.data);
       } catch {
         /* silently fail — admin sees the standard load state */

@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { ClipboardCheck, FileText, User, Loader2, RefreshCw } from "lucide-react";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -36,7 +37,7 @@ export default function AdminJhaAcknowledgements() {
   const loadSummary = useCallback(async () => {
     setLoadingSummary(true);
     try {
-      const r = await api.get("/jha-acknowledgements/compliance");
+      const r = await api.get("/jha-acknowledgements/compliance", { headers: buildWave3AdminHeaders() });
       setSummary(r.data || null);
     } catch {
       setSummary(null);
@@ -55,7 +56,8 @@ export default function AdminJhaAcknowledgements() {
     setProjectLoading(true);
     try {
       const r = await api.get(
-        `/jha-acknowledgements/by-project/${encodeURIComponent(clean)}`
+        `/jha-acknowledgements/by-project/${encodeURIComponent(clean)}`,
+        { headers: buildWave3AdminHeaders() },
       );
       setProjectView(r.data || null);
     } catch {
@@ -71,7 +73,8 @@ export default function AdminJhaAcknowledgements() {
     setEmployeeLoading(true);
     try {
       const r = await api.get(
-        `/jha-acknowledgements/by-employee/${encodeURIComponent(clean)}`
+        `/jha-acknowledgements/by-employee/${encodeURIComponent(clean)}`,
+        { headers: buildWave3AdminHeaders() },
       );
       setEmployeeView(r.data || null);
     } catch {

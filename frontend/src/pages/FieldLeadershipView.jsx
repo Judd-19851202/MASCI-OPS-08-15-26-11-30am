@@ -21,6 +21,9 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+
+const API_BASE = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, "");
 
 function humanizeDetailKey(key) {
   return String(key || "")
@@ -79,9 +82,17 @@ export default function FieldLeadershipView() {
       navigate("/leadership", { replace: true });
       return;
     }
-    api.get(`/field-leadership/${id}`)
-      .then((r) => setRec(r.data))
-      .catch((err) => toast.error(err?.response?.data?.detail || t("Could not load record")))
+    const loadRecord = adminMode
+      ? fetch(`${API_BASE}/api/field-leadership/${id}`, { headers: buildWave3AdminHeaders() })
+          .then(async (response) => {
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(body?.detail || t("Could not load record"));
+            return body;
+          })
+      : api.get(`/field-leadership/${id}`).then((r) => r.data);
+    loadRecord
+      .then((data) => setRec(data))
+      .catch((err) => toast.error(err?.response?.data?.detail || err?.message || t("Could not load record")))
       .finally(() => setLoading(false));
      
   }, [id, navigate, t]);
@@ -94,8 +105,14 @@ export default function FieldLeadershipView() {
 
   const downloadPdf = async () => {
     try {
-      const r = await api.get(`/field-leadership/${id}/pdf`, { responseType: "blob" });
-      const url = URL.createObjectURL(new Blob([r.data], { type: "application/pdf" }));
+      const response = adminMode
+        ? await fetch(`${API_BASE}/api/field-leadership/${id}/pdf`, { headers: buildWave3AdminHeaders() })
+        : await api.get(`/field-leadership/${id}/pdf`, { responseType: "blob" });
+      const blob = adminMode
+        ? await response.blob()
+        : new Blob([response.data], { type: "application/pdf" });
+      if (adminMode && !response.ok) throw new Error(t("Could not open PDF"));
+      const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
       setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch {

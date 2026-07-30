@@ -18,6 +18,9 @@ import { toast } from "sonner";
 import { Upload, FileText, CheckCircle2, XCircle, Eye, Clock, AlertTriangle, ShieldAlert, Users, Wrench, Briefcase, Copy, ExternalLink, RotateCw } from "lucide-react";
 import { api } from "@/lib/api";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+
+const adminAuth = () => ({ headers: buildWave3AdminHeaders() });
 
 const DOCUMENT_TYPES = [
   "equipment_checkout", "training_record", "osha_card", "toolbox_talk",
@@ -48,7 +51,7 @@ export default function AdminLegacyImports() {
 
   const loadMeta = async () => {
     try {
-      const { data } = await api.get("/legacy-imports/_meta");
+      const { data } = await api.get("/legacy-imports/_meta", adminAuth());
       setMeta(data);
     } catch (e) {
       toast.error(friendlyError(e, "Could not load meta"));
@@ -59,7 +62,7 @@ export default function AdminLegacyImports() {
     setLoading(true);
     try {
       const q = filter === "all" ? "" : `?status=${filter}`;
-      const { data } = await api.get(`/legacy-imports${q}`);
+      const { data } = await api.get(`/legacy-imports${q}`, adminAuth());
       setItems(data.items || []);
     } catch (e) {
       toast.error(friendlyError(e, "Could not load imports"));
@@ -197,7 +200,7 @@ function UploadCard({ meta, onUploaded }) {
       fd.append("document_type", docType);
       if (batchId.trim()) fd.append("batch_id", batchId.trim());
       const { data } = await api.post("/legacy-imports/upload", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: buildWave3AdminHeaders({ "Content-Type": "multipart/form-data" }),
       });
       if (data.duplicate_of) {
         toast.warning(`Already uploaded · returning existing row ${data.duplicate_of.slice(0, 8)}`);

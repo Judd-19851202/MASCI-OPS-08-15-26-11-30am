@@ -7,6 +7,7 @@ import { initSentryIfConfigured } from "@/lib/sentryInit";
 import { installPortalFetchAuth } from "@/lib/fetchPortalAuth";
 import { installPortalAxiosAuth } from "@/lib/axiosPortalAuth";
 import { installPortalXhrAuth } from "@/lib/xhrPortalAuth";
+import { getDirectoryToken } from "@/lib/directoryAuth";
 
 // TRACK 15.39A · Suppress the benign "ResizeObserver loop completed with
 // undelivered notifications" warning that Radix primitives (Select, Sheet,
@@ -18,6 +19,7 @@ if (typeof window !== "undefined") {
   installPortalFetchAuth();
   installPortalAxiosAuth();
   installPortalXhrAuth();
+  getDirectoryToken();
   const swallowResizeObserverLoop = (event) => {
     const msg = (event && (event.message || event.reason?.message)) || "";
     if (

@@ -16,6 +16,7 @@ import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
 const PRIMARY_KEYS = [
   "pm", "superintendent", "foreman",
@@ -53,7 +54,10 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
       setData((d) => ({ ...d, loaded: false }));
       setErr(null);
     });
-    api.get("/project-staffing/summary?limit=300")
+    api.get(
+      "/project-staffing/summary?limit=300",
+      scope === "admin" ? { headers: buildWave3AdminHeaders() } : undefined,
+    )
       .then((response) => {
         const body = response.data || {};
         if (cancelled) return;
