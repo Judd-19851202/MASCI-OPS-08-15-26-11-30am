@@ -1,3 +1,28 @@
+# 2026-07-30 — WP-16 Wave 6 inventory & operational reconciliation complete
+
+## 2026-07-30 Executive dashboard — current program truth
+
+- **Current Wave:** `6`
+- **Current Wave 6 status:** `INVENTORY & OPERATIONAL RECONCILIATION COMPLETE — awaiting inspection authorization`
+- **Waves Locked:** `4`
+- **Waves Remaining:** `10`
+- **Program Completion (%):** `89.7%` (`315 / 351` against the current authoritative denominator after adding the Wave 6 Dispatch & Transportation baseline)
+- **Wave 6 denominator:** `10`
+- **Wave 6 scope:** `Dispatch & Transportation`
+- **Open Wave 6 issues:** `0` (inventory-only phase; no new runtime defect was opened)
+- **Inventory package:** `WP16_WAVE6_INVENTORY_AND_RECONCILIATION.md`
+- **Current wave ledger:**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | REPAIR PASS COMPLETE — PENDING EXECUTIVE LOCK | `26 / 26` verified after repairs. |
+| Wave 5 | Safety Certification | EXECUTIVE LOCKED | Authorized Wave 5 scope is closed and must not be reopened without new Executive authorization. |
+| Wave 6 | Dispatch & Transportation | INVENTORY COMPLETE — AWAITING INSPECTION AUTHORIZATION | Canonical denominator: `10`. Inventory package: `WP16_WAVE6_INVENTORY_AND_RECONCILIATION.md`. |
+| Waves 7–16 | Remaining portal families | NOT STARTED | No further work authorized in this phase. |
+
 # 2026-07-30 — WP-16 Wave 5 authorized repair pass complete
 
 ## 2026-07-30 Executive dashboard — current program truth
