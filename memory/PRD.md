@@ -1,5 +1,34 @@
 # 2026-07-30 — WP-16 Phase B Wave 1 inspection baseline (no repairs started)
 
+## 2026-07-30 Wave 1 repair + approval-evidence pass complete
+
+- Completed Wave 1 completeness reconciliation and recorded proof in `WP16_WAVE1_COMPLETENESS_RECONCILIATION.md`.
+- Repaired Wave 1 defects one at a time, with immediate verification and ledger updates after each verified fix.
+- Wave 1 defect ledger status:
+  - opened: `9`
+  - still open: `0`
+- Repaired + verified issues:
+  - `WP16-W1-001` `/change-password` shell drift
+  - `WP16-W1-002` `/field-leadership/portal/change-password` shell drift
+  - `WP16-W1-003` `/safety/forms/login` remember-me wipe
+  - `WP16-W1-004` `/safety-portal/forgot-password` preview token exposure in UI
+  - `WP16-W1-005` `/dispatch-portal/forgot-password` preview token exposure in UI
+  - `WP16-W1-006` Field Leadership failed-login admin-session wipe
+  - `WP16-W1-007` `/dev/login` disabled-state truthfulness in preview
+  - `WP16-W1-008` `/admin/login` existing-session redirect path
+  - `WP16-W1-009` `/hr/forgot` register control gap
+- Additional evidence gathered after repairs:
+  - independent frontend verification passed for all 9 targeted repaired behaviors
+  - independent backend verification passed for 10/10 auth checks
+  - live-token reset flows verified end-to-end for PM, HR, Shop, Safety, and Dispatch reset routes
+- New supporting artifact:
+  - `WP16_WAVE1_APPROVAL_EVIDENCE.md`
+- Current truth:
+  - Wave 1 has no unresolved punch-list defects.
+  - Certification evidence now supports approval review.
+  - Executive approval remains the final gate; Wave 1 is not auto-certified here.
+  - No Wave 2 work started.
+
 ## 2026-07-30 Wave 1 Public Pages & Authentication inspection complete — pending punch-list approval
 
 - User approved **Option C**: inspect only, collect evidence, update the live punch list and certification register, then stop before repairs.
