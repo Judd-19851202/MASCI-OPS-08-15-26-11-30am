@@ -860,6 +860,7 @@ export function AppRoutes() {
                 underlying components are unchanged — they accept admin
                 tokens via their own gates. */}
             <Route path="/admin/qaqc/:id" element={AP(<ViewQaqcInspection />)} />
+            <Route path="/admin/leadership/records" element={AP(<FieldLeadershipRecords />)} />
             <Route path="/admin/leadership/records/:id" element={AP(<FieldLeadershipView />)} />
             <Route path="/admin/safety/issuance/:id" element={AP(<ViewSafetyForm kind="issuance" />)} />
             <Route path="/admin/safety/training/:id" element={AP(<ViewSafetyForm kind="training" />)} />

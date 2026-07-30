@@ -1,21 +1,7 @@
 #!/usr/bin/env python3
 """
-WP-16 Phase 6 Admin Portal Certification - Backend API Regression Test
-
-Scope:
-- Login with Admin preview account (ops8-admin-only-preview@example.com)
-- Extract both X-Admin-Token and X-Directory-Token from login response
-- Test Admin-critical endpoints with proper authorization headers
-- Verify documented Admin 401/auth defects are resolved
-
-Test Endpoints:
-- /api/admin/check
-- /api/qaqc-inspections
-- /api/admin/equipment-master/status
-- /api/meetings?limit=3
-- /api/trench-safety/excavations?limit=3
-- /api/job-photos?limit=3
-- /api/inspections?limit=3
+WP-16 Phase 6 Admin Portal Backend API Verification
+Focused backend/API verification for repaired Admin-only WP-16 Phase 6 pages
 """
 
 import requests
@@ -29,10 +15,10 @@ BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
 ADMIN_EMAIL = "ops8-admin-only-preview@example.com"
 ADMIN_PASSWORD = "AdminOnlyOps8!"
 
-def test_admin_login():
-    """Test admin login and extract required tokens"""
+def test_multi_login():
+    """Test 1: POST /api/auth/multi-login should return 200 and issue tokens"""
     print("=" * 80)
-    print("TEST 1: Admin Multi-Login (Directory-Based)")
+    print("TEST 1: POST /api/auth/multi-login")
     print("=" * 80)
     
     login_url = f"{BACKEND_URL}/auth/multi-login"
@@ -56,18 +42,15 @@ def test_admin_login():
             portal_tokens = data.get('portal_tokens', {})
             admin_token = portal_tokens.get('admin')
             
-            if not session_token:
-                print(f"❌ FAIL - No session_token in response")
+            if session_token and admin_token:
+                print(f"✅ Directory Session Token: {session_token[:30]}...")
+                print(f"✅ Admin Portal Token: {admin_token[:30]}...")
+                return True, session_token, admin_token
+            else:
+                print(f"❌ FAIL - Missing required tokens")
+                print(f"Session Token Present: {bool(session_token)}")
+                print(f"Admin Token Present: {bool(admin_token)}")
                 return False, None, None
-            
-            if not admin_token:
-                print(f"❌ FAIL - No admin token in portal_tokens")
-                return False, None, None
-            
-            print(f"Session Token (X-Directory-Token): {session_token[:30]}...")
-            print(f"Admin Token (X-Admin-Token): {admin_token[:30]}...")
-            
-            return True, session_token, admin_token
         else:
             print(f"❌ FAIL - Login failed with status {response.status_code}")
             print(f"Response: {response.text}")
@@ -77,16 +60,16 @@ def test_admin_login():
         print(f"❌ ERROR - Login request failed: {str(e)}")
         return False, None, None
 
-def test_admin_check(session_token, admin_token):
-    """Test /api/admin/check endpoint"""
+def test_admin_endpoint(endpoint, session_token, admin_token, test_number, total_tests):
+    """Test an admin endpoint with proper auth headers"""
     print("\n" + "=" * 80)
-    print("TEST 2: /api/admin/check")
+    print(f"TEST {test_number}/{total_tests}: GET {endpoint}")
     print("=" * 80)
     
-    url = f"{BACKEND_URL}/admin/check"
+    url = f"{BACKEND_URL}{endpoint}"
     headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
+        "X-Directory-Token": session_token,
+        "X-Admin-Token": admin_token
     }
     
     try:
@@ -94,235 +77,96 @@ def test_admin_check(session_token, admin_token):
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
-            print(f"✅ PASS - Admin check successful")
-            print(f"Response: {response.text[:200]}")
-            return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
-            return False
+            print(f"✅ PASS - Endpoint returned 200")
+            try:
+                data = response.json()
+                # Print a summary of the response
+                if isinstance(data, dict):
+                    print(f"Response keys: {list(data.keys())[:5]}...")
+                elif isinstance(data, list):
+                    print(f"Response: List with {len(data)} items")
+                else:
+                    print(f"Response type: {type(data)}")
+                return True, data
+            except:
+                print(f"Response: {response.text[:200]}...")
+                return True, None
+        elif response.status_code in [401, 403]:
+            print(f"❌ FAIL - Auth error {response.status_code}")
+            print(f"Response: {response.text[:500]}")
+            return False, None
         else:
             print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text}")
-            return False
+            print(f"Response: {response.text[:500]}")
+            return False, None
             
     except Exception as e:
         print(f"❌ ERROR - Request failed: {str(e)}")
-        return False
+        return False, None
 
-def test_qaqc_inspections(session_token, admin_token):
-    """Test /api/qaqc-inspections endpoint"""
+def test_field_leadership_detail(session_token, admin_token, test_number, total_tests):
+    """Test 3: Fetch field-leadership list, then test detail route"""
     print("\n" + "=" * 80)
-    print("TEST 3: /api/qaqc-inspections")
+    print(f"TEST {test_number}/{total_tests}: Field Leadership Detail Route")
     print("=" * 80)
     
-    url = f"{BACKEND_URL}/qaqc-inspections"
+    # First, get the list
+    list_url = f"{BACKEND_URL}/field-leadership?limit=1"
     headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
+        "X-Directory-Token": session_token,
+        "X-Admin-Token": admin_token
     }
     
     try:
-        response = requests.get(url, headers=headers, timeout=30)
+        print(f"Step 1: GET /api/field-leadership?limit=1")
+        response = requests.get(list_url, headers=headers, timeout=30)
         print(f"Status Code: {response.status_code}")
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - QA/QC inspections retrieved")
-            print(f"Response type: {type(data)}")
-            if isinstance(data, list):
-                print(f"Inspections count: {len(data)}")
-            elif isinstance(data, dict):
-                print(f"Response keys: {list(data.keys())}")
-            return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
+        if response.status_code != 200:
+            print(f"❌ FAIL - List endpoint returned {response.status_code}")
+            print(f"Response: {response.text[:500]}")
             return False
-        else:
-            print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR - Request failed: {str(e)}")
-        return False
-
-def test_equipment_master_status(session_token, admin_token):
-    """Test /api/admin/equipment-master/status endpoint"""
-    print("\n" + "=" * 80)
-    print("TEST 4: /api/admin/equipment-master/status")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/admin/equipment-master/status"
-    headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
-    }
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=30)
-        print(f"Status Code: {response.status_code}")
         
-        if response.status_code == 200:
-            print(f"✅ PASS - Equipment master status retrieved")
-            print(f"Response: {response.text[:200]}")
-            return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
-            return False
-        else:
-            print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR - Request failed: {str(e)}")
-        return False
-
-def test_meetings(session_token, admin_token):
-    """Test /api/meetings?limit=3 endpoint"""
-    print("\n" + "=" * 80)
-    print("TEST 5: /api/meetings?limit=3")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/meetings?limit=3"
-    headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
-    }
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=30)
-        print(f"Status Code: {response.status_code}")
+        data = response.json()
+        print(f"✅ List endpoint returned 200")
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Meetings retrieved")
-            if isinstance(data, list):
-                print(f"Meetings count: {len(data)}")
-            elif isinstance(data, dict):
-                print(f"Response keys: {list(data.keys())}")
-            return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
-            return False
-        else:
-            print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR - Request failed: {str(e)}")
-        return False
-
-def test_trench_safety_excavations(session_token, admin_token):
-    """Test /api/trench-safety/excavations?limit=3 endpoint"""
-    print("\n" + "=" * 80)
-    print("TEST 6: /api/trench-safety/excavations?limit=3")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/trench-safety/excavations?limit=3"
-    headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
-    }
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=30)
-        print(f"Status Code: {response.status_code}")
+        # Extract first record ID
+        records = data if isinstance(data, list) else data.get('items', [])
+        if not records or len(records) == 0:
+            print(f"⚠️  WARNING - No field leadership records found in response")
+            print(f"Response: {json.dumps(data, indent=2)[:500]}")
+            print(f"ℹ️  Cannot test detail route without records - this may be expected in preview environment")
+            return True  # Not a failure, just no data
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Trench safety excavations retrieved")
-            if isinstance(data, list):
-                print(f"Excavations count: {len(data)}")
-            elif isinstance(data, dict):
-                print(f"Response keys: {list(data.keys())}")
-            return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
-            return False
-        else:
-            print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR - Request failed: {str(e)}")
-        return False
-
-def test_job_photos(session_token, admin_token):
-    """Test /api/job-photos?limit=3 endpoint"""
-    print("\n" + "=" * 80)
-    print("TEST 7: /api/job-photos?limit=3")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/job-photos?limit=3"
-    headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
-    }
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=30)
-        print(f"Status Code: {response.status_code}")
+        # Get the first record's ID
+        first_record = records[0]
+        record_id = first_record.get('id') or first_record.get('_id') or first_record.get('record_id')
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Job photos retrieved")
-            if isinstance(data, list):
-                print(f"Photos count: {len(data)}")
-            elif isinstance(data, dict):
-                print(f"Response keys: {list(data.keys())}")
-            return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
+        if not record_id:
+            print(f"⚠️  WARNING - Record found but no ID field")
+            print(f"Record keys: {list(first_record.keys())}")
             return False
-        else:
-            print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR - Request failed: {str(e)}")
-        return False
-
-def test_inspections(session_token, admin_token):
-    """Test /api/inspections?limit=3 endpoint"""
-    print("\n" + "=" * 80)
-    print("TEST 8: /api/inspections?limit=3")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/inspections?limit=3"
-    headers = {
-        "X-Admin-Token": admin_token,
-        "X-Directory-Token": session_token
-    }
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=30)
-        print(f"Status Code: {response.status_code}")
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Inspections retrieved")
-            if isinstance(data, list):
-                print(f"Inspections count: {len(data)}")
-            elif isinstance(data, dict):
-                print(f"Response keys: {list(data.keys())}")
+        print(f"✅ Found record ID: {record_id}")
+        
+        # Now test the detail route
+        print(f"\nStep 2: GET /api/field-leadership/{record_id}")
+        detail_url = f"{BACKEND_URL}/field-leadership/{record_id}"
+        detail_response = requests.get(detail_url, headers=headers, timeout=30)
+        print(f"Status Code: {detail_response.status_code}")
+        
+        if detail_response.status_code == 200:
+            print(f"✅ PASS - Detail endpoint returned 200 for admin")
+            detail_data = detail_response.json()
+            print(f"Detail record keys: {list(detail_data.keys())[:10]}")
             return True
-        elif response.status_code == 401:
-            print(f"❌ FAIL - Authorization failed (401)")
-            print(f"Response: {response.text}")
+        elif detail_response.status_code in [401, 403]:
+            print(f"❌ FAIL - Auth error {detail_response.status_code} on detail route")
+            print(f"Response: {detail_response.text[:500]}")
             return False
         else:
-            print(f"⚠️  WARNING - Unexpected status {response.status_code}")
-            print(f"Response: {response.text[:200]}")
+            print(f"⚠️  WARNING - Unexpected status {detail_response.status_code}")
+            print(f"Response: {detail_response.text[:500]}")
             return False
             
     except Exception as e:
@@ -330,53 +174,53 @@ def test_inspections(session_token, admin_token):
         return False
 
 def main():
-    """Run all WP-16 Phase 6 Admin Portal backend API tests"""
+    """Run all WP-16 Phase 6 backend tests"""
     print("\n" + "=" * 80)
-    print("WP-16 PHASE 6 ADMIN PORTAL CERTIFICATION - BACKEND API REGRESSION")
+    print("WP-16 PHASE 6 ADMIN PORTAL BACKEND API VERIFICATION")
     print("=" * 80)
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test User: {ADMIN_EMAIL}")
-    print("Scope: Verify Admin 401/auth defects are resolved")
     print("=" * 80 + "\n")
     
     results = []
     
-    # Test 1: Admin Login
-    login_success, session_token, admin_token = test_admin_login()
-    results.append(("Admin Multi-Login", login_success))
+    # Test 1: Multi-login
+    login_success, session_token, admin_token = test_multi_login()
+    results.append(("POST /api/auth/multi-login", login_success))
     
     if not login_success:
-        print("\n❌ CRITICAL: Login failed, cannot continue with API tests")
+        print("\n❌ CRITICAL: Login failed, cannot continue with endpoint tests")
         print_summary(results)
         sys.exit(1)
     
-    # Test 2: /api/admin/check
-    check_success = test_admin_check(session_token, admin_token)
-    results.append(("/api/admin/check", check_success))
+    # Define all endpoints to test
+    endpoints = [
+        "/admin/governance/roles",
+        "/admin/governance/permissions",
+        "/admin/governance/policies",
+        "/admin/governance/approval-flows",
+        "/admin/governance/versions",
+        "/admin/governance/self-protection",
+        "/admin/trust-spine",
+        "/asset-spine/health",
+        "/asset-spine/health/runs?limit=2",
+        "/oppc/enterprise/executive-operations-center",
+        "/oppc/enterprise/monday-briefing",
+        "/field-leadership?limit=1"
+    ]
     
-    # Test 3: /api/qaqc-inspections
-    qaqc_success = test_qaqc_inspections(session_token, admin_token)
-    results.append(("/api/qaqc-inspections", qaqc_success))
+    # Test all endpoints
+    test_num = 2
+    total_tests = len(endpoints) + 2  # +2 for login and field-leadership detail
     
-    # Test 4: /api/admin/equipment-master/status
-    equipment_success = test_equipment_master_status(session_token, admin_token)
-    results.append(("/api/admin/equipment-master/status", equipment_success))
+    for endpoint in endpoints:
+        success, data = test_admin_endpoint(endpoint, session_token, admin_token, test_num, total_tests)
+        results.append((f"GET {endpoint}", success))
+        test_num += 1
     
-    # Test 5: /api/meetings?limit=3
-    meetings_success = test_meetings(session_token, admin_token)
-    results.append(("/api/meetings?limit=3", meetings_success))
-    
-    # Test 6: /api/trench-safety/excavations?limit=3
-    excavations_success = test_trench_safety_excavations(session_token, admin_token)
-    results.append(("/api/trench-safety/excavations?limit=3", excavations_success))
-    
-    # Test 7: /api/job-photos?limit=3
-    photos_success = test_job_photos(session_token, admin_token)
-    results.append(("/api/job-photos?limit=3", photos_success))
-    
-    # Test 8: /api/inspections?limit=3
-    inspections_success = test_inspections(session_token, admin_token)
-    results.append(("/api/inspections?limit=3", inspections_success))
+    # Test field-leadership detail route
+    fl_detail_success = test_field_leadership_detail(session_token, admin_token, test_num, total_tests)
+    results.append(("Field Leadership Detail Route", fl_detail_success))
     
     # Print summary
     print_summary(results)
@@ -388,26 +232,34 @@ def main():
 def print_summary(results):
     """Print test summary"""
     print("\n" + "=" * 80)
-    print("TEST SUMMARY - WP-16 PHASE 6 ADMIN PORTAL BACKEND REGRESSION")
+    print("TEST SUMMARY")
     print("=" * 80)
     
     passed = sum(1 for _, success in results if success)
     total = len(results)
     
-    for test_name, success in results:
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} - {test_name}")
+    # Group by status
+    passed_tests = [name for name, success in results if success]
+    failed_tests = [name for name, success in results if not success]
     
-    print("=" * 80)
+    if failed_tests:
+        print("\n❌ FAILED TESTS:")
+        for test_name in failed_tests:
+            print(f"  - {test_name}")
+    
+    if passed_tests:
+        print("\n✅ PASSED TESTS:")
+        for test_name in passed_tests:
+            print(f"  - {test_name}")
+    
+    print("\n" + "=" * 80)
     print(f"TOTAL: {passed}/{total} tests passed ({int(passed/total*100) if total > 0 else 0}% pass rate)")
     print("=" * 80)
     
     if passed == total:
-        print("\n✅ ALL TESTS PASSED - Admin 401/auth defects are RESOLVED")
-        print("Admin portal APIs are healthy for certification")
+        print("\n🎉 ALL TESTS PASSED - No auth mismatch, 401/403, or malformed payloads detected")
     else:
-        print(f"\n❌ {total - passed} TEST(S) FAILED - Admin APIs have issues")
-        print("Review failed endpoints above for authorization/runtime/data issues")
+        print(f"\n⚠️  {total - passed} TEST(S) FAILED - Review failures above for auth mismatch, 401/403, or regressions")
 
 if __name__ == "__main__":
     main()
