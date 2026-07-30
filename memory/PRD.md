@@ -1,3 +1,42 @@
+# 2026-07-30 — WP-16 Phase B Wave 2 7-Gate inspection complete
+
+## 2026-07-30 Wave 2 inspection complete — pending repair authorization
+
+- Completed the executive-authorized Wave 2 7-Gate inspection across the approved denominator of **99** items.
+- Inspection artifacts created / updated:
+  - `/app/memory/WP16_WAVE2_7_GATE_INSPECTION.md`
+  - `/app/memory/WP16_LIVE_PUNCH_LIST.md`
+  - `/app/memory/WP16_CERTIFICATION_REGISTER.csv`
+- Final inspected denominator:
+  - **30 / 30** route/home/dashboard surfaces inspected
+  - **47 / 47** embedded widget/section clusters inspected
+  - **22 / 22** shared navigation/state/access foundations inspected
+- Wave 2 issue summary opened during inspection:
+  - **High:** `2`
+  - **Medium:** `2`
+  - **Low:** `1`
+- Confirmed Wave 2 issue IDs:
+  - `WP16-W2-001` shared OI strip is admin-scoped on HR/Safety/Shop portal homes
+  - `WP16-W2-002` `/pm` root lands outside Wave 2 at `/pm/command-center`
+  - `WP16-W2-003` Admin OS posture strip shows live counts while still claiming `Loading domain probes…`
+  - `WP16-W2-004` legacy/public Wave 2 homes bypass the canonical `PortalShell`
+  - `WP16-W2-005` `/admin/platform-overview` is an alias redirect treated as a standalone route-screen experience
+- Foundation assessment after inspection:
+  - `PortalShell`, `PortalStates`, sidebars, and Wave 2 route guards remain broadly stable in this pass
+  - one verified shared multi-page repair candidate exists: `frontend/src/components/operational_intelligence/OiAttentionStrip.jsx`
+- **WP-16 PROGRAM STATUS**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | TECHNICALLY VERIFIED — PENDING EXECUTIVE APPROVAL | No unresolved Wave 1 punch-list defects remain. |
+| Wave 2 | Homepage / Dashboard Certification | 7-GATE INSPECTION COMPLETE — PENDING REPAIR AUTHORIZATION | Denominator 99 inspected. Five Wave 2 issue IDs opened. No repairs started. |
+| Wave 3 | Admin Certification | BLOCKED / NOT STARTED | Must wait for Wave 2 repair direction and authorization. |
+| Waves 4–16 | Remaining portal families | NOT STARTED | HR, PM, Safety, Dispatch, Shop, Operations, and later waves remain queued. |
+- Constitutional stop point reached:
+  - inspection complete
+  - punch-list updated
+  - **do not begin Wave 2 repairs until explicit repair authorization is given**
+
 # 2026-07-30 — WP-16 Phase B Wave 2 inventory & completeness reconciliation complete
 
 ## 2026-07-30 Wave 2 denominator locked — awaiting executive authorization for inspection
