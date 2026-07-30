@@ -14,6 +14,13 @@
 - Evidence footprint increased to **366 screenshot-backed desktop surfaces**.
 - Verification: read-only Phase 3 representative desktop verification passed **27/27** checks.
 
+## 2026-07-30 — WP-16 Phase 4 interaction and state checkpoint
+
+- Added `/app/memory/WP16_OVERLAY_AND_INTERACTION_REGISTER.md` and reconciled Phase 4 interaction/state evidence across Field Leadership, Driver, Transportation, HR, Shop, and Admin.
+- Phase 4 totals: **28** interactive surfaces discovered, **23** exercised, **2** partially exercised, **1** blocked, **2** not yet exercised.
+- Added **26** new Phase 4 screenshots, bringing the cumulative evidence footprint to **392** desktop-backed surfaces.
+- Verification note: targeted scripted interaction captures succeeded; generic read-only interaction verification returned **4/16 PASS** due to selector/state-setup limits and one `/admin/transportation` network-idle timeout.
+
 # 2026-07-29 — WP15 Convergence Checkpoint
 
 - Fixed governance API 500s on `/api/admin/governance/delegations`, `/emergency-overrides`, and approval actions.

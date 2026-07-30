@@ -27,6 +27,15 @@
   - Phase 5 — Responsive Evidence
   - Phase 6 — Pattern Enumeration & Final Reconciliation
 
+## 2026-07-30 WP-16 Phase 4 checkpoint roadmap
+
+- **Current state:** Phase 4 interaction/state pass is complete and documented.
+- **Hard stop:** do **not** begin Phase 5 without explicit user approval.
+- **Most under-evidenced interaction/state families:** tooltips, toasts, notification panels, upload-progress, download-completion, destructive confirmations, unsaved-changes warnings.
+- **Largest portal interaction gaps:** Public / Shared, Safety workflow interiors, deeper Admin overlays, and HR employee-row detail states.
+- **Next authorized phase only after approval:**
+  - Phase 5 — Responsive Evidence
+
 # 2026-07-29 WP-16 recovery status
 
 - **P0 Immediate status:** visual recovery complete; baseline restored to `f97ab297` behavior

@@ -76,6 +76,36 @@
   - stop after checkpoint reporting
   - **do not begin Phase 4** until explicit user approval
 
+## 2026-07-30 WP-16 Phase 4 checkpoint — interaction and state coverage pass complete
+
+- User accepted Phase 3 and authorized a **strictly read-only** Phase 4 interaction/state audit.
+- No runtime UI, CSS, component, backend, routing, permission, authentication, API, data, or business-logic changes were made.
+- A dedicated interaction inventory was created at `/app/memory/WP16_OVERLAY_AND_INTERACTION_REGISTER.md`.
+- Phase 4 interaction totals now reconcile at:
+  - **28** interactive surfaces discovered
+  - **23** exercised
+  - **2** partially exercised
+  - **1** blocked
+  - **2** not yet exercised
+  - **26** new Phase 4 screenshots
+  - **392** cumulative screenshot-backed desktop surfaces
+- Highest-signal interaction/state evidence added for:
+  - Field Leadership forgot-password modal, lookup no-results, driver-qualification drawer
+  - Driver disabled submit and lookup dropdowns
+  - Transportation dialogs, modals, dropdowns, wizard, and large-table state
+  - HR employee filter/add-dialog state and safety-records inline form
+  - Shop filtered-empty and authorization-blocked states
+  - Admin command palette, promo upload dialog, dispatch transfer/hold dialogs
+- Phase 4 under-evidenced interaction families remain:
+  - tooltips, toasts, notification panels, upload-progress, download-completion, destructive confirmations, unsaved-changes warnings
+- Verification note:
+  - targeted interaction capture scripts succeeded
+  - generic read-only interaction verification returned **4/16 PASS** because of selector/state-setup limitations and one `/admin/transportation` network-idle timeout
+  - no blank-screen crash was confirmed during the checkpoint
+- Phase 4 stop condition reached:
+  - stop after checkpoint reporting
+  - **do not begin Phase 5** until explicit user approval
+
 # 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
 
 ## 2026-07-29 Emergency WP-16 recovery — visual baseline restored

@@ -83,5 +83,5 @@ Date: 2026-07-30
 ## Checkpoint assertions
 - Phase 4 documents reconcile across the interaction register, state register, navigation trace register, coverage register, screen registry, and evidence folder.
 - Runtime code remained unchanged.
-- Read-only verification still passes.
+- Read-only verification is **mixed but stable**: targeted Phase 4 interaction capture scripts succeeded, while generic interaction verification returned **4/16 PASS** because of selector/state-setup limitations and one `/admin/transportation` network-idle timeout; no blank-screen crash was confirmed.
 - Stop here. Do **not** begin Phase 5 without explicit approval.
