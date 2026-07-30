@@ -1,3 +1,35 @@
+# 2026-07-30 — WP-16 Wave 3 inventory & completeness reconciliation complete
+
+## 2026-07-30 Executive dashboard — current program truth
+
+- **Current Wave 3 status:** INVENTORY & COMPLETENESS RECONCILIATION COMPLETE — awaiting explicit executive authorization for the Wave 3 7-Gate Inspection.
+- **Authoritative Wave 3 package:** `/app/memory/WP16_WAVE3_INVENTORY_AND_RECONCILIATION.md`
+- Dashboard metrics:
+  - **Total Waves:** `16`
+  - **Waves Locked:** `2`
+  - **Current Wave:** `3`
+  - **Waves Remaining:** `13`
+  - **Outstanding Production Defects:** `0`
+  - **Accepted Risks:** `0`
+  - **Total Experiences Certified (cumulative across locked waves):** `130`
+  - **Total Experiences Remaining:** `133`
+  - **Total Defects Found (Program Total):** `16`
+  - **Total Defects Closed (Program Total):** `16`
+  - **Program Completion (%):** `49.4%` (`130 / 263` against the current authoritative denominator)
+- Denominator basis for the current executive dashboard:
+  - Wave 1 authoritative denominator: `31`
+  - Wave 2 authoritative denominator: `99`
+  - Wave 3 authoritative denominator: `133`
+  - **Current authoritative denominator:** `263`
+- Current wave ledger:
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Locked prior to this checkpoint; counted in certified-experience totals. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Executive Locked with no outstanding production defects. |
+| Wave 3 | Admin Certification | INVENTORY & COMPLETENESS RECONCILIATION COMPLETE — AWAITING AUTHORIZATION | See `/app/memory/WP16_WAVE3_INVENTORY_AND_RECONCILIATION.md`. |
+| Waves 4–16 | Remaining portal families | NOT STARTED | Denominators not yet authoritatively baselined and therefore excluded from completion math. |
+
 # 2026-07-30 — WP-16 Phase B Wave 2 final closeout complete
 
 ## 2026-07-30 Final Wave 2 Executive Approval Package
