@@ -860,8 +860,8 @@ export function AppRoutes() {
                 underlying components are unchanged — they accept admin
                 tokens via their own gates. */}
             <Route path="/admin/qaqc/:id" element={AP(<ViewQaqcInspection />)} />
-            <Route path="/admin/leadership/records" element={AP(<FieldLeadershipRecords />)} />
-            <Route path="/admin/leadership/records/:id" element={AP(<FieldLeadershipView />)} />
+            <Route path="/admin/leadership/records" element={A(<FieldLeadershipRecords />)} />
+            <Route path="/admin/leadership/records/:id" element={A(<FieldLeadershipView />)} />
             <Route path="/admin/safety/issuance/:id" element={AP(<ViewSafetyForm kind="issuance" />)} />
             <Route path="/admin/safety/training/:id" element={AP(<ViewSafetyForm kind="training" />)} />
 
@@ -1251,7 +1251,7 @@ export function AppRoutes() {
                     redirecting to /hr/daily-reports which rejected admin tokens). */}
             <Route path="/safety-portal/meetings" element={SF(<MeetingsDashboard />)} />
             <Route path="/admin/daily-reports" element={<Navigate to="/admin/daily" replace />} />
-            <Route path="/admin/trench-safety-assets" element={<Navigate to="/safety/trench-safety/assets" replace />} />
+            <Route path="/admin/trench-safety-assets" element={<Navigate to="/admin/trench-safety/assets" replace />} />
 
             {/* Legal */}
             <Route path="/legal/terms" element={<TermsOfService />} />

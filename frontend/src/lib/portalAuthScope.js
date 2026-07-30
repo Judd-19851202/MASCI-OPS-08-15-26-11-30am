@@ -65,6 +65,19 @@ const ADMIN_SHARED_CROSS_PORTAL_PREFIXES = [
   "/safety/training",
 ];
 
+const ACTIVE_PORTAL_SHARED_API_PREFIXES = [
+  "/project-staffing",
+  "/job-hazard-files",
+  "/legacy-imports",
+];
+
+const ADMIN_SHARED_API_PREFIXES = [
+  "/equipment-status-board",
+  "/ai/health",
+  "/auto-email",
+  "/jha-acknowledgements",
+];
+
 function normalizePath(pathname = "") {
   if (!pathname) return "";
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
@@ -121,7 +134,20 @@ export function inferPortalsForApiPath(pathname = "", activePortal = null) {
     return ["admin"];
   }
 
-  if (activePortal && SHARED_API_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(prefix))) {
+  if (
+    activePortal === "admin" &&
+    ADMIN_SHARED_API_PREFIXES.some(
+      (prefix) => routePath === prefix || routePath.startsWith(prefix)
+    )
+  ) {
+    return ["admin"];
+  }
+
+  if (
+    activePortal &&
+    (SHARED_API_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(prefix)) ||
+      ACTIVE_PORTAL_SHARED_API_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(prefix)))
+  ) {
     return [activePortal];
   }
   return [];

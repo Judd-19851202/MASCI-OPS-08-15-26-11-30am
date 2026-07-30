@@ -34,6 +34,7 @@ export default function FieldLeadershipRecords() {
   const { t, lang } = useT();
   const admin = isAdmin();
   const pm = isPm();
+  const adminRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/admin/");
 
   // iter96+97 — Back-button destination + label routed by role.
   // BackLink auto-computes them, but this page predates the helper
@@ -138,6 +139,11 @@ export default function FieldLeadershipRecords() {
         setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
       })
       .catch(() => toast.error(t("Could not export CSV")));
+  };
+
+  const detailHref = (id) => {
+    if (adminRoute) return `/admin/leadership/records/${id}`;
+    return `/leadership/records/${id}`;
   };
 
   return (
@@ -256,7 +262,7 @@ export default function FieldLeadershipRecords() {
                   <td className="px-3 py-2 text-slate-700">{r.supervisor_name || "—"}</td>
                   <td className="px-3 py-2 text-right">
                     <Button asChild variant="outline" size="sm" className="mr-1" data-testid={`leadership-open-${r.id}`}>
-                      <Link to={`/leadership/records/${r.id}`}><FileText className="w-3.5 h-3.5" /></Link>
+                      <Link to={detailHref(r.id)}><FileText className="w-3.5 h-3.5" /></Link>
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => downloadPdf(r.id)} className="mr-1" data-testid={`leadership-pdf-${r.id}`}>
                       <FileDown className="w-3.5 h-3.5" />

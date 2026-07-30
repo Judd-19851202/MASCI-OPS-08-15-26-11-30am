@@ -17,6 +17,28 @@ import { setFlToken } from "./flAuth";
 const DIR_TOKEN_KEY = "masci.directory.token";
 const DIR_USER_KEY = "masci.directory.user";
 const DIR_REMEMBER_KEY = "masci.directory.remember";
+const DIR_TOKEN_CACHE_KEY = "__masciDirectoryTokenCache";
+
+function cacheDirectoryToken(token) {
+  try {
+    if (typeof window === "undefined") return;
+    window[DIR_TOKEN_CACHE_KEY] = token || "";
+  } catch {
+    /* ignore */
+  }
+}
+
+function readDirectoryTokenFromStorage() {
+  try {
+    return (
+      window.localStorage.getItem(DIR_TOKEN_KEY) ||
+      window.sessionStorage.getItem(DIR_TOKEN_KEY) ||
+      ""
+    );
+  } catch {
+    return "";
+  }
+}
 
 function storageForDirectory() {
   try {
@@ -31,11 +53,12 @@ function storageForDirectory() {
 
 export function getDirectoryToken() {
   try {
-    return (
-      window.localStorage.getItem(DIR_TOKEN_KEY) ||
-      window.sessionStorage.getItem(DIR_TOKEN_KEY) ||
-      ""
-    );
+    const stored = readDirectoryTokenFromStorage();
+    if (stored) {
+      cacheDirectoryToken(stored);
+      return stored;
+    }
+    return window[DIR_TOKEN_CACHE_KEY] || "";
   } catch {
     return "";
   }
@@ -45,6 +68,7 @@ export function setDirectoryToken(token, rememberMe = true) {
   try {
     const store = storageForDirectory();
     if (!store) return;
+    cacheDirectoryToken(token);
     if (rememberMe) {
       window.localStorage.setItem(DIR_TOKEN_KEY, token || "");
       window.sessionStorage.removeItem(DIR_TOKEN_KEY);
@@ -93,6 +117,7 @@ export function setDirectoryUser(user, rememberMe = true) {
 }
 
 export function clearDirectorySession() {
+  cacheDirectoryToken("");
   setDirectoryToken("");
   setDirectoryUser(null);
   try {
@@ -186,4 +211,13 @@ export function landingFor(user) {
     );
   }
   return "/"; // hub
+}
+
+try {
+  if (typeof window !== "undefined") {
+    const bootToken = readDirectoryTokenFromStorage();
+    if (bootToken) cacheDirectoryToken(bootToken);
+  }
+} catch {
+  /* ignore */
 }
