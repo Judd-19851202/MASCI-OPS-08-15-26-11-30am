@@ -37,6 +37,45 @@
   - stop at Phase 2 checkpoint closeout
   - **do not begin Phase 3** until explicit user approval
 
+## 2026-07-29 WP-16 Phase 3 checkpoint — remaining desktop coverage pass complete
+
+- User accepted Phase 2 and authorized a **strictly read-only** Phase 3 desktop evidence pass.
+- Reconciliation clarification documented before Phase 3 started:
+  - the previously omitted **9** routes were **7 `ALIAS_ROUTE`** and **2 `BLOCKED_API_FAILURE`**
+  - the 480-route inventory reconciled cleanly before new Phase 3 work began
+- Phase 3 expanded evidence across remaining desktop-accessible portal families, with new captures in:
+  - PM
+  - HR
+  - Safety
+  - Dispatch
+  - Shop
+  - Admin
+  - selected Public / Shared routes
+- No runtime code, styling, permissions, routing, seeds, or backend logic were modified.
+- Phase 3 checkpoint totals now reconcile at:
+  - **480** total routes
+  - **135** `FULLY_EXERCISED`
+  - **4** `PARTIALLY_EXERCISED`
+  - **11** `BLOCKED_AUTHENTICATION`
+  - **1** `BLOCKED_AUTHORIZATION`
+  - **18** `BLOCKED_API_FAILURE`
+  - **1** `BLOCKED_RUNTIME_FAILURE`
+  - **1** `BLOCKED_MISSING_DATA`
+  - **7** `ALIAS_ROUTE`
+  - **58** `REDIRECT_ONLY`
+  - **0** duplicate / dead / non-UI / not-applicable counted within the 480-route census
+  - **244** `NOT_YET_EXERCISED`
+  - **366** screenshot-backed desktop surfaces
+- Newly documented Phase 3 defects:
+  - `WP16-DEF-006` — HR auxiliary route degradation behind mixed 401/403/404/405 failures
+  - `WP16-DEF-007` — HR historical intake 500 on `/api/employee-records/vocabulary`
+  - `WP16-DEF-009` — Shop asset-care / trench-repairs / equipment 401 degradation
+  - `WP16-DEF-011` — Dispatch fleet intelligence 401 degradation
+  - `WP16-DEF-012` — Admin QAQC / trench excavations / equipment / meetings 401 degradation
+- Phase 3 stop condition reached:
+  - stop after checkpoint reporting
+  - **do not begin Phase 4** until explicit user approval
+
 # 2026-07-29 — WP15 Repository Governance Convergence Checkpoint
 
 ## 2026-07-29 Emergency WP-16 recovery — visual baseline restored

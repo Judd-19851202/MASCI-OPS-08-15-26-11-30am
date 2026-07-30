@@ -10,6 +10,23 @@
   - Phase 6 — Pattern Enumeration & Final Reconciliation
 - **Open accepted blockers/document-only defects:** HR 403s, Dispatch MaintainX 401, Dev login/dev hub preview-config block.
 
+## 2026-07-29 WP-16 Phase 3 checkpoint roadmap
+
+- **Current state:** Phase 3 desktop coverage pass is complete and reconciled.
+- **Hard stop:** do **not** begin Phase 4 without explicit user approval.
+- **Largest remaining gaps:**
+  - Admin: 106 not-yet-exercised routes
+  - Public / Shared: 61
+  - Safety: 32
+  - PM: 28
+  - HR: 12
+  - Shop: 5
+- **Next P0 only after approval:**
+  - Phase 4 — Interaction & State Coverage
+- **Later P1/P2 after Phase 4 approval:**
+  - Phase 5 — Responsive Evidence
+  - Phase 6 — Pattern Enumeration & Final Reconciliation
+
 # 2026-07-29 WP-16 recovery status
 
 - **P0 Immediate status:** visual recovery complete; baseline restored to `f97ab297` behavior

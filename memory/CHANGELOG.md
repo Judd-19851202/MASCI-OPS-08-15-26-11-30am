@@ -5,6 +5,14 @@
 - Documented new defect `WP16-DEF-005` for preview-blocked Dev login / Dev hub access (`DEV_ENDPOINTS_ENABLED=false`).
 - Verification: read-only frontend audit verification passed **22/22** representative checks; no blank crashes observed.
 
+## 2026-07-29 — WP-16 Phase 3 remaining desktop coverage checkpoint
+
+- Documented the Phase 2 reconciliation clarification: **7 `ALIAS_ROUTE` + 2 `BLOCKED_API_FAILURE` = the missing 9 routes** from the earlier summary.
+- Expanded desktop evidence across PM, HR, Safety, Dispatch, Shop, Admin, and selected Public / Shared routes under the runtime freeze.
+- Route census now reconciles at **135 FULLY_EXERCISED**, **4 PARTIALLY_EXERCISED**, **31 blocked-class routes**, **7 ALIAS_ROUTE**, **58 REDIRECT_ONLY**, **244 NOT_YET_EXERCISED**.
+- Added Phase 3 defects `WP16-DEF-006`, `WP16-DEF-007`, `WP16-DEF-009`, `WP16-DEF-011`, and `WP16-DEF-012`.
+- Evidence footprint increased to **366 screenshot-backed desktop surfaces**.
+
 # 2026-07-29 — WP15 Convergence Checkpoint
 
 - Fixed governance API 500s on `/api/admin/governance/delegations`, `/emergency-overrides`, and approval actions.
