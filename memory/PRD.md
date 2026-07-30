@@ -1,3 +1,27 @@
+# 2026-07-30 — WP-16 Wave 5 authorized repair pass complete
+
+## 2026-07-30 Executive dashboard — current program truth
+
+- **Current Wave:** `5`
+- **Current Wave 5 status:** `AUTHORIZED REPAIR PASS COMPLETE — 0 OPEN ISSUES — READY FOR EXECUTIVE LOCK REVIEW`
+- **Waves Locked:** `3`
+- **Waves Remaining:** `11`
+- **Program Completion (%):** `92.4%` (`315 / 341` denominator experiences inspected and Wave 5 repair pass completed against the current authoritative program denominator)
+- **Wave 5 denominator:** `52`
+- **Wave 5 repair result:** `2 / 2 authorized issues closed`
+- **Open Wave 5 issues:** `0`
+- **Repair summary:** `WP16_WAVE5_EXECUTIVE_REPAIR_SUMMARY.md`
+- **Current wave ledger:**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | REPAIR PASS COMPLETE — PENDING EXECUTIVE LOCK | `26 / 26` verified after repairs. |
+| Wave 5 | Safety Certification | REPAIR PASS COMPLETE — READY FOR EXECUTIVE LOCK REVIEW | `52 / 52` inspected; `2 / 2` authorized issues repaired and independently verified closed. |
+| Waves 6–16 | Remaining portal families | NOT STARTED | No work authorized in this phase. |
+
 # 2026-07-30 — WP-16 Wave 5 inspection complete
 
 ## 2026-07-30 Executive dashboard — current program truth
