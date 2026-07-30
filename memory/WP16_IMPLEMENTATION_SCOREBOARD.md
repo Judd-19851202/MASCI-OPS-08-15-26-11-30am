@@ -29,7 +29,7 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Metric | Count | Notes |
 | --- | ---: | --- |
 | Total routes | 480 | Audit baseline |
-| Standardized routes | 141 | Admin portal now fully reconciled to the canonical WP-16 foundation at the certified checkpoint |
+| Standardized routes | 141 | Admin portal now fully reconciled to the canonical WP-16 foundation at the corrective checkpoint |
 | Remaining routes | 339 | `480 - 141`; Admin is complete, other portal families remain locked behind approval |
 | Certified routes | 4 | Final Admin certification is revoked; only the earlier foundation-approved representative routes remain certified |
 
@@ -38,8 +38,8 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Metric | Before | After | Delta | Notes |
 | --- | ---: | ---: | ---: | --- |
 | Admin standardized routes | 60 | 141 | +81 | Reconciled from the foundation minimum to full Admin portal coverage |
-| Admin remaining routes | 81 | 0 | -81 | No Admin route remains outside the certified migration checkpoint |
-| Admin certified routes | 4 | 141 | +137 | Moved from representative proof only to full Admin portal certification |
+| Admin remaining routes | 81 | 0 | -81 | No Admin route remains outside the migrated Admin checkpoint scope |
+| Admin certified routes | 4 | 0 | -4 | Final Admin certification remains pending explicit visual approval after corrective repair |
 | Legacy `AdminSideNavV2` callsites on Admin pages | 17 | 0 | -17 | All remaining Admin page sidebars now route through the canonical Admin shell / rail |
 | Raw Admin/detail screens lacking canonical shell wrapper | 11 | 0 | -11 | Shared detail records and thread pages now mount inside `AdminRouteShell` |
 | Reproducible Admin auth / access blockers affecting certification | 7 | 0 | -7 | Includes documented 401 surfaces plus the `RequireAdminOrPm` Admin-token guard defect |
@@ -52,14 +52,14 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Functional migration | **Complete** | Route migration and runtime/auth fixes remain in place |
 | Route migration | **Complete** | Admin route census remains `141 / 141` migrated |
 | Automated testing | **Passed** | Functional, responsive, and backend regressions passed in automation |
-| Visual certification | **Failed** | User rejected the checkpoint for severe visual regression / whitewashed Admin identity |
-| Final Admin certification | **REJECTED — VISUAL REGRESSION** | Pending corrective action and explicit visual approval |
+| Visual certification | **Corrective repair implemented — pending user review** | Whitewashed regression repaired and internally verified against approved Admin evidence |
+| Final Admin certification | **PENDING EXPLICIT VISUAL APPROVAL** | Do not count Admin as finally certified until the user approves the corrected checkpoint |
 
 ## Portal Progress
 
 | Portal family | Total routes baseline | Standardized routes | Remaining routes | Certified routes | Not Started | In Progress | Foundation Applied | Responsive Verified | Certified | Blocked | Notes |
 | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- | --- |
-| Admin | 141 | 141 | 0 | 0 | No | **Yes — corrective action** | **Yes** | **Yes** | **No — visual certification failed** | **Yes — visual regression** | Functional migration complete, but the user rejected the whitewashed Admin presentation |
+| Admin | 141 | 141 | 0 | 0 | No | **Yes — awaiting approval** | **Yes** | **Yes** | **No — pending user approval** | **Yes — approval gate only** | Functional migration complete; visual corrective repair tested and documented, but final certification is still awaiting explicit user approval |
 | HR | 32 | 0 confirmed | 32 | 0 | **Yes** | No | No | No | No | **Yes** | Known 403/500 defects remain open for HR migration |
 | PM | 47 | 0 confirmed | 47 | 0 | **Yes** | No | No | No | No | No | Next after HR in the approved migration order |
 | Safety | 54 | 0 confirmed | 54 | 0 | **Yes** | No | No | No | No | No | Foundation not yet applied portal-wide |
@@ -75,8 +75,8 @@ Authority: This is the executive implementation dashboard for the remainder of W
 
 | Family | Canonical implementation established? | Confirmed current adoption | Remaining legacy implementations | Remaining alternate implementations | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Header | **Yes** | Admin portal certified at 141 routes via canonical wrappers / `AdminRouteShell` / `PortalShell` | All non-migrated portal shells outside Admin | Shared/detail routes in later portals | `PortalShell` is the canonical header contract |
-| Sidebar | **Yes** | Admin portal certified at 141 routes via canonical shell rail behavior | Portal-local side rails outside Admin | Shared/detail pages in later portals | Role-specific destinations remain allowed; structure must converge |
+| Header | **Yes** | Admin portal reconciled at 141 routes via canonical wrappers / `AdminRouteShell` / `PortalShell` | All non-migrated portal shells outside Admin | Shared/detail routes in later portals | `PortalShell` is the canonical header contract |
+| Sidebar | **Yes** | Admin portal reconciled at 141 routes via canonical shell rail behavior | Portal-local side rails outside Admin | Shared/detail pages in later portals | Role-specific destinations remain allowed; structure must converge |
 | Navigation | **Yes** | Admin canonical nav behavior active on representative routes | Non-migrated portal navigation systems | Shared route escape-model drift | Mobile dock + sheet are now the foundation baseline |
 | Forms | **Yes** | Representative admin form/filter surfaces verified | Route-local form spacing / field styling outside migrated routes | Domain-specific custom surfaces | Portal-wide adoption counted during migration checkpoints |
 | Tables | **Yes** | Representative admin table verified on `/admin/people` | Legacy table chrome across unmigrated portals | Wide operational grids still route-local | Contained horizontal scroll is the canonical table rule |
@@ -107,7 +107,7 @@ This is a **provisional migration baseline** and must be updated with real RCA o
 
 | Portal family | P0 | P1 | P2 | P3 | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Admin | `0 / 1 / 0 / 0` | `0 / 1 / 0 / 0` | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `WP16-DEF-012` closed; Admin/PM guard regression fixed during certification; no open Admin blockers remain |
+| Admin | `0 / 1 / 0 / 0` | `0 / 2 / 0 / 0` | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `WP16-DEF-012` closed; `WP16-DEF-013` (visual whitewash) corrected internally and awaiting user approval |
 | HR | `0 / 0 / 0 / 0` | `4 / 0 / 0 / 0` | `1 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `WP16-DEF-002/003/006/007` provisional P1; `WP16-DEF-001` provisional P2 |
 | PM | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | No accepted active PM migration defects recorded yet |
 | Safety | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | No accepted active Safety migration defects recorded yet |
@@ -123,7 +123,7 @@ This is a **provisional migration baseline** and must be updated with real RCA o
 
 | Target environment | Current foundation status | Reason / scope note |
 | --- | --- | --- |
-| Windows Chrome | **PASS — Admin checkpoint** | Verified in Chromium preview automation on certified Admin routes |
+| Windows Chrome | **PASS — Admin checkpoint** | Verified in Chromium preview automation on corrected Admin routes pending approval |
 | Windows Edge | **PENDING — tooling limitation** | No dedicated Edge runtime available in this environment |
 | macOS Safari | **PENDING — tooling limitation** | No Safari/WebKit runtime available in this environment |
 | macOS Chrome | **PENDING — tooling limitation** | No dedicated macOS Chrome runtime available in this environment |
@@ -144,7 +144,7 @@ This is a **provisional migration baseline** and must be updated with real RCA o
 
 | Portal family | Functional | Visual | Responsive | Accessibility | Browser | Final certification |
 | --- | --- | --- | --- | --- | --- | --- |
-| Admin | **PASS** | **FAIL — visual regression under review** | **PASS** | Pending focused a11y sweep outside this migration checkpoint | Partial — non-Chromium pending | **REJECTED — pending corrective action** |
+| Admin | **PASS** | **PASS — awaiting user approval** | **PASS** | Pending focused a11y sweep outside this migration checkpoint | Partial — non-Chromium pending | **Pending user approval** |
 | HR | Not started | Not started | Not started | Not started | Not started | Not certified |
 | PM | Not started | Not started | Not started | Not started | Not started | Not certified |
 | Safety | Not started | Not started | Not started | Not started | Not started | Not certified |
@@ -201,3 +201,27 @@ This is a **provisional migration baseline** and must be updated with real RCA o
 - Functional migration, route migration, and automated testing remain valid
 - Visual certification failed because the Admin portal lost its established visual identity and flattened into an overly white presentation
 - Required next step: evidence-first root-cause analysis and identity restoration on Admin only
+
+### 2026-07-30 — Admin visual corrective repair implemented
+- Root cause confirmed from the decision register + commit trail:
+  - `8af9c7df` forced the Admin shell onto the new light-neutral canonical header/sidebar language via `frontend/src/design-system/PortalShell.jsx`, `frontend/src/design-system/wp16.css`, `frontend/src/components/admin/sidebar/SideNavV3.jsx`, `frontend/src/components/admin/LegacyAdminModernShell.jsx`, `frontend/src/components/admin/trust/DomainLandingShell.jsx`, `frontend/src/styles/tokens.css`, and `frontend/src/index.css`
+  - `59bf1347` then spread that neutral shell across the remaining Admin routes during migration (`AdminRouteShell`, list/detail pages, shared dashboards)
+- Approved evidence compared against:
+  - pre-migration approved: `/app/memory/wp16_evidence/WP16-EVID-ADMIN-HOME.jpeg`, `/app/memory/wp16_evidence/wp16_p3_admin_021_meetings.jpeg`
+  - whitewashed regression: `/root/.emergent/automation_output/20260730_020325/final_20260730_020325.jpeg`, `/root/.emergent/automation_output/20260730_023306/final_20260730_023306.jpeg`
+  - corrected state: `/root/.emergent/automation_output/20260730_025022/final_20260730_025022.jpeg`, `/root/.emergent/automation_output/20260730_025031/final_20260730_025031.jpeg`, `/root/.emergent/automation_output/20260730_025040/final_20260730_025040.jpeg`, `/root/.emergent/automation_output/20260730_025049/final_20260730_025049.jpeg`, `/root/.emergent/automation_output/20260730_025148/final_20260730_025148.jpeg`, `/root/.emergent/automation_output/20260730_025309/final_20260730_025309.jpeg`, `/root/.emergent/automation_output/20260730_025432/final_20260730_025432.jpeg`, `/root/.emergent/automation_output/20260730_025157/final_20260730_025157.jpeg`, `/root/.emergent/automation_output/20260730_025243/final_20260730_025243.jpeg`
+- Corrective files changed:
+  - `frontend/src/design-system/PortalShell.jsx`
+  - `frontend/src/design-system/MobileNavigation.jsx`
+  - `frontend/src/design-system/wp16.css`
+  - `frontend/src/components/admin/sidebar/SideNavV3.jsx`
+  - `frontend/src/components/admin/AdminRouteShell.jsx`
+  - `frontend/src/components/admin/LegacyAdminModernShell.jsx`
+  - `frontend/src/components/admin/trust/DomainLandingShell.jsx`
+  - `frontend/src/lib/portalAuthScope.js`
+  - `backend/server.py` (`require_shop_or_admin` Admin equipment auth repair)
+- Verification after repair:
+  - `/app/test_reports/iteration_78.json`
+  - backend: **100% (10/10)**
+  - frontend: **100% PASS** across desktop / tablet portrait / tablet landscape / iPhone / Android-sized mobile
+- No other portal migration work began during the correction window

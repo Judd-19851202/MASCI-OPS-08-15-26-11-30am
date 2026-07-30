@@ -9,7 +9,8 @@ Date: 2026-07-30
   - Status: **resolved during checkpoint** by moving full desktop shell behavior to the `xl` breakpoint.
 - There are **no active foundation-level P0 defects** after the fix above.
 - The portal/API defects listed below remain open and must be handled during the appropriate portal migration waves unless they block future certification.
-- Admin checkpoint update: `WP16-DEF-012` is now resolved and no active Admin certification blocker remains.
+- Admin checkpoint update: `WP16-DEF-012` is now resolved.
+- Admin corrective-action update: `WP16-DEF-013` captured the whitewashed visual regression, has been repaired internally, and is now waiting for explicit user approval.
 
 ## Phase 4 checkpoint note
 - No runtime fixes were attempted.
@@ -27,3 +28,4 @@ Date: 2026-07-30
 | WP16-DEF-009 | Shop | `/shop/asset-care`, `/shop/trench-safety-repairs`, `/shop/equipment` | Open / documented only | `wp16_p3_shop_006_asset_care.jpeg`, `wp16_p3_shop_018_trench_safety_repairs.jpeg`, `wp16_p3_shop_020_equipment.jpeg` | Partial | Partial | No | No | Yes | Partial | 401s degrade dashboard/panel data while leaving shell chrome visible. |
 | WP16-DEF-011 | Dispatch | `/dispatch-portal/fleet` | Open / documented only | `wp16_p3_dispatch_009_fleet.jpeg` | Partial | Partial | No | No | Yes | Partial | 401 from `/api/operations/intelligence/fleet-gps` degrades live fleet content. |
 | WP16-DEF-012 | Admin | `/admin/qaqc`, `/admin/trench-safety/excavations`, `/admin/equipment`, `/admin/meetings` | Resolved during Admin certification checkpoint | `wp16_p3_admin_002_qaqc.jpeg`, `wp16_p3_admin_018_trench_excavations.jpeg`, `wp16_p3_admin_019_equipment.jpeg`, `wp16_p3_admin_021_meetings.jpeg`, `.screenshots/wp16_p6_qaqc.png`, `.screenshots/wp16_p6_meetings_test.png`, `.screenshots/wp16_p6_trench.png` | No | No | No | No | No | No | 401/auth degradation removed by Admin-token guard fix plus canonical scoped auth-header reconciliation. |
+| WP16-DEF-013 | Admin | `/admin`, `/admin/executive-intelligence`, `/admin/meetings`, `/admin/inspections`, shared Admin shell chrome | Corrected internally / pending user approval | `WP16-EVID-ADMIN-HOME.jpeg`, `wp16_p3_admin_021_meetings.jpeg`, `/root/.emergent/automation_output/20260730_020325/final_20260730_020325.jpeg`, `/root/.emergent/automation_output/20260730_023306/final_20260730_023306.jpeg`, `/root/.emergent/automation_output/20260730_025022/final_20260730_025022.jpeg`, `/root/.emergent/automation_output/20260730_025432/final_20260730_025432.jpeg` | No | No | No | No | Partial | No | Root cause was the light-neutral foundation shell rollout (`PortalShell`/`wp16.css`/`SideNavV3`) plus Admin-wide shell propagation, which removed the approved dark header/rail/background identity. Corrective repair restored Admin-only chrome while preserving functional fixes. |

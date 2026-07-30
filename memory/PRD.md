@@ -1,3 +1,38 @@
+# 2026-07-30 — WP-16 Phase 6 Admin Corrective Checkpoint
+
+## 2026-07-30 WP-16 Phase 6 Admin visual corrective repair complete — approval pending
+
+- No other portal migration work began. Scope remained Admin only.
+- User rejected the prior Admin checkpoint for visual whitewashing. The corrective pass focused only on restoring the approved Admin visual identity while preserving the already-completed functional migration.
+- Exact root cause confirmed from the design decision register plus commit trail:
+  - `WP16_DESIGN_DECISION_REGISTER.md` intentionally selected a light-neutral canonical header/sidebar language (`Color system`, `Header`, `Sidebar`, and `Foundation checkpoint decision summary` sections).
+  - commit `8af9c7df` applied that decision into `frontend/src/design-system/PortalShell.jsx`, `frontend/src/design-system/wp16.css`, `frontend/src/components/admin/sidebar/SideNavV3.jsx`, `frontend/src/components/admin/LegacyAdminModernShell.jsx`, `frontend/src/components/admin/trust/DomainLandingShell.jsx`, `frontend/src/styles/tokens.css`, and `frontend/src/index.css`.
+  - commit `59bf1347` then spread the neutralized shell to the remaining Admin routes via `frontend/src/components/admin/AdminRouteShell.jsx` and the Admin list/detail page conversions.
+- Corrective implementation restored:
+  - strong branded Admin header treatment
+  - dark/glass Admin navigation rail and hierarchy
+  - visible shell/background grid treatment
+  - clearer separation between shell chrome and white working surfaces
+  - mobile bottom dock + modules sheet in the Admin visual language
+- Functional improvements preserved:
+  - `AdminRouteShell` rollout and route migration remain intact
+  - Admin auth fixes remain intact (`RequireAdminOrPm`, shared Admin browser-route auth scoping, and `require_shop_or_admin` for equipment inspection access)
+  - responsive behavior remains intact across desktop / tablet portrait / tablet landscape / iPhone / Android-sized mobile
+- Evidence used for comparison:
+  - approved appearance: `/app/memory/wp16_evidence/WP16-EVID-ADMIN-HOME.jpeg`, `/app/memory/wp16_evidence/wp16_p3_admin_021_meetings.jpeg`
+  - whitewashed regression: `/root/.emergent/automation_output/20260730_020325/final_20260730_020325.jpeg`, `/root/.emergent/automation_output/20260730_023306/final_20260730_023306.jpeg`
+  - corrected appearance: `/root/.emergent/automation_output/20260730_025022/final_20260730_025022.jpeg`, `/root/.emergent/automation_output/20260730_025031/final_20260730_025031.jpeg`, `/root/.emergent/automation_output/20260730_025040/final_20260730_025040.jpeg`, `/root/.emergent/automation_output/20260730_025049/final_20260730_025049.jpeg`, `/root/.emergent/automation_output/20260730_025148/final_20260730_025148.jpeg`, `/root/.emergent/automation_output/20260730_025309/final_20260730_025309.jpeg`, `/root/.emergent/automation_output/20260730_025432/final_20260730_025432.jpeg`, `/root/.emergent/automation_output/20260730_025157/final_20260730_025157.jpeg`, `/root/.emergent/automation_output/20260730_025243/final_20260730_025243.jpeg`
+- Corrective verification:
+  - `/app/test_reports/iteration_78.json`
+  - backend: **100% (10/10 tests passed)**
+  - frontend: **100% PASS** including mobile navigation state and Admin equipment inspections route
+- Final status:
+  - functional migration complete
+  - route migration complete
+  - automated testing passed
+  - corrected visual treatment implemented and internally verified
+  - **final Admin certification still pending explicit user visual approval**
+
 # 2026-07-30 — WP-16 Phase 6 Admin Certification Checkpoint
 
 ## 2026-07-30 WP-16 Phase 6 Admin portal migration complete and certified

@@ -1,3 +1,14 @@
+# 2026-07-30 — WP-16 Phase 6 Admin visual corrective repair
+
+- User rejected the previous Admin checkpoint for a whitewashed visual regression; no other portal work was started.
+- Root cause documented from the decision register + commit trail: the light-neutral foundation shell (`PortalShell`, `wp16.css`, `SideNavV3`, related admin shell wrappers) was spread across the full Admin portal and stripped the approved dark header/rail/background identity.
+- Restored the approved Admin-only shell treatment in `frontend/src/design-system/PortalShell.jsx`, `frontend/src/design-system/MobileNavigation.jsx`, `frontend/src/design-system/wp16.css`, `frontend/src/components/admin/sidebar/SideNavV3.jsx`, `frontend/src/components/admin/AdminRouteShell.jsx`, `frontend/src/components/admin/LegacyAdminModernShell.jsx`, and `frontend/src/components/admin/trust/DomainLandingShell.jsx`.
+- Preserved functional fixes and also repaired reopened Admin equipment access by updating `frontend/src/lib/portalAuthScope.js` and `backend/server.py` (`require_shop_or_admin`).
+- Verification evidence:
+  - `/app/test_reports/iteration_78.json`
+  - corrected screenshots + before/regression references recorded in `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md`
+  - final Admin certification remains pending user approval
+
 # 2026-07-30 — WP-16 Phase 6 Admin certification checkpoint
 
 - Completed the Admin-only migration to the canonical WP-16 foundation and certified the Admin portal in preview / Chromium scope.

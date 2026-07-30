@@ -1,6 +1,6 @@
 # 2026-07-30 WP-16 Admin certification roadmap
 
-- **P0 Current state:** Admin portal migration is complete and the Admin checkpoint is certified in preview / Chromium scope.
+- **P0 Current state:** Admin portal migration is complete, the visual corrective repair is implemented, and the Admin checkpoint is now pending explicit user approval.
 - **Immediate next work:** stop and wait for explicit user approval of the Admin checkpoint.
 - **Required update discipline:** preserve `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md` as the executive source of truth before any future portal migration begins.
 - **Do not begin next portal family** until the user explicitly approves moving beyond the Admin checkpoint.
