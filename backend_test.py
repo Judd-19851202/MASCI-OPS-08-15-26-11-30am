@@ -1,473 +1,446 @@
 #!/usr/bin/env python3
 """
-WP-16 Phase B Wave 1 - Backend Auth Endpoints Verification
-Verification-only evidence collection for Public Pages & Authentication
-NO CODE REPAIRS - VERIFICATION ONLY
+Backend API Testing for WP-16 Wave 1 - Public Pages & Authentication
+Final backend verification after targeted repairs.
+
+Tests the following endpoints:
+1. POST /api/auth/multi-login (admin preview credentials)
+2. POST /api/pm/login (certification PM credentials)
+3. POST /api/hr/login (certification HR credentials)
+4. POST /api/safety/login (certification Safety credentials)
+5. POST /api/dispatch/login (certification Dispatch credentials)
+6. POST /api/shop/login (certification Shop credentials)
+7. POST /api/field-leadership/portal/login (certification Foreman credentials)
+8. POST /api/safety/forgot-password (known preview safety email)
+9. POST /api/dispatch/forgot-password (known preview dispatch email)
+10. POST /api/dev/login (should fail with 404 in preview environment)
 """
 
 import requests
-import sys
 import json
+import sys
+from typing import Dict, Any, Optional
 
-# Backend URL from frontend/.env
+# Backend URL from environment
 BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
-ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-ADMIN_PASSWORD = "Maddix123!"
-
-# Preview credentials for portal-specific logins
-PM_EMAIL = "cert.pm@example.com"
-PM_PASSWORD = "CertProof2026!"
-
-HR_EMAIL = "cert.hr@example.com"
-HR_PASSWORD = "CertProof2026!"
-
-SAFETY_EMAIL = "cert.safety@example.com"
-SAFETY_PASSWORD = "CertProof2026!"
-
-DISPATCH_EMAIL = "cert.dispatch@example.com"
-DISPATCH_PASSWORD = "CertProof2026!"
-
-SHOP_EMAIL = "cert.shop@example.com"
-SHOP_PASSWORD = "CertProof2026!"
-
-FL_EMAIL = "cert.foreman@example.com"
-FL_PASSWORD = "CertProof2026!"
-
-def test_multi_login_admin():
-    """Test POST /api/auth/multi-login with admin credentials"""
-    print("=" * 80)
-    print("TEST 1: POST /api/auth/multi-login (Admin)")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/auth/multi-login"
-    payload = {
-        "email": ADMIN_EMAIL,
-        "password": ADMIN_PASSWORD
+CREDENTIALS = {
+    "admin": {
+        "email": "ops8-admin-only-preview@example.com",
+        "password": "AdminOnlyOps8!"
+    },
+    "pm": {
+        "email": "cert.pm@example.com",
+        "password": "CertProof2026!"
+    },
+    "hr": {
+        "email": "cert.hr@example.com",
+        "password": "CertProof2026!"
+    },
+    "safety": {
+        "email": "cert.safety@example.com",
+        "password": "CertProof2026!"
+    },
+    "dispatch": {
+        "email": "cert.dispatch@example.com",
+        "password": "CertProof2026!"
+    },
+    "shop": {
+        "email": "cert.shop@example.com",
+        "password": "CertProof2026!"
+    },
+    "foreman": {
+        "email": "cert.foreman@example.com",
+        "password": "CertProof2026!"
     }
+}
+
+class TestResult:
+    def __init__(self):
+        self.passed = []
+        self.failed = []
+        self.total = 0
     
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Admin multi-login successful")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            print(f"Portals: {data.get('user', {}).get('portals', [])}")
-            print(f"Session Token: {data.get('session_token', 'N/A')[:30]}...")
-            print(f"Portal Tokens: {list(data.get('portal_tokens', {}).keys())}")
-            return True, data
+    def add_pass(self, test_name: str, details: str = ""):
+        self.total += 1
+        self.passed.append((test_name, details))
+        print(f"✅ PASS: {test_name}")
+        if details:
+            print(f"   {details}")
+    
+    def add_fail(self, test_name: str, details: str = ""):
+        self.total += 1
+        self.failed.append((test_name, details))
+        print(f"❌ FAIL: {test_name}")
+        if details:
+            print(f"   {details}")
+    
+    def summary(self):
+        print("\n" + "="*80)
+        print(f"BACKEND TEST SUMMARY: {len(self.passed)}/{self.total} tests passed")
+        print("="*80)
+        if self.failed:
+            print("\n❌ FAILED TESTS:")
+            for test_name, details in self.failed:
+                print(f"  - {test_name}")
+                if details:
+                    print(f"    {details}")
         else:
-            print(f"❌ FAIL - Admin multi-login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - Admin multi-login request failed: {str(e)}")
-        return False, None
+            print("\n✅ ALL TESTS PASSED")
+        return len(self.failed) == 0
 
-
-def test_pm_login():
-    """Test POST /api/pm/login with preview credentials"""
-    print("\n" + "=" * 80)
-    print("TEST 2: POST /api/pm/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/pm/login"
-    payload = {
-        "email": PM_EMAIL,
-        "password": PM_PASSWORD
-    }
-    
+def test_multi_login(results: TestResult):
+    """Test POST /api/auth/multi-login with admin preview credentials"""
+    test_name = "POST /api/auth/multi-login (admin preview)"
     try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
+        response = requests.post(
+            f"{BACKEND_URL}/auth/multi-login",
+            json=CREDENTIALS["admin"],
+            timeout=10
+        )
         
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ PASS - PM login successful")
-            print(f"Token present: {bool(data.get('token'))}")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            return True, data
-        else:
-            print(f"❌ FAIL - PM login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - PM login request failed: {str(e)}")
-        return False, None
-
-
-def test_hr_login():
-    """Test POST /api/hr/login with preview credentials"""
-    print("\n" + "=" * 80)
-    print("TEST 3: POST /api/hr/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/hr/login"
-    payload = {
-        "email": HR_EMAIL,
-        "password": HR_PASSWORD
-    }
-    
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - HR login successful")
-            print(f"Token present: {bool(data.get('token'))}")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            return True, data
-        else:
-            print(f"❌ FAIL - HR login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - HR login request failed: {str(e)}")
-        return False, None
-
-
-def test_safety_login():
-    """Test POST /api/safety/login with preview credentials"""
-    print("\n" + "=" * 80)
-    print("TEST 4: POST /api/safety/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/safety/login"
-    payload = {
-        "email": SAFETY_EMAIL,
-        "password": SAFETY_PASSWORD
-    }
-    
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Safety login successful")
-            print(f"Token present: {bool(data.get('token'))}")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            return True, data
-        else:
-            print(f"❌ FAIL - Safety login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - Safety login request failed: {str(e)}")
-        return False, None
-
-
-def test_dispatch_login():
-    """Test POST /api/dispatch/login with preview credentials"""
-    print("\n" + "=" * 80)
-    print("TEST 5: POST /api/dispatch/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/dispatch/login"
-    payload = {
-        "email": DISPATCH_EMAIL,
-        "password": DISPATCH_PASSWORD
-    }
-    
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Dispatch login successful")
-            print(f"Token present: {bool(data.get('token'))}")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            return True, data
-        else:
-            print(f"❌ FAIL - Dispatch login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - Dispatch login request failed: {str(e)}")
-        return False, None
-
-
-def test_shop_login():
-    """Test POST /api/shop/login with preview credentials"""
-    print("\n" + "=" * 80)
-    print("TEST 6: POST /api/shop/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/shop/login"
-    payload = {
-        "email": SHOP_EMAIL,
-        "password": SHOP_PASSWORD
-    }
-    
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Shop login successful")
-            print(f"Token present: {bool(data.get('token'))}")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            return True, data
-        else:
-            print(f"❌ FAIL - Shop login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - Shop login request failed: {str(e)}")
-        return False, None
-
-
-def test_field_leadership_login():
-    """Test POST /api/field-leadership/portal/login with preview credentials"""
-    print("\n" + "=" * 80)
-    print("TEST 7: POST /api/field-leadership/portal/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/field-leadership/portal/login"
-    payload = {
-        "email": FL_EMAIL,
-        "password": FL_PASSWORD
-    }
-    
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Field Leadership login successful")
-            print(f"Token present: {bool(data.get('token'))}")
-            print(f"User: {data.get('user', {}).get('email', 'N/A')}")
-            return True, data
-        else:
-            print(f"❌ FAIL - Field Leadership login failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
-    except Exception as e:
-        print(f"❌ ERROR - Field Leadership login request failed: {str(e)}")
-        return False, None
-
-
-def test_safety_forgot_password():
-    """Test POST /api/safety/forgot-password"""
-    print("\n" + "=" * 80)
-    print("TEST 8: POST /api/safety/forgot-password")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/safety/forgot-password"
-    payload = {
-        "email": SAFETY_EMAIL
-    }
-    
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ PASS - Safety forgot-password endpoint operational")
-            print(f"Response keys: {list(data.keys())}")
-            
-            # Check for preview-only token exposure
-            response_str = json.dumps(data)
-            if "token_for_dev" in response_str or "preview_token" in response_str:
-                print(f"⚠️  WARNING - Preview reset token exposed in response: {data}")
+            if "session_token" in data and "portal_tokens" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, session_token present, portal_tokens present"
+                )
+                return data
             else:
-                print(f"✅ No preview token exposure detected in response payload")
-            
-            return True, data
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing session_token or portal_tokens"
+                )
         else:
-            print(f"❌ FAIL - Safety forgot-password failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
     except Exception as e:
-        print(f"❌ ERROR - Safety forgot-password request failed: {str(e)}")
-        return False, None
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
 
-
-def test_dispatch_forgot_password():
-    """Test POST /api/dispatch/forgot-password"""
-    print("\n" + "=" * 80)
-    print("TEST 9: POST /api/dispatch/forgot-password")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/dispatch/forgot-password"
-    payload = {
-        "email": DISPATCH_EMAIL
-    }
-    
+def test_pm_login(results: TestResult):
+    """Test POST /api/pm/login with certification PM credentials"""
+    test_name = "POST /api/pm/login (certification PM)"
     try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
+        response = requests.post(
+            f"{BACKEND_URL}/pm/login",
+            json=CREDENTIALS["pm"],
+            timeout=10
+        )
         
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ PASS - Dispatch forgot-password endpoint operational")
-            print(f"Response keys: {list(data.keys())}")
-            
-            # Check for preview-only token exposure
-            response_str = json.dumps(data)
-            if "token_for_dev" in response_str or "preview_token" in response_str:
-                print(f"⚠️  WARNING - Preview reset token exposed in response: {data}")
+            if "token" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, token present"
+                )
+                return data
             else:
-                print(f"✅ No preview token exposure detected in response payload")
-            
-            return True, data
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing token"
+                )
         else:
-            print(f"❌ FAIL - Dispatch forgot-password failed with status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return False, None
-            
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
     except Exception as e:
-        print(f"❌ ERROR - Dispatch forgot-password request failed: {str(e)}")
-        return False, None
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
 
-
-def test_dev_login():
-    """Test POST /api/dev/login (expected to fail-closed in preview)"""
-    print("\n" + "=" * 80)
-    print("TEST 10: POST /api/dev/login")
-    print("=" * 80)
-    
-    url = f"{BACKEND_URL}/dev/login"
-    payload = {
-        "password": "any_password"
-    }
-    
+def test_hr_login(results: TestResult):
+    """Test POST /api/hr/login with certification HR credentials"""
+    test_name = "POST /api/hr/login (certification HR)"
     try:
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
+        response = requests.post(
+            f"{BACKEND_URL}/hr/login",
+            json=CREDENTIALS["hr"],
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "token" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, token present"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing token"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_safety_login(results: TestResult):
+    """Test POST /api/safety/login with certification Safety credentials"""
+    test_name = "POST /api/safety/login (certification Safety)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/safety/login",
+            json=CREDENTIALS["safety"],
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "token" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, token present"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing token"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_dispatch_login(results: TestResult):
+    """Test POST /api/dispatch/login with certification Dispatch credentials"""
+    test_name = "POST /api/dispatch/login (certification Dispatch)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/dispatch/login",
+            json=CREDENTIALS["dispatch"],
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "token" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, token present"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing token"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_shop_login(results: TestResult):
+    """Test POST /api/shop/login with certification Shop credentials"""
+    test_name = "POST /api/shop/login (certification Shop)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/shop/login",
+            json=CREDENTIALS["shop"],
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "token" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, token present"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing token"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_field_leadership_login(results: TestResult):
+    """Test POST /api/field-leadership/portal/login with certification Foreman credentials"""
+    test_name = "POST /api/field-leadership/portal/login (certification Foreman)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/field-leadership/portal/login",
+            json=CREDENTIALS["foreman"],
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "token" in data:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, token present"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but missing token"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_safety_forgot_password(results: TestResult):
+    """Test POST /api/safety/forgot-password with known preview safety email"""
+    test_name = "POST /api/safety/forgot-password (preview safety email)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/safety/forgot-password",
+            json={"email": CREDENTIALS["safety"]["email"]},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "ok" in data and data["ok"]:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, success-shaped response received"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but response not success-shaped"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_dispatch_forgot_password(results: TestResult):
+    """Test POST /api/dispatch/forgot-password with known preview dispatch email"""
+    test_name = "POST /api/dispatch/forgot-password (preview dispatch email)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/dispatch/forgot-password",
+            json={"email": CREDENTIALS["dispatch"]["email"]},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "ok" in data and data["ok"]:
+                results.add_pass(
+                    test_name,
+                    f"Status: {response.status_code}, success-shaped response received"
+                )
+                return data
+            else:
+                results.add_fail(
+                    test_name,
+                    f"Status: {response.status_code}, but response not success-shaped"
+                )
+        else:
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 200"
+            )
+    except Exception as e:
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
+
+def test_dev_login(results: TestResult):
+    """Test POST /api/dev/login - should fail with 404 in preview environment"""
+    test_name = "POST /api/dev/login (should fail with 404)"
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/dev/login",
+            json={"password": "any_password"},
+            timeout=10
+        )
         
         if response.status_code == 404:
-            print(f"✅ PASS - Dev login fail-closed as expected (404)")
-            print(f"Preview environment correctly disables dev login endpoint")
-            return True, None
-        elif response.status_code == 401:
-            print(f"✅ PASS - Dev login requires authentication (401)")
-            print(f"Endpoint exists but rejects unauthenticated access")
-            return True, None
-        elif response.status_code == 200:
-            data = response.json()
-            print(f"⚠️  WARNING - Dev login succeeded with status 200")
-            print(f"Response: {data}")
-            print(f"Dev login may be enabled in preview environment")
-            return True, data
+            results.add_pass(
+                test_name,
+                f"Status: {response.status_code}, correctly returns 404 in preview environment"
+            )
         else:
-            print(f"⚠️  INFO - Dev login returned status {response.status_code}")
-            print(f"Response: {response.text[:500]}")
-            return True, None
-            
+            results.add_fail(
+                test_name,
+                f"Status: {response.status_code}, Expected: 404"
+            )
     except Exception as e:
-        print(f"❌ ERROR - Dev login request failed: {str(e)}")
-        return False, None
-
-
-def print_summary(results):
-    """Print test summary"""
-    print("\n" + "=" * 80)
-    print("WP-16 PHASE B WAVE 1 - BACKEND AUTH VERIFICATION SUMMARY")
-    print("=" * 80)
-    
-    passed = sum(1 for _, success, _ in results if success)
-    total = len(results)
-    
-    for test_name, success, notes in results:
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} - {test_name}")
-        if notes:
-            print(f"         {notes}")
-    
-    print("=" * 80)
-    print(f"TOTAL: {passed}/{total} tests passed ({int(passed/total*100)}% pass rate)")
-    print("=" * 80)
-    print("\nVERIFICATION-ONLY EVIDENCE COLLECTION COMPLETE")
-    print("NO CODE MODIFICATIONS - NO CODE REPAIRS")
-    print("=" * 80)
-
+        results.add_fail(test_name, f"Exception: {str(e)}")
+    return None
 
 def main():
-    """Run all backend auth endpoint verification tests"""
-    print("\n" + "=" * 80)
-    print("WP-16 PHASE B WAVE 1 - BACKEND AUTH ENDPOINTS VERIFICATION")
-    print("VERIFICATION-ONLY - NO CODE REPAIRS")
-    print("=" * 80)
+    print("="*80)
+    print("WP-16 Wave 1 Backend Verification - Public Pages & Authentication")
+    print("="*80)
     print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test Scope: Public Pages & Authentication")
-    print("=" * 80 + "\n")
+    print("="*80)
+    print()
     
-    results = []
+    results = TestResult()
     
-    # Test 1: Admin multi-login
-    success, data = test_multi_login_admin()
-    results.append(("POST /api/auth/multi-login (Admin)", success, 
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
+    # Run all tests
+    print("Testing authentication endpoints...")
+    print()
     
-    # Test 2: PM login
-    success, data = test_pm_login()
-    results.append(("POST /api/pm/login", success,
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
+    test_multi_login(results)
+    test_pm_login(results)
+    test_hr_login(results)
+    test_safety_login(results)
+    test_dispatch_login(results)
+    test_shop_login(results)
+    test_field_leadership_login(results)
     
-    # Test 3: HR login
-    success, data = test_hr_login()
-    results.append(("POST /api/hr/login", success,
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
+    print()
+    print("Testing forgot-password endpoints...")
+    print()
     
-    # Test 4: Safety login
-    success, data = test_safety_login()
-    results.append(("POST /api/safety/login", success,
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
+    test_safety_forgot_password(results)
+    test_dispatch_forgot_password(results)
     
-    # Test 5: Dispatch login
-    success, data = test_dispatch_login()
-    results.append(("POST /api/dispatch/login", success,
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
+    print()
+    print("Testing dev login (should fail)...")
+    print()
     
-    # Test 6: Shop login
-    success, data = test_shop_login()
-    results.append(("POST /api/shop/login", success,
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
-    
-    # Test 7: Field Leadership login
-    success, data = test_field_leadership_login()
-    results.append(("POST /api/field-leadership/portal/login", success,
-                   "Core Wave 1 auth portal - operational success" if success else "Failed"))
-    
-    # Test 8: Safety forgot-password
-    success, data = test_safety_forgot_password()
-    notes = "Checked for preview token exposure" if success else "Failed"
-    results.append(("POST /api/safety/forgot-password", success, notes))
-    
-    # Test 9: Dispatch forgot-password
-    success, data = test_dispatch_forgot_password()
-    notes = "Checked for preview token exposure" if success else "Failed"
-    results.append(("POST /api/dispatch/forgot-password", success, notes))
-    
-    # Test 10: Dev login
-    success, data = test_dev_login()
-    notes = "Preview environment behavior verified" if success else "Failed"
-    results.append(("POST /api/dev/login", success, notes))
+    test_dev_login(results)
     
     # Print summary
-    print_summary(results)
+    success = results.summary()
     
-    # Exit with appropriate code
-    all_passed = all(result[1] for result in results)
-    sys.exit(0 if all_passed else 1)
-
+    return 0 if success else 1
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
