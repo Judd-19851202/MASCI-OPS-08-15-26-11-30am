@@ -1,7 +1,7 @@
 # WP16 Implementation Scoreboard
 
 Date: 2026-07-30
-Checkpoint status: Foundation Checkpoint accepted
+Checkpoint status: Admin targeted corrective verification passed for repaired governance / trust / asset / executive / field-leadership pages; full 141-route certification still pending
 Authority: This is the executive implementation dashboard for the remainder of WP-16.
 
 ## Usage rules
@@ -34,6 +34,11 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Certified routes | 4 | Final Admin certification is revoked; only the earlier foundation-approved representative routes remain certified |
 
 ## Admin Checkpoint Delta — 2026-07-30
+
+### Targeted corrective verification note — 2026-07-30
+- Repaired-page verification passed for Governance list pages, Self-Protection, Trust Spine, Executive Operational Intelligence, Asset Spine, and Admin Field Leadership list/detail routing.
+- Evidence: `/app/test_reports/iteration_79.json`, targeted smoke checks in `/root/.emergent/automation_output/20260730_111239/`, `/root/.emergent/automation_output/20260730_111459/`, and `/root/.emergent/automation_output/20260730_113440/`.
+- This note does **not** promote Admin to final certified status. The user-required 141-route exhaustive certification remains open.
 
 | Metric | Before | After | Delta | Notes |
 | --- | ---: | ---: | ---: | --- |

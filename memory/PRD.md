@@ -1,3 +1,35 @@
+# 2026-07-30 — WP-16 Phase 6 Admin targeted governance/trust corrective verification
+
+## 2026-07-30 targeted Admin page repairs verified — full 141-route certification still pending
+
+- Scope remained Admin only.
+- Repaired and re-verified the exact Admin surfaces the user flagged for broken UX / visual parity / readability:
+  - `frontend/src/pages/admin/AdminGovernanceListPage.jsx`
+  - `frontend/src/pages/admin/SelfProtection.jsx`
+  - `frontend/src/components/PlatformTrustDashboard.jsx`
+  - `frontend/src/pages/ExecutiveOperationalIntelligence.jsx`
+  - `frontend/src/pages/admin/AdminAssetSpineHealth.jsx`
+  - `frontend/src/pages/FieldLeadershipView.jsx`
+- UX / readability corrective work completed on those pages:
+  - removed raw JSON as the primary UI on governance pages
+  - suppressed internal IDs from the primary readable surface
+  - translated enum / backend labels into operator language
+  - restored canonical Admin shell, breadcrumb, navy header hierarchy, and background/grid treatment where missing
+  - replaced unexplained unknown states with contextual state copy (for example: `Needs review`, `Not instrumented`, `Unavailable in preview`)
+  - improved empty states and operational guidance so blank cards no longer read like placeholders
+- Admin auth scope repairs added during this pass:
+  - `frontend/src/lib/portalAuthScope.js` now scopes `/asset-spine/*` with the active Admin portal token
+  - `frontend/src/lib/portalAuthScope.js` now allows Admin-scoped `/field-leadership/*` API access when the user is on Admin routes
+  - added missing Admin browser route alias: `/admin/leadership/records`
+- Verification completed for the repaired scope only:
+  - screenshot smoke checks passed for Admin sign-in, governance pages, self-protection, trust spine, executive intelligence, asset spine, and Admin leadership records/list/detail surfaces
+  - `/app/test_reports/iteration_79.json` passed focused frontend + backend verification for the repaired Admin pages
+  - backend deep verification passed `14/14` targeted endpoint checks including governance, trust spine, self-protection, asset spine, executive operations center, Monday briefing, and field leadership detail
+- Important status truth:
+  - these repaired Admin pages are now operationally and visually verified
+  - **this is NOT the final Admin 141-route certification**
+  - exhaustive route-by-route operational certification, KPI lineage reconciliation, backup verification, and scoreboard reconciliation are still pending before any final Admin sign-off can be claimed
+
 # 2026-07-30 — WP-16 Phase 6 Admin Corrective Checkpoint
 
 ## 2026-07-30 WP-16 Phase 6 Admin visual corrective repair complete — approval pending
