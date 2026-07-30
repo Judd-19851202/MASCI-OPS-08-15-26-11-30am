@@ -1,3 +1,9 @@
+# 2026-07-30 — WP-16 Implementation Scoreboard baseline
+
+- Added `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md` as the permanent executive dashboard for the rest of WP-16.
+- Initialized route progress, portal status, component migration, visual drift, defect severity, responsive certification, regression, and portal certification sections.
+- Locked the migration order to: Admin → HR → PM → Safety → Dispatch → Shop → Equipment → Training → Executive → Public → Dev.
+
 # 2026-07-30 — WP-16 Phase 6 Foundation Checkpoint
 
 - Created the canonical decision register and component register:

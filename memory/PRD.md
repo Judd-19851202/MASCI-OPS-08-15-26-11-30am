@@ -1,3 +1,22 @@
+# 2026-07-30 — WP-16 Implementation Scoreboard established
+
+## 2026-07-30 WP-16 implementation scoreboard — migration governance baseline created
+
+- User accepted the Foundation Checkpoint and approved the shared foundation as the baseline for all remaining portal migrations.
+- Created the permanent executive migration dashboard:
+  - `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md`
+- The scoreboard now tracks:
+  - executive route progress
+  - portal-by-portal status
+  - component migration progress
+  - visual drift
+  - defect severity buckets
+  - responsive certification status
+  - regression tracking
+  - certification status by portal family
+- Admin remains the next authorized migration family.
+- No runtime frontend or backend behavior changed during this step; this was the required governance/implementation-control setup before Admin migration begins.
+
 # 2026-07-30 — WP-16 Phase 6 Foundation Checkpoint
 
 ## 2026-07-30 WP-16 Phase 6 Foundation Checkpoint — shared foundation implemented and verified

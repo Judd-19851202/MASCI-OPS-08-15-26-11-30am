@@ -1,3 +1,10 @@
+# 2026-07-30 WP-16 Admin migration preparation roadmap
+
+- **P0 Current state:** Foundation is accepted and the permanent WP-16 implementation scoreboard is now established.
+- **Immediate next work:** Admin portal migration only.
+- **Required update discipline:** after every Admin checkpoint, update `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md` before moving to another portal family.
+- **Do not begin next portal family** until Admin is reconciled through its own checkpoint evidence, defects, responsive verification, regressions, and certification fields.
+
 # 2026-07-30 WP-16 Phase 6 Foundation Checkpoint roadmap
 
 - **P0 Current state:** Foundation Checkpoint implementation is complete and verified on representative admin routes.
