@@ -1,46 +1,23 @@
-# 2026-07-30 — WP-16 Wave 3 executive lock recorded
+# 2026-07-30 — WP-16 Wave 4 inventory & denominator reconciliation complete
 
 ## 2026-07-30 Executive dashboard — current program truth
 
-- **Current Wave 3 status:** **EXECUTIVE LOCKED**
-- **Wave 3 lock date:** `2026-07-30`
-- **Authoritative Wave 3 inventory package:** `/app/memory/WP16_WAVE3_INVENTORY_AND_RECONCILIATION.md`
-- **Authoritative Wave 3 inspection package:** `/app/memory/WP16_WAVE3_7_GATE_INSPECTION_EXECUTIVE_PACKAGE.md`
-- **Authoritative Wave 3 repair package:** `/app/memory/WP16_WAVE3_EXECUTIVE_REPAIR_SUMMARY.md`
-- Dashboard metrics:
-  - **Total Waves:** `16`
-  - **Waves Locked:** `3`
-  - **Current Wave:** `4`
-  - **Waves Remaining:** `12`
-  - **Outstanding Production Defects:** `0`
-  - **Accepted Risks:** `0`
-  - **Total Experiences Certified (cumulative across locked waves):** `263`
-  - **Total Experiences Remaining:** `0` against the current authoritative denominator
-  - **Total Defects Found (Program Total):** `29`
-  - **Total Defects Closed (Program Total):** `29`
-  - **Program Completion (%):** `100%` (`263 / 263` against the current authoritative denominator across Executive-Locked waves)
-- Wave 3 final closeout metrics:
-  - **Wave 3 denominator inspected:** `133 / 133`
-  - **Wave 3 issues opened:** `13`
-  - **Wave 3 issues closed:** `13`
-  - **Wave 3 issues remaining:** `0`
-  - **Independent verification result:** `4 / 4 tests passed` in `/app/test_reports/iteration_81.json`
-  - **Certification recommendation:** `APPROVED`
-- Proposed next wave (planning only, not yet authorized):
-  - **Wave 4 scope:** `HR portal certification`
-  - **Wave 4 planned denominator basis:** `26 route-pattern screens currently assigned in WP16_PHASE_B_CONTROL.md`
-  - **Wave 4 Phase 1 inventory proposal:** enumerate all Wave 4 HR routes from the certification register and routing map, reconcile the denominator, assign permanent `W4-XXX` identifiers, and prepare the authoritative Wave 4 inventory package before any inspection or repair work.
-- Deferred WP-16 Process / Hardening backlog:
-  - Route-context assertion for portal switcher inputs, derived from the closed Wave 3 root cause. **Record only; do not implement without separate authorization.**
-- Current wave ledger:
+- **Current Wave:** `4`
+- **Current Wave 4 status:** `INVENTORY & DENOMINATOR RECONCILIATION COMPLETE — awaiting Executive review for inspection authorization`
+- **Waves Locked:** `3`
+- **Waves Remaining:** `12`
+- **Program Completion (%):** `91.0%` (`263 / 289` against the current authoritative denominator after adding the Wave 4 inventory baseline)
+- **Wave 4 denominator:** `26`
+- **Accepted Risks:** `0`
+- **Current wave ledger:**
 
 | Wave | Scope | Status | Notes |
 |---|---|---|---|
-| Wave 1 | Public Pages & Authentication | LOCKED | Locked prior to this checkpoint; counted in certified-experience totals. |
-| Wave 2 | Homepage / Dashboard Certification | LOCKED | Executive Locked with no outstanding production defects. |
-| Wave 3 | Admin Certification | EXECUTIVE LOCKED | `13 / 13` authorized Wave 3 issues closed. Approved using `/app/test_reports/iteration_81.json` and `WP16_WAVE3_EXECUTIVE_REPAIR_SUMMARY.md`. Wave 3 is now read-only certification history. |
-| Wave 4 | HR Certification | PROPOSED — NOT AUTHORIZED | Scope proposal only. Do not begin Wave 4 inventory until Executive Authorization is granted. |
-| Waves 5–16 | Remaining portal families | NOT STARTED | PM, Safety, Dispatch, Shop, Jobs/Field Ops, Forms/Workflows, Training, Guidance, Executive, Communications, Storage/Recovery, and Remaining Operational Modules remain queued. |
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | INVENTORY COMPLETE — AWAITING INSPECTION AUTHORIZATION | Authoritative inventory package: `WP16_WAVE4_INVENTORY_AND_RECONCILIATION.md`. |
+| Waves 5–16 | Remaining portal families | NOT STARTED | No change. |
 
 # 2026-07-30 — WP-16 Wave 3 inventory & completeness reconciliation complete
 
