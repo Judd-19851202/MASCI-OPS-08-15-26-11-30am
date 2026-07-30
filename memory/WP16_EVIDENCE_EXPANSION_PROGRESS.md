@@ -39,7 +39,7 @@ Date: 2026-07-29
 - **All classifications total exactly 480.**
 - **No route is counted in more than one final route classification.**
 - **Runtime code was not changed.**
-- **Smoke verification still passes.**
+- **Smoke verification still passes** — Phase 3 representative read-only verification passed **27/27** checks.
 
 ## Highest-signal Phase 3 movements
 - PM moved from mostly unread to **19 FULLY_EXERCISED** routes.

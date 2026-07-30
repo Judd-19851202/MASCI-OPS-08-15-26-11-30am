@@ -12,6 +12,7 @@
 - Route census now reconciles at **135 FULLY_EXERCISED**, **4 PARTIALLY_EXERCISED**, **31 blocked-class routes**, **7 ALIAS_ROUTE**, **58 REDIRECT_ONLY**, **244 NOT_YET_EXERCISED**.
 - Added Phase 3 defects `WP16-DEF-006`, `WP16-DEF-007`, `WP16-DEF-009`, `WP16-DEF-011`, and `WP16-DEF-012`.
 - Evidence footprint increased to **366 screenshot-backed desktop surfaces**.
+- Verification: read-only Phase 3 representative desktop verification passed **27/27** checks.
 
 # 2026-07-29 — WP15 Convergence Checkpoint
 
