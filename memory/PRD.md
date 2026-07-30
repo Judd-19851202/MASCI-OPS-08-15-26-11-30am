@@ -1,4 +1,27 @@
-# 2026-07-30 — WP-16 Wave 5 inventory & operational reconciliation complete
+# 2026-07-30 — WP-16 Wave 5 inspection complete
+
+## 2026-07-30 Executive dashboard — current program truth
+
+- **Current Wave:** `5`
+- **Current Wave 5 status:** `8-GATE INSPECTION COMPLETE — 2 OPEN DEFECTS — awaiting Executive repair authorization`
+- **Waves Locked:** `3`
+- **Waves Remaining:** `11`
+- **Program Completion (%):** `92.4%` (`315 / 341` denominator experiences inspected against the current authoritative program denominator)
+- **Wave 5 denominator:** `52`
+- **Wave 5 inspection result:** `47 PASS / 5 FAIL / 0 LIMITED`
+- **Open Wave 5 issues:** `WP16-W5-001`, `WP16-W5-002`
+- **Current wave ledger:**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | REPAIR PASS COMPLETE — PENDING EXECUTIVE LOCK | `26 / 26` verified after repairs. |
+| Wave 5 | Safety Certification | INSPECTION COMPLETE — REPAIR AUTHORIZATION REQUIRED | `52 / 52` inspected. Open findings: `WP16-W5-001`, `WP16-W5-002`. Executive package: `WP16_WAVE5_8_GATE_INSPECTION_EXECUTIVE_PACKAGE.md`. |
+| Waves 6–16 | Remaining portal families | NOT STARTED | No work authorized in this phase. |
+
+# Historical snapshot — 2026-07-30 Wave 5 inventory & operational reconciliation complete
 
 ## 2026-07-30 Executive dashboard — current program truth
 
