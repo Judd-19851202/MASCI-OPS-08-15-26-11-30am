@@ -1,3 +1,26 @@
+# 2026-07-30 — WP-16 Wave 5 inventory & operational reconciliation complete
+
+## 2026-07-30 Executive dashboard — current program truth
+
+- **Current Wave:** `5`
+- **Current Wave 5 status:** `INVENTORY & OPERATIONAL RECONCILIATION COMPLETE — awaiting Executive review for inspection authorization`
+- **Waves Locked:** `3`
+- **Waves Remaining:** `11`
+- **Program Completion (%):** `77.1%` (`263 / 341` against the current authoritative denominator after adding the Wave 5 Safety baseline)
+- **Wave 5 denominator:** `52`
+- **Accepted Risks:** `0`
+- **Sequencing note:** `WP16_PHASE_B_CONTROL.md` still shows Safety under Wave 6. Executive authorization for this checkpoint supersedes that sequencing note for certification execution; the conflict is documented in `WP16_WAVE5_INVENTORY_AND_RECONCILIATION.md`.
+- **Current wave ledger:**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | REPAIR PASS COMPLETE — PENDING EXECUTIVE LOCK | `26 / 26` verified after repairs. Closed issues: `WP16-W4-001` through `WP16-W4-005`. |
+| Wave 5 | Safety Certification | INVENTORY COMPLETE — AWAITING INSPECTION AUTHORIZATION | Authoritative inventory package: `WP16_WAVE5_INVENTORY_AND_RECONCILIATION.md`. Final denominator: `52`. |
+| Waves 6–16 | Remaining portal families | NOT STARTED | No additional change in this phase. |
+
 # 2026-07-30 — WP-16 Wave 4 repair pass complete
 
 ## 2026-07-30 Executive dashboard — current program truth

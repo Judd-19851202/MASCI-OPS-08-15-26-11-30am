@@ -1,3 +1,12 @@
+# 2026-07-30 WP-16 Wave 5 Safety certification scope
+
+- **Current state:** Wave 5 Safety Inventory & Operational Reconciliation is complete and awaiting Executive review.
+- **Authoritative Wave 5 package:** `/app/memory/WP16_WAVE5_INVENTORY_AND_RECONCILIATION.md`
+- **Wave 5 scope:** `52` Safety route-pattern experiences in the authoritative denominator.
+- **Sequencing conflict note:** `WP16_PHASE_B_CONTROL.md` still lists Safety as Wave 6. Executive authorization for this package supersedes that sequencing note for certification execution only; no production code or prior locked artifacts were changed.
+- **Hard stop:** do **not** begin Wave 5 inspection until explicit Executive Authorization is granted.
+- **Authority note:** this top block is the current authoritative Wave 5 roadmap state; historical entries below are retained for audit history only.
+
 # 2026-07-30 WP-16 Wave 4 HR certification scope
 
 - **Current state:** Wave 4 HR Inventory & Completeness Reconciliation is complete and awaiting Executive review.
