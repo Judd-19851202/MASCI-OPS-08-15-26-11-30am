@@ -9,6 +9,13 @@
   - corrected screenshots + before/regression references recorded in `/app/memory/WP16_IMPLEMENTATION_SCOREBOARD.md`
   - final Admin certification remains pending user approval
 
+## 2026-07-30 — Admin notification bell 401 follow-up repair
+
+- Reproduced a real user-caught mobile/Admin bell failure: tapping notifications could throw an uncaught `401` runtime overlay.
+- Fixed scoped helper auth inference for exact helper routes in `frontend/src/lib/portalAuthScope.js` and aligned helper 401 handling in `frontend/src/lib/api.js`.
+- Added defensive fetch error handling in `frontend/src/components/NotificationBell.jsx` so the drawer fails closed instead of crashing the page.
+- Proof captured in `/root/.emergent/automation_output/20260730_095617/` (failure) and `/root/.emergent/automation_output/20260730_095729/` (post-fix pass).
+
 # 2026-07-30 — WP-16 Phase 6 Admin certification checkpoint
 
 - Completed the Admin-only migration to the canonical WP-16 foundation and certified the Admin portal in preview / Chromium scope.

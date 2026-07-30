@@ -33,6 +33,22 @@
   - corrected visual treatment implemented and internally verified
   - **final Admin certification still pending explicit user visual approval**
 
+### 2026-07-30 additional follow-up — notification bell 401 runtime
+
+- The user correctly identified another real issue after the prior test claims: tapping the Admin notification bell on mobile produced an uncaught runtime overlay.
+- Exact cause:
+  - `frontend/src/lib/portalAuthScope.js` included `"/notifications/"` but **not** the exact `"/notifications"` list endpoint.
+  - As a result, `listNotifications()` in `frontend/src/components/NotificationBell.jsx` could open the drawer without scoped Admin auth headers even though the badge endpoint `/notifications/unread-count` still worked.
+  - The drawer fetch also lacked a `catch`, so the 401 surfaced as a runtime overlay instead of degrading safely.
+- Repair made:
+  - added exact helper route coverage for `"/notifications"`, `"/tasks"`, and `"/workflows"` in `frontend/src/lib/portalAuthScope.js`
+  - expanded helper 401 classification in `frontend/src/lib/api.js` to the exact helper endpoints
+  - added defensive drawer error handling in `frontend/src/components/NotificationBell.jsx`
+- Proof:
+  - failure reproduced with overlay in `/root/.emergent/automation_output/20260730_095617/`
+  - post-fix drawer recheck passed with `OVERLAY_COUNT=0`, `DRAWER_COUNT=1`, `EMPTY_COUNT=0` in `/root/.emergent/automation_output/20260730_095729/`
+- Final Admin approval remains pending. No other portal work started.
+
 # 2026-07-30 — WP-16 Phase 6 Admin Certification Checkpoint
 
 ## 2026-07-30 WP-16 Phase 6 Admin portal migration complete and certified

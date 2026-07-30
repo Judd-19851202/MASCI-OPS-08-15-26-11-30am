@@ -28,8 +28,11 @@ const CONTEXT_PORTAL_MAP = {
 };
 
 const SHARED_API_PREFIXES = [
+  "/notifications",
   "/notifications/",
+  "/tasks",
   "/tasks/",
+  "/workflows",
   "/workflows/",
   "/cost-codes",
   "/oppc",

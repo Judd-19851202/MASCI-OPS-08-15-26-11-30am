@@ -304,6 +304,8 @@ export default function NotificationBell({ accent = "slate" }) {
       setItems((r.items || []).map((n) => (
         recent[n.id] ? { ...n, _recently_read_at: recent[n.id] } : n
       )));
+    } catch {
+      setItems([]);
     } finally {
       setLoading(false);
     }

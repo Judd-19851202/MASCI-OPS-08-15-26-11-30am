@@ -248,9 +248,9 @@ api.interceptors.response.use(
       // affordances are designed to silently hide on auth failure.
       // Treat their 401s exactly like a namespaced auth signal — no
       // global modal, no token wipe.
-      const isWorkflowsHelper = url.startsWith("/workflows/") || url.includes("/api/workflows/");
-      const isNotificationsHelper = url.startsWith("/notifications/") || url.includes("/api/notifications/");
-      const isOperationsHelper = url.startsWith("/operations/") || url.includes("/api/operations/") || url.startsWith("/operations-center") || url.includes("/api/operations-center");
+      const isWorkflowsHelper = url === "/workflows" || url.startsWith("/workflows/") || url.endsWith("/api/workflows") || url.includes("/api/workflows/");
+      const isNotificationsHelper = url === "/notifications" || url.startsWith("/notifications/") || url.endsWith("/api/notifications") || url.includes("/api/notifications/");
+      const isOperationsHelper = url === "/operations" || url.startsWith("/operations/") || url.endsWith("/api/operations") || url.includes("/api/operations/") || url.startsWith("/operations-center") || url.includes("/api/operations-center");
       const isCrossPortalHelper = isWorkflowsHelper || isNotificationsHelper || isOperationsHelper;
 
       if (isAdminNamespace) {

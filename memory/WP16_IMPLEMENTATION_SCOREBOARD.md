@@ -57,6 +57,15 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Visual certification | **Corrective repair incomplete** | Mobile background and mobile navigation blockers must be repaired and re-verified |
 | Final Admin certification | **PENDING EXPLICIT VISUAL APPROVAL** | Do not count Admin as finally certified until the user approves the corrected checkpoint |
 
+## Post-checkpoint follow-up defect — 2026-07-30
+
+| Dimension | Status | Notes |
+| --- | --- | --- |
+| Notification bell runtime | **Reproduced and repaired** | User caught a real mobile Admin bell failure that produced an uncaught 401 runtime overlay |
+| Root cause | **Confirmed** | Exact helper route `/notifications` was missing from scoped portal-auth inference, so the bell drawer request opened without Admin auth headers even though `/notifications/unread-count` worked |
+| Defensive handling | **Added** | Notification drawer fetch now fails closed to an empty state instead of crashing the screen if a future auth edge case slips through |
+| Final Admin certification | **Still pending** | This repair does not change the approval gate; certified Admin routes remain `0` until explicit approval |
+
 ## Portal Progress
 
 | Portal family | Total routes baseline | Standardized routes | Remaining routes | Certified routes | Not Started | In Progress | Foundation Applied | Responsive Verified | Certified | Blocked | Notes |
@@ -227,3 +236,18 @@ This is a **provisional migration baseline** and must be updated with real RCA o
   - backend: **100% (10/10)**
   - frontend: **100% PASS** across desktop / tablet portrait / tablet landscape / iPhone / Android-sized mobile
 - No other portal migration work began during the correction window
+
+### 2026-07-30 — Admin notification bell follow-up defect repaired
+- User-caught issue: tapping the bell could raise an **uncaught runtime error** with `401` on mobile/Admin preview
+- Exact root cause: `frontend/src/lib/portalAuthScope.js` scoped `"/notifications/"` but not the exact list endpoint `"/notifications"`, so `listNotifications()` in `frontend/src/components/NotificationBell.jsx` could request the drawer feed without Admin auth headers while `getUnreadCount()` still succeeded
+- Files changed:
+  - `frontend/src/lib/portalAuthScope.js`
+  - `frontend/src/lib/api.js`
+  - `frontend/src/components/NotificationBell.jsx`
+- Repair:
+  - added exact helper path coverage for `"/notifications"`, `"/tasks"`, and `"/workflows"`
+  - expanded cross-portal 401 helper classification to exact helper endpoints in `api.js`
+  - added a defensive `catch` in the notification drawer fetch so the bell cannot crash the page if a helper auth edge case ever reappears
+- Proof after repair:
+  - reproduced prior failure in `/root/.emergent/automation_output/20260730_095617/`
+  - re-verified post-fix with no runtime overlay and a populated drawer in `/root/.emergent/automation_output/20260730_095729/`
