@@ -793,7 +793,7 @@ export default function AdminOS() {
                 Total domains
               </div>
               <div className="font-black text-slate-800 text-xl leading-none">
-                {DOMAINS.length}
+                {displaySummary ? DOMAINS.length : "—"}
               </div>
             </div>
           </div>

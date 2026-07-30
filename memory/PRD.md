@@ -24,7 +24,7 @@
 
 - Repaired **WP16-W2-003** in `frontend/src/pages/admin/AdminOS.jsx`.
 - Corrected root cause: partial probe counts were rendering before the posture strip had completed its shared loading boundary.
-- Verification evidence: during Admin refresh, the posture strip now keeps the four summary counts at `—` while copy still says `Loading domain probes…`, eliminating the contradictory mixed state.
+- Verification evidence: during Admin refresh, the posture strip now keeps **all five posture columns**, including `Total domains`, at `—` while copy still says `Loading domain probes…`, eliminating the contradictory mixed state.
 - **New unrelated issue discovered and logged, not repaired:** `WP16-W2-006` — the Admin posture strip may still be waiting indefinitely for one or more probes to resolve. This is outside the authorized five-issue repair scope.
 - Wave 2 repair ledger status after this checkpoint:
   - repaired + verified: `3 / 5`
