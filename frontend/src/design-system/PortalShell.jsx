@@ -13,6 +13,14 @@ import { useBranding } from "@/lib/BrandingProvider";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
+function resolveShellTheme(explicitTheme) {
+  if (explicitTheme) return explicitTheme;
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+    return "admin";
+  }
+  return "default";
+}
+
 function useLocalClock() {
   const [now, setNow] = React.useState(() => new Date());
 
@@ -63,11 +71,15 @@ function formatLastActivity(value) {
   return value;
 }
 
-function TopActionLink({ to, label, icon: Icon, testId }) {
+function TopActionLink({ to, label, icon: Icon, testId, theme = "default" }) {
+  const classes = theme === "admin"
+    ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42"
+    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] hover:bg-[color:var(--paper-card-muted)]";
+
   return (
     <Link
       to={to}
-      className="wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-[color:var(--paper-card-muted)]"
+      className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] shadow-sm transition-[background-color,border-color,color] duration-[140ms] ${classes}`}
       data-testid={testId}
     >
       <Icon className="h-3.5 w-3.5" />
@@ -95,6 +107,7 @@ export function PortalShell({
   signOutCapability = null,
   portalSwitcherCurrent = null,
   hideProviderLine = false,
+  shellTheme = null,
   onSignOut = null,
   sideNav = null,
   children,
@@ -107,6 +120,29 @@ export function PortalShell({
   const clock = useLocalClock();
   const localTimeLabel = formatPlatformTimeOnly(clock);
   const signedInName = React.useMemo(() => resolveSignedInName(), []);
+  const theme = resolveShellTheme(shellTheme);
+  const isAdminTheme = theme === "admin";
+  const searchAccent = isAdminTheme ? "dark" : "light";
+  const notificationAccent = isAdminTheme ? "white" : "slate";
+  const portalSwitcherVariant = isAdminTheme ? "dark" : "light";
+  const langToggleVariant = isAdminTheme ? "dark" : "light";
+  const rootClasses = [
+    "wp16-shell min-h-screen flex flex-col",
+    isAdminTheme ? "wp16-shell--admin" : "",
+    className,
+  ].filter(Boolean).join(" ");
+  const topControlClasses = isAdminTheme
+    ? "border-slate-700 bg-slate-900/18 text-slate-100"
+    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-soft)]";
+  const userControlClasses = isAdminTheme
+    ? "border-slate-700 bg-slate-900/18 text-slate-100"
+    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)]";
+  const mobileMoreButtonClasses = isAdminTheme
+    ? "border-slate-700 bg-slate-900/18 text-slate-100"
+    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)]";
+  const mobilePopoverClasses = isAdminTheme
+    ? "w-[min(92vw,22rem)] border-slate-700 bg-slate-950/92 p-3 text-slate-100 elite-glass-modal"
+    : "w-[min(92vw,22rem)] p-3";
 
   const handleSignOut = async () => {
     if (signOutCapability && signOutCapability.available !== true) return;
@@ -121,7 +157,7 @@ export function PortalShell({
   return (
     <div
       data-testid="ds-portal-shell"
-      className={["wp16-shell min-h-screen flex flex-col", className].filter(Boolean).join(" ")}
+      className={rootClasses}
     >
       <header data-testid="ds-portal-shell-header" className="app-sticky-header wp16-shell-header relative">
         <div className="mx-auto flex min-h-[var(--shell-header-height)] max-w-[var(--content-max-width)] items-center gap-3 px-3 py-3 sm:px-6">
@@ -143,21 +179,21 @@ export function PortalShell({
           <div className="ml-auto hidden min-w-0 items-center gap-2 xl:flex">
             {showSearch ? (
               <div data-testid="ds-portal-shell-search">
-                <GlobalSearch accent="light" />
+                <GlobalSearch accent={searchAccent} />
               </div>
             ) : null}
             {showNotifications ? (
               <div data-testid="ds-portal-shell-notifications">
-                <NotificationBell accent="slate" />
+                <NotificationBell accent={notificationAccent} />
               </div>
             ) : null}
             {showPortalSwitcher ? (
               <div data-testid="ds-portal-shell-portal-switcher">
-                <PortalSwitcher current={portalSwitcherCurrent} variant="light" />
+                <PortalSwitcher current={portalSwitcherCurrent} variant={portalSwitcherVariant} />
               </div>
             ) : null}
             <div
-              className="inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-mono uppercase tracking-[0.14em] text-[color:var(--ink-soft)] shadow-sm"
+              className={`inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-xs font-mono uppercase tracking-[0.14em] shadow-sm ${topControlClasses}`}
               data-testid="ds-portal-shell-local-time"
               title="Local device time"
             >
@@ -165,11 +201,11 @@ export function PortalShell({
               {localTimeLabel}
             </div>
             <div data-testid="ds-portal-shell-lang-toggle">
-              <LangToggle variant="light" className="h-[var(--control-height-sm)]" />
+              <LangToggle variant={langToggleVariant} className="h-[var(--control-height-sm)]" />
             </div>
             {signedInName ? (
               <div
-                className="inline-flex max-w-[14rem] items-center gap-1.5 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 h-[var(--control-height-sm)] text-xs font-semibold text-[color:var(--ink-strong)] shadow-sm"
+                className={`inline-flex max-w-[14rem] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 h-[var(--control-height-sm)] text-xs font-semibold shadow-sm ${userControlClasses}`}
                 data-testid="ds-portal-shell-user"
                 title={signedInName}
               >
@@ -177,14 +213,14 @@ export function PortalShell({
                 <span className="truncate">{signedInName}</span>
               </div>
             ) : null}
-            {showBack && backHref ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-back" /> : null}
-            {showHome ? <TopActionLink to={homeHref} label="Home" icon={HomeIcon} testId="ds-portal-shell-home" /> : null}
+            {showBack && backHref ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-back" theme={theme} /> : null}
+            {showHome ? <TopActionLink to={homeHref} label="Home" icon={HomeIcon} testId="ds-portal-shell-home" theme={theme} /> : null}
             {showSignOut ? (
               <button
                 type="button"
                 onClick={handleSignOut}
                 disabled={!!signOutCapability && signOutCapability.available !== true}
-                className="wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color,opacity] duration-[140ms] hover:bg-[color:var(--paper-card-muted)] disabled:opacity-50"
+                className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] shadow-sm transition-[background-color,border-color,color,opacity] duration-[140ms] disabled:opacity-50 ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] hover:bg-[color:var(--paper-card-muted)]"}`}
                 title={signOutCapability?.disabled_reason || "Sign out"}
                 data-testid="ds-portal-shell-signout"
               >
@@ -195,29 +231,29 @@ export function PortalShell({
           </div>
 
           <div className="ml-auto flex items-center gap-2 xl:hidden">
-            {showNotifications ? <NotificationBell accent="slate" /> : null}
+            {showNotifications ? <NotificationBell accent={notificationAccent} /> : null}
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="wp16-focus-ring inline-flex h-[var(--control-height-sm)] w-[var(--control-height-sm)] items-center justify-center rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] shadow-sm"
+                  className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] w-[var(--control-height-sm)] items-center justify-center rounded-[var(--radius-control)] border shadow-sm ${mobileMoreButtonClasses}`}
                   aria-label="More options"
                   data-testid="ds-portal-shell-mobile-more"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" sideOffset={8} className="w-[min(92vw,22rem)] p-3" data-testid="ds-portal-shell-mobile-more-menu">
+              <PopoverContent align="end" sideOffset={8} className={mobilePopoverClasses} data-testid="ds-portal-shell-mobile-more-menu">
                 <div className="flex flex-col gap-3">
                   <div>
                     <div className="wp16-kicker">{platformShort} · {portalRole}</div>
                     {signedInName ? (
-                      <div className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink-strong)]">
+                      <div className={`mt-1 inline-flex items-center gap-1.5 text-sm font-semibold ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>
                         <UserIcon className="h-3.5 w-3.5 opacity-70" />
                         <span className="truncate">{signedInName}</span>
                       </div>
                     ) : null}
-                    <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.14em] text-[color:var(--ink-soft)]">
+                    <div className={`mt-2 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.14em] ${isAdminTheme ? "text-slate-300" : "text-[color:var(--ink-soft)]"}`}>
                       <Clock className="h-3 w-3 opacity-70" />
                       {localTimeLabel}
                     </div>
@@ -225,18 +261,18 @@ export function PortalShell({
 
                   {showSearch ? (
                     <div data-testid="ds-portal-shell-mobile-search">
-                      <GlobalSearch accent="light" className="w-full justify-center" />
+                      <GlobalSearch accent={searchAccent} className="w-full justify-center" />
                     </div>
                   ) : null}
 
                   <div className="flex flex-wrap items-center gap-2">
-                    {showPortalSwitcher ? <PortalSwitcher current={portalSwitcherCurrent} variant="light" className="w-full justify-center sm:w-auto" /> : null}
-                    <LangToggle variant="light" className="h-[var(--control-height-sm)]" testId="ds-portal-shell-mobile-lang-toggle" />
+                    {showPortalSwitcher ? <PortalSwitcher current={portalSwitcherCurrent} variant={portalSwitcherVariant} className="w-full justify-center sm:w-auto" /> : null}
+                    <LangToggle variant={langToggleVariant} className="h-[var(--control-height-sm)]" testId="ds-portal-shell-mobile-lang-toggle" />
                   </div>
 
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {showBack && backHref ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-mobile-back" /> : null}
-                    {showHome ? <TopActionLink to={homeHref} label="Home" icon={HomeIcon} testId="ds-portal-shell-mobile-home" /> : null}
+                    {showBack && backHref ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-mobile-back" theme={theme} /> : null}
+                    {showHome ? <TopActionLink to={homeHref} label="Home" icon={HomeIcon} testId="ds-portal-shell-mobile-home" theme={theme} /> : null}
                   </div>
 
                   {showSignOut ? (
@@ -244,7 +280,7 @@ export function PortalShell({
                       type="button"
                       onClick={handleSignOut}
                       disabled={!!signOutCapability && signOutCapability.available !== true}
-                      className="wp16-focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius-control)] border border-[color:rgba(185,28,28,0.18)] bg-[color:var(--brand-primary-soft)] px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--brand-primary)] transition-[background-color,border-color,color,opacity] duration-[140ms] hover:bg-white disabled:opacity-50"
+                      className={`wp16-focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,border-color,color,opacity] duration-[140ms] disabled:opacity-50 ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:rgba(185,28,28,0.18)] bg-[color:var(--brand-primary-soft)] text-[color:var(--brand-primary)] hover:bg-white"}`}
                       title={signOutCapability?.disabled_reason || "Sign out"}
                       data-testid="ds-portal-shell-mobile-signout"
                     >
@@ -318,6 +354,7 @@ export function PortalShell({
         showSearch={showSearch}
         showNotifications={showNotifications}
         sideNav={sideNav}
+        theme={theme}
         data-testid="ds-portal-shell-mobile-navigation"
       />
 

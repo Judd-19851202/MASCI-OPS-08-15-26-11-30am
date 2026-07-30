@@ -76,12 +76,13 @@ export default function LegacyAdminModernShell({
       <PortalShell
         portalName="MASCI"
         portalRole="Admin"
+        shellTheme="admin"
         pageTitle={title}
         subtitle={subtitle}
         primaryActions={actions}
         onSignOut={onSignOut}
         signOutCapability={signOutCapability}
-        sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
+        sideNav={<SideNavV3 variant="admin" onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <AdminBreadcrumb
           crumbs={breadcrumb}

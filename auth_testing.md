@@ -18,6 +18,7 @@ Step 3: Validate the Admin-protected APIs
 GET /api/admin/check
 GET /api/qaqc-inspections
 GET /api/admin/equipment-master/status
+GET /api/equipment-inspections
 GET /api/meetings?limit=2
 GET /api/trench-safety/excavations?limit=2
 GET /api/job-photos?limit=2

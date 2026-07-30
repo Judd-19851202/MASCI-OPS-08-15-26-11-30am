@@ -180,6 +180,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
       <PortalShell
         portalName="MASCI"
         portalRole="Admin"
+        shellTheme="admin"
         pageTitle={manifest.label}
         subtitle={manifest.subtitle}
         primaryActions={
@@ -200,7 +201,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
             </Button>
           </div>
         }
-        sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
+        sideNav={<SideNavV3 variant="admin" onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         {/* Universal breadcrumb — every domain page shows "Admin OS › <domain label>". */}
         <AdminBreadcrumb

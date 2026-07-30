@@ -15,12 +15,16 @@ export function MobileNavigation({
   showSearch = true,
   showNotifications = true,
   sideNav = null,
+  theme = "default",
   className = "",
   "data-testid": testId = "ds-mobile-navigation",
 }) {
   if (!showHome && !showBack && !showSearch && !showNotifications && !sideNav) return null;
 
-  const navButtonClasses = "wp16-focus-ring inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-[color:var(--paper-card-muted)]";
+  const isAdminTheme = theme === "admin";
+  const navButtonClasses = isAdminTheme
+    ? "wp16-focus-ring inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-slate-700 bg-slate-900/18 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-slate-800/42"
+    : "wp16-focus-ring inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-[color:var(--paper-card-muted)]";
 
   return (
     <div className={`xl:hidden fixed inset-x-0 bottom-0 z-40 wp16-bottom-dock ${className}`} data-testid={testId}>
@@ -39,12 +43,12 @@ export function MobileNavigation({
           ) : null}
         </div>
         <div className="flex justify-center">
-          {showSearch ? <GlobalSearch accent="light" className="h-12 w-full justify-center" /> : <div />}
+          {showSearch ? <GlobalSearch accent={isAdminTheme ? "dark" : "light"} className="h-12 w-full justify-center" /> : <div />}
         </div>
         <div className="flex justify-center">
           {showNotifications ? (
-            <div className="flex h-12 w-full items-center justify-center rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white shadow-sm">
-              <NotificationBell accent="slate" />
+            <div className={`flex h-12 w-full items-center justify-center rounded-[var(--radius-control)] border shadow-sm ${isAdminTheme ? "border-slate-700 bg-slate-900/18" : "border-[color:var(--border-bold)] bg-white"}`}>
+              <NotificationBell accent={isAdminTheme ? "white" : "slate"} />
             </div>
           ) : <div />}
         </div>
@@ -57,12 +61,12 @@ export function MobileNavigation({
                   Modules
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-[86dvh] rounded-t-[1.5rem] p-0" data-testid={`${testId}-menu-sheet-frame`}>
-                <SheetHeader className="border-b border-[color:var(--border-hairline)] px-5 py-4">
-                  <SheetTitle className="text-left font-display text-2xl font-black tracking-tight text-[color:var(--ink-strong)]">
+              <SheetContent side="bottom" className={`h-[86dvh] rounded-t-[1.5rem] p-0 ${isAdminTheme ? "border-slate-800 bg-slate-950 text-slate-100" : ""}`} data-testid={`${testId}-menu-sheet-frame`}>
+                <SheetHeader className={`border-b px-5 py-4 ${isAdminTheme ? "border-slate-800" : "border-[color:var(--border-hairline)]"}`}>
+                  <SheetTitle className={`text-left font-display text-2xl font-black tracking-tight ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>
                     {portalName} navigation
                   </SheetTitle>
-                  <SheetDescription className="text-left text-sm text-[color:var(--ink-soft)]">
+                  <SheetDescription className={`text-left text-sm ${isAdminTheme ? "text-slate-300" : "text-[color:var(--ink-soft)]"}`}>
                     {portalRole} modules and shared destinations.
                   </SheetDescription>
                 </SheetHeader>

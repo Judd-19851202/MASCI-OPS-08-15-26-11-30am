@@ -31,7 +31,7 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Total routes | 480 | Audit baseline |
 | Standardized routes | 141 | Admin portal now fully reconciled to the canonical WP-16 foundation at the certified checkpoint |
 | Remaining routes | 339 | `480 - 141`; Admin is complete, other portal families remain locked behind approval |
-| Certified routes | 141 | Admin portal certified in preview / Chromium coverage scope |
+| Certified routes | 4 | Final Admin certification is revoked; only the earlier foundation-approved representative routes remain certified |
 
 ## Admin Checkpoint Delta — 2026-07-30
 
@@ -45,11 +45,21 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | Reproducible Admin auth / access blockers affecting certification | 7 | 0 | -7 | Includes documented 401 surfaces plus the `RequireAdminOrPm` Admin-token guard defect |
 | Responsive Admin viewport families verified | 0 | 4 | +4 | Desktop, tablet portrait, tablet landscape, and iPhone viewport families passed |
 
+## Admin Checkpoint Status — corrected after user review
+
+| Dimension | Status | Notes |
+| --- | --- | --- |
+| Functional migration | **Complete** | Route migration and runtime/auth fixes remain in place |
+| Route migration | **Complete** | Admin route census remains `141 / 141` migrated |
+| Automated testing | **Passed** | Functional, responsive, and backend regressions passed in automation |
+| Visual certification | **Failed** | User rejected the checkpoint for severe visual regression / whitewashed Admin identity |
+| Final Admin certification | **REJECTED — VISUAL REGRESSION** | Pending corrective action and explicit visual approval |
+
 ## Portal Progress
 
 | Portal family | Total routes baseline | Standardized routes | Remaining routes | Certified routes | Not Started | In Progress | Foundation Applied | Responsive Verified | Certified | Blocked | Notes |
 | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- | --- |
-| Admin | 141 | 141 | 0 | 141 | No | No | **Yes** | **Yes** | **Yes — preview / Chromium scope** | No | Full Admin checkpoint certified; legacy Admin shell drift and documented auth blockers reconciled |
+| Admin | 141 | 141 | 0 | 0 | No | **Yes — corrective action** | **Yes** | **Yes** | **No — visual certification failed** | **Yes — visual regression** | Functional migration complete, but the user rejected the whitewashed Admin presentation |
 | HR | 32 | 0 confirmed | 32 | 0 | **Yes** | No | No | No | No | **Yes** | Known 403/500 defects remain open for HR migration |
 | PM | 47 | 0 confirmed | 47 | 0 | **Yes** | No | No | No | No | No | Next after HR in the approved migration order |
 | Safety | 54 | 0 confirmed | 54 | 0 | **Yes** | No | No | No | No | No | Foundation not yet applied portal-wide |
@@ -134,7 +144,7 @@ This is a **provisional migration baseline** and must be updated with real RCA o
 
 | Portal family | Functional | Visual | Responsive | Accessibility | Browser | Final certification |
 | --- | --- | --- | --- | --- | --- | --- |
-| Admin | **PASS** | **PASS** | **PASS** | Pending focused a11y sweep outside this migration checkpoint | Partial — non-Chromium pending | **Certified — preview / Chromium scope** |
+| Admin | **PASS** | **FAIL — visual regression under review** | **PASS** | Pending focused a11y sweep outside this migration checkpoint | Partial — non-Chromium pending | **REJECTED — pending corrective action** |
 | HR | Not started | Not started | Not started | Not started | Not started | Not certified |
 | PM | Not started | Not started | Not started | Not started | Not started | Not certified |
 | Safety | Not started | Not started | Not started | Not started | Not started | Not certified |
@@ -185,3 +195,9 @@ This is a **provisional migration baseline** and must be updated with real RCA o
   - frontend certification screenshots: `.screenshots/wp16_p6_admin_dashboard.png`, `.screenshots/wp16_p6_exec_intel.png`, `.screenshots/wp16_p6_qaqc.png`, `.screenshots/wp16_p6_meetings_test.png`, `.screenshots/wp16_p6_trench.png`, `.screenshots/wp16_p6_inspections.png`, `.screenshots/wp16_p6_desktop.png`, `.screenshots/wp16_p6_tablet_portrait.png`, `.screenshots/wp16_p6_tablet_landscape.png`, `.screenshots/wp16_p6_iphone.png`
   - smoke screenshots captured during migration: `/root/.emergent/automation_output/20260730_015541/`, `/root/.emergent/automation_output/20260730_020325/`
 - Stop condition reached: do **not** begin HR / PM / any other portal until explicit approval of the Admin checkpoint
+
+### 2026-07-30 — Admin checkpoint rejected by user
+- User review changed Admin checkpoint status from **certified** to **REJECTED — VISUAL REGRESSION**
+- Functional migration, route migration, and automated testing remain valid
+- Visual certification failed because the Admin portal lost its established visual identity and flattened into an overly white presentation
+- Required next step: evidence-first root-cause analysis and identity restoration on Admin only

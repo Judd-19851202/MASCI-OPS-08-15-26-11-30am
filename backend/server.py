@@ -1125,9 +1125,9 @@ async def require_shop_or_admin(
     x_admin_token: Optional[str] = Header(default=None),
     x_shop_token: Optional[str] = Header(default=None),
 ):
-    """Accept a true Super Admin token or an explicit Shop token only."""
-    if x_admin_token and await _super_admin_row_for_token_async(x_admin_token):
-        return True
+    """Accept a valid directory-backed Admin token or an explicit Shop token."""
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+        return {"_actor": "admin", "role": "admin"}
 
     path = (request.scope.get("path") or request.url.path or "").lower()
     admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"

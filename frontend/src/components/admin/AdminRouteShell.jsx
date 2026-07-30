@@ -4,7 +4,7 @@ import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 export function renderAdminRouteSideNav() {
-  return <SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />;
+  return <SideNavV3 variant="admin" onOpenPalette={() => window.__masciAdminOpenPalette?.()} />;
 }
 
 export function AdminRouteShell({
@@ -21,6 +21,7 @@ export function AdminRouteShell({
     <PortalShell
       portalName="MASCI"
       portalRole={portalRole}
+      shellTheme="admin"
       pageTitle={pageTitle}
       subtitle={subtitle}
       primaryActions={primaryActions}
