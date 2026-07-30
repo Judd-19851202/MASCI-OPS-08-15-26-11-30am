@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, txFetchJson, STATE_LABEL, useTxPathPrefix, isTxRestricted,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, txFetchJson, STATE_LABEL, useTxPathPrefix, isTxRestricted, txCatch,
 } from "./_shared";
 import { RateCreateDialog, InspectionWizard } from "./_widgets";
 import MissionControl from "./MissionControl";
@@ -67,21 +67,47 @@ export function TransportationDashboard() {
 // by affected_count desc, so signals[0] IS the top opportunity.
 function TopCleanupOpportunityCard() {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const prefix = useTxPathPrefix();
 
-  useEffect(() => {
-    txFetchJson("/admin/transportation/intelligence/cleanup-signals", { days: 30 })
-      .then((r) => setData(r.data))
-      .catch((e) => setErr(e.message));
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await txFetchJson("/admin/transportation/intelligence/cleanup-signals", { days: 30 });
+      if (isTxRestricted(r)) {
+        setRestricted(true);
+        setData(null);
+        setErr(null);
+        return;
+      }
+      setRestricted(false);
+      setData(r.data);
+      setErr(null);
+    } catch (e) {
+      setErr(txCatch(e) || e.message || "Cleanup unavailable.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    load();
+    const retry = setTimeout(() => { load(); }, 1500);
+    return () => clearTimeout(retry);
+  }, [load]);
+
+  if (restricted) {
+    return <TxOpsRestrictedData testid="tx-dashboard-top-cleanup-error" />;
+  }
 
   if (err) {
     return (
       <TxOpsRestrictedData testid="tx-dashboard-top-cleanup-error" />
     );
   }
-  if (!data) {
+  if (loading && !data) {
     return (
       <div
         data-testid="tx-dashboard-top-cleanup-loading"

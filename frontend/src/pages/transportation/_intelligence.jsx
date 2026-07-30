@@ -126,7 +126,11 @@ function ExecutiveDashboard() {
       setLoading(false);
     }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    const retry = setTimeout(() => { load(); }, 1500);
+    return () => clearTimeout(retry);
+  }, [load]);
 
   if (loading && !data) return <div data-testid="tx-intel-exec-loading" className="text-sm text-slate-500">Loading…</div>;
   if (restricted) return <TxOpsRestrictedData testid="tx-intel-exec-restricted" />;
