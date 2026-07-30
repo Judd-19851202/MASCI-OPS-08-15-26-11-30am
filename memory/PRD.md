@@ -1,3 +1,26 @@
+# 2026-07-30 — WP-16 Wave 4 8-gate inspection complete
+
+## 2026-07-30 Executive dashboard — current program truth
+
+- **Current Wave:** `4`
+- **Current Wave 4 status:** `8-GATE INSPECTION COMPLETE — PENDING REPAIR AUTHORIZATION`
+- **Waves Locked:** `3`
+- **Waves Remaining:** `12`
+- **Program Completion (%):** `91.0%` (`263 / 289` against the current authoritative denominator after the Wave 4 inspection pass)
+- **Wave 4 denominator inspected:** `26 / 26`
+- **Wave 4 open issue IDs:** `5`
+- **Wave 4 issue severity mix:** `Critical 2 · High 1 · Medium 2 · Low 0`
+- **Accepted Risks:** `0`
+- **Current wave ledger:**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | 8-GATE INSPECTION COMPLETE — PENDING REPAIR AUTHORIZATION | `26 / 26` inspected. Open issues: `WP16-W4-001` through `WP16-W4-005`. Executive package: `WP16_WAVE4_8_GATE_INSPECTION_EXECUTIVE_PACKAGE.md`. |
+| Waves 5–16 | Remaining portal families | NOT STARTED | No change. |
+
 # 2026-07-30 — WP-16 Wave 4 inventory & denominator reconciliation complete
 
 ## 2026-07-30 Executive dashboard — current program truth
