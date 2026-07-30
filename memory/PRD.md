@@ -1,3 +1,36 @@
+# 2026-07-30 — WP-16 Phase B Wave 2 inventory & completeness reconciliation complete
+
+## 2026-07-30 Wave 2 denominator locked — awaiting executive authorization for inspection
+
+- Completed the Wave 2 inventory-only checkpoint under Zero Drift. No redesigns, refactors, repairs, or 7-Gate inspections were started.
+- Created the persisted Wave 2 deliverables package:
+  - `/app/memory/WP16_WAVE2_INVENTORY_AND_RECONCILIATION.md`
+- Final Wave 2 denominator now reconciles at:
+  - **30** route/home/dashboard surfaces
+  - **47** embedded widget/section clusters on modern home surfaces
+  - **22** shared navigation/state/access foundation surfaces
+  - **99** total Wave 2 inventory items with permanent `W2-XXX` identifiers
+- Route/home status posture at checkpoint close:
+  - `19` prior-evidence surfaces requiring re-verification
+  - `2` blocked-prior-evidence surfaces (`/hr`, `/dispatch-portal`)
+  - `5` not-yet-exercised route surfaces
+  - `4` redirect-only aliases pending redirect verification
+- Key reconciliation truths recorded:
+  - primary Wave 2 route denominator in `WP16_CERTIFICATION_REGISTER.csv` reconciles cleanly with `AppRoutes.jsx`
+  - shared foundations (`PortalShell`, `PortalStates`, sidebars, route guards) were not standalone CSV rows and are now captured in the Wave 2 deliverables package
+  - active Admin navigation truth is `SideNavV3`, not `SideNavV2`; this was logged as runtime truth, not drift
+- **WP-16 PROGRAM STATUS**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | TECHNICALLY VERIFIED — PENDING EXECUTIVE APPROVAL | No unresolved Wave 1 punch-list defects remain. |
+| Wave 2 | Homepage / Dashboard Certification | INVENTORY & COMPLETENESS RECONCILIATION COMPLETE — AWAITING EXECUTIVE AUTHORIZATION | Baseline denominator locked at 99 inventory items. No 7-Gate inspection started. |
+| Wave 3 | Admin Certification | BLOCKED / NOT STARTED | Must wait until Wave 2 executive direction. |
+| Waves 4–16 | Remaining portal families | NOT STARTED | HR, PM, Safety, Dispatch, Shop, Operations, and later waves remain queued. |
+- Constitutional stop point reached:
+  - present Wave 2 deliverables
+  - **do not begin Wave 2 7-Gate inspection, punch-list logging, or code repairs until explicit executive authorization is given**
+
 # 2026-07-30 — WP-16 Phase B Wave 1 inspection baseline (no repairs started)
 
 ## 2026-07-30 Wave 1 repair + approval-evidence pass complete
