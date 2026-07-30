@@ -297,9 +297,11 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
         x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_directory_token: Optional[str] = Header(default=None, alias="X-Directory-Token"),
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
     ) -> Dict[str, Any]:
         """Returns {role: 'admin' | 'leadership'} — raises 401/403 otherwise."""
+        _ = x_directory_token
         if x_leadership_token:
             raise HTTPException(
                 status_code=410,

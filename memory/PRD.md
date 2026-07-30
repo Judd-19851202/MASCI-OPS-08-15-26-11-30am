@@ -1,36 +1,37 @@
-# 2026-07-30 — WP-16 Wave 3 7-Gate inspection complete
+# 2026-07-30 — WP-16 Wave 3 repair pass complete
 
 ## 2026-07-30 Executive dashboard — current program truth
 
-- **Current Wave 3 status:** 7-GATE INSPECTION COMPLETE — **STOPPED FOR EXECUTIVE REPAIR AUTHORIZATION**
+- **Current Wave 3 status:** REPAIR PASS COMPLETE — **NOT READY FOR EXECUTIVE LOCK**
 - **Authoritative Wave 3 inventory package:** `/app/memory/WP16_WAVE3_INVENTORY_AND_RECONCILIATION.md`
 - **Authoritative Wave 3 inspection package:** `/app/memory/WP16_WAVE3_7_GATE_INSPECTION_EXECUTIVE_PACKAGE.md`
+- **Authoritative Wave 3 repair package:** `/app/memory/WP16_WAVE3_EXECUTIVE_REPAIR_SUMMARY.md`
 - Dashboard metrics:
   - **Total Waves:** `16`
   - **Waves Locked:** `2`
   - **Current Wave:** `3`
   - **Waves Remaining:** `13`
-  - **Outstanding Production Defects:** `13`
+  - **Outstanding Production Defects:** `1`
   - **Accepted Risks:** `0`
   - **Total Experiences Certified (cumulative across locked waves):** `130`
   - **Total Experiences Remaining:** `133`
   - **Total Defects Found (Program Total):** `29`
-  - **Total Defects Closed (Program Total):** `16`
-  - **Program Completion (%):** `49.4%` (`130 / 263` against the current authoritative denominator)
-- Wave 3 inspection metrics:
+  - **Total Defects Closed (Program Total):** `28`
+  - **Program Completion (%):** `49.4%` (`130 / 263` against the current authoritative denominator; Wave 3 not yet lockable)
+- Wave 3 repair metrics:
   - **Wave 3 denominator inspected:** `133 / 133`
-  - **Runtime-pass experiences:** `106`
-  - **Runtime defect-open experiences:** `12`
-  - **Code-contract / seed-limited inspections:** `15`
-  - **New Wave 3 issue IDs opened:** `13`
+  - **Wave 3 issues opened:** `13`
+  - **Wave 3 issues closed:** `12`
+  - **Wave 3 issues remaining:** `1` (`WP16-W3-002`)
+  - **Independent verification result:** `10 / 11 critical admin hard-load routes passed` in `/app/test_reports/iteration_80.json`
 - Current wave ledger:
 
 | Wave | Scope | Status | Notes |
 |---|---|---|---|
 | Wave 1 | Public Pages & Authentication | LOCKED | Locked prior to this checkpoint; counted in certified-experience totals. |
 | Wave 2 | Homepage / Dashboard Certification | LOCKED | Executive Locked with no outstanding production defects. |
-| Wave 3 | Admin Certification | INSPECTION COMPLETE — AWAITING EXECUTIVE REPAIR AUTHORIZATION | Defects logged in `WP16_LIVE_PUNCH_LIST.md` and `WP16_CERTIFICATION_REGISTER.csv`; see `WP16_WAVE3_7_GATE_INSPECTION_EXECUTIVE_PACKAGE.md`. |
-| Waves 4–16 | Remaining portal families | NOT STARTED | Denominators not yet authoritatively baselined and therefore excluded from completion math. |
+| Wave 3 | Admin Certification | REPAIR PASS COMPLETE — NOT READY FOR EXECUTIVE LOCK | `12 / 13` authorized Wave 3 issues closed. Remaining blocker: `WP16-W3-002` on `/admin/leadership/records`. See `WP16_WAVE3_EXECUTIVE_REPAIR_SUMMARY.md`. |
+| Waves 4–16 | Remaining portal families | NOT STARTED | Do not begin until Wave 3 receives Executive direction and lock status. |
 
 # 2026-07-30 — WP-16 Wave 3 inventory & completeness reconciliation complete
 
