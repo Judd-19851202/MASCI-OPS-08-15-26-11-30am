@@ -1,3 +1,52 @@
+# 2026-07-30 — WP-16 Phase B Wave 2 authorized repair pass complete
+
+## 2026-07-30 Executive repair closeout — Wave 2 only
+
+- Completed and verified all **5 / 5 authorized Wave 2 repairs**:
+  - `WP16-W2-002`
+  - `WP16-W2-001`
+  - `WP16-W2-003`
+  - `WP16-W2-004`
+  - `WP16-W2-005`
+- Final Wave 2 verification result after the repair pass:
+  - **Authorized repairs verified:** `5 / 5`
+  - **Authorized issues remaining:** `0`
+  - **Open follow-up defects discovered during repair verification:** `2`
+    - `WP16-W2-006` Admin posture extended loading behavior (observed; eventually completes)
+    - `WP16-W2-007` `/shop/hub_legacy` shows `Admin or PM login required` under Shop auth
+- Updated Wave 2 denominator after repairs:
+  - **30** route/home/dashboard surfaces total
+  - now reconciled as **25 route screens** + **5 redirect aliases**
+  - **47** embedded widget/section clusters
+  - **22** shared navigation/state/access foundations
+  - **99** total Wave 2 inventory items
+- Regression result:
+  - final repair verification passed on all five authorized issues
+  - no new regressions were introduced on the repaired surfaces during the final verification pass
+- Files modified during the authorized repair pass:
+  - `frontend/src/pages/PmHomeRedirect.jsx`
+  - `frontend/src/components/operational_intelligence/OiAttentionStrip.jsx`
+  - `frontend/src/pages/admin/AdminOS.jsx`
+  - `frontend/src/pages/PmHub.jsx`
+  - `frontend/src/pages/HrHub.jsx`
+  - `frontend/src/pages/SafetyHub.jsx`
+  - `frontend/src/pages/ShopHub.jsx`
+  - `frontend/src/pages/SafetySection.jsx`
+  - `/app/memory/WP16_LIVE_PUNCH_LIST.md`
+  - `/app/memory/WP16_CERTIFICATION_REGISTER.csv`
+  - `/app/memory/PRD.md`
+- Recommendation for Wave 2 approval:
+  - **Do not lock Wave 2 yet.**
+  - Authorized repairs are complete and verified, but the two newly logged follow-up defects should be reviewed for executive disposition before final Wave 2 approval.
+- **WP-16 PROGRAM STATUS**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | TECHNICALLY VERIFIED — PENDING EXECUTIVE APPROVAL | No unresolved Wave 1 punch-list defects remain. |
+| Wave 2 | Homepage / Dashboard Certification | AUTHORIZED REPAIRS COMPLETE — FOLLOW-UP DEFECTS OPEN — PENDING EXECUTIVE REVIEW | All 5 authorized repairs verified. Follow-up issues `WP16-W2-006` and `WP16-W2-007` remain open. |
+| Wave 3 | Admin Certification | BLOCKED / NOT STARTED | Must wait for Wave 2 executive direction. |
+| Waves 4–16 | Remaining portal families | NOT STARTED | HR, PM, Safety, Dispatch, Shop, Operations, and later waves remain queued. |
+
 # 2026-07-30 — WP-16 Phase B Wave 2 repair progress
 
 ## 2026-07-30 W2-002 repaired and verified
