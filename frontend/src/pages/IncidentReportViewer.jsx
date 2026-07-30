@@ -5,25 +5,35 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useT } from "@/lib/i18n";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   Printer, FileDown, Share2, ArrowLeft, ShieldCheck, Clock,
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-function _headers() {
-  const h = { "Content-Type": "application/json" };
-  try {
-    const s = localStorage.getItem("safety_token");
-    const a = localStorage.getItem("admin_token");
-    const p = localStorage.getItem("pm_token");
-    if (s) h["X-Safety-Token"] = s;
-    if (a) h["X-Admin-Token"] = a;
-    if (p) h["X-PM-Token"] = p;
-  } catch (_err) { /* ignore */ }
-  return h;
+const requestConfig = () => ({
+  headers: buildScopedPortalAuthHeaders(["safety", "admin", "pm"], { "Content-Type": "application/json" }),
+  timeout: 25000,
+});
+
+async function downloadPdfBlob(url, fallbackName) {
+  const res = await fetch(url, {
+    headers: buildScopedPortalAuthHeaders(["safety", "admin", "pm"]),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const blob = await res.blob();
+  const href = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const cd = res.headers.get("content-disposition") || "";
+  const match = /filename="?([^";]+)"?/i.exec(cd);
+  link.href = href;
+  link.download = match ? match[1] : fallbackName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(href);
 }
-const cli = () => axios.create({ baseURL: API, headers: _headers(), timeout: 25000 });
 
 const KV = ({ label, value, testId }) => (
   <div className="text-sm" data-testid={testId}>
@@ -415,12 +425,16 @@ export default function IncidentReportViewer() {
   const [payload, setPayload] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     let live = true;
     setLoading(true);
-    cli()
-      .get(`/incident-cases/${encodeURIComponent(caseId)}/reports/${encodeURIComponent(reportType)}`)
+    axios
+      .get(
+        `${API}/incident-cases/${encodeURIComponent(caseId)}/reports/${encodeURIComponent(reportType)}`,
+        requestConfig(),
+      )
       .then((r) => { if (live) setPayload(r.data); })
       .catch((e) => { if (live) setErr(e?.response?.data?.detail || String(e)); })
       .finally(() => { if (live) setLoading(false); });
@@ -438,6 +452,21 @@ export default function IncidentReportViewer() {
       alert(t("Report link copied."));
     } catch (_err) {
       window.prompt(t("Copy this link"), window.location.href);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadPdfBlob(
+        `${API}/incident-cases/${encodeURIComponent(caseId)}/reports/${encodeURIComponent(reportType)}.pdf`,
+        `incident_report_${caseId}_${reportType}.pdf`,
+      );
+    } catch (e) {
+      setErr(e?.message || String(e));
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -502,14 +531,14 @@ export default function IncidentReportViewer() {
         >
           <Printer className="w-3.5 h-3.5" />{t("Print")}
         </button>
-        <a
-          href={pdfUrl}
-          target="_blank" rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={handleDownloadPdf}
           className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-400"
           data-testid="report-viewer-pdf-btn"
         >
-          <FileDown className="w-3.5 h-3.5" />{t("Download PDF")}
-        </a>
+          <FileDown className="w-3.5 h-3.5" />{downloading ? t("Downloading…") : t("Download PDF")}
+        </button>
         <button
           onClick={handleShare}
           className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-slate-700 text-slate-50 text-xs font-semibold hover:bg-slate-600"

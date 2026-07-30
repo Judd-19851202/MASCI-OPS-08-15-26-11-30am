@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useT } from "@/lib/i18n";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
   AlertTriangle, ChevronLeft, Download, FileText, Lock, ScrollText,
   ShieldCheck, TrendingUp, Users,
@@ -15,17 +16,27 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-function _headers() {
-  const h = { "Content-Type": "application/json" };
-  try {
-    const s = localStorage.getItem("safety_token");
-    const a = localStorage.getItem("admin_token");
-    const p = localStorage.getItem("pm_token");
-    if (s) h["X-Safety-Token"] = s;
-    if (a) h["X-Admin-Token"] = a;
-    if (p) h["X-PM-Token"] = p;
-  } catch { /* ignore */ }
-  return h;
+const requestConfig = () => ({
+  headers: buildScopedPortalAuthHeaders(["safety", "admin", "pm"], { "Content-Type": "application/json" }),
+  timeout: 20000,
+});
+
+async function downloadPdfBlob(url, fallbackName) {
+  const res = await fetch(url, {
+    headers: buildScopedPortalAuthHeaders(["safety", "admin", "pm"]),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const blob = await res.blob();
+  const href = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const cd = res.headers.get("content-disposition") || "";
+  const match = /filename="?([^";]+)"?/i.exec(cd);
+  link.href = href;
+  link.download = match ? match[1] : fallbackName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(href);
 }
 
 function _fmt(v) {
@@ -88,23 +99,35 @@ export default function ExecutiveCaseReport() {
   const { t } = useT();
   const [model, setModel] = useState(null);
   const [err, setErr] = useState("");
-
-  const client = useMemo(() => axios.create({ baseURL: API, headers: _headers(), timeout: 20000 }), []);
+  const [downloading, setDownloading] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const { data } = await client.get(`/incident-cases/${caseId}/executive-intelligence`);
+      const { data } = await axios.get(
+        `${API}/incident-cases/${caseId}/executive-intelligence`,
+        requestConfig(),
+      );
       setModel(data);
     } catch (e) {
       setErr(e?.response?.data?.detail?.detail || e.response?.data?.detail || e.message || "load_failed");
     }
-  }, [client, caseId]);
+  }, [caseId]);
 
   useEffect(() => { load(); }, [load]);
 
-  const downloadPdf = () => {
-    const url = `${API}/incident-cases/${caseId}/executive-report.pdf`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const downloadPdf = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadPdfBlob(
+        `${API}/incident-cases/${caseId}/executive-report.pdf`,
+        `executive_report_${caseId}.pdf`,
+      );
+    } catch (e) {
+      setErr(e?.message || String(e));
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (err) {
@@ -170,7 +193,7 @@ export default function ExecutiveCaseReport() {
           className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-slate-900 text-white text-sm font-bold hover:bg-slate-800"
           data-testid="exec-report-download-pdf"
         >
-          <Download className="w-4 h-4" aria-hidden /> {t("PDF")}
+          <Download className="w-4 h-4" aria-hidden /> {downloading ? t("Downloading…") : t("PDF")}
         </button>
       </header>
 

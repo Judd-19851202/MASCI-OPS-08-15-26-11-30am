@@ -288,6 +288,8 @@ api.interceptors.response.use(
         _namespacedHandled = true;
       } else if (isSafetyFormsNamespace) {
         if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Admin-Token"]) clearAdminToken();
         if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isDevNamespace) {

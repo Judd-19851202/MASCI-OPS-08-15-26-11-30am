@@ -49,6 +49,7 @@ const SHARED_API_PREFIXES = [
   "/qaqc-inspections",
   "/job-photos",
   "/incidents",
+  "/safety-forms",
   "/trench-safety",
   "/project-health",
   "/asset-transfers",
