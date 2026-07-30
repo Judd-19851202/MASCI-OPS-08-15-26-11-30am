@@ -23,6 +23,7 @@ import {
   EmptyState,
   txGet,
   txFetchJson,
+  txFetchJsonSettled,
   isTxRestricted,
   txCatch,
   useTxPathPrefix,
@@ -127,9 +128,8 @@ function ExecutiveDashboard() {
     }
   }, []);
   useEffect(() => {
-    load();
-    const retry = setTimeout(() => { load(); }, 1500);
-    return () => clearTimeout(retry);
+    const kickoff = setTimeout(() => { load(); }, 1200);
+    return () => clearTimeout(kickoff);
   }, [load]);
 
   if (loading && !data) return <div data-testid="tx-intel-exec-loading" className="text-sm text-slate-500">Loading…</div>;
@@ -688,7 +688,7 @@ function CleanupCompanionPanel() {
 
   const load = useCallback(async () => {
     try {
-      const r = await txFetchJson(
+      const r = await txFetchJsonSettled(
         "/admin/transportation/intelligence/cleanup-signals",
         { days: 30 }
       );

@@ -292,35 +292,18 @@ export function txGet(path, params) {
 }
 
 export async function txFetchJson(path, params) {
-  const base = api.defaults.baseURL || `${process.env.REACT_APP_BACKEND_URL}/api`;
-  const url = new URL(`${base}${path}`);
+  const qs = new URLSearchParams();
   Object.entries(params || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
-      url.searchParams.set(key, String(value));
+      qs.set(key, String(value));
     }
   });
+  const requestPath = `/api${path}${qs.toString() ? `?${qs.toString()}` : ""}`;
 
-  const fetchOnce = async () => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-    try {
-      return await fetch(url.toString(), {
-        headers: txHeaders(),
-        cache: "no-store",
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-  };
-
-  let res;
-  try {
-    res = await fetchOnce();
-  } catch (err) {
-    if (err?.name !== "AbortError") throw err;
-    res = await fetchOnce();
-  }
+  const res = await fetch(requestPath, {
+    headers: txHeaders(),
+    cache: "no-store",
+  });
 
   if (res.status === 401 || res.status === 403) {
     return {
@@ -342,6 +325,26 @@ export async function txFetchJson(path, params) {
     throw new Error(data?.detail || data?.message || `HTTP ${res.status}`);
   }
   return { data, status: res.status };
+}
+
+export async function txFetchJsonSettled(path, params, opts = {}) {
+  const attempts = Number(opts.attempts || 3);
+  const settleMs = Number(opts.settleMs || 1500);
+  const backoffMs = Number(opts.backoffMs || 500);
+
+  for (let i = 0; i < attempts; i += 1) {
+    const req = txFetchJson(path, params);
+    const timed = await Promise.race([
+      req.then((value) => ({ ok: true, value })),
+      new Promise((resolve) => setTimeout(() => resolve({ ok: false }), settleMs)),
+    ]);
+    if (timed.ok) return timed.value;
+    if (i < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+    }
+  }
+
+  throw new Error("Cleanup data request timed out before settling.");
 }
 
 // TRACK 18.12B · Detection helper.
