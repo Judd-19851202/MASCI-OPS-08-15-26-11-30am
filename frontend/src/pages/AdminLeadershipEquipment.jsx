@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 
 const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600";
@@ -157,7 +157,7 @@ export default function AdminLeadershipEquipment() {
       portalRole="Admin · Field Leadership Equipment"
       pageTitle={t("Equipment Catalog & Manufacturers")}
       subtitle={t("Manage the searchable equipment list and manufacturer dropdown used by the Equipment Checkout & Accountability form.")}
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
     >
       <section className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-leadership-equipment-page">
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">

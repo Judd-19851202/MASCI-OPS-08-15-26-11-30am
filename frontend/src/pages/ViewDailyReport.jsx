@@ -26,6 +26,7 @@ import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
 import { DailyReportLifecyclePanel } from "@/components/DailyReportLifecyclePanel";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
@@ -171,6 +172,7 @@ export default function ViewDailyReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pathname, state: navState } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
   // Parent list URL — strips `/<id>` from the current pathname so PMs
   // viewing /pm/daily/<id> bounce back to /pm/daily, and admins viewing
   // /admin/daily/<id> bounce back to /admin/daily. Avoids the legacy
@@ -236,11 +238,22 @@ export default function ViewDailyReport() {
   };
 
   if (loading) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
         <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle="Daily Report"
+        subtitle="Admin review for field activity, labor, production, weather, and attachments."
+        portalRole="Admin · Daily Reports"
+        crumbs={[{ label: "Field Operations" }, { label: "Daily Reports" }]}
+        testId="admin-view-daily-report-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
   }
   if (!data) return null;
 
@@ -266,7 +279,7 @@ export default function ViewDailyReport() {
             ? t("Notification delivery failed and requires operator correction.")
             : t("Notification state pending or not yet recorded.");
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
@@ -935,4 +948,21 @@ export default function ViewDailyReport() {
       />
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle="Daily Report"
+      subtitle="Admin review for field activity, labor, production, weather, and attachments."
+      portalRole="Admin · Daily Reports"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "Daily Reports" },
+        { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Report" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-daily-report-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }

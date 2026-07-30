@@ -25,7 +25,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import NotificationBell from "@/components/NotificationBell";
 import { listTasks, getTaskSummary, getTask, patchTask, commentTask } from "@/lib/tasksApi";
 import { isSignedInAnywhere, homePortalUrl } from "@/lib/permissions";
@@ -105,7 +105,7 @@ export default function Tasks() {
       portalName="MASCI" portalRole="Admin · Tasks & Actions"
       pageTitle="Operational Accountability"
       subtitle="Open tasks · overdue items · operational follow-through"
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
     >
     <div className="min-h-screen" data-testid="tasks-page">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">

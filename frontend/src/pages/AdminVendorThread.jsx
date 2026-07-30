@@ -30,16 +30,16 @@ import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { isAdmin, getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { operationalError } from "@/lib/errors";
 import AccessDenied from "@/pages/AccessDenied";
 import OperationalThreadPage from "@/components/operational_intelligence/OperationalThreadPage";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function adminHeaders() {
-  const h = {};
-  const a = getAdminToken(); if (a) h["X-Admin-Token"] = a;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin"]);
 }
 
 // Vendor document type slugs from Track 19.59 catalog.
@@ -380,7 +380,18 @@ export default function AdminVendorThread() {
   if (!allowed) return <AccessDenied attemptedPortal="admin" />;
 
   return (
-    <div className="min-h-screen bg-slate-100" data-testid="admin-vendor-thread-page">
+    <AdminRouteShell
+      pageTitle="Vendor Thread"
+      subtitle="Supplier record, document posture, and operational follow-up in one Admin workspace."
+      portalRole="Admin · Vendor Intelligence"
+      crumbs={[
+        { label: "Equipment & Assets", href: "/admin/equipment" },
+        { label: state.vendor?.name || vid || "Vendor Thread" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-vendor-thread-shell"
+    >
+      <div className="min-h-screen bg-slate-100" data-testid="admin-vendor-thread-page">
       <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
         <div>
           <div
@@ -527,6 +538,7 @@ export default function AdminVendorThread() {
           />
         )}
       </main>
-    </div>
+      </div>
+    </AdminRouteShell>
   );
 }

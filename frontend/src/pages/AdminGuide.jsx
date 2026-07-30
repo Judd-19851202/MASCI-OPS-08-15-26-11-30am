@@ -6,7 +6,7 @@ import {
   GraduationCap, Rocket, Activity, Layers, Eye, AlertTriangle, Plug,
 } from "lucide-react";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -35,7 +35,7 @@ export default function AdminGuide() {
       portalRole="Admin · Owner's Manual"
       pageTitle="How to run this thing"
       subtitle="One page, plain English. Print it, tape it to the wall."
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
       primaryActions={
         <Button
           onClick={() => window.print()}

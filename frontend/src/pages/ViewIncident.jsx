@@ -17,6 +17,7 @@ import { printReport, maybeAutoPrint } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
@@ -145,6 +146,7 @@ export default function ViewIncident() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/incidents";
   // iter443 · P1 governance refinement — contextual return-path.
   // Resolves to caller-supplied state.from > query ?from= > derived
@@ -235,11 +237,22 @@ export default function ViewIncident() {
   };
 
   if (loading) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
         <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle="Incident Report"
+        subtitle="Admin review for incident severity, follow-up, evidence, and lifecycle state."
+        portalRole="Admin · Incidents"
+        crumbs={[{ label: "Field Operations" }, { label: "Incidents" }]}
+        testId="admin-view-incident-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
   }
   if (!data) return null;
 
@@ -256,7 +269,7 @@ export default function ViewIncident() {
     `/safety-portal/corrective-actions?source_kind=incident&source_id=${data.id}` +
     `&title=${encodeURIComponent(`Incident follow-up — ${data.incident_type || "Incident"}`)}`;
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
@@ -780,4 +793,21 @@ export default function ViewIncident() {
       <EmailReportDialog open={emailOpen} onOpenChange={setEmailOpen} kind="incident" record={data} />
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle="Incident Report"
+      subtitle="Admin review for incident severity, follow-up, evidence, and lifecycle state."
+      portalRole="Admin · Incidents"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "Incidents" },
+        { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Incident" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-incident-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }

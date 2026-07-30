@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
@@ -82,7 +82,7 @@ export default function AdminQaqcList() {
       portalRole="Admin · QA/QC"
       pageTitle="All QA / QC Inspections"
       subtitle="Admin-only list of every QA/QC inspection · filter by kind · export to CSV."
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
       primaryActions={
         <Button onClick={onExport} disabled={exporting} className="h-9 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold" data-testid="qaqc-export-csv">
           {exporting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1" />} Export CSV

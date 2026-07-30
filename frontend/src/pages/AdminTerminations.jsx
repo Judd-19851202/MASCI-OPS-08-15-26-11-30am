@@ -18,7 +18,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -115,7 +115,7 @@ export default function AdminTerminations() {
       portalRole="Admin · Terminations"
       pageTitle={t("Employee Terminations")}
       subtitle={t("Termination documentation · resignation tracking · policy enforcement · outstanding-equipment accountability")}
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-terminations-page">
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">

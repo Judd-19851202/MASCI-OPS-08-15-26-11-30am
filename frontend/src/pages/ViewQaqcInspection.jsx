@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useLocation, useParams, Link } from "react-router-dom";
 import { Printer, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import BackLink from "@/components/BackLink";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
@@ -27,7 +28,9 @@ const KIND_LABEL = {
  */
 export default function ViewQaqcInspection() {
   const { id } = useParams();
+  const { pathname } = useLocation();
   const { t } = useT();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
@@ -51,12 +54,25 @@ export default function ViewQaqcInspection() {
     }
   }
 
-  if (loading) return <Centered>{t("Loading…")}<Loader2 className="w-4 h-4 animate-spin inline-block ml-2" /></Centered>;
+  if (loading) {
+    const loadingContent = <Centered>{t("Loading…")}<Loader2 className="w-4 h-4 animate-spin inline-block ml-2" /></Centered>;
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle="QA / QC Inspection"
+        subtitle="Admin review for field quality evidence, checklist outcomes, and sign-off state."
+        portalRole="Admin · QA / QC"
+        crumbs={[{ label: "Field Operations" }, { label: "QA / QC" }]}
+        testId="admin-view-qaqc-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
+  }
   if (err || !data) return <Centered>{err || t("Not found.")}</Centered>;
 
   const failItems = (data.checklist || []).filter((c) => c.result === "fail");
 
-  return (
+  const content = (
     <div className="min-h-screen blueprint-bg print:blueprint-bg-none">
       <header className="bg-slate-900 border-b-4 border-emerald-600 print:hidden">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
@@ -202,6 +218,23 @@ export default function ViewQaqcInspection() {
       </main>
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle="QA / QC Inspection"
+      subtitle="Admin review for field quality evidence, checklist outcomes, and sign-off state."
+      portalRole="Admin · QA / QC"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "QA / QC" },
+        { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Inspection" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-qaqc-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }
 
 function Centered({ children }) {

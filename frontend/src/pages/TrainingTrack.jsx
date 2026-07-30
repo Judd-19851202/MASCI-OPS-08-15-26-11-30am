@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { ArrowLeft, Printer, ExternalLink, CheckCircle2, AlertCircle, FileDown } from "lucide-react";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { TRACKS, lessonsForTrack } from "@/data/training";
@@ -110,7 +110,7 @@ export default function TrainingTrack() {
       portalRole="Admin · Training Track"
       pageTitle={title}
       subtitle={blurb}
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
       showBack
       backHref="/training"
     >
@@ -195,7 +195,7 @@ function AccessDenied({ track, t, lang }) {
       portalName="MASCI"
       portalRole="Admin · Training Track"
       pageTitle={t("This track is password-protected")}
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
       showBack
       backHref="/training"
     >

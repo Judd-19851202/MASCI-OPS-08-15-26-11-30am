@@ -14,6 +14,7 @@ import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Boxes, BookOpen, BarChart3 } from "lucide-react";
 import SafetyShell from "@/components/SafetyShell";
 import PmShell from "@/components/PmShell";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { useT } from "@/lib/i18n";
 
 const TABS = [
@@ -84,6 +85,25 @@ export default function TrenchSafetyShell({ active, title, kicker, children }) {
         {tabsNav}
         {children}
       </PmShell>
+    );
+  }
+
+  if (isAdmin) {
+    return (
+      <AdminRouteShell
+        pageTitle={title || "Trench Safety"}
+        subtitle={kicker || t("Company-wide trench safety operations and field review.")}
+        portalRole="Admin · Trench Safety"
+        crumbs={[
+          { label: "Field Operations" },
+          { label: "Trench Safety" },
+        ]}
+        contentClassName="max-w-7xl mx-auto px-5 sm:px-8 py-8"
+        testId="admin-trench-safety-shell"
+      >
+        {tabsNav}
+        {children}
+      </AdminRouteShell>
     );
   }
 

@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
@@ -144,7 +144,7 @@ export default function TrenchBoxesAdmin() {
           </Button>
         </div>
       }
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
     >
     <div className="min-h-screen">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">

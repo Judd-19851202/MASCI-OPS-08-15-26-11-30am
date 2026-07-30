@@ -22,6 +22,7 @@ import {
   Search, RefreshCcw, Download,
 } from "lucide-react";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -185,7 +186,7 @@ export default function AdminMaterialLedgerQuality() {
   const byMaterial = Array.isArray(body.by_material) ? body.by_material : [];
   const sourceBreakdown = body.source_breakdown || {};
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center gap-3">
         <Link
@@ -474,5 +475,21 @@ export default function AdminMaterialLedgerQuality() {
         </footer>
       </main>
     </div>
+  );
+
+  return (
+    <AdminRouteShell
+      pageTitle="Material Ledger Quality"
+      subtitle="Admin data-quality view over dispatch haul proof, gaps, and review-ready rows."
+      portalRole="Admin · Material Ledger"
+      crumbs={[
+        { label: "Operations Control" },
+        { label: "Material Ledger Quality" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-material-ledger-quality-shell"
+    >
+      {content}
+    </AdminRouteShell>
   );
 }

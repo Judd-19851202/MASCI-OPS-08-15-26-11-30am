@@ -6,6 +6,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { useHubHome } from "@/components/HubBackLink";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { useReturnContext } from "@/lib/returnContext";
 import { getSafetyCapabilities } from "@/lib/safetyCapabilities";
 import { api } from "@/lib/api";
@@ -74,6 +75,7 @@ export default function ViewMeeting() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/meetings";
   const ret = useReturnContext({
     key: "meetings-list",
@@ -120,17 +122,28 @@ export default function ViewMeeting() {
   };
 
   if (loading) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
         <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle="Meeting Record"
+        subtitle="Admin review for toolbox talks, attendance, and signed field communication."
+        portalRole="Admin · Safety Meetings"
+        crumbs={[{ label: "Field Operations" }, { label: "Meetings" }]}
+        testId="admin-view-meeting-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
   }
   if (!data) return null;
 
   const company = getCompanyInfo();
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
@@ -436,4 +449,21 @@ export default function ViewMeeting() {
       <EmailReportDialog open={emailOpen} onOpenChange={setEmailOpen} kind="meeting" record={data} />
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle="Meeting Record"
+      subtitle="Admin review for toolbox talks, attendance, and signed field communication."
+      portalRole="Admin · Safety Meetings"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "Meetings" },
+        { label: data.topic || data.id?.slice(0, 8)?.toUpperCase() || "Record" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-meeting-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }

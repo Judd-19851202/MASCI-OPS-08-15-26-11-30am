@@ -1,10 +1,11 @@
 // Track 19.16 · Phase D · Executive Intelligence Center.
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 
 function adminConfig() {
   return { skipSessionStatus: true, headers: buildScopedPortalAuthHeaders(["admin"]) };
@@ -76,15 +77,28 @@ function SlaChip({ label, count, tone, testId }) {
 export default function ExecutiveIntelligence() {
   const { t } = useT();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
+
+  const adminShellProps = {
+    pageTitle: "Executive Intelligence",
+    subtitle: "Cross-functional operational signal, incident intelligence, and portfolio confidence.",
+    portalRole: "Admin · Executive Intelligence",
+    crumbs: [
+      { label: "Operations Control" },
+      { label: "Executive Intelligence" },
+    ],
+    testId: "admin-executive-intelligence-shell",
+  };
 
   useEffect(() => {
     loadAll().then(setData).catch((e) => setErr(e?.response?.data?.detail?.detail || e.message));
   }, []);
 
   if (err) {
-    return (
+    const errorContent = (
       <div className="min-h-screen bg-slate-50 p-6" data-testid="executive-intelligence-error">
         <div className="max-w-md rounded-xl border-2 border-red-300 bg-white p-6 mx-auto">
           <div className="font-mono text-[10px] uppercase tracking-widest text-red-800">{t("Error")}</div>
@@ -94,9 +108,11 @@ export default function ExecutiveIntelligence() {
         </div>
       </div>
     );
+    return isAdminRoute ? <AdminRouteShell {...adminShellProps}>{errorContent}</AdminRouteShell> : errorContent;
   }
   if (!data) {
-    return <div className="min-h-screen bg-slate-50 p-6" data-testid="executive-intelligence-loading">{t("Loading intelligence…")}</div>;
+    const loadingContent = <div className="min-h-screen bg-slate-50 p-6" data-testid="executive-intelligence-loading">{t("Loading intelligence…")}</div>;
+    return isAdminRoute ? <AdminRouteShell {...adminShellProps}>{loadingContent}</AdminRouteShell> : loadingContent;
   }
 
   const H = data.home?.company_health || {};
@@ -104,7 +120,7 @@ export default function ExecutiveIntelligence() {
   const TrendIcon = trend === "worsening" ? TrendingUp : trend === "improving" ? TrendingDown : Activity;
   const trendTone = trend === "worsening" ? "text-red-700" : trend === "improving" ? "text-emerald-700" : "text-slate-600";
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50" data-testid="executive-intelligence">
       <header className="bg-slate-900 text-white px-4 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
@@ -344,4 +360,8 @@ export default function ExecutiveIntelligence() {
       </main>
     </div>
   );
+
+  return isAdminRoute
+    ? <AdminRouteShell {...adminShellProps} contentClassName="px-0 py-0">{content}</AdminRouteShell>
+    : content;
 }

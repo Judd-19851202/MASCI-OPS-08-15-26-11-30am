@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import { LangToggle } from "@/components/LangToggle";
@@ -30,6 +31,7 @@ export default function DailyReportsDashboard() {
   const [jobsMaster, setJobsMaster] = useState({});  // DR-JOB-002 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
   // DR-JOB-003 admin opt-in for cert/test pollution tier
   const showCert = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("show") === "cert";
   const dailyReportDetailBase = pathname.startsWith("/pm/")
@@ -77,7 +79,7 @@ export default function DailyReportsDashboard() {
 
   return (
     <PortalShell
-      portalName="MASCI" portalRole="PM Portal · Daily Reports"
+      portalName="MASCI" portalRole={isAdminRoute ? "Admin · Daily Reports" : "PM Portal · Daily Reports"}
       pageTitle="Today's site activity, captured."
       subtitle="Daily field reports across all active projects"
       primaryActions={
@@ -100,7 +102,7 @@ export default function DailyReportsDashboard() {
           </Button>
         </div>
       }
-      sideNav={<PmSideNavV2 />}
+      sideNav={isAdminRoute ? renderAdminRouteSideNav() : <PmSideNavV2 />}
     >
     <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">

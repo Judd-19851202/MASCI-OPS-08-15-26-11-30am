@@ -16,7 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { useT } from "@/lib/i18n";
 import { TRACKS, lessonsForTrack } from "@/data/training";
 import { isAdmin } from "@/lib/adminAuth";
@@ -78,7 +78,7 @@ export default function TrainingHub() {
       portalRole="Admin · Training"
       pageTitle={t("MASCI Training")}
       subtitle={t("Learn the Hub in minutes, not days.")}
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="training-hub-page">
         <div className="mb-10 max-w-3xl">

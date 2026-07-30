@@ -32,16 +32,15 @@ import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import { isAdmin, getAdminToken } from "@/lib/adminAuth";
 import { operationalError } from "@/lib/errors";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import AccessDenied from "@/pages/AccessDenied";
 import OperationalThreadPage from "@/components/operational_intelligence/OperationalThreadPage";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function adminHeaders() {
-  const h = {};
-  const a = getAdminToken();
-  if (a) h["X-Admin-Token"] = a;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin"]);
 }
 
 // Class-aware OI routing (existing products only — no new products).
@@ -629,7 +628,18 @@ export default function AdminAssetThread() {
   if (!allowed) return <AccessDenied attemptedPortal="admin" />;
 
   return (
-    <div className="min-h-screen bg-slate-100" data-testid="admin-asset-thread-page">
+    <AdminRouteShell
+      pageTitle="Asset Thread"
+      subtitle="Canonical asset history, documents, relationships, and operational signals."
+      portalRole="Admin · Asset Intelligence"
+      crumbs={[
+        { label: "Equipment & Assets", href: "/admin/equipment" },
+        { label: state.asset?.asset_number || state.asset?.unit_number || ref || "Asset Thread" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-asset-thread-shell"
+    >
+      <div className="min-h-screen bg-slate-100" data-testid="admin-asset-thread-page">
       <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
         <div>
           <div
@@ -710,6 +720,7 @@ export default function AdminAssetThread() {
           />
         )}
       </main>
-    </div>
+      </div>
+    </AdminRouteShell>
   );
 }

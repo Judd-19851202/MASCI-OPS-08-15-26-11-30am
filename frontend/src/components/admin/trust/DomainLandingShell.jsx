@@ -34,7 +34,7 @@ import { RefreshCw, Search as SearchIcon, Wrench } from "lucide-react";
 
 import { PortalShell } from "@/design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatPlatformTime } from "@/lib/platformTime";
 import {
   HealthCard,
@@ -59,8 +59,7 @@ const SEVERITY_STYLES = {
 };
 
 function authHeaders() {
-  const t = getAdminToken();
-  return t ? { "X-Admin-Token": t } : {};
+  return buildScopedPortalAuthHeaders(["admin"]);
 }
 
 async function probeOne(path) {

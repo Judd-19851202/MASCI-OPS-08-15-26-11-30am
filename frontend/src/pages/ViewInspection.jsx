@@ -8,6 +8,7 @@ import { useBranding } from "@/lib/BrandingProvider";
 import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { useHubHome } from "@/components/HubBackLink";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { useReturnContext } from "@/lib/returnContext";
 import { getInspectionCapabilities } from "@/lib/inspectionCapabilities";
 import { api } from "@/lib/api";
@@ -111,6 +112,7 @@ export default function ViewInspection() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const listUrl = pathname.replace(/\/[^/]+$/, "") || "/admin/inspections";
   const ret = useReturnContext({
     key: "inspections-list",
@@ -157,11 +159,22 @@ export default function ViewInspection() {
   };
 
   if (loading) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen flex items-center justify-center text-slate-500">
         <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading…")}
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle="Inspection Report"
+        subtitle="Admin review for site inspection evidence, grade, and lifecycle history."
+        portalRole="Admin · Site Inspections"
+        crumbs={[{ label: "Field Operations" }, { label: "Inspections" }]}
+        testId="admin-view-inspection-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
   }
   if (!data) return null;
 
@@ -183,7 +196,7 @@ export default function ViewInspection() {
   const flagged =
     data.hazards_observed === "Yes" || data.stop_work_issued === "Yes";
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
@@ -528,4 +541,21 @@ export default function ViewInspection() {
       <EmailReportDialog open={emailOpen} onOpenChange={setEmailOpen} kind="inspection" record={data} />
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle="Inspection Report"
+      subtitle="Admin review for site inspection evidence, grade, and lifecycle history."
+      portalRole="Admin · Site Inspections"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "Inspections" },
+        { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Report" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-inspection-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }

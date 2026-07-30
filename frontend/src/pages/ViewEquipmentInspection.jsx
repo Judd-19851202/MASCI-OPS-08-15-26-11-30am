@@ -13,6 +13,7 @@ import { PrintWatermark } from "@/components/PrintWatermark";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { EmailReportDialog } from "@/components/EmailReportDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import ShopSignoffCard from "@/components/ShopSignoffCard";
@@ -52,6 +53,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { t } = useT();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -109,11 +111,22 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
   };
 
   if (loading) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-red-700" />
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle="Equipment Inspection"
+        subtitle="Admin review for pre-op findings, sign-offs, and unit readiness."
+        portalRole="Admin · Equipment Inspections"
+        crumbs={[{ label: "Field Operations" }, { label: "Equipment Pre-Op" }]}
+        testId="admin-view-equipment-inspection-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
   }
   if (!data) return null;
 
@@ -122,7 +135,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
     (data.shop_signoffs || []).map((s) => [s.key, s])
   );
 
-  return (
+  const content = (
     <div className="min-h-screen bg-slate-50 print:bg-white pb-32 print:pb-0">
       <PrintWatermark />
       <div className="caution-stripe print:hidden" />
@@ -364,4 +377,21 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
       />
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle="Equipment Inspection"
+      subtitle="Admin review for pre-op findings, sign-offs, and unit readiness."
+      portalRole="Admin · Equipment Inspections"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "Equipment Pre-Op" },
+        { label: data.equipment_unit || data.id?.slice(0, 8)?.toUpperCase() || "Inspection" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-equipment-inspection-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }

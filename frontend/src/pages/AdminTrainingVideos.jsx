@@ -3,7 +3,7 @@ import { Save, Video, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { api } from "@/lib/api";
 import { LESSONS, TRACKS } from "@/data/training";
 import { toast } from "sonner";
@@ -65,7 +65,7 @@ export default function AdminTrainingVideos() {
       portalRole="Admin · Training Videos"
       pageTitle="Paste a video URL per lesson"
       subtitle="Supports YouTube · Loom · Vimeo · Wistia"
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
       primaryActions={
         <Button onClick={onSave} disabled={saving} className="h-9 bg-red-700 hover:bg-red-800 text-white text-xs font-bold" data-testid="training-videos-save">
           <Save className="w-3.5 h-3.5 mr-1" /> {saving ? "Saving…" : "Save"}

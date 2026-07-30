@@ -6,8 +6,8 @@ import { Plus, Wrench, Eye, Trash2, Loader2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import EquipmentTrendsPanel from "@/components/EquipmentTrendsPanel";
 import OpenItemsPanel from "@/components/OpenItemsPanel";
@@ -36,7 +36,7 @@ export default function EquipmentDashboard() {
   const isShopContext = portalContext === "shop";
 
   // UXS-11E: pick sidebar matching the host portal.
-  const sideNav = isPmContext ? <PmSideNavV2 /> : <AdminSideNavV2 />;
+  const sideNav = isPmContext ? <PmSideNavV2 /> : renderAdminRouteSideNav();
   const portalRole = isPmContext
     ? "PM Portal · Equipment"
     : isShopContext

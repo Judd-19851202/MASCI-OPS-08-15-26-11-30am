@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import DispatchSideNavV2 from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
@@ -484,7 +484,7 @@ export default function FleetVisibility({ scope = "shop" }) {
     ? <DispatchSideNavV2 />
     : scope === "safety"
       ? <SafetySideNavV2 />
-      : <AdminSideNavV2 />;
+      : renderAdminRouteSideNav();
   const portalRole = scope === "dispatch"
     ? "Dispatch Portal · Fleet Availability"
     : scope === "safety"

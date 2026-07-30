@@ -7,7 +7,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import TransportationSideNavV2, { isTxSidebarV2Enabled } from "@/components/transportation/sidebar/TransportationSideNavV2";
 import { isAdmin } from "@/lib/adminAuth";
 import { TransportationSubNav } from "./_shared";
@@ -47,7 +47,7 @@ export default function TransportationApp() {
   const txSidebarV2 = isTxSidebarV2Enabled();
   const effectiveSideNav = txSidebarV2
     ? <TransportationSideNavV2 />
-    : (showAdminSideNav ? <AdminSideNavV2 /> : null);
+    : (showAdminSideNav ? renderAdminRouteSideNav() : null);
   return (
     <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={effectiveSideNav}>
       <div className="space-y-2" data-testid="admin-transportation-page">

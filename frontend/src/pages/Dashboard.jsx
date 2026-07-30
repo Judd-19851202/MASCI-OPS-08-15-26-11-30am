@@ -4,7 +4,7 @@ import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, Clipb
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
@@ -46,7 +46,7 @@ export default function Dashboard() {
   // sidebar so /safety-portal/inspections feels like Safety, not Admin.
   const sideNav = isSafetyContext ? <SafetySideNavV2 />
     : isPmContext ? <PmSideNavV2 />
-    : <AdminSideNavV2 />;
+    : renderAdminRouteSideNav();
   const portalRole = isSafetyContext ? "Safety Portal · Site Inspections"
     : isPmContext ? "PM Portal · Inspections"
     : "Admin · Inspections";

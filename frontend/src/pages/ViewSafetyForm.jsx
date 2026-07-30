@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   FileText,
@@ -9,6 +9,7 @@ import {
   PackageCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { MasciLogo } from "@/components/MasciLogo";
 import { RefKicker } from "@/components/RefKicker";
 import { LangToggle } from "@/components/LangToggle";
@@ -39,7 +40,9 @@ const STATUS_TONES = {
  */
 export default function ViewSafetyForm({ kind = "issuance" }) {
   const { id } = useParams();
+  const { pathname } = useLocation();
   const { t } = useT();
+  const isAdminRoute = pathname.startsWith("/admin/");
   const [doc, setDoc] = useState(null);
   const [err, setErr] = useState("");
   const [downloading, setDownloading] = useState(false);
@@ -99,7 +102,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
   };
 
   if (err) {
-    return (
+    const errorContent = (
       <div className="min-h-screen blueprint-bg p-8">
         <div className="max-w-2xl mx-auto bg-white border-2 border-red-300 rounded-md p-6">
           <h1 className="font-display text-2xl font-black">{t("Not found")}</h1>
@@ -108,13 +111,35 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
         </div>
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle={isTraining ? "Safety Training Record" : "Safety Issuance Record"}
+        subtitle="Admin review for safety department equipment issuance and training acknowledgements."
+        portalRole="Admin · Safety Records"
+        crumbs={[{ label: "Field Operations" }, { label: "Safety Records" }]}
+        testId="admin-view-safety-form-shell"
+      >
+        {errorContent}
+      </AdminRouteShell>
+    ) : errorContent;
   }
   if (!doc) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen blueprint-bg flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-red-700" />
       </div>
     );
+    return isAdminRoute ? (
+      <AdminRouteShell
+        pageTitle={isTraining ? "Safety Training Record" : "Safety Issuance Record"}
+        subtitle="Admin review for safety department equipment issuance and training acknowledgements."
+        portalRole="Admin · Safety Records"
+        crumbs={[{ label: "Field Operations" }, { label: "Safety Records" }]}
+        testId="admin-view-safety-form-shell"
+      >
+        {loadingContent}
+      </AdminRouteShell>
+    ) : loadingContent;
   }
 
   const items = doc.items || [];
@@ -123,7 +148,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
     0,
   );
 
-  return (
+  const content = (
     <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700 print:hidden">
@@ -444,6 +469,23 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
       </main>
     </div>
   );
+
+  return isAdminRoute ? (
+    <AdminRouteShell
+      pageTitle={isTraining ? "Safety Training Record" : "Safety Issuance Record"}
+      subtitle="Admin review for safety department equipment issuance and training acknowledgements."
+      portalRole="Admin · Safety Records"
+      crumbs={[
+        { label: "Field Operations" },
+        { label: "Safety Records" },
+        { label: doc.employee_name || doc.id?.slice(0, 8)?.toUpperCase() || "Record" },
+      ]}
+      contentClassName="px-0 py-0"
+      testId="admin-view-safety-form-shell"
+    >
+      {content}
+    </AdminRouteShell>
+  ) : content;
 }
 
 function KvBlock({ title, rows }) {

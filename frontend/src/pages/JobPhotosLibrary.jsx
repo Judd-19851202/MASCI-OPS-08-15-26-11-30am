@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
@@ -304,7 +304,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       portalRole={portalKey === "pm" ? "PM Portal · Photos" : "Admin · Photos"}
       pageTitle={t("Job Photos")}
       subtitle={t("Daily Reports · Site Inspections · QA/QC · multi-select, download ZIP, email packet.")}
-      sideNav={portalKey === "pm" ? <PmSideNavV2 /> : <AdminSideNavV2 />}
+      sideNav={portalKey === "pm" ? <PmSideNavV2 /> : renderAdminRouteSideNav()}
       primaryActions={
         portalKey === "admin" ? (
           <Button

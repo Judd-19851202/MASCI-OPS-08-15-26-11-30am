@@ -31,7 +31,7 @@ import {
   ShieldAlert, Layers, MapPin, Settings, ExternalLink, Eye, EyeOff,
 } from "lucide-react";
 import { PortalShell } from "@/design-system";
-import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { ocCommandApi } from "@/components/operations/command/ocCommandApi";
 import { OperationsTransportationHealthWidget } from "@/components/operations_transportation_integration";
@@ -90,7 +90,7 @@ export default function OperationsCenterCommand() {
       portalRole="Admin · Operations Center · V1"
       pageTitle="Cross-Company Operational Truth"
       subtitle="9-layer command board · brief, health, allocation, conflicts, specialty assets, shop, safety, telematics, timeline."
-      sideNav={<AdminSideNavV2 />}
+      sideNav={renderAdminRouteSideNav()}
       primaryActions={
         <div className="flex items-center gap-3">
           <button

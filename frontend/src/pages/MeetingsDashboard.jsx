@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import JobFolderList from "@/components/JobFolderList";
@@ -25,6 +26,7 @@ export default function MeetingsDashboard() {
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin/");
 
   const load = async () => {
     setLoading(true);
@@ -64,7 +66,7 @@ export default function MeetingsDashboard() {
 
   return (
     <PortalShell
-      portalName="MASCI" portalRole="Safety Portal · Safety Meetings"
+      portalName="MASCI" portalRole={isAdminRoute ? "Admin · Safety Meetings" : "Safety Portal · Safety Meetings"}
       pageTitle="Safety Meetings"
       subtitle="Toolbox talks · jobsite safety meetings"
       primaryActions={
@@ -87,7 +89,7 @@ export default function MeetingsDashboard() {
           </Button>
         </div>
       }
-      sideNav={<SafetySideNavV2 />}
+      sideNav={isAdminRoute ? renderAdminRouteSideNav() : <SafetySideNavV2 />}
     >
     <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">

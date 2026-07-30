@@ -18,35 +18,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Activity } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getShopToken } from "@/lib/shopAuth";
-import { getPmToken } from "@/lib/pmAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getFlToken } from "@/lib/flAuth";
-import { getHrToken } from "@/lib/hrAuth";
+import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const POLL_MS = 60 * 1000;
 
 function _portalHeaders() {
-  const h = {};
-  const tryGet = (fn) => { try { return fn && fn(); } catch { return null; } };
-  const a = tryGet(getAdminToken);
-  const d = tryGet(getDispatchToken);
-  const s = tryGet(getShopToken);
-  const p = tryGet(getPmToken);
-  const sa = tryGet(getSafetyToken);
-  const f = tryGet(getFlToken);
-  const hr = tryGet(getHrToken);
-  if (a) h["X-Admin-Token"] = a;
-  if (d) h["X-Dispatch-Token"] = d;
-  if (s) h["X-Shop-Token"] = s;
-  if (p) h["X-PM-Token"] = p;
-  if (sa) h["X-Safety-Token"] = sa;
-  if (f) h["X-FL-Token"] = f;
-  if (hr) h["X-HR-Token"] = hr;
-  return h;
+  return buildPortalAuthHeaders();
 }
 
 function _hasAnyPortalToken() {
