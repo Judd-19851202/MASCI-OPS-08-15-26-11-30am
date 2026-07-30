@@ -1,0 +1,162 @@
+WP-16 Wave 5 Safety Certification - Backend API Inspection
+Base URL: https://backup-forensics.preview.emergentagent.com
+================================================================================
+
+PHASE 1: AUTHENTICATION
+
+ PASS: Safety Login
+  Safety login successful. Token received. Response keys: ['token', 'user', 'must_change_password', 'kind']
+
+ PASS: Safety /me
+  Safety /me returned user data. Keys: ['user']
+
+
+PHASE 2: SAFETY PORTAL CORE APIs
+
+ PASS: Safety Overview
+  Safety overview returned data. Keys: ['incidents_total', 'incidents_last_7d', 'meetings_last_7d', 'inspections_last_30d', 'corrective_actions_open', 'corrective_actions_overdue', 'training_deficiencies_total', 'safety_equipment_issuances_total', 'fire_extinguishers_total', 'fire_extinguishers_overdue', 'training_records_total', 'training_expiring_30d', 'training_expired', 'safety_documents_total', 'generated_at']
+
+ PASS: Corrective Actions List
+  Corrective actions list returned 95 items
+
+ PASS: Corrective Actions Detail
+  Corrective action detail retrieved for ID 44458767-e89e-4a9c-af4d-48a641cb6f5e
+
+ PASS: Fire Extinguishers List
+  Fire extinguishers list returned 11 items
+
+ PASS: Safety Documents List
+  Safety documents list returned 24 items
+
+ PASS: Training Records List
+  Training records list returned 16 items
+
+ PASS: Safety Digest Preview
+  Safety digest preview returned data. Keys: ['payload', 'html']
+
+
+PHASE 3: SAFETY EXPORTS
+
+ PASS: Safety Export - incidents
+  Export endpoint returned data (length: 17596 bytes)
+
+ PASS: Safety Export - corrective-actions
+  Export endpoint returned data (length: 5125 bytes)
+
+ PASS: Safety Export - inspections
+  Export endpoint returned data (length: 19994 bytes)
+
+ PASS: Safety Export - training-records
+  Export endpoint returned data (length: 64 bytes)
+
+ PASS: Safety Export - fire-extinguishers
+  Export endpoint returned data (length: 755 bytes)
+
+ PASS: Safety Export - documents
+  Export endpoint returned data (length: 814 bytes)
+
+
+PHASE 4: SAFETY FORMS
+
+ PASS: Safety Forms Login
+  Safety forms login endpoint responding correctly (status 401)
+
+ PASS: Safety Forms Check
+  Safety forms check endpoint responding (status 401)
+
+
+PHASE 5: CORE SAFETY REPORTING
+
+ PASS: Inspections List
+  Inspections list returned 342 items
+
+ PASS: Inspections Detail
+  Inspection detail retrieved for ID 67555b86-7201-4eb3-806c-0a1c43823f25
+
+ PASS: Meetings List
+  Meetings list returned 471 items
+
+ PASS: JHAs List
+  JHAs list returned 131 items
+
+ PASS: Incidents List
+  Incidents list returned 53 items
+
+ PASS: Incidents Detail
+  Incident detail retrieved for ID 71477b5c-13fe-4f25-9ba0-d156bf47912c
+
+ PASS: Incidents Lifecycle
+  Incident lifecycle retrieved for ID 71477b5c-13fe-4f25-9ba0-d156bf47912c
+
+ PASS: Incidents State Events
+  Incident state events retrieved for ID 71477b5c-13fe-4f25-9ba0-d156bf47912c
+
+
+PHASE 6: INCIDENT CASES & INTELLIGENCE
+
+ PASS: Incident Cases List
+  Incident cases list returned unknown items
+
+
+PHASE 7: TRENCH SAFETY
+
+ PASS: Trench Boxes List
+  Trench boxes list returned 2 items (public read)
+
+ PASS: Trench Box Files List
+  Trench box files list returned unknown items (public read)
+
+ PASS: Trench Safety Dashboard
+  Trench safety dashboard returned data. Keys: ['total_active_assets', 'total_all_assets', 'counts_by_type', 'counts_by_status', 'counts_by_condition', 'alerts', 'recent_activity_7d', 'generated_at']
+
+ PASS: Trench Safety Alerts
+  Trench safety alerts returned unknown items
+
+ PASS: Trench Safety Assets List
+  Trench safety assets list returned unknown items
+
+ PASS: Trench Safety Excavations List
+  Trench safety excavations list returned unknown items
+
+[HIGH] FAIL: Trench Safety Inspections List
+  Trench safety inspections list failed with status 404. Response: {"detail":"Not Found"}
+
+[HIGH] FAIL: Trench Safety Repairs List
+  Trench safety repairs list failed with status 404. Response: {"detail":"Not Found"}
+
+
+PHASE 8: SHARED APIs
+
+ PASS: Signatures GET
+  Signatures endpoint returned unknown items
+
+
+PHASE 9: SECURITY & PERMISSIONS
+
+ PASS: ADMIN_ONLY Multi-Portal Login
+  Login successful. Portals: ['admin']
+
+ PASS: Negative Access - Admin to Safety
+  Admin token correctly rejected from Safety endpoint (status 401)
+
+
+================================================================================
+WP-16 WAVE 5 SAFETY CERTIFICATION - BACKEND API INSPECTION SUMMARY
+================================================================================
+
+Total Tests: 37
+Passed: 35 (94.6%)
+Failed: 2
+Warnings: 0
+
+SEVERITY BREAKDOWN:
+  Critical: 0
+  High: 2
+  Medium: 0
+  Low: 0
+
+HIGH PRIORITY FAILURES:
+  ❌ Trench Safety Inspections List: Trench safety inspections list failed with status 404. Response: {"detail":"Not Found"}
+  ❌ Trench Safety Repairs List: Trench safety repairs list failed with status 404. Response: {"detail":"Not Found"}
+
+================================================================================
