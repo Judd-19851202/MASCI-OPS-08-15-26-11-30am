@@ -25,6 +25,7 @@
   - `WP16_WAVE1_APPROVAL_EVIDENCE.md`
 - Current truth:
   - Wave 1 has no unresolved punch-list defects.
+  - Wave 1 status: **TECHNICALLY VERIFIED — PENDING EXECUTIVE APPROVAL**.
   - Certification evidence now supports approval review.
   - Executive approval remains the final gate; Wave 1 is not auto-certified here.
   - No Wave 2 work started.
