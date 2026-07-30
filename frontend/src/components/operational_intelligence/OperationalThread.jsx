@@ -89,9 +89,10 @@ export default function OperationalThread({
         <ol className="divide-y divide-slate-100">
           {sorted.map((e, i) => {
             const tone = KIND_TONE[e.kind] || KIND_TONE.other;
+            const eventKey = [e.id || "event", e.kind || "other", e.at || "na", e.title || "untitled", i].join("::");
             return (
               <li
-                key={e.id || `${e.at}-${i}`}
+                key={eventKey}
                 data-testid={`${testId}-event-${i}`}
                 className="px-4 py-3"
               >
