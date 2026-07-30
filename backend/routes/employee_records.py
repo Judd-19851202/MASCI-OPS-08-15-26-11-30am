@@ -427,7 +427,7 @@ def build_employee_records_router(*, db, require_actor):
     # Exposes lanes + valid record_types + approver matrix to the
     # frontend. Read-only. Requires any authenticated actor.
     @router.get("/vocabulary")
-    async def vocabulary(actor: Dict[str, Any] = _actor_dep()):
+    async def vocabulary(actor: Dict[str, Any] = Depends(_actor_dep)):
         role = _actor_role(actor)
         allowed_lanes = []
         for lane in OWNERSHIP_LANES:
@@ -450,7 +450,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.post("/batches")
     async def create_batch(
         body: CreateBatchBody,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         if not _actor_can_read_lane(actor, body.ownership_lane):
             raise HTTPException(403, "Not authorized for this lane")
@@ -478,7 +478,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.get("/batches")
     async def list_batches(
         lane: Optional[str] = Query(None),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         q: Dict[str, Any] = {}
         if lane:
@@ -501,7 +501,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.post("/records")
     async def create_record(
         body: CreateRecordBody,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         if not _actor_can_read_lane(actor, body.ownership_lane):
             raise HTTPException(403, "Not authorized for this lane")
@@ -663,7 +663,7 @@ def build_employee_records_router(*, db, require_actor):
         related_project_id: Optional[str] = Query(None),
         related_training_id: Optional[str] = Query(None),
         limit: int = Query(200, ge=1, le=500),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         q_mongo: Dict[str, Any] = {}
         # Lane scoping — enforce for non-HR.
@@ -755,7 +755,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.get("/records/{record_id}")
     async def get_record(
         record_id: str,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         rec = await db.employee_records.find_one({"id": record_id}, {"_id": 0})
         if not rec:
@@ -774,7 +774,7 @@ def build_employee_records_router(*, db, require_actor):
     async def approve_record(
         record_id: str,
         body: ApproveBody = Body(default_factory=ApproveBody),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         rec = await db.employee_records.find_one({"id": record_id}, {"_id": 0})
         if not rec:
@@ -836,7 +836,7 @@ def build_employee_records_router(*, db, require_actor):
     async def reject_record(
         record_id: str,
         body: RejectBody,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         rec = await db.employee_records.find_one({"id": record_id}, {"_id": 0})
         if not rec:
@@ -866,7 +866,7 @@ def build_employee_records_router(*, db, require_actor):
     async def reassign_record(
         record_id: str,
         body: ReassignBody,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         rec = await db.employee_records.find_one({"id": record_id}, {"_id": 0})
         if not rec:
@@ -910,7 +910,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.get("/queues/{lane}")
     async def get_queue(
         lane: str,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         if lane not in OWNERSHIP_LANES:
             raise HTTPException(400, f"Invalid lane {lane!r}")
@@ -940,7 +940,7 @@ def build_employee_records_router(*, db, require_actor):
         include_pending: bool = Query(False),
         lane: Optional[str] = Query(None),
         record_type: Optional[str] = Query(None),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         # HR + admin can read everything for the employee. Lane owners
         # only get their lane. This endpoint is what powers Employee 360°
@@ -981,7 +981,7 @@ def build_employee_records_router(*, db, require_actor):
     async def upload_original_file(
         lane: str = Form(...),
         file: UploadFile = File(...),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         if not _actor_can_read_lane(actor, lane):
             raise HTTPException(403, "Not authorized for this lane")
@@ -1025,7 +1025,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.get("/records/{record_id}/file")
     async def download_record_file(
         record_id: str,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         rec = await db.employee_records.find_one({"id": record_id}, {"_id": 0})
         if not rec:
@@ -1056,7 +1056,7 @@ def build_employee_records_router(*, db, require_actor):
     async def batch_upload(
         batch_id: str,
         files: List[UploadFile] = File(...),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
         if not batch:
@@ -1151,7 +1151,7 @@ def build_employee_records_router(*, db, require_actor):
     async def batch_bulk_apply(
         batch_id: str,
         body: BulkApplyBody = Body(...),
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
         if not batch:
@@ -1209,7 +1209,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.post("/batches/{batch_id}/approve-all")
     async def batch_approve_all(
         batch_id: str,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
         if not batch:
@@ -1244,7 +1244,7 @@ def build_employee_records_router(*, db, require_actor):
     @router.get("/batches/{batch_id}")
     async def get_batch(
         batch_id: str,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
         if not batch:
@@ -1301,7 +1301,7 @@ def build_employee_records_router(*, db, require_actor):
     async def employee_package_pdf(
         emp_id: str,
         package: str,
-        actor: Dict[str, Any] = _actor_dep(),
+        actor: Dict[str, Any] = Depends(_actor_dep),
     ):
         if package not in PACKAGE_TITLE:
             raise HTTPException(404, f"Unknown package: {package}")

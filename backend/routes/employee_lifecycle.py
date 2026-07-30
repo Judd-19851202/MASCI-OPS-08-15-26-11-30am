@@ -926,6 +926,9 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
 
     async def require_hr_or_admin(actor: Dict[str, Any] = Depends(require_any_portal_token)) -> Dict[str, Any]:
         normalized = _normalize_lifecycle_actor(actor)
+        role = str(normalized.get("role") or normalized.get("_actor") or "").strip().lower()
+        if role in {"hr", "admin"}:
+            return normalized
         context = await build_governance_actor_context(db, normalized)
         perms = set(context.get("permissions") or [])
         if "employee_lifecycle.manage" in perms:

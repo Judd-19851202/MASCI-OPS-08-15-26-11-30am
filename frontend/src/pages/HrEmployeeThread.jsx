@@ -220,18 +220,20 @@ export default function HrEmployeeThread() {
         { headers: authHeaders() }
       );
       setData(r.data);
-      // OI signal for Section 8 / Section 3 (Guidance Card) —
-      // consumes the certified summary payload only.
-      try {
-        const s = await axios.get(
-          `${API}/operational-intelligence/summary`,
-          { headers: authHeaders() }
-        );
-        const products = Array.isArray(s.data?.products) ? s.data.products : [];
-        // hr_intelligence is the closest product signal for a
-        // single employee's operational readiness.
-        setProduct(products.find((p) => p.product_id === "hr_intelligence") || null);
-      } catch { /* OI is optional · degrade gracefully */ }
+      if (!isHr()) {
+        try {
+          const s = await axios.get(
+            `${API}/operational-intelligence/summary`,
+            { headers: authHeaders() }
+          );
+          const products = Array.isArray(s.data?.products) ? s.data.products : [];
+          setProduct(products.find((p) => p.product_id === "hr_intelligence") || null);
+        } catch {
+          setProduct(null);
+        }
+      } else {
+        setProduct(null);
+      }
     } catch (e) {
       setErr(operationalError(e, t("Could not load employee thread.")));
     } finally {

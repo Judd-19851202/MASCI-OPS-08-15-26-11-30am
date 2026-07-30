@@ -410,7 +410,7 @@ export default function ViewDailyReport() {
         {/* OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review.
             Operator directive: OPEN → PENDING_REVIEW → REVIEWED → CLOSED
             with kickback PENDING_REVIEW → OPEN and audited REOPEN. */}
-        <DailyReportLifecyclePanel reportId={data.id} />
+        {!isHrReadOnly && <DailyReportLifecyclePanel reportId={data.id} />}
 
         <ReportSection number="01" title={t("Report Information")}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">

@@ -78,6 +78,11 @@ const ADMIN_SHARED_API_PREFIXES = [
   "/jha-acknowledgements",
 ];
 
+const HR_COMPAT_ADMIN_API_PREFIXES = [
+  "/admin/field-leadership-users",
+  "/admin/integrations/cleanup",
+];
+
 function normalizePath(pathname = "") {
   if (!pathname) return "";
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
@@ -110,7 +115,17 @@ export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   if (!path) return [];
   const routePath = path.startsWith("/api/") ? path.slice(4) : path;
 
-  if (routePath.startsWith("/admin/") || routePath === "/admin") return ["admin"];
+  if (routePath.startsWith("/admin/") || routePath === "/admin") {
+    if (
+      activePortal === "hr" &&
+      HR_COMPAT_ADMIN_API_PREFIXES.some(
+        (prefix) => routePath === prefix || routePath.startsWith(`${prefix}/`)
+      )
+    ) {
+      return ["hr", "admin"];
+    }
+    return ["admin"];
+  }
   if (routePath.startsWith("/hr/") || routePath === "/hr") return ["hr"];
   if (routePath.startsWith("/safety/") || routePath === "/safety") return ["safety"];
   if (routePath.startsWith("/pm/") || routePath === "/pm") return ["pm"];
