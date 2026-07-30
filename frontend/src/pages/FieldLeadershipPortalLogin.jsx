@@ -93,9 +93,6 @@ export default function FieldLeadershipPortalLogin() {
     }
     setSubmitting(true);
     try {
-      // Clear sibling portal tokens so no ghost sessions linger — same
-      // pattern as HrLogin / PmLogin / ShopLogin.
-      clearAdminToken(); clearHrToken(); clearPmToken(); clearShopToken(); clearFlToken();
       const r = await api.post(
         "/field-leadership/portal/login",
         { email: em, password },
@@ -105,6 +102,10 @@ export default function FieldLeadershipPortalLogin() {
       const user = r?.data?.user || null;
       const kind = r?.data?.kind || "fl";
       if (!tok) throw new Error("missing-token");
+      // Only replace sibling portal tokens after the login request has
+      // actually succeeded. Failed attempts must not wipe an active admin
+      // or Field Leadership session already present in the browser.
+      clearAdminToken(); clearHrToken(); clearPmToken(); clearShopToken(); clearFlToken();
       if (kind === "admin") {
         // iter344 · Super-admin signed in via FL screen. Store as admin
         // token (the Hub gate accepts admin via isAdmin()). Do NOT mint

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ShieldCheck, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { LangToggle } from "@/components/LangToggle";
 import PortalContextBanner from "@/components/PortalContextBanner";
 import { api } from "@/lib/api";
-import { setSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
+import { setSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 
@@ -20,10 +20,6 @@ export default function SafetyFormsLogin() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-
-  useEffect(() => {
-    clearSafetyFormsToken();
-  }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();

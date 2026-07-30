@@ -1,17 +1,16 @@
 // SafetyForgotPassword — request a reset link.
-// Posts /api/safety/forgot-password and either shows the dev token
-// inline (preview env) or just tells the user to check their email.
+// Posts /api/safety/forgot-password and tells the user to check their
+// email. Preview reset artifacts must not appear in the operator-facing UI.
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { ShieldAlert, Loader2, ArrowLeft, Check, Copy } from "lucide-react";
+import { ShieldAlert, Loader2, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -20,7 +19,6 @@ export default function SafetyForgotPassword() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [devToken, setDevToken] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -31,22 +29,11 @@ export default function SafetyForgotPassword() {
         email: email.trim(),
       });
       setDone(true);
-      // Preview / dev environment hand-back so admins can self-test.
-      if (r.data?.token_for_dev) setDevToken(r.data.token_for_dev);
     } catch {
       // Backend always returns ok shape — surface a generic message.
       setDone(true);
     } finally {
       setBusy(false);
-    }
-  };
-
-  const copyToken = async () => {
-    try {
-      await navigator.clipboard.writeText(devToken);
-      toast.success("Copied.");
-    } catch {
-      toast.error("Copy failed — write it down by hand.");
     }
   };
 
@@ -91,28 +78,6 @@ export default function SafetyForgotPassword() {
                   {t("If this email belongs to a Safety user, a reset link is on its way. The link expires in 30 minutes.")}
                 </div>
               </div>
-              {devToken && (
-                <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold mb-1">
-                    Dev token (preview only)
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="font-mono text-[11px] bg-white border border-amber-200 rounded px-2 py-1 break-all flex-1 select-all" data-testid="safety-forgot-dev-token">
-                      {devToken}
-                    </div>
-                    <Button size="sm" variant="outline" onClick={copyToken}>
-                      <Copy className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <Link
-                    to={`/safety-portal/reset/${devToken}`}
-                    className="inline-block mt-2 text-xs font-mono uppercase tracking-[0.18em] text-cyan-700 hover:underline"
-                    data-testid="safety-forgot-dev-open"
-                  >
-                    Open reset page →
-                  </Link>
-                </div>
-              )}
               <Link
                 to="/safety-portal/login"
                 className="block text-center text-xs font-mono uppercase tracking-[0.18em] text-cyan-700 hover:underline"

@@ -21,6 +21,7 @@ export default function DevLogin() {
   const location = useLocation();
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [envDisabled, setEnvDisabled] = useState(false);
 
   useEffect(() => {
     // Never inherit a stale dev token from the previous session on this
@@ -32,6 +33,10 @@ export default function DevLogin() {
     e.preventDefault();
     if (!password) {
       toast.error("Enter the developer password");
+      return;
+    }
+    if (envDisabled) {
+      toast.error("Developer access is disabled in this environment");
       return;
     }
     setSubmitting(true);
@@ -54,6 +59,10 @@ export default function DevLogin() {
       const status = err?.response?.status;
       let msg;
       if (status === 401) msg = "Wrong password";
+      else if (status === 404) {
+        setEnvDisabled(true);
+        msg = "Developer access is disabled in this environment";
+      }
       else if (status >= 500 && status < 600) msg = `Server error (${status})`;
       else if (!err?.response) msg = "Can't reach server";
       else msg = `Login failed (${status || "unknown"})`;
@@ -99,6 +108,15 @@ export default function DevLogin() {
             Restricted. For ForgedOps™ use only.
           </p>
 
+          {envDisabled && (
+            <div
+              className="mb-5 rounded-md border border-amber-700 bg-amber-950/50 px-3 py-2 text-[11px] font-mono uppercase tracking-[0.18em] text-amber-200"
+              data-testid="dev-login-disabled-alert"
+            >
+              Developer access is disabled in this environment.
+            </div>
+          )}
+
           <form onSubmit={onSubmit} className="space-y-4" data-testid="dev-login-form">
             <div>
               <Label
@@ -113,6 +131,7 @@ export default function DevLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 autoComplete="current-password"
+                disabled={envDisabled}
                 className="mt-2 h-11 text-base bg-slate-950 border border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-emerald-500"
                 data-testid="dev-password-input"
                 toggleTestId="dev-password-toggle"
@@ -120,7 +139,7 @@ export default function DevLogin() {
             </div>
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || envDisabled}
               className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-mono uppercase tracking-wide text-xs"
               data-testid="dev-login-submit"
             >

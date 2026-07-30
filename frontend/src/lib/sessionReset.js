@@ -86,8 +86,11 @@ const API = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
  *   `/api/auth/multi-logout` so the directory session row is killed
  *   server-side. Set false in pre-login bootstrapping (no need to
  *   ping a session we may not even own).
+ * @param {boolean} [opts.preserveSafetyForms=false] — narrow escape hatch
+ *   for the legacy Safety Forms remembered-session login page. Keeps only
+ *   the Safety Forms token while wiping every other auth artifact.
  */
-export async function clearAllSessions({ notifyBackend = true } = {}) {
+export async function clearAllSessions({ notifyBackend = true, preserveSafetyForms = false } = {}) {
   const dirTok = (() => {
     try {
       return getDirectoryToken();
@@ -133,12 +136,15 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
   try { clearFlToken(); } catch { /* ignore */ }
   try { clearLeadershipToken(); } catch { /* ignore */ }
   try { clearDevToken(); } catch { /* ignore */ }
-  try { clearSafetyFormsToken(); } catch { /* ignore */ }
+  if (!preserveSafetyForms) {
+    try { clearSafetyFormsToken(); } catch { /* ignore */ }
+  }
   try { clearJwt(); } catch { /* ignore */ }
   try { clearDriverSession(); } catch { /* ignore */ }
   try { clearDirectorySession(); } catch { /* ignore */ }
 
   for (const key of IDENTITY_KEYS) {
+    if (preserveSafetyForms && key === "masci.safetyforms.token") continue;
     try { localStorage.removeItem(key); } catch { /* ignore */ }
     try { sessionStorage.removeItem(key); } catch { /* ignore */ }
   }

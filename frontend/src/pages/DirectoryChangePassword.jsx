@@ -23,7 +23,7 @@ import { Loader2, KeyRound, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
@@ -113,17 +113,18 @@ export default function DirectoryChangePassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" data-testid="directory-change-password-page">
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <span className="text-xs uppercase tracking-wider font-bold text-red-300">
-            Password change required
-          </span>
-        </div>
-      </header>
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
+    <PortalLoginShell
+      headerBorderClass="border-red-700"
+      backHoverClass="hover:text-red-300"
+      backTestId="directory-change-password-back"
+      rootTestId="directory-change-password-page"
+      footerLabel="MASCI · Unified Sign-In"
+      homeLink="/"
+    >
         <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+          <div className="mb-3 inline-flex items-center rounded-md bg-red-50 border border-red-200 px-3 py-1.5 text-[11px] font-mono uppercase tracking-[0.18em] text-red-700 font-bold">
+            Password change required
+          </div>
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck className="w-6 h-6 text-red-700" />
             <h1 className="text-2xl font-black tracking-tight text-slate-900">
@@ -208,7 +209,6 @@ export default function DirectoryChangePassword() {
             </Button>
           </form>
         </div>
-      </main>
-    </div>
+    </PortalLoginShell>
   );
 }

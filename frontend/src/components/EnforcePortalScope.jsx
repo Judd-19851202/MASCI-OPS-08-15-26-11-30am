@@ -6,7 +6,7 @@ import { clearShopToken, getShopToken } from "@/lib/shopAuth";
 import { clearHrToken, getHrToken } from "@/lib/hrAuth";
 import { clearSafetyToken, getSafetyToken } from "@/lib/safetyAuth";
 import { clearDispatchToken, getDispatchToken } from "@/lib/dispatchAuth";
-import { getDirectoryUser } from "@/lib/directoryAuth";
+import { getDirectoryUser, getDirectoryToken } from "@/lib/directoryAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
 
 /**
@@ -63,6 +63,22 @@ export default function EnforcePortalScope() {
   const { pathname } = useLocation();
 
   React.useEffect(() => {
+    // Wave 1 · Admin existing-session route: let /admin/login honor the
+    // page's auto-elevation contract when a real Admin + Directory
+    // session is already active. Fresh identity-switch visits still fall
+    // through to the normal login-path wipe.
+    if (pathname === "/admin/login" && getAdminToken() && getDirectoryToken()) {
+      return;
+    }
+
+    // Wave 1 · Safety Forms remember-me exception: preserve the legacy
+    // Safety Forms token on its own login page while still clearing all
+    // other portal / directory auth state.
+    if (pathname === "/safety/forms/login") {
+      clearAllSessions({ notifyBackend: false, preserveSafetyForms: true });
+      return;
+    }
+
     // P0 (iter179) — landing on any login page = explicit identity
     // switch. Nuke everything BEFORE the user types creds so a stale
     // multi-portal directory session can't survive into the next

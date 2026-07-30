@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, KeyRound } from "lucide-react";
+import { Loader2, KeyRound, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { api } from "@/lib/api";
@@ -58,18 +57,31 @@ export default function FieldLeadershipPortalChangePassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" data-testid="fl-portal-change-password">
-      <div className="max-w-md mx-auto w-full px-4 py-10 flex-1">
-        <div className="flex flex-col items-center mb-6">
-          <MasciLogo size={48} />
-          <h1 className="mt-3 text-xl font-bold text-slate-900">
-            {t("Set your password")}
-          </h1>
-          <p className="mt-1 text-xs text-slate-600 text-center">
-            {user?.name ? `${user.name} · ${user.role || ""}` : t("Field Leadership Portal")}
+    <PortalLoginShell
+      headerBorderClass="border-red-700"
+      backHoverClass="hover:text-red-300"
+      backTestId="fl-change-password-back"
+      rootTestId="fl-portal-change-password"
+      footerLabel={t("MASCI · Field Leadership Portal")}
+      homeLink="/leadership"
+    >
+        <form onSubmit={submit} className="bg-white border border-slate-200 rounded-lg p-5 sm:p-7 shadow-xl space-y-4">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white shrink-0">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+                {t("Field Leadership")}
+              </div>
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+                {t("Set your password")}
+              </h1>
+            </div>
+          </div>
+          <p className="text-slate-600 text-sm">
+            {user?.name ? `${user.name}${user.role ? ` · ${user.role}` : ""}` : t("Field Leadership Portal")}
           </p>
-        </div>
-        <form onSubmit={submit} className="bg-white border border-slate-200 rounded-lg p-5 space-y-3">
           <HelpTipBlock formKey="field-leadership.change-password" />
           <div>
             <Label className="text-xs uppercase tracking-wider text-slate-600">
@@ -110,14 +122,12 @@ export default function FieldLeadershipPortalChangePassword() {
           <Button
             type="submit" disabled={submitting}
             data-testid="fl-cp-submit"
-            className="w-full bg-slate-800 hover:bg-slate-900 text-white"
+            className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
           >
             {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <KeyRound className="w-4 h-4 mr-2" />}
             {t("Set password")}
           </Button>
         </form>
-      </div>
-      <ForgedOpsAttribution />
-    </div>
+    </PortalLoginShell>
   );
 }

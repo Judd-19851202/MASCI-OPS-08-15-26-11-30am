@@ -1,16 +1,15 @@
-// DispatchForgotPassword — request a reset link. Orange-accent clone
-// of SafetyForgotPassword.
+// DispatchForgotPassword — request a reset link. Preview reset
+// artifacts must not appear in the operator-facing UI.
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { Truck, Loader2, ArrowLeft, Check, Copy } from "lucide-react";
+import { Truck, Loader2, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -19,7 +18,6 @@ export default function DispatchForgotPassword() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [devToken, setDevToken] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,20 +28,10 @@ export default function DispatchForgotPassword() {
         email: email.trim(),
       });
       setDone(true);
-      if (r.data?.token_for_dev) setDevToken(r.data.token_for_dev);
     } catch {
       setDone(true);
     } finally {
       setBusy(false);
-    }
-  };
-
-  const copyToken = async () => {
-    try {
-      await navigator.clipboard.writeText(devToken);
-      toast.success("Copied.");
-    } catch {
-      toast.error("Copy failed — write it down by hand.");
     }
   };
 
@@ -89,28 +77,6 @@ export default function DispatchForgotPassword() {
                   {t("If this email belongs to a Dispatch user, a reset link is on its way. The link expires in 30 minutes.")}
                 </div>
               </div>
-              {devToken && (
-                <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold mb-1">
-                    Dev token (preview only)
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="font-mono text-[11px] bg-white border border-amber-200 rounded px-2 py-1 break-all flex-1 select-all" data-testid="dispatch-forgot-dev-token">
-                      {devToken}
-                    </div>
-                    <Button size="sm" variant="outline" onClick={copyToken}>
-                      <Copy className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <Link
-                    to={`/dispatch-portal/reset/${devToken}`}
-                    className="inline-block mt-2 text-xs font-mono uppercase tracking-[0.18em] text-orange-700 hover:underline"
-                    data-testid="dispatch-forgot-dev-open"
-                  >
-                    Open reset page →
-                  </Link>
-                </div>
-              )}
               <Link
                 to="/dispatch-portal/login"
                 className="block text-center text-xs font-mono uppercase tracking-[0.18em] text-orange-700 hover:underline"

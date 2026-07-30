@@ -108,7 +108,7 @@ export default function AdminLogin() {
     // token exists, the login form renders as before.
     const tok = getAdminToken();
     if (tok) {
-      navigate("/admin/hub", { replace: true });
+      navigate("/admin", { replace: true });
     }
   }, [navigate]);
 
