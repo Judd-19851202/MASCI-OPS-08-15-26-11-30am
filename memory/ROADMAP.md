@@ -1,3 +1,25 @@
+# 2026-07-30 WP-16 Phase 6 Foundation Checkpoint roadmap
+
+- **P0 Current state:** Foundation Checkpoint implementation is complete and verified on representative admin routes.
+- **Completed in this checkpoint:**
+  - canonical design decision register
+  - canonical token system
+  - canonical authenticated shell
+  - canonical mobile navigation behavior
+  - canonical shared primitive styling for controls, tables, overlays, cards, alerts, and status surfaces
+  - responsive verification across representative desktop / tablet / phone viewport families
+- **Hard stop:** do **not** begin broad portal migration without user approval of this checkpoint.
+- **Next P0 after approval:**
+  - Admin portal migration on top of the certified foundation
+  - integrate open Admin defects during migration where they block verification
+- **P1 next sequence:**
+  - HR portal migration
+  - PM portal migration
+  - Safety / Dispatch / Shop / Equipment / Training / Executive / Public / Dev migrations sequentially
+- **P2 remaining:**
+  - final browser-family certification outside Chromium preview automation
+  - final constitutional closeout docs and reconciled evidence package
+
 # 2026-07-29 WP-16 Phase 2 checkpoint roadmap
 
 - **P0 Current state:** Phase 2 zero-evidence portal family pass is complete and reconciled.

@@ -2,6 +2,14 @@
 
 Date: 2026-07-30
 
+## Phase 6 foundation checkpoint note
+- Shared foundation implementation is complete on representative admin routes.
+- Foundation-level responsive issue found during checkpoint verification:
+  - `WP16-FND-001` — tablet landscape (`1024x768`) horizontal overflow in the authenticated shell.
+  - Status: **resolved during checkpoint** by moving full desktop shell behavior to the `xl` breakpoint.
+- There are **no active foundation-level P0 defects** after the fix above.
+- The portal/API defects listed below remain open and must be handled during the appropriate portal migration waves unless they block future certification.
+
 ## Phase 4 checkpoint note
 - No runtime fixes were attempted.
 - The table below now records whether each accepted defect prevents base-screen, interaction, overlay, validation, state, or workflow-transition inspection.

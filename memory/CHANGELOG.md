@@ -1,3 +1,17 @@
+# 2026-07-30 — WP-16 Phase 6 Foundation Checkpoint
+
+- Created the canonical decision register and component register:
+  - `/app/memory/WP16_DESIGN_DECISION_REGISTER.md`
+  - `/app/memory/WP16_CANONICAL_COMPONENT_REGISTER.md`
+- Implemented the shared frontend foundation across tokens, shell, navigation, and shared primitives.
+- Updated representative existing admin proof surfaces (`/admin`, `/admin/governance-trust`, `/admin/people`) without beginning portal-wide migration.
+- Fixed the only foundation QA issue found during testing: tablet landscape (`1024x768`) horizontal overflow in the authenticated shell.
+- Verification evidence:
+  - `/app/test_reports/iteration_76.json`
+  - auto frontend testing agent: **12/12 PASS**
+  - deep verification smoke: **3/3 PASS**
+  - responsive/browser notes recorded in `/app/memory/WP16_RESPONSIVE_CERTIFICATION.md` and `/app/memory/WP16_BROWSER_COMPATIBILITY.md`
+
 # 2026-07-29 — WP-16 Phase 2 zero-evidence portal checkpoint
 
 - Completed the read-only Phase 2 evidence pass for Field Leadership, Transportation Operations, Driver, Training / Guidance, Executive, and Dev.

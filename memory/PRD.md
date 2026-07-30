@@ -1,3 +1,48 @@
+# 2026-07-30 — WP-16 Phase 6 Foundation Checkpoint
+
+## 2026-07-30 WP-16 Phase 6 Foundation Checkpoint — shared foundation implemented and verified
+
+- User explicitly corrected the direction: **do not presume Swiss Brutalist or any named aesthetic**.
+- The checkpoint followed the approved order:
+  1. create the canonical decision register
+  2. implement the shared foundation
+  3. verify representative routes and responsive behavior
+  4. stop before portal-wide migration
+- New checkpoint documents created:
+  - `/app/memory/WP16_DESIGN_DECISION_REGISTER.md`
+  - `/app/memory/WP16_CANONICAL_COMPONENT_REGISTER.md`
+  - `/app/memory/WP16_RESPONSIVE_CERTIFICATION.md`
+  - `/app/memory/WP16_BROWSER_COMPATIBILITY.md`
+- Shared foundation implementation completed in the active frontend runtime:
+  - canonical token layer in `frontend/src/styles/tokens.css`
+  - canonical foundation styles in `frontend/src/design-system/wp16.css`
+  - global token/style wiring in `frontend/src/index.css` and `frontend/src/styles/portal-system.css`
+  - authenticated shell standardization in `frontend/src/design-system/PortalShell.jsx`
+  - mobile dock / module sheet standardization in `frontend/src/design-system/MobileNavigation.jsx`
+  - canonical admin rail and breadcrumb in `frontend/src/components/admin/sidebar/SideNavV3.jsx` and `frontend/src/components/admin/AdminBreadcrumb.jsx`
+  - representative admin proof surfaces updated in `frontend/src/pages/admin/AdminOS.jsx`, `frontend/src/components/admin/trust/DomainLandingShell.jsx`, and `frontend/src/components/admin/LegacyAdminModernShell.jsx`
+  - shared primitives normalized under `frontend/src/components/ui/*` for buttons, fields, tables, overlays, alerts, badges, cards, tabs, and status surfaces
+  - toast styling normalized in `frontend/src/App.js`
+- Representative foundation verification completed on existing routes:
+  - `/admin/login`
+  - `/admin`
+  - `/admin/governance-trust`
+  - `/admin/people`
+- Verification outcomes:
+  - testing agent report: `/app/test_reports/iteration_76.json`
+  - auto frontend testing agent: **12/12 PASS**
+  - deep verification smoke: **3/3 PASS**
+  - admin login, shell, responsive behavior, mobile nav, governance landing, and admin people table all verified live
+- Responsive certification status:
+  - desktop, tablet portrait, tablet landscape, iPhone-sized, Android phone-sized, and Android tablet-sized viewports verified in Chromium preview automation
+  - the earlier tablet-landscape overflow at `1024x768` was fixed by moving the full desktop shell breakpoint to `xl`
+- Honest limitations preserved:
+  - Safari / Edge / non-Chromium browser-family verification was **not** available in this environment and remains documented as a remaining certification gap
+  - known HR / Dispatch / Shop / Admin backend defects remain open and were **not** reclassified as design-system problems
+- Stop condition reached:
+  - **do not begin broad Admin / HR / PM migration yet**
+  - next authorized step after user approval is sequential portal migration on top of this foundation
+
 # 2026-07-29 — WP-16 Phase 2 zero-evidence portal checkpoint
 
 ## 2026-07-29 WP-16 Phase 2 checkpoint — read-only evidence expansion complete

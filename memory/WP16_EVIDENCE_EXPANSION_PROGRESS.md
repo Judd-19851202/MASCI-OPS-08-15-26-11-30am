@@ -85,3 +85,37 @@ Date: 2026-07-30
 - Runtime code remained unchanged.
 - Read-only verification is **mixed but stable**: targeted Phase 4 interaction capture scripts succeeded, while generic interaction verification returned **4/16 PASS** because of selector/state-setup limitations and one `/admin/transportation` network-idle timeout; no blank-screen crash was confirmed.
 - Stop here. Do **not** begin Phase 5 without explicit approval.
+
+## 2026-07-30 Phase 6 foundation checkpoint implementation + verification
+- Runtime freeze is lifted and the first implementation checkpoint is complete.
+- Foundation documents created:
+  - `/app/memory/WP16_DESIGN_DECISION_REGISTER.md`
+  - `/app/memory/WP16_CANONICAL_COMPONENT_REGISTER.md`
+  - `/app/memory/WP16_RESPONSIVE_CERTIFICATION.md`
+  - `/app/memory/WP16_BROWSER_COMPATIBILITY.md`
+- Representative implementation surfaces:
+  - `/admin`
+  - `/admin/governance-trust`
+  - `/admin/people`
+- Verification evidence added via live automation:
+  - `/app/test_reports/iteration_76.json`
+  - screenshot set referenced there under `.screenshots/wp16_p6_*`
+- Foundation verification result:
+  - admin login PASS
+  - authenticated shell PASS
+  - mobile navigation PASS
+  - governance landing PASS
+  - admin people table PASS
+  - tablet landscape overflow fixed and reverified PASS
+- Honest limitation retained:
+  - non-Chromium browser-family verification remains pending separate browser-lab coverage
+
+## Updated phase status after the foundation checkpoint
+| Phase | Status | Notes |
+| --- | --- | --- |
+| Phase 1 — Registry & Route Validation | COMPLETE — accepted | Baseline census accepted earlier. |
+| Phase 2 — Seven Zero-Evidence Portal Families | COMPLETE — accepted | Reconciled before Phase 3 began. |
+| Phase 3 — Remaining Desktop Coverage | COMPLETE — accepted | Route totals remain the authoritative desktop census baseline. |
+| Phase 4 — Interaction & State Coverage | COMPLETE — accepted | Became the evidence basis for implementation. |
+| Phase 5 — Responsive Evidence | COMPLETE — checkpoint level | Representative responsive viewport certification completed during the foundation checkpoint. |
+| Phase 6 — Foundation Checkpoint | COMPLETE — pending human approval | Shared foundation implemented and verified; stop before portal migration. |
