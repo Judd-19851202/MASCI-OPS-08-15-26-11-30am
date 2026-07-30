@@ -7,13 +7,7 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
     <input
       type={type}
       className={cn(
-        // TRACK 14.0-S2 · iPad Field Certification.
-        // REMOVED `md:text-sm` so iOS Safari doesn't render the input
-        // at 14px on iPad (which triggers a focus-zoom and shrinks
-        // tap accuracy in the field). The `text-base` default is now
-        // honored on tablet too; desktop reads the same. index.css
-        // additionally forces 16px on coarse pointers for safety.
-        "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        "wp16-focus-ring flex h-[var(--control-height-md)] w-full min-w-0 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 py-2 text-base text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color,box-shadow] duration-[140ms] placeholder:text-[color:var(--ink-faint)] file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[color:var(--ink-strong)] hover:border-[color:var(--border-strong)] focus:border-[color:var(--brand-primary)] disabled:cursor-not-allowed disabled:border-[color:var(--border-hairline)] disabled:bg-[color:var(--surface-disabled)] disabled:text-[color:var(--ink-disabled)]",
         className
       )}
       ref={ref}

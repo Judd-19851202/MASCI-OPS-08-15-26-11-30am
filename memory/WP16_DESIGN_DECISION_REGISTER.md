@@ -1,0 +1,676 @@
+# WP16 Design Decision Register
+
+Date: 2026-07-30
+Phase: WP-16 Foundation Checkpoint
+Status: In implementation during this checkpoint
+
+## Scope note
+- This register is the required bounded first step for the WP-16 Foundation Checkpoint.
+- It records the canonical standards selected from audit evidence before broad shared-foundation runtime changes.
+- It does **not** authorize portal-wide migration. It authorizes shared foundation work only.
+
+## Primary evidence sources
+- `/app/memory/WP16_PLATFORM_EXPERIENCE_FINDINGS_REGISTER.md`
+- `/app/memory/WP16_VISUAL_PATTERN_ATLAS.md`
+- `/app/memory/WP16_SCREEN_REGISTRY.md`
+- `/app/memory/WP16_ROUTE_EXERCISE_REGISTER.md`
+- `/app/memory/WP16_STATE_COVERAGE_REGISTER.md`
+- `/app/memory/WP16_OVERLAY_AND_INTERACTION_REGISTER.md`
+- `/app/memory/WP16_ACTIVE_DEFECT_LOG.md`
+
+---
+
+## 1. Color system
+- Existing variants discovered:
+  - Dark glass / blur admin shell.
+  - Portal-specific accent families (red, purple, cyan, amber, orange, teal).
+  - Strong neutral card/table surfaces already working well on many data-heavy screens.
+- Evidence references:
+  - Findings register lines 12, 20, 29, 30.
+  - Baseline census refresh notes for HR and Safety shell/table mix.
+- Selected canonical pattern:
+  - One light neutral operating-system palette.
+  - Brand red remains the primary command accent.
+  - Status colors remain semantic and independent from portal identity.
+  - Portal distinction shifts to route ownership, labels, and information architecture instead of full color-system divergence.
+- Reason for selection:
+  - Supported by audit finding that dark glass and accent drift fragment trust and readability.
+- Operational advantage:
+  - Better sunlight readability, cleaner hierarchy, less “different product” feeling between portals.
+- Responsive implications:
+  - Higher contrast remains readable on tablets and phones under zoom and glare.
+- Accessibility implications:
+  - Improves contrast consistency for controls, status, and muted text.
+- Patterns being retained:
+  - MASCI red brand usage.
+  - Existing semantic success/warning/error signaling.
+- Patterns being retired:
+  - Heavy glass, nightlife panels, uncontrolled accent swapping by portal.
+- Risks:
+  - Some legacy portal widgets may still render old accent assumptions until migrated.
+- Exceptions:
+  - Safety/status/emergency semantics remain color-coded where operationally required.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 2. Typography
+- Existing variants discovered:
+  - Chivo / IBM Plex usage in several shells.
+  - Inter fallback token drift.
+  - Mixed uppercase mono kickers already used successfully.
+- Evidence references:
+  - Findings register line 29 and platform census typography drift observations.
+- Selected canonical pattern:
+  - Display: Chivo.
+  - Body/UI: IBM Plex Sans.
+  - Technical/meta: IBM Plex Mono.
+  - One explicit type scale for page titles, section labels, body text, and helper text.
+- Reason for selection:
+  - Matches proven platform patterns already present and avoids introducing an unapproved new voice.
+- Operational advantage:
+  - Strong glanceability for headings, durable readability for dense operational tables/forms.
+- Responsive implications:
+  - Title and helper scales remain legible from phone to large desktop without overflow.
+- Accessibility implications:
+  - Minimum readable body/help sizes preserved; stronger hierarchy for screen magnification users.
+- Patterns being retained:
+  - Uppercase mono eyebrow/kicker pattern.
+- Patterns being retired:
+  - Token mismatch pointing at Inter where Chivo/IBM Plex are the actual proven families.
+- Risks:
+  - Some legacy page-local font utilities will remain until later migration.
+- Exceptions:
+  - Print surfaces may continue to use print-safe fallback stacks where required.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 3. Spacing
+- Existing variants discovered:
+  - Good dense data spacing on some list/table surfaces.
+  - Inconsistent shell/header/card spacing across portals.
+- Evidence references:
+  - Findings register lines 24, 33, 34.
+- Selected canonical pattern:
+  - One tokenized spacing scale for shell padding, card padding, stack gaps, and action rows.
+- Reason for selection:
+  - Shared spacing is required before any shell or component family can feel unified.
+- Operational advantage:
+  - More predictable scan rhythm across dashboards, forms, and tables.
+- Responsive implications:
+  - Narrow screens can compress safely without content collision.
+- Accessibility implications:
+  - Better separation of grouped actions and fields.
+- Patterns being retained:
+  - Existing moderate density for operational tables.
+- Patterns being retired:
+  - Page-local arbitrary spacing as default shell behavior.
+- Risks:
+  - A few edge-case dense tables may need later per-surface tuning.
+- Exceptions:
+  - Complex tables may use tighter row density where proven necessary.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 4. Page shell
+- Existing variants discovered:
+  - 15 shell-family files with overlapping responsibilities.
+  - PortalShell already serves as the best base for shared authenticated chrome.
+- Evidence references:
+  - Findings register lines 13, 16, 17, 18, 24, 31, 33.
+- Selected canonical pattern:
+  - One authenticated shell contract centered on `PortalShell`.
+  - One public shell contract centered on `PublicShell`.
+  - Legacy wrappers delegate to canonical shell instead of inventing their own chrome.
+- Reason for selection:
+  - Audit explicitly identified shell fragmentation as a critical source of drift.
+- Operational advantage:
+  - Stable location awareness, stable escape paths, easier later portal migration.
+- Responsive implications:
+  - Shared header/sidebar/mobile-nav contract can be certified once and reused.
+- Accessibility implications:
+  - Consistent landmarks and predictable navigation order.
+- Patterns being retained:
+  - Existing PortalShell routing and sign-out hooks.
+- Patterns being retired:
+  - Distinct glass-heavy admin shell behavior and duplicate wrapper responsibilities.
+- Risks:
+  - Some legacy portal wrappers still exist and will need migration later.
+- Exceptions:
+  - Portal-specific route ownership and side-nav content remain role-specific.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 5. Header
+- Existing variants discovered:
+  - Strong utility-rich headers, but inconsistent visual treatment and mobile behavior.
+- Evidence references:
+  - Findings register lines 12, 17, 19, 31, 33.
+- Selected canonical pattern:
+  - Light high-contrast header with brand anchor, role/location context, shared utility cluster, and obvious home/sign-out controls.
+- Reason for selection:
+  - Preserves the best current utility density while removing visual drift.
+- Operational advantage:
+  - Faster orientation and safer escape paths.
+- Responsive implications:
+  - Shared overflow handling plus mobile dock/menu access.
+- Accessibility implications:
+  - Larger tap targets and visible focus states.
+- Patterns being retained:
+  - Search, notifications, portal switching, language toggle, sign-out.
+- Patterns being retired:
+  - Dark glass header as the canonical standard.
+- Risks:
+  - Utility widgets with older dark assumptions may need follow-up migration.
+- Exceptions:
+  - Public routes may use a reduced header anatomy.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 6. Sidebar
+- Existing variants discovered:
+  - SideNavV3 is the best current canonical information architecture candidate for Admin.
+  - Other portals still have custom sidebars.
+- Evidence references:
+  - Findings register lines 13, 14, 16, 24.
+- Selected canonical pattern:
+  - Light sectional sidebar with grouped navigation, active stripe, open/closed state, and scannable labels/subtext.
+- Reason for selection:
+  - Keeps the strong domain-group structure while aligning the shell visually.
+- Operational advantage:
+  - Faster scanning for dense admin route families.
+- Responsive implications:
+  - Desktop sticky rail; mobile off-canvas or dock/menu access.
+- Accessibility implications:
+  - Clear active states, larger targets, reduced visual noise.
+- Patterns being retained:
+  - Domain group expand/collapse behavior and local persistence.
+- Patterns being retired:
+  - Dark glass sidebar styling as the default foundation language.
+- Risks:
+  - PM/HR/Safety sidebars remain separate until portal migration.
+- Exceptions:
+  - Role-specific destination lists remain allowed.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 7. Navigation
+- Existing variants discovered:
+  - Route ownership drift, mixed mobile escape patterns, role-specific shells.
+- Evidence references:
+  - Findings register lines 14, 15, 19, 21, 22, 31, 35, 36.
+- Selected canonical pattern:
+  - Consistent nav anatomy and escape model; role-specific destinations remain variable.
+- Reason for selection:
+  - Audit showed navigation inconsistency as a major operator-trust issue.
+- Operational advantage:
+  - Predictable “where am I / how do I leave” behavior.
+- Responsive implications:
+  - Canonical mobile menu/home/search/notifications/module access model.
+- Accessibility implications:
+  - Clear path structures and current-state signals.
+- Patterns being retained:
+  - Role-aware guarded routes.
+- Patterns being retired:
+  - Ad hoc mobile escape patterns.
+- Risks:
+  - Shared cross-portal routes still need later contextual wrapper work.
+- Exceptions:
+  - Complex workspaces may still require local sub-nav layers.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 8. Breadcrumbs
+- Existing variants discovered:
+  - AdminBreadcrumb already provides a reliable pattern but with legacy styling.
+- Evidence references:
+  - Findings register lines 22 and 24.
+- Selected canonical pattern:
+  - Compact mono breadcrumb above content; current item inactive and stronger.
+- Reason for selection:
+  - Existing behavior is strong; only visual normalization is needed.
+- Operational advantage:
+  - Faster path comprehension on deep operational screens.
+- Responsive implications:
+  - Wrap-safe breadcrumb row.
+- Accessibility implications:
+  - Explicit nav landmark and current-location clarity.
+- Patterns being retained:
+  - “Admin OS › Domain › Feature” structure.
+- Patterns being retired:
+  - Overly faint breadcrumb contrast.
+- Risks:
+  - Long path names may still need truncation review later.
+- Exceptions:
+  - Top-level dashboards may omit secondary crumbs.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 9. Page titles
+- Existing variants discovered:
+  - Strong page-title utility in PortalShell but with mixed styling and spacing.
+- Evidence references:
+  - Findings register lines 12, 24, 33.
+- Selected canonical pattern:
+  - One strong display headline, optional kicker, concise subtitle, action area.
+- Reason for selection:
+  - Existing shell structure already supports this well.
+- Operational advantage:
+  - Better first-glance comprehension of page purpose.
+- Responsive implications:
+  - Wrap-safe long titles and stacked actions on small screens.
+- Accessibility implications:
+  - Reliable h1 placement and supporting description text.
+- Patterns being retained:
+  - Subtitle and last-activity support.
+- Patterns being retired:
+  - Overly decorative or low-contrast title treatments.
+- Risks:
+  - Some older page-local title rows remain until later migration.
+- Exceptions:
+  - Public/login flows may use different title density.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 10. Buttons
+- Existing variants discovered:
+  - Raw per-page buttons plus shadcn buttons with generic styling.
+- Evidence references:
+  - Findings register lines 24, 26, 29, 31.
+- Selected canonical pattern:
+  - Shared command button family: primary, secondary, outline, ghost, destructive, icon.
+- Reason for selection:
+  - Needed to stop page-local CTA drift and improve tap-target consistency.
+- Operational advantage:
+  - Clear hierarchy of command urgency.
+- Responsive implications:
+  - Shared heights and wrap-safe action rows.
+- Accessibility implications:
+  - Focus rings, disabled states, and touch-size floor.
+- Patterns being retained:
+  - Existing button variant API where possible.
+- Patterns being retired:
+  - Raw page-level button styling as default practice.
+- Risks:
+  - Some custom buttons remain until individual portal migration.
+- Exceptions:
+  - Specialized map/media controls may need custom sizing.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 11. Inputs
+- Existing variants discovered:
+  - Shared input primitives exist but use generic styles.
+- Evidence references:
+  - Findings register lines 24, 33, 34.
+- Selected canonical pattern:
+  - One shared field surface for text, textarea, select trigger, and search.
+- Reason for selection:
+  - Shared forms cannot be certified without aligned field anatomy.
+- Operational advantage:
+  - Faster recognition of editable surfaces.
+- Responsive implications:
+  - Stable heights and legible input text on touch devices.
+- Accessibility implications:
+  - Strong focus states, placeholder restraint, zoom-safe font size.
+- Patterns being retained:
+  - Existing shadcn field APIs.
+- Patterns being retired:
+  - Transparent/generic field styling that weakens affordance.
+- Risks:
+  - Date/file edge cases may require later tuning.
+- Exceptions:
+  - Browser-native file/date controls may retain platform-native internals.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 12. Forms
+- Existing variants discovered:
+  - Good page-level field groupings in several workflows, but shared form framing is inconsistent.
+- Evidence references:
+  - State coverage register and field workflow route evidence.
+- Selected canonical pattern:
+  - Shared field label/hint/error rhythm plus stable action-row alignment.
+- Reason for selection:
+  - Field trust depends on clear input-feedback structure.
+- Operational advantage:
+  - Easier completion on phones/tablets and long workflows.
+- Responsive implications:
+  - Shared stacking and wrap behavior for narrow screens.
+- Accessibility implications:
+  - Label association and visible validation/error messaging.
+- Patterns being retained:
+  - Existing field-level helper text pattern.
+- Patterns being retired:
+  - Ad hoc spacing and inconsistent error presentation.
+- Risks:
+  - Long complex forms still need portal-level migration later.
+- Exceptions:
+  - Specialized operational forms may keep domain-specific sections.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 13. Tables
+- Existing variants discovered:
+  - Dense but useful operational tables; wide-table evidence captured in transportation documents and dispatch contexts.
+- Evidence references:
+  - Overlay register INT-028.
+  - State coverage register large-table entries.
+- Selected canonical pattern:
+  - Shared table anatomy with contained horizontal scroll, strong headers, and readable row states.
+- Reason for selection:
+  - Wide operational data is unavoidable and must be safely contained.
+- Operational advantage:
+  - Better scanability and less page-level breakage.
+- Responsive implications:
+  - Horizontal scroll is allowed inside the table wrapper only.
+- Accessibility implications:
+  - Header/body contrast and focus/readability improvements.
+- Patterns being retained:
+  - Data density and row striping where helpful.
+- Patterns being retired:
+  - Page-breaking overflow and weak header contrast.
+- Risks:
+  - Some table-heavy pages still use custom markup until migrated.
+- Exceptions:
+  - Extremely wide operational grids may need dedicated wrappers.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 14. Cards
+- Existing variants discovered:
+  - Card usage is widespread but border/shadow/radius vary.
+- Evidence references:
+  - Findings register lines 24 and 29.
+- Selected canonical pattern:
+  - Light card surfaces with strong border, restrained elevation, and optional status edge.
+- Reason for selection:
+  - Cards are the shared building block across dashboards and detail panels.
+- Operational advantage:
+  - Cleaner hierarchy without visual fatigue.
+- Responsive implications:
+  - Cards stack safely and remain readable at small widths.
+- Accessibility implications:
+  - Better separation between adjacent information blocks.
+- Patterns being retained:
+  - Card grid usage and metric-card patterns.
+- Patterns being retired:
+  - Heavy blur/shadow cards as default.
+- Risks:
+  - Some legacy pages still use page-local cards.
+- Exceptions:
+  - Urgent callouts can use stronger status framing.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 15. Tabs
+- Existing variants discovered:
+  - Existing shared tabs are functional but generic.
+- Evidence references:
+  - Platform census component inventory.
+- Selected canonical pattern:
+  - Shared segmented tab rail with strong active state and touch-safe triggers.
+- Reason for selection:
+  - Needed for stable workspace navigation inside shell pages.
+- Operational advantage:
+  - Better section-switch clarity on dense pages.
+- Responsive implications:
+  - Wrap/scroll-safe tabs remain touch-usable.
+- Accessibility implications:
+  - Improved active state and focus signaling.
+- Patterns being retained:
+  - Existing Radix tab behavior.
+- Patterns being retired:
+  - Visually weak generic tab states.
+- Risks:
+  - Some custom tab bars remain.
+- Exceptions:
+  - High-density sub-filters may still use chips instead of tabs.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 16. Modals
+- Existing variants discovered:
+  - Many modal-bearing files; close/cancel anatomy is inconsistent.
+- Evidence references:
+  - Findings register line 25.
+  - Overlay register INT-001, INT-004, INT-010, INT-011, INT-013, INT-018, INT-026, INT-027.
+- Selected canonical pattern:
+  - Shared dialog anatomy with visible close control, bounded viewport height, and stable footer actions.
+- Reason for selection:
+  - Overlay trust was a major audit concern.
+- Operational advantage:
+  - Lower risk of trapped or clipped workflows.
+- Responsive implications:
+  - Modal fits available viewport; body scrolls internally if needed.
+- Accessibility implications:
+  - Proper focus ring, close discoverability, keyboard dismissal.
+- Patterns being retained:
+  - Existing Radix dialog behavior.
+- Patterns being retired:
+  - Oversized/clippable modal defaults.
+- Risks:
+  - Page-local modal bodies may still need cleanup later.
+- Exceptions:
+  - Some create/edit flows may intentionally use full-screen mobile sheet variants.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 17. Drawers
+- Existing variants discovered:
+  - Drawer behavior exists but is not one constitutional pattern.
+- Evidence references:
+  - Findings register line 25.
+  - Overlay register INT-003 and INT-019.
+- Selected canonical pattern:
+  - Shared drawer with stable handle/header, bounded height, and obvious close path.
+- Reason for selection:
+  - Drawers are proven useful for detail-inspection workflows.
+- Operational advantage:
+  - Preserves context while reviewing records.
+- Responsive implications:
+  - Bottom-sheet behavior on mobile, safe max-height on desktop/tablet.
+- Accessibility implications:
+  - Close control, scroll containment, readable header.
+- Patterns being retained:
+  - Existing drawer interaction model where already proven.
+- Patterns being retired:
+  - Unbounded drawer heights and weak close affordance.
+- Risks:
+  - Some drawer bodies still need later page-level spacing adjustments.
+- Exceptions:
+  - Evidence drawers may use larger widths than lightweight detail drawers.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 18. Alerts
+- Existing variants discovered:
+  - Error/warning/info messages vary heavily by page.
+- Evidence references:
+  - Findings register lines 26 and 34.
+- Selected canonical pattern:
+  - One bordered alert family using semantic tone, title, description.
+- Reason for selection:
+  - Safety/trust messaging must be immediately parseable.
+- Operational advantage:
+  - Faster understanding of what failed and what to do next.
+- Responsive implications:
+  - Full-width stack-safe surface.
+- Accessibility implications:
+  - Strong contrast and role/alert semantics.
+- Patterns being retained:
+  - Existing semantic severity model.
+- Patterns being retired:
+  - Ad hoc alert panel styling.
+- Risks:
+  - Some inline banner copy remains inconsistent until content audit.
+- Exceptions:
+  - Tiny validation messages remain field-local.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 19. Toasts
+- Existing variants discovered:
+  - Sonner is present, but visual/copy consistency is not fully standardized.
+- Evidence references:
+  - Findings register line 26.
+- Selected canonical pattern:
+  - Shared toast framing with clear success/warning/error hierarchy and restrained shadow.
+- Reason for selection:
+  - Platform feedback needs one recognizable lightweight announcement pattern.
+- Operational advantage:
+  - Less ambiguity after saves/actions.
+- Responsive implications:
+  - Toast stack remains readable without covering primary actions excessively.
+- Accessibility implications:
+  - Better contrast and role semantics through shared usage.
+- Patterns being retained:
+  - Sonner runtime.
+- Patterns being retired:
+  - Unstyled/default toast appearances.
+- Risks:
+  - Copy standardization remains a later content pass.
+- Exceptions:
+  - Critical blocking failures should still render inline/banner states, not toast-only.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 20. Empty states
+- Existing variants discovered:
+  - Empty and no-result states exist but are scattered.
+- Evidence references:
+  - Findings register line 34.
+  - State coverage register empty/no-results entries.
+- Selected canonical pattern:
+  - Calm bordered empty-state panel with title, explanation, and optional next action.
+- Reason for selection:
+  - Empty is not error; operator needs calm clarity.
+- Operational advantage:
+  - Faster next-step comprehension.
+- Responsive implications:
+  - Scales cleanly in cards and full-page panels.
+- Accessibility implications:
+  - Stronger contrast and heading structure.
+- Patterns being retained:
+  - Existing message structure where clear.
+- Patterns being retired:
+  - Bare gray text in oversized whitespace as default.
+- Risks:
+  - Page copy remains mixed until later audit.
+- Exceptions:
+  - Dashboard KPI zero-states may use compact inline empty messaging.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 21. Loading states
+- Existing variants discovered:
+  - Sparse, page-local loading treatments.
+- Evidence references:
+  - Findings register line 34.
+  - Driver magic-link loading state evidence in route/screen registries.
+- Selected canonical pattern:
+  - Shared loading panel / skeleton treatment with neutral motion.
+- Reason for selection:
+  - Operators need visible progress without noise.
+- Operational advantage:
+  - Better trust during network waits.
+- Responsive implications:
+  - Works inside cards, tables, and full-page panels.
+- Accessibility implications:
+  - Clear loading semantics and non-distracting motion.
+- Patterns being retained:
+  - Existing spinner usage where already clear.
+- Patterns being retired:
+  - Inconsistent “Loading…” text-only experiences as the only pattern.
+- Risks:
+  - Rich skeletons will expand further during portal migration.
+- Exceptions:
+  - Short-lived background refreshes may remain badge-only.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 22. Error states
+- Existing variants discovered:
+  - Blocked access, failed API loads, and generic error blocks vary heavily.
+- Evidence references:
+  - Findings register lines 22, 34.
+  - Active defect log and route-blocked evidence.
+- Selected canonical pattern:
+  - Shared error panel with direct explanation, next step, and status tone.
+- Reason for selection:
+  - Honest failure handling is required for certification.
+- Operational advantage:
+  - Faster distinction between permission, data, and service problems.
+- Responsive implications:
+  - Full-width or in-card placement without overflow.
+- Accessibility implications:
+  - Alert semantics and stronger contrast.
+- Patterns being retained:
+  - Existing explicit 401/403/500 surfacing where accurate.
+- Patterns being retired:
+  - Under-explained red text blobs.
+- Risks:
+  - Some pages still need message-copy cleanup later.
+- Exceptions:
+  - Auth redirects may still use route-level handling before inline error surfaces.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 23. Status indicators
+- Existing variants discovered:
+  - Many local chips/pills; status vocabulary already partially governed by `statusRegistry`.
+- Evidence references:
+  - Findings register lines 26 and 34.
+- Selected canonical pattern:
+  - Shared pill/chip family using semantic tones and compact uppercase labels when needed.
+- Reason for selection:
+  - Operational scanning relies on quick status recognition.
+- Operational advantage:
+  - Better consistency across cards, tables, filters, and summaries.
+- Responsive implications:
+  - Compact chips remain wrap-safe on narrow screens.
+- Accessibility implications:
+  - Better contrast and non-color-only framing through border/background.
+- Patterns being retained:
+  - Existing `StatusChip` registry model.
+- Patterns being retired:
+  - Page-local pill styling as default standard.
+- Risks:
+  - Some legacy components still render custom status badges.
+- Exceptions:
+  - Highly specialized certification labels may remain route-specific.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+## 24. Icons
+- Existing variants discovered:
+  - Lucide dominates; scattered local patterns still exist.
+- Evidence references:
+  - Findings register line 28.
+- Selected canonical pattern:
+  - Lucide remains the canonical family for the foundation checkpoint.
+- Reason for selection:
+  - Already the proven majority and avoids unnecessary icon-system churn.
+- Operational advantage:
+  - Consistent metaphor set and stroke weight.
+- Responsive implications:
+  - Shared icon size tokens improve touch/control alignment.
+- Accessibility implications:
+  - Predictable icon sizing and decorative/icon-only control rules.
+- Patterns being retained:
+  - Existing Lucide usage.
+- Patterns being retired:
+  - Ungoverned one-off icon styling where shared tokens suffice.
+- Risks:
+  - Full icon cleanup remains later work.
+- Exceptions:
+  - Brand marks/logos remain separate from action icons.
+- Approval status:
+  - SELECTED_FOR_FOUNDATION_IMPLEMENTATION
+
+---
+
+## Foundation checkpoint decision summary
+- Use one light, high-contrast, operator-first foundation.
+- Preserve proven route ownership and workflow logic.
+- Standardize shell, navigation, and shared primitives first.
+- Use representative existing routes to verify the foundation before portal-wide migration.

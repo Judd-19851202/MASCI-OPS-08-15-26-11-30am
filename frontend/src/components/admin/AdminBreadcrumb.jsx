@@ -1,58 +1,35 @@
-// TRACK 25A · Universal Admin OS Breadcrumb.
-//
-// One coherent breadcrumb component used by every Admin OS surface so
-// the operator ALWAYS knows exactly where they are, one click from
-// home, one click from the parent domain.
-//
-// Convention:
-//   Admin OS › Domain › Feature [› Details]
-//
-// Usage:
-//   <AdminBreadcrumb crumbs={[
-//     { label: "Storage & Recovery", to: "/admin/storage-recovery" },
-//     { label: "Backups" },
-//   ]} />
-//
-// The first crumb ("Admin OS") is prepended automatically and always
-// links to /admin. The last crumb is rendered as inactive (current).
 import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 
 export default function AdminBreadcrumb({ crumbs = [], testidPrefix = "admin-breadcrumb" }) {
-  const trail = [
-    { label: "Admin OS", to: "/admin", icon: Home, root: true },
-    ...crumbs,
-  ];
+  const trail = [{ label: "Admin OS", to: "/admin", icon: Home, root: true }, ...crumbs];
+
   return (
     <nav
       aria-label="Breadcrumb"
       data-testid={testidPrefix}
       data-admin-breadcrumb="true"
-      className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-3"
+      className="mb-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.16em] text-[color:var(--ink-soft)]"
     >
-      {trail.map((c, i) => {
-        const isLast = i === trail.length - 1;
-        const Icon = c.icon;
+      {trail.map((crumb, index) => {
+        const isLast = index === trail.length - 1;
+        const Icon = crumb.icon;
+
         const content = (
-          <span className={`inline-flex items-center gap-1 ${isLast ? "text-slate-900 font-semibold" : "hover:text-slate-800"}`}>
-            {Icon ? <Icon className="w-3 h-3" /> : null}
-            {c.label}
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition-colors ${isLast ? "bg-[color:var(--paper-card)] text-[color:var(--ink-strong)] shadow-sm" : "hover:bg-white/70 hover:text-[color:var(--ink-strong)]"}`}>
+            {Icon ? <Icon className="h-3 w-3" /> : null}
+            {crumb.label}
           </span>
         );
+
         return (
-          <React.Fragment key={`${c.label}-${i}`}>
-            {i > 0 ? (
-              <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" aria-hidden="true" />
-            ) : null}
-            {isLast || !c.to ? (
-              <span data-testid={`${testidPrefix}-crumb-${i}`}>{content}</span>
+          <React.Fragment key={`${crumb.label}-${index}`}>
+            {index > 0 ? <ChevronRight className="h-3 w-3 shrink-0 text-[color:var(--ink-faint)]" aria-hidden="true" /> : null}
+            {isLast || !crumb.to ? (
+              <span data-testid={`${testidPrefix}-crumb-${index}`}>{content}</span>
             ) : (
-              <Link
-                to={c.to}
-                data-testid={`${testidPrefix}-crumb-${i}`}
-                className="hover:underline"
-              >
+              <Link to={crumb.to} data-testid={`${testidPrefix}-crumb-${index}`} className="rounded-full">
                 {content}
               </Link>
             )}

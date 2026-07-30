@@ -1,165 +1,160 @@
-/* ============================================================
- * tokens.css — MASCI Operations Platform · Design System V1 · Phase A
- * Foundational design tokens for MASCI Operations Platform.
- *
- * STATUS: WIRED (Track 13.5A · Phase A, 2026-02).
- *   ✓ Imported globally via /app/frontend/src/index.css line 2:
- *       @import "./styles/tokens.css";
- *   ✓ Available app-wide on :root for every component.
- *   ✓ Zero visual diff at wiring — every token's default value is
- *     exactly the current hard-coded Tailwind color it replaces.
- *
- * Phase A is plumbing only. Component migration to these tokens
- * is a future, separately-authorised phase (Phase B onward per
- * MASCI_DESIGN_SYSTEM_V1.md). Until then, components continue to
- * use Tailwind color literals; this file is the canonical source
- * of truth for what those literals MEAN semantically.
- *
- * ─── Hierarchy ──────────────────────────────────────────────
- *   tokens.css         ← THIS FILE — brand + semantic primitives (WIRED)
- *     portal-system.css ← per-portal accents (WIRED)
- *       index.css       ← shadcn theme bridge (WIRED)
- *         Tailwind classes ← components consume via @apply or var()
- *
- * ─── Rationale ──────────────────────────────────────────────
- * Today: components hard-code Tailwind colors (red-700, slate-900,
- * cyan-700, etc.) in 690+, 605+, 105+ places respectively. A future
- * rebrand or theme switch (light → dark, white-label deploy, etc.)
- * touches every JSX file.
- *
- * After Phase B migration: components reference semantic tokens
- * (--brand-primary, --ink-strong, --paper) and themes flip by
- * changing this one file.
- * ============================================================ */
-
 :root {
-  /* ── BRAND ─────────────────────────────────────────────────
-   * Top-level identity. Currently: MASCI red + slate ink.
-   * Used for: primary CTA buttons, brand bars, badge primary,
-   * top-nav red stripe, page kickers.
-   */
-  --brand-primary:        #b91c1c;  /* red-700 — MASCI corporate red */
-  --brand-primary-hover:  #991b1b;  /* red-800 */
-  --brand-primary-soft:   #fef2f2;  /* red-50  — tinted backgrounds */
-  --brand-on-primary:     #ffffff;  /* text on top of brand-primary */
+  --brand-primary: #b91c1c;
+  --brand-primary-hover: #991b1b;
+  --brand-primary-soft: #fef2f2;
+  --brand-on-primary: #ffffff;
 
-  /* ── INK (text on neutral surfaces) ───────────────────────
-   * Three weights — strong (display), regular (body), soft (meta).
-   * "field" variant is darker for outdoor / mobile glare.
-   */
-  --ink-strong:           #0f172a;  /* slate-900 — display + h1 */
-  --ink-regular:          #1e293b;  /* slate-800 — body */
-  --ink-soft:             #64748b;  /* slate-500 — kicker, meta, hint */
-  --ink-faint:            #94a3b8;  /* slate-400 — disabled / muted */
+  --ink-strong: #18181b;
+  --ink-regular: #27272a;
+  --ink-soft: #57534e;
+  --ink-faint: #78716c;
+  --ink-disabled: #a8a29e;
 
-  /* ── PAPER (background surfaces) ──────────────────────────
-   * paper-base = page background
-   * paper-card = elevated card / dialog / panel
-   * paper-rail = navigation sidebar
-   * paper-tinted-* = tonal callouts
-   */
-  --paper-base:           #f8fafc;  /* slate-50 — page bg */
-  --paper-card:           #ffffff;  /* card / dialog */
-  --paper-rail:           #0f172a;  /* slate-900 — admin sidebar */
-  --paper-rail-ink:       #f1f5f9;  /* slate-100 on dark rail */
-  --paper-tinted-success: #ecfdf5;  /* emerald-50 */
-  --paper-tinted-warn:    #fffbeb;  /* amber-50  */
-  --paper-tinted-error:   #fef2f2;  /* red-50    */
-  --paper-tinted-info:    #ecfeff;  /* cyan-50   */
+  --paper-base: #f5f5f4;
+  --paper-card: #ffffff;
+  --paper-card-muted: #fafaf9;
+  --paper-rail: #f0ede8;
+  --paper-rail-ink: #1c1917;
+  --paper-tinted-success: #ecfdf5;
+  --paper-tinted-warn: #fffbeb;
+  --paper-tinted-error: #fef2f2;
+  --paper-tinted-info: #eff6ff;
 
-  /* ── BORDER ───────────────────────────────────────────────
-   * Three weights — hairline (default), bold (focus / important),
-   * brand (active state on brand-primary).
-   */
-  --border-hairline:      #e2e8f0;  /* slate-200 */
-  --border-bold:          #cbd5e1;  /* slate-300 — most card borders */
-  --border-strong:        #475569;  /* slate-600 — focus ring inner */
-  --border-brand:         var(--brand-primary);
+  --surface-raised: var(--paper-card);
+  --surface-muted: var(--paper-card-muted);
+  --surface-disabled: #f5f5f4;
+  --surface-strong: #1c1917;
+  --surface-strong-ink: #fafaf9;
 
-  /* ── PORTAL ACCENTS (mirrors portal-system.css for parity) ─
-   * These are the SAME values that already live in
-   * portal-system.css. Listed here so a future token-swap doesn't
-   * need to touch two files when adding/changing a portal accent.
-   */
-  --accent-admin:         #b91c1c;  /* red-700  · admin / brand */
-  --accent-safety:        #0e7490;  /* cyan-700 · safety portal */
-  --accent-hr:            #7e22ce;  /* purple-700 · HR */
-  --accent-pm:            #047857;  /* emerald-700 · PM */
-  --accent-shop:          #c2410c;  /* orange-700 · Shop */
-  --accent-dispatch:      #b45309;  /* amber-700 · Dispatch */
-  --accent-training:      #4338ca;  /* indigo-700 · Training Center */
-  --accent-field:         #334155;  /* slate-700 · Field Leadership */
+  --border-hairline: #e7e5e4;
+  --border-bold: #d6d3d1;
+  --border-strong: #a8a29e;
+  --border-brand: var(--brand-primary);
+  --border-soft: rgba(28, 25, 23, 0.08);
 
-  /* ── STATUS (semantic, NOT brand) ─────────────────────────
-   * Use for PASS/FAIL/WARN chips, severity tags. These are
-   * intentionally NOT mapped to brand or portal accents so a
-   * red status badge stays red even when a portal flips its
-   * accent color.
-   */
-  --status-good:          #047857;  /* emerald-700 — passed / closed */
-  --status-warn:          #b45309;  /* amber-700  — minor / attention */
-  --status-bad:           #b91c1c;  /* red-700    — failed / overdue */
-  --status-muted:         #64748b;  /* slate-500  — info / N/A */
+  --accent-admin: #b91c1c;
+  --accent-safety: #0f766e;
+  --accent-hr: #7c3aed;
+  --accent-pm: #047857;
+  --accent-shop: #c2410c;
+  --accent-dispatch: #b45309;
+  --accent-training: #4338ca;
+  --accent-field: #44403c;
 
-  /* ── TYPOGRAPHY ──────────────────────────────────────────-
-   * Two families: display (poppins-style heavy) + mono (UI chrome).
-   * Body uses system stack (already default — don't override).
-   */
-  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:    'Courier New', ui-monospace, 'SF Mono', monospace;
+  --status-good: #166534;
+  --status-warn: #a16207;
+  --status-bad: #b91c1c;
+  --status-muted: #57534e;
+  --status-info: #1d4ed8;
 
-  /* Kicker = the small, all-caps, letter-spaced label above any
-   * page title. Used 1659+ times — codify the size + tracking. */
-  --kicker-size:      0.625rem;   /* 10px */
-  --kicker-tracking:  0.18em;
-  --kicker-weight:    700;
+  --font-display: "Chivo", "IBM Plex Sans", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* ── SPACING SCALE (semantic, not raw px) ─────────────────-
-   * Tied to the existing Tailwind rhythm so today's `p-5` is the
-   * same as today's `var(--pad-card)`. Future tightening flips
-   * here, not in every component.
-   */
-  --pad-tight:        0.75rem;    /* p-3   — dense rows */
-  --pad-card:         1.25rem;    /* p-5   — standard card padding */
-  --pad-section:      2rem;       /* p-8   — section blocks */
-  --gap-grid:         1rem;       /* gap-4 — between cards */
-  --gap-list:         0.5rem;     /* gap-2 — within a list */
+  --type-display-xl: clamp(2rem, 1.55rem + 1.8vw, 3.5rem);
+  --type-display-lg: clamp(1.5rem, 1.2rem + 1vw, 2.25rem);
+  --type-title-md: 1.25rem;
+  --type-title-sm: 1.0625rem;
+  --type-body-lg: 1rem;
+  --type-body-md: 0.9375rem;
+  --type-body-sm: 0.8125rem;
+  --type-label: 0.6875rem;
 
-  /* ── RADIUS ──────────────────────────────────────────────-
-   * Three steps — chip (full), card (md), modal (lg).
-   */
-  --radius-chip:      999px;
-  --radius-card:      0.375rem;   /* rounded-md */
-  --radius-modal:     0.5rem;     /* rounded-lg */
+  --line-tight: 1.12;
+  --line-body: 1.5;
+  --line-relaxed: 1.65;
 
-  /* ── SHADOW ──────────────────────────────────────────────-
-   * Two surfaces — tile-hover (subtle lift) + dialog (deep stack).
-   */
-  --shadow-tile-hover: 0 10px 25px -10px rgba(15, 23, 42, 0.18);
-  --shadow-dialog:     0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
 
-  /* ── MOTION ──────────────────────────────────────────────-
-   * Single duration + ease for hover / focus transitions so the
-   * whole platform feels uniform.
-   */
-  --motion-duration-hover: 160ms;
-  --motion-duration-modal: 200ms;
-  --motion-ease:           cubic-bezier(0.2, 0.6, 0.2, 1);
+  --kicker-size: 0.6875rem;
+  --kicker-tracking: 0.18em;
+  --kicker-weight: 700;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --pad-tight: var(--space-3);
+  --pad-card: var(--space-5);
+  --pad-section: clamp(1rem, 0.5rem + 2vw, 2rem);
+  --gap-grid: var(--space-4);
+  --gap-list: var(--space-2);
+
+  --radius-chip: 999px;
+  --radius-control: 0.75rem;
+  --radius-card: 1rem;
+  --radius-modal: 1.125rem;
+
+  --shadow-tile-hover: 0 18px 40px -28px rgba(28, 25, 23, 0.35);
+  --shadow-dialog: 0 26px 60px -30px rgba(28, 25, 23, 0.38);
+  --shadow-panel: 0 12px 28px -20px rgba(28, 25, 23, 0.22);
+
+  --motion-duration-fast: 140ms;
+  --motion-duration-base: 180ms;
+  --motion-duration-slow: 240ms;
+  --motion-duration-hover: var(--motion-duration-fast);
+  --motion-duration-modal: var(--motion-duration-base);
+  --motion-ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+  --motion-ease-emphasis: cubic-bezier(0.18, 0.84, 0.22, 1);
+
+  --focus-ring: rgba(185, 28, 28, 0.22);
+  --focus-ring-strong: rgba(185, 28, 28, 0.42);
+  --disabled-opacity: 0.56;
+
+  --shell-header-height: 4.5rem;
+  --shell-sidebar-width: 18.5rem;
+  --shell-sidebar-width-compact: 16.75rem;
+  --content-max-width: 100rem;
+  --content-max-width-readable: 76rem;
+
+  --control-height-sm: 2.5rem;
+  --control-height-md: 2.875rem;
+  --control-height-lg: 3.25rem;
+  --touch-target-min: 44px;
+  --icon-size-xs: 0.875rem;
+  --icon-size-sm: 1rem;
+  --icon-size-md: 1.125rem;
+  --icon-size-lg: 1.25rem;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  --z-page-base: 0;
+  --z-elevated-card: 5;
+  --z-sticky-header: 40;
+  --z-sticky-footer: 40;
+  --z-banner-strip: 80;
+  --z-drawer-overlay: 90;
+  --z-drawer-panel: 95;
+  --z-modal: 100;
+  --z-toast: 110;
+  --z-splash: 9999;
 }
 
-/* ============================================================
- * THEME SWITCH — DARK MODE (future, optional)
- * Activating this is a single class flip on <html>: `.theme-dark`.
- * Today it's a placeholder so token consumers know dark exists.
- * ============================================================ */
 .theme-dark {
-  --ink-strong:    #f8fafc;
-  --ink-regular:   #e2e8f0;
-  --ink-soft:      #94a3b8;
-  --ink-faint:     #64748b;
-  --paper-base:    #0f172a;
-  --paper-card:    #1e293b;
-  --paper-rail:    #020617;
-  --border-hairline: #334155;
-  --border-bold:     #475569;
+  --ink-strong: #fafaf9;
+  --ink-regular: #e7e5e4;
+  --ink-soft: #a8a29e;
+  --ink-faint: #78716c;
+  --paper-base: #1c1917;
+  --paper-card: #292524;
+  --paper-card-muted: #1f1a19;
+  --paper-rail: #120f0f;
+  --paper-rail-ink: #fafaf9;
+  --surface-raised: var(--paper-card);
+  --surface-muted: var(--paper-card-muted);
+  --border-hairline: #44403c;
+  --border-bold: #57534e;
+  --border-strong: #a8a29e;
 }

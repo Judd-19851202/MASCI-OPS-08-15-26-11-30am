@@ -1,15 +1,3 @@
-// TRACK 25.02 · Admin Operating System — Phase D · SideNavV3.
-//
-// The 12-domain sidebar rendered behind the `masci.admin.nav.v3`
-// feature flag. Human-first labels · one-line business purpose ·
-// active-domain auto-expand · sessionStorage remembers what the
-// operator had open.
-//
-// Every visible admin destination in the platform lives under one of
-// these domains. Detail pages (like /admin/incidents/:id) are hidden
-// from the nav to keep it scannable, but the Command Palette still
-// surfaces them via search.
-
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronRight, Search } from "lucide-react";
@@ -39,36 +27,29 @@ function writeOpenDomains(ids) {
 function DomainRow({ domain, open, onToggle, activeId }) {
   const Icon = domain.icon;
   const isActive = activeId === domain.id;
+
   return (
     <button
       type="button"
       onClick={() => onToggle(domain.id)}
       data-testid={`admin-nav-v3-domain-${domain.id}`}
       aria-expanded={open}
-      className={`group w-full flex items-stretch gap-0 rounded-xl transition-colors text-left glass-blur glass-bg glass-dark ${
-        isActive ? "bg-slate-800/70" : "hover:bg-slate-800/40"
-      }`}
+      className={`wp16-focus-ring group relative flex w-full items-stretch gap-0 overflow-hidden rounded-[calc(var(--radius-card)-0.125rem)] border text-left transition-[background-color,border-color,box-shadow,transform] duration-[140ms] ${isActive ? "border-[color:rgba(185,28,28,0.25)] bg-[color:var(--brand-primary-soft)] shadow-sm" : "border-[color:var(--border-hairline)] bg-white hover:border-[color:var(--border-bold)] hover:bg-[color:var(--paper-card-muted)]"}`}
     >
-      <span
-        aria-hidden="true"
-        className="w-[3px] shrink-0 rounded-l-md"
-        style={{ backgroundColor: domain.stripe }}
-      />
-      <span className="flex-1 min-w-0 flex items-start gap-2.5 px-3 py-2.5">
-        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-100 drop-shadow-[0_2px_8px_rgba(15,23,42,0.5)]" />
-        <span className="flex-1 min-w-0">
-          <span className="block text-xs uppercase tracking-wider font-semibold leading-tight glass-text-light">
+      <span aria-hidden="true" className="w-1.5 shrink-0" style={{ backgroundColor: domain.stripe }} />
+      <span className="flex min-w-0 flex-1 items-start gap-3 px-3 py-3">
+        <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${isActive ? "border-[color:rgba(185,28,28,0.18)] bg-white text-[color:var(--brand-primary)]" : "border-[color:var(--border-hairline)] bg-[color:var(--paper-card-muted)] text-[color:var(--ink-regular)]"}`}>
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--ink-strong)]">
             {domain.label}
           </span>
-          <span className="block text-[10.5px] mt-0.5 leading-tight truncate glass-text-muted-light">
+          <span className="mt-1 block truncate text-xs leading-5 text-[color:var(--ink-soft)]">
             {domain.subline}
           </span>
         </span>
-        <ChevronRight
-          className={`w-3.5 h-3.5 mt-1 shrink-0 text-slate-500 transition-transform ${
-            open ? "rotate-90" : ""
-          }`}
-        />
+        <ChevronRight className={`mt-1 h-4 w-4 shrink-0 text-[color:var(--ink-faint)] transition-transform duration-[140ms] ${open ? "rotate-90" : ""}`} />
       </span>
     </button>
   );
@@ -76,30 +57,21 @@ function DomainRow({ domain, open, onToggle, activeId }) {
 
 function ChildRow({ route, onNavigate }) {
   const Icon = route.icon;
+
   return (
     <NavLink
       to={route.to}
       end={!!route.end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-start gap-2 pl-8 pr-3 py-2 rounded-xl transition-colors min-h-[40px] glass-blur glass-bg glass-dark ${
-          isActive
-            ? "bg-slate-800 text-white"
-            : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
-        }`
+        `wp16-focus-ring flex min-h-[44px] items-start gap-2 rounded-[0.9rem] border px-3 py-2.5 transition-[background-color,border-color,color,transform] duration-[140ms] ${isActive ? "border-[color:rgba(185,28,28,0.22)] bg-white text-[color:var(--ink-strong)] shadow-sm" : "border-transparent text-[color:var(--ink-soft)] hover:border-[color:var(--border-hairline)] hover:bg-white hover:text-[color:var(--ink-strong)]"}`
       }
       data-testid={`admin-nav-v3-route-${route.to}`}
     >
-      {Icon ? <Icon className="w-3.5 h-3.5 mt-1 shrink-0 opacity-70" /> : null}
+      {Icon ? <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" /> : null}
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight glass-text-light">
-          {route.label}
-        </span>
-        {route.desc ? (
-          <span className="block text-[10.5px] mt-0.5 leading-tight truncate glass-text-muted-light">
-            {route.desc}
-          </span>
-        ) : null}
+        <span className="block text-sm font-semibold leading-tight">{route.label}</span>
+        {route.desc ? <span className="mt-0.5 block truncate text-[11px] leading-tight text-[color:var(--ink-soft)]">{route.desc}</span> : null}
       </span>
     </NavLink>
   );
@@ -107,18 +79,12 @@ function ChildRow({ route, onNavigate }) {
 
 export default function SideNavV3({ onNavigate, onOpenPalette }) {
   const { pathname } = useLocation();
-  const activeDomainId = useMemo(
-    () => findActiveDomainIdV3(pathname),
-    [pathname],
-  );
+  const activeDomainId = useMemo(() => findActiveDomainIdV3(pathname), [pathname]);
 
   const [openDomains, setOpenDomains] = useState(() => {
     const stored = readOpenDomains();
     if (stored) return stored;
-    // Default open: Home + OCC + active domain.
-    return Array.from(
-      new Set(["home", "operations-control", activeDomainId].filter(Boolean)),
-    );
+    return Array.from(new Set(["home", "operations-control", activeDomainId].filter(Boolean)));
   });
 
   useEffect(() => {
@@ -130,31 +96,29 @@ export default function SideNavV3({ onNavigate, onOpenPalette }) {
   }, [activeDomainId, openDomains]);
 
   const toggle = (id) => {
-    const next = openDomains.includes(id)
-      ? openDomains.filter((d) => d !== id)
-      : [...openDomains, id];
+    const next = openDomains.includes(id) ? openDomains.filter((value) => value !== id) : [...openDomains, id];
     setOpenDomains(next);
     writeOpenDomains(next);
   };
 
   return (
     <nav
-      className="space-y-3 p-3 elite-fluid-stack glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem]"
+      className="space-y-3 rounded-[calc(var(--radius-card)+0.125rem)] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,250,249,0.94))] p-3 shadow-[var(--shadow-panel)]"
       data-testid="admin-side-nav-v3"
       aria-label="Administrative navigation"
     >
       <button
         type="button"
         onClick={onOpenPalette}
-        className="w-full flex items-center gap-2 px-3 py-2 rounded-[1rem] bg-slate-900/60 border border-white/15 hover:bg-slate-800 transition-colors elite-glass-panel glass-blur glass-bg glass-dark"
+        className="wp16-focus-ring flex min-h-[44px] w-full items-center gap-2 rounded-[calc(var(--radius-card)-0.125rem)] border border-[color:var(--border-hairline)] bg-[color:var(--paper-card-muted)] px-3 py-2.5 text-left transition-[background-color,border-color,color] duration-[140ms] hover:border-[color:var(--border-bold)] hover:bg-white"
         data-testid="admin-nav-v3-open-palette"
         aria-label="Open universal search"
       >
-        <Search className="w-3.5 h-3.5 shrink-0" />
-        <span className="text-xs font-medium flex-1 text-left glass-text-light">
-          Search everything
+        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--border-hairline)] bg-white text-[color:var(--ink-regular)]">
+          <Search className="h-3.5 w-3.5" />
         </span>
-        <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-slate-700 font-mono glass-text-muted-light">
+        <span className="flex-1 text-sm font-semibold text-[color:var(--ink-strong)]">Search everything</span>
+        <kbd className="rounded-md border border-[color:var(--border-bold)] bg-white px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--ink-soft)]">
           ⌘K
         </kbd>
       </button>
@@ -162,23 +126,15 @@ export default function SideNavV3({ onNavigate, onOpenPalette }) {
       {DOMAINS_V3.map((domain) => {
         const open = openDomains.includes(domain.id);
         return (
-          <div key={domain.id} className="space-y-1">
-            <DomainRow
-              domain={domain}
-              open={open}
-              onToggle={toggle}
-              activeId={activeDomainId}
-            />
-            {open && (
-              <div
-                className="space-y-0.5"
-                data-testid={`admin-nav-v3-children-${domain.id}`}
-              >
-                {domain.visibleRoutes.map((r) => (
-                  <ChildRow key={r.to} route={r} onNavigate={onNavigate} />
+          <div key={domain.id} className="space-y-1.5">
+            <DomainRow domain={domain} open={open} onToggle={toggle} activeId={activeDomainId} />
+            {open ? (
+              <div className="space-y-1 pl-2" data-testid={`admin-nav-v3-children-${domain.id}`}>
+                {domain.visibleRoutes.map((route) => (
+                  <ChildRow key={route.to} route={route} onNavigate={onNavigate} />
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         );
       })}

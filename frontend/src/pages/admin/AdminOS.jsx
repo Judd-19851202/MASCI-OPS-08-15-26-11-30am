@@ -49,6 +49,7 @@ import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
+import { Button } from "@/components/ui/button";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -686,36 +687,37 @@ export default function AdminOS() {
         subtitle="Ten operational domains · one home per domain · live status from real endpoints."
         primaryActions={
           <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <button
+            <Button
               type="button"
               onClick={() => window.__masciAdminOpenPalette?.()}
-              className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100"
+              variant="outline"
+              size="sm"
               data-testid="admin-os-open-palette"
             >
               <Search className="w-3.5 h-3.5" />
               Search everything
-              <kbd className="text-[10px] px-1 py-0.5 rounded border border-slate-300 text-slate-500 font-mono">
+              <kbd className="rounded border border-[color:var(--border-bold)] px-1 py-0.5 font-mono text-[10px] text-[color:var(--ink-soft)]">
                 ⌘K
               </kbd>
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => setRefreshTick((n) => n + 1)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100"
+              variant="outline"
+              size="sm"
               data-testid="admin-os-refresh"
             >
               Refresh
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => exportTrustSnapshot(DOMAINS, results, summary, overallStatus)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-900 bg-slate-900 text-white rounded-md text-xs font-semibold hover:bg-slate-800"
               data-testid="admin-os-export-snapshot"
               title="Download a Markdown snapshot of the current platform trust state"
             >
               <Download className="w-3.5 h-3.5" />
               Export snapshot
-            </button>
+            </Button>
           </div>
         }
         sideNav={
@@ -729,7 +731,7 @@ export default function AdminOS() {
 
         {/* ── Overall posture strip ─────────────────────────────── */}
         <section
-          className="mb-6 rounded-lg border border-slate-200 bg-white p-4 flex flex-wrap items-center gap-4"
+          className="mb-6 wp16-card wp16-hairline-grid flex flex-wrap items-center gap-4 p-4 sm:p-5"
           data-testid="admin-os-posture"
         >
           <div className="min-w-0">
@@ -818,16 +820,16 @@ export default function AdminOS() {
         {/* ── Trust note ─────────────────────────────────────── */}
         <div
           data-testid="admin-os-trace-note"
-          className="mt-6 rounded-md border border-dashed border-slate-300 bg-white p-3 text-[12px] text-slate-600"
+          className="mt-6 rounded-[var(--radius-card)] border border-dashed border-[color:var(--border-bold)] bg-white p-4 text-[12px] text-[color:var(--ink-soft)] shadow-sm"
         >
-          <strong className="text-slate-900">
+          <strong className="text-[color:var(--ink-strong)]">
             Platform command center.
           </strong>{" "}
           Review system health, investigate risks, and open the right operational area
           from one screen. Every metric is read from a live platform endpoint — cards
           without a live signal are honestly labelled &ldquo;Awaiting signal&rdquo;.
           Search everything with{" "}
-          <kbd className="px-1 rounded border border-slate-300 font-mono text-[10px]">
+          <kbd className="rounded border border-[color:var(--border-bold)] px-1 font-mono text-[10px]">
             ⌘K
           </kbd>
           . Timestamps display in your local time.

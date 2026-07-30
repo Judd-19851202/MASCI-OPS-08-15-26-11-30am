@@ -153,48 +153,53 @@
 
 /* ─── Empty / Loading / Error state utility classes ─────────────── */
 .ux-empty {
-  padding: 2.5rem 1rem;
+  padding: 2.25rem 1.25rem;
   text-align: center;
-  background: #fff;
-  border: 2px dashed #cbd5e1;
+  background: var(--paper-card);
+  border: 1px dashed var(--border-strong);
   border-radius: var(--radius-card);
-  color: #64748b;
+  color: var(--ink-soft);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
 }
 .ux-empty .ux-empty-icon {
   margin: 0 auto 0.5rem;
-  color: #94a3b8;
+  color: var(--ink-faint);
 }
 .ux-empty .ux-empty-title {
   font-family: var(--font-display, inherit);
-  font-weight: 900;
-  color: #334155;
-  font-size: 1.0625rem;
+  font-weight: var(--weight-black);
+  color: var(--ink-strong);
+  font-size: var(--type-title-sm);
   letter-spacing: -0.01em;
 }
 .ux-empty .ux-empty-body {
   margin-top: 0.25rem;
-  font-size: 0.8125rem;
-  color: #64748b;
+  font-size: var(--type-body-sm);
+  color: var(--ink-soft);
   max-width: 28rem;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.45;
+  line-height: var(--line-body);
 }
 
 .ux-loading {
-  padding: 2.5rem 1rem;
+  padding: 2rem 1rem;
   text-align: center;
-  color: #64748b;
-  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  font-size: var(--type-body-sm);
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.72));
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
 }
 
 .ux-error {
   padding: 1rem;
-  background: #fef2f2;
-  border: 2px solid #fecaca;
+  background: var(--paper-tinted-error);
+  border: 1px solid rgba(185, 28, 28, 0.22);
   border-radius: var(--radius-card);
   color: #991b1b;
   font-size: 0.875rem;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
 }
 
 /* ─── Kicker (uppercase mono eyebrow used on every page) ────────── */

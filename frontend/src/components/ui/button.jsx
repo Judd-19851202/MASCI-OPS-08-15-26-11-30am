@@ -5,33 +5,26 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "wp16-focus-ring inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] border text-sm font-semibold tracking-[-0.01em] transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-[140ms] ease-[cubic-bezier(0.22,0.7,0.2,1)] disabled:pointer-events-none disabled:opacity-[var(--disabled-opacity)] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+          "border-[color:var(--brand-primary)] bg-[color:var(--brand-primary)] text-white shadow-sm hover:border-[color:var(--brand-primary-hover)] hover:bg-[color:var(--brand-primary-hover)]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "border-[color:var(--status-bad)] bg-[color:var(--status-bad)] text-white shadow-sm hover:opacity-95",
         outline:
-          "border border-input shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] shadow-sm hover:bg-[color:var(--paper-card-muted)]",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border-[color:var(--border-hairline)] bg-[color:var(--paper-card-muted)] text-[color:var(--ink-strong)] shadow-sm hover:border-[color:var(--border-bold)] hover:bg-white",
+        ghost: "border-transparent bg-transparent text-[color:var(--ink-strong)] hover:border-[color:var(--border-hairline)] hover:bg-white",
+        link: "border-transparent bg-transparent px-0 text-[color:var(--brand-primary)] hover:text-[color:var(--brand-primary-hover)] hover:underline",
       },
       size: {
-        // TRACK 14.0-S2 · iPad Field Certification.
-        // Desktop visual scale preserved via the original h-9 heights.
-        // `index.css` raises these to ≥44px on coarse-pointer (iPad /
-        // touch) devices automatically — see the
-        // `@media (pointer: coarse)` block. This split keeps desktop
-        // dense layouts intact while iPad users always get a finger-
-        // safe tap surface.
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-[var(--control-height-md)] px-4 py-2",
+        sm: "h-[var(--control-height-sm)] px-3 text-xs",
+        lg: "h-[var(--control-height-lg)] px-5 text-base",
+        icon: "h-[var(--control-height-md)] w-[var(--control-height-md)]",
       },
     },
     defaultVariants: {

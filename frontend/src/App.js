@@ -58,7 +58,21 @@ function App() {
     <BrandingProvider>
     <div className="App min-h-screen flex flex-col">
       <SplashOverlay />
-      <Toaster position="bottom-right" richColors closeButton offset={16} />
+      <Toaster
+        position="bottom-right"
+        richColors
+        closeButton
+        offset={16}
+        toastOptions={{
+          classNames: {
+            toast: "!rounded-[var(--radius-card)] !border !border-[color:var(--border-bold)] !bg-white !text-[color:var(--ink-strong)] !shadow-[var(--shadow-dialog)]",
+            title: "!font-semibold !text-[color:var(--ink-strong)]",
+            description: "!text-[color:var(--ink-soft)]",
+            actionButton: "!bg-[color:var(--brand-primary)] !text-white",
+            cancelButton: "!border !border-[color:var(--border-bold)] !bg-[color:var(--paper-card-muted)] !text-[color:var(--ink-strong)]",
+          },
+        }}
+      />
       {/* R-BL-3 · Global queue visibility pill (visibility-only). */}
       <QueueStatusPill />
       {/* TRACK 14.0-RC1 · D3 — Global offline trust surface. Calm sky-blue

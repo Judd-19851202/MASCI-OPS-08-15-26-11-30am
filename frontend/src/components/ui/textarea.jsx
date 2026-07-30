@@ -6,11 +6,7 @@ const Textarea = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <textarea
       className={cn(
-        // TRACK 14.0-S2 · iPad Field Certification.
-        // REMOVED `md:text-sm` so the textarea text never shrinks to
-        // 14px on iPad (focus-zoom hazard + harder to read in sun).
-        // index.css additionally enforces 16px on coarse pointers.
-        "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        "wp16-focus-ring flex min-h-[120px] w-full rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 py-3 text-base text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color,box-shadow] duration-[140ms] placeholder:text-[color:var(--ink-faint)] hover:border-[color:var(--border-strong)] focus:border-[color:var(--brand-primary)] disabled:cursor-not-allowed disabled:border-[color:var(--border-hairline)] disabled:bg-[color:var(--surface-disabled)] disabled:text-[color:var(--ink-disabled)]",
         className
       )}
       ref={ref}
