@@ -1,0 +1,29 @@
+# WP16 Live Punch List
+
+Date opened: 2026-07-30
+
+This is the authoritative Phase B issue ledger. No repair is valid unless the issue is entered here first and later closed with verification evidence.
+
+## Status legend
+- OPEN — issue verified and awaiting repair
+- REPAIRED_PENDING_VERIFICATION — repair made, evidence still required
+- VERIFIED_CLOSED — defect repaired and re-tested with evidence
+- BLOCKED — cannot proceed until dependency / credential / data / environment issue is resolved
+
+## Active issues
+
+| Issue ID | Page / surface | Severity | Screenshot / evidence | Root cause | Repair | Verification evidence | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| WP16-W1-001 | `/change-password` | Medium | Playwright 2026-07-30: `RESULT::directory_change_password_chrome::FAIL` (`caution=0`, `blueprint=0`, `footer=1`); code review `frontend/src/pages/DirectoryChangePassword.jsx:116-123` | Legacy directory password-change page still renders in a plain gray shell instead of the canonical Wave 1 auth chrome. | Re-wrap the existing form in the frozen auth shell only; preserve the current endpoint calls and rotation flow. | — | OPEN |
+| WP16-W1-002 | `/field-leadership/portal/change-password` | Medium | Playwright 2026-07-30: `RESULT::fl_change_password_chrome::FAIL` (`caution=0`, `blueprint=0`, `footer=1`); code review `frontend/src/pages/FieldLeadershipPortalChangePassword.jsx:61-120` | Field Leadership change-password page remains on a legacy plain-gray shell and bypasses the established auth-page chrome. | Move the existing form into the canonical auth shell without altering route or password-change logic. | — | OPEN |
+| WP16-W1-003 | `/safety/forms/login` | High | Playwright 2026-07-30: `RESULT::safety_forms_remember_me_persistence::FAIL` (`token_after_load=<cleared>`); code review `frontend/src/pages/SafetyFormsLogin.jsx:24-26` | Login page clears `masci.safetyforms.token` on mount, defeating the remembered-session behavior advertised by the page. | Remove the mount-time token wipe so remembered Safety Forms sessions survive page revisit; keep explicit sign-out behavior unchanged. | — | OPEN |
+| WP16-W1-004 | `/safety-portal/forgot-password` | High | Playwright 2026-07-30: `RESULT::safety_forgot_dev_token_leak::FAIL`; curl 2026-07-30: `POST /api/safety/forgot-password` returned `token_for_dev`; backend source `backend/routes/safety_portal/auth_users.py:256` | Preview-only reset token is exposed directly in the operator-facing forgot-password UI. | Suppress `token_for_dev` from the user-facing surface (or gate it behind an internal-only workflow) while preserving the generic success message. | — | OPEN |
+| WP16-W1-005 | `/dispatch-portal/forgot-password` | High | Playwright 2026-07-30: `RESULT::dispatch_forgot_dev_token_leak::FAIL`; curl 2026-07-30: `POST /api/dispatch/forgot-password` returned `token_for_dev`; backend source `backend/routes/dispatch_portal_auth.py:346` | Preview-only reset token is exposed directly in the operator-facing Dispatch forgot-password UI. | Suppress `token_for_dev` from the user-facing surface (or gate it behind an internal-only workflow) while preserving the generic success message. | — | OPEN |
+| WP16-W1-006 | `/field-leadership/portal/login` and `/leadership/login` | High | Playwright 2026-07-30: `RESULT::fl_failed_login_preserves_admin_token::FAIL` (`admin_token_after=<cleared>`); code review `frontend/src/pages/FieldLeadershipPortalLogin.jsx:96-99` | Shared Field Leadership login component clears existing admin/portal tokens before the login request succeeds, so a failed attempt can log the user out of an already-valid session. | Remove the pre-request token clearing; only replace tokens after a confirmed successful login response. | — | OPEN |
+| WP16-W1-007 | `/dev/login` | Medium | Playwright 2026-07-30 route smoke passed visually; curl 2026-07-30: `POST /api/dev/login` returned `404`; backend contract `backend/server.py:2235-2249`; hardening test `backend/tests/test_track_24_1_hardening.py:164-165` expects 404 when disabled | Developer login page is routable, but its backing preview endpoint is intentionally fail-closed in the current environment, so the surface is not operationally certifiable. | Decide whether Wave 1 should hide/disable this route in preview or keep it visible with explicit disabled-state messaging aligned to the backend contract. | — | OPEN |
+| WP16-W1-008 | `/admin/login` | Medium | Code review `frontend/src/pages/AdminLogin.jsx:96-113`; AppRoutes contains no `/admin/hub` route; live login page otherwise rendered cleanly in Playwright smoke | Admin login still contains a stale redirect target (`/admin/hub`) for the existing-session path even though that route is not registered. | Change only the stale redirect target to the valid admin landing route already used elsewhere. | — | OPEN |
+| WP16-W1-009 | Wave 1 certification register control surface (`/hr/forgot`) | Medium | Code review: `AppRoutes.jsx` includes `/hr/forgot`; `frontend/src/pages/HrForgotPassword.jsx` redirects to `/hr/login`; route was missing from `WP16_CERTIFICATION_REGISTER.csv` before this inspection | Authoritative Wave 1 register omitted an active redirect-only auth route, creating a control/inventory gap. | Add `/hr/forgot` to the certification register as a redirect-only Wave 1 surface and keep its redirect behavior tracked. | Added during this inspection; no code repair started. | OPEN |
+
+## Change-control note
+- Foundation changes are frozen unless root-cause analysis proves a shared defect across multiple pages.
+- Every future repair must reference this punch list before code changes are made.

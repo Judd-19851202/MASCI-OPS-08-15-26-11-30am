@@ -1,3 +1,33 @@
+# 2026-07-30 — WP-16 Phase B Wave 1 inspection baseline (no repairs started)
+
+## 2026-07-30 Wave 1 Public Pages & Authentication inspection complete — pending punch-list approval
+
+- User approved **Option C**: inspect only, collect evidence, update the live punch list and certification register, then stop before repairs.
+- Wave 1 scope inspected across code review, preview curl verification, and focused Playwright checks.
+- Authoritative outputs updated during this pass:
+  - `WP16_WAVE1_INVENTORY.md`
+  - `WP16_LIVE_PUNCH_LIST.md`
+  - `WP16_CERTIFICATION_REGISTER.csv`
+- Inspection summary truth:
+  - Wave 1 is **not certified**.
+  - No broad repairs started.
+  - No page was marked certified.
+  - An active redirect route (`/hr/forgot`) was discovered missing from the register and added as a control-gap finding.
+- Open Wave 1 defects recorded in the punch list:
+  - `WP16-W1-001` shared directory change-password shell drift
+  - `WP16-W1-002` Field Leadership change-password shell drift
+  - `WP16-W1-003` Safety Forms remembered-session token cleared on mount
+  - `WP16-W1-004` Safety forgot-password `token_for_dev` exposed in UI
+  - `WP16-W1-005` Dispatch forgot-password `token_for_dev` exposed in UI
+  - `WP16-W1-006` Field Leadership failed login clears active admin session
+  - `WP16-W1-007` Developer login route present while preview endpoint is intentionally fail-closed
+  - `WP16-W1-008` Admin login stale `/admin/hub` redirect target
+  - `WP16-W1-009` Wave 1 register omission for `/hr/forgot`
+- Evidence-backed conclusion on foundation stability:
+  - current defects do **not** yet prove a shared `PortalLoginShell` / auth-foundation defect
+  - PM, HR, Shop, Safety, and Dispatch authenticated change-password routes still render in the canonical shell
+  - the shell drift currently appears isolated to legacy directory / Field Leadership password-change surfaces
+
 # 2026-07-30 — WP-16 Phase 6 Admin targeted governance/trust corrective verification
 
 ## 2026-07-30 targeted Admin page repairs verified — full 141-route certification still pending
