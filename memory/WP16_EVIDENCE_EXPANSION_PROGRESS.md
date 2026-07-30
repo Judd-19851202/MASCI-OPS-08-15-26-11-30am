@@ -1,21 +1,20 @@
 # WP16 Evidence Expansion Progress
 
-Date: 2026-07-29
+Date: 2026-07-30
 
 ## Phase status
 | Phase | Status | Notes |
 | --- | --- | --- |
-| Phase 1 — Registry & Route Validation | COMPLETE — accepted | Baseline registry and route census completed earlier in the campaign. |
-| Phase 2 — Seven Zero-Evidence Portal Families | COMPLETE — accepted | Clarified reconciliation: the previously omitted 9 routes were **7 ALIAS_ROUTE** and **2 BLOCKED_API_FAILURE**, restoring the exact 480-route total before Phase 3 began. |
-| Phase 3 — Remaining Desktop Coverage | COMPLETE — pending human review | Remaining desktop route pass expanded coverage across PM, HR, Safety, Dispatch, Shop, Admin, and selected Public / Shared routes under the runtime freeze. |
-| Phase 4 — Interaction & State Coverage | NOT STARTED | Requires explicit approval. |
-| Phase 5 — Responsive Evidence | NOT STARTED | Requires explicit approval. |
-| Phase 6 — Pattern Enumeration & Final Reconciliation | NOT STARTED | Requires explicit approval. |
+| Phase 1 — Registry & Route Validation | COMPLETE — accepted | Baseline census accepted earlier. |
+| Phase 2 — Seven Zero-Evidence Portal Families | COMPLETE — accepted | Reconciled before Phase 3 began. |
+| Phase 3 — Remaining Desktop Coverage | COMPLETE — accepted | Route totals remain the authoritative desktop census baseline. |
+| Phase 4 — Interaction & State Coverage | COMPLETE — pending human review | Interaction, overlay, filter, dialog, drawer, validation, blocked-state, and recovery-path evidence added under the runtime freeze. |
+| Phase 5 — Responsive Evidence | NOT STARTED | Do not begin without approval. |
+| Phase 6 — Pattern Enumeration & Final Reconciliation | NOT STARTED | Do not begin without approval. |
 
-## Exact reconciled Phase 3 checkpoint totals
-| Metric | Exact total |
+## Route totals carried into the Phase 4 checkpoint
+| Classification | Exact total |
 | --- | ---: |
-| Total routes discovered | 480 |
 | FULLY_EXERCISED | 135 |
 | PARTIALLY_EXERCISED | 4 |
 | BLOCKED_AUTHENTICATION | 11 |
@@ -30,33 +29,59 @@ Date: 2026-07-29
 | NON_UI_ROUTES | 0 |
 | NOT_APPLICABLE | 0 |
 | NOT_YET_EXERCISED | 244 |
-| Screenshot-backed surfaces | 366 |
-| Desktop-backed surfaces | 366 |
-| Newly discovered defects in Phase 3 | 5 |
-| Remaining material coverage gaps | 244 routes remain unreconciled at desktop level |
+| **TOTAL** | **480** |
 
-## Reconciliation assertions
-- **All classifications total exactly 480.**
-- **No route is counted in more than one final route classification.**
-- **Runtime code was not changed.**
-- **Smoke verification still passes** — Phase 3 representative read-only verification passed **27/27** checks.
+## Phase 4 exact totals
+| Metric | Exact total |
+| --- | ---: |
+| Interactive surfaces discovered | 28 |
+| Interactive surfaces exercised | 23 |
+| Interactive surfaces partially exercised | 2 |
+| Interactive surfaces blocked | 1 |
+| Interactive surfaces not yet exercised | 2 |
+| Modals discovered / exercised | 10 / 9 |
+| Drawers discovered / exercised | 2 / 1 |
+| Dialogs discovered / exercised | 2 / 2 |
+| Dropdowns discovered / exercised | 4 / 4 |
+| Popovers / command palettes discovered / exercised | 1 / 1 |
+| Tooltips discovered / exercised | 0 / 0 |
+| Toasts discovered / exercised | 0 / 0 |
+| Notification surfaces discovered / exercised | 0 / 0 |
+| Upload interfaces discovered / exercised | 1 / 1 |
+| Download interfaces discovered / exercised | 1 / 0 |
+| Forms inspected | 14 |
+| Validation states exercised | 3 |
+| Success states exercised | 0 |
+| Warning states exercised | 0 |
+| Error states exercised | 1 |
+| Empty states exercised | 2 |
+| Loading states exercised | 1 |
+| Permission-denied states exercised | 1 |
+| Authentication-expired states exercised | 0 |
+| No-results states exercised | 2 |
+| Long-content states exercised | 2 |
+| Large-table states exercised | 2 |
+| Dead-end workflows found | 1 |
+| Missing exit paths found | 1 |
+| Newly discovered defects in Phase 4 | 0 |
+| Total Phase 4 screenshots | 26 |
+| Total cumulative screenshot-backed surfaces | 392 |
 
-## Highest-signal Phase 3 movements
-- PM moved from mostly unread to **19 FULLY_EXERCISED** routes.
-- HR moved from minimal evidence to **10 FULLY_EXERCISED**, **9 BLOCKED_API_FAILURE**, and **1 BLOCKED_RUNTIME_FAILURE** routes.
-- Safety now includes **11 BLOCKED_AUTHENTICATION** workflow gates documented separately from fully rendered cards / executive surfaces.
-- Dispatch now includes reset / change-password / board / command / map / haul-ledger desktop evidence plus fleet and driver-key blocked states.
-- Shop now includes **17 FULLY_EXERCISED** plus authorization/API-blocked states.
-- Admin added a meaningful desktop pass across 17 inventoried routes.
+## Under-evidenced areas remaining
+- Tooltip, toast, notification-panel, upload-progress, download-completion, confirmation-dialog, and unsaved-changes families remain materially under-evidenced.
+- Safety workflow interiors remain limited because secondary authentication gates block deeper interaction coverage.
+- Public / Shared interaction states remain comparatively thin versus portal-authenticated surfaces.
+- HR employee-row drawer behavior and admin promo preview/edit overlays remain unexercised.
 
-## Remaining largest gaps by portal label
-- Admin: 106 not yet exercised
-- Public / Shared: 61 not yet exercised
-- Safety: 32 not yet exercised
-- PM: 28 not yet exercised
-- HR: 12 not yet exercised
-- Shop: 5 not yet exercised
+## States that could not be safely triggered
+- Destructive confirmations (delete / archive / restore)
+- Operational submit / approve / reject / reassign flows
+- Upload completion / file validation on meaningful records
+- Save confirmations and true submit-success states on production-like workflows
+- Unsaved-changes warnings tied to meaningful records
 
-## Phase 3 stop condition
-- Stop here.
-- Do **not** begin Phase 4 until explicit approval is provided.
+## Checkpoint assertions
+- Phase 4 documents reconcile across the interaction register, state register, navigation trace register, coverage register, screen registry, and evidence folder.
+- Runtime code remained unchanged.
+- Read-only verification still passes.
+- Stop here. Do **not** begin Phase 5 without explicit approval.
