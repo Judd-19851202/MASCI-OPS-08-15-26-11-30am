@@ -329,7 +329,7 @@ export async function txFetchJson(path, params) {
 
 export async function txFetchJsonSettled(path, params, opts = {}) {
   const attempts = Number(opts.attempts || 3);
-  const settleMs = Number(opts.settleMs || 1500);
+  const settleMs = Number(opts.settleMs || 6000);
   const backoffMs = Number(opts.backoffMs || 500);
 
   for (let i = 0; i < attempts; i += 1) {
