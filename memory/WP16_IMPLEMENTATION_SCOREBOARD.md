@@ -51,8 +51,10 @@ Authority: This is the executive implementation dashboard for the remainder of W
 | --- | --- | --- |
 | Functional migration | **Complete** | Route migration and runtime/auth fixes remain in place |
 | Route migration | **Complete** | Admin route census remains `141 / 141` migrated |
-| Automated testing | **Passed** | Functional, responsive, and backend regressions passed in automation |
-| Visual certification | **Corrective repair implemented — pending user review** | Whitewashed regression repaired and internally verified against approved Admin evidence |
+| Automated testing | **PASSED WITH MOBILE VISUAL/INTERACTION EXCEPTIONS** | Desktop/shared-shell repairs verified, but direct mobile review found open blockers |
+| Mobile visual certification | **FAILED** | Admin background/grid treatment is not visibly restored on phone review |
+| Mobile navigation certification | **FAILED** | Mobile navigation sheet does not scroll to lower Admin destinations |
+| Visual certification | **Corrective repair incomplete** | Mobile background and mobile navigation blockers must be repaired and re-verified |
 | Final Admin certification | **PENDING EXPLICIT VISUAL APPROVAL** | Do not count Admin as finally certified until the user approves the corrected checkpoint |
 
 ## Portal Progress

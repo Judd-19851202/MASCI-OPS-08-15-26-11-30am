@@ -27,7 +27,7 @@ export function AdminRouteShell({
       primaryActions={primaryActions}
       sideNav={renderAdminRouteSideNav()}
     >
-      <div className={contentClassName} data-testid={testId}>
+      <div className={`admin-route-shell-canvas ${contentClassName}`} data-testid={testId}>
         {crumbs?.length ? <AdminBreadcrumb crumbs={crumbs} /> : null}
         {children}
       </div>

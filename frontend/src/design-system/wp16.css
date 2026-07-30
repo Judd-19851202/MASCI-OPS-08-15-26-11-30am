@@ -40,11 +40,12 @@
 
 .wp16-shell--admin {
   background:
-    linear-gradient(0deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.78)),
-    linear-gradient(90deg, rgba(161, 161, 170, 0.12) 1px, transparent 1px),
-    linear-gradient(rgba(161, 161, 170, 0.12) 1px, transparent 1px),
-    #f4f4f5;
-  background-size: auto, 28px 28px, 28px 28px, auto;
+    radial-gradient(circle at top center, rgba(248, 113, 113, 0.08), transparent 22%),
+    linear-gradient(0deg, rgba(248, 250, 252, 0.78), rgba(241, 245, 249, 0.86)),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+    #e5e7eb;
+  background-size: auto, auto, 28px 28px, 28px 28px, auto;
 }
 
 .wp16-topbar,
@@ -90,6 +91,10 @@
 
 .wp16-shell-main {
   padding-block: var(--pad-section);
+}
+
+.wp16-shell--admin [data-testid="ds-portal-shell-content"] {
+  position: relative;
 }
 
 .wp16-shell-sidebar {
@@ -297,5 +302,53 @@
 
   .wp16-shell-page-header {
     padding: var(--space-4);
+  }
+
+  .wp16-shell--admin [data-testid="ds-portal-shell-content"] {
+    margin-top: 0.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.26);
+    border-radius: 1rem;
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, 0.84), rgba(241, 245, 249, 0.92)),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+      rgba(226, 232, 240, 0.88);
+    background-size: auto, 26px 26px, 26px 26px, auto;
+    box-shadow: 0 20px 34px -28px rgba(15, 23, 42, 0.34);
+    overflow: hidden;
+  }
+
+  .wp16-shell--admin .admin-route-shell-canvas,
+  .wp16-shell--admin [data-testid="ds-portal-shell-content"] > .min-h-screen,
+  .wp16-shell--admin .admin-route-shell-canvas > [class*="min-h-screen"] {
+    background: transparent !important;
+    min-height: auto;
+  }
+
+  .wp16-shell--admin .admin-route-shell-canvas > [class*="bg-slate-50"],
+  .wp16-shell--admin .admin-route-shell-canvas > [class*="bg-white"],
+  .wp16-shell--admin [data-testid="ds-portal-shell-content"] > [class*="bg-slate-50"],
+  .wp16-shell--admin [data-testid="ds-portal-shell-content"] > [class*="bg-white"] {
+    background: transparent !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .wp16-shell--admin [data-testid="ds-portal-shell-content"] {
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 1.25rem;
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, 0.72), rgba(241, 245, 249, 0.82)),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+      rgba(226, 232, 240, 0.82);
+    background-size: auto, 28px 28px, 28px 28px, auto;
+    box-shadow: 0 24px 40px -32px rgba(15, 23, 42, 0.28);
+    overflow: hidden;
+  }
+
+  .wp16-shell--admin .admin-route-shell-canvas > [class*="min-h-screen"],
+  .wp16-shell--admin [data-testid="ds-portal-shell-content"] > [class*="min-h-screen"] {
+    background: transparent !important;
   }
 }

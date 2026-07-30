@@ -61,8 +61,14 @@ export function MobileNavigation({
                   Modules
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className={`h-[86dvh] rounded-t-[1.5rem] p-0 ${isAdminTheme ? "border-slate-800 bg-slate-950 text-slate-100" : ""}`} data-testid={`${testId}-menu-sheet-frame`}>
-                <SheetHeader className={`border-b px-5 py-4 ${isAdminTheme ? "border-slate-800" : "border-[color:var(--border-hairline)]"}`}>
+              <SheetContent
+                side="bottom"
+                className={`flex h-[86dvh] max-h-[calc(100dvh-0.5rem)] min-h-0 flex-col overflow-hidden rounded-t-[1.5rem] p-0 ${isAdminTheme ? "border-slate-800 bg-slate-950 text-slate-100" : ""}`}
+                data-testid={`${testId}-menu-sheet-frame`}
+              >
+                <SheetHeader
+                  className={`shrink-0 border-b px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] ${isAdminTheme ? "border-slate-800" : "border-[color:var(--border-hairline)]"}`}
+                >
                   <SheetTitle className={`text-left font-display text-2xl font-black tracking-tight ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>
                     {portalName} navigation
                   </SheetTitle>
@@ -70,7 +76,16 @@ export function MobileNavigation({
                     {portalRole} modules and shared destinations.
                   </SheetDescription>
                 </SheetHeader>
-                <div className="overflow-y-auto px-4 py-4" data-testid={`${testId}-menu-sheet`}>
+                <div
+                  className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4"
+                  data-testid={`${testId}-menu-sheet`}
+                  style={{
+                    WebkitOverflowScrolling: "touch",
+                    overscrollBehavior: "contain",
+                    touchAction: "pan-y",
+                    paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
+                  }}
+                >
                   {sideNav}
                 </div>
               </SheetContent>
