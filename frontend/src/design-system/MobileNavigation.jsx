@@ -23,7 +23,7 @@ export function MobileNavigation({
   const navButtonClasses = "wp16-focus-ring inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-[color:var(--paper-card-muted)]";
 
   return (
-    <div className={`lg:hidden fixed inset-x-0 bottom-0 z-40 wp16-bottom-dock ${className}`} data-testid={testId}>
+    <div className={`xl:hidden fixed inset-x-0 bottom-0 z-40 wp16-bottom-dock ${className}`} data-testid={testId}>
       <div className="grid grid-cols-4 gap-2 px-3 py-2.5" style={{ paddingBottom: "calc(0.625rem + env(safe-area-inset-bottom, 0px))" }}>
         <div className="flex justify-center">
           {showHome ? (

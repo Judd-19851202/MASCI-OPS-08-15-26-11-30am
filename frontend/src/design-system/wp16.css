@@ -219,7 +219,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .wp16-grid-columns--shell {
     display: grid;
     grid-template-columns: minmax(15.5rem, var(--wp16-sidebar-width)) minmax(0, 1fr);

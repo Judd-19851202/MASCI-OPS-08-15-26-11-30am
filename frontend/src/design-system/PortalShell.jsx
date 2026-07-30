@@ -140,7 +140,7 @@ export function PortalShell({
             </div>
           </div>
 
-          <div className="ml-auto hidden min-w-0 items-center gap-2 lg:flex">
+          <div className="ml-auto hidden min-w-0 items-center gap-2 xl:flex">
             {showSearch ? (
               <div data-testid="ds-portal-shell-search">
                 <GlobalSearch accent="light" />
@@ -194,7 +194,7 @@ export function PortalShell({
             ) : null}
           </div>
 
-          <div className="ml-auto flex items-center gap-2 lg:hidden">
+          <div className="ml-auto flex items-center gap-2 xl:hidden">
             {showNotifications ? <NotificationBell accent="slate" /> : null}
             <Popover>
               <PopoverTrigger asChild>
@@ -264,7 +264,7 @@ export function PortalShell({
           <div className={sideNav ? "wp16-grid-columns--shell" : "min-w-0"}>
             {sideNav ? (
               <aside
-                className="wp16-shell-sidebar hidden lg:block p-3"
+                className="wp16-shell-sidebar hidden xl:block p-3"
                 style={{ position: "sticky", top: "calc(var(--shell-header-height) + 1rem)", maxHeight: "calc(100dvh - var(--shell-header-height) - 1.5rem)", overflowY: "auto" }}
                 data-testid="ds-portal-shell-sidenav"
               >
@@ -274,7 +274,7 @@ export function PortalShell({
 
             <div className="min-w-0">
               <div className="wp16-shell-page-header" data-testid="ds-portal-shell-page-header">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="wp16-kicker md:hidden" data-testid="ds-portal-shell-portal-name-mobile">
                       {platformShort} · {portalRole}
@@ -290,8 +290,8 @@ export function PortalShell({
                     {subtitle ? <p className="mt-2 max-w-[76ch] text-sm text-[color:var(--ink-soft)] sm:text-base">{subtitle}</p> : null}
                   </div>
 
-                  <div className="min-w-0 lg:max-w-[28rem] lg:text-right">
-                    {primaryActions ? <div className="wp16-shell-actions justify-start lg:justify-end">{primaryActions}</div> : null}
+                  <div className="min-w-0 xl:max-w-[28rem] xl:text-right">
+                    {primaryActions ? <div className="wp16-shell-actions justify-start xl:justify-end">{primaryActions}</div> : null}
                     {renderedLastActivity ? (
                       <aside className="mt-2 text-xs uppercase tracking-[0.14em] text-[color:var(--ink-soft)]" data-testid="ds-portal-shell-last-activity">
                         {renderedLastActivity}
