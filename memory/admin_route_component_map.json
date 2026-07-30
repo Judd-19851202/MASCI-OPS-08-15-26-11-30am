@@ -1,0 +1,697 @@
+[
+  {
+    "route": "/admin/qaqc",
+    "component": "AdminQaqcList",
+    "import": "@/pages/AdminQaqcList"
+  },
+  {
+    "route": "/admin/transportation/*",
+    "component": "AdminTransportation",
+    "import": "@/pages/AdminTransportation"
+  },
+  {
+    "route": "/admin/photos",
+    "component": "JobPhotosLibrary",
+    "import": "@/pages/JobPhotosLibrary"
+  },
+  {
+    "route": "/admin/trench-safety/excavations",
+    "component": "ExcavationOversight",
+    "import": "@/pages/trench_safety/ExcavationOversight"
+  },
+  {
+    "route": "/admin/login",
+    "component": "AdminLogin",
+    "import": "@/pages/AdminLogin"
+  },
+  {
+    "route": "/admin",
+    "component": "AdminOS",
+    "import": "@/pages/admin/AdminOS"
+  },
+  {
+    "route": "/admin/hub_v1",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/hub_v2",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/executive-overview",
+    "component": "ExecutiveOverview",
+    "import": "@/pages/ExecutiveOverview"
+  },
+  {
+    "route": "/admin/executive-intelligence",
+    "component": "ExecutiveIntelligence",
+    "import": "@/pages/ExecutiveIntelligence"
+  },
+  {
+    "route": "/admin/material-ledger-quality",
+    "component": "AdminMaterialLedgerQuality",
+    "import": "@/pages/AdminMaterialLedgerQuality"
+  },
+  {
+    "route": "/admin/people",
+    "component": "AdminPeople",
+    "import": "@/pages/admin/AdminPeople"
+  },
+  {
+    "route": "/admin/mfa",
+    "component": "AdminMfa",
+    "import": "@/pages/admin/AdminMfa"
+  },
+  {
+    "route": "/admin/promo-assets",
+    "component": "AdminPromoAssets",
+    "import": "@/pages/admin/AdminPromoAssets"
+  },
+  {
+    "route": "/admin/jobs",
+    "component": "AdminJobs",
+    "import": "@/pages/admin/AdminJobs"
+  },
+  {
+    "route": "/admin/cost-registry",
+    "component": "AdminCostRegistry",
+    "import": "@/pages/admin/AdminCostRegistry"
+  },
+  {
+    "route": "/admin/jobs/:projectNumber/team",
+    "component": "AdminJobTeam",
+    "import": "@/pages/admin/AdminJobTeam"
+  },
+  {
+    "route": "/admin/project-staffing",
+    "component": "AdminProjectStaffing",
+    "import": "@/pages/admin/AdminProjectStaffing"
+  },
+  {
+    "route": "/admin/geofence-reconciliation",
+    "component": "AdminGeofenceReconciliation",
+    "import": "@/pages/admin/AdminGeofenceReconciliation"
+  },
+  {
+    "route": "/admin/operations-dashboard",
+    "component": "AdminOperationsDashboard",
+    "import": "@/pages/admin/AdminOperationsDashboard"
+  },
+  {
+    "route": "/admin/operations-control",
+    "component": "OperationsControlCenter",
+    "import": "@/pages/OperationsControlCenter"
+  },
+  {
+    "route": "/admin/operations-control/cases/:caseId",
+    "component": "OperationsControlCaseDetail",
+    "import": "@/pages/OperationsControlCaseDetail"
+  },
+  {
+    "route": "/admin/asset-mapping",
+    "component": "AdminAssetMapping",
+    "import": "@/pages/admin/AdminAssetMapping"
+  },
+  {
+    "route": "/admin/asset-spine",
+    "component": "AdminAssetSpineHealth",
+    "import": "@/pages/admin/AdminAssetSpineHealth"
+  },
+  {
+    "route": "/admin/equipment",
+    "component": "AdminEquipment",
+    "import": "@/pages/admin/AdminEquipment"
+  },
+  {
+    "route": "/admin/email",
+    "component": "AdminEmail",
+    "import": "@/pages/admin/AdminEmail"
+  },
+  {
+    "route": "/admin/training",
+    "component": "AdminTraining",
+    "import": "@/pages/admin/AdminTraining"
+  },
+  {
+    "route": "/admin/compliance",
+    "component": "AdminCompliance",
+    "import": "@/pages/admin/AdminCompliance"
+  },
+  {
+    "route": "/admin/system",
+    "component": "AdminSystem",
+    "import": "@/pages/admin/AdminSystem"
+  },
+  {
+    "route": "/admin/ai-configuration",
+    "component": "AdminAIConfiguration",
+    "import": "@/pages/admin/AdminAIConfiguration"
+  },
+  {
+    "route": "/admin/integration-truth",
+    "component": "IntegrationTruth",
+    "import": "@/pages/admin/IntegrationTruth"
+  },
+  {
+    "route": "/admin/preview-validation-identities",
+    "component": "PreviewValidationIdentities",
+    "import": "@/pages/admin/PreviewValidationIdentities"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "import": "@/pages/admin/AdminRecovery"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "import": "@/pages/admin/AdminStorageRecovery"
+  },
+  {
+    "route": "/admin/ai-operations",
+    "component": "AdminAiOperations",
+    "import": "@/pages/admin/AdminAiOperations"
+  },
+  {
+    "route": "/admin/communications",
+    "component": "AdminCommunications",
+    "import": "@/pages/admin/AdminCommunications"
+  },
+  {
+    "route": "/admin/identity-security",
+    "component": "AdminIdentitySecurity",
+    "import": "@/pages/admin/AdminIdentitySecurity"
+  },
+  {
+    "route": "/admin/trust-spine",
+    "component": "PlatformTrustDashboard",
+    "import": "@/components/PlatformTrustDashboard"
+  },
+  {
+    "route": "/admin/governance-trust",
+    "component": "AdminGovernanceTrust",
+    "import": "@/pages/admin/AdminGovernanceTrust"
+  },
+  {
+    "route": "/admin/platform-configuration",
+    "component": "AdminPlatformConfiguration",
+    "import": "@/pages/admin/AdminPlatformConfiguration"
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "import": "@/pages/admin/AdminDiagnostics"
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "import": "@/pages/admin/AdminMaintenance"
+  },
+  {
+    "route": "/admin/platform-overview",
+    "component": "AdminPlatformOverview",
+    "import": "@/pages/admin/AdminPlatformOverview"
+  },
+  {
+    "route": "/admin/recovery-stream",
+    "component": "AdminRecoveryStream",
+    "import": "@/pages/admin/AdminRecoveryStream"
+  },
+  {
+    "route": "/admin/jha-acknowledgements",
+    "component": "AdminJhaAcknowledgements",
+    "import": "@/pages/admin/AdminJhaAcknowledgements"
+  },
+  {
+    "route": "/admin/command-center",
+    "component": "AdminCommandCenter",
+    "import": "@/pages/admin/AdminCommandCenter"
+  },
+  {
+    "route": "/admin/database",
+    "component": "AdminDatabase",
+    "import": "@/pages/admin/AdminDatabase"
+  },
+  {
+    "route": "/admin/integrations",
+    "component": "AdminIntegrationCenter",
+    "import": "@/pages/admin/AdminIntegrationCenter"
+  },
+  {
+    "route": "/admin/dispatch",
+    "component": "AdminDispatch",
+    "import": "@/pages/admin/AdminDispatch"
+  },
+  {
+    "route": "/admin/dls/shift-qr",
+    "component": "AdminDlsShiftQR",
+    "import": "@/pages/admin/AdminDlsShiftQR"
+  },
+  {
+    "route": "/admin/dls/day-1-debrief",
+    "component": "AdminDlsDay1Debrief",
+    "import": "@/pages/admin/AdminDlsDay1Debrief"
+  },
+  {
+    "route": "/admin/dls/week-1-debrief",
+    "component": "AdminDlsDay1Debrief",
+    "import": "@/pages/admin/AdminDlsDay1Debrief"
+  },
+  {
+    "route": "/admin/profile",
+    "component": "AdminProfile",
+    "import": "@/pages/admin/AdminProfile"
+  },
+  {
+    "route": "/admin/operations-events",
+    "component": "AdminOperationsEvents",
+    "import": "@/pages/admin/AdminOperationsEvents"
+  },
+  {
+    "route": "/admin/digest-config",
+    "component": "AdminDigestConfig",
+    "import": "@/pages/admin/AdminDigestConfig"
+  },
+  {
+    "route": "/admin/operational-intelligence",
+    "component": "AdminOperationalIntelligence",
+    "import": "@/pages/admin/AdminOperationalIntelligence"
+  },
+  {
+    "route": "/admin/operational-intelligence/recipients",
+    "component": "AdminOperationalIntelligenceRecipients",
+    "import": "@/pages/admin/AdminOperationalIntelligenceRecipients"
+  },
+  {
+    "route": "/admin/system-health",
+    "component": "SystemHealth",
+    "import": "@/pages/admin/SystemHealth"
+  },
+  {
+    "route": "/admin/audit-log",
+    "component": "AdminAuditLog",
+    "import": "@/pages/admin/AdminAuditLog"
+  },
+  {
+    "route": "/admin/scheduler-runs",
+    "component": "AdminSchedulerRuns",
+    "import": "@/pages/AdminSchedulerRuns"
+  },
+  {
+    "route": "/admin/legacy-imports",
+    "component": "AdminLegacyImports",
+    "import": "@/pages/AdminLegacyImports"
+  },
+  {
+    "route": "/admin/sessions",
+    "component": "AdminSessions",
+    "import": "@/pages/admin/AdminSessions"
+  },
+  {
+    "route": "/admin/guidance-coverage",
+    "component": "AdminGuidanceCoverage",
+    "import": "@/pages/admin/AdminGuidanceCoverage"
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "import": "@/pages/admin/AdminOperationalInventory"
+  },
+  {
+    "route": "/admin/governance",
+    "component": "AdminGovernanceOperatingSystem",
+    "import": "@/pages/admin/AdminGovernanceOperatingSystem"
+  },
+  {
+    "route": "/admin/governance/overview",
+    "component": "AdminGovernanceOperatingSystem",
+    "import": "@/pages/admin/AdminGovernanceOperatingSystem"
+  },
+  {
+    "route": "/admin/governance/organization",
+    "component": "AdminGovernanceOrganizationPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/identities",
+    "component": "AdminGovernanceIdentitiesPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/roles",
+    "component": "AdminGovernanceRolesPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/permissions",
+    "component": "AdminGovernancePermissionsPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/policies",
+    "component": "AdminGovernancePoliciesPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/approval-flows",
+    "component": "AdminGovernanceApprovalFlowsPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/delegations",
+    "component": "AdminGovernanceDelegationsPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/separation-of-duties",
+    "component": "AdminGovernanceSodPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/authority",
+    "component": "AdminGovernanceAuthorityPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/emergency-overrides",
+    "component": "AdminGovernanceOverridesPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/decisions",
+    "component": "AdminGovernanceDecisionsPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/audit",
+    "component": "AdminGovernanceAuditPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/registry",
+    "component": "AdminGovernanceRegistryPage",
+    "import": "@/pages/admin/AdminGovernanceRegistryPage"
+  },
+  {
+    "route": "/admin/governance/versions",
+    "component": "AdminGovernanceVersionsPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/health",
+    "component": "AdminGovernanceHealthPage",
+    "import": null
+  },
+  {
+    "route": "/admin/governance/legacy-health",
+    "component": "AdminGovernance",
+    "import": "@/pages/admin/AdminGovernance"
+  },
+  {
+    "route": "/admin/project-identity",
+    "component": "AdminProjectIdentityGovernance",
+    "import": "@/pages/admin/AdminProjectIdentityGovernance"
+  },
+  {
+    "route": "/admin/governance/self-protection",
+    "component": "SelfProtection",
+    "import": "@/pages/admin/SelfProtection"
+  },
+  {
+    "route": "/admin/compliance-findings",
+    "component": "AdminComplianceFindings",
+    "import": "@/pages/admin/AdminComplianceFindings"
+  },
+  {
+    "route": "/admin/operational-language",
+    "component": "AdminOperationalLanguage",
+    "import": "@/pages/admin/AdminOperationalLanguage"
+  },
+  {
+    "route": "/admin/deploy-recovery",
+    "component": "DeployRecovery",
+    "import": "@/pages/admin/DeployRecovery"
+  },
+  {
+    "route": "/admin/assets/:assetId",
+    "component": "AssetProfile",
+    "import": "@/pages/admin/AssetProfile"
+  },
+  {
+    "route": "/admin/asset-admin",
+    "component": "AdminAssetAdmin",
+    "import": "@/pages/admin/AdminAssetAdmin"
+  },
+  {
+    "route": "/admin/driver-intel/:driverKey",
+    "component": "AdminDriverIntel",
+    "import": "@/pages/admin/AdminDriverIntel"
+  },
+  {
+    "route": "/admin/equipment/:id/history",
+    "component": "AdminMasterHistory",
+    "import": "@/pages/admin/AdminMasterHistory"
+  },
+  {
+    "route": "/admin/employees/:id/history",
+    "component": "AdminMasterHistory",
+    "import": "@/pages/admin/AdminMasterHistory"
+  },
+  {
+    "route": "/admin/analytics",
+    "component": "AdminAnalytics",
+    "import": "@/pages/admin/AdminAnalytics"
+  },
+  {
+    "route": "/admin/leadership-equipment",
+    "component": "AdminLeadershipEquipment",
+    "import": "@/pages/AdminLeadershipEquipment"
+  },
+  {
+    "route": "/admin/terminations",
+    "component": "AdminTerminations",
+    "import": "@/pages/AdminTerminations"
+  },
+  {
+    "route": "/admin/guide",
+    "component": "AdminGuide",
+    "import": "@/pages/AdminGuide"
+  },
+  {
+    "route": "/admin/pnl",
+    "component": "ProjectPnlPage",
+    "import": "@/pages/ProjectPnlPage"
+  },
+  {
+    "route": "/admin/inspections",
+    "component": "Dashboard",
+    "import": "@/pages/Dashboard"
+  },
+  {
+    "route": "/admin/inspections/:id",
+    "component": "ViewInspection",
+    "import": "@/pages/ViewInspection"
+  },
+  {
+    "route": "/admin/meetings",
+    "component": "MeetingsDashboard",
+    "import": "@/pages/MeetingsDashboard"
+  },
+  {
+    "route": "/admin/meetings/:id",
+    "component": "ViewMeeting",
+    "import": "@/pages/ViewMeeting"
+  },
+  {
+    "route": "/admin/jha-plans",
+    "component": "JhaPlansAdmin",
+    "import": "@/pages/JhaPlansAdmin"
+  },
+  {
+    "route": "/admin/jha",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/jha/:id",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/trench-boxes",
+    "component": "TrenchBoxesAdmin",
+    "import": "@/pages/TrenchBoxesAdmin"
+  },
+  {
+    "route": "/admin/trench-boxes/poster",
+    "component": "TrenchBoxPoster",
+    "import": "@/pages/TrenchBoxPoster"
+  },
+  {
+    "route": "/admin/trench-safety",
+    "component": "TrenchSafetyHub",
+    "import": "@/pages/trench_safety/TrenchSafetyHub"
+  },
+  {
+    "route": "/admin/trench-safety/assets",
+    "component": "TrenchSafetyAssetsList",
+    "import": "@/pages/trench_safety/TrenchSafetyAssetsList"
+  },
+  {
+    "route": "/admin/trench-safety/assets/:assetId",
+    "component": "TrenchSafetyAssetDetail",
+    "import": "@/pages/trench_safety/TrenchSafetyAssetDetail"
+  },
+  {
+    "route": "/admin/trench-safety/tabulated-data",
+    "component": "TrenchSafetyTabulatedData",
+    "import": "@/pages/trench_safety/TrenchSafetyTabulatedData"
+  },
+  {
+    "route": "/admin/trench-safety/reports",
+    "component": "TrenchSafetyReports",
+    "import": "@/pages/trench_safety/TrenchSafetyReports"
+  },
+  {
+    "route": "/admin/trench-safety/repair-review",
+    "component": "TrenchSafetyRepairReviewPage",
+    "import": "@/pages/trench_safety/TrenchSafetyRepairReviewPage"
+  },
+  {
+    "route": "/admin/trench-safety/field-reports",
+    "component": "TrenchSafetyFieldReportsPage",
+    "import": "@/pages/trench_safety/TrenchSafetyFieldReportsPage"
+  },
+  {
+    "route": "/admin/jha-plans/poster",
+    "component": "JhaPlansPoster",
+    "import": "@/pages/JhaPlansPoster"
+  },
+  {
+    "route": "/admin/posters/print-all",
+    "component": "AllPostersPrint",
+    "import": "@/pages/AllPostersPrint"
+  },
+  {
+    "route": "/admin/incidents",
+    "component": "IncidentsDashboard",
+    "import": "@/pages/IncidentsDashboard"
+  },
+  {
+    "route": "/admin/incidents/:id",
+    "component": "ViewIncident",
+    "import": "@/pages/ViewIncident"
+  },
+  {
+    "route": "/admin/daily",
+    "component": "DailyReportsDashboard",
+    "import": "@/pages/DailyReportsDashboard"
+  },
+  {
+    "route": "/admin/daily/:id",
+    "component": "ViewDailyReport",
+    "import": "@/pages/ViewDailyReport"
+  },
+  {
+    "route": "/admin/equipment-inspections",
+    "component": "EquipmentDashboard",
+    "import": "@/pages/EquipmentDashboard"
+  },
+  {
+    "route": "/admin/equipment/:id",
+    "component": "ViewEquipmentInspection",
+    "import": "@/pages/ViewEquipmentInspection"
+  },
+  {
+    "route": "/admin/qaqc/:id",
+    "component": "ViewQaqcInspection",
+    "import": "@/pages/ViewQaqcInspection"
+  },
+  {
+    "route": "/admin/leadership/records/:id",
+    "component": "FieldLeadershipView",
+    "import": "@/pages/FieldLeadershipView"
+  },
+  {
+    "route": "/admin/safety/issuance/:id",
+    "component": "ViewSafetyForm",
+    "import": "@/pages/ViewSafetyForm"
+  },
+  {
+    "route": "/admin/safety/training/:id",
+    "component": "ViewSafetyForm",
+    "import": "@/pages/ViewSafetyForm"
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "import": "@/pages/ExecutiveOperationalIntelligence"
+  },
+  {
+    "route": "/admin/vendors/:vendorId/thread",
+    "component": "AdminVendorThread",
+    "import": "@/pages/AdminVendorThread"
+  },
+  {
+    "route": "/admin/assets/:assetRef/thread",
+    "component": "AdminAssetThread",
+    "import": "@/pages/AdminAssetThread"
+  },
+  {
+    "route": "/admin/training-videos",
+    "component": "AdminTrainingVideos",
+    "import": "@/pages/AdminTrainingVideos"
+  },
+  {
+    "route": "/admin/deploy-readiness",
+    "component": "AdminDeployReadiness",
+    "import": "@/pages/AdminDeployReadiness"
+  },
+  {
+    "route": "/admin/daily-reports",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/trench-safety-assets",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/audit",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/health",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/ods-intelligence",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/occ",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/executive",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/ai",
+    "component": null,
+    "import": null
+  },
+  {
+    "route": "/admin/storage",
+    "component": null,
+    "import": null
+  }
+]

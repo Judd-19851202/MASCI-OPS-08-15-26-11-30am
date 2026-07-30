@@ -1,0 +1,548 @@
+[
+  {
+    "route": "/admin",
+    "component": "AdminOS",
+    "file": "/app/frontend/src/pages/admin/AdminOS.jsx",
+    "label": "HEALTHY"
+  },
+  {
+    "route": "/admin",
+    "component": "AdminOS",
+    "file": "/app/frontend/src/pages/admin/AdminOS.jsx",
+    "label": "Storage & Recovery"
+  },
+  {
+    "route": "/admin/executive-overview",
+    "component": "ExecutiveOverview",
+    "file": "/app/frontend/src/pages/ExecutiveOverview.jsx",
+    "label": "HEALTHY"
+  },
+  {
+    "route": "/admin/mfa",
+    "component": "AdminMfa",
+    "file": "/app/frontend/src/pages/admin/AdminMfa.jsx",
+    "label": "Super-admin MFA enrollment and recovery."
+  },
+  {
+    "route": "/admin/geofence-reconciliation",
+    "component": "AdminGeofenceReconciliation",
+    "file": "/app/frontend/src/pages/admin/AdminGeofenceReconciliation.jsx",
+    "label": "Total"
+  },
+  {
+    "route": "/admin/operations-control/cases/:caseId",
+    "component": "OperationsControlCaseDetail",
+    "file": "/app/frontend/src/pages/OperationsControlCaseDetail.jsx",
+    "label": "Variance / recovery"
+  },
+  {
+    "route": "/admin/asset-spine",
+    "component": "AdminAssetSpineHealth",
+    "file": "/app/frontend/src/pages/admin/AdminAssetSpineHealth.jsx",
+    "label": "Total Assets"
+  },
+  {
+    "route": "/admin/asset-spine",
+    "component": "AdminAssetSpineHealth",
+    "file": "/app/frontend/src/pages/admin/AdminAssetSpineHealth.jsx",
+    "label": "Motive Coverage"
+  },
+  {
+    "route": "/admin/compliance",
+    "component": "AdminCompliance",
+    "file": "/app/frontend/src/pages/admin/AdminCompliance.jsx",
+    "label": "Compliance & Audits"
+  },
+  {
+    "route": "/admin/system",
+    "component": "AdminSystem",
+    "file": "/app/frontend/src/pages/admin/AdminSystem.jsx",
+    "label": "System & Backups"
+  },
+  {
+    "route": "/admin/ai-configuration",
+    "component": "AdminAIConfiguration",
+    "file": "/app/frontend/src/pages/admin/AdminAIConfiguration.jsx",
+    "label": "AI Health (Live Ping)"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Storage & Recovery"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Recovery Posture"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Recovery Posture"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Read-only recovery dashboard \u00b7 polls every 30s."
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Backup Trust Score"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Archive count"
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "label": "Bucket usage"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Disk Health"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Cloudflare R2 Health"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Backup Health"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Recovery Readiness"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Storage & Recovery"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "R2 Bucket Health"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "R2 Health Refresh"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Backup Health Refresh"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "R2 latency histogram surfaced in OCC"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Composite storage health score"
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "label": "Disk \u00b7 R2 \u00b7 backups \u00b7 recovery drills. One evidence-first surface."
+  },
+  {
+    "route": "/admin/ai-operations",
+    "component": "AdminAiOperations",
+    "file": "/app/frontend/src/pages/admin/AdminAiOperations.jsx",
+    "label": "AI gateway \u00b7 providers \u00b7 modules \u00b7 Daily Report AI health."
+  },
+  {
+    "route": "/admin/ai-operations",
+    "component": "AdminAiOperations",
+    "file": "/app/frontend/src/pages/admin/AdminAiOperations.jsx",
+    "label": "AI call latency histogram"
+  },
+  {
+    "route": "/admin/communications",
+    "component": "AdminCommunications",
+    "file": "/app/frontend/src/pages/admin/AdminCommunications.jsx",
+    "label": "Delivery Health"
+  },
+  {
+    "route": "/admin/communications",
+    "component": "AdminCommunications",
+    "file": "/app/frontend/src/pages/admin/AdminCommunications.jsx",
+    "label": "Delivery latency percentiles"
+  },
+  {
+    "route": "/admin/communications",
+    "component": "AdminCommunications",
+    "file": "/app/frontend/src/pages/admin/AdminCommunications.jsx",
+    "label": "In-app notification queue health surface"
+  },
+  {
+    "route": "/admin/governance-trust",
+    "component": "AdminGovernanceTrust",
+    "file": "/app/frontend/src/pages/admin/AdminGovernanceTrust.jsx",
+    "label": "Deploy Recovery Playbook"
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "label": "Runtime health \u00b7 system probes \u00b7 OCC snapshot \u00b7 scheduler \u00b7 certification."
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "label": "API Health"
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "label": "System Health Cards"
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "label": "System Health Detail"
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "label": "Endpoint latency percentiles"
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "label": "Mongo cluster capacity & connection pool surface"
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "file": "/app/frontend/src/pages/admin/AdminMaintenance.jsx",
+    "label": "Storage \u00b7 Backups \u00b7 R2"
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "file": "/app/frontend/src/pages/admin/AdminMaintenance.jsx",
+    "label": "Security \u00b7 Deployment \u00b7 Health"
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "file": "/app/frontend/src/pages/admin/AdminMaintenance.jsx",
+    "label": "Health / Diagnostics Maintenance"
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "file": "/app/frontend/src/pages/admin/AdminMaintenance.jsx",
+    "label": "Refresh Backup Health"
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "file": "/app/frontend/src/pages/admin/AdminMaintenance.jsx",
+    "label": "Refresh R2 Health"
+  },
+  {
+    "route": "/admin/database",
+    "component": "AdminDatabase",
+    "file": "/app/frontend/src/pages/admin/AdminDatabase.jsx",
+    "label": "Database Capacity"
+  },
+  {
+    "route": "/admin/database",
+    "component": "AdminDatabase",
+    "file": "/app/frontend/src/pages/admin/AdminDatabase.jsx",
+    "label": "Database Capacity"
+  },
+  {
+    "route": "/admin/database",
+    "component": "AdminDatabase",
+    "file": "/app/frontend/src/pages/admin/AdminDatabase.jsx",
+    "label": "Storage trend and capacity forecast."
+  },
+  {
+    "route": "/admin/dispatch",
+    "component": "AdminDispatch",
+    "file": "/app/frontend/src/pages/admin/AdminDispatch.jsx",
+    "label": "Total Active Assets"
+  },
+  {
+    "route": "/admin/operational-intelligence",
+    "component": "AdminOperationalIntelligence",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalIntelligence.jsx",
+    "label": "Score"
+  },
+  {
+    "route": "/admin/operational-intelligence/recipients",
+    "component": "AdminOperationalIntelligenceRecipients",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx",
+    "label": "Total recipients"
+  },
+  {
+    "route": "/admin/system-health",
+    "component": "SystemHealth",
+    "file": "/app/frontend/src/pages/admin/SystemHealth.jsx",
+    "label": "System Health"
+  },
+  {
+    "route": "/admin/system-health",
+    "component": "SystemHealth",
+    "file": "/app/frontend/src/pages/admin/SystemHealth.jsx",
+    "label": "System Health"
+  },
+  {
+    "route": "/admin/guidance-coverage",
+    "component": "AdminGuidanceCoverage",
+    "file": "/app/frontend/src/pages/admin/AdminGuidanceCoverage.jsx",
+    "label": "Articles total"
+  },
+  {
+    "route": "/admin/guidance-coverage",
+    "component": "AdminGuidanceCoverage",
+    "file": "/app/frontend/src/pages/admin/AdminGuidanceCoverage.jsx",
+    "label": "Operational Guidance Coverage"
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalInventory.jsx",
+    "label": "Drift"
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalInventory.jsx",
+    "label": "Drift \u00b7 P0"
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalInventory.jsx",
+    "label": "Drift \u00b7 P1"
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalInventory.jsx",
+    "label": "Drift \u00b7 P2"
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalInventory.jsx",
+    "label": "Total articles"
+  },
+  {
+    "route": "/admin/governance/legacy-health",
+    "component": "AdminGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminGovernance.jsx",
+    "label": "Healthy"
+  },
+  {
+    "route": "/admin/governance/legacy-health",
+    "component": "AdminGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminGovernance.jsx",
+    "label": "Governance Health"
+  },
+  {
+    "route": "/admin/governance/legacy-health",
+    "component": "AdminGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminGovernance.jsx",
+    "label": "Governance Health"
+  },
+  {
+    "route": "/admin/project-identity",
+    "component": "AdminProjectIdentityGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx",
+    "label": "Healthy"
+  },
+  {
+    "route": "/admin/project-identity",
+    "component": "AdminProjectIdentityGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx",
+    "label": "Identity Health Score"
+  },
+  {
+    "route": "/admin/governance/self-protection",
+    "component": "SelfProtection",
+    "file": "/app/frontend/src/pages/admin/SelfProtection.jsx",
+    "label": "Total open gaps"
+  },
+  {
+    "route": "/admin/compliance-findings",
+    "component": "AdminComplianceFindings",
+    "file": "/app/frontend/src/pages/admin/AdminComplianceFindings.jsx",
+    "label": "Compliance Findings"
+  },
+  {
+    "route": "/admin/deploy-recovery",
+    "component": "DeployRecovery",
+    "file": "/app/frontend/src/pages/admin/DeployRecovery.jsx",
+    "label": "Deployment Recovery"
+  },
+  {
+    "route": "/admin/deploy-recovery",
+    "component": "DeployRecovery",
+    "file": "/app/frontend/src/pages/admin/DeployRecovery.jsx",
+    "label": "Deployment Recovery"
+  },
+  {
+    "route": "/admin/analytics",
+    "component": "AdminAnalytics",
+    "file": "/app/frontend/src/pages/admin/AdminAnalytics.jsx",
+    "label": "Usage Analytics"
+  },
+  {
+    "route": "/admin/analytics",
+    "component": "AdminAnalytics",
+    "file": "/app/frontend/src/pages/admin/AdminAnalytics.jsx",
+    "label": "Top route count"
+  },
+  {
+    "route": "/admin/analytics",
+    "component": "AdminAnalytics",
+    "file": "/app/frontend/src/pages/admin/AdminAnalytics.jsx",
+    "label": "Usage Analytics"
+  },
+  {
+    "route": "/admin/analytics",
+    "component": "AdminAnalytics",
+    "file": "/app/frontend/src/pages/admin/AdminAnalytics.jsx",
+    "label": "Top routes by call count"
+  },
+  {
+    "route": "/admin/guide",
+    "component": "AdminGuide",
+    "file": "/app/frontend/src/pages/AdminGuide.jsx",
+    "label": "Backups \u2014 how to never lose data"
+  },
+  {
+    "route": "/admin/inspections",
+    "component": "Dashboard",
+    "file": "/app/frontend/src/pages/Dashboard.jsx",
+    "label": "Total Reports"
+  },
+  {
+    "route": "/admin/inspections",
+    "component": "Dashboard",
+    "file": "/app/frontend/src/pages/Dashboard.jsx",
+    "label": "Avg Score"
+  },
+  {
+    "route": "/admin/trench-boxes",
+    "component": "TrenchBoxesAdmin",
+    "file": "/app/frontend/src/pages/TrenchBoxesAdmin.jsx",
+    "label": "Trench shield tabulated data \u00b7 OSHA compliance ready"
+  },
+  {
+    "route": "/admin/trench-safety/reports",
+    "component": "TrenchSafetyReports",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyReports.jsx",
+    "label": "Executive Asset Health"
+  },
+  {
+    "route": "/admin/trench-safety/reports",
+    "component": "TrenchSafetyReports",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyReports.jsx",
+    "label": "Inspection Compliance"
+  },
+  {
+    "route": "/admin/incidents",
+    "component": "IncidentsDashboard",
+    "file": "/app/frontend/src/pages/IncidentsDashboard.jsx",
+    "label": "Incidents"
+  },
+  {
+    "route": "/admin/incidents",
+    "component": "IncidentsDashboard",
+    "file": "/app/frontend/src/pages/IncidentsDashboard.jsx",
+    "label": "Incidents"
+  },
+  {
+    "route": "/admin/incidents",
+    "component": "IncidentsDashboard",
+    "file": "/app/frontend/src/pages/IncidentsDashboard.jsx",
+    "label": "Field-reported incidents \u00b7 escalation tracking"
+  },
+  {
+    "route": "/admin/incidents/:id",
+    "component": "ViewIncident",
+    "file": "/app/frontend/src/pages/ViewIncident.jsx",
+    "label": "Incidents"
+  },
+  {
+    "route": "/admin/incidents/:id",
+    "component": "ViewIncident",
+    "file": "/app/frontend/src/pages/ViewIncident.jsx",
+    "label": "Incidents"
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "label": "Total labor hours"
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "label": "Total equipment hours"
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "label": "No at-risk projects in this range."
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "label": "Portfolio totals in range"
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "label": "Top-at-risk projects by delay + safety"
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "label": "Canonical variance, recovery, and resource coordination"
+  }
+]

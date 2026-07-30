@@ -10,33 +10,57 @@
 //   "Is the platform governance healthy right now?"
 
 import React from "react";
-import { Link } from "react-router-dom";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 
 const POLL_MS = 60_000;
 
-function StatusPill({ status, testId }) {
-  const map = {
-    green:   { label: "OK",      cls: "border-emerald-700 text-emerald-700 bg-emerald-50" },
-    amber:   { label: "WATCH",   cls: "border-amber-700 text-amber-800 bg-amber-50" },
-    red:     { label: "FAIL",    cls: "border-rose-700 text-rose-700 bg-rose-50" },
-    unknown: { label: "UNKNOWN", cls: "border-slate-400 text-slate-500 bg-slate-50" },
-  };
-  const m = map[status] || map.unknown;
+const STATUS_META = {
+  green: {
+    label: "Healthy",
+    classes: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  },
+  amber: {
+    label: "Needs review",
+    classes: "border-amber-200 bg-amber-50 text-amber-800",
+  },
+  red: {
+    label: "At risk",
+    classes: "border-rose-200 bg-rose-50 text-rose-800",
+  },
+  unknown: {
+    label: "Not instrumented",
+    classes: "border-slate-200 bg-slate-100 text-slate-700",
+  },
+  unavailable_in_runtime_image: {
+    label: "Unavailable in preview",
+    classes: "border-slate-200 bg-slate-100 text-slate-700",
+  },
+};
+
+function humanizeToken(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function StateBadge({ status, testId }) {
+  const meta = STATUS_META[status] || STATUS_META.unknown;
   return (
     <span
       data-testid={testId}
       data-status={status}
-      className={`inline-block px-2 py-0.5 rounded-sm border font-mono text-[10px] uppercase tracking-[0.18em] ${m.cls}`}
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold ${meta.classes}`}
     >
-      {m.label}
+      {meta.label}
     </span>
   );
 }
 
 function _fmtAgo(epoch_s) {
-  if (!epoch_s) return "—";
+  if (!epoch_s) return "No timestamp recorded";
   const ms = epoch_s * 1000;
   const sec = Math.max(0, Math.floor((Date.now() - ms) / 1000));
   if (sec < 60)   return `${sec}s ago`;
@@ -48,32 +72,46 @@ function _fmtAgo(epoch_s) {
   return `${d}d ago`;
 }
 
-function Section({ title, status, children, testId }) {
+function displayValue(value, fallback = "Not recorded") {
+  if (value === null || value === undefined || value === "") return fallback;
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  return String(value);
+}
+
+function explainStatus(status, fallback = "No status reported") {
+  if (!status) return fallback;
+  if (status === "unknown") return "This signal is not wired in the preview runtime yet.";
+  if (status === "unavailable_in_runtime_image") return "This runtime image does not include that evidence package.";
+  return humanizeToken(status);
+}
+
+function SectionCard({ title, status, summary, children, testId }) {
   return (
     <section
       data-testid={testId}
-      className="border-t border-slate-300/60 first:border-t-0 py-4"
+      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
     >
-      <header className="flex items-baseline gap-3 mb-2">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-700">
-          {title}
-        </h2>
-        <StatusPill status={status} testId={`${testId}-pill`} />
+      <header className="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div className="space-y-2">
+          <h2 className="text-lg font-black text-slate-950">{title}</h2>
+          <p className="text-sm text-slate-700 leading-relaxed">{summary}</p>
+        </div>
+        <StateBadge status={status} testId={`${testId}-pill`} />
       </header>
-      <div className="font-mono text-[12px] text-slate-700 space-y-1">
+      <div className="space-y-2 text-sm text-slate-700">
         {children}
       </div>
     </section>
   );
 }
 
-function Row({ label, value, testId }) {
+function FactRow({ label, value, testId }) {
   return (
-    <div className="grid grid-cols-[14rem_1fr] gap-2" data-testid={testId}>
-      <span className="text-slate-500 uppercase tracking-wider text-[10px]">
+    <div className="grid gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[14rem_1fr]" data-testid={testId}>
+      <span className="text-slate-500 uppercase tracking-wider text-[10px] font-mono">
         {label}
       </span>
-      <span className="text-slate-800 break-all">{value ?? "—"}</span>
+      <span className="text-slate-900 break-words">{displayValue(value)}</span>
     </div>
   );
 }
@@ -115,11 +153,9 @@ export default function SelfProtection() {
         ]}
         testidPrefix="self-protection"
       >
-        <div className="p-6 max-w-3xl">
-          <h1 className="font-mono text-[12px] uppercase tracking-[0.25em] text-slate-700 mb-2">
-            Governance · Self-Protection
-          </h1>
-          <p className="text-slate-700 text-sm" data-testid="self-protection-error">
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-800" data-testid="self-protection-error">
+          <div className="font-semibold text-rose-900 mb-1">Self-protection status is unavailable.</div>
+          <p>
             {err}
           </p>
         </div>
@@ -138,11 +174,8 @@ export default function SelfProtection() {
         ]}
         testidPrefix="self-protection"
       >
-        <div className="p-6 max-w-3xl" data-testid="self-protection-loading">
-          <h1 className="font-mono text-[12px] uppercase tracking-[0.25em] text-slate-700 mb-2">
-            Governance · Self-Protection
-          </h1>
-          <p className="text-slate-500 text-sm">Reading governance state…</p>
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600" data-testid="self-protection-loading">
+          Reading governance state…
         </div>
       </LegacyAdminModernShell>
     );
@@ -157,6 +190,47 @@ export default function SelfProtection() {
   const fw = data.field_walks || {};
   const dr = data.drift || {};
   const dp = data.deployment || {};
+  const warningBreakdown = a.warning_classification || {};
+
+  const heroSummary = a.new_violations > 0
+    ? `${a.new_violations} new authority violation${a.new_violations === 1 ? " needs" : "s need"} immediate attention.`
+    : a.new_warnings > 0
+      ? `${a.new_warnings} warning${a.new_warnings === 1 ? " was" : "s were"} detected, but none are currently classified as active failures.`
+      : "No new authority violations or warnings were detected in the latest pass.";
+
+  const trustSummary = t.registered > 0
+    ? `${t.registered} trust surfaces are registered, with ${t.live || 0} currently live and ${t.planned || 0} still planned.`
+    : "Trust-surface registry evidence is not available in this preview runtime yet.";
+
+  const contextSummary = c.context_governed > 0
+    ? `${c.context_governed} surfaces are context-governed, with ${c.tbd || 0} still awaiting governance coverage.`
+    : "No context-governed surfaces were reported in this runtime snapshot.";
+
+  const truthfulSummary = ts.contracts > 0
+    ? `${ts.contracts} truthful-state contracts are declared across ${ts.surfaces_covered?.length || 0} surfaces.`
+    : "No truthful-state contract records were shipped in this runtime image.";
+
+  const telemetrySummary = tm.client_signals || tm.server_signals
+    ? `${tm.client_signals || 0} client signals and ${tm.server_signals || 0} server signals are currently declared.`
+    : "Telemetry doctrine details are not available in this preview runtime yet.";
+
+  const regressionSummary = rg.status === "unavailable_in_runtime_image"
+    ? "Regression artifacts are not shipped in the preview runtime image, so this page cannot independently quote the latest test report."
+    : rg.last_iteration
+      ? `Latest recorded regression run: ${rg.last_iteration}.`
+      : "No regression run metadata is available right now.";
+
+  const fieldWalkSummary = fw.walks?.length
+    ? `${fw.walks.length} field walk checklist${fw.walks.length === 1 ? " is" : "s are"} registered for verification.`
+    : "No field walk checklist evidence was returned in this runtime snapshot.";
+
+  const driftSummary = dr.open_gaps > 0
+    ? `${dr.open_gaps} open governance gap${dr.open_gaps === 1 ? " remains" : "s remain"}.`
+    : "No open governance gaps are currently reported; remaining warnings are historical or tolerated baseline items.";
+
+  const deploymentSummary = dp.deployed_at
+    ? `Current runtime was recorded ${_fmtAgo(dp.deployed_at)} and keeps ${dp.history_size || 0} release history entries for comparison.`
+    : "Deployment lineage has not been recorded for this runtime yet.";
 
   return (
     <LegacyAdminModernShell
@@ -168,133 +242,118 @@ export default function SelfProtection() {
       ]}
       testidPrefix="self-protection"
     >
-      <div
-        className="p-6 max-w-3xl bg-slate-50 min-h-screen"
-        data-testid="self-protection-page"
-      >
-        <header className="mb-4 pb-3 border-b border-slate-300/80">
-          <div className="flex items-baseline justify-between gap-4">
-            <div>
-              <h1
-                className="font-mono text-[12px] uppercase tracking-[0.3em] text-slate-700"
-                data-testid="self-protection-title"
-              >
-                Governance · Self-Protection
+      <div className="space-y-6" data-testid="self-protection-page">
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl space-y-2">
+              <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-700">
+                Platform self-protection
+              </div>
+              <h1 className="text-2xl font-black text-slate-950" data-testid="self-protection-title">
+                Governance guardrails for the platform itself
               </h1>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Operational integrity of the platform&apos;s own governance layer ·{" "}
-                <Link to="/admin/governance"
-                      className="underline hover:text-slate-700">
-                  back to governance
-                </Link>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {heroSummary} This page explains whether the platform&apos;s own governance controls are wired, current, and behaving as expected.
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <StatusPill status={data.page_status} testId="self-protection-overall-pill" />
+            <div className="flex flex-wrap items-center gap-2">
+              <StateBadge status={data.page_status} testId="self-protection-overall-pill" />
               <button
                 type="button"
                 onClick={fetchOnce}
                 disabled={refreshing}
                 data-testid="self-protection-refresh"
-                className="font-mono text-[10px] uppercase tracking-wider text-slate-500 hover:text-slate-800 border border-slate-300 px-2 py-1 rounded-sm"
+                className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50 disabled:opacity-60"
               >
-                {refreshing ? "refreshing…" : "refresh"}
+                {refreshing ? "Refreshing…" : "Refresh"}
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1 font-mono">
-            loaded {loadedAt ? _fmtAgo(loadedAt / 1000) : "—"} ·
-            generated {data.generated_at ? _fmtAgo(data.generated_at) : "—"}
-          </p>
-        </header>
 
-        <Section title="Authority Protection" status={a.status} testId="self-protection-authority">
-          <Row label="Probe status" value={a.status} testId="auth-status" />
-          <Row label="New violations" value={a.new_violations} testId="auth-violations" />
-          <Row label="New warnings" value={a.new_warnings} testId="auth-warnings" />
-          <Row label="Baselined patterns" value={a.baselined} testId="auth-baselined" />
-          <Row label="Probe runtime" value={a.scan_ms != null ? `${a.scan_ms} ms` : "—"} testId="auth-runtime" />
-          <Row label="Last run" value={a.last_run_at ? _fmtAgo(a.last_run_at) : "—"} testId="auth-last-run" />
-        </Section>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Page status</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{explainStatus(data.page_status)}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Loaded in browser</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{loadedAt ? _fmtAgo(loadedAt / 1000) : "Not loaded yet"}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Generated by backend</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{data.generated_at ? _fmtAgo(data.generated_at) : "Not reported"}</div>
+            </div>
+          </div>
+        </section>
 
-        <Section title="Trust Surfaces" status={t.status} testId="self-protection-trust">
-          <Row label="Registered surfaces" value={t.registered} testId="trust-registered" />
-          <Row label="Live" value={t.live} testId="trust-live" />
-          <Row label="Planned" value={t.planned} testId="trust-planned" />
-          <Row label="Doctrine fields" value={(t.doctrine_fields || []).length} testId="trust-fields" />
-        </Section>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SectionCard title="Authority protection" status={a.status} summary={heroSummary} testId="self-protection-authority">
+            <FactRow label="Probe status" value={explainStatus(a.status)} testId="auth-status" />
+            <FactRow label="New violations" value={a.new_violations} testId="auth-violations" />
+            <FactRow label="New warnings" value={a.new_warnings} testId="auth-warnings" />
+            <FactRow label="Baselined patterns" value={a.baselined} testId="auth-baselined" />
+            <FactRow label="Current actionable warnings" value={warningBreakdown.current_actionable} testId="auth-current-actionable" />
+            <FactRow label="Probe runtime" value={a.scan_ms != null ? `${a.scan_ms} ms` : "No runtime reported"} testId="auth-runtime" />
+            <FactRow label="Last run" value={a.last_run_at ? _fmtAgo(a.last_run_at) : "Not run yet"} testId="auth-last-run" />
+          </SectionCard>
 
-        <Section title="Context Governance" status={c.status} testId="self-protection-context">
-          <Row label="Context-governed" value={c.context_governed} testId="ctx-governed" />
-          <Row label="TBD (Wave 3)" value={c.tbd} testId="ctx-tbd" />
-          <Row label="Planned (Phase V)" value={c.planned} testId="ctx-planned" />
-        </Section>
+          <SectionCard title="Trust surfaces" status={t.status} summary={trustSummary} testId="self-protection-trust">
+            <FactRow label="Registered surfaces" value={t.registered} testId="trust-registered" />
+            <FactRow label="Live now" value={t.live} testId="trust-live" />
+            <FactRow label="Still planned" value={t.planned} testId="trust-planned" />
+            <FactRow label="Doctrine fields tracked" value={(t.doctrine_fields || []).length || "No doctrine fields reported"} testId="trust-fields" />
+          </SectionCard>
 
-        <Section title="Truthful-State Contracts" status={ts.status} testId="self-protection-truthful">
-          <Row label="Contracts declared" value={ts.contracts} testId="truthful-contracts" />
-          <Row label="Surfaces covered" value={(ts.surfaces_covered || []).length} testId="truthful-surfaces" />
-        </Section>
+          <SectionCard title="Context governance" status={c.status} summary={contextSummary} testId="self-protection-context">
+            <FactRow label="Governed with context rules" value={c.context_governed} testId="ctx-governed" />
+            <FactRow label="Still to be governed" value={c.tbd} testId="ctx-tbd" />
+            <FactRow label="Planned for later phases" value={c.planned} testId="ctx-planned" />
+          </SectionCard>
 
-        <Section title="Telemetry Doctrine" status={tm.status} testId="self-protection-telemetry">
-          <Row label="Client signals" value={tm.client_signals} testId="telemetry-client" />
-          <Row label="Server signals" value={tm.server_signals} testId="telemetry-server" />
-          <Row label="Forbidden patterns documented" value={tm.forbidden_patterns} testId="telemetry-forbidden" />
-        </Section>
+          <SectionCard title="Truthful-state contracts" status={ts.status} summary={truthfulSummary} testId="self-protection-truthful">
+            <FactRow label="Contracts declared" value={ts.contracts} testId="truthful-contracts" />
+            <FactRow label="Covered surfaces" value={(ts.surfaces_covered || []).length || "No covered surfaces reported"} testId="truthful-surfaces" />
+          </SectionCard>
 
-        <Section title="Regression Suite" status={rg.status} testId="self-protection-regression">
-          <Row label="Last iteration report" value={rg.last_iteration || "—"} testId="reg-iteration" />
-          <Row label="Last run" value={rg.last_iteration_at ? _fmtAgo(rg.last_iteration_at) : "—"} testId="reg-last" />
-        </Section>
+          <SectionCard title="Telemetry doctrine" status={tm.status} summary={telemetrySummary} testId="self-protection-telemetry">
+            <FactRow label="Client signals" value={tm.client_signals} testId="telemetry-client" />
+            <FactRow label="Server signals" value={tm.server_signals} testId="telemetry-server" />
+            <FactRow label="Forbidden patterns documented" value={tm.forbidden_patterns} testId="telemetry-forbidden" />
+          </SectionCard>
 
-        <Section title="Field Walks" status={fw.status} testId="self-protection-walks">
-          {(fw.walks || []).map((w) => (
-            <Row
-              key={w.role}
-              label={w.role}
-              value={w.exists
-                ? `checklist current · updated ${_fmtAgo(w.last_modified_at)}`
-                : "checklist missing"}
-              testId={`walk-${w.role.toLowerCase()}`}
-            />
-          ))}
-        </Section>
+          <SectionCard title="Regression suite" status={rg.status} summary={regressionSummary} testId="self-protection-regression">
+            <FactRow label="Latest report" value={rg.last_iteration || "No report reference returned"} testId="reg-iteration" />
+            <FactRow label="Last run" value={rg.last_iteration_at ? _fmtAgo(rg.last_iteration_at) : "No run timestamp returned"} testId="reg-last" />
+          </SectionCard>
 
-        <Section title="Open Governance Gaps" status={dr.status} testId="self-protection-drift">
-          <Row label="Total open gaps" value={dr.open_gaps} testId="drift-total" />
-          <Row label="Context TBD" value={dr.context_tbd} testId="drift-ctx-tbd" />
-          <Row label="Authority violations" value={dr.authority_violations} testId="drift-auth-v" />
-          <Row label="Authority warnings (review)" value={dr.authority_warnings} testId="drift-auth-w" />
-        </Section>
+          <SectionCard title="Field walks" status={fw.status} summary={fieldWalkSummary} testId="self-protection-walks">
+            {(fw.walks || []).length ? (fw.walks || []).map((w) => (
+              <FactRow
+                key={w.role}
+                label={humanizeToken(w.role)}
+                value={w.exists ? `Checklist current · updated ${_fmtAgo(w.last_modified_at)}` : "Checklist missing"}
+                testId={`walk-${String(w.role).toLowerCase()}`}
+              />
+            )) : <FactRow label="Walk coverage" value="No field walk checklist evidence returned" testId="walks-empty" />}
+          </SectionCard>
 
-        <Section title="Deployment" status={dp.status} testId="self-protection-deployment">
-          <Row
-            label="Current source"
-            value={dp.source_hash ? dp.source_hash.slice(0, 12) : "—"}
-            testId="deploy-current"
-          />
-          <Row
-            label="Recorded at"
-            value={dp.deployed_at ? _fmtAgo(dp.deployed_at) : "not recorded yet"}
-            testId="deploy-recorded"
-          />
-          <Row
-            label="Prior source"
-            value={dp.prior_source_hash ? dp.prior_source_hash.slice(0, 12) : "—"}
-            testId="deploy-prior"
-          />
-          <Row
-            label="Prior recorded"
-            value={dp.prior_deployed_at ? _fmtAgo(dp.prior_deployed_at) : "—"}
-            testId="deploy-prior-recorded"
-          />
-          <Row
-            label="History entries"
-            value={dp.history_size != null ? dp.history_size : "—"}
-            testId="deploy-history-size"
-          />
-        </Section>
+          <SectionCard title="Open governance gaps" status={dr.status} summary={driftSummary} testId="self-protection-drift">
+            <FactRow label="Open gaps" value={dr.open_gaps} testId="drift-total" />
+            <FactRow label="Context gaps" value={dr.context_tbd} testId="drift-ctx-tbd" />
+            <FactRow label="Authority violations" value={dr.authority_violations} testId="drift-auth-v" />
+            <FactRow label="Authority warnings under review" value={dr.authority_warnings} testId="drift-auth-w" />
+          </SectionCard>
 
-        <footer className="text-[10px] text-slate-400 mt-6 pt-3 border-t border-slate-200 font-mono">
+          <SectionCard title="Deployment lineage" status={dp.status} summary={deploymentSummary} testId="self-protection-deployment">
+            <FactRow label="Current release fingerprint" value={dp.source_hash ? dp.source_hash.slice(0, 12) : "Not recorded"} testId="deploy-current" />
+            <FactRow label="Recorded at" value={dp.deployed_at ? _fmtAgo(dp.deployed_at) : "Not recorded yet"} testId="deploy-recorded" />
+            <FactRow label="Previous release fingerprint" value={dp.prior_source_hash ? dp.prior_source_hash.slice(0, 12) : "No prior fingerprint"} testId="deploy-prior" />
+            <FactRow label="Previous recorded at" value={dp.prior_deployed_at ? _fmtAgo(dp.prior_deployed_at) : "No earlier deployment recorded"} testId="deploy-prior-recorded" />
+            <FactRow label="History entries retained" value={dp.history_size != null ? dp.history_size : "No history count returned"} testId="deploy-history-size" />
+          </SectionCard>
+        </div>
+
+        <footer className="text-[10px] text-slate-400 pt-3 border-t border-slate-200 font-mono">
           Read-only operational status · no PII · no analytics · no charts.
           Sources: authority probe · TRUST_SURFACES.json ·
           SHARED_SURFACE_CONTEXT_MATRIX.json · TRUTHFUL_STATE_TEST_MATRIX.json ·

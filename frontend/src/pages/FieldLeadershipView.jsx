@@ -4,11 +4,12 @@
 // records table.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, FileDown, AlertTriangle, CheckCircle2, Camera } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
@@ -21,12 +22,57 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { formatEmployeeIdentity } from "@/lib/identity";
 
+function humanizeDetailKey(key) {
+  return String(key || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function isInternalDetailKey(key) {
+  const value = String(key || "").toLowerCase();
+  return value === "id" || value.startsWith("_") || value.endsWith("_id") || value.includes("uuid") || value === "line_index";
+}
+
+function renderDetailValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return <span className="text-slate-400">No answer recorded</span>;
+  }
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+  if (Array.isArray(value)) {
+    if (!value.length) return <span className="text-slate-400">No entries recorded</span>;
+    return value.join(" · ");
+  }
+  if (typeof value === "object") {
+    const nestedEntries = Object.entries(value).filter(([nestedKey, nestedValue]) => !isInternalDetailKey(nestedKey) && nestedValue !== null && nestedValue !== undefined && nestedValue !== "");
+    if (!nestedEntries.length) return <span className="text-slate-400">No structured details recorded</span>;
+    return (
+      <table className="w-full mt-1">
+        <tbody>
+          {nestedEntries.map(([nestedKey, nestedValue]) => (
+            <tr key={nestedKey}>
+              <th className="text-left text-xs text-slate-500 pr-3 py-0.5 font-mono">{humanizeDetailKey(nestedKey)}</th>
+              <td className="text-xs py-0.5">{String(nestedValue)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
+  return String(value);
+}
+
 export default function FieldLeadershipView() {
   const { t, lang } = useT();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const [rec, setRec] = useState(null);
   const [loading, setLoading] = useState(true);
+  const adminMode = location.pathname.startsWith("/admin/");
 
   useEffect(() => {
     if (!getFlToken() && !isAdmin() && !getPmToken()) {
@@ -57,10 +103,33 @@ export default function FieldLeadershipView() {
     }
   };
 
-  if (loading) return <main className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">{t("Loading…")}</main>;
-  if (!rec) return <main className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">{t("Not found")}</main>;
+  if (loading) {
+    return adminMode ? (
+      <LegacyAdminModernShell
+        title="Field Leadership Record"
+        subtitle="Read-only field submission with supporting evidence."
+        breadcrumb={[{ label: "Operations & Leadership", to: "/admin" }, { label: "Field Leadership Record" }]}
+        testidPrefix="leadership-view"
+      >
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Loading…")}</div>
+      </LegacyAdminModernShell>
+    ) : <main className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">{t("Loading…")}</main>;
+  }
+  if (!rec) {
+    return adminMode ? (
+      <LegacyAdminModernShell
+        title="Field Leadership Record"
+        subtitle="Read-only field submission with supporting evidence."
+        breadcrumb={[{ label: "Operations & Leadership", to: "/admin" }, { label: "Field Leadership Record" }]}
+        testidPrefix="leadership-view"
+      >
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Not found")}</div>
+      </LegacyAdminModernShell>
+    ) : <main className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">{t("Not found")}</main>;
+  }
 
   const details = rec.details_en || rec.details || {};
+  const detailEntries = Object.entries(details).filter(([key, value]) => !isInternalDetailKey(key) && value !== null && value !== undefined && value !== "");
   const meta = [
     [t("Form Type"), kindLabel(rec.kind)],
     [t("Employee"), rec.employee_name],
@@ -73,6 +142,143 @@ export default function FieldLeadershipView() {
     [t("Submitted via"), rec.submitted_via_role],
     [t("Language"), rec.language === "es" ? "Español → English" : "English"],
   ];
+
+  const recordSection = (
+    <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-6">
+      <div className="mb-6 flex items-center gap-4">
+        <Link
+          to={adminMode ? "/admin" : "/leadership/records"}
+          className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
+          data-testid="leadership-view-back-records"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> {adminMode ? t("Admin OS") : t("Records")}
+        </Link>
+        <span className="text-slate-300">·</span>
+        <Link
+          to={adminMode ? "/admin/leadership-equipment" : isAdmin() ? "/admin" : getPmToken() ? "/pm" : "/leadership"}
+          className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
+          data-testid="leadership-view-back-hub"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />{" "}
+          {adminMode ? t("Leadership & Equipment") : isAdmin() ? t("Administration") : getPmToken() ? t("Project Management") : t("Field Leadership")}
+        </Link>
+      </div>
+
+      <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
+      <div className="flex items-center justify-between gap-4 flex-wrap mt-1">
+        <h1 className="font-display text-3xl sm:text-4xl font-black">{kindLabel(rec.kind)}</h1>
+        {rec.doc_id && (
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300"
+            data-testid="record-doc-id-badge"
+          >
+            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-red-700 font-bold">{t("Record Ref")}</span>
+            <span className="font-mono text-base font-black text-red-800 tracking-wide tabular-nums">{rec.doc_id}</span>
+          </div>
+        )}
+      </div>
+
+      <Card className="mt-5 p-5">
+        <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Summary")}</h3>
+        <table className="w-full text-sm">
+          <tbody>
+            {meta.map(([k, v]) => (
+              <tr key={k} className="border-b border-slate-100">
+                <th className="text-left py-1.5 pr-3 font-semibold text-slate-700 w-1/3">{k}</th>
+                <td className="py-1.5">{v || <span className="text-slate-400">No answer recorded</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      {(rec.kind === "equipment_checkout" || rec.kind === "equipment_return") && (
+        <EquipmentComparisonCard rec={rec} details={details} t={t} />
+      )}
+
+      {detailEntries.length > 0 && rec.kind !== "equipment_checkout" && rec.kind !== "equipment_return" && (
+        <Card className="mt-4 p-5">
+          <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Details")}</h3>
+          <dl className="space-y-3">
+            {detailEntries.map(([k, v]) => (
+              <div key={k}>
+                <dt className="font-semibold text-sm text-slate-700">{humanizeDetailKey(k)}</dt>
+                <dd className="text-sm text-slate-800 whitespace-pre-wrap mt-0.5">{renderDetailValue(v)}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      )}
+
+      {Array.isArray(rec.photos) && rec.photos.length > 0 && (
+        <Card className="mt-4 p-5">
+          <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Photos")}</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
+            {rec.photos.map((p, i) => (
+              <img key={i} src={resolvePhotoSrc(p)} alt={`photo ${i}`} loading="lazy" decoding="async" className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {(rec.supervisor_signature || rec.employee_signature || rec.witness_signature) && (
+        <Card className="mt-4 p-5">
+          <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Signatures")}</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
+            {rec.supervisor_signature && (
+              <div className="border-2 border-slate-200 rounded p-3 bg-white">
+                <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Supervisor")}</div>
+                <img src={resolvePhotoSrc(rec.supervisor_signature)} alt="sig" className="max-h-20 mt-1" />
+                <div className="font-bold mt-1 text-sm">{rec.supervisor_name}</div>
+              </div>
+            )}
+            {rec.employee_refused ? (
+              <div className="border-2 border-red-200 rounded p-3 bg-red-50">
+                <div className="text-xs font-mono uppercase tracking-[0.15em] text-red-700">{t("Employee Refused")}</div>
+                <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
+              </div>
+            ) : rec.employee_signature && (
+              <div className="border-2 border-slate-200 rounded p-3 bg-white">
+                <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Employee")}</div>
+                <img src={resolvePhotoSrc(rec.employee_signature)} alt="sig" className="max-h-20 mt-1" />
+                <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
+              </div>
+            )}
+            {rec.witness_signature && (
+              <div className="border-2 border-slate-200 rounded p-3 bg-white">
+                <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Witness")}</div>
+                <img src={resolvePhotoSrc(rec.witness_signature)} alt="sig" className="max-h-20 mt-1" />
+                <div className="font-bold mt-1 text-sm">{rec.witness_name}</div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+    </section>
+  );
+
+  if (adminMode) {
+    return (
+      <LegacyAdminModernShell
+        title={kindLabel(rec.kind)}
+        subtitle="Read-only field submission with supporting photos, signatures, and operator context."
+        breadcrumb={[{ label: "Operations & Leadership", to: "/admin" }, { label: "Field Leadership Record" }]}
+        testidPrefix="leadership-view"
+        primaryActions={(
+          <Button
+            onClick={downloadPdf}
+            variant="outline"
+            className="h-10 px-3 border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 text-xs font-bold uppercase tracking-wide"
+            data-testid="leadership-view-pdf"
+          >
+            <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
+          </Button>
+        )}
+      >
+        {recordSection}
+      </LegacyAdminModernShell>
+    );
+  }
 
   return (
     <main className="min-h-screen blueprint-bg pb-16">
@@ -95,138 +301,7 @@ export default function FieldLeadershipView() {
           </div>
         </div>
       </header>
-
-      <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-6">
-        <div className="mb-6 flex items-center gap-4">
-          {/* iter96 — secondary back goes to the user's home portal,
-              not the supervisor form-entry hub. */}
-          <Link
-            to="/leadership/records"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="leadership-view-back-records"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Records")}
-          </Link>
-          <span className="text-slate-300">·</span>
-          <Link
-            to={isAdmin() ? "/admin" : getPmToken() ? "/pm" : "/leadership"}
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="leadership-view-back-hub"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />{" "}
-            {isAdmin() ? t("Administration") : getPmToken() ? t("Project Management") : t("Field Leadership")}
-          </Link>
-        </div>
-
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-        <div className="flex items-center justify-between gap-4 flex-wrap mt-1">
-          <h1 className="font-display text-3xl sm:text-4xl font-black">{kindLabel(rec.kind)}</h1>
-          {rec.doc_id && (
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300"
-              data-testid="record-doc-id-badge"
-            >
-              <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-red-700 font-bold">{t("Doc ID")}</span>
-              <span className="font-mono text-base font-black text-red-800 tracking-wide tabular-nums">{rec.doc_id}</span>
-            </div>
-          )}
-        </div>
-
-        <Card className="mt-5 p-5">
-          <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Summary")}</h3>
-          <table className="w-full text-sm">
-            <tbody>
-              {meta.map(([k, v]) => (
-                <tr key={k} className="border-b border-slate-100">
-                  <th className="text-left py-1.5 pr-3 font-semibold text-slate-700 w-1/3">{k}</th>
-                  <td className="py-1.5">{v || <span className="text-slate-400">—</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-
-        {/* Equipment line-aware galleries — beats the generic <dl> table.
-            For equipment_checkout we render each line's photos in a card.
-            For equipment_return we render side-by-side ORIGINAL vs RETURN
-            photos so PMs can sign off on damage in one glance. The data
-            for "original" comes from the line itself (newer submissions
-            from iter52+ carry original_photos forward) OR from a fresh
-            lookup of the parent checkout record (older return records). */}
-        {(rec.kind === "equipment_checkout" || rec.kind === "equipment_return") && (
-          <EquipmentComparisonCard rec={rec} details={details} t={t} />
-        )}
-
-        {Object.keys(details).length > 0 && rec.kind !== "equipment_checkout" && rec.kind !== "equipment_return" && (
-          <Card className="mt-4 p-5">
-            <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Details")}</h3>
-            <dl className="space-y-3">
-              {Object.entries(details).map(([k, v]) => (
-                <div key={k}>
-                  <dt className="font-semibold text-sm text-slate-700">{k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</dt>
-                  <dd className="text-sm text-slate-800 whitespace-pre-wrap mt-0.5">
-                    {v === null || v === undefined || v === "" ? <span className="text-slate-400">—</span>
-                      : typeof v === "object" ? (
-                        <table className="w-full mt-1">
-                          <tbody>
-                            {Object.entries(v).map(([kk, vv]) => (
-                              <tr key={kk}><th className="text-left text-xs text-slate-500 pr-3 py-0.5 font-mono">{kk}</th><td className="text-xs py-0.5">{String(vv)}</td></tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : String(v)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </Card>
-        )}
-
-        {Array.isArray(rec.photos) && rec.photos.length > 0 && (
-          <Card className="mt-4 p-5">
-            <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Photos")}</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
-              {rec.photos.map((p, i) => (
-                <img key={i} src={resolvePhotoSrc(p)} alt={`photo ${i}`} loading="lazy" decoding="async" className="w-full rounded border border-slate-200 object-contain max-h-48 bg-slate-50" />
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {(rec.supervisor_signature || rec.employee_signature || rec.witness_signature) && (
-          <Card className="mt-4 p-5">
-            <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Signatures")}</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
-              {rec.supervisor_signature && (
-                <div className="border-2 border-slate-200 rounded p-3 bg-white">
-                  <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Supervisor")}</div>
-                  <img src={resolvePhotoSrc(rec.supervisor_signature)} alt="sig" className="max-h-20 mt-1" />
-                  <div className="font-bold mt-1 text-sm">{rec.supervisor_name}</div>
-                </div>
-              )}
-              {rec.employee_refused ? (
-                <div className="border-2 border-red-200 rounded p-3 bg-red-50">
-                  <div className="text-xs font-mono uppercase tracking-[0.15em] text-red-700">{t("Employee Refused")}</div>
-                  <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
-                </div>
-              ) : rec.employee_signature && (
-                <div className="border-2 border-slate-200 rounded p-3 bg-white">
-                  <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Employee")}</div>
-                  <img src={resolvePhotoSrc(rec.employee_signature)} alt="sig" className="max-h-20 mt-1" />
-                  <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
-                </div>
-              )}
-              {rec.witness_signature && (
-                <div className="border-2 border-slate-200 rounded p-3 bg-white">
-                  <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Witness")}</div>
-                  <img src={resolvePhotoSrc(rec.witness_signature)} alt="sig" className="max-h-20 mt-1" />
-                  <div className="font-bold mt-1 text-sm">{rec.witness_name}</div>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-      </section>
+      {recordSection}
     </main>
   );
 }

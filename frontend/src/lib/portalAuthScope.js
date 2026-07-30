@@ -52,6 +52,7 @@ const SHARED_API_PREFIXES = [
   "/trench-safety",
   "/project-health",
   "/asset-transfers",
+  "/asset-spine",
   "/odr",
   "/operational-records",
   "/operational-intelligence/",
@@ -102,7 +103,10 @@ export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   if (routePath.startsWith("/pm/") || routePath === "/pm") return ["pm"];
   if (routePath.startsWith("/shop/") || routePath === "/shop") return ["shop"];
   if (routePath.startsWith("/dispatch/") || routePath === "/dispatch") return ["dispatch"];
-  if (routePath.startsWith("/field-leadership/") || routePath === "/field-leadership") return ["fl"];
+  if (routePath.startsWith("/field-leadership/") || routePath === "/field-leadership") {
+    if (activePortal === "admin" || activePortal === "pm") return [activePortal];
+    return ["fl"];
+  }
   if (routePath.startsWith("/leadership/") || routePath === "/leadership") return ["leadership"];
   if (routePath.startsWith("/auth/me-directory")) return ["directory"];
   if (routePath.startsWith("/auth/issue-portal-token")) return ["directory"];

@@ -34,9 +34,9 @@ import {
   Hourglass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -95,16 +95,38 @@ function fmtPct(rate) {
   return `${Math.round(rate * 1000) / 10}%`;
 }
 
-function TruthOwnerBanner({ surface, relationship, canonicalStatus, checkedAt }) {
+function humanizeToken(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function OwnershipNote({ surface, relationship, canonicalStatus, checkedAt }) {
   if (!surface) return null;
   return (
-    <TruthOwnerPanel
-      title="Canonical truth owner"
-      surface={surface}
-      relationship={{ ...relationship, canonical_status: canonicalStatus || relationship?.canonical_status }}
-      checkedAt={fmtTs(checkedAt)}
-      testidPrefix="trust-spine-owner-banner"
-    />
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3" data-testid="trust-spine-owner-note">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Evidence ownership</span>
+        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-700">
+          {humanizeToken(canonicalStatus || relationship?.canonical_status || surface.role || "registered")}
+        </span>
+      </div>
+      <p className="text-sm text-slate-800" data-testid="trust-spine-owner-note-summary">
+        {surface.surface_name || "Platform Trust Spine"} is the canonical source for workflow lifecycle truth on this page. If another screen disagrees with it, this source wins until the conflict is investigated.
+      </p>
+      <div className="grid gap-3 md:grid-cols-2 text-sm text-slate-700">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" data-testid="trust-spine-owner-note-subject">
+          <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Truth subject</div>
+          <div className="mt-1 font-semibold text-slate-950">{humanizeToken(surface.truth_subject || "workflow lifecycle truth")}</div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" data-testid="trust-spine-owner-note-checked-at">
+          <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Checked at</div>
+          <div className="mt-1 font-semibold text-slate-950">{fmtTs(checkedAt) || "No timestamp reported"}</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -140,28 +162,28 @@ function TruthDisclosure({ ots, testidPrefix }) {
         data-testid={testidPrefix}
       >
         <div data-testid={`${testidPrefix}-subject`}>
-          <span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}
+          <span className="font-semibold text-slate-900">What this page measures:</span> {humanizeToken(ots.truth_subject || "workflow lifecycle truth")}
         </div>
         <div data-testid={`${testidPrefix}-claim`}>
-          <span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}
+          <span className="font-semibold text-slate-900">Allowed claim:</span> {humanizeToken(ots.permitted_claim || "not declared")}
         </div>
         <div data-testid={`${testidPrefix}-ceiling`}>
-          <span className="font-semibold text-slate-900">Claim ceiling:</span> {ots.claim_ceiling || "UNKNOWN"}
+          <span className="font-semibold text-slate-900">Claim ceiling:</span> {humanizeToken(ots.claim_ceiling || "not declared")}
         </div>
         <div data-testid={`${testidPrefix}-confidence`}>
-          <span className="font-semibold text-slate-900">Confidence:</span> {ots.evidence_confidence || "UNKNOWN"}
+          <span className="font-semibold text-slate-900">Confidence:</span> {humanizeToken(ots.evidence_confidence || "not declared")}
         </div>
         <div data-testid={`${testidPrefix}-state`}>
-          <span className="font-semibold text-slate-900">Evidence state:</span> {ots.evidence_state || "unknown"}
+          <span className="font-semibold text-slate-900">Evidence state:</span> {humanizeToken(ots.evidence_state || "not declared")}
         </div>
         <div data-testid={`${testidPrefix}-quality`}>
-          <span className="font-semibold text-slate-900">Evidence quality:</span> {ots.evidence_quality || "UNKNOWN"}
+          <span className="font-semibold text-slate-900">Evidence quality:</span> {humanizeToken(ots.evidence_quality || "not declared")}
         </div>
         <div data-testid={`${testidPrefix}-basis`}>
-          <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).join(" · ") || "—"}
+          <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).map(humanizeToken).join(" · ") || "No basis listed"}
         </div>
         <div data-testid={`${testidPrefix}-audit`}>
-          <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "—"}
+          <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "No audit reference listed"}
         </div>
       </div>
       {unknowns.length > 0 && (
@@ -169,7 +191,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
           className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
           data-testid={`${testidPrefix}-unknowns`}
         >
-          <div className="font-semibold">Unknowns / gaps</div>
+          <div className="font-semibold">Coverage gaps</div>
           <ul className="mt-1 list-disc space-y-1 pl-4">
             {unknowns.map((item, index) => (
               <li key={`${testidPrefix}-unknown-${index}`}>{item}</li>
@@ -182,7 +204,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
           className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900"
           data-testid={`${testidPrefix}-contradictions`}
         >
-          <div className="font-semibold">Contradictions</div>
+          <div className="font-semibold">Conflicts found</div>
           <ul className="mt-1 list-disc space-y-1 pl-4">
             {contradictions.map((item, index) => (
               <li key={`${testidPrefix}-contradiction-${index}`}>{item}</li>
@@ -211,7 +233,7 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </td>
         <td className="px-3 py-2 font-mono text-xs text-slate-800">
-          {row.workflow}
+          {humanizeToken(row.workflow)}
         </td>
         <td className="px-3 py-2">
           <Badge band={row.band} />
@@ -239,7 +261,7 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
         </td>
         <td className="px-3 py-2 text-xs text-slate-600 max-w-md">
           <div className="truncate" title={row.reason}>
-            {row.reason}
+            {row.reason || "No exception or remediation note was reported."}
           </div>
           {row.remediation && (
             <div
@@ -454,44 +476,88 @@ export default function PlatformTrustDashboard() {
 
   if (loading && !data) {
     return (
-      <div
-        data-testid="platform-trust-spine-loading"
-        className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"
+      <LegacyAdminModernShell
+        title="Platform Trust Spine"
+        subtitle="Canonical lifecycle evidence for the Admin portal's critical workflows."
+        breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
+        testidPrefix="platform-trust-spine"
       >
-        <RotateCw className="inline-block animate-spin mr-2" size={14} />
-        Loading Trust Spine…
-      </div>
+        <div
+          data-testid="platform-trust-spine-loading"
+          className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"
+        >
+          <RotateCw className="inline-block animate-spin mr-2" size={14} />
+          Loading Trust Spine…
+        </div>
+      </LegacyAdminModernShell>
     );
   }
 
   if (error && !data) {
     return (
-      <div
-        data-testid="platform-trust-spine-error"
-        className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+      <LegacyAdminModernShell
+        title="Platform Trust Spine"
+        subtitle="Canonical lifecycle evidence for the Admin portal's critical workflows."
+        breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
+        testidPrefix="platform-trust-spine"
       >
-        <strong>Trust Spine unavailable:</strong> {error}
-        <div className="mt-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={run}
-            data-testid="platform-trust-spine-retry"
-          >
-            <RotateCw size={14} className="mr-1" /> Retry
-          </Button>
+        <div
+          data-testid="platform-trust-spine-error"
+          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+        >
+          <strong>Trust Spine unavailable:</strong> {error}
+          <div className="mt-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={run}
+              data-testid="platform-trust-spine-retry"
+            >
+              <RotateCw size={14} className="mr-1" /> Retry
+            </Button>
+          </div>
         </div>
-      </div>
+      </LegacyAdminModernShell>
     );
   }
 
   if (!data) return null;
 
   return (
+    <LegacyAdminModernShell
+      title="Platform Trust Spine"
+      subtitle="Canonical lifecycle evidence for the Admin portal's critical workflows."
+      breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
+      testidPrefix="platform-trust-spine"
+    >
     <div
       data-testid="platform-trust-spine-dashboard"
       className="space-y-4"
     >
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl space-y-2">
+            <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-700">
+              Workflow completion truth
+            </div>
+            <h2 className="text-2xl font-black text-slate-950">How to read this page</h2>
+            <p className="text-sm text-slate-700 leading-relaxed">
+              This page is the source of truth for whether critical workflows actually completed, failed, or simply had no activity in the last 24 hours. A quiet workflow is shown as an evidence gap, not a false pass.
+            </p>
+          </div>
+          <div className="grid min-w-[240px] grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Current determination</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950" data-testid="trust-spine-bounded-headline">{boundedHeadline(data?.ots_truth)}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Latest refresh</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{lastRun || "Not refreshed in this session yet"}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div
         className={`rounded-2xl border p-4 ${platformCfg.tone}`}
         data-testid="trust-spine-platform-band"
@@ -598,7 +664,7 @@ export default function PlatformTrustDashboard() {
 
         <TruthDisclosure ots={data?.ots_truth} testidPrefix="trust-spine-ots-disclosure" />
 
-        <TruthOwnerBanner
+        <OwnershipNote
           surface={data.truth_surface}
           relationship={data.truth_relationship}
           canonicalStatus={data.canonical_status}
@@ -648,5 +714,6 @@ export default function PlatformTrustDashboard() {
         </div>
       </div>
     </div>
+    </LegacyAdminModernShell>
   );
 }

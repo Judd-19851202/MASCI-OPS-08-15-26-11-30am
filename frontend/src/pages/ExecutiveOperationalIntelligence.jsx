@@ -3,10 +3,34 @@ import { api } from "@/lib/api";
 import {
   fetchAdminDashboard, fetchExecutiveHealth, fetchAdminAttention,
 } from "@/lib/odsIntelligenceApi";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
 } from "@/components/ods/HorizonPrimitives";
+import { formatPlatformTime } from "@/lib/platformTime";
+
+function humanizeToken(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function fmtTs(value) {
+  if (!value) return "Not reported";
+  try {
+    return formatPlatformTime(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function briefingStatusLabel(status) {
+  if (!status) return "Not generated yet";
+  return humanizeToken(status);
+}
 
 /**
  * DR-ROI-001E · Executive Operational Intelligence.
@@ -63,6 +87,7 @@ export default function ExecutiveOperationalIntelligence() {
   const totalProjects = health?.total_projects || 0;
   const items = attention?.items || {};
   const oppcSummary = oppc?.summary || {};
+  const approvalHistory = briefing?.approval_history || [];
 
   const runBriefingAction = async (path) => {
     try {
@@ -74,27 +99,51 @@ export default function ExecutiveOperationalIntelligence() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50" data-testid="exec-intel-page">
-      <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-8">
-        <header className="flex items-baseline justify-between gap-4 flex-wrap">
-          <div>
-            <div className="text-[10px] uppercase tracking-widest text-neutral-500">
-              Executive operational intelligence
+    <LegacyAdminModernShell
+      title="Executive Operational Intelligence"
+      subtitle="Portfolio-wide operating picture for leadership decisions, briefing readiness, and resource risk."
+      breadcrumb={[{ label: "Executive Oversight", to: "/admin/executive-overview" }, { label: "Executive Operational Intelligence" }]}
+      testidPrefix="exec-intel"
+    >
+      <div className="space-y-8" data-testid="exec-intel-page">
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl space-y-2">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-slate-500 font-mono">
+                Executive operational intelligence
+              </div>
+              <h1 className="text-2xl font-black text-slate-950">
+                Portfolio snapshot in plain English
+              </h1>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Use this page to understand what landed in the selected period, which projects need leadership attention, and whether the enterprise briefing is ready for distribution. OPPC is shown here as the enterprise operations center, not as unexplained backend shorthand.
+              </p>
             </div>
-            <h1 className="text-2xl font-semibold text-neutral-900">
-              Portfolio Snapshot
-            </h1>
+            <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />
           </div>
-          <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />
-        </header>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Projects reporting</div>
+              <div className="mt-1 text-2xl font-black text-slate-950">{totalProjects}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Resource conflicts</div>
+              <div className="mt-1 text-2xl font-black text-slate-950">{oppcSummary.resource_conflicts ?? 0}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">Briefing status</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{briefingStatusLabel(briefing?.status)}</div>
+            </div>
+          </div>
+        </section>
 
         {err ? (
-          <div className="text-sm text-red-700" data-testid="exec-intel-error">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" data-testid="exec-intel-error">
             {String(err)}
           </div>
         ) : null}
         {loading ? (
-          <div className="text-sm text-neutral-500" data-testid="exec-intel-loading">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500" data-testid="exec-intel-loading">
             Loading portfolio evidence…
           </div>
         ) : null}
@@ -107,33 +156,38 @@ export default function ExecutiveOperationalIntelligence() {
             subtitle="Portfolio totals in range"
             testid="exec-horizon-1-header"
           />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3" data-testid="exec-intel-kpis">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3" data-testid="exec-intel-kpis">
             <KpiTile
               label="Total labor hours"
               value={kpis.labor_hours ?? 0}
               unit="hrs"
               testid="exec-kpi-labor"
+              footnote="Crew time captured from operational reporting."
             />
             <KpiTile
               label="Total equipment hours"
               value={kpis.equipment_hours ?? 0}
               unit="hrs"
               testid="exec-kpi-equipment"
+              footnote="Live equipment use recorded in the selected period."
             />
             <KpiTile
               label="Projects reporting"
               value={totalProjects}
               testid="exec-kpi-projects"
+              footnote="Projects with usable reporting evidence in range."
             />
             <KpiTile
               label="Photos captured"
               value={kpis.photo_count ?? 0}
               testid="exec-kpi-photos"
+              footnote="Field evidence added by crews and supervisors."
             />
             <KpiTile
-              label="OPPC open variances"
+              label="Open executive variances"
               value={oppcSummary.open_variances ?? 0}
               testid="exec-kpi-oppc-variances"
+              footnote="Variance items still open in the enterprise operations center."
             />
           </div>
         </section>
@@ -172,7 +226,10 @@ export default function ExecutiveOperationalIntelligence() {
                         className="border-t border-neutral-100"
                         data-testid={`exec-atrisk-row-${p.project_id}`}
                       >
-                        <td className="py-1.5 font-mono text-neutral-800">{p.project_id}</td>
+                        <td className="py-1.5 text-neutral-800">
+                          <div className="font-semibold">{p.project_name || "Project name not reported"}</div>
+                          <div className="text-xs text-neutral-500">{p.project_number || p.project_id || "Project reference not reported"}</div>
+                        </td>
                         <td className="py-1.5 text-right tabular-nums">{p.delay_hours}</td>
                         <td className="py-1.5 text-right tabular-nums">{p.safety_flag_count}</td>
                         <td className="py-1.5 text-right tabular-nums">
@@ -232,19 +289,20 @@ export default function ExecutiveOperationalIntelligence() {
             <HorizonHeader
               number="OPPC"
               title="Enterprise Operations Center"
-              subtitle="Canonical variance, recovery, and resource coordination"
+              subtitle="Variance, recovery, and resource coordination from the canonical enterprise operations center"
               testid="exec-horizon-oppc-header"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="rounded-lg border border-neutral-200 bg-white p-4" data-testid="exec-oppc-risk">
-                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Projects at risk</div>
+                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Projects needing leadership review</div>
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   {(oppc.what_is_at_risk || []).slice(0, 6).map((item) => (
                     <div key={item.project_number} className="flex items-center justify-between gap-3">
-                      <span>{item.project_number}</span>
-                      <span className="text-xs text-neutral-500">Recovery {item.recovery_overdue || 0}</span>
+                      <span>{item.project_name || item.project_number}</span>
+                      <span className="text-xs text-neutral-500">Recovery overdue {item.recovery_overdue || 0}</span>
                     </div>
                   ))}
+                  {!(oppc.what_is_at_risk || []).length ? <EmptyEvidence label="No portfolio projects are currently escalated for leadership review." /> : null}
                 </div>
               </div>
               <div className="rounded-lg border border-neutral-200 bg-white p-4" data-testid="exec-oppc-conflicts">
@@ -252,21 +310,23 @@ export default function ExecutiveOperationalIntelligence() {
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   {(oppc.resource_conflicts || []).slice(0, 6).map((item, idx) => (
                     <div key={`${item.resource_key}-${idx}`}>
-                      <div className="font-semibold">{item.conflict_type.replaceAll("_", " ")}</div>
+                      <div className="font-semibold">{humanizeToken(item.conflict_type)}</div>
                       <div className="text-xs text-neutral-500">{item.project_number} · {item.why}</div>
                     </div>
                   ))}
+                  {!(oppc.resource_conflicts || []).length ? <EmptyEvidence label="No active resource conflicts are reported right now." /> : null}
                 </div>
               </div>
               <div className="rounded-lg border border-neutral-200 bg-white p-4" data-testid="exec-oppc-recovery">
-                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Recovery overdue</div>
+                <div className="text-[10px] uppercase tracking-widest text-neutral-500">Recovery plans that slipped</div>
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   {(oppc.recovery_overdue || []).slice(0, 6).map((item) => (
-                    <div key={item.variance_key}>
+                    <div key={item.variance_key || item.project_number}>
                       <div className="font-semibold">{item.project_number} · {item.strategy || "strategy pending"}</div>
-                      <div className="text-xs text-neutral-500">{item.recovery_status} · {item.recovery_priority}</div>
+                      <div className="text-xs text-neutral-500">{humanizeToken(item.recovery_status)} · {humanizeToken(item.recovery_priority)}</div>
                     </div>
                   ))}
+                  {!(oppc.recovery_overdue || []).length ? <EmptyEvidence label="No overdue recovery plans are reported right now." /> : null}
                 </div>
               </div>
             </div>
@@ -284,25 +344,25 @@ export default function ExecutiveOperationalIntelligence() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-neutral-500">Status</div>
-                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefing?.status || "awaiting preview auth"}</div>
+                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefingStatusLabel(briefing?.status)}</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate">Generate</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate">Generate latest</button>
                   <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve">Approve</button>
                   <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze">Freeze</button>
                   <a className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" href={`${process.env.REACT_APP_BACKEND_URL}/api/oppc/enterprise/monday-briefing/pdf`} target="_blank" rel="noreferrer" data-testid="exec-briefing-pdf">Open PDF</a>
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 text-sm">
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">Week ending: {briefing?.week_ending || "—"}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">Generated: {briefing?.generated_at || "—"}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-hash">Hash: {briefing?.content_hash || "—"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">Week ending: {briefing?.week_ending || "Not selected yet"}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">Generated: {fmtTs(briefing?.generated_at)}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-history">Approvals and freezes recorded: {approvalHistory.length}</div>
               </div>
               <div className="space-y-2 text-sm text-neutral-700" data-testid="exec-briefing-summary-lines">
                 {(briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
-                {!(briefing?.summary_lines || []).length ? <div className="text-neutral-500">The enterprise briefing data is waiting on preview auth, but the lifecycle controls remain available.</div> : null}
+                {!(briefing?.summary_lines || []).length ? <div className="text-neutral-500">No executive narrative is published yet. Generate the latest briefing to build the summary from current operating evidence.</div> : null}
               </div>
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">Warnings: {(briefing?.warnings || []).join(" · ") || "Preview auth pending or none"}</div>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">Warnings: {(briefing?.warnings || []).join(" · ") || "No warning text was returned"}</div>
             </div>
           </section>
 
@@ -311,6 +371,6 @@ export default function ExecutiveOperationalIntelligence() {
 
         <EvidenceFooter />
       </div>
-    </div>
+    </LegacyAdminModernShell>
   );
 }

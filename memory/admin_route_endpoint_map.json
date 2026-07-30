@@ -1,0 +1,1019 @@
+[
+  {
+    "route": "/admin/qaqc",
+    "component": "AdminQaqcList",
+    "file": "/app/frontend/src/pages/AdminQaqcList.jsx",
+    "endpoints": [
+      "/admin/qaqc-inspections/export.csv",
+      "/jobs-master",
+      "/qaqc-inspections"
+    ]
+  },
+  {
+    "route": "/admin/transportation/*",
+    "component": "AdminTransportation",
+    "file": "/app/frontend/src/pages/AdminTransportation.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/photos",
+    "component": "JobPhotosLibrary",
+    "file": "/app/frontend/src/pages/JobPhotosLibrary.jsx",
+    "endpoints": [
+      "/job-photos",
+      "/job-photos/admin/reindex",
+      "/job-photos/email",
+      "/job-photos/zip",
+      "/jobs-master"
+    ]
+  },
+  {
+    "route": "/admin/trench-safety/excavations",
+    "component": "ExcavationOversight",
+    "file": "/app/frontend/src/pages/trench_safety/ExcavationOversight.jsx",
+    "endpoints": [
+      "/trench-safety/excavations",
+      "/trench-safety/excavations/oversight-chips",
+      "/trench-safety/excavations/reinspection-queue"
+    ]
+  },
+  {
+    "route": "/admin/login",
+    "component": "AdminLogin",
+    "file": "/app/frontend/src/pages/AdminLogin.jsx",
+    "endpoints": [
+      "/auth/multi-login"
+    ]
+  },
+  {
+    "route": "/admin",
+    "component": "AdminOS",
+    "file": "/app/frontend/src/pages/admin/AdminOS.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/hub_v1",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/hub_v2",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/executive-overview",
+    "component": "ExecutiveOverview",
+    "file": "/app/frontend/src/pages/ExecutiveOverview.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/executive-intelligence",
+    "component": "ExecutiveIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveIntelligence.jsx",
+    "endpoints": [
+      "/incident-intelligence/brief",
+      "/incident-intelligence/corrective-actions",
+      "/incident-intelligence/fleet",
+      "/incident-intelligence/home",
+      "/incident-intelligence/learning",
+      "/incident-intelligence/portfolio-attention",
+      "/incident-intelligence/projects",
+      "/incident-intelligence/root-causes",
+      "/project-health"
+    ]
+  },
+  {
+    "route": "/admin/material-ledger-quality",
+    "component": "AdminMaterialLedgerQuality",
+    "file": "/app/frontend/src/pages/AdminMaterialLedgerQuality.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/people",
+    "component": "AdminPeople",
+    "file": "/app/frontend/src/pages/admin/AdminPeople.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/mfa",
+    "component": "AdminMfa",
+    "file": "/app/frontend/src/pages/admin/AdminMfa.jsx",
+    "endpoints": [
+      "/admin/mfa/disable",
+      "/admin/mfa/enroll/start",
+      "/admin/mfa/enroll/verify",
+      "/admin/mfa/regenerate-recovery",
+      "/admin/mfa/status"
+    ]
+  },
+  {
+    "route": "/admin/promo-assets",
+    "component": "AdminPromoAssets",
+    "file": "/app/frontend/src/pages/admin/AdminPromoAssets.jsx",
+    "endpoints": [
+      "/admin/promo-assets"
+    ]
+  },
+  {
+    "route": "/admin/jobs",
+    "component": "AdminJobs",
+    "file": "/app/frontend/src/pages/admin/AdminJobs.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/cost-registry",
+    "component": "AdminCostRegistry",
+    "file": "/app/frontend/src/pages/admin/AdminCostRegistry.jsx",
+    "endpoints": [
+      "/cost-codes/registry"
+    ]
+  },
+  {
+    "route": "/admin/jobs/:projectNumber/team",
+    "component": "AdminJobTeam",
+    "file": "/app/frontend/src/pages/admin/AdminJobTeam.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/project-staffing",
+    "component": "AdminProjectStaffing",
+    "file": "/app/frontend/src/pages/admin/AdminProjectStaffing.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/geofence-reconciliation",
+    "component": "AdminGeofenceReconciliation",
+    "file": "/app/frontend/src/pages/admin/AdminGeofenceReconciliation.jsx",
+    "endpoints": [
+      "/admin/locations/bulk-approve",
+      "/admin/locations/import-geofences",
+      "/admin/locations/reconcile"
+    ]
+  },
+  {
+    "route": "/admin/operations-dashboard",
+    "component": "AdminOperationsDashboard",
+    "file": "/app/frontend/src/pages/admin/AdminOperationsDashboard.jsx",
+    "endpoints": [
+      "/admin/asset-mapping/coverage",
+      "/admin/operational-events/audit",
+      "/admin/operational-events/dashboard",
+      "/admin/operational-events/materialize"
+    ]
+  },
+  {
+    "route": "/admin/operations-control",
+    "component": "OperationsControlCenter",
+    "file": "/app/frontend/src/pages/OperationsControlCenter.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/operations-control/cases/:caseId",
+    "component": "OperationsControlCaseDetail",
+    "file": "/app/frontend/src/pages/OperationsControlCaseDetail.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/asset-mapping",
+    "component": "AdminAssetMapping",
+    "file": "/app/frontend/src/pages/admin/AdminAssetMapping.jsx",
+    "endpoints": [
+      "/admin/asset-mapping/audit",
+      "/admin/asset-mapping/bulk-approve",
+      "/admin/asset-mapping/coverage",
+      "/admin/asset-mapping/operational-impact",
+      "/admin/asset-mapping/queue",
+      "/admin/asset-mapping/scan",
+      "/admin/asset-mapping/top-unmapped?limit=10",
+      "/admin/executive-summary"
+    ]
+  },
+  {
+    "route": "/admin/asset-spine",
+    "component": "AdminAssetSpineHealth",
+    "file": "/app/frontend/src/pages/admin/AdminAssetSpineHealth.jsx",
+    "endpoints": [
+      "/asset-spine/health",
+      "/asset-spine/health/runs?limit=10",
+      "/asset-spine/health/scan"
+    ]
+  },
+  {
+    "route": "/admin/equipment",
+    "component": "AdminEquipment",
+    "file": "/app/frontend/src/pages/admin/AdminEquipment.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/email",
+    "component": "AdminEmail",
+    "file": "/app/frontend/src/pages/admin/AdminEmail.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/training",
+    "component": "AdminTraining",
+    "file": "/app/frontend/src/pages/admin/AdminTraining.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/compliance",
+    "component": "AdminCompliance",
+    "file": "/app/frontend/src/pages/admin/AdminCompliance.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/system",
+    "component": "AdminSystem",
+    "file": "/app/frontend/src/pages/admin/AdminSystem.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/ai-configuration",
+    "component": "AdminAIConfiguration",
+    "file": "/app/frontend/src/pages/admin/AdminAIConfiguration.jsx",
+    "endpoints": [
+      "/admin/ai/config/status",
+      "/admin/ai/tenants"
+    ]
+  },
+  {
+    "route": "/admin/integration-truth",
+    "component": "IntegrationTruth",
+    "file": "/app/frontend/src/pages/admin/IntegrationTruth.jsx",
+    "endpoints": [
+      "/admin/ai/keys/status",
+      "/admin/dr-v2-alias-telemetry",
+      "/admin/integrations/truth-status",
+      "/admin/shared-capabilities"
+    ]
+  },
+  {
+    "route": "/admin/preview-validation-identities",
+    "component": "PreviewValidationIdentities",
+    "file": "/app/frontend/src/pages/admin/PreviewValidationIdentities.jsx",
+    "endpoints": [
+      "/admin/preview-validation-identities",
+      "/admin/preview-validation-identities/audit",
+      "/admin/preview-validation-identities/env",
+      "/admin/preview-validation-identities/mint"
+    ]
+  },
+  {
+    "route": "/admin/recovery",
+    "component": "AdminRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminRecovery.jsx",
+    "endpoints": [
+      "/admin/backup-trust-score",
+      "/admin/recovery/snapshot"
+    ]
+  },
+  {
+    "route": "/admin/storage-recovery",
+    "component": "AdminStorageRecovery",
+    "file": "/app/frontend/src/pages/admin/AdminStorageRecovery.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/ai-operations",
+    "component": "AdminAiOperations",
+    "file": "/app/frontend/src/pages/admin/AdminAiOperations.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/communications",
+    "component": "AdminCommunications",
+    "file": "/app/frontend/src/pages/admin/AdminCommunications.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/identity-security",
+    "component": "AdminIdentitySecurity",
+    "file": "/app/frontend/src/pages/admin/AdminIdentitySecurity.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trust-spine",
+    "component": "PlatformTrustDashboard",
+    "file": "/app/frontend/src/components/PlatformTrustDashboard.jsx",
+    "endpoints": [
+      "/admin/trust-spine"
+    ]
+  },
+  {
+    "route": "/admin/governance-trust",
+    "component": "AdminGovernanceTrust",
+    "file": "/app/frontend/src/pages/admin/AdminGovernanceTrust.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/platform-configuration",
+    "component": "AdminPlatformConfiguration",
+    "file": "/app/frontend/src/pages/admin/AdminPlatformConfiguration.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/diagnostics",
+    "component": "AdminDiagnostics",
+    "file": "/app/frontend/src/pages/admin/AdminDiagnostics.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/maintenance",
+    "component": "AdminMaintenance",
+    "file": "/app/frontend/src/pages/admin/AdminMaintenance.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/platform-overview",
+    "component": "AdminPlatformOverview",
+    "file": "/app/frontend/src/pages/admin/AdminPlatformOverview.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/recovery-stream",
+    "component": "AdminRecoveryStream",
+    "file": "/app/frontend/src/pages/admin/AdminRecoveryStream.jsx",
+    "endpoints": [
+      "/admin/recovery/transitions"
+    ]
+  },
+  {
+    "route": "/admin/jha-acknowledgements",
+    "component": "AdminJhaAcknowledgements",
+    "file": "/app/frontend/src/pages/admin/AdminJhaAcknowledgements.jsx",
+    "endpoints": [
+      "/jha-acknowledgements/compliance"
+    ]
+  },
+  {
+    "route": "/admin/command-center",
+    "component": "AdminCommandCenter",
+    "file": "/app/frontend/src/pages/admin/AdminCommandCenter.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/database",
+    "component": "AdminDatabase",
+    "file": "/app/frontend/src/pages/admin/AdminDatabase.jsx",
+    "endpoints": [
+      "/cluster/capacity"
+    ]
+  },
+  {
+    "route": "/admin/integrations",
+    "component": "AdminIntegrationCenter",
+    "file": "/app/frontend/src/pages/admin/AdminIntegrationCenter.jsx",
+    "endpoints": [
+      "/admin/integrations/import-csv",
+      "/admin/integrations/mappings/wizard/commit",
+      "/admin/integrations/mappings/wizard/preview",
+      "/admin/integrations/mappings/wizard/runs?limit=10",
+      "/admin/integrations/overview"
+    ]
+  },
+  {
+    "route": "/admin/dispatch",
+    "component": "AdminDispatch",
+    "file": "/app/frontend/src/pages/admin/AdminDispatch.jsx",
+    "endpoints": [
+      "/equipment-master",
+      "/operations/holds",
+      "/operations/holds?active_only=true",
+      "/operations/holds?status=pending",
+      "/operations/transfers",
+      "/operations/transfers?audience=operator",
+      "/operations/utilization"
+    ]
+  },
+  {
+    "route": "/admin/dls/shift-qr",
+    "component": "AdminDlsShiftQR",
+    "file": "/app/frontend/src/pages/admin/AdminDlsShiftQR.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/dls/day-1-debrief",
+    "component": "AdminDlsDay1Debrief",
+    "file": "/app/frontend/src/pages/admin/AdminDlsDay1Debrief.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/dls/week-1-debrief",
+    "component": "AdminDlsDay1Debrief",
+    "file": "/app/frontend/src/pages/admin/AdminDlsDay1Debrief.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/profile",
+    "component": "AdminProfile",
+    "file": "/app/frontend/src/pages/admin/AdminProfile.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/operations-events",
+    "component": "AdminOperationsEvents",
+    "file": "/app/frontend/src/pages/admin/AdminOperationsEvents.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/digest-config",
+    "component": "AdminDigestConfig",
+    "file": "/app/frontend/src/pages/admin/AdminDigestConfig.jsx",
+    "endpoints": [
+      "/admin/digest-settings",
+      "/admin/digest-settings/send-now",
+      "/safety/digest/preview"
+    ]
+  },
+  {
+    "route": "/admin/operational-intelligence",
+    "component": "AdminOperationalIntelligence",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalIntelligence.jsx",
+    "endpoints": [
+      "/operational-intelligence/summary"
+    ]
+  },
+  {
+    "route": "/admin/operational-intelligence/recipients",
+    "component": "AdminOperationalIntelligenceRecipients",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx",
+    "endpoints": [
+      "/admin/directory/k4/users",
+      "/operational-intelligence/groups",
+      "/operational-intelligence/products",
+      "/operational-intelligence/recipients",
+      "/operational-intelligence/recipients/bulk-import"
+    ]
+  },
+  {
+    "route": "/admin/system-health",
+    "component": "SystemHealth",
+    "file": "/app/frontend/src/pages/admin/SystemHealth.jsx",
+    "endpoints": [
+      "/admin/system-health"
+    ]
+  },
+  {
+    "route": "/admin/audit-log",
+    "component": "AdminAuditLog",
+    "file": "/app/frontend/src/pages/admin/AdminAuditLog.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/scheduler-runs",
+    "component": "AdminSchedulerRuns",
+    "file": "/app/frontend/src/pages/AdminSchedulerRuns.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/legacy-imports",
+    "component": "AdminLegacyImports",
+    "file": "/app/frontend/src/pages/AdminLegacyImports.jsx",
+    "endpoints": [
+      "/legacy-imports/_meta",
+      "/legacy-imports/upload"
+    ]
+  },
+  {
+    "route": "/admin/sessions",
+    "component": "AdminSessions",
+    "file": "/app/frontend/src/pages/admin/AdminSessions.jsx",
+    "endpoints": [
+      "/admin/sessions/recent?limit=50"
+    ]
+  },
+  {
+    "route": "/admin/guidance-coverage",
+    "component": "AdminGuidanceCoverage",
+    "file": "/app/frontend/src/pages/admin/AdminGuidanceCoverage.jsx",
+    "endpoints": [
+      "/admin/guidance/coverage",
+      "/admin/guidance/search-misses?limit=200",
+      "/admin/guidance/workflow-coverage"
+    ]
+  },
+  {
+    "route": "/admin/operational-inventory",
+    "component": "AdminOperationalInventory",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalInventory.jsx",
+    "endpoints": [
+      "/admin/operational-inventory"
+    ]
+  },
+  {
+    "route": "/admin/governance",
+    "component": "AdminGovernanceOperatingSystem",
+    "file": "/app/frontend/src/pages/admin/AdminGovernanceOperatingSystem.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/overview",
+    "component": "AdminGovernanceOperatingSystem",
+    "file": "/app/frontend/src/pages/admin/AdminGovernanceOperatingSystem.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/organization",
+    "component": "AdminGovernanceOrganizationPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/identities",
+    "component": "AdminGovernanceIdentitiesPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/roles",
+    "component": "AdminGovernanceRolesPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/permissions",
+    "component": "AdminGovernancePermissionsPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/policies",
+    "component": "AdminGovernancePoliciesPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/approval-flows",
+    "component": "AdminGovernanceApprovalFlowsPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/delegations",
+    "component": "AdminGovernanceDelegationsPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/separation-of-duties",
+    "component": "AdminGovernanceSodPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/authority",
+    "component": "AdminGovernanceAuthorityPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/emergency-overrides",
+    "component": "AdminGovernanceOverridesPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/decisions",
+    "component": "AdminGovernanceDecisionsPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/audit",
+    "component": "AdminGovernanceAuditPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/registry",
+    "component": "AdminGovernanceRegistryPage",
+    "file": "/app/frontend/src/pages/admin/AdminGovernanceRegistryPage.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/versions",
+    "component": "AdminGovernanceVersionsPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/health",
+    "component": "AdminGovernanceHealthPage",
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/governance/legacy-health",
+    "component": "AdminGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminGovernance.jsx",
+    "endpoints": [
+      "/admin/compliance/backfill-employee-links",
+      "/admin/compliance/scan",
+      "/admin/governance/summary"
+    ]
+  },
+  {
+    "route": "/admin/project-identity",
+    "component": "AdminProjectIdentityGovernance",
+    "file": "/app/frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx",
+    "endpoints": [
+      "/admin/project-identity/metrics",
+      "/admin/project-identity/queue",
+      "/jobs-master"
+    ]
+  },
+  {
+    "route": "/admin/governance/self-protection",
+    "component": "SelfProtection",
+    "file": "/app/frontend/src/pages/admin/SelfProtection.jsx",
+    "endpoints": [
+      "/admin/governance/self-protection"
+    ]
+  },
+  {
+    "route": "/admin/compliance-findings",
+    "component": "AdminComplianceFindings",
+    "file": "/app/frontend/src/pages/admin/AdminComplianceFindings.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/operational-language",
+    "component": "AdminOperationalLanguage",
+    "file": "/app/frontend/src/pages/admin/AdminOperationalLanguage.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/deploy-recovery",
+    "component": "DeployRecovery",
+    "file": "/app/frontend/src/pages/admin/DeployRecovery.jsx",
+    "endpoints": [
+      "/admin/deploy-recovery"
+    ]
+  },
+  {
+    "route": "/admin/assets/:assetId",
+    "component": "AssetProfile",
+    "file": "/app/frontend/src/pages/admin/AssetProfile.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/asset-admin",
+    "component": "AdminAssetAdmin",
+    "file": "/app/frontend/src/pages/admin/AdminAssetAdmin.jsx",
+    "endpoints": [
+      "/asset-spine/dashboard/missing-documents",
+      "/asset-spine/dashboard/recent-uploads?limit=12",
+      "/asset-spine/dashboard/renewals?bucket=all",
+      "/asset-spine/health",
+      "/asset-spine/inspection-templates/missing-backlog",
+      "/asset-spine/taxonomy",
+      "/asset-spine/taxonomy/apply-legacy-crosswalk?dry_run=false&limit=2000",
+      "/asset-spine/taxonomy/apply-legacy-crosswalk?dry_run=true&limit=2000",
+      "/asset-spine/taxonomy/review-needed?limit=200"
+    ]
+  },
+  {
+    "route": "/admin/driver-intel/:driverKey",
+    "component": "AdminDriverIntel",
+    "file": "/app/frontend/src/pages/admin/AdminDriverIntel.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/equipment/:id/history",
+    "component": "AdminMasterHistory",
+    "file": "/app/frontend/src/pages/admin/AdminMasterHistory.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/employees/:id/history",
+    "component": "AdminMasterHistory",
+    "file": "/app/frontend/src/pages/admin/AdminMasterHistory.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/analytics",
+    "component": "AdminAnalytics",
+    "file": "/app/frontend/src/pages/admin/AdminAnalytics.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/leadership-equipment",
+    "component": "AdminLeadershipEquipment",
+    "file": "/app/frontend/src/pages/AdminLeadershipEquipment.jsx",
+    "endpoints": [
+      "/field-leadership/admin/equipment-catalog",
+      "/field-leadership/admin/equipment-makes"
+    ]
+  },
+  {
+    "route": "/admin/terminations",
+    "component": "AdminTerminations",
+    "file": "/app/frontend/src/pages/AdminTerminations.jsx",
+    "endpoints": [
+      "/field-leadership"
+    ]
+  },
+  {
+    "route": "/admin/guide",
+    "component": "AdminGuide",
+    "file": "/app/frontend/src/pages/AdminGuide.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/pnl",
+    "component": "ProjectPnlPage",
+    "file": "/app/frontend/src/pages/ProjectPnlPage.jsx",
+    "endpoints": [
+      "/admin/projects/list"
+    ]
+  },
+  {
+    "route": "/admin/inspections",
+    "component": "Dashboard",
+    "file": "/app/frontend/src/pages/Dashboard.jsx",
+    "endpoints": [
+      "/inspections",
+      "/jobs-master"
+    ]
+  },
+  {
+    "route": "/admin/inspections/:id",
+    "component": "ViewInspection",
+    "file": "/app/frontend/src/pages/ViewInspection.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/meetings",
+    "component": "MeetingsDashboard",
+    "file": "/app/frontend/src/pages/MeetingsDashboard.jsx",
+    "endpoints": [
+      "/jobs-master",
+      "/meetings"
+    ]
+  },
+  {
+    "route": "/admin/meetings/:id",
+    "component": "ViewMeeting",
+    "file": "/app/frontend/src/pages/ViewMeeting.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/jha-plans",
+    "component": "JhaPlansAdmin",
+    "file": "/app/frontend/src/pages/JhaPlansAdmin.jsx",
+    "endpoints": [
+      "/job-hazard-files",
+      "/job-hazard-files/public/grouped",
+      "/jobs"
+    ]
+  },
+  {
+    "route": "/admin/jha",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/jha/:id",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-boxes",
+    "component": "TrenchBoxesAdmin",
+    "file": "/app/frontend/src/pages/TrenchBoxesAdmin.jsx",
+    "endpoints": [
+      "/trench-boxes"
+    ]
+  },
+  {
+    "route": "/admin/trench-boxes/poster",
+    "component": "TrenchBoxPoster",
+    "file": "/app/frontend/src/pages/TrenchBoxPoster.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-safety",
+    "component": "TrenchSafetyHub",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyHub.jsx",
+    "endpoints": [
+      "/trench-safety/dashboard"
+    ]
+  },
+  {
+    "route": "/admin/trench-safety/assets",
+    "component": "TrenchSafetyAssetsList",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyAssetsList.jsx",
+    "endpoints": [
+      "/trench-safety/assets"
+    ]
+  },
+  {
+    "route": "/admin/trench-safety/assets/:assetId",
+    "component": "TrenchSafetyAssetDetail",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyAssetDetail.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-safety/tabulated-data",
+    "component": "TrenchSafetyTabulatedData",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyTabulatedData.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-safety/reports",
+    "component": "TrenchSafetyReports",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyReports.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-safety/repair-review",
+    "component": "TrenchSafetyRepairReviewPage",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyRepairReviewPage.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-safety/field-reports",
+    "component": "TrenchSafetyFieldReportsPage",
+    "file": "/app/frontend/src/pages/trench_safety/TrenchSafetyFieldReportsPage.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/jha-plans/poster",
+    "component": "JhaPlansPoster",
+    "file": "/app/frontend/src/pages/JhaPlansPoster.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/posters/print-all",
+    "component": "AllPostersPrint",
+    "file": "/app/frontend/src/pages/AllPostersPrint.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/incidents",
+    "component": "IncidentsDashboard",
+    "file": "/app/frontend/src/pages/IncidentsDashboard.jsx",
+    "endpoints": [
+      "/incidents",
+      "/jobs-master"
+    ]
+  },
+  {
+    "route": "/admin/incidents/:id",
+    "component": "ViewIncident",
+    "file": "/app/frontend/src/pages/ViewIncident.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/daily",
+    "component": "DailyReportsDashboard",
+    "file": "/app/frontend/src/pages/DailyReportsDashboard.jsx",
+    "endpoints": [
+      "/daily-reports",
+      "/jobs-master"
+    ]
+  },
+  {
+    "route": "/admin/daily/:id",
+    "component": "ViewDailyReport",
+    "file": "/app/frontend/src/pages/ViewDailyReport.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/equipment-inspections",
+    "component": "EquipmentDashboard",
+    "file": "/app/frontend/src/pages/EquipmentDashboard.jsx",
+    "endpoints": [
+      "/equipment-inspections",
+      "/jobs-master"
+    ]
+  },
+  {
+    "route": "/admin/equipment/:id",
+    "component": "ViewEquipmentInspection",
+    "file": "/app/frontend/src/pages/ViewEquipmentInspection.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/qaqc/:id",
+    "component": "ViewQaqcInspection",
+    "file": "/app/frontend/src/pages/ViewQaqcInspection.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/leadership/records/:id",
+    "component": "FieldLeadershipView",
+    "file": "/app/frontend/src/pages/FieldLeadershipView.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/safety/issuance/:id",
+    "component": "ViewSafetyForm",
+    "file": "/app/frontend/src/pages/ViewSafetyForm.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/safety/training/:id",
+    "component": "ViewSafetyForm",
+    "file": "/app/frontend/src/pages/ViewSafetyForm.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/executive-operational-intelligence",
+    "component": "ExecutiveOperationalIntelligence",
+    "file": "/app/frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+    "endpoints": [
+      "/oppc/enterprise/executive-operations-center",
+      "/oppc/enterprise/monday-briefing"
+    ]
+  },
+  {
+    "route": "/admin/vendors/:vendorId/thread",
+    "component": "AdminVendorThread",
+    "file": "/app/frontend/src/pages/AdminVendorThread.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/assets/:assetRef/thread",
+    "component": "AdminAssetThread",
+    "file": "/app/frontend/src/pages/AdminAssetThread.jsx",
+    "endpoints": []
+  },
+  {
+    "route": "/admin/training-videos",
+    "component": "AdminTrainingVideos",
+    "file": "/app/frontend/src/pages/AdminTrainingVideos.jsx",
+    "endpoints": [
+      "/admin/training/videos",
+      "/training/videos"
+    ]
+  },
+  {
+    "route": "/admin/deploy-readiness",
+    "component": "AdminDeployReadiness",
+    "file": "/app/frontend/src/pages/AdminDeployReadiness.jsx",
+    "endpoints": [
+      "/admin/deploy-readiness"
+    ]
+  },
+  {
+    "route": "/admin/daily-reports",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/trench-safety-assets",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/audit",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/health",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/ods-intelligence",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/occ",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/executive",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/ai",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  },
+  {
+    "route": "/admin/storage",
+    "component": null,
+    "file": null,
+    "endpoints": []
+  }
+]

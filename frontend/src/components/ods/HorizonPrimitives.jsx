@@ -14,6 +14,24 @@
  */
 import React from "react";
 
+function humanizeToken(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatAttentionContext(item) {
+  const parts = [];
+  if (item?.date) parts.push(item.date);
+  if (item?.project_name) parts.push(item.project_name);
+  else if (item?.project_id) parts.push(item.project_id);
+  if (item?.source_type) parts.push(humanizeToken(item.source_type));
+  if (item?.summary_scope) parts.push(humanizeToken(item.summary_scope));
+  return parts.filter(Boolean).join(" · ") || "Operational evidence linked to this period.";
+}
+
 export const PRESETS = [
   { key: "today",      label: "Today" },
   { key: "yesterday",  label: "Yesterday" },
@@ -143,13 +161,12 @@ export function AttentionList({ title, items, kind, testid }) {
                 it.severity,
               )}`}
             >
-              {it.severity}
+              {humanizeToken(it.severity || "review")}
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-neutral-900 truncate">{it.summary}</div>
+              <div className="text-sm text-neutral-900 truncate">{it.summary || "Operational review item"}</div>
               <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
-                {it.date} · {it.project_id || "—"} · {it.source_type}
-                {it.source_item_id ? ` · #${String(it.source_item_id).slice(0, 8)}` : ""}
+                {formatAttentionContext(it)}
               </div>
             </div>
           </li>
