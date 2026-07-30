@@ -1178,7 +1178,7 @@ def register_transportation_orientation_routes(
             {"token_hash": token_hash, "tenant": TENANT})
         if not inv:
             raise HTTPException(404, "Invite not found or already redeemed")
-        if inv.get("status") != "active":
+        if inv.get("status") not in ("active", "opened"):
             raise HTTPException(410, f"Invite {inv['status']}")
         now_iso = _now()
         if inv.get("expires_at") and inv["expires_at"] < now_iso:
@@ -1197,7 +1197,7 @@ def register_transportation_orientation_routes(
             "carrier_id": inv["carrier_id"],
             "carrier_legal_name": (carrier or {}).get("legal_name"),
             "contact_name": inv.get("contact_name"),
-            "status": "opened",
+            "status": inv.get("status") or "opened",
             "expires_at": inv.get("expires_at"),
         }
 

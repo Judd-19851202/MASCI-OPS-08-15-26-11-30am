@@ -23,6 +23,7 @@ import {
   ShieldAlert, RefreshCw, ChevronRight, Building2, Users,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 
 const ENDPOINT = "/operations/transportation/readiness";
 const TX_HREF = "/admin/transportation";
@@ -43,11 +44,19 @@ async function _fetchReadiness() {
   if (_readinessCache.inflight) {
     return _readinessCache.inflight;
   }
-  _readinessCache.inflight = api.get(ENDPOINT).then((r) => {
-    _readinessCache.data = r.data;
+  _readinessCache.inflight = fetch(`${api.defaults.baseURL}${ENDPOINT}`, {
+    headers: buildPortalAuthHeaders(),
+  }).then(async (res) => {
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : null;
+    if (!res.ok) {
+      const detail = data?.detail || data?.message || `HTTP ${res.status}`;
+      throw new Error(detail);
+    }
+    _readinessCache.data = data;
     _readinessCache.ts = Date.now();
     _readinessCache.inflight = null;
-    return r.data;
+    return data;
   }).catch((e) => {
     _readinessCache.inflight = null;
     throw e;

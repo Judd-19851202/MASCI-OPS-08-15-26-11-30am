@@ -11,12 +11,22 @@
  */
 import React, { useCallback, useEffect, useState } from "react";
 import { NavLink, Routes, Route } from "react-router-dom";
+import { isAdmin } from "@/lib/adminAuth";
 import {
   Activity, ListChecks, TrendingUp, RefreshCw, ShieldCheck, Star,
   AlertTriangle, Users, Building2, Truck as TruckIcon, GraduationCap,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { adminHeaders, PageHeader, EmptyState, txGet, isTxRestricted, txCatch } from "./_shared";
+import {
+  adminHeaders,
+  PageHeader,
+  EmptyState,
+  txGet,
+  txFetchJson,
+  isTxRestricted,
+  txCatch,
+  useTxPathPrefix,
+} from "./_shared";
 import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
 const SUB_TABS = [
@@ -51,6 +61,12 @@ function BandChip({ band, testid }) {
 }
 
 export function IntelligenceCenter() {
+  const prefix = useTxPathPrefix();
+  const admin = isAdmin();
+  const subTabs = admin
+    ? SUB_TABS
+    : SUB_TABS.filter((tab) => tab.to === "cleanup");
+
   return (
     <div data-testid="tx-intel-center" className="space-y-4">
       <PageHeader
@@ -59,10 +75,10 @@ export function IntelligenceCenter() {
         right={<ShieldCheck className="h-5 w-5 text-emerald-700" />}
       />
       <div className="flex items-center gap-1 border-b border-slate-200">
-        {SUB_TABS.map((t) => (
+        {subTabs.map((t) => (
           <NavLink
             key={t.to || "exec"}
-            to={`/admin/transportation/intelligence/${t.to}`}
+            to={t.to ? `${prefix}/intelligence/${t.to}` : `${prefix}/intelligence`}
             end={t.end}
             className={({ isActive }) =>
               `inline-flex items-center gap-1 px-3 py-2 text-sm border-b-2 ${
@@ -668,7 +684,7 @@ function CleanupCompanionPanel() {
 
   const load = useCallback(async () => {
     try {
-      const r = await txGet(
+      const r = await txFetchJson(
         "/admin/transportation/intelligence/cleanup-signals",
         { days: 30 }
       );
@@ -685,7 +701,7 @@ function CleanupCompanionPanel() {
   const openDetail = async (key) => {
     setOpenSignal(key); setDetail(null); setMaterialized(null);
     try {
-      const r = await txGet(
+      const r = await txFetchJson(
         `/admin/transportation/intelligence/cleanup-signals/${key}`,
         { days: 30 }
       );

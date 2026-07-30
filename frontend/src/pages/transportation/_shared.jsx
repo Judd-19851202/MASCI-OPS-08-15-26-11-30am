@@ -291,6 +291,59 @@ export function txGet(path, params) {
     });
 }
 
+export async function txFetchJson(path, params) {
+  const base = api.defaults.baseURL || `${process.env.REACT_APP_BACKEND_URL}/api`;
+  const url = new URL(`${base}${path}`);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  });
+
+  const fetchOnce = async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    try {
+      return await fetch(url.toString(), {
+        headers: txHeaders(),
+        cache: "no-store",
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  let res;
+  try {
+    res = await fetchOnce();
+  } catch (err) {
+    if (err?.name !== "AbortError") throw err;
+    res = await fetchOnce();
+  }
+
+  if (res.status === 401 || res.status === 403) {
+    return {
+      data: {
+        restricted: true,
+        rows: [],
+        items: [],
+        signals: [],
+        records: [],
+      },
+      status: res.status,
+      __txRestricted: true,
+    };
+  }
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!res.ok) {
+    throw new Error(data?.detail || data?.message || `HTTP ${res.status}`);
+  }
+  return { data, status: res.status };
+}
+
 // TRACK 18.12B · Detection helper.
 // True when the response was synthesised by txGet's 401/403 absorption
 // path. Loaders use it to render a Transportation-branded restricted
