@@ -54,6 +54,7 @@ import LastActivityLine from "@/components/admin/LastActivityLine";
 import ShopMaintainxReadinessTile from "@/components/shop/ShopMaintainxReadinessTile";
 import ShopOpsIntelPanel from "@/components/ShopOpsIntelPanel";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import { PortalShell } from "@/design-system/PortalShell";
 
 const SHOP_PAL = paletteFor("shop");
 
@@ -240,7 +241,16 @@ export default function ShopHub() {
   }, [activeTotal, waiting.length, recovery.summary.returned_today, t]);
 
   return (
-    <div className="min-h-screen blueprint-bg">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Shop"
+      homeHref="/shop"
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className={`bg-slate-900 border-b-4 ${SHOP_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
@@ -468,6 +478,7 @@ export default function ShopHub() {
         </section>
       </main>
     </div>
+    </PortalShell>
   );
 }
 

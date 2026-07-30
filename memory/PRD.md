@@ -1,3 +1,65 @@
+# 2026-07-30 — WP-16 Phase B Wave 2 repair progress
+
+## 2026-07-30 W2-002 repaired and verified
+
+- Repaired **WP16-W2-002** only. `/pm` now redirects back to the approved Wave 2 PM home at `/pm/hub`.
+- Verification evidence: PM login now lands on `/pm/hub`, direct `/pm` also resolves to `/pm/hub`, and `pm-hub-v2-root` renders in both flows.
+- Files modified for this repair:
+  - `frontend/src/pages/PmHomeRedirect.jsx`
+- Wave 2 repair ledger status after this checkpoint:
+  - repaired + verified: `1 / 5`
+  - remaining authorized issues: `4 / 5`
+
+## 2026-07-30 W2-001 repaired and verified
+
+- Repaired **WP16-W2-001** in the single approved shared component: `frontend/src/components/operational_intelligence/OiAttentionStrip.jsx`.
+- Corrected root cause: the strip called an admin-guarded OI summary path and surfaced the authorization failure directly on non-admin portal homes.
+- Smallest-safe repair: non-admin portal homes now fall back to portal-safe unavailable copy instead of showing an admin-token block, while Admin behavior remains intact.
+- Verification evidence: HR, Safety, and Shop homes no longer show `Admin token required to view OI signals`; each now shows portal-safe unavailable copy, and Admin still loads successfully.
+- Wave 2 repair ledger status after this checkpoint:
+  - repaired + verified: `2 / 5`
+  - remaining authorized issues: `3 / 5`
+
+## 2026-07-30 W2-003 repaired and verified
+
+- Repaired **WP16-W2-003** in `frontend/src/pages/admin/AdminOS.jsx`.
+- Corrected root cause: partial probe counts were rendering before the posture strip had completed its shared loading boundary.
+- Verification evidence: during Admin refresh, the posture strip now keeps the four summary counts at `—` while copy still says `Loading domain probes…`, eliminating the contradictory mixed state.
+- **New unrelated issue discovered and logged, not repaired:** `WP16-W2-006` — the Admin posture strip may still be waiting indefinitely for one or more probes to resolve. This is outside the authorized five-issue repair scope.
+- Wave 2 repair ledger status after this checkpoint:
+  - repaired + verified: `3 / 5`
+  - remaining authorized issues: `2 / 5`
+  - newly logged unauthorized follow-up issues: `1`
+
+## 2026-07-30 W2-004 repaired and verified
+
+- Repaired **WP16-W2-004** by wrapping the approved legacy/public Wave 2 pages in `PortalShell` only.
+- Verification evidence: `ds-portal-shell` now renders on `/pm/hub_legacy`, `/hr/hub_legacy`, `/safety-portal/hub_legacy`, `/shop/hub_legacy`, and `/safety`.
+- Files modified for this repair:
+  - `frontend/src/pages/PmHub.jsx`
+  - `frontend/src/pages/HrHub.jsx`
+  - `frontend/src/pages/SafetyHub.jsx`
+  - `frontend/src/pages/ShopHub.jsx`
+  - `frontend/src/pages/SafetySection.jsx`
+- **New unrelated issue discovered and logged, not repaired:** `WP16-W2-007` — `/shop/hub_legacy` shows `Admin or PM login required` while signed in as Shop.
+- Wave 2 repair ledger status after this checkpoint:
+  - repaired + verified: `4 / 5`
+  - remaining authorized issues: `1 / 5`
+  - newly logged unauthorized follow-up issues: `2`
+
+## 2026-07-30 W2-005 repaired and verified
+
+- Repaired **WP16-W2-005** by correcting the authoritative Wave 2 classification for `/admin/platform-overview`.
+- Verification evidence: runtime still redirects `/admin/platform-overview` to `/admin`, and the register row is now correctly treated as a redirect alias rather than a standalone route-screen experience.
+- Files modified for this repair:
+  - `/app/memory/WP16_CERTIFICATION_REGISTER.csv`
+  - `/app/memory/WP16_LIVE_PUNCH_LIST.md`
+  - `/app/memory/PRD.md`
+- Wave 2 repair ledger status after this checkpoint:
+  - repaired + verified: `5 / 5`
+  - remaining authorized issues: `0 / 5`
+  - newly logged unauthorized follow-up issues: `2`
+
 # 2026-07-30 — WP-16 Phase B Wave 2 7-Gate inspection complete
 
 ## 2026-07-30 Wave 2 inspection complete — pending repair authorization

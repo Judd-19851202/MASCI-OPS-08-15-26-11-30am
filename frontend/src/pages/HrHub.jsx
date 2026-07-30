@@ -26,6 +26,7 @@ import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import { setPortalContext } from "@/lib/portalContext";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { PortalShell } from "@/design-system/PortalShell";
 
 const HR_PAL = paletteFor("hr");
 
@@ -202,7 +203,16 @@ export default function HrHub() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg pb-16">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="HR"
+      homeHref="/hr"
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="min-h-screen blueprint-bg pb-16">
       <div className="caution-stripe" />
       <header className={`bg-slate-900 border-b-4 ${HR_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">
@@ -357,6 +367,7 @@ export default function HrHub() {
         </div>
       </main>
     </div>
+    </PortalShell>
   );
 }
 

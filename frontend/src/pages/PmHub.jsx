@@ -25,6 +25,7 @@ import { isPmSidebarV2Enabled } from "@/components/pm/sidebar/SideNavV2";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import { setPortalContext } from "@/lib/portalContext";
+import { PortalShell } from "@/design-system/PortalShell";
 
 const FORM_TILES = [
   { to: "/tasks",             icon: ClipboardCheck, title: "Tasks & Actions",     countKey: null,         sub: "Open · overdue · cross-portal", accent: "amber" },
@@ -231,39 +232,48 @@ export default function PmHub() {
   }, []);
 
   return (
-    <PmShell
-      title="Overview"
-      section="overview"
-      intro={
-        v2 ? (
-          // Phase IV-BETA.2 · Calm operational subline replaces the legacy
-          // "Welcome to the PM Portal" marketing-tone intro. Doctrine:
-          // CROSS_PORTAL_COACHING_STANDARD.md §V — sentence-case, ≤14 words.
-          <p className="text-sm text-slate-600 leading-relaxed" data-testid="pm-hub-v2-subline">
-            Today&apos;s operational signal across your assigned projects.
-          </p>
-        ) : (
-          <div className="flex items-start gap-3">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
-              <Briefcase className="w-5 h-5" />
-            </div>
-            <div className="text-sm text-slate-700 leading-relaxed">
-              Welcome to the PM Portal. The forms below cover the day-to-day — Daily Reports,
-              Inspections, Incidents, Photos, Field Leadership records, and more — scoped to
-              jobs assigned to you. Use the sidebar (left, or hamburger on mobile) to dig into
-              Active Jobs, Equipment Fleet, People, Suppliers, Posters, Email Routing, and
-              Compliance Exports. System recovery and access-control tools remain Admin-only.
-            </div>
-          </div>
-        )
-      }
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Project Management"
+      homeHref="/pm"
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
     >
-      {loading ? (
-        <div className="py-16 flex items-center justify-center text-slate-500">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
-        </div>
-      ) : v2 ? (
-        <div data-testid="pm-hub-v2">
+      <PmShell
+        title="Overview"
+        section="overview"
+        intro={
+          v2 ? (
+            // Phase IV-BETA.2 · Calm operational subline replaces the legacy
+            // "Welcome to the PM Portal" marketing-tone intro. Doctrine:
+            // CROSS_PORTAL_COACHING_STANDARD.md §V — sentence-case, ≤14 words.
+            <p className="text-sm text-slate-600 leading-relaxed" data-testid="pm-hub-v2-subline">
+              Today&apos;s operational signal across your assigned projects.
+            </p>
+          ) : (
+            <div className="flex items-start gap-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
+                <Briefcase className="w-5 h-5" />
+              </div>
+              <div className="text-sm text-slate-700 leading-relaxed">
+                Welcome to the PM Portal. The forms below cover the day-to-day — Daily Reports,
+                Inspections, Incidents, Photos, Field Leadership records, and more — scoped to
+                jobs assigned to you. Use the sidebar (left, or hamburger on mobile) to dig into
+                Active Jobs, Equipment Fleet, People, Suppliers, Posters, Email Routing, and
+                Compliance Exports. System recovery and access-control tools remain Admin-only.
+              </div>
+            </div>
+          )
+        }
+      >
+        {loading ? (
+          <div className="py-16 flex items-center justify-center text-slate-500">
+            <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
+          </div>
+        ) : v2 ? (
+          <div data-testid="pm-hub-v2">
           {/* Tier 0 · Operational KPI signal */}
           <OperationsCenter compact />
 
@@ -383,9 +393,9 @@ export default function PmHub() {
           <div className="mt-3">
             <PasskeyEnrollPrompt />
           </div>
-        </div>
-      ) : (
-        <>
+          </div>
+        ) : (
+          <>
           {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
               self-gated · dismissible · single-card · NEVER nags */}
           <div className="mt-5">
@@ -499,8 +509,9 @@ export default function PmHub() {
               testId="pm-dispatch-lifecycle"
             />
           </div>
-        </>
-      )}
-    </PmShell>
+          </>
+        )}
+      </PmShell>
+    </PortalShell>
   );
 }

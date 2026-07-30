@@ -1,13 +1,13 @@
 /**
  * PmHomeRedirect.jsx — PM portal landing page redirector.
  *
- * Phase 4C (2026-02-10): `/pm` now lands directly on the PM Command
- * Center (single operational source of truth). The legacy PmHub
- * remains accessible at `/pm/hub` for tile-based navigation.
+ * Wave 2 repair (2026-07-30): `/pm` returns to the approved PM home
+ * denominator at `/pm/hub`. The deeper PM Command Center remains
+ * reachable at `/pm/command-center`.
  */
 import React from "react";
 import { Navigate } from "react-router-dom";
 
 export default function PmHomeRedirect() {
-  return <Navigate to="/pm/command-center" replace />;
+  return <Navigate to="/pm/hub" replace />;
 }

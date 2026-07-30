@@ -14,6 +14,7 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { PortalShell } from "@/design-system/PortalShell";
 
 const STRIPE = {
   red:     "border-l-red-600",
@@ -59,7 +60,16 @@ export default function SafetySection() {
   const { t } = useT();
 
   return (
-    <div className="min-h-screen blueprint-bg">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Safety"
+      homeHref="/safety"
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="min-h-screen blueprint-bg">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
@@ -181,5 +191,6 @@ export default function SafetySection() {
         {t("MASCI · Safety")}
       </footer>
     </div>
+    </PortalShell>
   );
 }

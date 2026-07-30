@@ -64,12 +64,20 @@ function ArrowGlyph({ direction }) {
   return <span className={`font-mono text-sm font-bold ${cls}`} aria-hidden="true">{map[direction] || "→"}</span>;
 }
 
-async function fetchOiSummary({ timeoutMs = 3000 } = {}) {
-  const headers = buildScopedPortalAuthHeaders(["admin"], {
+async function fetchOiSummary({ portal = "default", timeoutMs = 3000 } = {}) {
+  const requestedScopes = portal === "admin" ? ["admin"] : [portal, "admin"];
+  const headers = buildScopedPortalAuthHeaders(requestedScopes, {
     "Content-Type": "application/json",
   });
-  if (!headers["X-Admin-Token"]) {
-    return { ok: false, status: 401, body: null, reason: "no_token" };
+  const hasAdminToken = !!headers["X-Admin-Token"];
+  if (!hasAdminToken) {
+    return {
+      ok: false,
+      status: portal === "admin" ? 401 : 503,
+      body: null,
+      reason: portal === "admin" ? "no_admin_token" : "portal_unavailable",
+      hasAdminToken,
+    };
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -79,10 +87,16 @@ async function fetchOiSummary({ timeoutMs = 3000 } = {}) {
       signal: controller.signal,
     });
     const body = r.ok ? await r.json().catch(() => null) : null;
-    return { ok: r.ok, status: r.status, body, reason: r.ok ? "ok" : "http_error" };
+    return {
+      ok: r.ok,
+      status: r.status,
+      body,
+      reason: r.ok ? "ok" : "http_error",
+      hasAdminToken,
+    };
   } catch (err) {
     const reason = err && err.name === "AbortError" ? "timeout" : "network";
-    return { ok: false, status: 0, body: null, reason };
+    return { ok: false, status: 0, body: null, reason, hasAdminToken };
   } finally {
     clearTimeout(timer);
   }
@@ -121,12 +135,19 @@ export default function OiAttentionStrip({
 
   const load = React.useCallback(() => {
     setState((s) => ({ ...s, loaded: false }));
-    fetchOiSummary({ timeoutMs }).then((r) => {
+    fetchOiSummary({ portal, timeoutMs }).then((r) => {
       const all = (r.body && Array.isArray(r.body.products)) ? r.body.products : [];
       const filtered = all.filter((p) => stableProductIds.includes(p.product_id));
-      setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
+      setState({
+        loaded: true,
+        ok: r.ok,
+        status: r.status,
+        products: filtered,
+        reason: r.reason || "",
+        hasAdminToken: !!r.hasAdminToken,
+      });
     });
-  }, [stableProductIds, timeoutMs]);
+  }, [portal, stableProductIds, timeoutMs]);
 
   useEffect(() => {
     load();
@@ -141,7 +162,8 @@ export default function OiAttentionStrip({
     const isTimeout = state.reason === "timeout";
     const isNetwork = state.reason === "network";
     const fallbackCopy = PORTAL_FALLBACK_COPY[portal] || PORTAL_FALLBACK_COPY.default;
-    const message = isAuth
+    const isAdminPortal = portal === "admin";
+    const message = isAuth && isAdminPortal
       ? "Admin token required to view OI signals · request access from your administrator."
       : isTimeout
         ? fallbackCopy + " (timed out)"

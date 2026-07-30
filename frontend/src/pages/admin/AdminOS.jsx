@@ -674,6 +674,7 @@ export default function AdminOS() {
       : summary.warning > 0
       ? "warning"
       : "healthy";
+  const displaySummary = loaded ? summary : null;
 
   return (
     <div
@@ -760,7 +761,7 @@ export default function AdminOS() {
                 Healthy
               </div>
               <div className="font-black text-emerald-700 text-xl leading-none">
-                {summary.healthy}
+                {displaySummary ? displaySummary.healthy : "—"}
               </div>
             </div>
             <div data-testid="admin-os-count-warning">
@@ -768,7 +769,7 @@ export default function AdminOS() {
                 Attention
               </div>
               <div className="font-black text-amber-700 text-xl leading-none">
-                {summary.warning}
+                {displaySummary ? displaySummary.warning : "—"}
               </div>
             </div>
             <div data-testid="admin-os-count-critical">
@@ -776,7 +777,7 @@ export default function AdminOS() {
                 Critical
               </div>
               <div className="font-black text-rose-700 text-xl leading-none">
-                {summary.critical}
+                {displaySummary ? displaySummary.critical : "—"}
               </div>
             </div>
             <div data-testid="admin-os-count-wiring">
@@ -784,7 +785,7 @@ export default function AdminOS() {
                 Awaiting signal
               </div>
               <div className="font-black text-slate-600 text-xl leading-none">
-                {summary.wiring}
+                {displaySummary ? displaySummary.wiring : "—"}
               </div>
             </div>
             <div>
