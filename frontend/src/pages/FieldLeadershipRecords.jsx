@@ -37,6 +37,7 @@ export default function FieldLeadershipRecords() {
   const admin = isAdmin();
   const pm = isPm();
   const adminRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/admin/");
+  const portalSwitcherCurrent = admin ? "admin" : pm ? "pm" : undefined;
 
   // iter96+97 — Back-button destination + label routed by role.
   // BackLink auto-computes them, but this page predates the helper
@@ -173,7 +174,7 @@ export default function FieldLeadershipRecords() {
       subtitle={t("All Field Leadership submissions across every job.")}
       showBack
       backHref={backTo}
-      portalSwitcherCurrent="leadership"
+      portalSwitcherCurrent={portalSwitcherCurrent}
       primaryActions={
         <div className="hidden md:flex" data-testid="leadership-records-company-info">
           <CompanyInfoDialog />
