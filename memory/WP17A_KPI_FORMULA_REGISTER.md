@@ -44,3 +44,23 @@ Status: ACTIVE
 - Current formula: per-workflow freshness SLA and terminal success policy
 - Problem repaired: prior truth model exposed a single global freshness window without workflow-specific operational rationale
 - Current direction: classify each workflow by evidence type, acceptable execution frequency, stale threshold, failure threshold, and not-applicable behavior
+
+### FR-009 — Executive Overview Canonical Open Incident / CA Truth
+- Current formula: executive rollup tiles now use the same canonical semantics as downstream operational dashboards
+- Problem repaired: executive attention counts previously used open-status strings while other dashboards used `resolution_status != Closed` / open-CA exclusion rules
+- Current direction: keep executive tile formulas pinned to canonical open incident and open corrective-action match clauses and expose them in `kpi_metadata`
+
+### FR-010 — Project Health Status Ladder Metadata
+- Current formula: red / amber / green summary cards backed by explicit indicator formulas and role-scoped active projects
+- Problem repaired: summary states were deterministic but not self-describing, allowing semantic drift between source, API, and UI
+- Current direction: emit page / summary / indicator metadata with the authoritative formulas directly from `/api/project-health`
+
+### FR-011 — HR Queue / Expiration Truth
+- Current formula: active employees from canonical HR roster, pending requests from `employee_requests`, pending time-off from FL stats, training due soon from `counts.in_30 + counts.in_60`, docs expired from `counts.expired`
+- Problem repaired: prior UI read the wrong endpoints and flat response keys, silently converting live risk into fake-green zeros
+- Current direction: keep shared HR surfaces consuming the same canonical endpoints and surface per-endpoint metadata for provenance
+
+### FR-012 — Safety Company Band / Grouped Card Provenance
+- Current formula: company band from shared safety rollup (`red` on escalation gaps or injuries, `amber` on incidents or near misses, else `green`) with totals summed from the shared per-project spine
+- Problem repaired: grouped card totals were visible but their provenance and band semantics were not explicit to operators
+- Current direction: emit card-level metadata and preserve one shared operational spine for company + project safety views

@@ -20,6 +20,7 @@ Status: IN PROGRESS
 - Python lint: PASS
 - Frontend lint for touched files: PASS
 - Preview smoke: PASS
+- Iteration 87 backend/frontend verification: PASS
 
 ## Verification state distinction (required for executive runtime reconciliation)
 - code present locally: YES
@@ -31,6 +32,20 @@ Status: IN PROGRESS
 - UI verified: PARTIAL
   - targeted governance / storage / diagnostics preview smoke succeeded
   - full portal-wide UI/API reconciliation still in progress
+
+## Newly completed in this batch
+- Executive Overview now exposes tile/verdict `kpi_metadata` and reuses canonical open-incident + open-corrective-action semantics.
+- Project Health now emits page / summary / indicator metadata and preserves working summary filters without nested-click regressions.
+- HR Hub V2 and `HrKpiStrip` now consume canonical roster / queue / time-off / expiration endpoints and no longer fabricate zeroes from the wrong expiration response shape.
+- Safety company posture now exposes page / band / totals / grouped-card metadata sourced from the shared operational KPI spine.
+- Representative three-way reconciliation coverage added in `/app/backend/tests/test_wp17a_portal_kpi_truth_batch2.py`.
+
+## Updated verification state
+- code present locally: YES
+- tests passed: YES (`17 passed, 1 skipped` across the touched backend suites)
+- runtime restarted: YES
+- post-restart endpoint verified: YES
+- UI verified: YES (iteration 87)
 
 ## Remaining
 - Work package still open; more inventory, reconciliation, data-integrity, and backfill work remains.

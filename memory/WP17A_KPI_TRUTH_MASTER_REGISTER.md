@@ -13,12 +13,12 @@ This is the authoritative remediation register for WP-17A. No KPI or truth surfa
 - `post_restart_endpoint_verified`: repaired response observed from running preview runtime or equivalent authenticated runtime path
 - `ui_verified`: preview UI rendered the repaired truth surface
 
-Current batch-1 verification state:
+Current batch-2 verification state:
 - code_present_locally: YES
 - tests_passed: YES
 - runtime_restarted: YES
-- post_restart_endpoint_verified: PARTIAL (local/authenticated preview runtime checks continue alongside broader WP-17A sweep)
-- ui_verified: PARTIAL (governance / storage / diagnostics preview smoke passed; full platform reconciliation still in progress)
+- post_restart_endpoint_verified: YES (authenticated preview responses confirmed after supervisor restart)
+- ui_verified: YES (testing iteration 87 verified Executive / Project / HR / Safety metadata rendering and interactions)
 
 ## Status legend
 - OPEN
@@ -461,4 +461,112 @@ Current batch-1 verification state:
 - Severity: P2
 - Repair status: VERIFIED FIXED
 - Verification evidence: source tracing + trust drawer patch + frontend lint
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-017
+- Portal: Executive
+- Page: `/admin/executive-overview`
+- KPI or status name: Executive Overview tile truth + verdict metadata
+- User-facing label: executive verdict and tile-level "Why this number?"
+- Current displayed value: preview route now emits tile metadata and canonical open-incident / open-corrective-action formulas
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/admin/executive/overview`
+- Source collection/table/service: `daily_reports`, `incidents`, `corrective_actions`, `project_team_assignments`, `fleet_status`, `fleet_defects`, `asset_holds`, `tasks`, `safety_training_records`
+- Formula: six deterministic tiles + explicit verdict thresholds; open incidents = `resolution_status != Closed`; open corrective actions = `status not in [Completed, Closed, Cancelled]`
+- Filters: executive rollup windows of today / 3d / 7d / 30d / 90d depending on tile
+- Denominator: tile-specific; distinct `project_number` for jobs tile, direct entity counts for operational tiles
+- Date range: on-request snapshot
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview verification batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: `/admin/jobs`, `/admin/qaqc`, `/equipment`, `/safety`, `/daily-reports`
+- Current defect classification: duplicate incident / corrective-action semantics across dashboards would have allowed KPI drift
+- Severity: P0
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: `/app/backend/tests/test_wp17a_portal_kpi_truth_batch2.py`, iteration 87 UI verification
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-018
+- Portal: Project
+- Page: `/project-health`
+- KPI or status name: Project Health summary ladder + indicator metadata
+- User-facing label: project-health summary cards and indicator headers
+- Current displayed value: top-level `kpi_metadata` now emitted; summary filters remain interactive; canonical incident / CA formulas aligned
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/project-health`
+- Source collection/table/service: `jobs_master`, `tasks`, `po_requests`, `document_expirations`, `incidents`, `corrective_actions`
+- Formula: red / amber / green status ladder; indicator formulas documented in payload metadata; open incidents = `resolution_status != Closed`; overdue CA = open corrective actions with `due_date < generated_at`
+- Filters: active project rows visible to actor scope
+- Denominator: active projects after role scoping
+- Date range: on-request snapshot
+- Tenant scope: platform-wide with role scoping
+- Role scope: admin, pm, safety allowed; hr and dispatch forbidden
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview verification batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: project-health table / project record
+- Current defect classification: summary and indicator semantics needed transparent provenance and canonical duplication control
+- Severity: P0
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: `/app/backend/tests/test_iter163_phase_h_project_health.py`, `/app/backend/tests/test_wp17a_portal_kpi_truth_batch2.py`, iteration 87 UI verification
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-019
+- Portal: HR
+- Page: `/hr` and shared `HrKpiStrip`
+- KPI or status name: HR queue counts / roster / expirations reconciliation
+- User-facing label: employee requests, time-off pending, training due soon, docs expired, active employees
+- Current displayed value: HR surfaces now consume canonical roster + queue endpoints and correct nested expiration buckets (`counts.in_30`, `counts.in_60`, `counts.expired`)
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/hr/employee-roster`, `/api/hr/employee-requests`, `/api/field-leadership/time-off/stats`, `/api/operations/expirations/summary`
+- Source collection/table/service: `employees`, `employee_requests`, `field_leadership_records`, `document_expirations`, `safety_training_records`
+- Formula: active roster uses canonical HR active filter + synthetic-row exclusion; requests use persisted pending queue; training due soon = `in_30 + in_60`; docs expired = `counts.expired`
+- Filters: portal-auth scoped HR/admin reads
+- Denominator: endpoint-specific entity counts
+- Date range: current snapshot / current queue state
+- Tenant scope: platform-wide HR operational view
+- Role scope: hr/admin
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview verification batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: `/hr/employee-requests`, `/hr/time-off`, `/document-expirations`, `/hr/employees`
+- Current defect classification: prior UI used wrong endpoints / wrong response keys, creating silent fake-green zeros and fake duplication risk
+- Severity: P0
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: `/app/backend/tests/test_wp17a_portal_kpi_truth_batch2.py`, iteration 87 UI verification
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-020
+- Portal: Safety
+- Page: company safety posture card / safety operational KPI card
+- KPI or status name: Safety company rollup metadata and grouped card provenance
+- User-facing label: company safety posture, band, totals-card "Why this number?"
+- Current displayed value: company safety route now emits metadata for page, status band, totals, and grouped cards sourced from the shared operational KPI spine
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/safety/company/safety-kpis?window=30d`
+- Source collection/table/service: shared `aggregate_project_kpis()` operational spine + active project rollup
+- Formula: company band = red if escalation gaps or injuries > 0, amber if incidents or near-misses > 0 otherwise green; totals are summed from the same per-project spine
+- Filters: active projects + selected window
+- Denominator: active projects in company rollup
+- Date range: selected KPI window
+- Tenant scope: platform-wide safety rollup
+- Role scope: safety/admin views
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview verification batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: safety portal project ranking / per-project safety KPI drilldown
+- Current defect classification: grouped cards previously lacked provenance, allowing semantics to drift away from the shared safety spine
+- Severity: P1
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: `/app/backend/tests/test_wp17a_portal_kpi_truth_batch2.py`, iteration 87 UI verification
 - Final disposition: preview-fixed; deployment pending

@@ -1,3 +1,20 @@
+# 2026-07-31 — WP-17A executive/project/hr/safety KPI truth batch verified
+
+## Current WP-17A status
+
+- **Executive, Project, HR, and Safety portal KPI sweeps are now verified in preview for this batch**
+- **All four repaired portal surfaces now emit `kpi_metadata` and passed authenticated API + UI verification (iteration 87)**
+- **Canonical duplication was reduced by aligning Executive Overview and Project Health incident / corrective-action semantics**
+- **HR fake-green risk from wrong expiration response keys was removed by switching to canonical endpoints / nested bucket mapping**
+- **WP-17A remains in progress: duplicate KPI sweep, disk trend intelligence, automation, and deployment package remain open**
+
+## Latest measured improvements
+
+- `/api/admin/executive/overview` now answers "Why this number?" for verdict and all six tiles
+- `/api/project-health` now emits page / summary / indicator metadata with auth-aware regression coverage
+- HR KPI consumers now reconcile roster / employee requests / time-off / expirations against the canonical endpoint contracts
+- `/api/safety/company/safety-kpis` now exposes grouped-card provenance and deterministic company band metadata
+
 # 2026-07-31 — WP-16A active closeout snapshot
 
 ## Current status
