@@ -521,11 +521,18 @@ def build_recovery_dashboard_router(
         # --- hourly cadence flag (read-only — never modifies) ---
         hourly_flag = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
 
+        hourly_activation = await _build_hourly_activation_state(db, runtime_state=backup_runtime)
+        effective_backup_age_target_minutes = (
+            int(rpo_target)
+            if hourly_activation.get("hourly_cadence_enabled")
+            else int(posture_target)
+        )
+
         # --- compute overall pill ---
         pill = _compute_pill(
             last_backup_ok=last_backup_ok,
             backup_age_minutes=backup_age_minutes,
-            backup_age_target_minutes=float(rpo_target),
+            backup_age_target_minutes=float(effective_backup_age_target_minutes),
             failures_7d=len(failures_7d),
             bucket_usage_status=usage_status,
         )
@@ -550,11 +557,14 @@ def build_recovery_dashboard_router(
                     f"{warn_gb if usage_status == 'AMBER' else alert_gb} GB threshold"
                 ),
             })
-        hourly_activation = await _build_hourly_activation_state(db, runtime_state=backup_runtime)
-        rpo_status = (
-            "GREEN" if freshness.get("status") == "CURRENT" and backup_age_minutes is not None and backup_age_minutes <= rpo_target
-            else ("AMBER" if freshness.get("status") == "AGING" and backup_age_minutes is not None else "RED")
-        )
+        if freshness.get("status") == "UNKNOWN" or backup_age_minutes is None:
+            rpo_status = "RED"
+        elif backup_age_minutes <= effective_backup_age_target_minutes:
+            rpo_status = "GREEN"
+        elif backup_age_minutes <= (2 * effective_backup_age_target_minutes):
+            rpo_status = "AMBER"
+        else:
+            rpo_status = "RED"
         if rpo_status == "RED":
             pill = "RED"
         elif rpo_status == "AMBER" and pill == "GREEN":
@@ -607,10 +617,10 @@ def build_recovery_dashboard_router(
             "last_backup": last_backup,
             "last_drill": last_drill,
             "backup_age_minutes": backup_age_minutes,
-            "backup_age_target_minutes": rpo_target,
+            "backup_age_target_minutes": effective_backup_age_target_minutes,
             "archive_lineage": public_archive_lineage_payload(archive_lineage),
             "rpo": {
-                "target_min": rpo_target,
+                "target_min": effective_backup_age_target_minutes,
                 "actual_min": backup_age_minutes,
                 "status": rpo_status,
             },

@@ -21,6 +21,7 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Header
 from pydantic import BaseModel, EmailStr, Field
+from lib.audit import append_audit
 
 logger = logging.getLogger(__name__)
 
@@ -76,10 +77,37 @@ SEED_DEFAULT_PASSWORD = os.environ.get("SEED_DEFAULT_PASSWORD", "Welcome2MASCI!"
 def _jwt_secret() -> str:
     v = os.environ.get("JWT_SECRET", "").strip()
     if not v:
-        # Dev-only fallback. Production must set JWT_SECRET.
+        app_env = (os.environ.get("APP_ENV") or "").strip().lower()
+        if app_env not in {"", "dev", "development", "local", "test"}:
+            raise RuntimeError("JWT_SECRET must be configured for non-dev environments")
         logger.warning("JWT_SECRET not set — using an unstable dev fallback.")
         return "masci-dev-only-do-not-use-in-production"
     return v
+
+
+def _require_password_rotation_cleared(user: dict) -> None:
+    if user.get("must_change_password"):
+        raise HTTPException(status_code=403, detail="Password change required")
+
+
+async def _write_user_admin_audit(db, *, action: str, actor: dict, target_user_id: str, details: Optional[dict] = None) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        await db.audit_events.insert_one({
+            "id": uuid.uuid4().hex,
+            "kind": f"auth.user_admin.{action}",
+            "action": action,
+            "entity_type": "user",
+            "entity_id": target_user_id,
+            "actor_id": actor.get("id"),
+            "actor_name": actor.get("name") or actor.get("email"),
+            "actor_role": actor.get("role"),
+            "details": details or {},
+            "ts": now,
+            "created_at": now,
+        })
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[auth-audit] failed to write audit event %s/%s: %s", action, target_user_id, exc)
 
 
 def hash_password(password: str) -> str:
@@ -225,12 +253,14 @@ def build_auth_router(db):
 
     def require_role(*roles: str):
         async def _inner(user: dict = Depends(get_current_user)) -> dict:
+            _require_password_rotation_cleared(user)
             if user.get("role") not in roles:
                 raise HTTPException(status_code=403, detail="Insufficient role")
             return user
         return _inner
 
     async def require_admin_or_owner(user: dict = Depends(get_current_user)) -> dict:
+        _require_password_rotation_cleared(user)
         if user.get("role") not in {"owner", "admin"}:
             raise HTTPException(status_code=403, detail="Admin role required")
         return user
@@ -324,7 +354,7 @@ def build_auth_router(db):
     @router.post("/users", response_model=User)
     async def create_user(
         body: CreateUserRequest,
-        _: dict = Depends(require_admin_or_owner),
+        actor: dict = Depends(require_admin_or_owner),
     ):
         email = body.email.strip().lower()
         if body.role not in VALID_ROLES:
@@ -342,6 +372,13 @@ def build_auth_router(db):
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.users.insert_one(doc)
+        await _write_user_admin_audit(
+            db,
+            action="create",
+            actor=actor,
+            target_user_id=doc["id"],
+            details={"email": email, "role": body.role},
+        )
         doc.pop("_id", None)
         doc.pop("password_hash", None)
         return _doc_to_user(doc)
@@ -368,6 +405,13 @@ def build_auth_router(db):
         res = await db.users.update_one({"id": user_id}, {"$set": patch})
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="User not found")
+        await _write_user_admin_audit(
+            db,
+            action="update",
+            actor=actor,
+            target_user_id=user_id,
+            details={"updated_fields": sorted(patch.keys())},
+        )
         doc = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
         return _doc_to_user(doc)
 
@@ -375,7 +419,7 @@ def build_auth_router(db):
     async def admin_reset_password(
         user_id: str,
         body: ResetPasswordRequest,
-        _: dict = Depends(require_admin_or_owner),
+        actor: dict = Depends(require_admin_or_owner),
     ):
         res = await db.users.update_one(
             {"id": user_id},
@@ -386,6 +430,13 @@ def build_auth_router(db):
         )
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="User not found")
+        await _write_user_admin_audit(
+            db,
+            action="reset_password",
+            actor=actor,
+            target_user_id=user_id,
+            details={"must_change_password": True},
+        )
         return {"ok": True}
 
     @router.delete("/users/{user_id}")
@@ -398,6 +449,13 @@ def build_auth_router(db):
         res = await db.users.update_one({"id": user_id}, {"$set": {"is_active": False}})
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="User not found")
+        await _write_user_admin_audit(
+            db,
+            action="deactivate",
+            actor=actor,
+            target_user_id=user_id,
+            details={"is_active": False},
+        )
         return {"ok": True}
 
     return router, get_current_user, require_admin_or_owner, optional_user

@@ -261,6 +261,16 @@ def is_backup_job_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime
         return False
     if str(row.get("state") or "").lower() not in {"queued", "running"}:
         return False
+    owner_host = str(row.get("host") or "").strip()
+    owner_pid = row.get("pid")
+    current_host = socket.gethostname()
+    if owner_host and owner_host == current_host and owner_pid:
+        try:
+            os.kill(int(owner_pid), 0)
+        except OSError:
+            return True
+        except Exception:
+            pass
     current = now or backup_now()
     heartbeat = row.get("heartbeat_at") or row.get("updated_at") or row.get("created_at")
     try:
