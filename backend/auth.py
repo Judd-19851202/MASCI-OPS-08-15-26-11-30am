@@ -65,12 +65,9 @@ def _resolve_seed_users() -> list:
     ]
 
 SEED_USERS = _resolve_seed_users()
-# iter232 · Pulled from env (operator-stated stabilization-phase posture
-# preserves auth-sensitive defaults as explicit operator decisions, not
-# hardcoded constants). Fallback is the historical value to preserve
-# current behavior on environments that haven't set the key yet — this
-# is the documented safe fallback per the code-review triage.
-SEED_DEFAULT_PASSWORD = os.environ.get("SEED_DEFAULT_PASSWORD", "Welcome2MASCI!")
+# Seed passwords must be explicit per environment. Claimed users remain
+# untouched; only missing seed users require this value.
+SEED_DEFAULT_PASSWORD = os.environ.get("SEED_DEFAULT_PASSWORD", "").strip()
 
 
 # ------------------------- crypto helpers -------------------------
@@ -469,6 +466,15 @@ async def seed_initial_users(db) -> None:
         await db.users.create_index("email", unique=True)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"users.email index: {e}")
+    missing_seed_users = []
+    for email, _, _ in SEED_USERS:
+        if not await db.users.find_one({"email": email}, {"_id": 0, "id": 1}):
+            missing_seed_users.append(email)
+    if missing_seed_users and not SEED_DEFAULT_PASSWORD:
+        raise RuntimeError(
+            "SEED_DEFAULT_PASSWORD must be configured before missing seed users can be created: "
+            + ", ".join(missing_seed_users)
+        )
     for email, name, role in SEED_USERS:
         if await db.users.find_one({"email": email}):
             continue
