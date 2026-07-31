@@ -327,26 +327,6 @@ export async function txFetchJson(path, params) {
   return { data, status: res.status };
 }
 
-export async function txFetchJsonSettled(path, params, opts = {}) {
-  const attempts = Number(opts.attempts || 3);
-  const settleMs = Number(opts.settleMs || 6000);
-  const backoffMs = Number(opts.backoffMs || 500);
-
-  for (let i = 0; i < attempts; i += 1) {
-    const req = txFetchJson(path, params);
-    const timed = await Promise.race([
-      req.then((value) => ({ ok: true, value })),
-      new Promise((resolve) => setTimeout(() => resolve({ ok: false }), settleMs)),
-    ]);
-    if (timed.ok) return timed.value;
-    if (i < attempts - 1) {
-      await new Promise((resolve) => setTimeout(resolve, backoffMs));
-    }
-  }
-
-  throw new Error("Cleanup data request timed out before settling.");
-}
-
 // TRACK 18.12B · Detection helper.
 // True when the response was synthesised by txGet's 401/403 absorption
 // path. Loaders use it to render a Transportation-branded restricted

@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, txFetchJsonSettled, STATE_LABEL, useTxPathPrefix, isTxRestricted, txCatch,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, txFetchJson, STATE_LABEL, useTxPathPrefix, isTxRestricted, txCatch,
 } from "./_shared";
 import { RateCreateDialog, InspectionWizard } from "./_widgets";
 import MissionControl from "./MissionControl";
@@ -75,7 +75,7 @@ function TopCleanupOpportunityCard() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await txFetchJsonSettled("/admin/transportation/intelligence/cleanup-signals", { days: 30 });
+      const r = await txFetchJson("/admin/transportation/intelligence/cleanup-signals", { days: 30 });
       if (isTxRestricted(r)) {
         setRestricted(true);
         setData(null);
@@ -94,7 +94,9 @@ function TopCleanupOpportunityCard() {
 
   useEffect(() => {
     const kickoff = setTimeout(() => { load(); }, 1200);
-    return () => clearTimeout(kickoff);
+    return () => {
+      clearTimeout(kickoff);
+    };
   }, [load]);
 
   if (restricted) {

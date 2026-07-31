@@ -23,7 +23,6 @@ import {
   EmptyState,
   txGet,
   txFetchJson,
-  txFetchJsonSettled,
   isTxRestricted,
   txCatch,
   useTxPathPrefix,
@@ -678,6 +677,7 @@ function PatternList({ title, items, emptyLabel, footer, testid }) {
 
 // ────────────────────── Cleanup Companion (Track 16.15) ──────────────────────
 function CleanupCompanionPanel() {
+  const [loading, setLoading] = useState(true);
   const [signals, setSignals] = useState(null);
   const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
@@ -687,20 +687,30 @@ function CleanupCompanionPanel() {
   const [materialized, setMaterialized] = useState(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
-      const r = await txFetchJsonSettled(
+      const r = await txFetchJson(
         "/admin/transportation/intelligence/cleanup-signals",
         { days: 30 }
       );
-      if (isTxRestricted(r)) { setRestricted(true); setErr(null); return; }
-      setSignals(r.data); setErr(null);
+      if (isTxRestricted(r)) {
+        setRestricted(true); setSignals(null); setErr(null); return;
+      }
+      setRestricted(false); setSignals(r.data); setErr(null);
     } catch (e) {
       const safe = txCatch(e);
-      if (safe == null) { setRestricted(true); return; }
+      if (safe == null) { setRestricted(true); setSignals(null); return; }
       setErr(safe);
+    } finally {
+      setLoading(false);
     }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const kickoff = setTimeout(() => { load(); }, 1200);
+    return () => {
+      clearTimeout(kickoff);
+    };
+  }, [load]);
 
   const openDetail = async (key) => {
     setOpenSignal(key); setDetail(null); setMaterialized(null);
@@ -739,7 +749,8 @@ function CleanupCompanionPanel() {
 
   if (restricted) return <TxOpsRestrictedData testid="tx-intel-cleanup-restricted" />;
   if (err) return <div data-testid="tx-intel-cleanup-error" className="text-sm text-rose-700">{err}</div>;
-  if (!signals) return <div data-testid="tx-intel-cleanup-loading" className="text-sm text-slate-500">Loading…</div>;
+  if (loading) return <div data-testid="tx-intel-cleanup-loading" className="text-sm text-slate-500">Loading…</div>;
+  if (!signals) return <div data-testid="tx-intel-cleanup-empty" className="text-sm text-slate-500">No cleanup signals available.</div>;
 
   const list = signals.signals || [];
   const top = list[0];
