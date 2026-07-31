@@ -13,6 +13,8 @@ import { Database, Loader2, CheckCircle2, AlertTriangle, XCircle } from "lucide-
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import StorageObservabilityCard from "@/components/admin/StorageObservabilityCard";
 import { api } from "@/lib/api";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const SEVERITY = {
   ok:       { cls: "border-emerald-300 bg-emerald-50", Icon: CheckCircle2, label: "OK" },
@@ -46,6 +48,7 @@ function CapacityNow() {
 
   const sev = data?.severity || "ok";
   const cfg = SEVERITY[sev] || SEVERITY.ok;
+  const help = buildKpiHelpContent(data?.kpi_metadata, "Atlas Capacity Current Snapshot");
 
   return (
     <section
@@ -58,6 +61,7 @@ function CapacityNow() {
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold">
           Atlas Capacity · {cfg.label}
         </span>
+        {help ? <HelpTip label={help.label} body={help.body} testId="capacity-now-help" /> : null}
         {loading && (
           <Loader2 className="w-3 h-3 animate-spin text-slate-400 ml-auto" />
         )}
@@ -87,6 +91,11 @@ function CapacityNow() {
                 .join(" · ")}
             </div>
           )}
+          {Array.isArray(data?.kpi_metadata?.exception_notes) && data.kpi_metadata.exception_notes.length ? (
+            <div className="text-[10px] text-slate-500" data-testid="capacity-now-note">
+              {data.kpi_metadata.exception_notes[0]}
+            </div>
+          ) : null}
         </div>
       )}
     </section>

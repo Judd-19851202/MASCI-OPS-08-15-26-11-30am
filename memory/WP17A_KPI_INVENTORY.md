@@ -87,3 +87,10 @@ This file will expand continuously until every KPI / score / badge / trust signa
 - company safety operational KPI card
 - KPI surfaces: company band, safety events, injuries/accidents, near-miss/open incidents, meetings/JHAs/inspections, source-status strip
 - Evidence captured: company safety band metadata verification + iteration 87 frontend verification
+
+## Executive closeout completion
+
+- Final governing inventory published through `/api/admin/wp17a/kpi-dictionary`
+- Total audited KPI surfaces in current WP-17A dictionary: **25**
+- Final reconciliation result: **PASS**
+- Final certification result: **EXECUTIVE_READY_FOR_APPROVAL**

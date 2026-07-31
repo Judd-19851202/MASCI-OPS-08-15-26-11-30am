@@ -31,6 +31,7 @@ from fastapi import APIRouter, Depends, Request
 
 from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.runtime_identity import runtime_identity_public_payload
+from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 # Backend listens on 0.0.0.0:8001 (supervisor-managed). We fan out over
 # localhost so we do not depend on the ingress being reachable from
@@ -828,6 +829,30 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
                      if r["status"] == "MISMATCH" and not r.get("root_cause_id")),
             "total_cards": len(results),
             "sections": sections,
+            "kpi_metadata": standardize_prediction_metadata(
+                identifier="WP17A-KPI-022",
+                display_name="OCC Health Snapshot",
+                description="Bounded Operations Control Center aggregator over registered operational trust cards.",
+                formula={
+                    "overall_status": "worst status across registered OCC cards",
+                    "canonical_counts": "count by VERIFIED / DEGRADED / MISMATCH / UNVERIFIABLE",
+                },
+                owner="operations-control",
+                refresh_interval="on request",
+                confidence="HIGH",
+                validation_status=canonical_summary["highest"],
+                dependencies=["registered OCC child endpoints", "canonical truth registry"],
+                data_freshness="current request-time fanout",
+                consumer_portals=["Operations", "Admin"],
+                exception_notes=["This aggregator never replaces child canonical owners; it only discloses their current posture."],
+                extra={
+                    "category": "Operations",
+                    "source_of_truth": ["child endpoint fanout", "canonical truth registry"],
+                    "api_endpoint": "/api/admin/occ/health",
+                    "drilldown_source": "/admin/operations-control",
+                    "status_reason": "OCC health is truthful only when every child probe is surfaced as its own evidence-backed card.",
+                },
+            ),
         }
 
     return api_router

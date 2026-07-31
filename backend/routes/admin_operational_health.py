@@ -22,6 +22,7 @@ from lib.operational_health_engine import (
     count_statuses,
     normalize_operational_status,
 )
+from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 
 _BACKEND_INTERNAL_BASE = os.environ.get("OCC_HEALTH_INTERNAL_BASE", "http://127.0.0.1:8001").rstrip("/")
@@ -920,6 +921,30 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             "truth_relationship": truth["relationship"],
             "source_endpoints": sorted({card.get("endpoint") for card in all_cards if card.get("endpoint")}),
             "sections": sections,
+            "kpi_metadata": standardize_prediction_metadata(
+                identifier="WP17A-KPI-025",
+                display_name="Enterprise Governance Health",
+                description="Operational health module over governance registry, trust spine, certification, and route registration evidence.",
+                formula={
+                    "overall_status": "worst status across governance section cards",
+                    "counts": "status bucket counts across governance health cards",
+                },
+                owner="governance-trust",
+                refresh_interval="on request",
+                confidence="HIGH",
+                validation_status={"green": "VERIFIED", "yellow": "DEGRADED", "red": "MISMATCH", "unknown": "UNVERIFIABLE"}[overall_status],
+                dependencies=["governance registry", "trust spine", "production certification", "workflow gates"],
+                data_freshness="live request-time snapshot + repository artifact mtimes",
+                consumer_portals=["Admin", "Governance", "Trust Center"],
+                exception_notes=["This module is an aggregator only; child systems remain canonical truth owners."],
+                extra={
+                    "category": "Admin",
+                    "source_of_truth": ["governance registry", "trust spine", "production certification", "route registration evidence"],
+                    "api_endpoint": "/api/admin/operational-health/modules/enterprise-governance",
+                    "drilldown_source": "/admin/governance",
+                    "status_reason": "Governance health is derived from live evidence and repository-backed gate artifacts without inventing green states when evidence is missing.",
+                },
+            ),
         }
 
     return router

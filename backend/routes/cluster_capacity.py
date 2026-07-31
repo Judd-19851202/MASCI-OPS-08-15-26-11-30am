@@ -45,6 +45,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from lib.database_authority import managed_database_names
 from lib.runtime_identity import runtime_identity_public_payload
+from lib.wp17a_kpi_governance import capacity_prediction_quality, standardize_prediction_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,133 @@ def _quota_mb() -> int:
     except ValueError:
         v = 512
     return v
+
+
+def _risk_level(*, used_pct: float, remaining_days: Optional[float], quality: str) -> str:
+    if used_pct >= 95 or (remaining_days is not None and remaining_days <= 7):
+        return "critical"
+    if used_pct >= 85 or (remaining_days is not None and remaining_days <= 21):
+        return "high"
+    if used_pct >= 70 or (remaining_days is not None and remaining_days <= 45):
+        return "elevated"
+    if quality == "LOW":
+        return "watch"
+    return "normal"
+
+
+def _recommendations(*, risk_level: str, daily_growth: Optional[float], remaining_days: Optional[float]) -> List[str]:
+    recs: List[str] = []
+    if risk_level == "critical":
+        recs.append("Immediate action required: reduce storage growth or increase quota before write capacity is exhausted.")
+    elif risk_level == "high":
+        recs.append("Plan storage remediation this week; trend indicates materially reduced operating runway.")
+    elif risk_level == "elevated":
+        recs.append("Monitor trend weekly and verify cleanup / retention plans are scheduled.")
+    else:
+        recs.append("Storage posture is currently within normal operating bounds.")
+    if daily_growth is not None and daily_growth > 0:
+        recs.append(f"Current growth velocity is {daily_growth:.2f} MB/day.")
+    if remaining_days is not None:
+        recs.append(f"Projected remaining operational days: {remaining_days:.1f}.")
+    return recs
+
+
+def _series_metrics(rows: List[Dict[str, Any]], quota_mb: int) -> Dict[str, Any]:
+    if len(rows) < 2:
+        return {
+            "daily_growth_rate_mb": None,
+            "weekly_growth_rate_mb": None,
+            "monthly_growth_rate_mb": None,
+            "rolling_average_daily_mb": None,
+            "rolling_average_weekly_mb": None,
+            "storage_velocity_mb_per_day": None,
+            "projected_exhaustion_date": None,
+            "remaining_operational_days": None,
+            "confidence_interval_days": None,
+            "prediction_quality": "LOW",
+            "historical_variance_mb": None,
+            "capacity_risk_level": "watch",
+            "early_warning_thresholds": {"elevated_days": 45, "high_days": 21, "critical_days": 7},
+            "recommendations": ["More retained samples are needed before predictive storage guidance becomes reliable."],
+        }
+
+    parsed: List[Tuple[datetime, float]] = []
+    for row in rows:
+        try:
+            ts = row.get("ts")
+            dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00")) if isinstance(ts, str) else ts
+            parsed.append((dt, float(row.get("storage_used_mb") or 0.0)))
+        except Exception:  # noqa: BLE001
+            continue
+    parsed.sort(key=lambda item: item[0])
+    if len(parsed) < 2:
+        return {
+            "daily_growth_rate_mb": None,
+            "weekly_growth_rate_mb": None,
+            "monthly_growth_rate_mb": None,
+            "rolling_average_daily_mb": None,
+            "rolling_average_weekly_mb": None,
+            "storage_velocity_mb_per_day": None,
+            "projected_exhaustion_date": None,
+            "remaining_operational_days": None,
+            "confidence_interval_days": None,
+            "prediction_quality": "LOW",
+            "historical_variance_mb": None,
+            "capacity_risk_level": "watch",
+            "early_warning_thresholds": {"elevated_days": 45, "high_days": 21, "critical_days": 7},
+            "recommendations": ["More valid retained samples are needed before predictive storage guidance becomes reliable."],
+        }
+
+    def _rate(window_days: int) -> Optional[float]:
+        end = parsed[-1][0]
+        start_cutoff = end - timedelta(days=window_days)
+        subset = [item for item in parsed if item[0] >= start_cutoff]
+        if len(subset) < 2:
+            subset = parsed
+        first_dt, first_mb = subset[0]
+        last_dt, last_mb = subset[-1]
+        dt_days = max((last_dt - first_dt).total_seconds() / 86400.0, 1 / 24.0)
+        return round((last_mb - first_mb) / dt_days, 4)
+
+    daily_growth = _rate(1)
+    weekly_growth = _rate(7)
+    monthly_growth = _rate(30)
+    recent_deltas = [parsed[i][1] - parsed[i - 1][1] for i in range(1, len(parsed))]
+    rolling_avg_daily = round(sum(recent_deltas[-24:]) / max(len(recent_deltas[-24:]), 1), 4) if recent_deltas else None
+    rolling_avg_weekly = round(sum(recent_deltas[-24 * 7:]) / max(len(recent_deltas[-24 * 7:]), 1), 4) if recent_deltas else None
+    current_mb = parsed[-1][1]
+    effective_velocity = monthly_growth if monthly_growth is not None else weekly_growth
+    if effective_velocity is None:
+        effective_velocity = daily_growth
+    remaining_days = None
+    projected_exhaustion = None
+    if quota_mb > 0 and effective_velocity and effective_velocity > 0:
+        headroom_mb = quota_mb - current_mb
+        remaining_days = round(headroom_mb / effective_velocity, 2)
+        projected_exhaustion = (parsed[-1][0] + timedelta(days=max(remaining_days, 0))).isoformat()
+
+    quality = capacity_prediction_quality([value for _, value in parsed])
+    risk = _risk_level(
+        used_pct=(current_mb / quota_mb * 100.0) if quota_mb > 0 else 0.0,
+        remaining_days=remaining_days,
+        quality=quality["prediction_quality"],
+    )
+    return {
+        "daily_growth_rate_mb": daily_growth,
+        "weekly_growth_rate_mb": weekly_growth,
+        "monthly_growth_rate_mb": monthly_growth,
+        "rolling_average_daily_mb": rolling_avg_daily,
+        "rolling_average_weekly_mb": rolling_avg_weekly,
+        "storage_velocity_mb_per_day": effective_velocity,
+        "projected_exhaustion_date": projected_exhaustion,
+        "remaining_operational_days": remaining_days,
+        "confidence_interval_days": quality["confidence_interval_days"],
+        "prediction_quality": quality["prediction_quality"],
+        "historical_variance_mb": quality["historical_variance_mb"],
+        "capacity_risk_level": risk,
+        "early_warning_thresholds": {"elevated_days": 45, "high_days": 21, "critical_days": 7},
+        "recommendations": _recommendations(risk_level=risk, daily_growth=daily_growth, remaining_days=remaining_days),
+    }
 
 
 def build_cluster_capacity_router(get_client: callable, get_runtime_identity: callable | None = None) -> APIRouter:
@@ -133,6 +261,26 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
             "severity": severity,
             "dbs": dbs,
             "ts": datetime.now(timezone.utc).isoformat(),
+            "kpi_metadata": standardize_prediction_metadata(
+                identifier="WP17A-KPI-021-current",
+                display_name="Atlas Capacity Current Snapshot",
+                description="Current Atlas capacity posture for the active environment.",
+                formula={"storage_used_pct": "storage_used_mb / tier_quota_mb * 100", "severity_thresholds": {"warning": 80, "critical": 95}},
+                owner="storage-reliability",
+                refresh_interval="60 second cache",
+                confidence="HIGH",
+                validation_status="VALIDATED",
+                dependencies=["dbStats", "managed database names", "ATLAS_QUOTA_MB"],
+                data_freshness="Current request snapshot",
+                consumer_portals=["Admin", "Storage & Recovery", "Public shell banner"],
+                exception_notes=["This current snapshot is paired with the retained history endpoint for trend prediction."],
+                extra={
+                    "source_of_truth": ["dbStats", "managed_database_names"],
+                    "api_endpoint": "/api/cluster/capacity",
+                    "drilldown_source": "/admin/database",
+                    "status_reason": "Public-safe point-in-time capacity signal intended to fail closed when quota pressure rises.",
+                },
+            ),
         }
         if callable(get_runtime_identity):
             payload["runtime_identity"] = runtime_identity_public_payload(runtime_identity)
@@ -199,6 +347,8 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
             except Exception:  # noqa: BLE001
                 pass
 
+        predictive = _series_metrics(rows, _quota_mb())
+
         return {
             "ok": True,
             "days": days,
@@ -209,6 +359,36 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
             "days_to_quota": days_to_quota,
             "ts": datetime.now(timezone.utc).isoformat(),
             "rows": rows,
+            "predictive": predictive,
+            "trend_visualization_support": {
+                "x_axis": "ts",
+                "y_axis": "storage_used_mb",
+                "series_count": len(rows),
+            },
+            "kpi_metadata": standardize_prediction_metadata(
+                identifier="WP17A-KPI-021-history",
+                display_name="Atlas Capacity Forecast",
+                description="Historical storage trend and predictive capacity runway for the active environment.",
+                formula={
+                    "daily_growth_rate_mb": "window delta over retained hourly samples",
+                    "remaining_operational_days": "(tier_quota_mb - last_mb) / storage_velocity_mb_per_day when velocity > 0",
+                    "prediction_quality": "derived from historical variance vs average growth rate",
+                },
+                owner="storage-reliability",
+                refresh_interval="hourly retained snapshots",
+                confidence="HIGH" if len(rows) >= 24 else "MEDIUM",
+                validation_status="VALIDATED",
+                dependencies=["cluster_capacity_history", "dbStats", "hourly snapshot loop", "ATLAS_QUOTA_MB"],
+                data_freshness=f"Last {days} day retained sample window",
+                consumer_portals=["Admin", "Storage & Recovery", "Diagnostics"],
+                exception_notes=["Prediction quality is intentionally lowered when retained variance is high or sample count is small."],
+                extra={
+                    "source_of_truth": ["cluster_capacity_history"],
+                    "api_endpoint": "/api/cluster/capacity/history",
+                    "drilldown_source": "/admin/database",
+                    "status_reason": "Capacity forecasts are derived from retained hourly samples, not hardcoded safety assumptions.",
+                },
+            ),
         }
 
     return router

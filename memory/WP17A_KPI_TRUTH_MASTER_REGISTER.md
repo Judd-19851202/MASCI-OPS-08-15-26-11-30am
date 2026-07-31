@@ -13,12 +13,12 @@ This is the authoritative remediation register for WP-17A. No KPI or truth surfa
 - `post_restart_endpoint_verified`: repaired response observed from running preview runtime or equivalent authenticated runtime path
 - `ui_verified`: preview UI rendered the repaired truth surface
 
-Current batch-2 verification state:
+Current batch-3 verification state:
 - code_present_locally: YES
 - tests_passed: YES
 - runtime_restarted: YES
 - post_restart_endpoint_verified: YES (authenticated preview responses confirmed after supervisor restart)
-- ui_verified: YES (testing iteration 87 verified Executive / Project / HR / Safety metadata rendering and interactions)
+- ui_verified: YES (testing iteration 87 verified Executive / Project / HR / Safety metadata rendering and interactions; final executive-closeout verification in progress)
 
 ## Status legend
 - OPEN
@@ -189,9 +189,9 @@ Current batch-2 verification state:
 - Drill-down destination: findings lists / rule counts
 - Current defect classification: stale findings may appear current without explicit freshness confidence model
 - Severity: P1
-- Repair status: OPEN
-- Verification evidence: live production sweep + code trace in `backend/routes/governance.py`
-- Final disposition: pending
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_governance_r2_truth.py`, runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
 
 ### WP17A-KPI-007
 - Portal: Storage & Recovery
@@ -216,9 +216,9 @@ Current batch-2 verification state:
 - Drill-down destination: storage/recovery page
 - Current defect classification: stale inventory and ownership risk are conflated in one ambiguous score
 - Severity: P1
-- Repair status: OPEN
-- Verification evidence: live production sweep + code trace in `backend/services/r2_lifecycle/health.py`
-- Final disposition: pending
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_governance_r2_truth.py`, runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
 
 ### WP17A-KPI-008
 - Portal: Deploy Readiness
@@ -243,9 +243,9 @@ Current batch-2 verification state:
 - Drill-down destination: deploy readiness / trust details
 - Current defect classification: requires formula verification plus historical backfill + future ingestion prevention
 - Severity: P1
-- Repair status: OPEN
-- Verification evidence: live production sweep; source tracing in readiness and mapping code
-- Final disposition: pending
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_binding_storage_truth.py`, runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
 
 ### WP17A-KPI-009
 - Portal: Production Certification
@@ -270,9 +270,9 @@ Current batch-2 verification state:
 - Drill-down destination: trust spine / workflow details
 - Current defect classification: freshness policy may be overly universal; needs workflow-specific SLA audit
 - Severity: P1
-- Repair status: OPEN
-- Verification evidence: live production sweep + code trace in `backend/lib/production_certification.py`
-- Final disposition: pending
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_governance_r2_truth.py`, runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
 
 ### WP17A-KPI-010
 - Portal: Platform / Storage / System Health
@@ -295,11 +295,11 @@ Current batch-2 verification state:
 - Data age: current
 - Confidence level: HIGH
 - Drill-down destination: system/storage pages
-- Current defect classification: operational capacity pressure; needs inventory, retention, cleanup policy, and trend model
+- Current defect classification: operational capacity pressure previously lacked predictive runway, confidence, and recommendation intelligence
 - Severity: P1
-- Repair status: OPEN
-- Verification evidence: live production sweep
-- Final disposition: pending
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: `test_wp17a_executive_closeout.py`, runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
 
 ### WP17A-KPI-011
 - Portal: Admin OS
@@ -569,4 +569,139 @@ Current batch-2 verification state:
 - Severity: P1
 - Repair status: VERIFIED TRUTHFUL
 - Verification evidence: `/app/backend/tests/test_wp17a_portal_kpi_truth_batch2.py`, iteration 87 UI verification
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-021
+- Portal: Storage & Recovery
+- Page: `/admin/database`, `/admin/storage-recovery`
+- KPI or status name: Cluster capacity predictive intelligence
+- User-facing label: Atlas Capacity Forecast
+- Current displayed value: cluster capacity route now emits growth rates, rolling averages, storage velocity, projected exhaustion, remaining operational days, confidence, variance, risk level, and recommendations
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/cluster/capacity`, `/api/cluster/capacity/history`
+- Source collection/table/service: `cluster_capacity_history`, `dbStats`, `ATLAS_QUOTA_MB`
+- Formula: predictive derivatives over retained hourly storage snapshots plus current quota headroom
+- Filters: selected retained history window
+- Denominator: cluster quota MB
+- Date range: 1d / 7d / 30d retained windows
+- Tenant scope: platform-wide
+- Role scope: public current snapshot; admin-facing forecast consumers
+- Refresh frequency: 60-second current cache + hourly retained snapshots
+- Cache behavior: current snapshot cached 60s; history reads retained samples
+- Last refresh: preview executive closeout batch 2026-07-31
+- Data age: current snapshot + retained historical series
+- Confidence level: HIGH
+- Drill-down destination: `/admin/database`
+- Current defect classification: storage monitoring was reactive rather than predictive
+- Severity: P0
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: `test_wp17a_executive_closeout.py`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-022
+- Portal: Operations
+- Page: `/admin/operations-control`
+- KPI or status name: OCC health aggregator truth contract
+- User-facing label: OCC Health Snapshot
+- Current displayed value: OCC health now exposes standardized metadata and remains a bounded rollup over canonical child probes
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/admin/occ/health`
+- Source collection/table/service: registered OCC child endpoints + canonical truth registry
+- Formula: worst status across registered OCC cards with canonical count breakdown
+- Filters: registered OCC cards only
+- Denominator: total OCC cards
+- Date range: request-time fanout snapshot
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview executive closeout batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: `/admin/operations-control`
+- Current defect classification: aggregator needed to disclose that it is bounded and non-canonical
+- Severity: P1
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-023
+- Portal: Trust Center
+- Page: shared shell banners / public runtime truth surfaces
+- KPI or status name: Environment / data source truth
+- User-facing label: Environment / Data Source Truth
+- Current displayed value: runtime environment and database identity now expose standardized metadata and remain clearly separated from health/certification claims
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/platform/data-truth`
+- Source collection/table/service: runtime identity public payload
+- Formula: request-time runtime identity projection
+- Filters: none
+- Denominator: N/A
+- Date range: current runtime snapshot
+- Tenant scope: platform-wide
+- Role scope: public-safe
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview executive closeout batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: shell banners / system pages
+- Current defect classification: environment truth needed standardized metadata and stronger differentiation from platform health claims
+- Severity: P1
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-024
+- Portal: Trust Center
+- Page: governance trust / email / trust validation surfaces
+- KPI or status name: Platform trust validator
+- User-facing label: Trust Validator
+- Current displayed value: validator now exposes standardized metadata and clearly declares its bounded role versus canonical truth owners
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/admin/platform-trust/validate`
+- Source collection/table/service: archive lineage, scheduler, email routing, workflow delivery, PM coverage evidence
+- Formula: defensive validation over bounded evidence bands
+- Filters: admin-safe evidence only
+- Denominator: bounded trust checks
+- Date range: latest 24h evidence window
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview executive closeout batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: `/admin/governance-trust`
+- Current defect classification: validator semantics needed explicit anti-drift boundaries so it would not be mistaken for canonical certification
+- Severity: P1
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: runtime metadata probe in `/api/admin/wp17a/reconciliation`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-025
+- Portal: Admin
+- Page: `/admin/governance`
+- KPI or status name: Enterprise governance health module
+- User-facing label: Enterprise Governance Health
+- Current displayed value: governance module now exposes standardized metadata and remains a bounded health rollup over registry, trust spine, certification, and route-registration evidence
+- Current displayed status/color: verified truthful in preview
+- Backend endpoint: `/api/admin/operational-health/modules/enterprise-governance`
+- Source collection/table/service: governance registry, trust spine, certification docs, route registration evidence
+- Formula: worst status across governance section cards with status bucket counts
+- Filters: enterprise-governance module only
+- Denominator: total governance section cards
+- Date range: request-time snapshot + repository artifact mtimes
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none observed
+- Last refresh: preview executive closeout batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: `/admin/governance`
+- Current defect classification: governance module needed standardized metadata and explicit bounded-aggregator semantics
+- Severity: P1
+- Repair status: VERIFIED TRUTHFUL
+- Verification evidence: runtime metadata probe in `/api/admin/wp17a/reconciliation`
 - Final disposition: preview-fixed; deployment pending

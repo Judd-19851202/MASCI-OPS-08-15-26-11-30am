@@ -30,6 +30,7 @@ from fastapi import APIRouter
 from lib.canonical_status import DEGRADED, NOT_APPLICABLE, VERIFIED
 from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.runtime_identity import runtime_identity_public_payload
+from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 
 CERTIFICATION_DATE = "2026-02-10"
@@ -125,6 +126,31 @@ def build_platform_data_truth_router(db=None, *, get_runtime_identity=None) -> A
                 derived_status=identity_status,
             ),
             "compatibility": compatibility,
+            "kpi_metadata": standardize_prediction_metadata(
+                identifier="WP17A-KPI-023",
+                display_name="Platform Data Truth",
+                description="Public-safe runtime environment and database identity truth.",
+                formula={
+                    "environment": "runtime identity app_env",
+                    "database": "runtime identity db_name",
+                    "ui_banner": "preview banner visible unless environment == production",
+                },
+                owner="platform-attestation",
+                refresh_interval="on request",
+                confidence="HIGH" if validation.get("valid", False) else "MEDIUM",
+                validation_status=identity_status,
+                dependencies=["runtime_identity_public_payload"],
+                data_freshness="current runtime snapshot",
+                consumer_portals=["Executive", "Operations", "Dispatch", "HR", "Safety", "Shop", "Training"],
+                exception_notes=["Environment truth is not equivalent to platform health or certification truth."],
+                extra={
+                    "category": "Trust Center",
+                    "source_of_truth": ["runtime_identity_public_payload"],
+                    "api_endpoint": "/api/platform/data-truth",
+                    "drilldown_source": "/admin/system",
+                    "status_reason": "This endpoint prevents shell-level environment drift by exposing one public-safe source of environment and database truth.",
+                },
+            ),
 
             # ── Doctrine pointer ─────────────────────────────────────
             "doctrine": {

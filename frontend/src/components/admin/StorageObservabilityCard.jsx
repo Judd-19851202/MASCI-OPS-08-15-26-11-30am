@@ -14,6 +14,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Database, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 // ---------------------------------------------------------------------
 // Sparkline — pure SVG, takes a numeric array, produces a polyline.
@@ -155,8 +157,12 @@ export default function StorageObservabilityCard() {
       runway: data.days_to_quota,
       samples: data.samples,
       days: data.days,
+      predictive: data.predictive || {},
+      metadata: data.kpi_metadata || null,
     };
   }, [data]);
+
+  const help = useMemo(() => buildKpiHelpContent(summary?.metadata, "Atlas Capacity Forecast"), [summary]);
 
   return (
     <section
@@ -169,6 +175,7 @@ export default function StorageObservabilityCard() {
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold text-slate-600">
           Storage Trend · last {summary?.days ?? 30}d
         </span>
+        {help ? <HelpTip label={help.label} body={help.body} testId="storage-card-help" /> : null}
         {loading && (
           <Loader2
             className="w-3 h-3 animate-spin text-slate-400 ml-auto"
@@ -210,6 +217,22 @@ export default function StorageObservabilityCard() {
           >
             {fmtMb(summary.last)} · {fmtSlope(summary.slope)} · {fmtRunway(summary.runway)}
           </div>
+          <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-mono" data-testid="storage-card-predictive-grid">
+            <div data-testid="storage-card-daily-growth">daily {fmtSlope(summary.predictive?.daily_growth_rate_mb)}</div>
+            <div data-testid="storage-card-weekly-growth">weekly {fmtSlope(summary.predictive?.weekly_growth_rate_mb)}</div>
+            <div data-testid="storage-card-monthly-growth">monthly {fmtSlope(summary.predictive?.monthly_growth_rate_mb)}</div>
+            <div data-testid="storage-card-prediction-quality">quality {summary.predictive?.prediction_quality || "—"}</div>
+          </div>
+          {summary.predictive?.projected_exhaustion_date ? (
+            <div className="text-[10px] text-slate-500 font-mono" data-testid="storage-card-exhaustion-date">
+              projected exhaustion · {summary.predictive.projected_exhaustion_date}
+            </div>
+          ) : null}
+          {Array.isArray(summary.predictive?.recommendations) && summary.predictive.recommendations.length ? (
+            <div className="text-[10px] text-slate-500" data-testid="storage-card-recommendations">
+              {summary.predictive.recommendations[0]}
+            </div>
+          ) : null}
           <div
             className="text-[10px] text-slate-400 font-mono"
             data-testid="storage-card-meta"

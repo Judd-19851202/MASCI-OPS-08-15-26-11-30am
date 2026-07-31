@@ -47,6 +47,11 @@ Status: IN PROGRESS
 - post-restart endpoint verified: YES
 - UI verified: YES (iteration 87)
 
+## Executive closeout status
+- Final reconciliation: PASS (`0` blocking findings, `18` runtime probes)
+- Final certification: `EXECUTIVE_READY_FOR_APPROVAL`
+- Final combined pytest suite: `22 passed, 1 skipped`
+
 ## Remaining
 - Work package still open; more inventory, reconciliation, data-integrity, and backfill work remains.
 

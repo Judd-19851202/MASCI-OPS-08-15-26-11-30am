@@ -16684,6 +16684,9 @@ app.include_router(_op_map_router)
 from routes.platform_data_truth import build_platform_data_truth_router  # noqa: E402
 app.include_router(build_platform_data_truth_router(db, get_runtime_identity=_runtime_identity_bundle))
 
+from routes.wp17a_kpi_governance import build_wp17a_kpi_governance_router  # noqa: E402
+app.include_router(build_wp17a_kpi_governance_router(require_admin))
+
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
 # No database storage · no analytics · no scoring · no charts. Closes the

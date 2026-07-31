@@ -1,3 +1,18 @@
+# 2026-07-31 — WP-17A executive closeout certified in preview
+
+## Executive-ready status
+
+- WP-17A final closeout package is now **EXECUTIVE_READY_FOR_APPROVAL** in preview.
+- New governance endpoints live:
+  - `/api/admin/wp17a/kpi-dictionary`
+  - `/api/admin/wp17a/reconciliation`
+  - `/api/admin/wp17a/certification`
+  - `/api/admin/wp17a/deployment-package`
+- Final governed KPI inventory count: **25**
+- Final reconciliation result: **PASS** with **0 blocking findings** across **18 runtime probes**.
+- Final combined backend suite result: **22 passed, 1 skipped**.
+- Predictive storage intelligence is complete and surfaced in Admin Database / cluster-capacity APIs.
+
 # 2026-07-31 — WP-17A executive/project/hr/safety KPI truth batch verified
 
 ## Current WP-17A status

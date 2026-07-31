@@ -44,6 +44,7 @@ from lib.ots_truth import (
     public_ots_projection,
 )
 from lib.runtime_identity import runtime_identity_public_payload
+from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 
 ALLOWED_STATUSES = normalized_allowed_email_audit_statuses()
@@ -598,6 +599,31 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
             "amber_reasons": amber_reasons,
             "ots_truth": ots_projection["ots_truth"],
             "compatibility": ots_projection["compatibility"],
+            "kpi_metadata": standardize_prediction_metadata(
+                identifier="WP17A-KPI-024",
+                display_name="Platform Trust Validator",
+                description="Bounded trust validator over admin-safe evidence.",
+                formula={
+                    "final_band": "defensive validation over backup_recent + scheduler + email routing + workflow delivery + PM coverage",
+                    "red_reasons": "blocking evidence count",
+                    "amber_reasons": "warning evidence count",
+                },
+                owner="platform-trust-program",
+                refresh_interval="on request",
+                confidence="HIGH",
+                validation_status=validation_status,
+                dependencies=["platform_attestation", "archive_lineage", "workflow delivery health", "email routing audit"],
+                data_freshness="last 24 hours of validation evidence",
+                consumer_portals=["Trust Center", "Admin"],
+                exception_notes=["Validator outputs cannot claim platform certification or canonical ownership."],
+                extra={
+                    "category": "Trust Center",
+                    "source_of_truth": ["archive_lineage", "email_routing_audit_v2", "workflow delivery health", "pm coverage"],
+                    "api_endpoint": "/api/admin/platform-trust/validate",
+                    "drilldown_source": "/admin/governance-trust",
+                    "status_reason": "The validator consumes bounded evidence and may downgrade claims, but it may never override canonical truth owners.",
+                },
+            ),
         }
 
     return router
