@@ -4,20 +4,22 @@
 
 - **WP-16A Production Stabilization & Release Certification** remains active.
 - **WP-17 is not authorized and must not begin.**
+- **All pre-deployment certification evidence is complete; deployment is paused only by executive hold.**
 
 ## Remaining closeout sequence
 
 ### P0
-- complete and independently verify the active fresh namespace restore drill
-- close `BACKUP_AND_RECOVERY_CERTIFICATION.md` only after recovery is demonstrated with evidence
-- finalize pre-deployment certification pack and governing-register updates
+- wait for explicit deployment authorization
+- execute native production deployment once hold is released
+- run the prepared post-deployment validation checklist immediately after deployment
 
 ### P1
-- freeze the exact certified build once pre-deployment certification passes
-- keep deployment and post-deployment reports marked `PENDING / NOT YET EXERCISED` until actual production deployment occurs
+- complete `PRODUCTION_DEPLOYMENT_REPORT.md` after live deployment
+- complete `POST_DEPLOYMENT_VALIDATION.md` after live validation
+- issue final WP-16A completion recommendation after production validation passes
 
 ### P2
-- after actual production deployment, execute live post-deployment validation and only then issue final WP-16A completion recommendation
+- maintain WP-17 block until WP-16A is formally closed in production
 
 # 2026-07-30 WP-16 Wave 5 Safety certification scope
 

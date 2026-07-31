@@ -74,6 +74,39 @@ def test_changed_record_changes_collection_and_aggregate_fingerprint():
     assert cmp["difference"]["collection_differences"][0]["collection"] == "daily_reports"
 
 
+def test_compare_fingerprints_ignores_runtime_mutable_restore_exclusions():
+    before = {
+        "aggregate_fingerprint": "before",
+        "per_collection_record_counts": {
+            "health_alert_cooldowns": 1,
+            "operational_facts": 10,
+            "operational_ingestion_runs": 4,
+        },
+        "per_collection_fingerprints": {
+            "health_alert_cooldowns": {"collection_fingerprint": "a"},
+            "operational_facts": {"collection_fingerprint": "b"},
+            "operational_ingestion_runs": {"collection_fingerprint": "c"},
+        },
+    }
+    after = {
+        "aggregate_fingerprint": "after",
+        "per_collection_record_counts": {
+            "health_alert_cooldowns": 2,
+            "operational_facts": 11,
+            "operational_ingestion_runs": 5,
+        },
+        "per_collection_fingerprints": {
+            "health_alert_cooldowns": {"collection_fingerprint": "x"},
+            "operational_facts": {"collection_fingerprint": "y"},
+            "operational_ingestion_runs": {"collection_fingerprint": "z"},
+        },
+    }
+
+    out = compare_fingerprints(before, after)
+    assert out["match"] is True
+    assert out["difference"]["collection_differences"] == []
+
+
 def test_phase_started_and_interrupted_are_truthful():
     evidence = build_restore_evidence_skeleton(
         drill_id="d1",
@@ -313,3 +346,57 @@ def test_verify_photo_object_evidence_normalizes_photo_refs_to_archive_keys():
         "documents/2026/07/example.pdf",
         "photos/2026/07/example.jpg",
     ]
+
+
+def test_verify_photo_object_evidence_treats_orphaned_json_refs_as_informational():
+    out = verify_photo_object_evidence(
+        expected_refs=[
+            "photo://fixture/2geh7lxx_IMG_5124.jpeg",
+            "photo://demo/x1",
+            "photo://bucket/photos/2026/07/example.jpg",
+            "doc://bucket/documents/2026/07/example.pdf",
+        ],
+        archive_object_keys=[
+            "photos/2026/07/example.jpg",
+            "documents/2026/07/example.pdf",
+        ],
+        rehydration_result={"failed": 0, "verified": 2},
+    )
+
+    assert out["state"] == "PASS"
+    assert out["missing_objects"] == []
+    assert out["orphan_references"] == [
+        "2geh7lxx_IMG_5124.jpeg",
+        "x1",
+    ]
+
+
+def test_verify_photo_object_evidence_fails_for_unreferenced_archive_objects():
+    out = verify_photo_object_evidence(
+        expected_refs=[
+            "photo://bucket/photos/2026/07/example.jpg",
+        ],
+        archive_object_keys=[
+            "photos/2026/07/example.jpg",
+            "documents/2026/07/unexpected.pdf",
+        ],
+        rehydration_result={"failed": 0, "verified": 2},
+    )
+
+    assert out["state"] == "FAIL"
+    assert out["missing_objects"] == ["documents/2026/07/unexpected.pdf"]
+
+
+def test_verify_photo_object_evidence_normalizes_doc_refs_to_archive_keys():
+    out = verify_photo_object_evidence(
+        expected_refs=[
+            "doc://bucket/documents/2026/07/example.pdf",
+        ],
+        archive_object_keys=[
+            "documents/2026/07/example.pdf",
+        ],
+        rehydration_result={"failed": 0, "verified": 1},
+    )
+
+    assert out["state"] == "PASS"
+    assert out["missing_objects"] == []

@@ -59,4 +59,6 @@ This is the authoritative Phase B issue ledger. No repair is valid unless the is
 - Wave 3 was **EXECUTIVE LOCKED** on `2026-07-30`. Wave 3 entries above are now read-only certification history unless reopened through documented regression / change control.
 
 ## WP-16A closeout note
-- As of `2026-07-31`, no new unresolved production-critical application defect has been added to this ledger from WP-16A reliability/database/security work. The remaining active closeout dependency is **fresh recovery demonstration evidence**, tracked in `BACKUP_AND_RECOVERY_CERTIFICATION.md` rather than as a newly verified product defect.
+- As of `2026-07-31`, no unresolved production-critical application defect remains open from WP-16A reliability / database / security / recovery work.
+- Backup & Recovery Certification is now complete using restore drill `20caf64dfeff` with independent QA review `qa-befafa0fd18f`.
+- The only remaining stop is the explicit executive deployment hold; it is **not** a new product defect.

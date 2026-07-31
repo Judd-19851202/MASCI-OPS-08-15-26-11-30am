@@ -1,18 +1,36 @@
-# WP-16A — Post-Deployment Validation
+# WP-16A — Post-Deployment Validation Checklist
 
 Date: 2026-07-31
-Status: PENDING / NOT YET EXERCISED
+Status: PREPARED / NOT YET EXECUTED
 
-This report intentionally remains pending until the actual authorized production deployment occurs.
+Run this immediately after authorized deployment.
 
-## Reserved fields for completion after deployment
+## Critical validations
 
-- health dashboard state
-- backup state
-- daily reports operational check
-- Device-ID restore isolation re-check in production
-- equipment pre-operations check
-- transportation check
-- authentication/public workflow check
-- monitoring / telemetry check
-- regression summary
+1. Runtime identity and health
+   - `GET /api/health` → `200`
+   - `GET /api/ready` → `200`
+   - `GET /api/health/full` → `200`
+2. Recovery / backup truth
+   - `/api/admin/recovery/snapshot` coherent
+   - `/api/admin/backups-complete-r2-state` coherent
+3. Production reliability smoke
+   - Daily Reports restore behavior
+   - Equipment Pre-Operations public lookup
+   - Transportation cleanup auth + performance
+4. Platform / integrations
+   - `/api/admin/integrations/health`
+   - scheduler / background jobs truth
+5. Security / session continuity
+   - admin login continuity
+   - representative PM / HR / Safety / Dispatch portal logins
+
+## Evidence package to capture
+
+- deployment timestamp
+- production URLs exercised
+- PASS / FAIL for each critical validation
+- screenshots or curl outputs for any failure
+- final GO / rollback decision
+
+Use `/app/memory/PRODUCTION_VERIFICATION_CHECKLIST.md` as the broader live sweep companion.

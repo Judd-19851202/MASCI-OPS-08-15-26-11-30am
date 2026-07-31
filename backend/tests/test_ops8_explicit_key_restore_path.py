@@ -830,6 +830,7 @@ def test_photo_reference_streaming_includes_document_and_non_json_archive_member
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr("documents/2026/07/example.pdf", b"pdf")
         zf.writestr("photos/root-image.jpg", b"img")
+        zf.writestr("disk_files/memory/should-not-count.txt", b"skip")
         zf.writestr("collections/daily_reports.json", json.dumps([
             {
                 "id": "dr-1",
@@ -842,6 +843,7 @@ def test_photo_reference_streaming_includes_document_and_non_json_archive_member
     assert refs == {"documents/2026/07/example.pdf", "root-image.jpg"}
     assert "documents/2026/07/example.pdf" in objects
     assert "root-image.jpg" in objects
+    assert "disk_files/memory/should-not-count.txt" not in objects
 
 
 def test_collection_parity_ignores_zero_count_manifest_collections(monkeypatch, tmp_path):

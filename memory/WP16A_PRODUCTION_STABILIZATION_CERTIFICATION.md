@@ -1,7 +1,7 @@
 # WP-16A — Production Stabilization Certification
 
 Date: 2026-07-31
-Status: ACTIVE CLOSEOUT
+Status: PASS — LOCKED UNDER EXECUTIVE DEPLOYMENT HOLD
 
 ## P0 reliability repairs completed
 
@@ -30,10 +30,19 @@ Status: ACTIVE CLOSEOUT
 - enforced must-change-password on admin JWT management surfaces
 - added audit events for admin user mutations
 
-## Current closeout dependency
+## Recovery certification closeout
 
-- fresh namespace restore drill is still required for final backup/recovery sign-off
+- Fresh namespace restore drill `20caf64dfeff` completed successfully
+- Independent QA review `qa-befafa0fd18f` passed
+- Backup & Recovery Certification is now closed with objective evidence
 
-## Current verdict
+## Final verdict
 
-WP-16A stabilization is substantially complete, but **not yet final** until recovery demonstration closes.
+WP-16A stabilization is complete for pre-deployment certification.
+
+- Production reliability repairs: PASS
+- Backup / recovery truthfulness and live restore certification: PASS
+- Database performance remediation: PASS
+- Security / governance hardening: PASS
+
+Deployment remains intentionally held for executive release and post-deployment validation.

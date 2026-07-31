@@ -1,7 +1,7 @@
 # WP-16A — Pre-Deployment Certification
 
 Date: 2026-07-31
-Status: IN PROGRESS
+Status: PASS — EXECUTIVE HOLD BEFORE DEPLOYMENT
 
 ## Verified in this pre-deployment pass
 
@@ -22,13 +22,16 @@ Status: IN PROGRESS
 - `/app/test_reports/iteration_83.json`
 - focused backend timing / explain measurements gathered during WP-16A
 - deployment readiness scan: PASS
+- restore drill report: `/app/memory/OPS8_DRILL_20caf64dfeff_REPORT.md`
+- restore drill QA review: `qa-befafa0fd18f`
 
-## Not yet closable
+## Deployment hold notes
 
-- Backup & Recovery Certification cannot be closed until the fresh namespace restore drill completes successfully with evidence.
 - Production deployment has **not** been exercised yet.
 - Post-deployment validation has **not** been exercised yet.
 
-## Interim verdict
+## Certification verdict
 
-**Pre-deployment certification is pending active recovery demonstration.**
+**Pre-deployment certification is complete and deployment-ready, subject only to executive release of the deployment hold.**
+
+No remaining technical blocker is open in WP-16A pre-deployment scope.

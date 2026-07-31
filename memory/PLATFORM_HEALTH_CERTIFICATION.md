@@ -1,7 +1,7 @@
 # WP-16A — Platform Health Certification
 
 Date: 2026-07-31
-Status: PROVISIONAL PASS
+Status: PASS — LOCKED UNDER EXECUTIVE DEPLOYMENT HOLD
 
 ## Health audit coverage
 
@@ -31,10 +31,12 @@ Reviewed / re-verified during WP-16A:
 2. Stale/orphaned restore-drill guard records can be reconciled and no longer permanently poison recovery state.
 3. Backup lineage/runtime identity now evaluates the current preview runtime consistently.
 
-## Remaining monitored item
+## Final closeout additions
 
-- Fresh restore demonstration is still required for full backup/recovery closeout. Until that completes, overall platform-health certification remains provisional rather than final.
+- Fresh restore demonstration completed successfully under drill `20caf64dfeff`
+- Recovery certification false-RED conditions remain repaired
+- Restore guard reconciliation remains healthy after the certified drill
 
-## Interim verdict
+## Certification verdict
 
-**Platform Health: PROVISIONAL PASS**
+**Platform Health: PASS**

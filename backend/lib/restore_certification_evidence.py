@@ -58,6 +58,10 @@ FINGERPRINT_EXCLUSION_RULES: Dict[str, Dict[str, str]] = {
         "reason": "regenerable synthetic health probe history",
         "owner": "backup-platform",
     },
+    "health_alert_cooldowns": {
+        "reason": "health alert suppression window mutates continuously during runtime monitoring",
+        "owner": "health-monitor",
+    },
     "runtime_incident_forensics": {
         "reason": "runtime incident telemetry may change independently of restore content",
         "owner": "runtime-reliability",
@@ -81,6 +85,14 @@ FINGERPRINT_EXCLUSION_RULES: Dict[str, Dict[str, str]] = {
     "job_photo_thumb_cache": {
         "reason": "regenerable derivative photo cache",
         "owner": "backup-platform",
+    },
+    "operational_facts": {
+        "reason": "ODS fact spine receives continuous runtime emissions independent of restore drill execution",
+        "owner": "ods-spine",
+    },
+    "operational_ingestion_runs": {
+        "reason": "ODS ingestion ledger mutates continuously during live runtime processing",
+        "owner": "ods-spine",
     },
     "notifications": {
         "reason": "runtime notification queue is mutable and may TTL-expire independently of restore execution",
@@ -745,7 +757,7 @@ def verify_photo_object_evidence(
     expected = sorted(set(str(ref) for ref in expected_refs if ref))
 
     def _normalize_expected(ref: str) -> str:
-        if ref.startswith("photo://"):
+        if ref.startswith("photo://") or ref.startswith("doc://"):
             parts = ref.split("/", 3)
             if len(parts) >= 4:
                 return parts[3]
@@ -765,17 +777,22 @@ def verify_photo_object_evidence(
 
     normalized_expected = sorted(set(_normalize_expected(ref) for ref in expected))
     objects = sorted(set(str(key) for key in archive_object_keys if key))
+    expected_set = set(normalized_expected)
     object_aliases: set[str] = set()
+    missing: List[str] = []
     for key in objects:
-        object_aliases.update(_archive_aliases(key))
-    missing = sorted(set(normalized_expected) - object_aliases)
+        aliases = _archive_aliases(key)
+        object_aliases.update(aliases)
+        if aliases.isdisjoint(expected_set):
+            missing.append(key)
+    orphaned_refs = sorted(set(normalized_expected) - object_aliases)
     return {
         "state": "PASS" if not missing and int((rehydration_result or {}).get("failed") or 0) == 0 else "FAIL",
         "expected_photo_object_references": expected,
         "expected_archive_object_keys": normalized_expected,
         "restored_photo_object_references": objects,
-        "missing_objects": missing,
-        "orphan_references": [],
+        "missing_objects": sorted(missing),
+        "orphan_references": orphaned_refs,
         "rehydration_result": dict(rehydration_result or {}),
     }
 

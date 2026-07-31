@@ -498,7 +498,7 @@ def _load_env() -> Dict[str, str]:
 
 
 def _walk_photo_refs(obj: Any) -> Iterable[str]:
-    if isinstance(obj, str) and obj.startswith("photo://"):
+    if isinstance(obj, str) and (obj.startswith("photo://") or obj.startswith("doc://")):
         yield obj
     elif isinstance(obj, dict):
         for value in obj.values():
@@ -921,8 +921,6 @@ def _stream_photo_reference_sets(zf: zipfile.ZipFile) -> tuple[set[str], set[str
             archive_photos.add(info.filename[len("photos/"):])
         elif info.filename.startswith("documents/"):
             archive_photos.add(info.filename)
-        elif info.filename != "MANIFEST.json" and not info.filename.endswith(".json"):
-            archive_photos.add(info.filename)
         if not info.filename.endswith(".json") or info.filename == "MANIFEST.json":
             continue
         try:
@@ -930,8 +928,12 @@ def _stream_photo_reference_sets(zf: zipfile.ZipFile) -> tuple[set[str], set[str
         except Exception:
             continue
         for ref in _walk_photo_refs(payload):
-            if isinstance(ref, str) and ref.startswith("photo://bucket/"):
-                photo_refs.add(ref[len("photo://bucket/"):])
+            if not isinstance(ref, str):
+                continue
+            if ref.startswith("photo://") or ref.startswith("doc://"):
+                parts = ref.split("/", 3)
+                if len(parts) >= 4:
+                    photo_refs.add(parts[3])
     return photo_refs, archive_photos
 
 
