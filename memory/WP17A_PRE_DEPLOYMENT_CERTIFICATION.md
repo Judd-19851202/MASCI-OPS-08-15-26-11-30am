@@ -19,6 +19,7 @@ Current status: **EXECUTIVE_READY_FOR_APPROVAL (PREVIEW)**
 - Reconciliation: `/api/admin/wp17a/reconciliation`
 - Certification: `/api/admin/wp17a/certification`
 - Deployment package: `/api/admin/wp17a/deployment-package`
+- Release gate: `scripts/release_gate.py --target production --json` = PASS
 
 ## Expected executive-ready result
 

@@ -94,3 +94,8 @@ This file will expand continuously until every KPI / score / badge / trust signa
 - Total audited KPI surfaces in current WP-17A dictionary: **25**
 - Final reconciliation result: **PASS**
 - Final certification result: **EXECUTIVE_READY_FOR_APPROVAL**
+
+## Production status
+
+- Live production has **not** been updated to the governed WP-17A inventory yet.
+- Evidence: production `/api/admin/wp17a/*` routes returned `404` during executive deployment validation.

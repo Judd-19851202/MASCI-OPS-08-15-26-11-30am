@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from lib.enterprise_governance import governance_project_scope_allows, governance_project_scope_filter
+from pm_auth import compute_pm_scope
 
 
 _ALLOWED_KINDS = {"concrete_form", "rebar", "subcontractor_work"}
@@ -307,6 +308,10 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
 
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])
     async def list_qaqc(actor=Depends(require_admin)):
+        if isinstance(actor, dict) and str(actor.get("role") or "").lower() == "pm":
+            pm_scope = await compute_pm_scope(db, actor)
+            if pm_scope.is_definitively_empty():
+                return []
         project_filter = await governance_project_scope_filter(db, actor)
         if project_filter is None:
             return []
@@ -367,6 +372,10 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
 
     @api_router.get("/admin/qaqc-inspections/stats")
     async def qaqc_stats(actor=Depends(require_admin)):
+        if isinstance(actor, dict) and str(actor.get("role") or "").lower() == "pm":
+            pm_scope = await compute_pm_scope(db, actor)
+            if pm_scope.is_definitively_empty():
+                return {"total": 0, "by_kind": [], "last": None}
         base = await governance_project_scope_filter(db, actor)
         if base is None:
             return {"total": 0, "by_kind": [], "last": None}
@@ -384,6 +393,14 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
 
     @api_router.get("/admin/qaqc-inspections/export.csv")
     async def qaqc_export(actor=Depends(require_admin)):
+        if isinstance(actor, dict) and str(actor.get("role") or "").lower() == "pm":
+            pm_scope = await compute_pm_scope(db, actor)
+            if pm_scope.is_definitively_empty():
+                return Response(
+                    content="Created At (UTC),Inspection,Project Number,Project Name,Location,Inspector,Subcontractor,Pass,Fail,N/A,Photos,Deficiencies\n",
+                    media_type="text/csv",
+                    headers={"Content-Disposition": 'attachment; filename="masci-qaqc-inspections.csv"'},
+                )
         base = await governance_project_scope_filter(db, actor)
         buf = io.StringIO()
         w = _csv.writer(buf)

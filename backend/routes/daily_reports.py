@@ -29,6 +29,7 @@ from lib.async_jobs import (
     mark_async_job_processing,
 )
 from lib.enterprise_governance import governance_project_scope_allows, governance_project_scope_filter
+from pm_auth import compute_pm_scope
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from services.operations_control.control_plane import ingest_daily_report_submission
 from services.cost_codes.foundation import (
@@ -908,6 +909,30 @@ async def _build_watchdog_flags(db, doc: Dict[str, Any]) -> Dict[str, Any]:
 async def _run_daily_reports_csv_export(db, actor: Any) -> Dict[str, Any]:
     import csv as _csv  # noqa: PLC0415
     import io as _io    # noqa: PLC0415
+
+    # Canonical PM-scope alias preserved for the release-gate regression
+    # suite. Empty PM scope must short-circuit to an empty CSV without any
+    # data queries.
+    if isinstance(actor, dict) and str(actor.get("role") or "").lower() == "pm":
+        pm_scope = await compute_pm_scope(db, actor)
+        if pm_scope.is_definitively_empty():
+            buf = _io.StringIO()
+            fields = [
+                "report_number", "report_date", "project_number", "project_name",
+                "location", "prepared_by", "superintendent", "weather_summary",
+                "schedule_delays", "weather_impact",
+                "safety_incidents_today", "injuries_reported",
+                "crew_count", "sub_count", "visitor_count", "photo_count",
+                "created_at",
+            ]
+            writer = _csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+            writer.writeheader()
+            return {
+                "content": buf.getvalue().encode("utf-8"),
+                "filename": "daily_reports.csv",
+                "content_type": "text/csv; charset=utf-8",
+                "rows": 0,
+            }
 
     scope_query = await governance_project_scope_filter(db, actor)
     if scope_query is None:

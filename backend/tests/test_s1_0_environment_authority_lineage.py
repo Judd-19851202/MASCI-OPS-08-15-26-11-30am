@@ -62,7 +62,7 @@ class TestEnvironmentAuthorityFingerprint:
         env = {
             "APP_ENV": "preview",
             "DB_NAME": "masci_safety_preview",
-            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
             "S3_BUCKET": "masci-hub",
             "BACKUP_PREFIX": "backups/auto-90d/",
         }
@@ -79,7 +79,7 @@ class TestEnvironmentAuthorityFingerprint:
         env = {
             "APP_ENV": "preview",
             "DB_NAME": "masci_safety_preview",
-            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
             "S3_BUCKET": "masci-hub",
             "BACKUP_PREFIX": "backups/auto-90d/",
         }
@@ -98,14 +98,14 @@ class TestEnvironmentAuthorityFingerprint:
         preview_env = {
             "APP_ENV": "preview",
             "DB_NAME": "masci_safety_preview",
-            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
             "S3_BUCKET": "masci-hub",
             "BACKUP_PREFIX": "backups/auto-90d/",
         }
         production_env = {
             "APP_ENV": "production",
             "DB_NAME": "masci_safety",
-            "MONGO_URL": "mongodb+srv://masci_prod_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety",
+            "MONGO_URL": "mongodb+srv://masci_prod_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
             "ENFORCE_DB_ISOLATION": "true",
             "S3_BUCKET": "masci-hub",
             "BACKUP_PREFIX": "backups/auto-90d/",
@@ -123,14 +123,14 @@ class TestEnvironmentAuthorityFingerprint:
         env_a = {
             "APP_ENV": "preview ",
             "DB_NAME": "masci_safety_preview",
-            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
             "S3_BUCKET": "masci-hub",
             "BACKUP_PREFIX": " backups/auto-90d/ ",
         }
         env_b = {
             "APP_ENV": "PREVIEW",
             "DB_NAME": "masci_safety_preview",
-            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+            "MONGO_URL": "mongodb+srv://masci_preview_user:test@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
             "S3_BUCKET": "MASCI-HUB",
             "BACKUP_PREFIX": "backups/auto-90d/",
         }

@@ -170,13 +170,9 @@ def build_admin_persistence_health_router(
         bundle = getattr(app.state, "runtime_identity_bundle", None)
         runtime_identity = runtime_identity_public_payload(bundle) if bundle else {}
         identity = (runtime_identity or {}).get("identity") or {}
-        mongo_url = identity.get("mongo_url_redacted") or (os.environ.get("MONGO_URL") or "")
-        db_name = identity.get("db_name") or (os.environ.get("DB_NAME") or "")
+        mongo_url = identity.get("mongo_url_redacted") or ""
+        db_name = identity.get("db_name") or ""
         atlas_connected = _is_atlas_runtime_identity(identity)
-        if not atlas_connected:
-            atlas_connected = _is_atlas_runtime_identity(
-                {"mongo_url_redacted": os.environ.get("MONGO_URL") or ""}
-            )
 
         mongo_version = await _safe_mongo_version(db)
         collections = await _list_collections(db)

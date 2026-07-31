@@ -52,6 +52,11 @@ Status: IN PROGRESS
 - Final certification: `EXECUTIVE_READY_FOR_APPROVAL`
 - Final combined pytest suite: `22 passed, 1 skipped`
 
+## Production release status
+- Production deployment result: NOT EXECUTED / NOT LIVE
+- Live production finding: `/api/admin/wp17a/*` returned `404` on `https://mascidocs.com`
+- Baseline production smoke: PASS on existing live build
+
 ## Remaining
 - Work package still open; more inventory, reconciliation, data-integrity, and backfill work remains.
 

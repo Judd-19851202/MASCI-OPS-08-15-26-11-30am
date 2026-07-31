@@ -1,5 +1,10 @@
 # 2026-07-31 — WP-16A closeout roadmap update
 
+## WP-17A production blocker
+
+- Live `mascidocs.com` remains on build `fd89cfe...` / source `ec85d311...` and does not expose `/api/admin/wp17a/*`.
+- WP-17A cannot be locked until the native production deployment is executed and live validation passes.
+
 ## Current top priority
 
 - **WP-17A KPI Truth, Observability & Data-Integrity Remediation is active.**

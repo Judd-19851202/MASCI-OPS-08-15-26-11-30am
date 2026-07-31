@@ -1,11 +1,13 @@
 # WP-17A Executive Closeout
 
 Date opened: 2026-07-31  
-Current package status: **EXECUTIVE READY FOR APPROVAL**
+Current package status: **PREVIEW CERTIFIED · PRODUCTION LOCK PENDING**
 
 ## Executive Summary
 
 WP-17A closes the KPI-truth gap by moving the platform onto one documented, auditable, and self-validating KPI contract.
+
+Preview certification is complete. Production lock is still blocked because the live site remains on the prior build and does not yet expose the WP-17A governance routes.
 
 The closeout package now includes:
 - a canonical KPI dictionary (`/api/admin/wp17a/kpi-dictionary`)
@@ -101,6 +103,7 @@ Covered categories include:
 - reconciliation endpoint: **PASS** (`0` blocking findings, `18` runtime probes)
 - certification endpoint: **EXECUTIVE_READY_FOR_APPROVAL**
 - visual evidence: Admin Database predictive-capacity screenshot captured in preview on 2026-07-31; iteration 88 QA verified Admin Database plus Executive / Project / HR / Safety regressions at `100%` frontend pass rate
+- production-live evidence: `https://mascidocs.com/api/admin/wp17a/*` returned `404` on 2026-07-31 while baseline health endpoints remained healthy
 
 ### Final certification surfaces
 - `/api/admin/wp17a/reconciliation`
@@ -152,3 +155,4 @@ See `/app/memory/WP17A_TRUST_REPORT.md`.
 - [x] repaired portal KPIs emit metadata or are governed by dictionary metadata
 - [x] final combined regression suite recorded in this closeout document
 - [x] final executive-ready certification status stamped after last verification run
+- [ ] production deployment executed and live governance routes verified

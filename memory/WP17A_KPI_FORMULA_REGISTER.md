@@ -64,3 +64,8 @@ Status: ACTIVE
 - Current formula: company band from shared safety rollup (`red` on escalation gaps or injuries, `amber` on incidents or near misses, else `green`) with totals summed from the shared per-project spine
 - Problem repaired: grouped card totals were visible but their provenance and band semantics were not explicit to operators
 - Current direction: emit card-level metadata and preserve one shared operational spine for company + project safety views
+
+### FR-013 — Production Lock Gate
+- Current formula: WP-17A may only lock when the live production build exposes `/api/admin/wp17a/*`, reconciliation passes with zero blockers, and certification reports truthful live success
+- Problem repaired: preview certification alone cannot be mistaken for production completion
+- Current direction: fail lock when production still serves an older build or missing governance routes

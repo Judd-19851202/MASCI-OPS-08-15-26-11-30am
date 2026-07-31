@@ -1,3 +1,13 @@
+## 2026-07-31 — iter440 — WP-17A production deployment gate
+
+- Preview verified ✅ — WP-17A closeout package remains green in preview (`22 passed, 1 skipped`; reconciliation PASS; certification EXECUTIVE_READY_FOR_APPROVAL).
+- Production verified ❌ — live `https://mascidocs.com` is still serving the older build (`commit=fd89cfe...`, source hash `ec85d311...`) and `/api/admin/wp17a/*` routes return `404`.
+
+### 🔴 STANDING OPERATOR ACTIONS
+- Native Emergent production deploy has not been executed from the deployment dashboard yet.
+- Post-deploy production validation cannot pass until `mascidocs.com` serves the new WP-17A build.
+- Live production check on 2026-07-31 confirmed the old build (`fd89cfe...` / `ec85d311...`) and missing `/api/admin/wp17a/*` routes (`404`).
+
 # 2026-07-31 — WP-17A executive closeout certified in preview
 
 ## Executive-ready status

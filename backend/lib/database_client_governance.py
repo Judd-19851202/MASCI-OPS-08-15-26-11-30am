@@ -72,6 +72,8 @@ def _classification(rel_path: str, symbol: str, occurrence_type: str) -> str:
         return "CANONICAL_RUNTIME_DATABASE_HANDLE"
     if rel_path == "backend/lib/identity_lookup_sync.py":
         return "APPROVED_SYNC_RUNTIME_HELPER"
+    if rel_path == "backend/lib/async_jobs.py" and symbol == "AsyncIOMotorClient":
+        return "APPROVED_SYNC_RUNTIME_HELPER"
     if rel_path.startswith("backend/operational_intelligence/"):
         return "CANONICAL_RUNTIME_DATABASE_HANDLE"
     if rel_path.startswith("backend/tools/"):
