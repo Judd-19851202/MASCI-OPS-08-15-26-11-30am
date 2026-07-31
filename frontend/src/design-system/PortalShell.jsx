@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Clock, Home as HomeIcon, LogOut, MoreHorizontal, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Clock, Home as HomeIcon, LogOut, MoreHorizontal, ChevronDown, User as UserIcon } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
@@ -102,6 +102,62 @@ function TopActionLink({ to, label, icon: Icon, testId, theme = "default" }) {
   );
 }
 
+function ProfileMenu({
+  signedInName,
+  portalRole,
+  localTimeLabel,
+  onSignOut,
+  disabled,
+  title,
+  theme,
+  testIdPrefix = "ds-portal-shell-profile",
+}) {
+  const isAdminTheme = theme === "admin";
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold shadow-sm transition-[background-color,border-color,color] duration-[140ms] ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] hover:bg-[color:var(--paper-card-muted)]"}`}
+          data-testid={`${testIdPrefix}-trigger`}
+        >
+          <UserIcon className="h-3.5 w-3.5 opacity-70" />
+          <span className="max-w-[10rem] truncate">{signedInName || portalRole}</span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        className={`${isAdminTheme ? "border-slate-700 bg-slate-950/92 text-slate-100 elite-glass-modal" : "bg-white/96"} w-[min(90vw,18rem)] p-3`}
+        data-testid={`${testIdPrefix}-menu`}
+      >
+        <div className="space-y-3">
+          <div>
+            <div className="wp17-kicker">{portalRole}</div>
+            <div className={`mt-1 text-sm font-semibold ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>{signedInName || "Signed in"}</div>
+            <div className={`mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] ${isAdminTheme ? "text-slate-300" : "text-[color:var(--ink-soft)]"}`}>
+              <Clock className="h-3 w-3 opacity-70" />
+              {localTimeLabel}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onSignOut}
+            disabled={disabled}
+            title={title}
+            className={`wp16-focus-ring inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,border-color,color,opacity] duration-[140ms] disabled:opacity-50 ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:rgba(185,28,28,0.18)] bg-[color:var(--brand-primary-soft)] text-[color:var(--brand-primary)] hover:bg-white"}`}
+            data-testid={`${testIdPrefix}-signout`}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function PortalShell({
   portalName = "MASCI",
   portalRole,
@@ -144,6 +200,8 @@ export function PortalShell({
   const langToggleVariant = isAdminTheme ? "dark" : "light";
   const isWp17 = experienceLevel === "wp17c";
   const resolvedExperienceTone = resolveExperienceTone(experienceTone, portalRole, theme);
+  const shouldShowHomeShortcut = showHome && !sideNav;
+  const shouldShowBackShortcut = showBack && backHref && !sideNav;
   const rootClasses = [
     "wp16-shell min-h-screen flex flex-col",
     isAdminTheme ? "wp16-shell--admin" : "",
@@ -211,41 +269,21 @@ export function PortalShell({
                 <PortalSwitcher current={portalSwitcherCurrent} variant={portalSwitcherVariant} />
               </div>
             ) : null}
-            <div
-              className={`inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-xs font-mono uppercase tracking-[0.14em] shadow-sm ${topControlClasses}`}
-              data-testid="ds-portal-shell-local-time"
-              title="Local device time"
-            >
-              <Clock className="h-3 w-3 opacity-70" />
-              {localTimeLabel}
-            </div>
             <div data-testid="ds-portal-shell-lang-toggle">
               <LangToggle variant={langToggleVariant} className="h-[var(--control-height-sm)]" />
             </div>
-            {signedInName ? (
-              <div
-                className={`inline-flex max-w-[14rem] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 h-[var(--control-height-sm)] text-xs font-semibold shadow-sm ${userControlClasses}`}
-                data-testid="ds-portal-shell-user"
-                title={signedInName}
-              >
-                <UserIcon className="h-3.5 w-3.5 opacity-70" />
-                <span className="truncate">{signedInName}</span>
-              </div>
-            ) : null}
-            {showBack && backHref ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-back" theme={theme} /> : null}
-            {showHome ? <TopActionLink to={homeHref} label="Home" icon={HomeIcon} testId="ds-portal-shell-home" theme={theme} /> : null}
+            {shouldShowBackShortcut ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-back" theme={theme} /> : null}
+            {shouldShowHomeShortcut ? <TopActionLink to={homeHref} label="Home" icon={HomeIcon} testId="ds-portal-shell-home" theme={theme} /> : null}
             {showSignOut ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
+              <ProfileMenu
+                signedInName={signedInName}
+                portalRole={portalRole}
+                localTimeLabel={localTimeLabel}
+                onSignOut={handleSignOut}
                 disabled={!!signOutCapability && signOutCapability.available !== true}
-                className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] shadow-sm transition-[background-color,border-color,color,opacity] duration-[140ms] disabled:opacity-50 ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] hover:bg-[color:var(--paper-card-muted)]"}`}
                 title={signOutCapability?.disabled_reason || "Sign out"}
-                data-testid="ds-portal-shell-signout"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Sign out</span>
-              </button>
+                theme={theme}
+              />
             ) : null}
           </div>
 

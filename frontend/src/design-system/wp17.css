@@ -17,6 +17,50 @@
   --wp17-critical: #b42318;
   --wp17-muted: #5f6f86;
   --wp17-surface-quiet: rgba(238, 244, 252, 0.88);
+  --wp17-header-height: 4.85rem;
+  --wp17-radius-lg: 1.35rem;
+  --wp17-radius-md: 1rem;
+  --wp17-body-size: 0.95rem;
+  --wp17-label-size: 0.72rem;
+}
+
+.wp17-shell,
+.wp17-public-shell {
+  color: var(--wp17-navy-900);
+  font-size: var(--wp17-body-size);
+}
+
+.wp17-shell h1,
+.wp17-public-shell h1,
+.wp17-shell h2,
+.wp17-public-shell h2,
+.wp17-shell h3,
+.wp17-public-shell h3 {
+  letter-spacing: -0.03em;
+}
+
+.wp17-shell p,
+.wp17-public-shell p,
+.wp17-shell li,
+.wp17-public-shell li,
+.wp17-shell td,
+.wp17-public-shell td,
+.wp17-shell th,
+.wp17-public-shell th,
+.wp17-shell label,
+.wp17-public-shell label {
+  line-height: 1.55;
+}
+
+.wp17-shell label,
+.wp17-public-shell label,
+.wp17-shell .wp17-field-label,
+.wp17-public-shell .wp17-field-label {
+  font-size: var(--wp17-label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--wp17-muted);
 }
 
 .wp17-grid-bg,
@@ -47,6 +91,17 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent);
   border-bottom: 1px solid rgba(207, 225, 245, 0.2);
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+}
+
+.wp17-public-header::after,
+.wp17-shell .wp16-shell-header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(145, 185, 233, 0.55), rgba(255,255,255,0));
+  pointer-events: none;
 }
 
 .wp17-public-main {
@@ -135,59 +190,77 @@
 .wp17-shell .wp16-shell-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px);
+  background: linear-gradient(135deg, rgba(14, 27, 49, 0.96), rgba(24, 43, 74, 0.92));
 }
 
-.wp17-shell.wp16-shell--admin .wp16-shell-header,
-.wp17-shell--admin .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(12, 24, 45, 0.96), rgba(20, 37, 66, 0.92));
+.wp17-shell--admin,
+.wp17-shell--pm,
+.wp17-shell--hr,
+.wp17-shell--safety,
+.wp17-shell--transportation,
+.wp17-shell--dispatch,
+.wp17-shell--shop,
+.wp17-shell--field,
+.wp17-shell--default {
+  --wp17-portal-accent: rgba(145, 185, 233, 0.6);
 }
 
-.wp17-shell--pm .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(17, 34, 61, 0.95), rgba(26, 54, 92, 0.9));
-}
-
-.wp17-shell--hr .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(38, 22, 68, 0.95), rgba(72, 42, 118, 0.9));
-}
-
-.wp17-shell--safety .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(14, 53, 72, 0.95), rgba(18, 87, 112, 0.9));
-}
-
-.wp17-shell--transportation .wp16-shell-header,
-.wp17-shell--dispatch .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(19, 37, 63, 0.96), rgba(21, 79, 108, 0.9));
-}
-
-.wp17-shell--shop .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(33, 37, 58, 0.95), rgba(66, 74, 112, 0.9));
-}
-
-.wp17-shell--field .wp16-shell-header {
-  background: linear-gradient(135deg, rgba(72, 26, 31, 0.95), rgba(111, 39, 47, 0.9));
-}
+.wp17-shell--pm { --wp17-portal-accent: rgba(244, 177, 95, 0.55); }
+.wp17-shell--hr { --wp17-portal-accent: rgba(180, 154, 232, 0.55); }
+.wp17-shell--safety { --wp17-portal-accent: rgba(93, 202, 199, 0.55); }
+.wp17-shell--transportation,
+.wp17-shell--dispatch { --wp17-portal-accent: rgba(112, 196, 237, 0.58); }
+.wp17-shell--shop { --wp17-portal-accent: rgba(228, 172, 110, 0.55); }
+.wp17-shell--field { --wp17-portal-accent: rgba(220, 132, 132, 0.55); }
 
 .wp17-shell .wp16-shell-main {
-  padding-top: 1.1rem;
+  padding-top: 0.85rem;
 }
 
 .wp17-shell .wp16-shell-sidebar {
-  border-radius: 1.75rem;
+  border-radius: var(--wp17-radius-lg);
   background: linear-gradient(180deg, rgba(17, 32, 58, 0.92), rgba(15, 28, 51, 0.92));
   border: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: 0 24px 52px rgba(15, 23, 42, 0.18);
 }
 
 .wp17-shell .wp16-shell-page-header {
-  padding: clamp(1.15rem, 1.8vw, 1.5rem);
-  margin-bottom: 1rem;
+  padding: clamp(1rem, 1.5vw, 1.25rem);
+  margin-bottom: 0.8rem;
   background:
     radial-gradient(circle at top right, rgba(130, 171, 225, 0.16), transparent 24%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 254, 0.92));
+  position: relative;
+  overflow: hidden;
+}
+
+.wp17-shell .wp16-shell-page-header::before,
+.wp17-mission-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--wp17-portal-accent), rgba(255,255,255,0));
 }
 
 .wp17-shell .wp16-shell-page-header .wp16-kicker {
   color: var(--wp17-navy-700);
+}
+
+.wp17-shell [data-testid="ds-portal-shell-header"] .wp16-kicker,
+.wp17-public-shell .wp17-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+}
+
+.wp17-shell [data-testid="ds-portal-shell-page-name"] {
+  font-size: 0.93rem;
+  letter-spacing: -0.01em;
+}
+
+.wp17-shell [data-testid="ds-portal-shell-header"] .inline-flex,
+.wp17-public-shell header .inline-flex {
+  border-radius: 999px;
 }
 
 .wp17-shell-content {
@@ -202,12 +275,14 @@
 }
 
 .wp17-mission-banner {
-  padding: 1.25rem;
+  padding: 1rem 1.1rem;
   background:
     linear-gradient(135deg, rgba(18, 38, 68, 0.92), rgba(33, 60, 103, 0.9)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
   color: white;
   box-shadow: var(--wp17-panel-shadow-strong);
+  position: relative;
+  overflow: hidden;
 }
 
 .wp17-mission-banner p {
@@ -232,6 +307,15 @@
   color: white;
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+.wp17-chip,
+.wp17-public-link,
+.wp17-shell button,
+.wp17-public-shell button,
+.wp17-shell .inline-flex,
+.wp17-public-shell .inline-flex {
+  transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease;
 }
 
 .wp17-metric-grid {
@@ -276,7 +360,7 @@
 .wp17-detail-hero,
 .wp17-list-intro,
 .wp17-form-frame {
-  padding: 1.25rem;
+  padding: 1rem;
 }
 
 .wp17-page-header,
@@ -286,7 +370,78 @@
   border: 1px solid var(--wp17-panel-border);
   box-shadow: var(--wp17-panel-shadow);
   backdrop-filter: blur(14px);
-  border-radius: 1.5rem;
+  border-radius: var(--wp17-radius-lg);
+}
+
+.wp17-auth-stack > :last-child {
+  border-radius: var(--wp17-radius-lg) !important;
+  border: 1px solid var(--wp17-panel-border) !important;
+  box-shadow: var(--wp17-panel-shadow-strong) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.wp17-shell input,
+.wp17-shell textarea,
+.wp17-shell select,
+.wp17-public-shell input,
+.wp17-public-shell textarea,
+.wp17-public-shell select {
+  border-radius: var(--wp17-radius-md) !important;
+  border-color: rgba(61, 87, 124, 0.22) !important;
+  min-height: 2.9rem;
+  font-size: 0.95rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.wp17-shell textarea,
+.wp17-public-shell textarea {
+  min-height: 7rem;
+}
+
+.wp17-shell input:focus,
+.wp17-shell textarea:focus,
+.wp17-shell select:focus,
+.wp17-public-shell input:focus,
+.wp17-public-shell textarea:focus,
+.wp17-public-shell select:focus {
+  outline: none;
+  border-color: rgba(28, 78, 132, 0.48) !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12), 0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+.wp17-shell button:not([data-radix-collection-item]):not([role="checkbox"]),
+.wp17-public-shell button:not([data-radix-collection-item]):not([role="checkbox"]) {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.wp17-shell table,
+.wp17-public-shell table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.wp17-shell thead th,
+.wp17-public-shell thead th {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.wp17-shell tbody td,
+.wp17-public-shell tbody td {
+  font-size: 0.9rem;
+}
+
+.wp17-shell .wp16-section-title,
+.wp17-page-header .wp16-section-title {
+  font-size: clamp(2.15rem, 4vw, 3.75rem) !important;
+  line-height: 0.96;
+}
+
+.wp17-shell [data-testid="ds-portal-shell-page-header"] p,
+.wp17-shell [data-testid="ds-portal-shell-page-header"] aside {
+  font-size: 0.88rem;
 }
 
 .wp17-data-table table thead th {
@@ -303,14 +458,33 @@
 }
 
 .wp17-portal-login .wp17-public-main {
-  max-width: 960px;
+  max-width: 840px;
 }
 
 .wp17-portal-login [data-testid$="-login-form"] {
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 1.5rem;
-  border: 1px solid var(--wp17-panel-border);
-  box-shadow: var(--wp17-panel-shadow-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.wp17-portal-login .wp17-auth-stack {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.wp17-portal-login .wp17-auth-stack > :last-child {
+  padding: 1.6rem !important;
+}
+
+.wp17-portal-login [data-testid$="-login-form"] .text-[10px],
+.wp17-portal-login [data-testid$="-login-form"] label {
+  font-size: var(--wp17-label-size) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.wp17-portal-login [data-testid$="-login-form"] button[type="submit"] {
+  min-height: 3.1rem !important;
+  border-radius: 999px !important;
 }
 
 .wp17-transport-shell {
@@ -440,5 +614,9 @@
 
   .wp17-shell .wp16-shell-main {
     padding-bottom: 6rem;
+  }
+
+  .wp17-shell .wp16-shell-page-header {
+    padding: 0.95rem;
   }
 }
