@@ -1,3 +1,24 @@
+# 2026-07-31 — WP-16A closeout roadmap update
+
+## Current top priority
+
+- **WP-16A Production Stabilization & Release Certification** remains active.
+- **WP-17 is not authorized and must not begin.**
+
+## Remaining closeout sequence
+
+### P0
+- complete and independently verify the active fresh namespace restore drill
+- close `BACKUP_AND_RECOVERY_CERTIFICATION.md` only after recovery is demonstrated with evidence
+- finalize pre-deployment certification pack and governing-register updates
+
+### P1
+- freeze the exact certified build once pre-deployment certification passes
+- keep deployment and post-deployment reports marked `PENDING / NOT YET EXERCISED` until actual production deployment occurs
+
+### P2
+- after actual production deployment, execute live post-deployment validation and only then issue final WP-16A completion recommendation
+
 # 2026-07-30 WP-16 Wave 5 Safety certification scope
 
 - **Current state:** Wave 5 Safety Inventory & Operational Reconciliation is complete and awaiting Executive review.

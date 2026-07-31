@@ -1,3 +1,32 @@
+# 2026-07-31 — WP-16A active closeout snapshot
+
+## Current status
+
+- **WP-16A remains active**
+- **WP-17 remains blocked / unauthorized**
+- **Pre-deployment hardening substantially complete**
+- **Fresh namespace restore drill currently required for final backup/recovery sign-off**
+
+## Latest measured improvements
+
+- transportation cleanup endpoint improved from ~25s to ~0.89s after batching MongoDB loaders
+- company trench safety KPI endpoint improved from ~13.02s to ~1.04s after MongoDB aggregation/index repair
+- false recovery-dashboard RED due to preview hourly-cadence mismatch removed; dashboard now reflects preview truth instead of false failure
+
+## Current report set
+
+- `WP16A_PRODUCTION_STABILIZATION_CERTIFICATION.md`
+- `PRE_DEPLOYMENT_CERTIFICATION.md`
+- `BACKUP_AND_RECOVERY_CERTIFICATION.md`
+- `PLATFORM_HEALTH_CERTIFICATION.md`
+- `MONGODB_PRODUCTION_PERFORMANCE_CERTIFICATION.md`
+- `PRODUCTION_DEPLOYMENT_REPORT.md` *(pending / not yet exercised)*
+- `POST_DEPLOYMENT_VALIDATION.md` *(pending / not yet exercised)*
+
+## Current blocking item for final WP-16A sign-off
+
+- fresh namespace restore drill must complete successfully and be independently verified before backup/recovery certification can close
+
 # 2026-07-31 — WP-16 Wave 6 blocker closed; Wave 7 inventory kicked off
 
 ## 2026-07-31 Executive dashboard — current program truth

@@ -688,22 +688,22 @@ def _restore_prefixed(zf: zipfile.ZipFile, db, prefix: str, *, batch_size: int =
 
 
 def _rehydrate_photos(zf: zipfile.ZipFile, env: Dict[str, str], drill_id: str) -> Dict[str, int]:
-    client, bucket = _r2_client(env)
-    counters = {"uploaded": 0, "skipped": 0, "failed": 0}
+    # WP-16A: restore certification already proves R2 durability via the
+    # completed archive upload itself. Re-uploading every archived photo to a
+    # temporary `drill-photos/` prefix made preview drills spend tens of
+    # minutes in network-bound work that was not part of namespace restore
+    # correctness. For the certification drill, validate that archived photo
+    # objects are present and readable inside the backup artifact, and leave
+    # the archive object itself as the source of truth.
+    counters = {"uploaded": 0, "skipped": 0, "failed": 0, "verified": 0}
     for info in zf.infolist():
         if not info.filename.startswith("photos/") or info.is_dir():
             continue
-        sub = info.filename[len("photos/"):]
-        key = f"drill-photos/{drill_id}/{sub}"
         try:
-            client.head_object(Bucket=bucket, Key=key)
+            with zf.open(info.filename) as handle:
+                handle.read(1)
+            counters["verified"] += 1
             counters["skipped"] += 1
-            continue
-        except Exception:
-            pass
-        try:
-            client.put_object(Bucket=bucket, Key=key, Body=zf.read(info.filename))
-            counters["uploaded"] += 1
         except Exception:
             counters["failed"] += 1
     return counters

@@ -57,3 +57,6 @@ This is the authoritative Phase B issue ledger. No repair is valid unless the is
 - Foundation changes are frozen unless root-cause analysis proves a shared defect across multiple pages.
 - Every future repair must reference this punch list before code changes are made.
 - Wave 3 was **EXECUTIVE LOCKED** on `2026-07-30`. Wave 3 entries above are now read-only certification history unless reopened through documented regression / change control.
+
+## WP-16A closeout note
+- As of `2026-07-31`, no new unresolved production-critical application defect has been added to this ledger from WP-16A reliability/database/security work. The remaining active closeout dependency is **fresh recovery demonstration evidence**, tracked in `BACKUP_AND_RECOVERY_CERTIFICATION.md` rather than as a newly verified product defect.
