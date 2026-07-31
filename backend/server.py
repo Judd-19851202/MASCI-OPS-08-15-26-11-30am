@@ -9078,6 +9078,7 @@ def _build_complete_archive_on_disk(
     disk_files_count = 0
     disk_files_bytes = 0
     seen_keys: set = set()  # dedupe — same photo referenced from 2 docs
+    missing_photo_buckets: set = set()
 
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
     expected_collections: List[str] = []
@@ -9174,12 +9175,20 @@ def _build_complete_archive_on_disk(
                             archive_member = None
                             if isinstance(ref, str) and ref.startswith("photo://") and is_storage_ref(ref):
                                 try:
+                                    bucket = ref.split("/", 3)[2]
+                                    if bucket in missing_photo_buckets:
+                                        continue
                                     key = ref.split("/", 3)[3]
                                     archive_member = f"photos/{key}"
                                     raw = read_photo_bytes_sync(ref)
                                 except (IndexError, AttributeError):
                                     continue
                                 except Exception as e:  # noqa: BLE001
+                                    if "NoSuchBucket" in str(e) or "specified bucket does not exist" in str(e).lower():
+                                        try:
+                                            missing_photo_buckets.add(ref.split("/", 3)[2])
+                                        except Exception:
+                                            pass
                                     logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
                                     failed_photos += 1
                                     continue
