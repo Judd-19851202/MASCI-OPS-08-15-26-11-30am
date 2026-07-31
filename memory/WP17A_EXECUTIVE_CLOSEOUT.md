@@ -94,12 +94,13 @@ Covered categories include:
 
 ### Current verification artifacts
 - `/app/test_reports/iteration_87.json`
+- `/app/test_reports/iteration_88.json`
 - focused backend suites for KPI truth and executive closeout
 - authenticated preview endpoint verification after backend restart
 - final pytest closeout suite: **22 passed, 1 skipped**
 - reconciliation endpoint: **PASS** (`0` blocking findings, `18` runtime probes)
 - certification endpoint: **EXECUTIVE_READY_FOR_APPROVAL**
-- visual evidence: Admin Database predictive-capacity screenshot captured in preview on 2026-07-31; iteration 87 UI verification covered Executive / Project / HR / Safety
+- visual evidence: Admin Database predictive-capacity screenshot captured in preview on 2026-07-31; iteration 88 QA verified Admin Database plus Executive / Project / HR / Safety regressions at `100%` frontend pass rate
 
 ### Final certification surfaces
 - `/api/admin/wp17a/reconciliation`

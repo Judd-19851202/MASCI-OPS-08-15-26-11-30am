@@ -23,6 +23,7 @@ Current status: **PASS**
 - JUnit artifact: `/app/test_reports/pytest/wp17a_executive_closeout.xml`
 - Runtime reconciliation: `PASS` (`0` blocking findings)
 - Certification: `EXECUTIVE_READY_FOR_APPROVAL`
+- Final QA agent report: `/app/test_reports/iteration_88.json` (`backend 100%`, `frontend 100%`)
 
 ## Smoke / UI evidence
 - iteration 87 frontend/backend QA verified Executive, Project, HR, and Safety KPI metadata rendering and interactions
