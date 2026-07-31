@@ -257,7 +257,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             && String(form?.report_instance || "primary") === String(data.report_instance || "primary")
           ),
         });
-        if (!cancelled) setFallbackDraftOffer(matches.length === 1 ? matches[0] : null);
+        if (!cancelled) setFallbackDraftOffer(matches[0] || null);
       } catch {
         if (!cancelled) setFallbackDraftOffer(null);
       }
