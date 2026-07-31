@@ -156,6 +156,18 @@ export default function DispatchHub() {
           ? "flex-1 space-y-4 w-full"
           : "space-y-4 flex-1 w-full"}>
 
+        <section className="wp17-mission-banner" data-testid="dispatch-hub-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Keep hauling moving by surfacing live exceptions before they stall the board.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Dispatch is now aligned to the same shell and visual language as Transportation, Admin, and PM while keeping live board work first.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* TRACK 18.00 · Phase E · Transportation Operations branded
             top bar. Dispatchers land here on `/dispatch-portal` and
             immediately see the unified ops portal — Dispatch is one

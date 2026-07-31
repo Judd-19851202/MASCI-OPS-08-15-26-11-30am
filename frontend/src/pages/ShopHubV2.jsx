@@ -692,6 +692,18 @@ export default function ShopHubV2() {
         }
         sideNav={isShopSidebarV2Enabled() ? <ShopSideNavV2 /> : undefined}
       >
+        <section className="wp17-mission-banner" data-testid="shop-hub-v2-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Return equipment to service with fewer clicks and clearer recovery priorities.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Shop operations now share the same shell language as the rest of the platform while keeping maintenance, inspection, and recovery work visible first.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Track 19.52 · P1 #4 — OI Attention Strip.
            shop_intelligence signal at the top of the Shop Hub —
            safety holds → aging critical defects → OOS. Zero-drift. */}

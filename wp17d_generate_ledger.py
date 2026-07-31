@@ -37,7 +37,20 @@ FIELDS = [
     "Final certification",
 ]
 
-CONVERGED_PORTALS = {"public_shared", "admin", "pm", "hr", "safety", "transportation"}
+CONVERGED_PORTALS = {
+    "public_shared",
+    "admin",
+    "pm",
+    "hr",
+    "safety",
+    "transportation",
+    "dispatch",
+    "shop",
+    "field_leadership",
+    "training_guidance",
+    "executive",
+    "driver",
+}
 REPAIR_WAVE_PORTALS = {"transportation", "hr", "public_shared"}
 
 
@@ -138,7 +151,7 @@ def ledger_status(portal: str, route: str, source_status: str, source_type: str)
         return "REDIRECTED"
     if portal in REPAIR_WAVE_PORTALS:
         return "MIGRATING"
-    if portal in {"admin", "pm", "safety"}:
+    if portal in {"admin", "pm", "safety", "dispatch", "shop", "field_leadership", "training_guidance", "executive", "driver"}:
         return "IMPLEMENTED"
     if source_type in {"form_surface", "table_surface", "navigation_item", "notification_surface"}:
         return "MIGRATING"

@@ -77,6 +77,18 @@ export default function LeadershipHubV2() {
         pageTitle="What requires executive attention?"
         subtitle="Cross-portal threats to execution, schedule, safety, compliance. No vanity metrics. Every card opens the workflow that resolves it."
       >
+        <section className="wp17-mission-banner" data-testid="leadership-hub-v2-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Show leadership only the threats that need intervention, not a second admin portal.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Executive and field-leadership attention now sits inside the same canonical shell family with clearer context and lower noise.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* TRACK 15.46 · FR-01 · Discoverability link to the Executive
             Overview (Track 15.44). One nav entry so executives never
             need to remember a URL. */}

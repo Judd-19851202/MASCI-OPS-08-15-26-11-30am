@@ -78,11 +78,15 @@ export default function Revise() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-slate-50 px-4 py-10"
-      data-testid="revise-page"
-    >
-      <div className="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-sm">
+    <div className="wp17-public-shell min-h-screen" data-testid="revise-page">
+      <header className="wp17-public-header">
+        <div className="max-w-4xl mx-auto px-4 py-4 text-white">
+          <div className="wp17-kicker text-white/70">Secure correction workflow</div>
+          <div className="mt-1 text-sm font-semibold">Revision link for an existing submission</div>
+        </div>
+      </header>
+      <div className="wp17-public-main py-10">
+      <div className="mx-auto max-w-2xl wp17-public-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h1
             className="text-xl font-semibold text-slate-800"
@@ -198,6 +202,7 @@ export default function Revise() {
             Correction received. The office has been notified.
           </div>
         )}
+      </div>
       </div>
     </div>
   );

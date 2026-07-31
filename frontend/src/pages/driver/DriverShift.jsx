@@ -333,9 +333,9 @@ export default function DriverShift() {
     return (
       <div
         data-testid="driver-shift-loading"
-        className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100"
+        className="min-h-screen flex items-center justify-center wp17-public-shell text-slate-100"
       >
-        <p className="text-xl">{t("Loading your shift…")}</p>
+        <p className="text-xl wp17-public-card px-6 py-4 bg-slate-950/88">{t("Loading your shift…")}</p>
       </div>
     );
   }
@@ -344,8 +344,9 @@ export default function DriverShift() {
     return (
       <div
         data-testid="driver-no-assignment"
-        className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 px-6 text-center space-y-6"
+        className="min-h-screen flex flex-col items-center justify-center wp17-public-shell text-slate-100 px-6 text-center space-y-6"
       >
+        <div className="wp17-public-card p-8 bg-slate-950/88">
         <p className="text-3xl font-bold tracking-tight">{t("No active haul right now")}</p>
         <p className="text-base text-slate-400 max-w-sm">
           {t("Dispatch will assign your next cycle. This screen will update on its own — keep it open in your phone.")}
@@ -358,6 +359,7 @@ export default function DriverShift() {
         >
           {t("Sign out")}
         </button>
+        </div>
       </div>
     );
   }
@@ -372,10 +374,10 @@ export default function DriverShift() {
   return (
     <div
       data-testid="driver-shift"
-      className="min-h-screen bg-slate-950 text-slate-100 pb-24"
+      className="min-h-screen wp17-public-shell text-slate-100 pb-24"
     >
       {/* Header */}
-      <header className="px-5 pt-6 pb-3 flex items-start justify-between">
+      <header className="wp17-public-header px-5 pt-6 pb-3 flex items-start justify-between text-white rounded-b-2xl">
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-amber-400 font-semibold">
             {t("Driver shift")}

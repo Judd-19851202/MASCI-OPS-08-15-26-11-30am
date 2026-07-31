@@ -101,9 +101,9 @@ export default function DriverMagicLanding() {
   return (
     <div
       data-testid="driver-magic-landing"
-      className="min-h-screen w-full flex items-center justify-center px-6 py-12 bg-slate-950 text-slate-100"
+      className="wp17-public-shell min-h-screen w-full flex items-center justify-center px-6 py-12 text-slate-100"
     >
-      <div className="max-w-sm w-full text-center space-y-6">
+      <div className="max-w-sm w-full text-center space-y-6 wp17-public-card p-8 bg-slate-950/88 text-slate-100">
         <div
           className="inline-flex items-center justify-center h-16 w-16 rounded-full border-4 border-amber-400 text-amber-400 text-3xl font-bold"
           data-testid="driver-magic-brand"

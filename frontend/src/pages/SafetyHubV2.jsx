@@ -180,6 +180,18 @@ export default function SafetyHubV2() {
           </span>
         }
       >
+        <section className="wp17-mission-banner" data-testid="safety-hub-v2-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Reduce field risk by turning incidents, CAPAs, and compliance gaps into the next visible action.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Safety now shares the same shell, navigation system, and glass/grid direction as the broader platform while keeping operational urgency clear.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Track 19.52 · P1 #1 — OI Attention Strip.
            Consumes GET /api/operational-intelligence/summary and
            surfaces the safety_morning_digest signal (score · attention

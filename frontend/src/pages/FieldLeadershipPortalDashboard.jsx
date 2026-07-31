@@ -135,6 +135,18 @@ export default function FieldLeadershipPortalDashboard() {
       onSignOut={signOut}
     >
       <div className="max-w-6xl w-full mx-auto px-4 py-6 space-y-4" data-testid="fl-portal-dashboard">
+        <section className="wp17-mission-banner" data-testid="fl-portal-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Support field leaders with the next crew-facing action, not admin noise.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Field Leadership now lives in the same shell family as the rest of the platform while keeping dispatch visibility, accountability, and workflow launchers obvious.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Track 19.53 · P2 #8 + #11 — Today's Focus banner.
            Aligns the Field Leadership / Superintendent dashboard with
            the Command Center standard's "Today Action Queue" section.

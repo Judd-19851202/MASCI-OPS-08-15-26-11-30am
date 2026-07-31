@@ -81,6 +81,18 @@ export default function TrainingHub() {
       sideNav={renderAdminRouteSideNav()}
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="training-hub-page">
+        <section className="wp17-mission-banner mb-8" data-testid="training-hub-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Teach the platform once so every operator understands the next task everywhere.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Training, guides, and packets now live inside the same canonical system and route users to the right role-specific material without feeling like a separate site.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <div className="mb-10 max-w-3xl">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold flex items-center gap-2">
             <GraduationCap className="w-4 h-4" /> {t("MASCI Training")}

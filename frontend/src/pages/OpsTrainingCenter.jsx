@@ -104,11 +104,19 @@ export default function OpsTrainingCenter() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg pb-16">
+    <div className="min-h-screen wp17-public-shell pb-16">
       <div className="caution-stripe" />
       <HeaderBar />
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-6">
+      <div className="wp17-public-main py-6">
+        <section className="wp17-public-hero mb-6" data-testid="ops-training-mission-banner">
+          <div className="wp17-kicker">Public guidance mission</div>
+          <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-950">Operator guides, packets, and how-to references in one canonical family.</h1>
+          <p className="mt-4 max-w-3xl text-sm sm:text-base text-slate-700 leading-relaxed">
+            The Training Center is now aligned with the same glass/grid system as the platform so public guidance and authenticated work no longer feel unrelated.
+          </p>
+        </section>
+
         <div className="flex items-start gap-3 mb-1">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-indigo-700 text-white shrink-0">
             <GraduationCap className="w-6 h-6" />

@@ -191,6 +191,18 @@ export default function ExecutiveOverview() {
         testidPrefix="executive-overview-breadcrumb"
       />
       <div data-testid="executive-overview" className="min-w-0">
+      <section className="wp17-mission-banner mb-6" data-testid="executive-overview-mission-banner">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="wp17-kicker text-white/70">Portal mission</div>
+            <h2 className="mt-2 font-display text-xl font-black text-white">Give leadership the shortest possible path to risk, not a second analytics maze.</h2>
+            <p className="mt-2 max-w-3xl text-sm text-white/80">
+              Executive views now participate in the same canonical shell while staying intentionally concise, role-appropriate, and operationally clear.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* HEADER + VERDICT BAR */}
       <div className={`rounded-lg ${theme.bg} border-l-4 ${theme.bar.replace("bg-", "border-")} p-5 mb-6`}>
         <div className="flex flex-wrap items-center justify-between gap-4 min-w-0">

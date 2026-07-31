@@ -347,10 +347,10 @@ export default function ShiftStart() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 text-slate-50 flex flex-col"
+      className="min-h-screen wp17-public-shell text-slate-50 flex flex-col"
       data-testid="shift-start-page"
     >
-      <div className="px-5 sm:px-8 pt-4 flex items-center justify-between max-w-md w-full mx-auto">
+      <div className="wp17-public-header px-5 sm:px-8 pt-4 pb-3 flex items-center justify-between max-w-md w-full mx-auto text-white rounded-b-2xl">
         <Link
           to="/field"
           data-testid="shift-start-back-link"
@@ -365,7 +365,8 @@ export default function ShiftStart() {
         </div>
       </div>
 
-      <main className="flex-1 px-5 sm:px-8 pt-4 pb-10 max-w-md w-full mx-auto">
+      <main className="flex-1 px-5 sm:px-8 pt-4 pb-10 max-w-md w-full mx-auto wp17-public-main">
+        <div className="wp17-public-card p-5 sm:p-6 bg-slate-950/88 text-slate-50">
         <h1
           className="font-display text-3xl sm:text-4xl font-bold tracking-tight"
           data-testid="shift-start-title"
@@ -470,6 +471,7 @@ export default function ShiftStart() {
             {t("No password. No app. Just check in.")}
           </p>
         </form>
+        </div>
       </main>
     </div>
   );
