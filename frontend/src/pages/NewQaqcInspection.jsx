@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate, useParams, Link, Navigate } from "react-router-dom";
+import { useNavigate, useParams, Navigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Save,
   Loader2,
   ClipboardCheck,
@@ -13,14 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import EmployeeRosterField from "@/components/EmployeeRosterField";
+import FormShell from "@/components/FormShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -216,26 +214,17 @@ export default function NewQaqcInspection() {
   const isSubcontractor = slug === "subcontractor-work";
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-emerald-600">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
-        <Link
-          to="/qaqc"
-          className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-emerald-700 font-bold mb-4"
-          data-testid="qaqc-form-back"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> {t("QA / QC")}
-        </Link>
-
-        <div className="flex items-start gap-3 mb-6">
+    <FormShell
+      kicker={t("MASCI · QA / QC")}
+      title={titleLabel}
+      subtitle={t("Inspection capture with evidence, checklist answers, and sign-off.")}
+      backLink="/qaqc"
+      backLabel={t("QA / QC")}
+      headerClassName="border-emerald-200/60"
+      containerTestId="qaqc-form-shell"
+    >
+      <div className="mx-auto max-w-3xl px-0 py-1 sm:py-2">
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white/85 p-4 shadow-sm">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-600 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
           </div>
@@ -243,16 +232,15 @@ export default function NewQaqcInspection() {
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
               {t("QA / QC")}
             </span>
-            <h1 className="field-glance-anchor font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-              {titleLabel}
-            </h1>
+            <p className="mt-1 text-sm text-slate-600" data-testid="qaqc-form-intro">
+              {t("Capture site conditions, checklist results, photo evidence, and final sign-off in one shared inspection workflow.")}
+            </p>
           </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" data-testid="qaqc-form">
           {/* iter273 · form-root + Job/Sub/Inspection context coaching */}
           <HelpTipBlock formKey="qaqc" className="mb-3" showCounter />
-          <HelpTipBlock formKey="qaqc.context" className="mb-3" />
           <Section title={t("Job")}>
             <JobPicker
               projectName={data.project_name}
@@ -592,8 +580,8 @@ export default function NewQaqcInspection() {
             </div>
           </div>
         </form>
-      </main>
-    </div>
+      </div>
+    </FormShell>
   );
 }
 

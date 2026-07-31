@@ -34,6 +34,7 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { WhyItMattersPanel } from "@/components/guidance";
 import { HelpTipBlock } from "@/components/HelpTip";
+import FormShell from "@/components/FormShell";
 
 // iter212 — map FL form-kind ↔ HelpTip form_key.
 // Only kinds with a fully authored HelpTip registry are listed here.
@@ -724,37 +725,34 @@ export default function FieldLeadershipFormPage() {
   const empLabel = l(form.employee_field_label || { en: "Employee", es: "Empleado" }, lang);
 
   return (
-    <main className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          {/* Forms always show the M mark only (NOT the MASCI HUB lockup —
-              that's internal product branding, not for documents that go to
-              employees / HR / third parties). */}
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <DraftStatusPill status={draftStatus} testId="fl-draft-pill" />
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-8">
-        <div className="mb-6">
-          <Link
-            to="/leadership"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="leadership-back"
+    <FormShell
+      kicker={t("MASCI · Field Leadership")}
+      title={l(form.title, lang)}
+      subtitle={l(form.desc, lang)}
+      backLink="/leadership"
+      backLabel={t("Field Leadership")}
+      draftSlot={<DraftStatusPill status={draftStatus} testId="fl-draft-pill" />}
+      stickyFooter={(
+        <div className="flex gap-3" data-testid="leadership-form-actions">
+          <Button type="button" variant="outline" onClick={() => navigate("/leadership")} data-testid="leadership-cancel">
+            {t("Cancel")}
+          </Button>
+          <Button
+            type="button"
+            disabled={submitting}
+            aria-busy={submitting}
+            onClick={submit}
+            className="flex-1 h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
+            data-testid="leadership-submit"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field Leadership")}
-          </Link>
+            {submitting ? <FileText className="w-4 h-4 mr-2 animate-pulse" /> : <Save className="w-4 h-4 mr-2" />}
+            {submitting ? t("Submitting…") : t("Submit & Email PDF")}
+          </Button>
         </div>
-
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-        <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black mt-1">{l(form.title, lang)}</h1>
-        <p className="text-slate-600 mt-2 max-w-xl">{l(form.desc, lang)}</p>
+      )}
+      containerTestId="leadership-form-shell"
+    >
+      <div className="mx-auto max-w-3xl px-0 py-1 sm:py-2">
 
         {/* TRACK 27.08 · Explicit-restore prompt. The form is BLANK by
             default; if an unsent draft exists for this exact user + form
@@ -812,7 +810,7 @@ export default function FieldLeadershipFormPage() {
           </div>
         )}
 
-        <Card className="mt-8 p-5 sm:p-6 space-y-5">
+        <Card className="mt-6 p-5 sm:p-6 space-y-5 wp17-form-frame" data-testid="leadership-form-card">
           {/* JOB */}
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Active Job")}</Label>
@@ -1084,24 +1082,8 @@ export default function FieldLeadershipFormPage() {
             </div>
           )}
 
-          <div className="border-t-2 border-slate-200 pt-5 flex gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate("/leadership")} data-testid="leadership-cancel">
-              {t("Cancel")}
-            </Button>
-            <Button
-              type="button"
-              disabled={submitting}
-              aria-busy={submitting}
-              onClick={submit}
-              className="flex-1 h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-              data-testid="leadership-submit"
-            >
-              {submitting ? <FileText className="w-4 h-4 mr-2 animate-pulse" /> : <Save className="w-4 h-4 mr-2" />}
-              {submitting ? t("Submitting…") : t("Submit & Email PDF")}
-            </Button>
-          </div>
         </Card>
       </div>
-    </main>
+    </FormShell>
   );
 }

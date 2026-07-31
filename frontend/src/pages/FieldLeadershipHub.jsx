@@ -333,7 +333,7 @@ export default function FieldLeadershipHub() {
       portalName="MASCI"
       portalRole="Field Leadership"
       pageTitle={t("Field Leadership")}
-      subtitle={t("Crew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools.")}
+      subtitle={t("Crew documentation, accountability, and field requests in one operational workspace.")}
       showBack
       backHref="/"
       portalSwitcherCurrent="leadership"
@@ -377,17 +377,9 @@ export default function FieldLeadershipHub() {
             <div>
               <div className="wp17-kicker text-white/70">Portal mission</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">Keep crew documentation, accountability, and field requests in one clear workflow home.</h2>
-              <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Field Leadership now participates in the same canonical shell family and gives crews a cleaner path to the records and requests they actually use.
-              </p>
             </div>
           </div>
         </section>
-
-        <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono uppercase tracking-[0.18em] font-bold">
-          <Lock className="w-3.5 h-3.5 text-slate-500" />
-          {t("All forms must be factual, professional, and compliant with employment-documentation best practices.")}
-        </div>
 
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}

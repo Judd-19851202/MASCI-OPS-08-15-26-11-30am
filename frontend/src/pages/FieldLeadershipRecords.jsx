@@ -24,7 +24,6 @@ import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import BackLink from "@/components/BackLink";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { PortalShell } from "@/design-system";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
@@ -171,7 +170,7 @@ export default function FieldLeadershipRecords() {
       portalName="MASCI"
       portalRole={admin ? "Admin · Field Leadership" : pm ? "PM · Field Leadership" : "Field Leadership"}
       pageTitle={t("Records & Submissions")}
-      subtitle={t("All Field Leadership submissions across every job.")}
+      subtitle={admin ? t("All Field Leadership submissions across every job.") : t("Submission history and evidence for the jobs assigned to you.")}
       showBack
       backHref={backTo}
       portalSwitcherCurrent={portalSwitcherCurrent}
@@ -182,34 +181,16 @@ export default function FieldLeadershipRecords() {
       }
     >
       <div data-testid="leadership-records-root" className="pb-16">
-
         <section>
-        <div className="mb-6">
-          <BackLink
-            to={backTo}
-            label={backLabel}
-            variant="body"
-            testId="leadership-records-back"
-          />
-        </div>
-
-        <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
-          <ListChecks className="inline w-3.5 h-3.5 mr-1" />{t("Field Leadership · Records")}
-        </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{t("Records & Submissions")}</h1>
-        <p className="text-slate-600 mt-1 text-sm">
-          {admin ? t("All Field Leadership submissions across every job.") : t("Submissions for jobs assigned to you.")}
-        </p>
-
         {/* iter218 · reviewer-side coaching — supers reviewing crew
             filings get coaching on what to look for, how to push back,
             and when to escalate. NOT auditing tone; reading tone. */}
-        <div className="mt-5">
+        <div className="mb-5">
           <HelpTipBlock formKey="field-leadership.records" showCounter />
         </div>
 
         {/* COUNTS */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-5" data-testid="leadership-records-count-grid">
           <button
             onClick={() => setFilterKind("")}
             className={`p-3 rounded-md border-2 text-left ${!filterKind ? "border-red-700 bg-red-50" : "border-slate-200 bg-white hover:border-red-400"}`}
@@ -234,7 +215,7 @@ export default function FieldLeadershipRecords() {
         </div>
 
         {/* FILTERS */}
-        <Card className="mt-6 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+        <Card className="mt-6 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 wp17-panel" data-testid="leadership-records-filters">
           <Input placeholder={t("Employee")} value={employee} onChange={(e) => setEmployee(e.target.value)} className={inputCls} data-testid="records-filter-employee" />
           <Input placeholder={t("Job # or Name")} value={job} onChange={(e) => setJob(e.target.value)} className={inputCls} data-testid="records-filter-job" />
           <Input placeholder={t("Supervisor")} value={supervisor} onChange={(e) => setSupervisor(e.target.value)} className={inputCls} data-testid="records-filter-supervisor" />
@@ -256,7 +237,7 @@ export default function FieldLeadershipRecords() {
         </Card>
 
         {/* LIST */}
-        <Card className="mt-4 overflow-hidden">
+        <Card className="mt-4 overflow-hidden wp17-data-table" data-testid="leadership-records-table-shell">
           <table className="w-full text-sm">
             <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
               <tr>

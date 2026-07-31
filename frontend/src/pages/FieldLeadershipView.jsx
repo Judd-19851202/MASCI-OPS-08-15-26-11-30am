@@ -4,12 +4,12 @@
 // records table.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, FileDown, AlertTriangle, CheckCircle2, Camera } from "lucide-react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { FileDown, AlertTriangle, CheckCircle2, Camera } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
@@ -17,9 +17,7 @@ import { getPmToken } from "@/lib/pmAuth";
 import { getFlToken } from "@/lib/flAuth";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
-import { MasciLogo } from "@/components/MasciLogo";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalShell } from "@/design-system";
 import { formatEmployeeIdentity } from "@/lib/identity";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
@@ -76,6 +74,8 @@ export default function FieldLeadershipView() {
   const [rec, setRec] = useState(null);
   const [loading, setLoading] = useState(true);
   const adminMode = location.pathname.startsWith("/admin/");
+  const shellBackHref = adminMode ? "/admin/leadership/records" : "/leadership/records";
+  const shellPortalRole = adminMode ? "Admin · Field Leadership" : getPmToken() ? "PM · Field Leadership" : "Field Leadership";
 
   useEffect(() => {
     if (!getFlToken() && !isAdmin() && !getPmToken()) {
@@ -122,27 +122,53 @@ export default function FieldLeadershipView() {
 
   if (loading) {
     return adminMode ? (
-      <LegacyAdminModernShell
-        title="Field Leadership Record"
+      <AdminRouteShell
+        pageTitle="Field Leadership Record"
         subtitle="Read-only field submission with supporting evidence."
-        breadcrumb={[{ label: "Operations & Leadership", to: "/admin" }, { label: "Field Leadership Record" }]}
-        testidPrefix="leadership-view"
+        portalRole="Admin · Field Leadership"
+        crumbs={[{ label: "Field Operations" }, { label: "Field Leadership" }, { label: "Record" }]}
+        testId="leadership-view-admin-shell"
       >
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Loading…")}</div>
-      </LegacyAdminModernShell>
-    ) : <main className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">{t("Loading…")}</main>;
+      </AdminRouteShell>
+    ) : (
+      <PortalShell
+        portalName="MASCI"
+        portalRole={shellPortalRole}
+        pageTitle={t("Field Leadership Record")}
+        subtitle={t("Read-only field submission with supporting evidence.")}
+        showBack
+        backHref={shellBackHref}
+        portalSwitcherCurrent={getPmToken() ? "pm" : "leadership"}
+      >
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Loading…")}</div>
+      </PortalShell>
+    );
   }
   if (!rec) {
     return adminMode ? (
-      <LegacyAdminModernShell
-        title="Field Leadership Record"
+      <AdminRouteShell
+        pageTitle="Field Leadership Record"
         subtitle="Read-only field submission with supporting evidence."
-        breadcrumb={[{ label: "Operations & Leadership", to: "/admin" }, { label: "Field Leadership Record" }]}
-        testidPrefix="leadership-view"
+        portalRole="Admin · Field Leadership"
+        crumbs={[{ label: "Field Operations" }, { label: "Field Leadership" }, { label: "Record" }]}
+        testId="leadership-view-admin-shell"
       >
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Not found")}</div>
-      </LegacyAdminModernShell>
-    ) : <main className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">{t("Not found")}</main>;
+      </AdminRouteShell>
+    ) : (
+      <PortalShell
+        portalName="MASCI"
+        portalRole={shellPortalRole}
+        pageTitle={t("Field Leadership Record")}
+        subtitle={t("Read-only field submission with supporting evidence.")}
+        showBack
+        backHref={shellBackHref}
+        portalSwitcherCurrent={getPmToken() ? "pm" : "leadership"}
+      >
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Not found")}</div>
+      </PortalShell>
+    );
   }
 
   const details = rec.details_en || rec.details || {};
@@ -159,31 +185,16 @@ export default function FieldLeadershipView() {
     [t("Submitted via"), rec.submitted_via_role],
     [t("Language"), rec.language === "es" ? "Español → English" : "English"],
   ];
-
   const recordSection = (
-    <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-6">
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-          to={adminMode ? "/admin" : "/leadership/records"}
-          className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-          data-testid="leadership-view-back-records"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> {adminMode ? t("Admin OS") : t("Records")}
-        </Link>
-        <span className="text-slate-300">·</span>
-        <Link
-          to={adminMode ? "/admin/leadership-equipment" : isAdmin() ? "/admin" : getPmToken() ? "/pm" : "/leadership"}
-          className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-          data-testid="leadership-view-back-hub"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />{" "}
-          {adminMode ? t("Leadership & Equipment") : isAdmin() ? t("Administration") : getPmToken() ? t("Project Management") : t("Field Leadership")}
-        </Link>
-      </div>
-
-      <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
-      <div className="flex items-center justify-between gap-4 flex-wrap mt-1">
-        <h1 className="font-display text-3xl sm:text-4xl font-black">{kindLabel(rec.kind)}</h1>
+    <section className="max-w-5xl px-0 pt-0" data-testid="leadership-view-section">
+      <div className="wp17-panel p-5 sm:p-7">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
+            <div className="mt-2 text-sm text-slate-600" data-testid="leadership-view-summary-line">
+              {rec.employee_name || t("Employee")} · {(rec.occurred_at || "").replace("T", " ").slice(0, 16)}
+            </div>
+          </div>
         {rec.doc_id && (
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-300"
@@ -193,9 +204,10 @@ export default function FieldLeadershipView() {
             <span className="font-mono text-base font-black text-red-800 tracking-wide tabular-nums">{rec.doc_id}</span>
           </div>
         )}
+        </div>
       </div>
 
-      <Card className="mt-5 p-5">
+      <Card className="mt-4 p-5 wp17-panel">
         <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Summary")}</h3>
         <table className="w-full text-sm">
           <tbody>
@@ -214,7 +226,7 @@ export default function FieldLeadershipView() {
       )}
 
       {detailEntries.length > 0 && rec.kind !== "equipment_checkout" && rec.kind !== "equipment_return" && (
-        <Card className="mt-4 p-5">
+        <Card className="mt-4 p-5 wp17-panel">
           <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Details")}</h3>
           <dl className="space-y-3">
             {detailEntries.map(([k, v]) => (
@@ -228,7 +240,7 @@ export default function FieldLeadershipView() {
       )}
 
       {Array.isArray(rec.photos) && rec.photos.length > 0 && (
-        <Card className="mt-4 p-5">
+        <Card className="mt-4 p-5 wp17-panel">
           <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Photos")}</h3>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
             {rec.photos.map((p, i) => (
@@ -239,7 +251,7 @@ export default function FieldLeadershipView() {
       )}
 
       {(rec.supervisor_signature || rec.employee_signature || rec.witness_signature) && (
-        <Card className="mt-4 p-5">
+        <Card className="mt-4 p-5 wp17-panel">
           <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-b border-slate-200 pb-2 mb-3">{t("Signatures")}</h3>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
             {rec.supervisor_signature && (
@@ -276,11 +288,11 @@ export default function FieldLeadershipView() {
 
   if (adminMode) {
     return (
-      <LegacyAdminModernShell
-        title={kindLabel(rec.kind)}
+      <AdminRouteShell
+        pageTitle={kindLabel(rec.kind)}
         subtitle="Read-only field submission with supporting photos, signatures, and operator context."
-        breadcrumb={[{ label: "Operations & Leadership", to: "/admin" }, { label: "Field Leadership Record" }]}
-        testidPrefix="leadership-view"
+        portalRole="Admin · Field Leadership"
+        crumbs={[{ label: "Field Operations" }, { label: "Field Leadership" }, { label: kindLabel(rec.kind) }]}
         primaryActions={(
           <Button
             onClick={downloadPdf}
@@ -291,35 +303,36 @@ export default function FieldLeadershipView() {
             <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
           </Button>
         )}
+        contentClassName="max-w-5xl mx-auto px-4 sm:px-6 py-6"
+        testId="leadership-view-admin-shell"
       >
         {recordSection}
-      </LegacyAdminModernShell>
+      </AdminRouteShell>
     );
   }
 
   return (
-    <main className="min-h-screen blueprint-bg pb-16">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-            <Button
-              onClick={downloadPdf}
-              variant="outline"
-              className="h-10 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:border-amber-500 text-xs font-bold uppercase tracking-wide"
-              data-testid="leadership-view-pdf"
-            >
-              <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
-            </Button>
-          </div>
-        </div>
-      </header>
+    <PortalShell
+      portalName="MASCI"
+      portalRole={shellPortalRole}
+      pageTitle={kindLabel(rec.kind)}
+      subtitle={t("Read-only field submission with supporting photos, signatures, and operator context.")}
+      showBack
+      backHref={shellBackHref}
+      portalSwitcherCurrent={getPmToken() ? "pm" : "leadership"}
+      primaryActions={(
+        <Button
+          onClick={downloadPdf}
+          variant="outline"
+          className="h-10 px-3 border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 text-xs font-bold uppercase tracking-wide"
+          data-testid="leadership-view-pdf"
+        >
+          <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
+        </Button>
+      )}
+    >
       {recordSection}
-    </main>
+    </PortalShell>
   );
 }
 
