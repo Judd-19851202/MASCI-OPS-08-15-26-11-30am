@@ -2,6 +2,24 @@
 
 ## Current top priority
 
+- **WP-17D autonomous convergence is in progress.**
+- **Current ledger state:** `1190` total surfaces · `640` implemented · `453` migrating · `53` redirected · `44` hidden.
+- **Current execution focus:** finish the remaining migrating surfaces, then promote them through functional / visual / responsive certification.
+
+## P0
+- complete Transportation / HR / public-external convergence and certification
+- finish portal-by-portal shell, navigation, form, table, footer, and responsive convergence for all remaining migrating rows
+- eliminate any residual mixed-generation user-facing surface
+
+## P1
+- promote implemented/migrating rows to functional / visual / responsive verified states with route-sweep evidence
+- reconcile per-portal certification inside the WP-17D ledger and reports
+
+## P2
+- maintain white-label validation and long-tail terminology/coaching cleanup discovered during full convergence
+
+## Current top priority
+
 - **WP-17C Shared Experience Foundation is complete and ready for executive review.**
 - **WP-17D must not begin until the completed WP-17C foundation is reviewed and approved.**
 - **Representative implementation is certified; full-platform migration remains out of scope until authorization.**

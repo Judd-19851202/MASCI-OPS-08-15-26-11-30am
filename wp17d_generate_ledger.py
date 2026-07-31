@@ -55,6 +55,8 @@ REPAIR_WAVE_PORTALS = {"transportation", "hr", "public_shared"}
 
 
 def current_state(route: str, source_status: str, portal: str) -> str:
+    if portal == "dev":
+        return "HIDDEN"
     if route.startswith("http"):
       return "EXTERNAL"
     if source_status in {"HIDDEN", "DETAIL"}:
@@ -145,6 +147,8 @@ def required_functional_repair(portal: str, route: str, source_type: str) -> str
 
 
 def ledger_status(portal: str, route: str, source_status: str, source_type: str) -> str:
+    if portal == "dev":
+        return "HIDDEN"
     if source_status == "HIDDEN":
         return "HIDDEN"
     if source_type == "redirect_route":

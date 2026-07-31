@@ -3,6 +3,13 @@
 ## Current status
 IN PROGRESS
 
+## Current ledger counts
+- total surfaces: `1190`
+- implemented: `640`
+- migrating: `453`
+- redirected: `53`
+- hidden: `44`
+
 ## Wave actions already applied
 - `PortalShell` now defaults to the WP-17D canonical shell layer.
 - Public entry links, Admin navigation, PM navigation, HR navigation, Safety navigation, and Transportation navigation are being converged onto one governed shell model.

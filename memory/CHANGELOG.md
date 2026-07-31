@@ -1,5 +1,30 @@
 # 2026-07-31 — WP-17C foundation completion
 
+# 2026-07-31 — WP-17D convergence wave
+
+- Created `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` with the full `1190`-surface denominator and active convergence statuses.
+- Added the WP-17D control package:
+  - `WP17D_PORTAL_MIGRATION_RUNBOOK.md`
+  - `WP17D_ACTIVE_DEFECT_REGISTER.md`
+  - `WP17D_NAVIGATION_CONVERGENCE_REPORT.md`
+  - `WP17D_COMPONENT_MIGRATION_REPORT.md`
+  - `WP17D_GLASS_AND_GRID_IMPLEMENTATION_REPORT.md`
+  - `WP17D_ICON_MIGRATION_REPORT.md`
+  - `WP17D_FORM_CONVERGENCE_REPORT.md`
+  - `WP17D_TABLE_CONVERGENCE_REPORT.md`
+  - `WP17D_RESPONSIVE_CERTIFICATION.md`
+  - `WP17D_WHITE_LABEL_VALIDATION.md`
+  - `WP17D_FUNCTIONAL_REGRESSION_REPORT.md`
+  - `WP17D_EXECUTIVE_CLOSEOUT.md`
+- Widened the canonical shell rollout: `PortalShell` now defaults to the WP-17D shell family and shared public/login/form wrappers now use the same grid/glass language.
+- Rewrote HR, Safety, and PM wrappers onto the canonical shell and converged shared card, page-header, action-bar, and data-table styling.
+- Repaired the first mandatory wave across Transportation, HR, and public/carrier workflows, including Transportation shell/nav cleanup and external invite / certificate verification pages.
+- Added mission-first convergence banners to major portal landings: HR, Safety, Dispatch, Shop, Transportation, Training, Executive, and Field Leadership.
+- Brought driver/public edge workflows into the same public-family treatment (`/shift`, `/driver`, `/revise/:token`).
+- Verification evidence:
+  - `/app/test_reports/iteration_90.json`
+  - `auto_frontend_testing_agent` broader sweep: **22/22 PASS**
+
 - Created `/app/WP17C_IMPLEMENTATION_LEDGER.csv` with the full reconciled `1190`-surface ledger covering routes, navigation, forms, tables, overlays, PDF/email/notification/coaching/white-label owners.
 - Added the full WP-17C standards package: portal mission & entry architecture, IA canon, navigation canon, token standard, shell standard, page anatomy, component foundation, icon standard, representative implementation report, regression report, and executive closeout.
 - Implemented the shared frontend foundation in `frontend/src/design-system/wp17.css`, `PortalShell.jsx`, `MobileNavigation.jsx`, `NotificationBell.jsx`, and admin shell wrappers.

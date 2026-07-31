@@ -19,6 +19,13 @@
   - canonical mission, IA, navigation, token, shell, page anatomy, component, icon, regression, and closeout docs created
   - shared frontend foundation implemented in `frontend/src/design-system/wp17.css`, `PortalShell.jsx`, `MobileNavigation.jsx`, and representative wrappers/components
   - representative implementation completed on public sign-in, public landing, Admin landing, PM landing, list/detail/form/table/modal workflows, and tablet/phone views
+- WP-17D is in active autonomous execution:
+  - `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` created with the full `1190`-surface denominator
+  - shared shell defaults widened so `PortalShell` surfaces converge on the WP-17D canonical shell automatically
+  - portal wrappers converged for logins, HR, Safety, PM, and shared form flows
+  - Transportation first-wave repairs applied across shell, subnav, Mission Control cards, and external/public carrier verification/invite flows
+  - portal-mission convergence expanded across HR, Safety, Dispatch, Shop, Transportation, Training, Executive, and Field Leadership landings
+  - driver/public edge routes (`/shift`, `/driver`, `/revise/:token`) moved into the same public-family visual system
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -51,6 +58,10 @@
 - Testing agent report: `/app/test_reports/iteration_89.json`
 - Smoke / spot verification completed for Hub, Daily Report form wrapper, and live Asset Profile detail route.
 - Representative PM clarity, notification drawer, and responsive coverage verified in preview.
+- WP-17D wave verification:
+  - `/app/test_reports/iteration_90.json`
+  - `auto_frontend_testing_agent`: **22/22 PASS** on the broader WP-17D convergence sweep
+  - dispatch direct-token hub verification passed
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -58,5 +69,6 @@
 - White-label readiness preserved; MASCI identity was not hard-coded into the reusable foundation.
 
 ## Next Authorized Work
-- Await review/approval of WP-17C.
-- On approval, begin WP-17D full-platform migration using the locked WP-17C standards without inventing new foundations.
+- Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
+- Finish migrating the remaining `MIGRATING` rows in `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv`, then advance rows through functional / visual / responsive certification.
+- Only after genuine full-platform convergence should WP-17E be considered.
