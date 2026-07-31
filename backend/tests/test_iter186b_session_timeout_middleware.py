@@ -187,6 +187,27 @@ def test_middleware_tier_picks_strictest(monkeypatch):
     assert rows[0]["tier"] == "ADMIN_HR"
 
 
+def test_middleware_falls_back_to_active_lower_precedence_token(monkeypatch):
+    """A stale higher-tier token must not preempt an active lower-tier token.
+
+    Shared cross-portal routes can legitimately fan out multiple auth
+    headers. If an old admin token lingers beside a valid dispatch token,
+    middleware must validate the active dispatch session instead of
+    short-circuiting with `session_not_active` before the route gate runs.
+    """
+    monkeypatch.setenv("SESSION_TIMEOUTS_ENABLED", "true")
+    from session_timeout import reset_session_activity
+
+    db = _FakeDB()
+    asyncio.run(reset_session_activity(db, "dispatch-xyz", "OPERATIONS"))
+    client = TestClient(_make_app(db))
+    r = client.get("/api/secured", headers={
+        "X-Admin-Token": "stale-admin-abc",
+        "X-Dispatch-Token": "dispatch-xyz",
+    })
+    assert r.status_code == 200
+
+
 def test_middleware_dev_token_excluded(monkeypatch):
     """X-Dev-Token must NOT be subject to timeout (vendor-only)."""
     monkeypatch.setenv("SESSION_TIMEOUTS_ENABLED", "true")

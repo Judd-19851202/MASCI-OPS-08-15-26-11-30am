@@ -102,10 +102,15 @@ def _tier_ttl(tier: str) -> Tuple[int, int]:
     return idle_min * 60, abs_hour * 3600
 
 
-def _pick_token_and_tier(headers) -> Tuple[Optional[str], Optional[str]]:
-    """Pick the first known portal-token header. Returns (token, tier)
-    or (None, None) if none present. ADMIN_HR wins over OPERATIONS wins
-    over FIELD when multiple are sent — matches require_* precedence."""
+def _pick_tokens_and_tiers(headers) -> list[Tuple[str, str]]:
+    """Return all known portal-token headers in strict precedence order.
+
+    The first entry preserves the historical "strictest token wins"
+    behavior for callers that only want one candidate. Middleware-level
+    validation can iterate the full ordered list so a stale higher-tier
+    token does not preempt a still-active lower-tier token on shared
+    cross-portal routes.
+    """
     # Headers may be dict, Headers (starlette), or list — normalise.
     if hasattr(headers, "items"):
         items = [(k.lower(), v) for k, v in headers.items()]
@@ -117,9 +122,20 @@ def _pick_token_and_tier(headers) -> Tuple[Optional[str], Optional[str]]:
              "x-fl-token",
              "x-field-leadership-token"]
     by_key = dict(items)
+    out: list[Tuple[str, str]] = []
     for k in order:
         if k in by_key and by_key[k]:
-            return by_key[k], _HEADER_TIER[k]
+            out.append((by_key[k], _HEADER_TIER[k]))
+    return out
+
+
+def _pick_token_and_tier(headers) -> Tuple[Optional[str], Optional[str]]:
+    """Pick the first known portal-token header. Returns (token, tier)
+    or (None, None) if none present. ADMIN_HR wins over OPERATIONS wins
+    over FIELD when multiple are sent — matches require_* precedence."""
+    candidates = _pick_tokens_and_tiers(headers)
+    if candidates:
+        return candidates[0]
     return None, None
 
 
@@ -200,8 +216,8 @@ class SessionTimeoutMiddleware(BaseHTTPMiddleware):
             if path.startswith(pfx):
                 return await call_next(request)
 
-        token, tier = _pick_token_and_tier(request.headers)
-        if not token:
+        candidates = _pick_tokens_and_tiers(request.headers)
+        if not candidates:
             # Anonymous request — let the route's require_* dep handle it.
             return await call_next(request)
 
@@ -210,12 +226,18 @@ class SessionTimeoutMiddleware(BaseHTTPMiddleware):
         )
         try:
             try:
-                decision = await _check_or_update(self.db, token, tier)
+                decisions: list[Tuple[str, str]] = []
+                for token, tier in candidates:
+                    decision = await _check_or_update(self.db, token, tier)
+                    decisions.append((decision, tier))
+                    if decision == "ok":
+                        return await call_next(request)
             except Exception as e:  # noqa: BLE001
                 # Never block traffic on a Mongo hiccup — fail open + log.
                 logger.warning("[session-timeout] check failed: %s", e)
                 return await call_next(request)
 
+            decision, tier = decisions[0]
             if decision == "expired_idle":
                 return JSONResponse(
                     status_code=401,
