@@ -1,3 +1,14 @@
+# 2026-07-31 — WP-17C foundation completion
+
+- Created `/app/WP17C_IMPLEMENTATION_LEDGER.csv` with the full reconciled `1190`-surface ledger covering routes, navigation, forms, tables, overlays, PDF/email/notification/coaching/white-label owners.
+- Added the full WP-17C standards package: portal mission & entry architecture, IA canon, navigation canon, token standard, shell standard, page anatomy, component foundation, icon standard, representative implementation report, regression report, and executive closeout.
+- Implemented the shared frontend foundation in `frontend/src/design-system/wp17.css`, `PortalShell.jsx`, `MobileNavigation.jsx`, `NotificationBell.jsx`, and admin shell wrappers.
+- Applied the representative implementation to `Hub.jsx`, `SignIn.jsx`, `AdminOS.jsx`, `PmHubV2.jsx`, `AdminPeople.jsx`, `AdminOperationalInventory.jsx`, `AssetProfile.jsx`, and `NewDailyReportV3.jsx`.
+- Added a representative asset-detail launcher to Operational Inventory and the missing canonical Daily Report form wrapper (`dr-v3-form-root` / `wp17-form-shell`) after QA follow-up.
+- Verification evidence:
+  - `/app/test_reports/iteration_89.json`
+  - smoke / spot checks on preview for Hub, Daily Report form, and live Asset Profile detail route
+
 # 2026-07-31 — WP-17B blueprint lock
 
 - Replaced placeholder WP-17B audit drafts with source-verified blueprint documents in `/app/WP17B_*.md`.

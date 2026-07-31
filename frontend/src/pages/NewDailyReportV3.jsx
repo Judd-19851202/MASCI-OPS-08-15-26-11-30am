@@ -1209,7 +1209,8 @@ export default function NewDailyReportV3({ publicMode = false }) {
           </div>
         )}
 
-        <div className="space-y-4 sm:space-y-5" data-testid="dr-v3-form">
+        <div className="wp17-form-frame wp17-form-shell" data-testid="dr-v3-form-root">
+          <div className="space-y-4 sm:space-y-5" data-testid="dr-v3-form">
           <SectionProjectConditions
             data={data}
             patch={patch}
@@ -1277,6 +1278,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             onSubmit={onSubmit}
             submitLabel={submitLabel}
           />
+          </div>
         </div>
       </div>
     </div>

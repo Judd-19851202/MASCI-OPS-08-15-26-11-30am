@@ -1,3 +1,23 @@
+# 2026-07-31 — WP-17C foundation completion roadmap update
+
+## Current top priority
+
+- **WP-17C Shared Experience Foundation is complete and ready for executive review.**
+- **WP-17D must not begin until the completed WP-17C foundation is reviewed and approved.**
+- **Representative implementation is certified; full-platform migration remains out of scope until authorization.**
+
+## P0
+- preserve the WP-17C locked ledger + canonical standards package
+- hold WP-17D until explicit authorization
+- use the WP-17C foundation as the only permitted design/navigation source for migration
+
+## P1
+- begin WP-17D migration planning only after approval
+- migrate portal families onto the certified shell/nav/token foundation without redefining standards
+
+## P2
+- continue terminology/coaching/white-label closeout sequencing under later WP-17 work packages where migration exposes residual drift
+
 # 2026-07-31 — WP-17B blueprint lock roadmap update
 
 ## Current top priority

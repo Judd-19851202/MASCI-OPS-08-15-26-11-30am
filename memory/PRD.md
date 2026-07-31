@@ -2,51 +2,61 @@
 
 ## Original Problem Statement
 - Complete WP-17A production stabilization, release gating, and deployment validation.
-- Then execute WP-17B as a full-platform audit of UX, IA, navigation, components, terminology, coaching, PDFs, emails, notifications, and white-label surfaces without redesigning the product yet.
+- Execute WP-17B as the authoritative platform audit across UX, IA, navigation, components, terminology, coaching, PDFs, emails, notifications, and white-label surfaces.
+- Execute WP-17C as the shared experience foundation: build the reusable platform foundation, canonical IA/navigation, and a bounded representative implementation without beginning full-platform migration.
 
 ## Current Architecture
 - React frontend in `/app/frontend/src/`
 - FastAPI backend in `/app/backend/`
 - MongoDB runtime with environment-owned configuration
-- Domain-segmented frontend routing through `AppRoutes.jsx`, sidebar/domain maps, hub shells, and nested Transportation routes
+- Domain-segmented frontend routing through `AppRoutes.jsx`, portal shells, sidebar/domain maps, and nested Transportation routing
 
 ## What Is Implemented
 - WP-17A is complete and production-validated.
 - WP-17B blueprint lock is complete in documentation form.
-- Authoritative WP-17B source-verified totals:
-  - `1190` audited platform surfaces
-  - `13` portal / route families
-  - `481` routes
-  - `113` hidden/detail surfaces
-  - `66` forms
-  - `15` PDF source surfaces
-  - `14` email/template source surfaces
-  - `253` navigation items
-  - `64` reusable component families
-  - `8` terminology conflict groups
-  - `11` coaching/help findings
+- WP-17C is now complete at the foundation scope:
+  - `WP17C_IMPLEMENTATION_LEDGER.csv` created with `1190` reconciled surfaces
+  - canonical mission, IA, navigation, token, shell, page anatomy, component, icon, regression, and closeout docs created
+  - shared frontend foundation implemented in `frontend/src/design-system/wp17.css`, `PortalShell.jsx`, `MobileNavigation.jsx`, and representative wrappers/components
+  - representative implementation completed on public sign-in, public landing, Admin landing, PM landing, list/detail/form/table/modal workflows, and tablet/phone views
 
-## Current Authoritative Documents
-- `/app/WP17B_PLATFORM_MASTER_INVENTORY.md`
-- `/app/WP17B_INFORMATION_ARCHITECTURE.md`
-- `/app/WP17B_NAVIGATION_AUDIT.md`
-- `/app/WP17B_DASHBOARD_AUDIT.md`
-- `/app/WP17B_FORM_AUDIT.md`
-- `/app/WP17B_WORKFLOW_AUDIT.md`
-- `/app/WP17B_COMPONENT_AUDIT.md`
-- `/app/WP17B_DESIGN_SYSTEM_STANDARD.md`
-- `/app/WP17B_TERMINOLOGY_STANDARD.md`
-- `/app/WP17B_COACHING_STANDARD.md`
-- `/app/WP17B_ICON_AUDIT.md`
-- `/app/WP17B_WHITE_LABEL_STANDARD.md`
-- `/app/WP17B_EXECUTIVE_REPAIR_REGISTER.md`
-- `/app/WP17B_IMPLEMENTATION_ROADMAP.md`
+## Locked Totals Preserved
+- `1190` audited platform surfaces
+- `13` portal / family groupings
+- `481` routes
+- `113` hidden/detail surfaces
+- `66` forms
+- `15` PDF source surfaces
+- `14` email/template source surfaces
+- `253` navigation items
+- `64` reusable component families
+- `8` terminology conflict groups
+- `11` coaching/help findings
 
-## WP-17B Constraints Honored
-- No production changes
-- No redesign implementation
-- No component migration
-- No WP-17C execution started
+## Key WP-17C Deliverables
+- `/app/WP17C_IMPLEMENTATION_LEDGER.csv`
+- `/app/WP17C_PORTAL_MISSION_AND_ENTRY_ARCHITECTURE.md`
+- `/app/WP17C_INFORMATION_ARCHITECTURE_CANON.md`
+- `/app/WP17C_NAVIGATION_CANON.md`
+- `/app/WP17C_DESIGN_TOKEN_STANDARD.md`
+- `/app/WP17C_CANONICAL_SHELL_STANDARD.md`
+- `/app/WP17C_CANONICAL_PAGE_ANATOMY.md`
+- `/app/WP17C_COMPONENT_FOUNDATION.md`
+- `/app/WP17C_ICON_SYSTEM_STANDARD.md`
+- `/app/WP17C_REPRESENTATIVE_IMPLEMENTATION_REPORT.md`
+- `/app/WP17C_FOUNDATION_REGRESSION_REPORT.md`
+- `/app/WP17C_EXECUTIVE_CLOSEOUT.md`
+
+## Verification Status
+- Testing agent report: `/app/test_reports/iteration_89.json`
+- Smoke / spot verification completed for Hub, Daily Report form wrapper, and live Asset Profile detail route.
+- Representative PM clarity, notification drawer, and responsive coverage verified in preview.
+
+## Constraints Still Honored
+- No full-platform migration was started.
+- No broad redesign outside the bounded representative set.
+- White-label readiness preserved; MASCI identity was not hard-coded into the reusable foundation.
 
 ## Next Authorized Work
-- Await executive authorization to begin WP-17C using the locked blueprint and repair register.
+- Await review/approval of WP-17C.
+- On approval, begin WP-17D full-platform migration using the locked WP-17C standards without inventing new foundations.

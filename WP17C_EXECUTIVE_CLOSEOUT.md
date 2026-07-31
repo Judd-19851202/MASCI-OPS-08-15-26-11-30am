@@ -1,7 +1,7 @@
 # WP-17C Executive Closeout
 
 ## Status
-IN PROGRESS — Phase 0 complete, shared standards drafted, representative implementation pending certification.
+WP-17C FOUNDATION COMPLETE — READY FOR WP-17D AUTHORIZATION
 
 ## Exit criteria reminder
 WP-17C is complete only when:
@@ -13,7 +13,10 @@ WP-17C is complete only when:
 - responsive coverage passes
 - no functional regression remains
 
-## Final authorization phrase
-Replace this draft status with exactly one of the following after testing:
-- `WP-17C FOUNDATION COMPLETE — READY FOR WP-17D AUTHORIZATION`
-- `WP-17C FOUNDATION BLOCKED — EXECUTIVE DECISION REQUIRED`
+## Completion evidence
+- `WP17C_IMPLEMENTATION_LEDGER.csv` written with all `1190` surfaces and reconciled counts.
+- Canonical standards for mission, IA, navigation, tokens, shell, page anatomy, components, and icon system are present.
+- Representative implementation is complete on the bounded set required by the executive directive.
+- PM landing clarity was materially improved and verified.
+- Responsive representative coverage passed.
+- Regression evidence captured in `/app/test_reports/iteration_89.json` plus post-QA spot checks.

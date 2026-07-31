@@ -77,6 +77,7 @@ const TABS = [
 
 export default function AdminOperationalInventory() {
   const [snap, setSnap] = useState(null);
+  const [sampleAsset, setSampleAsset] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("overview");
@@ -85,8 +86,12 @@ export default function AdminOperationalInventory() {
     setLoading(true);
     setError("");
     try {
-      const r = await api.get("/admin/operational-inventory");
-      setSnap(r.data);
+      const [inventoryResponse, assetResponse] = await Promise.all([
+        api.get("/admin/operational-inventory"),
+        api.get("/asset-spine/assets"),
+      ]);
+      setSnap(inventoryResponse.data);
+      setSampleAsset(assetResponse?.data?.items?.[0] || null);
     } catch (e) {
       const msg = e?.response?.data?.detail || e?.message || "Failed to load inventory";
       setError(msg);
@@ -121,15 +126,25 @@ export default function AdminOperationalInventory() {
               workflow. Surfaces drift as the platform grows. No mutations from this surface.
             </p>
           </div>
-          <Button
-            variant="outline" size="sm" onClick={load} disabled={loading}
-            data-testid="admin-operational-inventory-refresh"
-          >
-            {loading
-              ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              : <RefreshCcw className="h-4 w-4 mr-2" />}
-            Refresh
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {sampleAsset ? (
+              <Button asChild variant="outline" size="sm" data-testid="admin-operational-inventory-sample-detail-link">
+                <a href={`/admin/assets/${sampleAsset.asset_id}`}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Representative detail
+                </a>
+              </Button>
+            ) : null}
+            <Button
+              variant="outline" size="sm" onClick={load} disabled={loading}
+              data-testid="admin-operational-inventory-refresh"
+            >
+              {loading
+                ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                : <RefreshCcw className="h-4 w-4 mr-2" />}
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {error && (
