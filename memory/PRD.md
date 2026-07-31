@@ -2,11 +2,11 @@
 
 ## Current status
 
-- **WP-16A remains active**
+- **WP-16A is complete**
 - **WP-17 remains blocked / unauthorized**
-- **Pre-deployment certification is complete**
-- **Fresh namespace restore drill completed and independently verified**
-- **Deployment is prepared but intentionally held for executive release**
+- **Production deployment completed and was independently validated on live production**
+- **Fresh namespace restore drill completed and independently verified before deployment**
+- **Production can remain live**
 
 ## Latest measured improvements
 
@@ -23,15 +23,16 @@
 - `PLATFORM_HEALTH_CERTIFICATION.md`
 - `MONGODB_PRODUCTION_PERFORMANCE_CERTIFICATION.md`
 - `PRODUCTION_READINESS_REPORT.md`
-- `PRODUCTION_DEPLOYMENT_REPORT.md` *(prepared / not yet executed)*
-- `POST_DEPLOYMENT_VALIDATION.md` *(prepared / not yet executed)*
+- `PRODUCTION_DEPLOYMENT_REPORT.md` *(complete)*
+- `POST_DEPLOYMENT_VALIDATION.md` *(complete)*
+- `WP16A_FINAL_EXECUTIVE_CERTIFICATION.md`
 - `GO_NO_GO_RECOMMENDATION.md`
 - `ROLLBACK_PLAN.md`
 - `EXECUTIVE_DEPLOYMENT_CHECKLIST.md`
 
 ## Current blocking item for final WP-16A sign-off
 
-- no remaining technical blocker is open; deployment is intentionally paused under executive hold until explicit release and post-deployment validation execution
+- no remaining WP-16A blocker is open; production deployment validated successfully on `2026-07-31`
 
 # 2026-07-31 — WP-16 Wave 6 blocker closed; Wave 7 inventory kicked off
 

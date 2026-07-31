@@ -1,23 +1,20 @@
 # WP-16A — Production Deployment Report
 
 Date: 2026-07-31
-Status: PREPARED / NOT YET EXECUTED
+Status: COMPLETE — DEPLOYED AND VALIDATED
 
-This report is prepared in advance so the actual deployment can be executed as a controlled step once the hold is released.
+This report records the production deployment outcome and the live post-deployment validation evidence gathered after release.
 
-## Reserved fields for completion after deployment
+## Live release evidence
 
-- deployment time
-- deployed build / commit / checkpoint identifier
-- migration verification
-- environment verification
-- production smoke results
-- production health verification
-- integration verification
-- backup verification at deployment time
-- executive deployment sign-off
+- live production URL: `https://mascidocs.com`
+- live backend commit: `fd89cfe673d61292075a4f6668a2d0e71dcdd5f4`
+- live release hash: `ec85d311da889befeb222f6ee3bf1931`
+- build evidence timestamp observed from app: `2026-07-31T03:07:30+00:00`
+- validation completion timestamp: `2026-07-31T13:45:00Z`
+- validation artifact: `/app/test_reports/iteration_84.json`
 
-## Preconditions already satisfied
+## Deployment verification summary
 
 - Backup & Recovery Certification: PASS
 - Production Reliability Certification: PASS
@@ -25,6 +22,25 @@ This report is prepared in advance so the actual deployment can be executed as a
 - MongoDB Performance Certification: PASS
 - Security hardening and pre-deployment review: PASS
 
-## Current release state
+## Production validation summary
 
-Deployment is **ready but not executed**. Complete this report immediately after the authorized native production deployment.
+- environment verification: PASS
+- database connectivity / MongoDB connectivity: PASS
+- Cloudflare R2 connectivity: PASS
+- authentication / Super Administrator continuity: PASS
+- major admin operational surfaces: PASS
+- representative critical public workflows: PASS
+- backup / recovery operational health: PASS
+- monitoring / regression audit: PASS
+
+## Notes
+
+- The live app reported a coherent production runtime identity and production database authority.
+- Recovery posture remained `AMBER`, but this was verified as truthful operational posture and **not** a deployment failure.
+- Only minor non-blocking asset `404` noise was observed.
+
+## Final deployment decision
+
+**Production deployment validated. Production can remain live.**
+
+Final executive recommendation: **PRODUCTION DEPLOYMENT VALIDATED — WP-16A COMPLETE**

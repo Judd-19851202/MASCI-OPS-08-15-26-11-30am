@@ -2,24 +2,23 @@
 
 ## Current top priority
 
-- **WP-16A Production Stabilization & Release Certification** remains active.
+- **WP-16A Production Stabilization & Release Certification is complete.**
 - **WP-17 is not authorized and must not begin.**
-- **All pre-deployment certification evidence is complete; deployment is paused only by executive hold.**
+- **Production deployment is validated; await explicit authorization before opening WP-17.**
 
 ## Remaining closeout sequence
 
 ### P0
-- wait for explicit deployment authorization
-- execute native production deployment once hold is released
-- run the prepared post-deployment validation checklist immediately after deployment
+- hold current production steady
+- preserve WP-16A certification evidence set
+- wait for explicit WP-17 authorization before beginning any new work package
 
 ### P1
-- complete `PRODUCTION_DEPLOYMENT_REPORT.md` after live deployment
-- complete `POST_DEPLOYMENT_VALIDATION.md` after live validation
-- issue final WP-16A completion recommendation after production validation passes
+- if any live issue is later reported, classify whether it is preview or production first and handle under change control
+- maintain production monitoring and backup health observation
 
 ### P2
-- maintain WP-17 block until WP-16A is formally closed in production
+- begin WP-17 only after separate executive authorization
 
 # 2026-07-30 WP-16 Wave 5 Safety certification scope
 
