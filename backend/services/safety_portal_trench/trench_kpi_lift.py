@@ -256,44 +256,57 @@ async def company_trench_safety_kpis(
 async def _top_projects_by_attention(
     db, *, window_start: Optional[str], limit: int = 8,
 ) -> List[Dict[str, Any]]:
-    """Aggregate the in-window facts by project_id then score."""
+    """Aggregate the in-window facts by project_id then score.
+
+    WP-16A database certification found the prior implementation to be the
+    dominant user-facing bottleneck on `/api/safety/company/trench-safety-kpis`.
+    It streamed every matching fact into Python and computed counts there,
+    which turned a small ranked-project payload into a multi-second scan.
+
+    Keep the output contract identical, but let MongoDB pre-aggregate the
+    per-project counters so only the grouped rows cross the wire.
+    """
     q_base = {
         "source_type": SOURCE_TYPE_TRENCH,
         "source_id": "trench_safety",
+        "tenant_id": TENANT_DEFAULT,
         "is_current": True,
         "project_id": {"$nin": ["unknown"]},
     }
     if window_start:
         q_base["date"] = {"$gte": window_start}
 
+    pipeline = [
+        {"$match": q_base},
+        {"$group": {
+            "_id": "$project_id",
+            "excavation_days": {"$sum": {"$cond": [{"$eq": ["$fact_type", "excavation_day_fact"]}, 1, 0]}},
+            "open_holds": {"$sum": {"$cond": [{"$and": [
+                {"$eq": ["$fact_type", "trench_hold_fact"]},
+                {"$eq": ["$payload.is_active", True]},
+            ]}, 1, 0]}},
+            "repairs": {"$sum": {"$cond": [{"$eq": ["$fact_type", "trench_repair_fact"]}, 1, 0]}},
+            "verifications": {"$sum": {"$cond": [{"$eq": ["$fact_type", "trench_verification_fact"]}, 1, 0]}},
+            "inspections": {"$sum": {"$cond": [{"$eq": ["$fact_type", "trench_inspection_fact"]}, 1, 0]}},
+            "cp_assignments": {"$sum": {"$cond": [{"$eq": ["$fact_type", "competent_person_assignment_fact"]}, 1, 0]}},
+        }},
+    ]
+    grouped = await db[COLL_FACTS].aggregate(pipeline).to_list(5000)
     projects: Dict[str, Dict[str, Any]] = {}
-    cursor = db[COLL_FACTS].find(q_base, {"_id": 0, "project_id": 1,
-                                          "fact_type": 1, "payload": 1})
-    async for f in cursor:
-        pn = f.get("project_id")
+    for row in grouped:
+        pn = row.get("_id")
         if not pn or pn == "unknown":
             continue
-        p = projects.setdefault(pn, {
-            "project_number": pn, "excavation_days": 0,
-            "open_holds": 0, "repairs": 0, "verifications": 0,
-            "inspections": 0, "cp_assignments": 0,
+        projects[pn] = {
+            "project_number": pn,
+            "excavation_days": int(row.get("excavation_days") or 0),
+            "open_holds": int(row.get("open_holds") or 0),
+            "repairs": int(row.get("repairs") or 0),
+            "verifications": int(row.get("verifications") or 0),
+            "inspections": int(row.get("inspections") or 0),
+            "cp_assignments": int(row.get("cp_assignments") or 0),
             "attention_score": 0,
-        })
-        ft = f.get("fact_type")
-        pl = f.get("payload") or {}
-        if ft == "excavation_day_fact":
-            p["excavation_days"] += 1
-        elif ft == "trench_hold_fact":
-            if pl.get("is_active"):
-                p["open_holds"] += 1
-        elif ft == "trench_repair_fact":
-            p["repairs"] += 1
-        elif ft == "trench_verification_fact":
-            p["verifications"] += 1
-        elif ft == "trench_inspection_fact":
-            p["inspections"] += 1
-        elif ft == "competent_person_assignment_fact":
-            p["cp_assignments"] += 1
+        }
 
     # Attention score = 5*open_holds + 3*(repairs-verifications) + 1*excavation_days
     for p in projects.values():

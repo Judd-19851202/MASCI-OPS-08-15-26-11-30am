@@ -6,10 +6,13 @@ import json
 import os
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from dotenv import dotenv_values
 
 from lib.runtime_identity import (
     build_environment_authority_fingerprint,
+    build_runtime_identity_bundle,
     ENVIRONMENT_FINGERPRINT_VERSION,
     parse_mongo_url,
 )
@@ -110,35 +113,40 @@ def _row_lineage(row: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def _runtime_identity(current_env: Optional[str], current_db: Optional[str]) -> Dict[str, str]:
-    mongo_url = str(os.environ.get("MONGO_URL") or "")
-    parsed = parse_mongo_url(mongo_url)
-    host = str(os.environ.get("APPROVED_PRODUCTION_MONGO_HOST") or "").strip().lower()
-    if not host:
-        host = str(parsed.hostname or "").strip().lower()
-    if not host:
-        host = "unknown-host"
-    cluster_fingerprint = hashlib.sha256(f"cluster|{host}".encode("utf-8")).hexdigest()[:12]
-    runtime_user = str(parsed.username or "").strip() or "UNRESOLVED"
-    backup_bucket = str(os.environ.get("BACKUP_BUCKET") or os.environ.get("R2_BUCKET") or os.environ.get("S3_BUCKET") or "").strip() or "UNRESOLVED"
-    backup_prefix = configured_backup_prefix(os.environ)
-    env_name = str(current_env or os.environ.get("APP_ENV") or "").lower() or "unknown"
-    db_name = str(current_db or os.environ.get("DB_NAME") or "").strip() or "unknown"
+    merged_env = dict(os.environ)
+    backend_env = Path(__file__).resolve().parent.parent / ".env"
+    if backend_env.exists():
+        for key, value in dotenv_values(backend_env).items():
+            if value is None:
+                continue
+            merged_env.setdefault(str(key).strip(), str(value))
+
+    if current_env:
+        merged_env["APP_ENV"] = str(current_env)
+    if current_db:
+        merged_env["DB_NAME"] = str(current_db)
+
+    bundle = build_runtime_identity_bundle(env=merged_env)
+    identity = (bundle.get("identity") or {}).to_safe_dict() if hasattr(bundle.get("identity"), "to_safe_dict") else (bundle.get("identity") or {})
+
+    env_name = str(current_env or merged_env.get("APP_ENV") or "").lower() or "unknown"
+    db_name = str(current_db or merged_env.get("DB_NAME") or "").strip() or "unknown"
     return {
         "app_env": env_name,
         "db_name": db_name,
         "environment_name": env_name.upper(),
-        "cluster_fingerprint": cluster_fingerprint,
-        "runtime_user_identity": runtime_user,
-        "backup_bucket": backup_bucket,
-        "backup_prefix": backup_prefix,
+        "cluster_fingerprint": str(identity.get("cluster_fingerprint") or "").strip() or None,
+        "runtime_user_identity": str(identity.get("mongo_user") or "").strip() or "UNRESOLVED",
+        "backup_bucket": str(identity.get("backup_bucket") or "").strip() or "UNRESOLVED",
+        "backup_prefix": str(identity.get("backup_prefix") or configured_backup_prefix(merged_env)).strip(),
         "environment_fingerprint_version": ENVIRONMENT_FINGERPRINT_VERSION,
-        "environment_fingerprint": build_environment_authority_fingerprint(
+        "environment_fingerprint": str(identity.get("environment_fingerprint") or "").strip() or build_environment_authority_fingerprint(
             environment_name=env_name,
-            cluster_fingerprint=cluster_fingerprint,
+            cluster_fingerprint=str(identity.get("cluster_fingerprint") or "").strip() or None,
             database_name=db_name,
-            runtime_user_identity=runtime_user,
-            backup_bucket=backup_bucket,
-            backup_prefix=backup_prefix,
+            runtime_user_identity=str(identity.get("mongo_user") or "").strip() or None,
+            backup_bucket=str(identity.get("backup_bucket") or "").strip() or None,
+            backup_prefix=str(identity.get("backup_prefix") or configured_backup_prefix(merged_env)).strip() or None,
         ),
     }
 

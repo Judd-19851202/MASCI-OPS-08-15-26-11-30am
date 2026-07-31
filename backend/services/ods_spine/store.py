@@ -30,6 +30,10 @@ async def ensure_indexes(db) -> None:
             name="ods_facts_hot_query",
         )
         await db[COLL_FACTS].create_index(
+            [("tenant_id", 1), ("source_type", 1), ("source_id", 1), ("fact_type", 1), ("is_current", 1), ("date", 1)],
+            name="ods_facts_source_window",
+        )
+        await db[COLL_FACTS].create_index(
             [("source_type", 1), ("source_id", 1), ("source_item_id", 1), ("fact_type", 1)],
             name="ods_facts_dedupe_key",
         )
