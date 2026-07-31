@@ -79,6 +79,79 @@ RULE_CATALOG: Dict[str, Dict[str, str]] = {
     "CAPA_NO_OWNER":            {"category": "lifecycle", "severity": "medium",   "title": "Open CAPA has no assigned owner"},
 }
 
+_GOVERNANCE_FRESHNESS_SLA_MINUTES = 24 * 60
+
+
+def _governance_freshness(last_scan: Optional[Dict[str, Any]], *, now: Optional[datetime] = None) -> Dict[str, Any]:
+    now = now or datetime.now(timezone.utc)
+    if not last_scan:
+        return {
+            "state": "UNKNOWN",
+            "confidence": "UNKNOWN",
+            "scan_execution_health": "UNKNOWN",
+            "last_scan_at": None,
+            "data_age_minutes": None,
+            "freshness_sla_minutes": _GOVERNANCE_FRESHNESS_SLA_MINUTES,
+            "status_reason": "No governance scan has been recorded yet.",
+            "detector_error_count": 0,
+        }
+
+    finished_at = last_scan.get("finished_at") or last_scan.get("started_at")
+    scan_ts: Optional[datetime] = None
+    if finished_at:
+        try:
+            scan_ts = datetime.fromisoformat(str(finished_at).replace("Z", "+00:00"))
+            if scan_ts.tzinfo is None:
+                scan_ts = scan_ts.replace(tzinfo=timezone.utc)
+        except Exception:  # noqa: BLE001
+            scan_ts = None
+    age_minutes = ((now - scan_ts).total_seconds() / 60.0) if scan_ts else None
+    detector_errors = list(last_scan.get("detector_errors") or [])
+    if detector_errors:
+        return {
+            "state": "SCAN_FAILED",
+            "confidence": "LOW",
+            "scan_execution_health": "FAILED",
+            "last_scan_at": scan_ts.isoformat() if scan_ts else None,
+            "data_age_minutes": round(age_minutes, 1) if age_minutes is not None else None,
+            "freshness_sla_minutes": _GOVERNANCE_FRESHNESS_SLA_MINUTES,
+            "status_reason": f"{len(detector_errors)} detector(s) errored during the last scan.",
+            "detector_error_count": len(detector_errors),
+        }
+    if age_minutes is None:
+        return {
+            "state": "UNKNOWN",
+            "confidence": "UNKNOWN",
+            "scan_execution_health": "UNKNOWN",
+            "last_scan_at": None,
+            "data_age_minutes": None,
+            "freshness_sla_minutes": _GOVERNANCE_FRESHNESS_SLA_MINUTES,
+            "status_reason": "Last scan timestamp is unavailable or unreadable.",
+            "detector_error_count": 0,
+        }
+    if age_minutes <= _GOVERNANCE_FRESHNESS_SLA_MINUTES:
+        state = "CURRENT"
+        confidence = "HIGH"
+        reason = "Governance scan freshness is within the current SLA."
+    elif age_minutes <= _GOVERNANCE_FRESHNESS_SLA_MINUTES * 3:
+        state = "AGING"
+        confidence = "MEDIUM"
+        reason = "Governance scan is older than SLA but still within the aging buffer."
+    else:
+        state = "STALE"
+        confidence = "STALE"
+        reason = "Governance findings are older than the current freshness SLA."
+    return {
+        "state": state,
+        "confidence": confidence,
+        "scan_execution_health": "OK",
+        "last_scan_at": scan_ts.isoformat(),
+        "data_age_minutes": round(age_minutes, 1),
+        "freshness_sla_minutes": _GOVERNANCE_FRESHNESS_SLA_MINUTES,
+        "status_reason": reason,
+        "detector_error_count": 0,
+    }
+
 
 def _finding_id(rule_id: str, entity_kind: str, entity_id: str) -> str:
     raw = f"{rule_id}|{entity_kind}|{entity_id or ''}"
@@ -1296,6 +1369,7 @@ def build_governance_router(db, require_admin_strict):
     @router.get("/api/admin/governance/summary",
                 dependencies=[Depends(require_admin_strict)])
     async def governance_summary():
+        now = datetime.now(timezone.utc)
         # Open by severity
         sev_counts: Dict[str, int] = {k: 0 for k in SEVERITY_RANK.keys()}
         async for row in db[COLLECTION].aggregate([
@@ -1332,6 +1406,7 @@ def build_governance_router(db, require_admin_strict):
         last_scan = await db["compliance_scans"].find_one(
             {}, {"_id": 0}, sort=[("started_at", -1)],
         )
+        freshness = _governance_freshness(last_scan, now=now)
 
         # Convergence score — simple weighted formula:
         # 100 if no open critical/high; otherwise penalize critical=20, high=8, medium=3, low=1
@@ -1361,6 +1436,7 @@ def build_governance_router(db, require_admin_strict):
             "convergence_score": score,
             "health_label": health_label,
             "last_scan": last_scan,
+            "freshness": freshness,
             "rule_catalog": RULE_CATALOG,
             "recommended_repairs": {
                 "employee_link_backfill_endpoint": "/api/admin/compliance/backfill-employee-links",

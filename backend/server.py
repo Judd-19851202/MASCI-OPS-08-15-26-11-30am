@@ -40,6 +40,8 @@ from lib.backup_paths import (
     configured_backup_prefix,
     manifest_sidecar_key_for_archive,
 )
+from lib.backup_coverage_policy import backup_exclusion_details, backup_explicit_exclusions
+from lib.cors_truth import resolve_effective_cors_config
 from lib.database_authority import (
     build_runtime_database_authority,
     create_async_runtime_client,
@@ -7098,36 +7100,8 @@ BACKUP_SENSITIVE_FIELD_REDACTION = {
 #  · job_photo_thumb_cache·   1,791 rows · derivative cache of R2 photo
 # No business record is excluded. Restore continues to be a single-zip
 # operation. Reversible by deletion of the three lines below.
-BACKUP_EXPLICIT_EXCLUSIONS = {
-    "system.indexes",          # MongoDB internal
-    "usage_events",            # regenerable API telemetry (iter441)
-    "health_monitor_runs",     # regenerable scheduler health series (iter441)
-    "job_photo_thumb_cache",   # regenerable derivative photo cache (iter441)
-    "backup_integrity_jobs",   # regenerable operator job ledger (iter OPS8 Repair A)
-}
-
-BACKUP_EXCLUSION_DETAILS: Dict[str, Dict[str, str]] = {
-    "usage_events": {
-        "reason": "regenerable API telemetry",
-        "owner": "backup-platform",
-    },
-    "health_monitor_runs": {
-        "reason": "regenerable scheduler health series",
-        "owner": "backup-platform",
-    },
-    "job_photo_thumb_cache": {
-        "reason": "regenerable derivative photo cache",
-        "owner": "backup-platform",
-    },
-    "backup_integrity_jobs": {
-        "reason": "regenerable operator integrity job ledger",
-        "owner": "backup-platform",
-    },
-    "system.*": {
-        "reason": "MongoDB internal system collection",
-        "owner": "mongodb",
-    },
-}
+BACKUP_EXPLICIT_EXCLUSIONS = backup_explicit_exclusions()
+BACKUP_EXCLUSION_DETAILS: Dict[str, Dict[str, str]] = backup_exclusion_details()
 
 BACKUP_MANIFEST_VERSION = "27.11c-1"
 BACKUP_VERIFIER_VERSION = "27.11c-1"
@@ -20171,42 +20145,10 @@ async def _start_backup_scheduler():
     except Exception as e:
         logging.getLogger(__name__).exception(f"[scheduled-backup] startup failed: {e}")
 
-cors_origins_env = os.environ.get('CORS_ORIGINS', '').strip()
-cors_origin_regex = (os.environ.get('CORS_ORIGIN_REGEX', '') or '').strip() or None
-
-# Default safe regex when no explicit list is configured: allow MASCI's prod
-# domain plus any Emergent preview pod. Browsers reject
-# `Access-Control-Allow-Origin: *` combined with credentialed requests, so a
-# regex / explicit list is required for the prod app to work in iOS Safari +
-# Cloudflare.
-#
-# Iter171 hardening: `CORS_ORIGINS=*` is now treated as "unset" and falls
-# through to regex mode with credentials enabled. This removes the wildcard
-# escape hatch entirely — even if a platform layer re-injects `*` into the
-# runtime env, the regex authoritatively wins. Preview keeps working because
-# the default regex below covers all Emergent preview domains.
-_DEFAULT_CORS_REGEX = (
-    r"^https://("
-    r"(www\.)?mascidocs\.com"
-    r"|.*\.emergentagent\.com"
-    r"|.*\.preview\.emergentagent\.com"
-    r"|.*\.emergent\.host"
-    r")$"
-)
-
-if cors_origins_env and cors_origins_env != '*':
-    # Explicit allow-list (preferred for production hardening).
-    _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
-    _cors_credentials = True
-    cors_origin_regex = None
-else:
-    # Empty OR explicit '*' → fall through to regex with credentials.
-    # We intentionally never honor wildcard CORS — it disables credentialed
-    # cross-origin requests AND broadens the CSRF surface.
-    _cors_origins: List[str] = []
-    _cors_credentials = True
-    if not cors_origin_regex:
-        cors_origin_regex = _DEFAULT_CORS_REGEX
+_resolved_cors = resolve_effective_cors_config(os.environ)
+_cors_origins = list(_resolved_cors["allow_origins"])
+_cors_credentials = bool(_resolved_cors["allow_credentials"])
+cors_origin_regex = _resolved_cors["allow_origin_regex"]
 
 app.add_middleware(
     CORSMiddleware,

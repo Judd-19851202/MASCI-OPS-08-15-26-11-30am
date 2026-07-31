@@ -504,17 +504,21 @@ const DOMAINS = [
       const severity = r.body.severity_counts || {};
       const highs = Number(severity.high || 0) + Number(severity.critical || 0);
       const health = String(r.body.health_label || "").toLowerCase();
+      const freshnessState = String(r.body.freshness?.state || "UNKNOWN").toUpperCase();
       const status =
-        health === "critical" || highs > 0
+        freshnessState === "SCAN_FAILED" || health === "critical" || highs > 0
           ? "critical"
+          : freshnessState === "STALE" || freshnessState === "AGING"
+          ? "warning"
           : health === "warning"
           ? "warning"
           : "healthy";
       const score = r.body.convergence_score;
       const metric =
-        typeof score === "number" ? `${Math.round(score * 100)}%` : String(highs || 0);
-      const detail = `${highs} high/critical · ${r.body.rule_counts?.total ?? 0} rules tracked`;
-      return { status, metric, detail, stampedAt: r.body.last_scan || null };
+        typeof score === "number" ? `${Math.round(score)}/100` : String(highs || 0);
+      const trackedRules = Object.keys(r.body.rule_counts || {}).length;
+      const detail = `${highs} high/critical · ${trackedRules} active rules · ${freshnessState.toLowerCase()} scan`;
+      return { status, metric, detail, stampedAt: r.body.freshness?.last_scan_at || r.body.last_scan?.finished_at || null };
     },
   },
   {

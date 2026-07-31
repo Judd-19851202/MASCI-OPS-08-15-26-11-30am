@@ -63,6 +63,199 @@ _RFI_CANDIDATE_TYPES = {"utility", "owner_engineer", "cei_inspection", "survey"}
 _SCHEDULE_IMPACT_TYPES = {"weather", "utility", "material", "equipment", "mot"}
 
 
+def _draft_health_aggregation_pipeline(since_30d: datetime) -> List[Dict[str, Any]]:
+    actor_identity_expr = {"$ifNull": ["$meta.actorIdentity", "__device_scope__"]}
+    choice_expr = {"$ifNull": ["$meta.choice", None]}
+    return [
+        {
+            "$match": {
+                "event": {
+                    "$in": [
+                        "draft.write.ok",
+                        "draft.write.fail",
+                        "quota.warning",
+                        "draft.restore.offered",
+                        "draft.restore.action",
+                    ]
+                },
+                "ts": {"$gte": since_30d},
+            }
+        },
+        {"$sort": {"ts": -1}},
+        {
+            "$group": {
+                "_id": {
+                    "formKey": "$formKey",
+                    "deviceId": "$deviceId",
+                    "actorIdentity": actor_identity_expr,
+                },
+                "formKey": {"$first": "$formKey"},
+                "deviceId": {"$first": "$deviceId"},
+                "actorIdentity": {"$first": actor_identity_expr},
+                "latest_event": {"$first": "$event"},
+                "latest_ts": {"$first": "$ts"},
+                "latest_choice": {"$first": choice_expr},
+                "last_write_ok_ts": {"$max": {"$cond": [{"$eq": ["$event", "draft.write.ok"]}, "$ts", None]}},
+                "last_failed_ts": {"$max": {"$cond": [{"$eq": ["$event", "draft.write.fail"]}, "$ts", None]}},
+                "last_quota_ts": {"$max": {"$cond": [{"$eq": ["$event", "quota.warning"]}, "$ts", None]}},
+                "last_restore_offered_ts": {"$max": {"$cond": [{"$eq": ["$event", "draft.restore.offered"]}, "$ts", None]}},
+                "last_restore_ts": {
+                    "$max": {
+                        "$cond": [
+                            {
+                                "$and": [
+                                    {"$eq": ["$event", "draft.restore.action"]},
+                                    {"$eq": [choice_expr, "restore"]},
+                                ]
+                            },
+                            "$ts",
+                            None,
+                        ]
+                    }
+                },
+                "last_discard_ts": {
+                    "$max": {
+                        "$cond": [
+                            {
+                                "$and": [
+                                    {"$eq": ["$event", "draft.restore.action"]},
+                                    {"$eq": [choice_expr, "discard"]},
+                                ]
+                            },
+                            "$ts",
+                            None,
+                        ]
+                    }
+                },
+                "last_commit_ts": {
+                    "$max": {
+                        "$cond": [
+                            {
+                                "$and": [
+                                    {"$eq": ["$event", "draft.restore.action"]},
+                                    {"$eq": [choice_expr, "commit"]},
+                                ]
+                            },
+                            "$ts",
+                            None,
+                        ]
+                    }
+                },
+                "events_30d": {"$sum": 1},
+                "legacy_actor_rows": {
+                    "$sum": {
+                        "$cond": [
+                            {"$ifNull": ["$meta.actorIdentity", False]},
+                            0,
+                            1,
+                        ]
+                    }
+                },
+            }
+        },
+    ]
+
+
+def _summarize_draft_entities(grouped_rows: List[Dict[str, Any]], *, now: datetime) -> Dict[str, Any]:
+    hour_ago = now - timedelta(hours=1)
+    day_ago = now - timedelta(days=1)
+    buckets: Dict[str, int] = {
+        "active_lt_1h": 0,
+        "stale_1h_to_24h": 0,
+        "abandoned_gt_24h": 0,
+        "failed_last_24h": 0,
+        "quota_warn_last_24h": 0,
+        "restore_offered_last_24h": 0,
+        "restored_last_24h": 0,
+        "discarded_last_24h": 0,
+        "committed_last_24h": 0,
+    }
+    per_form_last_24h: Dict[str, int] = {}
+    distinct_entities_30d = 0
+    open_entities_30d = 0
+    legacy_grouped_entities_30d = 0
+
+    def _as_dt(value: Any) -> Optional[datetime]:
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return None
+
+    for row in grouped_rows:
+        distinct_entities_30d += 1
+        latest_event = str(row.get("latest_event") or "")
+        latest_choice = str(row.get("latest_choice") or "")
+        latest_ts = _as_dt(row.get("latest_ts"))
+        last_write_ok_ts = _as_dt(row.get("last_write_ok_ts"))
+        last_failed_ts = _as_dt(row.get("last_failed_ts"))
+        last_quota_ts = _as_dt(row.get("last_quota_ts"))
+        last_restore_offered_ts = _as_dt(row.get("last_restore_offered_ts"))
+        last_restore_ts = _as_dt(row.get("last_restore_ts"))
+        last_discard_ts = _as_dt(row.get("last_discard_ts"))
+        last_commit_ts = _as_dt(row.get("last_commit_ts"))
+        legacy_grouped_entities_30d += int(row.get("legacy_actor_rows") or 0) > 0
+
+        if last_quota_ts and last_quota_ts >= day_ago:
+            buckets["quota_warn_last_24h"] += 1
+        if last_restore_offered_ts and last_restore_offered_ts >= day_ago:
+            buckets["restore_offered_last_24h"] += 1
+        if last_restore_ts and last_restore_ts >= day_ago:
+            buckets["restored_last_24h"] += 1
+        if last_discard_ts and last_discard_ts >= day_ago:
+            buckets["discarded_last_24h"] += 1
+        if last_commit_ts and last_commit_ts >= day_ago:
+            buckets["committed_last_24h"] += 1
+        if last_failed_ts and last_failed_ts >= day_ago and latest_event == "draft.write.fail":
+            buckets["failed_last_24h"] += 1
+
+        if latest_ts and latest_ts >= day_ago:
+            form_key = str(row.get("formKey") or "unknown")
+            per_form_last_24h[form_key] = per_form_last_24h.get(form_key, 0) + 1
+
+        entity_closed = latest_event == "draft.restore.action" and latest_choice in {"commit", "discard"}
+        if entity_closed or not last_write_ok_ts:
+            continue
+        open_entities_30d += 1
+        if last_write_ok_ts >= hour_ago:
+            buckets["active_lt_1h"] += 1
+        elif last_write_ok_ts >= day_ago:
+            buckets["stale_1h_to_24h"] += 1
+        else:
+            buckets["abandoned_gt_24h"] += 1
+
+    confidence = "HIGH"
+    if distinct_entities_30d == 0:
+        confidence = "UNKNOWN"
+    elif legacy_grouped_entities_30d > 0:
+        confidence = "MEDIUM"
+
+    return {
+        "buckets": buckets,
+        "per_form_last_24h": dict(sorted(per_form_last_24h.items(), key=lambda item: (-item[1], item[0]))[:20]),
+        "entity_basis": {
+            "primary_key": ["formKey", "deviceId", "meta.actorIdentity"],
+            "legacy_fallback": "deviceId + formKey when actorIdentity is absent in historical telemetry",
+            "schema_version": "draft-entity-v2",
+        },
+        "definitions": {
+            "active_lt_1h": "open draft entity with latest successful save less than 1 hour old",
+            "stale_1h_to_24h": "open draft entity with latest successful save between 1 and 24 hours old",
+            "abandoned_gt_24h": "open draft entity with latest successful save older than 24 hours",
+            "failed_last_24h": "draft entity whose latest observed telemetry event in the last 24 hours is draft.write.fail",
+            "restored_last_24h": "draft entity restored by operator action in the last 24 hours",
+            "discarded_last_24h": "draft entity explicitly discarded by operator action in the last 24 hours",
+            "committed_last_24h": "draft entity explicitly committed/cleared after successful submit in the last 24 hours",
+            "expired_state": "not directly observable from current telemetry schema",
+        },
+        "entity_confidence": confidence,
+        "distinct_entities_30d": distinct_entities_30d,
+        "open_entities_30d": open_entities_30d,
+        "legacy_grouped_entities_30d": legacy_grouped_entities_30d,
+        "limitations": [] if confidence == "HIGH" else [
+            "Historical telemetry rows without meta.actorIdentity are grouped at deviceId + formKey scope and may merge same-device cross-user legacy rows.",
+        ],
+    }
+
+
 class ProductionRow(BaseModel):
     """One structured production entry on a Daily Report.
 
@@ -1638,79 +1831,30 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
     ) -> Dict[str, Any]:
         """TRACK 26.11 · Draft Health card feed for OCC.
 
-        Aggregates client-side draft-telemetry pings into a compact
-        health snapshot. Read-only. Backed by the pre-existing
-        ``draft_telemetry`` collection populated by
-        ``/api/draft-telemetry`` calls from ``useFormDraft``.
-
-        Buckets:
-          - active drafts (last save < 1 h)
-          - stale drafts (1h < last save < 24h)
-          - abandoned drafts (last save > 24h)
-          - failed drafts (last event kind = draft.save.failed)
-          - quota-pressured drafts (any quota.warn event in last 24h)
+        Aggregates client-side draft-telemetry into distinct logical
+        draft entities where possible. Historical rows lacking
+        ``meta.actorIdentity`` fall back to ``deviceId + formKey`` and
+        are disclosed with reduced confidence rather than fabricated as
+        precise unique drafts.
         """
         now = datetime.now(timezone.utc)
-        hour_ago = now - timedelta(hours=1)
-        day_ago = now - timedelta(days=1)
-
-        async def _count(query: Dict[str, Any]) -> int:
-            try:
-                return int(await db.draft_telemetry.count_documents(query))
-            except Exception:  # noqa: BLE001
-                return 0
-
-        buckets: Dict[str, Any] = {
-            "active_lt_1h": await _count(
-                {"event": "draft.write.ok", "ts": {"$gte": hour_ago}}
-            ),
-            "stale_1h_to_24h": await _count({
-                "event": "draft.write.ok",
-                "ts": {"$gte": day_ago, "$lt": hour_ago},
-            }),
-            "abandoned_gt_24h": await _count({
-                "event": "draft.write.ok",
-                "ts": {"$lt": day_ago},
-            }),
-            "failed_last_24h": await _count({
-                "event": "draft.write.fail",
-                "ts": {"$gte": day_ago},
-            }),
-            "quota_warn_last_24h": await _count({
-                "event": "quota.warning",
-                "ts": {"$gte": day_ago},
-            }),
-            "restore_offered_last_24h": await _count({
-                "event": "draft.restore.offered",
-                "ts": {"$gte": day_ago},
-            }),
-            "restore_action_last_24h": await _count({
-                "event": "draft.restore.action",
-                "ts": {"$gte": day_ago},
-            }),
-        }
-
-        # Per-form counts (which module drafts are most active).
-        per_form: Dict[str, int] = {}
+        since_30d = now - timedelta(days=30)
+        grouped_rows: List[Dict[str, Any]] = []
         try:
-            pipeline = [
-                {"$match": {"event": "draft.write.ok", "ts": {"$gte": day_ago}}},
-                {"$group": {"_id": "$formKey", "n": {"$sum": 1}}},
-                {"$sort": {"n": -1}},
-                {"$limit": 20},
-            ]
-            async for row in db.draft_telemetry.aggregate(pipeline):
-                per_form[str(row.get("_id") or "unknown")] = int(row.get("n") or 0)
+            async for row in db.draft_telemetry.aggregate(_draft_health_aggregation_pipeline(since_30d)):
+                grouped_rows.append(row)
         except Exception:  # noqa: BLE001
-            per_form = {}
+            grouped_rows = []
+
+        summary = _summarize_draft_entities(grouped_rows, now=now)
 
         return {
             "generated_at": now.isoformat(),
-            "buckets": buckets,
-            "per_form_last_24h": per_form,
+            **summary,
             "sources": {
                 "collection": "draft_telemetry",
                 "populated_by": "frontend useFormDraft via POST /api/draft-telemetry",
+                "aggregation_window_days": 30,
             },
         }
 

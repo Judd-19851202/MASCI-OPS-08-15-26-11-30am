@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from lib.cors_truth import summarize_cors_truth
 from lib.runtime_identity import runtime_identity_public_payload
 
 from .registry import Operation, OperationCategory, RiskLevel
@@ -15,7 +16,7 @@ def _now_iso() -> str:
 
 
 _REQUIRED_ENV_KEYS = (
-    "APP_ENV", "DB_NAME", "MONGO_URL", "CORS_ORIGINS",
+    "APP_ENV", "DB_NAME", "MONGO_URL",
 )
 _OPTIONAL_ENV_KEYS = (
     "S3_ENDPOINT_URL", "S3_BUCKET", "S3_ACCESS_KEY", "S3_SECRET_KEY",
@@ -27,25 +28,27 @@ async def _security_posture(_payload: Dict[str, Any]) -> Dict[str, Any]:
     runtime_identity = runtime_identity_public_payload(_payload.get("_runtime_identity_bundle")) if _payload.get("_runtime_identity_bundle") else {}
     identity = (runtime_identity or {}).get("identity") or {}
     app_env = identity.get("app_env") or ""
-    cors = os.environ.get("CORS_ORIGINS") or ""
+    cors = summarize_cors_truth(os.environ)
     db_name = identity.get("db_name") or ""
 
     warnings: List[str] = []
     state = "healthy"
 
     if app_env == "production":
-        if cors == "*" or not cors:
+        if not cors.get("cors_pinned"):
             state = "warning"
-            warnings.append("CORS_ORIGINS is wildcard or empty in production. Pin to real origins.")
+            warnings.append("Effective runtime CORS is not pinned in production.")
         if db_name != "masci_safety":
             state = "warning"
             warnings.append(f"DB_NAME is '{db_name}' in production (expected 'masci_safety').")
 
     # Env presence (values redacted).
     env_presence: Dict[str, bool] = {}
-    for k in _REQUIRED_ENV_KEYS + _OPTIONAL_ENV_KEYS:
+    for k in _REQUIRED_ENV_KEYS + ("CORS_ORIGINS", "CORS_ORIGIN_REGEX") + _OPTIONAL_ENV_KEYS:
         env_presence[k] = bool(os.environ.get(k))
     missing_required = [k for k in _REQUIRED_ENV_KEYS if not env_presence.get(k)]
+    if not cors.get("cors_pinned"):
+        missing_required.append("CORS_ORIGINS_OR_REGEX")
     if missing_required:
         state = "critical"
         warnings.append(f"Missing required env: {missing_required}")
@@ -54,12 +57,13 @@ async def _security_posture(_payload: Dict[str, Any]) -> Dict[str, Any]:
         "status": state,
         "summary": (
             f"APP_ENV={app_env or 'unset'} · CORS pinned="
-            f"{'no' if cors == '*' else 'yes'} · required env missing="
+            f"{'yes' if cors.get('cors_pinned') else 'no'} · required env missing="
             f"{len(missing_required)}"
         ),
         "app_env": app_env,
         "db_name": db_name,
-        "cors_pinned": cors != "*" and bool(cors),
+        "cors_pinned": bool(cors.get("cors_pinned")),
+        "cors_truth": cors,
         "env_presence": env_presence,
         "missing_required": missing_required,
         "warnings": warnings,
@@ -74,7 +78,7 @@ def operations(_db) -> List[Operation]:
             title="Security & Deployment Posture",
             description=(
                 "Confirms production env is set (APP_ENV, DB_NAME), "
-                "CORS is pinned, required secrets are configured, "
+                "effective runtime CORS is pinned, required secrets are configured, "
                 "and reports which optional secrets are missing. "
                 "Never returns secret values."
             ),

@@ -19,7 +19,7 @@
 // critical path.
 
 import { getDeviceId } from "./deviceId";
-import { getActorId } from "./actorId";
+import { getActorId, getStableActorIdentity } from "./actorId";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getHrToken } from "@/lib/hrAuth";
@@ -106,14 +106,19 @@ export function sanitizeDraftTelemetryFormKey(raw) {
 export function emitDraftEvent(eventName, meta) {
   if (!eventName) return;
   try {
+    const rawMeta = meta || {};
     const evt = {
       eventId: _uuid(),
       event: eventName,
       actorId: getActorId(),
       deviceId: getDeviceId(),
-      formKey: sanitizeDraftTelemetryFormKey((meta && meta.formKey) || "unknown"),
+      formKey: sanitizeDraftTelemetryFormKey((rawMeta && rawMeta.formKey) || "unknown"),
       ts: Date.now(),
-      meta: meta || {},
+      meta: {
+        ...rawMeta,
+        actorIdentity: rawMeta.actorIdentity || getStableActorIdentity(),
+        telemetrySchema: rawMeta.telemetrySchema || "draft-entity-v2",
+      },
     };
     // formKey lives at the top-level on the wire — keep it out of meta.
     if (evt.meta.formKey) {

@@ -44,6 +44,14 @@ const HEALTH_META = {
   critical: { tint: "border-rose-500 bg-rose-50 text-rose-900",          label: "Critical" },
 };
 
+const FRESHNESS_META = {
+  CURRENT: { tint: "border-emerald-400 bg-emerald-50 text-emerald-900", label: "Current" },
+  AGING: { tint: "border-amber-400 bg-amber-50 text-amber-900", label: "Aging" },
+  STALE: { tint: "border-rose-400 bg-rose-50 text-rose-900", label: "Stale" },
+  UNKNOWN: { tint: "border-slate-300 bg-slate-50 text-slate-800", label: "Unknown" },
+  SCAN_FAILED: { tint: "border-rose-500 bg-rose-50 text-rose-900", label: "Scan failed" },
+};
+
 const EMPTY_COUNTS = Object.freeze({});
 
 function SeverityTile({ severity, count }) {
@@ -162,6 +170,8 @@ export default function AdminGovernance() {
   const score = summary?.convergence_score ?? 0;
   const healthLabel = summary?.health_label || "fair";
   const healthMeta = HEALTH_META[healthLabel] || HEALTH_META.fair;
+  const freshness = summary?.freshness || {};
+  const freshnessMeta = FRESHNESS_META[freshness?.state] || FRESHNESS_META.UNKNOWN;
 
   const totalOpen = useMemo(
     () => Object.values(sevCounts).reduce((a, b) => a + (b || 0), 0),
@@ -237,6 +247,10 @@ export default function AdminGovernance() {
             <div className="font-mono text-[10px] uppercase tracking-wider opacity-70">Health</div>
             <div className="font-display text-lg font-black leading-none" data-testid="gov-health-label">{healthMeta.label}</div>
           </div>
+          <div className={`px-3 py-1.5 border rounded ${freshnessMeta.tint}`} data-testid="gov-freshness-state">
+            <div className="font-mono text-[10px] uppercase tracking-wider opacity-70">Freshness</div>
+            <div className="font-display text-lg font-black leading-none">{freshnessMeta.label}</div>
+          </div>
           <div className="px-3 py-1.5 bg-white/70 border border-current/30 rounded">
             <div className="font-mono text-[10px] uppercase tracking-wider opacity-70">Total Open</div>
             <div className="font-display text-lg font-black leading-none" data-testid="gov-total-open">{totalOpen}</div>
@@ -261,6 +275,9 @@ export default function AdminGovernance() {
             <span className="text-xs text-slate-700 inline-flex items-center gap-1">
               <Clock className="w-3 h-3" /> Last scan: <strong data-testid="gov-last-scan-rel">{lastScanRel}</strong>
             </span>
+            <span className="text-xs text-slate-700 inline-flex items-center gap-1" data-testid="gov-scan-confidence">
+              Confidence: <strong>{freshness?.confidence || "UNKNOWN"}</strong>
+            </span>
             <Button onClick={runScan} disabled={scanning || loading} size="sm" data-testid="gov-run-scan">
               <RefreshCw className={`w-4 h-4 mr-1.5 ${scanning ? "animate-spin" : ""}`} />
               {scanning ? "Scanning…" : "Run scan now"}
@@ -275,6 +292,11 @@ export default function AdminGovernance() {
 
         {err ? (
           <div className="bg-rose-50 border border-rose-300 rounded-md p-3 text-sm text-rose-900" data-testid="gov-error">{err}</div>
+        ) : null}
+        {summary?.freshness?.status_reason ? (
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700" data-testid="gov-freshness-reason">
+            {summary.freshness.status_reason}
+          </div>
         ) : null}
 
         {/* iter442 · Daily Report draft-health tile — calm read-only

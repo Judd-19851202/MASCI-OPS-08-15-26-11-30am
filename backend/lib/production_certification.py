@@ -41,6 +41,7 @@ STATUS_BLOCKED = "BLOCKED"
 STATUS_STALE = "STALE"
 
 FRESHNESS_WINDOW = timedelta(days=2)
+WORKFLOW_FRESHNESS_WINDOWS: Dict[str, timedelta] = {}
 
 
 async def _latest_terminal_success(db, workflow: str, status: Optional[str] = None):
@@ -119,11 +120,22 @@ def _parse_iso(ts: Optional[str]) -> Optional[datetime]:
         return None
 
 
-def _is_stale(ts: Optional[str]) -> bool:
+def _freshness_window_for_workflow(workflow: str) -> timedelta:
+    return WORKFLOW_FRESHNESS_WINDOWS.get(workflow, FRESHNESS_WINDOW)
+
+
+def _evidence_age_hours(ts: Optional[str]) -> Optional[float]:
+    dt = _parse_iso(ts)
+    if not dt:
+        return None
+    return round((datetime.now(timezone.utc) - dt).total_seconds() / 3600.0, 2)
+
+
+def _is_stale(ts: Optional[str], workflow: str) -> bool:
     dt = _parse_iso(ts)
     if not dt:
         return False
-    return (datetime.now(timezone.utc) - dt) > FRESHNESS_WINDOW
+    return (datetime.now(timezone.utc) - dt) > _freshness_window_for_workflow(workflow)
 
 
 def _blocked_reason_from_event(event: Optional[Dict[str, Any]]) -> Optional[str]:
@@ -337,7 +349,7 @@ async def build_certification(db) -> Dict[str, Any]:
             counters["blocked"] += 1
             audit_row = None
         elif latest.get("status") == "ok":
-            if _is_stale(latest.get("ts")):
+            if _is_stale(latest.get("ts"), wf):
                 status = STATUS_STALE
                 counters["stale"] += 1
             else:
@@ -355,6 +367,9 @@ async def build_certification(db) -> Dict[str, Any]:
         rows.append({
             "workflow": wf,
             "status": status,
+            "freshness_window_hours": round(_freshness_window_for_workflow(wf).total_seconds() / 3600.0, 2),
+            "freshness_policy_source": "default_global" if wf not in WORKFLOW_FRESHNESS_WINDOWS else "workflow_override",
+            "evidence_age_hours": _evidence_age_hours((latest or {}).get("ts")),
             "first_verified_at": (first_ok or {}).get("ts"),
             "last_verified_at": (latest_ok or {}).get("ts"),
             "successful_deliveries": ok_count,
@@ -418,6 +433,13 @@ async def build_certification(db) -> Dict[str, Any]:
         "release_evidence_generated_at": datetime.now(timezone.utc).isoformat(),
         "release_scope_source": "trust_spine_events",
         "release_scope_complete": True,
+        "freshness_policy": {
+            "default_window_hours": round(FRESHNESS_WINDOW.total_seconds() / 3600.0, 2),
+            "workflow_overrides": {
+                key: round(value.total_seconds() / 3600.0, 2)
+                for key, value in WORKFLOW_FRESHNESS_WINDOWS.items()
+            },
+        },
         "workflows": rows,
     }
 

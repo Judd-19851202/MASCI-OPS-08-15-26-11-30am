@@ -2,9 +2,9 @@
 
 ## Current top priority
 
-- **WP-16A Production Stabilization & Release Certification is complete.**
-- **WP-17 is not authorized and must not begin.**
-- **Production deployment is validated; await explicit authorization before opening WP-17.**
+- **WP-17A KPI Truth, Observability & Data-Integrity Remediation is active.**
+- **Broader WP-17 visual / experience-standardization work is still not authorized.**
+- **Production remains live; preview is the active repair lane.**
 
 ## Remaining closeout sequence
 

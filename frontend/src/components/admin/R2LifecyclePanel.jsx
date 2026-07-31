@@ -132,6 +132,8 @@ export default function R2LifecyclePanel() {
   const bandStyle = _band(health?.band);
   const cls = latest?.classification?.counts || {};
   const objects = health?.objects || {};
+  const freshness = health?.freshness || {};
+  const ownership = health?.ownership || {};
 
   return (
     <div className="space-y-4" data-testid="r2-lifecycle-panel" aria-busy={loading ? "true" : "false"}>
@@ -190,6 +192,23 @@ export default function R2LifecyclePanel() {
           <div>Bucket: <strong>{health?.capacity?.gb?.toFixed(1) ?? "—"} GB</strong> (alert {health?.capacity?.alert_gb} GB)</div>
           <div>Objects: <strong>{objects.total ?? "—"}</strong></div>
           <div>Orphans: <strong>{objects.verified_orphan ?? "—"}</strong> ({objects.orphan_pct ?? 0}%)</div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-2 mt-3 text-xs">
+          <div className="rounded bg-white border border-slate-200 p-3" data-testid="r2-lifecycle-freshness-card">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Inventory Freshness</div>
+            <div className="font-black text-slate-900 text-sm mt-0.5">{freshness.inventory_state || "UNKNOWN"}</div>
+            <div className="text-slate-600 mt-1">Age {freshness.inventory_age_minutes != null ? `${Math.round(freshness.inventory_age_minutes)}m` : "unknown"}</div>
+          </div>
+          <div className="rounded bg-white border border-slate-200 p-3" data-testid="r2-lifecycle-ownership-card">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Ownership Coverage</div>
+            <div className="font-black text-slate-900 text-sm mt-0.5">{ownership.verified_owner_pct ?? 0}% verified</div>
+            <div className="text-slate-600 mt-1">{ownership.ownership_unresolved_pct ?? 0}% unresolved · {ownership.ownership_unknown_pct ?? 0}% unknown</div>
+          </div>
+          <div className="rounded bg-white border border-slate-200 p-3" data-testid="r2-lifecycle-orphan-risk-card">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Confirmed Orphan Risk</div>
+            <div className="font-black text-slate-900 text-sm mt-0.5">{ownership.confirmed_orphan_pct ?? 0}% confirmed orphan</div>
+            <div className="text-slate-600 mt-1">{ownership.protected_or_exempt_pct ?? 0}% protected / exempt</div>
+          </div>
         </div>
       </div>
 

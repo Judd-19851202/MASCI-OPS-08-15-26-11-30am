@@ -10,16 +10,18 @@ function _governance(probes) {
   const sev = b.severity_counts || {};
   const highs = Number(sev.high || 0) + Number(sev.critical || 0);
   const health = String(b.health_label || "").toLowerCase();
-  const status = health === "critical" || highs > 20 ? "red"
-    : health === "warning" || highs > 0 ? "yellow" : "green";
-  const scanStamp = typeof b.last_scan === "string" ? b.last_scan : null;
+  const freshness = b.freshness || {};
+  const freshState = String(freshness.state || "UNKNOWN").toUpperCase();
+  const status = freshState === "SCAN_FAILED" || health === "critical" || highs > 20 ? "red"
+    : freshState === "STALE" || freshState === "AGING" || highs > 0 ? "yellow" : "green";
+  const scanStamp = freshness.last_scan_at || b.last_scan?.finished_at || b.last_scan?.started_at || null;
   return { status,
-    summary: `${highs} high/critical rules · health: ${b.health_label || "unknown"}`,
+    summary: `${highs} high/critical rules · health: ${b.health_label || "unknown"} · freshness: ${freshState}`,
     recommended_action: highs ? "Open Governance & Trust to triage high-severity rules." : "",
     checked_at: scanStamp,
     evidence: { severity_counts: sev, status_counts: b.status_counts,
       health_label: b.health_label, convergence_score: b.convergence_score,
-      rule_counts: b.rule_counts, last_scan: b.last_scan } };
+      rule_counts: b.rule_counts, last_scan: b.last_scan, freshness } };
 }
 function _prod_cert(probes) {
   const p = probes.prod_cert;

@@ -95,11 +95,13 @@ function _prod_cert_diag(probes) {
   if (!p?.ok) return { status: "unknown", summary: "Production certification unreachable.", evidence: { error: p?.error } };
   const b = p.body || {};
   const band = String(b.platform_band || "").toLowerCase();
+  const counters = b.counters || {};
+  const defaultWindow = b.freshness_policy?.default_window_hours;
   const status = ["green", "healthy"].includes(band) ? "green"
     : ["yellow", "warning"].includes(band) ? "yellow"
     : ["red", "critical"].includes(band) ? "red" : "unknown";
   return { status,
-    summary: `Platform band ${band || "unknown"}`,
+    summary: `Platform band ${band || "unknown"} · ${counters.stale || 0} stale · window ${defaultWindow || "?"}h`,
     checked_at: b.generated_at,
     evidence: { platform_band: band, counters: b.counters, track: b.track } };
 }

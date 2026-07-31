@@ -45,6 +45,9 @@ _WEIGHTS: Dict[str, float] = {
     "freshness_score":  0.10,
 }
 
+_FRESHNESS_CURRENT_MINUTES = 60 * 24
+_FRESHNESS_AGING_MINUTES = 60 * 24 * 7
+
 
 def _band(score: float) -> str:
     if score >= 85:
@@ -56,6 +59,16 @@ def _band(score: float) -> str:
 
 def _clamp(v: float) -> float:
     return max(0.0, min(100.0, v))
+
+
+def _freshness_state(age_minutes: Optional[float]) -> str:
+    if age_minutes is None:
+        return "UNKNOWN"
+    if age_minutes <= _FRESHNESS_CURRENT_MINUTES:
+        return "CURRENT"
+    if age_minutes <= _FRESHNESS_AGING_MINUTES:
+        return "AGING"
+    return "STALE"
 
 
 def _capacity_score(gb: float, warn_gb: float, alert_gb: float) -> float:
@@ -121,6 +134,10 @@ async def compute_storage_health(
     total = sum(counts.values())
     owned = counts.get("VERIFIED_OWNER", 0)
     orphans = counts.get("VERIFIED_ORPHAN", 0)
+    ambiguous = counts.get("AMBIGUOUS", 0)
+    unknown = counts.get("UNKNOWN", 0)
+    pending = counts.get("PENDING", 0)
+    protected = sum(counts.get(k, 0) for k in ("SYSTEM_RESERVED", "RETENTION_PROTECTED", "BACKUP_PROTECTED", "LEGAL_HOLD", "HISTORICAL"))
     orphan_bytes = int((cls_row or {}).get("verified_orphan_bytes") or 0)
 
     # 3) Inventory freshness.
@@ -145,10 +162,8 @@ async def compute_storage_health(
         else (75.0 if (backup_age_min is not None and backup_age_min <= 1440) else 0.0)
     )
     lifecycle_score = _clamp(lifecycle_pct)
-    freshness_score = (
-        100.0 if (inv_age_min is not None and inv_age_min <= 60 * 24)
-        else (60.0 if (inv_age_min is not None and inv_age_min <= 60 * 24 * 7) else 0.0)
-    )
+    freshness_state = _freshness_state(inv_age_min)
+    freshness_score = 100.0 if freshness_state == "CURRENT" else (60.0 if freshness_state == "AGING" else 0.0)
 
     subs = {
         "capacity_score":   round(capacity_score, 1),
@@ -179,8 +194,28 @@ async def compute_storage_health(
             "orphan_pct": round(orphan_pct, 2),
             "orphan_bytes": orphan_bytes,
         },
+        "ownership": {
+            "classification_total": total,
+            "classification_coverage_pct": round(lifecycle_pct, 1),
+            "verified_owner_pct": round((100.0 * owned / total), 1) if total else 0.0,
+            "confirmed_orphan_pct": round(orphan_pct, 2),
+            "ownership_unknown_pct": round((100.0 * unknown / total), 1) if total else 0.0,
+            "ownership_unresolved_pct": round((100.0 * (ambiguous + pending) / total), 1) if total else 0.0,
+            "protected_or_exempt_pct": round((100.0 * protected / total), 1) if total else 0.0,
+            "counts": {
+                "verified_owner": owned,
+                "verified_orphan": orphans,
+                "ambiguous": ambiguous,
+                "pending": pending,
+                "unknown": unknown,
+                "protected_or_exempt": protected,
+            },
+        },
         "freshness": {
             "inventory_age_minutes": inv_age_min,
+            "inventory_state": freshness_state,
+            "freshness_sla_minutes": _FRESHNESS_CURRENT_MINUTES,
+            "aging_threshold_minutes": _FRESHNESS_AGING_MINUTES,
             "backup_age_minutes": backup_age_min,
             "archive_lineage": {
                 "authoritative_recovery_point_time": archive_lineage.get("authoritative_recovery_point_time"),

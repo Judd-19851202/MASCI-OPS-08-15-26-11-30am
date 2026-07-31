@@ -497,14 +497,18 @@ def _eval_draft_health(body, err, checked_at):
     abandoned = int(buckets.get("abandoned_gt_24h", 0) or 0)
     failed = int(buckets.get("failed_last_24h", 0) or 0)
     stale = int(buckets.get("stale_1h_to_24h", 0) or 0)
+    confidence_raw = body.get("entity_confidence")
+    confidence = str(confidence_raw or "UNKNOWN").upper()
     if failed > 0 or abandoned > 5:
         status = "MISMATCH"
     elif abandoned > 0 or stale > 0:
         status = "DEGRADED"
     else:
         status = "VERIFIED"
+    if status == "VERIFIED" and confidence_raw is not None and confidence in {"LOW", "UNKNOWN"}:
+        status = "DEGRADED"
     summary = (
-        f"{failed} failed / {abandoned} abandoned / {stale} stale drafts (24h window)"
+        f"{failed} failed / {abandoned} abandoned / {stale} stale draft slots (confidence {confidence})"
     )
     action = ("Investigate failed drafts in daily reports admin queue." if failed
               else "Encourage abandoned drafts to be completed or discarded." if abandoned

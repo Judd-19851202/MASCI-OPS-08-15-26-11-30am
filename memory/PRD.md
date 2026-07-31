@@ -3,7 +3,8 @@
 ## Current status
 
 - **WP-16A is complete**
-- **WP-17 remains blocked / unauthorized**
+- **WP-17A KPI Truth, Observability & Data-Integrity Remediation is active**
+- **Broader WP-17 visual / experience standardization remains out of scope and unauthorized**
 - **Production deployment completed and was independently validated on live production**
 - **Fresh namespace restore drill completed and independently verified before deployment**
 - **Production can remain live**

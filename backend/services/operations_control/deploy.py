@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Dict, List
 
+from .backup_truth import load_canonical_backup_truth, local_backup_cache_snapshot
 from .registry import Operation, OperationCategory, RiskLevel
 
 
@@ -131,8 +131,8 @@ _RECOVERY_STEPS = [
         "step": "2",
         "title": "Verify backup posture",
         "detail": (
-            "OCC → Backup Health Check. Confirm the latest backup file "
-            "and total size. If backups are stale, stop and escalate — "
+            "OCC → Backup Health Check. Confirm the latest canonical R2 "
+            "archive posture first; local cache is secondary only. If backups are stale, stop and escalate — "
             "recovery without a recent backup can lose data."
         ),
     },
@@ -184,43 +184,33 @@ async def _deploy_recovery_status(_payload: Dict[str, Any]) -> Dict[str, Any]:
     playbook is not aspirational — step 2 (verify backups) can be
     performed in the same click.
     """
-    backup_dir = Path(os.environ.get("BACKUP_DIR") or "/app/backend/backups")
-    has_backups = backup_dir.exists() and any(backup_dir.rglob("*"))
-    latest_iso = None
-    if has_backups:
-        latest = max(
-            (p for p in backup_dir.rglob("*") if p.is_file()),
-            key=lambda p: p.stat().st_mtime,
-            default=None,
-        )
-        if latest:
-            latest_iso = datetime.fromtimestamp(
-                latest.stat().st_mtime, tz=timezone.utc,
-            ).isoformat()
-
+    canonical = await load_canonical_backup_truth(_payload)
+    local_cache = local_backup_cache_snapshot()
     warnings: List[str] = []
-    state = "healthy"
-    if not has_backups:
-        state = "warning"
+    state = canonical.get("status") or "warning"
+    snapshot = canonical.get("snapshot") or {}
+    last_backup = snapshot.get("last_backup") or {}
+    latest_iso = last_backup.get("ts") or ((snapshot.get("archive_lineage") or {}).get("authoritative_recovery_point_time"))
+    if local_cache.get("file_count", 0) == 0:
         warnings.append(
-            "No local backup files found. Recovery step 2 requires a "
-            "recent backup — verify offsite backup posture before "
-            "proceeding with any recovery playbook."
+            "No local backup cache found. This is informational only when canonical recovery posture is healthy."
         )
 
     return {
         "status": state,
         "summary": (
             "Recovery playbook available · "
-            + (f"latest local backup {latest_iso[:16]}"
-               if latest_iso else "NO local backups found")
+            + (f"latest canonical backup {str(latest_iso)[:16]}" if latest_iso else "canonical backup posture unavailable")
         ),
         "playbook": _RECOVERY_STEPS,
-        "backup_dir": str(backup_dir),
-        "latest_local_backup_at": latest_iso,
+        "backup_dir": local_cache.get("backup_dir"),
+        "latest_local_backup_at": local_cache.get("latest", {}).get("modified") if isinstance(local_cache.get("latest"), dict) else None,
+        "latest_canonical_backup_at": latest_iso,
+        "local_backup_cache": local_cache,
+        "canonical_backup_truth": snapshot,
         "warnings": warnings,
         "legacy_route": "/admin/deploy-recovery",
-        "canonical_source": "services.operations_control.deploy",
+        "canonical_source": "/api/admin/recovery/snapshot",
         "generated_at": _now_iso(),
     }
 
@@ -257,8 +247,8 @@ def operations(_db) -> List[Operation]:
             title="Deploy Recovery Playbook",
             description=(
                 "Canonical 6-step on-call playbook for platform "
-                "recovery. Surfaces the latest local backup timestamp "
-                "so step 2 (verify backups) can be executed in one "
+                "recovery. Surfaces the latest canonical backup posture "
+                "while labeling local cache as secondary context so step 2 can be executed truthfully in one "
                 "click. Read-only reference — apply is per-step manual."
             ),
             category=OperationCategory.HEALTH,
@@ -266,7 +256,8 @@ def operations(_db) -> List[Operation]:
             status_fn=_deploy_recovery_status,
             dry_run_fn=_deploy_recovery_status,
             reads=[
-                "local backup directory (mtime of latest file)",
+                "canonical recovery snapshot",
+                "local backup cache (mtime of latest file)",
                 "static recovery playbook",
             ],
             writes=[],
