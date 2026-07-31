@@ -3,12 +3,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { Truck, Loader2, ArrowLeft, Check } from "lucide-react";
+import { Truck, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import PortalLoginShell from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -36,25 +35,17 @@ export default function DispatchForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-orange-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/dispatch-portal/login"
-            className="inline-flex items-center text-white hover:text-orange-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="dispatch-forgot-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Dispatch Login")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+    <PortalLoginShell
+      portalLabel={t("Dispatch")}
+      title={t("Reset Dispatch access")}
+      subtitle={t("Password recovery for Transportation dispatch operators.")}
+      homeLink="/dispatch-portal/login"
+      homeLabel={t("Dispatch Login")}
+      headerBorderClass="border-orange-700"
+      footerLabel={t("MASCI · Dispatch")}
+      rootTestId="dispatch-forgot-page"
+    >
+      <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-700 text-white">
               <Truck className="w-6 h-6" />
@@ -87,7 +78,7 @@ export default function DispatchForgotPassword() {
           ) : (
             <form onSubmit={onSubmit} className="space-y-4" data-testid="dispatch-forgot-form">
               <p className="text-slate-600 text-sm">
-                {t("Enter your Dispatch Portal email. We'll send you a link to choose a new password.")}
+                {t("Enter the work email on your Dispatch account.")}
               </p>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
@@ -118,8 +109,7 @@ export default function DispatchForgotPassword() {
               </Button>
             </form>
           )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </PortalLoginShell>
   );
 }

@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { ShieldCheck, Loader2, ArrowLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
-import { LangToggle } from "@/components/LangToggle";
+import PortalLoginShell from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setPmToken } from "@/lib/pmAuth";
@@ -64,25 +62,17 @@ export default function PmResetPassword() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-amber-500">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/pm/login"
-            className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="pm-reset-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("PM Login")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+    <PortalLoginShell
+      portalLabel={t("Project Management")}
+      title={t("Reset PM password")}
+      subtitle={t("Secure password reset for project operators.")}
+      homeLink="/pm/login"
+      homeLabel={t("PM Login")}
+      headerBorderClass="border-amber-500"
+      footerLabel={t("MASCI · Project Management")}
+      rootTestId="pm-reset-page"
+    >
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-500 text-white">
               <ShieldCheck className="w-6 h-6" />
@@ -97,7 +87,7 @@ export default function PmResetPassword() {
             </div>
           </div>
           <p className="text-slate-600 text-sm mb-6">
-            {t("Pick something at least 6 characters. The reset link in your email stops working as soon as you save.")}
+            {t("Choose a new password. This reset link closes after you save.")}
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="pm-reset-form">
@@ -143,15 +133,7 @@ export default function PmResetPassword() {
               )}
             </Button>
           </form>
-        </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          {t("MASCI · Project Management Portal")}
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
+      </div>
+    </PortalLoginShell>
   );
 }
