@@ -21,16 +21,98 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, Query
 
 logger = logging.getLogger(__name__)
 
+EQUIPMENT_BINDING_TARGETS: List[Tuple[str, List[str]]] = [
+    ("equipment_inspections", ["equipment_unit", "unit_number"]),
+    ("fire_extinguishers", ["truck", "unit_number"]),
+    ("incidents", ["equipment_unit"]),
+    ("corrective_actions", ["equipment_unit"]),
+]
+
+EMPLOYEE_BINDING_TARGETS: List[Tuple[str, List[str]]] = [
+    ("incidents", ["employee_email", "employee_id", "employee_name"]),
+    ("corrective_actions", ["employee_email", "employee_id", "employee_name"]),
+    ("safety_training_records", ["employee_email", "employee_id", "employee_name"]),
+]
+
+MASTER_BINDING_SAMPLE_THRESHOLD = 10
+
 
 def _safe_regex(q: str) -> Dict[str, Any]:
     """Case-insensitive partial match, regex-escaped."""
     return {"$regex": re.escape(q.strip()), "$options": "i"}
+
+
+async def _binding_coverage_for_targets(
+    db,
+    *,
+    targets: List[Tuple[str, List[str]]],
+    canonical_field: str,
+    backfill_endpoint: str,
+    entity_label: str,
+    review_queue_endpoint: str | None = None,
+) -> Dict[str, Dict[str, Any]]:
+    coverage: Dict[str, Dict[str, Any]] = {}
+    for coll_name, source_fields in targets:
+        eligible_filter = {
+            "$or": [{canonical_field: {"$exists": True, "$ne": ""}}] + [
+                {field: {"$exists": True, "$ne": ""}} for field in source_fields
+            ]
+        }
+        eligible_total = await db[coll_name].count_documents(eligible_filter)
+        referenced = await db[coll_name].count_documents({canonical_field: {"$exists": True, "$ne": ""}})
+        missing = max(0, eligible_total - referenced)
+        coverage[coll_name] = {
+            "eligible_total": eligible_total,
+            "with_master_ref": referenced,
+            "missing_master_ref": missing,
+            "pct": int(100 * referenced / eligible_total) if eligible_total else 100,
+            "canonical_field": canonical_field,
+            "source_fields": source_fields,
+            "entity_label": entity_label,
+            "minimum_sample_threshold": MASTER_BINDING_SAMPLE_THRESHOLD,
+            "small_sample": eligible_total < MASTER_BINDING_SAMPLE_THRESHOLD,
+            "denominator_definition": (
+                f"records with {canonical_field} already present OR at least one source field populated"
+            ),
+            "backfill_endpoint": backfill_endpoint,
+            "review_queue_endpoint": review_queue_endpoint,
+            "ambiguous_match_policy": "ambiguous candidates must be routed to a review queue; deterministic matches may be backfilled",
+        }
+    return coverage
+
+
+async def build_master_binding_audit(db) -> Dict[str, Any]:
+    eq_master_total = await db.equipment_master.count_documents({})
+    emp_total = await db.employees.count_documents({})
+    equipment_coverage = await _binding_coverage_for_targets(
+        db,
+        targets=EQUIPMENT_BINDING_TARGETS,
+        canonical_field="equipment_master_id",
+        backfill_endpoint="/api/master-lookup/backfill/equipment",
+        entity_label="equipment",
+        review_queue_endpoint=None,
+    )
+    employee_coverage = await _binding_coverage_for_targets(
+        db,
+        targets=EMPLOYEE_BINDING_TARGETS,
+        canonical_field="employee_master_id",
+        backfill_endpoint="/api/master-lookup/backfill/employees",
+        entity_label="employee",
+        review_queue_endpoint="/api/admin/compliance/employee-link-review-queue",
+    )
+    return {
+        "equipment_master_total": eq_master_total,
+        "employees_total": emp_total,
+        "equipment_coverage": equipment_coverage,
+        "employee_coverage": employee_coverage,
+        "sample_threshold": MASTER_BINDING_SAMPLE_THRESHOLD,
+    }
 
 
 def build_master_lookup_router(
@@ -159,13 +241,7 @@ def build_master_lookup_router(
                 master_by_unit[un] = d["id"]
 
         report: Dict[str, Dict[str, Any]] = {}
-        targets = [
-            ("equipment_inspections", ["equipment_unit", "unit_number"]),
-            ("fire_extinguishers",    ["truck", "unit_number"]),
-            ("incidents",             ["equipment_unit"]),
-            ("corrective_actions",    ["equipment_unit"]),
-        ]
-        for coll_name, fields in targets:
+        for coll_name, fields in EQUIPMENT_BINDING_TARGETS:
             total = await db[coll_name].count_documents({})
             attached = 0
             unresolved = 0
@@ -223,8 +299,7 @@ def build_master_lookup_router(
                 emp_by_full_name[full] = d["id"]
 
         report: Dict[str, Dict[str, Any]] = {}
-        targets = ["incidents", "corrective_actions", "safety_training_records"]
-        for coll_name in targets:
+        for coll_name, _fields in EMPLOYEE_BINDING_TARGETS:
             total = await db[coll_name].count_documents({})
             attached = 0
             unresolved = 0
@@ -271,37 +346,30 @@ def build_master_lookup_router(
     # ── Audit summary: report current SOT coverage ───────────────
     @router.get("/audit", dependencies=[Depends(require_admin)])
     async def sot_audit():
-        eq_master_total = await db.equipment_master.count_documents({})
-        emp_total = await db.employees.count_documents({})
-
-        coverage: Dict[str, Dict[str, Any]] = {}
-        eq_targets = ["equipment_inspections", "fire_extinguishers", "incidents", "corrective_actions"]
-        for coll_name in eq_targets:
-            total = await db[coll_name].count_documents({})
-            referenced = await db[coll_name].count_documents({"equipment_master_id": {"$exists": True, "$ne": ""}})
-            coverage[coll_name] = {
-                "total": total,
-                "with_master_ref": referenced,
-                "pct": int(100 * referenced / total) if total else 100,
-            }
-        emp_targets = ["incidents", "corrective_actions", "safety_training_records"]
-        emp_coverage: Dict[str, Dict[str, Any]] = {}
-        for coll_name in emp_targets:
-            total = await db[coll_name].count_documents({})
-            referenced = await db[coll_name].count_documents({"employee_master_id": {"$exists": True, "$ne": ""}})
-            emp_coverage[coll_name] = {
-                "total": total,
-                "with_master_ref": referenced,
-                "pct": int(100 * referenced / total) if total else 100,
-            }
-        return {
-            "equipment_master_total": eq_master_total,
-            "employees_total": emp_total,
-            "equipment_coverage": coverage,
-            "employee_coverage": emp_coverage,
+        audit = await build_master_binding_audit(db)
+        audit["kpi_metadata"] = {
+            "kpi_name": "Cross-portal Master Binding Coverage",
+            "business_definition": "Eligible-record coverage for canonical employee/equipment master bindings across operational collections.",
+            "source_of_truth": "master lookup audit helper",
+            "api_endpoint": "/api/master-lookup/audit",
+            "formula": {
+                "denominator": "eligible records with canonical binding present or at least one source field populated",
+                "sample_threshold": MASTER_BINDING_SAMPLE_THRESHOLD,
+            },
+            "confidence": "HIGH",
+            "status_reason": "Ambiguous matches must be routed to review queues; deterministic matches may be backfilled.",
+            "drilldown_source": "/api/master-lookup/audit",
+            "owner": "master-data-integrity",
         }
+        return audit
 
     return router
 
 
-__all__ = ["build_master_lookup_router"]
+__all__ = [
+    "build_master_lookup_router",
+    "build_master_binding_audit",
+    "EQUIPMENT_BINDING_TARGETS",
+    "EMPLOYEE_BINDING_TARGETS",
+    "MASTER_BINDING_SAMPLE_THRESHOLD",
+]

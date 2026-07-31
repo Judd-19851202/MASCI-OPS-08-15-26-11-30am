@@ -860,6 +860,45 @@ async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
     }
 
 
+async def _build_employee_link_review_queue(db, materialize: bool = False) -> Dict[str, Any]:
+    findings = await _detect_employee_linkage(db)
+    candidates: List[Dict[str, Any]] = []
+    stored = 0
+    for finding in findings:
+        if finding.get("rule_id") != "EMP_LINK_UNRESOLVABLE":
+            continue
+        source = finding.get("source") or {}
+        item = {
+            "queue_type": "employee_link_ambiguity",
+            "queue_key": str(finding.get("entity_id") or ""),
+            "entity_name": finding.get("entity_name"),
+            "name_norm": source.get("name_norm"),
+            "matched_employee_ids": list(source.get("matched_employee_ids") or []),
+            "match_count": int(source.get("match_count") or 0),
+            "collections": source.get("collections") or {},
+            "record_count": int(source.get("record_count") or 0),
+            "status": "PENDING_REVIEW",
+            "generated_at": _now_iso(),
+            "resolution_policy": "operator_must_disambiguate",
+        }
+        candidates.append(item)
+        if materialize:
+            await db["employee_link_review_queue"].update_one(
+                {"queue_key": item["queue_key"]},
+                {"$set": item},
+                upsert=True,
+            )
+            stored += 1
+    return {
+        "ok": True,
+        "materialized": materialize,
+        "candidate_count": len(candidates),
+        "stored_count": stored,
+        "candidates": candidates[:100],
+        "queue_collection": "employee_link_review_queue",
+    }
+
+
 # ---------------------------------------------------------------------------
 # iter356 — Incident → CAPA → Closeout Lifecycle Enforcement (Phase 2 P0).
 #
@@ -1200,6 +1239,11 @@ def build_governance_router(db, require_admin_strict):
         """
         return await _backfill_employee_links(db, dry_run=bool(body.dry_run))
 
+    @router.post("/api/admin/compliance/employee-link-review-queue",
+                 dependencies=[Depends(require_admin_strict)])
+    async def employee_link_review_queue(body: BackfillPayload):
+        return await _build_employee_link_review_queue(db, materialize=not bool(body.dry_run))
+
     @router.post("/api/admin/compliance/issue-missing-ppe",
                  dependencies=[Depends(require_admin_strict)])
     async def issue_missing_ppe(body: PpeIssuePayload):
@@ -1437,9 +1481,24 @@ def build_governance_router(db, require_admin_strict):
             "health_label": health_label,
             "last_scan": last_scan,
             "freshness": freshness,
+            "kpi_metadata": {
+                "kpi_name": "Governance Summary",
+                "business_definition": "Persisted governance findings inventory plus explicit scan freshness and execution confidence.",
+                "source_of_truth": ["compliance_findings", "compliance_scans"],
+                "api_endpoint": "/api/admin/governance/summary",
+                "formula": {
+                    "finding_inventory": "open + acknowledged findings grouped by severity and rule",
+                    "freshness_sla_minutes": _GOVERNANCE_FRESHNESS_SLA_MINUTES,
+                },
+                "confidence": freshness.get("confidence"),
+                "status_reason": freshness.get("status_reason"),
+                "drilldown_source": "/admin/governance/legacy-health",
+                "owner": "governance-trust",
+            },
             "rule_catalog": RULE_CATALOG,
             "recommended_repairs": {
                 "employee_link_backfill_endpoint": "/api/admin/compliance/backfill-employee-links",
+                "employee_link_review_queue_endpoint": "/api/admin/compliance/employee-link-review-queue",
                 "ppe_issue_endpoint": "/api/admin/compliance/issue-missing-ppe",
             },
         }

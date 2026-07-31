@@ -21,5 +21,21 @@ Status: IN PROGRESS
 - Frontend lint for touched files: PASS
 - Preview smoke: PASS
 
+## Verification state distinction (required for executive runtime reconciliation)
+- code present locally: YES
+- tests passed: YES
+- runtime restarted: YES
+- post-restart endpoint verified: PARTIAL
+  - local module/runtime path verified after restart
+  - broader authenticated preview endpoint reconciliation remains in progress as part of the ongoing platform sweep
+- UI verified: PARTIAL
+  - targeted governance / storage / diagnostics preview smoke succeeded
+  - full portal-wide UI/API reconciliation still in progress
+
 ## Remaining
 - Work package still open; more inventory, reconciliation, data-integrity, and backfill work remains.
+
+- Newly completed in this batch:
+  - master-binding coverage now uses an eligible-record denominator and surfaces review/backfill metadata
+  - ambiguous employee-link findings can now be materialized into an auditable review queue
+  - storage audit now exposes thresholds, largest consumers, retention classes, cleanup projection, protected paths, and last cleanup evidence

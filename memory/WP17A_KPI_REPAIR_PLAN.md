@@ -26,9 +26,8 @@ Status: ACTIVE
 - Diagnostics now exposes certification freshness window context.
 
 ## Still open in this work package
-- Cross-portal master binding formula audit + backfill/review queue path
 - Workflow-specific certification freshness SLA review
-- Disk pressure inventory / cleanup policy / trend model
+- Disk pressure local trend / projected exhaustion recorder
 - KPI metadata framework and drill-down transparency
 - Multi-page reconciliation audit and automation
 - Remaining portal-by-portal KPI inventory

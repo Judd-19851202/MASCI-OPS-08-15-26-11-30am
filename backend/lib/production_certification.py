@@ -440,6 +440,20 @@ async def build_certification(db) -> Dict[str, Any]:
                 for key, value in WORKFLOW_FRESHNESS_WINDOWS.items()
             },
         },
+        "kpi_metadata": {
+            "kpi_name": "Production Certification Freshness",
+            "business_definition": "Workflow certification states require terminal business-success evidence within defined freshness windows.",
+            "source_of_truth": "trust_spine_events",
+            "api_endpoint": "/api/admin/production-certification",
+            "formula": {
+                "default_freshness_window_hours": round(FRESHNESS_WINDOW.total_seconds() / 3600.0, 2),
+                "statuses": [STATUS_VERIFIED, STATUS_FAILED, STATUS_NOT_YET_EXERCISED, STATUS_BLOCKED, STATUS_STALE],
+            },
+            "confidence": "HIGH",
+            "status_reason": "A workflow does not become VERIFIED from HTTP reachability alone; terminal business evidence is required.",
+            "drilldown_source": "/admin/diagnostics",
+            "owner": "production-certification",
+        },
         "workflows": rows,
     }
 

@@ -16,3 +16,6 @@ Status: ACTIVE
 | R2 Lifecycle Health | Storage & Recovery | `/api/admin/r2/lifecycle/health` | `r2_inventory`, `r2_classifications`, `r2_lifecycle_runs`, `backup_health` | stale freshness and ownership blended |
 | Production Certification | trust / certification pages | `/api/admin/production-certification` | `trust_spine_events` | freshness policy may be too universal |
 | Deploy Readiness Binding Coverage | Deploy readiness pages | `/api/admin/deploy-readiness` | master/trust helpers | formula + historical remediation audit needed |
+| Master Binding Audit | Admin deploy readiness / audit tools | `/api/master-lookup/audit` | collection-level canonical binding coverage helper | denominator semantics previously weak |
+| Employee Link Review Queue | Governance remediation | `/api/admin/compliance/employee-link-review-queue` | employee-linkage detector findings | ambiguous findings previously not materialized |
+| Storage Audit / Safe Cleanup | OCC maintenance / storage recovery | `storage.audit`, `storage.safe_cleanup` | local filesystem + cleanup history | lacked thresholds / retention classes / cleanup evidence |

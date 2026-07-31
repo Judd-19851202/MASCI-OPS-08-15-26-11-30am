@@ -173,48 +173,39 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
         iter142b — ignore collections with <10 total rows. A 1-of-3
         ratio is statistical noise, not a real coverage gap; in prod
         these collections will have hundreds/thousands of rows."""
-        from routes.master_where_used import EQUIPMENT_REFS, EMPLOYEE_REFS  # noqa: PLC0415
-        MIN_SAMPLE = 10
+        from routes.master_lookup import build_master_binding_audit, MASTER_BINDING_SAMPLE_THRESHOLD  # noqa: PLC0415
+        MIN_SAMPLE = MASTER_BINDING_SAMPLE_THRESHOLD
+        audit = await build_master_binding_audit(db)
         worst_pct = 100
         worst_name = ""
         gaps: list[str] = []
         small: list[str] = []
-        for coll_name, _proj, _fmt, _route in EQUIPMENT_REFS:
-            try:
-                total = await db[coll_name].count_documents({})
-                if total == 0:
+        details: list[dict[str, Any]] = []
+        for label, coverage_map in (("equipment", audit.get("equipment_coverage") or {}), ("employee", audit.get("employee_coverage") or {})):
+            for coll_name, metrics in coverage_map.items():
+                eligible_total = int(metrics.get("eligible_total") or 0)
+                pct = int(metrics.get("pct") or 0)
+                details.append({
+                    "collection": coll_name,
+                    "binding_type": label,
+                    "eligible_total": eligible_total,
+                    "with_master_ref": int(metrics.get("with_master_ref") or 0),
+                    "missing_master_ref": int(metrics.get("missing_master_ref") or 0),
+                    "pct": pct,
+                    "canonical_field": metrics.get("canonical_field"),
+                    "source_fields": metrics.get("source_fields") or [],
+                    "backfill_endpoint": metrics.get("backfill_endpoint"),
+                    "review_queue_endpoint": metrics.get("review_queue_endpoint"),
+                })
+                if eligible_total == 0:
                     continue
-                if total < MIN_SAMPLE:
-                    small.append(f"{coll_name} eq ({total})")
+                if eligible_total < MIN_SAMPLE:
+                    small.append(f"{coll_name} {label[:3]} ({eligible_total})")
                     continue
-                bound = await db[coll_name].count_documents(
-                    {"equipment_master_id": {"$exists": True, "$ne": ""}},
-                )
-                pct = int(100 * bound / total)
                 if pct < 50:
-                    gaps.append(f"{coll_name} eq {pct}%")
+                    gaps.append(f"{coll_name} {label[:3]} {pct}%")
                 if pct < worst_pct:
-                    worst_pct, worst_name = pct, f"{coll_name}.equipment"
-            except Exception:  # noqa: BLE001
-                pass
-        for coll_name, _proj, _fmt, _route in EMPLOYEE_REFS:
-            try:
-                total = await db[coll_name].count_documents({})
-                if total == 0:
-                    continue
-                if total < MIN_SAMPLE:
-                    small.append(f"{coll_name} emp ({total})")
-                    continue
-                bound = await db[coll_name].count_documents(
-                    {"employee_master_id": {"$exists": True, "$ne": ""}},
-                )
-                pct = int(100 * bound / total)
-                if pct < 50:
-                    gaps.append(f"{coll_name} emp {pct}%")
-                if pct < worst_pct:
-                    worst_pct, worst_name = pct, f"{coll_name}.employee"
-            except Exception:  # noqa: BLE001
-                pass
+                    worst_pct, worst_name = pct, f"{coll_name}.{label}"
         passed = not gaps  # ignore small samples
         if not gaps and not small:
             detail = "All cross-portal collections ≥50% bound to master records"
@@ -223,7 +214,14 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
         else:
             detail = f"Worst: {worst_name} at {worst_pct}% · gaps: " + ", ".join(gaps[:5])
         return {"id": "master_coverage", "label": "Cross-portal master-binding coverage",
-                "severity": "warn", "passed": passed, "detail": detail}
+                "severity": "warn", "passed": passed, "detail": detail,
+                "formula": {
+                    "threshold_pct": 50,
+                    "minimum_sample_threshold": MIN_SAMPLE,
+                    "denominator_definition": "eligible records with canonical binding present or at least one source field populated",
+                    "source_of_truth": "/api/master-lookup/audit",
+                },
+                "details": details[:25]}
 
     async def _check_default_admin() -> Dict[str, Any]:
         """If MASCI1982! still works as the admin password in prod, that's

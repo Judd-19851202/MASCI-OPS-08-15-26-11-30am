@@ -29,3 +29,13 @@ Status: ACTIVE
 - Current formula: weighted blend of capacity, ownership, orphan, retention, backup, lifecycle, freshness
 - Problem: stale inventory and ownership uncertainty are blended into one score
 - Required direction: separate freshness, ownership coverage, and confirmed orphan risk
+
+### FR-006 — Master Binding Coverage
+- Current formula: eligible records with canonical binding present or at least one source field populated
+- Problem repaired: prior gap view used total-row denominator and hid remediation metadata
+- Current direction: expose eligible denominator, source fields, canonical field, backfill endpoint, and review queue endpoint
+
+### FR-007 — Local Disk Pressure Audit
+- Current formula: `/app` used percent + largest consumers + safe cleanup reclaim projection
+- Problem repaired: prior truth surface lacked thresholds, retention classes, protected evidence disclosure, and cleanup history context
+- Current direction: keep point-in-time truth explicit until local trend history is implemented

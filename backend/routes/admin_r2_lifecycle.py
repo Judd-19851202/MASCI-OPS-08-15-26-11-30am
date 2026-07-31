@@ -263,7 +263,22 @@ def build_r2_lifecycle_router(db, require_admin_strict_dep) -> APIRouter:
     # ── Storage Health ───────────────────────────────────────────────
     @router.get("/health")
     async def health(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:
-        return await compute_storage_health(db)
+        out = await compute_storage_health(db)
+        out["kpi_metadata"] = {
+            "kpi_name": "R2 Lifecycle Health",
+            "business_definition": "Separates inventory freshness, ownership coverage, and confirmed orphan risk for object storage truth.",
+            "source_of_truth": ["r2_inventory", "r2_classifications", "r2_lifecycle_runs", "backup_health"],
+            "api_endpoint": "/api/admin/r2/lifecycle/health",
+            "formula": {
+                "freshness_sla_minutes": out.get("freshness", {}).get("freshness_sla_minutes"),
+                "aging_threshold_minutes": out.get("freshness", {}).get("aging_threshold_minutes"),
+            },
+            "confidence": "MEDIUM" if out.get("freshness", {}).get("inventory_state") in {"AGING", "STALE"} else "HIGH",
+            "status_reason": "Stale inventory evidence is disclosed separately from ownership and confirmed orphan risk.",
+            "drilldown_source": "/admin/storage-recovery",
+            "owner": "storage-reliability",
+        }
+        return out
 
     # ── Intelligence + cost ──────────────────────────────────────────
     @router.get("/intelligence")

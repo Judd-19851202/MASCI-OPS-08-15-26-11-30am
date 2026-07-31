@@ -1851,6 +1851,21 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         return {
             "generated_at": now.isoformat(),
             **summary,
+            "kpi_metadata": {
+                "kpi_name": "Daily Report Draft Health",
+                "business_definition": "Distinct logical draft slots derived from draft telemetry, not raw append-only event counts.",
+                "source_of_truth": "draft_telemetry",
+                "api_endpoint": "/api/admin/draft-health",
+                "formula": {
+                    "entity_key": ["formKey", "deviceId", "meta.actorIdentity"],
+                    "time_window_days": 30,
+                    "open_definition": "latest event is not commit/discard and a successful save exists",
+                },
+                "confidence": summary.get("entity_confidence"),
+                "status_reason": "Legacy telemetry without actor identity is disclosed with reduced confidence instead of being fabricated as precise unique drafts.",
+                "drilldown_source": "/api/draft-telemetry/recent",
+                "owner": "daily-report-resiliency",
+            },
             "sources": {
                 "collection": "draft_telemetry",
                 "populated_by": "frontend useFormDraft via POST /api/draft-telemetry",

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { api } from "@/lib/api";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import IntegrationProbesPanel from "@/components/IntegrationProbesPanel";
@@ -109,12 +110,34 @@ export default function AdminDeployReadiness() {
                       <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${iconColor}`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <div className="font-bold text-sm text-slate-900">{c.label}</div>
+                          <div className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                            {c.label}
+                            {c.formula ? (
+                              <HelpTip
+                                testId={`deploy-readiness-check-${c.id}-why`}
+                                label={`Why this number? ${c.label}`}
+                                body={[
+                                  c.formula.source_of_truth ? `Source: ${c.formula.source_of_truth}.` : null,
+                                  c.formula.denominator_definition ? `Denominator: ${c.formula.denominator_definition}.` : null,
+                                  c.formula.threshold_pct != null ? `Threshold: ${c.formula.threshold_pct}% pass floor.` : null,
+                                ].filter(Boolean).join(" ")}
+                              />
+                            ) : null}
+                          </div>
                           <span className={`px-1.5 py-0 rounded border text-[9px] uppercase tracking-wider font-mono font-bold ${SEV_BADGE[c.severity] || SEV_BADGE.info}`}>
                             {c.severity}
                           </span>
                         </div>
                         <div className="text-xs text-slate-600 mt-0.5">{c.detail}</div>
+                        {Array.isArray(c.details) && c.details.length > 0 ? (
+                          <div className="mt-2 text-[11px] text-slate-500" data-testid={`deploy-readiness-check-${c.id}-details`}>
+                            {c.details.slice(0, 3).map((row) => (
+                              <div key={`${row.collection}-${row.binding_type}`}>
+                                {row.collection}.{row.binding_type}: {row.pct}% · eligible {row.eligible_total} · missing {row.missing_master_ref}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     </li>
                   );

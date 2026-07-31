@@ -31,6 +31,17 @@ from .registry import Operation, OperationCategory, RiskLevel
 # expires the previous entry so an apply cannot bind to stale evidence.
 _DRY_RUNS: Dict[str, Dict[str, Any]] = {}
 _DRY_RUN_TTL_SECONDS = 30 * 60  # 30 minutes
+_CLEANUP_HISTORY_COLLECTION = "storage_cleanup_history"
+_WARNING_THRESHOLD_PCT = 75.0
+_CRITICAL_THRESHOLD_PCT = 90.0
+_RETENTION_CLASSES = {
+    "/var/log/supervisor": {"classification": "rotatable", "reason": "supervisor runtime logs"},
+    "/app/backend/tests/__pycache__": {"classification": "regenerable", "reason": "python bytecode cache"},
+    "/app/backend/.pytest_cache": {"classification": "expirable", "reason": "pytest cache"},
+    "/app/backend/storage/project_docs": {"classification": "offloadable_to_r2", "reason": "eligible local docs can migrate to R2"},
+    "/app/backend/backups": {"classification": "local_staging_storage", "reason": "secondary local backup cache / staging only"},
+    "/tmp/basecamp": {"classification": "expirable", "reason": "temporary import workspace"},
+}
 
 
 def _now_iso() -> str:
@@ -150,6 +161,16 @@ def _disk_stats() -> Dict[str, Any]:
     }
 
 
+async def _latest_cleanup_history(payload: Dict[str, Any]) -> Dict[str, Any] | None:
+    db = payload.get("_db")
+    if db is None:
+        return None
+    try:
+        return await db[_CLEANUP_HISTORY_COLLECTION].find_one({}, {"_id": 0}, sort=[("generated_at", -1)])
+    except Exception:  # noqa: BLE001
+        return None
+
+
 async def _storage_audit_status(_payload: Dict[str, Any]) -> Dict[str, Any]:
     return await _storage_audit_dry_run(_payload)
 
@@ -158,19 +179,60 @@ async def _storage_audit_dry_run(_payload: Dict[str, Any]) -> Dict[str, Any]:
     dirs = [_dir_stats(Path(p)) for p in _AUDIT_PATHS]
     disk = _disk_stats()
     logs = _log_stats()
+    cleanup_candidates = _safe_cleanup_candidates()
+    last_cleanup = await _latest_cleanup_history(_payload)
     used_pct = disk.get("used_percent", 0)
-    if used_pct >= 90:
+    if used_pct >= _CRITICAL_THRESHOLD_PCT:
         status = "critical"
-    elif used_pct >= 75:
+    elif used_pct >= _WARNING_THRESHOLD_PCT:
         status = "warning"
     else:
         status = "healthy"
+    largest_consumers = sorted(
+        [
+            {"path": d["path"], "bytes": d.get("total_bytes", 0), "human": d.get("human_total", "0 B"), "type": "directory"}
+            for d in dirs if d.get("exists")
+        ] + [
+            {"path": e["path"], "bytes": e.get("bytes", 0), "human": e.get("human", "0 B"), "type": "log"}
+            for e in logs.get("entries", [])
+        ],
+        key=lambda item: item.get("bytes", 0),
+        reverse=True,
+    )[:10]
+    projected_after_cleanup = None
+    reclaimable = cleanup_candidates.get("reclaimable_bytes") or 0
+    if disk.get("used_bytes") is not None and disk.get("total_bytes"):
+        projected_used = max(0, disk["used_bytes"] - reclaimable)
+        projected_after_cleanup = {
+            "used_bytes": projected_used,
+            "used_percent": round(projected_used / disk["total_bytes"] * 100, 1),
+            "human_used": _human(projected_used),
+            "reclaimable_bytes": reclaimable,
+            "reclaimable_human": cleanup_candidates.get("human_total"),
+        }
     return {
         "status": status,
         "summary": f"/app disk at {used_pct}% used",
         "disk": disk,
+        "thresholds": {
+            "warning_percent": _WARNING_THRESHOLD_PCT,
+            "critical_percent": _CRITICAL_THRESHOLD_PCT,
+        },
         "directories": dirs,
         "logs": logs,
+        "largest_consumers": largest_consumers,
+        "retention_classes": _RETENTION_CLASSES,
+        "safe_cleanup_projection": projected_after_cleanup,
+        "last_cleanup": last_cleanup,
+        "trend": {
+            "available": False,
+            "reason": "Local /app disk trend history is not yet persisted by a snapshot recorder; current audit is point-in-time truth.",
+        },
+        "protected_evidence_paths": [
+            "/app/memory",
+            "/app/test_reports",
+            "/app/backend/storage/project_docs",
+        ],
         "generated_at": _now_iso(),
     }
 
@@ -293,6 +355,27 @@ async def _safe_cleanup_apply(payload: Dict[str, Any]) -> Dict[str, Any]:
     reclaimed = max(0, before["used_bytes"] - after["used_bytes"])
     # Retire the dry-run token — one apply per preview.
     _DRY_RUNS.pop(dry_run_id, None)
+    db = payload.get("_db")
+    history_row = {
+        "generated_at": _now_iso(),
+        "before": before,
+        "after": after,
+        "reclaimed_bytes": reclaimed,
+        "reclaimed_human": _human(reclaimed),
+        "truncated_logs": truncated,
+        "removed_caches_count": len(removed_caches),
+        "errors": errors,
+        "protected_evidence_paths": [
+            "/app/memory",
+            "/app/test_reports",
+            "/app/backend/storage/project_docs",
+        ],
+    }
+    if db is not None:
+        try:
+            await db[_CLEANUP_HISTORY_COLLECTION].insert_one(dict(history_row))
+        except Exception:  # noqa: BLE001
+            pass
     return {
         "status": "completed" if not errors else "warning",
         "before": before,
@@ -302,7 +385,8 @@ async def _safe_cleanup_apply(payload: Dict[str, Any]) -> Dict[str, Any]:
         "truncated_logs": truncated,
         "removed_caches_count": len(removed_caches),
         "errors": errors,
-        "generated_at": _now_iso(),
+        "generated_at": history_row["generated_at"],
+        "protected_evidence_paths": history_row["protected_evidence_paths"],
     }
 
 

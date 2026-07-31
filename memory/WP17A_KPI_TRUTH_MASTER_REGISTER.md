@@ -6,6 +6,20 @@ Authority: WP-17A Executive Authorization
 
 This is the authoritative remediation register for WP-17A. No KPI or truth surface may be removed once inventoried.
 
+## Verification evidence rubric for active repairs
+- `code_present_locally`: source patched in preview workspace
+- `tests_passed`: targeted automated tests passed
+- `runtime_restarted`: supervisor restart completed after repair batch when needed
+- `post_restart_endpoint_verified`: repaired response observed from running preview runtime or equivalent authenticated runtime path
+- `ui_verified`: preview UI rendered the repaired truth surface
+
+Current batch-1 verification state:
+- code_present_locally: YES
+- tests_passed: YES
+- runtime_restarted: YES
+- post_restart_endpoint_verified: PARTIAL (local/authenticated preview runtime checks continue alongside broader WP-17A sweep)
+- ui_verified: PARTIAL (governance / storage / diagnostics preview smoke passed; full platform reconciliation still in progress)
+
 ## Status legend
 - OPEN
 - IN PROGRESS
@@ -312,4 +326,85 @@ This is the authoritative remediation register for WP-17A. No KPI or truth surfa
 - Severity: P1
 - Repair status: VERIFIED FIXED
 - Verification evidence: source tracing + preview frontend patch + lint/smoke
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-012
+- Portal: Deploy Readiness / Master Lookup
+- Page: `/admin/deploy-readiness`, `/api/master-lookup/audit`
+- KPI or status name: Cross-portal master-binding coverage formula
+- User-facing label: master-binding coverage percentages
+- Current displayed value: now computed from eligible denominator rather than all rows
+- Current displayed status/color: remediation in progress
+- Backend endpoint: `/api/master-lookup/audit`, `/api/admin/deploy-readiness`
+- Source collection/table/service: `master_lookup` audit helpers + collection-level binding stats
+- Formula: eligible records = canonical binding present OR at least one source field populated
+- Filters: per collection / per binding type
+- Denominator: eligible records only
+- Date range: current database state
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none
+- Last refresh: preview repair batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: `/api/master-lookup/audit`
+- Current defect classification: prior denominator overstated gaps and lacked source/backfill/review-queue metadata
+- Severity: P1
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_binding_storage_truth.py`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-013
+- Portal: Governance / Data Integrity
+- Page: employee-link governance remediation surfaces
+- KPI or status name: Ambiguous employee-link review queue
+- User-facing label: review queue for ambiguous employee bindings
+- Current displayed value: new auditable queue endpoint prepared in preview
+- Current displayed status/color: remediation in progress
+- Backend endpoint: `/api/admin/compliance/employee-link-review-queue`
+- Source collection/table/service: governance linkage detector + `employee_link_review_queue`
+- Formula: one queue item per ambiguous normalized employee-name finding
+- Filters: active ambiguous linkage findings only
+- Denominator: ambiguous linkage findings
+- Date range: current detector snapshot
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on demand
+- Cache behavior: none
+- Last refresh: preview repair batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: review queue collection / API response
+- Current defect classification: ambiguous matches previously skipped but not materialized into an auditable review queue
+- Severity: P1
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_binding_storage_truth.py`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-014
+- Portal: Storage & Recovery / OCC Maintenance
+- Page: storage audit / safe cleanup surfaces
+- KPI or status name: Local disk pressure observability
+- User-facing label: storage audit / safe cleanup projection
+- Current displayed value: threshold + retention + projected post-cleanup state + protected paths + last cleanup evidence
+- Current displayed status/color: remediation in progress
+- Backend endpoint: OCC `storage.audit`, `storage.safe_cleanup`
+- Source collection/table/service: local filesystem audit + `storage_cleanup_history`
+- Formula: point-in-time `/app` disk usage plus safe-cleanup reclaim preview
+- Filters: audit paths + supervisor logs + python cache locations
+- Denominator: total `/app` disk capacity
+- Date range: current snapshot; cleanup history if available
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none
+- Last refresh: preview repair batch 2026-07-31
+- Data age: current snapshot
+- Confidence level: HIGH
+- Drill-down destination: OCC storage operations
+- Current defect classification: previous surface lacked thresholds, retention classes, cleanup history context, and protected-evidence disclosure
+- Severity: P1
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_binding_storage_truth.py`
 - Final disposition: preview-fixed; deployment pending
