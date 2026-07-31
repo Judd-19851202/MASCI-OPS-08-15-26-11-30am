@@ -55,7 +55,7 @@ const BigTile = ({ to, icon: Icon, title, desc, bullets, accent, testId }) => {
   return (
     <Link
       to={to}
-      className="group relative bg-white border border-slate-200 rounded-md p-5 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex flex-col h-full"
+      className="group relative bg-white border border-slate-200 rounded-md p-5 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex flex-col h-full wp17-public-card"
       data-testid={testId}
     >
       <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${palette.bar}`} />
@@ -99,7 +99,7 @@ const MediumTile = ({ to, icon: Icon, title, desc, accent, testId, kicker }) => 
   return (
     <Link
       to={to}
-      className="group relative bg-white border border-slate-200 rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-4"
+      className="group relative bg-white border border-slate-200 rounded-md p-5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-4 wp17-public-card"
       data-testid={testId}
     >
       <div className={`inline-flex items-center justify-center w-12 h-12 rounded-md ${palette.bg} text-white shrink-0`}>
@@ -153,7 +153,7 @@ const PortalPill = ({ to, icon: Icon, title, desc, kind, testId, signedIn, signe
   return (
     <Link
       to={to}
-      className={`group bg-white border ${signedIn ? "border-slate-300" : "border-slate-200"} rounded-md p-3.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-3`}
+      className={`group bg-white border ${signedIn ? "border-slate-300" : "border-slate-200"} rounded-md p-3.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md flex items-start gap-3 wp17-public-card`}
       data-testid={testId}
     >
       {inner}
@@ -173,7 +173,7 @@ function WelcomeBackHero({ session }) {
   const palette = heroPaletteFor(session.kind);
   return (
     <div
-      className={`relative ${palette.bg} ${palette.onColor} rounded-md p-5 sm:p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4`}
+      className={`relative ${palette.bg} ${palette.onColor} rounded-md p-5 sm:p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 wp17-public-card`}
       data-testid="hub-welcome-back"
     >
       <div className="flex-1 min-w-0">
@@ -230,9 +230,9 @@ export default function Hub() {
   );
 
   return (
-    <div className="min-h-screen blueprint-bg">
+    <div className="wp17-public-shell">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
+      <header className="wp17-public-header">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
           <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
           <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
@@ -250,11 +250,11 @@ export default function Hub() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+      <main className="wp17-public-main py-8 sm:py-12">
 
         {/* Hero headline */}
-        <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
+        <div className="wp17-public-hero mb-8 sm:mb-12" data-testid="hub-entry-architecture">
+          <span className="wp17-kicker text-red-700">
             {t("MASCI Operations Platform")}
           </span>
           {/* Track 15.4 (2026-06-16) — hero copy refresh.
@@ -276,6 +276,11 @@ export default function Hub() {
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
             {t("Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter.")}
           </p>
+          <div className="wp17-chip-row mt-6" data-testid="hub-next-actions-row">
+            <Link to="/sign-in" className="wp17-chip !bg-slate-900 !text-white !border-slate-900/20" data-testid="hub-next-signin-chip">{t("Open shared sign-in")}</Link>
+            <Link to="/guidance" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-guidance-chip">{t("Open guidance")}</Link>
+            <Link to="/cheatsheet" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-cheatsheet-chip">{t("Open cheat sheet")}</Link>
+          </div>
         </div>
 
         {/* Welcome back strip (only when an active session is detected) */}
@@ -431,7 +436,7 @@ export default function Hub() {
             trigger={(
               <button
                 type="button"
-                className="group flex items-start gap-3 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5 text-left w-full"
+                className="group flex items-start gap-3 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5 text-left w-full wp17-public-card"
                 data-testid="hub-need-help"
               >
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-200 text-slate-800 shrink-0">
@@ -470,7 +475,7 @@ export default function Hub() {
 function SectionHeader({ kicker, title, subtitle }) {
   return (
     <div className="flex items-baseline gap-3 mb-4 sm:mb-5">
-      <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-red-700 font-black">{kicker}</span>
+      <span className="wp17-kicker text-red-700 font-black">{kicker}</span>
       <span className="h-px flex-1 bg-slate-300 max-w-6" />
       <div className="flex-1 min-w-0">
         <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">{title}</h2>
@@ -484,7 +489,7 @@ function ReferenceLink({ to, icon: Icon, title, desc, testId }) {
   return (
     <Link
       to={to}
-      className="group flex items-start gap-3 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5"
+      className="group flex items-start gap-3 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md rounded-md p-4 transition-all duration-150 hover:-translate-y-0.5 wp17-public-card"
       data-testid={testId}
     >
       <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-200 text-slate-800 shrink-0">
@@ -578,7 +583,7 @@ function FieldLeadershipCard({ testId }) {
       // Same shell language as ProjectSystemsCard so the row reads
       // as a balanced pair of equal-weight cards. Whole card is the
       // click target — no internal links, no public submenu.
-      className="group relative bg-white border border-slate-200 hover:border-slate-900 rounded-md p-6 flex items-start gap-5 shadow-sm hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 no-underline text-inherit"
+      className="group relative bg-white border border-slate-200 hover:border-slate-900 rounded-md p-6 flex items-start gap-5 shadow-sm hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 no-underline text-inherit wp17-public-card"
     >
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white shrink-0">
         <UserCheck className="w-7 h-7" />
@@ -695,7 +700,7 @@ function ProjectSystemsCard({ testId }) {
       // p-5 → p-6, tighter shadow, slight border emphasis so the
       // tile reads as an equal peer next to the Field Leadership
       // card in the Leadership Tools row.
-      className="group relative bg-white border border-slate-200 rounded-md p-6 flex items-start gap-5 shadow-sm"
+      className="group relative bg-white border border-slate-200 rounded-md p-6 flex items-start gap-5 shadow-sm wp17-public-card"
       data-testid={testId}
     >
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-yellow-500 text-slate-900 shrink-0">

@@ -973,7 +973,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [onSubmit]);
 
   return (
-    <div className="min-h-screen blueprint-bg">
+    <div className="min-h-screen blueprint-bg wp17-grid-bg">
       <div className="caution-stripe" />
       {/* TRACK 23.4B · Visual consistency · V3 now shares the same
           `blueprint-bg` engineering-grid background used by QA/QC,
@@ -1046,7 +1046,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             lastSavedAt={lastSavedAt || pendingSavedAt}
           />
         </div>
-        <header className="mb-6 sm:mb-8">
+        <header className="mb-6 sm:mb-8 wp17-form-frame" data-testid="dr-v3-form-header-shell">
           <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
             <CheckCircle2 className="h-4 w-4" />
             {t("MASCI · Daily Job Report")}
@@ -1055,7 +1055,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             {t("Today's report")}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {t("Nine short steps. Dropdowns first. AI drafts your summary.")}
+            {t("Nine short steps. Dropdowns first. AI drafts your summary. Save state, scope, and next action stay visible the whole time.")}
           </p>
         </header>
 

@@ -27,13 +27,15 @@ export default function AdminPeople() {
     <LegacyAdminModernShell
       title="People & Access"
       subtitle="Access Control Center · Unified Directory · portal accounts. Modernize IAM across every portal from one screen."
+      experienceLevel="wp17c"
+      experienceTone="admin"
       breadcrumb={[
         { label: "Identity & Security", to: "/admin/identity-security" },
         { label: "People & Access" },
       ]}
       testidPrefix="admin-people"
     >
-      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
+      <div className="mb-5 wp17-list-intro">
         <p className="text-sm text-slate-600 leading-relaxed" data-testid="admin-people-intro">
           <strong>Access Control Center</strong> is the source of truth for multi-portal accounts.
           <strong> Unified Directory</strong> is the searchable identity index.

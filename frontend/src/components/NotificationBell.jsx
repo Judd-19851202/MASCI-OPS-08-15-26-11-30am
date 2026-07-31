@@ -210,7 +210,7 @@ function playChime() {
   } catch { /* silent */ }
 }
 
-export default function NotificationBell({ accent = "slate" }) {
+export default function NotificationBell({ accent = "slate", variant = "default" }) {
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
@@ -219,6 +219,7 @@ export default function NotificationBell({ accent = "slate" }) {
   const [muteUntil, setMuteUntil] = useState(() => readMuteUntil());
   const lastCountRef = useRef(parseInt(sessionStorage.getItem(LAST_COUNT_KEY) || "0", 10) || 0);
   const navigate = useNavigate();
+  const isWp17 = variant === "wp17c";
 
   const muted = muteUntil > Date.now();
 
@@ -380,8 +381,8 @@ export default function NotificationBell({ accent = "slate" }) {
           )}
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col" data-testid="notification-drawer">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-slate-200">
+      <SheetContent side="right" className={`w-full sm:max-w-md p-0 flex flex-col ${isWp17 ? "wp17-drawer" : ""}`} data-testid="notification-drawer">
+        <SheetHeader className={`px-5 pt-5 pb-3 border-b border-slate-200 ${isWp17 ? "wp17-drawer-header" : ""}`}>
           {/* Track 15.1 (2026-06-16) — Defect 3 iPad layout fix:
               pr-12 reserves space for the Shadcn close X (absolute
               right-4 top-4); flex-wrap on the sound row prevents
@@ -450,7 +451,7 @@ export default function NotificationBell({ accent = "slate" }) {
             </p>
           )}
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isWp17 ? "wp17-drawer-list" : ""}`}>
           {loading ? (
             <div className="text-center text-slate-500 py-10 text-sm">Loading…</div>
           ) : items.length === 0 ? (

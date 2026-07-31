@@ -226,9 +226,9 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
+    <div className="wp17-public-shell flex min-h-screen flex-col">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
+      <header className="wp17-public-header">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to="/"
@@ -243,8 +243,40 @@ export default function SignIn() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+      <main className="wp17-public-main flex-1 flex items-center justify-center py-12">
+        <div className="w-full wp17-public-grid items-stretch">
+          <section className="wp17-public-hero" data-testid="sign-in-entry-architecture">
+            <div>
+              <div className="wp17-kicker">Shared experience foundation</div>
+              <h1 className="mt-3 font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-950">
+                {t("One entry. The right workspace. The next safe step.")}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm sm:text-base text-slate-700 leading-relaxed">
+                {t("Use the shared sign-in when your account works across multiple workspaces. If you only use one workspace, the direct links stay available below.")}
+              </p>
+            </div>
+            <div className="space-y-4 mt-8">
+              <div className="wp17-panel bg-white/70">
+                <div className="wp17-kicker">What happens here</div>
+                <div className="mt-2 wp17-panel-title">Clear routing, no guessing</div>
+                <ul className="mt-3 space-y-2 text-sm text-slate-700" data-testid="sign-in-guidance-list">
+                  <li>• {t("Sign in once for shared access across Admin, PM, HR, Shop, Safety, Dispatch, and Leadership.")}</li>
+                  <li>• {t("Return to the right workspace automatically after authentication.")}</li>
+                  <li>• {t("Keep direct workspace links for single-workspace operators.")}</li>
+                </ul>
+              </div>
+              <div className="wp17-panel bg-white/70">
+                <div className="wp17-kicker">Next actions</div>
+                <div className="mt-2 wp17-chip-row">
+                  <span className="wp17-chip !bg-slate-900 !text-white !border-slate-900/20" data-testid="sign-in-next-auth-chip">{t("Authenticate")}</span>
+                  <span className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="sign-in-next-route-chip">{t("Route to workspace")}</span>
+                  <span className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="sign-in-next-help-chip">{t("Open direct portal if needed")}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="wp17-public-card w-full max-w-none p-7 sm:p-9">
           <div className="flex items-center gap-3 mb-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
               <ShieldCheck className="w-6 h-6" />
@@ -414,28 +446,29 @@ export default function SignIn() {
               {t("Single-Workspace Sign-In")}
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <Link to="/pm/login" className="inline-flex items-center min-h-[44px] py-1 text-red-700 hover:underline" data-testid="signin-pm-link">
-                Project Management →
+              <Link to="/pm/login" className="wp17-public-link" data-testid="signin-pm-link">
+                <span>Project Management</span><span aria-hidden="true">→</span>
               </Link>
-              <Link to="/shop/login" className="inline-flex items-center min-h-[44px] py-1 text-orange-700 hover:underline" data-testid="signin-shop-link">
-                Shop Operations →
+              <Link to="/shop/login" className="wp17-public-link" data-testid="signin-shop-link">
+                <span>Shop Operations</span><span aria-hidden="true">→</span>
               </Link>
-              <Link to="/hr/login" className="inline-flex items-center min-h-[44px] py-1 text-purple-700 hover:underline" data-testid="signin-hr-link">
-                Human Resources →
+              <Link to="/hr/login" className="wp17-public-link" data-testid="signin-hr-link">
+                <span>Human Resources</span><span aria-hidden="true">→</span>
               </Link>
-              <Link to="/safety-portal/login" className="inline-flex items-center min-h-[44px] py-1 text-yellow-700 hover:underline" data-testid="signin-safety-link">
-                Safety Operations →
+              <Link to="/safety-portal/login" className="wp17-public-link" data-testid="signin-safety-link">
+                <span>Safety Operations</span><span aria-hidden="true">→</span>
               </Link>
-              <Link to="/dispatch-portal/login" className="inline-flex items-center min-h-[44px] py-1 text-sky-700 hover:underline" data-testid="signin-dispatch-link">
-                Transportation Operations →
+              <Link to="/dispatch-portal/login" className="wp17-public-link" data-testid="signin-dispatch-link">
+                <span>Transportation Operations</span><span aria-hidden="true">→</span>
               </Link>
-              <Link to="/leadership/login" className="inline-flex items-center min-h-[44px] py-1 text-red-700 hover:underline" data-testid="signin-leadership-link">
-                Field Leadership →
+              <Link to="/leadership/login" className="wp17-public-link" data-testid="signin-leadership-link">
+                <span>Field Leadership</span><span aria-hidden="true">→</span>
               </Link>
-              <Link to="/admin/login" className="inline-flex items-center min-h-[44px] py-1 text-slate-900 hover:underline font-bold col-span-2" data-testid="signin-admin-link">
-                Administration →
+              <Link to="/admin/login" className="wp17-public-link col-span-2" data-testid="signin-admin-link">
+                <span>Administration</span><span aria-hidden="true">→</span>
               </Link>
             </div>
+          </div>
           </div>
         </div>
       </main>

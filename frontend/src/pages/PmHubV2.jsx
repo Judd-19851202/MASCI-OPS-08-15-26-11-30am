@@ -316,8 +316,10 @@ export default function PmHubV2() {
       <PortalShell
         portalName="MASCI"
         portalRole="Project Management"
-        pageTitle="What requires your attention today?"
-        subtitle="PM purpose: build projects. Every queue below is a live count — open it to see what needs your attention today."
+        experienceLevel="wp17c"
+        experienceTone="pm"
+        pageTitle="Project Management"
+        subtitle="Today’s PM decisions, blockers, and the next queue to open — with less noise and no dead-end navigation."
         sideNav={<PmSideNavV2 />}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -330,6 +332,23 @@ export default function PmHubV2() {
           </span>
         }
       >
+        <section className="wp17-mission-banner" data-testid="pm-hub-v2-mission-banner">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-white">Build the project by clearing the next real blocker.</h2>
+              <p className="mt-3 text-sm sm:text-base">
+                Start with the action queues that can change today’s outcome. Everything below opens a live route, not a placeholder or summary-only surface.
+              </p>
+            </div>
+            <div className="wp17-chip-row">
+              <Link to="/pm/due-today" className="wp17-chip" data-testid="pm-hub-v2-next-due-today-chip">Due today</Link>
+              <Link to="/pm/holds" className="wp17-chip" data-testid="pm-hub-v2-next-holds-chip">Unified holds</Link>
+              <Link to="/pm/command-center" className="wp17-chip" data-testid="pm-hub-v2-next-command-center-chip">Command Center</Link>
+            </div>
+          </div>
+        </section>
+
         {/* Section 1 — Action queues. Real APIs, real counts, real destinations. */}
         <Section
           kicker="01 · Action queues · live"

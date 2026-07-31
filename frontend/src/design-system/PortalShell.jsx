@@ -108,6 +108,8 @@ export function PortalShell({
   portalSwitcherCurrent = null,
   hideProviderLine = false,
   shellTheme = null,
+  experienceLevel = null,
+  experienceTone = "default",
   onSignOut = null,
   sideNav = null,
   children,
@@ -126,9 +128,11 @@ export function PortalShell({
   const notificationAccent = isAdminTheme ? "white" : "slate";
   const portalSwitcherVariant = isAdminTheme ? "dark" : "light";
   const langToggleVariant = isAdminTheme ? "dark" : "light";
+  const isWp17 = experienceLevel === "wp17c";
   const rootClasses = [
     "wp16-shell min-h-screen flex flex-col",
     isAdminTheme ? "wp16-shell--admin" : "",
+    isWp17 ? `wp17-shell wp17-shell--${experienceTone}` : "",
     className,
   ].filter(Boolean).join(" ");
   const topControlClasses = isAdminTheme
@@ -184,7 +188,7 @@ export function PortalShell({
             ) : null}
             {showNotifications ? (
               <div data-testid="ds-portal-shell-notifications">
-                <NotificationBell accent={notificationAccent} />
+                <NotificationBell accent={notificationAccent} variant={isWp17 ? "wp17c" : "default"} />
               </div>
             ) : null}
             {showPortalSwitcher ? (
@@ -231,7 +235,7 @@ export function PortalShell({
           </div>
 
           <div className="ml-auto flex items-center gap-2 xl:hidden">
-            {showNotifications ? <NotificationBell accent={notificationAccent} /> : null}
+            {showNotifications ? <NotificationBell accent={notificationAccent} variant={isWp17 ? "wp17c" : "default"} /> : null}
             <Popover>
               <PopoverTrigger asChild>
                 <button
@@ -338,7 +342,7 @@ export function PortalShell({
               </div>
 
               {alertSlot ? <div className="mb-4">{alertSlot}</div> : null}
-              <main data-testid="ds-portal-shell-content">{children}</main>
+              <main data-testid="ds-portal-shell-content" className={isWp17 ? "wp17-shell-content" : undefined}>{children}</main>
             </div>
           </div>
         </div>
@@ -355,11 +359,13 @@ export function PortalShell({
         showNotifications={showNotifications}
         sideNav={sideNav}
         theme={theme}
+        experienceLevel={experienceLevel}
+        experienceTone={experienceTone}
         data-testid="ds-portal-shell-mobile-navigation"
       />
 
       {!hideProviderLine ? (
-        <footer data-testid="ds-portal-shell-footer" className="mt-6 border-t border-[color:var(--border-hairline)] bg-white/80 py-3">
+        <footer data-testid="ds-portal-shell-footer" className={`mt-6 border-t border-[color:var(--border-hairline)] bg-white/80 py-3 ${isWp17 ? "wp17-shell-footer" : ""}`}>
           <div className="mx-auto flex max-w-[var(--content-max-width)] items-center justify-between gap-3 px-4 sm:px-6">
             <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-[color:var(--ink-soft)]">
               {platformDisplay}

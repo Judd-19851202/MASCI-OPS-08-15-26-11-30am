@@ -47,12 +47,12 @@ export default function AssetProfile() {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return (
-    <AdminShell title="Asset Profile">
+    <AdminShell title="Asset Profile" section="equipment" experienceLevel="wp17c" experienceTone="admin">
       <div className="text-center text-slate-500 py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
     </AdminShell>
   );
   if (!data || data.error) return (
-    <AdminShell title="Asset Profile">
+    <AdminShell title="Asset Profile" section="equipment" experienceLevel="wp17c" experienceTone="admin">
       <div className="text-center text-red-700 py-12">{data?.error || "Asset not found"}</div>
     </AdminShell>
   );
@@ -61,7 +61,7 @@ export default function AssetProfile() {
   const statusCls = STATUS_PILL[data.current_status] || STATUS_PILL.Unknown;
 
   return (
-    <AdminShell title="Asset Profile">
+    <AdminShell title="Asset Profile" section="equipment" experienceLevel="wp17c" experienceTone="admin">
       <div className="max-w-6xl mx-auto" data-testid="asset-profile-page">
         <div className="flex items-center justify-between gap-3 mb-4">
           <Button variant="outline" size="sm" onClick={() => nav(-1)} data-testid="asset-profile-back">
@@ -73,7 +73,7 @@ export default function AssetProfile() {
         </div>
 
         {/* Hero */}
-        <div className="bg-white border border-slate-200 rounded-md p-5 mb-4">
+        <div className="wp17-detail-hero mb-4">
           <div className="flex items-start gap-4 flex-wrap">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-slate-900 text-white shrink-0">
               <Truck className="w-7 h-7" />
@@ -139,7 +139,7 @@ function Field({ label, value }) {
 
 function OverviewSection({ overview }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-md p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="ap-overview">
+    <div className="wp17-panel grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="ap-overview">
       <Field label="Asset ID"      value={overview.id} />
       <Field label="Unit #"        value={overview.unit_number} />
       <Field label="Name"          value={overview.name} />

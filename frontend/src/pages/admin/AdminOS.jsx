@@ -688,8 +688,10 @@ export default function AdminOS() {
       <PortalShell
         portalName="MASCI"
         portalRole="Admin"
+        experienceLevel="wp17c"
+        experienceTone="admin"
         pageTitle="Admin Operating System"
-        subtitle="Ten operational domains · one home per domain · live status from real endpoints."
+        subtitle="One governed command surface for platform posture, domain ownership, and the next safe action."
         primaryActions={
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <Button
@@ -734,9 +736,26 @@ export default function AdminOS() {
         {/* Root of the Admin OS — breadcrumb makes the location obvious. */}
         <AdminBreadcrumb crumbs={[]} testidPrefix="admin-os-breadcrumb" />
 
+        <section className="wp17-mission-banner mb-6" data-testid="admin-os-mission-banner">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-white">Run the platform without hunting for the right domain.</h2>
+              <p className="mt-3 text-sm sm:text-base">
+                Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.
+              </p>
+            </div>
+            <div className="wp17-chip-row">
+              <Link to="/admin/operations-control" className="wp17-chip" data-testid="admin-os-next-occ-chip">Operations Control</Link>
+              <Link to="/admin/governance-trust" className="wp17-chip" data-testid="admin-os-next-governance-chip">Governance &amp; Trust</Link>
+              <Link to="/admin/platform-configuration" className="wp17-chip" data-testid="admin-os-next-config-chip">Platform Configuration</Link>
+            </div>
+          </div>
+        </section>
+
         {/* ── Overall posture strip ─────────────────────────────── */}
         <section
-          className="mb-6 wp16-card wp16-hairline-grid flex flex-wrap items-center gap-4 p-4 sm:p-5"
+          className="mb-6 wp16-card wp16-hairline-grid flex flex-wrap items-center gap-4 p-4 sm:p-5 wp17-panel"
           data-testid="admin-os-posture"
         >
           <div className="min-w-0">
@@ -759,45 +778,55 @@ export default function AdminOS() {
               </span>
             </div>
           </div>
-          <div className="md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          <div className="md:ml-auto wp17-metric-grid text-sm">
             <div data-testid="admin-os-count-healthy">
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              <div className="wp17-metric-card">
+                <div className="wp17-metric-card__label">
                 Healthy
-              </div>
-              <div className="font-black text-emerald-700 text-xl leading-none">
+                </div>
+                <div className="wp17-metric-card__value text-emerald-700">
                 {displaySummary ? displaySummary.healthy : "—"}
+                </div>
               </div>
             </div>
             <div data-testid="admin-os-count-warning">
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              <div className="wp17-metric-card">
+                <div className="wp17-metric-card__label">
                 Attention
-              </div>
-              <div className="font-black text-amber-700 text-xl leading-none">
+                </div>
+                <div className="wp17-metric-card__value text-amber-700">
                 {displaySummary ? displaySummary.warning : "—"}
+                </div>
               </div>
             </div>
             <div data-testid="admin-os-count-critical">
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              <div className="wp17-metric-card">
+                <div className="wp17-metric-card__label">
                 Critical
-              </div>
-              <div className="font-black text-rose-700 text-xl leading-none">
+                </div>
+                <div className="wp17-metric-card__value text-rose-700">
                 {displaySummary ? displaySummary.critical : "—"}
+                </div>
               </div>
             </div>
             <div data-testid="admin-os-count-wiring">
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              <div className="wp17-metric-card">
+                <div className="wp17-metric-card__label">
                 Awaiting signal
-              </div>
-              <div className="font-black text-slate-600 text-xl leading-none">
+                </div>
+                <div className="wp17-metric-card__value text-slate-600">
                 {displaySummary ? displaySummary.wiring : "—"}
+                </div>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              <div className="wp17-metric-card">
+                <div className="wp17-metric-card__label">
                 Total domains
-              </div>
-              <div className="font-black text-slate-800 text-xl leading-none">
+                </div>
+                <div className="wp17-metric-card__value text-slate-800">
                 {displaySummary ? DOMAINS.length : "—"}
+                </div>
               </div>
             </div>
           </div>
@@ -825,7 +854,7 @@ export default function AdminOS() {
         {/* ── Trust note ─────────────────────────────────────── */}
         <div
           data-testid="admin-os-trace-note"
-          className="mt-6 rounded-[var(--radius-card)] border border-dashed border-[color:var(--border-bold)] bg-white p-4 text-[12px] text-[color:var(--ink-soft)] shadow-sm"
+          className="mt-6 rounded-[var(--radius-card)] border border-dashed border-[color:var(--border-bold)] bg-white p-4 text-[12px] text-[color:var(--ink-soft)] shadow-sm wp17-panel"
         >
           <strong className="text-[color:var(--ink-strong)]">
             Platform command center.

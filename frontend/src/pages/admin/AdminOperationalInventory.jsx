@@ -102,10 +102,10 @@ export default function AdminOperationalInventory() {
   const driftItems = snap?.drift?.items || [];
 
   return (
-    <AdminShell title="Operational Inventory">
+    <AdminShell title="Operational Inventory" section="operational-inventory" experienceLevel="wp17c" experienceTone="admin">
       <div className="space-y-6" data-testid="admin-operational-inventory-panel">
         {/* Header */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="wp17-table-shell flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="text-xs font-mono uppercase tracking-widest text-slate-500">
               Governance · Pass 2 · Read-Only
@@ -141,7 +141,7 @@ export default function AdminOperationalInventory() {
 
         {/* Stat strip */}
         {snap && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="inventory-stat-strip">
+          <div className="wp17-metric-grid" data-testid="inventory-stat-strip">
             <Stat label="Portals" value={snap.totals.portals} />
             <Stat label="User types" value={snap.totals.user_types} />
             <Stat label="Public routes" value={snap.totals.public_routes} />
@@ -154,7 +154,7 @@ export default function AdminOperationalInventory() {
         )}
 
         {/* Tabs */}
-        <div className="border-b border-slate-200 flex flex-wrap gap-1" data-testid="inventory-tabs">
+        <div className="wp17-panel border-b border-slate-200 flex flex-wrap gap-1" data-testid="inventory-tabs">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -198,15 +198,15 @@ export default function AdminOperationalInventory() {
 
 function Stat({ label, value, tone = "slate" }) {
   const tones = {
-    slate:   "border-slate-200 bg-white",
-    red:     "border-red-300 bg-red-50",
-    amber:   "border-amber-300 bg-amber-50",
-    emerald: "border-emerald-300 bg-emerald-50",
+    slate:   "text-slate-900",
+    red:     "text-red-700",
+    amber:   "text-amber-700",
+    emerald: "text-emerald-700",
   };
   return (
-    <div className={`border rounded p-3 ${tones[tone] || tones.slate}`}>
-      <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500">{label}</div>
-      <div className="text-2xl font-bold text-slate-900 mt-1">{value}</div>
+    <div className="wp17-metric-card">
+      <div className="wp17-metric-card__label">{label}</div>
+      <div className={`wp17-metric-card__value mt-1 ${tones[tone] || tones.slate}`}>{value}</div>
     </div>
   );
 }

@@ -16,18 +16,21 @@ export function MobileNavigation({
   showNotifications = true,
   sideNav = null,
   theme = "default",
+  experienceLevel = null,
+  experienceTone = "default",
   className = "",
   "data-testid": testId = "ds-mobile-navigation",
 }) {
   if (!showHome && !showBack && !showSearch && !showNotifications && !sideNav) return null;
 
   const isAdminTheme = theme === "admin";
+  const isWp17 = experienceLevel === "wp17c";
   const navButtonClasses = isAdminTheme
     ? "wp16-focus-ring inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-slate-700 bg-slate-900/18 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-slate-800/42"
     : "wp16-focus-ring inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-[color:var(--border-bold)] bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-strong)] shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-[color:var(--paper-card-muted)]";
 
   return (
-    <div className={`xl:hidden fixed inset-x-0 bottom-0 z-40 wp16-bottom-dock ${className}`} data-testid={testId}>
+    <div className={`xl:hidden fixed inset-x-0 bottom-0 z-40 wp16-bottom-dock ${isWp17 ? `wp17-mobile-dock wp17-mobile-dock--${experienceTone}` : ""} ${className}`} data-testid={testId}>
       <div className="grid grid-cols-4 gap-2 px-3 py-2.5" style={{ paddingBottom: "calc(0.625rem + env(safe-area-inset-bottom, 0px))" }}>
         <div className="flex justify-center">
           {showHome ? (
@@ -48,7 +51,7 @@ export function MobileNavigation({
         <div className="flex justify-center">
           {showNotifications ? (
             <div className={`flex h-12 w-full items-center justify-center rounded-[var(--radius-control)] border shadow-sm ${isAdminTheme ? "border-slate-700 bg-slate-900/18" : "border-[color:var(--border-bold)] bg-white"}`}>
-              <NotificationBell accent={isAdminTheme ? "white" : "slate"} />
+              <NotificationBell accent={isAdminTheme ? "white" : "slate"} variant={isWp17 ? "wp17c" : "default"} />
             </div>
           ) : <div />}
         </div>
@@ -63,7 +66,7 @@ export function MobileNavigation({
               </SheetTrigger>
               <SheetContent
                 side="bottom"
-                className={`flex h-[86dvh] max-h-[calc(100dvh-0.5rem)] min-h-0 flex-col overflow-hidden rounded-t-[1.5rem] p-0 ${isAdminTheme ? "border-slate-800 bg-slate-950 text-slate-100" : ""}`}
+                className={`flex h-[86dvh] max-h-[calc(100dvh-0.5rem)] min-h-0 flex-col overflow-hidden rounded-t-[1.5rem] p-0 ${isAdminTheme ? "border-slate-800 bg-slate-950 text-slate-100" : ""} ${isWp17 ? "wp17-mobile-sheet" : ""}`}
                 data-testid={`${testId}-menu-sheet-frame`}
               >
                 <SheetHeader

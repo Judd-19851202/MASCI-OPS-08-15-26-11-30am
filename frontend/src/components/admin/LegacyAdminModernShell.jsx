@@ -50,6 +50,8 @@ export default function LegacyAdminModernShell({
   breadcrumb = [],
   primaryActions = null,
   testidPrefix = "legacy-admin-modern",
+  experienceLevel = null,
+  experienceTone = "admin",
   onSignOut = null,
   signOutCapability = null,
   children,
@@ -77,6 +79,8 @@ export default function LegacyAdminModernShell({
         portalName="MASCI"
         portalRole="Admin"
         shellTheme="admin"
+        experienceLevel={experienceLevel}
+        experienceTone={experienceTone}
         pageTitle={title}
         subtitle={subtitle}
         primaryActions={actions}
