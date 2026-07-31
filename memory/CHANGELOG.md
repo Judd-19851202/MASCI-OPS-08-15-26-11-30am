@@ -1,3 +1,10 @@
+# 2026-07-31 — WP-17B blueprint lock
+
+- Replaced placeholder WP-17B audit drafts with source-verified blueprint documents in `/app/WP17B_*.md`.
+- Reconciled the audit against live route configuration, nested Transportation routes, sidebar/domain maps, hub shells, backend route owners, and existing certification registers.
+- Locked authoritative executive totals: `1190` surfaces, `13` portals/families, `481` routes, `113` hidden/detail surfaces, `66` forms, `15` PDF sources, `14` email/template sources, `253` navigation items, `64` component families, `8` terminology conflicts, `11` coaching/help findings.
+- Preserved discrepancy history for earlier placeholder claims and grep-style PDF/email numbers; no redesign or WP-17C implementation was started.
+
 # 2026-07-30 — WP-16 Phase 6 Admin visual corrective repair
 
 - User rejected the previous Admin checkpoint for a whitewashed visual regression; no other portal work was started.

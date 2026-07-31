@@ -1,3 +1,23 @@
+# 2026-07-31 — WP-17B blueprint lock roadmap update
+
+## Current top priority
+
+- **WP-17B Platform Experience, Information Architecture & Design Standard Master Audit is complete.**
+- **WP-17C must not begin until explicit executive authorization is given.**
+- **Preview remains the only writable lane. Production is already deployed and was not changed here.**
+
+## P0
+- preserve the locked WP-17B blueprint package
+- await explicit WP-17C authorization
+- use the repair register and roadmap as the only allowed WP-17C scope source
+
+## P1
+- on authorization, begin with entry architecture + Admin IA + navigation canon
+- preserve companion-lane compatibility until route canon is approved
+
+## P2
+- execute terminology, coaching, white-label, and final responsive closeout under WP-17F/G/H sequence
+
 # 2026-07-31 — WP-16A closeout roadmap update
 
 ## WP-17A production blocker
