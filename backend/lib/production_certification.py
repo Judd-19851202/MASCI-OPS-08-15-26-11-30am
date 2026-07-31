@@ -28,6 +28,7 @@ Rules locked by regression:
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -41,7 +42,324 @@ STATUS_BLOCKED = "BLOCKED"
 STATUS_STALE = "STALE"
 
 FRESHNESS_WINDOW = timedelta(days=2)
-WORKFLOW_FRESHNESS_WINDOWS: Dict[str, timedelta] = {}
+
+
+@dataclass(frozen=True)
+class WorkflowCertificationPolicy:
+    workflow: str
+    evidence_type: str
+    freshness_sla_hours: float
+    acceptable_execution_frequency: str
+    terminal_success_criteria: str
+    stale_threshold_hours: float
+    failure_threshold: str
+    not_applicable_behavior: str
+    rationale: str
+
+
+WORKFLOW_CERTIFICATION_POLICIES: Dict[str, WorkflowCertificationPolicy] = {
+    "daily-report": WorkflowCertificationPolicy(
+        workflow="daily-report",
+        evidence_type="daily report submission + notification proof chain",
+        freshness_sla_hours=36,
+        acceptable_execution_frequency="daily / every operating day",
+        terminal_success_criteria="completed or completed_for_environment with status=ok after routing, recipients, queue/audit chain",
+        stale_threshold_hours=36,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="never silently pass; remains NOT_YET_EXERCISED until a terminal success exists",
+        rationale="Daily reports are expected frequently enough that evidence older than roughly one workday is stale.",
+    ),
+    "meeting": WorkflowCertificationPolicy(
+        workflow="meeting",
+        evidence_type="meeting record delivery lifecycle",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="at least weekly when the workflow is in active operational use",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="if the workflow is not used in the period, retain NOT_YET_EXERCISED; do not auto-promote to VERIFIED",
+        rationale="Meeting workflows are recurring but not guaranteed daily, so a weekly freshness window is operationally defensible.",
+    ),
+    "inspection": WorkflowCertificationPolicy(
+        workflow="inspection",
+        evidence_type="inspection submission + delivery lifecycle",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="at least weekly while inspection workflows are active",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until real evidence exists",
+        rationale="Inspections are operationally frequent but not guaranteed multiple times per day across all tenants.",
+    ),
+    "incident": WorkflowCertificationPolicy(
+        workflow="incident",
+        evidence_type="incident submission + delivery lifecycle",
+        freshness_sla_hours=336,
+        acceptable_execution_frequency="event-driven; evidence should refresh within 14 days in a live safety program",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=336,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="do not fabricate green when no incidents occur; remain NOT_YET_EXERCISED or STALE based on last real evidence",
+        rationale="Incident workflows are event-driven, so the window must be longer than daily scheduled workflows.",
+    ),
+    "jha": WorkflowCertificationPolicy(
+        workflow="jha",
+        evidence_type="JHA submission + delivery lifecycle",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="at least weekly on active crews",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a real JHA lifecycle succeeds",
+        rationale="JHAs are common field workflows and should show fresh evidence at least weekly.",
+    ),
+    "qaqc": WorkflowCertificationPolicy(
+        workflow="qaqc",
+        evidence_type="QA/QC submission + delivery lifecycle",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="at least weekly on active work",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a real QA/QC lifecycle succeeds",
+        rationale="QA/QC workflows are recurring but not guaranteed daily.",
+    ),
+    "equipment-inspection": WorkflowCertificationPolicy(
+        workflow="equipment-inspection",
+        evidence_type="equipment inspection submission + delivery lifecycle",
+        freshness_sla_hours=72,
+        acceptable_execution_frequency="multiple times per week while equipment operations are active",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=72,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until inspection evidence exists",
+        rationale="Equipment inspections are higher-cadence operational safety checks and should remain fresher than generic weekly workflows.",
+    ),
+    "dvir": WorkflowCertificationPolicy(
+        workflow="dvir",
+        evidence_type="DVIR submission + delivery lifecycle",
+        freshness_sla_hours=36,
+        acceptable_execution_frequency="daily while fleet operations are active",
+        terminal_success_criteria="completed status=ok after provider accepted and audit written",
+        stale_threshold_hours=36,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a real DVIR lifecycle succeeds",
+        rationale="DVIR is a daily fleet-safety workflow and needs a tighter SLA.",
+    ),
+    "hr-request": WorkflowCertificationPolicy(
+        workflow="hr-request",
+        evidence_type="HR request intake lifecycle",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly or on demand",
+        terminal_success_criteria="completed status=ok after validation, routing, dashboard update, and audit write",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until an HR request lifecycle succeeds",
+        rationale="HR requests are important but event-driven; a weekly SLA is operationally reasonable.",
+    ),
+    "dispatch-assignment": WorkflowCertificationPolicy(
+        workflow="dispatch-assignment",
+        evidence_type="dispatch assignment routing lifecycle",
+        freshness_sla_hours=72,
+        acceptable_execution_frequency="several times per week in active dispatch operations",
+        terminal_success_criteria="completed status=ok after routing, dashboard update, and audit write",
+        stale_threshold_hours=72,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until real dispatch evidence exists",
+        rationale="Dispatch is operationally frequent and should not stay unverified for long.",
+    ),
+    "operational-events-materialization": WorkflowCertificationPolicy(
+        workflow="operational-events-materialization",
+        evidence_type="system materialization lifecycle",
+        freshness_sla_hours=24,
+        acceptable_execution_frequency="multiple times per day",
+        terminal_success_criteria="completed status=ok after validation, routing, audit write, and dashboard update",
+        stale_threshold_hours=24,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="never not applicable in a live production system",
+        rationale="Operational event materialization underpins trust dashboards and must stay very fresh.",
+    ),
+    "shop-defect": WorkflowCertificationPolicy(
+        workflow="shop-defect",
+        evidence_type="shop defect lifecycle",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly or on demand",
+        terminal_success_criteria="completed status=ok after routing, dashboard update, and audit write",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until real defect evidence exists",
+        rationale="Shop defects are operational but event-driven.",
+    ),
+    "oppc-cost-code-plan": WorkflowCertificationPolicy(
+        workflow="oppc-cost-code-plan",
+        evidence_type="OPPC cost code planning run",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly planning cadence",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a valid planning run exists",
+        rationale="Cost-code planning aligns with weekly operational planning.",
+    ),
+    "oppc-weekly-rollover": WorkflowCertificationPolicy(
+        workflow="oppc-weekly-rollover",
+        evidence_type="weekly rollover automation",
+        freshness_sla_hours=192,
+        acceptable_execution_frequency="weekly",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=192,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="never silently pass; stale once beyond the weekly window",
+        rationale="Weekly rollover is a true weekly control and should allow a small scheduling buffer.",
+    ),
+    "oppc-daily-actuals": WorkflowCertificationPolicy(
+        workflow="oppc-daily-actuals",
+        evidence_type="daily actuals rollup",
+        freshness_sla_hours=36,
+        acceptable_execution_frequency="daily / every operating day",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=36,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="never silently pass in active production",
+        rationale="Daily actuals are a daily executive metric dependency.",
+    ),
+    "oppc-payroll-reconciliation": WorkflowCertificationPolicy(
+        workflow="oppc-payroll-reconciliation",
+        evidence_type="payroll reconciliation run",
+        freshness_sla_hours=192,
+        acceptable_execution_frequency="weekly",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=192,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a real payroll reconciliation run succeeds",
+        rationale="Payroll reconciliation is periodic, not daily.",
+    ),
+    "oppc-monday-look-behind": WorkflowCertificationPolicy(
+        workflow="oppc-monday-look-behind",
+        evidence_type="Monday look-behind planning run",
+        freshness_sla_hours=192,
+        acceptable_execution_frequency="weekly on Monday cadence",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=192,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="STALE once beyond weekly cadence; do not auto-green between weeks",
+        rationale="Monday look-behind is inherently weekly.",
+    ),
+    "oppc-variance-intelligence": WorkflowCertificationPolicy(
+        workflow="oppc-variance-intelligence",
+        evidence_type="variance intelligence run",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly or more often during active forecasting cycles",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a valid variance run exists",
+        rationale="Variance intelligence informs weekly operational decisions.",
+    ),
+    "oppc-recovery-intelligence": WorkflowCertificationPolicy(
+        workflow="oppc-recovery-intelligence",
+        evidence_type="recovery intelligence run",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a real recovery run exists",
+        rationale="Recovery intelligence is planning-oriented and does not need a daily SLA.",
+    ),
+    "oppc-enterprise-resource-coordination": WorkflowCertificationPolicy(
+        workflow="oppc-enterprise-resource-coordination",
+        evidence_type="resource coordination run",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a valid coordination run exists",
+        rationale="Resource coordination is periodic planning evidence.",
+    ),
+    "oppc-forecasting": WorkflowCertificationPolicy(
+        workflow="oppc-forecasting",
+        evidence_type="forecasting run",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly or more often in active forecasting periods",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a valid forecasting run exists",
+        rationale="Forecasting is periodic, not per-request interactive evidence.",
+    ),
+    "oppc-monday-morning-briefing": WorkflowCertificationPolicy(
+        workflow="oppc-monday-morning-briefing",
+        evidence_type="Monday briefing package run",
+        freshness_sla_hours=192,
+        acceptable_execution_frequency="weekly on Monday cadence",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=192,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="STALE once beyond weekly cadence; do not auto-green between weeks",
+        rationale="Monday briefing is a weekly executive artifact.",
+    ),
+    "oppc-production-confidence": WorkflowCertificationPolicy(
+        workflow="oppc-production-confidence",
+        evidence_type="production confidence rollup",
+        freshness_sla_hours=168,
+        acceptable_execution_frequency="weekly",
+        terminal_success_criteria="completed status=ok after validation, audit, and dashboard update",
+        stale_threshold_hours=168,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="NOT_YET_EXERCISED until a confidence rollup succeeds",
+        rationale="Production confidence is an executive rollup with at least weekly expectations.",
+    ),
+    "oppc-daily-report-proof-chain": WorkflowCertificationPolicy(
+        workflow="oppc-daily-report-proof-chain",
+        evidence_type="daily report proof-chain control run",
+        freshness_sla_hours=36,
+        acceptable_execution_frequency="daily / every operating day",
+        terminal_success_criteria="completed status=ok after routing, recipients, queue, audit, and proof-chain completion",
+        stale_threshold_hours=36,
+        failure_threshold="most recent terminal event is failed",
+        not_applicable_behavior="never silently pass in active production",
+        rationale="The proof chain protects daily report executive trust and should remain on a daily cadence.",
+    ),
+}
+
+WORKFLOW_FRESHNESS_WINDOWS: Dict[str, timedelta] = {
+    workflow: timedelta(hours=policy.freshness_sla_hours)
+    for workflow, policy in WORKFLOW_CERTIFICATION_POLICIES.items()
+}
+
+
+def _policy_for_workflow(workflow: str) -> WorkflowCertificationPolicy:
+    return WORKFLOW_CERTIFICATION_POLICIES.get(
+        workflow,
+        WorkflowCertificationPolicy(
+            workflow=workflow,
+            evidence_type="workflow terminal success evidence",
+            freshness_sla_hours=FRESHNESS_WINDOW.total_seconds() / 3600.0,
+            acceptable_execution_frequency="operator-defined",
+            terminal_success_criteria="completed terminal stage with status=ok",
+            stale_threshold_hours=FRESHNESS_WINDOW.total_seconds() / 3600.0,
+            failure_threshold="most recent terminal event is failed",
+            not_applicable_behavior="remain NOT_YET_EXERCISED unless an explicit policy marks the workflow not applicable",
+            rationale="Fallback policy for unclassified workflow; classify explicitly before executive closeout.",
+        ),
+    )
+
+
+def _policy_payload(workflow: str) -> Dict[str, Any]:
+    policy = _policy_for_workflow(workflow)
+    return {
+        "workflow": policy.workflow,
+        "evidence_type": policy.evidence_type,
+        "freshness_sla_hours": policy.freshness_sla_hours,
+        "acceptable_execution_frequency": policy.acceptable_execution_frequency,
+        "terminal_success_criteria": policy.terminal_success_criteria,
+        "stale_threshold_hours": policy.stale_threshold_hours,
+        "failure_threshold": policy.failure_threshold,
+        "not_applicable_behavior": policy.not_applicable_behavior,
+        "rationale": policy.rationale,
+    }
 
 
 async def _latest_terminal_success(db, workflow: str, status: Optional[str] = None):
@@ -370,6 +688,7 @@ async def build_certification(db) -> Dict[str, Any]:
             "freshness_window_hours": round(_freshness_window_for_workflow(wf).total_seconds() / 3600.0, 2),
             "freshness_policy_source": "default_global" if wf not in WORKFLOW_FRESHNESS_WINDOWS else "workflow_override",
             "evidence_age_hours": _evidence_age_hours((latest or {}).get("ts")),
+            "policy": _policy_payload(wf),
             "first_verified_at": (first_ok or {}).get("ts"),
             "last_verified_at": (latest_ok or {}).get("ts"),
             "successful_deliveries": ok_count,
@@ -439,6 +758,10 @@ async def build_certification(db) -> Dict[str, Any]:
                 key: round(value.total_seconds() / 3600.0, 2)
                 for key, value in WORKFLOW_FRESHNESS_WINDOWS.items()
             },
+            "workflow_policies": {
+                workflow: _policy_payload(workflow)
+                for workflow in WORKFLOW_EXPECTED_STAGES.keys()
+            },
         },
         "kpi_metadata": {
             "kpi_name": "Production Certification Freshness",
@@ -448,6 +771,7 @@ async def build_certification(db) -> Dict[str, Any]:
             "formula": {
                 "default_freshness_window_hours": round(FRESHNESS_WINDOW.total_seconds() / 3600.0, 2),
                 "statuses": [STATUS_VERIFIED, STATUS_FAILED, STATUS_NOT_YET_EXERCISED, STATUS_BLOCKED, STATUS_STALE],
+                "workflow_specific_policy_count": len(WORKFLOW_CERTIFICATION_POLICIES),
             },
             "confidence": "HIGH",
             "status_reason": "A workflow does not become VERIFIED from HTTP reachability alone; terminal business evidence is required.",

@@ -39,3 +39,5 @@ Status: IN PROGRESS
   - master-binding coverage now uses an eligible-record denominator and surfaces review/backfill metadata
   - ambiguous employee-link findings can now be materialized into an auditable review queue
   - storage audit now exposes thresholds, largest consumers, retention classes, cleanup projection, protected paths, and last cleanup evidence
+  - production certification now exposes workflow-specific evidence policies rather than relying only on one universal freshness timer
+  - shared trust evidence drawers can now surface KPI metadata / "why this number?" details when the API provides them

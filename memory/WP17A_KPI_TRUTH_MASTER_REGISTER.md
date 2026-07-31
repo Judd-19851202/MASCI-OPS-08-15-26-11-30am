@@ -408,3 +408,57 @@ Current batch-1 verification state:
 - Repair status: VERIFIED FIXED
 - Verification evidence: `test_wp17a_binding_storage_truth.py`
 - Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-015
+- Portal: Diagnostics / AI Ops / Governance Trust
+- Page: trust-shell production certification surfaces
+- KPI or status name: Workflow-specific production certification freshness policy
+- User-facing label: production certification freshness / stale workflow status
+- Current displayed value: workflow rows now carry policy definitions and workflow-specific SLAs
+- Current displayed status/color: remediation in progress
+- Backend endpoint: `/api/admin/production-certification`
+- Source collection/table/service: `trust_spine_events` + workflow certification policy catalog
+- Formula: per-workflow policy for evidence type, acceptable execution frequency, terminal success criteria, stale threshold, failure threshold, and not-applicable behavior
+- Filters: workflow-specific
+- Denominator: workflow catalog
+- Date range: latest qualifying evidence per workflow
+- Tenant scope: platform-wide
+- Role scope: admin-only
+- Refresh frequency: on request
+- Cache behavior: none
+- Last refresh: preview repair batch 2026-07-31
+- Data age: current evidence timestamps per workflow
+- Confidence level: HIGH
+- Drill-down destination: diagnostics trust evidence drawer
+- Current defect classification: prior model exposed a universal freshness timer without enough workflow-specific operational rationale
+- Severity: P1
+- Repair status: VERIFIED FIXED
+- Verification evidence: `test_wp17a_governance_r2_truth.py`
+- Final disposition: preview-fixed; deployment pending
+
+### WP17A-KPI-016
+- Portal: Shared trust-shell KPI surfaces
+- Page: diagnostics / governance trust / AI ops / future trust surfaces
+- KPI or status name: KPI metadata capability
+- User-facing label: "Why this number?"
+- Current displayed value: trust evidence drawers can now render KPI metadata when provided by the backing API
+- Current displayed status/color: remediation in progress
+- Backend endpoint: multiple repaired APIs now include `kpi_metadata`
+- Source collection/table/service: endpoint-specific canonical truth sources
+- Formula: metadata carrier only; not itself a business metric
+- Filters: N/A
+- Denominator: N/A
+- Date range: current API payload
+- Tenant scope: platform-wide
+- Role scope: admin / executive trust surfaces
+- Refresh frequency: on request
+- Cache behavior: none
+- Last refresh: preview repair batch 2026-07-31
+- Data age: current
+- Confidence level: HIGH
+- Drill-down destination: shared evidence drawer
+- Current defect classification: operator lacked structured explanation for number provenance and thresholds
+- Severity: P2
+- Repair status: VERIFIED FIXED
+- Verification evidence: source tracing + trust drawer patch + frontend lint
+- Final disposition: preview-fixed; deployment pending

@@ -49,6 +49,24 @@ function scalarText(value) {
   return String(value);
 }
 
+function renderMetadataRows(meta) {
+  if (!meta) return [];
+  const formula = meta.formula || {};
+  return [
+    ["Business definition", meta.business_definition],
+    ["Source of truth", meta.source_of_truth],
+    ["Calculation", formula],
+    ["Refresh cadence", meta.refresh_cadence],
+    ["Last refresh", meta.last_refresh],
+    ["Data age", meta.data_age],
+    ["Confidence", meta.confidence],
+    ["Thresholds", meta.thresholds],
+    ["Status explanation", meta.status_reason],
+    ["Drill-down target", meta.drilldown_source],
+    ["Owning subsystem", meta.owner],
+  ].filter(([, value]) => value !== undefined && value !== null && value !== "");
+}
+
 function flattenEvidence(value, prefix = "", depth = 0, rows = [], limit = 18) {
   if (rows.length >= limit) return rows;
 
@@ -435,6 +453,26 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
               {card.root_cause_explanation || card.summary}
             </div>
           </div>
+
+          {card.kpi_metadata ? (
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+                Why this number?
+              </div>
+              <dl className="grid gap-2" data-testid={`${testidPrefix}-kpi-metadata`}>
+                {renderMetadataRows(card.kpi_metadata).map(([label, value], index) => (
+                  <div key={`${testidPrefix}-kpi-${index}`} className="rounded-md border border-slate-200 bg-slate-50 p-2">
+                    <dt className="mb-1 text-[10px] font-mono uppercase tracking-widest text-slate-500">{label}</dt>
+                    <dd className="text-xs text-slate-800 break-words">
+                      {isPlainObject(value) || Array.isArray(value) ? (
+                        <EvidenceSummary value={value} testidPrefix={`${testidPrefix}-kpi-${index}-value`} />
+                      ) : scalarText(value)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
 
           {card.affected_assets ? (
             <div>

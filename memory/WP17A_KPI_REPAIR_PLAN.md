@@ -31,3 +31,9 @@ Status: ACTIVE
 - KPI metadata framework and drill-down transparency
 - Multi-page reconciliation audit and automation
 - Remaining portal-by-portal KPI inventory
+
+## Next active lanes
+- broaden workflow policy review from diagnostics into every certification consumer
+- expand `kpi_metadata` beyond repaired surfaces into additional executive / operational KPI endpoints
+- automate representative source→API→UI reconciliations
+- complete portal-by-portal inventory sweep and dispositioning

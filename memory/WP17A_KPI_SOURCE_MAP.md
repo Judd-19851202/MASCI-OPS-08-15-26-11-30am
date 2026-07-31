@@ -19,3 +19,4 @@ Status: ACTIVE
 | Master Binding Audit | Admin deploy readiness / audit tools | `/api/master-lookup/audit` | collection-level canonical binding coverage helper | denominator semantics previously weak |
 | Employee Link Review Queue | Governance remediation | `/api/admin/compliance/employee-link-review-queue` | employee-linkage detector findings | ambiguous findings previously not materialized |
 | Storage Audit / Safe Cleanup | OCC maintenance / storage recovery | `storage.audit`, `storage.safe_cleanup` | local filesystem + cleanup history | lacked thresholds / retention classes / cleanup evidence |
+| Production Certification Policy | Diagnostics / AI Ops / Trust surfaces | `/api/admin/production-certification` | `trust_spine_events` + workflow policy catalog | one-size-fits-all freshness obscured workflow reality |

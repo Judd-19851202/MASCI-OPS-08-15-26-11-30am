@@ -112,3 +112,8 @@ def test_production_certification_freshness_helpers_expose_policy():
     assert prod_cert._freshness_window_for_workflow("nonexistent").total_seconds() == 48 * 3600
     assert prod_cert._evidence_age_hours(ts) >= 3
     assert prod_cert._is_stale(ts, "nonexistent") is False
+    daily = prod_cert._policy_payload("daily-report")
+    weekly = prod_cert._policy_payload("oppc-weekly-rollover")
+    assert daily["freshness_sla_hours"] == 36
+    assert weekly["freshness_sla_hours"] == 192
+    assert "terminal_success_criteria" in daily

@@ -141,6 +141,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
           summary: evaluated.summary || "No summary.",
           recommended_action: evaluated.recommended_action || "",
           checked_at: evaluated.checked_at || null,
+          kpi_metadata: evaluated.kpi_metadata || evaluated.evidence?.kpi_metadata || null,
           evidence: evaluated.evidence || {},
         };
       } catch (e) {

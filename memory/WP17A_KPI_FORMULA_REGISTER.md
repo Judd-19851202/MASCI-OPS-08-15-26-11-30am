@@ -39,3 +39,8 @@ Status: ACTIVE
 - Current formula: `/app` used percent + largest consumers + safe cleanup reclaim projection
 - Problem repaired: prior truth surface lacked thresholds, retention classes, protected evidence disclosure, and cleanup history context
 - Current direction: keep point-in-time truth explicit until local trend history is implemented
+
+### FR-008 — Production Certification Freshness Policy
+- Current formula: per-workflow freshness SLA and terminal success policy
+- Problem repaired: prior truth model exposed a single global freshness window without workflow-specific operational rationale
+- Current direction: classify each workflow by evidence type, acceptable execution frequency, stale threshold, failure threshold, and not-applicable behavior
