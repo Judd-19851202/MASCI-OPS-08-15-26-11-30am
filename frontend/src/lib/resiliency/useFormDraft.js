@@ -89,6 +89,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
   const lastSaveAtMsRef = useRef(0);
   const dataRef = useRef(data);
   const idleTimerRef = useRef(null);
+  const hasLoadedScopeOnceRef = useRef(false);
   // Keep a live ref to the current `data` so the lifecycle listeners
   // (which close over no dep array) always flush the latest state.
   useEffect(() => { dataRef.current = data; }, [data]);
@@ -97,9 +98,11 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      let loadedEntry = null;
       try {
         const deviceActorId = getDeviceScopedActorId();
         const entry = await getDraftEntry(deviceActorId, formKey);
+        loadedEntry = entry;
         // TRACK 19.04 · Form Session Isolation.
         // Only OFFER the draft if it was saved by the currently
         // signed-in portal actor. A draft saved by Actor A on this
@@ -136,7 +139,20 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
       } finally {
         if (!cancelled) {
           setLoaded(true);
-          lastSavedKeyRef.current = JSON.stringify(data || {});
+          if (loadedEntry?.form) {
+            lastSavedKeyRef.current = JSON.stringify(loadedEntry.form || {});
+          } else if (hasLoadedScopeOnceRef.current) {
+            // Scope can legitimately change mid-session (e.g. daily
+            // report operator/project/date becoming known after the
+            // operator starts typing). When that happens, preserve the
+            // current in-memory form as dirty so the debounce writes it
+            // under the newly-resolved scope instead of treating the
+            // unsaved state as already persisted.
+            lastSavedKeyRef.current = null;
+          } else {
+            lastSavedKeyRef.current = JSON.stringify(dataRef.current || {});
+          }
+          hasLoadedScopeOnceRef.current = true;
         }
       }
     })();

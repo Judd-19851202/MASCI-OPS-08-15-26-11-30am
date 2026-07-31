@@ -24,7 +24,7 @@ export default function SmartUnitClassificationChip({ unitNumber, testidPrefix =
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
     api
-      .get(`/asset-spine/taxonomy/by-unit/${encodeURIComponent(u)}`)
+      .get(`/asset-spine/taxonomy/by-unit/${encodeURIComponent(u)}`, { skipSessionStatus: true })
       .then((r) => {
         if (cancelled) return;
         const d = r.data || {};

@@ -11,7 +11,7 @@ describe("useFormDraft mount load dependencies", () => {
       "utf8",
     );
 
-    expect(source).toContain('}, [actorId, formKey]);');
-    expect(source).not.toContain('}, [actorId, data, formKey]);');
+    expect(source).toContain('}, [actorId, formKey, publicAnonymous]);');
+    expect(source).not.toContain('}, [actorId, data, formKey, publicAnonymous]);');
   });
 });

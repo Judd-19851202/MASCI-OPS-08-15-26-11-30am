@@ -7858,9 +7858,12 @@ def _backup_resource_preflight(*, archive_size_bytes: Optional[int] = None) -> D
     if tmp_free < BACKUP_COMPLETE_MIN_FREE_BYTES:
         ok = False
         reasons.append(f"tmp_free_below_floor:{tmp_free}")
-    if app_pct >= 85:
-        ok = False
-        reasons.append(f"app_disk_pressure:{app_pct}")
+    # Complete-R2 archives are built under the system temp volume and then
+    # streamed directly to R2. `/app` disk pressure is therefore diagnostic
+    # for operators, but it must not block the complete-archive path when
+    # temp headroom is sufficient. Using `/app` as a hard guard here caused
+    # false backup deferrals in preview/prod-like runs even with >70 GB free
+    # on the actual build volume.
     if estimated and estimated > BACKUP_COMPLETE_MAX_BUILD_BYTES:
         ok = False
         reasons.append(f"estimated_archive_too_large:{estimated}")
@@ -11800,7 +11803,10 @@ async def admin_run_complete_backup_now(
         db,
         job_type="manual_backup",
         kind=BACKUP_JOB_KIND_COMPLETE_R2,
-        slot_key=backup_slot_key_for_hour(datetime.now(timezone.utc)) + "::manual",
+        slot_key=(
+            backup_slot_key_for_hour(datetime.now(timezone.utc))
+            + f"::manual::{uuid.uuid4().hex[:8]}"
+        ),
         trigger="manual_admin",
         metadata={"requested_by": "admin_run_complete_backup_now"},
     )

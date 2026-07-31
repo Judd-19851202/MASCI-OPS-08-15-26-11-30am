@@ -876,6 +876,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 }}
                 placeholder={t("Type or pick from roster…")}
                 testId="input-operator-name"
+                publicFallback={publicMode}
               />
               {(data.operator_name || "").trim() ? (
                 data.operator_id ? (

@@ -225,11 +225,17 @@ async def _affected_orientation(db, *, kind: str) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     persons = await db.transport_persons.find(
         {"tenant": TENANT}).to_list(2000)
+    cert_rows = await db.transport_certificates.find(
+        {"tenant": TENANT}, {"_id": 0},
+    ).sort("issued_at", -1).to_list(4000)
+    latest_certs: Dict[str, Dict[str, Any]] = {}
+    for cert in cert_rows:
+        person_id = cert.get("transport_person_id")
+        if person_id and person_id not in latest_certs:
+            latest_certs[person_id] = cert
     now = _now()
     for p in persons:
-        cert = await db.transport_certificates.find_one({
-            "tenant": TENANT, "transport_person_id": p["id"]},
-            sort=[("issued_at", -1)])
+        cert = latest_certs.get(p["id"])
         if kind == "orientation_incomplete":
             if not cert:
                 out.append({
@@ -273,11 +279,17 @@ async def _affected_inspections(db) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     trucks = await db.transport_trucks.find(
         {"tenant": TENANT}).to_list(2000)
+    inspection_rows = await db.transport_truck_inspections.find(
+        {"tenant": TENANT}, {"_id": 0},
+    ).sort("inspected_at", -1).to_list(4000)
+    latest_inspections: Dict[str, Dict[str, Any]] = {}
+    for ins in inspection_rows:
+        truck_id = ins.get("transport_truck_id")
+        if truck_id and truck_id not in latest_inspections:
+            latest_inspections[truck_id] = ins
     now = _now()
     for t in trucks:
-        ins = await db.transport_truck_inspections.find_one({
-            "tenant": TENANT, "transport_truck_id": t["id"]},
-            sort=[("inspected_at", -1)])
+        ins = latest_inspections.get(t["id"])
         result = (ins or {}).get("result")
         days_since = None
         if ins:
@@ -307,9 +319,16 @@ async def _affected_inspections(db) -> List[Dict[str, Any]]:
 async def _affected_packets(db) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     carriers = await db.carriers.find({"tenant": TENANT}).to_list(2000)
+    packet_rows = await db.transport_carrier_packets.find(
+        {"tenant": TENANT}, {"_id": 0},
+    ).to_list(4000)
+    packets_by_carrier = {
+        row.get("carrier_id"): row
+        for row in packet_rows
+        if row.get("carrier_id")
+    }
     for c in carriers:
-        pkt = await db.transport_carrier_packets.find_one(
-            {"tenant": TENANT, "carrier_id": c["id"]})
+        pkt = packets_by_carrier.get(c["id"])
         status = (pkt or {}).get("status")
         if status != "approved":
             out.append({

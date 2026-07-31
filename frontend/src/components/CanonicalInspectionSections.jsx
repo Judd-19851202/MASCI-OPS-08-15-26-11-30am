@@ -80,7 +80,9 @@ export default function CanonicalInspectionSections({
     setState((s) => ({ ...s, loading: true }));
     (async () => {
       try {
-        const lookup = await api.get(`/asset-spine/taxonomy/by-unit/${encodeURIComponent(u)}`);
+        const lookup = await api.get(`/asset-spine/taxonomy/by-unit/${encodeURIComponent(u)}`, {
+          skipSessionStatus: true,
+        });
         if (cancelled) return;
         const found = !!lookup.data?.found;
         const at = lookup.data?.asset_type;
@@ -101,7 +103,9 @@ export default function CanonicalInspectionSections({
           setResults({});
           return;
         }
-        const t = await api.get(`/asset-spine/inspection-templates/by-asset-type/${encodeURIComponent(at)}`);
+        const t = await api.get(`/asset-spine/inspection-templates/by-asset-type/${encodeURIComponent(at)}`, {
+          skipSessionStatus: true,
+        });
         if (cancelled) return;
         const sections = t.data?.sections || [];
         const tplStatus = t.data?.template_status || "missing_template";

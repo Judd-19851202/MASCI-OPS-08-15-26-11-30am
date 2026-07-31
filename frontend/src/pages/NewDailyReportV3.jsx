@@ -253,8 +253,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           excludeFormKey: scopedFormKey,
           limit: 4,
           filter: ({ form }) => (
-            !!String(form?.project_number || "").trim()
-            && String(form?.report_date || "") === String(data.report_date || "")
+            String(form?.report_date || "") === String(data.report_date || "")
             && String(form?.report_instance || "primary") === String(data.report_instance || "primary")
           ),
         });
