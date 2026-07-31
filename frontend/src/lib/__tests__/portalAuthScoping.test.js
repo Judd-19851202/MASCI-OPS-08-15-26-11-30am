@@ -12,6 +12,7 @@ describe("portal auth scoping", () => {
     localStorage.setItem("masci.pm.token", "pm-token");
     localStorage.setItem("masci.hr.token", "hr-token");
     localStorage.setItem("masci.safety.token", "safety-token");
+    localStorage.setItem("masci.dispatch.token", "dispatch-token");
   });
 
   test("admin-scoped headers exclude unrelated portal tokens", () => {
@@ -38,5 +39,24 @@ describe("portal auth scoping", () => {
   test("unrelated photo endpoints are not broadened", () => {
     expect(inferPortalsForApiPath("/api/photos", "pm")).toEqual([]);
     expect(inferPortalsForApiPath("/api/photo-assets", "pm")).toEqual([]);
+  });
+
+  test("dispatch cleanup endpoints keep dispatch auth even under /admin namespace", () => {
+    expect(
+      inferPortalsForApiPath(
+        "/api/admin/transportation/intelligence/cleanup-signals?days=30",
+        "dispatch",
+      ),
+    ).toEqual(["dispatch"]);
+
+    const headers = buildScopedPortalAuthHeaders(
+      inferPortalsForApiPath(
+        "/api/admin/transportation/intelligence/cleanup-signals?days=30",
+        "dispatch",
+      ),
+    );
+    expect(headers["X-Dispatch-Token"]).toBe("dispatch-token");
+    expect(headers["X-Directory-Token"]).toBeUndefined();
+    expect(headers["X-Admin-Token"]).toBeUndefined();
   });
 });

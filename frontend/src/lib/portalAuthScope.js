@@ -84,6 +84,10 @@ const HR_COMPAT_ADMIN_API_PREFIXES = [
   "/admin/integrations/cleanup",
 ];
 
+const DISPATCH_COMPAT_ADMIN_API_PREFIXES = [
+  "/admin/transportation/intelligence/cleanup-signals",
+];
+
 function normalizePath(pathname = "") {
   if (!pathname) return "";
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
@@ -114,9 +118,17 @@ export function inferActivePortalForAuth(pathname = "") {
 export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   const path = normalizePath(pathname);
   if (!path) return [];
-  const routePath = path.startsWith("/api/") ? path.slice(4) : path;
+  const routePath = (path.startsWith("/api/") ? path.slice(4) : path).split("?")[0].split("#")[0];
 
   if (routePath.startsWith("/admin/") || routePath === "/admin") {
+    if (
+      activePortal === "dispatch" &&
+      DISPATCH_COMPAT_ADMIN_API_PREFIXES.some(
+        (prefix) => routePath === prefix || routePath.startsWith(`${prefix}/`)
+      )
+    ) {
+      return ["dispatch"];
+    }
     if (
       activePortal === "hr" &&
       HR_COMPAT_ADMIN_API_PREFIXES.some(

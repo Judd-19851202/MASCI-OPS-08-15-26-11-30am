@@ -18,6 +18,18 @@ const PORTAL_HEADER_MAP = {
   fl: "X-FL-Token",
 };
 
+const DIRECTORY_COMPATIBLE_PORTALS = new Set([
+  "directory",
+  "admin",
+  "pm",
+  "hr",
+  "shop",
+  "safety",
+  "field_leadership",
+  "fl",
+  "leadership",
+]);
+
 export function buildPortalAuthHeaders(extra = {}) {
   const headers = { ...extra };
 
@@ -57,6 +69,11 @@ export function buildScopedPortalAuthHeaders(portals = [], extra = {}) {
     const key = PORTAL_HEADER_MAP[portal];
     if (key && all[key]) scoped[key] = all[key];
   }
-  if (all["X-Directory-Token"]) scoped["X-Directory-Token"] = all["X-Directory-Token"];
+  if (
+    all["X-Directory-Token"]
+    && requested.some((portal) => DIRECTORY_COMPATIBLE_PORTALS.has(portal))
+  ) {
+    scoped["X-Directory-Token"] = all["X-Directory-Token"];
+  }
   return scoped;
 }

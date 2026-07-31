@@ -8,7 +8,7 @@ jest.mock("@/lib/pmAuth", () => ({ getPmToken: () => "" }));
 jest.mock("@/lib/hrAuth", () => ({ getHrToken: () => "hr-token" }));
 jest.mock("@/lib/shopAuth", () => ({ getShopToken: () => "" }));
 jest.mock("@/lib/safetyAuth", () => ({ getSafetyToken: () => "" }));
-jest.mock("@/lib/dispatchAuth", () => ({ getDispatchToken: () => "" }));
+jest.mock("@/lib/dispatchAuth", () => ({ getDispatchToken: () => "dispatch-token" }));
 jest.mock("@/lib/leadershipAuth", () => ({ getLeadershipToken: () => "" }));
 jest.mock("@/lib/flAuth", () => ({ getFlToken: () => "" }));
 jest.mock("@/lib/directoryAuth", () => ({ getDirectoryToken: () => "directory-token" }));
@@ -30,5 +30,13 @@ describe("buildPortalAuthHeaders", () => {
     expect(headers["X-HR-Token"]).toBe("hr-token");
     expect(headers["X-Directory-Token"]).toBe("directory-token");
     expect(headers["X-Admin-Token"]).toBeUndefined();
+  });
+
+  test("does not forward directory token to dispatch-only scoped requests", () => {
+    const headers = buildScopedPortalAuthHeaders(["dispatch"], { "Content-Type": "application/json" });
+
+    expect(headers["Content-Type"]).toBe("application/json");
+    expect(headers["X-Dispatch-Token"]).toBe("dispatch-token");
+    expect(headers["X-Directory-Token"]).toBeUndefined();
   });
 });
