@@ -25,6 +25,8 @@ Representative regression certification completed for WP-17C scope.
 
 ## Evidence
 - `/app/test_reports/iteration_89.json`
+- `auto_frontend_testing_agent`: **8/8 PASS** on the WP-17C representative flows
+- `deep_testing_backend_v2`: **5/5 PASS** on auth + operational inventory + asset spine smoke checks
 - Smoke screenshot evidence on preview for Hub, Daily Report form, and live Asset Profile detail route
 
 ## Result by certification domain

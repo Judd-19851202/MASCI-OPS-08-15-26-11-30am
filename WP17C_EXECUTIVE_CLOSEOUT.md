@@ -19,4 +19,4 @@ WP-17C is complete only when:
 - Representative implementation is complete on the bounded set required by the executive directive.
 - PM landing clarity was materially improved and verified.
 - Responsive representative coverage passed.
-- Regression evidence captured in `/app/test_reports/iteration_89.json` plus post-QA spot checks.
+- Regression evidence captured in `/app/test_reports/iteration_89.json`, `auto_frontend_testing_agent` (**8/8 PASS**), `deep_testing_backend_v2` (**5/5 PASS**), plus post-QA spot checks.
