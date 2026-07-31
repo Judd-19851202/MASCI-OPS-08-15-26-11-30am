@@ -16297,8 +16297,24 @@ async def _require_dispatch_or_admin(
     """
     # Admin path: try the async directory validator FIRST so admin
     # tokens get a clean answer without touching the inner closure.
-    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
-        return {"role": "admin", "is_admin": True}
+    admin_token_for_shared_gate = x_admin_token
+    if x_admin_token:
+        try:
+            is_valid_admin = await _is_valid_directory_admin_token_async(x_admin_token)
+            if is_valid_admin:
+                return {"role": "admin", "is_admin": True}
+            else:
+                # TRACK 25.2 · Wave 6 forensic blocker pass.
+                # A stale or expired admin token may coexist in storage with a
+                # still-valid dispatch session after cross-portal navigation. The
+                # mixed dispatch/admin gate must fall back to the dispatch token
+                # path instead of short-circuiting the request with the admin
+                # validator's 401/403. This preserves least surprise for
+                # transportation routes that legitimately allow dispatch access.
+                admin_token_for_shared_gate = None
+        except HTTPException:
+            # Also catch HTTPException in case validator raises it
+            admin_token_for_shared_gate = None
     # TRACK 22.6A · cert-session fallback (path-scoped, audited, read-only).
     # The dispatch-safe Motive posture endpoint (/api/dispatch/motive-posture)
     # is in the certification allowlist; unlock it for a valid cert token
@@ -16330,7 +16346,7 @@ async def _require_dispatch_or_admin(
     return await _shared_dispatch_or_admin(
         request=request,
         x_dispatch_token=x_dispatch_token,
-        x_admin_token=x_admin_token,
+        x_admin_token=admin_token_for_shared_gate,
     )
 
 
