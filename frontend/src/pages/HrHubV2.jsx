@@ -29,6 +29,8 @@ import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionS
 import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -68,6 +70,11 @@ function useHrSignals() {
     field_leadership_recent: null,// /api/hr/field-leadership
     daily_reports_today: null,    // /api/hr/daily-reports
     incidents_recent: null,       // /api/hr/incidents
+    metadata: {
+      pending_requests: null,
+      time_off_pending: null,
+      expirations: null,
+    },
   });
 
   useEffect(() => {
@@ -86,6 +93,7 @@ function useHrSignals() {
     Promise.all(tasks).then((res) => {
       if (cancelled) return;
       const [er, to, exp, fl, dr, inc] = res;
+      const expCounts = exp.body?.counts || {};
       const expBody = exp.body || {};
       const erBody = er.body || {};
       const toBody = to.body || {};
@@ -94,11 +102,16 @@ function useHrSignals() {
         refreshedAt: new Date().toISOString(),  // TRACK-27.03-EXEMPT: internal machine state field; display goes through formatPlatformTimeOnly
         pending_requests:        er.ok  ? (erBody.pending_count ?? (erBody.items?.length ?? 0)) : null,
         time_off_pending:        to.ok  ? (toBody.pending ?? 0) : null,
-        training_exp_soon:       exp.ok ? ((expBody.expiring_in_30 ?? 0) + (expBody.expiring_in_60 ?? 0)) : null,
-        docs_expired:            exp.ok ? (expBody.expired ?? 0)  : null,
+        training_exp_soon:       exp.ok ? ((expCounts.in_30 ?? 0) + (expCounts.in_60 ?? 0)) : null,
+        docs_expired:            exp.ok ? (expCounts.expired ?? 0)  : null,
         field_leadership_recent: fl.ok  ? listOf(fl.body).length  : null,
         daily_reports_today:     dr.ok  ? listOf(dr.body).length  : null,
         incidents_recent:        inc.ok ? listOf(inc.body).length : null,
+        metadata: {
+          pending_requests: erBody.kpi_metadata || null,
+          time_off_pending: toBody.kpi_metadata || null,
+          expirations: expBody.kpi_metadata || null,
+        },
       });
     });
     return () => { cancelled = true; };
@@ -147,10 +160,11 @@ function RealLink({ to, testid, children, intent = "default" }) {
 }
 
 // A queue card backed by a real API. Renders "—" until loaded; never invents numbers.
-function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenAttention = "warning" }) {
+function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenAttention = "warning", metadata }) {
   const isAttention = loaded && typeof value === "number" && value > 0;
+  const help = buildKpiHelpContent(metadata, title);
   return (
-    <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+    <div data-testid={testid} style={{ display: "block" }}>
       <Card
         title={title}
         description={why}
@@ -166,8 +180,25 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
           {source}
         </p>
+        {help ? (
+          <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }} data-testid={`${testid}-metadata`}>
+            <span style={{ fontSize: 10, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Why this number?
+            </span>
+            <HelpTip label={help.label} body={help.body} testId={`${testid}-help`} />
+          </div>
+        ) : null}
+        <div style={{ marginTop: 10 }}>
+          <Link
+            to={to}
+            data-testid={`${testid}-open`}
+            style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-strong)", textDecoration: "none" }}
+          >
+            Open workflow →
+          </Link>
+        </div>
       </Card>
-    </Link>
+    </div>
   );
 }
 
@@ -330,6 +361,7 @@ export default function HrHubV2() {
               source="Live count · refreshes every visit"
               value={s.pending_requests}
               loaded={s.loaded}
+              metadata={s.metadata?.pending_requests}
             />
             <QueueCard
               to="/hr/time-off"
@@ -339,6 +371,7 @@ export default function HrHubV2() {
               source="Live count · refreshes every visit"
               value={s.time_off_pending}
               loaded={s.loaded}
+              metadata={s.metadata?.time_off_pending}
             />
             <QueueCard
               to="/document-expirations"
@@ -348,6 +381,7 @@ export default function HrHubV2() {
               source="Live count · 30-day and 60-day buckets"
               value={s.training_exp_soon}
               loaded={s.loaded}
+              metadata={s.metadata?.expirations}
             />
             <QueueCard
               to="/document-expirations?bucket=expired"
@@ -358,6 +392,7 @@ export default function HrHubV2() {
               value={s.docs_expired}
               loaded={s.loaded}
               variantWhenAttention="danger"
+              metadata={s.metadata?.expirations}
             />
           </div>
         </Section>

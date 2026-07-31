@@ -34,6 +34,100 @@ from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 logger = logging.getLogger(__name__)
 
+_CLOSED_INCIDENT_RESOLUTION = "Closed"
+_CLOSED_CORRECTIVE_ACTION_STATUSES = ["Completed", "Closed", "Cancelled"]
+
+
+def _open_incident_query(extra: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    query: Dict[str, Any] = {"resolution_status": {"$ne": _CLOSED_INCIDENT_RESOLUTION}}
+    if extra:
+        query.update(extra)
+    return query
+
+
+def _open_corrective_action_query(extra: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    query: Dict[str, Any] = {"status": {"$nin": list(_CLOSED_CORRECTIVE_ACTION_STATUSES)}}
+    if extra:
+        query.update(extra)
+    return query
+
+
+def _tile_metadata(
+    *,
+    name: str,
+    definition: str,
+    sources: List[str],
+    formula: Dict[str, Any],
+    drilldown: str,
+    owner: str,
+) -> Dict[str, Any]:
+    return {
+        "kpi_name": name,
+        "business_definition": definition,
+        "source_of_truth": sources,
+        "api_endpoint": "/api/admin/executive/overview",
+        "formula": formula,
+        "confidence": "HIGH",
+        "status_reason": "Executive Overview now reuses canonical open-incident and open-corrective-action semantics used by other operational dashboards.",
+        "drilldown_source": drilldown,
+        "owner": owner,
+        "freshness": "Point-in-time snapshot generated on request.",
+    }
+
+
+def _overview_metadata() -> Dict[str, Any]:
+    return {
+        "page": {
+            "kpi_name": "Executive Overview",
+            "business_definition": "Read-only executive attention surface composed from existing certified operational sources.",
+            "source_of_truth": [
+                "daily_reports",
+                "incidents",
+                "corrective_actions",
+                "project_team_assignments",
+                "fleet_status",
+                "fleet_defects",
+                "asset_holds",
+            ],
+            "api_endpoint": "/api/admin/executive/overview",
+            "formula": {
+                "tile_count": 6,
+                "verdict_policy": "RED if any deterministic executive red-threshold is breached; YELLOW if only attention thresholds are breached; GREEN otherwise.",
+            },
+            "confidence": "HIGH",
+            "status_reason": "Every tile exposes its own metadata so executives can trace the displayed value back to the source and formula.",
+            "drilldown_source": "/admin/executive-overview",
+            "owner": "executive-truth",
+            "freshness": "Generated when the route is requested.",
+        },
+        "verdict": {
+            "kpi_name": "Executive Verdict",
+            "business_definition": "Deterministic rollup of the six executive tiles using explicit thresholds and surfaced reasons.",
+            "source_of_truth": "Derived from the Executive Overview tiles",
+            "api_endpoint": "/api/admin/executive/overview",
+            "formula": {
+                "red_thresholds": [
+                    "out_of_service_units > 5",
+                    "unresolved_incidents > 10",
+                    "overdue_corrective_actions > 5",
+                    "workplace_violence_incidents_90d > 0",
+                    "training_overdue > 0",
+                ],
+                "yellow_thresholds": [
+                    "stale_projects_no_dr_in_3d > 3",
+                    "active_high_severity_asset_holds > 0",
+                    "unresolved_corrective_actions > 3",
+                    "public_interaction_incidents_30d > 2",
+                ],
+            },
+            "confidence": "HIGH",
+            "status_reason": "Reasons are emitted directly beside the verdict so no color is unexplained.",
+            "drilldown_source": "/admin/executive-overview",
+            "owner": "executive-truth",
+            "freshness": "Evaluated on every request.",
+        },
+    }
+
 
 def register(app, *, db=None, require_admin_dep=None):
     router = APIRouter()
@@ -55,6 +149,7 @@ def register(app, *, db=None, require_admin_dep=None):
             request=request,
         )
         now = datetime.now(timezone.utc)
+        now_iso = now.isoformat()
         today_iso = now.date().isoformat()
         yesterday_iso = (now.date() - timedelta(days=1)).isoformat()
         cutoff_3d = (now - timedelta(days=3)).isoformat()
@@ -93,14 +188,30 @@ def register(app, *, db=None, require_admin_dep=None):
                 "daily_reports", "safety.meeting", "safety.jha",
                 "equipment.preop",
             ],
+            "kpi_metadata": _tile_metadata(
+                name="Activity Snapshot (Today)",
+                definition="Same-day operational activity snapshot across daily reports, safety meetings, JHAs, and equipment inspections.",
+                sources=["daily_reports", "meetings", "jhas", "equipment_inspections"],
+                formula={
+                    "report_day": today_iso,
+                    "synthetic_daily_reports_excluded": True,
+                    "activity_sum": [
+                        "daily_reports_today",
+                        "safety_meetings_today",
+                        "jhas_today",
+                        "equipment_inspections_today",
+                    ],
+                },
+                drilldown="/daily-reports",
+                owner="operations-activity",
+            ),
         }
 
         # ───────────── Tile 2 — Overdue Operational Items ─────────────
         # Corrective actions due before now, still open
-        overdue_capa = await db.corrective_actions.count_documents({
-            "status": {"$in": ["Open", "open", "In Progress", "in_progress"]},
-            "due_date": {"$lt": today_iso, "$ne": ""},
-        })
+        overdue_capa = await db.corrective_actions.count_documents(
+            _open_corrective_action_query({"due_date": {"$lt": now_iso, "$nin": [None, ""]}})
+        )
         # Daily Reports cadence: projects with no DR in the last 3 days
         # (signal only — not authoritative "missing", just "needs attention")
         recent_project_set = await db.daily_reports.distinct(
@@ -121,6 +232,19 @@ def register(app, *, db=None, require_admin_dep=None):
             "stale_projects_no_dr_in_3d": len(stale_projects),
             "stale_projects_sample": stale_projects[:5],
             "source_modules": ["corrective_actions", "daily_reports"],
+            "kpi_metadata": _tile_metadata(
+                name="Overdue Operational Items",
+                definition="Counts open corrective actions that are past due plus projects that have gone 3+ days without a daily report while still active in the last 7 days.",
+                sources=["corrective_actions", "daily_reports"],
+                formula={
+                    "overdue_corrective_actions": {
+                        "match": _open_corrective_action_query({"due_date": {"$lt": now_iso, "$nin": [None, ""]}}),
+                    },
+                    "stale_daily_reports": "active project_number in last 7 days but absent from last 3 days",
+                },
+                drilldown="/admin/qaqc",
+                owner="executive-operations",
+            ),
         }
 
         # ───────────── Tile 1 — Jobs Requiring Attention ─────────────
@@ -135,7 +259,7 @@ def register(app, *, db=None, require_admin_dep=None):
 
         # Open incidents per project
         async for row in db.incidents.aggregate([
-            {"$match": {"status": {"$in": ["Open", "open", "In Progress", "in_progress"]}}},
+            {"$match": _open_incident_query()},
             {"$group": {"_id": "$project_number", "count": {"$sum": 1}}},
             {"$sort": {"count": -1}},
             {"$limit": 25},
@@ -157,6 +281,20 @@ def register(app, *, db=None, require_admin_dep=None):
             "active_asset_holds": active_holds,
             "top_jobs": list(attention_jobs.values())[:10],
             "source_modules": ["daily_reports", "safety.incidents", "asset_holds"],
+            "kpi_metadata": _tile_metadata(
+                name="Jobs Requiring Attention",
+                definition="Distinct projects with at least one executive attention trigger from stale daily-report cadence or canonical open incidents.",
+                sources=["daily_reports", "incidents", "asset_holds"],
+                formula={
+                    "attention_triggers": [
+                        "no daily report in last 3 days for projects active in last 7 days",
+                        "open incidents where resolution_status != Closed",
+                    ],
+                    "counted_entity": "distinct project_number",
+                },
+                drilldown="/admin/jobs",
+                owner="executive-operations",
+            ),
         }
 
         # ───────────── Tile 3 — Staffing Issues ─────────────
@@ -188,6 +326,18 @@ def register(app, *, db=None, require_admin_dep=None):
             "projects_missing_foreman": len(missing_foreman),
             "projects_missing_foreman_sample": missing_foreman[:5],
             "source_modules": ["project_team_assignments", "daily_reports"],
+            "kpi_metadata": _tile_metadata(
+                name="Staffing Issues",
+                definition="Active projects with recent daily-report activity that do not have a canonical PM/co-PM or Foreman assignment.",
+                sources=["project_team_assignments", "daily_reports"],
+                formula={
+                    "active_project_window_days": 7,
+                    "pm_roles": ["pm", "co_pm"],
+                    "foreman_role": "foreman",
+                },
+                drilldown="/admin/jobs",
+                owner="staffing-integrity",
+            ),
         }
 
         # ───────────── Tile 4 — Equipment Issues ─────────────
@@ -208,15 +358,24 @@ def register(app, *, db=None, require_admin_dep=None):
             "source_modules": [
                 "fleet_status", "fleet_defects", "asset_holds",
             ],
+            "kpi_metadata": _tile_metadata(
+                name="Equipment Issues",
+                definition="Company-wide equipment friction combining out-of-service fleet status, open fleet defects, and high-severity asset holds.",
+                sources=["fleet_status", "fleet_defects", "asset_holds"],
+                formula={
+                    "out_of_service_units": {"fleet_status.status": "oos"},
+                    "monitor_units": {"fleet_status.status": "monitor"},
+                    "open_defects": {"fleet_defects.status": ["open", "Open", "in_progress"]},
+                    "active_high_severity_holds": {"asset_holds.active": True, "asset_holds.severity": ["high", "critical"]},
+                },
+                drilldown="/equipment",
+                owner="fleet-operations",
+            ),
         }
 
         # ───────────── Tile 5 — Safety Attention Items ─────────────
-        unresolved_incidents = await db.incidents.count_documents({
-            "status": {"$in": ["Open", "open", "In Progress", "in_progress"]},
-        })
-        unresolved_capa = await db.corrective_actions.count_documents({
-            "status": {"$in": ["Open", "open", "In Progress", "in_progress"]},
-        })
+        unresolved_incidents = await db.incidents.count_documents(_open_incident_query())
+        unresolved_capa = await db.corrective_actions.count_documents(_open_corrective_action_query())
         trench_holds_active = 0
         try:
             trench_holds_active = await db.trench_safety_holds.count_documents({
@@ -299,6 +458,20 @@ def register(app, *, db=None, require_admin_dep=None):
                 "safety.incidents", "corrective_actions",
                 "trench_safety.holds", "safety_training_records",
             ],
+            "kpi_metadata": _tile_metadata(
+                name="Safety Attention Items",
+                definition="Canonical unresolved safety load across incidents, corrective actions, trench holds, workplace-violence visibility, and overdue retraining.",
+                sources=["incidents", "corrective_actions", "trench_safety_holds", "safety_training_records", "tasks"],
+                formula={
+                    "unresolved_incidents": _open_incident_query(),
+                    "unresolved_corrective_actions": _open_corrective_action_query(),
+                    "workplace_violence_window_days": 90,
+                    "public_interaction_window_days": 30,
+                    "training_overdue_task_key": "incident.aftercare.training_14d",
+                },
+                drilldown="/safety",
+                owner="safety-truth",
+            ),
         }
 
         # ───────────── Overall health verdict ─────────────
@@ -368,6 +541,7 @@ def register(app, *, db=None, require_admin_dep=None):
             "generated_at": now.isoformat(),
             "verdict": verdict,
             "verdict_reasons": verdict_reasons,
+            "kpi_metadata": _overview_metadata(),
             "tiles": {
                 "jobs": jobs,
                 "overdue": overdue,

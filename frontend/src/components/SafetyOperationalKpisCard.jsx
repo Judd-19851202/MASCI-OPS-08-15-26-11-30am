@@ -19,6 +19,8 @@
 import React from "react";
 import { ShieldAlert, ChevronRight, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const SAFETY_KPI_TIMEOUT_MS = 5_000;
 
@@ -41,6 +43,12 @@ const BAND_STYLES = {
   amber: "bg-amber-50 border-amber-300 text-amber-900",
   red:   "bg-rose-50 border-rose-300 text-rose-900",
 };
+
+function InlineKpiHelp({ metadata, fallbackLabel, testId }) {
+  const help = buildKpiHelpContent(metadata, fallbackLabel);
+  if (!help) return null;
+  return <HelpTip label={help.label} body={help.body} testId={testId} />;
+}
 
 export default function SafetyOperationalKpisCard({ className = "" }) {
   const [window, setWindow] = React.useState("30d");
@@ -72,8 +80,9 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
     >
       <header className="flex flex-wrap items-baseline gap-3">
         <ShieldAlert className="w-5 h-5 text-slate-500" aria-hidden />
-        <h2 className="font-display text-lg font-black text-slate-900" data-testid="safety-kpis-title">
-          Company Safety Posture
+        <h2 className="inline-flex items-center gap-1.5 font-display text-lg font-black text-slate-900" data-testid="safety-kpis-title">
+          <span>Company Safety Posture</span>
+          <InlineKpiHelp metadata={snap?.kpi_metadata?.page} fallbackLabel="Company Safety Posture" testId="safety-kpis-title-help" />
         </h2>
         <span className="text-xs text-slate-500">One spine. Same numbers PM sees, safety-first framing.</span>
         <div className="ml-auto flex flex-wrap gap-1" role="tablist" aria-label="Window">
@@ -115,7 +124,10 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
             data-testid="safety-kpis-band"
           >
             <div className="flex items-baseline gap-3 flex-wrap">
-              <span className="font-mono text-xs uppercase tracking-widest">Company band</span>
+              <span className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest">
+                <span>Company band</span>
+                <InlineKpiHelp metadata={snap.kpi_metadata?.status_band} fallbackLabel="Company Safety Band" testId="safety-kpis-band-help" />
+              </span>
               <span className="font-display text-2xl font-black uppercase" data-testid="safety-kpis-band-value">{snap.status_band}</span>
               <span className="text-xs">
                 {snap.active_project_count} active projects · {snap.projects_with_safety_signal} with safety signal
@@ -124,10 +136,10 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
           </div>
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Totals label="Safety events" value={snap.totals.safety_event_count} sub={`${snap.totals.daily_report_safety_events} DR · ${snap.totals.incident_count} incidents`} testid="safety-kpi-total-events" />
-            <Totals label="Injuries / Accidents" value={`${snap.totals.injuries_reported} / ${snap.totals.accident_count}`} sub={`${snap.totals.utility_strike_count} utility strike${snap.totals.utility_strike_count === 1 ? "" : "s"}`} testid="safety-kpi-total-injuries" />
-            <Totals label="Near-miss" value={snap.totals.near_miss_count} sub={`${snap.totals.open_incidents} incident${snap.totals.open_incidents === 1 ? "" : "s"} open`} testid="safety-kpi-total-nearmiss" />
-            <Totals label="Meetings / JHAs / Inspections" value={`${snap.totals.safety_meetings_count} / ${snap.totals.jha_count} / ${snap.totals.safety_inspection_count}`} sub={`${snap.totals.trench_inspection_count} trench · ${snap.totals.safety_photo_count} photos`} testid="safety-kpi-total-inspections" />
+            <Totals label="Safety events" value={snap.totals.safety_event_count} sub={`${snap.totals.daily_report_safety_events} DR · ${snap.totals.incident_count} incidents`} testid="safety-kpi-total-events" metadata={snap.kpi_metadata?.totals?.safety_event_count} />
+            <Totals label="Injuries / Accidents" value={`${snap.totals.injuries_reported} / ${snap.totals.accident_count}`} sub={`${snap.totals.utility_strike_count} utility strike${snap.totals.utility_strike_count === 1 ? "" : "s"}`} testid="safety-kpi-total-injuries" metadata={snap.kpi_metadata?.cards?.injuries_accidents} />
+            <Totals label="Near-miss" value={snap.totals.near_miss_count} sub={`${snap.totals.open_incidents} incident${snap.totals.open_incidents === 1 ? "" : "s"} open`} testid="safety-kpi-total-nearmiss" metadata={snap.kpi_metadata?.cards?.near_miss_open_incidents} />
+            <Totals label="Meetings / JHAs / Inspections" value={`${snap.totals.safety_meetings_count} / ${snap.totals.jha_count} / ${snap.totals.safety_inspection_count}`} sub={`${snap.totals.trench_inspection_count} trench · ${snap.totals.safety_photo_count} photos`} testid="safety-kpi-total-inspections" metadata={snap.kpi_metadata?.cards?.meetings_jhas_inspections} />
           </div>
 
           {snap.totals.escalation_gap_count > 0 && (
@@ -160,10 +172,13 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
   );
 }
 
-function Totals({ label, value, sub, testid }) {
+function Totals({ label, value, sub, testid, metadata }) {
   return (
     <div className="rounded-md border border-slate-200 bg-white px-3 py-2" data-testid={testid}>
-      <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">{label}</div>
+      <div className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-500">
+        <span>{label}</span>
+        <InlineKpiHelp metadata={metadata} fallbackLabel={label} testId={`${testid}-help`} />
+      </div>
       <div className="mt-1 font-display text-2xl font-black text-slate-900">{value}</div>
       {sub && <p className="text-[11px] text-slate-500 mt-0.5">{sub}</p>}
     </div>

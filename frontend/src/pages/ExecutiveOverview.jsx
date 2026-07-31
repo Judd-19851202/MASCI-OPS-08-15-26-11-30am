@@ -25,6 +25,8 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
 import { PortalShell } from "@/design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -38,7 +40,7 @@ function fmt(n) {
   return Number.isFinite(n) ? n.toLocaleString() : "—";
 }
 
-function Tile({ title, count, countTone = "slate", description, lines, sources, drillTo, testid }) {
+function Tile({ title, count, countTone = "slate", description, lines, sources, drillTo, testid, metadata }) {
   const toneClasses = {
     slate:  "text-slate-900",
     amber:  "text-amber-700",
@@ -46,6 +48,7 @@ function Tile({ title, count, countTone = "slate", description, lines, sources, 
     green:  "text-emerald-700",
     blue:   "text-blue-700",
   };
+  const help = buildKpiHelpContent(metadata, title);
   return (
     <div
       className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -53,7 +56,16 @@ function Tile({ title, count, countTone = "slate", description, lines, sources, 
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
-          <div className="text-xs font-mono uppercase tracking-widest text-slate-500">{title}</div>
+          <div className="flex items-center gap-1.5">
+            <div className="text-xs font-mono uppercase tracking-widest text-slate-500">{title}</div>
+            {help ? (
+              <HelpTip
+                label={help.label}
+                body={help.body}
+                testId={`${testid}-help`}
+              />
+            ) : null}
+          </div>
           <div className={`mt-2 text-5xl font-extrabold leading-none ${toneClasses[countTone] || toneClasses.slate}`}>
             {fmt(count)}
           </div>
@@ -145,6 +157,7 @@ export default function ExecutiveOverview() {
   const t = data.tiles || {};
   const theme = VERDICT_THEME[data.verdict] || VERDICT_THEME.YELLOW;
   const VerdictIcon = theme.icon;
+  const verdictHelp = buildKpiHelpContent(data.kpi_metadata?.verdict, "Executive Verdict");
 
   return (
     <PortalShell
@@ -185,7 +198,16 @@ export default function ExecutiveOverview() {
             <VerdictIcon className={`w-9 h-9 ${theme.text} shrink-0`} />
             <div className="min-w-0">
               <div className={`text-2xl font-extrabold ${theme.text}`} data-testid="executive-verdict">
-                {theme.label}
+                <span className="inline-flex items-center gap-2">
+                  <span>{theme.label}</span>
+                  {verdictHelp ? (
+                    <HelpTip
+                      label={verdictHelp.label}
+                      body={verdictHelp.body}
+                      testId="executive-verdict-help"
+                    />
+                  ) : null}
+                </span>
               </div>
               <div className={`text-sm ${theme.text} opacity-80`}>
                 Executive Overview · v{data.foundation_version}
@@ -224,6 +246,7 @@ export default function ExecutiveOverview() {
             </span>
           ))}
           sources={t.jobs?.source_modules}
+          metadata={t.jobs?.kpi_metadata}
           drillTo="/admin/jobs"
         />
 
@@ -244,6 +267,7 @@ export default function ExecutiveOverview() {
             ))),
           ]}
           sources={t.overdue?.source_modules}
+          metadata={t.overdue?.kpi_metadata}
           drillTo="/admin/qaqc"
         />
 
@@ -264,6 +288,7 @@ export default function ExecutiveOverview() {
             ))),
           ]}
           sources={t.staffing?.source_modules}
+          metadata={t.staffing?.kpi_metadata}
           drillTo="/admin/jobs"
         />
 
@@ -283,6 +308,7 @@ export default function ExecutiveOverview() {
             <span key="holds"><strong>{fmt(t.equipment?.active_asset_holds_total)}</strong> active asset holds ({fmt(t.equipment?.active_high_severity_holds)} high-severity)</span>,
           ]}
           sources={t.equipment?.source_modules}
+          metadata={t.equipment?.kpi_metadata}
           drillTo="/equipment"
         />
 
@@ -320,6 +346,7 @@ export default function ExecutiveOverview() {
             </span>,
           ]}
           sources={t.safety?.source_modules}
+          metadata={t.safety?.kpi_metadata}
           drillTo="/safety"
         />
 
@@ -341,6 +368,7 @@ export default function ExecutiveOverview() {
             <span key="ins"><strong>{fmt(t.activity?.equipment_inspections_today)}</strong> Equipment Inspections</span>,
           ]}
           sources={t.activity?.source_modules}
+          metadata={t.activity?.kpi_metadata}
           drillTo="/daily-reports"
         />
       </div>

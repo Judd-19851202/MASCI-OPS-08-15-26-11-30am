@@ -116,6 +116,12 @@ def register_operational_kpis_routes(
             db=db, project_number=project_number, window=window,
         )
         subset = _safety_subset(full)
+        subset["kpi_metadata"] = _build_safety_project_kpi_metadata(
+            project_number=project_number,
+            window=subset["window"],
+            date_from=subset.get("date_from"),
+            date_to=subset.get("date_to"),
+        )
         _assert_no_cost(subset)
         return subset
 
@@ -276,6 +282,11 @@ def register_operational_kpis_routes(
             "top_projects": top_projects,
             "projects": projects_out,
             "source_status_summary": source_status_counter,
+            "kpi_metadata": _build_safety_company_kpi_metadata(
+                window=canonical_window,
+                date_from=date_from,
+                date_to=date_to,
+            ),
         }
         _assert_no_cost(payload)
         return payload
@@ -303,6 +314,92 @@ def _safety_subset(full: Dict[str, Any]) -> Dict[str, Any]:
 def _generated_at() -> str:
     from datetime import datetime, timezone
     return datetime.now(timezone.utc).isoformat()
+
+
+def _build_safety_company_kpi_metadata(*, window: str, date_from: Optional[str], date_to: Optional[str]) -> Dict[str, Any]:
+    return {
+        "page": {
+            "kpi_name": "Company Safety Posture",
+            "business_definition": "Company-wide safety posture aggregated from the shared operational KPI spine across active projects.",
+            "source_of_truth": ["operational_facts", "incidents", "meetings", "jhas", "inspections", "trench_excavations"],
+            "api_endpoint": "/api/safety/company/safety-kpis",
+            "formula": {
+                "window": window,
+                "date_from": date_from,
+                "date_to": date_to,
+                "active_projects": "jobs_master.active == True plus project_ids present in operational_facts for the same window",
+            },
+            "confidence": "HIGH",
+            "status_reason": "The company view is a rollup of the shared per-project safety spine, not a separate calculation.",
+            "drilldown_source": "/safety-portal",
+            "owner": "safety-truth",
+            "freshness": "Generated on request.",
+        },
+        "status_band": {
+            "kpi_name": "Company Band",
+            "business_definition": "Deterministic color band for company safety posture.",
+            "formula": [
+                "RED if escalation_gap_count > 0 or injuries_reported > 0",
+                "AMBER if incident_count > 0 or near_miss_count > 0 and red rule not met",
+                "GREEN otherwise",
+            ],
+        },
+        "totals": {
+            "safety_event_count": {
+                "kpi_name": "Safety Events",
+                "business_definition": "Daily-report safety events plus incident records within the selected window.",
+                "formula": "daily_report_safety_events + incident_count",
+            },
+            "open_incidents": {
+                "kpi_name": "Open Incidents",
+                "business_definition": "Open incidents from the shared safety spine for the selected projects/window.",
+                "formula": "Sum of per-project safety.open_incidents values from aggregate_project_kpis()",
+            },
+            "escalation_gap_count": {
+                "kpi_name": "Escalation Gaps",
+                "business_definition": "Safety events with missing safety-contact confirmation.",
+                "formula": "Sum of per-project safety_contacted_no counts",
+            },
+        },
+        "cards": {
+            "injuries_accidents": {
+                "kpi_name": "Injuries / Accidents",
+                "business_definition": "Grouped injury, accident, and utility-strike counts from the shared safety spine.",
+                "formula": "Display card shows injuries_reported / accident_count with utility_strike_count as supporting context",
+            },
+            "near_miss_open_incidents": {
+                "kpi_name": "Near-miss / Open Incidents",
+                "business_definition": "Near-miss activity shown alongside the current open-incident count for the same company rollup.",
+                "formula": "Display card shows near_miss_count with open_incidents as supporting context",
+            },
+            "meetings_jhas_inspections": {
+                "kpi_name": "Meetings / JHAs / Inspections",
+                "business_definition": "Grouped operational safety activity counts for meetings, JHAs, inspections, trench inspections, and safety photos.",
+                "formula": "Display card shows safety_meetings_count / jha_count / safety_inspection_count with trench_inspection_count and safety_photo_count as supporting context",
+            },
+        },
+    }
+
+
+def _build_safety_project_kpi_metadata(*, project_number: str, window: str, date_from: Optional[str], date_to: Optional[str]) -> Dict[str, Any]:
+    return {
+        "page": {
+            "kpi_name": f"Project Safety KPIs · {project_number}",
+            "business_definition": "Per-project safety subset from the shared operational KPI spine.",
+            "source_of_truth": ["aggregate_project_kpis()", "incidents", "meetings", "jhas", "inspections", "trench_excavations"],
+            "api_endpoint": f"/api/safety/projects/{project_number}/safety-kpis",
+            "formula": {
+                "window": window,
+                "date_from": date_from,
+                "date_to": date_to,
+            },
+            "confidence": "HIGH",
+            "status_reason": "This project drilldown is the safety subset of the same shared spine used by the company rollup.",
+            "drilldown_source": "/safety-portal",
+            "owner": "safety-truth",
+            "freshness": "Generated on request.",
+        },
+    }
 
 
 __all__ = ["register_operational_kpis_routes"]

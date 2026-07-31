@@ -76,6 +76,136 @@ ALLOWED_ROLES = {"admin", "executive", "safety", "pm"}
 # High-severity incident slugs (matches the closed enum used in
 # safety incidents). Used by the red-status rule.
 HIGH_SEV = {"High", "Critical", "Severe"}
+_CLOSED_INCIDENT_RESOLUTION = "Closed"
+_CLOSED_CORRECTIVE_ACTION_STATUSES = ["Completed", "Closed", "Cancelled"]
+
+
+def _open_incident_match(extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    match: Dict[str, Any] = {"resolution_status": {"$ne": _CLOSED_INCIDENT_RESOLUTION}}
+    if extra:
+        match.update(extra)
+    return match
+
+
+def _open_corrective_action_match(extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    match: Dict[str, Any] = {"status": {"$nin": list(_CLOSED_CORRECTIVE_ACTION_STATUSES)}}
+    if extra:
+        match.update(extra)
+    return match
+
+
+def _build_project_health_kpi_metadata(now_iso: str) -> Dict[str, Any]:
+    return {
+        "page": {
+            "kpi_name": "Project Health",
+            "business_definition": "Per-project operational friction summary with deterministic status ladders and canonical indicator formulas.",
+            "source_of_truth": [
+                "jobs_master",
+                "tasks",
+                "po_requests",
+                "document_expirations",
+                "incidents",
+                "corrective_actions",
+            ],
+            "api_endpoint": "/api/project-health",
+            "formula": {
+                "row_entity": "project_number",
+                "default_sort": "red > amber > green, then highest indicator total",
+                "generated_at": now_iso,
+            },
+            "confidence": "HIGH",
+            "status_reason": "Open incidents and corrective actions use the same canonical formulas consumed by Operations Center and PM command surfaces.",
+            "drilldown_source": "/project-health",
+            "owner": "project-health",
+            "freshness": "Generated on request.",
+        },
+        "summary": {
+            "red": {
+                "kpi_name": "Red Projects",
+                "business_definition": "Projects with at least one red-threshold breach.",
+                "formula": [
+                    "docs_expired >= 1",
+                    "pos_overdue_receipt >= 1",
+                    "open incidents with severity in High/Critical/Severe >= 1",
+                    "tasks_overdue >= 3",
+                    "ca_overdue >= 3",
+                ],
+            },
+            "amber": {
+                "kpi_name": "Amber Projects",
+                "business_definition": "Projects with attention items but no red-threshold breach.",
+                "formula": [
+                    "tasks_overdue >= 1",
+                    "pos_missing_receipt >= 1",
+                    "docs_expiring within 14 days >= 1",
+                    "ca_overdue >= 1",
+                ],
+            },
+            "green": {
+                "kpi_name": "Green Projects",
+                "business_definition": "Projects with zero tracked friction indicators.",
+                "formula": "No red or amber rule matched.",
+            },
+            "total": {
+                "kpi_name": "Total Active Projects",
+                "business_definition": "Active projects visible to the current actor scope.",
+                "formula": "Count of active jobs_master rows after governance scoping.",
+            },
+            "avg_confidence": {
+                "kpi_name": "Average Production Confidence",
+                "business_definition": "Mean of the per-project production confidence scores already emitted on each row.",
+                "formula": "sum(row.production_confidence.score) / row_count",
+            },
+        },
+        "indicators": {
+            "tasks_overdue": {
+                "kpi_name": "Overdue Tasks",
+                "business_definition": "Tasks whose canonical status is Overdue for a project.",
+                "formula": {"match": {"status": "Overdue"}, "group_by": "linked_project_number"},
+            },
+            "pos_pending_approval": {
+                "kpi_name": "POs Pending Approval",
+                "business_definition": "PO requests still awaiting approval.",
+                "formula": {"match": {"status": "Pending Approval"}, "group_by": "project_number"},
+            },
+            "pos_missing_receipt": {
+                "kpi_name": "POs Missing Receipt",
+                "business_definition": "Approved or receipt-phase POs without a receipt attachment.",
+                "formula": {
+                    "match": {
+                        "status": {"$in": ["Approved", "Pending Receipt", "Overdue Receipt"]},
+                        "receipt_url": None,
+                    },
+                    "group_by": "project_number",
+                },
+            },
+            "pos_overdue_receipt": {
+                "kpi_name": "POs Overdue Receipt",
+                "business_definition": "PO requests explicitly marked Overdue Receipt.",
+                "formula": {"match": {"status": "Overdue Receipt"}, "group_by": "project_number"},
+            },
+            "docs_expiring": {
+                "kpi_name": "Docs Expiring 14 Days",
+                "business_definition": "Document expirations expiring soon within the next 14 days.",
+                "formula": {"match": {"status": "Expiring Soon", "expires_at": {"$lte": "now+14d"}}, "group_by": "linked_project_number"},
+            },
+            "docs_expired": {
+                "kpi_name": "Docs Expired",
+                "business_definition": "Document expirations already past due.",
+                "formula": {"match": {"status": "Expired"}, "group_by": "linked_project_number"},
+            },
+            "incidents_open": {
+                "kpi_name": "Open Incidents",
+                "business_definition": "Canonical open incidents where resolution_status is not Closed.",
+                "formula": {"match": _open_incident_match(), "group_by": "project_number"},
+            },
+            "ca_overdue": {
+                "kpi_name": "Corrective Actions Overdue",
+                "business_definition": "Open corrective actions with a due date in the past.",
+                "formula": {"match": _open_corrective_action_match({"due_date": {"$lt": now_iso}}), "group_by": "project_number"},
+            },
+        },
+    }
 
 
 def build_project_health_router(db, require_any_portal_token) -> APIRouter:
@@ -185,19 +315,17 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
         async def _agg_incidents_open():
             return await _agg_count_by(
                 db.incidents,
-                {"resolution_status": {"$ne": "Closed"}})
+                _open_incident_match())
 
         async def _agg_incidents_open_high():
             return await _agg_count_by(
                 db.incidents,
-                {"resolution_status": {"$ne": "Closed"},
-                 "severity": {"$in": list(HIGH_SEV)}})
+                _open_incident_match({"severity": {"$in": list(HIGH_SEV)}}))
 
         async def _agg_ca_overdue():
             return await _agg_count_by(
                 db.corrective_actions,
-                {"status": {"$nin": ["Completed", "Closed", "Cancelled"]},
-                 "due_date": {"$lt": now.isoformat()}})
+                _open_corrective_action_match({"due_date": {"$lt": now.isoformat()}}))
 
         (tasks_overdue, pos_pending, pos_missing, pos_overdue,
          docs_expiring, docs_expired, incidents_open,
@@ -283,6 +411,7 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
             "summary": summary,
             "generated_at": now.isoformat(),
             "role": role,
+            "kpi_metadata": _build_project_health_kpi_metadata(now.isoformat()),
         }
 
     @router.get("/api/project-health/{project_number}/confidence")

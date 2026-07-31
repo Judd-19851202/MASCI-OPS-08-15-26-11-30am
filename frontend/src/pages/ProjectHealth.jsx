@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const STATUS_TINT = {
   green: "border-emerald-300 bg-emerald-50 text-emerald-800",
@@ -88,6 +90,12 @@ function applySort(rows, sort) {
   if (sort === "name_asc")
     return out.sort((a, b) => (a.project_name || "").localeCompare(b.project_name || ""));
   return out;
+}
+
+function KpiHelp({ metadata, fallbackLabel, testId }) {
+  const help = buildKpiHelpContent(metadata, fallbackLabel);
+  if (!help) return null;
+  return <HelpTip label={help.label} body={help.body} testId={testId} />;
 }
 
 export default function ProjectHealth() {
@@ -169,28 +177,45 @@ export default function ProjectHealth() {
       {data?.summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-3 mb-4" data-testid="project-health-summary">
           {["red", "amber", "green"].map((s) => (
-            <button
+            <div
               key={s}
-              onClick={() => setStatusFilter(s === statusFilter ? "all" : s)}
               className={`border-2 rounded-md p-3 text-left transition-colors ${STATUS_TINT[s]} ${statusFilter === s ? "ring-2 ring-slate-900" : ""}`}
               data-testid={`project-health-summary-${s}`}
             >
-              <div className="text-[10px] font-mono uppercase tracking-[0.16em] font-bold">
-                {STATUS_LABEL[s]}
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] font-bold">
+                <span>{STATUS_LABEL[s]}</span>
+                <KpiHelp
+                  metadata={data.kpi_metadata?.summary?.[s]}
+                  fallbackLabel={`${STATUS_LABEL[s]} Projects`}
+                  testId={`project-health-summary-${s}-help`}
+                />
               </div>
-              <div className="text-2xl font-bold leading-none mt-1">
-                {data.summary[s] ?? 0}
-              </div>
-            </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter(s === statusFilter ? "all" : s)}
+                className="mt-1 w-full text-left"
+                data-testid={`project-health-summary-${s}-toggle`}
+              >
+                <div className="text-2xl font-bold leading-none">
+                  {data.summary[s] ?? 0}
+                </div>
+              </button>
+            </div>
           ))}
           <div className="border-2 border-slate-300 bg-white text-slate-700 rounded-md p-3" data-testid="project-health-summary-total">
-            <div className="text-[10px] font-mono uppercase tracking-[0.16em] font-bold">Total Active</div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] font-bold">
+              <span>Total Active</span>
+              <KpiHelp metadata={data.kpi_metadata?.summary?.total} fallbackLabel="Total Active Projects" testId="project-health-summary-total-help" />
+            </div>
             <div className="text-2xl font-bold leading-none mt-1">
               {data.summary.total ?? 0}
             </div>
           </div>
           <div className="border-2 border-slate-300 bg-white text-slate-700 rounded-md p-3" data-testid="project-health-summary-confidence">
-            <div className="text-[10px] font-mono uppercase tracking-[0.16em] font-bold">Avg Confidence</div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] font-bold">
+              <span>Avg Confidence</span>
+              <KpiHelp metadata={data.kpi_metadata?.summary?.avg_confidence} fallbackLabel="Average Production Confidence" testId="project-health-summary-confidence-help" />
+            </div>
             <div className="text-2xl font-bold leading-none mt-1">
               {data.rows?.length ? `${Math.round(data.rows.reduce((sum, row) => sum + Number(row.production_confidence?.score || 0), 0) / data.rows.length)}` : "0"}
             </div>
@@ -266,7 +291,14 @@ export default function ProjectHealth() {
                       className="text-center p-2 font-mono uppercase tracking-wider text-[10px] text-slate-600 whitespace-nowrap"
                       title={i.label}
                     >
-                      {i.label}
+                      <span className="inline-flex items-center justify-center gap-1.5">
+                        <span>{i.label}</span>
+                        <KpiHelp
+                          metadata={data.kpi_metadata?.indicators?.[i.key]}
+                          fallbackLabel={i.label}
+                          testId={`project-health-indicator-${i.key}-help`}
+                        />
+                      </span>
                     </th>
                   ))}
                   <th className="w-8 p-2" aria-hidden="true" />

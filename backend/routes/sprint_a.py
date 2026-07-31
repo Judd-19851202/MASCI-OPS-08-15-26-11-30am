@@ -46,6 +46,28 @@ def _band(today: str, exp: str) -> str:
 
 def register_sprint_a_routes(api_router: APIRouter, db, require_actor) -> None:
 
+    def _expirations_summary_kpi_metadata() -> Dict[str, Any]:
+        return {
+            "kpi_name": "Operations Expirations Summary",
+            "business_definition": "Combined expiration-band counts across document expirations and safety training records.",
+            "source_of_truth": ["document_expirations", "safety_training_records"],
+            "api_endpoint": "/api/operations/expirations/summary",
+            "formula": {
+                "bands": {
+                    "expired": "expiration date before today",
+                    "in_30": "expiration date within 30 days",
+                    "in_60": "expiration date in 31-60 days",
+                    "in_90": "expiration date in 61-90 days",
+                },
+                "counted_entity": "document/training row",
+            },
+            "confidence": "HIGH",
+            "status_reason": "The summary is a straight aggregation over persisted expiration records; no client-side remapping should invent alternate buckets.",
+            "drilldown_source": "/document-expirations",
+            "owner": "expiration-governance",
+            "freshness": "Generated on request.",
+        }
+
     @api_router.get("/operations/expirations/summary")
     async def expirations_summary(actor: Any = Depends(require_actor)):
         now = datetime.now(timezone.utc)
@@ -108,6 +130,7 @@ def register_sprint_a_routes(api_router: APIRouter, db, require_actor) -> None:
                             "in_30_max_days": 30,
                             "in_60_max_days": 60,
                             "in_90_max_days": 90},
+            "kpi_metadata": _expirations_summary_kpi_metadata(),
         }
 
     @api_router.get("/operations/dispatch/by-day")

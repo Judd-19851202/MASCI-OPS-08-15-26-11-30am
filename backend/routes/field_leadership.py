@@ -33,6 +33,24 @@ from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 logger = logging.getLogger(__name__)
 
 
+def _time_off_stats_kpi_metadata() -> Dict[str, Any]:
+    return {
+        "kpi_name": "HR Time-Off Queue",
+        "business_definition": "Counts of field-leadership time-off requests by HR decision status.",
+        "source_of_truth": "field_leadership_records",
+        "api_endpoint": "/api/field-leadership/time-off/stats",
+        "formula": {
+            "match": {"kind": "time_off_request", "deleted_at": None},
+            "status_source": "details.hr_decision.status defaulting to pending",
+        },
+        "confidence": "HIGH",
+        "status_reason": "The pending count is derived from the same records HR reviews in the live time-off queue.",
+        "drilldown_source": "/hr/time-off",
+        "owner": "hr-time-off",
+        "freshness": "Generated on request.",
+    }
+
+
 # --- iter101 — Time Off Request payload models (module-level so Pydantic v2
 # can fully resolve them; closure-scoped BaseModel subclasses hit
 # `class-not-fully-defined` under Pydantic 2.12+).
@@ -1473,6 +1491,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             "pending": pending, "approved": approved, "denied": denied,
             "need_info": need_info, "total": pending + approved + denied + need_info,
             "submitted_last_7d": last_7d,
+            "kpi_metadata": _time_off_stats_kpi_metadata(),
         }
 
     @app.post("/api/field-leadership/time-off/{rec_id}/decide")

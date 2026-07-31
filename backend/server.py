@@ -5760,6 +5760,22 @@ async def hr_employee_roster(
             "active_statuses": sorted(_ACTIVE_STATUSES),
             "source": "db.employees (HR is gospel)",
         },
+        "kpi_metadata": {
+            "kpi_name": "Active Employee Roster",
+            "business_definition": "Count of active employees in the canonical HR roster contract after synthetic-row exclusion.",
+            "source_of_truth": "employees",
+            "api_endpoint": "/api/hr/employee-roster",
+            "formula": {
+                "active_only": not include_inactive,
+                "active_statuses": sorted(_ACTIVE_STATUSES),
+                "synthetic_rows_excluded": True,
+            },
+            "confidence": "HIGH",
+            "status_reason": "HR roster count comes from the canonical employee lifecycle filter used across HR and field pickers.",
+            "drilldown_source": "/hr/employees",
+            "owner": "hr-identity",
+            "freshness": "Generated on request.",
+        },
     }
 
 

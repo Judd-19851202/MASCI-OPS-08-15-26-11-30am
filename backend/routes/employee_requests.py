@@ -56,6 +56,26 @@ ALL_STATUSES = {STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED}
 TERMINATION_TARGET_STATUSES = {"Terminated", "Resigned", "Retired", "Inactive"}
 
 
+def _employee_request_kpi_metadata(status: Optional[str]) -> Dict[str, Any]:
+    normalized_status = (status or STATUS_PENDING).lower()
+    return {
+        "kpi_name": "HR Employee Requests Queue",
+        "business_definition": "Employee request queue size for HR review, including new-hire and termination submissions.",
+        "source_of_truth": "employee_requests",
+        "api_endpoint": "/api/hr/employee-requests",
+        "formula": {
+            "counted_entity": "employee_requests row",
+            "status_filter": normalized_status,
+            "kinds": sorted(ALLOWED_KINDS),
+        },
+        "confidence": "HIGH",
+        "status_reason": "Queue size is returned directly from the persisted employee_requests collection and the same pending_count badge used by HR surfaces.",
+        "drilldown_source": "/hr/employee-requests",
+        "owner": "hr-queue-integrity",
+        "freshness": "Generated on request.",
+    }
+
+
 class EmployeeRequestCreate(BaseModel):
     """Submission body. Public-tolerant — required fields are minimal."""
     model_config = ConfigDict(extra="forbid")
@@ -480,6 +500,7 @@ def register_employee_requests_routes(
             "items": items,
             "count": len(items),
             "pending_count": pending_count,
+            "kpi_metadata": _employee_request_kpi_metadata(status),
         }
 
     @api_router.get("/hr/employee-requests/{rid}")

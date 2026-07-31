@@ -61,6 +61,21 @@ def _admin_token():
     return r.json()["token"]
 
 
+def _admin_headers():
+    r = requests.post(
+        f"{URL}/api/auth/multi-login",
+        json={"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"},
+        headers={"Content-Type": "application/json"},
+        timeout=15,
+    )
+    r.raise_for_status()
+    data = r.json()
+    return {
+        "X-Admin-Token": data["portal_tokens"]["admin"],
+        "X-Directory-Token": data["session_token"],
+    }
+
+
 def _login(path, body):
     """Login helper for portal tokens (hr/safety/dispatch). Returns token
     or skips the test if the portal isn't seeded."""
@@ -79,7 +94,7 @@ def test_anon_blocked_401():
 
 
 def test_admin_allowed():
-    r = requests.get(f"{URL}/api/project-health", timeout=15)
+    r = requests.get(f"{URL}/api/project-health", headers=_admin_headers(), timeout=15)
     assert r.status_code == 200, r.text
 
 
@@ -129,11 +144,13 @@ def test_safety_allowed():
 # Response contract + sort
 # ──────────────────────────────────────────────────────────────────
 def test_response_shape_contract():
-    r = requests.get(f"{URL}/api/project-health", timeout=15).json()
+    r = requests.get(f"{URL}/api/project-health", headers=_admin_headers(), timeout=15).json()
     assert "rows" in r and isinstance(r["rows"], list)
     assert "summary" in r
     assert "generated_at" in r
     assert "role" in r
+    assert "kpi_metadata" in r
+    assert "indicators" in r["kpi_metadata"]
     for k in ("green", "amber", "red", "total"):
         assert k in r["summary"]
     if r["rows"]:
@@ -151,7 +168,7 @@ def test_response_shape_contract():
 
 
 def test_default_sort_worst_first():
-    r = requests.get(f"{URL}/api/project-health", timeout=15).json()
+    r = requests.get(f"{URL}/api/project-health", headers=_admin_headers(), timeout=15).json()
     rows = r["rows"]
     rank = {"red": 0, "amber": 1, "green": 2}
     for a, b in zip(rows, rows[1:]):
@@ -208,7 +225,7 @@ def _cleanup_test_project(pn: str):
 
 
 def _project_row(pn: str):
-    r = requests.get(f"{URL}/api/project-health", timeout=15).json()
+    r = requests.get(f"{URL}/api/project-health", headers=_admin_headers(), timeout=15).json()
     return next((row for row in r["rows"] if row["project_number"] == pn), None)
 
 
@@ -351,7 +368,7 @@ def test_pm_only_sees_own_projects():
     pm_total = r.json()["summary"]["total"]
 
     # Compare to admin: PM count must be ≤ admin count (unless PM is admin).
-    r2 = requests.get(f"{URL}/api/project-health", timeout=15).json()
+    r2 = requests.get(f"{URL}/api/project-health", headers=_admin_headers(), timeout=15).json()
     admin_total = r2["summary"]["total"]
     # PM may legitimately have full access (legacy office bypass).
     # In that case, sizes are equal — still a valid pass.
