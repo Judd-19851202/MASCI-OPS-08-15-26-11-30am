@@ -63,12 +63,10 @@ export default function PmResetPassword() {
 
   return (
     <PortalLoginShell
-      portalLabel={t("Project Management")}
-      title={t("Reset PM password")}
-      subtitle={t("Secure password reset for project operators.")}
       homeLink="/pm/login"
-      homeLabel={t("PM Login")}
       headerBorderClass="border-amber-500"
+      backHoverClass="hover:text-amber-200"
+      backTestId="pm-reset-back"
       footerLabel={t("MASCI · Project Management")}
       rootTestId="pm-reset-page"
     >
@@ -81,14 +79,12 @@ export default function PmResetPassword() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700">
                 {t("Self-service reset")}
               </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="pm-reset-title">
                 {t("Choose a new password")}
               </h1>
             </div>
           </div>
-          <p className="text-slate-600 text-sm mb-6">
-            {t("Choose a new password. This reset link closes after you save.")}
-          </p>
+          <p className="text-slate-600 text-sm mb-6">{t("Choose a new password.")}</p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="pm-reset-form">
             <div>

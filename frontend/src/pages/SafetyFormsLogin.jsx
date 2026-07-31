@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -52,12 +52,10 @@ export default function SafetyFormsLogin() {
 
   return (
     <PortalLoginShell
-      portalLabel={t("Safety Forms")}
-      title={t("Safety Forms")}
-      subtitle={t("Protected entry for safety-issued forms and training workflows.")}
       homeLink="/safety"
-      homeLabel={t("Safety")}
       headerBorderClass="border-red-700"
+      backHoverClass="hover:text-red-300"
+      backTestId="safety-forms-login-back"
       footerLabel={t("MASCI · Safety Department")}
       rootTestId="safety-forms-login-page"
     >
@@ -79,25 +77,6 @@ export default function SafetyFormsLogin() {
                 {t("Safety Forms")}
               </h1>
             </div>
-          </div>
-
-          <div
-            className="mb-5 rounded-md border border-slate-200 border-l-4 border-l-cyan-700 bg-cyan-50/60 p-3"
-            data-testid="safety-forms-portal-notice"
-          >
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-800 font-bold">
-              {t("Primary sign-in")}
-            </div>
-            <p className="text-xs text-slate-700 mt-1">
-              {t("Safety Operations owns the full review flow.")} {" "}
-              <Link
-                to="/safety-portal/login?from=safety-forms"
-                className="font-bold text-cyan-800 underline"
-                data-testid="safety-forms-portal-cta"
-              >
-                {t("Use Safety Operations sign-in →")}
-              </Link>
-            </p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="safety-forms-login-form">

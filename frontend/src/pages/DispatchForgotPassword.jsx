@@ -23,7 +23,7 @@ export default function DispatchForgotPassword() {
     if (!email.trim()) return;
     setBusy(true);
     try {
-      const r = await axios.post(`${API}/dispatch/forgot-password`, {
+      await axios.post(`${API}/dispatch/forgot-password`, {
         email: email.trim(),
       });
       setDone(true);
@@ -36,12 +36,10 @@ export default function DispatchForgotPassword() {
 
   return (
     <PortalLoginShell
-      portalLabel={t("Dispatch")}
-      title={t("Reset Dispatch access")}
-      subtitle={t("Password recovery for Transportation dispatch operators.")}
       homeLink="/dispatch-portal/login"
-      homeLabel={t("Dispatch Login")}
       headerBorderClass="border-orange-700"
+      backHoverClass="hover:text-orange-300"
+      backTestId="dispatch-forgot-back"
       footerLabel={t("MASCI · Dispatch")}
       rootTestId="dispatch-forgot-page"
     >
@@ -54,14 +52,14 @@ export default function DispatchForgotPassword() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-orange-700 font-bold">
                 {t("Operations · Fleet Movement")}
               </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="dispatch-forgot-title">
                 {t("Forgot password")}
               </h1>
             </div>
           </div>
 
           {done ? (
-            <div className="space-y-4">
+            <div className="space-y-4" data-testid="dispatch-forgot-success">
               <div className="flex items-start gap-2 bg-emerald-50 border-2 border-emerald-200 rounded-md p-4 text-sm text-emerald-900">
                 <Check className="w-5 h-5 shrink-0 mt-0.5" />
                 <div>
@@ -71,15 +69,14 @@ export default function DispatchForgotPassword() {
               <Link
                 to="/dispatch-portal/login"
                 className="block text-center text-xs font-mono uppercase tracking-[0.18em] text-orange-700 hover:underline"
+                data-testid="dispatch-forgot-return-link"
               >
                 {t("Back to sign in")} →
               </Link>
             </div>
           ) : (
             <form onSubmit={onSubmit} className="space-y-4" data-testid="dispatch-forgot-form">
-              <p className="text-slate-600 text-sm">
-                {t("Enter the work email on your Dispatch account.")}
-              </p>
+              <p className="text-slate-600 text-sm">{t("Enter the work email on your Dispatch account.")}</p>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
                   {t("Work Email")}

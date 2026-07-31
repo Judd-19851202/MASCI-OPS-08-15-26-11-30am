@@ -41,7 +41,7 @@ import { useT } from "@/lib/i18n";
 
 export function PortalLoginShell({
   headerBorderClass,   // e.g. "border-purple-700" (full literal)
-  backHoverClass,      // e.g. "hover:text-purple-300" (full literal)
+  backHoverClass = "hover:text-slate-200",      // e.g. "hover:text-purple-300" (full literal)
   backTestId,          // e.g. "hr-login-back"
   rootTestId,          // optional outer div testid (e.g. "fl-portal-login")
   footerLabel,         // already-translated label string
@@ -73,12 +73,6 @@ export function PortalLoginShell({
 
       <main className="wp17-public-main flex-1 flex items-center justify-center py-12">
         <div className="w-full max-w-md wp17-auth-stack">
-          <div className="mb-4 text-center" data-testid="portal-login-shared-auth-note">
-            <div className="wp17-kicker">One MASCI sign-in system</div>
-            <Link to="/sign-in" className="mt-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 hover:text-slate-950" data-testid="portal-login-shared-entry-link">
-              {t("Open shared entry")}
-            </Link>
-          </div>
           {children}
         </div>
       </main>

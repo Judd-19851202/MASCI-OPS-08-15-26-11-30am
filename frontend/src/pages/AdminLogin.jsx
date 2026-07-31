@@ -12,22 +12,17 @@
 // portal's sign-in chrome.
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { ShieldAlert, Loader2, ArrowLeft, Mail, KeyRound, Fingerprint } from "lucide-react";
+import { ShieldAlert, Loader2, Mail, KeyRound, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { AuthRequiredBanner } from "@/components/PortalContextBanner";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
 import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
-import { clearAdminToken, getAdminToken } from "@/lib/adminAuth";
-import { clearPmToken } from "@/lib/pmAuth";
-import { clearShopToken } from "@/lib/shopAuth";
-import { clearHrToken } from "@/lib/hrAuth";
+import { getAdminToken } from "@/lib/adminAuth";
 import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
 import { useT } from "@/lib/i18n";
 import { useBranding } from "@/lib/BrandingProvider";
@@ -55,7 +50,9 @@ export default function AdminLogin() {
         if (!cancelled) setPasskeyReady(!!ok);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const onPasskeySignIn = async () => {
@@ -190,161 +187,131 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="admin-login-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md">
-          <AuthRequiredBanner />
-          <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
-              <ShieldAlert className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
-                {t("Restricted Area")}
-              </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("Admin Sign In")}
-              </h1>
-            </div>
+    <PortalLoginShell
+      headerBorderClass="border-red-700"
+      backHoverClass="hover:text-red-300"
+      backTestId="admin-login-back"
+      rootTestId="admin-login-page"
+      footerLabel={`${brandShort} · Office Use Only`}
+    >
+      <AuthRequiredBanner />
+      <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
+            <ShieldAlert className="w-6 h-6" />
           </div>
-          <p className="text-slate-600 text-sm mt-3 mb-6">
-            {t("Office sign-in for managers and supervisors. Field crews don't need to sign in to fill out forms — they can start a new one straight from the")}{" "}
-            <Link to="/" className="text-red-700 font-bold hover:underline">
-              {t("Hub")}
-            </Link>
-            .
-          </p>
-
-          <form onSubmit={onSubmit} className="space-y-4" data-testid="admin-login-form">
-            {/* Email */}
-            <div>
-              <Label htmlFor="admin-email" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Work Email")}
-              </Label>
-              <div className="relative mt-2">
-                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <Input
-                  id="admin-email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="username"
-                  autoFocus
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@yourcompany.com"
-                  className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
-                  data-testid="admin-email-input"
-                />
-              </div>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
+              {t("Restricted Area")}
             </div>
+            <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="admin-login-title">
+              {t("Admin Sign In")}
+            </h1>
+          </div>
+        </div>
+        <p className="text-slate-600 text-sm mt-3 mb-6">{t("Office sign-in for managers and supervisors.")}</p>
 
-            {/* Password */}
-            <div>
-              <Label htmlFor="admin-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1">
-                <KeyRound className="w-3 h-3" /> {t("Password")}
-              </Label>
-              <PasswordInput
-                id="admin-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
-                data-testid="admin-password-input"
-                toggleTestId="admin-password-toggle"
+        <form onSubmit={onSubmit} className="space-y-4" data-testid="admin-login-form">
+          <div>
+            <Label htmlFor="admin-email" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+              {t("Work Email")}
+            </Label>
+            <div className="relative mt-2">
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Input
+                id="admin-email"
+                type="email"
+                inputMode="email"
+                autoComplete="username"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@yourcompany.com"
+                className="h-12 pl-9 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
+                data-testid="admin-email-input"
               />
             </div>
-
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 accent-red-700"
-                  data-testid="admin-remember-me"
-                />
-                <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
-                  {t("Remember me on this device")}
-                </span>
-              </label>
-              <span className="text-[11px] text-slate-500">
-                {t("Forgot password? Call the office.")}
-              </span>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="admin-login-submit"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
-                </>
-              ) : (
-                <>{t("Sign In")}</>
-              )}
-            </Button>
-            {/* iter422 · Phase 24 · Optional device passkey sign-in */}
-            {passkeyReady ? (
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={onPasskeySignIn}
-                  disabled={passkeyBusy || submitting}
-                  data-testid="admin-login-passkey-btn"
-                  className="w-full h-11 inline-flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-800 bg-white border-2 border-slate-300 hover:border-red-700 hover:text-red-700 rounded-md disabled:opacity-50"
-                >
-                  {passkeyBusy ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Fingerprint className="w-4 h-4" />
-                  )}
-                  {passkeyBusy ? t("Verifying device…") : t("Use device sign-in")}
-                </button>
-                <p className="mt-2 text-[11px] text-slate-500 leading-snug" data-testid="admin-login-passkey-hint">
-                  {t("Your device handles Face ID / Touch ID securely. MASCI never stores biometric information.")}
-                </p>
-              </div>
-            ) : null}
-          </form>
-          <PortalLoginHelp portal="admin" />
-
-          <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
-            {t("Access multiple portals?")}{" "}
-            <Link to="/sign-in" className="inline-flex items-center min-h-[44px] px-1 -mx-1 text-slate-900 font-bold hover:underline" data-testid="admin-login-master-link">
-              {t("Use the master sign-in")}
-            </Link>{" "}
-            {t("to land on any portal in one step.")}
-          </p>
           </div>
-        </div>
-      </main>
 
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          {brandShort} · Office Use Only
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
+          <div>
+            <Label htmlFor="admin-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1">
+              <KeyRound className="w-3 h-3" /> {t("Password")}
+            </Label>
+            <PasswordInput
+              id="admin-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
+              data-testid="admin-password-input"
+              toggleTestId="admin-password-toggle"
+            />
+          </div>
+
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 accent-red-700"
+                data-testid="admin-remember-me"
+              />
+              <span className="text-xs font-mono uppercase tracking-wide text-slate-700 font-bold">
+                {t("Remember me on this device")}
+              </span>
+            </label>
+            <span className="text-[11px] text-slate-500">{t("Forgot password? Call the office.")}</span>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={submitting}
+            className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+            data-testid="admin-login-submit"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
+              </>
+            ) : (
+              <>{t("Sign In")}</>
+            )}
+          </Button>
+
+          {passkeyReady ? (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onPasskeySignIn}
+                disabled={passkeyBusy || submitting}
+                data-testid="admin-login-passkey-btn"
+                className="w-full h-11 inline-flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-800 bg-white border-2 border-slate-300 hover:border-red-700 hover:text-red-700 rounded-md disabled:opacity-50"
+              >
+                {passkeyBusy ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Fingerprint className="w-4 h-4" />
+                )}
+                {passkeyBusy ? t("Verifying device…") : t("Use device sign-in")}
+              </button>
+            </div>
+          ) : null}
+        </form>
+        <PortalLoginHelp portal="admin" />
+
+        <p className="mt-5 pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed text-center">
+          {t("Access multiple portals?")}{" "}
+          <Link
+            to="/sign-in"
+            className="inline-flex items-center min-h-[44px] px-1 -mx-1 text-slate-900 font-bold hover:underline"
+            data-testid="admin-login-master-link"
+          >
+            {t("Use the master sign-in")}
+          </Link>{" "}
+          {t("to land on any portal in one step.")}
+        </p>
+      </div>
+    </PortalLoginShell>
   );
 }

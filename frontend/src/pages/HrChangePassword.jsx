@@ -105,12 +105,10 @@ export default function HrChangePassword() {
 
   return (
     <PortalLoginShell
-      portalLabel={t("Human Resources")}
-      title={t("Update HR password")}
-      subtitle={t("Protected credential update for HR access.")}
       homeLink="/hr"
-      homeLabel={t("Human Resources")}
       headerBorderClass="border-purple-700"
+      backHoverClass="hover:text-purple-300"
+      backTestId="hr-change-password-back"
       footerLabel={t("MASCI · Human Resources")}
       rootTestId="hr-change-password-page"
     >
@@ -123,20 +121,18 @@ export default function HrChangePassword() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-purple-700">
                 {t("Human Resources")}
               </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="hr-change-password-title">
                 {t("Choose your password")}
               </h1>
             </div>
           </div>
           {me && (
-            <p className="text-slate-600 text-sm mb-1">
+            <p className="text-slate-600 text-sm mb-1" data-testid="hr-change-password-identity">
               {t("Signed in as")}{" "}
               <span className="font-mono text-slate-900 font-bold">{me.email}</span>
             </p>
           )}
-          <p className="text-slate-600 text-sm mb-6">
-            {t("Choose a new password. The temporary password stops working after save.")}
-          </p>
+          <p className="text-slate-600 text-sm mb-6">{t("Choose a new password.")}</p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="hr-change-pw-form">
             <div>
