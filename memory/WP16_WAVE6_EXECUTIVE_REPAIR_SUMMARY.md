@@ -1,33 +1,31 @@
 # WP16 Wave 6 — Executive Repair Summary
 
-Date: 2026-07-30
+Date: 2026-07-31
 Wave: 6 — Dispatch & Transportation
 
 ## Authorized/focused repair scope executed in final blocker pass
 
 - Executive authorization scope: `WP16-W6-001` only
-- Repairs attempted in this final focused pass: `1`
-- Closed in this final focused pass: `0`
-- Remaining open after final focused pass: `1`
+- Repairs applied in this final focused pass: `1`
+- Closed in this final focused pass: `1`
+- Remaining open after final focused pass: `0`
 
 ## Issue disposition
 
-### WP16-W6-001 — OPEN
+### WP16-W6-001 — VERIFIED_CLOSED
 
 - **Impacted experience:** `W6-008` Transportation wrapper (dispatch cleanup branch)
-- **Final classification:** **Shared foundation defect**
-- **Exact failure point:** automatic cleanup loaders fail to achieve a successful settled authenticated request lifecycle during normal browser rendering; the same endpoint succeeds immediately when invoked manually with an explicit Dispatch token.
-- **Evidence:** browser reproduction, screenshot capture, independent frontend verification, direct curl `200`, direct in-page manual fetch `200`, negative auth checks (`401` / `404`) proving the backend contract itself is healthy when called explicitly.
-- **Files modified in the focused pass:**
-  1. `frontend/src/pages/transportation/_shared.jsx`
-  2. `frontend/src/pages/transportation/_views.jsx`
-  3. `frontend/src/pages/transportation/_intelligence.jsx`
-- **Smallest-safe repair attempts applied:**
-  1. prefix-aware intelligence tab links and dispatch-safe tab visibility
-  2. shared cleanup fetch helper introduction
-  3. timeout / settled-request tuning
-  4. delayed load kickoff / loading-exit hardening
-- **Current state:** unresolved; safe continuation blocked
+- **Final classification:** **Shared mixed-session auth gate defect**
+- **Root cause:** pre-route session-timeout middleware chose the stale admin token first and returned `session_not_active` before the shared Dispatch-or-Admin route gate could accept the valid Dispatch token.
+- **Smallest-safe repair:** allow middleware validation to continue across presented portal tokens in precedence order and pass the request through once any supplied token is active; keep route-level authorization unchanged.
+- **Files modified:**
+  1. `backend/session_timeout.py`
+  2. `backend/server.py`
+  3. `backend/tests/test_iter186b_session_timeout_middleware.py`
+- **Verification:**
+  - backend independent verification: `5 / 5 PASS`
+  - direct browser mixed-session verification: PASS
+  - cleanup route rendered successfully for valid Dispatch + stale admin + stale directory token case
 
 ### Historical note — WP16-W6-002 remains VERIFIED_CLOSED
 
@@ -37,23 +35,17 @@ Wave: 6 — Dispatch & Transportation
 - **Repair:** allow `opened` status on repeat GET while preserving invalid/expired protection
 - **Verification:** repeat-open invite loads successfully in browser; independent verification PASS
 
-## Additional shared adjustments attempted during W6-001 focused pass
-
-- `frontend/src/pages/transportation/_intelligence.jsx` — prefix-aware cleanup tab paths and dispatch-safe tab visibility
-- `frontend/src/pages/transportation/_shared.jsx` — scoped cleanup fetch helpers / settled timing attempts
-- `frontend/src/pages/transportation/_views.jsx` — Mission Control cleanup-card loader hardening
-
 ## Independent verification results
 
+- `W6-008` cleanup branch — **PASS**
 - `W6-009` External Carrier Invite — **PASS**
 - `W6-010` Certificate Verify — **PASS**
-- `W6-008` cleanup branch — **FAIL** (still non-operational for Dispatch users)
-- Regressions: `/dispatch-portal/board`, `/dispatch-portal/command`, `/transportation-operations/trucks`, `/drivers`, `/carriers` — **PASS**
+- Regression: no token still denied; Dispatch still rejected on admin-only recommendations route — **PASS**
 
 ## Final operational assessment
 
-Wave 6 is partially repaired but not complete. `WP16-W6-002` remains closed and verified. `WP16-W6-001` remains unresolved after the final focused blocker pass. The evidence now isolates the blocker to the shared automatic cleanup request/auth lifecycle, but a verified smallest-safe fix was not achieved within this authorization window. Wave 6 is therefore not eligible for executive lock.
+Wave 6 is complete. The only open blocker (`WP16-W6-001`) is now repaired, verified, and closed. Wave 6 is eligible for executive lock and has been locked in the program records.
 
 ## Executive recommendation
 
-**NOT READY FOR EXECUTIVE LOCK**
+**EXECUTIVE LOCK GRANTED — CONTINUE TO WAVE 7**

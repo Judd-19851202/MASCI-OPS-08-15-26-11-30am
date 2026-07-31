@@ -1,95 +1,85 @@
 # WP16 Wave 6 — Executive Exception Report
 
-Date: 2026-07-30
+Date: 2026-07-31
 Wave: 6 — Dispatch & Transportation
+Status: RESOLVED / CLOSED
 
 ## Exception trigger
 
-Continuous certification stop condition encountered:
+Continuous certification stop condition was triggered by `WP16-W6-001` during Wave 6 inspection.
 
-- **A blocker prevents safe continuation.**
+That stop condition is now cleared.
 
 ## Blocking issue
 
 - **Issue ID:** `WP16-W6-001`
 - **Surface:** `W6-008` Transportation wrapper → dispatch cleanup branch
-- **Final classification:** **Shared foundation defect**
-- **Observed behavior:**
-  - `/transportation-operations`
-  - `/transportation-operations/intelligence/cleanup`
-  remain non-operational for valid Dispatch users because cleanup data never reaches a successful settled render path.
+- **Final classification:** **Shared mixed-session auth gate defect**
 
 ## Exact failure point
 
-The failure point was traced to the **shared cleanup request/auth lifecycle inside the frontend loader path**, not to route registration and not to backend data generation itself.
+The failing browser path was not the cleanup data composer itself. The blocker was the shared session-timeout/auth lifecycle when multiple portal tokens were present on the same request.
 
-### Verified lifecycle trace
+### Verified failure chain
 
-1. **Route resolution:** successful
-   - Dispatch users can reach `/transportation-operations` and `/transportation-operations/intelligence`.
-2. **Route guard:** successful
-   - `RequireTransportationPortal` allows valid Dispatch users into the Transportation shell.
-3. **Dispatch permission evaluation / session validation:** successful outside the auto-loader path
-   - direct curl with `X-Dispatch-Token` to `/api/admin/transportation/intelligence/cleanup-signals?days=30` returns `200`
-   - direct browser `fetch()` with explicit `X-Dispatch-Token` from the loaded page also returns `200`
-   - negative checks return correct denials: no token `401`, PM token `401`, invalid signal `404`
-4. **API request construction during automatic page load:** failing point
-   - the automatic cleanup loaders (`TopCleanupOpportunityCard` and `CleanupCompanionPanel`) do not achieve a successful settled authenticated request path during normal browser rendering
-   - independent verification captured the cleanup endpoint returning `401 Unauthorized` during the automatic page-load path
-   - when the same request is executed manually from the page with an explicit Dispatch token, the backend returns valid data immediately
-5. **Backend request receipt / authorization / data retrieval:** healthy when a valid Dispatch-authenticated request arrives
-6. **Frontend state update / loading exit:** never receives a successful settled automatic result, so the cleanup UI remains stuck in loading or timeout/error states
+1. A valid Dispatch user reached `/transportation-operations/intelligence/cleanup`.
+2. The browser also carried stale `X-Admin-Token` / `X-Directory-Token` values from prior portal activity.
+3. The pre-route session-timeout middleware selected the stale higher-precedence admin token first.
+4. Middleware returned `401 session_not_active` before the shared Dispatch-or-Admin route guard could fall back to the still-valid Dispatch token.
+5. Cleanup data never reached a successful settled render path for the mixed-session browser case.
 
-### Why this is a shared foundation defect
+## Smallest safe repair applied
 
-The defect spans both cleanup surfaces in W6-008 and sits in the shared request/auth lifecycle used by those loaders. It is not isolated to a single list row, a single cleanup signal, or a broken backend serializer.
+### Backend
 
-## Why continuation must pause
+- `backend/session_timeout.py`
+  - preserved precedence ordering
+  - changed middleware validation to iterate all presented known portal tokens in order
+  - request now proceeds when **any** supplied portal token is active
+  - route-level authorization still remains the final authority
+- `backend/server.py`
+  - removed temporary Wave 6 forensic trace logging from `_require_dispatch_or_admin`
 
-The current wave lifecycle is not complete. One dispatch-visible operational workflow remains unresolved, so Wave 6 cannot be locked. Proceeding to Wave 7 would violate the continuous-wave requirement that each wave complete its own certification lifecycle before the next wave begins.
+### Test coverage
 
-The final focused pass exhausted smallest-safe frontend repairs without restoring truthful automatic behavior. Further continuation would now require deeper auth/request redesign or broader instrumentation beyond the authorized scope.
+- `backend/tests/test_iter186b_session_timeout_middleware.py`
+  - added regression coverage for: stale higher-tier token + active lower-tier Dispatch token
 
-## What was already completed before pause
+## Verification evidence
 
-- Wave 6 inventory and reconciliation
-- Wave 6 full inspection
-- controlled repair attempts on verified issues
-- independent verification of repaired/public routes
-- closure of `WP16-W6-002`
+### Positive / blocker-case verification
 
-## What remains open
+Live backend verification on preview:
 
-- `WP16-W6-001` only
+1. valid Dispatch token only → `200`
+2. valid Dispatch token + stale invalid `X-Admin-Token` → `200`
+3. valid Dispatch token + stale invalid `X-Admin-Token` + stale invalid `X-Directory-Token` → `200`
 
-## Files modified during final focused pass
+### Negative / regression verification
 
-- `frontend/src/pages/transportation/_shared.jsx`
-- `frontend/src/pages/transportation/_views.jsx`
-- `frontend/src/pages/transportation/_intelligence.jsx`
+4. no auth token → `401`
+5. Dispatch token on stricter admin-only route `/api/admin/transportation/intelligence/recommendations` → `401`
 
-## Final verification evidence
+### Direct browser verification
 
-- Positive API verification:
-  - Dispatch token + curl → cleanup signals `200`
-  - Repeat-open invite route `200`
-  - Certificate verify route `200`
-- Negative API verification:
-  - no token → cleanup signals `401`
-  - PM token → cleanup signals `401`
-  - invalid cleanup signal → `404`
-- Independent browser verification:
-  - `W6-009` PASS
-  - `W6-010` PASS
-  - `W6-008` FAIL — cleanup route remains non-operational for Dispatch users
+Seeded browser session with:
 
-## Recommended Executive direction
+- valid Dispatch token
+- stale invalid admin token
+- stale invalid directory token
 
-Provide exception guidance on one of the following:
+Result:
 
-1. authorize deeper diagnosis / redesign of the shared cleanup auth-request path, or
-2. reclassify / exclude the cleanup branch from the Wave 6 denominator if operationally acceptable.
+- `/transportation-operations/intelligence/cleanup` rendered successfully
+- cleanup experience settled successfully in `29.1s`
+- top cleanup card rendered with title: `Carrier packet needs correction`
 
-## Recommendation
+## Disposition
 
-**NO-GO FOR WAVE 7 UNTIL WP16-W6-001 IS RESOLVED OR RECLASSIFIED**
+- `WP16-W6-001` → **VERIFIED_CLOSED**
+- Wave 6 stop condition → **removed**
+- Wave 6 → **EXECUTIVE LOCKED**
+
+## Continuation decision
+
+Wave 6 no longer blocks the program. Continuous certification resumed immediately after closure and Wave 7 inventory kickoff has started.

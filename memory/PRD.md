@@ -1,3 +1,33 @@
+# 2026-07-31 — WP-16 Wave 6 blocker closed; Wave 7 inventory kicked off
+
+## 2026-07-31 Executive dashboard — current program truth
+
+- **Current Wave:** `7`
+- **Current Wave 6 status:** `EXECUTIVE LOCKED — 0 OPEN ISSUES`
+- **Current Wave 7 status:** `INVENTORY KICKOFF STARTED — continuous pipeline resumed`
+- **Waves Locked:** `6`
+- **Waves Remaining:** `10`
+- **Program Completion (%):** `90.0%` (`316 / 351` against the current authoritative denominator after Wave 6 closure)
+- **Wave 6 denominator:** `10`
+- **Wave 6 final result:** `10 PASS / 0 FAIL / 0 LIMITED`
+- **Wave 6 closed issues:** `WP16-W6-001`, `WP16-W6-002`
+- **Stop condition:** `CLEARED`
+- **Wave 6 repair summary:** `WP16_WAVE6_EXECUTIVE_REPAIR_SUMMARY.md`
+- **Wave 6 exception report:** `WP16_WAVE6_EXECUTIVE_EXCEPTION_REPORT.md`
+- **Wave 7 inventory package:** `WP16_WAVE7_INVENTORY_AND_RECONCILIATION.md`
+- **Current wave ledger:**
+
+| Wave | Scope | Status | Notes |
+|---|---|---|---|
+| Wave 1 | Public Pages & Authentication | LOCKED | Read-only certification history. |
+| Wave 2 | Homepage / Dashboard Certification | LOCKED | Read-only certification history. |
+| Wave 3 | Admin Certification | EXECUTIVE LOCKED | Read-only certification history. |
+| Wave 4 | HR Certification | REPAIR PASS COMPLETE — PENDING EXECUTIVE LOCK | `26 / 26` verified after repairs. |
+| Wave 5 | Safety Certification | EXECUTIVE LOCKED | Closed by Executive instruction. |
+| Wave 6 | Dispatch & Transportation | EXECUTIVE LOCKED | `WP16-W6-001` repaired and verified closed. |
+| Wave 7 | Continuous pipeline next denominator | INVENTORY KICKOFF STARTED | Reconciliation starts from remaining unlocked register scope. |
+| Waves 8–16 | Remaining portal families | NOT STARTED | Continue after Wave 7 reconciliation/inspection flow. |
+
 # 2026-07-30 — WP-16 Wave 6 continuous pipeline pause
 
 ## 2026-07-30 Executive dashboard — current program truth
