@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -33,6 +35,8 @@ export function FormShell({
   progressSlot = null,
   draftSlot = null,
   headerRightSlot = null,
+  backLink = null,
+  backLabel = null,
   children,
   stickyFooter = null,
   containerTestId = "form-shell",
@@ -40,12 +44,23 @@ export function FormShell({
   const { t } = useT();
   return (
     <div
-      className="min-h-screen wp17-grid-bg pb-32"
+      className="min-h-screen wp17-public-shell wp17-grid-bg pb-32"
       data-testid={containerTestId}
     >
+      <div className="caution-stripe" />
       {/* HEADER — fixed height row for stable layout across all steps. */}
       <header className="sticky top-0 z-30 wp17-public-header border-b border-slate-200 text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+          {backLink ? (
+            <Link
+              to={backLink}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/85 hover:bg-white/14"
+              data-testid={`${containerTestId}-back-link`}
+              aria-label={backLabel || t("Back")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          ) : null}
           <MasciLogo className="w-8 h-8 shrink-0" />
           <div className="flex-1 min-w-0">
             {kicker && (

@@ -56,11 +56,10 @@ import {
   SectionAiSummary,
   SectionSignoff,
 } from "@/components/daily-report-v3/sections";
-import { DailyReportTopBanner } from "@/components/DailyReportTopBanner";
 import DailyReportV3ExcavationSection from "@/components/daily-report-v3/DailyReportV3ExcavationSection";
 import { CheckCircle2, History } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { LangToggle } from "@/components/LangToggle";
+import FormShell from "@/components/FormShell";
 import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
 import { useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { classifyApiError } from "@/lib/errorClassification";
@@ -973,57 +972,49 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [onSubmit]);
 
   return (
-    <div className="min-h-screen blueprint-bg wp17-grid-bg">
-      <div className="caution-stripe" />
-      {/* TRACK 23.4B · Visual consistency · V3 now shares the same
-          `blueprint-bg` engineering-grid background used by QA/QC,
-          Safety Audits, Field Safety, JHP, Excavation. One design
-          system across every MASCI field form. Do not swap for a
-          plain slate-50 — that produced the visual drift the operator
-          flagged. */}
-      <DailyReportTopBanner backLink="/" showBackLink={!publicMode}>
-        <div className="flex items-center gap-2" data-testid="dr-v3-header-chips">
-          <LangToggle variant="dark" testId="dr-v3-lang-toggle" />
-          {!online && (
+    <FormShell
+      kicker={t("MASCI · Daily Job Report")}
+      title={t("Today's report")}
+      subtitle={t("Nine short steps. Dropdowns first. AI drafts your summary. Save state, scope, and next action stay visible the whole time.")}
+      backLink={!publicMode ? "/" : null}
+      draftSlot={(
+        <div className="flex items-center gap-2" data-testid="dr-v3-draft-pill-slot">
+          <DraftStatusPill
+            status={(() => {
+              if (saving) return "syncing";
+              if (draftStatus === "saving") return "saving";
+              if (draftStatus === "failed") return "failed";
+              if (!online) return "offline";
+              if (canSubmit) return "ready";
+              if (draftStatus === "saved" || pendingSavedAt || lastSavedAt) return "saved";
+              return "draft";
+            })()}
+            lastSavedAt={lastSavedAt || pendingSavedAt}
+            testId="daily-report-draft-status"
+          />
+          {(draftStatus === "idle" && !pendingSavedAt && online && !canSubmit) && (
             <span
-              data-testid="dr-v3-offline-chip"
-              className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-900"
+              data-testid="daily-report-autosave-status"
+              className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100 border border-slate-700"
             >
-              {t("Offline")}
+              {t("Autosave on")}
             </span>
           )}
-          <div data-testid="dr-v3-draft-pill-slot">
-            {/* TRACK 26.08 · seven contract states. Priority order:
-                submitted > saving > offline > ready > saved > draft.
-                `saving`, `saved`, `failed` come straight from the
-                autosave hook; `offline`, `ready`, `draft` are derived
-                from the current form context. */}
-            <DraftStatusPill
-              status={(() => {
-                if (saving) return "syncing";
-                if (draftStatus === "saving") return "saving";
-                if (draftStatus === "failed") return "failed";
-                if (!online) return "offline";
-                if (canSubmit) return "ready";
-                if (draftStatus === "saved" || pendingSavedAt || lastSavedAt) return "saved";
-                return "draft";
-              })()}
-              lastSavedAt={lastSavedAt || pendingSavedAt}
-              testId="daily-report-draft-status"
-            />
-            {(draftStatus === "idle" && !pendingSavedAt && online && !canSubmit) && (
-              <span
-                data-testid="daily-report-autosave-status"
-                className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100 border border-slate-700"
-              >
-                {t("Autosave on")}
-              </span>
-            )}
-          </div>
         </div>
-      </DailyReportTopBanner>
-
-      <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+      )}
+      headerRightSlot={
+        !online ? (
+          <span
+            data-testid="dr-v3-offline-chip"
+            className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-900"
+          >
+            {t("Offline")}
+          </span>
+        ) : null
+      }
+      containerTestId="dr-v3-form-shell"
+    >
+      <div className="mx-auto max-w-3xl px-0 py-1 sm:py-4" data-testid="dr-v3-form-root">
         {/* TRACK 26.11 · always-on scope chip so the operator can see
             at a glance which project + date + device this draft
             belongs to. Rendered above the header so it's the first
@@ -1049,13 +1040,10 @@ export default function NewDailyReportV3({ publicMode = false }) {
         <header className="mb-6 sm:mb-8 wp17-form-frame" data-testid="dr-v3-form-header-shell">
           <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
             <CheckCircle2 className="h-4 w-4" />
-            {t("MASCI · Daily Job Report")}
+            {t("Field-ready, canonical, and draft-safe")}
           </div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            {t("Today's report")}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {t("Nine short steps. Dropdowns first. AI drafts your summary. Save state, scope, and next action stay visible the whole time.")}
+          <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+            {t("Capture one clean report, keep your draft protected, and submit the same governed payload the rest of the platform already trusts.")}
           </p>
         </header>
 
@@ -1209,7 +1197,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           </div>
         )}
 
-        <div className="wp17-form-frame wp17-form-shell" data-testid="dr-v3-form-root">
+        <div className="wp17-form-frame wp17-form-shell" data-testid="dr-v3-form-body-shell">
           <div className="space-y-4 sm:space-y-5" data-testid="dr-v3-form">
           <SectionProjectConditions
             data={data}
@@ -1281,6 +1269,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
           </div>
         </div>
       </div>
-    </div>
+    </FormShell>
   );
 }

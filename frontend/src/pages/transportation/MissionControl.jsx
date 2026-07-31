@@ -155,23 +155,29 @@ function McCard({
 // Recent activity composer — Card 6.
 // Pulls existing audit-timeline (Track 16.07).
 // ─────────────────────────────────────────────────────────────────
-function useRecentActivity(limit = 6) {
+function useRecentActivity(limit = 6, enabled = true) {
   const [rows, setRows] = useState(null);
   useEffect(() => {
     let alive = true;
+    if (!enabled) {
+      setRows([]);
+      return () => { alive = false; };
+    }
     txGet("/admin/transportation/audit-timeline", { limit }).then((r) => {
       if (alive) setRows(r.data?.rows || []);
     }).catch(() => alive && setRows([]));
     return () => { alive = false; };
-  }, [limit]);
+  }, [enabled, limit]);
   return rows;
 }
 
-function RecentActivityCard({ prefix }) {
-  const rows = useRecentActivity(6);
+function RecentActivityCard({ prefix, canLoadAudit = true }) {
+  const rows = useRecentActivity(6, canLoadAudit);
   const count = rows == null ? null : rows.length;
   const summary = rows == null
     ? "Loading…"
+    : !canLoadAudit
+      ? "Audit timeline is available in Admin oversight. Dispatch users stay focused on live operations here."
     : count === 0
       ? "No transportation activity in the last 24 hours."
       : `${count} most-recent events across drivers, trucks, carriers, dispatch, automation, cleanup, and HR sync.`;
@@ -180,7 +186,7 @@ function RecentActivityCard({ prefix }) {
       testid="mc-card-recent"
       question="What Changed Today?"
       icon={Clock}
-      primaryKpi={count ?? "—"}
+      primaryKpi={!canLoadAudit ? "—" : (count ?? "—")}
       primaryLabel="recent events"
       summary={summary}
       actionLabel="Open audit timeline"
@@ -242,6 +248,7 @@ function WorkspaceStrip({ prefix }) {
 // ─────────────────────────────────────────────────────────────────
 export default function MissionControl() {
   const prefix = useTxPathPrefix();
+  const canLoadAudit = prefix === "/admin/transportation";
   const { data, error, loading, reload } = useTransportationReadiness();
 
   if (loading && !data) {
@@ -379,7 +386,7 @@ export default function MissionControl() {
         />
 
         {/* Card 6 · What Changed Today? */}
-        <RecentActivityCard prefix={prefix} />
+        <RecentActivityCard prefix={prefix} canLoadAudit={canLoadAudit} />
 
         {/* Card 7 · What Needs Attention? */}
         <McCard

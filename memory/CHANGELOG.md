@@ -21,8 +21,15 @@
 - Repaired the first mandatory wave across Transportation, HR, and public/carrier workflows, including Transportation shell/nav cleanup and external invite / certificate verification pages.
 - Added mission-first convergence banners to major portal landings: HR, Safety, Dispatch, Shop, Transportation, Training, Executive, and Field Leadership.
 - Brought driver/public edge workflows into the same public-family treatment (`/shift`, `/driver`, `/revise/:token`).
+- Tightened the shared design language again under the revised executive criteria:
+  - simplified canonical header actions and moved sign-out into the profile menu
+  - unified button, input, select, textarea, checkbox, and table primitives
+  - standardized typography, spacing, form controls, and login-shell treatment through `wp17.css`
+  - moved Daily Report onto the canonical `FormShell`
+  - fixed Transportation dispatch auth-scope drift and removed the observed 401 console noise on the dispatch Transportation landing
 - Verification evidence:
   - `/app/test_reports/iteration_90.json`
+  - `/app/test_reports/iteration_91.json`
   - `auto_frontend_testing_agent` broader sweep: **22/22 PASS**
 
 - Created `/app/WP17C_IMPLEMENTATION_LEDGER.csv` with the full reconciled `1190`-surface ledger covering routes, navigation, forms, tables, overlays, PDF/email/notification/coaching/white-label owners.

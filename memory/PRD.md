@@ -26,6 +26,9 @@
   - Transportation first-wave repairs applied across shell, subnav, Mission Control cards, and external/public carrier verification/invite flows
   - portal-mission convergence expanded across HR, Safety, Dispatch, Shop, Transportation, Training, Executive, and Field Leadership landings
   - driver/public edge routes (`/shift`, `/driver`, `/revise/:token`) moved into the same public-family visual system
+  - platform-wide convergence tightened again under the revised executive standard: canonical header declutter, one typography system, one color language, one form/table/control system, and login-experience convergence are now applied through shared primitives and shared CSS
+  - Daily Report was reopened and moved onto the canonical `FormShell`
+  - Transportation auth-scope drift was reduced further by fixing dispatch scope inference, directory compatibility for notifications, and dispatch-safe audit behavior
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -60,8 +63,10 @@
 - Representative PM clarity, notification drawer, and responsive coverage verified in preview.
 - WP-17D wave verification:
   - `/app/test_reports/iteration_90.json`
+  - `/app/test_reports/iteration_91.json`
   - `auto_frontend_testing_agent`: **22/22 PASS** on the broader WP-17D convergence sweep
   - dispatch direct-token hub verification passed
+  - post-fix spot checks passed for Dispatch login shell, Admin canonical header, Daily Report canonical form shell, and Transportation dispatch route without 401 console noise
 
 ## Constraints Still Honored
 - No full-platform migration was started.

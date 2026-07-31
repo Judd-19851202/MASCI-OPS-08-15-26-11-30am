@@ -28,6 +28,7 @@ const DIRECTORY_COMPATIBLE_PORTALS = new Set([
   "field_leadership",
   "fl",
   "leadership",
+  "dispatch",
 ]);
 
 export function buildPortalAuthHeaders(extra = {}) {

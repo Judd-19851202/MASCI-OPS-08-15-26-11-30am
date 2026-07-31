@@ -10,6 +10,7 @@
 - complete Transportation / HR / public-external convergence and certification
 - finish portal-by-portal shell, navigation, form, table, footer, and responsive convergence for all remaining migrating rows
 - eliminate any residual mixed-generation user-facing surface
+- reopen any previously implemented surface that still fails the revised executive MASCI-standard criteria (header, typography, colors, controls, coaching, runtime cleanliness)
 
 ## P1
 - promote implemented/migrating rows to functional / visual / responsive verified states with route-sweep evidence

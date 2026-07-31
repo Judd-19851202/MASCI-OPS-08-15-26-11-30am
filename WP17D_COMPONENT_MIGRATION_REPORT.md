@@ -19,3 +19,5 @@
 - HR / Safety / PM wrappers
 - shared card / page-header / action-bar / data-table styling
 - public-driver edge workflow shells
+- shared button / input / select / textarea / checkbox / table primitives
+- canonical form-shell adoption for Daily Report after reopening

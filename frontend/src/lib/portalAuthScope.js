@@ -7,6 +7,7 @@ const PATH_PORTAL_PREFIXES = [
   ["/safety", "safety"],
   ["/pm", "pm"],
   ["/shop", "shop"],
+  ["/transportation-operations", "dispatch"],
   ["/dispatch-portal", "dispatch"],
   ["/dispatch", "dispatch"],
   ["/field-leadership", "fl"],
@@ -121,6 +122,9 @@ export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   const routePath = (path.startsWith("/api/") ? path.slice(4) : path).split("?")[0].split("#")[0];
 
   if (routePath.startsWith("/admin/") || routePath === "/admin") {
+    if (activePortal === "dispatch" && (routePath === "/admin/transportation" || routePath.startsWith("/admin/transportation/"))) {
+      return ["dispatch"];
+    }
     if (
       activePortal === "dispatch" &&
       DISPATCH_COMPAT_ADMIN_API_PREFIXES.some(
