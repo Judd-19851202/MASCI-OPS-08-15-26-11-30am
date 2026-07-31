@@ -8,6 +8,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { BadgeCheck, ShieldCheck, AlertCircle, Hash } from "lucide-react";
+import { MasciLogo } from "@/components/MasciLogo";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 
 export default function CertificateVerify() {
   const { cnum } = useParams();
@@ -20,8 +22,21 @@ export default function CertificateVerify() {
   }, [cnum]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-amber-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-xl border border-slate-200 p-6 text-center" data-testid="cert-verify-page">
+    <div className="wp17-public-shell min-h-screen">
+      <header className="wp17-public-header">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3 text-white">
+          <div className="flex items-center gap-3">
+            <MasciLogo variant="mark" size="md" homeLink="/" />
+            <div>
+              <div className="wp17-kicker text-white/70">Public verification</div>
+              <div className="text-sm font-semibold">Transportation orientation certificate lookup</div>
+            </div>
+          </div>
+          <div className="text-xs text-white/70">Operational trust check · white-label ready surface</div>
+        </div>
+      </header>
+      <div className="wp17-public-main flex items-center justify-center py-12">
+      <div className="max-w-md w-full wp17-public-card p-6 text-center" data-testid="cert-verify-page">
         {err ? (
           <div data-testid="cert-verify-error">
             <AlertCircle className="h-12 w-12 mx-auto text-red-500" />
@@ -34,7 +49,7 @@ export default function CertificateVerify() {
         ) : (
           <div data-testid="cert-verify-valid">
             <BadgeCheck className="h-14 w-14 mx-auto text-emerald-600" />
-            <h2 className="text-2xl font-semibold mt-3 text-slate-900">MASCI Certificate Valid</h2>
+            <h2 className="text-2xl font-semibold mt-3 text-slate-900">Certificate verified</h2>
             <p className="text-sm text-slate-600 mt-1">{cert.module_key} · v{cert.module_version} · {cert.language}</p>
             <dl className="text-left text-sm mt-4 space-y-2">
               <Row label="Certificate #" value={cert.certificate_number} mono />
@@ -47,6 +62,8 @@ export default function CertificateVerify() {
             <Link to="/" className="text-amber-700 hover:underline text-xs mt-4 inline-block">← MASCI home</Link>
           </div>
         )}
+        <div className="mt-6 flex justify-center"><ForgedOpsAttribution variant="login" /></div>
+      </div>
       </div>
     </div>
   );

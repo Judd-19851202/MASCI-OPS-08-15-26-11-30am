@@ -11,7 +11,7 @@ export function PageHeader({
   "data-testid": testId = "ds-page-header",
 }) {
   return (
-    <section className={`wp16-card p-4 sm:p-5 ${className}`} data-testid={testId}>
+    <section className={`wp16-card wp17-page-header p-4 sm:p-5 ${className}`} data-testid={testId}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           {kicker ? <div className="wp16-kicker mb-2">{kicker}</div> : null}

@@ -236,6 +236,22 @@ export default function HrHubV2() {
           </span>
         }
       >
+        <section className="wp17-mission-banner" data-testid="hr-page-shell-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Keep the workforce ready by showing attention, next actions, and the shortest path to real records.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                HR is now converging on the same platform language as Admin and PM: one shell, one hierarchy, and less operational noise.
+              </p>
+            </div>
+            <div className="wp17-chip-row">
+              <RealLink to="/hr/employees" testid="hr-hub-v2-next-employees-chip" intent="primary">Employees</RealLink>
+              <RealLink to="/hr/employee-accountability" testid="hr-hub-v2-next-accountability-chip">Accountability</RealLink>
+            </div>
+          </div>
+        </section>
+
         {/* Track 19.52 · P1 #2 — OI Attention Strip.
            Combined hr_intelligence + training_intelligence signals
            surfaced at the very top of the HR Hub so an HR director sees

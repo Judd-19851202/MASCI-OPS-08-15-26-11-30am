@@ -92,11 +92,8 @@ export function DataTable({
   return (
     <div
       data-testid={testId}
-      className={className}
+      className={`wp17-data-table ${className}`.trim()}
       style={{
-        background: "var(--paper-card)",
-        border: "1px solid var(--border-hairline)",
-        borderRadius: "var(--radius-card)",
         overflow: "hidden",
       }}
     >

@@ -27,12 +27,8 @@ export function Card({
   return (
     <section
       data-testid={testId || `ds-card-${String(title ?? "untitled").toLowerCase().replace(/\W+/g, "-")}`}
-      className={className}
+      className={`wp17-panel ${className}`.trim()}
       style={{
-        background: "var(--paper-card)",
-        border: "1px solid var(--border-hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: "0 1px 2px 0 rgba(15,23,42,0.04)",
         padding: pad,
         borderTop: variant !== "default" ? `3px solid ${variantStripe}` : undefined,
         color: "var(--ink-regular)",

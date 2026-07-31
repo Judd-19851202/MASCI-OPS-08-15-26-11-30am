@@ -126,6 +126,11 @@
 
 .wp17-shell.wp16-shell--admin .wp16-shell-header,
 .wp17-shell--admin .wp16-shell-header,
+.wp17-shell--hr .wp16-shell-header,
+.wp17-shell--safety .wp16-shell-header,
+.wp17-shell--transportation .wp16-shell-header,
+.wp17-shell--shop .wp16-shell-header,
+.wp17-shell--field .wp16-shell-header,
 .wp17-shell--pm .wp16-shell-header,
 .wp17-shell .wp16-shell-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -139,6 +144,27 @@
 
 .wp17-shell--pm .wp16-shell-header {
   background: linear-gradient(135deg, rgba(17, 34, 61, 0.95), rgba(26, 54, 92, 0.9));
+}
+
+.wp17-shell--hr .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(38, 22, 68, 0.95), rgba(72, 42, 118, 0.9));
+}
+
+.wp17-shell--safety .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(14, 53, 72, 0.95), rgba(18, 87, 112, 0.9));
+}
+
+.wp17-shell--transportation .wp16-shell-header,
+.wp17-shell--dispatch .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(19, 37, 63, 0.96), rgba(21, 79, 108, 0.9));
+}
+
+.wp17-shell--shop .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(33, 37, 58, 0.95), rgba(66, 74, 112, 0.9));
+}
+
+.wp17-shell--field .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(72, 26, 31, 0.95), rgba(111, 39, 47, 0.9));
 }
 
 .wp17-shell .wp16-shell-main {
@@ -251,6 +277,76 @@
 .wp17-list-intro,
 .wp17-form-frame {
   padding: 1.25rem;
+}
+
+.wp17-page-header,
+.wp17-action-bar,
+.wp17-data-table {
+  background: var(--wp17-panel-bg);
+  border: 1px solid var(--wp17-panel-border);
+  box-shadow: var(--wp17-panel-shadow);
+  backdrop-filter: blur(14px);
+  border-radius: 1.5rem;
+}
+
+.wp17-data-table table thead th {
+  background: rgba(17, 32, 58, 0.92) !important;
+  color: white !important;
+}
+
+.wp17-data-table table tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.88) !important;
+}
+
+.wp17-data-table table tbody tr:nth-child(even) {
+  background: rgba(244, 248, 252, 0.92) !important;
+}
+
+.wp17-portal-login .wp17-public-main {
+  max-width: 960px;
+}
+
+.wp17-portal-login [data-testid$="-login-form"] {
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 1.5rem;
+  border: 1px solid var(--wp17-panel-border);
+  box-shadow: var(--wp17-panel-shadow-strong);
+}
+
+.wp17-transport-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wp17-transport-toolbar,
+.wp17-transport-subnav,
+.wp17-transport-card,
+.wp17-transport-right-rail section,
+.wp17-transport-right-rail > div,
+.wp17-transport-shell [data-testid="txops-header"],
+.wp17-transport-shell [data-testid="txops-workspace-body"],
+.wp17-transport-shell [data-testid="txops-rail-entity-banner"] {
+  background: var(--wp17-panel-bg);
+  border: 1px solid var(--wp17-panel-border);
+  box-shadow: var(--wp17-panel-shadow);
+  backdrop-filter: blur(14px);
+  border-radius: 1.5rem;
+}
+
+.wp17-transport-toolbar,
+.wp17-transport-subnav,
+.wp17-transport-shell [data-testid="txops-header"] {
+  padding: 1rem;
+}
+
+.wp17-transport-right-rail {
+  gap: 0.9rem;
+}
+
+.wp17-transport-subnav {
+  border-bottom: 0;
+  margin-bottom: 0;
 }
 
 .wp17-panel-title {

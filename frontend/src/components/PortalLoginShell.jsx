@@ -52,11 +52,11 @@ export function PortalLoginShell({
   const { t } = useT();
   return (
     <div
-      className="min-h-screen blueprint-bg flex flex-col"
+      className="wp17-public-shell wp17-portal-login flex min-h-screen flex-col"
       data-testid={rootTestId}
     >
       <div className="caution-stripe" />
-      <header className={`bg-slate-900 border-b-4 ${headerBorderClass}`}>
+      <header className={`wp17-public-header ${headerBorderClass}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link
             to={homeLink}
@@ -71,7 +71,7 @@ export function PortalLoginShell({
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
+      <main className="wp17-public-main flex-1 flex items-center justify-center py-12">
         <div className="w-full max-w-md">{children}</div>
       </main>
 

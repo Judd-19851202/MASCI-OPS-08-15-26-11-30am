@@ -40,24 +40,24 @@ export function FormShell({
   const { t } = useT();
   return (
     <div
-      className="min-h-screen bg-slate-50 pb-32"
+      className="min-h-screen wp17-grid-bg pb-32"
       data-testid={containerTestId}
     >
       {/* HEADER — fixed height row for stable layout across all steps. */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
+      <header className="sticky top-0 z-30 wp17-public-header border-b border-slate-200 text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <MasciLogo className="w-8 h-8 shrink-0" />
           <div className="flex-1 min-w-0">
             {kicker && (
               <div
-                className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 truncate"
+                className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/70 truncate"
                 data-testid={`${containerTestId}-kicker`}
               >
                 {kicker}
               </div>
             )}
             <h1
-              className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900 leading-tight"
+              className="font-display text-base sm:text-lg font-black tracking-tight text-white leading-tight"
               data-testid={`${containerTestId}-title`}
             >
               {title}
@@ -74,7 +74,7 @@ export function FormShell({
             inside the sticky header so it scrolls with the page top. */}
         {progressSlot && (
           <div
-            className="border-t border-slate-100 bg-white/70"
+            className="border-t border-white/10 bg-white/10"
             data-testid={`${containerTestId}-progress-band`}
           >
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2">
@@ -87,7 +87,7 @@ export function FormShell({
       {/* SUBTITLE (optional) */}
       {subtitle && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3">
-          <p className="text-slate-600 text-sm sm:text-base leading-snug">
+          <p className="text-slate-600 text-sm sm:text-base leading-snug wp17-support-copy">
             {subtitle}
           </p>
         </div>
@@ -101,7 +101,7 @@ export function FormShell({
       {/* STICKY FOOTER */}
       {stickyFooter && (
         <div
-          className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200"
+          className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 wp17-shell-footer"
           data-testid={`${containerTestId}-sticky-footer`}
         >
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3">

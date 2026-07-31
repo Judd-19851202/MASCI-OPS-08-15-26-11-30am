@@ -15,6 +15,8 @@ import {
   Truck, FileText, ChevronRight, CheckCircle2,
 } from "lucide-react";
 import MasciVideoPlayer from "@/components/transportation/MasciVideoPlayer";
+import { MasciLogo } from "@/components/MasciLogo";
+import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 
 export default function ExternalCarrierInvite() {
   const { token } = useParams();
@@ -28,18 +30,19 @@ export default function ExternalCarrierInvite() {
       .catch(e => setErr(e.response?.data?.detail || e.message || "Invite invalid"));
   }, [token]);
 
-  if (err) return <PortalShell><FullPageError message={err} /></PortalShell>;
-  if (!invite) return <PortalShell><div className="text-slate-500">Loading…</div></PortalShell>;
+  if (err) return <ExternalWorkflowShell><FullPageError message={err} /></ExternalWorkflowShell>;
+  if (!invite) return <ExternalWorkflowShell><div className="wp17-panel mx-auto max-w-xl text-slate-500">Loading…</div></ExternalWorkflowShell>;
 
   return (
-    <PortalShell>
+    <ExternalWorkflowShell>
       <div data-testid="carrier-invite-portal" className="max-w-4xl mx-auto px-4 py-6 space-y-5">
-        <header className="text-center" data-testid="carrier-invite-header">
+        <header className="wp17-public-hero text-center" data-testid="carrier-invite-header">
           <ShieldCheck className="h-12 w-12 mx-auto text-amber-700" />
-          <h1 className="text-3xl font-semibold text-slate-900 mt-2">Welcome to MASCI</h1>
+          <div className="wp17-kicker mt-4">External workflow</div>
+          <h1 className="text-3xl font-semibold text-slate-900 mt-2">Carrier onboarding & orientation</h1>
           <div className="text-sm text-slate-500 mt-1">
             {invite.carrier_legal_name ? `${invite.carrier_legal_name} · ` : ""}
-            Carrier Self-Onboarding Portal
+            MASCI Transportation compliance workflow
           </div>
         </header>
 
@@ -49,28 +52,43 @@ export default function ExternalCarrierInvite() {
         {step === 2 && <Step2Orientation invite={invite} token={token} onNext={() => setStep(3)} />}
         {step === 3 && <Step3Submit invite={invite} token={token} />}
 
-        <footer className="text-center text-xs text-slate-400 mt-6">
-          Secure invite expires {invite.expires_at?.slice(0, 10)}. MASCI Operations Platform.
+        <footer className="text-center text-xs text-slate-500 mt-6 space-y-2">
+          <div>Secure invite expires {invite.expires_at?.slice(0, 10)}. MASCI Operations Platform.</div>
+          <div className="flex justify-center"><ForgedOpsAttribution variant="login" /></div>
         </footer>
       </div>
-    </PortalShell>
+    </ExternalWorkflowShell>
   );
 }
 
-function PortalShell({ children }) {
+function ExternalWorkflowShell({ children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-amber-50">
-      <div className="bg-slate-900 text-white px-4 py-2 text-xs text-center">
-        MASCI Hauler Orientation · Operational compliance only · Not a DOT / FMCSA replacement
+    <div className="wp17-public-shell min-h-screen">
+      <header className="wp17-public-header">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3 text-white">
+          <div className="flex items-center gap-3">
+            <MasciLogo variant="mark" size="md" homeLink="/" />
+            <div>
+              <div className="wp17-kicker text-white/70">Transportation compliance</div>
+              <div className="text-sm font-semibold">Carrier onboarding and orientation</div>
+            </div>
+          </div>
+          <div className="text-xs text-white/70 text-right">
+            MASCI Hauler Orientation · Operational compliance only · Not a DOT / FMCSA replacement
+          </div>
+        </div>
+      </header>
+      <div className="wp17-public-main">
+        {children}
       </div>
-      {children}
+      <div className="pb-8" />
     </div>
   );
 }
 
 function FullPageError({ message }) {
   return (
-    <div className="max-w-md mx-auto text-center py-20" data-testid="carrier-invite-error">
+    <div className="wp17-panel max-w-md mx-auto text-center py-20" data-testid="carrier-invite-error">
       <AlertCircle className="h-12 w-12 mx-auto text-red-500" />
       <h2 className="text-xl font-semibold mt-3">Invite unavailable</h2>
       <p className="text-slate-600 mt-2 text-sm">{message}</p>
@@ -105,7 +123,7 @@ function Stepper({ step }) {
 // ────────────────────────────────────────────────────────────────────
 function Step1Confirm({ invite, onNext }) {
   return (
-    <section className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm" data-testid="step-1-confirm">
+    <section className="wp17-panel p-5" data-testid="step-1-confirm">
       <h2 className="text-xl font-semibold flex items-center gap-2"><Truck className="h-5 w-5 text-amber-700" /> Carrier Information</h2>
       <p className="text-sm text-slate-600 mt-2">
         Please confirm your company information before continuing. The MASCI safety and dispatch teams will receive a notification when each step completes.
@@ -149,7 +167,7 @@ function Step2Orientation({ invite, token, onNext }) {
   if (err) return <FullPageError message={err} />;
 
   return (
-    <section className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm" data-testid="step-2-orientation">
+    <section className="wp17-panel p-5" data-testid="step-2-orientation">
       <h2 className="text-xl font-semibold flex items-center gap-2">
         <GraduationCap className="h-5 w-5 text-amber-700" /> MASCI Hauler Orientation
       </h2>
@@ -197,7 +215,7 @@ function ActiveModule({ invite, token, mod, onBack }) {
   // present a per-module preview so the operator and the testing
   // subagent can both observe the no-skip player behaviour live.
   return (
-    <div className="mt-3 border border-slate-200 rounded p-3" data-testid="carrier-portal-active-module">
+    <div className="wp17-panel mt-3 p-3" data-testid="carrier-portal-active-module">
       <button data-testid="carrier-portal-back" onClick={onBack} className="text-amber-700 text-xs hover:underline mb-2">← All modules</button>
       <div className="font-medium">{mod.title}</div>
       <div className="text-xs text-slate-500 mb-2">{mod.category}</div>
@@ -235,7 +253,7 @@ function Step3Submit({ invite, token }) {
   };
   if (submitted) {
     return (
-      <section className="bg-white rounded-lg border border-emerald-200 p-6 shadow-sm text-center" data-testid="step-3-submitted">
+      <section className="wp17-panel border-emerald-200 p-6 text-center" data-testid="step-3-submitted">
         <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-600" />
         <h2 className="text-2xl font-semibold mt-3">Submission received</h2>
         <p className="text-sm text-slate-600 mt-1">
@@ -245,7 +263,7 @@ function Step3Submit({ invite, token }) {
     );
   }
   return (
-    <section className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm" data-testid="step-3-submit">
+    <section className="wp17-panel p-5" data-testid="step-3-submit">
       <h2 className="text-xl font-semibold flex items-center gap-2"><BadgeCheck className="h-5 w-5 text-amber-700" /> Acknowledgement</h2>
       <p className="text-sm text-slate-600 mt-2">
         By typing your printed name below you confirm that every driver on this carrier has watched, understood, and accepted the orientation expectations and that all uploaded documents are accurate.

@@ -21,6 +21,20 @@ function resolveShellTheme(explicitTheme) {
   return "default";
 }
 
+function resolveExperienceTone(explicitTone, portalRole, theme) {
+  if (explicitTone && explicitTone !== "default") return explicitTone;
+  const role = String(portalRole || "").toLowerCase();
+  if (theme === "admin" || role.includes("admin")) return "admin";
+  if (role.includes("project")) return "pm";
+  if (role.includes("human") || role === "hr") return "hr";
+  if (role.includes("safety")) return "safety";
+  if (role.includes("transport")) return "transportation";
+  if (role.includes("dispatch")) return "dispatch";
+  if (role.includes("shop")) return "shop";
+  if (role.includes("field")) return "field";
+  return "default";
+}
+
 function useLocalClock() {
   const [now, setNow] = React.useState(() => new Date());
 
@@ -108,7 +122,7 @@ export function PortalShell({
   portalSwitcherCurrent = null,
   hideProviderLine = false,
   shellTheme = null,
-  experienceLevel = null,
+  experienceLevel = "wp17c",
   experienceTone = "default",
   onSignOut = null,
   sideNav = null,
@@ -129,10 +143,11 @@ export function PortalShell({
   const portalSwitcherVariant = isAdminTheme ? "dark" : "light";
   const langToggleVariant = isAdminTheme ? "dark" : "light";
   const isWp17 = experienceLevel === "wp17c";
+  const resolvedExperienceTone = resolveExperienceTone(experienceTone, portalRole, theme);
   const rootClasses = [
     "wp16-shell min-h-screen flex flex-col",
     isAdminTheme ? "wp16-shell--admin" : "",
-    isWp17 ? `wp17-shell wp17-shell--${experienceTone}` : "",
+    isWp17 ? `wp17-shell wp17-shell--${resolvedExperienceTone}` : "",
     className,
   ].filter(Boolean).join(" ");
   const topControlClasses = isAdminTheme
@@ -360,7 +375,7 @@ export function PortalShell({
         sideNav={sideNav}
         theme={theme}
         experienceLevel={experienceLevel}
-        experienceTone={experienceTone}
+        experienceTone={resolvedExperienceTone}
         data-testid="ds-portal-shell-mobile-navigation"
       />
 

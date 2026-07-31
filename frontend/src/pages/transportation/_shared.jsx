@@ -177,7 +177,7 @@ export function TransportationSubNav() {
   const groups = visibleTxOpsNavGroups();
   return (
     <nav
-      className="space-y-2 border-b border-slate-200 pb-3 mb-4"
+      className="wp17-transport-subnav space-y-2"
       data-testid="transportation-subnav"
       aria-label="Transportation Operations navigation"
     >
@@ -200,7 +200,7 @@ export function TransportationSubNav() {
               end={item.end}
               data-testid={item.testid}
               className={({ isActive }) =>
-                `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors ${
+                `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-colors ${
                   isActive
                     ? "bg-slate-900 text-white"
                     : "text-slate-700 hover:bg-slate-100"
@@ -219,7 +219,7 @@ export function TransportationSubNav() {
 
 export function PageHeader({ title, subtitle, right, testid }) {
   return (
-    <div className="flex items-start justify-between mb-4" data-testid={testid}>
+    <div className="wp17-page-header flex items-start justify-between mb-4 p-4" data-testid={testid}>
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
         {subtitle && (
@@ -247,7 +247,7 @@ export function EmptyState({ title, hint, testid }) {
   return (
     <div
       data-testid={testid || "empty-state"}
-      className="border border-dashed border-slate-200 rounded-md p-6 text-center text-slate-500"
+      className="wp17-panel border border-dashed border-slate-200 rounded-md p-6 text-center text-slate-500"
     >
       <div className="font-medium text-slate-700">{title}</div>
       {hint && <div className="text-xs mt-1">{hint}</div>}

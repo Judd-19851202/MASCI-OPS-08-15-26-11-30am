@@ -10,7 +10,7 @@ export function ActionBar({
   "data-testid": testId = "ds-action-bar",
 }) {
   return (
-    <section className={`wp16-toolbar p-4 ${className}`} data-testid={testId}>
+    <section className={`wp16-toolbar wp17-action-bar p-4 ${className}`} data-testid={testId}>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           {eyebrow ? <div className="wp16-kicker mb-1">{eyebrow}</div> : null}

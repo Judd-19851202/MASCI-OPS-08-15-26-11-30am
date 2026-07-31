@@ -49,15 +49,40 @@ export default function TransportationApp() {
     ? <TransportationSideNavV2 />
     : (showAdminSideNav ? renderAdminRouteSideNav() : null);
   return (
-    <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={effectiveSideNav}>
-      <div className="space-y-2" data-testid="admin-transportation-page">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Transportation Operations"
+      portalSwitcherCurrent="dispatch"
+      pageTitle="Transportation Operations"
+      subtitle="Mission control, live operations, carriers, drivers, fleet, compliance, and onboarding in one governed shell."
+      sideNav={effectiveSideNav}
+      experienceTone="transportation"
+    >
+      <div className="wp17-transport-shell" data-testid="admin-transportation-page">
+        <section className="wp17-mission-banner" data-testid="txops-mission-banner">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Run hauling operations without shell drift, auth confusion, or dead-end navigation.</h2>
+              <p className="mt-2 max-w-3xl text-sm text-white/80">
+                Transportation now uses the same canonical shell language as the rest of the platform while preserving role-based visibility for dispatch and admin users.
+              </p>
+            </div>
+          </div>
+        </section>
         <div
           data-testid="txops-search-rail"
-          className="flex justify-end mb-1"
+          className="wp17-transport-toolbar flex flex-wrap items-center justify-between gap-3"
         >
+          <div>
+            <div className="wp17-kicker">Navigation</div>
+            <div className="mt-1 text-sm font-semibold text-slate-900">Use the sidebar for primary movement. Search is for direct access and detail discovery.</div>
+          </div>
           <TransportationSearch />
         </div>
-        <TransportationSubNav />
+        <div className="xl:hidden">
+          <TransportationSubNav />
+        </div>
         <Routes>
           {/* Overview · Mission Control */}
           <Route index element={<TransportationDashboard />} />
