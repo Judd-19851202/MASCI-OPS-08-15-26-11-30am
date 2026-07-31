@@ -74,12 +74,9 @@ export function PortalLoginShell({
       <main className="wp17-public-main flex-1 flex items-center justify-center py-12">
         <div className="w-full max-w-md wp17-auth-stack">
           <div className="mb-4 text-center" data-testid="portal-login-shared-auth-note">
-            <div className="wp17-kicker">One MASCI account system</div>
-            <p className="mt-2 text-sm text-slate-600">
-              {t("Portal access stays role-based, but the sign-in experience should feel like one platform.")}
-            </p>
-            <Link to="/sign-in" className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 hover:text-slate-950" data-testid="portal-login-shared-entry-link">
-              {t("Use shared sign-in")}
+            <div className="wp17-kicker">One MASCI sign-in system</div>
+            <Link to="/sign-in" className="mt-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 hover:text-slate-950" data-testid="portal-login-shared-entry-link">
+              {t("Open shared entry")}
             </Link>
           </div>
           {children}

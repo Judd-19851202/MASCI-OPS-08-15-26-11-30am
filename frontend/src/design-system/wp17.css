@@ -132,7 +132,6 @@
   background: var(--wp17-panel-bg);
   border: 1px solid var(--wp17-panel-border);
   box-shadow: var(--wp17-panel-shadow);
-  backdrop-filter: blur(14px);
 }
 
 .wp17-public-hero,
@@ -147,7 +146,7 @@
 }
 
 .wp17-public-hero {
-  padding: clamp(1.5rem, 3vw, 2.6rem);
+  padding: clamp(1.15rem, 2vw, 1.55rem);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -193,6 +192,36 @@
   background: linear-gradient(135deg, rgba(14, 27, 49, 0.96), rgba(24, 43, 74, 0.92));
 }
 
+.wp17-shell.wp16-shell--admin .wp16-shell-header,
+.wp17-shell--admin .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(12, 24, 45, 0.96), rgba(20, 37, 66, 0.92));
+}
+
+.wp17-shell--pm .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(17, 34, 61, 0.95), rgba(26, 54, 92, 0.9));
+}
+
+.wp17-shell--hr .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(38, 22, 68, 0.95), rgba(72, 42, 118, 0.9));
+}
+
+.wp17-shell--safety .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(14, 53, 72, 0.95), rgba(18, 87, 112, 0.9));
+}
+
+.wp17-shell--transportation .wp16-shell-header,
+.wp17-shell--dispatch .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(19, 37, 63, 0.96), rgba(21, 79, 108, 0.9));
+}
+
+.wp17-shell--shop .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(33, 37, 58, 0.95), rgba(66, 74, 112, 0.9));
+}
+
+.wp17-shell--field .wp16-shell-header {
+  background: linear-gradient(135deg, rgba(72, 26, 31, 0.95), rgba(111, 39, 47, 0.9));
+}
+
 .wp17-shell--admin,
 .wp17-shell--pm,
 .wp17-shell--hr,
@@ -219,14 +248,14 @@
 
 .wp17-shell .wp16-shell-sidebar {
   border-radius: var(--wp17-radius-lg);
-  background: linear-gradient(180deg, rgba(17, 32, 58, 0.92), rgba(15, 28, 51, 0.92));
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.18);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(24, 39, 63, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
 }
 
 .wp17-shell .wp16-shell-page-header {
   padding: clamp(1rem, 1.5vw, 1.25rem);
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.7rem;
   background:
     radial-gradient(circle at top right, rgba(130, 171, 225, 0.16), transparent 24%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 254, 0.92));
@@ -253,8 +282,13 @@
   letter-spacing: 0.18em;
 }
 
+.wp17-shell [data-testid="ds-portal-shell-header"] .wp16-kicker,
 .wp17-shell [data-testid="ds-portal-shell-page-name"] {
-  font-size: 0.93rem;
+  color: white !important;
+}
+
+.wp17-shell [data-testid="ds-portal-shell-page-name"] {
+  font-size: 0.96rem;
   letter-spacing: -0.01em;
 }
 
@@ -275,7 +309,7 @@
 }
 
 .wp17-mission-banner {
-  padding: 1rem 1.1rem;
+  padding: 0.85rem 1rem;
   background:
     linear-gradient(135deg, rgba(18, 38, 68, 0.92), rgba(33, 60, 103, 0.9)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
@@ -287,6 +321,14 @@
 
 .wp17-mission-banner p {
   color: rgba(241, 245, 249, 0.85);
+  max-width: 48rem;
+}
+
+.wp17-mission-banner .text-white,
+.wp17-mission-banner .text-white\/70,
+.wp17-mission-banner .text-white\/80,
+.wp17-mission-banner .text-white\/85 {
+  color: white !important;
 }
 
 .wp17-chip-row {
@@ -363,13 +405,22 @@
   padding: 1rem;
 }
 
+.wp17-public-shell .wp17-panel,
+.wp17-public-shell .wp17-public-card,
+.wp17-shell .wp17-panel,
+.wp17-shell .wp17-table-shell,
+.wp17-shell .wp17-detail-hero,
+.wp17-shell .wp17-list-intro,
+.wp17-shell .wp17-form-frame {
+  background: rgba(255, 255, 255, 0.98);
+}
+
 .wp17-page-header,
 .wp17-action-bar,
 .wp17-data-table {
   background: var(--wp17-panel-bg);
   border: 1px solid var(--wp17-panel-border);
   box-shadow: var(--wp17-panel-shadow);
-  backdrop-filter: blur(14px);
   border-radius: var(--wp17-radius-lg);
 }
 
@@ -435,7 +486,7 @@
 
 .wp17-shell .wp16-section-title,
 .wp17-page-header .wp16-section-title {
-  font-size: clamp(2.15rem, 4vw, 3.75rem) !important;
+  font-size: clamp(1.95rem, 3vw, 3rem) !important;
   line-height: 0.96;
 }
 
@@ -459,6 +510,22 @@
 
 .wp17-portal-login .wp17-public-main {
   max-width: 840px;
+}
+
+.wp17-public-header a,
+.wp17-public-header button,
+.wp17-public-header .wp17-kicker,
+.wp17-public-header .text-white,
+.wp17-public-header .text-white\/70,
+.wp17-public-header .text-white\/85 {
+  color: white !important;
+}
+
+.wp17-public-header .border-white\/12,
+.wp17-public-header .bg-white\/8,
+.wp17-public-header .bg-white\/10 {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .wp17-portal-login [data-testid$="-login-form"] {

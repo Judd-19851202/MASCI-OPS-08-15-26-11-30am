@@ -86,9 +86,7 @@ function formatLastActivity(value) {
 }
 
 function TopActionLink({ to, label, icon: Icon, testId, theme = "default" }) {
-  const classes = theme === "admin"
-    ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42"
-    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] hover:bg-[color:var(--paper-card-muted)]";
+  const classes = "border-white/18 bg-white/10 text-white hover:bg-white/18";
 
   return (
     <Link
@@ -112,13 +110,12 @@ function ProfileMenu({
   theme,
   testIdPrefix = "ds-portal-shell-profile",
 }) {
-  const isAdminTheme = theme === "admin";
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold shadow-sm transition-[background-color,border-color,color] duration-[140ms] ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)] hover:bg-[color:var(--paper-card-muted)]"}`}
+          className="wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-2 rounded-[var(--radius-control)] border border-white/18 bg-white/10 px-3 text-xs font-semibold text-white shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-white/18"
           data-testid={`${testIdPrefix}-trigger`}
         >
           <UserIcon className="h-3.5 w-3.5 opacity-70" />
@@ -129,14 +126,14 @@ function ProfileMenu({
       <PopoverContent
         align="end"
         sideOffset={8}
-        className={`${isAdminTheme ? "border-slate-700 bg-slate-950/92 text-slate-100 elite-glass-modal" : "bg-white/96"} w-[min(90vw,18rem)] p-3`}
+        className="elite-glass-modal w-[min(90vw,18rem)] border-white/16 bg-slate-950/92 p-3 text-slate-100"
         data-testid={`${testIdPrefix}-menu`}
       >
         <div className="space-y-3">
           <div>
-            <div className="wp17-kicker">{portalRole}</div>
-            <div className={`mt-1 text-sm font-semibold ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>{signedInName || "Signed in"}</div>
-            <div className={`mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] ${isAdminTheme ? "text-slate-300" : "text-[color:var(--ink-soft)]"}`}>
+            <div className="wp17-kicker text-slate-300">{portalRole}</div>
+            <div className="mt-1 text-sm font-semibold text-slate-100">{signedInName || "Signed in"}</div>
+            <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-slate-300">
               <Clock className="h-3 w-3 opacity-70" />
               {localTimeLabel}
             </div>
@@ -146,7 +143,7 @@ function ProfileMenu({
             onClick={onSignOut}
             disabled={disabled}
             title={title}
-            className={`wp16-focus-ring inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,border-color,color,opacity] duration-[140ms] disabled:opacity-50 ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:rgba(185,28,28,0.18)] bg-[color:var(--brand-primary-soft)] text-[color:var(--brand-primary)] hover:bg-white"}`}
+            className="wp16-focus-ring inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-white/14 bg-white/10 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition-[background-color,border-color,color,opacity] duration-[140ms] hover:bg-white/18 disabled:opacity-50"
             data-testid={`${testIdPrefix}-signout`}
           >
             <LogOut className="h-3.5 w-3.5" />
@@ -194,10 +191,10 @@ export function PortalShell({
   const signedInName = React.useMemo(() => resolveSignedInName(), []);
   const theme = resolveShellTheme(shellTheme);
   const isAdminTheme = theme === "admin";
-  const searchAccent = isAdminTheme ? "dark" : "light";
-  const notificationAccent = isAdminTheme ? "white" : "slate";
-  const portalSwitcherVariant = isAdminTheme ? "dark" : "light";
-  const langToggleVariant = isAdminTheme ? "dark" : "light";
+  const searchAccent = "dark";
+  const notificationAccent = "white";
+  const portalSwitcherVariant = "dark";
+  const langToggleVariant = "dark";
   const isWp17 = experienceLevel === "wp17c";
   const resolvedExperienceTone = resolveExperienceTone(experienceTone, portalRole, theme);
   const shouldShowHomeShortcut = showHome && !sideNav;
@@ -208,18 +205,9 @@ export function PortalShell({
     isWp17 ? `wp17-shell wp17-shell--${resolvedExperienceTone}` : "",
     className,
   ].filter(Boolean).join(" ");
-  const topControlClasses = isAdminTheme
-    ? "border-slate-700 bg-slate-900/18 text-slate-100"
-    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-soft)]";
-  const userControlClasses = isAdminTheme
-    ? "border-slate-700 bg-slate-900/18 text-slate-100"
-    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)]";
-  const mobileMoreButtonClasses = isAdminTheme
-    ? "border-slate-700 bg-slate-900/18 text-slate-100"
-    : "border-[color:var(--border-bold)] bg-white text-[color:var(--ink-strong)]";
-  const mobilePopoverClasses = isAdminTheme
-    ? "w-[min(92vw,22rem)] border-slate-700 bg-slate-950/92 p-3 text-slate-100 elite-glass-modal"
-    : "w-[min(92vw,22rem)] p-3";
+  const topControlClasses = "border-white/18 bg-white/10 text-slate-200";
+  const mobileMoreButtonClasses = "border-white/18 bg-white/10 text-white";
+  const mobilePopoverClasses = "elite-glass-modal w-[min(92vw,22rem)] border-white/16 bg-slate-950/92 p-3 text-slate-100";
 
   const handleSignOut = async () => {
     if (signOutCapability && signOutCapability.available !== true) return;
@@ -246,7 +234,7 @@ export function PortalShell({
                 {platformShort} · {portalRole}
               </div>
               {pageTitle ? (
-                <div className="truncate text-sm font-semibold text-[color:var(--ink-strong)]" data-testid="ds-portal-shell-page-name">
+                <div className="truncate text-sm font-semibold text-white" data-testid="ds-portal-shell-page-name">
                   {pageTitle}
                 </div>
               ) : null}
@@ -305,12 +293,12 @@ export function PortalShell({
                   <div>
                     <div className="wp16-kicker">{platformShort} · {portalRole}</div>
                     {signedInName ? (
-                      <div className={`mt-1 inline-flex items-center gap-1.5 text-sm font-semibold ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>
+                      <div className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-100">
                         <UserIcon className="h-3.5 w-3.5 opacity-70" />
                         <span className="truncate">{signedInName}</span>
                       </div>
                     ) : null}
-                    <div className={`mt-2 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.14em] ${isAdminTheme ? "text-slate-300" : "text-[color:var(--ink-soft)]"}`}>
+                    <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.14em] text-slate-300">
                       <Clock className="h-3 w-3 opacity-70" />
                       {localTimeLabel}
                     </div>
@@ -337,7 +325,7 @@ export function PortalShell({
                       type="button"
                       onClick={handleSignOut}
                       disabled={!!signOutCapability && signOutCapability.available !== true}
-                      className={`wp16-focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] transition-[background-color,border-color,color,opacity] duration-[140ms] disabled:opacity-50 ${isAdminTheme ? "border-slate-700 bg-slate-900/18 text-slate-100 hover:bg-slate-800/42" : "border-[color:rgba(185,28,28,0.18)] bg-[color:var(--brand-primary-soft)] text-[color:var(--brand-primary)] hover:bg-white"}`}
+                      className="wp16-focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius-control)] border border-white/14 bg-white/10 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition-[background-color,border-color,color,opacity] duration-[140ms] hover:bg-white/18 disabled:opacity-50"
                       title={signOutCapability?.disabled_reason || "Sign out"}
                       data-testid="ds-portal-shell-mobile-signout"
                     >
