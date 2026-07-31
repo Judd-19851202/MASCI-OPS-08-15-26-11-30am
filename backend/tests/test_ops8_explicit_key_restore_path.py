@@ -823,6 +823,27 @@ def test_photo_reference_streaming_keeps_bucket_relative_paths(monkeypatch, tmp_
     assert objects == {"photos/2026/05/test/a.jpg"}
 
 
+def test_photo_reference_streaming_includes_document_and_non_json_archive_members(tmp_path):
+    module_globals = runpy.run_path(SCRIPT_PATH, run_name="ops8_photo_refs_docs_module")
+    helper = module_globals["_stream_photo_reference_sets"]
+    archive = tmp_path / "mixed_objects.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("documents/2026/07/example.pdf", b"pdf")
+        zf.writestr("photos/root-image.jpg", b"img")
+        zf.writestr("collections/daily_reports.json", json.dumps([
+            {
+                "id": "dr-1",
+                "attachments": ["photo://bucket/documents/2026/07/example.pdf"],
+                "photos": ["photo://bucket/root-image.jpg"],
+            }
+        ]))
+    with zipfile.ZipFile(archive, "r") as zf:
+        refs, objects = helper(zf)
+    assert refs == {"documents/2026/07/example.pdf", "root-image.jpg"}
+    assert "documents/2026/07/example.pdf" in objects
+    assert "root-image.jpg" in objects
+
+
 def test_collection_parity_ignores_zero_count_manifest_collections(monkeypatch, tmp_path):
     manifest = _base_manifest()
     manifest["per_kind"]["messages"] = 0

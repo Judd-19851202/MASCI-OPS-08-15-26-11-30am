@@ -915,8 +915,14 @@ def _stream_photo_reference_sets(zf: zipfile.ZipFile) -> tuple[set[str], set[str
     photo_refs: set[str] = set()
     archive_photos: set[str] = set()
     for info in zf.infolist():
-        if info.filename.startswith("photos/") and not info.is_dir():
+        if info.is_dir():
+            continue
+        if info.filename.startswith("photos/"):
             archive_photos.add(info.filename[len("photos/"):])
+        elif info.filename.startswith("documents/"):
+            archive_photos.add(info.filename)
+        elif info.filename != "MANIFEST.json" and not info.filename.endswith(".json"):
+            archive_photos.add(info.filename)
         if not info.filename.endswith(".json") or info.filename == "MANIFEST.json":
             continue
         try:

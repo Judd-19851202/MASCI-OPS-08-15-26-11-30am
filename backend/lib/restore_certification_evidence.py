@@ -751,9 +751,24 @@ def verify_photo_object_evidence(
                 return parts[3]
         return ref
 
+    def _archive_aliases(key: str) -> set[str]:
+        aliases = {key}
+        if key.startswith("photos/"):
+            stripped = key[len("photos/"):]
+            if stripped:
+                aliases.add(stripped)
+        if key.startswith("documents/"):
+            stripped = key[len("documents/"):]
+            if stripped:
+                aliases.add(stripped)
+        return aliases
+
     normalized_expected = sorted(set(_normalize_expected(ref) for ref in expected))
     objects = sorted(set(str(key) for key in archive_object_keys if key))
-    missing = sorted(set(normalized_expected) - set(objects))
+    object_aliases: set[str] = set()
+    for key in objects:
+        object_aliases.update(_archive_aliases(key))
+    missing = sorted(set(normalized_expected) - object_aliases)
     return {
         "state": "PASS" if not missing and int((rehydration_result or {}).get("failed") or 0) == 0 else "FAIL",
         "expected_photo_object_references": expected,
