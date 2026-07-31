@@ -1,1 +1,93 @@
-{"theme": "light", "typography": {"headings": "Cabinet Grotesk", "body": "Inter", "hierarchy": {"h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tight font-black", "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold", "h3": "text-xl sm:text-2xl tracking-tight font-semibold", "body": "text-base leading-relaxed", "labels": "text-xs tracking-[0.2em] uppercase"}}, "colors": {"archetype": "Swiss & High-Contrast", "primary": "#0A0A0A", "secondary": "#FFFFFF", "accent": "#007AFF", "background": "#F9FAFB", "surface": "#FFFFFF", "border": "#E5E7EB", "text": {"primary": "#0A0A0A", "secondary": "#4B5563", "disabled": "#9CA3AF"}}, "visual_enhancers": {"shadows": {"sm": "shadow-sm", "md": "shadow-md", "lg": "shadow-lg"}, "radius": {"base": "rounded-md", "button": "rounded-full", "card": "rounded-lg"}, "borders": "1px solid border-border"}, "components": {"buttons": "pill-shaped, high-contrast, slight scale on hover", "cards": "flat background, 1px subtle border, no initial shadow, shadow-lg on hover", "inputs": "Shadcn UI standard, focus:ring-2 focus:ring-black"}, "grids": {"dashboard": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 or gap-6", "marketing": "grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-8 or gap-12"}, "layouts": {"spacing": "p-1, p-2, p-4, p-6, p-8, p-12, p-16, p-20, p-24, p-32", "container_padding": "p-6 or p-8 for bordered containers"}, "motion": {"hover": "transition-transform 0.2s ease, transform -translate-y-1", "click": "scale-95 active", "entrance": "framer-motion fade-in and slide-up staggered"}, "accessibility": {"contrast": "APCA standard minimum, minimum 4.5:1 for normal text", "focus": "focus:ring-2 visible ring", "motion": "respects prefers-reduced-motion"}, "media": {"images": "max-h-[80vh] md:max-h-none on mobile"}, "image_urls": {}, "instructions_to_main_agent": ["Do NOT use complete transparent backgrounds in headers or overlays.", "Add data-testid to all interactive elements.", "Use Shadcn UI components for advanced interactions.", "Ensure 100% white-label capability (no hardcoded tenant strings)."], "UNIVERSAL GUIDELINES FOR MAIN AGENT": ["You tend to converge toward generic outputs. Make creative, distinctive frontends.", "Do not use dark colors as gradients.", "Create depth through layered design elements with z-index hierarchy.", "Use glass-morphism effects with backdrop filters (12-24px blur).", "You MUST NOT apply universal transition (transition: all).", "You MUST NOT center align the app container (.App { text-align: center; }).", "Always use modern button styles.", "NEVER use AI assistant Emoji characters like \ud83e\udd16\ud83e\udde0\ud83d\udcad\ud83d\udca1\ud83d\udd2e\ud83c\udfaf for icons.", "Every interaction needs micro-animations.", "Use 2-3x more spacing than feels comfortable.", "Add data-testid attribute to all interactive elements."]}
+{
+  "theme": "Light theme preferred (Dark mode optional toggle). High contrast, functional, minimal UI benchmarked against Linear, Notion, and Stripe Dashboard.",
+  "typography": {
+    "heading_font": "Manrope",
+    "body_font": "IBM Plex Sans",
+    "hierarchy": {
+      "h1": "text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900",
+      "h2": "text-xl sm:text-2xl font-semibold tracking-tight text-slate-900",
+      "h3": "text-lg sm:text-xl font-medium text-slate-900",
+      "h4": "text-base font-medium text-slate-900",
+      "body": "text-sm leading-relaxed text-slate-700",
+      "small": "text-xs font-semibold uppercase tracking-widest text-slate-500"
+    }
+  },
+  "colors": {
+    "archetype": "Swiss & High-Contrast",
+    "palette": {
+      "primary": "#0F172A",
+      "primary_foreground": "#F8FAFC",
+      "secondary": "#F1F5F9",
+      "secondary_foreground": "#0F172A",
+      "accent": "#2563EB",
+      "accent_foreground": "#FFFFFF",
+      "background": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "border": "#E2E8F0",
+      "muted": "#F1F5F9",
+      "muted_foreground": "#64748B",
+      "destructive": "#EF4444",
+      "success": "#10B981"
+    },
+    "rules": [
+      "Monochrome-first: 95% of the UI should be monochrome (white, grays, black/obsidian).",
+      "Color is Function Only: Use color (blue, red, green) strictly to guide action, indicate status, or highlight active states.",
+      "No full-screen gradients. Texture over gloss."
+    ]
+  },
+  "visual_enhancers": {
+    "surfaces": "Use 'Flat Solid' surfaces. Dashboard cards should have a flat background (bg-white), 1px subtle border (border-slate-200), and no shadow by default. On hover for clickable cards, apply a slight lift (-translate-y-[1px]) and subtle shadow.",
+    "glassmorphism": "Avoid glassmorphism. It creates visual noise in data-heavy enterprise tools. Use solid backgrounds.",
+    "borders": "Expose the skeleton for tables and dense lists. Use 1px borders (border-collapse, border-slate-200) to separate data.",
+    "icons": "Use lucide-react or @phosphor-icons/react. Use uniform stroke widths (1.5px or 2px). Do not use AI emojis."
+  },
+  "components": {
+    "buttons": "Unified buttons: 4px border-radius (rounded). High contrast. Primary buttons: bg-slate-900 text-white hover:bg-slate-800. Secondary: bg-white border border-slate-200 text-slate-900 hover:bg-slate-50. Tertiary/Ghost: text-slate-600 hover:bg-slate-100 hover:text-slate-900.",
+    "forms": "Unified form controls: 4px border-radius, clean 1px border. Focus states must have a 2px offset ring (focus:ring-2 focus:ring-slate-400 focus:outline-none). Remove explanation-driven UI (helper text) unless critical. Labels should be text-sm font-medium.",
+    "tables": "Unified tables: dense layout. th: text-xs uppercase tracking-wider text-left text-slate-500 bg-slate-50 py-2 px-3 border-b border-slate-200. td: text-sm text-slate-900 py-2 px-3 border-b border-slate-100.",
+    "cards": "Ruthlessly remove dead space. Padding should be p-4 or p-6 maximum. Remove decorative labels. Cards are strictly for grouping related operational data.",
+    "header": "Simplified canonical header. Solid background (bg-white), 1px bottom border (border-slate-200). Sticky positioning (z-50). Include Breadcrumbs for 'Where am I?' (e.g., Home / Operations / Daily Report)."
+  },
+  "grids_and_layouts": {
+    "spacing": "Dense and compact spacing (p-2, p-4, p-6). Ruthlessly remove dead space, but maintain optical balance. Tailwind scale overrides: use gap-4 or gap-6 for most bento grids.",
+    "layout_mode": "Bento Grid Protocol Mode B (High Density Grid). Use grid-cols-1 md:grid-cols-3 lg:grid-cols-4 or a 12-column grid for complex dashboards.",
+    "navigation": "Unified sidebar or top canonical header. Every page must immediately reveal: Where am I? What requires my attention? What should I do next?"
+  },
+  "motion": {
+    "transitions": "Minimalist. Micro-interactions for feedback only. Use transition-colors duration-150 ease-in-out for buttons/links/rows.",
+    "loading": "Skeleton loaders matching the layout exact dimensions. No bouncy or playful spinners."
+  },
+  "accessibility": {
+    "contrast": "Strict WCAG AA minimum. Text on surfaces must be high contrast (slate-900 on white, slate-500 for secondary).",
+    "focus": "All interactive elements must have visible focus rings. focus:ring-2 focus:ring-offset-1 focus:ring-slate-400.",
+    "aria": "Use aria-current='page' for active navigation, aria-hidden='true' for decorative icons."
+  },
+  "images_and_media": {
+    "rules": "Enterprise software uses minimal photography. Use avatars for users if necessary. No generic decorative stock photos.",
+    "image_urls": {}
+  },
+  "3d_libraries": {
+    "recommendation": "None. This is a high-density operational OS. 3D will add unnecessary cognitive load. Use Recharts for 2D data visualization."
+  },
+  "instructions_to_main_agent": [
+    "Mission: Build an Enterprise Operating System, not a component library.",
+    "Use .js/.jsx files (not .tsx) as specified.",
+    "Consistency before creativity: Use the exact same button styles, input fields, tables, and typographic hierarchy across Admin, HR, Safety, Transportation, etc.",
+    "Eliminate visual noise: Remove helper text, duplicate navigation, repeated actions, and decorative elements.",
+    "Use lucide-react strictly for functional indicators.",
+    "Ruthlessly remove dead space: maximize data density while keeping it readable.",
+    "Implement pure HTML/Tailwind for layouts or heavily customize Shadcn UI components in .js/.jsx format to match the exact unified aesthetic.",
+    "Every interactive element MUST include a data-testid attribute.",
+    "Ensure every page immediately reveals: Where am I? What requires my attention? What should I do next?",
+    "DO NOT use a transparent background in headers, overlays, or any surface that has content under it."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not use generic centered layouts or simplistic gradients.",
+    "Apply micro-interactions on hover and focus states.",
+    "Use solid backgrounds over glassmorphism for this specific enterprise app.",
+    "DO NOT center align the app container. Left-align dense content.",
+    "NEVER use AI assistant emoji characters (🤖, etc.) for icons. Always use icon libraries.",
+    "Always add data-testid attributes to all interactive and key informational elements. Use kebab-case and role-based naming (e.g., data-testid='submit-report-button').",
+    "Do not apply 'transition: all'. Use specific transition properties (e.g., transition-colors, transition-transform)."
+  ]
+}
