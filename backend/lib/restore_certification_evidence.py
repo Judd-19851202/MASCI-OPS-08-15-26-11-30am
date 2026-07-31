@@ -743,11 +743,21 @@ def verify_photo_object_evidence(
     rehydration_result: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     expected = sorted(set(str(ref) for ref in expected_refs if ref))
+
+    def _normalize_expected(ref: str) -> str:
+        if ref.startswith("photo://"):
+            parts = ref.split("/", 3)
+            if len(parts) >= 4:
+                return parts[3]
+        return ref
+
+    normalized_expected = sorted(set(_normalize_expected(ref) for ref in expected))
     objects = sorted(set(str(key) for key in archive_object_keys if key))
-    missing = sorted(set(expected) - set(objects))
+    missing = sorted(set(normalized_expected) - set(objects))
     return {
         "state": "PASS" if not missing and int((rehydration_result or {}).get("failed") or 0) == 0 else "FAIL",
         "expected_photo_object_references": expected,
+        "expected_archive_object_keys": normalized_expected,
         "restored_photo_object_references": objects,
         "missing_objects": missing,
         "orphan_references": [],

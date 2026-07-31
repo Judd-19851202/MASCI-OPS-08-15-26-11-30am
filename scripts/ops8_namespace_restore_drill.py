@@ -525,7 +525,7 @@ def _r2_client(env: Dict[str, str]):
     ), bucket
 
 
-def _restore_prefixed(zf: zipfile.ZipFile, db, prefix: str, *, batch_size: int = 250, progress_callback=None) -> Dict[str, Dict[str, int]]:
+def _restore_prefixed(zf: zipfile.ZipFile, db, prefix: str, *, batch_size: int = 5000, progress_callback=None) -> Dict[str, Dict[str, int]]:
     counts: Dict[str, Dict[str, int]] = {}
 
     def _report(event: Dict[str, Any]) -> None:

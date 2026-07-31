@@ -13,6 +13,7 @@ from lib.restore_certification_evidence import (
     validate_restore_certification_evidence,
     verify_audit_data,
     verify_identity_role_data,
+    verify_photo_object_evidence,
     verify_scheduler_state,
 )
 
@@ -291,3 +292,24 @@ def test_complete_evidence_state_uses_complete_label():
     evidence["qa_reviews"] = [review]
     final = validate_restore_certification_evidence(evidence)
     assert final["evidence_completeness_state"] == "COMPLETE"
+
+
+def test_verify_photo_object_evidence_normalizes_photo_refs_to_archive_keys():
+    out = verify_photo_object_evidence(
+        expected_refs=[
+            "photo://bucket/photos/2026/07/example.jpg",
+            "photo://bucket/documents/2026/07/example.pdf",
+        ],
+        archive_object_keys=[
+            "photos/2026/07/example.jpg",
+            "documents/2026/07/example.pdf",
+        ],
+        rehydration_result={"failed": 0, "verified": 2},
+    )
+
+    assert out["state"] == "PASS"
+    assert out["missing_objects"] == []
+    assert out["expected_archive_object_keys"] == [
+        "documents/2026/07/example.pdf",
+        "photos/2026/07/example.jpg",
+    ]
