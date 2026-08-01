@@ -46,6 +46,9 @@
   - platform shell sub-batch 01 is now closed: `ViewDailyReport`, `ViewInspection`, `ViewMeeting`, and `ViewIncident` now share the canonical `DetailPageHero`, while `AdminRouteShell` can suppress duplicate shell headers/breadcrumbs on detail routes
   - shell support fixes shipped with the batch: stacked `PageHeader` mode for wide layouts and `ViewIncident` now gates linked CAPA fetches to Safety Portal routes so admin shell views stay clean
   - responsive screenshot certification was completed for `/admin/daily/:id`, `/pm/daily/:id`, `/admin/inspections/:id`, `/admin/meetings/:id`, and `/admin/incidents/:id` at `390`, `768`, `1024`, and `1440`, and the survivor ledgers were reconciled from `134` to `129` route/shell survivors and from `68` to `66` navigation survivors
+  - public & off-shell convergence batch is now closed: `FieldSafetyCards`, trench-safety public routes, transportation invite/verify routes, `PublicExcavationForm`, public QA/QC detail, and the admin QA/QC alias were rebuilt onto the canonical shell family and visually certified together
+  - shared shell support for the batch shipped through `OperationalPageFrame.jsx`, `OperationalStatusBadge.jsx`, and the rebuilt `PublicTrenchHeader.jsx`, while `ViewQaqcInspection.jsx` now shares the canonical `DetailPageHero` + `AdminRouteShell` suppression pattern
+  - responsive screenshot certification was completed for the batch at `390`, `768`, `1024`, and `1440`, and the survivor ledgers were reconciled from `129` to `118` route/shell survivors and from `66` to `63` navigation survivors
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -86,6 +89,7 @@
   - `/app/test_reports/iteration_94.json`
   - `/app/test_reports/iteration_95.json`
   - `/app/test_reports/iteration_96.json`
+  - `/app/test_reports/iteration_97.json`
   - `auto_frontend_testing_agent`: **22/22 PASS** on the broader WP-17D convergence sweep
   - `auto_frontend_testing_agent`: **5/5 auth routes PASS** for the PortalLoginShell convergence wave
   - `auto_frontend_testing_agent`: **9/9 PASS after fix** on the Field Leadership visual-audit + FormShell migration wave
@@ -99,6 +103,7 @@
   - follow-up backend sanity check confirmed `/api/admin/scheduler-runs` and `/api/diag/last-activity?portal=admin` after the portal-fix patch
   - formal platform-shell sub-batch certification passed for `/admin/daily/:id`, `/pm/daily/:id`, `/admin/inspections/:id`, `/admin/meetings/:id`, and `/admin/incidents/:id` in `/app/test_reports/iteration_96.json`
   - focused frontend verification confirmed no duplicate shell headers and no background CAPA 401 on the admin incident route after the Safety Portal gate
+  - formal public/off-shell convergence certification passed for `/safety/cards`, `/trench-safety`, `/trench-safety/references`, `/trench-safety/tabulated-data`, `/trench-safety/report`, `/trench-safety/assets/:assetId`, `/trench-safety/excavation/new`, `/transport-invite/:token`, `/transport-verify/:cnum`, `/qaqc/:id`, and `/admin/qaqc/:id` in `/app/test_reports/iteration_97.json`
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -107,11 +112,11 @@
 
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
-- Continue the Platform Shell Batch with the remaining highest-visibility routes first: public/shared home and help surfaces, `FieldSafetyCards`, `ViewQaqcInspection`, transportation invite/verify, trench-safety public surfaces, and the remaining portal-specific detail-route variants still awaiting visual certification.
+- Continue the Platform Shell Batch with the remaining highest-visibility routes first: Hub/home/help surfaces, `NearMissKiosk`, `ThankYou`, `CheatSheet`, poster routes, HR daily-report detail, and the remaining portal-specific trench/QAQC/detail-route variants still awaiting visual certification.
 - Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
 - Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.
 - Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.
-- Drive execution from `WP17D_SURVIVOR_REGISTER.md`: keep clearing active-route survivors through shared systems only, with the next shell batch centered on `FieldSafetyCards`, QAQC detail views, transportation public verification flows, and trench-safety public routes.
+- Drive execution from `WP17D_SURVIVOR_REGISTER.md`: keep clearing active-route survivors through shared systems only, with the next shell batch centered on Hub/help/public entry survivors, remaining duplicate-nav detail views, and portal-specific trench/detail aliases that still need certification.
 - Reconcile survivor fixes back into `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` so platform-wide counts move toward zero by survivor category rather than percentage complete.
 - Continue icon consolidation, card/table/dialog standardization, navigation cleanup, and responsive/mobile refinement until survivor counts reach zero or a documented exception exists.
 - Only after genuine full-platform convergence should WP-17E be considered.

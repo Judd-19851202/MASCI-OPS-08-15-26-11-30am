@@ -9,8 +9,8 @@ A survivor is open until it is either:
 - retained as a documented approved exception.
 
 ## Full-Ledger Survivor Counts
-- Route/Shell: **129**
-- Navigation: **66**
+- Route/Shell: **118**
+- Navigation: **63**
 - Tables: **107**
 - Dialogs/Overlays: **89**
 - Forms: **39**
@@ -31,24 +31,21 @@ A survivor is open until it is either:
 - Denominator movement: full-ledger route/shell survivors `134 → 129`; full-ledger navigation survivors `68 → 66`; active header queue `41 → 36`; active navigation queue `6 → 4`
 - Carry-forward note: PM incident/meeting/inspection, Safety Portal incident/meeting/inspection, and HR daily-report variants share the new header architecture but still require portal-specific visual certification before closure
 
+### 2026-08-01 · Public & Off-Shell Convergence Batch · CLOSED
+- Closed routes: `/safety/cards`, `/qaqc/:id`, `/admin/qaqc/:id`, `/trench-safety`, `/trench-safety/tabulated-data`, `/trench-safety/references`, `/trench-safety/report`, `/trench-safety/assets/:assetId`, `/trench-safety/excavation/new`, `/transport-invite/:token`, `/transport-verify/:cnum`
+- Shared fixes: new `OperationalPageFrame` + `OperationalStatusBadge`, `PublicTrenchHeader` rebuilt onto the shared `OperationalTopbar`, trench-public shell cleanup, transportation invite/verify shell convergence, `FieldSafetyCards` full-page repair, `PublicReportModal`/`PublicAssetLookup` polish, and QAQC detail migration onto `DetailPageHero`
+- Evidence: `/app/test_reports/iteration_97.json` plus responsive screenshot sets at `390`, `768`, `1024`, and `1440`
+- Denominator movement: full-ledger route/shell survivors `129 → 118`; full-ledger navigation survivors `66 → 63`; active header queue `36 → 26`; active navigation queue `4 → 1`
+- Carry-forward note: `/qaqc/:id` remains auth-gated by design, and `/api/trench-safety/excavations/public/asset-roster` still returns `401` on the public excavation route while the form itself remains usable; policy-level backend follow-up can be handled in a later batch if that endpoint is intended to stay public
+
 ## Active-Route Survivor Queue
-### Header survivors (36)
+### Header survivors (26)
 - `/` · `Hub` · replace legacy/local header with canonical shell
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
 - `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
-- `/safety/cards` · `FieldSafetyCards` · replace legacy/local header with canonical shell
-- `/qaqc/:id` · `ViewQaqcInspection` · replace legacy/local header with canonical shell
-- `/trench-safety` · `trench_safety/PublicTrenchSafetyDashboard` · replace legacy/local header with canonical shell
-- `/trench-safety/tabulated-data` · `trench_safety/PublicTrenchSafetyTabulatedData` · replace legacy/local header with canonical shell
-- `/trench-safety/references` · `trench_safety/PublicTrenchSafetyReferences` · replace legacy/local header with canonical shell
-- `/trench-safety/report` · `trench_safety/PublicTrenchSafetyReport` · replace legacy/local header with canonical shell
-- `/trench-safety/assets/:assetId` · `trench_safety/TrenchSafetyQrLanding` · replace legacy/local header with canonical shell
-- `/transport-invite/:token` · `transportation/ExternalCarrierInvite` · replace legacy/local header with canonical shell
-- `/transport-verify/:cnum` · `transportation/CertificateVerify` · replace legacy/local header with canonical shell
 - `/near-miss` · `NearMissKiosk` · replace legacy/local header with canonical shell
 - `/thank-you` · `ThankYou` · replace legacy/local header with canonical shell
 - `/cheatsheet` · `CheatSheet` · replace legacy/local header with canonical shell
-- `/trench-safety/excavation/new` · `trench_safety/PublicExcavationForm` · replace legacy/local header with canonical shell
 - `/admin/trench-boxes/poster` · `TrenchBoxPoster` · replace legacy/local header with canonical shell
 - `/admin/jha-plans/poster` · `JhaPlansPoster` · replace legacy/local header with canonical shell
 
@@ -94,8 +91,5 @@ A survivor is open until it is either:
 - `/dispatch-portal/fleet` · `FleetVisibility` · collapse stacked helper text into canonical coaching treatment
 - `/admin/deploy-readiness` · `AdminDeployReadiness` · collapse stacked helper text into canonical coaching treatment
 
-### Navigation survivors (4)
-- `/safety/cards` · `FieldSafetyCards` · remove local back controls and duplicate navigation affordances
-- `/transport-invite/:token` · `transportation/ExternalCarrierInvite` · remove local back controls and duplicate navigation affordances
-- `/transport-verify/:cnum` · `transportation/CertificateVerify` · remove local back controls and duplicate navigation affordances
+### Navigation survivors (1)
 - `/hr/daily-reports/:id` · `ViewDailyReport` · remove local back controls and duplicate navigation affordances
