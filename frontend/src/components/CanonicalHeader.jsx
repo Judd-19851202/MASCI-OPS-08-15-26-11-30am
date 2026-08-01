@@ -22,6 +22,8 @@ export function CanonicalHeader({
   variant = "default",
   portalLabel = "MASCI Operations Platform",
   pageLabel = null,
+  contextLabel = null,
+  contextMeta = null,
   accent = "default",
   backTo = null,
   backLabel = "Back",
@@ -38,6 +40,8 @@ export function CanonicalHeader({
 }) {
   const hasUtilityRail = Boolean(utilitySlot || centerSlot || preControlsSlot || postControlsSlot);
   const isHomeVariant = variant === "home";
+  const brandCompany = "MASCI";
+  const brandProduct = "Operations Platform";
   const utilityContent = utilitySlot || (
     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
       {centerSlot ? <div className="min-w-0" data-testid={`${testIdPrefix}-utility-primary`}>{centerSlot}</div> : <div />}
@@ -50,8 +54,8 @@ export function CanonicalHeader({
     </div>
   );
   const homeControlAllowed = Boolean(showHomeLink && homeTo);
-  const resolvedPortalLabel = isHomeVariant && portalLabel === "MASCI Operations Platform" ? "MASCI" : portalLabel;
-  const resolvedPageLabel = pageLabel || (isHomeVariant ? "Operations Platform" : "Operational workflow");
+  const resolvedContextLabel = contextLabel || (!isHomeVariant ? pageLabel || portalLabel || "Operational workflow" : null);
+  const resolvedContextMeta = !isHomeVariant ? contextMeta : null;
 
   return (
     <>
@@ -77,23 +81,29 @@ export function CanonicalHeader({
             )}
             data-testid={`${testIdPrefix}-workflow-row`}
           >
-            {isHomeVariant ? (
-              <div className="masci-canonical-header__home-brand" data-testid={`${testIdPrefix}-home-brand`}>
-                <div className="masci-canonical-header__home-brand-company" data-testid={`${testIdPrefix}-portal-label`}>
-                  {resolvedPortalLabel}
+            <div className="masci-canonical-header__identity-grid" data-testid={`${testIdPrefix}-identity-grid`}>
+              <div className="masci-canonical-header__brand-block" data-testid={`${testIdPrefix}-home-brand`}>
+                <div className="masci-canonical-header__brand-company" data-testid={`${testIdPrefix}-portal-label`}>
+                  {brandCompany}
                 </div>
-                <div className="masci-canonical-header__home-brand-product" data-testid={`${testIdPrefix}-page-label`}>
-                  {resolvedPageLabel}
+                <div className="masci-canonical-header__brand-product" data-testid={`${testIdPrefix}-page-label`}>
+                  {brandProduct}
                 </div>
               </div>
-            ) : (
-              <>
-                {resolvedPortalLabel ? <div className="masci-canonical-header__portal-label">{resolvedPortalLabel}</div> : null}
-                <div className="masci-canonical-header__page-label" data-testid={`${testIdPrefix}-page-label`}>
-                  {resolvedPageLabel}
+
+              {resolvedContextLabel ? (
+                <div className="masci-canonical-header__context-block" data-testid={`${testIdPrefix}-context-block`}>
+                  <div className="masci-canonical-header__context-label" data-testid={`${testIdPrefix}-context-label`}>
+                    {resolvedContextLabel}
+                  </div>
+                  {resolvedContextMeta ? (
+                    <div className="masci-canonical-header__context-meta" data-testid={`${testIdPrefix}-context-meta`}>
+                      {resolvedContextMeta}
+                    </div>
+                  ) : null}
                 </div>
-              </>
-            )}
+              ) : null}
+            </div>
           </div>
         </div>
       </header>

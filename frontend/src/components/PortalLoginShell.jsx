@@ -64,8 +64,9 @@ export function PortalLoginShell({
       <div className="caution-stripe" />
       <div className={headerBorderClass || ""} data-testid={`${rootTestId}-header-frame`}>
         <CanonicalHeader
-          portalLabel={normalizedPortalLabel}
-          pageLabel={t("Sign In")}
+          variant="platform"
+          contextLabel={t("Sign In")}
+          contextMeta={normalizedPortalLabel}
           accent="blue"
           backTo={null}
           homeTo="/"

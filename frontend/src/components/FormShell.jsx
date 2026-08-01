@@ -84,8 +84,8 @@ export function FormShell({
     >
       <div className="caution-stripe" />
       <CanonicalHeader
-        portalLabel={headerPortalLabel}
-        pageLabel={title}
+        variant="platform"
+        contextLabel={title || headerPortalLabel}
         accent="red"
         backTo={resolvedBackLink}
         backLabel={backLabel || t("Back")}

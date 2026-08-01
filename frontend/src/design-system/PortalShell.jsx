@@ -192,16 +192,16 @@ export function PortalShell({
     isWp17 ? `wp17-shell wp17-shell--${resolvedExperienceTone}` : "",
     className,
   ].filter(Boolean).join(" ");
-  const resolvedPageLabel = headerIdentityOverride?.pageLabel || pageTitle || portalRole;
+  const resolvedContextLabel = headerIdentityOverride?.pageLabel || pageTitle || portalRole;
   const headerIdentityValue = React.useMemo(
     () => ({
-      headerOwnsWorkflowIdentity: Boolean(resolvedPageLabel),
-      pageTitle: resolvedPageLabel,
+      headerOwnsWorkflowIdentity: Boolean(resolvedContextLabel),
+      pageTitle: resolvedContextLabel,
       portalLabel: portalRole,
       setHeaderIdentity: setHeaderIdentityOverride,
       clearHeaderIdentity: () => setHeaderIdentityOverride(null),
     }),
-    [portalRole, resolvedPageLabel]
+    [portalRole, resolvedContextLabel]
   );
 
   const handleSignOut = async () => {
@@ -258,8 +258,8 @@ export function PortalShell({
       className={rootClasses}
     >
       <CanonicalHeader
-        portalLabel={portalRole}
-        pageLabel={resolvedPageLabel}
+        variant="platform"
+        contextLabel={resolvedContextLabel}
         accent="blue"
         backTo={shouldShowBackShortcut ? backHref : null}
         backLabel="Back"

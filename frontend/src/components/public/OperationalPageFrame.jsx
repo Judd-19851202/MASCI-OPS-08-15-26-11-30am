@@ -34,8 +34,9 @@ export function OperationalTopbar({
 }) {
   return (
     <CanonicalHeader
-      portalLabel={familyLabel}
-      pageLabel={familyMeta}
+      variant="platform"
+      contextLabel={familyMeta}
+      contextMeta={familyLabel === "MASCI Operations Platform" ? null : familyLabel}
       accent={accent}
       backTo={backTo}
       backLabel={backLabel}

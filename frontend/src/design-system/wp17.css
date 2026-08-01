@@ -211,12 +211,17 @@
   padding-bottom: 0.78rem;
 }
 
-.masci-canonical-header__home-brand {
+.masci-canonical-header__identity-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.masci-canonical-header__brand-block {
   display: grid;
   gap: 0.08rem;
 }
 
-.masci-canonical-header__home-brand-company {
+.masci-canonical-header__brand-company {
   font-family: var(--font-sans);
   font-size: clamp(1.1rem, 3vw, 1.32rem);
   line-height: 1;
@@ -226,7 +231,7 @@
   text-wrap: nowrap;
 }
 
-.masci-canonical-header__home-brand-product {
+.masci-canonical-header__brand-product {
   font-family: var(--font-sans);
   font-size: clamp(0.82rem, 2vw, 0.96rem);
   line-height: 1.12;
@@ -236,25 +241,30 @@
   text-wrap: balance;
 }
 
-.masci-canonical-header__portal-label {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(232, 241, 252, 0.68);
+.masci-canonical-header__context-block {
+  display: grid;
+  gap: 0.12rem;
+  align-content: end;
 }
 
-.masci-canonical-header__page-label {
+.masci-canonical-header__context-label {
   font-family: var(--font-sans);
-  font-size: clamp(1.14rem, 3.4vw, 1.72rem);
-  line-height: 1.08;
+  font-size: clamp(1rem, 3vw, 1.38rem);
+  line-height: 1.06;
   letter-spacing: -0.02em;
-  word-spacing: 0.08em;
   font-weight: 800;
   color: white;
   overflow-wrap: anywhere;
   text-wrap: balance;
+}
+
+.masci-canonical-header__context-meta {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(232, 241, 252, 0.68);
 }
 
 .masci-canonical-header__utility-rail {
@@ -1352,12 +1362,16 @@
     gap: 0.6rem;
   }
 
-  .masci-canonical-header__home-brand-company {
+  .masci-canonical-header__brand-company {
     font-size: 1.04rem;
   }
 
-  .masci-canonical-header__home-brand-product {
+  .masci-canonical-header__brand-product {
     font-size: 0.8rem;
+  }
+
+  .masci-canonical-header__context-label {
+    font-size: 0.98rem;
   }
 
   .wp17-shell .wp16-shell-page-header {
@@ -1380,12 +1394,30 @@
     padding-bottom: 0.74rem;
   }
 
-  .masci-canonical-header__home-brand-company {
+  .masci-canonical-header__brand-company {
     font-size: 0.98rem;
   }
 
-  .masci-canonical-header__home-brand-product {
+  .masci-canonical-header__brand-product {
     font-size: 0.76rem;
+  }
+
+  .masci-canonical-header__context-label {
+    font-size: 0.92rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .masci-canonical-header__identity-grid {
+    align-items: end;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    gap: 1.1rem;
+  }
+
+  .masci-canonical-header__context-block {
+    min-width: 0;
+    padding-left: 1.1rem;
+    border-left: 1px solid rgba(214, 228, 246, 0.12);
   }
 }
 

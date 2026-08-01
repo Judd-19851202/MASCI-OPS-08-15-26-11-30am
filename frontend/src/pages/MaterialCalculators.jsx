@@ -11,12 +11,16 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InformationCard } from "@/components/CanonicalCard";
+import { SectionHeading } from "@/components/SectionHeading";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { PortalShell } from "@/design-system/PortalShell";
+import { cn } from "@/lib/utils";
 import {
   AGGREGATE_DENSITIES,
   ASPHALT_DEFAULT_DENSITY,
@@ -49,13 +53,13 @@ export default function MaterialCalculators() {
     { key: "yield_waste", label: t("Yield / Waste"), icon: BarChart3 },
     { key: "conversion", label: t("Tons ↔ CY"), icon: Repeat },
   ];
+  const activeTab = tabs.find((tab) => tab.key === active);
 
   return (
     <PortalShell
       portalName="MASCI"
       portalRole="Field"
       pageTitle={t("Material Calculators")}
-      subtitle={t("Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and conversions.")}
       homeHref="/field/calculators"
       backHref="/field"
       showBack
@@ -65,48 +69,55 @@ export default function MaterialCalculators() {
       showSignOut={false}
     >
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
-        <div className="mb-8 flex items-start gap-4" data-testid="calc-summary">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-amber-600 text-white shrink-0">
-            <Calculator className="w-7 h-7" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
-              {t("Field · Estimate Quantities")}
-            </span>
-            <p className="text-slate-600 text-sm sm:text-base mt-2 max-w-2xl">
-              {t(
-                "Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and tons↔CY conversions.",
-              )}
-            </p>
-          </div>
-        </div>
+        <InformationCard
+          icon={Calculator}
+          tone="amber"
+          eyebrow={t("Field tools")}
+          title={t("Material Calculators")}
+          description={t("Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions.")}
+          testId="calc-summary"
+          className="mb-8"
+        />
 
-        {/* Tab pills */}
+        <SectionHeading
+          index="01"
+          title={t("Choose a calculator")}
+          subtitle={t("Open one estimating tool at a time, then calculate, reset, or save the result when you are ready.")}
+          testId="calc-tabs-heading"
+        />
+
         <div
-          className="flex flex-wrap gap-2 mb-6 print:hidden"
+          className="wp17-panel mb-6 flex flex-wrap gap-2 p-3 sm:p-4 print:hidden"
           data-testid="calc-tabs"
         >
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = active === tab.key;
             return (
-              <button
+              <Button
                 key={tab.key}
+                type="button"
                 onClick={() => setActive(tab.key)}
                 data-testid={`calc-tab-${tab.key}`}
-                className={
-                  "inline-flex items-center gap-2 px-4 py-2 rounded font-mono text-xs uppercase tracking-[0.15em] font-bold transition-all " +
-                  (isActive
-                    ? "bg-amber-600 text-white border-2 border-amber-700 shadow-sm"
-                    : "bg-white text-slate-700 border-2 border-slate-300 hover:border-amber-500")
-                }
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                className={cn(
+                  "min-h-[2.75rem] gap-2 font-mono text-[11px] uppercase tracking-[0.15em]",
+                  isActive ? "shadow-[0_16px_28px_rgba(15,23,42,0.14)]" : "bg-white"
+                )}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
-              </button>
+              </Button>
             );
           })}
         </div>
+
+        {activeTab ? (
+          <p className="mb-6 text-sm text-slate-600" data-testid="calc-active-tool-label">
+            {t("Current tool")}: <span className="font-semibold text-slate-900">{activeTab.label}</span>
+          </p>
+        ) : null}
 
         {active === "aggregate" && <AggregatePanel lang={lang} t={t} />}
         {active === "asphalt" && <AsphaltPanel lang={lang} t={t} />}
@@ -188,6 +199,19 @@ function Result({ label, value, unit, testid, strong }) {
         </span>
       </div>
     </div>
+  );
+}
+
+function CalculatorPanel({ title, testId, children }) {
+  return (
+    <Card className="wp17-card-family--form-section" data-testid={testId}>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl sm:text-2xl">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -353,10 +377,7 @@ function AggregatePanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-aggregate">
-      <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
-        {t("Aggregate Calculator")}
-      </h2>
+    <CalculatorPanel title={t("Aggregate Calculator")} testId="calc-panel-aggregate">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Length (ft)")}><NumberInput value={length} onChange={setLength} testid="agg-length" /></Field>
         <Field label={t("Width (ft)")}><NumberInput value={width} onChange={setWidth} testid="agg-width" /></Field>
@@ -395,7 +416,7 @@ function AggregatePanel({ lang, t }) {
           <Result label={t("Truck Loads")} value={result.truck_loads} unit={t("loads")} testid="agg-loads" strong />
         </div>
       )}
-    </section>
+    </CalculatorPanel>
   );
 }
 
@@ -445,10 +466,7 @@ function AsphaltPanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-asphalt">
-      <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
-        {t("Asphalt Calculator")}
-      </h2>
+    <CalculatorPanel title={t("Asphalt Calculator")} testId="calc-panel-asphalt">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Length (ft)")}><NumberInput value={length} onChange={setLength} testid="asp-length" /></Field>
         <Field label={t("Width (ft)")}><NumberInput value={width} onChange={setWidth} testid="asp-width" /></Field>
@@ -477,7 +495,7 @@ function AsphaltPanel({ lang, t }) {
           <Result label={t("Tons + Waste")} value={result.tons_with_waste} unit={t("tons")} testid="asp-tons-waste" />
         </div>
       )}
-    </section>
+    </CalculatorPanel>
   );
 }
 
@@ -526,10 +544,7 @@ function ConcretePanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-concrete">
-      <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
-        {t("Concrete Calculator")}
-      </h2>
+    <CalculatorPanel title={t("Concrete Calculator")} testId="calc-panel-concrete">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Length (ft)")}><NumberInput value={length} onChange={setLength} testid="con-length" /></Field>
         <Field label={t("Width (ft)")}><NumberInput value={width} onChange={setWidth} testid="con-width" /></Field>
@@ -560,7 +575,7 @@ function ConcretePanel({ lang, t }) {
           )}
         </div>
       )}
-    </section>
+    </CalculatorPanel>
   );
 }
 
@@ -604,10 +619,7 @@ function TruckLoadPanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-truck-load">
-      <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
-        {t("Truck Load Calculator")}
-      </h2>
+    <CalculatorPanel title={t("Truck Load Calculator")} testId="calc-panel-truck-load">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Total material needed")}>
           <NumberInput value={totalQty} onChange={setTotalQty} testid="tl-qty" />
@@ -647,7 +659,7 @@ function TruckLoadPanel({ lang, t }) {
           <Result label={t("Partial Remaining")} value={result.partial_load_remaining} unit={t(truckUnit === "tons" ? "tons" : "cy")} testid="tl-partial" />
         </div>
       )}
-    </section>
+    </CalculatorPanel>
   );
 }
 
@@ -685,10 +697,7 @@ function YieldWastePanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-yield-waste">
-      <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
-        {t("Yield / Waste Factor")}
-      </h2>
+    <CalculatorPanel title={t("Yield / Waste Factor")} testId="calc-panel-yield-waste">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Planned quantity")}>
           <NumberInput value={planned} onChange={setPlanned} testid="yw-planned" />
@@ -719,7 +728,7 @@ function YieldWastePanel({ lang, t }) {
           <Result label={t("Recommended Order")} value={result.recommended_order} unit={t(unit === "tons" ? "tons" : unit === "cy" ? "cy" : "cf")} testid="yw-rec" strong />
         </div>
       )}
-    </section>
+    </CalculatorPanel>
   );
 }
 
@@ -766,10 +775,7 @@ function ConversionPanel({ lang, t }) {
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7" data-testid="calc-panel-conversion">
-      <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 mb-4">
-        {t("Tons ↔ Cubic Yards Conversion")}
-      </h2>
+    <CalculatorPanel title={t("Tons ↔ Cubic Yards Conversion")} testId="calc-panel-conversion">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Direction")}>
           <select value={direction} onChange={(e) => setDirection(e.target.value)}
@@ -801,6 +807,6 @@ function ConversionPanel({ lang, t }) {
           <Result label={t("Density used")} value={result.density_used} unit="lb/ft³" testid="conv-density-used" />
         </div>
       )}
-    </section>
+    </CalculatorPanel>
   );
 }

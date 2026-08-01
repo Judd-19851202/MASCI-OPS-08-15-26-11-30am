@@ -17,8 +17,8 @@ export function PublicShell({
       style={{ background: "var(--paper-base)", color: "var(--ink-regular)", minHeight: "100vh" }}
     >
       <CanonicalHeader
-        portalLabel="MASCI Operations Platform"
-        pageLabel={surfaceName}
+        variant="platform"
+        contextLabel={surfaceName}
         accent="default"
         showHomeLink={false}
         showLangToggle={false}

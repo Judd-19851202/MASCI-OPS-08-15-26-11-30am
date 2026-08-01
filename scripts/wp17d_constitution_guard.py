@@ -68,21 +68,40 @@ CHECKS = [
         "name": "home_brand_block_present",
         "file": ROOT / "frontend/src/components/CanonicalHeader.jsx",
         "patterns": [
-            re.compile(r'masci-canonical-header__home-brand-company'),
-            re.compile(r'masci-canonical-header__home-brand-product'),
-            re.compile(r'variant === "home"'),
+            re.compile(r'masci-canonical-header__brand-company'),
+            re.compile(r'masci-canonical-header__brand-product'),
+            re.compile(r'brandCompany\s*=\s*"MASCI"'),
+            re.compile(r'brandProduct\s*=\s*"Operations Platform"'),
         ],
-        "min_hits": 3,
+        "min_hits": 4,
     },
     {
         "name": "home_brand_visual_hierarchy",
         "file": ROOT / "frontend/src/design-system/wp17.css",
         "patterns": [
-            re.compile(r'masci-canonical-header__home-brand-company[^}]*color:\s*var\(--wp17-critical\)', re.DOTALL),
-            re.compile(r'masci-canonical-header__home-brand-product[^}]*color:\s*rgba\(255, 255, 255, 0\.9\)', re.DOTALL),
-            re.compile(r'masci-canonical-header__home-brand-company[^}]*font-weight:\s*900', re.DOTALL),
+            re.compile(r'masci-canonical-header__brand-company[^}]*color:\s*var\(--wp17-critical\)', re.DOTALL),
+            re.compile(r'masci-canonical-header__brand-product[^}]*color:\s*rgba\(255, 255, 255, 0\.9\)', re.DOTALL),
+            re.compile(r'masci-canonical-header__brand-company[^}]*font-weight:\s*900', re.DOTALL),
         ],
         "min_hits": 3,
+    },
+    {
+        "name": "portal_shell_brand_propagation",
+        "file": ROOT / "frontend/src/design-system/PortalShell.jsx",
+        "patterns": [
+            re.compile(r'contextLabel=\{resolvedContextLabel\}'),
+            re.compile(r'variant="platform"'),
+        ],
+        "min_hits": 2,
+    },
+    {
+        "name": "form_shell_brand_propagation",
+        "file": ROOT / "frontend/src/components/FormShell.jsx",
+        "patterns": [
+            re.compile(r'contextLabel=\{title \|\| headerPortalLabel\}'),
+            re.compile(r'variant="platform"'),
+        ],
+        "min_hits": 2,
     },
     {
         "name": "logo_home_behavior",
