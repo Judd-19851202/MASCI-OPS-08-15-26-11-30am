@@ -25,6 +25,10 @@
   - portal wrappers converged for logins, HR, Safety, PM, and shared form flows
   - standalone authentication convergence completed for the current P0 wave: `AdminLogin.jsx`, `PmResetPassword.jsx`, `SafetyFormsLogin.jsx`, `HrChangePassword.jsx`, and `DispatchForgotPassword.jsx` now render through `PortalLoginShell`
   - `PortalLoginShell` was tightened to remove the duplicate shared-entry CTA so auth routes no longer show redundant sign-in actions
+  - provisional Field Leadership surfaces were reopened under the executive visual audit and repaired: hub copy density was tightened, records dropped duplicate local navigation, the shared Field Leadership form moved onto `FormShell`, and record views were rewrapped into the canonical shell family
+  - `FieldLeadershipView.jsx` admin mode no longer uses the prior admin-side wrapper; admin and non-admin record views now share the same canonical top-shell family with MASCI navy glass preserved
+  - the next FormShell migration batch landed: `NewConstraint.jsx` and `NewQaqcInspection.jsx` now render through canonical `FormShell`
+  - the QA/QC inspection route was decluttered by removing the duplicate top guidance band so the form no longer stacks repeated workflow tips before the body
   - Transportation first-wave repairs applied across shell, subnav, Mission Control cards, and external/public carrier verification/invite flows
   - portal-mission convergence expanded across HR, Safety, Dispatch, Shop, Transportation, Training, Executive, and Field Leadership landings
   - driver/public edge routes (`/shift`, `/driver`, `/revise/:token`) moved into the same public-family visual system
@@ -68,11 +72,14 @@
   - `/app/test_reports/iteration_90.json`
   - `/app/test_reports/iteration_91.json`
   - `/app/test_reports/iteration_92.json`
+  - `/app/test_reports/iteration_93.json`
   - `auto_frontend_testing_agent`: **22/22 PASS** on the broader WP-17D convergence sweep
   - `auto_frontend_testing_agent`: **5/5 auth routes PASS** for the PortalLoginShell convergence wave
+  - `auto_frontend_testing_agent`: **9/9 PASS after fix** on the Field Leadership visual-audit + FormShell migration wave
   - dispatch direct-token hub verification passed
   - post-fix spot checks passed for Dispatch login shell, Admin canonical header, Daily Report canonical form shell, and Transportation dispatch route without 401 console noise
   - formal auth-wave certification passed for `/admin/login`, `/safety/forms/login`, `/dispatch-portal/forgot-password`, `/pm/reset/test-token`, and `/hr/change-password`
+  - formal Field Leadership + FormShell certification passed for `/leadership`, `/leadership/records`, `/leadership/verbal_coaching/new`, `/leadership/records/:id`, `/admin/leadership/records/:id`, `/constraints/new`, and `/qaqc/concrete-form/new`
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -81,6 +88,7 @@
 
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
-- Run the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, or spacing regressions.
-- Finish migrating the remaining `MIGRATING` rows in `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv`, with the next P0 wave focused on the remaining `66` legacy forms moving onto `FormShell`.
+- Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.
+- Finish migrating the remaining `MIGRATING` rows in `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv`, with the next P0 wave focused on the remaining legacy forms still outside `FormShell` after `NewConstraint.jsx` and `NewQaqcInspection.jsx`.
+- After the next form wave, proceed directly into icon consolidation, card/table/dialog standardization, navigation cleanup, and responsive/mobile refinement.
 - Only after genuine full-platform convergence should WP-17E be considered.
