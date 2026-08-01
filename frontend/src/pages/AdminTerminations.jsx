@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { PortalShell } from "@/design-system";
+import { DataTable, PortalShell } from "@/design-system";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -108,6 +108,110 @@ export default function AdminTerminations() {
     }
     return { total, byRehire, withOutstanding, withLawEnforcement };
   }, [rows]);
+
+  const columns = useMemo(() => ([
+    { key: "date", header: t("Date"), render: (r) => <span className="font-mono whitespace-nowrap">{fmtDate(r.occurred_at || r.created_at)}</span> },
+    {
+      key: "employee",
+      header: t("Employee"),
+      render: (r) => (
+        <div>
+          <div className="font-bold text-sm">{r.employee_name || "—"}</div>
+          {r.employee_position ? <div className="text-[11px] text-slate-500">{r.employee_position}</div> : null}
+        </div>
+      ),
+      wrap: true,
+    },
+    { key: "supervisor", header: t("Supervisor"), render: (r) => <span className="text-sm">{r.supervisor_name || "—"}</span>, wrap: true },
+    {
+      key: "job",
+      header: t("Job"),
+      render: (r) => (
+        <div>
+          <div className="font-mono text-xs">{r.project_number || "—"}</div>
+          <div className="text-[11px] text-slate-500 max-w-[200px]">{r.project_name || ""}</div>
+        </div>
+      ),
+      wrap: true,
+    },
+    {
+      key: "type",
+      header: t("Type"),
+      render: (r) => {
+        const sepType = r.details?.separation_type || "—";
+        return (
+          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 border border-slate-300 text-slate-900">
+            {SEP_TYPE_SHORT[sepType] || sepType}
+          </span>
+        );
+      },
+    },
+    {
+      key: "rehire",
+      header: t("Rehire"),
+      render: (r) => {
+        const rehire = r.details?.rehire_eligibility || "—";
+        return (
+          <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${REHIRE_CHIP[rehire] || "bg-slate-100 text-slate-700 border-slate-300"}`}>
+            {rehire}
+          </span>
+        );
+      },
+    },
+    {
+      key: "flags",
+      header: t("Flags"),
+      render: (r) => {
+        const d = r.details || {};
+        const outs = Array.isArray(d.outstanding_equipment_acknowledged) ? d.outstanding_equipment_acknowledged : [];
+        const stillOutstanding = outs.filter((o) => o.status === "still_outstanding").length;
+        const returnedAtTerm = outs.filter((o) => o.status === "returned_at_termination").length;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {stillOutstanding > 0 && (
+              <span title={t("Outstanding equipment still on file")} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-900 border border-red-300" data-testid={`flag-outstanding-${r.id}`}>
+                <Wrench className="w-3 h-3" />{stillOutstanding}
+              </span>
+            )}
+            {returnedAtTerm > 0 && stillOutstanding === 0 && (
+              <span title={t("All equipment returned at termination")} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                <CheckCircle2 className="w-3 h-3" />{returnedAtTerm}
+              </span>
+            )}
+            {d.law_enforcement_involved === "Yes" && (
+              <span title={t("Law enforcement involved")} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-200 text-red-900 border border-red-400" data-testid={`flag-law-${r.id}`}>
+                <ShieldAlert className="w-3 h-3" />{t("LE")}
+              </span>
+            )}
+            {r.employee_refused && (
+              <span title={t("Refused to sign")} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                <AlertOctagon className="w-3 h-3" />{t("RTS")}
+              </span>
+            )}
+            {r.employee_not_present && (
+              <span title={t("Employee not present")} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                {t("ABS")}
+              </span>
+            )}
+          </div>
+        );
+      },
+      wrap: true,
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      render: (r) => (
+        <Button asChild size="sm" variant="outline" className="h-8 text-xs">
+          <Link to={`/admin/leadership/records/${r.id}`} data-testid={`termination-view-${r.id}`}>
+            <FileText className="w-3.5 h-3.5 mr-1" />
+            {t("View")}
+          </Link>
+        </Button>
+      ),
+    },
+  ]), [t]);
 
   return (
     <PortalShell
@@ -203,116 +307,15 @@ export default function AdminTerminations() {
                 : t("No records match the current filter.")}
             </Card>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse bg-white border border-slate-200 rounded-md">
-                <thead className="bg-slate-50">
-                  <tr className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-700">
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Date")}</th>
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Employee")}</th>
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Supervisor")}</th>
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Job")}</th>
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Type")}</th>
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Rehire")}</th>
-                    <th className="text-left p-3 border-b-2 border-slate-200">{t("Flags")}</th>
-                    <th className="text-right p-3 border-b-2 border-slate-200"></th>
-                  </tr>
-                </thead>
-                <tbody data-testid="terminations-table">
-                  {filtered.map((r) => {
-                    const d = r.details || {};
-                    const outs = Array.isArray(d.outstanding_equipment_acknowledged)
-                      ? d.outstanding_equipment_acknowledged : [];
-                    const stillOutstanding = outs.filter((o) => o.status === "still_outstanding").length;
-                    const returnedAtTerm = outs.filter((o) => o.status === "returned_at_termination").length;
-                    const rehire = d.rehire_eligibility || "—";
-                    const sepType = d.separation_type || "—";
-                    return (
-                      <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50"
-                          data-testid={`termination-row-${r.id}`}>
-                        <td className="p-3 align-top text-sm whitespace-nowrap font-mono">{fmtDate(r.occurred_at || r.created_at)}</td>
-                        <td className="p-3 align-top">
-                          <div className="font-bold text-sm">{r.employee_name || "—"}</div>
-                          {r.employee_position && (
-                            <div className="text-[11px] text-slate-500">{r.employee_position}</div>
-                          )}
-                        </td>
-                        <td className="p-3 align-top text-sm">{r.supervisor_name || "—"}</td>
-                        <td className="p-3 align-top text-sm">
-                          <div className="font-mono text-xs">{r.project_number || "—"}</div>
-                          <div className="text-[11px] text-slate-500 line-clamp-1 max-w-[200px]">{r.project_name || ""}</div>
-                        </td>
-                        <td className="p-3 align-top">
-                          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 border border-slate-300 text-slate-900">
-                            {SEP_TYPE_SHORT[sepType] || sepType}
-                          </span>
-                        </td>
-                        <td className="p-3 align-top">
-                          <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${
-                            REHIRE_CHIP[rehire] || "bg-slate-100 text-slate-700 border-slate-300"
-                          }`}>
-                            {rehire}
-                          </span>
-                        </td>
-                        <td className="p-3 align-top">
-                          <div className="flex flex-wrap gap-1">
-                            {stillOutstanding > 0 && (
-                              <span
-                                title={t("Outstanding equipment still on file")}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-900 border border-red-300"
-                                data-testid={`flag-outstanding-${r.id}`}
-                              >
-                                <Wrench className="w-3 h-3" />{stillOutstanding}
-                              </span>
-                            )}
-                            {returnedAtTerm > 0 && stillOutstanding === 0 && (
-                              <span
-                                title={t("All equipment returned at termination")}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300"
-                              >
-                                <CheckCircle2 className="w-3 h-3" />{returnedAtTerm}
-                              </span>
-                            )}
-                            {d.law_enforcement_involved === "Yes" && (
-                              <span
-                                title={t("Law enforcement involved")}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-200 text-red-900 border border-red-400"
-                                data-testid={`flag-law-${r.id}`}
-                              >
-                                <ShieldAlert className="w-3 h-3" />{t("LE")}
-                              </span>
-                            )}
-                            {r.employee_refused && (
-                              <span
-                                title={t("Refused to sign")}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300"
-                              >
-                                <AlertOctagon className="w-3 h-3" />{t("RTS")}
-                              </span>
-                            )}
-                            {r.employee_not_present && (
-                              <span
-                                title={t("Employee not present")}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300"
-                              >
-                                {t("ABS")}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-3 align-top text-right whitespace-nowrap">
-                          <Button asChild size="sm" variant="outline" className="h-8 text-xs">
-                            <Link to={`/admin/leadership/records/${r.id}`} data-testid={`termination-view-${r.id}`}>
-                              <FileText className="w-3.5 h-3.5 mr-1" />
-                              {t("View")}
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={columns}
+              rows={filtered}
+              rowKey={(r) => r.id}
+              density="compact"
+              tableMinWidth="980px"
+              data-testid="terminations-table"
+              getRowTestId={(r) => `termination-row-${r.id}`}
+            />
           )}
         </div>
       </div>

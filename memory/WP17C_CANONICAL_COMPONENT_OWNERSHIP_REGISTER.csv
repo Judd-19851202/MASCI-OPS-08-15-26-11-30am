@@ -1,0 +1,8 @@
+canonical_component_name,source_path,owning_system,approved_variants,prohibited_overrides,dependent_routes_scope,test_coverage
+Platform Shell,/app/frontend/src/design-system/PortalShell.jsx,WP17C design system,"portal role, accent, crumbs, primaryActions",route-local header rebuilds,All routed portal pages,tested via active-route smoke + regression
+Portal Login Shell,/app/frontend/src/components/PortalLoginShell.jsx,WP17C design system,"headerBorderClass, footerLabel, homeLink",route-local login cards and headers,All auth/login/reset/change flows,tested via auth convergence runs
+Form Shell,/app/frontend/src/components/FormShell.jsx,WP17C design system,"widthClass, stickyFooter, draftSlot",route-local form headers and sticky bars,Long and short forms,tested via form migration runs
+Global Header,/app/frontend/src/design-system/PortalShell.jsx + wp17.css,WP17C design system,canonical shell theme only,portal-specific header freestyling,All portal pages,manual + automated required
+MASCI Brand Mark,/app/frontend/src/components/MasciLogo.jsx,WP17C design system,"mark sizes sm/md/lg, onLight",route-local arbitrary sizing,All shells and posters,manual screenshot certification pending
+Language Selector,/app/frontend/src/components/LangToggle.jsx,WP17C design system,dark/light variants,route-local language toggles,All bilingual surfaces,manual screenshot certification pending
+Coaching Blocks,/app/frontend/src/components/HelpDrawer.jsx / HelpTip.jsx,WP17C design system,drawer + formKey guidance,stacked route-local helper bands,Forms and knowledge-heavy pages,partial

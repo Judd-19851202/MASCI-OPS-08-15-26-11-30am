@@ -14,9 +14,8 @@ import {
   CheckCircle2, AlertOctagon, Wrench, ArrowLeft, Home, RefreshCw, Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpTip } from "@/components/HelpTip";
+import FormShell from "@/components/FormShell";
 import { useT } from "@/lib/i18n";
 
 export default function FleetDVIRConfirmation() {
@@ -74,33 +73,23 @@ export default function FleetDVIRConfirmation() {
   const refNum = id ? id.slice(0, 8).toUpperCase() : "";
 
   return (
-    <div className="min-h-screen blueprint-bg" data-testid="fleet-dvir-confirmation">
-      <div className="caution-stripe" />
-
-      <header className="bg-slate-900 border-b-4 border-amber-600">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-10">
-        <div className="mb-4">
-          <Link
-            to="/field"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-600 font-bold"
-            data-testid="dvir-confirm-back"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field")}
-          </Link>
-        </div>
+    <FormShell
+      kicker={t("MASCI · Fleet DVIR")}
+      title={t("DVIR submission status")}
+      subtitle={t("A calm summary of what happens next after filing your daily vehicle inspection.")}
+      backLink="/field"
+      backLabel={t("Field")}
+      widthClass="max-w-3xl"
+      containerTestId="dvir-confirm-shell"
+    >
+      <div className="max-w-3xl mx-auto px-0 py-1 sm:py-2" data-testid="fleet-dvir-confirmation">
 
         {orphan ? (
           <div className="rounded-md bg-white border-2 border-slate-300 p-6 sm:p-8 text-center">
             <Truck className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-            <h1 className="font-display text-2xl font-bold text-slate-900 mb-2">
+            <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
               {t("DVIR submitted")}
-            </h1>
+            </h2>
             <p className="text-slate-600 text-sm mb-5">
               {t("Your inspection was received. This confirmation page only shows details right after submission · please start a fresh DVIR if you need to log another.")}
             </p>
@@ -121,9 +110,9 @@ export default function FleetDVIRConfirmation() {
                   <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/80 font-bold">
                     {t("Submitted")} · #{refNum}
                   </div>
-                  <h1 className="font-display text-2xl sm:text-3xl font-black leading-tight mt-1">
+                  <h2 className="font-display text-2xl sm:text-3xl font-black leading-tight mt-1">
                     {outcome.title}
-                  </h1>
+                  </h2>
                   <p className="text-white/90 text-sm sm:text-base mt-1.5">{outcome.sub}</p>
                 </div>
               </div>
@@ -211,12 +200,8 @@ export default function FleetDVIRConfirmation() {
             </div>
           </>
         )}
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · Trucking · DVIR")}
-      </footer>
-    </div>
+      </div>
+    </FormShell>
   );
 }
 

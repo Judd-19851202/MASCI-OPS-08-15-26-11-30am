@@ -40,14 +40,14 @@ function HeaderCell({ col, sort, onSortChange }) {
       style={{
         textAlign: align,
         width: col.width,
-        padding: "10px 12px",
-        background: "var(--paper-rail)",
-        color: "var(--paper-rail-ink)",
-        fontSize: 11,
+        padding: "12px 14px",
+        background: "linear-gradient(135deg, rgba(15, 28, 51, 0.96), rgba(29, 53, 91, 0.94))",
+        color: "rgba(248, 250, 252, 0.96)",
+        fontSize: 10,
         fontWeight: 700,
-        letterSpacing: "0.06em",
+        letterSpacing: "0.18em",
         textTransform: "uppercase",
-        borderBottom: "1px solid var(--border-bold)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         whiteSpace: "nowrap",
         cursor: sortable ? "pointer" : "default",
         userSelect: "none",
@@ -60,7 +60,7 @@ function HeaderCell({ col, sort, onSortChange }) {
             aria-hidden
             style={{
               fontSize: 9,
-              color: isSorted ? "var(--ink-strong)" : "var(--ink-faint)",
+              color: isSorted ? "rgba(255, 255, 255, 0.96)" : "rgba(226, 232, 240, 0.8)",
               lineHeight: 1,
             }}
           >
@@ -84,6 +84,11 @@ export function DataTable({
   onSortChange,
   caption = null,
   className = "",
+  emptyText = "No records.",
+  tableMinWidth = null,
+  getRowClassName,
+  getRowTestId,
+  getCellTestId,
   "data-testid": testId = "ds-datatable",
 }) {
   const cellPadY = density === "compact" ? 6 : 10;
@@ -98,15 +103,7 @@ export function DataTable({
       }}
     >
       {caption && (
-        <div
-          style={{
-            padding: "8px 12px",
-            color: "var(--ink-soft)",
-            fontSize: 12,
-            background: "var(--paper-base)",
-            borderBottom: "1px solid var(--border-hairline)",
-          }}
-        >
+        <div className="wp17-data-table__caption">
           {caption}
         </div>
       )}
@@ -114,10 +111,11 @@ export function DataTable({
         <table
           style={{
             width: "100%",
+            minWidth: tableMinWidth || undefined,
             borderCollapse: "separate",
             borderSpacing: 0,
             fontSize: 13,
-            color: "var(--ink-regular)",
+            color: "var(--wp17-navy-900)",
           }}
         >
           <thead>
@@ -138,9 +136,9 @@ export function DataTable({
                 <td
                   colSpan={columns.length}
                   style={{
-                    padding: "var(--pad-card)",
+                    padding: "1rem",
                     textAlign: "center",
-                    color: "var(--ink-soft)",
+                    color: "var(--wp17-muted)",
                     fontSize: 12,
                   }}
                 >
@@ -154,13 +152,13 @@ export function DataTable({
                   {empty || (
                     <div
                       style={{
-                        padding: "var(--pad-card)",
+                        padding: "1rem",
                         textAlign: "center",
-                        color: "var(--ink-soft)",
+                        color: "var(--wp17-muted)",
                         fontSize: 12,
                       }}
                     >
-                      No records.
+                      {emptyText}
                     </div>
                   )}
                 </td>
@@ -170,25 +168,31 @@ export function DataTable({
               rows.map((row, idx) => {
                 const key = rowKey(row, idx);
                 const clickable = !!onRowClick;
+                const rowTestId = typeof getRowTestId === "function"
+                  ? getRowTestId(row, key, idx)
+                  : `ds-datatable-row-${key}`;
                 return (
                   <tr
                     key={key}
-                    data-testid={`ds-datatable-row-${key}`}
+                    data-testid={rowTestId}
+                    className={typeof getRowClassName === "function" ? getRowClassName(row, idx) : undefined}
                     onClick={clickable ? () => onRowClick(row) : undefined}
                     style={{
-                      background: idx % 2 === 0 ? "var(--paper-card)" : "var(--paper-base)",
+                      background: idx % 2 === 0 ? "rgba(255, 255, 255, 0.98)" : "rgba(244, 248, 252, 0.92)",
                       cursor: clickable ? "pointer" : "default",
                     }}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        data-testid={col.testid ? `${col.testid}-${key}` : undefined}
+                        data-testid={typeof getCellTestId === "function"
+                          ? getCellTestId(row, col, key, idx)
+                          : col.testid ? `${col.testid}-${key}` : undefined}
                         style={{
                           padding: `${cellPadY}px ${cellPadX}px`,
                           textAlign: col.align || "left",
-                          borderBottom: "1px solid var(--border-hairline)",
-                          color: "var(--ink-regular)",
+                          borderBottom: "1px solid rgba(30, 64, 108, 0.08)",
+                          color: "var(--wp17-navy-900)",
                           whiteSpace: col.wrap ? "normal" : "nowrap",
                           verticalAlign: "middle",
                         }}

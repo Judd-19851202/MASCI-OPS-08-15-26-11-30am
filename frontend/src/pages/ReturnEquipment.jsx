@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   Save,
   Loader2,
   PackageCheck,
@@ -13,11 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { SignaturePad } from "@/components/SignaturePad";
 import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
+import FormShell from "@/components/FormShell";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { isSafety } from "@/lib/safetyAuth";
@@ -79,7 +77,15 @@ export default function ReturnEquipment() {
   if (!authed) return <Navigate to="/safety-portal/login?from=safety-forms" replace />;
   if (loadErr) {
     return (
-      <div className="min-h-screen blueprint-bg p-8">
+      <FormShell
+        kicker={t("MASCI · Safety Forms")}
+        title={t("Equipment Check-In & Return")}
+        subtitle={t("Review issued equipment, document return status, and complete signatures.")}
+        backLink="/safety/forms"
+        backLabel={t("Safety Forms")}
+        widthClass="max-w-2xl"
+        containerTestId="ret-form-shell"
+      >
         <div className="max-w-2xl mx-auto bg-white border-2 border-red-300 rounded-md p-6">
           <h1 className="font-display text-2xl font-black">{t("Not found")}</h1>
           <p className="text-slate-600">{loadErr}</p>
@@ -87,14 +93,24 @@ export default function ReturnEquipment() {
             {t("Back")}
           </Link>
         </div>
-      </div>
+      </FormShell>
     );
   }
   if (!data || !issuance) {
     return (
-      <div className="min-h-screen blueprint-bg flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-red-700" />
-      </div>
+      <FormShell
+        kicker={t("MASCI · Safety Forms")}
+        title={t("Equipment Check-In & Return")}
+        subtitle={t("Review issued equipment, document return status, and complete signatures.")}
+        backLink="/safety/forms"
+        backLabel={t("Safety Forms")}
+        widthClass="max-w-4xl"
+        containerTestId="ret-form-shell"
+      >
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-red-700" />
+        </div>
+      </FormShell>
     );
   }
 
@@ -161,25 +177,42 @@ export default function ReturnEquipment() {
   }
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-4xl mx-auto px-3 sm:px-8 py-4 flex items-center justify-between gap-2 flex-wrap">
-          <button
-            onClick={() => navigate(`/safety/forms/equipment-issuance/${id}`)}
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="ret-back"
+    <FormShell
+      kicker={t("MASCI · Safety Forms")}
+      title={t("Equipment Check-In & Return")}
+      subtitle={t("Review issued equipment, document return status, and complete signatures.")}
+      backLink={`/safety/forms/equipment-issuance/${id}`}
+      backLabel={t("Back")}
+      widthClass="max-w-4xl"
+      containerTestId="ret-form-shell"
+      stickyFooter={(
+        <div className="flex justify-between items-center gap-3" data-testid="ret-form-actions">
+          <div className="text-xs font-mono text-slate-600 truncate">
+            <PackageCheck className="w-4 h-4 inline-block mr-1 text-emerald-700" />
+            {t("Auto-emails Safety dept on submit")}
+          </div>
+          <Button
+            type="submit"
+            form="ret-form"
+            disabled={saving}
+            className="bg-emerald-700 hover:bg-emerald-800 h-12 px-6 font-bold uppercase tracking-wide"
+            data-testid="ret-submit"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Back")}
-          </button>
-          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />
-          <LangToggle />
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Submitting…")}
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" /> {t("Save Check-In & Email PDF")}
+              </>
+            )}
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-6 flex items-start gap-3">
+      )}
+    >
+      <div className="max-w-4xl mx-auto px-0 py-1 sm:py-2">
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-white/85 p-4 shadow-sm" data-testid="ret-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-700 text-white shrink-0">
             <PackageCheck className="w-6 h-6" />
           </div>
@@ -187,9 +220,6 @@ export default function ReturnEquipment() {
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-emerald-700 font-bold">
               {t("Safety Forms · Check-In")}
             </span>
-            <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-1">
-              {t("Equipment Check-In & Return")}
-            </h1>
             <p className="text-sm text-slate-600 mt-2">
               {t("Reviewing")}{" "}
               <strong>{formatEmployeeIdentity(issuance) || issuance.employee_name}</strong>
@@ -200,7 +230,7 @@ export default function ReturnEquipment() {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-5" data-testid="ret-form">
+        <form id="ret-form" onSubmit={onSubmit} className="space-y-5" data-testid="ret-form">
           <Section title={t("Check-In")}>
             <Row>
               <Field label={t("Date Returned")} required>
@@ -445,31 +475,14 @@ export default function ReturnEquipment() {
             </Field>
           </Section>
 
-          <div className="sticky bottom-0 bg-white border-t-2 border-emerald-700 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 flex justify-between items-center shadow-lg gap-3">
-            <div className="text-xs font-mono text-slate-600 truncate">
-              <PackageCheck className="w-4 h-4 inline-block mr-1 text-emerald-700" />
-              {t("Auto-emails Safety dept on submit")}
-            </div>
-            <Button
-              type="submit"
-              disabled={saving}
-              className="bg-emerald-700 hover:bg-emerald-800 h-12 px-6 font-bold uppercase tracking-wide"
-              data-testid="ret-submit"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Submitting…")}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" /> {t("Save Check-In & Email PDF")}
-                </>
-              )}
-            </Button>
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
+            <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.18em]">
+              {t("Submit from the sticky action bar after every line item, acknowledgement, and signature is complete.")}
+            </p>
           </div>
         </form>
-      </main>
-    </div>
+      </div>
+    </FormShell>
   );
 }
 

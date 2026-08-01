@@ -11,6 +11,7 @@ import { OperationalIntelligenceCard } from "@/components/ods/OperationalIntelli
 import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
 import PmShell from "@/components/PmShell";
 import { Activity } from "lucide-react";
+import { DataTable } from "@/design-system";
 
 /**
  * DR-ROI-001E · PM Operational Intelligence
@@ -82,6 +83,20 @@ export default function PmOperationalIntelligence() {
 
   const daysReported = projects.reduce((n, p) => n + (p.days_reported || 0), 0);
   const projectsWithData = projects.length;
+
+  const projectColumns = React.useMemo(() => ([
+    {
+      key: "project",
+      header: "Project",
+      render: (p) => <span className="font-mono text-neutral-800">{p.project_id}</span>,
+    },
+    { key: "labor_hours", header: "Labor", align: "right", render: (p) => <span className="tabular-nums">{p.labor_hours}</span> },
+    { key: "equipment_hours", header: "Equip", align: "right", render: (p) => <span className="tabular-nums">{p.equipment_hours}</span> },
+    { key: "delay_hours", header: "Delay hrs", align: "right", render: (p) => <span className="tabular-nums">{p.delay_hours}</span> },
+    { key: "safety_flag_count", header: "Safety", align: "right", render: (p) => <span className="tabular-nums">{p.safety_flag_count}</span> },
+    { key: "readiness_blocker_count", header: "Blockers", align: "right", render: (p) => <span className="tabular-nums">{p.readiness_blocker_count}</span> },
+    { key: "days_reported", header: "Days", align: "right", render: (p) => <span className="tabular-nums text-neutral-500">{p.days_reported}</span> },
+  ]), []);
 
   return (
     <PmShell
@@ -238,42 +253,15 @@ export default function PmOperationalIntelligence() {
             {projects.length === 0 ? (
               <EmptyEvidence label="No projects reported in this range." />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-[10px] uppercase text-neutral-500">
-                    <tr>
-                      <th className="text-left py-1.5">Project</th>
-                      <th className="text-right py-1.5">Labor</th>
-                      <th className="text-right py-1.5">Equip</th>
-                      <th className="text-right py-1.5">Delay hrs</th>
-                      <th className="text-right py-1.5">Safety</th>
-                      <th className="text-right py-1.5">Blockers</th>
-                      <th className="text-right py-1.5">Days</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projects.map((p) => (
-                      <tr
-                        key={p.project_id}
-                        className="border-t border-neutral-100"
-                        data-testid={`pm-project-row-${p.project_id}`}
-                      >
-                        <td className="py-1.5 font-mono text-neutral-800">{p.project_id}</td>
-                        <td className="py-1.5 text-right tabular-nums">{p.labor_hours}</td>
-                        <td className="py-1.5 text-right tabular-nums">{p.equipment_hours}</td>
-                        <td className="py-1.5 text-right tabular-nums">{p.delay_hours}</td>
-                        <td className="py-1.5 text-right tabular-nums">{p.safety_flag_count}</td>
-                        <td className="py-1.5 text-right tabular-nums">
-                          {p.readiness_blocker_count}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums text-neutral-500">
-                          {p.days_reported}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable
+                columns={projectColumns}
+                rows={projects}
+                rowKey={(p) => p.project_id}
+                density="compact"
+                tableMinWidth="760px"
+                data-testid="pm-intel-projects-table"
+                getRowTestId={(p) => `pm-project-row-${p.project_id}`}
+              />
             )}
           </div>
         </section>

@@ -500,6 +500,23 @@
   color: white !important;
 }
 
+.wp17-data-table {
+  border-radius: 1.5rem;
+  border: 1px solid var(--wp17-panel-border);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--wp17-panel-shadow);
+}
+
+.wp17-data-table__caption {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(30, 64, 108, 0.1);
+  background: linear-gradient(180deg, rgba(247, 250, 255, 0.95), rgba(241, 246, 252, 0.92));
+  color: var(--wp17-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .wp17-data-table table tbody tr:nth-child(odd) {
   background: rgba(255, 255, 255, 0.88) !important;
 }
@@ -683,7 +700,19 @@
     padding-bottom: 6rem;
   }
 
+  .wp17-data-table {
+    border-radius: 1.2rem;
+  }
+
   .wp17-shell .wp16-shell-page-header {
     padding: 0.95rem;
+  }
+}
+
+@media print {
+  .wp17-data-table {
+    box-shadow: none;
+    background: white;
+    border-color: rgba(148, 163, 184, 0.5);
   }
 }

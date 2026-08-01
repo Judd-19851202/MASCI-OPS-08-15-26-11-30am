@@ -1,0 +1,6 @@
+route,portal,viewport_390,viewport_768,viewport_1024,viewport_1440,status,evidence,notes
+/field,Field,pass,pending,pending,pass,IN_PROGRESS,iteration_94 + screenshot_tool,Representative landing page
+/qaqc,QAQC,pass,pending,pending,pass,IN_PROGRESS,iteration_94 + screenshot_tool,Representative landing page
+/safety,Safety,pass,pending,pending,pass,IN_PROGRESS,iteration_94 + screenshot_tool,Representative landing page
+/equipment/new,Equipment,pending,pending,pending,pass,IN_PROGRESS,iteration_94 + smoke,Long form
+/fleet/dvir/new,Fleet,pending,pending,pending,pass,IN_PROGRESS,iteration_94 + smoke,Long form

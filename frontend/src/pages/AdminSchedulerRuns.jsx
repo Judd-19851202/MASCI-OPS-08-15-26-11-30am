@@ -22,6 +22,7 @@ import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
+import { DataTable } from "@/design-system";
 // TRACK 27.03 · Final Completion · canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -32,24 +33,24 @@ const SCHEDULER_OPTIONS = [
   { value: "operator_digest", label: "Operator Digest" },
 ];
 
-function StatusBadge({ status, dedup }) {
+function StatusBadge({ status, dedup, testId }) {
   if (dedup) return (
-    <Badge className="bg-amber-100 text-amber-900 border border-amber-300" data-testid="scheduler-run-status-dedup">
+    <Badge className="bg-amber-100 text-amber-900 border border-amber-300" data-testid={testId}>
       <ShieldAlert className="h-3 w-3 mr-1" /> dedup-prevented
     </Badge>
   );
   if (status === "done") return (
-    <Badge className="bg-emerald-100 text-emerald-900 border border-emerald-300" data-testid="scheduler-run-status-done">
+    <Badge className="bg-emerald-100 text-emerald-900 border border-emerald-300" data-testid={testId}>
       <ShieldCheck className="h-3 w-3 mr-1" /> sent
     </Badge>
   );
   if (status === "failed") return (
-    <Badge className="bg-rose-100 text-rose-900 border border-rose-300" data-testid="scheduler-run-status-failed">
+    <Badge className="bg-rose-100 text-rose-900 border border-rose-300" data-testid={testId}>
       <AlertTriangle className="h-3 w-3 mr-1" /> failed
     </Badge>
   );
   return (
-    <Badge className="bg-slate-100 text-slate-900 border border-slate-300" data-testid="scheduler-run-status-running">
+    <Badge className="bg-slate-100 text-slate-900 border border-slate-300" data-testid={testId}>
       in-progress
     </Badge>
   );
@@ -102,6 +103,62 @@ export default function AdminSchedulerRuns() {
     duplicatesPrevented: totals.dedup_total,
     failures: totals.failed_total,
   }), [items, totals, scheduler]);
+
+  const columns = useMemo(() => ([
+    {
+      key: "scheduler",
+      header: "Scheduler",
+      render: (it) => <span className="font-mono text-xs text-slate-800">{it.scheduler}</span>,
+    },
+    {
+      key: "slot_key",
+      header: "Slot",
+      render: (it) => <span className="font-mono text-xs text-slate-700">{it.slot_key}</span>,
+    },
+    {
+      key: "started_at",
+      header: "Started",
+      render: (it) => <span className="text-slate-700">{fmtTime(it.started_at)}</span>,
+    },
+    {
+      key: "duration_s",
+      header: "Duration",
+      render: (it) => <span className="text-slate-700">{fmtDur(it.duration_s)}</span>,
+    },
+    {
+      key: "recipients",
+      header: "Recipients",
+      align: "right",
+      render: (it) => <span className="font-mono tabular-nums">{it.recipients ?? "—"}</span>,
+    },
+    {
+      key: "pod",
+      header: "Pod",
+      render: (it) => <span className="font-mono text-xs text-slate-600">{it.host}:{it.pid}</span>,
+      wrap: true,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (it) => (
+        <StatusBadge
+          status={it.status}
+          dedup={false}
+          testId={`scheduler-run-status-${it.scheduler}-${it.slot_key}`}
+        />
+      ),
+    },
+    {
+      key: "dedup_attempts",
+      header: "Dedup attempts",
+      align: "right",
+      render: (it) => (
+        (it.dedup_attempts || 0) > 0
+          ? <span className="font-mono text-amber-700 font-semibold" title="An orphan scheduler attempted to fire — atomic dedup blocked it">{it.dedup_attempts}</span>
+          : <span className="text-slate-400">0</span>
+      ),
+    },
+  ]), []);
 
   return (
     <LegacyAdminModernShell
@@ -157,43 +214,16 @@ export default function AdminSchedulerRuns() {
           <LastActivityLine label="Loaded" />
         </section>
 
-        <section className="bg-white border border-slate-200 rounded shadow-sm overflow-x-auto" data-testid="scheduler-runs-table">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100 text-slate-700">
-              <tr>
-                <th className="px-3 py-2 text-left font-mono text-xs uppercase tracking-wider">Scheduler</th>
-                <th className="px-3 py-2 text-left font-mono text-xs uppercase tracking-wider">Slot</th>
-                <th className="px-3 py-2 text-left font-mono text-xs uppercase tracking-wider">Started</th>
-                <th className="px-3 py-2 text-left font-mono text-xs uppercase tracking-wider">Duration</th>
-                <th className="px-3 py-2 text-right font-mono text-xs uppercase tracking-wider">Recipients</th>
-                <th className="px-3 py-2 text-left font-mono text-xs uppercase tracking-wider">Pod</th>
-                <th className="px-3 py-2 text-left font-mono text-xs uppercase tracking-wider">Status</th>
-                <th className="px-3 py-2 text-right font-mono text-xs uppercase tracking-wider">Dedup attempts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.length === 0 && !loading && (
-                <tr><td colSpan={8} className="px-3 py-6 text-center text-slate-500 italic">No runs recorded yet. Scheduled digests will appear here.</td></tr>
-              )}
-              {items.map((it, idx) => (
-                <tr key={`${it.scheduler}-${it.slot_key}-${idx}`} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-3 py-2 font-mono text-xs">{it.scheduler}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-slate-700">{it.slot_key}</td>
-                  <td className="px-3 py-2 text-slate-700">{fmtTime(it.started_at)}</td>
-                  <td className="px-3 py-2 text-slate-700">{fmtDur(it.duration_s)}</td>
-                  <td className="px-3 py-2 text-right font-mono">{it.recipients ?? "—"}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-slate-600">{it.host}:{it.pid}</td>
-                  <td className="px-3 py-2"><StatusBadge status={it.status} dedup={false} /></td>
-                  <td className="px-3 py-2 text-right">
-                    {(it.dedup_attempts || 0) > 0
-                      ? (<span className="font-mono text-amber-700 font-semibold" title="An orphan scheduler attempted to fire — atomic dedup blocked it">{it.dedup_attempts}</span>)
-                      : (<span className="text-slate-400">0</span>)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <DataTable
+          columns={columns}
+          rows={items}
+          rowKey={(it, idx) => `${it.scheduler}-${it.slot_key}-${idx}`}
+          loading={loading}
+          density="compact"
+          emptyText="No runs recorded yet. Scheduled digests will appear here."
+          tableMinWidth="920px"
+          data-testid="scheduler-runs-table"
+        />
 
         <section className="bg-slate-50 border border-slate-200 rounded p-4 text-xs text-slate-600 font-mono">
           <p className="uppercase tracking-wider text-slate-500 mb-1">How to read this page</p>

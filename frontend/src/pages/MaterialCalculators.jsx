@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   Calculator,
   Layers,
   Truck,
@@ -12,14 +10,13 @@ import {
   RotateCcw,
   CheckCircle2,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { PortalShell } from "@/design-system/PortalShell";
 import {
   AGGREGATE_DENSITIES,
   ASPHALT_DEFAULT_DENSITY,
@@ -54,30 +51,21 @@ export default function MaterialCalculators() {
   ];
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-amber-600">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
-        <div className="mb-6">
-          <Link
-            to="/field"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-600 font-bold"
-            data-testid="calc-back-link"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field")}
-          </Link>
-        </div>
-
-        <div className="mb-8 flex items-start gap-4">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Field"
+      pageTitle={t("Material Calculators")}
+      subtitle={t("Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and conversions.")}
+      homeHref="/field/calculators"
+      backHref="/field"
+      showBack
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+        <div className="mb-8 flex items-start gap-4" data-testid="calc-summary">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-md bg-amber-600 text-white shrink-0">
             <Calculator className="w-7 h-7" />
           </div>
@@ -85,9 +73,6 @@ export default function MaterialCalculators() {
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
               {t("Field · Estimate Quantities")}
             </span>
-            <h1 className="font-display text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mt-1">
-              {t("Material Calculators")}
-            </h1>
             <p className="text-slate-600 text-sm sm:text-base mt-2 max-w-2xl">
               {t(
                 "Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and tons↔CY conversions.",
@@ -147,12 +132,8 @@ export default function MaterialCalculators() {
             "Calculations are estimates for planning purposes only. Actual quantities may vary based on field conditions, material density, moisture, compaction, yield, mix design, waste, and project specifications.",
           )}
         </p>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · Field")}
-      </footer>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

@@ -1,0 +1,6 @@
+canonical_component,source_path,owner,approved_variants,legacy_replacements,status
+Platform Shell,/app/frontend/src/design-system/PortalShell.jsx,WP17C design system,"admin, hr, safety, dispatch, shop, field, pm, shared",SafetyShell; HrPageShell; PmShell; LegacyAdminModernShell; route-local headers,ACTIVE
+Portal Login Shell,/app/frontend/src/components/PortalLoginShell.jsx,WP17C design system,accent border + restrained portal copy,legacy login/reset/change/forgot wrappers,ACTIVE
+Form Shell,/app/frontend/src/components/FormShell.jsx,WP17C design system,widthClass; stickyFooter; draftSlot,route-local form headers; sticky action bars; blueprint wrappers,ACTIVE
+Data Table Shell,/app/frontend/src/design-system/DataTable.jsx,WP17C design system,status-aware table states,route-local tables without wp17-data-table,ACTIVE
+Help Drawer,/app/frontend/src/components/HelpDrawer.jsx,WP17C design system,form-specific guidance blocks,stacked HelpTipBlock-only flows,PARTIAL

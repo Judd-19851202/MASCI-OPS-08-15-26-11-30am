@@ -4,6 +4,7 @@ import {
   fetchAdminDashboard, fetchExecutiveHealth, fetchAdminAttention,
 } from "@/lib/odsIntelligenceApi";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
+import { DataTable } from "@/design-system";
 import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
@@ -88,6 +89,25 @@ export default function ExecutiveOperationalIntelligence() {
   const items = attention?.items || {};
   const oppcSummary = oppc?.summary || {};
   const approvalHistory = briefing?.approval_history || [];
+
+  const atRiskColumns = React.useMemo(() => ([
+    {
+      key: "project",
+      header: "Project",
+      render: (p) => (
+        <div>
+          <div className="font-semibold text-neutral-900">{p.project_name || "Project name not reported"}</div>
+          <div className="text-xs text-neutral-500">{p.project_number || p.project_id || "Project reference not reported"}</div>
+        </div>
+      ),
+      wrap: true,
+    },
+    { key: "delay_hours", header: "Delay hrs", align: "right", render: (p) => <span className="tabular-nums">{p.delay_hours}</span> },
+    { key: "safety_flag_count", header: "Safety", align: "right", render: (p) => <span className="tabular-nums">{p.safety_flag_count}</span> },
+    { key: "readiness_blocker_count", header: "Blockers", align: "right", render: (p) => <span className="tabular-nums">{p.readiness_blocker_count}</span> },
+    { key: "labor_hours", header: "Labor hrs", align: "right", render: (p) => <span className="tabular-nums">{p.labor_hours}</span> },
+    { key: "days_reported", header: "Days", align: "right", render: (p) => <span className="tabular-nums text-neutral-500">{p.days_reported}</span> },
+  ]), []);
 
   const runBriefingAction = async (path) => {
     try {
@@ -207,43 +227,15 @@ export default function ExecutiveOperationalIntelligence() {
             {atRisk.length === 0 ? (
               <EmptyEvidence label="No at-risk projects in this range." />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-[10px] uppercase text-neutral-500">
-                    <tr>
-                      <th className="text-left py-1.5">Project</th>
-                      <th className="text-right py-1.5">Delay hrs</th>
-                      <th className="text-right py-1.5">Safety</th>
-                      <th className="text-right py-1.5">Blockers</th>
-                      <th className="text-right py-1.5">Labor hrs</th>
-                      <th className="text-right py-1.5">Days</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {atRisk.map((p) => (
-                      <tr
-                        key={p.project_id}
-                        className="border-t border-neutral-100"
-                        data-testid={`exec-atrisk-row-${p.project_id}`}
-                      >
-                        <td className="py-1.5 text-neutral-800">
-                          <div className="font-semibold">{p.project_name || "Project name not reported"}</div>
-                          <div className="text-xs text-neutral-500">{p.project_number || p.project_id || "Project reference not reported"}</div>
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums">{p.delay_hours}</td>
-                        <td className="py-1.5 text-right tabular-nums">{p.safety_flag_count}</td>
-                        <td className="py-1.5 text-right tabular-nums">
-                          {p.readiness_blocker_count}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums">{p.labor_hours}</td>
-                        <td className="py-1.5 text-right tabular-nums text-neutral-500">
-                          {p.days_reported}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable
+                columns={atRiskColumns}
+                rows={atRisk}
+                rowKey={(p) => p.project_id}
+                density="compact"
+                tableMinWidth="760px"
+                data-testid="exec-at-risk-table"
+                getRowTestId={(p) => `exec-atrisk-row-${p.project_id}`}
+              />
             )}
           </div>
         </section>

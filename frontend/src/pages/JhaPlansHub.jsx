@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   FileText,
   Search,
   Download,
@@ -10,13 +9,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { JhaAcknowledgeButton } from "@/components/JhaAcknowledgeButton";
 import { useT } from "@/lib/i18n";
 import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
+import { PortalShell } from "@/design-system/PortalShell";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -129,30 +127,24 @@ export default function JhaPlansHub() {
     `${REACT_APP_BACKEND_URL}/api/job-hazard-files/${fileId}/download`;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <Link
-            to="/"
-            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="back-link"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <div className="mb-6">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Field Safety"
+      pageTitle={t("Job Hazard Plans")}
+      subtitle={t("Search by job and open the latest hazard-plan files before your crew starts work.")}
+      homeHref="/jha"
+      backHref="/"
+      showBack
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <div className="mb-6" data-testid="jha-summary">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("Job Hazard Plans")}
           </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Pick your job to view its Hazard Plan")}
-          </h1>
           <p className="text-slate-600 text-sm mt-2">
             {t(
               "Each MASCI job has its own Job Hazard Plan PDF. Open your job and read it before crew breaks ground. If your job has no plan yet, get with your PM."
@@ -341,7 +333,7 @@ export default function JhaPlansHub() {
             {t("to read it where there's no service.")}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

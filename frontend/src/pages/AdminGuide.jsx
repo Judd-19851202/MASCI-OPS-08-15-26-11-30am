@@ -5,7 +5,7 @@ import {
   TrendingUp, Building2, ListChecks, KeyRound, Cloud, LayoutDashboard,
   GraduationCap, Rocket, Activity, Layers, Eye, AlertTriangle, Plug,
 } from "lucide-react";
-import { PortalShell } from "@/design-system";
+import { DataTable, PortalShell } from "@/design-system";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,27 @@ import { Button } from "@/components/ui/button";
  */
 import { useBranding } from "@/lib/BrandingProvider";
 
+const ADMIN_CONSOLE_ROWS = [
+  { section: "Overview", path: "/admin", details: "Welcome + Doc-ID record search + section tiles." },
+  { section: "People & Access", path: "/admin/people", details: "PM accounts · Shop users · HR users · Multi-portal directory · Employee master roster." },
+  { section: "Jobs & Field", path: "/admin/jobs", details: "Job master · Site posters · Active banners." },
+  { section: "Equipment & Suppliers", path: "/admin/equipment", details: "Pre-Op status board · Equipment master · Parts catalog · Supplier list." },
+  { section: "Email & Routing", path: "/admin/email", details: "Auto-routing rules · Distribution lists." },
+  { section: "Training & Forms", path: "/admin/training", details: "Field adoption analytics (scans, bilingual, calculator usage) · Training resources · Safety-forms library." },
+  { section: "Compliance & Audits", path: "/admin/compliance", details: "Date-range CSV exports · Document audit." },
+  { section: "System & Backups", path: "/admin/system", details: "Pre-Deploy snapshot panel · Hero backup buttons · Cloud (R2) archives · Verification cron · Restore · Crew recovery." },
+];
+
+const PASSWORD_ROWS = [
+  { portal: "Admin /admin/login", signin: "Work email + password (stored in user_directory as bcrypt)", manage: "/admin/people → Multi-Portal Directory. Add/remove admins, reset passwords, audit log." },
+  { portal: "PM /pm/login", signin: "Work email + password. Forgot? In-page reset link.", manage: "/admin/people → PM Accounts. Issue temp pw → email welcome PDF." },
+  { portal: "Shop /shop/login", signin: "Work email + password. Forgot? In-page reset link.", manage: "/admin/people → Shop Users. Same flow as PM." },
+  { portal: "HR /hr/login", signin: "Work email + password. Forgot? In-page reset link.", manage: "/admin/people → HR Users. Same flow as PM." },
+  { portal: "Multi-portal /sign-in", signin: "Same work email + password — backend issues every portal token in one shot.", manage: "/admin/people → Multi-Portal Directory. Per-user portals: [admin, pm, hr, ...] array." },
+  { portal: "Field Leadership /leadership", signin: "Shared password gate (legacy). Admin + PM tokens also work.", manage: "Rotated via LEADERSHIP_PASSWORD env var." },
+  { portal: "Site Inspection (field)", signin: "1982 (gate code)", manage: "Hardcoded gate — prevents randos submitting. On the field reference card." },
+];
+
 export default function AdminGuide() {
   const branding = useBranding();
   const platformDisplay = branding.platform_display_name || "Operations Platform";
@@ -29,6 +50,16 @@ export default function AdminGuide() {
   const marketingHost = (branding.marketing_url || "")
     .replace(/^https?:\/\//, "")
     .replace(/\/+$/, "") || "your platform host";
+  const adminColumns = [
+    { key: "section", header: "Section", render: (row) => <span className="font-semibold text-slate-900">{row.section}</span> },
+    { key: "path", header: "Path", render: (row) => <code className="font-mono text-xs">{row.path}</code> },
+    { key: "details", header: "What lives there", render: (row) => <span className="text-xs text-slate-700">{row.details}</span>, wrap: true },
+  ];
+  const passwordColumns = [
+    { key: "portal", header: "Portal", render: (row) => <span className="font-semibold text-slate-900">{row.portal}</span>, wrap: true },
+    { key: "signin", header: "How users sign in", render: (row) => <span className="text-xs text-slate-700">{row.signin}</span>, wrap: true },
+    { key: "manage", header: "How admin manages it", render: (row) => <span className="text-xs text-slate-700">{row.manage}</span>, wrap: true },
+  ];
   return (
     <PortalShell
       portalName={platformShort}
@@ -122,25 +153,9 @@ export default function AdminGuide() {
         {/* ADMIN CONSOLE LAYOUT */}
         <Section icon={LayoutDashboard} title="Admin Console layout (what each section does)" color="slate">
           <p>The Admin Console at <code>/admin</code> is now organized into <strong>7 sections plus an Overview dashboard</strong>. Sidebar nav on the left (or hamburger on mobile). Every section has a &quot;← Back to Admin Overview&quot; button at the top.</p>
-          <table className="w-full border-collapse text-sm mt-3">
-            <thead>
-              <tr className="bg-slate-100">
-                <th className="text-left p-2 border border-slate-300">Section</th>
-                <th className="text-left p-2 border border-slate-300">Path</th>
-                <th className="text-left p-2 border border-slate-300">What lives there</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td className="p-2 border border-slate-300 font-bold">Overview</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin</td><td className="p-2 border border-slate-300 text-xs">Welcome + Doc-ID record search + section tiles.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">People &amp; Access</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/people</td><td className="p-2 border border-slate-300 text-xs">PM accounts · Shop users · HR users · Multi-portal directory · Employee master roster.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">Jobs &amp; Field</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/jobs</td><td className="p-2 border border-slate-300 text-xs">Job master · Site posters · Active banners.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">Equipment &amp; Suppliers</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/equipment</td><td className="p-2 border border-slate-300 text-xs">Pre-Op status board · Equipment master · Parts catalog · Supplier list.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">Email &amp; Routing</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/email</td><td className="p-2 border border-slate-300 text-xs">Auto-routing rules · Distribution lists.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">Training &amp; Forms</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/training</td><td className="p-2 border border-slate-300 text-xs">Field adoption analytics (scans, bilingual, calculator usage) · Training resources · Safety-forms library.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">Compliance &amp; Audits</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/compliance</td><td className="p-2 border border-slate-300 text-xs">Date-range CSV exports · Document audit.</td></tr>
-              <tr><td className="p-2 border border-slate-300 font-bold">System &amp; Backups</td><td className="p-2 border border-slate-300 font-mono text-xs">/admin/system</td><td className="p-2 border border-slate-300 text-xs">Pre-Deploy snapshot panel · Hero backup buttons · Cloud (R2) archives · Verification cron · Restore · Crew recovery.</td></tr>
-            </tbody>
-          </table>
+          <div className="mt-3" data-testid="admin-guide-console-table-wrap">
+            <DataTable columns={adminColumns} rows={ADMIN_CONSOLE_ROWS} rowKey={(row) => row.path} density="compact" tableMinWidth="760px" data-testid="admin-guide-console-table" />
+          </div>
         </Section>
 
         {/* PRE-DEPLOY SNAPSHOT */}
@@ -364,52 +379,9 @@ export default function AdminGuide() {
         {/* PASSWORDS */}
         <Section icon={ShieldCheck} title="Passwords &amp; Access Control" color="slate">
           <p className="mb-3">Every office user has their own email + password. The legacy single-password admin gate is gone from the UI. Admin manages all accounts from <code>/admin/people</code>.</p>
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-slate-100">
-                <th className="text-left p-2 border border-slate-300">Portal</th>
-                <th className="text-left p-2 border border-slate-300">How users sign in</th>
-                <th className="text-left p-2 border border-slate-300">How admin manages it</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">Admin <code>/admin/login</code></td>
-                <td className="p-2 border border-slate-300 text-xs">Work email + password (stored in <code>user_directory</code> as bcrypt)</td>
-                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → Multi-Portal Directory. Add/remove admins, reset passwords, audit log.</td>
-              </tr>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">PM <code>/pm/login</code></td>
-                <td className="p-2 border border-slate-300 text-xs">Work email + password. Forgot? In-page reset link.</td>
-                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → PM Accounts. Issue temp pw → email welcome PDF.</td>
-              </tr>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">Shop <code>/shop/login</code></td>
-                <td className="p-2 border border-slate-300 text-xs">Work email + password. Forgot? In-page reset link.</td>
-                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → Shop Users. Same flow as PM.</td>
-              </tr>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">HR <code>/hr/login</code></td>
-                <td className="p-2 border border-slate-300 text-xs">Work email + password. Forgot? In-page reset link.</td>
-                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → HR Users. Same flow as PM.</td>
-              </tr>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">Multi-portal <code>/sign-in</code></td>
-                <td className="p-2 border border-slate-300 text-xs">Same work email + password — backend issues every portal token in one shot.</td>
-                <td className="p-2 border border-slate-300 text-xs"><code>/admin/people</code> → Multi-Portal Directory. Per-user <code>portals: [admin, pm, hr, ...]</code> array.</td>
-              </tr>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">Field Leadership <code>/leadership</code></td>
-                <td className="p-2 border border-slate-300 text-xs">Shared password gate (legacy). Admin + PM tokens also work.</td>
-                <td className="p-2 border border-slate-300 text-xs">Rotated via <code>LEADERSHIP_PASSWORD</code> env var.</td>
-              </tr>
-              <tr>
-                <td className="p-2 border border-slate-300 font-bold">Site Inspection (field)</td>
-                <td className="p-2 border border-slate-300 font-mono text-xs">1982 (gate code)</td>
-                <td className="p-2 border border-slate-300 text-xs">Hardcoded gate — prevents randos submitting. On the field reference card.</td>
-              </tr>
-            </tbody>
-          </table>
+          <div data-testid="admin-guide-password-table-wrap">
+            <DataTable columns={passwordColumns} rows={PASSWORD_ROWS} rowKey={(row) => row.portal} density="compact" tableMinWidth="840px" data-testid="admin-guide-password-table" />
+          </div>
         </Section>
 
         {/* ACCESS CONTROL — Email Delivery Parity (iter90) */}

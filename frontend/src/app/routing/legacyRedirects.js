@@ -72,14 +72,6 @@ export const LEGACY_MOVED_MAP = {
       "surfaced in-line.",
     occOperationId: "deploy.recovery_playbook",
   },
-  "/admin/scheduler-runs": {
-    canonical: "/admin/operations-control?highlight=queues.scheduler_runs",
-    canonicalTitle: "Operations Control Center · Scheduler History",
-    reason:
-      "Digest and scheduler run history is now part of the unified " +
-      "maintenance console alongside health and backups.",
-    occOperationId: "queues.scheduler_runs",
-  },
   "/admin/recovery": {
     canonical: "/admin/operations-control?highlight=deploy.recovery_playbook",
     canonicalTitle: "Operations Control Center · Recovery Playbook",

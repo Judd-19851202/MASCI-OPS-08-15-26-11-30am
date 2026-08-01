@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { PortalShell } from "@/design-system";
+import { DataTable, PortalShell } from "@/design-system";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 
 const inputCls =
@@ -151,6 +151,42 @@ export default function AdminLeadershipEquipment() {
       .catch(() => toast.error(t("Could not export CSV")));
   };
 
+  const catalogColumns = useMemo(() => ([
+    {
+      key: "name",
+      header: t("Name"),
+      render: (c) => <span className={`font-semibold ${c.active ? "text-slate-900" : "text-slate-400 line-through"}`}>{c.name}</span>,
+      wrap: true,
+    },
+    { key: "default_make", header: t("Default Make"), render: (c) => <span className="text-slate-700">{c.default_make || "—"}</span>, wrap: true },
+    { key: "category", header: t("Category"), render: (c) => <span className="text-slate-700">{c.category || "—"}</span>, wrap: true },
+    { key: "replacement_value", header: t("Replacement $"), align: "right", render: (c) => <span className="font-mono tabular-nums">{fmtMoney(c.replacement_value)}</span> },
+    {
+      key: "active",
+      header: t("Active"),
+      align: "center",
+      render: (c) => (
+        <button
+          onClick={() => toggleActive(c)}
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold uppercase ${c.active ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}
+          data-testid={`admin-equip-toggle-${c.id}`}
+        >
+          <Power className="w-3 h-3" />{c.active ? t("Active") : t("Disabled")}
+        </button>
+      ),
+    },
+    {
+      key: "actions",
+      header: t("Actions"),
+      align: "right",
+      render: (c) => (
+        <Button variant="outline" size="sm" onClick={() => openEdit(c)} className="h-8" data-testid={`admin-equip-edit-${c.id}`}>
+          <Pencil className="w-3.5 h-3.5" />
+        </Button>
+      ),
+    },
+  ]), [openEdit, t]);
+
   return (
     <PortalShell
       portalName="MASCI"
@@ -199,46 +235,16 @@ export default function AdminLeadershipEquipment() {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
-                <tr>
-                  <th className="text-left px-3 py-2">{t("Name")}</th>
-                  <th className="text-left px-3 py-2">{t("Default Make")}</th>
-                  <th className="text-left px-3 py-2">{t("Category")}</th>
-                  <th className="text-right px-3 py-2">{t("Replacement $")}</th>
-                  <th className="text-center px-3 py-2">{t("Active")}</th>
-                  <th className="text-right px-3 py-2">{t("Actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-500">{t("No items.")}</td></tr>
-                ) : filtered.map((c) => (
-                  <tr key={c.id} className="border-t border-slate-100" data-testid={`admin-equip-row-${c.id}`}>
-                    <td className={`px-3 py-2 font-semibold ${c.active ? "text-slate-900" : "text-slate-400 line-through"}`}>{c.name}</td>
-                    <td className="px-3 py-2 text-slate-700">{c.default_make || "—"}</td>
-                    <td className="px-3 py-2 text-slate-700">{c.category || "—"}</td>
-                    <td className="px-3 py-2 text-right font-mono tabular-nums">{fmtMoney(c.replacement_value)}</td>
-                    <td className="px-3 py-2 text-center">
-                      <button
-                        onClick={() => toggleActive(c)}
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold uppercase ${c.active ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}
-                        data-testid={`admin-equip-toggle-${c.id}`}
-                      >
-                        <Power className="w-3 h-3" />{c.active ? t("Active") : t("Disabled")}
-                      </button>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(c)} className="h-8" data-testid={`admin-equip-edit-${c.id}`}>
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={catalogColumns}
+            rows={filtered}
+            rowKey={(c) => c.id}
+            density="compact"
+            emptyText={t("No items.")}
+            tableMinWidth="860px"
+            data-testid="admin-equip-table"
+            getRowTestId={(c) => `admin-equip-row-${c.id}`}
+          />
         </Card>
 
         {/* Makes */}
