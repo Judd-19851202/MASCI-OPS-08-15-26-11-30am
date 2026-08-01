@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RefKicker } from "@/components/RefKicker";
+import { MasciLogo } from "@/components/MasciLogo";
 import { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
