@@ -16,7 +16,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, ScanLine, ShieldAlert, ArrowRight, FileWarning } from "lucide-react";
-import PublicTrenchHeader from "@/components/trench/PublicTrenchHeader";
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import TabulatedDataPrimer from "@/components/TabulatedDataPrimer";
 import TrenchBoxTabulatedLibrary from "@/components/TrenchBoxTabulatedLibrary";
 import { useT } from "@/lib/i18n";
@@ -24,30 +25,40 @@ import { useT } from "@/lib/i18n";
 export default function PublicTrenchSafetyTabulatedData() {
   const { t } = useT();
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="public-tabdata-page">
-      <div className="caution-stripe" />
-      <PublicTrenchHeader
-        backTo="/trench-safety"
-        backLabel="Back to Trench Safety"
-        testIdPrefix="public-tabdata"
-        accent="cyan"
-      />
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-        <div className="text-center mb-4">
-          <BookOpen className="w-7 h-7 mx-auto text-cyan-700" />
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold mt-1">
-            {t("MASCI Trench Safety")} · {t("Tabulated Data")}
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-tabdata-title">
-            {t("Tabulated Data Library")}
-          </h1>
-          <p className="text-slate-600 text-sm max-w-2xl mx-auto mt-2">
-            {t("Manufacturer-engineered, OSHA-compliant data for every MASCI trench box. Per-box PDFs, soil-type limits, spreader configurations, and shield depth ratings.")}
+    <OperationalPageFrame
+      testId="public-tabdata-page"
+      backTo="/trench-safety"
+      backLabel={t("Back to Trench Safety")}
+      accent="cyan"
+      familyLabel={t("MASCI Trench Safety")}
+      familyMeta={t("Public trench workflow")}
+      mainWidthClass="max-w-5xl"
+      heroIcon={BookOpen}
+      kicker={t("MASCI Trench Safety · Tabulated Data")}
+      title={t("Tabulated Data Library")}
+      description={t("Open the manufacturer-engineered trench box and panel sheets crews need before entry: soil-type limits, spreader configurations, and shield depth ratings by exact asset family.")}
+      heroMeta={(
+        <>
+          <OperationalStatusBadge tone="cyan" testId="public-tabdata-meta-library">{t("Engineered PDFs")}</OperationalStatusBadge>
+          <OperationalStatusBadge tone="amber" testId="public-tabdata-meta-osha">{t("OSHA-aligned")}</OperationalStatusBadge>
+        </>
+      )}
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="public-tabdata-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">{t("Need hazard guidance?")}</div>
+          <p className="text-sm text-slate-600 mb-3">
+            {t("Use this library for the engineered sheet. For stop-work reminders, missing-pin guidance, or crew coaching, open Safety References.")}
           </p>
+          <Link to="/trench-safety/references" className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-cyan-800" data-testid="public-tabdata-hero-refs">
+            {t("Open Safety References")} <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
+      )}
+      footerText={t("MASCI Operations Platform · Tabulated-data workflow")}
+    >
+      <div className="space-y-5">
 
-        <div className="bg-amber-50 border border-amber-300 rounded-md p-3 flex items-start gap-2 mb-5" data-testid="public-tabdata-coaching">
+        <div className="rounded-[1.5rem] border border-amber-300 bg-amber-50 p-4 flex items-start gap-3 shadow-[0_18px_40px_rgba(15,23,42,0.06)]" data-testid="public-tabdata-coaching">
           <ShieldAlert className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
           <p className="text-sm text-amber-900">
             <strong>{t("Match the box to the right sheet.")}</strong>{" "}
@@ -55,7 +66,7 @@ export default function PublicTrenchSafetyTabulatedData() {
           </p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-md p-3 mb-5 flex items-start gap-2" data-testid="public-tabdata-cross-link">
+        <div className="wp17-panel p-4 flex items-start gap-2" data-testid="public-tabdata-cross-link">
           <FileWarning className="w-4 h-4 text-cyan-700 mt-0.5 shrink-0" />
           <div className="text-xs text-slate-700">
             {t("Looking for OSHA general guidance, competent-person reminders, or what to do if pins/labels are missing?")}{" "}
@@ -71,16 +82,12 @@ export default function PublicTrenchSafetyTabulatedData() {
           <TrenchBoxTabulatedLibrary adminMode={false} />
         </div>
 
-        <section className="mt-8 p-3 border border-slate-200 bg-white rounded text-xs text-slate-600" data-testid="public-tabdata-qr-help">
+        <section className="wp17-panel p-4 text-xs text-slate-600" data-testid="public-tabdata-qr-help">
           <ScanLine className="w-3.5 h-3.5 inline mr-1 -mt-0.5 text-cyan-700" />
           <strong className="text-slate-700">{t("QR Scan:")}</strong>{" "}
           {t("Scanning the QR on any MASCI trench box opens its asset record with a direct link to its tabulated data. Scanning does not move the asset.")}
         </section>
-
-        <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("MASCI Operations Platform")} · {t("Field-safe view")}
-        </footer>
-      </main>
-    </div>
+      </div>
+    </OperationalPageFrame>
   );
 }

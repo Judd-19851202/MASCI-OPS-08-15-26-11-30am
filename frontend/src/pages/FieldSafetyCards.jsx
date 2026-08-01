@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, Printer, Mail, MailPlus, Loader2, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Printer, Mail, MailPlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
@@ -286,61 +285,53 @@ export default function FieldSafetyCards() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe no-print" />
-      <header className="bg-slate-900 border-b-4 border-red-700 no-print">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/safety" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/safety" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12 no-print">
-        <div className="mb-6">
-          <Link
-            to="/safety"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="safety-cards-back-link"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Safety")}
-          </Link>
-        </div>
-
-        <div className="mb-10 flex flex-col sm:flex-row items-start gap-4 sm:items-end sm:justify-between">
-          <div className="flex-1">
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-              {t("Safety · Field Handouts")}
-            </span>
-            <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-1">
-              {t("Field Safety Cards")}
-            </h1>
-            <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-              {t(
-                "Wallet-sized bilingual safety cards for every crew member. Print on 8.5 × 11 letter paper, fold, or hand out digitally by email."
-              )}
-            </p>
-          </div>
+    <OperationalPageFrame
+      testId="safety-cards-page"
+      backTo="/safety"
+      backLabel={t("Back to Safety")}
+      accent="red"
+      familyLabel={t("Safety")}
+      familyMeta={t("Crew handouts")}
+      mainWidthClass="max-w-6xl"
+      heroIcon={MailPlus}
+      kicker={t("Safety · Field Handouts")}
+      title={t("Field Safety Cards")}
+      description={t("Wallet-sized bilingual handouts for every crew member. Print a single card on demand or send the full four-card set to onboarding, supervisors, or subcontractors in one step.")}
+      heroMeta={(
+        <>
+          <OperationalStatusBadge tone="red" testId="safety-cards-print-ready">{t("Print-ready PDFs")}</OperationalStatusBadge>
+          <OperationalStatusBadge tone="cyan" testId="safety-cards-bilingual">{t("English + Spanish")}</OperationalStatusBadge>
+          <OperationalStatusBadge tone="amber" testId="safety-cards-crew-use">{t("Crew distribution")}</OperationalStatusBadge>
+        </>
+      )}
+      heroAside={(
+        <div className="rounded-[1.75rem] border border-slate-900/70 bg-slate-950 px-5 py-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.22)]" data-testid="safety-cards-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/55">{t("Fast distribution")}</div>
+          <div className="mt-2 text-lg font-semibold leading-tight">{t("Send the full bilingual pack in one tap.")}</div>
+          <p className="mt-2 text-sm leading-6 text-white/74">
+            {t("Use the full set when a new hire, foreman, or external crew needs the same field guidance immediately.")}
+          </p>
           <Button
             onClick={() => setEmailingAll(true)}
-            className="h-12 sm:h-14 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm sm:text-base border-b-4 border-red-900 px-6 shadow-md"
+            className="mt-4 h-12 w-full bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-[0.16em] text-xs"
             data-testid="safety-cards-email-all-btn"
           >
-            <MailPlus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />{" "}
+            <MailPlus className="w-4 h-4 mr-2" />
             {t("Email All 4 Cards")}
           </Button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7">
+      )}
+      footerText={t("MASCI Operations Platform · Crew-safe distribution")}
+    >
+      <div className="no-print space-y-5">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7" data-testid="safety-cards-grid">
           {CARDS.map((card) => (
             <article
               key={card.key}
-              className="bg-white border border-slate-200 rounded-md overflow-hidden flex flex-col shadow-sm hover:shadow-md hover:border-red-700 transition-all duration-150"
+              className="wp17-public-card overflow-hidden flex flex-col border border-slate-200/85 hover:border-red-400 transition-colors duration-150"
               data-testid={`safety-card-${card.key}`}
             >
-              <div className="relative bg-slate-100 border-b-2 border-slate-200 aspect-[8.5/11] overflow-hidden">
+              <div className="relative bg-slate-100/90 border-b border-slate-200 aspect-[8.5/11] overflow-hidden">
                 <img
                   src={card.img}
                   alt={card.title}
@@ -353,21 +344,26 @@ export default function FieldSafetyCards() {
                   {card.label}
                 </span>
               </div>
-              <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                <h3 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">
-                  {card.title}
-                </h3>
-                <div className="flex items-center gap-2">
+              <div className="p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">
+                    {card.title}
+                  </h2>
+                  <p className="text-sm text-slate-600">
+                    {t("Use the same card crews carry in the field — print it or email the PDF instantly.")}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     onClick={() => handlePrint(card)}
-                    className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs border-b-2 border-black"
+                    className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs"
                     data-testid={`safety-card-print-${card.key}`}
                   >
                     <Printer className="w-3.5 h-3.5 mr-1" /> {t("Print")}
                   </Button>
                   <Button
                     onClick={() => setEmailing(card)}
-                    className="h-10 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs border-b-2 border-red-900"
+                    className="h-10 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
                     data-testid={`safety-card-email-${card.key}`}
                   >
                     <Mail className="w-3.5 h-3.5 mr-1" /> {t("Email")}
@@ -376,8 +372,8 @@ export default function FieldSafetyCards() {
               </div>
             </article>
           ))}
-        </div>
-      </main>
+        </section>
+      </div>
 
       {/* Print-only wrapper: renders the single selected card edge-to-edge
           on a letter-size page so Cmd+P produces a clean single sheet. */}
@@ -410,6 +406,8 @@ export default function FieldSafetyCards() {
           @page { size: letter; margin: 0; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white !important; }
           .no-print, .no-print * { display: none !important; }
+          [data-testid="safety-cards-page"],
+          [data-testid="safety-cards-page"] * { display: none !important; }
           .print-only-card {
             display: block !important;
             position: fixed;
@@ -427,7 +425,7 @@ export default function FieldSafetyCards() {
           }
         }
       `}</style>
-    </div>
+    </OperationalPageFrame>
   );
 }
 

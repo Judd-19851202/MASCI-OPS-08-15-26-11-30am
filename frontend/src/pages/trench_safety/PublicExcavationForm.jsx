@@ -23,7 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import PublicTrenchHeader from "@/components/trench/PublicTrenchHeader";
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import OshaCoachingBlock from "@/components/trench/OshaCoachingBlock";
 import EmployeePicker from "@/components/trench/EmployeePicker";
 import TrenchAssetPicker from "@/components/trench/TrenchAssetPicker";
@@ -291,24 +292,41 @@ export default function PublicExcavationForm() {
 
   // ── Main form shell ─────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="public-excavation-page">
-      <div className="caution-stripe" />
-      <PublicTrenchHeader backTo="/trench-safety" backLabel="Back to Trench Safety" testIdPrefix="public-excavation" accent="cyan" />
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-        {/* Title block */}
-        <div className="text-center mb-4">
-          <ScanLine className="w-7 h-7 mx-auto text-cyan-700" />
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold mt-1">
-            {t("Trench Safety")} · {t("Field Excavation Record")}
-          </div>
-          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-title">
-            {t("Excavation Operations")}
-          </h1>
-          <p className="text-slate-600 text-sm max-w-2xl mx-auto mt-2" data-testid="public-excavation-purpose">
-            {t("The platform thinks first. You verify. Compliance is calculated live — only the sections that apply to your trench will appear below.")}
+    <OperationalPageFrame
+      testId="public-excavation-page"
+      backTo="/trench-safety"
+      backLabel={t("Back to Trench Safety")}
+      accent="cyan"
+      familyLabel={t("MASCI Trench Safety")}
+      familyMeta={t("Public trench workflow")}
+      mainWidthClass="max-w-5xl"
+      heroIcon={ScanLine}
+      kicker={t("Trench Safety · Field Excavation Record")}
+      title={t("Excavation Operations")}
+      description={t("The platform thinks first and the crew verifies. Compliance is calculated live so only the sections that apply to this trench show up below.")}
+      heroMeta={(
+        <>
+          <OperationalStatusBadge tone="cyan" testId="public-excavation-meta-live">{t("Live compliance")}</OperationalStatusBadge>
+          <OperationalStatusBadge tone="amber" testId="public-excavation-meta-dynamic">{t("Dynamic sections")}</OperationalStatusBadge>
+          <OperationalStatusBadge tone="red" testId="public-excavation-meta-stop">{t("Stop-work authority")}</OperationalStatusBadge>
+        </>
+      )}
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="public-excavation-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">{t("What this record does")}</div>
+          <p className="text-sm text-slate-600 mb-3">
+            {t("Use this route when crews need the field-safe excavation workflow with OSHA coaching, roster picks, trench-asset matching, and direct Safety follow-up.")}
           </p>
+          <div className="space-y-2 text-xs text-slate-700">
+            <div>{t("• Pulls jobs, roster, and trench assets from certified sources")}</div>
+            <div>{t("• Expands only the sections your conditions trigger")}</div>
+            <div>{t("• Preserves bilingual field notes with canonical English storage")}</div>
+          </div>
         </div>
+      )}
+      footerText={t("MASCI Operations Platform · Excavation workflow")}
+    >
+      <div className="space-y-5">
 
         {/* Phase 10C · Live operational decision-support panel */}
         <ExcavationComplianceCard result={compliance} />
@@ -783,11 +801,8 @@ export default function PublicExcavationForm() {
           </Button>
         </div>
 
-        <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("Operations Platform")} · {t("Field-safe view")}
-        </footer>
-      </main>
-    </div>
+      </div>
+    </OperationalPageFrame>
   );
 }
 
@@ -824,19 +839,27 @@ function SuccessScreen({ done, setDone, t }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="public-excavation-page">
-      <div className="caution-stripe" />
-      <PublicTrenchHeader backTo="/trench-safety" backLabel="Back to Trench Safety" testIdPrefix="public-excavation" accent="cyan" />
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-        <div className="text-center mb-4">
-          <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-700" />
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold mt-1">
-            {t("Trench Safety")} · {t("Field Submission")}
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-excavation-success-title">
-            {t("Excavation Record Submitted")}
-          </h1>
-        </div>
+    <OperationalPageFrame
+      testId="public-excavation-page"
+      backTo="/trench-safety"
+      backLabel={t("Back to Trench Safety")}
+      accent="emerald"
+      familyLabel={t("MASCI Trench Safety")}
+      familyMeta={t("Public trench workflow")}
+      mainWidthClass="max-w-4xl"
+      heroIcon={CheckCircle2}
+      kicker={t("Trench Safety · Field Submission")}
+      title={t("Excavation Record Submitted")}
+      description={t("Safety has the record, the follow-up queue is live, and crews can request a reinspection immediately if conditions change.")}
+      heroMeta={(
+        <>
+          <OperationalStatusBadge tone="emerald" testId="public-excavation-success-status">{t(done.status)}</OperationalStatusBadge>
+          {done.daily_report_links?.length > 0 ? <OperationalStatusBadge tone="cyan" testId="public-excavation-success-linked">{t("Daily report linked")}</OperationalStatusBadge> : null}
+        </>
+      )}
+      footerText={t("MASCI Operations Platform · Excavation submission workflow")}
+    >
+      <div className="space-y-4">
         <div className="bg-white border-2 border-emerald-300 rounded-md p-4" data-testid="excavation-success">
           <div className="font-mono text-2xl font-black text-slate-900" data-testid="public-excavation-success-id">{done.id}</div>
           <div className="mt-1 text-sm text-slate-700">{t("Status")}: <b className="text-cyan-900">{t(done.status)}</b></div>
@@ -924,10 +947,7 @@ function SuccessScreen({ done, setDone, t }) {
             {t("Submit Another Record")}
           </button>
         </div>
-        <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("Operations Platform")} · {t("Field-safe view")}
-        </footer>
-      </main>
-    </div>
+      </div>
+    </OperationalPageFrame>
   );
 }

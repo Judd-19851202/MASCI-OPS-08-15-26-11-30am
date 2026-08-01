@@ -28,7 +28,8 @@ import {
   ShieldAlert, BookOpen, AlertTriangle, ScanLine, Loader2,
   FileWarning, Search, ArrowRight, OctagonAlert, HardHat,
 } from "lucide-react";
-import PublicTrenchHeader from "@/components/trench/PublicTrenchHeader";
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
 import PublicAssetLookup from "@/pages/trench_safety/PublicAssetLookup";
 
@@ -41,7 +42,7 @@ function Stat({ label, value, tone = "default", testId }) {
       ? "text-red-700"
       : "text-slate-900";
   return (
-    <div className="bg-white border border-slate-200 rounded-md p-4 text-center" data-testid={testId}>
+    <div className="wp17-public-card p-4 text-center" data-testid={testId}>
       <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">{label}</div>
       <div className={`font-display text-3xl font-black mt-1 leading-none ${toneClass}`}>{value}</div>
     </div>
@@ -72,7 +73,7 @@ function ActionTile({ to, onClick, icon: Icon, title, body, tone = "default", te
   );
   if (to) {
     return (
-      <Link to={to} className={`block bg-white border rounded-md p-4 transition hover:shadow ${toneClasses}`} data-testid={testId}>
+      <Link to={to} className={`block wp17-public-card p-4 transition hover:shadow-md ${toneClasses}`} data-testid={testId}>
         {inner}
       </Link>
     );
@@ -81,7 +82,7 @@ function ActionTile({ to, onClick, icon: Icon, title, body, tone = "default", te
     <button
       type="button"
       onClick={onClick}
-      className={`text-left bg-white border rounded-md p-4 transition hover:shadow ${toneClasses}`}
+      className={`text-left wp17-public-card p-4 transition hover:shadow-md ${toneClasses}`}
       data-testid={testId}
     >
       {inner}
@@ -113,41 +114,57 @@ export default function PublicTrenchSafetyDashboard() {
   const totals = overview?.counts_by_status || {};
   const typeTotals = overview?.counts_by_type || {};
 
-  return (
-    <div className="min-h-screen bg-slate-50" data-testid="public-dash-page">
-      <div className="caution-stripe" />
-      <PublicTrenchHeader
-        backTo="/safety"
-        backLabel="Back to Safety"
-        testIdPrefix="public-dash"
-        accent="cyan"
-      />
+  const heroMeta = (
+    <>
+      <OperationalStatusBadge tone="cyan" testId="public-dash-meta-lookup">{t("Live asset lookup")}</OperationalStatusBadge>
+      <OperationalStatusBadge tone="amber" testId="public-dash-meta-qr">{t("QR launch")}</OperationalStatusBadge>
+      {!loading && !err ? (
+        <OperationalStatusBadge tone="emerald" testId="public-dash-meta-active">
+          {t("Active assets")} · {overview?.total_active_assets ?? 0}
+        </OperationalStatusBadge>
+      ) : null}
+    </>
+  );
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-        {/* Title */}
-        <div className="text-center mb-4">
-          <ScanLine className="w-7 h-7 mx-auto text-cyan-700" />
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold mt-1">
-            {t("MASCI Trench Safety")} · {t("Field Command")}
+  return (
+    <OperationalPageFrame
+      testId="public-dash-page"
+      backTo="/safety"
+      backLabel={t("Back to Safety")}
+      accent="cyan"
+      familyLabel={t("MASCI Trench Safety")}
+      familyMeta={t("Public trench workflow")}
+      mainWidthClass="max-w-5xl"
+      heroIcon={ScanLine}
+      kicker={t("MASCI Trench Safety · Field Command")}
+      title={t("Trench Safety")}
+      description={t("Open the same field-safe trench intelligence crews use on site: look up an asset, confirm its status, jump to tabulated data, or escalate a problem immediately.")}
+      heroMeta={heroMeta}
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="public-dash-lookup-card">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
+            {t("Asset Lookup")}
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-dash-title">
-            {t("Trench Safety")}
-          </h1>
-          <p className="text-slate-600 text-sm max-w-2xl mx-auto mt-2" data-testid="public-dash-purpose">
-            {t("Every MASCI trench box, end panel, spreader, and shore — tracked, inspected, certified, and field-ready. This is your live reference: look up an asset, scan a QR, open OSHA-aligned references, or report a problem the moment you see it.")}
+          <p className="text-sm text-slate-600 mb-3">
+            {t("Type the asset tag from any MASCI trench box, panel, or spreader to confirm status, inspection freshness, and tabulated data before use.")}
           </p>
+          <PublicAssetLookup compact />
         </div>
+      )}
+      footerText={t("MASCI Operations Platform · Field-safe trench workflow")}
+    >
+      <div className="space-y-5">
 
         {/* Stop-work + coaching strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4" data-testid="public-dash-coaching-row">
-          <div className="bg-red-50 border-2 border-red-300 rounded-md p-3 flex items-start gap-2" data-testid="public-dash-stopwork">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="public-dash-coaching-row">
+          <div className="rounded-[1.5rem] border-2 border-red-300 bg-red-50 p-4 flex items-start gap-3 shadow-[0_18px_40px_rgba(15,23,42,0.06)]" data-testid="public-dash-stopwork">
             <OctagonAlert className="w-4 h-4 text-red-700 mt-0.5 shrink-0" />
             <p className="text-xs text-red-900 leading-snug">
               <strong className="uppercase tracking-[0.08em]">{t("Stop-Work Authority.")}</strong>{" "}
               {t("If anything looks wrong, stop the job. You will never be punished for keeping a crew alive.")}
             </p>
           </div>
-          <div className="bg-amber-50 border border-amber-300 rounded-md p-3 flex items-start gap-2" data-testid="public-dash-coaching">
+          <div className="rounded-[1.5rem] border border-amber-300 bg-amber-50 p-4 flex items-start gap-3 shadow-[0_18px_40px_rgba(15,23,42,0.06)]" data-testid="public-dash-coaching">
             <ShieldAlert className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
             <p className="text-xs text-amber-900 leading-snug">
               <strong>{t("Match the box to its tabulated data.")}</strong>{" "}
@@ -156,26 +173,8 @@ export default function PublicTrenchSafetyDashboard() {
           </div>
         </div>
 
-        {/* Asset Lookup — primary action */}
-        <section className="mt-2" data-testid="public-dash-lookup-section">
-          <div className="bg-slate-900 border-l-4 border-cyan-500 rounded-md p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Search className="w-4 h-4 text-cyan-400" />
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-300 font-bold">
-                {t("Asset Lookup")}
-              </div>
-            </div>
-            <div className="text-xs text-slate-300 mb-3">
-              {t("Type the asset tag printed on any MASCI trench box (TB-07, EP-001, SP-001…) to see its status, last inspection, and tabulated data.")}
-            </div>
-            <div className="bg-white rounded p-3">
-              <PublicAssetLookup compact />
-            </div>
-          </div>
-        </section>
-
         {/* QR scan guidance */}
-        <section className="mt-3 p-3 border border-cyan-200 bg-cyan-50/60 rounded text-xs text-cyan-900" data-testid="public-dash-qr-help">
+        <section className="wp17-panel p-4 text-xs text-cyan-900 bg-cyan-50/50 border-cyan-200" data-testid="public-dash-qr-help">
           <div className="flex items-start gap-2">
             <ScanLine className="w-4 h-4 text-cyan-700 mt-0.5 shrink-0" />
             <div>
@@ -188,7 +187,7 @@ export default function PublicTrenchSafetyDashboard() {
         </section>
 
         {/* Action tiles — Tabulated Data · References · Report · Excavation Ops */}
-        <section className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2" data-testid="public-dash-actions">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" data-testid="public-dash-actions">
           <ActionTile
             to="/trench-safety/excavation/new"
             icon={AlertTriangle}
@@ -222,7 +221,7 @@ export default function PublicTrenchSafetyDashboard() {
         </section>
 
         {/* Fleet overview — counts only */}
-        <section className="mt-5" data-testid="public-dash-overview">
+        <section className="wp17-panel p-4" data-testid="public-dash-overview">
           <div className="flex items-center justify-between mb-2">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold">{t("Fleet Overview")}</div>
             <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-mono">
@@ -255,7 +254,7 @@ export default function PublicTrenchSafetyDashboard() {
         </section>
 
         {/* Competent person & training reminder */}
-        <section className="mt-5 p-3 border border-slate-200 bg-white rounded" data-testid="public-dash-competent">
+        <section className="wp17-panel p-4" data-testid="public-dash-competent">
           <div className="flex items-start gap-2">
             <HardHat className="w-4 h-4 text-cyan-700 mt-0.5 shrink-0" />
             <div className="text-xs text-slate-700 leading-relaxed">
@@ -264,11 +263,7 @@ export default function PublicTrenchSafetyDashboard() {
             </div>
           </div>
         </section>
-
-        <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("MASCI Operations Platform")} · {t("Field-safe view")}
-        </footer>
-      </main>
-    </div>
+      </div>
+    </OperationalPageFrame>
   );
 }

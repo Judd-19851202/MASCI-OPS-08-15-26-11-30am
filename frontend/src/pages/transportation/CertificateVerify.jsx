@@ -8,8 +8,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { BadgeCheck, ShieldCheck, AlertCircle, Hash } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 
 export default function CertificateVerify() {
   const { cnum } = useParams();
@@ -22,21 +23,41 @@ export default function CertificateVerify() {
   }, [cnum]);
 
   return (
-    <div className="wp17-public-shell min-h-screen">
-      <header className="wp17-public-header">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3 text-white">
-          <div className="flex items-center gap-3">
-            <MasciLogo variant="mark" size="md" homeLink="/" />
-            <div>
-              <div className="wp17-kicker text-white/70">Public verification</div>
-              <div className="text-sm font-semibold">Transportation orientation certificate lookup</div>
-            </div>
-          </div>
-          <div className="text-xs text-white/70">Operational trust check · white-label ready surface</div>
+    <OperationalPageFrame
+      testId="cert-verify-page"
+      backTo="/"
+      backLabel="Back to MASCI"
+      accent="amber"
+      familyLabel="Transportation compliance"
+      familyMeta="Public verification"
+      showLangToggle={false}
+      mainWidthClass="max-w-4xl"
+      heroIcon={BadgeCheck}
+      kicker="Public verification"
+      title="Transportation orientation certificate lookup"
+      description="Verify an issued transportation orientation certificate using the public QR or certificate number."
+      heroMeta={
+        err ? (
+          <OperationalStatusBadge tone="red" testId="cert-verify-meta-error">Certificate not found</OperationalStatusBadge>
+        ) : !cert ? (
+          <OperationalStatusBadge tone="amber" testId="cert-verify-meta-loading">Verification in progress</OperationalStatusBadge>
+        ) : (
+          <>
+            <OperationalStatusBadge tone="emerald" testId="cert-verify-meta-valid">Certificate verified</OperationalStatusBadge>
+            <OperationalStatusBadge tone="cyan" testId="cert-verify-meta-number">{cert.certificate_number}</OperationalStatusBadge>
+          </>
+        )
+      }
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="cert-verify-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-700 font-bold mb-2">Trust check</div>
+          <div className="text-sm text-slate-600">Operational trust check · white-label ready surface.</div>
         </div>
-      </header>
-      <div className="wp17-public-main flex items-center justify-center py-12">
-      <div className="max-w-md w-full wp17-public-card p-6 text-center" data-testid="cert-verify-page">
+      )}
+      footerText="MASCI Operations Platform · Certificate verification workflow"
+    >
+      <div className="flex items-center justify-center py-4">
+      <div className="max-w-md w-full wp17-public-card p-6 text-center" data-testid="cert-verify-card">
         {err ? (
           <div data-testid="cert-verify-error">
             <AlertCircle className="h-12 w-12 mx-auto text-red-500" />
@@ -65,7 +86,7 @@ export default function CertificateVerify() {
         <div className="mt-6 flex justify-center"><ForgedOpsAttribution variant="login" /></div>
       </div>
       </div>
-    </div>
+    </OperationalPageFrame>
   );
 }
 

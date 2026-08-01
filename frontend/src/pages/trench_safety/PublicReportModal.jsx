@@ -9,6 +9,8 @@ import { X, Send, CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -80,10 +82,10 @@ function PublicReportModalInner({ onClose, defaultAssetId, lockAssetId }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-md max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="wp17-public-card max-w-lg w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div className="inline-flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-700" />
             <h2 className="font-display text-lg font-black text-slate-900">
@@ -107,16 +109,19 @@ function PublicReportModalInner({ onClose, defaultAssetId, lockAssetId }) {
             <div className="text-sm text-slate-600 mt-2">
               {t("Safety has been notified. The asset has NOT been moved or changed — Shop and Safety will review and take it from here.")}
             </div>
-            <button
+            <div className="mt-4 flex justify-center">
+              <OperationalStatusBadge tone="amber" testId="public-report-success-badge">{t("Asset unchanged until review")}</OperationalStatusBadge>
+            </div>
+            <Button
               onClick={onClose}
               data-testid="public-report-done"
-              className="mt-5 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-[0.12em] text-xs px-4 py-2 rounded"
+              className="mt-5 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-[0.12em] text-xs px-4"
             >
               {t("Close")}
-            </button>
+            </Button>
           </div>
         ) : (
-          <form onSubmit={submit} className="p-4 space-y-3">
+          <form onSubmit={submit} className="p-5 space-y-4">
             <div>
               <label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">{t("What's wrong?")}</label>
               <div className="mt-1 grid grid-cols-2 gap-2">
@@ -197,15 +202,15 @@ function PublicReportModalInner({ onClose, defaultAssetId, lockAssetId }) {
               {t("Your report goes to MASCI Safety for review. Submitting does not change the asset's status — Shop and Safety decide next steps.")}
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={busy || description.trim().length < 5 || !assetId.trim()}
               data-testid="public-report-submit"
-              className="w-full bg-cyan-700 hover:bg-cyan-800 disabled:bg-slate-300 text-white font-bold uppercase tracking-[0.12em] text-sm py-3 rounded inline-flex items-center justify-center gap-2"
+              className="w-full h-12 bg-cyan-700 hover:bg-cyan-800 disabled:bg-slate-300 text-white font-bold uppercase tracking-[0.12em] text-sm inline-flex items-center justify-center gap-2"
             >
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               {t("Submit Report")}
-            </button>
+            </Button>
           </form>
         )}
       </div>

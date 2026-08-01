@@ -15,7 +15,8 @@ import {
   ArrowRight, OctagonAlert, HardHat, Eye, Wrench, ClipboardCheck,
   Tag, BookmarkCheck,
 } from "lucide-react";
-import PublicTrenchHeader from "@/components/trench/PublicTrenchHeader";
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
 
 function RefCard({ icon: Icon, title, body, tone = "default", testId }) {
@@ -45,30 +46,40 @@ function RefCard({ icon: Icon, title, body, tone = "default", testId }) {
 export default function PublicTrenchSafetyReferences() {
   const { t } = useT();
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="public-refs-page">
-      <div className="caution-stripe" />
-      <PublicTrenchHeader
-        backTo="/trench-safety"
-        backLabel="Back to Trench Safety"
-        testIdPrefix="public-refs"
-        accent="amber"
-      />
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
-        <div className="text-center mb-4">
-          <FileWarning className="w-7 h-7 mx-auto text-amber-700" />
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700 font-bold mt-1">
-            {t("MASCI Trench Safety")} · {t("Field References")}
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1" data-testid="public-refs-title">
-            {t("Safety References")}
-          </h1>
-          <p className="text-slate-600 text-sm max-w-2xl mx-auto mt-2">
-            {t("OSHA-aligned trench safety guidance for crews. Read it before the box goes in the ground. When in doubt — stop and call Safety.")}
+    <OperationalPageFrame
+      testId="public-refs-page"
+      backTo="/trench-safety"
+      backLabel={t("Back to Trench Safety")}
+      accent="amber"
+      familyLabel={t("MASCI Trench Safety")}
+      familyMeta={t("Public trench workflow")}
+      mainWidthClass="max-w-5xl"
+      heroIcon={FileWarning}
+      kicker={t("MASCI Trench Safety · Field References")}
+      title={t("Safety References")}
+      description={t("Open the OSHA-aligned reminders crews need when conditions change: competent-person rules, unsafe-condition examples, missing-pin guidance, and stop-work standards.")}
+      heroMeta={(
+        <>
+          <OperationalStatusBadge tone="amber" testId="public-refs-meta-stop">{t("Stop-work guidance")}</OperationalStatusBadge>
+          <OperationalStatusBadge tone="cyan" testId="public-refs-meta-field">{t("Crew-safe language")}</OperationalStatusBadge>
+        </>
+      )}
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="public-refs-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-700 font-bold mb-2">{t("Need the engineered sheets?")}</div>
+          <p className="text-sm text-slate-600 mb-3">
+            {t("Use references for field judgment and tabulated data for the exact shield or panel configuration before entry.")}
           </p>
+          <Link to="/trench-safety/tabulated-data" className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-cyan-800" data-testid="public-refs-hero-tabdata">
+            {t("Open Tabulated Data")} <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
+      )}
+      footerText={t("MASCI Operations Platform · Trench reference workflow")}
+    >
+      <div className="space-y-5">
 
-        <div className="bg-red-50 border-2 border-red-300 rounded-md p-3 flex items-start gap-2 mb-5" data-testid="public-refs-stopwork">
+        <div className="rounded-[1.5rem] border-2 border-red-300 bg-red-50 p-4 flex items-start gap-3 shadow-[0_18px_40px_rgba(15,23,42,0.06)]" data-testid="public-refs-stopwork">
           <OctagonAlert className="w-5 h-5 text-red-700 mt-0.5 shrink-0" />
           <div className="text-sm text-red-900">
             <strong className="uppercase tracking-[0.1em]">{t("Stop-Work Authority.")}</strong>{" "}
@@ -142,7 +153,7 @@ export default function PublicTrenchSafetyReferences() {
           />
         </div>
 
-        <section className="mt-6 p-3 border border-slate-200 bg-white rounded text-xs text-slate-600" data-testid="public-refs-qr-help">
+        <section className="wp17-panel p-4 text-xs text-slate-600" data-testid="public-refs-qr-help">
           <ScanLine className="w-3.5 h-3.5 inline mr-1 -mt-0.5 text-cyan-700" />
           <strong className="text-slate-700">{t("Found something wrong?")}</strong>{" "}
           <Link to="/trench-safety/report" className="text-cyan-800 underline font-bold inline-flex items-center gap-0.5 ml-1" data-testid="public-refs-to-report">
@@ -151,10 +162,7 @@ export default function PublicTrenchSafetyReferences() {
           <span className="ml-1">{t("— it goes straight to Safety. You can also scan the box's QR code to report on the exact asset.")}</span>
         </section>
 
-        <footer className="mt-8 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400 font-mono">
-          {t("MASCI Operations Platform")} · {t("Field-safe view")}
-        </footer>
-      </main>
-    </div>
+      </div>
+    </OperationalPageFrame>
   );
 }
