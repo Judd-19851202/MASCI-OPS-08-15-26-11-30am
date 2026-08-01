@@ -23,6 +23,16 @@ A survivor is open until it is either:
 - Coaching: **10**
 
 ## Batch Certification Ledger
+### 2026-08-01 · Executive Refinement · Public Field Form Primitives · CLOSED / ACTIVE NEXT
+- Closed refinement pass: shared public Field form primitives and the public `/daily/submit`, `/equipment/new`, `/fleet/dvir/new` surfaces
+- Shared refinements:
+  - governed `wp17` focus/control styling now owns input, textarea, select, checkbox, radio, and switch primitives
+  - governed choice-button, sticky-action-bar, floating-tally, inline-note, and modal-surface utilities now own Field form interaction rhythm
+  - `SubmitReviewPanel` and `FormSection` were tightened to the same shared panel/alert language
+- Evidence: `/app/test_reports/iteration_104.json`; public responsive smoke verification; constitution guard pass with 24 checks
+- Certification result: refined Field forms are premium, consistent, mobile-clean, and protected by expanded anti-drift rules; only expected unauthenticated `/employees` 401s were observed on the public form path
+- Carry-forward note: finish the remaining Field interiors, then start Transportation with the now-locked refinement standard
+
 ### 2026-08-01 · Executive Elite Polish · Field Wave 02 · CLOSED / ACTIVE NEXT
 - Closed polish pass: shared Field-wave primitives plus admin Daily Reports / admin Equipment / Equipment Inspection detail
 - Shared refinements:

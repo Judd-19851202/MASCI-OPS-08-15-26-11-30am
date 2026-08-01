@@ -41,6 +41,11 @@ Last updated: 2026-08-01
 - `/admin/equipment/:id` removed the custom dark local header and adopted governed content/action rhythm
 - shared primitives refined: `PageHeader.jsx`, `wp17.css`, `BackLink.jsx`, `SubmitLangBadge.jsx`
 
+### Field Operations Wave 04 · Executive Refinement
+- public shared form primitives refined: `input.jsx`, `textarea.jsx`, `select.jsx`, `checkbox.jsx`, `radio-group.jsx`, `switch.jsx`
+- `SubmitReviewPanel.jsx` and `FormSection.jsx` tightened into the same governed panel/alert rhythm
+- `/daily/submit`, `/equipment/new`, and `/fleet/dvir/new` now consume the refined primitives for sticky actions, choice toggles, alerts, textareas, and helper surfaces
+
 ## Responsive Evidence
 - Home verified at `390`, `430`, `768`, `1024`, `1440`
 - Field verified at `390`, `430`, `768`, `1024`, `1440`
@@ -65,6 +70,12 @@ Last updated: 2026-08-01
   - no emoji UI shortcuts, no local calculator button drift, no local daily-report CTA drift, no local equipment dark header
   - authenticated admin preview verification passed with Super Admin fixture
   - zero console errors
+- `/app/test_reports/iteration_104.json`
+  - executive refinement verified on `/daily/submit`, `/equipment/new`, and `/fleet/dvir/new`
+  - public Field forms now use the governed shared primitive stack
+  - no horizontal overflow at mobile or desktop widths
+  - constitution guard passed all 24 checks
+  - only expected unauthenticated `/employees` 401s appeared on the public form route
 
 ## Final Browser Verification
 - `auto_frontend_testing_agent` verified `/`, `/field`, and `/field/calculators`

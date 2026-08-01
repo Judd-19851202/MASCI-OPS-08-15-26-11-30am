@@ -155,6 +155,7 @@
   - final `auto_frontend_testing_agent` verification also passed for `/`, `/field`, and `/field/calculators`, confirming shared brand consistency, responsive cleanliness, clean console behavior, and the removal of the duplicate calculators subtitle strip
   - Executive Elite Polish certification for the active Field wave passed in `/app/test_reports/iteration_103.json` with **100% frontend pass**, covering `/`, `/field`, `/field/calculators`, `/admin/daily`, `/admin/equipment-inspections`, and `/admin/equipment/:id`; QA confirmed shared MASCI brand hierarchy, no emoji UI shortcuts, no local calculator buttons, no local daily-report CTA styling drift, no custom dark equipment header, zero overflow, and zero console errors
   - final browser QA also verified the polished public/admin Field surfaces and approved them for continuation into the next portal-family rollout
+  - Executive Refinement certification for the public Field form wave passed in `/app/test_reports/iteration_104.json` with **100% frontend pass**, confirming refined shared form primitives on `/daily/submit`, `/equipment/new`, and `/fleet/dvir/new`, no horizontal overflow at mobile or desktop widths, and a passing 24-check constitution guard; only expected unauthenticated `/employees` 401s appeared on the public form route
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
@@ -165,8 +166,8 @@
 - Continue WP-17D in the locked order now set by executive direction: governed design system → Hub implementation → platform propagation.
 - Treat the public Home correction as closed for this constitution wave and use it as the first verified implementation of the hardened design system — not as a separate product identity.
 - Propagate the new shared card / button / badge / section-heading / state primitives across the platform in the approved rollout order: Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration.
-- Continue the active **Field Operations** wave after `/field` and `/field/calculators`: next reopen Field daily-report list/detail touchpoints, equipment-family interiors, and any remaining field coaching / icon drift before moving to Transportation.
 - Continue the active **Field Operations** wave through the remaining submit/review/detail interiors so the full field family inherits the elite shared polish standard, then begin **Transportation** using the now-locked Field standard.
+- Finish the remaining Field review/detail interiors still carrying legacy layout or helper drift, then move immediately into **Transportation** with the same locked shared form/header/card/button standard.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
 - Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.

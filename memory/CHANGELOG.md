@@ -84,6 +84,26 @@
   - authenticated preview verification using Super Admin fixture
   - final `auto_frontend_testing_agent` approval for public/admin Field surfaces
 
+## 2026-08-01 — WP-17D Executive Refinement · shared Field form primitives
+
+- Refined shared form primitives without altering architecture:
+  - `input.jsx`, `textarea.jsx`, `select.jsx`, `checkbox.jsx`, `radio-group.jsx`, and `switch.jsx` now use the governed `wp17` control/focus treatment
+  - `SubmitReviewPanel.jsx` and `FormSection.jsx` were tightened to the same governed panel and alert language
+  - `wp17.css` now owns shared form alerts, choice buttons, sticky action bars, floating tally surfaces, inline notes, and modal surface rhythm
+- Applied those refinements across public Field submit surfaces:
+  - `/daily/submit` smart-prefill and setup actions now use governed buttons/alerts
+  - `/equipment/new` now uses governed sticky actions, warning modal, tally surface, camera follow-up toggles, and textarea styling
+  - `/fleet/dvir/new` now uses governed PASS/FAIL/N/A toggles, camera gates, notes, badges, and sticky action rhythm
+- Expanded anti-drift 2.0 to protect the refinements:
+  - governed input/select/textarea/button/page-header primitive checks
+  - no legacy DVIR toggle styles
+  - no legacy daily-report prefill button styles
+  - no `Hub` fallback label in shared back navigation
+- Verification evidence:
+  - `/app/test_reports/iteration_104.json`
+  - responsive smoke verification on the refined public Field forms
+  - constitution guard pass with 24 checks
+
 - Created `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` with the full `1190`-surface denominator and active convergence statuses.
 - Added the WP-17D control package:
   - `WP17D_PORTAL_MIGRATION_RUNBOOK.md`

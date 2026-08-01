@@ -8,6 +8,7 @@
 - **Field Operations propagation is now active.**
 - **Shared shell identity propagation is now active and verified on Home, Field, and Material Calculators.**
 - **Executive Elite Polish is now active and verified across the current Field wave shared surfaces.**
+- **Executive Refinement is now active and verified across the current public Field form primitives.**
 - **Next locked move:** propagate the hardened shared system in this order:
   1. Field Operations
   2. Transportation
@@ -24,6 +25,7 @@
 - reopen every touched Field Operations route against the complete-page rule before recertifying it
 - continue removing visible `Hub` product naming and duplicate sign-in patterns where they still render into the product
 - begin the **Transportation** family immediately after the remaining Field interiors are polished and recertified
+- keep expanding anti-drift 2.0 around spacing/button/card/form/header drift as each remaining Field interior is touched
 
 ### P1
 - expand anti-drift guards beyond Home to include portal-family terminology scans, unicode UI icon scans, local-card scans, direct-header scans, and screenshot regression gates

@@ -25,6 +25,9 @@ Last updated: 2026-08-01
   - no local calculator button styling drift in `MaterialCalculators.jsx`
   - no local daily-report CTA styling drift in `ViewDailyReport.jsx`
   - no local custom dark header in `ViewEquipmentInspection.jsx`
+  - governed shared input/select/textarea/button/page-header primitive presence
+  - no legacy DVIR toggle or textarea styling drift
+  - no legacy daily-report prefill button drift
 
 ## Expansion Plan
 These checks must expand during propagation to cover:
@@ -42,6 +45,7 @@ These checks must expand during propagation to cover:
 - mobile overflow checks
 - representative screenshot regression for Home, Field, Material Calculators, and one archetype per remaining portal family
 - local button / local shadow / local spacing / local typography scans should expand family-by-family as each portal wave is polished
+- public form-auth edge cases should be documented so expected 401s on protected helper endpoints are not mistaken for visual regressions
 
 ## Governance Rule
 - A route does not pass because a script passes.
