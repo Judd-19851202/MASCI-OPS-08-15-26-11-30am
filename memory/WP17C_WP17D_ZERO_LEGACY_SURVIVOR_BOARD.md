@@ -99,6 +99,13 @@ A survivor is open until it is either:
 - Denominator movement: **none yet** — Amendment #2 forces a route-by-route header recount before new header-closure numbers can be trusted.
 - Carry-forward note: all previously closed header routes remain provisional until reopened and re-certified under the amendment-driven route audit.
 
+### 2026-08-01 · Shared Field Form Workflow Convergence · CLOSED
+- Reopened and re-cleared workflows: `/fleet/dvir/new`, `/equipment/submit`, `/daily/submit`, `/meetings/submit`
+- Shared fixes: `FormShell.jsx` now uses the governed utility card below the sticky header, strips duplicated MASCI wording from row-two identity, and suppresses redundant home-only back behavior; `FormSection.jsx`, `ProgressRail.jsx`, and `SubmitReviewPanel.jsx` now share normalized spacing, hierarchy, and action emphasis; `JobPicker.jsx` now uses operator-safe job wording; Daily Report now has a governed sticky submit footer with the inline duplicate submit CTA removed.
+- Evidence: responsive screenshots captured at `390`, `430`, `768`, `1024`, and `1440` for DVIR, Equipment Pre-Op, Daily Report, and Meeting workflows; focused `auto_frontend_testing_agent` pass returned **4/4 PASS** with zero horizontal overflow, zero console/runtime defects, and verified sticky-footer behavior on Daily Report.
+- Denominator movement: keep the full-ledger counts above as the working baseline while the Amendment #2 / #3 route recount continues; these four workflows are now re-cleared under the updated operator-first standard.
+- Carry-forward note: Daily field forms now share the governed shell foundation, but QA/QC, material calculators, inspections, incident flows, and the remaining daily-use workflows still need their route-by-route reopen pass.
+
 ## Active-Route Survivor Queue
 ### Header survivors (active recount · provisional baseline 17)
 

@@ -64,6 +64,8 @@
   - the approved executive operations tool is now live at `/admin/wp17d-certification`, showing survivor counts by category, route-by-route certification status, screenshot / QA evidence summaries, blocker state, overall completion %, and GO / NO-GO readiness
   - Executive Amendment #2 is now active in implementation: the shared MASCI header system was rebuilt into a strict two-tier architecture (`CanonicalHeader.jsx`, `PortalShell.jsx`, `AdminRouteShell.jsx`, `SafetyShell.jsx`, `PmShell.jsx`, `PortalLoginShell.jsx`, `DetailPageHero.jsx`) so global controls stay in row one, workflow identity lives in row two, long titles remain readable at `390px`, and utility controls live below — not inside — the sticky header rows
   - operator-facing product language was cleaned immediately after the header rewrite: the former internal admin governance surface now renders as **Operations Readiness Center** at `/admin/platform-readiness`, and banned engineering terms no longer appear in the visible UI even when the legacy alias `/admin/wp17d-certification` is opened
+  - the first Amendment #3 reopen batch is now closed through governed shared systems: `FormShell.jsx`, `FormSection.jsx`, `ProgressRail.jsx`, `SubmitReviewPanel.jsx`, and `JobPicker.jsx` were upgraded so DVIR, Equipment Pre-Op, Daily Report, and Meeting workflows share the same operator-first hierarchy, cleaner header language, normalized utility/progress placement, and stronger submit-action emphasis
+  - `NewDailyReportV3.jsx` now uses a governed sticky submit footer while removing the duplicate inline submit CTA; form routes that previously said `MASCI Job` / `Pick a MASCI job` now use operator-safe wording (`Current Job`, `Pick a current job`)
   - `DevHub.jsx` remains **BLOCKED_CREDENTIALS** for authenticated visual certification in Preview: `GET /api/dev/check` returns `404`, `POST /api/dev/login` returns `404`, and backend fail-closed logic requires backend `DEV_PASSWORD` plus the dev endpoint gate to be enabled before the actual `/dev` surface can be opened and certified
 
 ## Locked Totals Preserved
@@ -130,6 +132,7 @@
   - responsive screenshot certification also passed for `/admin/trench-safety/reports`, `/safety/trench-safety/reports`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification` at `390`, `430`, `768`, `1024`, and `1440`
   - focused `auto_frontend_testing_agent` pass (**7/7 PASS**) confirmed trench shell portal consistency, admin trench detail alias routing, executive dashboard behavior, and console/network cleanliness with no remaining defects
   - shared-header QA pass (**4/4 PASS**) confirmed the new two-tier header, product-language cleanup, detail-header integration, and legacy-alias hygiene on `/admin/login`, `/admin/platform-readiness`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification`
+  - shared field-form QA pass (**4/4 PASS**) confirmed the reopened DVIR, Equipment Pre-Op, Daily Report, and Meeting workflows with mobile-first header readability, zero duplicated MASCI wording in sticky header rows, corrected Daily Report sticky footer behavior, and zero overflow / console defects
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -140,6 +143,7 @@
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
 - Continue the Platform Shell Batch with the remaining highest-visibility routes first: authenticated `DevHub` once unblocked, remaining trench/detail aliases (especially dialogs / overlays), and any remaining direct-header pages still not routed through `CanonicalHeader`.
 - Because of Executive Amendment #2, treat all previously closed header routes as provisional until they are reopened and re-certified against the new operator-first header constitution.
+- Because of Executive Amendment #3, keep pushing through daily-use workflow reopen batches via governed shared systems first, then route-by-route polish for anything the shared layer still does not resolve.
 - After shell survivors reach evidence-backed zero or documented exceptions only, continue the shared convergence wave for dialogs, overlays, cards, shared primitives, and remaining coaching items.
 - Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
 - Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.
