@@ -256,6 +256,42 @@ const ES = {
     "Historial de envíos y evidencia para los trabajos que tienes asignados.",
   "Submission outcome": "Resultado del envío",
   "Back to start": "Volver al inicio",
+  "Saved Locally.": "Guardado localmente.",
+  "Your report is saved on this device and will retry automatically when the connection is stable. Do not clear browser data until delivery is confirmed.":
+    "Tu reporte está guardado en este dispositivo y se reintentará automáticamente cuando la conexión sea estable. No borres los datos del navegador hasta confirmar la entrega.",
+  "Retry Now": "Reintentar ahora",
+  "Stay On This Report": "Permanecer en este reporte",
+  "Return To Start": "Volver al inicio",
+  "Submission Failed.": "Error de envío.",
+  "Your report was not delivered. Please retry or contact support.":
+    "Tu reporte no se entregó. Vuelve a intentarlo o contacta al soporte.",
+  "Retry": "Reintentar",
+  "Retrying...": "Reintentando...",
+  "Queued · Not Yet Delivered": "En cola · Aún no entregado",
+  "Not Delivered": "No entregado",
+  "Needs retry": "Necesita reintento",
+  "Retry attempted · check your Daily Reports list to confirm delivery.":
+    "Se intentó el reenvío · revisa la lista de Reportes Diarios para confirmar la entrega.",
+  "Retry could not be triggered — please return to the form.":
+    "No se pudo activar el reintento — vuelve al formulario.",
+  "Email this Report": "Enviar este reporte por correo",
+  "Generates a polished PDF and emails it. Recipients are remembered for next time.":
+    "Genera un PDF pulido y lo envía por correo. Los destinatarios quedan guardados para la próxima vez.",
+  "To *": "Para *",
+  "Remove recipient": "Eliminar destinatario",
+  "+ Add Recipient": "+ Agregar destinatario",
+  "Subject *": "Asunto *",
+  "Note (optional)": "Nota (opcional)",
+  "Any context for the recipients (will appear above the PDF link)":
+    "Cualquier contexto para los destinatarios (aparecerá encima del enlace al PDF)",
+  "Send PDF": "Enviar PDF",
+  "Email send failed": "El envío del correo falló",
+  "Add at least one recipient email": "Agrega al menos un correo destinatario",
+  "Subject is required": "El asunto es obligatorio",
+  "Sent": "Enviado",
+  "to": "a",
+  "recipient": "destinatario",
+  "recipients": "destinatarios",
   "This preview submission was stored successfully. Notification was safely captured for certification and no operational email was sent.":
     "Este envío de vista previa se almacenó correctamente. La notificación se capturó de forma segura para certificación y no se envió ningún correo operativo.",
   "Read-only field submission with supporting evidence.":

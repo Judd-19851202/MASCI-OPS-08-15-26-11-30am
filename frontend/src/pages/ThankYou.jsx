@@ -35,7 +35,7 @@ export default function ThankYou() {
   const submissionState = state?.submissionState || "delivered";
   const lastError = state?.lastError || "";
 
-  const homeHref = returnTo && returnTo.startsWith("/daily/submit") ? "/submit" : "/";
+  const homeHref = returnTo || "/";
   const continuityLine = CONTINUITY_LINE[formType] || "The right people have visibility. You're done unless contacted.";
   const isPreviewNotificationCapture = submissionState === "delivered" && (
     notificationState === "captured_preview" || notificationDeliveryMode === "SAFE_CAPTURE" || notificationCaptureAvailable

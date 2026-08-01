@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 const DEFAULT_KEY = "masci.defaultRecipients.v1";
 
@@ -36,6 +37,7 @@ const isValidEmail = (s) =>
  *   successful send so subsequent reports prefill faster.
  */
 export function EmailReportDialog({ open, onOpenChange, kind, record }) {
+  const { t } = useT();
   const [recipients, setRecipients] = useState([""]);
   const [subject, setSubject] = useState("");
   const [note, setNote] = useState("");
@@ -68,14 +70,14 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
     const date = record.report_date || record.date || record.incident_date || "";
     const title =
       kind === "daily-report"
-        ? "Daily Job Report"
+        ? t("Daily Job Report")
         : kind === "inspection"
-        ? "Site Inspection"
+        ? t("Site Inspection")
         : kind === "meeting"
-        ? "Safety Meeting"
+        ? t("Safety Meeting")
         : kind === "jha"
-        ? "Job Hazard Plan"
-        : "Incident Report";
+        ? t("Job Hazard Plan")
+        : t("Incident Report");
     setSubject(`${title} — ${proj}${date ? ` (${date})` : ""}`);
     setNote("");
   }, [open, record, kind]);
@@ -91,11 +93,11 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
   const send = async () => {
     const valid = recipients.map((s) => s.trim()).filter(isValidEmail);
     if (valid.length === 0) {
-      toast.error("Add at least one recipient email");
+      toast.error(t("Add at least one recipient email"));
       return;
     }
     if (!subject.trim()) {
-      toast.error("Subject is required");
+      toast.error(t("Subject is required"));
       return;
     }
     setSending(true);
@@ -114,12 +116,12 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
         /* noop */
       }
       toast.success(
-        `Sent (${(res.data?.size_bytes / 1024 || 0).toFixed(0)} KB PDF) to ${valid.length} recipient${valid.length === 1 ? "" : "s"}`
+        `${t("Sent")} (${(res.data?.size_bytes / 1024 || 0).toFixed(0)} KB PDF) ${t("to")} ${valid.length} ${t(valid.length === 1 ? "recipient" : "recipients")}`
       );
       onOpenChange(false);
     } catch (e) {
       const msg =
-        e?.response?.data?.detail || e?.message || "Email send failed";
+        e?.response?.data?.detail || e?.message || t("Email send failed");
       toast.error(msg);
     } finally {
       setSending(false);
@@ -135,18 +137,17 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
         <DialogHeader>
           <DialogTitle className="font-display text-2xl flex items-center gap-2">
             <Mail className="w-5 h-5 text-red-700" />
-            Email this Report
+            {t("Email this Report")}
           </DialogTitle>
           <DialogDescription>
-            Generates a polished PDF and emails it. Recipients are remembered
-            for next time.
+            {t("Generates a polished PDF and emails it. Recipients are remembered for next time.")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 py-2">
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              To *
+              {t("To *")}
             </Label>
             <div className="mt-2 space-y-2">
               {recipients.map((r, i) => (
@@ -156,7 +157,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
                     inputMode="email"
                     value={r}
                     onChange={(e) => setAt(i, e.target.value)}
-                    placeholder="name@company.com"
+                    placeholder={t("name@company.com")}
                     className={inputCls}
                     data-testid={`email-recipient-${i}`}
                   />
@@ -165,7 +166,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
                     variant="outline"
                     onClick={() => removeRow(i)}
                     className="h-12 w-12 border-2 border-slate-300 text-slate-500 hover:text-red-700 hover:border-red-700 flex-shrink-0"
-                    aria-label="Remove recipient"
+                    aria-label={t("Remove recipient")}
                     data-testid={`email-recipient-remove-${i}`}
                   >
                     <X className="w-4 h-4" />
@@ -179,14 +180,14 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
                 className="h-9 border-2 border-slate-300 text-slate-700 font-mono text-xs uppercase tracking-[0.2em] font-bold"
                 data-testid="email-add-recipient"
               >
-                + Add Recipient
+                {t("+ Add Recipient")}
               </Button>
             </div>
           </div>
 
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Subject *
+              {t("Subject *")}
             </Label>
             <Input
               value={subject}
@@ -198,12 +199,12 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
 
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              Note (optional)
+              {t("Note (optional)")}
             </Label>
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Any context for the recipients (will appear above the PDF link)"
+              placeholder={t("Any context for the recipients (will appear above the PDF link)")}
               className="min-h-[90px] text-base border-2 border-slate-300 mt-1"
               data-testid="email-note"
             />
@@ -217,7 +218,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
             disabled={sending}
             data-testid="email-cancel"
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             onClick={send}
@@ -227,11 +228,11 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
           >
             {sending ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending…
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Sending…")}
               </>
             ) : (
               <>
-                <Mail className="w-4 h-4 mr-2" /> Send PDF
+                <Mail className="w-4 h-4 mr-2" /> {t("Send PDF")}
               </>
             )}
           </Button>

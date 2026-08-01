@@ -3,8 +3,8 @@
 Last updated: 2026-08-01
 
 ## Governing Denominator
-- Total audited surfaces: **1,190 / 1,190** discovered in `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv`
-- Locked route denominator: **481**
+- Total audited surfaces: **1,193 / 1,193** discovered in `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv`
+- Reconciled route denominator: **484**
 - Locked hidden/detail denominator: **113**
 - Locked forms denominator: **66**
 - Locked PDF sources denominator: **15**
@@ -17,17 +17,17 @@ Last updated: 2026-08-01
 ## Discovery Completeness Status
 
 ### Route Discovery
-- Route definitions discovered directly in `AppRoutes.jsx`: **447 / 481**
-- Discovery gap still open: **34 routes**
-- Current discovery confidence: **NOT CERTIFIED**
-- Verified status: direct route-definition scan is incomplete against the locked route denominator and cannot be treated as 100% discovery.
+- Route definitions discovered from multiline source scan across routed files: **484 / 484**
+- Discovery gap still open: **0**
+- Current discovery confidence: **100% for route discovery**
+- Verified status: denominator reconciled after adding multiline nested transportation child routes, the nested index route, and three live admin routes absent from the prior locked ledger.
 
 ### Hidden / Detail Discovery
 - Locked hidden/detail denominator: **113**
-- Source-verified hidden/detail state rows currently found in the platform ledger (`DETAIL` + `HIDDEN`): **140**
-- Discovery discrepancy: **+27 surfaces**
-- Current discovery confidence: **NOT CERTIFIED**
-- Verified status: denominator reconciliation is still open and must be resolved before hidden-surface discovery can be considered complete.
+- Source-verified hidden/detail route surfaces after reconciliation: **113 / 113**
+- Discovery discrepancy still open: **0**
+- Current discovery confidence: **100% for hidden/detail denominator**
+- Verified status: the apparent 140-count inflation came from 26 hidden navigation nodes plus one hidden redirect alias (`/admin/hub_v2`) that belong to other denominators.
 
 ### Form Discovery
 - Form surfaces discovered in the locked ledger: **66 / 66**
@@ -44,17 +44,18 @@ Last updated: 2026-08-01
 
 ### Component Discovery
 - Locked component-family denominator: **64**
-- Component-family route consumers actively traced in current hunt: **started, not yet reconciled to 64 / 64**
+- Primitive-family registry reconciled: **64 / 64**
+- Authoritative registry: `/app/memory/WP17D_PRIMITIVE_FAMILY_REGISTRY.csv`
 - Verified shared hero families currently under audit:
   - `OperationalPageFrame`
   - `OperationalOutcomeFrame`
   - `DetailPageHero`
   - `wp17-mission-banner`
-- Current discovery confidence: **NOT CERTIFIED**
+- Current discovery confidence: **100% for primitive-family discovery**
 
 ## Platform-Wide Discovery Snapshot
-- Locked ledger rows discovered: **1,190 / 1,190**
-- App router path definitions discovered: **447**
+- Ledger rows discovered after route inventory expansion: **1,193 / 1,193**
+- Reconciled route objects discovered: **484**
 - Existing route entries with a prior `CERTIFIED` disposition in the locked ledger: **40**
 - Existing route entries with `IMPLEMENTED` disposition in the locked ledger: **617**
 - Existing route entries with `MIGRATING` disposition in the locked ledger: **436**
@@ -63,14 +64,14 @@ Last updated: 2026-08-01
 
 ## Current Executive Certification Status
 - Platform discovery complete: **No**
-- Route discovery confidence = 100%: **No**
-- Hidden-surface discovery confidence = 100%: **No**
-- Component-family discovery confidence = 100%: **No**
+- Route discovery confidence = 100%: **Yes**
+- Hidden-surface discovery confidence = 100%: **Yes**
+- Component-family discovery confidence = 100%: **Yes (discovery only; certification still open)**
 - Platform can begin final executive certification math: **No**
 
 ## First Reachability Deliverable
 - Route-to-entry-point ledger created: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`
-- Current ledger row count: **447** route definitions
+- Current ledger row count: **484** reconciled route objects
 - Current fields:
   - `route`
   - `family`
@@ -84,15 +85,15 @@ Last updated: 2026-08-01
   - `source_line`
 
 ## Route-to-Entry Reachability Snapshot
-- `DISCOVERED_ENTRY_REVIEW_PENDING`: **293**
-- `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **106**
+- `DISCOVERED_ENTRY_REVIEW_PENDING`: **335**
+- `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **100**
 - `DISCOVERED_ALIAS`: **48**
+- `DISCOVERED_INDEX_ROUTE_REVIEW_PENDING`: **1**
 
 ## Hidden Surface Disposition Snapshot
-- `EXPOSED_OR_NAV_REVIEW`: **293**
-- `JUSTIFIED_HIDDEN_REVIEW`: **89**
+- `EXPOSED_OR_NAV_REVIEW`: **335**
+- `JUSTIFIED_HIDDEN_REVIEW`: **100**
 - `REDIRECT`: **48**
-- `MERGE_OR_RETIRE_REVIEW`: **17**
 
 ## Current Family Distribution in Reachability Ledger
 - Administration: **147** routes
@@ -107,16 +108,13 @@ Last updated: 2026-08-01
 - Shared Operational Home / Public Entry: **101** routes
 
 ## Open Discovery Survivors
-1. **Route denominator mismatch** — 447 route definitions found vs locked denominator 481
-2. **Hidden/detail mismatch** — 140 source-verified hidden/detail surfaces vs locked denominator 113
-3. **Family normalization drift** — locked 13-family model still needs explicit reconciliation for dispatch/driver/executive rows into the governing family taxonomy
-4. **Component-family denominator unreconciled** — 64 locked families not yet individually mapped to consuming surfaces
-5. **Reachability proof incomplete** — ledger exists, but click-path validation is not yet proven for most discovered routes
+1. **Family normalization drift** — locked 13-family model still needs explicit reconciliation for dispatch/driver/executive rows into the governing family taxonomy
+2. **Reachability proof incomplete** — ledger exists, but click-path validation is not yet proven for most discovered routes
+3. **Primitive-family certification incomplete** — denominator is reconciled, but family-by-family executive certification remains open
 
 ## Immediate Next Discovery Actions
-1. Reconcile the **34-route gap** between `AppRoutes.jsx` and the locked 481-route denominator
-2. Reconcile the **140 vs 113** hidden/detail discrepancy and classify each variance
-3. Expand the reachability ledger from route definitions into **click-path evidence**
+1. Expand the reachability ledger from route definitions into **click-path evidence**
+2. Normalize every discovered route into the locked 13-family platform taxonomy
 4. Create primitive-family ledgers for:
    - Hero
    - Card
