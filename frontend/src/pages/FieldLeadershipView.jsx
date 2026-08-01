@@ -19,6 +19,7 @@ import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { PortalShell } from "@/design-system";
 import { formatEmployeeIdentity } from "@/lib/identity";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, "");
 
@@ -35,27 +36,37 @@ function isInternalDetailKey(key) {
   return value === "id" || value.startsWith("_") || value.endsWith("_id") || value.includes("uuid") || value === "line_index";
 }
 
-function renderDetailValue(value) {
+function getOriginalValue(originals, path) {
+  if (!originals || typeof originals !== "object") return undefined;
+  return originals[path];
+}
+
+function renderDetailValue(value, opts = {}) {
+  const { originals, path, t } = opts;
+  const original = getOriginalValue(originals, path);
+  if (typeof original === "string" && original.trim()) {
+    return original;
+  }
   if (value === null || value === undefined || value === "") {
-    return <span className="text-slate-400">No answer recorded</span>;
+    return <span className="text-slate-400">{t ? t("No answer recorded") : "No answer recorded"}</span>;
   }
   if (typeof value === "boolean") {
-    return value ? "Yes" : "No";
+    return value ? (t ? t("Yes") : "Yes") : (t ? t("No") : "No");
   }
   if (Array.isArray(value)) {
-    if (!value.length) return <span className="text-slate-400">No entries recorded</span>;
+    if (!value.length) return <span className="text-slate-400">{t ? t("No entries recorded") : "No entries recorded"}</span>;
     return value.join(" · ");
   }
   if (typeof value === "object") {
     const nestedEntries = Object.entries(value).filter(([nestedKey, nestedValue]) => !isInternalDetailKey(nestedKey) && nestedValue !== null && nestedValue !== undefined && nestedValue !== "");
-    if (!nestedEntries.length) return <span className="text-slate-400">No structured details recorded</span>;
+    if (!nestedEntries.length) return <span className="text-slate-400">{t ? t("No structured details recorded") : "No structured details recorded"}</span>;
     return (
       <table className="w-full mt-1">
         <tbody>
           {nestedEntries.map(([nestedKey, nestedValue]) => (
             <tr key={nestedKey}>
-              <th className="text-left text-xs text-slate-500 pr-3 py-0.5 font-mono">{humanizeDetailKey(nestedKey)}</th>
-              <td className="text-xs py-0.5">{String(nestedValue)}</td>
+              <th className="text-left text-xs text-slate-500 pr-3 py-0.5 font-mono">{t ? t(humanizeDetailKey(nestedKey)) : humanizeDetailKey(nestedKey)}</th>
+              <td className="text-xs py-0.5">{renderDetailValue(nestedValue, { originals, path: `${path}/${nestedKey}`, t })}</td>
             </tr>
           ))}
         </tbody>
@@ -71,6 +82,8 @@ export default function FieldLeadershipView() {
   const location = useLocation();
   const { id } = useParams();
   const [rec, setRec] = useState(null);
+  const [originals, setOriginals] = useState(null);
+  const [originalLanguage, setOriginalLanguage] = useState("");
   const [loading, setLoading] = useState(true);
   const adminMode = location.pathname.startsWith("/admin/");
   const shellBackHref = adminMode ? "/admin/leadership/records" : "/leadership/records";
@@ -96,10 +109,41 @@ export default function FieldLeadershipView() {
      
   }, [id, navigate, t]);
 
+  useEffect(() => {
+    if (!id || !rec) {
+      setOriginals(null);
+      setOriginalLanguage("");
+      return;
+    }
+    let cancelled = false;
+    api.get(`/bilingual-records/field_leadership/${id}`)
+      .then((response) => {
+        if (cancelled) return;
+        const record = response?.data?.record;
+        setOriginals(record?.originals || null);
+        setOriginalLanguage(record?.original_language || "");
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setOriginals(null);
+          setOriginalLanguage("");
+        }
+      });
+    return () => { cancelled = true; };
+  }, [id, rec]);
+
   const kindLabel = (k) => {
     const f = FIELD_LEADERSHIP_FORMS.find((x) => x.kind === k);
     if (!f) return k;
     return f.title[lang] || f.title.en;
+  };
+
+  const preferOriginal = (path, fallback) => {
+    if (lang === "es" && originalLanguage === "es") {
+      const original = getOriginalValue(originals, path);
+      if (typeof original === "string" && original.trim()) return original;
+    }
+    return fallback;
   };
 
   const downloadPdf = async () => {
@@ -154,15 +198,15 @@ export default function FieldLeadershipView() {
   const detailEntries = Object.entries(details).filter(([key, value]) => !isInternalDetailKey(key) && value !== null && value !== undefined && value !== "");
   const meta = [
     [t("Form Type"), kindLabel(rec.kind)],
-    [t("Employee"), rec.employee_name],
-    [t("Position"), rec.employee_position],
-    [t("Supervisor"), rec.supervisor_name],
+    [t("Employee"), preferOriginal("/employee_name", rec.employee_name)],
+    [t("Position"), preferOriginal("/employee_position", rec.employee_position)],
+    [t("Supervisor"), preferOriginal("/supervisor_name", rec.supervisor_name)],
     [t("Job"), rec.project_number ? `${rec.project_number} · ${rec.project_name || ""}` : rec.project_name],
     [t("Location"), rec.location || rec.work_area],
     [t("Assigned PM"), rec.assigned_pm],
     [t("Date / Time"), (rec.occurred_at || "").replace("T", " ").slice(0, 16)],
     [t("Submitted via"), rec.submitted_via_role],
-    [t("Language"), rec.language === "es" ? "Español → English" : "English"],
+    [t("Language"), originalLanguage === "es" || rec.submit_language === "es" ? t("Spanish → English") : t("English")],
   ];
   const recordSection = (
     <section className="max-w-5xl px-0 pt-0" data-testid="leadership-view-section">
@@ -176,8 +220,9 @@ export default function FieldLeadershipView() {
           <div>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
             <div className="mt-2 text-sm text-slate-600" data-testid="leadership-view-summary-line">
-              {rec.employee_name || t("Employee")} · {(rec.occurred_at || "").replace("T", " ").slice(0, 16)}
+              {preferOriginal("/employee_name", rec.employee_name) || t("Employee")} · {(rec.occurred_at || "").replace("T", " ").slice(0, 16)}
             </div>
+            {originalLanguage === "es" || rec.submit_language === "es" ? <SubmitLangBadge lang="es" className="mt-2" /> : null}
           </div>
         {rec.doc_id && (
           <div
@@ -198,7 +243,7 @@ export default function FieldLeadershipView() {
             {meta.map(([k, v]) => (
               <tr key={k} className="border-b border-slate-100">
                 <th className="text-left py-1.5 pr-3 font-semibold text-slate-700 w-1/3">{k}</th>
-                <td className="py-1.5">{v || <span className="text-slate-400">No answer recorded</span>}</td>
+                <td className="py-1.5">{v || <span className="text-slate-400">{t("No answer recorded")}</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -215,8 +260,8 @@ export default function FieldLeadershipView() {
           <dl className="space-y-3">
             {detailEntries.map(([k, v]) => (
               <div key={k}>
-                <dt className="font-semibold text-sm text-slate-700">{humanizeDetailKey(k)}</dt>
-                <dd className="text-sm text-slate-800 whitespace-pre-wrap mt-0.5">{renderDetailValue(v)}</dd>
+                <dt className="font-semibold text-sm text-slate-700">{t(humanizeDetailKey(k))}</dt>
+                <dd className="text-sm text-slate-800 whitespace-pre-wrap mt-0.5">{renderDetailValue(v, { originals: lang === "es" && originalLanguage === "es" ? originals : null, path: `/details/${k}`, t })}</dd>
               </div>
             ))}
           </dl>
@@ -242,19 +287,19 @@ export default function FieldLeadershipView() {
               <div className="border-2 border-slate-200 rounded p-3 bg-white">
                 <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Supervisor")}</div>
                 <img src={resolvePhotoSrc(rec.supervisor_signature)} alt="sig" className="max-h-20 mt-1" />
-                <div className="font-bold mt-1 text-sm">{rec.supervisor_name}</div>
+                <div className="font-bold mt-1 text-sm">{preferOriginal("/supervisor_name", rec.supervisor_name)}</div>
               </div>
             )}
             {rec.employee_refused ? (
               <div className="border-2 border-red-200 rounded p-3 bg-red-50">
                 <div className="text-xs font-mono uppercase tracking-[0.15em] text-red-700">{t("Employee Refused")}</div>
-                <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
+                <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || preferOriginal("/employee_name", rec.employee_name)}</div>
               </div>
             ) : rec.employee_signature && (
               <div className="border-2 border-slate-200 rounded p-3 bg-white">
                 <div className="text-xs font-mono uppercase tracking-[0.15em] text-slate-500">{t("Employee")}</div>
                 <img src={resolvePhotoSrc(rec.employee_signature)} alt="sig" className="max-h-20 mt-1" />
-                <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || rec.employee_name}</div>
+                <div className="font-bold mt-1 text-sm">{formatEmployeeIdentity(rec) || preferOriginal("/employee_name", rec.employee_name)}</div>
               </div>
             )}
             {rec.witness_signature && (
@@ -278,12 +323,13 @@ export default function FieldLeadershipView() {
       subtitle={t("Read-only field submission with supporting photos, signatures, and operator context.")}
       showBack
       backHref={shellBackHref}
+      showNotifications={false}
       portalSwitcherCurrent={adminMode ? "admin" : getPmToken() ? "pm" : "leadership"}
       primaryActions={(
         <Button
           onClick={downloadPdf}
           variant="outline"
-          className="h-10 px-3 border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 text-xs font-bold uppercase tracking-wide"
+          className="h-10 w-full sm:w-auto px-3 border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 text-xs font-bold uppercase tracking-wide"
           data-testid="leadership-view-pdf"
         >
           <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}

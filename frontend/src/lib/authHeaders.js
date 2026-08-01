@@ -16,6 +16,7 @@ const PORTAL_HEADER_MAP = {
   dispatch: "X-Dispatch-Token",
   field_leadership: "X-FL-Token",
   fl: "X-FL-Token",
+  leadership: "X-FL-Token",
 };
 
 const DIRECTORY_COMPATIBLE_PORTALS = new Set([
@@ -77,4 +78,17 @@ export function buildScopedPortalAuthHeaders(portals = [], extra = {}) {
     scoped["X-Directory-Token"] = all["X-Directory-Token"];
   }
   return scoped;
+}
+
+export function hasAnyPortalAuthToken() {
+  return !!(
+    getAdminToken()
+    || getPmToken()
+    || getHrToken()
+    || getShopToken()
+    || getSafetyToken()
+    || getDispatchToken()
+    || getFlToken()
+    || getDirectoryToken()
+  );
 }

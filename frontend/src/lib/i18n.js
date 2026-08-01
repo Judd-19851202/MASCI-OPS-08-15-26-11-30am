@@ -252,6 +252,28 @@ const ES = {
     "Documentación de cuadrillas, rendición de cuentas y solicitudes de campo en un mismo espacio operativo.",
   "Keep crew documentation, accountability, and field requests in one clear workflow home.":
     "Mantén la documentación de cuadrillas, la rendición de cuentas y las solicitudes de campo en un solo centro de trabajo claro.",
+  "Submission history and evidence for the jobs assigned to you.":
+    "Historial de envíos y evidencia para los trabajos que tienes asignados.",
+  "Submission outcome": "Resultado del envío",
+  "Back to start": "Volver al inicio",
+  "Read-only field submission with supporting evidence.":
+    "Envío de campo de solo lectura con evidencia de respaldo.",
+  "Read-only field submission with supporting photos, signatures, and operator context.":
+    "Envío de campo de solo lectura con fotos de respaldo, firmas y contexto del operador.",
+  "Record Ref": "Referencia del registro",
+  "Originally entered in Spanish": "Ingresado originalmente en español",
+  "Originally entered in Spanish by the field crew. The record below was auto-translated to English at submit time.":
+    "Ingresado originalmente en español por la cuadrilla de campo. El registro a continuación se tradujo automáticamente al inglés al enviarse.",
+  "Spanish → English": "Español → Inglés",
+  "Topic": "Tema",
+  "Issue Discussed": "Tema tratado",
+  "Expectations": "Expectativas",
+  "Employee Response": "Respuesta del empleado",
+  "Follow Up Needed": "¿Se necesita seguimiento?",
+  "No answer recorded": "No se registró respuesta",
+  "No entries recorded": "No se registraron entradas",
+  "No structured details recorded": "No se registraron detalles estructurados",
+  "PM Workspace": "Espacio PM",
   "Superintendent": "Superintendente",
   "Foreman": "Capataz",
   "Safety Lead": "Líder de Seguridad",

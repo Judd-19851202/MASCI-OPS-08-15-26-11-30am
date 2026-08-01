@@ -14,6 +14,7 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 
 export default function SmartUnitClassificationChip({ unitNumber, testidPrefix = "smart-class" }) {
   const [state, setState] = useState({ loading: false, found: null, source: null, asset_class: null, asset_type: null, verified: false });
@@ -21,6 +22,7 @@ export default function SmartUnitClassificationChip({ unitNumber, testidPrefix =
   useEffect(() => {
     const u = (unitNumber || "").trim();
     if (!u) { setState({ loading: false, found: null }); return; }
+    if (!hasAnyPortalAuthToken()) { setState({ loading: false, found: null }); return; }
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
     api

@@ -589,8 +589,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       const lang = getLang();
       if (lang === "es") {
         toast.info("Translating to English…");
-        const { translateUserInput } = await import("@/lib/translateOnSubmit");
+        const { stripTranslationMeta, translateUserInput } = await import("@/lib/translateOnSubmit");
         payload = await translateUserInput(payload, "es");
+        payload = stripTranslationMeta(payload);
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/equipment-inspections", payload);
@@ -881,7 +882,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 }}
                 placeholder={t("Type or pick from roster…")}
                 testId="input-operator-name"
-                publicFallback={publicMode}
+                publicFallback
               />
               {(data.operator_name || "").trim() ? (
                 data.operator_id ? (

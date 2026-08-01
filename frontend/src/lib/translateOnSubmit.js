@@ -19,8 +19,15 @@
 
 import { api } from "@/lib/api";
 
+const TRANSLATION_META_KEYS = [
+  "_originals",
+  "_original_language",
+  "_translated_at",
+  "_translation_source",
+];
+
 const SKIP_KEY_RE =
-  /signature|photo|^id$|created_at|gps_|accuracy|_lat$|_lng$|_url$|score|status|_count$|^date$|_date$|_time$|_number$|severity|incident_type|operation|topic_category/i;
+  /signature|photo|^id$|^kind$|_kind$|form_type|template_key|created_at|gps_|accuracy|_lat$|_lng$|_url$|score|status|_count$|^date$|_date$|_time$|_number$|severity|incident_type|operation|topic_category/i;
 
 const DATA_URL_RE = /^data:[a-z]+\/[a-z0-9.+-]+;base64,/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -162,6 +169,15 @@ export async function translateUserInput(payload, fromLang) {
       _translation_source: "pending",
     };
   }
+}
+
+export function stripTranslationMeta(payload) {
+  if (!payload || typeof payload !== "object") return payload;
+  const next = { ...payload };
+  TRANSLATION_META_KEYS.forEach((key) => {
+    delete next[key];
+  });
+  return next;
 }
 
 /**

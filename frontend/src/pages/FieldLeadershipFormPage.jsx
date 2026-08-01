@@ -28,7 +28,7 @@ import { EquipmentLines } from "@/components/EquipmentLines";
 import { EquipmentReturnLines } from "@/components/EquipmentReturnLines";
 import { OutstandingEquipmentLookup } from "@/components/OutstandingEquipmentLookup";
 import { getFormByKind } from "@/lib/fieldLeadershipSchemas";
-import { translateUserInput } from "@/lib/translateOnSubmit";
+import { stripTranslationMeta, translateUserInput } from "@/lib/translateOnSubmit";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
@@ -686,10 +686,11 @@ export default function FieldLeadershipFormPage() {
         try { await persistIdempotencyKey(`fl-${kind}-new`, idempotencyKeyRef.current); }
         catch { /* ignore */ }
       }
+      const submitPayload = stripTranslationMeta(finalPayload);
       const up = await enqueueUpload({
         method: "POST",
         url: "/field-leadership",
-        body: finalPayload,
+        body: submitPayload,
         idempotencyKey: idempotencyKeyRef.current,
         formKey: `fl-${kind}-new`,
       });

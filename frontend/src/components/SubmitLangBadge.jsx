@@ -1,5 +1,6 @@
 import React from "react";
 import { SemanticIcon } from "@/components/icons/AppIcon";
+import { useT } from "@/lib/i18n";
 
 /**
  * SubmitLangBadge — tiny chip rendered on admin-facing record views (and
@@ -13,15 +14,16 @@ import { SemanticIcon } from "@/components/icons/AppIcon";
  *   <SubmitLangBadge lang={doc.submit_language} />
  */
 export function SubmitLangBadge({ lang, className = "" }) {
+  const { t } = useT();
   if (!lang || lang === "en") return null;
   return (
     <span
       data-testid="submit-lang-badge"
       className={`wp17-status-badge wp17-tone--amber ${className}`}
-      title="Originally entered in Spanish by the field crew. The record below was auto-translated to English at submit time."
+      title={t("Originally entered in Spanish by the field crew. The record below was auto-translated to English at submit time.")}
     >
       <SemanticIcon name="language" size="xs" />
-      Originally entered in Spanish
+      {t("Originally entered in Spanish")}
     </span>
   );
 }

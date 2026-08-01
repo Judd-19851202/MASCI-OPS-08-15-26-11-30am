@@ -672,6 +672,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               <EmployeeCombo
                 value={driverName}
                 onChange={setDriverName}
+                publicFallback
                 placeholder={t("Type or pick name…")}
                 testId={formCopy.submitterTestId + "-combo"}
                 className="mt-1"

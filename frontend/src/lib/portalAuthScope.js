@@ -59,6 +59,7 @@ const SHARED_API_PREFIXES = [
   "/operational-records",
   "/operational-intelligence/",
   "/jobs-master",
+  "/bilingual-records",
 ];
 
 const ADMIN_SHARED_CROSS_PORTAL_PREFIXES = [

@@ -46,7 +46,7 @@ export default function FieldLeadershipRecords() {
   const backLabel = admin
     ? t("Administration")
     : pm
-    ? t("PM Hub")
+    ? t("PM Workspace")
     : t("Field Leadership");
 
   // Auth is enforced by the backend (admin / PM / leadership token all
@@ -173,6 +173,7 @@ export default function FieldLeadershipRecords() {
       subtitle={admin ? t("All Field Leadership submissions across every job.") : t("Submission history and evidence for the jobs assigned to you.")}
       showBack
       backHref={backTo}
+      showNotifications={false}
       portalSwitcherCurrent={portalSwitcherCurrent}
       primaryActions={
         <div className="hidden md:flex" data-testid="leadership-records-company-info">
@@ -180,7 +181,7 @@ export default function FieldLeadershipRecords() {
         </div>
       }
     >
-      <div data-testid="leadership-records-root" className="pb-16">
+      <div data-testid="leadership-records-root" className="pb-16 min-w-0">
         <section>
         {/* iter218 · reviewer-side coaching — supers reviewing crew
             filings get coaching on what to look for, how to push back,
@@ -215,30 +216,31 @@ export default function FieldLeadershipRecords() {
         </div>
 
         {/* FILTERS */}
-        <Card className="mt-6 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 wp17-panel" data-testid="leadership-records-filters">
+        <Card className="mt-6 p-4 grid min-w-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 wp17-panel" data-testid="leadership-records-filters">
           <Input placeholder={t("Employee")} value={employee} onChange={(e) => setEmployee(e.target.value)} className={inputCls} data-testid="records-filter-employee" />
           <Input placeholder={t("Job # or Name")} value={job} onChange={(e) => setJob(e.target.value)} className={inputCls} data-testid="records-filter-job" />
           <Input placeholder={t("Supervisor")} value={supervisor} onChange={(e) => setSupervisor(e.target.value)} className={inputCls} data-testid="records-filter-supervisor" />
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={inputCls} data-testid="records-filter-date-from" />
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} data-testid="records-filter-date-to" />
           <Input placeholder={t("Search…")} value={q} onChange={(e) => setQ(e.target.value)} className={inputCls} data-testid="records-filter-q" />
-          <div className="md:col-span-6 flex gap-2">
-            <Button onClick={fetchRecords} className="bg-red-700 hover:bg-red-800 text-white" data-testid="records-search-btn">
+          <div className="md:col-span-6 flex flex-wrap gap-2">
+            <Button onClick={fetchRecords} className="w-full sm:w-auto bg-red-700 hover:bg-red-800 text-white" data-testid="records-search-btn">
               <Search className="w-4 h-4 mr-1" />{t("Search")}
             </Button>
-            <Button variant="outline" onClick={() => { setEmployee(""); setJob(""); setSupervisor(""); setDateFrom(""); setDateTo(""); setQ(""); fetchRecords(); }} data-testid="records-clear-btn">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => { setEmployee(""); setJob(""); setSupervisor(""); setDateFrom(""); setDateTo(""); setQ(""); fetchRecords(); }} data-testid="records-clear-btn">
               {t("Clear")}
             </Button>
-            <div className="flex-1" />
-            <Button variant="outline" onClick={exportCsv} data-testid="records-export-csv">
+            <div className="hidden sm:block sm:flex-1" />
+            <Button variant="outline" className="w-full sm:w-auto" onClick={exportCsv} data-testid="records-export-csv">
               <FileDown className="w-4 h-4 mr-1" />{t("Export CSV")}
             </Button>
           </div>
         </Card>
 
         {/* LIST */}
-        <Card className="mt-4 overflow-hidden wp17-data-table" data-testid="leadership-records-table-shell">
-          <table className="w-full text-sm">
+        <Card className="mt-4 overflow-hidden min-w-0 wp17-data-table" data-testid="leadership-records-table-shell">
+          <div className="w-full overflow-x-auto" data-testid="leadership-records-table-scroll">
+          <table className="w-full min-w-[42rem] text-sm">
             <thead className="bg-slate-100 text-slate-700 text-xs uppercase tracking-[0.15em] font-mono">
               <tr>
                 <th className="text-left px-3 py-2">{t("Date")}</th>
@@ -278,6 +280,7 @@ export default function FieldLeadershipRecords() {
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       </section>
       </div>

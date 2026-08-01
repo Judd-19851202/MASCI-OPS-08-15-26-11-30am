@@ -24,6 +24,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, AlertTriangle, Loader2, Wrench } from "lucide-react";
 import { api } from "@/lib/api";
+import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 
 const STATUSES = ["pass", "fail", "na"];
 
@@ -72,6 +73,11 @@ export default function CanonicalInspectionSections({
   useEffect(() => {
     const u = (unitNumber || "").trim();
     if (!u) {
+      setState({ loading: false, asset_type: null, sections: [], status: null });
+      setResults({});
+      return undefined;
+    }
+    if (!hasAnyPortalAuthToken()) {
       setState({ loading: false, asset_type: null, sections: [], status: null });
       setResults({});
       return undefined;
