@@ -62,6 +62,8 @@
   - trench shell convergence is now underway on shared architecture, not one-off patches: `SafetyShell.jsx` and `PmShell.jsx` now support governed suppression of duplicate page headers / mission banners, `TrenchSafetyShell.jsx` now renders one canonical trench navigation surface across admin/safety/PM contexts, and portal-hop inconsistencies in `TrenchSafetyAssetsList.jsx` + `TrenchSafetyHub.jsx` were removed so trench links stay inside the active portal
   - `TrenchSafetyAssetDetail.jsx` now uses the canonical detail hero, governed route framing, and `DataTable` deployment history treatment; `/admin/trench-safety/assets/:assetId`, `/admin/trench-safety/reports`, and `/safety/trench-safety/reports` were visually certified after the trench shell convergence pass
   - the approved executive operations tool is now live at `/admin/wp17d-certification`, showing survivor counts by category, route-by-route certification status, screenshot / QA evidence summaries, blocker state, overall completion %, and GO / NO-GO readiness
+  - Executive Amendment #2 is now active in implementation: the shared MASCI header system was rebuilt into a strict two-tier architecture (`CanonicalHeader.jsx`, `PortalShell.jsx`, `AdminRouteShell.jsx`, `SafetyShell.jsx`, `PmShell.jsx`, `PortalLoginShell.jsx`, `DetailPageHero.jsx`) so global controls stay in row one, workflow identity lives in row two, long titles remain readable at `390px`, and utility controls live below — not inside — the sticky header rows
+  - operator-facing product language was cleaned immediately after the header rewrite: the former internal admin governance surface now renders as **Operations Readiness Center** at `/admin/platform-readiness`, and banned engineering terms no longer appear in the visible UI even when the legacy alias `/admin/wp17d-certification` is opened
   - `DevHub.jsx` remains **BLOCKED_CREDENTIALS** for authenticated visual certification in Preview: `GET /api/dev/check` returns `404`, `POST /api/dev/login` returns `404`, and backend fail-closed logic requires backend `DEV_PASSWORD` plus the dev endpoint gate to be enabled before the actual `/dev` surface can be opened and certified
 
 ## Locked Totals Preserved
@@ -127,6 +129,7 @@
   - focused `auto_frontend_testing_agent` pass (**4/4 PASS**) confirmed the admin safety aliases, admin JHA surface, trench Add Box dialog, and DevHub disabled-environment handling with no remaining defects
   - responsive screenshot certification also passed for `/admin/trench-safety/reports`, `/safety/trench-safety/reports`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification` at `390`, `430`, `768`, `1024`, and `1440`
   - focused `auto_frontend_testing_agent` pass (**7/7 PASS**) confirmed trench shell portal consistency, admin trench detail alias routing, executive dashboard behavior, and console/network cleanliness with no remaining defects
+  - shared-header QA pass (**4/4 PASS**) confirmed the new two-tier header, product-language cleanup, detail-header integration, and legacy-alias hygiene on `/admin/login`, `/admin/platform-readiness`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification`
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -136,6 +139,7 @@
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
 - Continue the Platform Shell Batch with the remaining highest-visibility routes first: authenticated `DevHub` once unblocked, remaining trench/detail aliases (especially dialogs / overlays), and any remaining direct-header pages still not routed through `CanonicalHeader`.
+- Because of Executive Amendment #2, treat all previously closed header routes as provisional until they are reopened and re-certified against the new operator-first header constitution.
 - After shell survivors reach evidence-backed zero or documented exceptions only, continue the shared convergence wave for dialogs, overlays, cards, shared primitives, and remaining coaching items.
 - Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
 - Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.

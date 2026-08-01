@@ -8,6 +8,12 @@ A survivor is open until it is either:
 - migrated to the canonical implementation and visually verified, or
 - retained as a documented approved exception.
 
+## Executive Amendment #2 Override · 2026-08-01
+- All prior route certifications are **provisional** wherever they conflict with the new operator-first header constitution.
+- Shared header architecture is now the first-class P0 system: two-tier canonical header, utility controls moved below the sticky shell, duplicate identity removed, and long workflow names protected at `390px`.
+- Internal engineering language is now prohibited in the product UI. The admin governance tool was renamed to **Operations Readiness Center** at `/admin/platform-readiness`; old internal route aliases may remain for continuity but must never leak engineering wording in the rendered product.
+- Header-related survivor counts are now in **active recount**. Treat the denominators below as the last audited baseline, and reopen every previously closed header route until it is re-certified under this amendment.
+
 ## Full-Ledger Survivor Counts
 - Route/Shell: **99**
 - Navigation: **59**
@@ -86,8 +92,15 @@ A survivor is open until it is either:
 - Denominator movement: full-ledger route/shell survivors `102 → 99`; full-ledger navigation survivors `62 → 59`; full-ledger table survivors `100 → 99`; active header queue `15 → 12`
 - Carry-forward note: the trench shared shell is now governed, but remaining trench detail aliases, trench dialogs/overlays, and non-trench direct-header survivors still require route-by-route certification and convergence.
 
+### 2026-08-01 · Shared Header Constitution + Product Language Cleanup · CLOSED
+- Shared fixes: `CanonicalHeader.jsx` now enforces the two-tier operator-first header (global controls only on row one, workflow identity only on row two); `PortalShell.jsx` now moves search / switcher / profile utilities into a separate utility rail below the sticky header; `AdminRouteShell.jsx`, `SafetyShell.jsx`, `PmShell.jsx`, `PublicShell.jsx`, and `PortalLoginShell.jsx` now inherit the governed header behavior automatically; `DetailPageHero.jsx` now hands workflow identity to the shell header so detail pages no longer need duplicate large titles below the header.
+- Product-language cleanup: the admin governance surface now renders as **Operations Readiness Center** at `/admin/platform-readiness`, with all leaked engineering labels removed from visible UI; the legacy `/admin/wp17d-certification` alias may remain for continuity but must render the same product-safe surface.
+- Evidence: responsive header review captured at `390px` on `/admin/login`, `/admin/platform-readiness`, and `/admin/trench-safety/assets/:assetId`; banned-term scan returned zero UI hits; focused `auto_frontend_testing_agent` pass returned **4/4 PASS** for shared header architecture, product-language cleanup, detail-header integration, and legacy alias hygiene.
+- Denominator movement: **none yet** — Amendment #2 forces a route-by-route header recount before new header-closure numbers can be trusted.
+- Carry-forward note: all previously closed header routes remain provisional until reopened and re-certified under the amendment-driven route audit.
+
 ## Active-Route Survivor Queue
-### Header survivors (17)
+### Header survivors (active recount · provisional baseline 17)
 
 ### Form survivors (2)
 - `/revise/:token` · `Revise` · move to canonical FormShell or canonical public auth shell
