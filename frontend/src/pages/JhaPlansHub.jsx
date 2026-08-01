@@ -143,15 +143,15 @@ export default function JhaPlansHub() {
       showSignOut={false}
       showPageHeader={false}
     >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <div className="wp17-public-hero mb-6" data-testid="jha-summary">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 overflow-x-hidden">
+        <div className="wp17-public-hero mb-6 overflow-hidden max-w-full" data-testid="jha-summary">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr),19rem] lg:items-start">
-            <div>
+            <div className="min-w-0 max-w-full">
               <span className="wp17-kicker text-red-700">{t("Field Safety · Pre-task access")}</span>
-              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
+              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2 break-words max-w-[12ch] sm:max-w-none">
                 {t("Open the latest hazard plan before work starts.")}
               </h1>
-              <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-3xl">
+              <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-3xl break-words">
                 {t("Search by project number, project name, or location. Open the current plan, download it for offline use, and acknowledge the file you actually reviewed.")}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -160,7 +160,7 @@ export default function JhaPlansHub() {
                 <OperationalStatusBadge tone="cyan" testId="jha-badge-ack">{t("Acknowledgement tracked")}</OperationalStatusBadge>
               </div>
             </div>
-            <div className="wp17-panel p-4" data-testid="jha-attention-panel">
+            <div className="wp17-panel p-4 min-w-0 max-w-full" data-testid="jha-attention-panel">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-700 font-bold mb-2">{t("What needs attention now")}</div>
               <div className="text-sm text-slate-700 leading-6">
                 {t("If your job has no uploaded plan, stop and get with your PM before the crew breaks ground. If it has changed, download the newest file and acknowledge that exact revision.")}
@@ -170,7 +170,7 @@ export default function JhaPlansHub() {
         </div>
 
         <div
-          className="mb-5 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 flex flex-wrap items-center gap-2 text-xs shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
+          className="mb-5 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 flex flex-wrap items-center gap-2 text-xs shadow-[0_12px_28px_rgba(15,23,42,0.04)] max-w-full overflow-hidden"
           data-testid="jha-ack-identity-strip"
         >
           <span className="font-mono uppercase tracking-[0.18em] text-slate-500">
@@ -203,13 +203,13 @@ export default function JhaPlansHub() {
           )}
         </div>
 
-        <div className="wp17-panel p-3 mb-5 relative">
+        <div className="wp17-panel p-3 mb-5 relative max-w-full overflow-hidden">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("Search by job number, name, or location…")}
-            className="h-12 pl-9 border-slate-300"
+            className="h-12 pl-9 border-slate-300 w-full max-w-full"
             data-testid="jha-search"
           />
         </div>
@@ -238,7 +238,7 @@ export default function JhaPlansHub() {
                   disabled={!hasFiles}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-display font-bold text-slate-900 truncate">
+                    <div className="font-display font-bold text-slate-900 break-words pr-2">
                       {job.project_number} · {job.project_name}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5 truncate">
