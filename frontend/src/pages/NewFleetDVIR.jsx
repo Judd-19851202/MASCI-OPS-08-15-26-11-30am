@@ -36,13 +36,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MasciLogo } from "@/components/MasciLogo";
+import FormShell from "@/components/FormShell";
 import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
 import CanonicalInspectionSections from "@/components/CanonicalInspectionSections";
 import { Section, ChecklistRow } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpTip, HelpTipBlock } from "@/components/HelpTip";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 // TRACK 19.12 · DVIR modernization consumes the four reusable
@@ -531,42 +530,60 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   }
 
   return (
-    <div className="min-h-screen blueprint-bg" data-testid="fleet-dvir-form" data-modernized="dvir-modernized">
-      <div className="caution-stripe" />
-
-      <header className="bg-slate-900 border-b-4 border-amber-600">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <MasciLogo variant="mark" size="md" homeLink="/" />
-          <div className="flex items-center gap-2">
-            {!online && (
-              <span
-                className="inline-flex items-center gap-1 text-amber-300 text-[11px] font-mono uppercase tracking-wider"
-                data-testid="dvir-offline-indicator"
-              >
-                <WifiOff className="w-3.5 h-3.5" />
-                {t("Offline")}
-              </span>
-            )}
-            {online && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-emerald-300 text-[11px] font-mono uppercase tracking-wider">
-                <Wifi className="w-3.5 h-3.5" />
-                {t("Online")}
-              </span>
-            )}
-            <LangToggle />
+    <FormShell
+      kicker={formCopy.kicker}
+      title={formCopy.pageTitle}
+      subtitle={t("Capture vehicle condition, defects, signatures, and routing in one shared fleet workflow.")}
+      backLink="/field"
+      backLabel={t("Field")}
+      widthClass="max-w-6xl"
+      containerTestId="dvir-form-shell"
+      stickyFooter={(
+        <div className="flex items-center justify-between gap-3" data-testid="dvir-form-actions">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+            {blockReason ? blockReason : t("Ready to submit · fleet routing will run automatically")}
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-32">
-        <div className="mb-4">
-          <Link
-            to="/field"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-600 font-bold"
-            data-testid="dvir-back-link"
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={!!blockReason || submitting}
+            className="h-12 px-6 text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white disabled:bg-slate-300 disabled:text-slate-500 ml-auto"
+            data-testid="dvir-submit-sticky"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Field")}
-          </Link>
+            {submitting ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("Submitting…")}</>
+            ) : (
+              <><Save className="w-4 h-4 mr-2" />{formCopy.submitButton}</>
+            )}
+          </Button>
+        </div>
+      )}
+    >
+      <div className="pb-20" data-testid="fleet-dvir-form" data-modernized="dvir-modernized">
+        <div className="rounded-2xl border border-amber-100 bg-white/85 p-4 shadow-sm mb-6" data-testid="dvir-form-summary">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700">{formCopy.kicker}</div>
+              <p className="mt-1 text-sm text-slate-600">{t("Use the checklist below to document the unit condition before it goes to work.")}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {!online && (
+                <span
+                  className="inline-flex items-center gap-1 text-amber-700 text-[11px] font-mono uppercase tracking-wider"
+                  data-testid="dvir-offline-indicator"
+                >
+                  <WifiOff className="w-3.5 h-3.5" />
+                  {t("Offline")}
+                </span>
+              )}
+              {online && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 text-[11px] font-mono uppercase tracking-wider">
+                  <Wifi className="w-3.5 h-3.5" />
+                  {t("Online")}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="mb-6 sm:mb-8 flex items-start gap-3 sm:gap-4">
@@ -1063,20 +1080,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Button
-              type="button"
-              onClick={submit}
-              disabled={!!blockReason || submitting}
-              className="h-14 px-4 sm:px-8 text-sm sm:text-base font-bold bg-amber-600 hover:bg-amber-700 text-white disabled:bg-slate-300 disabled:text-slate-500 w-full sm:w-auto"
-              data-testid="dvir-submit"
-            >
-              {submitting ? (
-                <><Loader2 className="w-5 h-5 mr-2 animate-spin" />{t("Submitting…")}</>
-              ) : (
-                <><Save className="w-5 h-5 mr-2" />{formCopy.submitButton}</>
-              )}
-            </Button>
+          <div className="flex flex-wrap items-center gap-3 pt-2 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
             {approvalVersion && (
               <span
                 className="text-[10px] font-mono uppercase tracking-widest text-slate-400"
@@ -1086,14 +1090,13 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                 {approvalVersion}
               </span>
             )}
+            <span className="text-xs text-slate-600 font-mono uppercase tracking-[0.18em]">
+              {t("Submit from the sticky action bar after defects and signature are complete.")}
+            </span>
           </div>
         </Section>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · Trucking · DVIR")}
-      </footer>
-    </div>
+      </div>
+    </FormShell>
   );
 }
 

@@ -9,13 +9,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, ClipboardCheck, Layers, Hammer, HardHat,
+  ClipboardCheck, Layers, Hammer, HardHat,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { QAQC_KINDS } from "@/lib/qaqcSchema";
+import { PortalShell } from "@/design-system/PortalShell";
 
 const ICONS = {
   "concrete-form": Layers,
@@ -69,31 +67,21 @@ export default function QaqcSection() {
   const { t, lang } = useT();
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-emerald-600">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.22em] text-slate-600 hover:text-emerald-700 font-bold"
-            data-testid="qaqc-back-home"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Home")}
-          </Link>
-        </div>
-
-        <div className="mb-8 flex items-start gap-4">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="QA / QC"
+      pageTitle={t("QA / QC")}
+      subtitle={t("Quality assurance and quality control inspections for concrete, rebar, and subcontractor work.")}
+      homeHref="/qaqc"
+      backHref="/"
+      showBack
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div className="mb-8 flex items-start gap-4" data-testid="qaqc-section-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-600 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
           </div>
@@ -101,12 +89,9 @@ export default function QaqcSection() {
             <span className="font-mono text-xs uppercase tracking-[0.22em] text-emerald-700 font-bold">
               {t("Quality Assurance · Quality Control")}
             </span>
-            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-              {t("QA / QC")}
-            </h1>
             <p className="text-slate-600 text-base mt-2 max-w-2xl">
               {t(
-                "Quality assurance and quality control inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.",
+                "Inspection forms for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.",
               )}
             </p>
           </div>
@@ -142,11 +127,7 @@ export default function QaqcSection() {
             );
           })}
         </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.22em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · QA/QC")}
-      </footer>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

@@ -8,12 +8,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardList, Wrench, ArrowLeft, HardHat, Calculator, Truck, Send,
+  ClipboardList, Wrench, HardHat, Calculator, Truck, Send,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { PortalShell } from "@/design-system/PortalShell";
 
 const STRIPE = {
   red:     "border-l-red-600",
@@ -74,31 +72,21 @@ export default function FieldSection() {
   const { t } = useT();
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-amber-600">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-700 font-bold"
-            data-testid="field-back-link"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Home")}
-          </Link>
-        </div>
-
-        <div className="mb-8 flex items-start gap-4">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Field"
+      pageTitle={t("Field")}
+      subtitle={t("What the crew fills out every day, before and after the shift.")}
+      homeHref="/field"
+      backHref="/"
+      showBack
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div className="mb-8 flex items-start gap-4" data-testid="field-section-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
             <HardHat className="w-6 h-6" />
           </div>
@@ -106,11 +94,8 @@ export default function FieldSection() {
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-700 font-bold">
               {t("Field · Daily Ops")}
             </span>
-            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-              {t("Field")}
-            </h1>
             <p className="text-slate-600 text-base mt-2 max-w-2xl">
-              {t("What the crew fills out every day, before and after the shift.")}
+              {t("Daily field reporting, equipment readiness, shift start, and calculators in one crew-facing workspace.")}
             </p>
           </div>
         </div>
@@ -228,11 +213,7 @@ export default function FieldSection() {
             </div>
           </section>
         </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · Field")}
-      </footer>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

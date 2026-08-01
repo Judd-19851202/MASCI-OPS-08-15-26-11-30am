@@ -8,11 +8,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ClipboardCheck, Users, AlertOctagon, FileText, Box, ArrowLeft, Shield, ShieldCheck, IdCard,
+  ClipboardCheck, Users, AlertOctagon, FileText, Box, Shield, ShieldCheck, IdCard,
 } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
-import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { PortalShell } from "@/design-system/PortalShell";
 
@@ -63,37 +60,18 @@ export default function SafetySection() {
     <PortalShell
       portalName="MASCI"
       portalRole="Safety"
+      pageTitle={t("Safety")}
+      subtitle={t("Every form your crews need to stay OSHA-compliant and keep the company defensible.")}
       homeHref="/safety"
+      backHref="/"
+      showBack
       showSearch={false}
       showNotifications={false}
       showPortalSwitcher={false}
       showSignOut={false}
     >
-      <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.22em] text-slate-600 hover:text-red-700 font-bold"
-            data-testid="safety-back-link"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Home")}
-          </Link>
-        </div>
-
-        <div className="mb-8 flex items-start gap-4">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div className="mb-8 flex items-start gap-4" data-testid="safety-section-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white shrink-0">
             <Shield className="w-6 h-6" />
           </div>
@@ -101,11 +79,8 @@ export default function SafetySection() {
             <span className="font-mono text-xs uppercase tracking-[0.22em] text-red-700 font-bold">
               {t("Safety · Compliance")}
             </span>
-            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-              {t("Safety")}
-            </h1>
             <p className="text-slate-600 text-base mt-2 max-w-2xl">
-              {t("Every form your crews need to stay OSHA-compliant and keep the company defensible.")}
+              {t("Inspections, meetings, incidents, hazard plans, trench safety, field cards, and crew-facing forms in one compliance workspace.")}
             </p>
           </div>
         </div>
@@ -185,12 +160,7 @@ export default function SafetySection() {
             testId="safety-tile-forms"
           />
         </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 text-center font-mono text-xs uppercase tracking-[0.22em] text-slate-500 border-t-2 border-slate-200">
-        {t("MASCI · Safety")}
-      </footer>
-    </div>
+      </div>
     </PortalShell>
   );
 }

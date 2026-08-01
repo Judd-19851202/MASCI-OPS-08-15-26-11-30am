@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, AlertOctagon, Wrench, Search, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Save, Loader2, AlertOctagon, Wrench, Search, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,12 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
+import FormShell from "@/components/FormShell";
 import { Section } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
-import { LangToggle } from "@/components/LangToggle";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
@@ -629,7 +628,41 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const failCount = data.fail_count || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32" data-testid="preop-modernized">
+    <FormShell
+      kicker={t("MASCI · Equipment Pre-Op")}
+      title={t("Equipment Pre-Op Inspection")}
+      subtitle={t("Capture pre-operation status, defects, photos, and sign-off in one shared equipment workflow.")}
+      backLink="/"
+      backLabel={t("Home")}
+      widthClass="max-w-4xl"
+      containerTestId="equipment-form-shell"
+      stickyFooter={(
+        <div className="flex items-center justify-between gap-3" data-testid="equipment-form-actions">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+            {failGating.blocked
+              ? t("Finish FAIL notes + photos before submit")
+              : t("Ready to submit · operator sign-off required")}
+          </div>
+          <Button
+            onClick={submit}
+            disabled={saving || failGating.blocked}
+            aria-busy={saving}
+            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
+            data-testid="submit-sticky-btn"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-1" />
+            ) : failGating.blocked ? (
+              <Camera className="w-4 h-4 mr-1" />
+            ) : (
+              <Save className="w-4 h-4 mr-1" />
+            )}
+            {failGating.blocked ? t("Complete FAIL items to submit") : t("Submit Inspection")}
+          </Button>
+        </div>
+      )}
+    >
+      <div className="space-y-6 pb-24" data-testid="preop-modernized">
       {/* Critical-fluid / major-safety stop-work modal */}
       {criticalFluidAlert && (
         <div
@@ -700,55 +733,17 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         </div>
       )}
 
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          {publicMode ? (
-            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          ) : (
-            <Link
-              to="/"
-              className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-              data-testid="back-link"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" /> Home
-            </Link>
-          )}
-          <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <Button
-              onClick={submit}
-              disabled={saving || failGating.blocked}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
-              data-testid="submit-top-btn"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : failGating.blocked ? (
-                <Camera className="w-4 h-4 mr-1" />
-              ) : (
-                <Save className="w-4 h-4 mr-1" />
-              )}
-              {failGating.blocked ? t("Fix FAILs") : t("Submit")}
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("New Report")}
           </span>
-          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Equipment Pre-Op Inspection")}
-          </h1>
-          <p className="text-slate-600 text-sm mt-2">
-            {t(
-              "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
-            )}
-          </p>
+          <div className="rounded-2xl border border-red-100 bg-white/85 p-4 shadow-sm" data-testid="equipment-form-summary">
+            <p className="text-slate-600 text-sm mt-1">
+              {t(
+                "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
+              )}
+            </p>
+          </div>
           {/* TRACK 19.11 MAIN · Phase 5 · HelpDrawer as the SINGLE coaching
               system for Equipment Pre-Op. The five bands that previously
               stacked on top of the form (Why this Pre-Op matters / Who
@@ -1437,7 +1432,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           />
         </FormSection>
 
-        <div className="flex flex-col items-end gap-2">
+        <div className="rounded-xl border border-red-100 bg-red-50/60 px-4 py-3 flex flex-col items-end gap-2">
           {failGating.blocked && (
             <p
               className="text-sm text-red-700 font-bold text-right"
@@ -1461,26 +1456,11 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               )}
             </p>
           )}
-          <Button
-            onClick={submit}
-            disabled={saving || failGating.blocked}
-            aria-busy={saving}
-            className="h-12 px-6 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
-            data-testid="submit-bottom-btn"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-1" />
-            ) : failGating.blocked ? (
-              <Camera className="w-4 h-4 mr-1" />
-            ) : (
-              <Save className="w-4 h-4 mr-1" />
-            )}
-            {failGating.blocked
-              ? t("Complete FAIL items to submit")
-              : t("Submit Inspection")}
-          </Button>
+          <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.18em]">
+            {t("Submit from the sticky action bar after every fail note, fail photo, and signature is complete.")}
+          </p>
         </div>
-      </main>
-    </div>
+      </div>
+    </FormShell>
   );
 }

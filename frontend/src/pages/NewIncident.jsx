@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Save,
   Loader2,
   MapPin,
@@ -21,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
+import FormShell from "@/components/FormShell";
 import { Section } from "@/components/Section";
 import { CollapseCard } from "@/components/CollapseCard";
 import { YesNo } from "@/components/YesNo";
@@ -32,7 +31,6 @@ import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import MasterLookupCombobox from "@/components/MasterLookupCombobox";
 import EmployeeRosterField from "@/components/EmployeeRosterField";
-import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
 import { useT, getLang } from "@/lib/i18n";
 import { friendlyError } from "@/lib/friendlyErrors";
@@ -385,64 +383,53 @@ export default function NewIncident({ publicMode = false }) {
     );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32 overflow-x-hidden">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          {publicMode ? (
-            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          ) : (
-            <Link
-              to="/"
-              className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-              data-testid="back-link"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" /> Home
-            </Link>
-          )}
-          <MasciLogo
-            variant="mark"
-            size="md"
-            className={publicMode ? "sm:hidden" : ""}
-          homeLink="/" />
-          <div className="flex items-center gap-2">
-            <DraftStatusPill status={draftStatus} testId="incident-draft-pill" />
-            <LangToggle />
-            <Button
-              onClick={submit}
-              disabled={saving || (data.photos || []).length < 4}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
-              data-testid="submit-top-btn"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-1" />
-              )}
-              {t("Submit")}
-            </Button>
+    <FormShell
+      kicker={t("MASCI · Incident Reporting")}
+      title={t("Accident / Incident Report")}
+      subtitle={t("Document what happened, who was affected, what was done, and what evidence supports the record.")}
+      backLink="/"
+      backLabel={t("Home")}
+      draftSlot={<DraftStatusPill status={draftStatus} testId="incident-draft-pill" />}
+      widthClass="max-w-4xl"
+      containerTestId="incident-form-shell"
+      stickyFooter={(
+        <div className="flex items-center justify-between gap-3" data-testid="incident-form-actions">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+            {saving
+              ? t("Submitting incident report…")
+              : (data.photos || []).length < 4
+                ? `${t("Need")} ${4 - (data.photos || []).length} ${t("more photo(s)")}`
+                : t("Ready to submit · Safety + PM will be notified")}
           </div>
+          <Button
+            onClick={submit}
+            disabled={saving || (data.photos || []).length < 4}
+            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
+            data-testid="submit-sticky-btn"
+          >
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            {saving ? t("Saving…") : t("Submit Incident Report")}
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      )}
+    >
+      <div className="space-y-6 pb-24 overflow-x-hidden">
         <div className="mb-2">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("New Report")}
-          </span>
-          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Accident / Incident Report")}
-          </h1>
-          {/* iter333 · operational sub-header · iter327 capability-forward voice */}
-          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
-            {t("Every detail filed here protects the crew, the project, and the company. Write it the way you'd want to read it six months from now.")}
-          </p>
+          <div className="rounded-2xl border border-red-100 bg-white/85 p-4 shadow-sm" data-testid="incident-form-summary">
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
+              {t("New Report")}
+            </span>
+            {/* iter333 · operational sub-header · iter327 capability-forward voice */}
+            <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
+              {t("Every detail filed here protects the crew, the project, and the company. Write it the way you'd want to read it six months from now.")}
+            </p>
           <div className="mt-3 flex items-start gap-2 p-3 border-2 border-amber-300 bg-amber-50 rounded-md">
             <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-900 leading-snug">
               <span className="font-bold">{t("First, secure the scene and the injured.")}</span>{" "}
               {t("Call 911 if anyone is seriously hurt. Document this report once the immediate response is complete.")}
             </p>
+          </div>
           </div>
         </div>
 
@@ -1583,7 +1570,7 @@ export default function NewIncident({ publicMode = false }) {
           </div>
         </Section>
 
-        <div className="pt-4">
+        <div className="pt-4 rounded-xl border border-red-100 bg-red-50/60 px-4 py-3">
           {/* Phase 6 · WS3 — operational completion indicator. Field-direct
               wording; no gamification; reflects severity-driven follow-up
               expectations without nagging on low-severity reports. */}
@@ -1614,59 +1601,11 @@ export default function NewIncident({ publicMode = false }) {
               {t("Need")} {4 - (data.photos || []).length} {t("more photo(s) before you can submit")}
             </p>
           )}
-          <Button
-            onClick={submit}
-            disabled={saving || (data.photos || []).length < 4}
-            aria-busy={saving}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:opacity-60"
-            data-testid="submit-bottom-btn"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> {t("Saving Report...")}
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" /> {t("Submit Incident Report")}
-              </>
-            )}
-          </Button>
-        </div>
-      </main>
-
-      {/* iter500 · Rank #1 · Human-Operability sticky footer.
-          Always-visible submit anchor pinned to the viewport bottom so the
-          primary action is reachable on every form length and every device
-          without scroll-hunting. Mirrors the iter453.7 + iter453.9 pattern
-          proven on HrEmployees. The existing top/bottom Submit buttons are
-          retained for redundancy; this footer is the always-on path. */}
-      <div
-        className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t-2 border-red-700 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"
-        data-testid="submit-sticky-footer"
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
-            {saving
-              ? t("Submitting incident report…")
-              : (data.photos || []).length < 4
-                ? `${t("Need")} ${4 - (data.photos || []).length} ${t("more photo(s)")}`
-                : t("Ready to submit · Safety + PM will be notified")}
-          </div>
-          <Button
-            onClick={submit}
-            disabled={saving || (data.photos || []).length < 4}
-            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
-            data-testid="submit-sticky-btn"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            {saving ? t("Saving…") : t("Submit Incident Report")}
-          </Button>
+          <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.18em]">
+            {t("Submit from the sticky action bar after evidence, signatures, and required follow-up details are complete.")}
+          </p>
         </div>
       </div>
-    </div>
+    </FormShell>
   );
 }
