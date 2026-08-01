@@ -9,11 +9,11 @@ A survivor is open until it is either:
 - retained as a documented approved exception.
 
 ## Full-Ledger Survivor Counts
-- Route/Shell: **118**
-- Navigation: **63**
-- Tables: **107**
+- Route/Shell: **107**
+- Navigation: **62**
+- Tables: **104**
 - Dialogs/Overlays: **89**
-- Forms: **39**
+- Forms: **38**
 - Coaching: **11**
 
 ## Batch Certification Ledger
@@ -38,35 +38,32 @@ A survivor is open until it is either:
 - Denominator movement: full-ledger route/shell survivors `129 → 118`; full-ledger navigation survivors `66 → 63`; active header queue `36 → 26`; active navigation queue `4 → 1`
 - Carry-forward note: `/qaqc/:id` remains auth-gated by design, and `/api/trench-safety/excavations/public/asset-roster` still returns `401` on the public excavation route while the form itself remains usable; policy-level backend follow-up can be handled in a later batch if that endpoint is intended to stay public
 
+### 2026-08-01 · Highest-Visibility Platform Experience Batch · CLOSED
+- Closed routes: `/`, `/guidance`, `/guidance/section/:sectionId`, `/guidance/:articleId`, `/near-miss`, `/thank-you`, `/cheatsheet`, `/admin/trench-boxes/poster`, `/admin/jha-plans/poster`, `/admin/posters/print-all`, `/hr/daily-reports/:id`
+- Shared fixes: new `OperationalPrintPageFrame` + `OperationalOutcomeFrame`, Hub and Guidance shell convergence onto the shared operational topbar, NearMiss/ThankYou public outcome cleanup, print-route header unification, and `ViewDailyReport` migration onto canonical `DataTable`
+- Evidence: responsive screenshot sets at `390`, `768`, `1024`, and `1440`, `auto_frontend_testing_agent` pass, and `/app/test_reports/iteration_98.json`
+- Denominator movement: full-ledger route/shell survivors `118 → 107`; full-ledger navigation survivors `63 → 62`; full-ledger table survivors `107 → 104`; full-ledger form survivors `39 → 38`; active header queue `26 → 19`; active navigation queue `1 → 0`; active-route table queue `13 → 10`
+- Carry-forward note: icon convergence continues during each remaining route migration; poster/Hub overlay survivors remain open until their internal drawers/sheets are fully reconciled
+
 ## Active-Route Survivor Queue
-### Header survivors (26)
-- `/` · `Hub` · replace legacy/local header with canonical shell
+### Header survivors (19)
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
 - `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
-- `/near-miss` · `NearMissKiosk` · replace legacy/local header with canonical shell
-- `/thank-you` · `ThankYou` · replace legacy/local header with canonical shell
-- `/cheatsheet` · `CheatSheet` · replace legacy/local header with canonical shell
-- `/admin/trench-boxes/poster` · `TrenchBoxPoster` · replace legacy/local header with canonical shell
-- `/admin/jha-plans/poster` · `JhaPlansPoster` · replace legacy/local header with canonical shell
 
-### Form survivors (3)
+### Form survivors (2)
 - `/revise/:token` · `Revise` · move to canonical FormShell or canonical public auth shell
-- `/near-miss` · `NearMissKiosk` · move to canonical FormShell or canonical public auth shell
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
-### Table survivors (13)
+### Table survivors (10)
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
 - `/safety/cases/:caseId/reports/:reportType` · `IncidentReportViewer` · move to canonical data table shell
 - `/safety/cases/:caseId/executive-report` · `ExecutiveCaseReport` · move to canonical data table shell
 - `/admin/pnl` · `ProjectPnlPage` · move to canonical data table shell
-- `/admin/daily/:id` · `ViewDailyReport` · move to canonical data table shell
 - `/admin/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
 - `/admin/safety/issuance/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/admin/safety/training/:id` · `ViewSafetyForm` · move to canonical data table shell
-- `/pm/daily/:id` · `ViewDailyReport` · move to canonical data table shell
-- `/hr/daily-reports/:id` · `ViewDailyReport` · move to canonical data table shell
 - `/dev` · `DevHub` · move to canonical data table shell
 
 ### Coaching survivors (20)
@@ -91,5 +88,4 @@ A survivor is open until it is either:
 - `/dispatch-portal/fleet` · `FleetVisibility` · collapse stacked helper text into canonical coaching treatment
 - `/admin/deploy-readiness` · `AdminDeployReadiness` · collapse stacked helper text into canonical coaching treatment
 
-### Navigation survivors (1)
-- `/hr/daily-reports/:id` · `ViewDailyReport` · remove local back controls and duplicate navigation affordances
+### Navigation survivors (0)
