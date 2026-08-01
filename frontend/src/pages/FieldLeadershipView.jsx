@@ -9,7 +9,6 @@ import { FileDown, AlertTriangle, CheckCircle2, Camera } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
@@ -121,17 +120,7 @@ export default function FieldLeadershipView() {
   };
 
   if (loading) {
-    return adminMode ? (
-      <AdminRouteShell
-        pageTitle="Field Leadership Record"
-        subtitle="Read-only field submission with supporting evidence."
-        portalRole="Admin · Field Leadership"
-        crumbs={[{ label: "Field Operations" }, { label: "Field Leadership" }, { label: "Record" }]}
-        testId="leadership-view-admin-shell"
-      >
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Loading…")}</div>
-      </AdminRouteShell>
-    ) : (
+    return (
       <PortalShell
         portalName="MASCI"
         portalRole={shellPortalRole}
@@ -139,24 +128,14 @@ export default function FieldLeadershipView() {
         subtitle={t("Read-only field submission with supporting evidence.")}
         showBack
         backHref={shellBackHref}
-        portalSwitcherCurrent={getPmToken() ? "pm" : "leadership"}
+        portalSwitcherCurrent={adminMode ? "admin" : getPmToken() ? "pm" : "leadership"}
       >
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Loading…")}</div>
       </PortalShell>
     );
   }
   if (!rec) {
-    return adminMode ? (
-      <AdminRouteShell
-        pageTitle="Field Leadership Record"
-        subtitle="Read-only field submission with supporting evidence."
-        portalRole="Admin · Field Leadership"
-        crumbs={[{ label: "Field Operations" }, { label: "Field Leadership" }, { label: "Record" }]}
-        testId="leadership-view-admin-shell"
-      >
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Not found")}</div>
-      </AdminRouteShell>
-    ) : (
+    return (
       <PortalShell
         portalName="MASCI"
         portalRole={shellPortalRole}
@@ -164,7 +143,7 @@ export default function FieldLeadershipView() {
         subtitle={t("Read-only field submission with supporting evidence.")}
         showBack
         backHref={shellBackHref}
-        portalSwitcherCurrent={getPmToken() ? "pm" : "leadership"}
+        portalSwitcherCurrent={adminMode ? "admin" : getPmToken() ? "pm" : "leadership"}
       >
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">{t("Not found")}</div>
       </PortalShell>
@@ -187,6 +166,11 @@ export default function FieldLeadershipView() {
   ];
   const recordSection = (
     <section className="max-w-5xl px-0 pt-0" data-testid="leadership-view-section">
+      {adminMode ? (
+        <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500" data-testid="leadership-view-admin-context">
+          {t("Admin OS")} · {t("Field Operations")} · {t("Field Leadership")}
+        </div>
+      ) : null}
       <div className="wp17-panel p-5 sm:p-7">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -286,31 +270,6 @@ export default function FieldLeadershipView() {
     </section>
   );
 
-  if (adminMode) {
-    return (
-      <AdminRouteShell
-        pageTitle={kindLabel(rec.kind)}
-        subtitle="Read-only field submission with supporting photos, signatures, and operator context."
-        portalRole="Admin · Field Leadership"
-        crumbs={[{ label: "Field Operations" }, { label: "Field Leadership" }, { label: kindLabel(rec.kind) }]}
-        primaryActions={(
-          <Button
-            onClick={downloadPdf}
-            variant="outline"
-            className="h-10 px-3 border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 text-xs font-bold uppercase tracking-wide"
-            data-testid="leadership-view-pdf"
-          >
-            <FileDown className="w-3.5 h-3.5 mr-1" />{t("Download PDF")}
-          </Button>
-        )}
-        contentClassName="max-w-5xl mx-auto px-4 sm:px-6 py-6"
-        testId="leadership-view-admin-shell"
-      >
-        {recordSection}
-      </AdminRouteShell>
-    );
-  }
-
   return (
     <PortalShell
       portalName="MASCI"
@@ -319,7 +278,7 @@ export default function FieldLeadershipView() {
       subtitle={t("Read-only field submission with supporting photos, signatures, and operator context.")}
       showBack
       backHref={shellBackHref}
-      portalSwitcherCurrent={getPmToken() ? "pm" : "leadership"}
+      portalSwitcherCurrent={adminMode ? "admin" : getPmToken() ? "pm" : "leadership"}
       primaryActions={(
         <Button
           onClick={downloadPdf}
