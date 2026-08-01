@@ -54,6 +54,7 @@
   - responsive screenshot certification and QA were completed for `/`, `/guidance`, `/near-miss`, `/thank-you`, `/cheatsheet`, `/admin/trench-boxes/poster`, `/admin/jha-plans/poster`, `/admin/posters/print-all`, and `/hr/daily-reports/:id` at `390`, `768`, `1024`, and `1440`, and the survivor ledgers were reconciled from `118` to `107` route/shell survivors, `63` to `62` navigation survivors, `107` to `104` table survivors, and `39` to `38` form survivors
   - executive design correction applied: the platform-level header system is now locked back to the permanent MASCI navy/frosted operating shell through the shared `CanonicalHeader.jsx`, and shared public/portal/auth shells (`OperationalPageFrame`, `PortalShell`, `FormShell`, `PortalLoginShell`, `PublicShell`, `SignIn`, `Revise`, `FormPasswordGate`) now inherit that single header family instead of drifting toward white/flat variants
   - the canonical header keeps the MASCI “M” pinned in one location and one size, routes the logo to Shared Operational Home, keeps a single language selector treatment, and prevents portal accent colors from recoloring the shell itself
+  - the Shared Operational Home route was explicitly reopened after executive review and recertified: the Home header now uses the governed `CanonicalHeader` home variant (logo-first, no repeated platform-name copy, no duplicate sign-in entry, compact language control, preserved navy/glass shell) and the hero hierarchy was deduplicated to restore the previously approved command-center feel
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -112,6 +113,7 @@
   - formal public/off-shell convergence certification passed for `/safety/cards`, `/trench-safety`, `/trench-safety/references`, `/trench-safety/tabulated-data`, `/trench-safety/report`, `/trench-safety/assets/:assetId`, `/trench-safety/excavation/new`, `/transport-invite/:token`, `/transport-verify/:cnum`, `/qaqc/:id`, and `/admin/qaqc/:id` in `/app/test_reports/iteration_97.json`
   - auto frontend QA and formal certification passed for `/`, `/guidance`, `/near-miss`, `/thank-you`, `/cheatsheet`, `/admin/trench-boxes/poster`, `/admin/jha-plans/poster`, `/admin/posters/print-all`, and `/hr/daily-reports/:id` in `/app/test_reports/iteration_98.json`
   - canonical header correction verified across `/`, `/guidance`, `/sign-in`, `/revise/example-invalid-token`, and `/admin` with `auto_frontend_testing_agent`: same 65px navy/frosted header, same 32px logo, same language selector/control spacing, no white-header regressions, no console errors
+  - Shared Operational Home header restoration verified by direct screenshot review at `390`, `430`, `768`, `1024`, and `1440`, authenticated Home screenshots at `390` and `1440`, Spanish toggle verification at `390`, logo-to-home behavior check, and focused `auto_frontend_testing_agent` pass with no remaining Home-route defects
 
 ## Constraints Still Honored
 - No full-platform migration was started.

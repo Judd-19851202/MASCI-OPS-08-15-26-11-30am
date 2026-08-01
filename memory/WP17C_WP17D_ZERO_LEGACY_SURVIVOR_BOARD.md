@@ -51,6 +51,12 @@ A survivor is open until it is either:
 - Evidence: targeted responsive smoke screenshots for `/`, `/sign-in`, and `/guidance`, plus `auto_frontend_testing_agent` verification across `/`, `/guidance`, `/sign-in`, `/revise/example-invalid-token`, and `/admin`
 - Survivor impact: counts unchanged for this constitution pass; remaining direct-header routes must be reopened and routed into `CanonicalHeader` during their next migration pass
 
+### 2026-08-01 · Shared Operational Home Header Reopened + RECERTIFIED
+- Route reopened: `/` (`Hub`) after executive rejection of the first home-header composition despite passing navy-header regression checks
+- Root cause corrected: `CanonicalHeader` now supports a governed `home` variant, the Home header is logo-first with no competing platform-name copy, sign-in/resume remains the only auth control, the language selector was compacted, and repeated Home messaging was removed from the header/hero relationship
+- Evidence: direct screenshot review at `390`, `430`, `768`, `1024`, and `1440`, authenticated smoke at `390` and `1440`, Spanish toggle verification at `390`, manual logo-to-home behavior check, and focused `auto_frontend_testing_agent` pass for the Home header restoration
+- Certification note: Home route visual certification is restored and propagation may continue; counts unchanged because this was a reopened correction inside an already-counted route
+
 ## Active-Route Survivor Queue
 ### Header survivors (19)
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
