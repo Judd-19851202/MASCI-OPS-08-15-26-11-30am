@@ -9,12 +9,12 @@ A survivor is open until it is either:
 - retained as a documented approved exception.
 
 ## Full-Ledger Survivor Counts
-- Route/Shell: **107**
+- Route/Shell: **104**
 - Navigation: **62**
-- Tables: **104**
+- Tables: **102**
 - Dialogs/Overlays: **89**
 - Forms: **38**
-- Coaching: **11**
+- Coaching: **10**
 
 ## Batch Certification Ledger
 ### 2026-08-01 · Shared Tables Batch 01 · CLOSED
@@ -57,18 +57,21 @@ A survivor is open until it is either:
 - Evidence: direct screenshot review at `390`, `430`, `768`, `1024`, and `1440`, authenticated smoke at `390` and `1440`, Spanish toggle verification at `390`, manual logo-to-home behavior check, and focused `auto_frontend_testing_agent` pass for the Home header restoration
 - Certification note: Home route visual certification is restored and propagation may continue; counts unchanged because this was a reopened correction inside an already-counted route
 
+### 2026-08-01 · Safety Records + JHA Convergence Batch · CLOSED
+- Closed routes: `/safety/forms/equipment-issuance/:id`, `/safety/forms/equipment-training/:id`, `/jha`
+- Shared fixes: `ViewSafetyForm.jsx` rebuilt onto `PortalShell`/`AdminRouteShell` + `DetailPageHero` + canonical `DataTable`, `PortalShell` gained a governed `showPageHeader` switch to prevent duplicate title stacks, and `JhaPlansHub.jsx` reduced coaching drift and mobile overflow while keeping the MASCI navy/glass shell intact
+- Evidence: live smoke screenshots on JHA and safety record fixtures, focused `auto_frontend_testing_agent` pass on JHA and both safety detail routes, plus JHA mobile re-verification at `390` and `430`
+- Denominator movement: full-ledger route/shell survivors `107 → 104`; full-ledger table survivors `104 → 102`; full-ledger coaching survivors `11 → 10`; active header queue `19 → 17`; active-route table queue `10 → 8`; active coaching queue `20 → 19`
+- Carry-forward note: `/dev` now shares the converged shell and DataTable architecture, but the authenticated DevHub surface still awaits full visual certification because only the gated login state was available during this batch
+
 ## Active-Route Survivor Queue
-### Header survivors (19)
-- `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
-- `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
+### Header survivors (17)
 
 ### Form survivors (2)
 - `/revise/:token` · `Revise` · move to canonical FormShell or canonical public auth shell
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
-### Table survivors (10)
-- `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · move to canonical data table shell
-- `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · move to canonical data table shell
+### Table survivors (8)
 - `/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
 - `/safety/cases/:caseId/reports/:reportType` · `IncidentReportViewer` · move to canonical data table shell
 - `/safety/cases/:caseId/executive-report` · `ExecutiveCaseReport` · move to canonical data table shell
@@ -78,7 +81,7 @@ A survivor is open until it is either:
 - `/admin/safety/training/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/dev` · `DevHub` · move to canonical data table shell
 
-### Coaching survivors (20)
+### Coaching survivors (19)
 - `/safety/forms/equipment-issuance/new` · `NewSafetyEquipmentIssuance` · collapse stacked helper text into canonical coaching treatment
 - `/safety/forms/equipment-training/new` · `NewSafetyEquipmentTraining` · collapse stacked helper text into canonical coaching treatment
 - `/field/calculators` · `MaterialCalculators` · collapse stacked helper text into canonical coaching treatment
@@ -86,7 +89,6 @@ A survivor is open until it is either:
 - `/leadership/records` · `FieldLeadershipRecords` · collapse stacked helper text into canonical coaching treatment
 - `/leadership/:kind/new` · `FieldLeadershipFormPage` · collapse stacked helper text into canonical coaching treatment
 - `/safety/inspections/new` · `NewInspection` · collapse stacked helper text into canonical coaching treatment
-- `/jha` · `JhaPlansHub` · collapse stacked helper text into canonical coaching treatment
 - `/fleet/dvir/submitted/:id` · `FleetDVIRConfirmation` · collapse stacked helper text into canonical coaching treatment
 - `/daily-reports` · `DailyReportsDashboard` · collapse stacked helper text into canonical coaching treatment
 - `/admin/daily` · `DailyReportsDashboard` · collapse stacked helper text into canonical coaching treatment
