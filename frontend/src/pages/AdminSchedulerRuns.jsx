@@ -211,7 +211,7 @@ export default function AdminSchedulerRuns() {
           <Button variant="outline" onClick={load} disabled={loading} data-testid="scheduler-runs-refresh">
             <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
-          <LastActivityLine label="Loaded" />
+          <LastActivityLine portal="admin" testId="scheduler-runs-last-activity" />
         </section>
 
         <DataTable

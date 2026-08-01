@@ -54,6 +54,7 @@ export default function LastActivityLine({ portal, testId }) {
   const [loaded, setLoaded] = useState(false);
 
   const refresh = useCallback(async () => {
+    if (!portal) { setLoaded(true); setData(null); return; }
     if (!_hasAnyPortalToken()) { setLoaded(true); return; }
     try {
       const res = await fetch(
