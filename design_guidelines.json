@@ -1,93 +1,104 @@
 {
-  "theme": "Light theme preferred (Dark mode optional toggle). High contrast, functional, minimal UI benchmarked against Linear, Notion, and Stripe Dashboard.",
+  "project_name": "MASCI Operations Platform",
+  "theme_strategy": "Navy Operational Shell (Premium Dark Mode with Glassmorphism Depth)",
+  "executive_mandate": "MASCI is ONE operating system. Every page must feel like it was designed by one team on one day. Zero-legacy survivors. No generic white SaaS templates.",
   "typography": {
-    "heading_font": "Manrope",
-    "body_font": "IBM Plex Sans",
-    "hierarchy": {
-      "h1": "text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900",
-      "h2": "text-xl sm:text-2xl font-semibold tracking-tight text-slate-900",
-      "h3": "text-lg sm:text-xl font-medium text-slate-900",
-      "h4": "text-base font-medium text-slate-900",
-      "body": "text-sm leading-relaxed text-slate-700",
-      "small": "text-xs font-semibold uppercase tracking-widest text-slate-500"
+    "headings": {
+      "font": "Manrope, sans-serif",
+      "style": "Premium tech, structured, authoritative",
+      "rules": "No Inter for headings. Use tracking-tight. Maximum text-4xl for page titles (command center style, no landing-page giant heroes)."
+    },
+    "body": {
+      "font": "IBM Plex Sans, sans-serif",
+      "style": "Data-heavy legibility, functional clarity",
+      "rules": "High contrast required (APCA standards). text-sm or text-base for standard density."
+    },
+    "labels_and_metrics": {
+      "font": "JetBrains Mono, monospace",
+      "style": "Technical, precise",
+      "rules": "Use for numerical data, statuses, and strict operational identifiers."
     }
   },
   "colors": {
-    "archetype": "Swiss & High-Contrast",
-    "palette": {
-      "primary": "#0F172A",
-      "primary_foreground": "#F8FAFC",
-      "secondary": "#F1F5F9",
-      "secondary_foreground": "#0F172A",
-      "accent": "#2563EB",
-      "accent_foreground": "#FFFFFF",
-      "background": "#F8FAFC",
-      "surface": "#FFFFFF",
-      "border": "#E2E8F0",
-      "muted": "#F1F5F9",
-      "muted_foreground": "#64748B",
-      "destructive": "#EF4444",
-      "success": "#10B981"
-    },
-    "rules": [
-      "Monochrome-first: 95% of the UI should be monochrome (white, grays, black/obsidian).",
-      "Color is Function Only: Use color (blue, red, green) strictly to guide action, indicate status, or highlight active states.",
-      "No full-screen gradients. Texture over gloss."
-    ]
+    "background_base": "#0B1221",
+    "surface_base": "#131C31",
+    "surface_glass": "rgba(19, 28, 49, 0.65)",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#94A3B8",
+    "border_subtle": "rgba(255, 255, 255, 0.1)",
+    "accents": {
+      "rule": "Portal colors are accents only, never alternate platform themes. Use sparingly for statuses or active indicators.",
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "danger": "#EF4444",
+      "active_portal": "#3B82F6"
+    }
+  },
+  "canonical_header_system": {
+    "component_name": "CanonicalHeader",
+    "rules": {
+      "height": "h-16 (exact 64px everywhere)",
+      "layout": "Flexbox, justify-between, items-center, px-6",
+      "logo": "Exact w-8 h-8. MUST be wrapped in a Link routing strictly to '/' (Shared Operational Home).",
+      "glass_treatment": "bg-[#0B1221]/70 backdrop-blur-2xl border-b border-white/10. NEVER fully transparent.",
+      "portal_label": "text-xs font-bold uppercase tracking-widest text-white/70. Located next to or strictly aligned with the logo.",
+      "navigation": "Standardized gap-8 spacing. No custom nav spacings per portal.",
+      "right_controls": "Language selector, Home/Back treatment, and Profile must be identically placed on all 1,190 surfaces."
+    }
+  },
+  "homepage_command_center": {
+    "concept": "Operational Command Center, answering: Where am I? What can I do? Where should I go next?",
+    "anti_patterns": [
+      "Landing-page aesthetics",
+      "Giant empty heroes",
+      "Sparse pages / excessive whitespace",
+      "Overly dense unformatted clutter",
+      "Instructional/explanation-driven paragraphs"
+    ],
+    "layout_mode": "High Density Bento Grid",
+    "rules": {
+      "grid": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4",
+      "hierarchy": "Top breadcrumbs/title > Dense action cards > Prioritized routing lists",
+      "density": "Balanced. Use pure HTML/Tailwind for structural layout, Shadcn components for interactive bits. Every pixel must be utilized efficiently."
+    }
   },
   "visual_enhancers": {
-    "surfaces": "Use 'Flat Solid' surfaces. Dashboard cards should have a flat background (bg-white), 1px subtle border (border-slate-200), and no shadow by default. On hover for clickable cards, apply a slight lift (-translate-y-[1px]) and subtle shadow.",
-    "glassmorphism": "Avoid glassmorphism. It creates visual noise in data-heavy enterprise tools. Use solid backgrounds.",
-    "borders": "Expose the skeleton for tables and dense lists. Use 1px borders (border-collapse, border-slate-200) to separate data.",
-    "icons": "Use lucide-react or @phosphor-icons/react. Use uniform stroke widths (1.5px or 2px). Do not use AI emojis."
+    "glassmorphism": {
+      "variant": "Crystal / Premium Depth",
+      "implementation": "Background higher opacity (bg-[#131C31]/65), heavy blur (backdrop-blur-xl), 1px delicate inner stroke (border border-white/10), diffuse ambient shadow."
+    },
+    "surfaces": "Zero flat white cards. Detail pages, print routes, and portal shells must inherit the Navy glass architecture.",
+    "icons": "Use lucide-react. Standardize stroke-width to 1.5 for a premium, lightweight technical feel."
   },
-  "components": {
-    "buttons": "Unified buttons: 4px border-radius (rounded). High contrast. Primary buttons: bg-slate-900 text-white hover:bg-slate-800. Secondary: bg-white border border-slate-200 text-slate-900 hover:bg-slate-50. Tertiary/Ghost: text-slate-600 hover:bg-slate-100 hover:text-slate-900.",
-    "forms": "Unified form controls: 4px border-radius, clean 1px border. Focus states must have a 2px offset ring (focus:ring-2 focus:ring-slate-400 focus:outline-none). Remove explanation-driven UI (helper text) unless critical. Labels should be text-sm font-medium.",
-    "tables": "Unified tables: dense layout. th: text-xs uppercase tracking-wider text-left text-slate-500 bg-slate-50 py-2 px-3 border-b border-slate-200. td: text-sm text-slate-900 py-2 px-3 border-b border-slate-100.",
-    "cards": "Ruthlessly remove dead space. Padding should be p-4 or p-6 maximum. Remove decorative labels. Cards are strictly for grouping related operational data.",
-    "header": "Simplified canonical header. Solid background (bg-white), 1px bottom border (border-slate-200). Sticky positioning (z-50). Include Breadcrumbs for 'Where am I?' (e.g., Home / Operations / Daily Report)."
+  "component_rules": {
+    "buttons": "Pill-shaped or slightly rounded (rounded-md) with subtle gradient borders or distinct hover states. Never inherit generic styles.",
+    "dialogs_and_modals": "Must use the identical surface_glass treatment and border_subtle rules.",
+    "tables": "Dense. No excessive cell padding (use py-2 px-3). Text-sm body. High-contrast headers.",
+    "forms": "Eliminate duplicate controls. Strip explanatory text and replace with smart placeholder/tooltips."
   },
-  "grids_and_layouts": {
-    "spacing": "Dense and compact spacing (p-2, p-4, p-6). Ruthlessly remove dead space, but maintain optical balance. Tailwind scale overrides: use gap-4 or gap-6 for most bento grids.",
-    "layout_mode": "Bento Grid Protocol Mode B (High Density Grid). Use grid-cols-1 md:grid-cols-3 lg:grid-cols-4 or a 12-column grid for complex dashboards.",
-    "navigation": "Unified sidebar or top canonical header. Every page must immediately reveal: Where am I? What requires my attention? What should I do next?"
-  },
-  "motion": {
-    "transitions": "Minimalist. Micro-interactions for feedback only. Use transition-colors duration-150 ease-in-out for buttons/links/rows.",
-    "loading": "Skeleton loaders matching the layout exact dimensions. No bouncy or playful spinners."
+  "layouts": {
+    "page_wrapper": "min-h-screen bg-[#0B1221] text-white selection:bg-blue-500/30",
+    "content_container": "max-w-7xl mx-auto p-6 pt-24 (to account for h-16 fixed header + spacing)",
+    "complete_page_rule": "When a route is migrated, the ENTIRE surface must be brought to canonical standards simultaneously."
   },
   "accessibility": {
-    "contrast": "Strict WCAG AA minimum. Text on surfaces must be high contrast (slate-900 on white, slate-500 for secondary).",
-    "focus": "All interactive elements must have visible focus rings. focus:ring-2 focus:ring-offset-1 focus:ring-slate-400.",
-    "aria": "Use aria-current='page' for active navigation, aria-hidden='true' for decorative icons."
+    "contrast": "No important operational content may have low contrast. Minimum 4.5:1 for standard text. Never use text-gray-500 on dark backgrounds; use text-slate-400 at minimum.",
+    "focus": "All interactive elements must have a visible focus ring (focus:ring-2 focus:ring-blue-500 focus:outline-none).",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute. Convention: kebab-case, role-based."
   },
-  "images_and_media": {
-    "rules": "Enterprise software uses minimal photography. Use avatars for users if necessary. No generic decorative stock photos.",
-    "image_urls": {}
-  },
-  "3d_libraries": {
-    "recommendation": "None. This is a high-density operational OS. 3D will add unnecessary cognitive load. Use Recharts for 2D data visualization."
-  },
-  "instructions_to_main_agent": [
-    "Mission: Build an Enterprise Operating System, not a component library.",
-    "Use .js/.jsx files (not .tsx) as specified.",
-    "Consistency before creativity: Use the exact same button styles, input fields, tables, and typographic hierarchy across Admin, HR, Safety, Transportation, etc.",
-    "Eliminate visual noise: Remove helper text, duplicate navigation, repeated actions, and decorative elements.",
-    "Use lucide-react strictly for functional indicators.",
-    "Ruthlessly remove dead space: maximize data density while keeping it readable.",
-    "Implement pure HTML/Tailwind for layouts or heavily customize Shadcn UI components in .js/.jsx format to match the exact unified aesthetic.",
-    "Every interactive element MUST include a data-testid attribute.",
-    "Ensure every page immediately reveals: Where am I? What requires my attention? What should I do next?",
-    "DO NOT use a transparent background in headers, overlays, or any surface that has content under it."
+  "universal_guidelines_for_main_agent": [
+    "You are writing .js files, NOT .tsx files. Use standard React JSX inside .js.",
+    "Never apply `transition: all`. Target specific properties.",
+    "Never center-align the app container (`text-align: center`).",
+    "Do not use generic emoji characters for icons.",
+    "Prioritize HTML/Tailwind for pure structural grid layouts to ensure the Bento dense feel, use Shadcn for standard interactive primitives (select, datepicker).",
+    "All headers/overlays must use `backdrop-blur` and a semi-solid background. Transparent backgrounds over content are prohibited.",
+    "Use Sonner for toasts (`/app/src/components/ui/sonner.js`).",
+    "Autonomous execution: Do not pause for cosmetic approvals. Ensure 100% adherence to the Navy Operational Shell."
   ],
-  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
-    "Do not use generic centered layouts or simplistic gradients.",
-    "Apply micro-interactions on hover and focus states.",
-    "Use solid backgrounds over glassmorphism for this specific enterprise app.",
-    "DO NOT center align the app container. Left-align dense content.",
-    "NEVER use AI assistant emoji characters (🤖, etc.) for icons. Always use icon libraries.",
-    "Always add data-testid attributes to all interactive and key informational elements. Use kebab-case and role-based naming (e.g., data-testid='submit-report-button').",
-    "Do not apply 'transition: all'. Use specific transition properties (e.g., transition-colors, transition-transform)."
-  ]
+  "image_urls": {
+    "rule": "Images are rarely needed in a data-heavy operational shell. If required for avatars or empty states, ensure they match the premium dark theme.",
+    "avatars": "Use UI faces or pure typographic fallback initials with a navy/glass background.",
+    "placeholders": "Do not use fake placeholder domains. Build semantic HTML fallbacks."
+  }
 }
