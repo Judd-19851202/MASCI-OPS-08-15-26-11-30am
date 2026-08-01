@@ -24,9 +24,10 @@ export function AdminRouteShell({
       portalName="MASCI"
       portalRole={portalRole}
       shellTheme="admin"
-      pageTitle={showShellHeader ? pageTitle : undefined}
-      subtitle={showShellHeader ? subtitle : undefined}
-      primaryActions={showShellHeader ? primaryActions : null}
+      pageTitle={pageTitle}
+      subtitle={subtitle}
+      primaryActions={primaryActions}
+      showPageHeader={showShellHeader}
       sideNav={renderAdminRouteSideNav()}
     >
       <div className={`admin-route-shell-canvas ${contentClassName}`} data-testid={testId}>

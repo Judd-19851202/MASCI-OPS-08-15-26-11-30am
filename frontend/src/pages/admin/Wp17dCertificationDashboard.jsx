@@ -7,99 +7,99 @@ import { DataTable } from "@/design-system";
 
 const INVENTORY_TOTAL = 1190;
 const SURVIVOR_COUNTS = [
-  { key: "route-shell", label: "Route / Shell", count: 102, detail: "Remaining page-level shell migrations" },
-  { key: "navigation", label: "Navigation", count: 62, detail: "Duplicate nav and shell-path inconsistencies" },
-  { key: "tables", label: "Tables", count: 100, detail: "Legacy tables pending canonical DataTable treatment" },
-  { key: "dialogs", label: "Dialogs / Overlays", count: 89, detail: "Shared modal and overlay convergence still open" },
-  { key: "forms", label: "Forms", count: 38, detail: "Legacy form frames and control families remaining" },
-  { key: "coaching", label: "Coaching", count: 10, detail: "Legacy helper copy still awaiting rewrite or removal" },
+  { key: "workflow-reviews", label: "Open workflow reviews", count: 102, detail: "Screens still awaiting the latest navigation and layout standard." },
+  { key: "navigation", label: "Navigation reviews", count: 62, detail: "Back / home / workflow hierarchy items still being reconciled." },
+  { key: "tables", label: "Records & tables", count: 100, detail: "Structured records still being aligned to the governed reading pattern." },
+  { key: "dialogs", label: "Dialogs & overlays", count: 89, detail: "Shared modal and overlay experiences still being standardized." },
+  { key: "forms", label: "Forms", count: 38, detail: "Input-heavy workflows still moving to the governed field system." },
+  { key: "coaching", label: "Guidance", count: 10, detail: "Helper copy still being simplified for field readability." },
 ];
 
 const ROUTE_STATUS = [
   {
-    route: "/admin/safety/issuance/:id",
-    status: "CERTIFIED",
-    evidence: "Screenshots 390/430/768/1024/1440 · frontend QA pass",
+    route: "Admin Safety Issuance Record",
+    status: "READY",
+    evidence: "Responsive review at 390 / 430 / 768 / 1024 / 1440 plus focused QA.",
     lastCertified: "2026-08-01 16:18 UTC",
     block: "—",
   },
   {
-    route: "/admin/safety/training/:id",
-    status: "CERTIFIED",
-    evidence: "Screenshots 390/430/768/1024/1440 · frontend QA pass",
+    route: "Admin Safety Training Record",
+    status: "READY",
+    evidence: "Responsive review at 390 / 430 / 768 / 1024 / 1440 plus focused QA.",
     lastCertified: "2026-08-01 16:18 UTC",
     block: "—",
   },
   {
-    route: "/admin/jha-plans",
-    status: "CERTIFIED",
-    evidence: "Screenshots 390/430/768/1024/1440 · frontend QA pass",
+    route: "Admin JHA Library",
+    status: "READY",
+    evidence: "Responsive review at 390 / 430 / 768 / 1024 / 1440 plus focused QA.",
     lastCertified: "2026-08-01 16:24 UTC",
     block: "—",
   },
   {
-    route: "/admin/trench-boxes",
-    status: "CERTIFIED",
-    evidence: "Screenshots 390/430/768/1024/1440 · frontend QA pass",
+    route: "Admin Trench Box Library",
+    status: "READY",
+    evidence: "Responsive review at 390 / 430 / 768 / 1024 / 1440 plus focused QA.",
     lastCertified: "2026-08-01 16:26 UTC",
     block: "—",
   },
   {
-    route: "/dev",
-    status: "BLOCKED_CREDENTIALS",
+    route: "Protected preview workspace",
+    status: "BLOCKED_ACCESS",
     evidence: "GET /api/dev/check → 404 · POST /api/dev/login → 404",
     lastCertified: "Blocked in Preview",
-    block: "Requires DEV_PASSWORD + dev endpoint gate",
+    block: "Access environment still needs the protected DevHub credentials and endpoint enablement.",
   },
   {
-    route: "/admin/trench-safety/assets/:assetId",
-    status: "IN_PROGRESS",
-    evidence: "Shared trench shell/nav convergence active",
-    lastCertified: "Pending current batch",
-    block: "Needs full responsive + QA certification",
+    route: "Admin trench asset detail",
+    status: "IN_REVIEW",
+    evidence: "Shared trench shell and navigation update is active.",
+    lastCertified: "Pending this review cycle",
+    block: "Needs full responsive review and final QA.",
   },
   {
-    route: "/safety/trench-safety/assets/:assetId",
-    status: "IN_PROGRESS",
-    evidence: "Shared trench shell/nav convergence active",
-    lastCertified: "Pending current batch",
-    block: "Needs full responsive + QA certification",
+    route: "Safety trench asset detail",
+    status: "IN_REVIEW",
+    evidence: "Shared trench shell and navigation update is active.",
+    lastCertified: "Pending this review cycle",
+    block: "Needs full responsive review and final QA.",
   },
   {
-    route: "/admin/trench-safety/reports",
-    status: "IN_PROGRESS",
-    evidence: "Canonical shell/nav now staged through shared trench shell",
-    lastCertified: "Pending current batch",
-    block: "Needs route-level visual certification",
+    route: "Admin trench reports",
+    status: "IN_REVIEW",
+    evidence: "Shared trench shell now carries the governed navigation pattern.",
+    lastCertified: "Pending this review cycle",
+    block: "Needs final visual signoff.",
   },
 ];
 
 const BLOCKERS = [
   {
-    title: "DevHub authentication unavailable",
-    detail: "Authenticated certification cannot continue in Preview because backend dev endpoints fail closed.",
+    title: "Protected preview workspace unavailable",
+    detail: "Readiness review cannot continue in Preview because the protected workspace still fails closed.",
     evidence: ["GET /api/dev/check → 404", "POST /api/dev/login → 404", "backend requires DEV_PASSWORD + enabled dev gate"],
   },
 ];
 
 const BATCHES = [
   {
-    title: "Admin Safety Aliases + Admin Libraries",
-    status: "CLOSED",
+    title: "Admin safety and library review",
+    status: "READY",
     timestamp: "2026-08-01 16:26 UTC",
-    evidence: "Four admin routes certified with responsive screenshots and focused frontend QA.",
+    evidence: "Four admin workflows cleared responsive review and focused QA.",
   },
   {
-    title: "Safety Records + JHA Convergence",
-    status: "CLOSED",
+    title: "Safety records and JHA review",
+    status: "READY",
     timestamp: "2026-08-01",
-    evidence: "Public/admin safety record views and JHA hub reconciled onto canonical shell/data-table architecture.",
+    evidence: "Safety record views and the JHA workspace now share the governed reading and navigation pattern.",
   },
   {
-    title: "DevHub Authenticated Certification",
-    status: "BLOCKED_CREDENTIALS",
+    title: "DevHub access review",
+    status: "BLOCKED_ACCESS",
     timestamp: "2026-08-01",
-    evidence: "Login surface handled gracefully; authenticated `/dev` remains inaccessible until env is corrected.",
+    evidence: "The login surface stays stable, but authenticated DevHub access remains unavailable until the environment is corrected.",
   },
 ];
 
@@ -115,34 +115,39 @@ function CountCard({ label, count, detail, testId }) {
 
 function statusChip(status) {
   const map = {
-    CERTIFIED: "border-emerald-200 bg-emerald-50 text-emerald-900",
-    IN_PROGRESS: "border-amber-200 bg-amber-50 text-amber-900",
-    BLOCKED_CREDENTIALS: "border-red-200 bg-red-50 text-red-900",
+    READY: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    IN_REVIEW: "border-amber-200 bg-amber-50 text-amber-900",
+    BLOCKED_ACCESS: "border-red-200 bg-red-50 text-red-900",
   };
-  return <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] ${map[status] || "border-slate-200 bg-white text-slate-700"}`}>{status.replaceAll("_", " ")}</span>;
+  const labelMap = {
+    READY: "Ready",
+    IN_REVIEW: "In review",
+    BLOCKED_ACCESS: "Blocked",
+  };
+  return <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] ${map[status] || "border-slate-200 bg-white text-slate-700"}`}>{labelMap[status] || status}</span>;
 }
 
 export default function Wp17dCertificationDashboard() {
   const survivorsRemaining = useMemo(() => SURVIVOR_COUNTS.reduce((sum, item) => sum + item.count, 0), []);
   const completionPct = useMemo(() => Math.max(0, Number((((INVENTORY_TOTAL - survivorsRemaining) / INVENTORY_TOTAL) * 100).toFixed(1))), [survivorsRemaining]);
-  const certifiedRoutes = ROUTE_STATUS.filter((route) => route.status === "CERTIFIED").length;
-  const blockedRoutes = ROUTE_STATUS.filter((route) => route.status === "BLOCKED_CREDENTIALS").length;
-  const goNoGo = blockedRoutes > 0 || survivorsRemaining > 0 ? "NO-GO" : "GO";
+  const readyScreens = ROUTE_STATUS.filter((route) => route.status === "READY").length;
+  const blockedScreens = ROUTE_STATUS.filter((route) => route.status === "BLOCKED_ACCESS").length;
+  const readinessVerdict = blockedScreens > 0 || survivorsRemaining > 0 ? "Not ready" : "Ready";
 
   const columns = [
-    { key: "route", header: "Route", wrap: true, render: (row) => <span className="font-mono text-xs text-slate-800">{row.route}</span> },
-    { key: "status", header: "Status", render: (row) => statusChip(row.status) },
-    { key: "evidence", header: "Screenshot / QA evidence", wrap: true },
-    { key: "lastCertified", header: "Last certification", wrap: true },
+    { key: "route", header: "Screen", wrap: true, render: (row) => <span className="font-mono text-xs text-slate-800">{row.route}</span> },
+    { key: "status", header: "Readiness", render: (row) => statusChip(row.status) },
+    { key: "evidence", header: "Review evidence", wrap: true },
+    { key: "lastCertified", header: "Last review", wrap: true },
     { key: "block", header: "Blocking issue", wrap: true },
   ];
 
   return (
     <AdminRouteShell
-      pageTitle="WP-17D Certification Dashboard"
-      subtitle="Executive convergence operations"
-      portalRole="Admin · WP-17D Certification"
-      crumbs={[{ label: "Admin OS" }, { label: "Governance & Trust" }, { label: "WP-17D Certification" }]}
+      pageTitle="Operations Readiness Center"
+      subtitle="Governance review and release readiness"
+      portalRole="Admin · Governance & Trust"
+      crumbs={[{ label: "Admin OS" }, { label: "Governance & Trust" }, { label: "Operations Readiness" }]}
       showShellHeader={false}
       showBreadcrumbs={false}
       contentClassName="px-0 py-0"
@@ -154,18 +159,18 @@ export default function Wp17dCertificationDashboard() {
           <DetailPageHero
             backHref="/admin/governance-trust"
             backLabel="Governance & Trust"
-            kicker="Executive operations tool"
-            title="WP-17D Certification Dashboard"
-            description="One operating view for remaining survivor counts, route certification status, evidence posture, blocker visibility, and executive GO / NO-GO readiness."
+            kicker="Governance operations"
+            title="Operations Readiness Center"
+            description="One governed view for open experience reviews, evidence posture, blocker visibility, and release readiness."
             actions={(
               <>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-900" data-testid="wp17d-readiness-chip"><ShieldAlert className="h-3.5 w-3.5" /> {goNoGo}</span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900" data-testid="wp17d-progress-chip"><BarChart3 className="h-3.5 w-3.5" /> {completionPct}% complete</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-900" data-testid="wp17d-readiness-chip"><ShieldAlert className="h-3.5 w-3.5" /> {readinessVerdict}</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900" data-testid="wp17d-progress-chip"><BarChart3 className="h-3.5 w-3.5" /> {completionPct}% aligned</span>
               </>
             )}
             toolbar={(
               <Link to="/admin/trench-safety/assets" className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 text-xs font-bold uppercase tracking-[0.18em] text-slate-800 transition-colors hover:border-red-500 hover:text-red-700" data-testid="wp17d-open-active-batch-link">
-                Open active batch <ArrowRight className="h-4 w-4" />
+                Open current review <ArrowRight className="h-4 w-4" />
               </Link>
             )}
             testId="wp17d-certification-hero"
@@ -181,12 +186,12 @@ export default function Wp17dCertificationDashboard() {
             <div className="wp17-panel p-5 sm:p-6" data-testid="wp17d-route-status-panel">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Route-by-route certification status</div>
-                  <h2 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Current WP-17D certification board</h2>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Screen-by-screen review status</div>
+                  <h2 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Current readiness board</h2>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-certified-routes-chip"><ShieldCheck className="h-3.5 w-3.5 text-emerald-700" /> {certifiedRoutes} certified</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-blocked-routes-chip"><Ban className="h-3.5 w-3.5 text-red-700" /> {blockedRoutes} blocked</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-certified-routes-chip"><ShieldCheck className="h-3.5 w-3.5 text-emerald-700" /> {readyScreens} ready</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-blocked-routes-chip"><Ban className="h-3.5 w-3.5 text-red-700" /> {blockedScreens} blocked</span>
                 </div>
               </div>
               <div className="mt-5">
@@ -196,19 +201,19 @@ export default function Wp17dCertificationDashboard() {
 
             <div className="space-y-6">
               <section className="wp17-panel p-5" data-testid="wp17d-readiness-summary-panel">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Executive readiness</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Release readiness</div>
                 <div className="mt-3 flex items-end justify-between gap-3">
                   <div>
                     <div className="font-display text-4xl font-black tracking-tight text-slate-900" data-testid="wp17d-completion-pct">{completionPct}%</div>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">Calculated from the tracked survivor inventory against the 1,190-surface convergence ledger.</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">Calculated from the governed experience review inventory.</p>
                   </div>
-                  {goNoGo === "GO" ? <ShieldCheck className="h-10 w-10 text-emerald-700" /> : <ShieldAlert className="h-10 w-10 text-red-700" />}
+                  {readinessVerdict === "Ready" ? <ShieldCheck className="h-10 w-10 text-emerald-700" /> : <ShieldAlert className="h-10 w-10 text-red-700" />}
                 </div>
                 <div className="mt-4 h-3 rounded-full bg-slate-200" data-testid="wp17d-progress-bar-track">
                   <div className="h-3 rounded-full bg-gradient-to-r from-red-700 to-emerald-600" style={{ width: `${completionPct}%` }} data-testid="wp17d-progress-bar-fill" />
                 </div>
                 <div className="mt-4 rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" data-testid="wp17d-go-no-go-panel">
-                  <strong>Executive {goNoGo}</strong> · route survivors and/or blocker states remain open, so final WP-17D closeout cannot be certified yet.
+                  <strong>{readinessVerdict}</strong> · open review items and/or access blockers still remain before release signoff.
                 </div>
               </section>
 
@@ -232,7 +237,7 @@ export default function Wp17dCertificationDashboard() {
           <section className="wp17-panel p-5 sm:p-6" data-testid="wp17d-batch-evidence-panel">
             <div className="flex items-center gap-2 text-red-700">
               <Camera className="h-4 w-4" />
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold">Certification evidence ledger</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold">Review evidence log</div>
             </div>
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               {BATCHES.map((batch) => (

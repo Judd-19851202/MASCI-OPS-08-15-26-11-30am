@@ -9,9 +9,9 @@ A survivor is open until it is either:
 - retained as a documented approved exception.
 
 ## Full-Ledger Survivor Counts
-- Route/Shell: **102**
-- Navigation: **62**
-- Tables: **100**
+- Route/Shell: **99**
+- Navigation: **59**
+- Tables: **99**
 - Dialogs/Overlays: **89**
 - Forms: **38**
 - Coaching: **10**
@@ -77,6 +77,14 @@ A survivor is open until it is either:
 - Backend code evidence: `/app/backend/server.py` lines `2237-2251` fail closed when developer endpoints are disabled or `DEV_PASSWORD` is missing; the route explicitly raises `404` when `_dev_endpoints_enabled()` is false or `DEV_PASSWORD` is empty
 - Why certification cannot continue: authenticated entry into `/dev` is impossible in this environment, so the actual DevHub surface cannot be opened, visually reviewed, or certified. Only the disabled login shell can be seen.
 - Required environment to unblock: backend Preview environment must define `DEV_PASSWORD` and enable the dev endpoints gate consumed by `_dev_endpoints_enabled()`; only after that can authenticated `/dev` certification proceed.
+
+### 2026-08-01 · Trench Shell Convergence + Executive Dashboard Batch · CLOSED
+- Closed routes: `/admin/trench-safety/reports`, `/safety/trench-safety/reports`, `/admin/trench-safety/assets/:assetId`
+- New executive tool: `/admin/wp17d-certification`
+- Shared fixes: `SafetyShell.jsx` and `PmShell.jsx` now support governed suppression of duplicate page headers and mission banners; `TrenchSafetyShell.jsx` now renders a canonical MASCI trench navigation surface that preserves portal boundaries; `TrenchSafetyAssetsList.jsx` and `TrenchSafetyHub.jsx` now keep trench links inside the correct admin/safety/PM portal; `TrenchSafetyAssetDetail.jsx` now uses `DetailPageHero`, the governed admin route architecture, and canonical `DataTable` treatment for deployment history; the executive dashboard now exposes survivor counts, certification status, blocker state, completion %, and GO / NO-GO readiness.
+- Evidence: responsive screenshot certification captured at `390`, `430`, `768`, `1024`, and `1440` for `/admin/trench-safety/reports`, `/safety/trench-safety/reports`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification`; focused `auto_frontend_testing_agent` pass returned **7/7 PASS** with zero defects, zero critical console errors, and no portal-hop regressions.
+- Denominator movement: full-ledger route/shell survivors `102 → 99`; full-ledger navigation survivors `62 → 59`; full-ledger table survivors `100 → 99`; active header queue `15 → 12`
+- Carry-forward note: the trench shared shell is now governed, but remaining trench detail aliases, trench dialogs/overlays, and non-trench direct-header survivors still require route-by-route certification and convergence.
 
 ## Active-Route Survivor Queue
 ### Header survivors (17)

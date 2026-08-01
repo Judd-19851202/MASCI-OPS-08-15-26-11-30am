@@ -1,12 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Clock, Home as HomeIcon, LogOut, MoreHorizontal, ChevronDown, User as UserIcon } from "lucide-react";
+import { Clock, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
-import { LangToggle } from "@/components/LangToggle";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
+import { HeaderIdentityProvider } from "@/components/header/HeaderIdentityContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MobileNavigation } from "@/design-system/MobileNavigation";
 import { useBranding } from "@/lib/BrandingProvider";
@@ -85,21 +84,6 @@ function formatLastActivity(value) {
   return value;
 }
 
-function TopActionLink({ to, label, icon: Icon, testId, theme = "default" }) {
-  const classes = "border-white/18 bg-white/10 text-white hover:bg-white/18";
-
-  return (
-    <Link
-      to={to}
-      className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-1.5 rounded-[var(--radius-control)] border px-3 text-xs font-semibold uppercase tracking-[0.12em] shadow-sm transition-[background-color,border-color,color] duration-[140ms] ${classes}`}
-      data-testid={testId}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      <span>{label}</span>
-    </Link>
-  );
-}
-
 function ProfileMenu({
   signedInName,
   portalRole,
@@ -110,12 +94,13 @@ function ProfileMenu({
   theme,
   testIdPrefix = "ds-portal-shell-profile",
 }) {
+  const isLightSurface = theme === "light";
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-2 rounded-[var(--radius-control)] border border-white/18 bg-white/10 px-3 text-xs font-semibold text-white shadow-sm transition-[background-color,border-color,color] duration-[140ms] hover:bg-white/18"
+          className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold shadow-sm transition-[background-color,border-color,color] duration-[140ms] ${isLightSurface ? "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50" : "border-white/18 bg-white/10 text-white hover:bg-white/18"}`}
           data-testid={`${testIdPrefix}-trigger`}
         >
           <UserIcon className="h-3.5 w-3.5 opacity-70" />
@@ -190,25 +175,33 @@ export function PortalShell({
   const clock = useLocalClock();
   const localTimeLabel = formatPlatformTimeOnly(clock);
   const signedInName = React.useMemo(() => resolveSignedInName(), []);
+  const [headerIdentityOverride, setHeaderIdentityOverride] = React.useState(null);
   const theme = resolveShellTheme(shellTheme);
   const isAdminTheme = theme === "admin";
-  const searchAccent = "dark";
-  const notificationAccent = "white";
-  const portalSwitcherVariant = "dark";
-  const langToggleVariant = "dark";
+  const searchAccent = "light";
+  const notificationAccent = "slate";
+  const portalSwitcherVariant = "light";
   const isWp17 = experienceLevel === "wp17c";
   const resolvedExperienceTone = resolveExperienceTone(experienceTone, portalRole, theme);
-  const shouldShowHomeShortcut = showHome && !sideNav;
-  const shouldShowBackShortcut = showBack && backHref && !sideNav;
+  const shouldShowHomeShortcut = false;
+  const shouldShowBackShortcut = showBack && backHref;
   const rootClasses = [
     "wp16-shell min-h-screen flex flex-col",
     isAdminTheme ? "wp16-shell--admin" : "",
     isWp17 ? `wp17-shell wp17-shell--${resolvedExperienceTone}` : "",
     className,
   ].filter(Boolean).join(" ");
-  const topControlClasses = "border-white/18 bg-white/10 text-slate-200";
-  const mobileMoreButtonClasses = "border-white/18 bg-white/10 text-white";
-  const mobilePopoverClasses = "elite-glass-modal w-[min(92vw,22rem)] border-white/16 bg-slate-950/92 p-3 text-slate-100";
+  const resolvedPageLabel = headerIdentityOverride?.pageLabel || pageTitle || portalRole;
+  const headerIdentityValue = React.useMemo(
+    () => ({
+      headerOwnsWorkflowIdentity: Boolean(resolvedPageLabel),
+      pageTitle: resolvedPageLabel,
+      portalLabel: portalRole,
+      setHeaderIdentity: setHeaderIdentityOverride,
+      clearHeaderIdentity: () => setHeaderIdentityOverride(null),
+    }),
+    [portalRole, resolvedPageLabel]
+  );
 
   const handleSignOut = async () => {
     if (signOutCapability && signOutCapability.available !== true) return;
@@ -220,118 +213,59 @@ export function PortalShell({
     window.location.assign("/sign-in");
   };
 
+  const utilityRail = (showSearch || showNotifications || showPortalSwitcher || showSignOut) ? (
+    <div className="wp17-panel px-4 py-3 sm:px-5" data-testid="ds-portal-shell-utility-rail-card">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        {showSearch ? (
+          <div className="min-w-0 xl:flex-1" data-testid="ds-portal-shell-search-rail">
+            <GlobalSearch accent={searchAccent} className="w-full justify-between xl:w-auto" />
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-2 xl:justify-end" data-testid="ds-portal-shell-utility-controls">
+          {showNotifications ? (
+            <div data-testid="ds-portal-shell-notifications">
+              <NotificationBell accent={notificationAccent} variant={isWp17 ? "wp17c" : "default"} />
+            </div>
+          ) : null}
+          {showPortalSwitcher ? (
+            <div data-testid="ds-portal-shell-portal-switcher">
+              <PortalSwitcher current={portalSwitcherCurrent} variant={portalSwitcherVariant} />
+            </div>
+          ) : null}
+          {showSignOut ? (
+            <ProfileMenu
+              signedInName={signedInName}
+              portalRole={portalRole}
+              localTimeLabel={localTimeLabel}
+              onSignOut={handleSignOut}
+              disabled={!!signOutCapability && signOutCapability.available !== true}
+              title={signOutCapability?.disabled_reason || "Sign out"}
+              theme="light"
+            />
+          ) : null}
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const hasWorkflowContext = Boolean(showPageHeader && (subtitle || primaryActions || renderedLastActivity));
+
   return (
     <div
       data-testid="ds-portal-shell"
       className={rootClasses}
     >
       <CanonicalHeader
-        portalLabel={platformShort}
-        pageLabel={pageTitle || portalRole}
+        portalLabel={portalRole}
+        pageLabel={resolvedPageLabel}
         accent="blue"
         backTo={shouldShowBackShortcut ? backHref : null}
         backLabel="Back"
         homeTo="/"
         showHomeLink={shouldShowHomeShortcut}
-        showLangToggle={false}
-        centerSlot={showSearch ? <GlobalSearch accent={searchAccent} /> : null}
-        preControlsSlot={(
-          <div className="hidden xl:flex items-center gap-2" data-testid="ds-portal-shell-pre-controls">
-            {showNotifications ? (
-              <div data-testid="ds-portal-shell-notifications">
-                <NotificationBell accent={notificationAccent} variant={isWp17 ? "wp17c" : "default"} />
-              </div>
-            ) : null}
-            {showPortalSwitcher ? (
-              <div data-testid="ds-portal-shell-portal-switcher">
-                <PortalSwitcher current={portalSwitcherCurrent} variant={portalSwitcherVariant} />
-              </div>
-            ) : null}
-          </div>
-        )}
-        postControlsSlot={(
-          <>
-            <div className="hidden xl:block" data-testid="ds-portal-shell-lang-toggle">
-              <LangToggle variant={langToggleVariant} className="h-[var(--control-height-sm)]" />
-            </div>
-            <div className="hidden xl:block">
-              {showSignOut ? (
-                <ProfileMenu
-                  signedInName={signedInName}
-                  portalRole={portalRole}
-                  localTimeLabel={localTimeLabel}
-                  onSignOut={handleSignOut}
-                  disabled={!!signOutCapability && signOutCapability.available !== true}
-                  title={signOutCapability?.disabled_reason || "Sign out"}
-                  theme={theme}
-                />
-              ) : null}
-            </div>
-
-            <div className="flex items-center gap-2 xl:hidden">
-              {showNotifications ? <NotificationBell accent={notificationAccent} variant={isWp17 ? "wp17c" : "default"} /> : null}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] w-[var(--control-height-sm)] items-center justify-center rounded-[var(--radius-control)] border shadow-sm ${mobileMoreButtonClasses}`}
-                    aria-label="More options"
-                    data-testid="ds-portal-shell-mobile-more"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent align="end" sideOffset={8} className={mobilePopoverClasses} data-testid="ds-portal-shell-mobile-more-menu">
-                  <div className="flex flex-col gap-3">
-                    <div>
-                      <div className="wp16-kicker">{platformShort} · {portalRole}</div>
-                      {signedInName ? (
-                        <div className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-100">
-                          <UserIcon className="h-3.5 w-3.5 opacity-70" />
-                          <span className="truncate">{signedInName}</span>
-                        </div>
-                      ) : null}
-                      <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.14em] text-slate-300">
-                        <Clock className="h-3 w-3 opacity-70" />
-                        {localTimeLabel}
-                      </div>
-                    </div>
-
-                    {showSearch ? (
-                      <div data-testid="ds-portal-shell-mobile-search">
-                        <GlobalSearch accent={searchAccent} className="w-full justify-center" />
-                      </div>
-                    ) : null}
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      {showPortalSwitcher ? <PortalSwitcher current={portalSwitcherCurrent} variant={portalSwitcherVariant} className="w-full justify-center sm:w-auto" /> : null}
-                      <LangToggle variant={langToggleVariant} className="h-[var(--control-height-sm)]" testId="ds-portal-shell-mobile-lang-toggle" />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {showBack && backHref ? <TopActionLink to={backHref} label="Back" icon={ArrowLeft} testId="ds-portal-shell-mobile-back" theme={theme} /> : null}
-                      {showHome ? <TopActionLink to="/" label="Home" icon={HomeIcon} testId="ds-portal-shell-mobile-home" theme={theme} /> : null}
-                    </div>
-
-                    {showSignOut ? (
-                      <button
-                        type="button"
-                        onClick={handleSignOut}
-                        disabled={!!signOutCapability && signOutCapability.available !== true}
-                        className="wp16-focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[var(--radius-control)] border border-white/14 bg-white/10 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition-[background-color,border-color,color,opacity] duration-[140ms] hover:bg-white/18 disabled:opacity-50"
-                        title={signOutCapability?.disabled_reason || "Sign out"}
-                        data-testid="ds-portal-shell-mobile-signout"
-                      >
-                        <LogOut className="h-3.5 w-3.5" />
-                        Sign out
-                      </button>
-                    ) : null}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </>
-        )}
+        showLangToggle
+        utilitySlot={utilityRail}
         containerClassName="max-w-[var(--content-max-width)]"
         testIdPrefix="ds-portal-shell"
       />
@@ -350,21 +284,10 @@ export function PortalShell({
             ) : null}
 
             <div className="min-w-0">
-              {showPageHeader ? (
-                <div className="wp16-shell-page-header" data-testid="ds-portal-shell-page-header">
+              {hasWorkflowContext ? (
+                <div className="wp16-shell-page-header wp16-shell-workflow-context" data-testid="ds-portal-shell-page-header">
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0 flex-1">
-                      <div className="wp16-kicker md:hidden" data-testid="ds-portal-shell-portal-name-mobile">
-                        {platformShort} · {portalRole}
-                      </div>
-                      {pageTitle ? (
-                        <h1
-                          className="wp16-section-title text-4xl sm:text-5xl lg:text-6xl"
-                          style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-                        >
-                          {pageTitle}
-                        </h1>
-                      ) : null}
                       {subtitle ? <p className="mt-2 max-w-[76ch] text-sm text-[color:var(--ink-soft)] sm:text-base">{subtitle}</p> : null}
                     </div>
 
@@ -381,7 +304,9 @@ export function PortalShell({
               ) : null}
 
               {alertSlot ? <div className="mb-4">{alertSlot}</div> : null}
-              <main data-testid="ds-portal-shell-content" className={isWp17 ? "wp17-shell-content" : undefined}>{children}</main>
+              <HeaderIdentityProvider value={headerIdentityValue}>
+                <main data-testid="ds-portal-shell-content" className={isWp17 ? "wp17-shell-content" : undefined}>{children}</main>
+              </HeaderIdentityProvider>
             </div>
           </div>
         </div>

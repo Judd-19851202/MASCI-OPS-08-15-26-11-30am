@@ -28,8 +28,8 @@ export default function PmShell({
       portalName="MASCI"
       portalRole="Project Management"
       portalSwitcherCurrent="pm"
-      pageTitle={showPageHeader ? title : undefined}
-      subtitle={showPageHeader ? (subtitle || "Project execution, blockers, due work, and field coordination in one canonical shell.") : undefined}
+      pageTitle={title}
+      subtitle={subtitle || "Project execution, blockers, due work, and field coordination in one canonical shell."}
       sideNav={<SideNavV2 />}
       onSignOut={signOut}
       experienceTone="pm"

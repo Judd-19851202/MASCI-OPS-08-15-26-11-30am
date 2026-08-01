@@ -1203,6 +1203,7 @@ export function AppRoutes() {
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
             <Route path="/admin/deploy-readiness" element={A(LB("/admin/deploy-readiness", <AdminDeployReadiness />))} />
+            <Route path="/admin/platform-readiness" element={A(<Wp17dCertificationDashboard />)} />
             <Route path="/admin/wp17d-certification" element={A(<Wp17dCertificationDashboard />)} />
 
             {/* ============================================================

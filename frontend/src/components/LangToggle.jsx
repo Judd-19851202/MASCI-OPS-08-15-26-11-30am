@@ -26,15 +26,19 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
     active: "bg-slate-900 text-white",
     inactive: "text-slate-600 hover:text-slate-900",
   };
-  const styles = variant === "light" ? light : dark;
+  const header = {
+    wrap: "border border-white/12 bg-white/6 text-white/80 shadow-[0_8px_18px_rgba(2,6,23,0.16)]",
+    active: "bg-white/16 text-white",
+    inactive: "text-white/65 hover:text-white",
+  };
+  const styles = variant === "light" ? light : variant === "header" ? header : dark;
 
   return (
     <div
       role="radiogroup"
       aria-label="Language"
       className={cn(
-        "inline-flex items-center rounded-md overflow-hidden h-10",
-        "sm:h-9",
+        variant === "header" ? "inline-flex items-center rounded-full overflow-hidden h-9" : "inline-flex items-center rounded-md overflow-hidden h-10 sm:h-9",
         styles.wrap,
         className
       )}
@@ -42,13 +46,12 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
     >
       <span
         className={cn(
-          "px-2 inline-flex items-center gap-1 border-r-2 border-current/20",
-          "sm:px-1.5",
-          variant === "light" ? "border-slate-300" : "border-slate-700"
+          variant === "header" ? "px-2 inline-flex items-center gap-1 border-r border-current/20" : "px-2 inline-flex items-center gap-1 border-r-2 border-current/20 sm:px-1.5",
+          variant === "light" ? "border-slate-300" : variant === "header" ? "border-white/14" : "border-slate-700"
         )}
         aria-hidden
       >
-        <Languages className="w-3 h-3 opacity-80" />
+        <Languages className={cn("opacity-80", variant === "header" ? "w-3.5 h-3.5" : "w-3 h-3")} />
       </span>
       <button
         type="button"

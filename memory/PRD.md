@@ -59,6 +59,9 @@
   - `PortalShell.jsx` now supports a governed `showPageHeader` switch so routes with their own canonical detail hero do not stack a second page-intro block above the content; `JhaPlansHub.jsx` now uses that switch and has tighter, operational coaching with verified mobile overflow fixes at `390` and `430`
   - admin safety aliases are now formally closed: `/admin/safety/issuance/:id` and `/admin/safety/training/:id` were visually certified on the governed `AdminRouteShell` + `DetailPageHero` detail architecture at `390`, `430`, `768`, `1024`, and `1440`
   - admin library convergence continued: `JhaPlansAdmin.jsx` was moved off `LegacyAdminModernShell`, duplicate title stacks were removed, and the admin JHA refetch loop was fixed by memoizing admin auth headers; `TrenchBoxesAdmin.jsx` was moved onto `AdminRouteShell` + `DetailPageHero` and its Add Box dialog now uses the governed navy/glass modal treatment with the canonical icon family
+  - trench shell convergence is now underway on shared architecture, not one-off patches: `SafetyShell.jsx` and `PmShell.jsx` now support governed suppression of duplicate page headers / mission banners, `TrenchSafetyShell.jsx` now renders one canonical trench navigation surface across admin/safety/PM contexts, and portal-hop inconsistencies in `TrenchSafetyAssetsList.jsx` + `TrenchSafetyHub.jsx` were removed so trench links stay inside the active portal
+  - `TrenchSafetyAssetDetail.jsx` now uses the canonical detail hero, governed route framing, and `DataTable` deployment history treatment; `/admin/trench-safety/assets/:assetId`, `/admin/trench-safety/reports`, and `/safety/trench-safety/reports` were visually certified after the trench shell convergence pass
+  - the approved executive operations tool is now live at `/admin/wp17d-certification`, showing survivor counts by category, route-by-route certification status, screenshot / QA evidence summaries, blocker state, overall completion %, and GO / NO-GO readiness
   - `DevHub.jsx` remains **BLOCKED_CREDENTIALS** for authenticated visual certification in Preview: `GET /api/dev/check` returns `404`, `POST /api/dev/login` returns `404`, and backend fail-closed logic requires backend `DEV_PASSWORD` plus the dev endpoint gate to be enabled before the actual `/dev` surface can be opened and certified
 
 ## Locked Totals Preserved
@@ -122,6 +125,8 @@
   - focused frontend QA passed for `/jha`, `/safety/forms/equipment-issuance/:id`, and `/safety/forms/equipment-training/:id`; JHA mobile overflow was found at `390`, fixed, and re-verified at `390` and `430` with **100% pass**
   - responsive screenshot certification passed for `/admin/safety/issuance/:id`, `/admin/safety/training/:id`, `/admin/jha-plans`, and `/admin/trench-boxes` at `390`, `430`, `768`, `1024`, and `1440`
   - focused `auto_frontend_testing_agent` pass (**4/4 PASS**) confirmed the admin safety aliases, admin JHA surface, trench Add Box dialog, and DevHub disabled-environment handling with no remaining defects
+  - responsive screenshot certification also passed for `/admin/trench-safety/reports`, `/safety/trench-safety/reports`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification` at `390`, `430`, `768`, `1024`, and `1440`
+  - focused `auto_frontend_testing_agent` pass (**7/7 PASS**) confirmed trench shell portal consistency, admin trench detail alias routing, executive dashboard behavior, and console/network cleanliness with no remaining defects
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -130,7 +135,8 @@
 
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
-- Continue the Platform Shell Batch with the remaining highest-visibility routes first: authenticated `DevHub` once unblocked, remaining trench/detail aliases, and any remaining direct-header pages still not routed through `CanonicalHeader`.
+- Continue the Platform Shell Batch with the remaining highest-visibility routes first: authenticated `DevHub` once unblocked, remaining trench/detail aliases (especially dialogs / overlays), and any remaining direct-header pages still not routed through `CanonicalHeader`.
+- After shell survivors reach evidence-backed zero or documented exceptions only, continue the shared convergence wave for dialogs, overlays, cards, shared primitives, and remaining coaching items.
 - Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
 - Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.
 - Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.

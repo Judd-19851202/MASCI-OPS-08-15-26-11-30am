@@ -27,7 +27,7 @@ export function OperationalTopbar({
   familyLabel = "MASCI Operations Platform",
   familyMeta = "Operational workflow",
   homeTo = "/",
-  showHomeLink = true,
+  showHomeLink = false,
   showLangToggle = true,
   rightSlot = null,
   testIdPrefix = "operational-page",

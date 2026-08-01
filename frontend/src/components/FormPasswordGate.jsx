@@ -53,7 +53,7 @@ export function FormPasswordGate({
         pageLabel="Restricted form access"
         accent="red"
         homeTo="/"
-        showHomeLink
+        showHomeLink={false}
         showLangToggle={false}
         containerClassName="max-w-3xl"
         testIdPrefix="form-password-gate"

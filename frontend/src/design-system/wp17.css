@@ -22,6 +22,9 @@
   --wp17-radius-md: 1rem;
   --wp17-body-size: 0.95rem;
   --wp17-label-size: 0.72rem;
+  --wp17-header-global-height: 3.5rem;
+  --wp17-header-identity-gap: 0.35rem;
+  --shell-header-height: 7.4rem;
 }
 
 .wp17-shell,
@@ -97,7 +100,6 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky-header);
-  min-height: var(--shell-header-height);
   backdrop-filter: blur(20px) saturate(1.05);
   -webkit-backdrop-filter: blur(20px) saturate(1.05);
   background:
@@ -105,6 +107,49 @@
     linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
   border-bottom: 1px solid rgba(214, 228, 246, 0.12);
   box-shadow: 0 18px 40px rgba(3, 8, 18, 0.34);
+}
+
+.masci-canonical-header__row--global {
+  min-height: var(--wp17-header-global-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.masci-canonical-header__row--identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wp17-header-identity-gap);
+  padding: 0.55rem 0 0.85rem;
+  border-top: 1px solid rgba(214, 228, 246, 0.1);
+}
+
+.masci-canonical-header__portal-label {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(232, 241, 252, 0.68);
+}
+
+.masci-canonical-header__page-label {
+  font-family: var(--font-sans);
+  font-size: clamp(1.14rem, 3.4vw, 1.72rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  word-spacing: 0.08em;
+  font-weight: 800;
+  color: white;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.masci-canonical-header__utility-rail {
+  position: relative;
+  z-index: 1;
 }
 
 .masci-canonical-header::after {
@@ -264,6 +309,10 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 254, 0.92));
   position: relative;
   overflow: hidden;
+}
+
+.wp17-shell .wp16-shell-page-header.wp16-shell-workflow-context {
+  padding: 0.9rem 1rem;
 }
 
 .wp17-shell .wp16-shell-page-header::before,

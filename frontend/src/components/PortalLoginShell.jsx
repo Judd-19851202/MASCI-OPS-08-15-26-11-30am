@@ -36,6 +36,14 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { useT } from "@/lib/i18n";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
 
+function normalizePortalLabel(rawLabel) {
+  return String(rawLabel || "")
+    .replace(/^MASCI\s*[·-]\s*/i, "")
+    .replace(/^MASCI\s+Operations\s+Platform\s*[·-]\s*/i, "")
+    .replace(/\s+Portal$/i, "")
+    .trim();
+}
+
 export function PortalLoginShell({
   headerBorderClass,
   backHoverClass = "hover:text-slate-200",
@@ -47,6 +55,7 @@ export function PortalLoginShell({
   dialogs,             // optional dialogs rendered between main + footer
 }) {
   const { t } = useT();
+  const normalizedPortalLabel = normalizePortalLabel(footerLabel) || t("Operations Workspace");
   return (
     <div
       className="wp17-public-shell wp17-portal-login flex min-h-screen flex-col"
@@ -55,11 +64,10 @@ export function PortalLoginShell({
       <div className="caution-stripe" />
       <div className={headerBorderClass || ""} data-testid={`${rootTestId}-header-frame`}>
         <CanonicalHeader
-          portalLabel={t("MASCI Operations Platform")}
-          pageLabel={footerLabel}
+          portalLabel={normalizedPortalLabel}
+          pageLabel={t("Sign In")}
           accent="blue"
-          backTo={homeLink}
-          backLabel={t("Home")}
+          backTo={null}
           homeTo="/"
           showHomeLink={false}
           showLangToggle

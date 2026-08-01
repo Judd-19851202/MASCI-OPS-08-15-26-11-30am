@@ -32,8 +32,8 @@ export default function SafetyShell({
       portalName="MASCI"
       portalRole="Safety Operations"
       portalSwitcherCurrent="safety"
-      pageTitle={showPageHeader ? t(pageTitle || title) : undefined}
-      subtitle={showPageHeader ? `${subtitle || kicker || t("Safety Operations")} ${user?.name ? `· ${user.name}` : ""}`.trim() : undefined}
+      pageTitle={t(pageTitle || title)}
+      subtitle={`${subtitle || kicker || t("Safety Operations")} ${user?.name ? `· ${user.name}` : ""}`.trim()}
       sideNav={<SafetySideNavV2 />}
       showBack
       backHref="/safety-portal"

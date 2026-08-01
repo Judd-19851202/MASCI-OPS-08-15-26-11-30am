@@ -53,7 +53,7 @@ export function FormShell({
         backTo={backLink}
         backLabel={backLabel || t("Back")}
         homeTo="/"
-        showHomeLink
+        showHomeLink={false}
         showLangToggle
         postControlsSlot={(
           <div className="flex items-center gap-2 shrink-0">
