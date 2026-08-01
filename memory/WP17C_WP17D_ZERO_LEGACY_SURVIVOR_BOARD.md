@@ -23,6 +23,15 @@ A survivor is open until it is either:
 - Coaching: **10**
 
 ## Batch Certification Ledger
+### 2026-08-01 · Governed Design Primitives + Hub Canonical Implementation · CLOSED
+- Shared primitives completed: canonical `CanonicalCard.jsx`, `SectionHeading.jsx`, governed CTA/button treatment in `components/ui/button.jsx`, governed badges/chips in `OperationalStatusBadge.jsx`, and governed empty/loading/error/success/warning states in `components/ui/PortalStates.jsx` + `components/EmptyState.jsx`
+- Shared support fix: `CanonicalHeader.jsx` home-mode fallback now renders **Operations Platform** for Shared Operational Home instead of the generic **Operational workflow** label
+- Closed route: `/` (`Hub`) rebuilt from shared primitives only; local BigTile / PortalPill / reference-card drift was removed so all Hub cards now inherit one governed card system
+- Evidence: responsive screenshot certification at `390`, `430`, `768`, `1024`, and `1440`; `/app/test_reports/iteration_99.json`; final `auto_frontend_testing_agent` pass (**19/19 PASS**)
+- Certification result: zero horizontal overflow, unified 15-card Hub surface, working Company Info dialog trigger, zero console errors
+- Denominator movement: shared primitive foundation closed; full-ledger survivor counts held pending the next platform-wide card/icon recount during propagation
+- Carry-forward note: Hub is now the first complete implementation of the design system; next work is platform propagation in the locked order `Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration`
+
 ### 2026-08-01 · Shared Tables Batch 01 · CLOSED
 - Closed routes: `/admin/scheduler-runs`, `/admin/leadership-equipment`, `/admin/terminations`, `/admin/guide`, `/admin/executive-operational-intelligence`, `/pm/operational-intelligence`
 - Shared fixes: canonical `DataTable` upgrade, `wp17.css` table shell styling, scheduler legacy-banner removal, `LastActivityLine` portal guard

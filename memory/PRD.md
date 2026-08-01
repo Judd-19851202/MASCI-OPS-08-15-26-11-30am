@@ -67,6 +67,10 @@
   - the first Amendment #3 reopen batch is now closed through governed shared systems: `FormShell.jsx`, `FormSection.jsx`, `ProgressRail.jsx`, `SubmitReviewPanel.jsx`, and `JobPicker.jsx` were upgraded so DVIR, Equipment Pre-Op, Daily Report, and Meeting workflows share the same operator-first hierarchy, cleaner header language, normalized utility/progress placement, and stronger submit-action emphasis
   - `NewDailyReportV3.jsx` now uses a governed sticky submit footer while removing the duplicate inline submit CTA; form routes that previously said `MASCI Job` / `Pick a MASCI job` now use operator-safe wording (`Current Job`, `Pick a current job`)
   - `DevHub.jsx` remains **BLOCKED_CREDENTIALS** for authenticated visual certification in Preview: `GET /api/dev/check` returns `404`, `POST /api/dev/login` returns `404`, and backend fail-closed logic requires backend `DEV_PASSWORD` plus the dev endpoint gate to be enabled before the actual `/dev` surface can be opened and certified
+  - Executive Direction lock is now reflected in implementation order: shared governed design primitives are the reference, Hub is the first full implementation, and route propagation follows only after the shared primitive layer is complete
+  - shared design-system primitives were completed for the current visual-governance wave: canonical card architecture (`CanonicalCard.jsx` + `wp17.css`), canonical section headings (`SectionHeading.jsx`), canonical CTA/button treatment (`components/ui/button.jsx`), canonical badges/chips (`OperationalStatusBadge.jsx` + chip tokens), and canonical state surfaces (`components/ui/PortalStates.jsx`, `components/EmptyState.jsx`)
+  - `CanonicalHeader.jsx` home-mode fallback was tightened so the Shared Operational Home now correctly shows **Operations Platform** instead of the generic **Operational workflow** label
+  - Hub/home was rebuilt from the governed primitive layer instead of page-local card implementations: field-entry cards, leadership cards, workspace cards, new-hire entry card, welcome-back card, and reference cards now all render through one shared card language with unified accent logic, spacing, icon containers, typography, footer CTAs, and interaction states
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -133,6 +137,9 @@
   - focused `auto_frontend_testing_agent` pass (**7/7 PASS**) confirmed trench shell portal consistency, admin trench detail alias routing, executive dashboard behavior, and console/network cleanliness with no remaining defects
   - shared-header QA pass (**4/4 PASS**) confirmed the new two-tier header, product-language cleanup, detail-header integration, and legacy-alias hygiene on `/admin/login`, `/admin/platform-readiness`, `/admin/trench-safety/assets/:assetId`, and `/admin/wp17d-certification`
   - shared field-form QA pass (**4/4 PASS**) confirmed the reopened DVIR, Equipment Pre-Op, Daily Report, and Meeting workflows with mobile-first header readability, zero duplicated MASCI wording in sticky header rows, corrected Daily Report sticky footer behavior, and zero overflow / console defects
+  - responsive screenshot certification passed for the rebuilt Hub and shared primitive layer at `390`, `430`, `768`, `1024`, and `1440`, with zero horizontal overflow and governed-card consistency across all Hub sections
+  - formal design-system + Hub certification passed in `/app/test_reports/iteration_99.json` with **100% frontend pass**, including canonical header validation, 15 governed card surfaces, Need Help dialog behavior, and zero console errors
+  - final `auto_frontend_testing_agent` verification passed (**19/19 PASS**) on the public Hub route, confirming the two-tier header, unified card system, Company Info dialog trigger, responsive behavior, and console cleanliness
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -140,15 +147,11 @@
 - White-label readiness preserved; MASCI identity was not hard-coded into the reusable foundation.
 
 ## Next Authorized Work
-- Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
-- Continue the Platform Shell Batch with the remaining highest-visibility routes first: authenticated `DevHub` once unblocked, remaining trench/detail aliases (especially dialogs / overlays), and any remaining direct-header pages still not routed through `CanonicalHeader`.
-- Because of Executive Amendment #2, treat all previously closed header routes as provisional until they are reopened and re-certified against the new operator-first header constitution.
-- Because of Executive Amendment #3, keep pushing through daily-use workflow reopen batches via governed shared systems first, then route-by-route polish for anything the shared layer still does not resolve.
-- After shell survivors reach evidence-backed zero or documented exceptions only, continue the shared convergence wave for dialogs, overlays, cards, shared primitives, and remaining coaching items.
-- Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
-- Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.
-- Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.
-- Drive execution from `WP17D_SURVIVOR_REGISTER.md`: keep clearing active-route survivors through shared systems only, with the next shell batch centered on admin safety aliases, authenticated `DevHub`, remaining form/table/coaching survivors, and portal-specific trench/detail aliases plus icon convergence during every touched route.
-- Reconcile survivor fixes back into `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` so platform-wide counts move toward zero by survivor category rather than percentage complete.
-- Continue icon consolidation, card/table/dialog standardization, navigation cleanup, and responsive/mobile refinement until survivor counts reach zero or a documented exception exists.
+- Continue WP-17D in the locked order now set by executive direction: governed design system → Hub implementation → platform propagation.
+- Propagate the new shared card / button / badge / section-heading / state primitives across the platform in the approved rollout order: Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration.
+- While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
+- Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
+- Reopen and certify remaining dialogs, overlays, tables, loading/empty/error/success/warning states, and motion under the same governed primitive system after the card rollout advances.
+- Keep `DevHub.jsx` in **BLOCKED_CREDENTIALS** until backend Preview exposes `DEV_PASSWORD` plus the dev-endpoint gate; do not mark authenticated `/dev` certified before the environment is unblocked.
+- Continue survivor-ledger reconciliation so platform counts move by eliminated mixed-generation primitives rather than ad-hoc route polish.
 - Only after genuine full-platform convergence should WP-17E be considered.
