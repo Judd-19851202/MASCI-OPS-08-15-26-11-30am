@@ -28,6 +28,7 @@ function HeaderNavButton({ to, label, icon: Icon, testId }) {
 }
 
 export function CanonicalHeader({
+  variant = "default",
   portalLabel = "MASCI Operations Platform",
   pageLabel = "Operational workflow",
   accent = "default",
@@ -43,27 +44,36 @@ export function CanonicalHeader({
   testIdPrefix = "masci-header",
 }) {
   const accentClass = ACCENT_DOT_CLASS[accent] || ACCENT_DOT_CLASS.default;
+  const isHomeVariant = variant === "home";
+  const headerGridClass = isHomeVariant
+    ? "mx-auto flex h-16 items-center justify-between gap-3 px-4 sm:px-6"
+    : cn(
+        "mx-auto grid h-16 items-center gap-3 px-4 sm:px-6",
+        centerSlot ? "grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)_auto]" : "grid-cols-[minmax(0,1fr)_auto]",
+      );
 
   return (
     <header className="masci-canonical-header app-sticky-header relative" data-testid={`${testIdPrefix}-header`}>
-      <div className={cn("mx-auto grid h-16 items-center gap-3 px-4 sm:px-6", containerClassName, centerSlot ? "grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)_auto]" : "grid-cols-[minmax(0,1fr)_auto]") }>
+      <div className={cn(headerGridClass, containerClassName)}>
         <div className="flex min-w-0 items-center gap-3" data-testid={`${testIdPrefix}-identity`}>
-          <MasciLogo variant="mark" size="sm" className="shrink-0" homeLink="/" />
+          <MasciLogo variant="mark" size={isHomeVariant ? "md" : "sm"} className="shrink-0" homeLink="/" />
 
-          <div className="min-w-0 space-y-0.5" data-testid={`${testIdPrefix}-labels`}>
-            <div className="inline-flex min-w-0 items-center gap-2">
-              <span className={cn("h-2 w-2 shrink-0 rounded-full", accentClass)} aria-hidden />
-              <span className="truncate font-mono text-[10px] uppercase tracking-[0.24em] text-white/70">
-                {portalLabel}
-              </span>
+          {!isHomeVariant ? (
+            <div className="min-w-0 space-y-0.5" data-testid={`${testIdPrefix}-labels`}>
+              <div className="inline-flex min-w-0 items-center gap-2">
+                <span className={cn("h-2 w-2 shrink-0 rounded-full", accentClass)} aria-hidden />
+                <span className="truncate font-mono text-[10px] uppercase tracking-[0.24em] text-white/70">
+                  {portalLabel}
+                </span>
+              </div>
+              <div className="truncate text-[13px] font-semibold text-white sm:text-sm" data-testid={`${testIdPrefix}-page-label`}>
+                {pageLabel}
+              </div>
             </div>
-            <div className="truncate text-[13px] font-semibold text-white sm:text-sm" data-testid={`${testIdPrefix}-page-label`}>
-              {pageLabel}
-            </div>
-          </div>
+          ) : null}
         </div>
 
-        {centerSlot ? (
+        {centerSlot && !isHomeVariant ? (
           <div className="hidden min-w-0 xl:flex xl:justify-center" data-testid={`${testIdPrefix}-center`}>
             {centerSlot}
           </div>
@@ -72,7 +82,7 @@ export function CanonicalHeader({
         <div className="flex items-center justify-end gap-2" data-testid={`${testIdPrefix}-actions`}>
           {backTo ? <HeaderNavButton to={backTo} label={backLabel} icon={ArrowLeft} testId={`${testIdPrefix}-back`} /> : null}
           {preControlsSlot}
-          {showLangToggle ? <LangToggle variant="dark" testId={`${testIdPrefix}-language`} /> : null}
+          {showLangToggle ? <LangToggle variant="dark" className={isHomeVariant ? "h-9 border-white/10 bg-white/8" : ""} testId={`${testIdPrefix}-language`} /> : null}
           {showHomeLink ? <HeaderNavButton to={homeTo} label="Home" icon={Home} testId={`${testIdPrefix}-home`} /> : null}
           {postControlsSlot}
         </div>

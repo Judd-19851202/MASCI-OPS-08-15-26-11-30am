@@ -15,7 +15,7 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
   // segmented toggle. The toggle is rendered in headers across every
   // form/portal — operators in the field often use it with gloves on.
   const baseBtn =
-    "min-h-[44px] min-w-[44px] inline-flex items-center justify-center px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors duration-150";
+    "min-h-[36px] min-w-[36px] inline-flex items-center justify-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider transition-colors duration-150";
   const dark = {
     wrap: "border-2 border-slate-700 bg-slate-800 text-white",
     active: "bg-red-700 text-white",
@@ -34,6 +34,7 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
       aria-label="Language"
       className={cn(
         "inline-flex items-center rounded-md overflow-hidden h-10",
+        "sm:h-9",
         styles.wrap,
         className
       )}
@@ -42,11 +43,12 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
       <span
         className={cn(
           "px-2 inline-flex items-center gap-1 border-r-2 border-current/20",
+          "sm:px-1.5",
           variant === "light" ? "border-slate-300" : "border-slate-700"
         )}
         aria-hidden
       >
-        <Languages className="w-3.5 h-3.5 opacity-80" />
+        <Languages className="w-3 h-3 opacity-80" />
       </span>
       <button
         type="button"
