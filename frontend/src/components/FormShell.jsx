@@ -2,6 +2,15 @@ import React from "react";
 import { useT } from "@/lib/i18n";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
 
+function normalizeFormPortalLabel(kicker, fallback) {
+  const cleaned = String(kicker || "")
+    .replace(/^MASCI\s*[·-]\s*/i, "")
+    .trim();
+  if (!cleaned) return fallback;
+  const parts = cleaned.split("·").map((part) => part.trim()).filter(Boolean);
+  return parts[0] || cleaned || fallback;
+}
+
 /**
  * TRACK 19.10 · Phase 1 · Unified Operational FormShell Primitive.
  *
@@ -40,6 +49,34 @@ export function FormShell({
   widthClass = "max-w-3xl",
 }) {
   const { t } = useT();
+  const headerPortalLabel = normalizeFormPortalLabel(kicker, t("Operations Workspace"));
+  const resolvedBackLink = backLink === "/" ? null : backLink;
+  const utilityCard = subtitle || progressSlot || draftSlot || headerRightSlot ? (
+    <div className="wp17-panel p-4 sm:p-5" data-testid={`${containerTestId}-utility-card`}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          {subtitle ? (
+            <p className="max-w-3xl text-sm sm:text-base leading-6 text-slate-600" data-testid={`${containerTestId}-subtitle`}>
+              {subtitle}
+            </p>
+          ) : null}
+        </div>
+        {(draftSlot || headerRightSlot) ? (
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end" data-testid={`${containerTestId}-utility-actions`}>
+            {draftSlot}
+            {headerRightSlot}
+          </div>
+        ) : null}
+      </div>
+
+      {progressSlot ? (
+        <div className="mt-4 rounded-[1.15rem] border border-slate-200 bg-slate-50/90 px-3 py-3 sm:px-4" data-testid={`${containerTestId}-progress-band`}>
+          {progressSlot}
+        </div>
+      ) : null}
+    </div>
+  ) : null;
+
   return (
     <div
       className="min-h-screen wp17-public-shell wp17-grid-bg pb-32"
@@ -47,55 +84,28 @@ export function FormShell({
     >
       <div className="caution-stripe" />
       <CanonicalHeader
-        portalLabel={kicker || t("MASCI Operations Platform")}
+        portalLabel={headerPortalLabel}
         pageLabel={title}
         accent="red"
-        backTo={backLink}
+        backTo={resolvedBackLink}
         backLabel={backLabel || t("Back")}
         homeTo="/"
         showHomeLink={false}
         showLangToggle
-        postControlsSlot={(
-          <div className="flex items-center gap-2 shrink-0">
-            {draftSlot}
-            {headerRightSlot}
-          </div>
-        )}
+        utilitySlot={utilityCard}
         containerClassName={widthClass}
         testIdPrefix={containerTestId}
       />
-        {/* PROGRESS band — dedicated horizontal row so the ProgressRail
-            never fights with header actions or clips off-screen. Kept
-            inside the sticky header so it scrolls with the page top. */}
-        {progressSlot && (
-          <div
-            className="border-t border-white/10 bg-white/10"
-            data-testid={`${containerTestId}-progress-band`}
-          >
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2">
-              {progressSlot}
-            </div>
-          </div>
-        )}
-
-      {/* SUBTITLE (optional) */}
-      {subtitle && (
-        <div className={`${widthClass} mx-auto px-4 sm:px-6 pt-3`}>
-          <p className="text-slate-600 text-sm sm:text-base leading-snug wp17-support-copy">
-            {subtitle}
-          </p>
-        </div>
-      )}
 
       {/* MAIN */}
-      <main className={`${widthClass} mx-auto px-4 sm:px-6 py-5 space-y-5`}>
+      <main className={`${widthClass} mx-auto px-4 sm:px-6 py-6 sm:py-7 space-y-6`}>
         {children}
       </main>
 
       {/* STICKY FOOTER */}
       {stickyFooter && (
         <div
-          className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 wp17-shell-footer"
+          className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-[rgba(246,248,252,0.94)] shadow-[0_-14px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl wp17-shell-footer"
           data-testid={`${containerTestId}-sticky-footer`}
         >
           <div className={`${widthClass} mx-auto px-4 sm:px-6 py-3`}>

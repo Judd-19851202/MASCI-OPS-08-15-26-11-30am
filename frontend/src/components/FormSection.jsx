@@ -36,16 +36,16 @@ export function FormSection({
   if (state === "pending") {
     return (
       <section
-        className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3"
+        className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50/80 px-4 py-3.5"
         data-testid={testId}
         data-section-state="pending"
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
               {t("Section")} {number}
             </span>
-            <h2 className="font-display text-base font-bold text-slate-500 truncate">
+            <h2 className="text-base font-semibold text-slate-600 truncate">
               {title}
             </h2>
           </div>
@@ -58,7 +58,7 @@ export function FormSection({
   if (state === "completed") {
     return (
       <section
-        className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 hover:bg-emerald-50 transition-colors"
+        className="rounded-[1.2rem] border border-emerald-200 bg-emerald-50/80 px-4 py-3.5 hover:bg-emerald-50 transition-colors"
         data-testid={testId}
         data-section-state="completed"
       >
@@ -73,10 +73,10 @@ export function FormSection({
             <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
               <Check className="w-3.5 h-3.5" aria-hidden />
             </span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-800">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-800 font-bold">
               {t("Section")} {number}
             </span>
-            <h2 className="font-display text-base font-bold text-slate-900 truncate">
+            <h2 className="text-base font-semibold text-slate-900 truncate">
               {title}
             </h2>
           </div>
@@ -92,17 +92,17 @@ export function FormSection({
   // active
   return (
     <section
-      className="rounded-xl border-2 border-slate-300 bg-white p-4 sm:p-5 space-y-4"
+      className="wp17-panel space-y-4 p-4 sm:p-5"
       data-testid={testId}
       data-section-state="active"
     >
       <header className="space-y-1">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-red-700">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
               {t("Section")} {number}
             </span>
-            <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">
+            <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
               {title}
             </h2>
           </div>

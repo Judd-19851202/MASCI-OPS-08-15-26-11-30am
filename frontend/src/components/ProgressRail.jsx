@@ -28,7 +28,7 @@ export function ProgressRail({
 
   return (
     <div
-      className="w-full space-y-2"
+      className="w-full space-y-3"
       data-testid={testId}
       role="progressbar"
       aria-valuenow={pct}
@@ -42,9 +42,9 @@ export function ProgressRail({
         </span>
         <span data-testid={`${testId}-pct`}>{pct}%</span>
       </div>
-      <div className="relative h-1.5 rounded-full bg-slate-200 overflow-hidden">
+      <div className="relative h-2 rounded-full bg-slate-200 overflow-hidden">
         <div
-          className="absolute inset-y-0 left-0 bg-red-700 transition-all duration-300"
+          className="absolute inset-y-0 left-0 bg-slate-900 transition-all duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -63,7 +63,7 @@ export function ProgressRail({
                   state === "done"
                     ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 cursor-pointer"
                     : state === "current"
-                    ? "bg-red-700 text-white border-red-800"
+                    ? "bg-slate-900 text-white border-slate-950"
                     : "bg-slate-50 text-slate-400 border-slate-200"
                 } disabled:cursor-default`}
                 data-testid={`${testId}-step-${i}`}
