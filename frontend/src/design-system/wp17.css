@@ -206,6 +206,36 @@
   border-top: 1px solid rgba(214, 228, 246, 0.1);
 }
 
+.masci-canonical-header__row--home-identity {
+  padding-top: 0.48rem;
+  padding-bottom: 0.78rem;
+}
+
+.masci-canonical-header__home-brand {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.masci-canonical-header__home-brand-company {
+  font-family: var(--font-sans);
+  font-size: clamp(1.1rem, 3vw, 1.32rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--wp17-critical);
+  text-wrap: nowrap;
+}
+
+.masci-canonical-header__home-brand-product {
+  font-family: var(--font-sans);
+  font-size: clamp(0.82rem, 2vw, 0.96rem);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.9);
+  text-wrap: balance;
+}
+
 .masci-canonical-header__portal-label {
   font-family: var(--font-mono);
   font-size: 0.64rem;
@@ -1318,8 +1348,44 @@
     font-size: 0.8rem;
   }
 
+  .masci-canonical-header__row--global {
+    gap: 0.6rem;
+  }
+
+  .masci-canonical-header__home-brand-company {
+    font-size: 1.04rem;
+  }
+
+  .masci-canonical-header__home-brand-product {
+    font-size: 0.8rem;
+  }
+
   .wp17-shell .wp16-shell-page-header {
     padding: 0.95rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .masci-canonical-header__row--global {
+    align-items: flex-start;
+  }
+
+  .masci-canonical-header__row--global > [data-testid$='-actions'] {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .masci-canonical-header__row--home-identity {
+    padding-top: 0.42rem;
+    padding-bottom: 0.74rem;
+  }
+
+  .masci-canonical-header__home-brand-company {
+    font-size: 0.98rem;
+  }
+
+  .masci-canonical-header__home-brand-product {
+    font-size: 0.76rem;
   }
 }
 

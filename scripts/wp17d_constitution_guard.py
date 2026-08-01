@@ -40,6 +40,15 @@ CHECKS = [
         "max_hits": 0,
     },
     {
+        "name": "home_duplicate_hero_identity",
+        "file": ROOT / "frontend/src/pages/Hub.jsx",
+        "patterns": [
+            re.compile(r'wp17-kicker[^\n]*MASCI Operations Platform'),
+            re.compile(r't\("MASCI Operations Platform"\)'),
+        ],
+        "max_hits": 0,
+    },
+    {
         "name": "header_whitewash_regression",
         "file": ROOT / "frontend/src/design-system/wp17.css",
         "patterns": [re.compile(r'\.masci-canonical-header\s*\{[^}]*rgba\(11, 18, 33, 0\.92\)', re.DOTALL)],
@@ -54,6 +63,32 @@ CHECKS = [
             re.compile(r'aria-label="Select language"'),
         ],
         "min_hits": 3,
+    },
+    {
+        "name": "home_brand_block_present",
+        "file": ROOT / "frontend/src/components/CanonicalHeader.jsx",
+        "patterns": [
+            re.compile(r'masci-canonical-header__home-brand-company'),
+            re.compile(r'masci-canonical-header__home-brand-product'),
+            re.compile(r'variant === "home"'),
+        ],
+        "min_hits": 3,
+    },
+    {
+        "name": "home_brand_visual_hierarchy",
+        "file": ROOT / "frontend/src/design-system/wp17.css",
+        "patterns": [
+            re.compile(r'masci-canonical-header__home-brand-company[^}]*color:\s*var\(--wp17-critical\)', re.DOTALL),
+            re.compile(r'masci-canonical-header__home-brand-product[^}]*color:\s*rgba\(255, 255, 255, 0\.9\)', re.DOTALL),
+            re.compile(r'masci-canonical-header__home-brand-company[^}]*font-weight:\s*900', re.DOTALL),
+        ],
+        "min_hits": 3,
+    },
+    {
+        "name": "logo_home_behavior",
+        "file": ROOT / "frontend/src/components/MasciLogo.jsx",
+        "patterns": [re.compile(r'aria-label="Go to MASCI Operations Platform Home"')],
+        "min_hits": 1,
     },
 ]
 

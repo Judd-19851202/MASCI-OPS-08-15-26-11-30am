@@ -170,8 +170,7 @@ export default function Hub() {
         {/* Hero headline */}
         <div className="wp17-public-hero mb-8 sm:mb-12" data-testid="hub-entry-architecture">
           <div className="max-w-4xl">
-              <span className="wp17-kicker text-red-700">{t("MASCI Operations Platform")}</span>
-              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
+              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900">
                 {lang === "es" ? (
                   <>
                     {"Un Solo Sistema. Cada Cuadrilla. "}
