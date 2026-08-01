@@ -193,6 +193,10 @@ export default function ViewIncident() {
   useEffect(() => {
     let alive = true;
     (async () => {
+      if (!pathname.startsWith("/safety-portal")) {
+        if (alive) setLinkedCapas([]);
+        return;
+      }
       try {
         const r = await api.get(`/safety/corrective-actions?source_kind=incident&source_id=${id}`);
         if (alive) setLinkedCapas(Array.isArray(r.data) ? r.data : []);
@@ -201,7 +205,7 @@ export default function ViewIncident() {
       }
     })();
     return () => { alive = false; };
-  }, [id]);
+  }, [id, pathname]);
 
   // Auto-print after the page renders if we landed here via ?autoprint=1
   useEffect(() => {
