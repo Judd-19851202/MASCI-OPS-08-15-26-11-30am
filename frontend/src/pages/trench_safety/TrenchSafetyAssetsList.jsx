@@ -3,7 +3,7 @@
 //
 // Phase 3 · MASCI Trench Safety Operations System.
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Loader2, Search, AlertTriangle, FileWarning, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,7 @@ const CONDITION_COLOR = {
 
 export default function TrenchSafetyAssetsList() {
   const { t } = useT();
+  const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -90,6 +91,11 @@ export default function TrenchSafetyAssetsList() {
   }, [q, fType, fStatus, fCondition, fNeeds, reloadKey]);
 
   const count = items.length;
+  const portalBase = location.pathname.startsWith("/admin/trench-safety")
+    ? "/admin/trench-safety"
+    : location.pathname.startsWith("/pm/trench-safety")
+      ? "/pm/trench-safety"
+      : "/safety/trench-safety";
 
   return (
     <TrenchSafetyShell active="assets">
@@ -229,7 +235,7 @@ export default function TrenchSafetyAssetsList() {
               {items.map((a) => (
                 <tr key={a.id || a.asset_id} className="border-b border-slate-100 hover:bg-cyan-50/40">
                   <td className="px-3 py-2 font-mono font-bold text-slate-900">
-                    <Link to={`/safety/trench-safety/assets/${a.asset_id}`} className="hover:text-cyan-800 underline-offset-2 hover:underline" data-testid={`trench-row-${a.asset_id}`}>
+                    <Link to={`${portalBase}/assets/${a.asset_id}`} className="hover:text-cyan-800 underline-offset-2 hover:underline" data-testid={`trench-row-${a.asset_id}`}>
                       {a.asset_id}
                     </Link>
                   </td>

@@ -5,16 +5,18 @@
 // already fully functional through Phase 2 backend and permission-safe").
 // Phase 3 is view-only; lifecycle actions land in Phase 6 once the
 // inspection / repair UIs are built.
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import {
-  Loader2, ArrowLeft, AlertTriangle, FileWarning, ShieldAlert,
+  Loader2, AlertTriangle, FileWarning, ShieldAlert,
   ScanLine, BookOpen, Send, ArrowDownToLine, History, Pencil, Power, Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import TrenchSafetyShell from "@/pages/trench_safety/TrenchSafetyShell";
+import { DataTable } from "@/design-system";
+import { DetailPageHero } from "@/components/detail/DetailPageHero";
 import {
   AssignToProjectDialog,
   ReturnFromProjectDialog,
@@ -55,9 +57,20 @@ function Field({ label, value, mono, testId }) {
   );
 }
 
+function SurfaceCard({ eyebrow, title, children, className = "", testId }) {
+  return (
+    <section className={`wp17-panel p-4 sm:p-5 ${className}`.trim()} data-testid={testId}>
+      {eyebrow ? <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">{eyebrow}</div> : null}
+      {title ? <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900">{title}</h2> : null}
+      <div className={title ? "mt-4" : ""}>{children}</div>
+    </section>
+  );
+}
+
 export default function TrenchSafetyAssetDetail() {
   const { t } = useT();
   const { assetId } = useParams();
+  const location = useLocation();
   const [doc, setDoc] = useState(null);
   const [insp, setInsp] = useState([]);
   const [reps, setReps] = useState([]);
@@ -107,75 +120,102 @@ export default function TrenchSafetyAssetDetail() {
   const canReturn =
     doc && doc.operational_status === "Assigned";
 
+  const isPm = location.pathname.startsWith("/pm/trench-safety");
+  const isAdmin = location.pathname.startsWith("/admin/trench-safety");
+  const portalBase = isPm ? "/pm/trench-safety" : isAdmin ? "/admin/trench-safety" : "/safety/trench-safety";
+  const backLabel = isPm ? t("PM · Trench Equipment") : isAdmin ? t("Admin · Trench Equipment") : t("Safety · Trench Equipment");
+  const deploymentRows = useMemo(
+    () => (allDeps || []).map((d) => ({
+      id: d.id,
+      project: d.project_name || "—",
+      projectNumber: d.project_number || "—",
+      superintendent: d.superintendent || "—",
+      foreman: d.foreman || "—",
+      assignedBy: d.assigned_by || "—",
+      assignedAt: d.assigned_at?.slice(0, 16) || "—",
+      returnedAt: d.returned_at || null,
+      source: d.source || "—",
+    })),
+    [allDeps]
+  );
+  const deploymentColumns = useMemo(
+    () => [
+      { key: "project", header: t("Project"), wrap: true },
+      { key: "projectNumber", header: t("Project #") },
+      { key: "superintendent", header: t("Superintendent"), wrap: true },
+      { key: "foreman", header: t("Foreman"), wrap: true },
+      { key: "assignedBy", header: t("Assigned By"), wrap: true },
+      { key: "assignedAt", header: t("Assigned") },
+      {
+        key: "returnedAt",
+        header: t("Returned"),
+        render: (row) => row.returnedAt ? row.returnedAt.slice(0, 16) : <span className="font-bold text-emerald-700">{t("Active")}</span>,
+      },
+      { key: "source", header: t("Source"), wrap: true },
+    ],
+    [t]
+  );
+
   return (
     <TrenchSafetyShell active="assets">
-      <Link to="/safety/trench-safety/assets" className="inline-flex items-center text-cyan-800 hover:text-cyan-900 text-xs font-bold uppercase tracking-[0.12em] mb-3" data-testid="trench-detail-back">
-        <ArrowLeft className="w-3.5 h-3.5 mr-1" /> {t("Back to Trench Equipment")}
-      </Link>
-
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-500" data-testid="trench-detail-loading">
-          <Loader2 className="w-5 h-5 animate-spin" /> {t("Loading asset…")}
-        </div>
+        <SurfaceCard testId="trench-detail-loading">
+          <div className="flex min-h-[12rem] items-center justify-center gap-2 text-slate-500">
+            <Loader2 className="w-5 h-5 animate-spin" /> {t("Loading asset…")}
+          </div>
+        </SurfaceCard>
       ) : err ? (
-        <div className="p-4 border border-red-300 bg-red-50 rounded text-red-900 text-sm" data-testid="trench-detail-error">{err}</div>
+        <SurfaceCard className="border border-red-200 bg-red-50" testId="trench-detail-error">
+          <div className="text-red-900 text-sm leading-6">{err}</div>
+        </SurfaceCard>
       ) : !doc ? (
-        <div className="p-8 text-center text-slate-500" data-testid="trench-detail-empty">{t("Asset not found.")}</div>
+        <SurfaceCard testId="trench-detail-empty">
+          <div className="min-h-[12rem] flex items-center justify-center text-slate-500 text-sm">{t("Asset not found.")}</div>
+        </SurfaceCard>
       ) : (
         <>
-          {/* Header */}
-          <div className="flex flex-wrap items-end gap-4 justify-between" data-testid="trench-detail-header">
-            <div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700 font-bold">{t(doc.asset_type || "Trench Box")}</span>
-              <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 leading-none mt-1">{doc.asset_id}</h1>
-              <p className="text-slate-600 text-sm mt-2">{doc.size || ""} {doc.color ? `· ${doc.color}` : ""}</p>
-            </div>
-            <span className={`inline-block px-3 py-1.5 rounded border text-xs font-bold uppercase tracking-[0.12em] ${STATUS_COLOR[doc.operational_status] || "bg-slate-50 text-slate-700 border-slate-300"}`} data-testid="trench-detail-status-badge">
-              {t(doc.operational_status || "Available")}
-            </span>
-          </div>
-
-          {/* Phase 4A action bar */}
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="trench-detail-actions">
-            <Button
-              type="button"
-              onClick={() => setAssignOpen(true)}
-              disabled={!canAssign}
-              className="bg-cyan-700 hover:bg-cyan-800 text-white"
-              data-testid="btn-assign-to-project"
-            >
-              <Send className="w-3.5 h-3.5 mr-1.5" />
-              {t("Assign to Project")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setReturnOpen(true)}
-              disabled={!canReturn}
-              className="border-cyan-700 text-cyan-800 hover:bg-cyan-50"
-              data-testid="btn-return-from-project"
-            >
-              <ArrowDownToLine className="w-3.5 h-3.5 mr-1.5" />
-              {t("Return from Project")}
-            </Button>
-            {!canAssign && doc.operational_status !== "Assigned" && (
-              <span className="text-[11px] text-slate-500 self-center font-mono">
-                {t("Asset is")} {t(doc.operational_status)} — {t("clear before assigning")}.
-              </span>
+          <DetailPageHero
+            backHref={`${portalBase}/assets`}
+            backLabel={backLabel}
+            kicker={t(doc.asset_type || "Trench Box")}
+            title={doc.asset_id}
+            description={[doc.size, doc.color, doc.current_location].filter(Boolean).join(" · ") || t("Live asset record")}
+            chips={(
+              <>
+                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${STATUS_COLOR[doc.operational_status] || "bg-slate-50 text-slate-700 border-slate-300"}`} data-testid="trench-detail-status-badge">
+                  {t(doc.operational_status || "Available")}
+                </span>
+                {doc.condition ? <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700" data-testid="trench-detail-condition-chip">{t(doc.condition)}</span> : null}
+              </>
             )}
-            <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
-            <Button type="button" variant="outline" onClick={() => setEditOpen(true)} className="border-slate-400 text-slate-800 hover:bg-slate-50" data-testid="btn-edit-asset">
-              <Pencil className="w-3.5 h-3.5 mr-1.5" /> {t("Edit Asset")}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setStatusOpen(true)} className="border-slate-400 text-slate-800 hover:bg-slate-50" data-testid="btn-change-status">
-              <Activity className="w-3.5 h-3.5 mr-1.5" /> {t("Change Status")}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setRetireOpen(true)} className="border-red-300 text-red-700 hover:bg-red-50" disabled={doc.operational_status === "Retired"} data-testid="btn-retire-asset">
-              <Power className="w-3.5 h-3.5 mr-1.5" /> {t("Retire")}
-            </Button>
-          </div>
+            toolbar={(
+              <div className="flex flex-wrap gap-2" data-testid="trench-detail-actions">
+                <Button type="button" onClick={() => setAssignOpen(true)} disabled={!canAssign} className="bg-cyan-700 hover:bg-cyan-800 text-white" data-testid="btn-assign-to-project">
+                  <Send className="w-3.5 h-3.5 mr-1.5" /> {t("Assign")}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setReturnOpen(true)} disabled={!canReturn} className="border-cyan-700 text-cyan-800 hover:bg-cyan-50" data-testid="btn-return-from-project">
+                  <ArrowDownToLine className="w-3.5 h-3.5 mr-1.5" /> {t("Return")}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setEditOpen(true)} className="border-slate-400 text-slate-800 hover:bg-slate-50" data-testid="btn-edit-asset">
+                  <Pencil className="w-3.5 h-3.5 mr-1.5" /> {t("Edit")}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setStatusOpen(true)} className="border-slate-400 text-slate-800 hover:bg-slate-50" data-testid="btn-change-status">
+                  <Activity className="w-3.5 h-3.5 mr-1.5" /> {t("Status")}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setRetireOpen(true)} className="border-red-300 text-red-700 hover:bg-red-50" disabled={doc.operational_status === "Retired"} data-testid="btn-retire-asset">
+                  <Power className="w-3.5 h-3.5 mr-1.5" /> {t("Retire")}
+                </Button>
+              </div>
+            )}
+            testId="trench-detail-hero"
+          />
 
-          {/* Needs-Review / Missing-SN alerts */}
+          {!canAssign && doc.operational_status !== "Assigned" ? (
+            <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] font-mono text-amber-900" data-testid="trench-detail-assignment-note">
+              {t("Asset is")} {t(doc.operational_status)} — {t("clear before assigning")}
+            </div>
+          ) : null}
+
           {(doc.needs_review || doc.missing_serial_number || doc.tabulated_data_missing) && (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2" data-testid="trench-detail-alerts">
               {doc.missing_serial_number && (
@@ -203,7 +243,7 @@ export default function TrenchSafetyAssetDetail() {
                     <div className="font-bold">{t("Tabulated Data Missing")}</div>
                     <div className="text-xs">
                       {t("No manufacturer PDF linked to this asset yet. ")}
-                      <Link to="/safety/trench-safety/tabulated-data" className="underline">{t("Browse library")}</Link>
+                      <Link to={`${portalBase}/tabulated-data`} className="underline">{t("Browse library")}</Link>
                     </div>
                   </div>
                 </div>
@@ -211,9 +251,7 @@ export default function TrenchSafetyAssetDetail() {
             </div>
           )}
 
-          {/* Identification */}
-          <section className="mt-6 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-identification">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">{t("Identification")}</div>
+          <SurfaceCard eyebrow={t("Identification")} title={t("Identity and build profile")} testId="trench-detail-identification">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
               <Field label={t("Asset ID")}     value={doc.asset_id}     mono testId="f-asset-id" />
               <Field label={t("Type")}         value={t(doc.asset_type || "Trench Box")} testId="f-type" />
@@ -224,14 +262,10 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Color")}        value={doc.color} testId="f-color" />
               <Field label={t("Condition")}    value={t(doc.condition || "Good")} testId="f-condition" />
             </div>
-          </section>
+          </SurfaceCard>
 
-          {/* Road Plate Specs · Phase 8A — only rendered when type matches */}
           {doc.asset_type === "Road Plate" && (
-            <section className="mt-4 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-roadplate">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
-                {t("Road Plate · Specs & Condition")}
-              </div>
+            <SurfaceCard eyebrow={t("Road Plate")} title={t("Specs and condition")} testId="trench-detail-roadplate">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
                 <Field label={t("Length (in)")}             value={doc.length_in} mono testId="f-rp-length" />
                 <Field label={t("Width (in)")}              value={doc.width_in} mono testId="f-rp-width" />
@@ -245,12 +279,10 @@ export default function TrenchSafetyAssetDetail() {
                 <Field label={t("Anti-Skid Status")}        value={doc.anti_skid_status ? t(doc.anti_skid_status) : null} testId="f-rp-antiskid" />
                 <Field label={t("Color / Markings")}        value={doc.markings} testId="f-rp-markings" />
               </div>
-            </section>
+            </SurfaceCard>
           )}
 
-          {/* Operational */}
-          <section className="mt-4 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-operational">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">{t("Operational")}</div>
+          <SurfaceCard eyebrow={t("Operational")} title={t("Live field posture")} testId="trench-detail-operational">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
               <Field label={t("Status")}            value={t(doc.operational_status || "Available")} testId="f-status" />
               <Field label={t("Current Location")}  value={doc.current_location} testId="f-location" />
@@ -264,25 +296,23 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Certification Expires")} value={doc.certification_expires_at ? doc.certification_expires_at.slice(0, 10) : null} testId="f-cert-exp" />
               <Field label={t("Last Repair")}       value={doc.last_repair_at ? doc.last_repair_at.slice(0, 10) : null} testId="f-last-repair" />
             </div>
-          </section>
+          </SurfaceCard>
 
-          {/* QR + linked Tabulated Data */}
           <section className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="trench-detail-qr-and-tabdata">
-            <Link to={`/trench-safety/assets/${doc.asset_id}`} className="bg-white border border-slate-200 rounded-md p-4 hover:border-cyan-600 hover:shadow transition" data-testid="trench-detail-qr-link">
+            <Link to={`/trench-safety/assets/${doc.asset_id}`} className="wp17-panel p-4 hover:border-cyan-600 hover:shadow transition block" data-testid="trench-detail-qr-link">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" /> {t("Field View")}</div>
               <div className="font-display text-lg font-black text-slate-900 mt-1">{t("Open QR Field View")}</div>
               <div className="text-xs text-slate-600 mt-1">{t("Mobile-first read-only crew view. Safe to scan in the field.")}</div>
             </Link>
-            <Link to="/safety/trench-safety/tabulated-data" className="bg-white border border-slate-200 rounded-md p-4 hover:border-cyan-600 hover:shadow transition" data-testid="trench-detail-tabdata-link">
+            <Link to={`${portalBase}/tabulated-data`} className="wp17-panel p-4 hover:border-cyan-600 hover:shadow transition block" data-testid="trench-detail-tabdata-link">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold inline-flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" /> {t("Reference")}</div>
               <div className="font-display text-lg font-black text-slate-900 mt-1">{t("Browse Tabulated Data Library")}</div>
               <div className="text-xs text-slate-600 mt-1">{t("Manufacturer-engineered OSHA tabulated PDFs.")}</div>
             </Link>
           </section>
 
-          {/* Recent inspections / repairs / deployments */}
           <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3" data-testid="trench-detail-history">
-            <div className="bg-white border border-slate-200 rounded-md p-4">
+            <div className="wp17-panel p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-2">{t("Recent Inspections")}</div>
               {insp.length === 0 ? (
                 <div className="text-xs text-slate-400">{t("No inspections yet.")}</div>
@@ -297,7 +327,7 @@ export default function TrenchSafetyAssetDetail() {
                 </ul>
               )}
             </div>
-            <div className="bg-white border border-slate-200 rounded-md p-4">
+            <div className="wp17-panel p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-2">{t("Recent Repairs")}</div>
               {reps.length === 0 ? (
                 <div className="text-xs text-slate-400">{t("No repairs on file.")}</div>
@@ -312,7 +342,7 @@ export default function TrenchSafetyAssetDetail() {
                 </ul>
               )}
             </div>
-            <div className="bg-white border border-slate-200 rounded-md p-4">
+            <div className="wp17-panel p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-2">{t("Recent Deployments")}</div>
               {deps.length === 0 ? (
                 <div className="text-xs text-slate-400">{t("No deployments recorded.")}</div>
@@ -329,50 +359,19 @@ export default function TrenchSafetyAssetDetail() {
             </div>
           </section>
 
-          {/* Full Deployment History timeline (Phase 4A) */}
-          <section className="mt-4 bg-white border border-slate-200 rounded-md p-4" data-testid="trench-detail-deployment-history">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2 inline-flex items-center gap-1">
-              <History className="w-3.5 h-3.5" /> {t("Deployment History")}
-            </div>
-            {allDeps.length === 0 ? (
-              <div className="text-xs text-slate-400 py-2">{t("No deployments recorded.")}</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm" data-testid="deployment-history-table">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Project")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Project #")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Superintendent")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Foreman")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Assigned By")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Assigned")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Returned")}</th>
-                      <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600">{t("Source")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allDeps.map((d) => (
-                      <tr key={d.id} className="border-t border-slate-100" data-testid={`deployment-row-${d.id}`}>
-                        <td className="px-3 py-2 text-slate-900 font-medium">{d.project_name || "—"}</td>
-                        <td className="px-3 py-2 font-mono text-xs text-slate-700">{d.project_number || "—"}</td>
-                        <td className="px-3 py-2 text-slate-700 text-xs">{d.superintendent || "—"}</td>
-                        <td className="px-3 py-2 text-slate-700 text-xs">{d.foreman || "—"}</td>
-                        <td className="px-3 py-2 text-slate-700 text-xs">{d.assigned_by || "—"}</td>
-                        <td className="px-3 py-2 text-xs font-mono text-slate-700">{d.assigned_at?.slice(0, 16) || "—"}</td>
-                        <td className="px-3 py-2 text-xs font-mono text-slate-700">
-                          {d.returned_at ? d.returned_at.slice(0, 16) : <span className="text-emerald-700 font-bold">{t("Active")}</span>}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-slate-500">{d.source || "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+          <SurfaceCard eyebrow={<span className="inline-flex items-center gap-1"><History className="w-3.5 h-3.5" /> {t("Deployment History")}</span>} title={t("Full deployment timeline")} testId="trench-detail-deployment-history">
+            <DataTable
+              columns={deploymentColumns}
+              rows={deploymentRows}
+              rowKey={(row) => row.id}
+              emptyText={t("No deployments recorded.")}
+              density="compact"
+              tableMinWidth={880}
+              data-testid="deployment-history-table"
+              getRowTestId={(row) => `deployment-row-${row.id}`}
+            />
+          </SurfaceCard>
 
-          {/* Phase 7.5A Command Center panels */}
           <section className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3" data-testid="trench-detail-cmd-panels">
             <HoldsPanel asset={doc} onChange={reload} />
             <CertificationsPanel asset={doc} onChange={reload} />
@@ -380,14 +379,12 @@ export default function TrenchSafetyAssetDetail() {
             <AuditTimelinePanel asset={doc} />
           </section>
 
-          {/* Phase 7 — QR + Photos */}
           <section className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3" data-testid="trench-detail-phase7-panels">
             <QRManagementPanel asset={doc} />
             <PhotoManagementPanel asset={doc} />
           </section>
 
-          {/* Coaching */}
-          <div className="mt-6 p-3 border border-amber-300 bg-amber-50 rounded text-sm text-amber-900" data-testid="trench-detail-coaching">
+          <div className="mt-6 p-4 border border-amber-300 bg-amber-50 rounded-[1.25rem] text-sm text-amber-900" data-testid="trench-detail-coaching">
             <ShieldAlert className="w-4 h-4 inline mr-1.5 -mt-0.5" />
             <strong>{t("Coaching:")}</strong>{" "}
             {t("Report damage before the box goes into the trench. A box on Inspection Hold is not available for use.")}

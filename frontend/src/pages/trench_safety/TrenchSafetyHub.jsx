@@ -3,7 +3,7 @@
 //
 // Phase 3 · MASCI Trench Safety Operations System.
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ShieldAlert, Wrench, Boxes, FileWarning, ScanLine, AlertTriangle, Loader2,
   Plus, Upload,
@@ -55,6 +55,7 @@ function AlertRow({ icon: Icon, color, label, count, testId }) {
 
 export default function TrenchSafetyHub() {
   const { t } = useT();
+  const location = useLocation();
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
@@ -81,6 +82,11 @@ export default function TrenchSafetyHub() {
   const counts_type = data?.counts_by_type || {};
   const counts_cond = data?.counts_by_condition || {};
   const alerts = data?.alerts || {};
+  const portalBase = location.pathname.startsWith("/admin/trench-safety")
+    ? "/admin/trench-safety"
+    : location.pathname.startsWith("/pm/trench-safety")
+      ? "/pm/trench-safety"
+      : "/safety/trench-safety";
 
   return (
     <TrenchSafetyShell active="hub">
@@ -143,7 +149,7 @@ export default function TrenchSafetyHub() {
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
               {t("Executive Summary")}
             </div>
-            <OperationalSummaryPanel assetsBasePath="/safety/trench-safety/assets" />
+            <OperationalSummaryPanel assetsBasePath={`${portalBase}/assets`} />
           </section>
 
           {/* Headline KPIs */}
@@ -208,12 +214,12 @@ export default function TrenchSafetyHub() {
 
           {/* Quick links */}
           <section className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="trench-hub-quicklinks">
-            <Link to="/safety/trench-safety/assets" className="bg-white border border-slate-200 rounded-md p-4 hover:border-cyan-600 hover:shadow transition" data-testid="ql-equipment">
+            <Link to={`${portalBase}/assets`} className="bg-white border border-slate-200 rounded-md p-4 hover:border-cyan-600 hover:shadow transition" data-testid="ql-equipment">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold">{t("Open")}</div>
               <div className="font-display text-xl font-black text-slate-900 mt-1">{t("Trench Equipment")}</div>
               <div className="text-xs text-slate-600 mt-1">{t("Filterable list of every MASCI trench safety asset.")}</div>
             </Link>
-            <Link to="/safety/trench-safety/tabulated-data" className="bg-white border border-slate-200 rounded-md p-4 hover:border-cyan-600 hover:shadow transition" data-testid="ql-tabdata">
+            <Link to={`${portalBase}/tabulated-data`} className="bg-white border border-slate-200 rounded-md p-4 hover:border-cyan-600 hover:shadow transition" data-testid="ql-tabdata">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold">{t("Open")}</div>
               <div className="font-display text-xl font-black text-slate-900 mt-1">{t("Tabulated Data")}</div>
               <div className="text-xs text-slate-600 mt-1">{t("OSHA tabulated data PDFs · per-box folders + general library.")}</div>

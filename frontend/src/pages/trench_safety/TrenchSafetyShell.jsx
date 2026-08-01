@@ -25,7 +25,7 @@ const TABS = [
   { key: "tabulated",   slug: "/tabulated-data", icon: BookOpen,        label: "Tabulated Data" },
 ];
 
-export default function TrenchSafetyShell({ active, title, kicker, children }) {
+export default function TrenchSafetyShell({ active, title, kicker, description, children }) {
   const { t } = useT();
   const loc = useLocation();
   // Detect whether we're under /admin/..., /pm/..., or /safety/... so
@@ -38,15 +38,24 @@ export default function TrenchSafetyShell({ active, title, kicker, children }) {
       ? "/admin/trench-safety"
       : "/safety/trench-safety";
 
+  const portalLabel = isPm ? t("Project Management") : isAdmin ? t("Admin OS") : t("Safety Operations");
+  const accentKicker = isPm ? "text-amber-700" : isAdmin ? "text-red-700" : "text-cyan-700";
+  const activeCard = isPm
+    ? "border-amber-300 bg-amber-50/90 text-amber-950"
+    : isAdmin
+      ? "border-red-300 bg-red-50/90 text-red-950"
+      : "border-cyan-300 bg-cyan-50/90 text-cyan-950";
+  const idleCard = "border-slate-200 bg-white/92 text-slate-700 hover:border-slate-300 hover:text-slate-950";
+
   const tabsNav = (
-    <div className="mb-6" data-testid="trench-safety-tabs">
-      <span className={
-        "font-mono text-[10px] uppercase tracking-[0.25em] font-bold " +
-        (isPm ? "text-amber-700" : "text-cyan-700")
-      }>
-        {t("Safety")} · {t("Trench Safety")}
-      </span>
-      <nav className="mt-2 flex flex-wrap gap-2 border-b border-slate-200 pb-px">
+    <section className="wp17-panel p-4 sm:p-5" data-testid="trench-safety-tabs-shell">
+      <div className={`font-mono text-[10px] uppercase tracking-[0.22em] font-bold ${accentKicker}`}>
+        {portalLabel} · {t("Trench Safety")}
+      </div>
+      <div className="mt-2 text-sm text-slate-600 max-w-3xl">
+        {t("Use one governed navigation strip for trench equipment, excavations, reports, and tabulated data across every portal context.")}
+      </div>
+      <nav className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" data-testid="trench-safety-tabs">
         {TABS.map(({ key, slug, icon: Icon, label }) => {
           const to = `${portalBase}${slug}`;
           const isHub = key === "hub" && loc.pathname === portalBase;
@@ -54,36 +63,52 @@ export default function TrenchSafetyShell({ active, title, kicker, children }) {
             active === key ||
             (active == null && slug && loc.pathname.startsWith(to));
           const on = isActive || isHub;
-          const onClasses = isPm
-            ? "border-amber-700 text-amber-900"
-            : "border-cyan-700 text-cyan-900";
-          const offHoverClasses = isPm
-            ? "border-transparent text-slate-500 hover:text-amber-800 hover:border-amber-300"
-            : "border-transparent text-slate-500 hover:text-cyan-800 hover:border-cyan-300";
           return (
             <Link
               key={key}
               to={to}
               data-testid={`trench-tab-${key}`}
-              className={
-                "inline-flex items-center gap-1.5 px-3 py-2 -mb-px border-b-2 text-xs font-bold uppercase tracking-[0.12em] " +
-                (on ? onClasses : offHoverClasses)
-              }
+              className={`rounded-[1.15rem] border px-4 py-3 transition-colors ${on ? activeCard : idleCard}`}
             >
-              <Icon className="w-3.5 h-3.5" />
-              {t(label)}
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold">
+                  <Icon className="h-4 w-4" />
+                  {t(label)}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] opacity-70">{on ? t("Active") : t("Open")}</span>
+              </div>
             </Link>
           );
         })}
       </nav>
+    </section>
+  );
+
+  const shellIntro = title ? (
+    <section className="wp17-public-hero" data-testid="trench-safety-shell-intro">
+      <div className={`font-mono text-[10px] uppercase tracking-[0.22em] font-bold ${accentKicker}`}>{portalLabel} · {t("Trench Safety")}</div>
+      <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900">{title}</h1>
+      <p className="mt-3 max-w-3xl text-sm sm:text-base leading-6 text-slate-600">{description || kicker || t("Field visibility, trench asset governance, and compliance reporting in one certified operating surface.")}</p>
+    </section>
+  ) : null;
+
+  const body = (
+    <div className="space-y-5" data-testid="trench-safety-shell-body">
+      {shellIntro}
+      {tabsNav}
+      <div data-testid="trench-safety-shell-content">{children}</div>
     </div>
   );
 
   if (isPm) {
     return (
-      <PmShell title={title || "Trench Safety"} section="trench-safety">
-        {tabsNav}
-        {children}
+      <PmShell
+        title={title || "Trench Safety"}
+        section="trench-safety"
+        showPageHeader={false}
+        showMissionBanner={false}
+      >
+        {body}
       </PmShell>
     );
   }
@@ -98,19 +123,24 @@ export default function TrenchSafetyShell({ active, title, kicker, children }) {
           { label: "Field Operations" },
           { label: "Trench Safety" },
         ]}
-        contentClassName="max-w-7xl mx-auto px-5 sm:px-8 py-8"
+        showShellHeader={false}
+        showBreadcrumbs={false}
+        contentClassName="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8"
         testId="admin-trench-safety-shell"
       >
-        {tabsNav}
-        {children}
+        {body}
       </AdminRouteShell>
     );
   }
 
   return (
-    <SafetyShell title={title} kicker={kicker}>
-      {tabsNav}
-      {children}
+    <SafetyShell
+      title={title}
+      kicker={kicker}
+      showPageHeader={false}
+      showMissionBanner={false}
+    >
+      {body}
     </SafetyShell>
   );
 }

@@ -348,6 +348,7 @@ const HrSafetyRecords = React.lazy(() => import("@/pages/HrSafetyRecords"));
 // ROUTE-SPLIT-001 Wave 3 — Training surfaces lazy.
 const TrainingHub = React.lazy(() => import("@/pages/TrainingHub"));
 import AdminDeployReadiness from "@/pages/AdminDeployReadiness";
+import Wp17dCertificationDashboard from "@/pages/admin/Wp17dCertificationDashboard";
 const TrainingTrack = React.lazy(() => import("@/pages/TrainingTrack"));
 const TrainingQrPoster = React.lazy(() => import("@/pages/TrainingQrPoster"));
 const TrainingPacketDownload = React.lazy(() => import("@/pages/TrainingPacketDownload"));
@@ -1202,6 +1203,7 @@ export function AppRoutes() {
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
             <Route path="/admin/deploy-readiness" element={A(LB("/admin/deploy-readiness", <AdminDeployReadiness />))} />
+            <Route path="/admin/wp17d-certification" element={A(<Wp17dCertificationDashboard />)} />
 
             {/* ============================================================
                 Operations Training Center — system-wide operator guides
