@@ -27,6 +27,8 @@ import {
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
+import { OperationalTopbar } from "@/components/public/OperationalPageFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
 import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { getPmToken, clearPmToken } from "@/lib/pmAuth";
@@ -232,54 +234,67 @@ export default function Hub() {
   return (
     <div className="wp17-public-shell">
       <div className="caution-stripe" />
-      <header className="wp17-public-header">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-5 sm:py-7 flex items-center justify-between">
-          <MasciLogo variant="mark" size="2xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <Link
-              to="/sign-in"
-              className="hidden sm:inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
-              data-testid="hub-sign-in-link"
-              title="Multi-portal sign-in for managers, admins, and HR with cross-portal access"
-            >
-              {t("Sign in")}
-            </Link>
-            <LangToggle />
-          </div>
-        </div>
-      </header>
+      <OperationalTopbar
+        accent="red"
+        familyLabel={t("MASCI Operations Platform")}
+        familyMeta={t("Shared operational home")}
+        homeTo="/"
+        showHomeLink={false}
+        showLangToggle
+        testIdPrefix="hub-home"
+        rightSlot={(
+          <Link
+            to="/sign-in"
+            className="hidden sm:inline-flex items-center h-10 rounded-full border border-white/12 bg-white/10 px-4 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-white hover:bg-white/18"
+            data-testid="hub-sign-in-link"
+            title="Multi-portal sign-in for managers, admins, and HR with cross-portal access"
+          >
+            {t("Sign in")}
+          </Link>
+        )}
+      />
 
       <main className="wp17-public-main py-8 sm:py-12">
 
         {/* Hero headline */}
         <div className="wp17-public-hero mb-8 sm:mb-12" data-testid="hub-entry-architecture">
-          <span className="wp17-kicker text-red-700">
-            {t("MASCI Operations Platform")}
-          </span>
-          {/* Track 15.4 (2026-06-16) — hero copy refresh.
-              Approved EN headline: "One System. Every Crew. Every Job."
-              Approved EN subheadline: see below. ES translation aligned. */}
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
-            {lang === "es" ? (
-              <>
-                {"Un Solo Sistema. Cada Cuadrilla. "}
-                <span className="text-red-700">Cada Trabajo</span>{"."}
-              </>
-            ) : (
-              <>
-                {"One System. Every Crew. "}
-                <span className="text-red-700">Every Job</span>{"."}
-              </>
-            )}
-          </h1>
-          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
-            {t("Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter.")}
-          </p>
-          <div className="wp17-chip-row mt-6" data-testid="hub-next-actions-row">
-            <Link to="/sign-in" className="wp17-chip !bg-slate-900 !text-white !border-slate-900/20" data-testid="hub-next-signin-chip">{t("Open shared sign-in")}</Link>
-            <Link to="/guidance" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-guidance-chip">{t("Open guidance")}</Link>
-            <Link to="/cheatsheet" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-cheatsheet-chip">{t("Open cheat sheet")}</Link>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),320px] lg:items-start">
+            <div>
+              <span className="wp17-kicker text-red-700">
+                {t("MASCI Operations Platform")}
+              </span>
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 mt-2">
+                {lang === "es" ? (
+                  <>
+                    {"Un Solo Sistema. Cada Cuadrilla. "}
+                    <span className="text-red-700">Cada Trabajo</span>{"."}
+                  </>
+                ) : (
+                  <>
+                    {"One System. Every Crew. "}
+                    <span className="text-red-700">Every Job</span>{"."}
+                  </>
+                )}
+              </h1>
+              <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
+                {t("Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter.")}
+              </p>
+              <div className="wp17-chip-row mt-6" data-testid="hub-next-actions-row">
+                <Link to="/sign-in" className="wp17-chip !bg-slate-900 !text-white !border-slate-900/20" data-testid="hub-next-signin-chip">{t("Open shared sign-in")}</Link>
+                <Link to="/guidance" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-guidance-chip">{t("Open guidance")}</Link>
+                <Link to="/cheatsheet" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-cheatsheet-chip">{t("Open cheat sheet")}</Link>
+              </div>
+            </div>
+            <div className="rounded-[1.6rem] border border-slate-900/75 bg-slate-950 px-5 py-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.22)]" data-testid="hub-attention-panel">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/55">{t("Where am I · What next")}</div>
+              <div className="mt-2 text-lg font-semibold leading-tight">{t("The shared front door to every MASCI workflow.")}</div>
+              <p className="mt-2 text-sm leading-6 text-white/74">{t("Start in the field, jump into your workspace, or open guidance if you need the operational playbook first.")}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <OperationalStatusBadge tone="red" testId="hub-badge-public">{t("Public field entry")}</OperationalStatusBadge>
+                <OperationalStatusBadge tone="cyan" testId="hub-badge-workspaces">{t("Portal workspaces")}</OperationalStatusBadge>
+                <OperationalStatusBadge tone="amber" testId="hub-badge-help">{t("Help always available")}</OperationalStatusBadge>
+              </div>
+            </div>
           </div>
         </div>
 

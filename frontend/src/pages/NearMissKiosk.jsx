@@ -15,27 +15,9 @@ import {
   watchOnline,
 } from "@/lib/incidentOfflineQueue";
 import { AlertTriangle, Check, Camera, Wifi, WifiOff, ShieldAlert } from "lucide-react";
-
-function LangToggleMini({ lang, onLang }) {
-  return (
-    <div className="inline-flex rounded-md border border-slate-300 bg-white overflow-hidden" role="group" aria-label="Language">
-      <button
-        type="button"
-        onClick={() => onLang("en")}
-        aria-pressed={lang === "en"}
-        className={`px-3 h-9 text-xs font-mono uppercase tracking-widest ${lang === "en" ? "bg-slate-900 text-white" : "text-slate-700"}`}
-        data-testid="near-miss-lang-en"
-      >EN</button>
-      <button
-        type="button"
-        onClick={() => onLang("es")}
-        aria-pressed={lang === "es"}
-        className={`px-3 h-9 text-xs font-mono uppercase tracking-widest ${lang === "es" ? "bg-slate-900 text-white" : "text-slate-700"}`}
-        data-testid="near-miss-lang-es"
-      >ES</button>
-    </div>
-  );
-}
+import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
+import { OperationalOutcomeFrame } from "@/components/public/OperationalOutcomeFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 
 function EmergencyAlert() {
   const { t } = useT();
@@ -130,7 +112,7 @@ function CapturePhotoField({ value, onChange, testId }) {
 }
 
 export default function NearMissKiosk() {
-  const { t, lang, setLang } = useT();
+  const { t, lang } = useT();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -207,8 +189,21 @@ export default function NearMissKiosk() {
   // ── Success screens ────────────────────────────────────────────────
   if (result?.status === "submitted") {
     return (
-      <div className="min-h-screen bg-emerald-50 flex flex-col items-center justify-center p-6" data-testid="near-miss-success">
-        <div className="max-w-md w-full bg-white rounded-2xl border-2 border-emerald-300 p-6 space-y-4 shadow-lg">
+      <OperationalOutcomeFrame
+        testId="near-miss-success"
+        accent="emerald"
+        familyLabel={t("Safety Operations")}
+        familyMeta={t("Public near-miss workflow")}
+        backTo="/"
+        backLabel={t("Back to Hub")}
+        heroIcon={Check}
+        kicker={t("Near miss · Submitted")}
+        title={t("Safety has your report.")}
+        description={t("The near miss is on file and routed to Safety for review. If the team needs more detail, they will follow up from the case record.")}
+        heroMeta={<OperationalStatusBadge tone="emerald" testId="near-miss-success-badge">{t("Delivered")}</OperationalStatusBadge>}
+        footerText={t("MASCI Operations Platform · Near-miss continuity")}
+      >
+        <div className="max-w-md mx-auto w-full bg-white rounded-2xl border-2 border-emerald-300 p-6 space-y-4 shadow-lg">
           <div className="rounded-full bg-emerald-100 w-14 h-14 flex items-center justify-center" aria-hidden>
             <Check className="w-8 h-8 text-emerald-700" />
           </div>
@@ -234,13 +229,26 @@ export default function NearMissKiosk() {
             data-testid="near-miss-submit-another"
           >{t("Submit another report")}</button>
         </div>
-      </div>
+      </OperationalOutcomeFrame>
     );
   }
   if (result?.status === "queued") {
     return (
-      <div className="min-h-screen bg-amber-50 flex flex-col items-center justify-center p-6" data-testid="near-miss-queued">
-        <div className="max-w-md w-full bg-white rounded-2xl border-2 border-amber-400 p-6 space-y-4 shadow-lg">
+      <OperationalOutcomeFrame
+        testId="near-miss-queued"
+        accent="amber"
+        familyLabel={t("Safety Operations")}
+        familyMeta={t("Public near-miss workflow")}
+        backTo="/"
+        backLabel={t("Back to Hub")}
+        heroIcon={WifiOff}
+        kicker={t("Near miss · Queued")}
+        title={t("Saved locally and waiting for connection.")}
+        description={t("The report is stored on this device and will retry automatically when internet service returns.")}
+        heroMeta={<OperationalStatusBadge tone="amber" testId="near-miss-queued-badge">{t("Queued for retry")}</OperationalStatusBadge>}
+        footerText={t("MASCI Operations Platform · Near-miss offline continuity")}
+      >
+        <div className="max-w-md mx-auto w-full bg-white rounded-2xl border-2 border-amber-400 p-6 space-y-4 shadow-lg">
           <div className="rounded-full bg-amber-100 w-14 h-14 flex items-center justify-center" aria-hidden>
             <WifiOff className="w-7 h-7 text-amber-800" />
           </div>
@@ -260,38 +268,39 @@ export default function NearMissKiosk() {
             data-testid="near-miss-queued-ok"
           >{t("OK")}</button>
         </div>
-      </div>
+      </OperationalOutcomeFrame>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="near-miss-kiosk">
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
-            {t("Public Near-Miss Reporting")}
-          </div>
-          <h1 className="font-display text-lg sm:text-xl font-black text-slate-900">
-            {t("Report a near miss")}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] border ${online ? "border-emerald-300 text-emerald-800 bg-emerald-50" : "border-amber-400 text-amber-800 bg-amber-50"}`}
-            data-testid={online ? "near-miss-online" : "near-miss-offline"}
-            aria-live="polite"
-          >
+    <OperationalPageFrame
+      testId="near-miss-kiosk"
+      accent="red"
+      familyLabel={t("Safety Operations")}
+      familyMeta={t("Public near-miss workflow")}
+      mainWidthClass="max-w-4xl"
+      heroIcon={AlertTriangle}
+      kicker={t("Public Near-Miss Reporting")}
+      title={t("Report a near miss")}
+      description={t("No login needed. Describe what almost happened, where it happened, and whether anyone is still in immediate danger.")}
+      heroMeta={(
+        <>
+          <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-mono uppercase tracking-[0.14em] border ${online ? "border-emerald-300 text-emerald-800 bg-emerald-50" : "border-amber-400 text-amber-800 bg-amber-50"}`} data-testid={online ? "near-miss-online" : "near-miss-offline"} aria-live="polite">
             {online ? <Wifi className="w-3 h-3" aria-hidden /> : <WifiOff className="w-3 h-3" aria-hidden />}
             {online ? t("Online") : t("Offline")}
           </span>
-          <LangToggleMini lang={lang} onLang={setLang} />
+          <OperationalStatusBadge tone="red" testId="near-miss-emergency-badge">{t("Emergency action first")}</OperationalStatusBadge>
+        </>
+      )}
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="near-miss-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">{t("What needs attention now")}</div>
+          <div className="text-sm text-slate-700 leading-6">{t("If the hazard is still active, move people away, alert supervision, and call emergency services when needed before you complete this report.")}</div>
         </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-4">
-        <p className="text-sm text-slate-700">
-          {t("No login needed. Tell us what almost happened. It takes 20 seconds.")}
-        </p>
+      )}
+      footerText={t("MASCI Operations Platform · Public near-miss workflow")}
+    >
+      <div className="max-w-2xl mx-auto space-y-4">
 
         <form onSubmit={submit} className="space-y-4" aria-describedby="near-miss-help">
           <div className="space-y-1">
@@ -423,7 +432,7 @@ export default function NearMissKiosk() {
             {t("Anonymous submissions are welcome. Nothing is shared with your employer beyond Safety.")}
           </p>
         </form>
-      </main>
-    </div>
+      </div>
+    </OperationalPageFrame>
   );
 }

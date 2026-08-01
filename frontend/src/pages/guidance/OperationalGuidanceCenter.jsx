@@ -27,9 +27,8 @@ import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import PortalContextBanner from "@/components/PortalContextBanner";
+import { OperationalTopbar } from "@/components/public/OperationalPageFrame";
 
 const SECTION_ICONS = {
   "user-cog": UserCog,
@@ -226,7 +225,7 @@ function PortalSignInDirectory({ lang }) {
           return (
             <div
               key={p.key}
-              className={`group relative bg-white border border-slate-200 rounded-md p-4 ${p.border} hover:shadow-md transition-all`}
+              className={`group relative bg-white border border-slate-200 rounded-md p-4 ${p.border} hover:shadow-md transition-all wp17-public-card`}
               data-testid={`guidance-portal-directory-${p.key}`}
             >
               <div className={`absolute inset-y-0 left-0 w-1.5 ${p.accent} rounded-l-sm`} />
@@ -290,7 +289,7 @@ function SearchBox({ onResults, query, setQuery }) {
     }
   };
   return (
-    <div className="relative">
+    <div className="relative wp17-panel p-3">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
       <Input
         type="search"
@@ -677,7 +676,7 @@ export default function OperationalGuidanceCenter() {
                 <Link
                   key={tk.id}
                   to={`/guidance/${tk.id}`}
-                  className="group relative bg-white border border-slate-200 rounded-md p-4 hover:border-red-700 hover:shadow-md transition-all"
+                  className="group relative bg-white border border-slate-200 rounded-md p-4 hover:border-red-700 hover:shadow-md transition-all wp17-public-card"
                   data-testid={`guidance-public-track-${tk.id}`}
                 >
                   <div className="absolute inset-y-0 left-0 w-1 bg-red-700 rounded-l-sm" />
@@ -739,7 +738,7 @@ export default function OperationalGuidanceCenter() {
               <Link
                 key={tk.key}
                 to="/guidance/section/portals"
-                className="group relative bg-white border border-slate-200 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all overflow-hidden"
+                className="group relative bg-white border border-slate-200 rounded-md p-4 hover:border-amber-500 hover:shadow-md transition-all overflow-hidden wp17-public-card"
                 data-testid={`guidance-portal-track-${tk.key}`}
               >
                 <div className={`absolute inset-y-0 left-0 w-1 ${ACCENT_BAND[tk.accent] || "bg-slate-700"}`} />
@@ -807,38 +806,28 @@ export default function OperationalGuidanceCenter() {
 }
 
 function Shell({ title, children }) {
-  // Iter195-fix: proper MASCI header + navigation. The Operational
-  // Guidance Center is a destination page, not a floating shell —
-  // users need branding, sign-in entry, and a clear way home.
-  // iter202 — translation fix for header chrome.
   const { t } = useT();
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen wp17-public-shell">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <Link
-              to="/"
-              className="inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
-              data-testid="guidance-home-link"
-            >
-              <Home className="w-3.5 h-3.5 mr-1.5" />
-              {t("Home")}
-            </Link>
-            <Link
-              to="/sign-in"
-              className="hidden sm:inline-flex items-center h-9 px-3 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wide transition-colors"
-              data-testid="guidance-signin-link"
-            >
-              {t("Sign in")}
-            </Link>
-            <LangToggle />
-          </div>
-        </div>
-      </header>
+      <OperationalTopbar
+        accent="red"
+        familyLabel={t("MASCI Operations Platform")}
+        familyMeta={t("Operational Guidance Center")}
+        homeTo="/"
+        showHomeLink
+        showLangToggle
+        testIdPrefix="guidance-shell"
+        rightSlot={(
+          <Link
+            to="/sign-in"
+            className="hidden sm:inline-flex items-center h-10 rounded-full border border-white/12 bg-white/10 px-4 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-white hover:bg-white/18"
+            data-testid="guidance-signin-link"
+          >
+            {t("Sign in")}
+          </Link>
+        )}
+      />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
         {/* iter322 · Portal continuity banner — shows when user arrived

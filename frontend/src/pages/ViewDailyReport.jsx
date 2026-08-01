@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { brandSlug } from "@/lib/brandFilename";
 import { useBranding } from "@/lib/BrandingProvider";
 import {
-  ArrowLeft,
   Printer,
   Loader2,
   Trash2,
@@ -12,7 +11,6 @@ import {
   Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
 import { RefKicker } from "@/components/RefKicker";
 import { useHubHome } from "@/components/HubBackLink";
 import { api } from "@/lib/api";
@@ -34,6 +32,8 @@ import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import MaterialMovementTile from "@/components/MaterialMovementTile";
 import { useT } from "@/lib/i18n";
 import { DetailPageHero } from "@/components/detail/DetailPageHero";
+import { DataTable } from "@/design-system/DataTable";
+import EmptyState from "@/components/EmptyState";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -69,7 +69,7 @@ function grossNetLine(start, stop, lunchMin) {
 }
 
 const ReportSection = ({ number, title, children }) => (
-  <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print:break-inside-avoid">
+  <section className="bg-white border border-slate-200 rounded-[1.5rem] p-5 sm:p-7 print:break-inside-avoid shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
     <div className="flex items-baseline gap-3 mb-4 pb-2 border-b-2 border-slate-200">
       <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
         Section {number}
@@ -109,40 +109,32 @@ function formatSummarySource(source, t) {
 }
 
 const Table = ({ headers, rows, emptyText }) => {
-  if (!rows?.length) {
-    return <div className="text-slate-500 text-sm">{emptyText}</div>;
-  }
+  const columns = headers.map((header, idx) => ({
+    key: `c${idx}`,
+    header,
+    wrap: true,
+    render: (row) => row[`c${idx}`] ?? "—",
+  }));
+
+  const normalizedRows = (rows || []).map((row, idx) => {
+    const entry = { __id: idx };
+    headers.forEach((_, cellIdx) => {
+      entry[`c${cellIdx}`] = row[cellIdx] || "—";
+    });
+    return entry;
+  });
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm border-2 border-slate-200 rounded">
-        <thead>
-          <tr className="bg-slate-100">
-            {headers.map((h) => (
-              <th
-                key={h}
-                className="text-left px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-slate-700 border-b-2 border-slate-300"
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b border-slate-100">
-              {r.map((cell, j) => (
-                <td
-                  key={j}
-                  className="px-2 py-1.5 align-top whitespace-pre-wrap"
-                >
-                  {cell || "—"}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columns={columns}
+      rows={normalizedRows}
+      rowKey={(row) => row.__id}
+      density="compact"
+      empty={<EmptyState title={emptyText} message="" icon={CloudSun} data-testid="daily-report-table-empty" />}
+      emptyText={emptyText}
+      tableMinWidth="720px"
+      data-testid="daily-report-data-table"
+    />
   );
 };
 

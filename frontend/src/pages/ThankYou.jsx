@@ -4,28 +4,21 @@ import {
   CheckCircle2, ClipboardCheck, Home, Cloud, RefreshCw, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-
-// iter334 · Public Submission Thank-You Continuity Refinement
-// DR-BLOCKER-001B · R-BL-1 + R-BL-5 · 3-state submission completion.
-//   • delivered → green · "Filed." · backend confirmed persistence
-//   • queued    → amber · "Saved Locally — Not Yet Delivered" · IDB queue
-//                 with auto-retry + manual Retry Now button
-//   • failed    → red   · "Daily Report Not Submitted"
+import { OperationalOutcomeFrame } from "@/components/public/OperationalOutcomeFrame";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 
 const CONTINUITY_LINE = {
-  "Incident Report":              "Safety has it. If additional information is needed, the team will follow up.",
-  "Daily Report":                 "Operations, payroll, and project leadership can now review today's activity.",
-  "Inspection":                   "Findings and corrective actions are now visible in Safety Review.",
-  "Equipment Issuance":           "Issuance recorded. Equipment accountability and return status are now tracked.",
-  "Equipment Training":           "Training recorded. Use and care accountability is now tracked.",
-  "Equipment Pre-Op Inspection":  "Pre-op log filed. Shop and supervision have visibility for the day's run.",
-  "Site Safety Meeting":          "Meeting recorded. Attendance and topics are now on file.",
-  "DVIR":                         "Defect log filed. Shop has visibility for tomorrow's planning.",
-  "Toolbox Meeting":              "Meeting recorded. Attendance and topics are now on file.",
-  "JHA":                          "JHA filed. The plan is available for the crew and Safety review.",
+  "Incident Report": "Safety has it. If additional information is needed, the team will follow up.",
+  "Daily Report": "Operations, payroll, and project leadership can now review today's activity.",
+  "Inspection": "Findings and corrective actions are now visible in Safety Review.",
+  "Equipment Issuance": "Issuance recorded. Equipment accountability and return status are now tracked.",
+  "Equipment Training": "Training recorded. Use and care accountability is now tracked.",
+  "Equipment Pre-Op Inspection": "Pre-op log filed. Shop and supervision have visibility for the day's run.",
+  "Site Safety Meeting": "Meeting recorded. Attendance and topics are now on file.",
+  DVIR: "Defect log filed. Shop has visibility for tomorrow's planning.",
+  "Toolbox Meeting": "Meeting recorded. Attendance and topics are now on file.",
+  JHA: "JHA filed. The plan is available for the crew and Safety review.",
 };
 
 export default function ThankYou() {
@@ -39,22 +32,13 @@ export default function ThankYou() {
   const notificationState = state?.notificationState || "";
   const notificationDeliveryMode = state?.notificationDeliveryMode || "";
   const notificationCaptureAvailable = !!state?.notificationCaptureAvailable;
-  // DR-BLOCKER-001B · submission state — defaults to "delivered" for
-  // backward compatibility with the dozens of other forms that route
-  // through this page on success without passing the flag.
   const submissionState = state?.submissionState || "delivered";
   const lastError = state?.lastError || "";
 
-  const homeHref = (returnTo && returnTo.startsWith("/daily/submit"))
-    ? "/submit"
-    : "/";
-
-  const continuityLine = CONTINUITY_LINE[formType]
-    || "The right people have visibility. You're done unless contacted.";
+  const homeHref = returnTo && returnTo.startsWith("/daily/submit") ? "/submit" : "/";
+  const continuityLine = CONTINUITY_LINE[formType] || "The right people have visibility. You're done unless contacted.";
   const isPreviewNotificationCapture = submissionState === "delivered" && (
-    notificationState === "captured_preview"
-    || notificationDeliveryMode === "SAFE_CAPTURE"
-    || notificationCaptureAvailable
+    notificationState === "captured_preview" || notificationDeliveryMode === "SAFE_CAPTURE" || notificationCaptureAvailable
   );
 
   const [retrying, setRetrying] = useState(false);
@@ -66,34 +50,30 @@ export default function ThankYou() {
     try {
       const mod = await import("@/lib/resiliency/resiliencyQueue");
       await mod.drainQueue();
-      // Brief grace period for the drain to attempt + resolve.
       setTimeout(() => {
         setRetrying(false);
         setRetryNote(t("Retry attempted · check your Daily Reports list to confirm delivery."));
       }, 1500);
-    } catch (e) {
+    } catch {
       setRetrying(false);
       setRetryNote(t("Retry could not be triggered — please return to the form."));
     }
   }, [t]);
 
-  // ──────────────────────────────────────────────────────────────────
-  // Variant assembly
-  // ──────────────────────────────────────────────────────────────────
-  const VARIANTS = {
+  const variants = {
     delivered: {
       iconBg: "bg-green-700",
       Icon: CheckCircle2,
       kicker: `${t(formType)} · ${t("On file")}`,
-      kickerColor: "text-red-700",
-      headline: t("Filed."),
-      message: isPreviewNotificationCapture
-        ? t("This Preview submission was stored successfully. Notification was safely captured for certification and no operational email was sent.")
-        : continuityLine,
+      title: t("Filed."),
+      description: isPreviewNotificationCapture
+        ? t("This preview submission was stored successfully. Notification was safely captured for certification and no operational email was sent.")
+        : t(continuityLine),
+      tone: "emerald",
       showRecordId: true,
       buttons: (
         <>
-          <Button asChild className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900" data-testid="another-inspection-btn">
+          <Button asChild className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide" data-testid="another-inspection-btn">
             <Link to={returnTo}><ClipboardCheck className="w-4 h-4 mr-2" />{t("File Another")}</Link>
           </Button>
           <Button asChild variant="outline" className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide" data-testid="done-btn">
@@ -106,39 +86,20 @@ export default function ThankYou() {
       iconBg: "bg-amber-600",
       Icon: Cloud,
       kicker: `${t(formType)} · ${t("Queued · Not Yet Delivered")}`,
-      kickerColor: "text-amber-700",
-      headline: t("Saved Locally."),
-      message: (
-        t("Your report is saved on this device and will retry automatically "
-          + "when the connection is stable. Do not clear browser data until "
-          + "delivery is confirmed.")
-      ),
+      title: t("Saved Locally."),
+      description: t("Your report is saved on this device and will retry automatically when the connection is stable. Do not clear browser data until delivery is confirmed."),
+      tone: "amber",
       showRecordId: false,
       buttons: (
         <>
-          <Button
-            onClick={onRetryNow}
-            disabled={retrying}
-            className="h-12 bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide border-b-2 border-amber-800"
-            data-testid="thank-you-retry-now"
-          >
+          <Button onClick={onRetryNow} disabled={retrying} className="h-12 bg-amber-600 hover:bg-amber-700 text-white font-bold uppercase tracking-wide" data-testid="thank-you-retry-now">
             <RefreshCw className={`w-4 h-4 mr-2 ${retrying ? "animate-spin" : ""}`} />
             {retrying ? t("Retrying...") : t("Retry Now")}
           </Button>
-          <Button
-            onClick={() => navigate(returnTo, { replace: false })}
-            variant="outline"
-            className="h-12 border-2 border-amber-300 font-bold uppercase tracking-wide text-amber-800"
-            data-testid="thank-you-stay-on-report"
-          >
+          <Button onClick={() => navigate(returnTo, { replace: false })} variant="outline" className="h-12 border-2 border-amber-300 font-bold uppercase tracking-wide text-amber-800" data-testid="thank-you-stay-on-report">
             {t("Stay On This Report")}
           </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide lg:col-span-2"
-            data-testid="thank-you-return-to-start"
-          >
+          <Button asChild variant="outline" className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide lg:col-span-2" data-testid="thank-you-return-to-start">
             <Link to={homeHref}><Home className="w-4 h-4 mr-2" />{t("Return To Start")}</Link>
           </Button>
         </>
@@ -148,30 +109,17 @@ export default function ThankYou() {
       iconBg: "bg-red-700",
       Icon: AlertTriangle,
       kicker: `${t(formType)} · ${t("Not Delivered")}`,
-      kickerColor: "text-red-700",
-      headline: t("Submission Failed."),
-      message: (
-        t("Your report was not delivered. Please retry or contact support.")
-        + (lastError ? `  (${lastError})` : "")
-      ),
+      title: t("Submission Failed."),
+      description: t("Your report was not delivered. Please retry or contact support.") + (lastError ? ` (${lastError})` : ""),
+      tone: "red",
       showRecordId: false,
       buttons: (
         <>
-          <Button
-            onClick={onRetryNow}
-            disabled={retrying}
-            className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide border-b-2 border-red-900"
-            data-testid="thank-you-retry-failed"
-          >
+          <Button onClick={onRetryNow} disabled={retrying} className="h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide" data-testid="thank-you-retry-failed">
             <RefreshCw className={`w-4 h-4 mr-2 ${retrying ? "animate-spin" : ""}`} />
             {retrying ? t("Retrying...") : t("Retry")}
           </Button>
-          <Button
-            onClick={() => navigate(returnTo, { replace: false })}
-            variant="outline"
-            className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide"
-            data-testid="thank-you-stay-on-report-failed"
-          >
+          <Button onClick={() => navigate(returnTo, { replace: false })} variant="outline" className="h-12 border-2 border-slate-300 font-bold uppercase tracking-wide" data-testid="thank-you-stay-on-report-failed">
             {t("Stay On This Report")}
           </Button>
         </>
@@ -179,101 +127,78 @@ export default function ThankYou() {
     },
   };
 
-  const v = VARIANTS[submissionState] || VARIANTS.delivered;
-  const IconEl = v.Icon;
+  const current = variants[submissionState] || variants.delivered;
+  const IconEl = current.Icon;
+  const accent = submissionState === "queued" ? "amber" : submissionState === "failed" ? "red" : "emerald";
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" data-testid={`thank-you-${submissionState}`}>
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="lg" className="sm:hidden" homeLink="/" />
-          <LangToggle />
+    <OperationalOutcomeFrame
+      testId={`thank-you-${submissionState}`}
+      accent={accent}
+      familyLabel={t("MASCI Operations Platform")}
+      familyMeta={t("Submission outcome")}
+      backTo={homeHref}
+      backLabel={t("Back to start")}
+      heroIcon={IconEl}
+      kicker={current.kicker}
+      title={current.title}
+      description={current.description}
+      heroMeta={(
+        <>
+          <OperationalStatusBadge tone={current.tone} testId="thank-you-status-badge">
+            {submissionState === "queued" ? t("Queued") : submissionState === "failed" ? t("Needs retry") : t("Delivered")}
+          </OperationalStatusBadge>
+          {projectName ? <OperationalStatusBadge tone="cyan" testId="thank-you-project-badge">{projectName}</OperationalStatusBadge> : null}
+        </>
+      )}
+      heroAside={(
+        <div className="wp17-panel p-4" data-testid="thank-you-hero-aside">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">{t("What happens next")}</div>
+          <div className="text-sm text-slate-700 leading-6">{t(continuityLine)}</div>
         </div>
-      </header>
+      )}
+      footerText={t("MASCI Operations Platform · Submission continuity")}
+    >
+      <div className="max-w-xl mx-auto w-full bg-white border border-slate-200 rounded-[1.5rem] p-8 sm:p-10 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]" data-testid="thank-you-card">
+        <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${current.iconBg} mb-6`}>
+          <IconEl className="w-12 h-12 text-white" />
+        </div>
+        <span className="font-mono text-xs uppercase tracking-[0.25em] font-bold text-slate-600" data-testid="thank-you-kicker">
+          {current.kicker}
+        </span>
+        <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2" data-testid="thank-you-headline">
+          {current.title}
+        </h1>
+        {projectName ? <p className="text-slate-700 text-base mt-3" data-testid="thank-you-project">{projectName}</p> : null}
+        <p className="text-slate-600 text-sm mt-4 leading-relaxed max-w-md mx-auto" data-testid="thank-you-continuity">
+          {current.description}
+        </p>
 
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div
-          className="max-w-xl w-full bg-white border border-slate-200 rounded-md p-8 sm:p-12 text-center"
-          data-testid="thank-you-card"
-        >
-          <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${v.iconBg} mb-6`}>
-            <IconEl className="w-12 h-12 text-white" />
-          </div>
-          <span
-            className={`font-mono text-xs uppercase tracking-[0.25em] font-bold ${v.kickerColor}`}
-            data-testid="thank-you-kicker"
-          >
-            {v.kicker}
-          </span>
-          <h1
-            className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2"
-            data-testid="thank-you-headline"
-          >
-            {v.headline}
-          </h1>
-          {projectName && (
-            <p className="text-slate-700 text-base mt-3" data-testid="thank-you-project">
-              {projectName}
-            </p>
-          )}
-          <p
-            className="text-slate-600 text-sm mt-4 leading-relaxed max-w-md mx-auto"
-            data-testid="thank-you-continuity"
-          >
-            {t(v.message)}
+        {current.showRecordId && recordId ? (
+          <p className="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-slate-500" data-testid="thank-you-reference">
+            <span className="text-slate-400">{t("Ref")} · </span>
+            <span className="text-slate-700 font-bold select-all">{recordId}</span>
           </p>
+        ) : null}
 
-          {v.showRecordId && recordId && (
-            <p
-              className="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-slate-500"
-              data-testid="thank-you-reference"
-            >
-              <span className="text-slate-400">{t("Ref")} · </span>
-              <span className="text-slate-700 font-bold select-all">{recordId}</span>
-            </p>
-          )}
+        {retryNote ? <p className="mt-4 text-xs text-slate-600" data-testid="thank-you-retry-note">{retryNote}</p> : null}
 
-          {retryNote && (
-            <p
-              className="mt-4 text-xs text-slate-600"
-              data-testid="thank-you-retry-note"
-            >
-              {retryNote}
-            </p>
-          )}
-
-          {/* TRACK 19.09 · Phase 8 · Standardized downstream-commitment
-              bullet list. Non-technical operator wording; bilingual via
-              useT(). Reassures the 5:30-AM foreman that the submit
-              actually caused things to happen. */}
-          {v.showRecordId && (
-            <div
-              className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left max-w-md mx-auto"
-              data-testid="thank-you-downstream-commitments"
-            >
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-900 font-bold mb-2">
-                {t("Submitted — here's what happens next")}
-              </div>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-800">
-                <li data-testid="commitment-pdf">{t("PDF is being rendered and stored.")}</li>
-                <li data-testid="commitment-email">
-                  {isPreviewNotificationCapture
-                    ? t("Preview only: notification was safely captured and no external email was sent.")
-                    : t("Auto-emails have been queued.")}
-                </li>
-                <li data-testid="commitment-shop">{t("Shop and Dispatch will see any defects immediately.")}</li>
-                <li data-testid="commitment-safety-pm">{t("Safety and the PM will be notified per project routing.")}</li>
-              </ul>
-            </div>
-          )}
-
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-4">
-            {v.buttons}
+        {current.showRecordId ? (
+          <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left max-w-md mx-auto" data-testid="thank-you-downstream-commitments">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-900 font-bold mb-2">{t("Submitted — here's what happens next")}</div>
+            <ul className="list-disc list-inside space-y-1 text-sm text-slate-800">
+              <li data-testid="commitment-pdf">{t("PDF is being rendered and stored.")}</li>
+              <li data-testid="commitment-email">{isPreviewNotificationCapture ? t("Preview only: notification was safely captured and no external email was sent.") : t("Auto-emails have been queued.")}</li>
+              <li data-testid="commitment-shop">{t("Shop and Dispatch will see any defects immediately.")}</li>
+              <li data-testid="commitment-safety-pm">{t("Safety and the PM will be notified per project routing.")}</li>
+            </ul>
           </div>
+        ) : null}
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-4">
+          {current.buttons}
         </div>
-      </main>
-    </div>
+      </div>
+    </OperationalOutcomeFrame>
   );
 }

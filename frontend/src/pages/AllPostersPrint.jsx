@@ -1,15 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { Printer } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-import { printReport, maybeAutoPrint } from "@/lib/printReport";
-import { PrintWatermark } from "@/components/PrintWatermark";
-import HubBackLink from "@/components/HubBackLink";
+import { maybeAutoPrint } from "@/lib/printReport";
 import CheatSheetCard from "@/components/CheatSheetCard";
 import TrenchBoxPosterCard from "@/components/TrenchBoxPosterCard";
 import JhaPlansPosterCard from "@/components/JhaPlansPosterCard";
+import { OperationalPrintPageFrame } from "@/components/public/OperationalPrintPageFrame";
 
 /**
  * "Print all 3 site posters" combined page. Stacks the Cheat Sheet, Trench
@@ -26,30 +22,20 @@ export default function AllPostersPrint() {
   }, []);
 
   return (
-    <div className="min-h-screen blueprint-bg print:bg-white">
-      <PrintWatermark />
-      <div className="caution-stripe no-print" />
-
-      <header className="bg-slate-900 border-b-4 border-red-700 no-print">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between gap-3">
-          <HubBackLink testId="all-posters-back" />
-          <div className="hidden sm:block font-mono text-xs uppercase tracking-[0.25em] text-red-400">
-            {t("All Site Posters · Print 3 sheets")}
-          </div>
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <Button
-              onClick={printReport}
-              className="h-10 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="all-posters-print-btn"
-            >
-              <Printer className="w-4 h-4 mr-2" /> {t("Print All Posters")}
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-5 sm:px-8 py-8 print:p-0">
+    <OperationalPrintPageFrame
+      testId="all-posters-page"
+      accent="red"
+      backTo="/admin"
+      backLabel={t("Back to Admin")}
+      familyLabel={t("MASCI Operations Platform")}
+      familyMeta={t("Poster set")}
+      heroIcon={Printer}
+      kicker={t("Site Posters · Batch print")}
+      title={t("All Site Posters")}
+      description={t("Preview and print the full three-sheet trailer set in one pass: crew cheat sheet, trench-safety poster, and job hazard plans poster.")}
+      printLabel={t("Print All Posters")}
+      footerText={t("MASCI Operations Platform · Batch poster workflow")}
+    >
         {/* Sheet 1 — Cheat Sheet (foreman) */}
         <div className="poster-sheet">
           <CheatSheetCard />
@@ -62,18 +48,12 @@ export default function AllPostersPrint() {
         <div className="poster-sheet mt-10 print:mt-0">
           <JhaPlansPosterCard />
         </div>
-      </main>
-
       <style>{`
         @media print {
-          @page { size: letter; margin: 0.4in; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .no-print { display: none !important; }
-          /* Force each poster onto its own sheet */
           .poster-sheet { page-break-after: always; break-after: page; }
           .poster-sheet:last-child { page-break-after: auto; break-after: auto; }
         }
       `}</style>
-    </div>
+    </OperationalPrintPageFrame>
   );
 }
