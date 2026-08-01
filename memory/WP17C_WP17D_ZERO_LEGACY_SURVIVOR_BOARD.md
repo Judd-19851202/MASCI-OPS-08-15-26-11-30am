@@ -23,6 +23,18 @@ A survivor is open until it is either:
 - Coaching: **10**
 
 ## Batch Certification Ledger
+### 2026-08-01 · Shared Shell Identity Propagation + Field Calculators Wave · CLOSED / ACTIVE NEXT
+- Closed shared architecture correction: platform-wide header identity now propagates through `CanonicalHeader.jsx`, `PortalShell.jsx`, `FormShell.jsx`, `PortalLoginShell.jsx`, `PublicShell.jsx`, and `OperationalPageFrame.jsx`
+- Closed route in active Field wave: `/field/calculators`
+- Shared fixes:
+  - portal/workflow names no longer replace MASCI product identity in applicable shared shells
+  - `/field/calculators` now shows MASCI / Operations Platform + a single `Material Calculators` context label
+  - duplicate calculators shell subtitle strip removed
+  - calculators summary/tabs/panels moved onto governed shared surfaces
+- Evidence: responsive screenshot review for `/`, `/field`, and `/field/calculators`; `/app/test_reports/iteration_102.json`; final `auto_frontend_testing_agent` verification on all three routes
+- Certification result: shared brand identity consistent across Home, Field, and calculators; no portal-specific replacement identity; zero console errors; zero horizontal overflow at `390`, `430`, `768`, `1024`, `1440`
+- Carry-forward note: Field Operations wave remains ACTIVE with field daily-report list/detail surfaces and equipment interiors next before Transportation begins
+
 ### 2026-08-01 · Executive Brand-Hierarchy Correction + Field Operations Wave 01 · CLOSED / ACTIVE NEXT
 - Closed correction: `/` Home header identity hierarchy
 - Closed route in propagation order: `/field`
@@ -150,7 +162,7 @@ A survivor is open until it is either:
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
 ### Card/system propagation survivors (active rollout begins with Field Operations)
-- `/field` family · continue after `/field` closeout by migrating `/field/calculators`, field-family list/detail surfaces, and remaining helper/icon drift onto governed shared systems
+- `/field` family · continue after `/field` and `/field/calculators` closeout by migrating field-family list/detail surfaces, equipment interiors, and remaining helper/icon drift onto governed shared systems
 - `/transportation` family · replace remaining local command/launcher cards with governed shared variants and external-platform rules
 - `/safety` family · continue converging mixed safety cards, state treatments, and legacy icon contexts
 

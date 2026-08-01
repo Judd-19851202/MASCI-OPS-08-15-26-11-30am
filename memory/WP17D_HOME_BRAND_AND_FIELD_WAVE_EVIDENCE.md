@@ -4,7 +4,8 @@ Last updated: 2026-08-01
 
 ## Scope
 - Home brand-hierarchy correction
-- First Field Operations propagation wave (`/field`)
+- Shared shell identity propagation through applicable header wrappers
+- First Field Operations propagation wave (`/field`, `/field/calculators`)
 
 ## Implemented Corrections
 
@@ -22,9 +23,22 @@ Last updated: 2026-08-01
 - Shared `SectionHeading` adopted for numbered route sections
 - Duplicate shell summary block removed
 
+### Shared Shell Identity Propagation
+- `CanonicalHeader.jsx` now renders the MASCI / Operations Platform brand block for shell-based routes, not just Home
+- `PortalShell.jsx` now passes a secondary context label instead of letting portal labels replace the product identity
+- `FormShell.jsx`, `PortalLoginShell.jsx`, `PublicShell.jsx`, and `OperationalPageFrame.jsx` now follow the same contract
+
+### Field Operations Wave 02
+- `/field/calculators` now inherits the shared global header identity
+- duplicate shell subtitle strip removed
+- summary migrated to governed `InformationCard`
+- tab controls moved onto governed CTA styling
+- all six calculator work areas wrapped in shared `Card` panels
+
 ## Responsive Evidence
 - Home verified at `390`, `430`, `768`, `1024`, `1440`
-- Field verified at `390` and desktop smoke widths during implementation, then in formal QA coverage
+- Field verified at `390`, `430`, `768`, `1024`, `1440`
+- Material Calculators verified at `390`, `430`, `768`, `1024`, `1440`
 
 ## Formal QA Evidence
 - `/app/test_reports/iteration_101.json`
@@ -34,9 +48,15 @@ Last updated: 2026-08-01
   - `/field` confirmed on governed shared cards / headings
   - zero horizontal overflow at `390`, `430`, `768`, `1024`, `1440`
   - zero console errors
+- `/app/test_reports/iteration_102.json`
+  - global MASCI brand hierarchy verified on `/`, `/field`, and `/field/calculators`
+  - no portal-specific replacement identity on shared shell routes
+  - calculators summary/tabs/panels verified after shared-component migration
+  - zero horizontal overflow at `390`, `430`, `768`, `1024`, `1440`
+  - zero console errors
 
 ## Final Browser Verification
-- `auto_frontend_testing_agent` verified `/` and `/field`
+- `auto_frontend_testing_agent` verified `/`, `/field`, and `/field/calculators`
 - Result: executive requirements met; no fixes required
 
 ## Anti-Drift Protection
@@ -46,3 +66,5 @@ Last updated: 2026-08-01
   - Home brand block presence
   - Home hierarchy styling checks
   - logo Home behavior contract
+  - `PortalShell.jsx` shared brand propagation contract
+  - `FormShell.jsx` shared brand propagation contract

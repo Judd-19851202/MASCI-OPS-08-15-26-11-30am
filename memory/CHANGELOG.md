@@ -45,6 +45,22 @@
   - responsive screenshots for `/` and `/field`
   - final `auto_frontend_testing_agent` verification on Home + Field
 
+## 2026-08-01 — WP-17D shared shell identity propagation + calculators wave
+
+- Propagated the permanent MASCI platform identity through shared shell architecture:
+  - `CanonicalHeader.jsx` now always renders the governed MASCI / Operations Platform brand block
+  - `PortalShell.jsx` now passes only the secondary context label instead of replacing the product identity with portal labels
+  - `FormShell.jsx`, `PortalLoginShell.jsx`, `PublicShell.jsx`, and `OperationalPageFrame.jsx` now follow the same shared contract
+- Continued the active Field Operations wave into `/field/calculators`:
+  - duplicate shell subtitle strip removed
+  - summary moved onto a governed `InformationCard`
+  - tool tabs moved onto governed CTA styling
+  - all six calculator panels wrapped in shared `Card` panels
+- Verification evidence:
+  - `/app/test_reports/iteration_102.json`
+  - responsive screenshots for `/`, `/field`, and `/field/calculators`
+  - final `auto_frontend_testing_agent` verification on all three routes
+
 - Created `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` with the full `1190`-surface denominator and active convergence statuses.
 - Added the WP-17D control package:
   - `WP17D_PORTAL_MIGRATION_RUNBOOK.md`

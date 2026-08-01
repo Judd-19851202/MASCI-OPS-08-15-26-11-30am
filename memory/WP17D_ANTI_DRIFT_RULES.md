@@ -17,6 +17,8 @@ Last updated: 2026-08-01
   - Home brand-block presence in `CanonicalHeader.jsx`
   - MASCI red / stronger-than-product hierarchy styling in `wp17.css`
   - MASCI logo Home behavior contract in `MasciLogo.jsx`
+  - `PortalShell.jsx` shared brand propagation contract
+  - `FormShell.jsx` shared brand propagation contract
   - UI emoji / unicode-icon shortcuts inside the constitutional Home lane
 
 ## Expansion Plan
@@ -26,13 +28,14 @@ These checks must expand during propagation to cover:
 - local card implementation scan across migrated routes
 - direct-header survivor scan
 - local icon-library import scan outside approved shared contexts
+- portal label replacement scan so portal names cannot replace the MASCI product identity in shared headers
 - duplicate title detection where feasible
 - duplicate sign-in detection for representative public/auth flows
 - white-header regression checks for shared shells
 - logo/Home behavior checks
 - Home brand hierarchy screenshot regression
 - mobile overflow checks
-- representative screenshot regression for Home and one archetype per portal family
+- representative screenshot regression for Home, Field, Material Calculators, and one archetype per remaining portal family
 
 ## Governance Rule
 - A route does not pass because a script passes.
