@@ -17,6 +17,57 @@ Last updated: 2026-08-01
 - Remaining uncertified routes: **36**
 - Remaining uncertified workflows: **16**
 
+## Coverage Dashboard · Verified Discovery Snapshot
+
+### Discovery
+- Registered Field-family routes discovered: **36 / 36** (current routed denominator in this register)
+- Hidden routes discovered during HUNT MODE: **4**
+  - `/thank-you`
+  - `/daily-reports`
+  - `/admin/leadership/records`
+  - `/admin/leadership/records/:id`
+- Dynamic / deep-link routes discovered: **9**
+  - `/fleet/dvir/submitted/:id`
+  - `/d/:token`
+  - `/leadership/records/:id`
+  - `/leadership/:kind/new`
+  - `/admin/daily/:id`
+  - `/pm/daily/:id`
+  - `/admin/equipment/:id`
+  - `/admin/leadership/records/:id`
+  - `/pm/equipment/:id`
+- Admin review/detail routes discovered: **6**
+- PM review/detail routes discovered: **4**
+- Non-admin Field-family routes discovered: **26**
+- QR entry routes discovered in the current Field-family route set: **0 verified so far**
+- Hidden dialog / modal / drawer inventory: **discovery in progress — not yet reconciled**
+- Forms inventory: **discovery in progress — not yet reconciled**
+- Component families under executive visual audit: **4 verified shared hero families discovered so far**
+  - `OperationalPageFrame`
+  - `OperationalOutcomeFrame`
+  - `DetailPageHero`
+  - `wp17-mission-banner`
+
+### Certification
+- Operator journeys executive-certified: **0 / 16**
+- Reachable routes executive-certified: **0 / 36**
+- Forms executive-certified: **0 / unknown reconciled denominator**
+- Dialogs executive-certified: **0 / unknown reconciled denominator**
+- Components visually executive-certified: **0 / unknown reconciled denominator**
+- English executive-certified: **0 / 36 routes fully closed**
+- Spanish executive-certified: **0 / 36 routes fully closed**
+- Responsive executive-certified: **0 / 36 routes fully closed**
+- Accessibility reviewed to executive close standard: **0 / unknown reconciled denominator**
+- Functional certification closed: **0 / 16 workflows**
+- Visual certification closed: **0 / 36 routes**
+
+### Remaining
+- Known uncertified routes: **36**
+- Known uncertified workflows: **16**
+- Unknown inventory: **non-zero until modal/dialog/form/component reconciliation completes**
+- Blocked items: **0 formally blocked in the current Field register**
+- Accepted exceptions: **0**
+
 ## Gate Legend
 - Route Status: per-surface certification state
 - Workflow Status: end-to-end journey state
