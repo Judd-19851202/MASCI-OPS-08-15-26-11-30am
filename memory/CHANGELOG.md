@@ -2,6 +2,30 @@
 
 # 2026-07-31 — WP-17D convergence wave
 
+## 2026-08-01 — WP-17D constitution hardening · Home correction + guardrails
+
+- Corrected the Home experience under the executive constitution without redesigning the platform identity:
+  - primary sign-in / resume moved into the actual Home header through `CanonicalHeader.headerControlsSlot`
+  - the bolted-on explanatory navy panel was removed
+  - the hero now uses governed CTA buttons instead of decorative chips
+  - the language selector was hardened for `390px` with a clearer red-accent glass treatment
+  - accessible MASCI home-labeling was tightened in `MasciLogo.jsx`
+- Hardened the shared card system beyond one generic primitive by adding governed card families in `CanonicalCard.jsx`:
+  - `ModuleCard`
+  - `WorkflowCard`
+  - `ActionCard`
+  - `InformationCard`
+  - `ExternalPlatformCard`
+  - `DetailCard`
+  - `FormSectionCard`
+  - `AlertCard`
+- Rebuilt the Home route to consume those shared families while preserving the approved navy/frosted MASCI shell.
+- Added scoped anti-drift automation: `/app/scripts/wp17d_constitution_guard.py`
+- Verification evidence:
+  - responsive screenshots at `390`, `430`, `768`, `1024`, `1440`
+  - `/app/test_reports/iteration_100.json`
+  - constitution guard pass: `python /app/scripts/wp17d_constitution_guard.py`
+
 - Created `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` with the full `1190`-surface denominator and active convergence statuses.
 - Added the WP-17D control package:
   - `WP17D_PORTAL_MIGRATION_RUNBOOK.md`

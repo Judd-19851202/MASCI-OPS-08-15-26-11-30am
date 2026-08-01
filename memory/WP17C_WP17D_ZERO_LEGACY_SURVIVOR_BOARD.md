@@ -23,6 +23,20 @@ A survivor is open until it is either:
 - Coaching: **10**
 
 ## Batch Certification Ledger
+### 2026-08-01 · Executive Constitution Hardening · Home Correction + Anti-Drift Start · CLOSED
+- Closed route: `/` as **Operations Platform Home** (internal filename may still remain `Hub.jsx` for continuity only)
+- Constitutional fixes shipped:
+  - Home header now owns the single primary sign-in / resume control through `CanonicalHeader.headerControlsSlot`
+  - shared `LangToggle.jsx` now uses the governed premium header treatment required at `390px`
+  - explanatory navy panel removed from Home
+  - hero now uses governed CTA buttons instead of decorative chips
+  - Home operations cards no longer repeat `Sign in` as footer copy
+  - shared card governance hardened into named families (`ModuleCard`, `WorkflowCard`, `ActionCard`, `InformationCard`, `ExternalPlatformCard`, `DetailCard`, `FormSectionCard`, `AlertCard`)
+- New anti-drift guard activated: `/app/scripts/wp17d_constitution_guard.py`
+- Evidence: responsive screenshot review at `390`, `430`, `768`, `1024`, and `1440`; `/app/test_reports/iteration_100.json`; local constitutional guard pass
+- Certification result: Home now preserves MASCI navy/frosted identity, presents one clear sign-in entry point, keeps the EN/ES control visibly interactive at `390px`, and stays runtime/overflow clean
+- Carry-forward note: the next locked wave is **Field Operations** propagation under the same constitution and guarded shared-component system
+
 ### 2026-08-01 · Governed Design Primitives + Hub Canonical Implementation · CLOSED
 - Shared primitives completed: canonical `CanonicalCard.jsx`, `SectionHeading.jsx`, governed CTA/button treatment in `components/ui/button.jsx`, governed badges/chips in `OperationalStatusBadge.jsx`, and governed empty/loading/error/success/warning states in `components/ui/PortalStates.jsx` + `components/EmptyState.jsx`
 - Shared support fix: `CanonicalHeader.jsx` home-mode fallback now renders **Operations Platform** for Shared Operational Home instead of the generic **Operational workflow** label
@@ -121,6 +135,11 @@ A survivor is open until it is either:
 ### Form survivors (2)
 - `/revise/:token` · `Revise` · move to canonical FormShell or canonical public auth shell
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
+
+### Card/system propagation survivors (active rollout begins with Field Operations)
+- `/field` family · replace remaining local workflow launchers / helper treatments with governed shared card families and icon contexts
+- `/transportation` family · replace remaining local command/launcher cards with governed shared variants and external-platform rules
+- `/safety` family · continue converging mixed safety cards, state treatments, and legacy icon contexts
 
 ### Table survivors (5)
 - `/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell

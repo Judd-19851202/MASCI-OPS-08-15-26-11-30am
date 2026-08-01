@@ -71,6 +71,9 @@
   - shared design-system primitives were completed for the current visual-governance wave: canonical card architecture (`CanonicalCard.jsx` + `wp17.css`), canonical section headings (`SectionHeading.jsx`), canonical CTA/button treatment (`components/ui/button.jsx`), canonical badges/chips (`OperationalStatusBadge.jsx` + chip tokens), and canonical state surfaces (`components/ui/PortalStates.jsx`, `components/EmptyState.jsx`)
   - `CanonicalHeader.jsx` home-mode fallback was tightened so the Shared Operational Home now correctly shows **Operations Platform** instead of the generic **Operational workflow** label
   - Hub/home was rebuilt from the governed primitive layer instead of page-local card implementations: field-entry cards, leadership cards, workspace cards, new-hire entry card, welcome-back card, and reference cards now all render through one shared card language with unified accent logic, spacing, icon containers, typography, footer CTAs, and interaction states
+  - Executive Constitution update batch is now landed for the Home experience and shared design-system hardening: the Home header now owns the single primary sign-in entry point through `CanonicalHeader.headerControlsSlot`, the bolted-on explanatory navy panel was removed, the hero now uses governed CTA buttons instead of decorative chips, the shared language selector was hardened for `390px`, and home copy now renders as **MASCI Operations Platform** instead of drifting into alternate “Hub” naming
+  - shared card governance was hardened beyond the base card primitive: `CanonicalCard.jsx` now exposes governed families (`ModuleCard`, `WorkflowCard`, `ActionCard`, `InformationCard`, `ExternalPlatformCard`, `DetailCard`, `FormSectionCard`, `AlertCard`) so propagation can replace local card implementations with shared variants instead of forcing one generic card everywhere
+  - anti-drift enforcement is now active for the constitutional Home lane through `/app/scripts/wp17d_constitution_guard.py`, with scoped checks for banned Home terminology, duplicate Home sign-in, explanatory-panel regressions, local-card regressions, language-control treatment, white-header drift, and UI emoji/icon shortcuts in the constitutional surfaces
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -140,6 +143,8 @@
   - responsive screenshot certification passed for the rebuilt Hub and shared primitive layer at `390`, `430`, `768`, `1024`, and `1440`, with zero horizontal overflow and governed-card consistency across all Hub sections
   - formal design-system + Hub certification passed in `/app/test_reports/iteration_99.json` with **100% frontend pass**, including canonical header validation, 15 governed card surfaces, Need Help dialog behavior, and zero console errors
   - final `auto_frontend_testing_agent` verification passed (**19/19 PASS**) on the public Hub route, confirming the two-tier header, unified card system, Company Info dialog trigger, responsive behavior, and console cleanliness
+  - constitution-update Home certification passed in `/app/test_reports/iteration_100.json` with **100% frontend pass**, confirming header-owned sign-in, no duplicate sign-in below header, interactive EN/ES control at `390px`, no explanatory navy panel, governed card families, Need Help dialog continuity, and zero overflow / console errors at `390`, `430`, `768`, `1024`, and `1440`
+  - scoped constitutional anti-drift guard now passes locally via `python /app/scripts/wp17d_constitution_guard.py`
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -148,9 +153,12 @@
 
 ## Next Authorized Work
 - Continue WP-17D in the locked order now set by executive direction: governed design system → Hub implementation → platform propagation.
+- Treat the public Home correction as closed for this constitution wave and use it as the first verified implementation of the hardened design system — not as a separate product identity.
 - Propagate the new shared card / button / badge / section-heading / state primitives across the platform in the approved rollout order: Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration.
+- Start the next propagation wave with **Field Operations** and reopen every touched route against the complete-page rule, the no-duplicate-sign-in rule, and the product-language constitution before certifying it again.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
+- Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.
 - Reopen and certify remaining dialogs, overlays, tables, loading/empty/error/success/warning states, and motion under the same governed primitive system after the card rollout advances.
 - Keep `DevHub.jsx` in **BLOCKED_CREDENTIALS** until backend Preview exposes `DEV_PASSWORD` plus the dev-endpoint gate; do not mark authenticated `/dev` certified before the environment is unblocked.
 - Continue survivor-ledger reconciliation so platform counts move by eliminated mixed-generation primitives rather than ad-hoc route polish.

@@ -1,5 +1,34 @@
 # 2026-07-31 — WP-17C foundation completion roadmap update
 
+## 2026-08-01 — WP-17D constitution hardening roadmap
+
+### Current top priority
+
+- **Home correction + design-system hardening are now certified under the executive constitution.**
+- **Next locked move:** propagate the hardened shared system in this order:
+  1. Field Operations
+  2. Transportation
+  3. Safety
+  4. QA/QC
+  5. Shop Operations
+  6. Project Management
+  7. Human Resources
+  8. Administration
+- **Anti-drift automation has started and must expand with each portal wave.**
+
+### P0
+- propagate shared governed card families, header rules, CTA rules, icon rules, and state rules into **Field Operations** first
+- reopen every touched Field Operations route against the complete-page rule before recertifying it
+- continue removing visible `Hub` product naming and duplicate sign-in patterns where they still render into the product
+
+### P1
+- expand anti-drift guards beyond Home to include portal-family terminology scans, unicode UI icon scans, local-card scans, direct-header scans, and screenshot regression gates
+- continue icon-language convergence alongside card propagation so no mixed icon families survive the next portal wave
+
+### P2
+- reconcile the full-ledger denominator honestly after each propagation wave
+- maintain `DevHub` as `BLOCKED_CREDENTIALS` until preview auth infrastructure is restored
+
 ## Current top priority
 
 - **WP-17D autonomous convergence is in progress.**
