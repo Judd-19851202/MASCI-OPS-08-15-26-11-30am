@@ -9,8 +9,8 @@ A survivor is open until it is either:
 - retained as a documented approved exception.
 
 ## Full-Ledger Survivor Counts
-- Route/Shell: **134**
-- Navigation: **68**
+- Route/Shell: **129**
+- Navigation: **66**
 - Tables: **107**
 - Dialogs/Overlays: **89**
 - Forms: **39**
@@ -24,8 +24,15 @@ A survivor is open until it is either:
 - Denominator movement: full-ledger table survivors `113 → 107`; active-route table queue `19 → 13`
 - Carry-forward note: dual-nav coexistence on some wider shells remains a Navigation-batch cleanup item; it did not block table certification
 
+### 2026-08-01 · Platform Shell Sub-Batch 01 · CLOSED
+- Closed routes: `/admin/daily/:id`, `/pm/daily/:id`, `/admin/inspections/:id`, `/admin/meetings/:id`, `/admin/incidents/:id`
+- Shared fixes: `DetailPageHero` rollout, stacked `PageHeader` mode, `AdminRouteShell` duplicate-header suppression, and incident CAPA fetch gating outside Safety Portal
+- Evidence: `/app/test_reports/iteration_96.json` plus responsive screenshot sets at `390`, `768`, `1024`, and `1440`
+- Denominator movement: full-ledger route/shell survivors `134 → 129`; full-ledger navigation survivors `68 → 66`; active header queue `41 → 36`; active navigation queue `6 → 4`
+- Carry-forward note: PM incident/meeting/inspection, Safety Portal incident/meeting/inspection, and HR daily-report variants share the new header architecture but still require portal-specific visual certification before closure
+
 ## Active-Route Survivor Queue
-### Header survivors (41)
+### Header survivors (36)
 - `/` · `Hub` · replace legacy/local header with canonical shell
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
 - `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
@@ -42,8 +49,6 @@ A survivor is open until it is either:
 - `/thank-you` · `ThankYou` · replace legacy/local header with canonical shell
 - `/cheatsheet` · `CheatSheet` · replace legacy/local header with canonical shell
 - `/trench-safety/excavation/new` · `trench_safety/PublicExcavationForm` · replace legacy/local header with canonical shell
-- `/admin/inspections/:id` · `ViewInspection` · replace legacy/local header with canonical shell
-- `/admin/meetings/:id` · `ViewMeeting` · replace legacy/local header with canonical shell
 - `/admin/trench-boxes/poster` · `TrenchBoxPoster` · replace legacy/local header with canonical shell
 - `/admin/jha-plans/poster` · `JhaPlansPoster` · replace legacy/local header with canonical shell
 
@@ -89,10 +94,8 @@ A survivor is open until it is either:
 - `/dispatch-portal/fleet` · `FleetVisibility` · collapse stacked helper text into canonical coaching treatment
 - `/admin/deploy-readiness` · `AdminDeployReadiness` · collapse stacked helper text into canonical coaching treatment
 
-### Navigation survivors (6)
+### Navigation survivors (4)
 - `/safety/cards` · `FieldSafetyCards` · remove local back controls and duplicate navigation affordances
 - `/transport-invite/:token` · `transportation/ExternalCarrierInvite` · remove local back controls and duplicate navigation affordances
 - `/transport-verify/:cnum` · `transportation/CertificateVerify` · remove local back controls and duplicate navigation affordances
-- `/admin/daily/:id` · `ViewDailyReport` · remove local back controls and duplicate navigation affordances
-- `/pm/daily/:id` · `ViewDailyReport` · remove local back controls and duplicate navigation affordances
 - `/hr/daily-reports/:id` · `ViewDailyReport` · remove local back controls and duplicate navigation affordances
