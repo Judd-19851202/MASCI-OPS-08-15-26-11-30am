@@ -52,6 +52,8 @@
   - highest-visibility platform experience batch is now closed: Hub/home, Guidance/help shells, `NearMissKiosk`, `ThankYou`, print/poster routes, and HR daily-report detail were converged and visually certified to the shared MASCI shell family
   - shared support for the batch shipped through `OperationalPrintPageFrame.jsx` and `OperationalOutcomeFrame.jsx`; `OperationalGuidanceCenter.jsx` now uses the shared operational topbar, while `ViewDailyReport.jsx` moved onto the canonical `DataTable` primitive for its repeated detail grids
   - responsive screenshot certification and QA were completed for `/`, `/guidance`, `/near-miss`, `/thank-you`, `/cheatsheet`, `/admin/trench-boxes/poster`, `/admin/jha-plans/poster`, `/admin/posters/print-all`, and `/hr/daily-reports/:id` at `390`, `768`, `1024`, and `1440`, and the survivor ledgers were reconciled from `118` to `107` route/shell survivors, `63` to `62` navigation survivors, `107` to `104` table survivors, and `39` to `38` form survivors
+  - executive design correction applied: the platform-level header system is now locked back to the permanent MASCI navy/frosted operating shell through the shared `CanonicalHeader.jsx`, and shared public/portal/auth shells (`OperationalPageFrame`, `PortalShell`, `FormShell`, `PortalLoginShell`, `PublicShell`, `SignIn`, `Revise`, `FormPasswordGate`) now inherit that single header family instead of drifting toward white/flat variants
+  - the canonical header keeps the MASCI “M” pinned in one location and one size, routes the logo to Shared Operational Home, keeps a single language selector treatment, and prevents portal accent colors from recoloring the shell itself
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -109,6 +111,7 @@
   - focused frontend verification confirmed no duplicate shell headers and no background CAPA 401 on the admin incident route after the Safety Portal gate
   - formal public/off-shell convergence certification passed for `/safety/cards`, `/trench-safety`, `/trench-safety/references`, `/trench-safety/tabulated-data`, `/trench-safety/report`, `/trench-safety/assets/:assetId`, `/trench-safety/excavation/new`, `/transport-invite/:token`, `/transport-verify/:cnum`, `/qaqc/:id`, and `/admin/qaqc/:id` in `/app/test_reports/iteration_97.json`
   - auto frontend QA and formal certification passed for `/`, `/guidance`, `/near-miss`, `/thank-you`, `/cheatsheet`, `/admin/trench-boxes/poster`, `/admin/jha-plans/poster`, `/admin/posters/print-all`, and `/hr/daily-reports/:id` in `/app/test_reports/iteration_98.json`
+  - canonical header correction verified across `/`, `/guidance`, `/sign-in`, `/revise/example-invalid-token`, and `/admin` with `auto_frontend_testing_agent`: same 65px navy/frosted header, same 32px logo, same language selector/control spacing, no white-header regressions, no console errors
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -117,7 +120,7 @@
 
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
-- Continue the Platform Shell Batch with the remaining highest-visibility routes first: `ViewSafetyForm` variants, `JhaPlansHub`, `DevHub`, remaining trench/detail aliases, and portal-specific detail/list surfaces still awaiting visual certification.
+- Continue the Platform Shell Batch with the remaining highest-visibility routes first: `ViewSafetyForm` variants, `JhaPlansHub`, `DevHub`, remaining trench/detail aliases, and any remaining direct-header pages still not routed through `CanonicalHeader`.
 - Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
 - Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.
 - Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.

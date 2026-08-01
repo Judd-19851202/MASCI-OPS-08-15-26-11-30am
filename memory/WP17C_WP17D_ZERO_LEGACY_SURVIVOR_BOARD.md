@@ -45,6 +45,12 @@ A survivor is open until it is either:
 - Denominator movement: full-ledger route/shell survivors `118 → 107`; full-ledger navigation survivors `63 → 62`; full-ledger table survivors `107 → 104`; full-ledger form survivors `39 → 38`; active header queue `26 → 19`; active navigation queue `1 → 0`; active-route table queue `13 → 10`
 - Carry-forward note: icon convergence continues during each remaining route migration; poster/Hub overlay survivors remain open until their internal drawers/sheets are fully reconciled
 
+### 2026-08-01 · Canonical Header Constitution Correction · IN FORCE
+- Shared system fix: `CanonicalHeader.jsx` now defines the permanent MASCI navy/frosted header standard and is wired through `OperationalPageFrame`, `PortalShell`, `FormShell`, `PortalLoginShell`, `PublicShell`, `SignIn`, `Revise`, and `FormPasswordGate`
+- Executive rules enforced in code: one header height, one logo size/location, one language selector treatment, one Home/Back treatment, logo always returns to Shared Operational Home, and portal colors act only as accents instead of recoloring the shell
+- Evidence: targeted responsive smoke screenshots for `/`, `/sign-in`, and `/guidance`, plus `auto_frontend_testing_agent` verification across `/`, `/guidance`, `/sign-in`, `/revise/example-invalid-token`, and `/admin`
+- Survivor impact: counts unchanged for this constitution pass; remaining direct-header routes must be reopened and routed into `CanonicalHeader` during their next migration pass
+
 ## Active-Route Survivor Queue
 ### Header survivors (19)
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · replace legacy/local header with canonical shell
