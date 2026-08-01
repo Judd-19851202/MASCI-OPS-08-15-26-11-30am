@@ -33,6 +33,7 @@ import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import MaterialMovementTile from "@/components/MaterialMovementTile";
 import { useT } from "@/lib/i18n";
+import { DetailPageHero } from "@/components/detail/DetailPageHero";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -249,6 +250,8 @@ export default function ViewDailyReport() {
         subtitle="Admin review for field activity, labor, production, weather, and attachments."
         portalRole="Admin · Daily Reports"
         crumbs={[{ label: "Field Operations" }, { label: "Daily Reports" }]}
+        showShellHeader={false}
+        showBreadcrumbs={false}
         testId="admin-view-daily-report-shell"
       >
         {loadingContent}
@@ -283,66 +286,6 @@ export default function ViewDailyReport() {
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <Link
-            to={backHref}
-            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="back-link"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {backLabel}
-          </Link>
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          {isHrReadOnly ? (
-            /* Track 15.13C · HR read-only — surface the read-only badge
-               in the same slot where Edit / Delete / Email / Print
-               render for PM/Admin. HR sees the EXACT real Daily Report
-               body below; just no mutation surface. */
-            <div
-              className="text-[10px] font-mono uppercase tracking-[0.22em] font-bold px-2 py-1 rounded border border-slate-500 text-slate-200"
-              data-testid="hr-readonly-badge"
-            >
-              {t("Read-only · HR")}
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <EditProjectDialog
-                kind="daily-reports"
-                recordId={data.id}
-                current={data}
-                onSaved={(rec) => rec && setData(rec)}
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
-                data-testid="delete-btn"
-                aria-label="Delete daily report"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setEmailOpen(true)}
-                className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-white hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
-                data-testid="email-btn"
-              >
-                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
-              </Button>
-              <Button
-                onClick={printReport}
-                className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-                data-testid="print-btn"
-              >
-                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
-              </Button>
-            </div>
-          )}
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         {/* Track 15.12A · breadcrumb only when arriving from the PM
             Command Center photo lightbox, so the user can see the
@@ -368,7 +311,72 @@ export default function ViewDailyReport() {
             <span className="text-slate-700 font-bold">{t("Daily Report")}</span>
           </nav>
         )}
-        <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
+        <DetailPageHero
+          backHref={backHref}
+          backLabel={backLabel}
+          kicker={isHrReadOnly ? t("Human Resources · Daily Report Review") : t("Field Operations · Daily Report Review")}
+          title={t("Daily Job Report")}
+          description={t("Review field activity, delivery status, and attachments before printing, emailing, or moving the report downstream.")}
+          actions={isHrReadOnly ? null : (
+            <>
+              <EditProjectDialog
+                kind="daily-reports"
+                recordId={data.id}
+                current={data}
+                onSaved={(rec) => rec && setData(rec)}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDelete}
+                className="h-11 w-11 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700"
+                data-testid="delete-btn"
+                aria-label="Delete daily report"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setEmailOpen(true)}
+                className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
+                data-testid="email-btn"
+              >
+                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
+              </Button>
+              <Button
+                onClick={printReport}
+                className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm"
+                data-testid="print-btn"
+              >
+                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
+              </Button>
+            </>
+          )}
+          chips={
+            <>
+              <RefKicker recordId={data.report_number || data.id} testId="view-daily-ref" />
+              {data.doc_id ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-800" data-testid="record-doc-id-badge">
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
+                  {data.doc_id}
+                </span>
+              ) : null}
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                {t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}
+                {data.report_number ? ` · #${data.report_number}` : ""}
+              </span>
+              {data.submit_language === "es" ? <SubmitLangBadge lang={data.submit_language} /> : null}
+            </>
+          }
+          toolbar={isHrReadOnly ? (
+            <div className="rounded-full border border-slate-300 bg-white px-3 py-1 text-[10px] font-mono uppercase tracking-[0.22em] font-bold text-slate-600" data-testid="hr-readonly-badge">
+              {t("Read-only · HR")}
+            </div>
+          ) : null}
+          testId="view-daily-hero"
+        />
+        <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo
               variant="mark"
@@ -378,20 +386,13 @@ export default function ViewDailyReport() {
             homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             {/* iter336 · review-side reference continuity */}
-            <RefKicker
-              recordId={data.report_number || data.id}
-              testId="view-daily-ref"
-              className="mt-4"
-            />
+            <RefKicker recordId={data.report_number || data.id} testId="view-daily-ref-print" className="mt-4" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
               {t("Daily Job Report")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
-                <span
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
-                  data-testid="record-doc-id-badge"
-                >
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide">
                   <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
@@ -959,6 +960,8 @@ export default function ViewDailyReport() {
         { label: "Daily Reports" },
         { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Report" },
       ]}
+      showShellHeader={false}
+      showBreadcrumbs={false}
       contentClassName="px-0 py-0"
       testId="admin-view-daily-report-shell"
     >

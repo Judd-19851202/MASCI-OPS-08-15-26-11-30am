@@ -6,6 +6,7 @@ export { StatusChip } from "./StatusChip";
 export { Card } from "./Card";
 export { EmptyState } from "./EmptyState";
 export { DataTable } from "./DataTable";
+export { PageHeader } from "./PageHeader";
 export {
   STATUS_REGISTRY,
   STATUS_FAMILY,

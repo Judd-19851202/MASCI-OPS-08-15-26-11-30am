@@ -26,6 +26,7 @@ import { useT } from "@/lib/i18n";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { IncidentLifecyclePanel } from "@/components/IncidentLifecyclePanel";
 import { AlertOctagon } from "lucide-react";
+import { DetailPageHero } from "@/components/detail/DetailPageHero";
 import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
@@ -248,6 +249,8 @@ export default function ViewIncident() {
         subtitle="Admin review for incident severity, follow-up, evidence, and lifecycle state."
         portalRole="Admin · Incidents"
         crumbs={[{ label: "Field Operations" }, { label: "Incidents" }]}
+        showShellHeader={false}
+        showBreadcrumbs={false}
         testId="admin-view-incident-shell"
       >
         {loadingContent}
@@ -273,48 +276,44 @@ export default function ViewIncident() {
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={ret.path} label={t(ret.label)} variant="header" testId={pathname.startsWith("/safety-portal") ? "safety-nav-back" : "back-link"} />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex gap-2">
-            <EditProjectDialog
-              kind="incidents"
-              recordId={data.id}
-              current={data}
-              onSaved={(rec) => rec && setData(rec)}
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDelete}
-              className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
-              data-testid="delete-btn"
-              aria-label="Delete incident"
-              title="Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setEmailOpen(true)}
-              className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
-              data-testid="email-btn"
-            >
-              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
-            </Button>
-            <Button
-              onClick={printReport}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="print-btn"
-            >
-              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
+        <DetailPageHero
+          backHref={ret.path}
+          backLabel={t(ret.label)}
+          kicker={t("Field Operations · Incident Review")}
+          title={t("Accident / Incident Report")}
+          description={t("Review severity, evidence, and follow-up status before sharing the report or closing the loop.")}
+          actions={(
+            <>
+              <EditProjectDialog kind="incidents" recordId={data.id} current={data} onSaved={(rec) => rec && setData(rec)} />
+              <Button variant="outline" size="icon" onClick={handleDelete} className="h-11 w-11 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700" data-testid="delete-btn" aria-label="Delete incident" title="Delete">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" onClick={() => setEmailOpen(true)} className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm" data-testid="email-btn">
+                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
+              </Button>
+              <Button onClick={printReport} className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm" data-testid="print-btn">
+                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
+              </Button>
+            </>
+          )}
+          chips={(
+            <>
+              <RefKicker recordId={data.incident_number || data.report_number || data.id} testId="view-incident-ref" />
+              {data.doc_id ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-800" data-testid="record-doc-id-badge">
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
+                  {data.doc_id}
+                </span>
+              ) : null}
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-mono uppercase tracking-wider text-white ${sev.color}`} data-testid="severity-badge">{sev.label}</span>
+              {data.osha_recordable === "Yes" ? <span className="rounded-full bg-red-900 px-3 py-1 text-[11px] font-mono uppercase tracking-wider text-white">{t("OSHA Recordable")}</span> : null}
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">{data.incident_type}</span>
+            </>
+          )}
+          toolbar={pathname.startsWith("/safety-portal") ? <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-600">{t("Safety Portal")}</span> : null}
+          testId="view-incident-hero"
+        />
         {/* iter365 · operational coaching uniformity — short, field-direct.
             Hidden on print so the official report PDF stays clean. */}
         <div className="print:hidden">
@@ -406,7 +405,7 @@ export default function ViewIncident() {
             ) : null}
           </div>
         ) : null}
-        <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
+        <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo
               variant="mark"
@@ -419,20 +418,13 @@ export default function ViewIncident() {
                 ID surfaced on the /thank-you submission page so reviewers
                 can spot-match a record from a field crew's verbal/
                 screenshot reference. */}
-            <RefKicker
-              recordId={data.incident_number || data.report_number || data.id}
-              testId="view-incident-ref"
-              className="mt-4"
-            />
+            <RefKicker recordId={data.incident_number || data.report_number || data.id} testId="view-incident-ref-print" className="mt-4" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
               {t("Accident / Incident Report")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
-                <span
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
-                  data-testid="record-doc-id-badge"
-                >
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide">
                   <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
@@ -445,10 +437,7 @@ export default function ViewIncident() {
               </div>
             )}
             <div className="mt-2 flex items-center gap-2 flex-wrap">
-              <span
-                className={`inline-flex items-center px-2.5 py-1 ${sev.color} text-white text-[11px] font-mono uppercase tracking-wider rounded font-bold`}
-                data-testid="severity-badge"
-              >
+              <span className={`inline-flex items-center px-2.5 py-1 ${sev.color} text-white text-[11px] font-mono uppercase tracking-wider rounded font-bold`}>
                 {sev.label}
               </span>
               {data.osha_recordable === "Yes" && (
@@ -804,6 +793,8 @@ export default function ViewIncident() {
         { label: "Incidents" },
         { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Incident" },
       ]}
+      showShellHeader={false}
+      showBreadcrumbs={false}
       contentClassName="px-0 py-0"
       testId="admin-view-incident-shell"
     >

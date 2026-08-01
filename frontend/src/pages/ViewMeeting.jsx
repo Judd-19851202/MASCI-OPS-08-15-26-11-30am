@@ -26,6 +26,7 @@ import { BilingualConsent } from "@/components/BilingualConsent";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
 import { splitIncidentScaffold } from "@/lib/splitIncidentScaffold";
+import { DetailPageHero } from "@/components/detail/DetailPageHero";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -133,6 +134,8 @@ export default function ViewMeeting() {
         subtitle="Admin review for toolbox talks, attendance, and signed field communication."
         portalRole="Admin · Safety Meetings"
         crumbs={[{ label: "Field Operations" }, { label: "Meetings" }]}
+        showShellHeader={false}
+        showBreadcrumbs={false}
         testId="admin-view-meeting-shell"
       >
         {loadingContent}
@@ -147,69 +150,58 @@ export default function ViewMeeting() {
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={ret.path} label={ret.label} variant="header" testId="back-link" />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex gap-2">
-            <EditProjectDialog
-              kind="meetings"
-              recordId={data.id}
-              current={data}
-              onSaved={(rec) => rec && setData(rec)}
-            />
-            {caps["meeting.delete"] && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
-                data-testid="delete-btn"
-                aria-label="Delete meeting"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => setEmailOpen(true)}
-              className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
-              data-testid="email-btn"
-            >
-              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
-            </Button>
-            <Button
-              onClick={printReport}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="print-btn"
-            >
-              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
-        <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
+        <DetailPageHero
+          backHref={ret.path}
+          backLabel={ret.label}
+          kicker={t("Field Operations · Meeting Record")}
+          title={t("Site Safety Meeting Record")}
+          description={t("Review the topic, attendance, and sign-offs, then print or share the record with the field team.")}
+          actions={(
+            <>
+              <EditProjectDialog kind="meetings" recordId={data.id} current={data} onSaved={(rec) => rec && setData(rec)} />
+              {caps["meeting.delete"] && (
+                <Button variant="outline" size="icon" onClick={handleDelete} className="h-11 w-11 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700" data-testid="delete-btn" aria-label="Delete meeting" title="Delete">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setEmailOpen(true)} className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm" data-testid="email-btn">
+                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
+              </Button>
+              <Button onClick={printReport} className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm" data-testid="print-btn">
+                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
+              </Button>
+            </>
+          )}
+          chips={(
+            <>
+              <RefKicker recordId={data.meeting_number || data.id} testId="view-meeting-ref" />
+              {data.doc_id ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-800" data-testid="record-doc-id-badge">
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
+                  {data.doc_id}
+                </span>
+              ) : null}
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                {t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}
+              </span>
+              {data.submit_language === "es" ? <SubmitLangBadge lang={data.submit_language} /> : null}
+            </>
+          )}
+          testId="view-meeting-hero"
+        />
+        <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             {/* iter336 · review-side reference continuity */}
-            <RefKicker
-              recordId={data.meeting_number || data.id}
-              testId="view-meeting-ref"
-              className="mt-4"
-            />
+            <RefKicker recordId={data.meeting_number || data.id} testId="view-meeting-ref-print" className="mt-4" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
               {t("Site Safety Meeting Record")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
-                <span
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
-                  data-testid="record-doc-id-badge"
-                >
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide">
                   <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
@@ -460,6 +452,8 @@ export default function ViewMeeting() {
         { label: "Meetings" },
         { label: data.topic || data.id?.slice(0, 8)?.toUpperCase() || "Record" },
       ]}
+      showShellHeader={false}
+      showBreadcrumbs={false}
       contentClassName="px-0 py-0"
       testId="admin-view-meeting-shell"
     >

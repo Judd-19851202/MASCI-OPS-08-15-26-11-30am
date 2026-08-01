@@ -34,6 +34,7 @@ import { formatDateLong } from "@/lib/utils";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
 import { SiteInspectionLifecyclePanel } from "@/components/SiteInspectionLifecyclePanel";
+import { DetailPageHero } from "@/components/detail/DetailPageHero";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -170,6 +171,8 @@ export default function ViewInspection() {
         subtitle="Admin review for site inspection evidence, grade, and lifecycle history."
         portalRole="Admin · Site Inspections"
         crumbs={[{ label: "Field Operations" }, { label: "Inspections" }]}
+        showShellHeader={false}
+        showBreadcrumbs={false}
         testId="admin-view-inspection-shell"
       >
         {loadingContent}
@@ -200,70 +203,59 @@ export default function ViewInspection() {
     <div className="min-h-screen bg-slate-50">
       <PrintWatermark />
       <div className="caution-stripe no-print" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10 no-print">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <BackLink to={ret.path} label={ret.label} variant="header" testId="back-link" />
-          <MasciLogo variant="mark" size="md" homeLink={hubHome} />
-          <div className="flex gap-2">
-            <EditProjectDialog
-              kind="inspections"
-              recordId={data.id}
-              current={data}
-              onSaved={(rec) => rec && setData(rec)}
-            />
-            {caps["inspection.delete"] && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                className="h-11 w-11 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:text-red-400"
-                data-testid="delete-btn"
-                aria-label="Delete inspection"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => setEmailOpen(true)}
-              className="h-11 px-4 border-2 border-slate-600 bg-slate-800 text-white hover:border-red-500 hover:bg-slate-700 font-bold uppercase tracking-wide text-sm"
-              data-testid="email-btn"
-            >
-              <Mail className="w-4 h-4 mr-1" /> {t("Email")}
-            </Button>
-            <Button
-              onClick={printReport}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="print-btn"
-            >
-              <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
+        <DetailPageHero
+          backHref={ret.path}
+          backLabel={ret.label}
+          kicker={t("Field Operations · Inspection Review")}
+          title={t("Job Site Safety Inspection Report")}
+          description={t("Review the submitted inspection, confirm the grade and evidence, then print or share the record if follow-up is needed.")}
+          actions={(
+            <>
+              <EditProjectDialog kind="inspections" recordId={data.id} current={data} onSaved={(rec) => rec && setData(rec)} />
+              {caps["inspection.delete"] && (
+                <Button variant="outline" size="icon" onClick={handleDelete} className="h-11 w-11 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700" data-testid="delete-btn" aria-label="Delete inspection" title="Delete">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setEmailOpen(true)} className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm" data-testid="email-btn">
+                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
+              </Button>
+              <Button onClick={printReport} className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm" data-testid="print-btn">
+                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
+              </Button>
+            </>
+          )}
+          chips={(
+            <>
+              <RefKicker recordId={data.inspection_number || data.id} testId="view-inspection-ref" />
+              {data.doc_id ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-800" data-testid="record-doc-id-badge">
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
+                  {data.doc_id}
+                </span>
+              ) : null}
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                {t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}
+              </span>
+              {data.submit_language === "es" ? <SubmitLangBadge lang={data.submit_language} /> : null}
+            </>
+          )}
+          testId="view-inspection-hero"
+        />
         {/* Print header */}
-        <div className="flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
+        <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
             <MasciLogo variant="mark" size="xl" className="sm:hidden" homeLink={hubHome} />
             {/* iter336 · review-side reference continuity */}
-            <RefKicker
-              recordId={data.inspection_number || data.id}
-              testId="view-inspection-ref"
-              className="mt-4"
-            />
+            <RefKicker recordId={data.inspection_number || data.id} testId="view-inspection-ref-print" className="mt-4" />
             <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1">
               {t("Job Site Safety Inspection Report")}
             </h1>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               {data.doc_id && (
-                <span
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide"
-                  data-testid="record-doc-id-badge"
-                >
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold tabular-nums tracking-wide">
                   <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
@@ -552,6 +544,8 @@ export default function ViewInspection() {
         { label: "Inspections" },
         { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Report" },
       ]}
+      showShellHeader={false}
+      showBreadcrumbs={false}
       contentClassName="px-0 py-0"
       testId="admin-view-inspection-shell"
     >

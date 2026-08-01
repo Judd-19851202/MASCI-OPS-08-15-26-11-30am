@@ -13,6 +13,8 @@ export function AdminRouteShell({
   portalRole = "Admin",
   primaryActions = null,
   crumbs = [],
+  showShellHeader = true,
+  showBreadcrumbs = true,
   contentClassName = "max-w-7xl mx-auto px-4 sm:px-6 py-6",
   children,
   testId = "admin-route-shell",
@@ -22,13 +24,13 @@ export function AdminRouteShell({
       portalName="MASCI"
       portalRole={portalRole}
       shellTheme="admin"
-      pageTitle={pageTitle}
-      subtitle={subtitle}
-      primaryActions={primaryActions}
+      pageTitle={showShellHeader ? pageTitle : undefined}
+      subtitle={showShellHeader ? subtitle : undefined}
+      primaryActions={showShellHeader ? primaryActions : null}
       sideNav={renderAdminRouteSideNav()}
     >
       <div className={`admin-route-shell-canvas ${contentClassName}`} data-testid={testId}>
-        {crumbs?.length ? <AdminBreadcrumb crumbs={crumbs} /> : null}
+        {showBreadcrumbs && crumbs?.length ? <AdminBreadcrumb crumbs={crumbs} /> : null}
         {children}
       </div>
     </PortalShell>
