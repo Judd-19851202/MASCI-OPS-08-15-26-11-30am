@@ -11,10 +11,18 @@ A survivor is open until it is either:
 ## Full-Ledger Survivor Counts
 - Route/Shell: **134**
 - Navigation: **68**
-- Tables: **113**
+- Tables: **107**
 - Dialogs/Overlays: **89**
 - Forms: **39**
 - Coaching: **11**
+
+## Batch Certification Ledger
+### 2026-08-01 · Shared Tables Batch 01 · CLOSED
+- Closed routes: `/admin/scheduler-runs`, `/admin/leadership-equipment`, `/admin/terminations`, `/admin/guide`, `/admin/executive-operational-intelligence`, `/pm/operational-intelligence`
+- Shared fixes: canonical `DataTable` upgrade, `wp17.css` table shell styling, scheduler legacy-banner removal, `LastActivityLine` portal guard
+- Evidence: `/app/test_reports/iteration_95.json` plus responsive screenshot sets at `390`, `768`, `1024`, and `1440`
+- Denominator movement: full-ledger table survivors `113 → 107`; active-route table queue `19 → 13`
+- Carry-forward note: dual-nav coexistence on some wider shells remains a Navigation-batch cleanup item; it did not block table certification
 
 ## Active-Route Survivor Queue
 ### Header survivors (41)
@@ -44,26 +52,20 @@ A survivor is open until it is either:
 - `/near-miss` · `NearMissKiosk` · move to canonical FormShell or canonical public auth shell
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
-### Table survivors (19)
+### Table survivors (13)
 - `/safety/forms/equipment-issuance/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/safety/forms/equipment-training/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
 - `/safety/cases/:caseId/reports/:reportType` · `IncidentReportViewer` · move to canonical data table shell
 - `/safety/cases/:caseId/executive-report` · `ExecutiveCaseReport` · move to canonical data table shell
-- `/admin/scheduler-runs` · `AdminSchedulerRuns` · move to canonical data table shell
-- `/admin/leadership-equipment` · `AdminLeadershipEquipment` · move to canonical data table shell
-- `/admin/terminations` · `AdminTerminations` · move to canonical data table shell
-- `/admin/guide` · `AdminGuide` · move to canonical data table shell
 - `/admin/pnl` · `ProjectPnlPage` · move to canonical data table shell
 - `/admin/daily/:id` · `ViewDailyReport` · move to canonical data table shell
 - `/admin/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
 - `/admin/safety/issuance/:id` · `ViewSafetyForm` · move to canonical data table shell
 - `/admin/safety/training/:id` · `ViewSafetyForm` · move to canonical data table shell
-- `/admin/executive-operational-intelligence` · `ExecutiveOperationalIntelligence` · move to canonical data table shell
 - `/pm/daily/:id` · `ViewDailyReport` · move to canonical data table shell
 - `/hr/daily-reports/:id` · `ViewDailyReport` · move to canonical data table shell
 - `/dev` · `DevHub` · move to canonical data table shell
-- `/pm/operational-intelligence` · `PmOperationalIntelligence` · move to canonical data table shell
 
 ### Coaching survivors (20)
 - `/safety/forms/equipment-issuance/new` · `NewSafetyEquipmentIssuance` · collapse stacked helper text into canonical coaching treatment

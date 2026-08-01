@@ -40,6 +40,9 @@
   - Daily Report was reopened and moved onto the canonical `FormShell`
   - Transportation auth-scope drift was reduced further by fixing dispatch scope inference, directory compatibility for notifications, and dispatch-safe audit behavior
   - auth-wave visual certification confirmed: no duplicate shell CTA on migrated auth routes, no legacy Safety Forms notice, and Navy glass headers preserved across the migrated routes
+  - shared-table survivor batch 01 is now closed: `AdminSchedulerRuns`, `AdminLeadershipEquipment`, `AdminTerminations`, `AdminGuide`, `ExecutiveOperationalIntelligence`, and `PmOperationalIntelligence` all render through the upgraded canonical `DataTable`
+  - shared support fixes shipped with the table batch: `LastActivityLine` now guards missing portal values and Scheduler Runs no longer shows the obsolete legacy-moved banner
+  - responsive screenshot certification was completed for the batch at `390`, `768`, `1024`, and `1440`, and the survivor ledgers were reconciled from `113` to `107` full-ledger table survivors and from `19` to `13` active-route table survivors
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -78,6 +81,7 @@
   - `/app/test_reports/iteration_92.json`
   - `/app/test_reports/iteration_93.json`
   - `/app/test_reports/iteration_94.json`
+  - `/app/test_reports/iteration_95.json`
   - `auto_frontend_testing_agent`: **22/22 PASS** on the broader WP-17D convergence sweep
   - `auto_frontend_testing_agent`: **5/5 auth routes PASS** for the PortalLoginShell convergence wave
   - `auto_frontend_testing_agent`: **9/9 PASS after fix** on the Field Leadership visual-audit + FormShell migration wave
@@ -87,6 +91,8 @@
   - formal auth-wave certification passed for `/admin/login`, `/safety/forms/login`, `/dispatch-portal/forgot-password`, `/pm/reset/test-token`, and `/hr/change-password`
   - formal Field Leadership + FormShell certification passed for `/leadership`, `/leadership/records`, `/leadership/verbal_coaching/new`, `/leadership/records/:id`, `/admin/leadership/records/:id`, `/constraints/new`, and `/qaqc/concrete-form/new`
   - formal survivor-hunt certification passed for `/equipment/new`, `/fleet/dvir/new`, `/field`, `/qaqc`, and `/safety` in `/app/test_reports/iteration_94.json`
+  - formal shared-table certification passed for `/admin/scheduler-runs`, `/admin/leadership-equipment`, `/admin/terminations`, `/admin/guide`, `/admin/executive-operational-intelligence`, and `/pm/operational-intelligence` in `/app/test_reports/iteration_95.json`
+  - follow-up backend sanity check confirmed `/api/admin/scheduler-runs` and `/api/diag/last-activity?portal=admin` after the portal-fix patch
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -95,8 +101,9 @@
 
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
+- Next survivor batch order is now: dialogs/overlays → navigation → coaching/alert treatments → typography/spacing → remaining route and header survivors.
 - Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.
-- Drive execution from `WP17D_SURVIVOR_REGISTER.md`: clear active-route header survivors first (`/sign-in`, `/near-miss`, `/field/calculators`, `/safety/cards`, `/jha`, `/fleet/dvir/submitted/:id`, `/thank-you`, `/access-denied`), then continue into table, coaching, navigation, and spacing survivors.
+- Drive execution from `WP17D_SURVIVOR_REGISTER.md`: keep clearing active-route survivors through shared systems only, starting with the dialog/overlay family and carrying the noted dual-nav cleanup into the navigation batch.
 - Reconcile survivor fixes back into `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` so platform-wide counts move toward zero by survivor category rather than percentage complete.
 - Continue icon consolidation, card/table/dialog standardization, navigation cleanup, and responsive/mobile refinement until survivor counts reach zero or a documented exception exists.
 - Only after genuine full-platform convergence should WP-17E be considered.
