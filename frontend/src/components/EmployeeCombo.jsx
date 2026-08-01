@@ -250,7 +250,7 @@ export const EmployeeCombo = ({
           }}
           onFocus={() => setOpen(true)}
           placeholder={ph}
-          className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
+          className="flex-1 h-12 text-[0.95rem] border-[color:var(--border-bold)] focus:border-[color:var(--brand-primary)]"
           data-testid={`${testId}-input`}
           autoComplete="off"
         />
@@ -258,7 +258,7 @@ export const EmployeeCombo = ({
           type="button"
           variant="outline"
           size="icon"
-          className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
+          className="h-12 w-12 shrink-0 rounded-[1rem] border-[color:var(--border-bold)] hover:border-red-700 hover:text-red-700"
           onClick={() => {
             // Self-recover: if the cache loaded empty, force a re-fetch
             // when the user clicks the chevron. With Track 19.03 there
@@ -281,12 +281,12 @@ export const EmployeeCombo = ({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full max-h-72 overflow-auto rounded-md border-2 border-slate-300 bg-white shadow-xl"
+          className="wp17-picker-panel absolute z-30 mt-2 w-full max-h-72 overflow-auto p-1.5"
           data-testid={`${testId}-panel`}
         >
           {filtered.length === 0 ? (
             <div className="p-3 text-sm text-slate-700">
-              <div className="text-center text-slate-500 mb-3">
+              <div className="wp17-picker-empty text-center mb-3">
                 {total === 0
                   ? t("Roster not uploaded yet — type the name freely.")
                   : t("No matches.")}
@@ -312,7 +312,7 @@ export const EmployeeCombo = ({
           ) : (
             <>
               {showCustomTag && (
-                <div className="px-3 py-2 bg-amber-50 border-b-2 border-amber-300 flex items-center gap-2">
+                <div className="mb-1 flex items-center gap-2 rounded-[0.95rem] border border-amber-200 bg-amber-50 px-3 py-2">
                   <div className="flex-1 text-xs text-amber-900 font-mono truncate">
                     {t("Submit new-hire request to HR:")}{" "}
                     <strong className="font-bold">{value}</strong>
@@ -342,9 +342,8 @@ export const EmployeeCombo = ({
                     type="button"
                     onClick={() => pick(it)}
                     onMouseDown={(e) => e.preventDefault()}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-red-50 border-b border-slate-100 ${
-                      selected ? "bg-red-100" : ""
-                    }`}
+                    className="wp17-picker-option text-left text-sm"
+                    data-selected={selected ? "true" : "false"}
                     data-testid={`${testId}-item-${idx}`}
                   >
                     <div className="flex items-center gap-2">

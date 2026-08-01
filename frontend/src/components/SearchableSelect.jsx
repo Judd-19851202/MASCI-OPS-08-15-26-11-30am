@@ -115,24 +115,24 @@ export function SearchableSelect({
         onClick={() => !disabled && setOpen((o) => !o)}
         disabled={disabled}
         data-testid={testId}
-        className={`w-full h-12 border-2 border-slate-300 rounded px-3 text-base bg-white text-left flex items-center justify-between gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 ${
-          disabled ? "opacity-60 cursor-not-allowed" : "hover:border-slate-400"
+        className={`wp17-focus-ring wp17-control w-full h-12 rounded-[1rem] border border-[color:var(--border-bold)] bg-white px-3.5 text-[0.95rem] text-left flex items-center justify-between gap-2 ${
+          disabled ? "opacity-60 cursor-not-allowed border-[color:var(--border-hairline)] bg-[color:var(--surface-disabled)] text-[color:var(--ink-disabled)]" : open ? "border-[color:var(--brand-primary)]" : "hover:border-slate-400"
         } ${className}`}
       >
-        <span className={`truncate ${selectedLabel ? "text-slate-900" : "text-slate-400"}`}>
+        <span className={`truncate ${selectedLabel ? "text-[color:var(--ink-strong)]" : "text-[color:var(--ink-faint)]"}`}>
           {selectedLabel || placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-slate-500 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-[color:var(--ink-faint)] shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden"
+          className="wp17-picker-panel absolute z-30 mt-2 w-full overflow-hidden"
           data-testid={testId ? `${testId}-menu` : undefined}
         >
-          <div className="p-2 border-b border-slate-200 bg-slate-50">
+          <div className="wp17-picker-toolbar p-2.5">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
@@ -142,7 +142,7 @@ export function SearchableSelect({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder={searchPlaceholder}
-                className="w-full h-9 pl-8 pr-8 border-2 border-slate-200 rounded text-sm focus:outline-none focus:border-red-700"
+                className="wp17-focus-ring wp17-control w-full h-10 rounded-[0.9rem] border border-[color:var(--border-bold)] bg-white pl-8 pr-8 text-sm text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-faint)]"
                 data-testid={testId ? `${testId}-search` : undefined}
               />
               {query && (
@@ -157,9 +157,9 @@ export function SearchableSelect({
               )}
             </div>
           </div>
-          <ul className="max-h-64 overflow-y-auto py-1" role="listbox">
+          <ul className="max-h-64 overflow-y-auto p-1.5" role="listbox">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-slate-500 italic">No matches</li>
+              <li className="wp17-picker-empty italic">No matches</li>
             )}
             {filtered.map((opt, i) => {
               const active = i === activeIdx;
@@ -174,9 +174,9 @@ export function SearchableSelect({
                     e.preventDefault();
                     choose(opt.value);
                   }}
-                  className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between gap-2 ${
-                    active ? "bg-red-50 text-slate-900" : "text-slate-700"
-                  } ${selected ? "font-bold" : ""}`}
+                  className={`wp17-picker-option text-sm cursor-pointer ${selected ? "font-semibold" : ""}`}
+                  data-active={active ? "true" : "false"}
+                  data-selected={selected ? "true" : "false"}
                   data-testid={testId ? `${testId}-option-${opt.value}` : undefined}
                 >
                   <span className="truncate">{opt.label}</span>

@@ -68,8 +68,9 @@ export const SignaturePad = ({ value, onChange, label, testId = "signature" }) =
       )}
       <div
         ref={containerRef}
-        className="border-2 border-slate-300 bg-white rounded-md touch-none"
+        className="wp17-signature-shell touch-none p-2"
         style={{ height: 180 }}
+        data-testid={`${testId}-shell`}
       >
         <SignatureCanvas
           ref={padRef}
@@ -77,13 +78,13 @@ export const SignaturePad = ({ value, onChange, label, testId = "signature" }) =
           canvasProps={{
             width,
             height: 180,
-            className: "rounded-md",
+            className: "wp17-signature-canvas rounded-[0.95rem]",
             "data-testid": `${testId}-canvas`,
           }}
           onEnd={handleEnd}
         />
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-500 px-1">
         {t("Sign with your finger, stylus, or mouse above the line.")}
       </p>
     </div>

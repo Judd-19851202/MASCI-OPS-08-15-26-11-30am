@@ -19,40 +19,42 @@ export default function OshaCoachingBlock({ title, why, requirement, example, mi
   const { t } = useT();
   const [open, setOpen] = useState(defaultOpen);
 
-  const toneClasses = {
-    amber: "border-amber-300 bg-amber-50 text-amber-900",
-    red:   "border-red-300 bg-red-50 text-red-900",
-    cyan:  "border-cyan-300 bg-cyan-50 text-cyan-900",
-  }[tone] || "border-amber-300 bg-amber-50 text-amber-900";
+  const toneClass = {
+    amber: "wp17-coaching-card--amber",
+    red: "wp17-coaching-card--red",
+    cyan: "wp17-coaching-card--cyan",
+  }[tone] || "wp17-coaching-card--amber";
 
   return (
-    <div className={`mt-2 border-l-4 ${toneClasses} rounded-sm p-2`} data-testid={testId}>
+    <div className={`wp17-coaching-card ${toneClass} mt-3 p-3 sm:p-4`} data-testid={testId}>
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full flex items-start gap-2 text-left"
+        className="w-full flex items-start gap-3 text-left"
         data-testid={`${testId}-toggle`}
       >
-        <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+        <span className="wp17-coaching-card__icon mt-0.5 shrink-0">
+          <ShieldAlert className="w-4 h-4" />
+        </span>
         <div className="flex-1">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold leading-snug">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold leading-snug text-slate-500">
             {t("OSHA Coaching")} · {t(title)}
           </div>
           {!open && (
-            <div className="text-xs leading-snug mt-1 line-clamp-2">{t(why)}</div>
+            <div className="mt-2 text-sm leading-6 text-slate-700 line-clamp-2">{t(why)}</div>
           )}
         </div>
-        {open ? <ChevronUp className="w-4 h-4 mt-0.5 shrink-0" /> : <ChevronDown className="w-4 h-4 mt-0.5 shrink-0" />}
+        {open ? <ChevronUp className="w-4 h-4 mt-1 shrink-0 text-slate-500" /> : <ChevronDown className="w-4 h-4 mt-1 shrink-0 text-slate-500" />}
       </button>
 
       {open && (
-        <div className="mt-2 text-xs leading-relaxed space-y-1.5" data-testid={`${testId}-body`}>
-          <div><span className="font-bold uppercase tracking-[0.08em] mr-1">{t("Why This Matters:")}</span>{t(why)}</div>
-          {requirement && <div><span className="font-bold uppercase tracking-[0.08em] mr-1">{t("OSHA Requirement:")}</span>{t(requirement)}</div>}
-          {example && <div><span className="font-bold uppercase tracking-[0.08em] mr-1">{t("Example:")}</span>{t(example)}</div>}
-          {mistakes && <div><span className="font-bold uppercase tracking-[0.08em] mr-1">{t("Common Mistakes:")}</span>{t(mistakes)}</div>}
-          {escalate && <div><span className="font-bold uppercase tracking-[0.08em] mr-1">{t("When To Escalate:")}</span>{t(escalate)}</div>}
-          {ifUnsure && <div><span className="font-bold uppercase tracking-[0.08em] mr-1">{t("If Unsure:")}</span>{t(ifUnsure)}</div>}
+        <div className="mt-3 space-y-2.5 text-sm leading-6 text-slate-700" data-testid={`${testId}-body`}>
+          <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("Why This Matters")}</span>{t(why)}</div>
+          {requirement && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("OSHA Requirement")}</span>{t(requirement)}</div>}
+          {example && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("Example")}</span>{t(example)}</div>}
+          {mistakes && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("Common Mistakes")}</span>{t(mistakes)}</div>}
+          {escalate && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("When To Escalate")}</span>{t(escalate)}</div>}
+          {ifUnsure && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("If Unsure")}</span>{t(ifUnsure)}</div>}
         </div>
       )}
     </div>

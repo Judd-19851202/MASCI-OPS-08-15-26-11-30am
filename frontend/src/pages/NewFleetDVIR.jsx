@@ -39,6 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import FormShell from "@/components/FormShell";
 import SmartUnitClassificationChip from "@/components/SmartUnitClassificationChip";
 import CanonicalInspectionSections from "@/components/CanonicalInspectionSections";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { Section, ChecklistRow } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -707,19 +708,19 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
 
           <div>
             <Label className="text-sm font-semibold text-slate-800">{t("Truck unit")}</Label>
-            <select
-              className={inputCls + " mt-1 w-full bg-white px-3"}
+            <SearchableSelect
               value={truckUnit}
-              onChange={(e) => onPickTruck(e.target.value)}
+              onChange={onPickTruck}
+              options={truckSelectable.map((u) => ({
+                value: u.unit_number,
+                label: `${u.unit_number} — ${u.make_model || u.category || t("Truck")}`,
+              }))}
+              placeholder={t("— Pick your truck —")}
               data-testid="dvir-truck-select"
-            >
-              <option value="">{t("— Pick your truck —")}</option>
-              {truckSelectable.map((u) => (
-                <option key={u.id || u.unit_number} value={u.unit_number}>
-                  {`${u.unit_number} — ${u.make_model || u.category}`}
-                </option>
-              ))}
-            </select>
+              testId="dvir-truck-select"
+              className="mt-1"
+              searchPlaceholder={t("Search trucks…")}
+            />
             <SmartUnitClassificationChip unitNumber={truckUnit} testidPrefix="dvir-truck-smart-class" />
             <CanonicalInspectionSections
               unitNumber={truckUnit}
@@ -843,19 +844,19 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                     <Label className="text-sm font-semibold text-slate-800">
                       {t("Trailer")} #{idx + 1}
                     </Label>
-                    <select
-                      className={inputCls + " mt-1 w-full bg-white px-3"}
+                    <SearchableSelect
                       value={tr.trailer_unit_number}
-                      onChange={(e) => setTrailerUnit(idx, e.target.value)}
+                      onChange={(nextValue) => setTrailerUnit(idx, nextValue)}
+                      options={trailerSelectable.map((u) => ({
+                        value: u.unit_number,
+                        label: `${u.unit_number} — ${u.make_model || u.category || t("Trailer")}`,
+                      }))}
+                      placeholder={t("— Pick trailer —")}
                       data-testid={`dvir-trailer-${idx}-select`}
-                    >
-                      <option value="">{t("— Pick trailer —")}</option>
-                      {trailerSelectable.map((u) => (
-                        <option key={u.id || u.unit_number} value={u.unit_number}>
-                          {`${u.unit_number} — ${u.make_model || u.category}`}
-                        </option>
-                      ))}
-                    </select>
+                      testId={`dvir-trailer-${idx}-select`}
+                      className="mt-1"
+                      searchPlaceholder={t("Search trailers…")}
+                    />
                   </div>
                   <Button
                     type="button"

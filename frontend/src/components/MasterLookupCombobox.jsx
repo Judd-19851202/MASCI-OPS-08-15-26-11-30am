@@ -123,8 +123,8 @@ export default function MasterLookupCombobox({
 
   return (
     <div ref={wrapRef} className="relative" data-testid={`${testIdPrefix}-wrap`}>
-      <div className={`relative flex items-center border-2 rounded-md transition-colors ${
-        hasBinding ? "border-emerald-400 bg-emerald-50/40" : "border-slate-300 bg-white"
+      <div className={`wp17-control relative flex items-center rounded-[1rem] border transition-colors ${
+        hasBinding ? "border-emerald-300 bg-emerald-50/70 shadow-[0_18px_30px_rgba(5,150,105,0.08)]" : "border-[color:var(--border-bold)] bg-white"
       } ${disabled ? "opacity-60" : ""}`}>
         <span className="pl-2.5 pr-1 shrink-0">
           {hasBinding ? <Check className="w-4 h-4 text-emerald-700" /> : <Search className="w-4 h-4 text-slate-400" />}
@@ -136,7 +136,7 @@ export default function MasterLookupCombobox({
           onChange={(e) => { setQ(e.target.value); setOpen(true); if (hasBinding) onClear && onClear(); }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder || (kind === "equipment" ? "Search by unit / make / VIN / serial…" : "Search by name / email / employee ID…")}
-          className="flex-1 min-w-0 bg-transparent border-0 outline-none text-sm py-2 px-1"
+          className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[0.95rem] py-3 px-1.5 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-faint)]"
           disabled={disabled}
           data-testid={`${testIdPrefix}-input`}
           autoComplete="off"
@@ -156,7 +156,7 @@ export default function MasterLookupCombobox({
       </div>
 
       {hasBinding && (
-        <div className="mt-1 text-[11px] text-emerald-800 flex items-center gap-1" data-testid={`${testIdPrefix}-bound`}>
+        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-emerald-800" data-testid={`${testIdPrefix}-bound`}>
           <Check className="w-3 h-3" />
           Linked to master record
         </div>
@@ -164,29 +164,29 @@ export default function MasterLookupCombobox({
 
       {open && !disabled && (
         <div
-          className="absolute z-30 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+          className="wp17-picker-panel absolute z-30 left-0 right-0 mt-2 max-h-72 overflow-y-auto p-1.5"
           data-testid={`${testIdPrefix}-dropdown`}
         >
           {loading && (
-            <div className="px-3 py-2 text-xs text-slate-500 flex items-center gap-2">
+            <div className="wp17-picker-empty flex items-center gap-2">
               <Loader2 className="w-3 h-3 animate-spin" /> Searching…
             </div>
           )}
           {!loading && items.length === 0 && q.trim() && (
-            <div className="px-3 py-2 text-xs text-slate-500 italic">No matches in master.</div>
+            <div className="wp17-picker-empty italic">No matches in master.</div>
           )}
           {!loading && items.length === 0 && !q.trim() && (
-            <div className="px-3 py-2 text-xs text-slate-500 italic">Start typing to search…</div>
+            <div className="wp17-picker-empty italic">Start typing to search…</div>
           )}
           {items.map((it) => (
             <button
               key={it.id}
               type="button"
               onClick={() => handlePick(it)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-cyan-50 border-b border-slate-100 last:border-0 flex items-center gap-2"
+              className="wp17-picker-option group text-left text-sm"
               data-testid={`${testIdPrefix}-item-${it.id}`}
             >
-              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 opacity-0 group-hover:opacity-100" />
+              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
               <span className="flex-1 min-w-0 truncate">{fmt(it)}</span>
             </button>
           ))}
@@ -194,7 +194,7 @@ export default function MasterLookupCombobox({
             <button
               type="button"
               onClick={handleFreeText}
-              className="w-full text-left px-3 py-2 text-xs bg-amber-50 hover:bg-amber-100 border-t-2 border-amber-200 text-amber-900 flex items-center gap-2"
+              className="mt-1 flex w-full items-center gap-2 rounded-[0.95rem] border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs text-amber-900 transition-colors hover:bg-amber-100"
               data-testid={`${testIdPrefix}-freetext`}
               title="Save as text only — no master record will be linked"
             >

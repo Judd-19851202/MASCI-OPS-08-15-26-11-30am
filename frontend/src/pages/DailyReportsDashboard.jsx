@@ -210,14 +210,15 @@ export default function DailyReportsDashboard() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button asChild size="sm" data-testid={`view-${it.id}`}>
-                      <Link
-                        to={`${dailyReportDetailBase}/${it.id}`}
-                        state={{ returnTo: pathname }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Eye className="w-4 h-4 mr-1" /> {t("View")}
-                      </Link>
+                    <Button
+                      size="sm"
+                      data-testid={`view-${it.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`${dailyReportDetailBase}/${it.id}`, { state: { returnTo: pathname } });
+                      }}
+                    >
+                      <Eye className="w-4 h-4 mr-1" /> {t("View")}
                     </Button>
                     <Button
                       variant="outline"
