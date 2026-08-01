@@ -23,6 +23,17 @@ A survivor is open until it is either:
 - Coaching: **10**
 
 ## Batch Certification Ledger
+### 2026-08-01 · Executive Elite Polish · Field Wave 02 · CLOSED / ACTIVE NEXT
+- Closed polish pass: shared Field-wave primitives plus admin Daily Reports / admin Equipment / Equipment Inspection detail
+- Shared refinements:
+  - `PageHeader.jsx`, `wp17.css`, `BackLink.jsx`, and `SubmitLangBadge.jsx` tightened to the elite shared-system standard
+  - `/field/calculators` normalized segmented toggles, CTA rhythm, and result tiles
+  - admin Daily Reports list and admin Equipment list moved onto governed summary/list/button/badge rhythm
+  - Equipment Inspection detail removed its custom dark local header and now relies on the shared shell + governed content rhythm
+- Evidence: `/app/test_reports/iteration_103.json`; authenticated preview certification with Super Admin fixture; final `auto_frontend_testing_agent` approval on public/admin Field surfaces
+- Certification result: no emoji UI shortcuts, no local calculator button drift, no local daily-report CTA drift, no custom local equipment header, zero overflow, zero console errors
+- Carry-forward note: continue Field submit/review/detail interiors, then start Transportation with the locked shared polish standard
+
 ### 2026-08-01 · Shared Shell Identity Propagation + Field Calculators Wave · CLOSED / ACTIVE NEXT
 - Closed shared architecture correction: platform-wide header identity now propagates through `CanonicalHeader.jsx`, `PortalShell.jsx`, `FormShell.jsx`, `PortalLoginShell.jsx`, `PublicShell.jsx`, and `OperationalPageFrame.jsx`
 - Closed route in active Field wave: `/field/calculators`
@@ -162,7 +173,7 @@ A survivor is open until it is either:
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
 ### Card/system propagation survivors (active rollout begins with Field Operations)
-- `/field` family · continue after `/field` and `/field/calculators` closeout by migrating field-family list/detail surfaces, equipment interiors, and remaining helper/icon drift onto governed shared systems
+- `/field` family · continue after the elite polish pass by migrating the remaining submit/review/detail interiors, trucking review surfaces, and any leftover field helper/icon drift onto governed shared systems
 - `/transportation` family · replace remaining local command/launcher cards with governed shared variants and external-platform rules
 - `/safety` family · continue converging mixed safety cards, state treatments, and legacy icon contexts
 

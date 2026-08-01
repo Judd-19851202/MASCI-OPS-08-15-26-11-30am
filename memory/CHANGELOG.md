@@ -61,6 +61,29 @@
   - responsive screenshots for `/`, `/field`, and `/field/calculators`
   - final `auto_frontend_testing_agent` verification on all three routes
 
+## 2026-08-01 — WP-17D Executive Elite Polish · Field wave
+
+- Refined governed shared primitives without redesigning architecture:
+  - `PageHeader.jsx` moved fully into the governed `wp17` rhythm
+  - `wp17.css` tightened header alignment, card spacing, button tactility, result-tile rhythm, and section-heading precision
+  - `BackLink.jsx` no longer falls back to banned `Hub` wording
+  - `SubmitLangBadge.jsx` now uses governed badge styling + governed icon treatment
+- Polished active Field wave surfaces:
+  - `/field/calculators` normalized segmented toggle, action buttons, selects, and result tiles
+  - admin Daily Reports list polished onto governed summary/list/button rhythm
+  - admin Equipment list polished onto governed summary/list/badge rhythm
+  - Equipment Inspection detail removed its custom dark local header and adopted governed content/action rhythm
+- Expanded anti-drift checks for the Field wave:
+  - no `Hub` fallback label in shared back navigation
+  - no emoji UI shortcuts in daily-report rows
+  - no local calculator button styling drift
+  - no local daily-report CTA styling drift
+  - no local custom equipment dark header
+- Verification evidence:
+  - `/app/test_reports/iteration_103.json`
+  - authenticated preview verification using Super Admin fixture
+  - final `auto_frontend_testing_agent` approval for public/admin Field surfaces
+
 - Created `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` with the full `1190`-surface denominator and active convergence statuses.
 - Added the WP-17D control package:
   - `WP17D_PORTAL_MIGRATION_RUNBOOK.md`

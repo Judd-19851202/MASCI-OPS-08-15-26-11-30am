@@ -20,6 +20,11 @@ Last updated: 2026-08-01
   - `PortalShell.jsx` shared brand propagation contract
   - `FormShell.jsx` shared brand propagation contract
   - UI emoji / unicode-icon shortcuts inside the constitutional Home lane
+  - no `Hub` fallback label in `BackLink.jsx`
+  - no emoji UI shortcuts in the active Daily Reports list surface
+  - no local calculator button styling drift in `MaterialCalculators.jsx`
+  - no local daily-report CTA styling drift in `ViewDailyReport.jsx`
+  - no local custom dark header in `ViewEquipmentInspection.jsx`
 
 ## Expansion Plan
 These checks must expand during propagation to cover:
@@ -36,6 +41,7 @@ These checks must expand during propagation to cover:
 - Home brand hierarchy screenshot regression
 - mobile overflow checks
 - representative screenshot regression for Home, Field, Material Calculators, and one archetype per remaining portal family
+- local button / local shadow / local spacing / local typography scans should expand family-by-family as each portal wave is polished
 
 ## Governance Rule
 - A route does not pass because a script passes.
