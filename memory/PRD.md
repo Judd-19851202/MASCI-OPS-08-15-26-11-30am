@@ -57,7 +57,9 @@
   - the Shared Operational Home route was explicitly reopened after executive review and recertified: the Home header now uses the governed `CanonicalHeader` home variant (logo-first, no repeated platform-name copy, no duplicate sign-in entry, compact language control, preserved navy/glass shell) and the hero hierarchy was deduplicated to restore the previously approved command-center feel
   - safety record detail convergence is now closed for the non-admin routes: `ViewSafetyForm.jsx` was rebuilt onto `PortalShell`/`AdminRouteShell`, `DetailPageHero`, and the canonical `DataTable`, eliminating local-header drift, duplicate title stacks, and legacy table treatment on issuance/training detail records
   - `PortalShell.jsx` now supports a governed `showPageHeader` switch so routes with their own canonical detail hero do not stack a second page-intro block above the content; `JhaPlansHub.jsx` now uses that switch and has tighter, operational coaching with verified mobile overflow fixes at `390` and `430`
-  - `DevHub.jsx` was moved onto the same shell/table architecture, but the authenticated DevHub surface remains pending full visual certification because only the gated login state was available during this batch
+  - admin safety aliases are now formally closed: `/admin/safety/issuance/:id` and `/admin/safety/training/:id` were visually certified on the governed `AdminRouteShell` + `DetailPageHero` detail architecture at `390`, `430`, `768`, `1024`, and `1440`
+  - admin library convergence continued: `JhaPlansAdmin.jsx` was moved off `LegacyAdminModernShell`, duplicate title stacks were removed, and the admin JHA refetch loop was fixed by memoizing admin auth headers; `TrenchBoxesAdmin.jsx` was moved onto `AdminRouteShell` + `DetailPageHero` and its Add Box dialog now uses the governed navy/glass modal treatment with the canonical icon family
+  - `DevHub.jsx` remains **BLOCKED_CREDENTIALS** for authenticated visual certification in Preview: `GET /api/dev/check` returns `404`, `POST /api/dev/login` returns `404`, and backend fail-closed logic requires backend `DEV_PASSWORD` plus the dev endpoint gate to be enabled before the actual `/dev` surface can be opened and certified
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -118,6 +120,8 @@
   - canonical header correction verified across `/`, `/guidance`, `/sign-in`, `/revise/example-invalid-token`, and `/admin` with `auto_frontend_testing_agent`: same 65px navy/frosted header, same 32px logo, same language selector/control spacing, no white-header regressions, no console errors
   - Shared Operational Home header restoration verified by direct screenshot review at `390`, `430`, `768`, `1024`, and `1440`, authenticated Home screenshots at `390` and `1440`, Spanish toggle verification at `390`, logo-to-home behavior check, and focused `auto_frontend_testing_agent` pass with no remaining Home-route defects
   - focused frontend QA passed for `/jha`, `/safety/forms/equipment-issuance/:id`, and `/safety/forms/equipment-training/:id`; JHA mobile overflow was found at `390`, fixed, and re-verified at `390` and `430` with **100% pass**
+  - responsive screenshot certification passed for `/admin/safety/issuance/:id`, `/admin/safety/training/:id`, `/admin/jha-plans`, and `/admin/trench-boxes` at `390`, `430`, `768`, `1024`, and `1440`
+  - focused `auto_frontend_testing_agent` pass (**4/4 PASS**) confirmed the admin safety aliases, admin JHA surface, trench Add Box dialog, and DevHub disabled-environment handling with no remaining defects
 
 ## Constraints Still Honored
 - No full-platform migration was started.
@@ -126,7 +130,7 @@
 
 ## Next Authorized Work
 - Continue WP-17D portal-by-portal convergence until no active legacy or mixed-generation surface remains.
-- Continue the Platform Shell Batch with the remaining highest-visibility routes first: admin `ViewSafetyForm` aliases, authenticated `DevHub`, remaining trench/detail aliases, and any remaining direct-header pages still not routed through `CanonicalHeader`.
+- Continue the Platform Shell Batch with the remaining highest-visibility routes first: authenticated `DevHub` once unblocked, remaining trench/detail aliases, and any remaining direct-header pages still not routed through `CanonicalHeader`.
 - Continue shell-first convergence order: remaining legacy headers → navigation cleanup → typography/layout tightening → coaching/help reductions → information hierarchy and dead-space removal.
 - Shared component batches still follow after shell completion: dialogs/overlays → detail tables/cards → remaining shared primitives.
 - Continue the executive visual compliance audit on earlier WP-17D migrated surfaces to catch any remaining white/generic drift, duplicated controls, excess helper copy, icon inconsistency, or spacing regressions.

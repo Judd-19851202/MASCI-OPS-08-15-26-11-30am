@@ -9,9 +9,9 @@ A survivor is open until it is either:
 - retained as a documented approved exception.
 
 ## Full-Ledger Survivor Counts
-- Route/Shell: **104**
+- Route/Shell: **102**
 - Navigation: **62**
-- Tables: **102**
+- Tables: **100**
 - Dialogs/Overlays: **89**
 - Forms: **38**
 - Coaching: **10**
@@ -64,6 +64,20 @@ A survivor is open until it is either:
 - Denominator movement: full-ledger route/shell survivors `107 → 104`; full-ledger table survivors `104 → 102`; full-ledger coaching survivors `11 → 10`; active header queue `19 → 17`; active-route table queue `10 → 8`; active coaching queue `20 → 19`
 - Carry-forward note: `/dev` now shares the converged shell and DataTable architecture, but the authenticated DevHub surface still awaits full visual certification because only the gated login state was available during this batch
 
+### 2026-08-01 · Admin Safety Aliases + Admin Libraries Batch · CLOSED
+- Closed routes: `/admin/safety/issuance/:id`, `/admin/safety/training/:id`, `/admin/jha-plans`, `/admin/trench-boxes`
+- Shared fixes: admin safety detail aliases were visually certified on the governed `AdminRouteShell` + `DetailPageHero` architecture; `JhaPlansAdmin.jsx` was migrated off `LegacyAdminModernShell`, duplicate title stacks were removed, and the admin JHA refetch loop was fixed by memoizing admin auth headers; `TrenchBoxesAdmin.jsx` was moved onto `AdminRouteShell` + `DetailPageHero` and its Add Box dialog was rebuilt onto the governed navy/glass modal treatment with canonical icon usage.
+- Evidence: responsive screenshot certification captured at `390`, `430`, `768`, `1024`, and `1440` for all four routes plus focused `auto_frontend_testing_agent` pass (**4/4 PASS**) covering safety aliases, admin JHA, trench dialog behavior, and DevHub blocker handling.
+- Denominator movement: full-ledger route/shell survivors `104 → 102`; full-ledger table survivors `102 → 100`; active header queue `17 → 15`; active-route table queue `8 → 5`
+- Carry-forward note: remaining trench/detail aliases, direct-header survivors, and shared overlay/card/coaching convergence remain in active WP-17D scope and should continue from this certified baseline
+
+### 2026-08-01 · DevHub Authenticated Visual Certification · BLOCKED_CREDENTIALS
+- Blocked routes: `/dev/login`, `/dev`
+- Exact evidence captured by main agent: `GET /api/dev/check` returned `404 Not Found`; `POST /api/dev/login` returned `404 Not Found` in Preview on `https://backup-forensics.preview.emergentagent.com`
+- Backend code evidence: `/app/backend/server.py` lines `2237-2251` fail closed when developer endpoints are disabled or `DEV_PASSWORD` is missing; the route explicitly raises `404` when `_dev_endpoints_enabled()` is false or `DEV_PASSWORD` is empty
+- Why certification cannot continue: authenticated entry into `/dev` is impossible in this environment, so the actual DevHub surface cannot be opened, visually reviewed, or certified. Only the disabled login shell can be seen.
+- Required environment to unblock: backend Preview environment must define `DEV_PASSWORD` and enable the dev endpoints gate consumed by `_dev_endpoints_enabled()`; only after that can authenticated `/dev` certification proceed.
+
 ## Active-Route Survivor Queue
 ### Header survivors (17)
 
@@ -71,15 +85,15 @@ A survivor is open until it is either:
 - `/revise/:token` · `Revise` · move to canonical FormShell or canonical public auth shell
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
-### Table survivors (8)
+### Table survivors (5)
 - `/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
 - `/safety/cases/:caseId/reports/:reportType` · `IncidentReportViewer` · move to canonical data table shell
 - `/safety/cases/:caseId/executive-report` · `ExecutiveCaseReport` · move to canonical data table shell
 - `/admin/pnl` · `ProjectPnlPage` · move to canonical data table shell
 - `/admin/leadership/records/:id` · `FieldLeadershipView` · move to canonical data table shell
-- `/admin/safety/issuance/:id` · `ViewSafetyForm` · move to canonical data table shell
-- `/admin/safety/training/:id` · `ViewSafetyForm` · move to canonical data table shell
-- `/dev` · `DevHub` · move to canonical data table shell
+
+### Blocked authenticated certification (1)
+- `/dev` · `DevHub` · `BLOCKED_CREDENTIALS` until backend Preview has `DEV_PASSWORD` plus the dev endpoint gate enabled; evidence logged above (`/api/dev/check` 404, `/api/dev/login` 404)
 
 ### Coaching survivors (19)
 - `/safety/forms/equipment-issuance/new` · `NewSafetyEquipmentIssuance` · collapse stacked helper text into canonical coaching treatment
