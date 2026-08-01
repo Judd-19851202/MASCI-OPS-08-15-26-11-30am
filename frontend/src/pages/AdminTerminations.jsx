@@ -301,11 +301,13 @@ export default function AdminTerminations() {
               <Loader2 className="w-5 h-5 animate-spin inline mr-2" /> {t("Loading…")}
             </Card>
           ) : filtered.length === 0 ? (
-            <Card className="p-10 text-center text-slate-500 border-2 border-dashed">
-              {rows.length === 0
-                ? t("No termination records yet.")
-                : t("No records match the current filter.")}
-            </Card>
+            <div data-testid="terminations-table">
+              <Card className="p-10 text-center text-slate-500 border-2 border-dashed">
+                {rows.length === 0
+                  ? t("No termination records yet.")
+                  : t("No records match the current filter.")}
+              </Card>
+            </div>
           ) : (
             <DataTable
               columns={columns}

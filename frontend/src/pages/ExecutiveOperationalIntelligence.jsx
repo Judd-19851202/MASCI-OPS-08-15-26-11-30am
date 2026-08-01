@@ -225,7 +225,9 @@ export default function ExecutiveOperationalIntelligence() {
             data-testid="exec-at-risk"
           >
             {atRisk.length === 0 ? (
-              <EmptyEvidence label="No at-risk projects in this range." />
+              <div data-testid="exec-at-risk-table">
+                <EmptyEvidence label="No at-risk projects in this range." />
+              </div>
             ) : (
               <DataTable
                 columns={atRiskColumns}

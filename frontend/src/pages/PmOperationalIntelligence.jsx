@@ -251,7 +251,9 @@ export default function PmOperationalIntelligence() {
               Project roll-up · sorted by delay + safety
             </div>
             {projects.length === 0 ? (
-              <EmptyEvidence label="No projects reported in this range." />
+              <div data-testid="pm-intel-projects-table">
+                <EmptyEvidence label="No projects reported in this range." />
+              </div>
             ) : (
               <DataTable
                 columns={projectColumns}
