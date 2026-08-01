@@ -107,9 +107,8 @@ export function JobPicker({
           aria-expanded={open}
           variant="outline"
           className={cn(
-            "h-14 w-full justify-between text-base font-normal",
-            "border-2 border-slate-300 bg-white hover:bg-white hover:border-red-500",
-            "focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2",
+            "wp17-control h-14 w-full justify-between rounded-[1rem] border border-[color:var(--border-bold)] bg-white px-4 text-base font-normal hover:bg-white hover:border-[color:var(--brand-primary)]",
+            "focus-visible:ring-2 focus-visible:ring-[color:var(--brand-primary)] focus-visible:ring-offset-2",
             className
           )}
           data-testid={dataTestId || "job-picker-trigger"}
@@ -124,29 +123,30 @@ export function JobPicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[var(--radix-popover-trigger-width)] max-w-none"
+        className="wp17-picker-panel w-[var(--radix-popover-trigger-width)] max-w-none p-0"
         align="start"
         data-testid="job-picker-content"
       >
         <Command
+          className="bg-transparent"
           filter={(itemValue, search) =>
             itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
           }
         >
           <CommandInput
             placeholder={t("Search by job #, name, route, or city...")}
-            className="h-12 text-base"
+            className="h-12 border-b border-slate-200 bg-transparent text-base text-slate-900 placeholder:text-slate-400"
             data-testid="job-picker-search"
           />
-          <CommandList className="max-h-[55vh]">
-            <CommandEmpty>
+          <CommandList className="max-h-[55vh] p-1.5">
+            <CommandEmpty className="wp17-picker-empty">
               {allowCustom
                 ? t("No job matches that search.")
                 : (emptyHint || t("I don't see this job — contact PM to add it."))}
             </CommandEmpty>
 
             {allowCustom && (
-            <CommandGroup heading={t("Custom")}>
+            <CommandGroup heading={t("Custom")} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-slate-500">
               <CommandItem
                 value="custom job free form not in list"
                 onSelect={() => {
@@ -157,11 +157,11 @@ export function JobPicker({
                   () => { onSelect(null); setOpen(false); },
                   "job-picker-custom",
                 )}
-                className="py-3 cursor-pointer"
+                className="wp17-picker-option cursor-pointer rounded-[0.95rem] py-3 data-[selected=true]:bg-red-50 data-[selected=true]:text-slate-900"
                 data-testid="job-picker-custom"
               >
                 <div className="flex items-start gap-3 w-full">
-                  <span className="inline-flex w-7 h-7 items-center justify-center rounded bg-slate-900 text-white shrink-0 mt-0.5">
+                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.9rem] border border-slate-200 bg-slate-900 text-white mt-0.5">
                     <Pencil className="w-3.5 h-3.5" />
                   </span>
                   <div className="flex-1 min-w-0">
@@ -178,7 +178,7 @@ export function JobPicker({
             </CommandGroup>
             )}
 
-            <CommandGroup heading={`MASCI Current Jobs · ${library.length}`}>
+            <CommandGroup heading={`${t("MASCI Current Jobs")} · ${library.length}`} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-slate-500">
               {library.map((j, jIdx) => (
                 <CommandItem
                   key={j.id || `${j.project_number || "job"}-${jIdx}`}
@@ -191,7 +191,7 @@ export function JobPicker({
                     () => { onSelect(j); setOpen(false); },
                     `job-picker-item-${j.project_number}`,
                   )}
-                  className="py-2.5 cursor-pointer"
+                  className="wp17-picker-option cursor-pointer rounded-[0.95rem] py-2.5 data-[selected=true]:bg-red-50 data-[selected=true]:text-slate-900"
                   data-testid={`job-picker-item-${j.project_number}`}
                 >
                   <div className="flex items-start gap-3 w-full">
@@ -204,7 +204,7 @@ export function JobPicker({
                       </div>
                       {(j.location || j.client || j.project_manager) && (
                         <div className="text-xs text-slate-500 mt-0.5">
-                          {[j.location, j.client && `Client: ${j.client}`, j.project_manager && `PM: ${j.project_manager}`]
+                          {[j.location, j.client && `${t("Client:")} ${j.client}`, j.project_manager && `${t("PM:")} ${j.project_manager}`]
                             .filter(Boolean)
                             .join("  ·  ")}
                         </div>

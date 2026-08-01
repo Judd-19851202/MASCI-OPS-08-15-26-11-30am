@@ -57,7 +57,7 @@ import {
   SectionSignoff,
 } from "@/components/daily-report-v3/sections";
 import DailyReportV3ExcavationSection from "@/components/daily-report-v3/DailyReportV3ExcavationSection";
-import { CheckCircle2, History } from "lucide-react";
+import { History } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 import FormShell from "@/components/FormShell";
@@ -765,14 +765,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
     const completed = items.filter((i) => i.ok).length;
     const missing = items.filter((i) => !i.ok).map((i) => i.label);
     return { items, total: items.length, completed, missing };
-  }, [data, photoMin, t]);
+  }, [data, lang, photoMin, t]);
 
   const canSubmit = readiness.completed === readiness.total;
   const submitLabel = useMemo(() => {
     if ((data.ai_accepted_summary || "").trim()) return t("Submit Daily Report");
     if (summaryGate.manualNeeded) return t("Approve manual summary to unlock submit");
     return t("Approve the executive summary to unlock submit");
-  }, [data.ai_accepted_summary, summaryGate.manualNeeded, t]);
+  }, [data.ai_accepted_summary, lang, summaryGate.manualNeeded, t]);
 
   // ── Submit — same contract as V1, offline-safe via enqueueUpload ──
   const onSubmit = useCallback(async () => {
@@ -1065,16 +1065,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
             lastSavedAt={lastSavedAt || pendingSavedAt}
           />
         </div>
-        <header className="mb-6 sm:mb-8 wp17-form-frame" data-testid="dr-v3-form-header-shell">
-          <div className="flex items-center gap-2 text-xs font-medium text-emerald-700">
-            <CheckCircle2 className="h-4 w-4" />
-            {t("Field-ready, canonical, and draft-safe")}
-          </div>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-            {t("Capture one clean report, keep your draft protected, and submit the same governed payload the rest of the platform already trusts.")}
-          </p>
-        </header>
-
         {/* Draft restore prompt — never silently overwrites work. */}
         {(pendingDraft || fallbackDraftOffer?.form) && (
           <div className="mb-4" data-testid="dr-v3-draft-restore-prompt">

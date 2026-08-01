@@ -639,8 +639,56 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       kicker={t("MASCI · Equipment Pre-Op")}
       title={t("Equipment Pre-Op Inspection")}
       subtitle={t("Capture pre-operation status, defects, photos, and sign-off in one shared equipment workflow.")}
-      backLink="/"
-      backLabel={t("Home")}
+      progressSlot={(
+        <ProgressRail
+          steps={progressSteps}
+          currentIndex={progressCurrentIndex}
+          testId="equipment-progress-rail"
+        />
+      )}
+      headerRightSlot={(
+        <HelpDrawer
+          open={helpDrawerOpen}
+          onOpenChange={setHelpDrawerOpen}
+          triggerLabel={t("Open help")}
+          title={t("Equipment Pre-Op · Guidance")}
+          testIdPrefix="equipment-help-drawer"
+          sections={[
+            {
+              title: t("Why this Pre-Op matters"),
+              body: t(
+                "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
+              ),
+            },
+            {
+              title: t("Who sees this"),
+              body: t(
+                "Safety, the PM on this job, and the shop team review every FAIL. Historical records are kept for audits."
+              ),
+            },
+            {
+              title: t("What happens after you submit"),
+              body: t(
+                "Safety and the PM will be notified per project routing. Failed items may mark this unit OUT OF SERVICE until shop clears it. A permanent historical record will be created."
+              ),
+            },
+            {
+              title: t("When to stop and call"),
+              body: t(
+                "Clear the obstruction before operating. Camera visibility must be free and clear. If a critical fluid or major-safety item is failing, stop work and call your supervisor before continuing."
+              ),
+            },
+            {
+              title: t("Common pre-op mistakes"),
+              body: t(
+                "Skipping the fluid checks, marking N/A when you should mark FAIL, and leaving FAIL descriptions blank. Every FAIL needs a photo and at least 10 characters describing the issue."
+              ),
+            },
+          ]}
+        />
+      )}
+      backLink="/field"
+      backLabel={t("Field")}
       widthClass="max-w-4xl"
       containerTestId="equipment-form-shell"
       stickyFooter={(
@@ -743,75 +791,6 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           </div>
         </div>
       )}
-
-        <div className="mb-2">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("New Report")}
-          </span>
-          <div className="wp17-inline-note" data-testid="equipment-form-summary">
-            <p className="text-slate-600 text-sm mt-1">
-              {t(
-                "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
-              )}
-            </p>
-          </div>
-          {/* TRACK 19.11 MAIN · Phase 5 · HelpDrawer as the SINGLE coaching
-              system for Equipment Pre-Op. The five bands that previously
-              stacked on top of the form (Why this Pre-Op matters / Who
-              sees this / What happens after submit / When to stop and
-              call / Common pre-op mistakes) are now consolidated inside
-              the drawer. Main screen = action. Drawer = explanation. */}
-          <div className="mt-3">
-            <HelpDrawer
-              open={helpDrawerOpen}
-              onOpenChange={setHelpDrawerOpen}
-              triggerLabel={t("Open help")}
-              title={t("Equipment Pre-Op · Guidance")}
-              testIdPrefix="equipment-help-drawer"
-              sections={[
-                {
-                  title: t("Why this Pre-Op matters"),
-                  body: t(
-                    "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
-                  ),
-                },
-                {
-                  title: t("Who sees this"),
-                  body: t(
-                    "Safety, the PM on this job, and the shop team review every FAIL. Historical records are kept for audits."
-                  ),
-                },
-                {
-                  title: t("What happens after you submit"),
-                  body: t(
-                    "Safety and the PM will be notified per project routing. Failed items may mark this unit OUT OF SERVICE until shop clears it. A permanent historical record will be created."
-                  ),
-                },
-                {
-                  title: t("When to stop and call"),
-                  body: t(
-                    "Clear the obstruction before operating. Camera visibility must be free and clear. If a critical fluid or major-safety item is failing, stop work and call your supervisor before continuing."
-                  ),
-                },
-                {
-                  title: t("Common pre-op mistakes"),
-                  body: t(
-                    "Skipping the fluid checks, marking N/A when you should mark FAIL, and leaving FAIL descriptions blank. Every FAIL needs a photo and at least 10 characters describing the issue."
-                  ),
-                },
-              ]}
-            />
-          </div>
-        </div>
-
-        {/* TRACK 19.11 MAIN · Phase 2 · ProgressRail — compact progress
-            indicator. Steps are computed from real form state so the
-            operator always knows where they are without scrolling. */}
-        <ProgressRail
-          steps={progressSteps}
-          currentIndex={progressCurrentIndex}
-          testId="equipment-progress-rail"
-        />
 
         {failCount > 0 && (
           <div
