@@ -21,7 +21,7 @@ function HeaderNavButton({ to, label, iconName, testId }) {
 export function CanonicalHeader({
   variant = "default",
   portalLabel = "MASCI Operations Platform",
-  pageLabel = "Operational workflow",
+  pageLabel = null,
   accent = "default",
   backTo = null,
   backLabel = "Back",

@@ -9,26 +9,33 @@
 //
 // All three accept optional action prop for a CTA button.
 import React from "react";
-import { Loader2, AlertTriangle, Inbox } from "lucide-react";
+import { Loader2, AlertTriangle, Inbox, ShieldCheck, TriangleAlert } from "lucide-react";
+import { AppIcon } from "@/components/icons/AppIcon";
 
-export function EmptyState({ icon: Icon = Inbox, title, body, action, testId = "ux-empty" }) {
+function StateSurface({ icon, title, body, action, tone = "slate", testId = "ux-state", role = "status", busy = false }) {
   return (
-    <div className="ux-empty" data-testid={testId} role="status">
-      <Icon className="ux-empty-icon w-10 h-10" aria-hidden="true" />
-      {title && <div className="ux-empty-title">{title}</div>}
-      {body && <p className="ux-empty-body">{body}</p>}
+    <div
+      className={`wp17-state-surface wp17-tone--${tone}`}
+      data-testid={testId}
+      role={role}
+      aria-live={busy ? "polite" : undefined}
+    >
+      <span className="wp17-state-surface__icon" aria-hidden="true">
+        <AppIcon icon={icon} size="lg" tone="default" />
+      </span>
+      {title ? <div className="wp17-state-surface__title">{title}</div> : null}
+      {body ? <p className="wp17-state-surface__body">{body}</p> : null}
       {action && <div className="mt-3">{action}</div>}
     </div>
   );
 }
 
+export function EmptyState({ icon: Icon = Inbox, title, body, action, testId = "ux-empty" }) {
+  return <StateSurface icon={Icon} title={title} body={body} action={action} tone="slate" testId={testId} />;
+}
+
 export function LoadingState({ label = "Loading…", testId = "ux-loading" }) {
-  return (
-    <div className="ux-loading" data-testid={testId} role="status" aria-live="polite">
-      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400" aria-hidden="true" />
-      <div className="text-slate-500 text-sm">{label}</div>
-    </div>
-  );
+  return <StateSurface icon={Loader2} title={label} tone="cyan" testId={testId} busy />;
 }
 
 export function ErrorState({
@@ -37,16 +44,15 @@ export function ErrorState({
   action,
   testId = "ux-error",
 }) {
-  return (
-    <div className="ux-error flex items-start gap-2" data-testid={testId} role="alert">
-      <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" aria-hidden="true" />
-      <div className="flex-1 min-w-0">
-        <div className="font-bold">{message}</div>
-        {detail && <div className="text-xs mt-1 opacity-80">{detail}</div>}
-        {action && <div className="mt-2">{action}</div>}
-      </div>
-    </div>
-  );
+  return <StateSurface icon={AlertTriangle} title={message} body={detail} action={action} tone="red" testId={testId} role="alert" />;
 }
 
-export default { EmptyState, LoadingState, ErrorState };
+export function SuccessState({ title = "Complete", body = "The latest update is ready.", action, testId = "ux-success" }) {
+  return <StateSurface icon={ShieldCheck} title={title} body={body} action={action} tone="emerald" testId={testId} />;
+}
+
+export function WarningState({ title = "Needs attention", body = "Review this item before you continue.", action, testId = "ux-warning" }) {
+  return <StateSurface icon={TriangleAlert} title={title} body={body} action={action} tone="amber" testId={testId} />;
+}
+
+export default { EmptyState, LoadingState, ErrorState, SuccessState, WarningState };

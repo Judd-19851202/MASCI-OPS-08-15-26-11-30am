@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("rounded-[var(--radius-card)] border border-[color:var(--border-hairline)] bg-white text-[color:var(--ink-strong)] shadow-[var(--shadow-panel)]", className)}
+    className={cn("wp17-panel rounded-[var(--radius-card)] border border-[color:var(--border-hairline)] bg-white text-[color:var(--ink-strong)] shadow-[var(--shadow-panel)]", className)}
     {...props} />
 ))
 Card.displayName = "Card"
@@ -13,7 +13,7 @@ Card.displayName = "Card"
 const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-5 sm:p-6", className)}
+    className={cn("flex flex-col space-y-2 p-5 sm:p-6", className)}
     {...props} />
 ))
 CardHeader.displayName = "CardHeader"
@@ -21,7 +21,7 @@ CardHeader.displayName = "CardHeader"
 const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("font-display text-xl font-black leading-none tracking-tight text-[color:var(--ink-strong)]", className)}
+    className={cn("font-display text-xl font-black leading-tight tracking-tight text-[color:var(--ink-strong)]", className)}
     {...props} />
 ))
 CardTitle.displayName = "CardTitle"

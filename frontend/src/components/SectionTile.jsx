@@ -15,8 +15,7 @@
 // don't accidentally invent new colors per page.
 
 import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { CanonicalCard } from "@/components/CanonicalCard";
 
 const ACCENTS = {
   red:      { bar: "bg-red-700",     icon: "bg-red-700",     ring: "hover:border-red-700",     cta: "text-red-700",     pill: "bg-red-100 text-red-800" },
@@ -49,66 +48,39 @@ export function SectionTile({
   disabledLabel,
   testId,
 }) {
-  const a = ACCENTS[accent] || ACCENTS.red;
-  const base = `group relative bg-white border border-slate-200 rounded-md p-6 sm:p-7 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full ${disabled ? "opacity-60 cursor-not-allowed" : a.ring}`;
-  const inner = (
-    <>
-      <div className={`absolute top-0 left-0 right-0 h-1.5 rounded-t ${a.bar} ${disabled ? "opacity-50" : ""}`} />
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className={`inline-flex items-center justify-center w-14 h-14 rounded-md ${a.icon} text-white ${disabled ? "opacity-70" : ""} shrink-0`}>
-          <Icon className="w-7 h-7" />
-        </div>
-        {pillLabel && (
-          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${a.pill} font-mono text-[10px] uppercase tracking-[0.2em] font-bold whitespace-nowrap`}>
-            {pillLabel}
-          </span>
-        )}
-      </div>
-      <h3 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-2 leading-tight">
-        {title}
-      </h3>
-      {desc && (
-        <p className="text-slate-600 text-sm sm:text-base mt-2 leading-relaxed">{desc}</p>
-      )}
-      {bullets && bullets.length > 0 && (
-        <ul className="mt-4 space-y-1.5 text-xs sm:text-sm text-slate-700">
-          {bullets.map((b) => (
-            <li key={b} className="flex items-start gap-2">
-              <span className={`mt-1.5 w-1 h-1 rounded-full ${a.bar} shrink-0`} />
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="mt-auto pt-5 border-t-2 border-slate-100 flex items-center justify-between">
-        <span className={`font-mono text-xs uppercase tracking-[0.2em] font-bold ${disabled ? "text-slate-400" : a.cta}`}>
-          {disabled ? (disabledLabel || "Locked") : `${ctaLabel} →`}
-        </span>
-        {!disabled && (
-          <ArrowRight className={`w-5 h-5 transition-transform duration-150 group-hover:translate-x-1 ${a.cta}`} />
-        )}
-      </div>
-    </>
-  );
+  const toneMap = {
+    red: "red",
+    redDeep: "red",
+    amber: "amber",
+    orange: "orange",
+    yellow: "yellow",
+    lime: "emerald",
+    emerald: "emerald",
+    cyan: "cyan",
+    blue: "blue",
+    indigo: "indigo",
+    purple: "purple",
+    fuchsia: "purple",
+    rose: "red",
+    slate: "slate",
+  };
 
-  if (disabled) {
-    return (
-      <div className={base} data-testid={testId} aria-disabled="true">
-        {inner}
-      </div>
-    );
-  }
-  if (href) {
-    return (
-      <a href={href} className={base} data-testid={testId}>
-        {inner}
-      </a>
-    );
-  }
   return (
-    <Link to={to} className={base} data-testid={testId}>
-      {inner}
-    </Link>
+    <CanonicalCard
+      to={to}
+      href={href}
+      icon={Icon}
+      tone={toneMap[accent] || "red"}
+      size="feature"
+      eyebrow={pillLabel}
+      title={title}
+      description={desc}
+      listItems={bullets || []}
+      ctaLabel={disabled ? (disabledLabel || "Locked") : `${ctaLabel} →`}
+      disabled={disabled}
+      disabledLabel={disabledLabel || "Locked"}
+      testId={testId}
+    />
   );
 }
 
