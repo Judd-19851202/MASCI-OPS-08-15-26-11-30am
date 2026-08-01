@@ -24,6 +24,11 @@
   --wp17-label-size: 0.72rem;
   --wp17-header-global-height: 3.5rem;
   --wp17-header-identity-gap: 0.5rem;
+  --wp17-icon-stroke: 1.9;
+  --wp17-icon-size-xs: 0.875rem;
+  --wp17-icon-size-sm: 1rem;
+  --wp17-icon-size-md: 1.25rem;
+  --wp17-icon-size-lg: 1.5rem;
   --shell-header-height: 7.4rem;
 }
 
@@ -150,6 +155,11 @@
 .masci-canonical-header__utility-rail {
   position: relative;
   z-index: 1;
+}
+
+.wp17-icon {
+  stroke-width: var(--wp17-icon-stroke);
+  vector-effect: non-scaling-stroke;
 }
 
 .masci-canonical-header::after {

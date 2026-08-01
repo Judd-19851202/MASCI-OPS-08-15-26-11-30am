@@ -1,18 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
+import { SemanticIcon } from "@/components/icons/AppIcon";
 
-function HeaderNavButton({ to, label, icon: Icon, testId }) {
+function HeaderNavButton({ to, label, iconName, testId }) {
   return (
     <Link
       to={to}
       className="masci-canonical-header__button wp16-focus-ring inline-flex h-9 items-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-3 text-[11px] font-mono font-bold uppercase tracking-[0.16em] text-white transition-[background-color,border-color,color,box-shadow] duration-[140ms] hover:bg-white/14"
       data-testid={testId}
     >
-      <Icon className="h-3.5 w-3.5" />
+      <SemanticIcon name={iconName} size="xs" tone="inverse" />
       <span>{label}</span>
     </Link>
   );
@@ -58,8 +58,8 @@ export function CanonicalHeader({
           <div className="masci-canonical-header__row masci-canonical-header__row--global" data-testid={`${testIdPrefix}-global-row`}>
             <div className="flex min-w-0 items-center gap-2.5" data-testid={`${testIdPrefix}-identity`}>
               <MasciLogo variant="mark" size="md" className="shrink-0" homeLink={homeTo || "/"} />
-              {backTo ? <HeaderNavButton to={backTo} label={backLabel} icon={ArrowLeft} testId={`${testIdPrefix}-back`} /> : null}
-              {homeControlAllowed ? <HeaderNavButton to={homeTo} label="Home" icon={Home} testId={`${testIdPrefix}-home`} /> : null}
+              {backTo ? <HeaderNavButton to={backTo} label={backLabel} iconName="back" testId={`${testIdPrefix}-back`} /> : null}
+              {homeControlAllowed ? <HeaderNavButton to={homeTo} label="Home" iconName="home" testId={`${testIdPrefix}-home`} /> : null}
             </div>
 
             <div className="flex items-center justify-end gap-2" data-testid={`${testIdPrefix}-actions`}>

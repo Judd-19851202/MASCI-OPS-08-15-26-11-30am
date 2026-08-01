@@ -1,11 +1,12 @@
 import React from "react";
-import { Clock, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
 import { HeaderIdentityProvider } from "@/components/header/HeaderIdentityContext";
+import { SemanticIcon } from "@/components/icons/AppIcon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MobileNavigation } from "@/design-system/MobileNavigation";
 import { useBranding } from "@/lib/BrandingProvider";
@@ -103,7 +104,7 @@ function ProfileMenu({
           className={`wp16-focus-ring inline-flex h-[var(--control-height-sm)] items-center gap-2 rounded-[var(--radius-control)] border px-3 text-xs font-semibold shadow-sm transition-[background-color,border-color,color] duration-[140ms] ${isLightSurface ? "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50" : "border-white/18 bg-white/10 text-white hover:bg-white/18"}`}
           data-testid={`${testIdPrefix}-trigger`}
         >
-          <UserIcon className="h-3.5 w-3.5 opacity-70" />
+          <SemanticIcon name="hr" size="xs" className="opacity-70" />
           <span className="max-w-[10rem] truncate">{signedInName || portalRole}</span>
           <ChevronDown className="h-3.5 w-3.5 opacity-60" />
         </button>
@@ -119,7 +120,7 @@ function ProfileMenu({
             <div className="wp17-kicker text-slate-300">{portalRole}</div>
             <div className="mt-1 text-sm font-semibold text-slate-100">{signedInName || "Signed in"}</div>
             <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-slate-300">
-              <Clock className="h-3 w-3 opacity-70" />
+              <SemanticIcon name="workflow" size="xs" className="opacity-70" />
               {localTimeLabel}
             </div>
           </div>
@@ -131,7 +132,7 @@ function ProfileMenu({
             className="wp16-focus-ring inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-white/14 bg-white/10 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition-[background-color,border-color,color,opacity] duration-[140ms] hover:bg-white/18 disabled:opacity-50"
             data-testid={`${testIdPrefix}-signout`}
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <SemanticIcon name="signOut" size="xs" />
             Sign out
           </button>
         </div>
