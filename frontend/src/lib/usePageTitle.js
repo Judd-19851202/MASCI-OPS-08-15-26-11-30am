@@ -29,10 +29,11 @@ export function usePageTitle(title) {
     const suffix = _tenantSuffix();
     const rewritten = title
       .replace(/· MASCI Operations Platform$/, `· ${suffix} Operations Platform`)
-      .replace(/· MASCI Hub$/, `· ${suffix} Hub`)
+      .replace(/· MASCI Hub$/, `· ${suffix} Operations Platform`)
       .replace(/· MASCI$/, `· ${suffix}`)
       .replace(/^MASCI · /, `${suffix} · `)
-      .replace(/^MASCI Hub · /, `${suffix} Hub · `);
+      .replace(/^MASCI Hub · /, `${suffix} Operations Platform · `)
+      .replace(/\bMASCI Hub\b/g, `${suffix} Operations Platform`);
     document.title = rewritten;
     return () => {
       document.title = previous;

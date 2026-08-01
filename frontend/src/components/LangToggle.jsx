@@ -1,7 +1,7 @@
 import React from "react";
-import { Languages } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { SemanticIcon } from "@/components/icons/AppIcon";
 
 /**
  * Compact EN / ES segmented toggle. Persists to localStorage via useT().
@@ -11,11 +11,8 @@ import { cn } from "@/lib/utils";
 export function LangToggle({ className = "", variant = "dark", testId = "lang-toggle" }) {
   const { lang, setLang } = useT();
 
-  // iter-RC1-FH · M-15 · guarantee a 36 px tap target for the EN/ES
-  // segmented toggle. The toggle is rendered in headers across every
-  // form/portal — operators in the field often use it with gloves on.
   const baseBtn =
-    "min-h-[36px] min-w-[36px] inline-flex items-center justify-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider transition-colors duration-150";
+    "min-h-[36px] min-w-[36px] inline-flex items-center justify-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-[0.18em] transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 focus-visible:ring-offset-0";
   const dark = {
     wrap: "border-2 border-slate-700 bg-slate-800 text-white",
     active: "bg-red-700 text-white",
@@ -27,16 +24,16 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
     inactive: "text-slate-600 hover:text-slate-900",
   };
   const header = {
-    wrap: "border border-white/12 bg-white/6 text-white/80 shadow-[0_8px_18px_rgba(2,6,23,0.16)]",
-    active: "bg-white/16 text-white",
-    inactive: "text-white/65 hover:text-white",
+    wrap: "wp17-lang-toggle wp17-lang-toggle--header border border-red-500/38 bg-white/8 text-white/90 shadow-[0_10px_22px_rgba(2,6,23,0.18)] ring-1 ring-white/10 backdrop-blur-md",
+    active: "bg-red-700 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]",
+    inactive: "text-white/80 hover:bg-white/8 hover:text-white",
   };
   const styles = variant === "light" ? light : variant === "header" ? header : dark;
 
   return (
     <div
       role="radiogroup"
-      aria-label="Language"
+      aria-label="Select language"
       className={cn(
         variant === "header" ? "inline-flex items-center rounded-full overflow-hidden h-9" : "inline-flex items-center rounded-md overflow-hidden h-10 sm:h-9",
         styles.wrap,
@@ -44,15 +41,17 @@ export function LangToggle({ className = "", variant = "dark", testId = "lang-to
       )}
       data-testid={testId}
     >
-      <span
-        className={cn(
-          variant === "header" ? "px-2 inline-flex items-center gap-1 border-r border-current/20" : "px-2 inline-flex items-center gap-1 border-r-2 border-current/20 sm:px-1.5",
-          variant === "light" ? "border-slate-300" : variant === "header" ? "border-white/14" : "border-slate-700"
-        )}
-        aria-hidden
-      >
-        <Languages className={cn("opacity-80", variant === "header" ? "w-3.5 h-3.5" : "w-3 h-3")} />
-      </span>
+      {variant !== "header" ? (
+        <span
+          className={cn(
+            "px-2 inline-flex items-center gap-1 border-r-2 border-current/20 sm:px-1.5",
+            variant === "light" ? "border-slate-300" : "border-slate-700"
+          )}
+          aria-hidden
+        >
+          <SemanticIcon name="language" size="sm" tone={variant === "light" ? "default" : "inverse"} className="opacity-90" />
+        </span>
+      ) : null}
       <button
         type="button"
         role="radio"

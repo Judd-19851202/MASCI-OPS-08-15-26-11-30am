@@ -12,8 +12,8 @@
 //   6. REFERENCE — Training Hub · Cheat Sheet · Need Help (text strip).
 //
 // Verbiage rule (Phase D — hybrid): public destinations keep warm
-// descriptive copy; restricted tiles show one neutral line + 🔒 + a
-// "Sign in to continue" CTA. No feature bullets are exposed on
+// descriptive copy; restricted tiles show one neutral line plus a lock
+// state and a direct access CTA. No feature bullets are exposed on
 // restricted tiles to avoid telegraphing internal structure to
 // unauthorized viewers.
 
@@ -25,11 +25,12 @@ import {
   BookOpen, LogOut, ShieldAlert, ShieldCheck, Truck, ExternalLink,
 } from "lucide-react";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
-import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
-import { CanonicalCard } from "@/components/CanonicalCard";
+import { ActionCard, ExternalPlatformCard, InformationCard, ModuleCard, WorkflowCard } from "@/components/CanonicalCard";
 import { SectionHeading } from "@/components/SectionHeading";
+import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
+import { usePageTitle } from "@/lib/usePageTitle";
 import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getShopToken, clearShopToken } from "@/lib/shopAuth";
@@ -43,7 +44,7 @@ import { clearAllSessions } from "@/lib/sessionReset";
 function WelcomeBackHero({ session }) {
   const { t } = useT();
   return (
-    <CanonicalCard
+    <ActionCard
       tone={tileAccentFor(session.kind)}
       appearance="solid"
       title={session.name || t("Signed in")}
@@ -77,7 +78,7 @@ function WelcomeBackHero({ session }) {
       <div className="font-mono text-[10px] uppercase tracking-[0.2em] opacity-70 font-bold" data-testid="hub-welcome-back-label">
           {t("Welcome back")} · {t(session.scopeLabel)}
       </div>
-    </CanonicalCard>
+    </ActionCard>
   );
 }
 
@@ -113,6 +114,7 @@ const FIELD_ENTRY_CARDS = [
 export default function Hub() {
   const { t, lang } = useT();
   const navigate = useNavigate();
+  usePageTitle("Home · MASCI Operations Platform");
   // Re-render cue: signing out updates this counter to recompute the
   // detected session (it reads localStorage synchronously, so a state
   // bump is enough — no listener needed).
@@ -158,18 +160,17 @@ export default function Hub() {
         homeTo="/"
         showHomeLink={false}
         showLangToggle
+        headerControlsSlot={headerAction}
         testIdPrefix="hub-home"
         containerClassName="max-w-6xl"
-        postControlsSlot={headerAction}
       />
 
       <main className="wp17-public-main py-8 sm:py-12">
 
         {/* Hero headline */}
         <div className="wp17-public-hero mb-8 sm:mb-12" data-testid="hub-entry-architecture">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),320px] lg:items-start">
-            <div>
-              <span className="wp17-kicker text-red-700">{t("Operational command center")}</span>
+          <div className="max-w-4xl">
+              <span className="wp17-kicker text-red-700">{t("MASCI Operations Platform")}</span>
               <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
                 {lang === "es" ? (
                   <>
@@ -184,24 +185,19 @@ export default function Hub() {
                 )}
               </h1>
               <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
-                {t("Choose the workflow you need, jump into the right workspace, and keep crews, field reports, safety, quality, and operations moving from one command center.")}
+                {t("Start field work fast, reach the right operational area without guesswork, and keep crews, safety, quality, transportation, and administration moving through one trusted system built for heavy-civil operations.")}
               </p>
-              <div className="wp17-chip-row mt-6" data-testid="hub-next-actions-row">
-                <Link to="/field" className="wp17-chip !bg-slate-900 !text-white !border-slate-900/20" data-testid="hub-next-field-chip">{t("Start field reporting")}</Link>
-                <Link to="/guidance" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-guidance-chip">{t("Open guidance")}</Link>
-                <Link to="/cheatsheet" className="wp17-chip !bg-white !text-slate-900 !border-slate-200" data-testid="hub-next-cheatsheet-chip">{t("Open cheat sheet")}</Link>
+              <div className="mt-6 flex flex-wrap gap-3" data-testid="hub-next-actions-row">
+                <Button asChild data-testid="hub-next-field-button">
+                  <Link to="/field">{t("Start field reporting")}</Link>
+                </Button>
+                <Button asChild variant="outline" data-testid="hub-next-guidance-button">
+                  <Link to="/guidance">{t("Open guidance")}</Link>
+                </Button>
+                <Button asChild variant="secondary" data-testid="hub-next-cheatsheet-button">
+                  <Link to="/cheatsheet">{t("Open cheat sheet")}</Link>
+                </Button>
               </div>
-            </div>
-            <div className="rounded-[1.6rem] border border-slate-900/75 bg-slate-950 px-5 py-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.22)]" data-testid="hub-attention-panel">
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/55">{t("What needs attention now")}</div>
-              <div className="mt-2 text-lg font-semibold leading-tight">{t("Pick the workflow that gets work moving in the next minute.")}</div>
-              <p className="mt-2 text-sm leading-6 text-white/74">{t("Use field tools for live jobsite reporting, guidance for how-to answers, and your workspace when you need restricted operational data.")}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <OperationalStatusBadge tone="red" testId="hub-badge-public">{t("Public field entry")}</OperationalStatusBadge>
-                <OperationalStatusBadge tone="cyan" testId="hub-badge-workspaces">{t("Portal workspaces")}</OperationalStatusBadge>
-                <OperationalStatusBadge tone="amber" testId="hub-badge-help">{t("Help always available")}</OperationalStatusBadge>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -213,19 +209,17 @@ export default function Hub() {
             who already know the platform. Surfaced for new hires
             arriving from QR posters at the yard. */}
         {!session && (
-          <CanonicalCard
+          <ActionCard
             to="/guidance/role-new-employee"
             icon={MapPin}
             tone="amber"
-            size="compact"
             eyebrow={t("New here?")}
             title={t("First week on the platform — start here")}
             description={t("A 5-minute walkthrough for new hires: what to fill out, where, and why.")}
-            ctaLabel={`${t("Start here")} →`}
+            ctaLabel={t("Start here")}
             testId="hub-day-one-start-here"
             className="mb-8"
-          >
-          </CanonicalCard>
+          />
         )}
 
         {/* SECTION 1 — Today in the Field */}
@@ -237,15 +231,14 @@ export default function Hub() {
         />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 sm:gap-5 mb-10">
           {FIELD_ENTRY_CARDS.map((card) => (
-            <CanonicalCard
+            <ModuleCard
               key={card.testId}
               to={card.to}
               icon={card.icon}
               tone={card.tone}
-              size="feature"
               title={t(card.title)}
               description={t(card.description)}
-              ctaLabel={t("Enter →")}
+              ctaLabel={t("Open")}
               testId={card.testId}
             />
           ))}
@@ -299,23 +292,22 @@ export default function Hub() {
               <SectionHeading
                 index="03"
                 title={authed ? t("Your Workspaces") : t("Operations")}
-                subtitle={authed ? t("Sign-in required. Showing the workspaces you're authorized for.") : t("Sign-in required. Project management, shop operations, human resources, safety, transportation, and administration.")}
+                subtitle={authed ? t("Showing the operations areas your account can open right now.") : t("Restricted operational areas for project management, shop operations, human resources, safety, transportation, and administration.")}
                 testId="hub-operations-heading"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
                 {yours.map((p) => (
-                  <CanonicalCard
+                  <WorkflowCard
                     key={p.kind}
                     to={p.to}
                     icon={p.icon}
                     tone={tileAccentFor(p.kind)}
-                    size="compact"
                     eyebrow={session?.kind === p.kind ? t("Active workspace") : t("Restricted workspace")}
                     title={p.title}
                     titleSuffix={!session?.kind || session.kind !== p.kind ? <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" data-testid={`${p.testId}-lock`} /> : null}
                     description={p.desc}
                     testId={p.testId}
-                    ctaLabel={session?.kind === p.kind ? `${p.signedInLabel || t("Open")} →` : `${t("Sign in")} →`}
+                    ctaLabel={session?.kind === p.kind ? (p.signedInLabel || t("Open workspace")) : t("Open workspace")}
                   />
                 ))}
               </div>
@@ -352,38 +344,35 @@ export default function Hub() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 sm:gap-4 mb-6">
           <CompanyInfoDialog
             trigger={(
-              <CanonicalCard
+              <InformationCard
                 element="button"
                 type="button"
                 icon={Phone}
                 tone="slate"
-                size="compact"
                 title={t("Need Help?")}
                 description={t("Office phone, address, and after-hours operations contact.")}
-                ctaLabel={`${t("Open contact details")} →`}
+                ctaLabel={t("Open contact details")}
                 testId="hub-need-help"
                 className="w-full text-left"
               />
             )}
           />
-          <CanonicalCard
+          <InformationCard
             to="/guidance"
             icon={GraduationCap}
             tone="blue"
-            size="compact"
             title={t("Operational Guidance Center")}
             description={t("Role-based operator playbooks, portal walk-throughs, and field cheat references.")}
-            ctaLabel={`${t("Open guidance")} →`}
+            ctaLabel={t("Open guidance")}
             testId="hub-section-training"
           />
-          <CanonicalCard
+          <InformationCard
             to="/cheatsheet"
             icon={BookOpen}
             tone="amber"
-            size="compact"
             title={t("Cheat Sheet")}
             description={t("The one-page operations summary pinned in every site trailer.")}
-            ctaLabel={`${t("Open cheat sheet")} →`}
+            ctaLabel={t("Open cheat sheet")}
             testId="hub-cheatsheet-link"
           />
         </div>
@@ -466,7 +455,7 @@ const FIELD_LEADERSHIP_CAPABILITIES = [
 function FieldLeadershipCard({ testId }) {
   const { t } = useT();
   return (
-    <CanonicalCard
+    <WorkflowCard
       to="/leadership"
       icon={UserCheck}
       tone="slate"
@@ -493,7 +482,7 @@ function FieldLeadershipCard({ testId }) {
             </li>
           ))}
       </ul>
-    </CanonicalCard>
+    </WorkflowCard>
   );
 }
 
@@ -556,7 +545,7 @@ const PROJECT_SYSTEMS = [
 function ProjectSystemsCard({ testId }) {
   const { t } = useT();
   return (
-    <CanonicalCard
+    <ExternalPlatformCard
       icon={Building2}
       tone="amber"
       title={t("Project Systems")}
@@ -604,7 +593,7 @@ function ProjectSystemsCard({ testId }) {
             </a>
           ))}
       </div>
-    </CanonicalCard>
+    </ExternalPlatformCard>
   );
 }
 

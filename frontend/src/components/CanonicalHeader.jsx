@@ -28,6 +28,7 @@ export function CanonicalHeader({
   homeTo = "/",
   showHomeLink = false,
   showLangToggle = true,
+  headerControlsSlot = null,
   centerSlot = null,
   preControlsSlot = null,
   postControlsSlot = null,
@@ -63,6 +64,7 @@ export function CanonicalHeader({
             </div>
 
             <div className="flex items-center justify-end gap-2" data-testid={`${testIdPrefix}-actions`}>
+              {headerControlsSlot}
               {showLangToggle ? <LangToggle variant="header" className="h-9" testId={`${testIdPrefix}-language`} /> : null}
             </div>
           </div>

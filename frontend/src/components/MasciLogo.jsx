@@ -78,7 +78,7 @@ export const MasciLogo = ({
     homeLink ? (
       <Link
         to={homeLink}
-        aria-label="Go to home"
+        aria-label="Go to MASCI Operations Platform Home"
         className="inline-block focus:outline-none focus:ring-2 focus:ring-red-700 rounded"
         data-testid="masci-logo-home-link"
       >
@@ -122,7 +122,7 @@ export const MasciLogo = ({
     return wrap(
       <img
         src={masciSrc}
-        alt="MASCI Operations Platform — No Guesswork. No Missed Steps. No Excuses."
+          alt="MASCI Operations Platform"
         className={cn(w, "h-auto select-none", homeLink && "cursor-pointer", className)}
         data-testid="masci-logo-lockup"
         draggable={false}
@@ -134,7 +134,7 @@ export const MasciLogo = ({
     return wrap(
       <img
         src={masciSrc}
-        alt="MASCI"
+          alt="MASCI Operations Platform"
         className={cn(h, "w-auto select-none", homeLink && "cursor-pointer", className)}
         data-testid="masci-logo-wordmark"
         draggable={false}
@@ -144,7 +144,7 @@ export const MasciLogo = ({
   return wrap(
     <img
       src={masciSrc}
-      alt="MASCI"
+      alt="MASCI Operations Platform"
       className={cn(h, "w-auto select-none", homeLink && "cursor-pointer", className)}
       data-testid="masci-logo-mark"
       draggable={false}

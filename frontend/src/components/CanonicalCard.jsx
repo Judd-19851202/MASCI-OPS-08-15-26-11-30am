@@ -135,4 +135,36 @@ export function CanonicalCard({
   );
 }
 
+export function ModuleCard(props) {
+  return <CanonicalCard size="feature" {...props} className={cn("wp17-card-family--module", props.className)} />;
+}
+
+export function WorkflowCard(props) {
+  return <CanonicalCard size="default" {...props} className={cn("wp17-card-family--workflow", props.className)} />;
+}
+
+export function ActionCard(props) {
+  return <CanonicalCard size="compact" {...props} className={cn("wp17-card-family--action", props.className)} />;
+}
+
+export function InformationCard(props) {
+  return <CanonicalCard size="compact" {...props} className={cn("wp17-card-family--information", props.className)} />;
+}
+
+export function ExternalPlatformCard(props) {
+  return <CanonicalCard size="default" {...props} className={cn("wp17-card-family--external", props.className)} />;
+}
+
+export function DetailCard(props) {
+  return <CanonicalCard size="default" {...props} className={cn("wp17-card-family--detail", props.className)} />;
+}
+
+export function FormSectionCard(props) {
+  return <CanonicalCard size="default" {...props} className={cn("wp17-card-family--form-section", props.className)} />;
+}
+
+export function AlertCard(props) {
+  return <CanonicalCard size="default" {...props} className={cn("wp17-card-family--alert", props.className)} />;
+}
+
 export default CanonicalCard;
