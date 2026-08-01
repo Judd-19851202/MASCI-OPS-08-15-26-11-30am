@@ -11,6 +11,9 @@ import {
   Users,
   Building2,
   UserRound,
+  ArrowRight,
+  ShieldAlert,
+  Waypoints,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,10 +27,10 @@ import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
-import { HelpTipBlock } from "@/components/HelpTip";
 import { InformationCard } from "@/components/CanonicalCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import EmptyState from "@/components/EmptyState";
+import { OperationalCoachingStrip } from "@/components/OperationalCoachingStrip";
 
 export default function DailyReportsDashboard() {
   const { t } = useT();
@@ -44,6 +47,26 @@ export default function DailyReportsDashboard() {
     : pathname.startsWith("/admin/")
       ? "/admin/daily"
       : "/pm/daily";
+  const shellActions = (
+    <div className="flex items-center gap-2">
+      <ShareFormDialog
+        formType="daily-report"
+        path="/daily/submit"
+        title="Share Daily Report Form"
+        description="Anyone with this link can fill out a Daily Job Report from the field."
+        testIdPrefix="share-daily"
+      />
+      <Button
+        onClick={() => navigate("/daily/submit")}
+        size="sm"
+        data-testid="new-daily-btn"
+      >
+        <Plus className="w-4 h-4 mr-1" />
+        <span className="hidden sm:inline">{t("New Report")}</span>
+        <span className="sm:hidden">{t("New")}</span>
+      </Button>
+    </div>
+  );
 
   const load = async () => {
     setLoading(true);
@@ -82,34 +105,49 @@ export default function DailyReportsDashboard() {
     }
   };
 
+  const coachingBlocks = [
+    {
+      icon: Waypoints,
+      tone: "amber",
+      label: t("Why this review matters"),
+      body: t("This list is the office routing surface for labor, weather, deliveries, visitors, photos, and job-level follow-up."),
+      testId: "daily-reports-coaching-why",
+    },
+    {
+      icon: Eye,
+      tone: "sky",
+      label: t("Who reviews it"),
+      body: t("Project Management, Administration, and downstream operations teams use the same governed record to verify what happened on site."),
+      testId: "daily-reports-coaching-who",
+    },
+    {
+      icon: ArrowRight,
+      tone: "emerald",
+      label: t("What happens next"),
+      body: t("Open the detail view to review the field narrative, adjust project tagging if needed, and move the report into office review."),
+      testId: "daily-reports-coaching-next",
+    },
+    {
+      icon: ShieldAlert,
+      tone: "slate",
+      label: t("When to stop and call"),
+      body: t("If safety events, injuries, delivery failures, or document evidence look incomplete, stop the workflow and escalate before the record moves downstream."),
+      testId: "daily-reports-coaching-escalate",
+    },
+  ];
+
   return (
     <PortalShell
       portalName="MASCI" portalRole={isAdminRoute ? "Administration" : "Project Management"}
       pageTitle={t("Daily Reports")}
-      primaryActions={
-        <div className="flex items-center gap-2">
-          <ShareFormDialog
-            formType="daily-report"
-            path="/daily/submit"
-            title="Share Daily Report Form"
-            description="Anyone with this link can fill out a Daily Job Report from the field."
-            testIdPrefix="share-daily"
-          />
-          <Button
-            onClick={() => navigate("/daily/submit")}
-            size="sm"
-            data-testid="new-daily-btn"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">{t("New Report")}</span>
-            <span className="sm:hidden">{t("New")}</span>
-          </Button>
-        </div>
-      }
+      showPageHeader={false}
       sideNav={isAdminRoute ? renderAdminRouteSideNav() : <PmSideNavV2 />}
     >
     <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div className="mb-5 flex flex-wrap items-center justify-end gap-2" data-testid="daily-reports-page-actions">
+          {shellActions}
+        </div>
         {pathname.startsWith("/admin/") ? (
           <AdminBreadcrumb crumbs={[
             { label: "Field Operations" },
@@ -126,9 +164,11 @@ export default function DailyReportsDashboard() {
           className="mb-8"
         />
 
-        <div className="mb-4">
-          <HelpTipBlock formKey="dispatch.daily-report-read" showCounter />
-        </div>
+        <OperationalCoachingStrip
+          blocks={coachingBlocks}
+          testId="daily-reports-coaching-strip"
+          className="mb-8"
+        />
 
         <SectionHeading
           index="01"

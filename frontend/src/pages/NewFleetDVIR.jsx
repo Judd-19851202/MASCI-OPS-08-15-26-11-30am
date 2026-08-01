@@ -535,6 +535,53 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       kicker={formCopy.kicker}
       title={formCopy.pageTitle}
       subtitle={t("Capture vehicle condition, defects, signatures, and routing in one shared fleet workflow.")}
+      progressSlot={(
+        <ProgressRail
+          steps={progressSteps}
+          currentIndex={progressCurrentIndex}
+          testId="dvir-progress-rail"
+        />
+      )}
+      headerRightSlot={(
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <HelpDrawer
+            open={helpDrawerOpen}
+            onOpenChange={setHelpDrawerOpen}
+            triggerLabel={t("Open guide")}
+            title={t("DVIR guide")}
+            testIdPrefix="dvir-help-drawer"
+            sections={[
+              {
+                title: t("Why this DVIR matters"),
+                body: t("Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you."),
+              },
+              {
+                title: t("Who sees this"),
+                body: t("Shop, Dispatch, Fleet, and the PM review every FAIL. Historical records are kept for DOT audits."),
+              },
+              {
+                title: t("What happens after you submit"),
+                body: t("If anything is Out of Service, Shop is notified automatically and Dispatch will reassign. Monitor items go to the shop queue for repair scheduling. A permanent historical record is created."),
+              },
+              {
+                title: t("When to stop and call"),
+                body: t("If a critical defect appears or the camera view is obstructed, do not drive the truck. Tag it, call Shop, and get with your supervisor."),
+              },
+              {
+                title: t("Common DVIR mistakes"),
+                body: t("Marking N/A when it should be FAIL, skipping the description on a FAIL, and not attaching a photo. Every FAIL needs a clear description Shop can act on."),
+              },
+            ]}
+          />
+          <span
+            className={`wp17-status-badge ${online ? "wp17-tone--emerald" : "wp17-tone--amber"}`}
+            data-testid={online ? "dvir-online-indicator" : "dvir-offline-indicator"}
+          >
+            {online ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
+            {online ? t("Online") : t("Offline")}
+          </span>
+        </div>
+      )}
       backLink="/field"
       backLabel={t("Field")}
       widthClass="max-w-6xl"
@@ -563,89 +610,6 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       )}
     >
       <div className="pb-20" data-testid="fleet-dvir-form" data-modernized="dvir-modernized">
-        <div className="wp17-inline-note mb-6" data-testid="dvir-form-summary">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700">{formCopy.kicker}</div>
-              <p className="mt-1 text-sm text-slate-600">{t("Use the checklist below to document the unit condition before it goes to work.")}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {!online && (
-                <span
-                  className="wp17-status-badge wp17-tone--amber"
-                  data-testid="dvir-offline-indicator"
-                >
-                  <WifiOff className="w-3.5 h-3.5" />
-                  {t("Offline")}
-                </span>
-              )}
-              {online && (
-                <span className="hidden sm:inline-flex wp17-status-badge wp17-tone--emerald">
-                  <Wifi className="w-3.5 h-3.5" />
-                  {t("Online")}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 sm:mb-8 flex items-start gap-3 sm:gap-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-md bg-amber-600 text-white shrink-0">
-            <Truck className="w-6 h-6 sm:w-7 sm:h-7" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
-              {formCopy.kicker}
-            </span>
-            <h1 className="font-display text-2xl sm:text-4xl font-black tracking-tight text-slate-900 mt-0.5 leading-tight">
-              {formCopy.pageTitle}
-            </h1>
-            <p className="text-slate-600 text-sm sm:text-base mt-1.5">
-              {formCopy.helpHeader || t("Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you.")}
-            </p>
-            {/* TRACK 19.12 · HelpDrawer trigger — single coaching
-                surface. Bands consolidated from HelpTipBlock defaults. */}
-            <div className="mt-3">
-              <HelpDrawer
-                open={helpDrawerOpen}
-                onOpenChange={setHelpDrawerOpen}
-                triggerLabel={t("Open guide")}
-                title={t("DVIR guide")}
-                testIdPrefix="dvir-help-drawer"
-                sections={[
-                  {
-                    title: t("Why this DVIR matters"),
-                    body: t("Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you."),
-                  },
-                  {
-                    title: t("Who sees this"),
-                    body: t("Shop, Dispatch, Fleet, and the PM review every FAIL. Historical records are kept for DOT audits."),
-                  },
-                  {
-                    title: t("What happens after you submit"),
-                    body: t("If anything is Out of Service, Shop is notified automatically and Dispatch will reassign. Monitor items go to the shop queue for repair scheduling. A permanent historical record is created."),
-                  },
-                  {
-                    title: t("When to stop and call"),
-                    body: t("If a critical defect appears or the camera view is obstructed, do not drive the truck. Tag it, call Shop, and get with your supervisor."),
-                  },
-                  {
-                    title: t("Common DVIR mistakes"),
-                    body: t("Marking N/A when it should be FAIL, skipping the description on a FAIL, and not attaching a photo. Every FAIL needs a clear description Shop can act on."),
-                  },
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* TRACK 19.12 · ProgressRail — compact 4-step flow tracker. */}
-        <ProgressRail
-          steps={progressSteps}
-          currentIndex={progressCurrentIndex}
-          testId="dvir-progress-rail"
-        />
-
         {metaError && (
           <div
             className="wp17-form-alert wp17-tone--amber mb-5 text-sm text-amber-900"

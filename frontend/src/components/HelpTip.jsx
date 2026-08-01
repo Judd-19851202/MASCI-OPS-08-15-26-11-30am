@@ -36,50 +36,43 @@ const KIND_META = {
     icon: Lightbulb,
     label_en: "Why this matters",
     label_es: "Por qué importa",
-    accent: "border-amber-400 bg-amber-50/40 text-amber-900",
-    iconCls: "text-amber-600",
+    tone: "amber",
   },
   mistake: {
     icon: AlertTriangle,
     label_en: "Common mistakes",
     label_es: "Errores comunes",
-    accent: "border-rose-400 bg-rose-50/40 text-rose-900",
-    iconCls: "text-rose-600",
+    tone: "rose",
   },
   example: {
     icon: BookOpen,
     label_en: "Example",
     label_es: "Ejemplo",
-    accent: "border-sky-400 bg-sky-50/40 text-sky-900",
-    iconCls: "text-sky-600",
+    tone: "sky",
   },
   next: {
     icon: ArrowRight,
     label_en: "What happens next",
     label_es: "Qué pasa después",
-    accent: "border-emerald-400 bg-emerald-50/40 text-emerald-900",
-    iconCls: "text-emerald-600",
+    tone: "emerald",
   },
   escalate: {
     icon: PhoneForwarded,
     label_en: "When to escalate",
     label_es: "Cuándo escalar",
-    accent: "border-orange-500 bg-orange-50/40 text-orange-900",
-    iconCls: "text-orange-600",
+    tone: "slate",
   },
   who: {
     icon: Users,
     label_en: "Who sees this",
     label_es: "Quién lo ve",
-    accent: "border-violet-400 bg-violet-50/40 text-violet-900",
-    iconCls: "text-violet-600",
+    tone: "sky",
   },
   when: {
     icon: Clock,
     label_en: "Timing",
     label_es: "Tiempo",
-    accent: "border-slate-400 bg-slate-50/40 text-slate-900",
-    iconCls: "text-slate-600",
+    tone: "slate",
   },
 };
 
@@ -110,26 +103,37 @@ export function HelpTip({
 
   return (
     <div
-      className={`my-1.5 rounded-md border-l-4 ${meta.accent} text-[13px]`}
+      className={`wp17-coaching-card wp17-coaching-card--${meta.tone || "amber"} my-2 text-[13px]`}
       data-testid={`helptip-${safeKey}`}
     >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-black/[0.02] transition-colors"
+        className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors"
         data-testid={`helptip-${safeKey}-toggle`}
       >
-        <Icon className={`w-4 h-4 shrink-0 ${meta.iconCls}`} />
-        <span className="font-semibold flex-1 truncate">{renderedTitle}</span>
-        <span className={`text-[10px] uppercase tracking-wider opacity-60 ${open ? "rotate-90" : ""} transition-transform`}>›</span>
+        <span className="wp17-coaching-card__icon shrink-0">
+          <Icon className="w-4 h-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">
+            {renderedTitle}
+          </span>
+          {!open ? (
+            <span className="mt-2 block line-clamp-2 text-sm leading-6 text-slate-700">
+              {renderedBody}
+            </span>
+          ) : null}
+        </span>
+        <span className={`mt-1 text-[10px] uppercase tracking-wider text-slate-400 ${open ? "rotate-90" : ""} transition-transform`}>›</span>
       </button>
       {open && (
         <div
-          className="px-3 pb-2.5 pt-0.5 pl-9 text-[12.5px] leading-snug"
+          className="border-t border-slate-200/70 px-4 pb-4 pt-3 text-sm leading-6 text-slate-700"
           data-testid={`helptip-${safeKey}-body`}
         >
-          {renderedBody}
+          <div className="pl-[3.25rem]">{renderedBody}</div>
         </div>
       )}
     </div>
