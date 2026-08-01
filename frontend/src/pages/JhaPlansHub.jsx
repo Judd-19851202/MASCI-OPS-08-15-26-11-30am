@@ -7,10 +7,12 @@ import {
   Lock,
   ChevronDown,
   ChevronRight,
+  ShieldAlert,
+  CheckCircle2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { HelpTipBlock } from "@/components/HelpTip";
 import { JhaAcknowledgeButton } from "@/components/JhaAcknowledgeButton";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
 import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
@@ -131,37 +133,44 @@ export default function JhaPlansHub() {
       portalName="MASCI"
       portalRole="Field Safety"
       pageTitle={t("Job Hazard Plans")}
-      subtitle={t("Search by job and open the latest hazard-plan files before your crew starts work.")}
-      homeHref="/jha"
+      subtitle={t("Search by job and open the latest hazard-plan files before work starts.")}
+      homeHref="/"
       backHref="/"
-      showBack
+      showBack={false}
       showSearch={false}
       showNotifications={false}
       showPortalSwitcher={false}
       showSignOut={false}
+      showPageHeader={false}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <div className="mb-6" data-testid="jha-summary">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("Job Hazard Plans")}
-          </span>
-          <p className="text-slate-600 text-sm mt-2">
-            {t(
-              "Each MASCI job has its own Job Hazard Plan PDF. Open your job and read it before crew breaks ground. If your job has no plan yet, get with your PM."
-            )}
-          </p>
+        <div className="wp17-public-hero mb-6" data-testid="jha-summary">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr),19rem] lg:items-start">
+            <div>
+              <span className="wp17-kicker text-red-700">{t("Field Safety · Pre-task access")}</span>
+              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
+                {t("Open the latest hazard plan before work starts.")}
+              </h1>
+              <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-3xl">
+                {t("Search by project number, project name, or location. Open the current plan, download it for offline use, and acknowledge the file you actually reviewed.")}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <OperationalStatusBadge tone="red" testId="jha-badge-live-files">{t("Live file library")}</OperationalStatusBadge>
+                <OperationalStatusBadge tone="amber" testId="jha-badge-crew-read">{t("Crew read-before-work")}</OperationalStatusBadge>
+                <OperationalStatusBadge tone="cyan" testId="jha-badge-ack">{t("Acknowledgement tracked")}</OperationalStatusBadge>
+              </div>
+            </div>
+            <div className="wp17-panel p-4" data-testid="jha-attention-panel">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-700 font-bold mb-2">{t("What needs attention now")}</div>
+              <div className="text-sm text-slate-700 leading-6">
+                {t("If your job has no uploaded plan, stop and get with your PM before the crew breaks ground. If it has changed, download the newest file and acknowledge that exact revision.")}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* iter275 · page-root coaching · canonical 4 kinds */}
-        <HelpTipBlock formKey="jha" className="mb-4" showCounter />
-        {/* iter275 · poster coaching · how the JHA reaches the crew */}
-        <HelpTipBlock formKey="jha.poster" className="mb-4" />
-
-        {/* FOCP Release 2 · TR-0001 — identity strip for acknowledgement.
-            Shows the remembered email so the employee knows which
-            identity is being used to mark plans as acknowledged. */}
         <div
-          className="mb-5 rounded-md border-2 border-slate-200 bg-white px-3 py-2 flex flex-wrap items-center gap-2 text-xs"
+          className="mb-5 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 flex flex-wrap items-center gap-2 text-xs shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
           data-testid="jha-ack-identity-strip"
         >
           <span className="font-mono uppercase tracking-[0.18em] text-slate-500">
@@ -169,11 +178,10 @@ export default function JhaPlansHub() {
           </span>
           {ackEmail ? (
             <>
-              <b className="text-slate-900">{ackEmail}</b>
-              <span className="text-slate-400">·</span>
-              <span className="text-slate-600">
+              <b className="text-slate-900 break-all">{ackEmail}</b>
+              <OperationalStatusBadge tone="emerald" testId="jha-ack-count">
                 {ackedFileIds.size} {t("plans acknowledged")}
-              </span>
+              </OperationalStatusBadge>
               <button
                 type="button"
                 onClick={() => {
@@ -191,19 +199,17 @@ export default function JhaPlansHub() {
               </button>
             </>
           ) : (
-            <span className="text-slate-600 italic">
-              {t("Acknowledge any plan below to begin — your work email is your signature key.")}
-            </span>
+            <span className="text-slate-600">{t("Your work email becomes the acknowledgement signature when you confirm a plan below.")}</span>
           )}
         </div>
 
-        <div className="relative mb-5">
+        <div className="wp17-panel p-3 mb-5 relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("Search by job number, name, or location…")}
-            className="h-12 pl-9 border-2 border-slate-300"
+            className="h-12 pl-9 border-slate-300"
             data-testid="jha-search"
           />
         </div>
@@ -214,7 +220,7 @@ export default function JhaPlansHub() {
           </p>
         )}
 
-        <ul className="bg-white border border-slate-200 rounded-md divide-y-2 divide-slate-100 overflow-hidden">
+        <ul className="bg-white border border-slate-200 rounded-[1.5rem] divide-y divide-slate-100 overflow-hidden shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
           {filteredJobs.map((job) => {
             const files = filesByProject[job.project_number] || [];
             const hasFiles = files.length > 0;
@@ -248,7 +254,7 @@ export default function JhaPlansHub() {
                     )}
                   </div>
                   {hasFiles ? (
-                    <span className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-red-700 text-white font-bold text-sm uppercase tracking-wide">
+                    <span className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-red-700 text-white font-bold text-sm uppercase tracking-wide">
                       <FileText className="w-4 h-4" />
                       {t("View Plans")}
                       {isOpen ? (
@@ -258,13 +264,13 @@ export default function JhaPlansHub() {
                       )}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-mono text-[10px] uppercase tracking-[0.15em] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.15em] font-bold bg-amber-50 text-amber-800 border border-amber-300">
                       <Lock className="w-3 h-3" /> {t("Not uploaded yet")}
                     </span>
                   )}
                 </button>
                 {hasFiles && isOpen && (
-                  <ul className="bg-slate-50 border-t-2 border-slate-100 divide-y divide-slate-200">
+                  <ul className="bg-slate-50 border-t border-slate-100 divide-y divide-slate-200">
                     {files.map((f) => (
                       <li
                         key={f.id}
@@ -288,7 +294,7 @@ export default function JhaPlansHub() {
                             href={fileHref(f.id)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
+                            className="inline-flex items-center justify-center h-10 px-4 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
                             data-testid={`download-${f.id}`}
                           >
                             <Download className="w-4 h-4 mr-1" />{" "}
@@ -318,19 +324,21 @@ export default function JhaPlansHub() {
             );
           })}
           {filteredJobs.length === 0 && (
-            <li className="p-8 text-center text-slate-500 italic">
-              {t("No job matches your search.")}
+            <li className="p-8 text-center text-slate-500" data-testid="jha-empty-state">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 text-slate-500 mb-3">
+                <Search className="w-5 h-5" />
+              </div>
+              <div className="font-display font-bold text-slate-900">{t("No job matches your search.")}</div>
+              <div className="text-sm text-slate-500 mt-1">{t("Try the project number, a shorter job name, or the city/location label.")}</div>
             </li>
           )}
         </ul>
 
-        <div className="mt-8 bg-amber-50 border-2 border-amber-300 rounded-md p-4 text-sm text-amber-900 flex items-start gap-3">
-          <Download className="w-5 h-5 shrink-0 mt-0.5" />
+        <div className="mt-8 rounded-[1.25rem] bg-amber-50 border border-amber-300 p-4 text-sm text-amber-900 flex items-start gap-3" data-testid="jha-offline-tip">
+          <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
           <div>
-            <b>{t("Download for offline use")}.</b>{" "}
-            {t("On your phone, hold")} <b>{t("Download")}</b> &gt;{" "}
-            <b>{t("Save to Files / Downloads")}</b>{" "}
-            {t("to read it where there's no service.")}
+            <b>{t("Download before you lose signal")}.</b>{" "}
+            {t("Save the file to your device before the crew moves into low-service areas so the current plan is still readable at the point of work.")}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Terminal,
   Download,
@@ -10,9 +10,15 @@ import {
   Loader2,
   Trash2,
   History,
-  ArrowLeft,
   Package,
+  ShieldAlert,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { PortalShell } from "@/design-system";
+import { DataTable } from "@/design-system/DataTable";
+import EmptyState from "@/components/EmptyState";
+import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { api } from "@/lib/api";
 import { getDevToken, clearDevToken } from "@/lib/devAuth";
 import { toast } from "sonner";
@@ -25,9 +31,7 @@ async function downloadWithDevToken(path, fallbackName) {
     toast.error("Developer session expired — please sign in again.");
     return false;
   }
-  const res = await fetch(`${API}${path}`, {
-    headers: { "X-Dev-Token": token },
-  });
+  const res = await fetch(`${API}${path}`, { headers: { "X-Dev-Token": token } });
   if (!res.ok) {
     toast.error(`Download failed (${res.status})`);
     return false;
@@ -44,15 +48,11 @@ async function downloadWithDevToken(path, fallbackName) {
   return true;
 }
 
-function Section({ title, eyebrow, children }) {
+function Section({ title, eyebrow, children, testId }) {
   return (
-    <section className="bg-slate-900 border border-slate-800 rounded-md p-5 sm:p-6" data-testid={`dev-section-${(title||"").toLowerCase().replace(/\s+/g,"-")}`}>
-      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-400 font-bold mb-1">
-        {eyebrow}
-      </div>
-      <h2 className="font-mono text-lg font-bold text-white tracking-tight mb-5">
-        {title}
-      </h2>
+    <section className="bg-white border border-slate-200 rounded-[1.5rem] p-5 sm:p-6 shadow-[0_16px_40px_rgba(15,23,42,0.05)]" data-testid={testId || `dev-section-${(title || "").toLowerCase().replace(/\s+/g, "-")}`}>
+      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-700 font-bold mb-1">{eyebrow}</div>
+      <h2 className="font-display text-lg font-black text-slate-900 mb-4">{title}</h2>
       {children}
     </section>
   );
@@ -60,7 +60,7 @@ function Section({ title, eyebrow, children }) {
 
 export default function DevHub() {
   const navigate = useNavigate();
-  const [busy, setBusy] = useState(null); // "pdf" | "docx" | "snap" | "bundle" | null
+  const [busy, setBusy] = useState(null);
   const [snaps, setSnaps] = useState([]);
   const [loadingSnaps, setLoadingSnaps] = useState(false);
   const [note, setNote] = useState("");
@@ -87,7 +87,7 @@ export default function DevHub() {
       const { data } = await api.get("/dev/source-bundle.info");
       setBundleInfo(data);
     } catch {
-      // silent — info probe is just a size hint
+      // silent size hint
     }
   }, []);
 
@@ -99,10 +99,7 @@ export default function DevHub() {
   const onDownload = async (format) => {
     setBusy(format);
     try {
-      await downloadWithDevToken(
-        `/api/dev/ops-manual.${format}`,
-        `MASCI_HUB_Operations_Manual.${format}`
-      );
+      await downloadWithDevToken(`/api/dev/ops-manual.${format}`, `MASCI_HUB_Operations_Manual.${format}`);
     } finally {
       setBusy(null);
     }
@@ -111,13 +108,11 @@ export default function DevHub() {
   const onSnapshot = async () => {
     setBusy("snap");
     try {
-      const { data } = await api.post("/dev/ops-manual/snapshot", {
-        note: note.trim(),
-      });
+      const { data } = await api.post("/dev/ops-manual/snapshot", { note: note.trim() });
       toast.success(`Snapshot saved · ${data.pdf_bytes} + ${data.docx_bytes} bytes`);
       setNote("");
       loadSnaps();
-    } catch (err) {
+    } catch {
       toast.error("Failed to create snapshot");
     } finally {
       setBusy(null);
@@ -130,17 +125,14 @@ export default function DevHub() {
       await api.delete(`/dev/ops-manual/snapshots/${id}`);
       toast.success("Snapshot deleted");
       loadSnaps();
-    } catch (err) {
+    } catch {
       toast.error("Delete failed");
     }
   };
 
   const onSnapDownload = async (id, created, format) => {
     const stamp = (created || "").replace(/[:.]/g, "-").split("T").join("_").split("+")[0];
-    await downloadWithDevToken(
-      `/api/dev/ops-manual/snapshots/${id}.${format}`,
-      `MASCI_HUB_Operations_Manual_${stamp}.${format}`
-    );
+    await downloadWithDevToken(`/api/dev/ops-manual/snapshots/${id}.${format}`, `MASCI_HUB_Operations_Manual_${stamp}.${format}`);
   };
 
   const onLogout = () => {
@@ -152,15 +144,8 @@ export default function DevHub() {
   const onDownloadBundle = async () => {
     setBusy("bundle");
     try {
-      const stamp = new Date()
-        .toISOString()
-        .replace(/[:.]/g, "-")
-        .split("Z")[0];
-      await downloadWithDevToken(
-        "/api/dev/source-bundle.zip",
-        `MASCI_HUB_Source_Bundle_${stamp}.zip`
-      );
-      // refresh info after download in case source changed
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").split("Z")[0];
+      await downloadWithDevToken("/api/dev/source-bundle.zip", `MASCI_HUB_Source_Bundle_${stamp}.zip`);
       loadBundleInfo();
     } finally {
       setBusy(null);
@@ -177,8 +162,7 @@ export default function DevHub() {
   const fmtDate = (iso) => {
     if (!iso) return "";
     try {
-      const d = new Date(iso);
-      return d.toLocaleString(undefined, {
+      return new Date(iso).toLocaleString(undefined, {
         year: "numeric",
         month: "short",
         day: "2-digit",
@@ -190,227 +174,159 @@ export default function DevHub() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-white" data-testid="dev-hub-page">
-      <header className="border-b border-slate-800">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-800 text-emerald-400">
-              <Terminal className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500">
-                ForgedOps™ · Vendor Portal
-              </div>
-              <h1 className="font-mono text-base font-bold text-white leading-none mt-0.5">
-                dev.portal / ops-manual
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 font-mono text-xs uppercase tracking-wide"
-              data-testid="dev-hub-home"
-            >
-              <ArrowLeft className="w-3 h-3" /> Home
-            </Link>
-            <button
-              type="button"
-              onClick={onLogout}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 font-mono text-xs uppercase tracking-wide"
-              data-testid="dev-hub-logout"
-            >
-              <LogOut className="w-3 h-3" /> Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-5 sm:px-8 py-8 space-y-6">
-        {/* Section: Live manual download */}
-        <Section title="System Owner & Operations Manual" eyebrow="Live · Renders from current source">
-          <p className="text-slate-400 text-sm mb-5 max-w-2xl">
-            Full architecture, cost breakdown, deployment procedures, failure
-            points, maintenance checklist, and V2 recommendations. Regenerated
-            on every request from <span className="font-mono text-slate-300">ops_manual.py</span> so
-            edits ship without a redeploy.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              type="button"
-              onClick={() => onDownload("pdf")}
-              disabled={busy !== null}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide disabled:opacity-50"
-              data-testid="dev-ops-manual-pdf"
-            >
-              <Download className="w-4 h-4" />
-              {busy === "pdf" ? "Generating…" : "Download PDF"}
-            </button>
-            <button
-              type="button"
-              onClick={() => onDownload("docx")}
-              disabled={busy !== null}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-mono text-xs uppercase tracking-wide disabled:opacity-50"
-              data-testid="dev-ops-manual-docx"
-            >
-              <FileType2 className="w-4 h-4" />
-              {busy === "docx" ? "Generating…" : "Download Word (.docx)"}
-            </button>
-          </div>
-        </Section>
-
-        {/* Section: Pin a snapshot */}
-        <Section title="Pin a Snapshot" eyebrow="Archive · Mongo collection · ops_manual_snapshots">
-          <p className="text-slate-400 text-sm mb-4 max-w-2xl">
-            Save the current manual (PDF + DOCX) as an immutable record. Useful
-            for pinning the exact revision handed to an auditor, insurance, or
-            a contract counter-party.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              maxLength={500}
-              placeholder="Optional note — e.g. &quot;v1.0 delivered to counsel 2026-05-02&quot;"
-              className="flex-1 h-11 px-3 rounded-md bg-slate-950 border border-slate-700 text-white placeholder:text-slate-600 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              data-testid="dev-snapshot-note"
-            />
-            <button
-              type="button"
-              onClick={onSnapshot}
-              disabled={busy !== null}
-              className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide disabled:opacity-50"
-              data-testid="dev-snapshot-save"
-            >
-              {busy === "snap" ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
-              ) : (
-                <><Camera className="w-4 h-4" /> Save Snapshot</>
-              )}
-            </button>
-          </div>
-        </Section>
-
-        {/* Section: Source bundle download */}
-        <Section title="Full Source Bundle" eyebrow="Due-Diligence · Live zip of the code tree">
-          <p className="text-slate-400 text-sm mb-4 max-w-2xl">
-            One-click download of the entire application source tree —
-            backend, frontend, scripts, memory docs. Pair with a pinned Ops
-            Manual snapshot to hand a byte-exact code + documentation
-            package to counsel, an auditor, or an acquirer.
-          </p>
-          <div className="mb-4 flex flex-wrap items-center gap-3 font-mono text-[11px] text-slate-500">
-            <span className="px-2 py-1 rounded bg-slate-950 border border-slate-800">
-              {bundleInfo ? `${bundleInfo.file_count} files` : "…"}
-            </span>
-            <span className="px-2 py-1 rounded bg-slate-950 border border-slate-800">
-              {bundleInfo ? `${(bundleInfo.bytes / 1024 / 1024).toFixed(1)} MB` : "…"}
-            </span>
-            <span className="px-2 py-1 rounded bg-slate-950 border border-slate-800">
-              hash {bundleInfo ? (bundleInfo.source_hash || "").slice(0, 10) : "—"}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={onDownloadBundle}
-            disabled={busy !== null}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide disabled:opacity-50"
-            data-testid="dev-source-bundle-download"
-          >
-            {busy === "bundle" ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Building…</>
-            ) : (
-              <><Package className="w-4 h-4" /> Download Source Bundle</>
-            )}
+  const snapshotColumns = useMemo(() => ([
+    { key: "created", header: "Created", render: (row) => <span className="font-mono text-xs text-slate-700 whitespace-nowrap">{fmtDate(row.created_at)}</span> },
+    { key: "note", header: "Note", wrap: true, render: (row) => row.note || <span className="text-slate-400">—</span> },
+    { key: "hash", header: "Source Hash", render: (row) => <span className="font-mono text-xs text-slate-500">{(row.source_hash || "").slice(0, 10)}</span> },
+    { key: "size", header: "Size", render: (row) => <span className="font-mono text-xs text-slate-500">{fmtBytes(row.pdf_bytes)} · {fmtBytes(row.docx_bytes)}</span> },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (row) => (
+        <div className="inline-flex flex-wrap justify-end gap-1.5">
+          <button type="button" onClick={() => onSnapDownload(row.id, row.created_at, "pdf")} className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-white hover:bg-slate-800" data-testid={`dev-snapshot-pdf-${row.id}`}>
+            <FileText className="w-3 h-3" /> PDF
           </button>
-          <div className="mt-4 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-600">
-            Excluded: /backups · /storage · node_modules · build · .env · .git · *.pyc · *.bak.json
-          </div>
-        </Section>
-
-        {/* Section: Snapshot archive */}
-        <Section title="Snapshot Archive" eyebrow={`History · ${snaps.length} pinned`}>
-          {loadingSnaps ? (
-            <div className="flex items-center gap-2 text-slate-500 text-sm font-mono">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading…
-            </div>
-          ) : snaps.length === 0 ? (
-            <div className="flex items-start gap-3 bg-slate-950 border border-slate-800 rounded-md p-4 text-slate-500 text-sm">
-              <History className="w-4 h-4 mt-0.5 text-slate-600" />
-              <span>No snapshots yet. Pin one above when you want to lock in a specific revision of the manual.</span>
-            </div>
-          ) : (
-            <div className="border border-slate-800 rounded-md overflow-hidden">
-              <table className="w-full text-sm" data-testid="dev-snapshot-table">
-                <thead className="bg-slate-950/50 border-b border-slate-800">
-                  <tr className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                    <th className="text-left px-4 py-2.5">Created</th>
-                    <th className="text-left px-4 py-2.5">Note</th>
-                    <th className="text-left px-4 py-2.5">Source Hash</th>
-                    <th className="text-left px-4 py-2.5">Size</th>
-                    <th className="text-right px-4 py-2.5">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {snaps.map((s) => (
-                    <tr key={s.id} className="border-t border-slate-800 hover:bg-slate-900/50" data-testid={`dev-snapshot-row-${s.id}`}>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-300 whitespace-nowrap">
-                        {fmtDate(s.created_at)}
-                      </td>
-                      <td className="px-4 py-3 text-slate-200 max-w-xs truncate">
-                        {s.note || <span className="text-slate-600">—</span>}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                        {(s.source_hash || "").slice(0, 10)}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                        {fmtBytes(s.pdf_bytes)} · {fmtBytes(s.docx_bytes)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <div className="inline-flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => onSnapDownload(s.id, s.created_at, "pdf")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-white font-mono text-[10px] uppercase tracking-wide"
-                            title="Download PDF"
-                            data-testid={`dev-snapshot-pdf-${s.id}`}
-                          >
-                            <FileText className="w-3 h-3" /> PDF
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onSnapDownload(s.id, s.created_at, "docx")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-white font-mono text-[10px] uppercase tracking-wide"
-                            title="Download DOCX"
-                            data-testid={`dev-snapshot-docx-${s.id}`}
-                          >
-                            <FileType2 className="w-3 h-3" /> DOCX
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onDelete(s.id)}
-                            className="inline-flex items-center gap-1 px-2 py-1.5 rounded border border-red-900 text-red-400 hover:bg-red-950/50 font-mono text-[10px]"
-                            title="Delete snapshot"
-                            data-testid={`dev-snapshot-delete-${s.id}`}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Section>
-
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 text-center pt-4">
-          Classification: CONFIDENTIAL · ForgedOps™ · Not for MASCI staff distribution
+          <button type="button" onClick={() => onSnapDownload(row.id, row.created_at, "docx")} className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-white hover:bg-slate-800" data-testid={`dev-snapshot-docx-${row.id}`}>
+            <FileType2 className="w-3 h-3" /> DOCX
+          </button>
+          <button type="button" onClick={() => onDelete(row.id)} className="inline-flex items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-red-700 hover:bg-red-50" data-testid={`dev-snapshot-delete-${row.id}`}>
+            <Trash2 className="w-3 h-3" /> Delete
+          </button>
         </div>
+      ),
+    },
+  ]), []);
+
+  return (
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Dev Operations"
+      pageTitle="Ops Manual & Source Vault"
+      subtitle="Confidential developer-facing export and snapshot controls."
+      homeHref="/"
+      showHome
+      showBack={false}
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      sideNav={null}
+      contentWidth="max-w-none"
+      showPageHeader={false}
+      primaryActions={(
+        <Button onClick={onLogout} variant="outline" className="h-10 border-white/18 bg-white/10 text-white hover:bg-white/18 font-mono text-xs uppercase tracking-wide" data-testid="dev-hub-logout">
+          <LogOut className="w-3.5 h-3.5 mr-1.5" /> Sign Out
+        </Button>
+      )}
+    >
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6" data-testid="dev-hub-page">
+        <section className="wp17-public-hero" data-testid="dev-hub-hero">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr),18rem] lg:items-start">
+            <div>
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-700 shadow-[0_16px_32px_rgba(15,23,42,0.10)]">
+                <Terminal className="h-7 w-7" />
+              </div>
+              <div className="wp17-kicker mt-4 text-emerald-700">Dev operations · Controlled exports</div>
+              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">Ops manual, snapshots, and source bundle from one governed surface.</h1>
+              <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-3xl">Download the live manual, pin exact revisions for counsel or auditors, and export the current source tree without leaving the MASCI operating shell.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <OperationalStatusBadge tone="emerald" testId="dev-badge-live">Live exports</OperationalStatusBadge>
+                <OperationalStatusBadge tone="amber" testId="dev-badge-confidential">Confidential surface</OperationalStatusBadge>
+                <OperationalStatusBadge tone="cyan" testId="dev-badge-source">Source bundle ready</OperationalStatusBadge>
+              </div>
+            </div>
+            <div className="wp17-panel p-4" data-testid="dev-attention-panel">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-700 font-bold mb-2">What needs attention now</div>
+              <p className="text-sm text-slate-700 leading-6">Pin a snapshot before handing material to any outside party, and pair it with the source bundle only when you need a byte-exact diligence package.</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr),18rem]">
+          <div className="space-y-6">
+            <Section title="System Owner & Operations Manual" eyebrow="Live · Renders from current source" testId="dev-section-manual">
+              <p className="text-slate-600 text-sm mb-5 max-w-2xl">Full architecture, cost breakdown, deployment procedures, failure points, maintenance checklist, and V2 recommendations. Every download regenerates from the current source so documentation stays current without a redeploy.</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button type="button" onClick={() => onDownload("pdf")} disabled={busy !== null} className="h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide" data-testid="dev-ops-manual-pdf">
+                  <Download className="w-4 h-4 mr-2" />
+                  {busy === "pdf" ? "Generating…" : "Download PDF"}
+                </Button>
+                <Button type="button" onClick={() => onDownload("docx")} disabled={busy !== null} variant="outline" className="h-11 border-slate-300 bg-white text-slate-900 hover:bg-slate-50 font-mono text-xs uppercase tracking-wide" data-testid="dev-ops-manual-docx">
+                  <FileType2 className="w-4 h-4 mr-2" />
+                  {busy === "docx" ? "Generating…" : "Download Word (.docx)"}
+                </Button>
+              </div>
+            </Section>
+
+            <Section title="Pin a Snapshot" eyebrow="Archive · Immutable revision" testId="dev-section-snapshot">
+              <p className="text-slate-600 text-sm mb-4 max-w-2xl">Save the current manual as an immutable PDF + DOCX pair when you need to lock the exact revision delivered to an auditor, insurer, or counterpart.</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  type="text"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  maxLength={500}
+                  placeholder="Optional note — e.g. delivered to counsel on 2026-05-02"
+                  className="flex-1 h-11 border-slate-300 text-sm"
+                  data-testid="dev-snapshot-note"
+                />
+                <Button type="button" onClick={onSnapshot} disabled={busy !== null} className="h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide" data-testid="dev-snapshot-save">
+                  {busy === "snap" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving…</> : <><Camera className="w-4 h-4 mr-2" /> Save Snapshot</>}
+                </Button>
+              </div>
+            </Section>
+
+            <Section title="Full Source Bundle" eyebrow="Due diligence · Live zip of the code tree" testId="dev-section-source-bundle">
+              <p className="text-slate-600 text-sm mb-4 max-w-2xl">One-click export of the entire application source tree — backend, frontend, scripts, and memory docs — to pair with a pinned manual snapshot when the recipient needs code + documentation together.</p>
+              <div className="mb-4 flex flex-wrap items-center gap-3 font-mono text-[11px] text-slate-500">
+                <span className="px-2 py-1 rounded-full bg-slate-100 border border-slate-200">{bundleInfo ? `${bundleInfo.file_count} files` : "…"}</span>
+                <span className="px-2 py-1 rounded-full bg-slate-100 border border-slate-200">{bundleInfo ? `${(bundleInfo.bytes / 1024 / 1024).toFixed(1)} MB` : "…"}</span>
+                <span className="px-2 py-1 rounded-full bg-slate-100 border border-slate-200">hash {bundleInfo ? (bundleInfo.source_hash || "").slice(0, 10) : "—"}</span>
+              </div>
+              <Button type="button" onClick={onDownloadBundle} disabled={busy !== null} className="h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs uppercase tracking-wide" data-testid="dev-source-bundle-download">
+                {busy === "bundle" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Building…</> : <><Package className="w-4 h-4 mr-2" /> Download Source Bundle</>}
+              </Button>
+              <div className="mt-4 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Excluded: /backups · /storage · node_modules · build · .env · .git · *.pyc · *.bak.json</div>
+            </Section>
+
+            <Section title="Snapshot Archive" eyebrow={`History · ${snaps.length} pinned`} testId="dev-section-archive">
+              <DataTable
+                columns={snapshotColumns}
+                rows={snaps}
+                rowKey={(row) => row.id}
+                loading={loadingSnaps}
+                density="compact"
+                tableMinWidth="980px"
+                empty={<EmptyState title="No snapshots yet." message="Pin one above when you need an immutable revision of the ops manual." icon={History} data-testid="dev-snapshot-empty" />}
+                data-testid="dev-snapshot-table"
+              />
+            </Section>
+          </div>
+
+          <div className="space-y-6">
+            <Section title="Handling rules" eyebrow="Controlled material" testId="dev-section-handling">
+              <div className="space-y-3 text-sm text-slate-700">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+                  <p>Do not distribute this surface or its exports to general MASCI staff. Use it only for governed documentation, diligence, or counsel workflows.</p>
+                </div>
+                <p>Snapshots are the fastest way to prove exactly what manual revision was provided. The source bundle should be paired with the same moment in time whenever legal or diligence workflows require it.</p>
+              </div>
+            </Section>
+
+            <Section title="Session state" eyebrow="Developer access" testId="dev-section-session">
+              <div className="space-y-2 text-sm text-slate-700">
+                <div className="flex justify-between gap-3"><span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Portal</span><span className="text-slate-900 font-medium">Dev Operations</span></div>
+                <div className="flex justify-between gap-3"><span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Snapshot count</span><span className="text-slate-900 font-medium">{snaps.length}</span></div>
+                <div className="flex justify-between gap-3"><span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Bundle status</span><span className="text-slate-900 font-medium">{bundleInfo ? "Ready" : "Probe pending"}</span></div>
+              </div>
+            </Section>
+          </div>
+        </div>
+
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 text-center pt-2">Classification: CONFIDENTIAL · ForgedOps™ · Not for MASCI staff distribution</div>
       </main>
-    </div>
+    </PortalShell>
   );
 }

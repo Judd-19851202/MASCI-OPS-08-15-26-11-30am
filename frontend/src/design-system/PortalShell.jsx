@@ -163,6 +163,7 @@ export function PortalShell({
   primaryActions = null,
   lastActivity = null,
   alertSlot = null,
+  showPageHeader = true,
   homeHref = "/",
   backHref = null,
   showHome = true,
@@ -349,33 +350,35 @@ export function PortalShell({
             ) : null}
 
             <div className="min-w-0">
-              <div className="wp16-shell-page-header" data-testid="ds-portal-shell-page-header">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="wp16-kicker md:hidden" data-testid="ds-portal-shell-portal-name-mobile">
-                      {platformShort} · {portalRole}
+              {showPageHeader ? (
+                <div className="wp16-shell-page-header" data-testid="ds-portal-shell-page-header">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="wp16-kicker md:hidden" data-testid="ds-portal-shell-portal-name-mobile">
+                        {platformShort} · {portalRole}
+                      </div>
+                      {pageTitle ? (
+                        <h1
+                          className="wp16-section-title text-4xl sm:text-5xl lg:text-6xl"
+                          style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                        >
+                          {pageTitle}
+                        </h1>
+                      ) : null}
+                      {subtitle ? <p className="mt-2 max-w-[76ch] text-sm text-[color:var(--ink-soft)] sm:text-base">{subtitle}</p> : null}
                     </div>
-                    {pageTitle ? (
-                      <h1
-                        className="wp16-section-title text-4xl sm:text-5xl lg:text-6xl"
-                        style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-                      >
-                        {pageTitle}
-                      </h1>
-                    ) : null}
-                    {subtitle ? <p className="mt-2 max-w-[76ch] text-sm text-[color:var(--ink-soft)] sm:text-base">{subtitle}</p> : null}
-                  </div>
 
-                  <div className="min-w-0 xl:max-w-[28rem] xl:text-right">
-                    {primaryActions ? <div className="wp16-shell-actions justify-start xl:justify-end">{primaryActions}</div> : null}
-                    {renderedLastActivity ? (
-                      <aside className="mt-2 text-xs uppercase tracking-[0.14em] text-[color:var(--ink-soft)]" data-testid="ds-portal-shell-last-activity">
-                        {renderedLastActivity}
-                      </aside>
-                    ) : null}
+                    <div className="min-w-0 xl:max-w-[28rem] xl:text-right">
+                      {primaryActions ? <div className="wp16-shell-actions justify-start xl:justify-end">{primaryActions}</div> : null}
+                      {renderedLastActivity ? (
+                        <aside className="mt-2 text-xs uppercase tracking-[0.14em] text-[color:var(--ink-soft)]" data-testid="ds-portal-shell-last-activity">
+                          {renderedLastActivity}
+                        </aside>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
 
               {alertSlot ? <div className="mb-4">{alertSlot}</div> : null}
               <main data-testid="ds-portal-shell-content" className={isWp17 ? "wp17-shell-content" : undefined}>{children}</main>
