@@ -4,12 +4,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { ShieldAlert, Loader2, ArrowLeft, Check } from "lucide-react";
+import { ShieldAlert, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -38,24 +37,15 @@ export default function SafetyForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-cyan-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/safety-portal/login"
-            className="inline-flex items-center text-white hover:text-cyan-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="safety-forgot-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Safety Login")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+    <PortalLoginShell
+      homeLink="/safety-portal/login"
+      headerBorderClass="border-cyan-700"
+      backHoverClass="hover:text-cyan-300"
+      backTestId="safety-forgot-back"
+      rootTestId="safety-forgot-page"
+      footerLabel={t("MASCI · Safety Operations")}
+    >
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white">
               <ShieldAlert className="w-6 h-6" />
@@ -64,7 +54,7 @@ export default function SafetyForgotPassword() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-700">
                 {t("Safety Operations")}
               </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="safety-forgot-title">
                 {t("Forgot password")}
               </h1>
             </div>
@@ -81,15 +71,14 @@ export default function SafetyForgotPassword() {
               <Link
                 to="/safety-portal/login"
                 className="block text-center text-xs font-mono uppercase tracking-[0.18em] text-cyan-700 hover:underline"
+                data-testid="safety-forgot-return-link"
               >
                 {t("Back to sign in")} →
               </Link>
             </div>
           ) : (
             <form onSubmit={onSubmit} className="space-y-4" data-testid="safety-forgot-form">
-              <p className="text-slate-600 text-sm">
-                {t("Enter your Safety Portal email. We'll send you a link to choose a new password.")}
-              </p>
+              <p className="text-slate-600 text-sm">{t("Enter your Safety Portal email.")}</p>
               <div>
                 <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
                   {t("Email")}
@@ -119,8 +108,7 @@ export default function SafetyForgotPassword() {
               </Button>
             </form>
           )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </PortalLoginShell>
   );
 }

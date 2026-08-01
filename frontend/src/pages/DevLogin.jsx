@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Terminal, Loader2, ArrowLeft } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Terminal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
 import { setDevToken, clearDevToken } from "@/lib/devAuth";
 import { toast } from "sonner";
@@ -73,24 +74,15 @@ export default function DevLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col" data-testid="dev-login-page">
-      <header className="border-b border-slate-800">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-slate-400 hover:text-white text-xs font-mono uppercase tracking-[0.2em]"
-            data-testid="dev-login-back"
-          >
-            <ArrowLeft className="w-3 h-3 mr-1" /> Home
-          </Link>
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500">
-            ForgedOps™
-          </span>
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-md p-7 sm:p-9">
+    <PortalLoginShell
+      homeLink="/"
+      headerBorderClass="border-emerald-700"
+      backHoverClass="hover:text-emerald-300"
+      backTestId="dev-login-back"
+      rootTestId="dev-login-page"
+      footerLabel="ForgedOps™ · Confidential"
+    >
+      <div className="w-full max-w-sm rounded-md border border-slate-800 bg-slate-900 p-7 sm:p-9 shadow-2xl shadow-emerald-950/20">
           <div className="flex items-center gap-3 mb-5">
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-800 text-emerald-400">
               <Terminal className="w-5 h-5" />
@@ -99,7 +91,7 @@ export default function DevLogin() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
                 Vendor Access
               </div>
-              <h1 className="font-mono text-lg font-bold text-white leading-none mt-1">
+              <h1 className="font-mono text-lg font-bold text-white leading-none mt-1" data-testid="dev-login-title">
                 dev.portal
               </h1>
             </div>
@@ -152,14 +144,7 @@ export default function DevLogin() {
               )}
             </Button>
           </form>
-        </div>
-      </main>
-
-      <footer className="max-w-3xl mx-auto px-5 sm:px-8 py-5 text-center">
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600">
-          Confidential · ForgedOps™
-        </span>
-      </footer>
-    </div>
+      </div>
+    </PortalLoginShell>
   );
 }

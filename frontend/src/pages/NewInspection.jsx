@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, MapPin, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Save, Loader2, MapPin, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,15 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
 import { Section, ChecklistRow } from "@/components/Section";
 import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
+import FormShell from "@/components/FormShell";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import {
@@ -276,50 +275,44 @@ export default function NewInspection({ publicMode = false }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          {publicMode ? (
-            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          ) : (
-            <Link
-              to="/"
-              className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-              data-testid="back-link"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" /> Home
-            </Link>
-          )}
-          <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} homeLink="/" />
-          <div className="flex items-center gap-2">
-            <DraftStatusPill status={draftStatus} testId="inspection-draft-pill" />
-            <LangToggle />
-            <Button
-              onClick={submit}
-              disabled={saving || (data.photos || []).length < 4}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
-              data-testid="submit-top-btn"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-              {t("Submit")}
-            </Button>
+    <FormShell
+      kicker={t("MASCI · Safety Inspections")}
+      title={t("Job Site Safety Inspection")}
+      subtitle={t("A walking record of what's safe, what isn't, and what was fixed today.")}
+      backLink="/"
+      backLabel={t("Home")}
+      draftSlot={<DraftStatusPill status={draftStatus} testId="inspection-draft-pill" />}
+      widthClass="max-w-4xl"
+      containerTestId="inspection-form-shell"
+      stickyFooter={(
+        <div className="flex items-center justify-between gap-3" data-testid="inspection-form-actions">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+            {saving
+              ? t("Submitting inspection…")
+              : (data.photos || []).length < 4
+                ? `${t("Need")} ${4 - (data.photos || []).length} ${t("more photo(s)")}`
+                : t("Ready to submit · graded on file")}
           </div>
+          <Button
+            onClick={submit}
+            disabled={saving || (data.photos || []).length < 4}
+            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
+            data-testid="submit-sticky-btn"
+          >
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            {saving ? t("Saving…") : t("Submit Inspection")}
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      )}
+    >
+      <div className="space-y-6 pb-24">
         <div className="mb-2">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("New Report")}
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Job Site Safety Inspection")}
-          </h1>
-          {/* iter333 · operational sub-header · iter327 voice */}
-          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
-            {t("A walking record of what's safe, what isn't, and what was fixed today. Honest grades drive better jobs.")}
-          </p>
+          <div className="rounded-2xl border border-red-100 bg-white/85 p-4 shadow-sm" data-testid="inspection-form-summary">
+            <div className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">{t("New Report")}</div>
+            <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
+              {t("A walking record of what's safe, what isn't, and what was fixed today. Honest grades drive better jobs.")}
+            </p>
+          </div>
         </div>
 
         {/* Live grade banner */}
@@ -754,10 +747,10 @@ export default function NewInspection({ publicMode = false }) {
           </div>
         </Section>
 
-        <div className="pt-4">
+        <div className="pt-4 rounded-xl border border-red-100 bg-red-50/60 px-4 py-3">
           {(data.photos || []).length < 4 && (
             <p
-              className="text-center text-sm text-red-700 font-bold mb-2"
+              className="text-sm text-red-700 font-bold"
               data-testid="inspection-submit-photos-hint"
             >
               <Camera className="w-4 h-4 inline-block mr-1 -mt-0.5" />
@@ -768,68 +761,11 @@ export default function NewInspection({ publicMode = false }) {
                 : t("more photos to submit")}
             </p>
           )}
-          <Button
-            onClick={submit}
-            disabled={saving || (data.photos || []).length < 4}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:border-slate-400"
-            data-testid="submit-bottom-btn"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                {t("Saving Inspection...")}
-              </>
-            ) : (data.photos || []).length < 4 ? (
-              <>
-                <Camera className="w-5 h-5 mr-2" />
-                {t("Need 4 photos to submit")}
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" />
-                {t("Submit Inspection")}
-              </>
-            )}
-          </Button>
-          <p className="text-center text-xs text-slate-500 mt-2 font-mono uppercase tracking-[0.2em]">
+          <p className="text-xs text-slate-500 mt-2 font-mono uppercase tracking-[0.2em]">
             {t("All fields marked * are required")}
           </p>
         </div>
-      </main>
-
-      {/* iter500 · Rank #1 · Human-Operability sticky footer.
-          Always-visible submit anchor pinned to the viewport bottom so the
-          primary action is reachable on every form length and every device
-          without scroll-hunting. Mirrors the iter453.7 + iter453.9 pattern
-          proven on HrEmployees. The existing top/bottom Submit buttons are
-          retained for redundancy; this footer is the always-on path. */}
-      <div
-        className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t-2 border-red-700 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"
-        data-testid="submit-sticky-footer"
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
-            {saving
-              ? t("Submitting inspection…")
-              : (data.photos || []).length < 4
-                ? `${t("Need")} ${4 - (data.photos || []).length} ${t("more photo(s)")}`
-                : t("Ready to submit · graded on file")}
-          </div>
-          <Button
-            onClick={submit}
-            disabled={saving || (data.photos || []).length < 4}
-            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
-            data-testid="submit-sticky-btn"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            {saving ? t("Saving…") : t("Submit Inspection")}
-          </Button>
-        </div>
       </div>
-    </div>
+    </FormShell>
   );
 }

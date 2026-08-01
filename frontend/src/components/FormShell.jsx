@@ -40,6 +40,7 @@ export function FormShell({
   children,
   stickyFooter = null,
   containerTestId = "form-shell",
+  widthClass = "max-w-3xl",
 }) {
   const { t } = useT();
   return (
@@ -50,7 +51,7 @@ export function FormShell({
       <div className="caution-stripe" />
       {/* HEADER — fixed height row for stable layout across all steps. */}
       <header className="sticky top-0 z-30 wp17-public-header border-b border-slate-200 text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+        <div className={`${widthClass} mx-auto px-4 sm:px-6 h-14 flex items-center gap-3`}>
           {backLink ? (
             <Link
               to={backLink}
@@ -101,7 +102,7 @@ export function FormShell({
 
       {/* SUBTITLE (optional) */}
       {subtitle && (
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3">
+        <div className={`${widthClass} mx-auto px-4 sm:px-6 pt-3`}>
           <p className="text-slate-600 text-sm sm:text-base leading-snug wp17-support-copy">
             {subtitle}
           </p>
@@ -109,7 +110,7 @@ export function FormShell({
       )}
 
       {/* MAIN */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5 space-y-5">
+      <main className={`${widthClass} mx-auto px-4 sm:px-6 py-5 space-y-5`}>
         {children}
       </main>
 
@@ -119,7 +120,7 @@ export function FormShell({
           className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 wp17-shell-footer"
           data-testid={`${containerTestId}-sticky-footer`}
         >
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3">
+          <div className={`${widthClass} mx-auto px-4 sm:px-6 py-3`}>
             {stickyFooter}
           </div>
         </div>

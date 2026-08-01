@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Save,
   Loader2,
   GraduationCap,
@@ -14,12 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import EmployeeRosterField from "@/components/EmployeeRosterField";
-import { MasciLogo } from "@/components/MasciLogo";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { JobPicker } from "@/components/JobPicker";
 import { SignaturePad } from "@/components/SignaturePad";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import FormShell from "@/components/FormShell";
 import { useT, getLang } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { isSafetyForms } from "@/lib/safetyFormsAuth";
@@ -43,7 +41,6 @@ export default function NewSafetyEquipmentTraining() {
   const navigate = useNavigate();
   const [data, setData] = useState(buildTrainingDefaults());
   const [saving, setSaving] = useState(false);
-  const [employees, setEmployees] = useState([]);
 
   // iter332 · Safety Portal Form-Entry continuity. See sibling page.
   const fromRecords = (typeof window !== "undefined" &&
@@ -52,14 +49,6 @@ export default function NewSafetyEquipmentTraining() {
 
   // iter323 · Safety Forms ownership — Safety Portal + Admin + legacy.
   const authed = isSafety() || isAdmin() || isSafetyForms();
-
-  useEffect(() => {
-    if (!authed) return;
-    api
-      .get("/employees")
-      .then((r) => setEmployees(r.data?.items || r.data || []))
-      .catch(() => setEmployees([]));
-  }, [authed]);
 
   if (!authed) {
     return <Navigate to="/safety-portal/login?from=safety-forms" replace />;
@@ -148,25 +137,41 @@ export default function NewSafetyEquipmentTraining() {
   }
 
   return (
-    <div className="min-h-screen blueprint-bg">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-4xl mx-auto px-3 sm:px-8 py-4 flex items-center justify-between gap-2 flex-wrap">
-          <button
-            onClick={() => navigate(backPath)}
-            className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="trn-back"
+    <FormShell
+      kicker={t("MASCI · Safety Forms")}
+      title={t("Equipment Use & Care Training Documentation")}
+      subtitle={t("Document operator training, topics covered, signatures, and the equipment involved in one shared safety workflow.")}
+      backLink={backPath}
+      backLabel={fromRecords ? t("Back to Review") : t("Safety Forms")}
+      widthClass="max-w-4xl"
+      containerTestId="trn-form-shell"
+      stickyFooter={(
+        <div className="flex justify-between items-center shadow-none gap-3" data-testid="trn-form-actions">
+          <div className="text-xs font-mono text-slate-600 truncate">
+            <ShieldCheck className="w-4 h-4 inline-block mr-1 text-amber-700" />
+            {t("Auto-emails Safety dept on submit")}
+          </div>
+          <Button
+            type="submit"
+            form="trn-form"
+            disabled={saving}
+            className="bg-amber-600 hover:bg-amber-700 h-12 px-6 font-bold uppercase tracking-wide"
+            data-testid="trn-submit"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {fromRecords ? t("Back to Review") : t("Back")}
-          </button>
-          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink="/" />
-          <LangToggle />
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Submitting…")}
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" /> {t("Submit & Email PDF")}
+              </>
+            )}
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-5 sm:px-8 py-8">
-        <div className="mb-6 flex items-start gap-3">
+      )}
+    >
+      <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-100 bg-white/85 p-4 shadow-sm" data-testid="trn-form-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
             <GraduationCap className="w-6 h-6" />
           </div>
@@ -174,13 +179,13 @@ export default function NewSafetyEquipmentTraining() {
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-700 font-bold">
               {t("Safety Forms")}
             </span>
-            <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-1">
-              {t("Equipment Use & Care Training Documentation")}
-            </h1>
+            <p className="mt-1 text-sm text-slate-600" data-testid="trn-form-intro">
+              {t("Capture who was trained, what equipment was covered, and how the safety expectations were acknowledged.")}
+            </p>
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-5" data-testid="trn-form">
+        <form id="trn-form" onSubmit={onSubmit} className="space-y-5" data-testid="trn-form">
           {/* concise workflow coaching */}
           <HelpTipBlock formKey="equipment-training" className="mb-3" showCounter />
           <Section title={t("Employee")}>
@@ -454,31 +459,12 @@ export default function NewSafetyEquipmentTraining() {
             </Field>
           </Section>
 
-          <div className="sticky bottom-0 bg-white border-t-2 border-amber-600 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 flex justify-between items-center shadow-lg gap-3">
-            <div className="text-xs font-mono text-slate-600 truncate">
-              <ShieldCheck className="w-4 h-4 inline-block mr-1 text-amber-700" />
-              {t("Auto-emails Safety dept on submit")}
-            </div>
-            <Button
-              type="submit"
-              disabled={saving}
-              className="bg-amber-600 hover:bg-amber-700 h-12 px-6 font-bold uppercase tracking-wide"
-              data-testid="trn-submit"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Submitting…")}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" /> {t("Submit & Email PDF")}
-                </>
-              )}
-            </Button>
+          <div className="rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-xs font-mono text-slate-600" data-testid="trn-submit-note">
+            <ShieldCheck className="w-4 h-4 inline-block mr-1 text-amber-700" />
+            {t("Safety receives the signed PDF automatically after submission.")}
           </div>
         </form>
-      </main>
-    </div>
+    </FormShell>
   );
 }
 

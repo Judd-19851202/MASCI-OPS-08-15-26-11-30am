@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, MapPin, UserPlus, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Save, Loader2, MapPin, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MasciLogo } from "@/components/MasciLogo";
 import { Section } from "@/components/Section";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -20,8 +19,8 @@ import { TopicPicker } from "@/components/TopicPicker";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { AttendeeBulkAddDialog } from "@/components/AttendeeBulkAddDialog";
-import { LangToggle } from "@/components/LangToggle";
 import { BilingualConsent } from "@/components/BilingualConsent";
+import FormShell from "@/components/FormShell";
 import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import { TOPIC_CATEGORIES, SHIFT_OPTIONS, WEATHER_OPTIONS, buildMeetingDefaults } from "@/lib/meetingSchema";
@@ -409,71 +408,55 @@ export default function NewMeeting({ publicMode = false }) {
   })();
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32" data-testid="meeting-modernized">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          {publicMode ? (
-            <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          ) : (
-            <Link
-              to="/"
-              className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-              data-testid="back-link"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" /> Home
-            </Link>
-          )}
-          <MasciLogo variant="mark" size="md" className={publicMode ? "sm:hidden" : ""} homeLink="/" />
-          <div className="flex items-center gap-2">
-            <DraftStatusPill status={draftStatus} testId="meeting-draft-pill" />
-            <LangToggle />
-            {missingHint && (
-              <span
-                data-testid="meeting-submit-missing-hint"
-                className="hidden sm:inline-block max-w-[260px] truncate px-2 py-1 text-[10px] font-mono uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 rounded"
-                title={`${t("To submit, complete")}: ${missingHint}`}
-              >
-                {t("Missing")}: {missingHint}
-              </span>
+    <FormShell
+      kicker={t("MASCI · Safety Meetings")}
+      title={t("Site Safety Meeting")}
+      subtitle={t("Document the topic, attendees, acknowledgements, and proof in one shared meeting workflow.")}
+      backLink="/"
+      backLabel={t("Home")}
+      draftSlot={<DraftStatusPill status={draftStatus} testId="meeting-draft-pill" />}
+      widthClass="max-w-4xl"
+      containerTestId="meeting-form-shell"
+      stickyFooter={(
+        <div className="flex items-center justify-between gap-3" data-testid="meeting-form-actions">
+          <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-slate-500">
+            {missingHint ? (
+              <span data-testid="meeting-submit-missing-hint">{t("Missing")}: {missingHint}</span>
+            ) : (
+              <span>{t("Ready to submit · attendance and photos locked in")}</span>
             )}
-            <Button
-              onClick={submit}
-              disabled={saving}
-              title={missingHint ? `${t("To submit, complete")}: ${missingHint}` : ""}
-              className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
-              data-testid="submit-top-btn"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
-              {t("Submit")}
-            </Button>
           </div>
+          <Button
+            onClick={submit}
+            disabled={saving}
+            title={missingHint ? `${t("To submit, complete")}: ${missingHint}` : ""}
+            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
+            data-testid="submit-sticky-btn"
+          >
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            {saving ? t("Saving…") : t("Submit Meeting")}
+          </Button>
         </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      )}
+    >
+      <div className="space-y-6 pb-24" data-testid="meeting-modernized">
         <div className="mb-2">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("New Report")}
-          </span>
-          <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-            {t("Site Safety Meeting")}
-          </h1>
-          {/* TRACK 19.14 · Toolbox Talk terminology affordance. Same
-              form, two names in the field. Bilingual. This chip is
-              purely a wayfinding aid — no schema/route/payload change. */}
-          <div className="mt-1 flex items-center gap-2">
+          <div className="rounded-2xl border border-red-100 bg-white/85 p-4 shadow-sm" data-testid="meeting-form-summary">
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
+              {t("New Report")}
+            </span>
+            <div className="mt-1 flex items-center gap-2">
             <span
               className="inline-flex items-center rounded-full border border-slate-300 bg-white px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-600"
               data-testid="toolbox-talk-alias-chip"
             >
               {t("Also known as: Toolbox Talk")}
             </span>
-          </div>
+            </div>
           {/* TRACK 19.13 · HelpDrawer — SINGLE coaching surface for
               Safety Meeting. Bands consolidated from HelpTipBlock
               defaults. Topic Auto Load remains untouched below. */}
-          <div className="mt-3">
+            <div className="mt-3">
             <HelpDrawer
               open={helpDrawerOpen}
               onOpenChange={setHelpDrawerOpen}
@@ -515,6 +498,7 @@ export default function NewMeeting({ publicMode = false }) {
                 },
               ]}
             />
+            </div>
           </div>
         </div>
 
@@ -1254,37 +1238,20 @@ export default function NewMeeting({ publicMode = false }) {
           />
         </FormSection>
 
-        <div className="pt-4">
+        <div className="pt-4 rounded-xl border border-red-100 bg-red-50/60 px-4 py-3">
           {missingHint && (
             <p
               data-testid="meeting-submit-missing-hint-bottom"
-              className="text-xs text-red-700 font-bold text-center mb-2 font-mono uppercase tracking-[0.15em]"
+              className="text-xs text-red-700 font-bold mb-2 font-mono uppercase tracking-[0.15em]"
             >
               {t("To submit, complete")}: {missingHint}
             </p>
           )}
-          <Button
-            onClick={submit}
-            disabled={saving}
-            aria-busy={saving}
-            title={missingHint ? `${t("To submit, complete")}: ${missingHint}` : ""}
-            className="w-full h-16 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:opacity-60"
-            data-testid="submit-bottom-btn"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                {t("Saving Meeting...")}
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" />
-                {t("Submit Meeting")}
-              </>
-            )}
-          </Button>
+          <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.2em]">
+            {t("Submit from the sticky action bar once every attendee, acknowledgement, and photo is complete.")}
+          </p>
         </div>
-      </main>
-    </div>
+      </div>
+    </FormShell>
   );
 }

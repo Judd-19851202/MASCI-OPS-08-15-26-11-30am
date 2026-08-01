@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { ShieldCheck, Loader2, ArrowLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
-import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
-import { LangToggle } from "@/components/LangToggle";
+import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setHrToken, setHrUser } from "@/lib/hrAuth";
@@ -66,25 +64,15 @@ export default function HrResetPassword() {
   };
 
   return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-purple-700">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/hr/login"
-            className="inline-flex items-center text-white hover:text-purple-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="hr-reset-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("HR Login")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
+    <PortalLoginShell
+      homeLink="/hr/login"
+      headerBorderClass="border-purple-700"
+      backHoverClass="hover:text-purple-300"
+      backTestId="hr-reset-back"
+      rootTestId="hr-reset-page"
+      footerLabel={t("MASCI · Human Resources Portal")}
+    >
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-purple-700 text-white">
               <ShieldCheck className="w-6 h-6" />
@@ -93,14 +81,12 @@ export default function HrResetPassword() {
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-purple-700">
                 {t("Human Resources")}
               </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
+              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="hr-reset-title">
                 {t("Reset your password")}
               </h1>
             </div>
           </div>
-          <p className="text-slate-600 text-sm mb-6">
-            {t("Pick a new password to finish signing in. You'll be dropped straight into the HR portal once saved.")}
-          </p>
+          <p className="text-slate-600 text-sm mb-6">{t("Pick a new password to finish signing in.")}</p>
 
           <form onSubmit={onSubmit} className="space-y-4" data-testid="hr-reset-form">
             <div>
@@ -141,19 +127,11 @@ export default function HrResetPassword() {
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Saving…")}
                 </>
               ) : (
-                t("Save password &amp; sign in")
+                t("Save password & sign in")
               )}
             </Button>
           </form>
-        </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          {t("MASCI · Human Resources Portal")}
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
+      </div>
+    </PortalLoginShell>
   );
 }
