@@ -67,6 +67,12 @@ These counts are used to choose the next engineering wave from the currently act
 - Auth convergence survivors cleared: safety forgot/reset/change, HR reset, dispatch reset/change, shop reset/change, PM change, dev login
 - FormShell survivors cleared: `NewSafetyEquipmentIssuance.jsx`, `NewSafetyEquipmentTraining.jsx`, `NewEquipmentInspection.jsx`, `NewFleetDVIR.jsx`
 - Section shell survivors cleared: `/field`, `/qaqc`, `/safety`
+- HUNT MODE Field survivors cleared:
+  - `NewDailyReportV3.jsx` public custom-job path no longer calls private cost-code assignment endpoints without a portal token
+  - `sections.jsx` Daily Report signature now emits the governed `dr-v3-signature-canvas` test surface correctly
+  - `/thank-you` no longer mixes English preview-capture body copy in Spanish success states
+  - `FieldLeadershipView.jsx` now restores Spanish-original detail content through bilingual sidecar evidence
+  - `FieldLeadership*` and Equipment/DVIR public flows no longer emit unsupported notification/asset lookup console noise on reopened routes
 
 ## Method Notes
 - The ledger counts are the authoritative platform-wide denominator counts.

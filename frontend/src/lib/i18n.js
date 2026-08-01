@@ -256,6 +256,8 @@ const ES = {
     "Historial de envíos y evidencia para los trabajos que tienes asignados.",
   "Submission outcome": "Resultado del envío",
   "Back to start": "Volver al inicio",
+  "This preview submission was stored successfully. Notification was safely captured for certification and no operational email was sent.":
+    "Este envío de vista previa se almacenó correctamente. La notificación se capturó de forma segura para certificación y no se envió ningún correo operativo.",
   "Read-only field submission with supporting evidence.":
     "Envío de campo de solo lectura con evidencia de respaldo.",
   "Read-only field submission with supporting photos, signatures, and operator context.":

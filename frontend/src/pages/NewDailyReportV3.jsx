@@ -59,6 +59,7 @@ import {
 import DailyReportV3ExcavationSection from "@/components/daily-report-v3/DailyReportV3ExcavationSection";
 import { CheckCircle2, History } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 import FormShell from "@/components/FormShell";
 import { Button } from "@/components/ui/button";
 import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
@@ -453,6 +454,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   // ── Cost code fetch (CostCodeProvider) ─────────────────────
   useEffect(() => {
     let cancelled = false;
+    const hasPortalToken = hasAnyPortalAuthToken();
     if (!data.project_number) {
       setCostCodes([]);
       setProjectCostAssignments([]);
@@ -468,6 +470,13 @@ export default function NewDailyReportV3({ publicMode = false }) {
       .catch(() => {
         if (!cancelled) setCostCodes([]);
       });
+    if (!hasPortalToken) {
+      setProjectCostAssignments([]);
+      setProjectCostProgress(null);
+      return () => {
+        cancelled = true;
+      };
+    }
     api
       .get(`/cost-codes/projects/${encodeURIComponent(data.project_number)}/assignments`)
       .then(({ data: res }) => {

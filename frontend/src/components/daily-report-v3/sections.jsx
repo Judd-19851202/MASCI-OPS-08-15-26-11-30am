@@ -2416,7 +2416,7 @@ export function SectionSignoff({
           <SignaturePad
             value={data.prepared_by_signature || ""}
             onChange={(v) => patch({ prepared_by_signature: v })}
-            data-testid="dr-v3-signature"
+            testId="dr-v3-signature"
           />
         </div>
 
