@@ -8,21 +8,26 @@ import {
   Loader2,
   CloudSun,
   Camera,
+  Users,
+  Building2,
+  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
-import { LangToggle } from "@/components/LangToggle";
 import JobFolderList from "@/components/JobFolderList";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
-import { WhyItMattersPanel } from "@/components/guidance";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { InformationCard } from "@/components/CanonicalCard";
+import { SectionHeading } from "@/components/SectionHeading";
+import EmptyState from "@/components/EmptyState";
 
 export default function DailyReportsDashboard() {
   const { t } = useT();
@@ -79,9 +84,8 @@ export default function DailyReportsDashboard() {
 
   return (
     <PortalShell
-      portalName="MASCI" portalRole={isAdminRoute ? "Admin · Daily Reports" : "PM Portal · Daily Reports"}
-      pageTitle="Today's site activity, captured."
-      subtitle="Daily field reports across all active projects"
+      portalName="MASCI" portalRole={isAdminRoute ? "Administration" : "Project Management"}
+      pageTitle={t("Daily Reports")}
       primaryActions={
         <div className="flex items-center gap-2">
           <ShareFormDialog
@@ -93,7 +97,7 @@ export default function DailyReportsDashboard() {
           />
           <Button
             onClick={() => navigate("/daily/submit")}
-            className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+            size="sm"
             data-testid="new-daily-btn"
           >
             <Plus className="w-4 h-4 mr-1" />
@@ -112,71 +116,52 @@ export default function DailyReportsDashboard() {
             { label: "Daily Reports" },
           ]} />
         ) : null}
-        <div className="mb-8">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            {t("Daily Reports")}
-          </span>
-          <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900 mt-2">
-            {t("Today's site activity, captured.")}
-          </h1>
-          <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-2xl">
-            {t("Crews · subs · visitors · equipment · materials · weather · photos. One record per crew, per day.")}
-          </p>
-        </div>
+        <InformationCard
+          icon={ClipboardList}
+          tone="red"
+          eyebrow={t("Field review")}
+          title={t("Today's site activity, captured.")}
+          description={t("Crews, subs, visitors, equipment, materials, weather, and photos in one governed operational review surface.")}
+          testId="daily-reports-summary"
+          className="mb-8"
+        />
 
-        {/* iter190 — Operational Guidance Center example placement. */}
-        <div className="mb-4">
-          <WhyItMattersPanel title="Why daily reports matter">
-            Daily reports are MASCI&apos;s most-referenced operational record.
-            They support payroll cross-check, project review, dispute
-            resolution, and after-the-fact investigations.{" "}
-            <Link to="/guidance/why-daily-reports" className="text-amber-700 hover:underline font-semibold">
-              Learn more →
-            </Link>
-          </WhyItMattersPanel>
-        </div>
-
-        {/* iter226 — dispatch-reader-side coaching. Server-side RBAC
-            ensures only Tier-2 dispatch + admin tokens see these tips;
-            foremen/operators reading their own filings see nothing
-            here. Anchor: "Read it for movement, not for blame." */}
         <div className="mb-4">
           <HelpTipBlock formKey="dispatch.daily-report-read" showCounter />
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">
-              {t("Recent Reports")}
-            </h2>
+        <SectionHeading
+          index="01"
+          title={t("Recent reports")}
+          subtitle={t("Open the latest field records fast, review the crew activity, and route the next action from one consistent list.")}
+          testId="daily-reports-list-heading"
+        />
+
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-slate-200/80 pb-4">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>{t("Recent Reports")}</CardTitle>
             {!loading && (
-              <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
+              <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500" data-testid="daily-report-count-label">
                 {items.length} {t("on file")}
               </span>
             )}
-          </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
           {loading ? (
             <div className="p-12 flex items-center justify-center text-slate-500">
               <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading...")}
             </div>
           ) : items.length === 0 ? (
-            <div className="p-10 sm:p-16 text-center" data-testid="empty-state">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-md bg-red-700 mb-5">
-                <ClipboardList className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-display text-2xl font-bold text-slate-900">
-                {t("No daily reports yet")}
-              </h3>
-              <p className="text-slate-600 mt-2 max-w-md mx-auto">
-                {t("File one before the crew leaves the site at end of day.")}
-              </p>
-              <Button
-                onClick={() => navigate("/daily/submit")}
-                className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-                data-testid="empty-cta"
-              >
-                <Plus className="w-5 h-5 mr-2" /> {t("File First Report")}
-              </Button>
+            <div className="p-8 sm:p-10">
+              <EmptyState
+                icon={ClipboardList}
+                title={t("No daily reports yet")}
+                body={t("File one before the crew leaves the site at end of day.")}
+                testId="empty-state"
+                action={{ label: t("File First Report"), onClick: () => navigate("/daily/submit"), testId: "empty-cta" }}
+              />
             </div>
           ) : (
             <JobFolderList
@@ -212,9 +197,9 @@ export default function DailyReportsDashboard() {
                           {it.weather_summary}
                         </span>
                       )}
-                      <span>👷 {it.crew_count || 0} {t("crew")}</span>
-                      <span>🤝 {it.sub_count || 0} {t("subs")}</span>
-                      <span>🚶 {it.visitor_count || 0} {t("visitors")}</span>
+                      <span className="inline-flex items-center gap-1"><Users className="w-3.5 h-3.5 text-slate-500" /> {it.crew_count || 0} {t("crew")}</span>
+                      <span className="inline-flex items-center gap-1"><Building2 className="w-3.5 h-3.5 text-slate-500" /> {it.sub_count || 0} {t("subs")}</span>
+                      <span className="inline-flex items-center gap-1"><UserRound className="w-3.5 h-3.5 text-slate-500" /> {it.visitor_count || 0} {t("visitors")}</span>
                       <span className="inline-flex items-center gap-1">
                         <Camera className="w-3.5 h-3.5" /> {it.photo_count || 0}
                       </span>
@@ -225,19 +210,18 @@ export default function DailyReportsDashboard() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Link
-                      to={`${dailyReportDetailBase}/${it.id}`}
-                      state={{ returnTo: pathname }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
-                      data-testid={`view-${it.id}`}
-                    >
-                      <Eye className="w-4 h-4 mr-1" /> {t("View")}
-                    </Link>
+                    <Button asChild size="sm" data-testid={`view-${it.id}`}>
+                      <Link
+                        to={`${dailyReportDetailBase}/${it.id}`}
+                        state={{ returnTo: pathname }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye className="w-4 h-4 mr-1" /> {t("View")}
+                      </Link>
+                    </Button>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                       onClick={(e) => handleDelete(it.id, e)}
                       data-testid={`delete-${it.id}`}
                       aria-label="Delete daily report"
@@ -250,7 +234,8 @@ export default function DailyReportsDashboard() {
               )}
             />
           )}
-        </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
     </PortalShell>

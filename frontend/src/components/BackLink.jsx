@@ -32,7 +32,7 @@ function autoTarget() {
   if (isPm()) return { to: "/pm", label: "Project Management" };
   if (isHr()) return { to: "/hr", label: "Human Resources" };
   if (isShop()) return { to: "/shop", label: "Shop Operations" };
-  return { to: "/", label: "Hub" };
+  return { to: "/", label: "Home" };
 }
 
 /**

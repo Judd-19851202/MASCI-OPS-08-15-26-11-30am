@@ -70,12 +70,12 @@ function grossNetLine(start, stop, lunchMin) {
 }
 
 const ReportSection = ({ number, title, children }) => (
-  <section className="bg-white border border-slate-200 rounded-[1.5rem] p-5 sm:p-7 print:break-inside-avoid shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
-    <div className="flex items-baseline gap-3 mb-4 pb-2 border-b-2 border-slate-200">
-      <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
+  <section className="wp17-panel rounded-[1.5rem] p-5 sm:p-7 print:break-inside-avoid shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
+    <div className="flex items-baseline gap-3 mb-4 pb-3 border-b border-slate-200/80">
+      <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold">
         Section {number}
       </span>
-      <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
+      <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-slate-900">
         {title}
       </h2>
     </div>
@@ -322,7 +322,6 @@ export default function ViewDailyReport() {
                 variant="outline"
                 size="icon"
                 onClick={handleDelete}
-                className="h-11 w-11 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700"
                 data-testid="delete-btn"
                 aria-label="Delete daily report"
                 title="Delete"
@@ -332,14 +331,14 @@ export default function ViewDailyReport() {
               <Button
                 variant="outline"
                 onClick={() => setEmailOpen(true)}
-                className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm"
+                size="sm"
                 data-testid="email-btn"
               >
                 <Mail className="w-4 h-4 mr-1" /> {t("Email")}
               </Button>
               <Button
                 onClick={printReport}
-                className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm"
+                size="sm"
                 data-testid="print-btn"
               >
                 <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
@@ -350,12 +349,12 @@ export default function ViewDailyReport() {
             <>
               <RefKicker recordId={data.report_number || data.id} testId="view-daily-ref" />
               {data.doc_id ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-800" data-testid="record-doc-id-badge">
+                <span className="wp17-status-badge wp17-tone--red" data-testid="record-doc-id-badge">
                   <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
                   {data.doc_id}
                 </span>
               ) : null}
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+              <span className="wp17-status-badge wp17-tone--slate">
                 {t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}
                 {data.report_number ? ` · #${data.report_number}` : ""}
               </span>
@@ -363,7 +362,7 @@ export default function ViewDailyReport() {
             </>
           }
           toolbar={isHrReadOnly ? (
-            <div className="rounded-full border border-slate-300 bg-white px-3 py-1 text-[10px] font-mono uppercase tracking-[0.22em] font-bold text-slate-600" data-testid="hr-readonly-badge">
+            <div className="wp17-status-badge wp17-tone--slate" data-testid="hr-readonly-badge">
               {t("Read-only · HR")}
             </div>
           ) : null}
@@ -484,7 +483,7 @@ export default function ViewDailyReport() {
           {data.weather_snapshots?.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 mt-3">
               {data.weather_snapshots.map((s, i) => (
-                <div key={i} className="border border-slate-200 rounded-md p-3 print-row">
+                <div key={i} className="wp17-result-tile print-row">
                   <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold">
                     {s.time}
                   </div>
@@ -515,7 +514,7 @@ export default function ViewDailyReport() {
             )}
             {(data.safety_incidents_today === "Yes" ||
               data.injuries_reported === "Yes") && (
-              <div className="lg:col-span-2 mt-2 border-2 border-red-600 bg-red-50 rounded-md p-3">
+              <div className="lg:col-span-2 mt-2 rounded-[1.1rem] border border-red-300 bg-red-50 p-4">
                 <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold mb-2">
                   {t("Safety Escalation")}
                 </div>
@@ -554,7 +553,7 @@ export default function ViewDailyReport() {
 
         {acceptedSummary && (
           <ReportSection number="03b" title={t("Operational Summary") }>
-            <div className="rounded-md border border-slate-200 bg-white p-4" data-testid="view-dr-operational-summary">
+            <div className="wp17-result-tile" data-testid="view-dr-operational-summary">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">
                 {formatSummarySource(acceptedSummaryMeta.source, t)}
               </div>

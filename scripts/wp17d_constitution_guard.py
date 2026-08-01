@@ -104,6 +104,45 @@ CHECKS = [
         "min_hits": 2,
     },
     {
+        "name": "field_wave_no_hub_language",
+        "file": ROOT / "frontend/src/components/BackLink.jsx",
+        "patterns": [re.compile(r'label:\s*"Hub"')],
+        "max_hits": 0,
+    },
+    {
+        "name": "field_wave_no_ui_emoji_shortcuts",
+        "file": ROOT / "frontend/src/pages/DailyReportsDashboard.jsx",
+        "patterns": [re.compile(r'👷|🤝|🚶')],
+        "max_hits": 0,
+    },
+    {
+        "name": "field_wave_no_local_calculator_buttons",
+        "file": ROOT / "frontend/src/pages/MaterialCalculators.jsx",
+        "patterns": [
+            re.compile(r'bg-amber-600'),
+            re.compile(r'border-2 border-slate-300'),
+        ],
+        "max_hits": 0,
+    },
+    {
+        "name": "field_wave_no_local_daily_report_cta_styles",
+        "file": ROOT / "frontend/src/pages/ViewDailyReport.jsx",
+        "patterns": [
+            re.compile(r'bg-red-700'),
+            re.compile(r'uppercase tracking-wide'),
+        ],
+        "max_hits": 0,
+    },
+    {
+        "name": "field_wave_no_local_equipment_header",
+        "file": ROOT / "frontend/src/pages/ViewEquipmentInspection.jsx",
+        "patterns": [
+            re.compile(r'<header className=`bg-slate-900'),
+            re.compile(r'MasciLogo'),
+        ],
+        "max_hits": 0,
+    },
+    {
         "name": "logo_home_behavior",
         "file": ROOT / "frontend/src/components/MasciLogo.jsx",
         "patterns": [re.compile(r'aria-label="Go to MASCI Operations Platform Home"')],

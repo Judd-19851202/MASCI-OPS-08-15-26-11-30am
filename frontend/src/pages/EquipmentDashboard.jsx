@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Wrench, Eye, Trash2, Loader2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
@@ -16,6 +17,9 @@ import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
+import { InformationCard } from "@/components/CanonicalCard";
+import { SectionHeading } from "@/components/SectionHeading";
+import EmptyState from "@/components/EmptyState";
 
 export default function EquipmentDashboard() {
   const [items, setItems] = useState([]);
@@ -38,10 +42,10 @@ export default function EquipmentDashboard() {
   // UXS-11E: pick sidebar matching the host portal.
   const sideNav = isPmContext ? <PmSideNavV2 /> : renderAdminRouteSideNav();
   const portalRole = isPmContext
-    ? "PM Portal · Equipment"
+    ? "Project Management"
     : isShopContext
-      ? "Shop Portal · Equipment"
-      : "Admin · Equipment";
+      ? "Shop Operations"
+      : "Administration";
 
   const load = async () => {
     setLoading(true);
@@ -83,8 +87,7 @@ export default function EquipmentDashboard() {
     <PortalShell
       portalName="MASCI"
       portalRole={portalRole}
-      pageTitle="Daily Walk-Arounds"
-      subtitle="OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job."
+      pageTitle="Equipment Pre-Op"
       sideNav={sideNav}
       primaryActions={
         !isPmContext ? (
@@ -98,7 +101,7 @@ export default function EquipmentDashboard() {
             />
             <Button
               onClick={() => navigate("/equipment/new")}
-              className="h-9 px-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
+              size="sm"
               data-testid="new-equipment-btn"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -116,27 +119,44 @@ export default function EquipmentDashboard() {
             { label: "Equipment Pre-Op" },
           ]} />
         ) : null}
-        <div className="mb-6">
-          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
-            Equipment Pre-Op Inspections
-          </span>
-          {failCount > 0 && (
-            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-50 border-2 border-red-700 text-red-800 font-mono text-xs font-bold uppercase tracking-[0.15em]">
-              <AlertOctagon className="w-4 h-4" /> {failCount} unit{failCount === 1 ? "" : "s"} flagged FAIL
+        <InformationCard
+          icon={Wrench}
+          tone="slate"
+          eyebrow="Field readiness"
+          title="Daily Walk-Arounds"
+          description="OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job. Review the latest condition, open issues, and cleared units from one governed surface."
+          testId="equipment-dashboard-summary"
+          className="mb-8"
+        >
+          {failCount > 0 ? (
+            <div className="pt-1">
+              <span className="wp17-status-badge wp17-tone--red" data-testid="equipment-dashboard-fail-badge">
+                <AlertOctagon className="w-3.5 h-3.5" /> {failCount} unit{failCount === 1 ? "" : "s"} flagged fail
+              </span>
             </div>
-          )}
-        </div>
+          ) : null}
+        </InformationCard>
 
-        <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Pre-Op Trends &amp; Recent Inspections</h2>
+        <SectionHeading
+          index="01"
+          title="Pre-Op trends and inspections"
+          subtitle="Monitor current condition, open issues, and the latest inspection records without switching visual systems."
+          testId="equipment-dashboard-heading"
+        />
+
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-slate-200/80 pb-4">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Pre-Op Trends &amp; Recent Inspections</CardTitle>
             {!loading && (
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
                 {items.length} on file
               </span>
             )}
-          </div>
-          <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+          <div className="p-4 sm:p-5 border-b border-slate-100">
             {!isPmContext && <EquipmentTrendsPanel />}
             {isPmContext && (
               <p className="text-sm text-slate-600">
@@ -145,12 +165,12 @@ export default function EquipmentDashboard() {
             )}
           </div>
           {!isPmContext && (
-            <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+            <div className="p-4 sm:p-5 border-b border-slate-100">
               <OpenItemsPanel baseHref="/admin/equipment" testIdPrefix="admin-open" />
             </div>
           )}
           {!isPmContext && (
-            <div className="p-4 sm:p-5 border-b-2 border-slate-100">
+            <div className="p-4 sm:p-5 border-b border-slate-100">
               <ShopActivityFeed baseHref="/admin/equipment" testIdPrefix="admin-activity" />
             </div>
           )}
@@ -159,27 +179,16 @@ export default function EquipmentDashboard() {
               <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
             </div>
           ) : items.length === 0 ? (
-            <div className="p-10 sm:p-16 text-center" data-testid="empty-state">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-md bg-slate-800 mb-5">
-                <Wrench className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-display text-2xl font-bold text-slate-900">
-                {isPmContext ? "No inspections for your projects yet" : "No equipment inspections yet"}
-              </h3>
-              <p className="text-slate-600 mt-2 max-w-md mx-auto">
-                {isPmContext
+            <div className="p-8 sm:p-10">
+              <EmptyState
+                icon={Wrench}
+                title={isPmContext ? "No inspections for your projects yet" : "No equipment inspections yet"}
+                body={isPmContext
                   ? "When a pre-op inspection is filed on one of your assigned projects, it will appear here."
                   : "Run a daily pre-op inspection on any unit to log its condition."}
-              </p>
-              {!isPmContext && (
-                <Button
-                  onClick={() => navigate("/equipment/new")}
-                  className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
-                  data-testid="empty-cta"
-                >
-                  <Plus className="w-5 h-5 mr-2" /> File First Inspection
-                </Button>
-              )}
+                testId="empty-state"
+                action={!isPmContext ? { label: "File First Inspection", onClick: () => navigate("/equipment/new"), testId: "empty-cta" } : null}
+              />
             </div>
           ) : (
             <JobFolderList
@@ -204,12 +213,12 @@ export default function EquipmentDashboard() {
                           {it.equipment_type} · {it.equipment_unit}
                         </span>
                         {fail && !cleared && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-700 text-white text-[10px] font-mono uppercase tracking-wider rounded">
+                          <span className="wp17-status-badge wp17-tone--red">
                             <AlertOctagon className="w-3 h-3" /> {it.fail_count} FAIL
                           </span>
                         )}
                         {cleared && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-mono uppercase tracking-wider rounded" data-testid={`cleared-badge-${it.id}`}>
+                          <span className="wp17-status-badge wp17-tone--emerald" data-testid={`cleared-badge-${it.id}`}>
                             ✓ CLEARED TO OPERATE
                           </span>
                         )}
@@ -222,19 +231,18 @@ export default function EquipmentDashboard() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Link
-                        to={`${pathname}/${it.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
-                        data-testid={`view-${it.id}`}
-                      >
-                        <Eye className="w-4 h-4 mr-1" /> View
-                      </Link>
+                      <Button asChild size="sm" data-testid={`view-${it.id}`}>
+                        <Link
+                          to={`${pathname}/${it.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Eye className="w-4 h-4 mr-1" /> View
+                        </Link>
+                      </Button>
                       {!isPmContext && (
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-10 w-10 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                           onClick={(e) => handleDelete(it.id, e)}
                           data-testid={`delete-${it.id}`}
                           aria-label="Delete equipment"
@@ -249,7 +257,8 @@ export default function EquipmentDashboard() {
               }}
             />
           )}
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </PortalShell>
   );

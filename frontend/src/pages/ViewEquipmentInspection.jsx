@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Printer, Loader2, Trash2, Mail, AlertOctagon, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MasciLogo } from "@/components/MasciLogo";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefKicker } from "@/components/RefKicker";
 import BackLink from "@/components/BackLink";
 import { api } from "@/lib/api";
@@ -36,13 +36,13 @@ const KV = ({ label, value, full = false }) => (
 const StatusPill = ({ status }) => {
   const { t } = useT();
   const map = {
-    pass: { cls: "bg-emerald-600 text-white", label: t("PASS") },
-    fail: { cls: "bg-red-700 text-white", label: t("FAIL") },
-    na: { cls: "bg-slate-500 text-white", label: t("N/A") },
+    pass: { cls: "wp17-status-badge wp17-tone--emerald", label: t("PASS") },
+    fail: { cls: "wp17-status-badge wp17-tone--red", label: t("FAIL") },
+    na: { cls: "wp17-status-badge wp17-tone--slate", label: t("N/A") },
   };
-  const v = map[status] || { cls: "bg-slate-300 text-slate-700", label: "—" };
+  const v = map[status] || { cls: "wp17-status-badge wp17-tone--slate", label: "—" };
   return (
-    <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-mono font-black tracking-[0.1em] ${v.cls}`}>
+    <span className={`inline-flex items-center justify-center ${v.cls}`}>
       {v.label}
     </span>
   );
@@ -65,8 +65,6 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
   const backHref = isShopContext
     ? "/shop"
     : (pathname.replace(/\/[^/]+$/, "") || "/admin/equipment");
-  const headerAccent = isShopContext ? "border-amber-500" : "border-red-700";
-
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -140,36 +138,34 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
       <PrintWatermark />
       <div className="caution-stripe print:hidden" />
 
-      <header className={`bg-slate-900 border-b-4 ${headerAccent} print:hidden`}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 print:py-0 space-y-5">
+        <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
           <BackLink
             to={backHref}
-            label={isShopContext ? t("Shop") : t("All Inspections")}
-            variant="header"
+            label={isShopContext ? t("Shop Operations") : t("Equipment Pre-Op")}
+            variant="body"
             testId="back-link"
           />
-          <MasciLogo variant="mark" size="md" homeLink={isShopContext ? "/shop" : "/admin"} />
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setEmailOpen(true)} className="h-10 px-3 bg-slate-700 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="email-btn">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={() => setEmailOpen(true)} variant="outline" size="sm" data-testid="email-btn">
               <Mail className="w-4 h-4 mr-1" /> {t("Email")}
             </Button>
-            <Button onClick={() => printReport()} className="h-10 px-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs" data-testid="print-btn">
+            <Button onClick={() => printReport()} size="sm" data-testid="print-btn">
               <Printer className="w-4 h-4 mr-1" /> {t("Print")}
             </Button>
             {isAdmin() && (
-              <Button onClick={onDelete} variant="outline" className="h-10 px-3 border-2 border-red-700 text-red-700 hover:bg-red-50 font-bold uppercase tracking-wide text-xs" data-testid="delete-btn">
+              <Button onClick={onDelete} variant="outline" size="sm" data-testid="delete-btn">
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
           </div>
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 print:py-0 space-y-5">
-        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
+        <Card className="print-section">
+          <CardContent className="p-5 sm:p-7">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
-              <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">Equipment Pre-Op Inspection</span>
+              <span className="font-mono text-xs uppercase tracking-[0.22em] text-red-700">{t("Equipment Pre-Op Inspection")}</span>
               {/* iter336 · review-side reference continuity */}
               <RefKicker
                 recordId={data.inspection_number || data.id}
@@ -182,10 +178,10 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               <div className="text-sm text-slate-600 mt-2 flex items-center gap-2 flex-wrap">
                 {data.doc_id && (
                   <span
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 border border-red-300 text-red-800 font-bold text-xs tabular-nums tracking-wide font-mono"
+                    className="wp17-status-badge wp17-tone--red"
                     data-testid="record-doc-id-badge"
                   >
-                    <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">Doc ID</span>
+                    <span className="text-[9px] uppercase tracking-[0.22em]">Doc ID</span>
                     {data.doc_id}
                   </span>
                 )}
@@ -198,7 +194,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               )}
             </div>
             {fail && (
-              <div className="bg-red-50 border-2 border-red-700 rounded px-4 py-2 flex items-center gap-2">
+              <div className="wp17-status-badge wp17-tone--red !px-4 !py-2 flex items-center gap-2">
                 <AlertOctagon className="w-5 h-5 text-red-700" />
                 <span className="font-display font-black text-red-700 text-sm uppercase tracking-wide">
                   Fail — Out of Service
@@ -206,35 +202,36 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               </div>
             )}
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-          <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Project & Operator</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+        <Card className="print-section">
+          <CardHeader className="pb-4"><CardTitle>Project & Operator</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <KV label="Project" value={data.project_name} />
             <KV label="Project #" value={data.project_number} />
             <KV label="Location" value={data.location} full />
             <KV label="Operator" value={formatEmployeeIdentity(data) || data.operator_name} />
             <KV label="Date / Time" value={`${data.inspection_date} ${data.inspection_time}`} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-          <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Equipment</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+        <Card className="print-section">
+          <CardHeader className="pb-4"><CardTitle>Equipment</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <KV label="Type" value={data.equipment_type} />
             <KV label="Unit" value={data.equipment_unit} />
             <KV label="Make" value={data.equipment_make} />
             <KV label="Model" value={data.equipment_model} />
             <KV label="Serial #" value={data.equipment_serial} />
             <KV label="Hour Meter / Odometer" value={data.hour_meter || data.odometer} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Tally */}
-        <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-          <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">{t("Inspection Summary")}</h2>
-          <div className="flex flex-wrap items-center gap-4">
+        <Card className="print-section">
+          <CardHeader className="pb-4"><CardTitle>{t("Inspection Summary")}</CardTitle></CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-4">
             <div className="text-center">
               <div className="font-display text-3xl font-black text-emerald-700" data-testid="view-pass-count">{data.pass_count || 0}</div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">{t("Pass")}</div>
@@ -248,20 +245,18 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">{t("N/A")}</div>
             </div>
             <div className="ml-auto">
-              <div className={`px-4 py-2 rounded font-mono text-xs font-black uppercase tracking-[0.2em] ${
-                fail ? "bg-red-700 text-white" : "bg-emerald-600 text-white"
-              }`}>
+              <div className={`wp17-status-badge ${fail ? "wp17-tone--red" : "wp17-tone--emerald"} !px-4 !py-2`}>
                 {fail ? "Out of Service" : "Cleared to Operate"}
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Checklist sections */}
         {Object.entries(data.checklist || {}).map(([sectionTitle, items]) => (
-          <div key={sectionTitle} className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-            <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">{sectionTitle}</h2>
-            <div className="space-y-2">
+          <Card key={sectionTitle} className="print-section">
+            <CardHeader className="pb-4"><CardTitle>{sectionTitle}</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
               {Object.entries(items).map(([item, res]) => {
                 const isFail = res?.status === "fail";
                 const sev = isFail ? itemSeverity(item) : null;
@@ -285,7 +280,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
                           </span>
                         )}
                         {res?.note && (
-                          <div className="text-xs text-slate-500 italic mt-0.5">↳ {res.note}</div>
+                          <div className="text-xs text-slate-500 italic mt-0.5">{res.note}</div>
                         )}
                         {res?.photo && (
                           <PhotoLightbox
@@ -318,31 +313,33 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
                   </div>
                 );
               })}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
 
         {(data.deficiency_notes || data.corrective_actions) && (
-          <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-            <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Notes & Corrective Actions</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+          <Card className="print-section">
+            <CardHeader className="pb-4"><CardTitle>Notes & Corrective Actions</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
               <KV label="Deficiencies" value={data.deficiency_notes} />
               <KV label="Corrective Actions" value={data.corrective_actions} />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {data.photos && data.photos.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-slate-200">
-              <h2 className="font-display text-xl font-black text-slate-900">Photos ({data.photos.length})</h2>
+          <Card className="print-section">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle>Photos ({data.photos.length})</CardTitle>
               <PhotoZipDownload
                 photos={data.photos}
                 prefix={`MASCI_Equipment_${(data.id || id || "").slice(0, 8)}_photos`}
                 testId="equipment-photos-zip"
               />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {data.photos.map((p, i) => (
                 <PhotoLightbox
                   key={i}
@@ -355,16 +352,18 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
                   <img src={resolvePhotoSrc(p)} alt={`Photo ${i + 1}`} loading="lazy" decoding="async" className="w-full aspect-[4/3] object-cover rounded border border-slate-200" />
                 </PhotoLightbox>
               ))}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {data.operator_signature && (
-          <div className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
-            <h2 className="font-display text-xl font-black text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">Sign-Off</h2>
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {formatEmployeeIdentity(data) || data.operator_name}</div>
-            <img src={resolvePhotoSrc(data.operator_signature)} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />
-          </div>
+          <Card className="print-section">
+            <CardHeader className="pb-4"><CardTitle>Sign-Off</CardTitle></CardHeader>
+            <CardContent>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {formatEmployeeIdentity(data) || data.operator_name}</div>
+              <img src={resolvePhotoSrc(data.operator_signature)} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />
+            </CardContent>
+          </Card>
         )}
       </main>
 

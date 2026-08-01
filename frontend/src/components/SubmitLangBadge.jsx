@@ -1,5 +1,5 @@
 import React from "react";
-import { Languages } from "lucide-react";
+import { SemanticIcon } from "@/components/icons/AppIcon";
 
 /**
  * SubmitLangBadge — tiny chip rendered on admin-facing record views (and
@@ -17,15 +17,10 @@ export function SubmitLangBadge({ lang, className = "" }) {
   return (
     <span
       data-testid="submit-lang-badge"
-      className={
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded " +
-        "bg-amber-100 text-amber-900 border border-amber-300 " +
-        "font-mono text-[10px] font-bold uppercase tracking-[0.15em] " +
-        className
-      }
+      className={`wp17-status-badge wp17-tone--amber ${className}`}
       title="Originally entered in Spanish by the field crew. The record below was auto-translated to English at submit time."
     >
-      <Languages className="w-3 h-3" />
+      <SemanticIcon name="language" size="xs" />
       Originally entered in Spanish
     </span>
   );

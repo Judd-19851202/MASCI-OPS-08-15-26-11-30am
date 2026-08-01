@@ -183,10 +183,7 @@ function NumberInput({ value, onChange, min = 0, step = "any", testid, placehold
 function Result({ label, value, unit, testid, strong }) {
   return (
     <div
-      className={
-        "rounded border-2 px-3 py-3 " +
-        (strong ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-slate-50")
-      }
+      className={cn("wp17-result-tile", strong && "wp17-result-tile--strong")}
       data-testid={testid}
     >
       <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-slate-600 font-bold">
@@ -227,29 +224,13 @@ function ThicknessRow({ value, setValue, unit, setUnit, t, testid }) {
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold block mb-1">
           {t("Unit")}
         </span>
-        <div className="inline-flex rounded border-2 border-slate-300 overflow-hidden">
-          <button
-            type="button"
-            className={
-              "px-3 h-12 font-mono text-xs font-bold uppercase tracking-[0.15em] " +
-              (unit === "in" ? "bg-slate-900 text-white" : "bg-white text-slate-600")
-            }
-            onClick={() => setUnit("in")}
-            data-testid={`${testid}-unit-in`}
-          >
+        <div className="wp17-segmented">
+          <Button type="button" variant={unit === "in" ? "default" : "ghost"} size="sm" className="font-mono text-[11px] uppercase tracking-[0.15em]" onClick={() => setUnit("in")} data-testid={`${testid}-unit-in`}>
             {t("inches")}
-          </button>
-          <button
-            type="button"
-            className={
-              "px-3 h-12 font-mono text-xs font-bold uppercase tracking-[0.15em] " +
-              (unit === "ft" ? "bg-slate-900 text-white" : "bg-white text-slate-600")
-            }
-            onClick={() => setUnit("ft")}
-            data-testid={`${testid}-unit-ft`}
-          >
+          </Button>
+          <Button type="button" variant={unit === "ft" ? "default" : "ghost"} size="sm" className="font-mono text-[11px] uppercase tracking-[0.15em]" onClick={() => setUnit("ft")} data-testid={`${testid}-unit-ft`}>
             {t("feet")}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -261,7 +242,9 @@ function ActionRow({ onCalc, onReset, onSave, saved, t, testidPrefix }) {
     <div className="flex flex-wrap gap-2 mt-4">
       <Button
         onClick={onCalc}
-        className="h-11 px-5 bg-amber-600 hover:bg-amber-700 text-white font-bold"
+        variant="default"
+        size="default"
+        className="h-11 px-5"
         data-testid={`${testidPrefix}-calc`}
       >
         <Calculator className="w-4 h-4 mr-2" />
@@ -270,7 +253,7 @@ function ActionRow({ onCalc, onReset, onSave, saved, t, testidPrefix }) {
       <Button
         onClick={onReset}
         variant="outline"
-        className="h-11 px-5 font-bold"
+        className="h-11 px-5"
         data-testid={`${testidPrefix}-reset`}
       >
         <RotateCcw className="w-4 h-4 mr-2" />
@@ -278,8 +261,8 @@ function ActionRow({ onCalc, onReset, onSave, saved, t, testidPrefix }) {
       </Button>
       <Button
         onClick={onSave}
-        variant="outline"
-        className="h-11 px-5 font-bold border-slate-400"
+        variant={saved ? "secondary" : "outline"}
+        className="h-11 px-5"
         data-testid={`${testidPrefix}-save`}
         disabled={saved}
       >
@@ -386,7 +369,7 @@ function AggregatePanel({ lang, t }) {
           <select
             value={material}
             onChange={(e) => onMaterialChange(e.target.value)}
-            className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white"
+            className="h-12 w-full px-3 text-base bg-white"
             data-testid="agg-material"
           >
             {AGGREGATE_DENSITIES.map((d) => (
@@ -626,7 +609,7 @@ function TruckLoadPanel({ lang, t }) {
         </Field>
         <Field label={t("Unit")}>
           <select value={totalUnit} onChange={(e) => setTotalUnit(e.target.value)}
-            className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white" data-testid="tl-unit">
+            className="h-12 w-full px-3 text-base bg-white" data-testid="tl-unit">
             <option value="tons">{t("tons")}</option>
             <option value="cy">{t("cubic yards")}</option>
           </select>
@@ -636,7 +619,7 @@ function TruckLoadPanel({ lang, t }) {
         </Field>
         <Field label={t("Truck capacity unit")}>
           <select value={truckUnit} onChange={(e) => setTruckUnit(e.target.value)}
-            className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white" data-testid="tl-cap-unit">
+            className="h-12 w-full px-3 text-base bg-white" data-testid="tl-cap-unit">
             <option value="tons">{t("tons")}</option>
             <option value="cy">{t("cubic yards")}</option>
           </select>
@@ -707,7 +690,7 @@ function YieldWastePanel({ lang, t }) {
         </Field>
         <Field label={t("Unit")}>
           <select value={unit} onChange={(e) => setUnit(e.target.value)}
-            className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white" data-testid="yw-unit">
+            className="h-12 w-full px-3 text-base bg-white" data-testid="yw-unit">
             <option value="tons">{t("tons")}</option>
             <option value="cy">{t("cubic yards")}</option>
             <option value="cf">{t("cubic feet")}</option>
@@ -779,7 +762,7 @@ function ConversionPanel({ lang, t }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <Field label={t("Direction")}>
           <select value={direction} onChange={(e) => setDirection(e.target.value)}
-            className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white" data-testid="conv-direction">
+            className="h-12 w-full px-3 text-base bg-white" data-testid="conv-direction">
             <option value="tons_to_cy">{t("Tons → Cubic Yards")}</option>
             <option value="cy_to_tons">{t("Cubic Yards → Tons")}</option>
           </select>
@@ -789,7 +772,7 @@ function ConversionPanel({ lang, t }) {
         </Field>
         <Field label={t("Material")}>
           <select value={material} onChange={(e) => onMaterialChange(e.target.value)}
-            className="h-12 w-full border-2 border-slate-300 rounded px-3 text-base bg-white" data-testid="conv-material">
+            className="h-12 w-full px-3 text-base bg-white" data-testid="conv-material">
             {AGGREGATE_DENSITIES.map((d) => (
               <option key={d.key} value={d.key}>{t(d.label)}</option>
             ))}
