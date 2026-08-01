@@ -146,6 +146,24 @@
   color: var(--wp17-muted);
 }
 
+.wp17-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--wp17-focus-ring);
+}
+
+.wp17-control {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.wp17-control:hover {
+  border-color: color-mix(in srgb, var(--border-bold) 75%, #94a3b8);
+}
+
+.wp17-control:focus-visible {
+  border-color: var(--brand-primary);
+}
+
 .wp17-grid-bg,
 .wp17-public-shell,
 .wp17-shell {
@@ -1042,6 +1060,137 @@
 .wp17-cta--lg { min-height: 3.25rem; padding: 0.8rem 1.28rem; font-size: 1rem; }
 .wp17-cta--icon { width: 3rem; height: 3rem; padding: 0; }
 
+.wp17-form-alert {
+  border-radius: 1rem;
+  border: 1px solid var(--wp17-tone-soft-border);
+  background: var(--wp17-tone-soft-bg);
+  padding: 0.9rem 1rem;
+}
+
+.wp17-choice-row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.wp17-choice-button {
+  min-height: 2.75rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(27, 52, 87, 0.14);
+  background: rgba(255,255,255,0.96);
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp17-muted);
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.wp17-choice-button:hover,
+.wp17-choice-button:focus-visible {
+  border-color: rgba(27, 52, 87, 0.28);
+  color: var(--wp17-navy-900);
+}
+
+.wp17-choice-button:focus-visible {
+  outline: none;
+  box-shadow: var(--wp17-focus-ring);
+}
+
+.wp17-choice-button--active-slate {
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--wp17-navy-900), #1d3359);
+  color: white;
+}
+
+.wp17-choice-button--active-emerald {
+  border-color: transparent;
+  background: linear-gradient(180deg, #0f766e, #0d5d57);
+  color: white;
+}
+
+.wp17-choice-button--active-red {
+  border-color: transparent;
+  background: linear-gradient(180deg, #b42318, #971c13);
+  color: white;
+}
+
+.wp17-choice-button--active-amber {
+  border-color: transparent;
+  background: linear-gradient(180deg, #c27b1c, #9d6416);
+  color: white;
+}
+
+.wp17-sticky-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.wp17-sticky-action-note {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.wp17-floating-tally {
+  position: sticky;
+  bottom: 5.75rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(27, 52, 87, 0.12);
+  background: rgba(255,255,255,0.96);
+  padding: 0.85rem 1rem;
+  box-shadow: 0 18px 36px rgba(15,23,42,0.08);
+  backdrop-filter: blur(16px);
+}
+
+.wp17-floating-tally--compact {
+  width: fit-content;
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+}
+
+.wp17-inline-note {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(27, 52, 87, 0.08);
+  background: rgba(255,255,255,0.9);
+  padding: 0.95rem 1rem;
+}
+
+.wp17-modal-surface {
+  width: 100%;
+  max-width: 32rem;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(180,35,24,0.18);
+  background: white;
+  box-shadow: 0 34px 70px rgba(15,23,42,0.22);
+}
+
+.wp17-modal-surface__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1.25rem 1.35rem;
+  background: linear-gradient(180deg, #b42318, #971c13);
+  color: white;
+}
+
+.wp17-modal-surface__body {
+  padding: 1.25rem 1.35rem;
+}
+
 .wp17-result-tile {
   border-radius: 1.15rem;
   border: 1px solid rgba(28, 59, 102, 0.14);
@@ -1380,6 +1529,15 @@
 
   .wp17-section-heading__subtitle {
     font-size: 0.8rem;
+  }
+
+  .wp17-sticky-action-bar {
+    flex-wrap: wrap;
+  }
+
+  .wp17-floating-tally {
+    bottom: 5.5rem;
+    padding: 0.8rem 0.9rem;
   }
 
   .masci-canonical-header__row--global {

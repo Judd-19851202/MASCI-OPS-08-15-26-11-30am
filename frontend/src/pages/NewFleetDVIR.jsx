@@ -55,18 +55,19 @@ import { ProgressRail } from "@/components/ProgressRail";
 import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
 const inputCls =
-  "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2";
+  "h-14 text-base";
 
 // PASS / FAIL / NA button group — large tap targets · gloves-friendly.
 function PassFailNaButtons({ value, onChange, testId, t }) {
   const opts = [
-    { v: "pass", label: t("PASS"), bg: "bg-emerald-600 hover:bg-emerald-700", text: "text-white" },
-    { v: "fail", label: t("FAIL"), bg: "bg-amber-600 hover:bg-amber-700", text: "text-white" },
-    { v: "na",   label: t("N/A"),  bg: "bg-slate-500 hover:bg-slate-600",   text: "text-white" },
+    { v: "pass", label: t("PASS") },
+    { v: "fail", label: t("FAIL") },
+    { v: "na", label: t("N/A") },
   ];
   return (
     <div className="grid grid-cols-3 gap-1.5" data-testid={testId}>
@@ -78,11 +79,10 @@ function PassFailNaButtons({ value, onChange, testId, t }) {
             type="button"
             onClick={() => onChange(o.v)}
             data-testid={`${testId}-${o.v}`}
-            className={`h-11 sm:h-12 px-0.5 sm:px-1 rounded-md text-[11px] sm:text-sm font-bold uppercase tracking-tight sm:tracking-wide transition-colors border-2 min-w-0 truncate ${
-              active
-                ? `${o.bg} ${o.text} border-transparent shadow-sm`
-                : "bg-white text-slate-700 border-slate-300 hover:border-slate-500"
-            }`}
+            className={cn(
+              "wp17-choice-button h-11 sm:h-12 px-0.5 sm:px-1 min-w-0 truncate",
+              active && (o.v === "pass" ? "wp17-choice-button--active-emerald" : o.v === "fail" ? "wp17-choice-button--active-amber" : "wp17-choice-button--active-slate")
+            )}
           >
             {o.label}
           </button>
@@ -493,7 +493,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             {t("DVIR form unavailable")}
           </h2>
           <p className="text-sm text-slate-700 mb-4">{metaError || t("Please reload.")}</p>
-          <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white">
+          <Button asChild>
             <Link to="/field">{t("Back to Field")}</Link>
           </Button>
         </div>
@@ -539,15 +539,17 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       widthClass="max-w-6xl"
       containerTestId="dvir-form-shell"
       stickyFooter={(
-        <div className="flex items-center justify-between gap-3" data-testid="dvir-form-actions">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+        <div className="wp17-sticky-action-bar" data-testid="dvir-form-actions">
+          <div className="wp17-sticky-action-note hidden sm:block">
             {blockReason ? blockReason : t("Ready to submit · fleet routing will run automatically")}
           </div>
           <Button
             type="button"
             onClick={submit}
             disabled={!!blockReason || submitting}
-            className="h-12 px-6 text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white disabled:bg-slate-300 disabled:text-slate-500 ml-auto"
+            size="lg"
+            variant={blockReason ? "secondary" : "default"}
+            className="ml-auto min-w-[13rem]"
             data-testid="dvir-submit-sticky"
           >
             {submitting ? (
@@ -560,7 +562,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       )}
     >
       <div className="pb-20" data-testid="fleet-dvir-form" data-modernized="dvir-modernized">
-        <div className="rounded-2xl border border-amber-100 bg-white/85 p-4 shadow-sm mb-6" data-testid="dvir-form-summary">
+        <div className="wp17-inline-note mb-6" data-testid="dvir-form-summary">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700">{formCopy.kicker}</div>
@@ -569,7 +571,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             <div className="flex items-center gap-2">
               {!online && (
                 <span
-                  className="inline-flex items-center gap-1 text-amber-700 text-[11px] font-mono uppercase tracking-wider"
+                  className="wp17-status-badge wp17-tone--amber"
                   data-testid="dvir-offline-indicator"
                 >
                   <WifiOff className="w-3.5 h-3.5" />
@@ -577,7 +579,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                 </span>
               )}
               {online && (
-                <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 text-[11px] font-mono uppercase tracking-wider">
+                <span className="hidden sm:inline-flex wp17-status-badge wp17-tone--emerald">
                   <Wifi className="w-3.5 h-3.5" />
                   {t("Online")}
                 </span>
@@ -645,7 +647,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
 
         {metaError && (
           <div
-            className="mb-5 rounded-md bg-amber-50 border-2 border-amber-300 text-amber-900 px-4 py-3 text-sm"
+            className="wp17-form-alert wp17-tone--amber mb-5 text-sm text-amber-900"
             data-testid="dvir-cache-banner"
           >
             {metaError}
@@ -904,7 +906,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2">
                 {t("Does this truck have a camera system?")}
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="wp17-choice-row grid grid-cols-3 gap-2">
                 {[
                   { v: "yes", label: t("Yes"), testId: "dvir-camera-system-yes" },
                   { v: "no", label: t("No"), testId: "dvir-camera-system-no" },
@@ -921,11 +923,10 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                         setCameraObstructionNote("");
                       }
                     }}
-                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
-                      cameraSystemPresent === opt.v
-                        ? "bg-slate-900 text-white border-transparent"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
-                    }`}
+                    className={cn(
+                      "wp17-choice-button",
+                      cameraSystemPresent === opt.v && "wp17-choice-button--active-slate"
+                    )}
                   >
                     {opt.label}
                   </button>
@@ -940,7 +941,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                     "Are the front-facing camera and interior-facing camera free and clear of obstructions?"
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="wp17-choice-row grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     data-testid="dvir-camera-clear-yes"
@@ -948,11 +949,10 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                       setCameraClear("yes");
                       setCameraObstructionNote("");
                     }}
-                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
-                      cameraClear === "yes"
-                        ? "bg-emerald-600 text-white border-transparent"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
-                    }`}
+                    className={cn(
+                      "wp17-choice-button",
+                      cameraClear === "yes" && "wp17-choice-button--active-emerald"
+                    )}
                   >
                     {t("Yes — clear")}
                   </button>
@@ -960,11 +960,10 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                     type="button"
                     data-testid="dvir-camera-clear-no"
                     onClick={() => setCameraClear("no")}
-                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
-                      cameraClear === "no"
-                        ? "bg-red-600 text-white border-transparent"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
-                    }`}
+                    className={cn(
+                      "wp17-choice-button",
+                      cameraClear === "no" && "wp17-choice-button--active-red"
+                    )}
                   >
                     {t("No — obstruction present")}
                   </button>
@@ -972,7 +971,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
 
                 {cameraClear === "no" && (
                   <div
-                    className="mt-3 rounded-md border-2 border-red-400 bg-red-50 p-3"
+                    className="wp17-form-alert wp17-tone--red mt-3"
                     data-testid="dvir-camera-obstruction-block"
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-800 font-bold">
@@ -986,12 +985,12 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                     <label className="mt-3 block font-mono text-[10px] uppercase tracking-[0.15em] text-red-800">
                       {t("Describe the obstruction (optional — for shop record)")}
                     </label>
-                    <textarea
+                    <Textarea
                       value={cameraObstructionNote}
                       onChange={(e) => setCameraObstructionNote(e.target.value)}
                       rows={2}
                       data-testid="dvir-camera-obstruction-note"
-                      className="mt-1 w-full rounded-md border border-slate-300 bg-white p-2 text-sm"
+                      className="mt-1 text-sm"
                       placeholder={t(
                         "e.g. mud on lens, cracked housing, tape covering camera"
                       )}
@@ -1119,7 +1118,7 @@ function DVIRItem({ item, value, onChange, detail, onDetailNote, onDetailPhotos,
       {isFail && (
         <div className="ml-0 sm:ml-2 mt-2 space-y-2" data-testid={`${tid}-defect`}>
           <Input
-            className="h-12 text-base border-2 border-amber-300 bg-amber-50/40"
+            className="h-12 text-base bg-amber-50/40"
             placeholder={t("Describe the defect — what you saw, heard, or felt. Where on the unit. When it started. Be specific so Shop knows what to grab.")}
             value={detail?.note || ""}
             onChange={(e) => onDetailNote(e.target.value)}

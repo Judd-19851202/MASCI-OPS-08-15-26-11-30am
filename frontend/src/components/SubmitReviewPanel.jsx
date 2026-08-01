@@ -68,8 +68,8 @@ export function SubmitReviewPanel({
     <div className="space-y-4" data-testid={testId}>
       {/* SUMMARY */}
       <div
-        className={`rounded-[1.25rem] border p-4 sm:p-5 shadow-[0_10px_24px_rgba(15,23,42,0.05)] ${
-          outOfService ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
+        className={`wp17-panel rounded-[1.25rem] p-4 sm:p-5 ${
+          outOfService ? "border-red-200 bg-red-50" : "bg-white"
         }`}
         data-testid={`${testId}-summary`}
       >
@@ -79,7 +79,7 @@ export function SubmitReviewPanel({
           </div>
           {outOfService && (
             <span
-              className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold bg-red-700 text-white px-2 py-0.5 rounded-full"
+              className="wp17-status-badge wp17-tone--red"
               data-testid={`${testId}-oos-flag`}
             >
               {t("Out of Service")}
@@ -115,7 +115,7 @@ export function SubmitReviewPanel({
 
       {/* DOWNSTREAM COMMITMENT */}
       <div
-        className="rounded-[1.25rem] border border-slate-200 bg-slate-50/90 p-4 sm:p-5"
+        className="wp17-panel rounded-[1.25rem] bg-slate-50/90 p-4 sm:p-5"
         data-testid={`${testId}-commitment`}
       >
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 mb-2">

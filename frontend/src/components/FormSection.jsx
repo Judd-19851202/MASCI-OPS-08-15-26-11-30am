@@ -36,7 +36,7 @@ export function FormSection({
   if (state === "pending") {
     return (
       <section
-        className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50/80 px-4 py-3.5"
+        className="wp17-panel rounded-[1.2rem] border-dashed bg-slate-50/80 px-4 py-3.5"
         data-testid={testId}
         data-section-state="pending"
       >
@@ -58,7 +58,7 @@ export function FormSection({
   if (state === "completed") {
     return (
       <section
-        className="rounded-[1.2rem] border border-emerald-200 bg-emerald-50/80 px-4 py-3.5 hover:bg-emerald-50 transition-colors"
+        className="wp17-panel rounded-[1.2rem] border-emerald-200 bg-emerald-50/80 px-4 py-3.5 hover:bg-emerald-50 transition-colors"
         data-testid={testId}
         data-section-state="completed"
       >
@@ -110,7 +110,7 @@ export function FormSection({
         </div>
         {subtitle && <p className="text-sm text-slate-600 leading-snug">{subtitle}</p>}
         {warning && (
-          <div className="flex items-start gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2">
+          <div className="wp17-form-alert wp17-tone--amber flex items-start gap-2">
             <AlertOctagon className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden />
             <p className="text-sm text-amber-900 leading-snug">{warning}</p>
           </div>

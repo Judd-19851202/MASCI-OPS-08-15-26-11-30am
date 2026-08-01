@@ -143,6 +143,64 @@ CHECKS = [
         "max_hits": 0,
     },
     {
+        "name": "field_forms_no_legacy_input_override",
+        "file": ROOT / "frontend/src/pages/NewEquipmentInspection.jsx",
+        "patterns": [
+            re.compile(r'border-2 border-slate-300'),
+            re.compile(r'bg-red-700 hover:bg-red-800'),
+        ],
+        "max_hits": 0,
+    },
+    {
+        "name": "field_forms_no_local_dvir_toggle_styles",
+        "file": ROOT / "frontend/src/pages/NewFleetDVIR.jsx",
+        "patterns": [
+            re.compile(r'bg-amber-600 hover:bg-amber-700'),
+            re.compile(r'border-2 border-amber-300'),
+            re.compile(r'<textarea'),
+        ],
+        "max_hits": 0,
+    },
+    {
+        "name": "daily_report_prefill_buttons_governed",
+        "file": ROOT / "frontend/src/pages/NewDailyReportV3.jsx",
+        "patterns": [
+            re.compile(r'rounded-lg bg-amber-600'),
+            re.compile(r'rounded-md bg-emerald-600'),
+        ],
+        "max_hits": 0,
+    },
+    {
+        "name": "shared_input_primitive_governed",
+        "file": ROOT / "frontend/src/components/ui/input.jsx",
+        "patterns": [re.compile(r'wp17-control'), re.compile(r'wp17-focus-ring')],
+        "min_hits": 2,
+    },
+    {
+        "name": "shared_select_primitive_governed",
+        "file": ROOT / "frontend/src/components/ui/select.jsx",
+        "patterns": [re.compile(r'wp17-control'), re.compile(r'wp17-focus-ring')],
+        "min_hits": 2,
+    },
+    {
+        "name": "shared_textarea_primitive_governed",
+        "file": ROOT / "frontend/src/components/ui/textarea.jsx",
+        "patterns": [re.compile(r'wp17-control'), re.compile(r'wp17-focus-ring')],
+        "min_hits": 2,
+    },
+    {
+        "name": "button_primitive_governed",
+        "file": ROOT / "frontend/src/components/ui/button.jsx",
+        "patterns": [re.compile(r'wp17-cta')],
+        "min_hits": 1,
+    },
+    {
+        "name": "page_header_primitive_governed",
+        "file": ROOT / "frontend/src/design-system/PageHeader.jsx",
+        "patterns": [re.compile(r'wp17-page-header'), re.compile(r'font-display text-4xl')],
+        "min_hits": 2,
+    },
+    {
         "name": "logo_home_behavior",
         "file": ROOT / "frontend/src/components/MasciLogo.jsx",
         "patterns": [re.compile(r'aria-label="Go to MASCI Operations Platform Home"')],

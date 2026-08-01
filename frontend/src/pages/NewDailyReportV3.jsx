@@ -1057,7 +1057,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           />
         </div>
         <header className="mb-6 sm:mb-8 wp17-form-frame" data-testid="dr-v3-form-header-shell">
-          <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
+          <div className="flex items-center gap-2 text-xs font-medium text-emerald-700">
             <CheckCircle2 className="h-4 w-4" />
             {t("Field-ready, canonical, and draft-safe")}
           </div>
@@ -1108,7 +1108,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         {!publicMode && smartPrefillOffer && !pendingDraft && !crewSetupOffer ? (
           <div
             data-testid="dr-v3-smart-prefill-offer"
-            className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4"
+            className="wp17-form-alert wp17-tone--amber mb-4"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1126,22 +1126,12 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={onDismissSmartPrefill}
-                  data-testid="dr-v3-smart-prefill-dismiss"
-                  className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-semibold text-amber-800 hover:bg-amber-100"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={onDismissSmartPrefill} data-testid="dr-v3-smart-prefill-dismiss">
                   {t("Start Fresh")}
-                </button>
-                <button
-                  type="button"
-                  onClick={onApplySmartPrefill}
-                  data-testid="dr-v3-smart-prefill-apply"
-                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
-                >
+                </Button>
+                <Button type="button" size="sm" onClick={onApplySmartPrefill} data-testid="dr-v3-smart-prefill-apply">
                   {t("Restore Setup")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1150,20 +1140,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
         {smartPrefillError ? (
           <div
             data-testid="dr-v3-smart-prefill-error"
-            className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            className="wp17-form-alert wp17-tone--amber mb-4 text-sm text-amber-900"
           >
             <div>{smartPrefillError}</div>
             {smartPrefillFailureKind && smartPrefillFailureKind !== "no_prior_report" ? (
               <div className="mt-3 flex gap-2">
-                <button
-                  type="button"
-                  onClick={onRetrySmartPrefill}
-                  disabled={smartPrefillLoading}
-                  data-testid="dr-v3-smart-prefill-retry"
-                  className="rounded-lg bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-                >
+                <Button type="button" size="sm" onClick={onRetrySmartPrefill} disabled={smartPrefillLoading} data-testid="dr-v3-smart-prefill-retry">
                   {smartPrefillLoading ? t("Trying again…") : t("Try Again")}
-                </button>
+                </Button>
               </div>
             ) : null}
           </div>
@@ -1172,7 +1156,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         {prefillNotice ? (
           <div
             data-testid="dr-v3-smart-prefill-notice"
-            className="mb-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900"
+            className="wp17-form-alert wp17-tone--cyan mb-4 text-sm text-sky-900"
           >
             {t("Restored from {d} · review and adjust hours before submit")
               .replace("{d}", prefillNotice.sourceDate || t("the previous report"))}
@@ -1196,22 +1180,12 @@ export default function NewDailyReportV3({ publicMode = false }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onUseCrewSetup}
-                data-testid="dr-v3-crew-setup-use"
-                className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-              >
+              <Button type="button" size="sm" onClick={onUseCrewSetup} data-testid="dr-v3-crew-setup-use">
                 {t("Use setup")}
-              </button>
-              <button
-                type="button"
-                onClick={onDismissCrewSetup}
-                data-testid="dr-v3-crew-setup-dismiss"
-                className="rounded-md px-3 py-1.5 text-sm text-emerald-800 hover:bg-emerald-100"
-              >
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={onDismissCrewSetup} data-testid="dr-v3-crew-setup-dismiss">
                 {t("Not today")}
-              </button>
+              </Button>
             </div>
           </div>
         )}

@@ -38,9 +38,10 @@ import { FormSection } from "@/components/FormSection";
 import { ProgressRail } from "@/components/ProgressRail";
 import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const inputCls =
-  "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2";
+  "h-14 text-base";
 
 // Critical fluid items — failing any of these means the unit physically can't
 // safely operate until the fluid is corrected. Block the inspection from being
@@ -207,11 +208,16 @@ const StatusBtn = ({ active, color, label, onClick, testId }) => (
     type="button"
     onClick={onClick}
     data-testid={testId}
-    className={`flex-1 min-w-0 h-10 rounded font-mono text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-[0.15em] border-2 transition-colors truncate px-1 ${
+    className={cn(
+      "wp17-choice-button flex-1 min-w-0 truncate px-1",
       active
-        ? `${color} text-white border-transparent`
-        : "bg-white text-slate-500 border-slate-300 hover:border-slate-500"
-    }`}
+        ? color === "bg-emerald-600 hover:bg-emerald-700"
+          ? "wp17-choice-button--active-emerald"
+          : color === "bg-red-600 hover:bg-red-700"
+            ? "wp17-choice-button--active-red"
+            : "wp17-choice-button--active-slate"
+        : null,
+    )}
   >
     {label}
   </button>
@@ -637,8 +643,8 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       widthClass="max-w-4xl"
       containerTestId="equipment-form-shell"
       stickyFooter={(
-        <div className="flex items-center justify-between gap-3" data-testid="equipment-form-actions">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
+        <div className="wp17-sticky-action-bar" data-testid="equipment-form-actions">
+          <div className="wp17-sticky-action-note hidden sm:block">
             {failGating.blocked
               ? t("Finish FAIL notes + photos before submit")
               : t("Ready to submit · operator sign-off required")}
@@ -647,7 +653,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             onClick={submit}
             disabled={saving || failGating.blocked}
             aria-busy={saving}
-            className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:border-slate-400"
+            size="lg"
+            variant={failGating.blocked ? "secondary" : "default"}
+            className="ml-auto min-w-[14rem]"
             data-testid="submit-sticky-btn"
           >
             {saving ? (
@@ -669,8 +677,8 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
           data-testid="critical-fluid-modal"
         >
-          <div className="max-w-md w-full bg-white rounded-md border-4 border-red-700 shadow-2xl">
-            <div className="bg-red-700 text-white p-5 flex items-start gap-3">
+          <div className="wp17-modal-surface">
+            <div className="wp17-modal-surface__header">
               <AlertOctagon className="w-8 h-8 shrink-0" />
               <div>
                 <div className="font-mono text-xs uppercase tracking-[0.25em] font-bold opacity-80">
@@ -683,7 +691,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 </h2>
               </div>
             </div>
-            <div className="p-5 sm:p-6 space-y-4">
+            <div className="wp17-modal-surface__body space-y-4">
               <p className="text-base text-slate-900 font-bold">
                 {criticalFluidAlert.atSubmit
                   ? `${
@@ -702,7 +710,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                       "Get with your supervisor immediately to refill the fluid before continuing this inspection. The inspection cannot be submitted while a critical fluid level is failing — running this unit could cause severe damage or injury."
                     )}
               </p>
-              <div className="bg-amber-50 border-2 border-amber-300 rounded p-3 text-sm text-amber-900">
+              <div className="wp17-form-alert wp17-tone--amber text-sm text-amber-900">
                 {criticalFluidAlert.kind === "major" ? (
                   <>
                     <b>{t("Required actions:")}</b>
@@ -723,7 +731,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             <div className="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={() => setCriticalFluidAlert(null)}
-                className="flex-1 h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide text-sm"
+                variant="outline"
+                size="lg"
+                className="flex-1"
                 data-testid="critical-fluid-acknowledge"
               >
                 {t("I'll get my supervisor")}
@@ -737,7 +747,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("New Report")}
           </span>
-          <div className="rounded-2xl border border-red-100 bg-white/85 p-4 shadow-sm" data-testid="equipment-form-summary">
+          <div className="wp17-inline-note" data-testid="equipment-form-summary">
             <p className="text-slate-600 text-sm mt-1">
               {t(
                 "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
@@ -906,7 +916,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
                 {t("Does this equipment have a camera system?")}
               </Label>
-              <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="wp17-choice-row mt-2 grid grid-cols-3 gap-2">
                 {[
                   { v: "yes", label: t("Yes"), testId: "camera-system-yes" },
                   { v: "no", label: t("No"), testId: "camera-system-no" },
@@ -927,11 +937,10 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                           opt.v === "yes" ? p.camera_obstruction_note : "",
                       }))
                     }
-                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
-                      data.camera_system_present === opt.v
-                        ? "bg-slate-900 text-white border-transparent"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
-                    }`}
+                    className={cn(
+                      "wp17-choice-button",
+                      data.camera_system_present === opt.v && "wp17-choice-button--active-slate"
+                    )}
                   >
                     {opt.label}
                   </button>
@@ -949,7 +958,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     "Are the front-facing camera and interior-facing camera free and clear of obstructions?"
                   )}
                 </Label>
-                <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="wp17-choice-row mt-2 grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     data-testid="camera-clear-yes"
@@ -960,11 +969,10 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                         camera_obstruction_note: "",
                       }))
                     }
-                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
-                      data.camera_obstructions_clear === "yes"
-                        ? "bg-emerald-600 text-white border-transparent"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
-                    }`}
+                    className={cn(
+                      "wp17-choice-button",
+                      data.camera_obstructions_clear === "yes" && "wp17-choice-button--active-emerald"
+                    )}
                   >
                     {t("Yes — clear")}
                   </button>
@@ -974,11 +982,10 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     onClick={() =>
                       setData((p) => ({ ...p, camera_obstructions_clear: "no" }))
                     }
-                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
-                      data.camera_obstructions_clear === "no"
-                        ? "bg-red-600 text-white border-transparent"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
-                    }`}
+                    className={cn(
+                      "wp17-choice-button",
+                      data.camera_obstructions_clear === "no" && "wp17-choice-button--active-red"
+                    )}
                   >
                     {t("No — obstruction present")}
                   </button>
@@ -986,7 +993,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
 
                 {data.camera_obstructions_clear === "no" && (
                   <div
-                    className="mt-3 rounded-md border-2 border-red-400 bg-red-50 p-3"
+                    className="wp17-form-alert wp17-tone--red mt-3"
                     data-testid="camera-obstruction-block"
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-800 font-bold">
@@ -1309,7 +1316,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                               className="hidden"
                               onChange={(e) => onFailPhoto(sec.title, item, e.target.files?.[0])}
                             />
-                            📷 {t("Add photo (camera or gallery, required for FAIL)")}
+                            {t("Add photo (camera or gallery, required for FAIL)")}
                           </label>
                         )}
                       </div>
@@ -1327,7 +1334,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               • Tap the chip to re-expand. */}
         {data.equipment_type && !tallyCollapsed && (
           <div
-            className="bg-white border border-slate-200 rounded-md px-3 py-2 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 sticky bottom-24 sm:bottom-4 shadow-md z-20"
+            className="wp17-floating-tally"
             data-testid="equip-tally-bar"
           >
             <button
@@ -1353,7 +1360,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           <button
             type="button"
             onClick={() => setTallyCollapsed(false)}
-            className="sticky bottom-24 sm:bottom-4 ml-auto mr-44 sm:mr-0 flex items-center gap-2 bg-slate-900 text-white rounded-full px-3 py-1.5 shadow-md text-xs font-mono uppercase tracking-[0.15em] z-20 hover:bg-slate-800"
+            className="wp17-floating-tally wp17-floating-tally--compact flex items-center gap-2 text-xs font-mono uppercase tracking-[0.15em] text-white bg-slate-900 hover:bg-slate-800"
             data-testid="equip-tally-restore"
           >
             <span>{t("Tally")}</span>
@@ -1366,11 +1373,11 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         <Section number="98" title={t("Notes & Photos")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Deficiency notes")}</Label>
-            <Textarea value={data.deficiency_notes} onChange={(e) => set("deficiency_notes", e.target.value)} className="mt-2 border-2 border-slate-300" placeholder={t("What's wrong — be specific")} data-testid="input-deficiency-notes" />
+            <Textarea value={data.deficiency_notes} onChange={(e) => set("deficiency_notes", e.target.value)} className="mt-2" placeholder={t("What's wrong — be specific")} data-testid="input-deficiency-notes" />
           </div>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">{t("Corrective actions")}</Label>
-            <Textarea value={data.corrective_actions} onChange={(e) => set("corrective_actions", e.target.value)} className="mt-2 border-2 border-slate-300" placeholder={t("What's being done about it")} data-testid="input-corrective-actions" />
+            <Textarea value={data.corrective_actions} onChange={(e) => set("corrective_actions", e.target.value)} className="mt-2" placeholder={t("What's being done about it")} data-testid="input-corrective-actions" />
           </div>
           <PhotoUpload
             photos={data.photos}
