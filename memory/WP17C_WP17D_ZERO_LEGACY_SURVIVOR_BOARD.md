@@ -23,6 +23,19 @@ A survivor is open until it is either:
 - Coaching: **10**
 
 ## Batch Certification Ledger
+### 2026-08-01 · Executive Brand-Hierarchy Correction + Field Operations Wave 01 · CLOSED / ACTIVE NEXT
+- Closed correction: `/` Home header identity hierarchy
+- Closed route in propagation order: `/field`
+- Shared fixes:
+  - `CanonicalHeader.jsx` now renders the Home brand hierarchy as **MASCI** over **Operations Platform**
+  - Home hero no longer repeats the product identity above `One System. Every Crew. Every Job.`
+  - `wp17d_constitution_guard.py` now enforces duplicate-identity, brand-block, hierarchy-style, and logo-home-behavior checks
+  - `FieldSection.jsx` now uses governed `InformationCard`, `ModuleCard`, `WorkflowCard`, and shared `SectionHeading` instead of route-local tile styling
+  - duplicate shell summary block removed from `/field`
+- Evidence: responsive screenshot review on `/` at `390`, `430`, `768`, `1024`, `1440`; responsive smoke review on `/field`; `/app/test_reports/iteration_101.json`; final `auto_frontend_testing_agent` verification on `/` + `/field`
+- Certification result: Home hierarchy corrected, logo returns Home, one visible sign-in entry, Field entry route moved onto shared cards with zero overflow / console noise
+- Carry-forward note: Field Operations propagation remains ACTIVE with `/field/calculators` and remaining field-family surfaces next before Transportation begins
+
 ### 2026-08-01 · Executive Constitution Hardening · Home Correction + Anti-Drift Start · CLOSED
 - Closed route: `/` as **Operations Platform Home** (internal filename may still remain `Hub.jsx` for continuity only)
 - Constitutional fixes shipped:
@@ -137,7 +150,7 @@ A survivor is open until it is either:
 - `/sign-in` · `SignIn` · move to canonical FormShell or canonical public auth shell
 
 ### Card/system propagation survivors (active rollout begins with Field Operations)
-- `/field` family · replace remaining local workflow launchers / helper treatments with governed shared card families and icon contexts
+- `/field` family · continue after `/field` closeout by migrating `/field/calculators`, field-family list/detail surfaces, and remaining helper/icon drift onto governed shared systems
 - `/transportation` family · replace remaining local command/launcher cards with governed shared variants and external-platform rules
 - `/safety` family · continue converging mixed safety cards, state treatments, and legacy icon contexts
 

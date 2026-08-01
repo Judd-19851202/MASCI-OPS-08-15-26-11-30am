@@ -72,8 +72,10 @@
   - `CanonicalHeader.jsx` home-mode fallback was tightened so the Shared Operational Home now correctly shows **Operations Platform** instead of the generic **Operational workflow** label
   - Hub/home was rebuilt from the governed primitive layer instead of page-local card implementations: field-entry cards, leadership cards, workspace cards, new-hire entry card, welcome-back card, and reference cards now all render through one shared card language with unified accent logic, spacing, icon containers, typography, footer CTAs, and interaction states
   - Executive Constitution update batch is now landed for the Home experience and shared design-system hardening: the Home header now owns the single primary sign-in entry point through `CanonicalHeader.headerControlsSlot`, the bolted-on explanatory navy panel was removed, the hero now uses governed CTA buttons instead of decorative chips, the shared language selector was hardened for `390px`, and home copy now renders as **MASCI Operations Platform** instead of drifting into alternate “Hub” naming
+  - Executive brand-hierarchy correction is now closed on the Home route: the header identity now reads **MASCI** (red, larger, heavier) above **Operations Platform** (subordinate, neutral), the duplicate hero product-name eyebrow was removed, the MASCI logo still returns Home, and the Home hero now begins directly with **One System. Every Crew. Every Job.**
   - shared card governance was hardened beyond the base card primitive: `CanonicalCard.jsx` now exposes governed families (`ModuleCard`, `WorkflowCard`, `ActionCard`, `InformationCard`, `ExternalPlatformCard`, `DetailCard`, `FormSectionCard`, `AlertCard`) so propagation can replace local card implementations with shared variants instead of forcing one generic card everywhere
   - anti-drift enforcement is now active for the constitutional Home lane through `/app/scripts/wp17d_constitution_guard.py`, with scoped checks for banned Home terminology, duplicate Home sign-in, explanatory-panel regressions, local-card regressions, language-control treatment, white-header drift, and UI emoji/icon shortcuts in the constitutional surfaces
+  - Field Operations propagation has now begun from the locked rollout order: `/field` was reopened and rebuilt off local tile styling onto governed shared card families (`InformationCard`, `ModuleCard`, `WorkflowCard`) plus shared `SectionHeading`, while the duplicate shell summary block was removed so the route now reads as one coherent field-facing experience
 
 ## Locked Totals Preserved
 - `1190` audited platform surfaces
@@ -145,17 +147,19 @@
   - final `auto_frontend_testing_agent` verification passed (**19/19 PASS**) on the public Hub route, confirming the two-tier header, unified card system, Company Info dialog trigger, responsive behavior, and console cleanliness
   - constitution-update Home certification passed in `/app/test_reports/iteration_100.json` with **100% frontend pass**, confirming header-owned sign-in, no duplicate sign-in below header, interactive EN/ES control at `390px`, no explanatory navy panel, governed card families, Need Help dialog continuity, and zero overflow / console errors at `390`, `430`, `768`, `1024`, and `1440`
   - scoped constitutional anti-drift guard now passes locally via `python /app/scripts/wp17d_constitution_guard.py`
+  - brand-hierarchy + first Field Operations propagation certification passed in `/app/test_reports/iteration_101.json` with **100% frontend pass**, confirming MASCI red/weight hierarchy over Operations Platform, logo-to-home behavior, no duplicate hero identity, governed shared cards on `/field`, zero overflow at `390`, `430`, `768`, `1024`, and `1440`, and zero console errors
+  - final browser verification also passed in `auto_frontend_testing_agent` for both `/` and `/field`, confirming Home hierarchy, single sign-in entry, Field shared-card adoption, and runtime cleanliness
 
 ## Constraints Still Honored
-- No full-platform migration was started.
-- No broad redesign outside the bounded representative set.
-- White-label readiness preserved; MASCI identity was not hard-coded into the reusable foundation.
+- No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
+- No destructive redesign or whitewashed shell reset was introduced; the approved MASCI navy/frosted identity was preserved.
+- Preview-only repair lane preserved; no production deployment or live-environment claim was made.
 
 ## Next Authorized Work
 - Continue WP-17D in the locked order now set by executive direction: governed design system → Hub implementation → platform propagation.
 - Treat the public Home correction as closed for this constitution wave and use it as the first verified implementation of the hardened design system — not as a separate product identity.
 - Propagate the new shared card / button / badge / section-heading / state primitives across the platform in the approved rollout order: Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration.
-- Start the next propagation wave with **Field Operations** and reopen every touched route against the complete-page rule, the no-duplicate-sign-in rule, and the product-language constitution before certifying it again.
+- Continue the active **Field Operations** wave after the `/field` entry-route closeout: next reopen `/field/calculators`, Field daily-report list/detail touchpoints, and any remaining field-family coaching or icon drift before moving to Transportation.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
 - Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.

@@ -9,10 +9,14 @@ Last updated: 2026-08-01
 - Current protected scope:
   - Home banned terminology regressions
   - duplicate Home sign-in regressions
+  - duplicate Home product-identity block above the hero
   - Home local-card implementation regressions
   - explanatory-panel regressions
   - white-header regression on the canonical MASCI header
   - language-control treatment regressions
+  - Home brand-block presence in `CanonicalHeader.jsx`
+  - MASCI red / stronger-than-product hierarchy styling in `wp17.css`
+  - MASCI logo Home behavior contract in `MasciLogo.jsx`
   - UI emoji / unicode-icon shortcuts inside the constitutional Home lane
 
 ## Expansion Plan
@@ -26,6 +30,7 @@ These checks must expand during propagation to cover:
 - duplicate sign-in detection for representative public/auth flows
 - white-header regression checks for shared shells
 - logo/Home behavior checks
+- Home brand hierarchy screenshot regression
 - mobile overflow checks
 - representative screenshot regression for Home and one archetype per portal family
 

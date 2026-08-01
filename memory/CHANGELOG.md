@@ -26,6 +26,25 @@
   - `/app/test_reports/iteration_100.json`
   - constitution guard pass: `python /app/scripts/wp17d_constitution_guard.py`
 
+## 2026-08-01 — WP-17D brand-hierarchy correction + Field Operations wave start
+
+- Corrected the final Home identity hierarchy before broader propagation:
+  - header identity now reads **MASCI** in governed red above **Operations Platform**
+  - duplicate hero product eyebrow removed so the hero starts directly with `One System. Every Crew. Every Job.`
+  - MASCI logo home behavior preserved and verified from `/field`
+- Hardened the constitutional anti-drift guard with explicit Home identity checks:
+  - duplicate hero identity regression
+  - home brand block presence
+  - visual hierarchy styling for MASCI vs. Operations Platform
+  - logo Home behavior check
+- Began the locked Field Operations propagation order:
+  - `/field` rebuilt from local route-specific tiles onto governed shared card families and shared `SectionHeading`
+  - duplicate shell summary block removed
+- Verification evidence:
+  - `/app/test_reports/iteration_101.json`
+  - responsive screenshots for `/` and `/field`
+  - final `auto_frontend_testing_agent` verification on Home + Field
+
 - Created `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` with the full `1190`-surface denominator and active convergence statuses.
 - Added the WP-17D control package:
   - `WP17D_PORTAL_MIGRATION_RUNBOOK.md`

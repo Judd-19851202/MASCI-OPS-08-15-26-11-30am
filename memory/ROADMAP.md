@@ -5,6 +5,7 @@
 ### Current top priority
 
 - **Home correction + design-system hardening are now certified under the executive constitution.**
+- **Field Operations propagation is now active.**
 - **Next locked move:** propagate the hardened shared system in this order:
   1. Field Operations
   2. Transportation
@@ -17,7 +18,7 @@
 - **Anti-drift automation has started and must expand with each portal wave.**
 
 ### P0
-- propagate shared governed card families, header rules, CTA rules, icon rules, and state rules into **Field Operations** first
+- continue the open **Field Operations** wave after `/field`: `/field/calculators`, field-family lists/details, and remaining field coaching/icon drift
 - reopen every touched Field Operations route against the complete-page rule before recertifying it
 - continue removing visible `Hub` product naming and duplicate sign-in patterns where they still render into the product
 
