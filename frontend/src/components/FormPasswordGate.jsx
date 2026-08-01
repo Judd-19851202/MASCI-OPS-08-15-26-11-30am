@@ -3,7 +3,7 @@ import { Lock, Unlock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
+import { CanonicalHeader } from "@/components/CanonicalHeader";
 
 /**
  * <FormPasswordGate>
@@ -48,12 +48,16 @@ export function FormPasswordGate({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="caution-stripe" />
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-center">
-          <MasciLogo variant="mark" size="xl" className="hidden sm:block" />
-          <MasciLogo variant="mark" size="lg" className="sm:hidden" />
-        </div>
-      </header>
+      <CanonicalHeader
+        portalLabel="MASCI Operations Platform"
+        pageLabel="Restricted form access"
+        accent="red"
+        homeTo="/"
+        showHomeLink
+        showLangToggle={false}
+        containerClassName="max-w-3xl"
+        testIdPrefix="form-password-gate"
+      />
 
       <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
         <form

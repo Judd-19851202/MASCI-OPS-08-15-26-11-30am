@@ -17,9 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
-import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
-import { LangToggle } from "@/components/LangToggle";
+import { CanonicalHeader } from "@/components/CanonicalHeader";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
@@ -228,27 +227,25 @@ export default function SignIn() {
   return (
     <div className="wp17-public-shell flex min-h-screen flex-col">
       <div className="caution-stripe" />
-      <header className="wp17-public-header">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className="inline-flex items-center min-h-[44px] -ml-2 px-2 text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide"
-            data-testid="sign-in-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <LangToggle />
-        </div>
-      </header>
+      <CanonicalHeader
+        portalLabel={t("MASCI Operations Platform")}
+        pageLabel={t("Shared sign-in")}
+        accent="red"
+        backTo="/"
+        backLabel={t("Home")}
+        homeTo="/"
+        showHomeLink={false}
+        showLangToggle
+        containerClassName="max-w-6xl"
+        testIdPrefix="sign-in"
+      />
 
       <main className="wp17-public-main flex-1 flex items-center justify-center py-12">
         <div className="w-full wp17-public-grid items-stretch">
           <section className="wp17-public-hero" data-testid="sign-in-entry-architecture">
             <div>
               <div className="wp17-kicker">Shared experience foundation</div>
-              <h1 className="mt-3 font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-950">
+              <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-950">
                 {t("One entry. The right workspace. The next safe step.")}
               </h1>
               <p className="mt-4 max-w-2xl text-sm sm:text-base text-slate-700 leading-relaxed">

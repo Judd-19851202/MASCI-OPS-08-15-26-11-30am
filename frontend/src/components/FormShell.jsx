@@ -1,9 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { LangToggle } from "@/components/LangToggle";
-import { MasciLogo } from "@/components/MasciLogo";
+import { CanonicalHeader } from "@/components/CanonicalHeader";
 
 /**
  * TRACK 19.10 · Phase 1 · Unified Operational FormShell Primitive.
@@ -49,42 +46,24 @@ export function FormShell({
       data-testid={containerTestId}
     >
       <div className="caution-stripe" />
-      {/* HEADER — fixed height row for stable layout across all steps. */}
-      <header className="sticky top-0 z-30 wp17-public-header border-b border-slate-200 text-white">
-        <div className={`${widthClass} mx-auto px-4 sm:px-6 h-14 flex items-center gap-3`}>
-          {backLink ? (
-            <Link
-              to={backLink}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/85 hover:bg-white/14"
-              data-testid={`${containerTestId}-back-link`}
-              aria-label={backLabel || t("Back")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          ) : null}
-          <MasciLogo className="w-8 h-8 shrink-0" />
-          <div className="flex-1 min-w-0">
-            {kicker && (
-              <div
-                className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/70 truncate"
-                data-testid={`${containerTestId}-kicker`}
-              >
-                {kicker}
-              </div>
-            )}
-            <h1
-              className="font-display text-base sm:text-lg font-black tracking-tight text-white leading-tight"
-              data-testid={`${containerTestId}-title`}
-            >
-              {title}
-            </h1>
-          </div>
+      <CanonicalHeader
+        portalLabel={kicker || t("MASCI Operations Platform")}
+        pageLabel={title}
+        accent="red"
+        backTo={backLink}
+        backLabel={backLabel || t("Back")}
+        homeTo="/"
+        showHomeLink
+        showLangToggle
+        postControlsSlot={(
           <div className="flex items-center gap-2 shrink-0">
             {draftSlot}
             {headerRightSlot}
-            <LangToggle />
           </div>
-        </div>
+        )}
+        containerClassName={widthClass}
+        testIdPrefix={containerTestId}
+      />
         {/* PROGRESS band — dedicated horizontal row so the ProgressRail
             never fights with header actions or clips off-screen. Kept
             inside the sticky header so it scrolls with the page top. */}
@@ -98,7 +77,6 @@ export function FormShell({
             </div>
           </div>
         )}
-      </header>
 
       {/* SUBTITLE (optional) */}
       {subtitle && (

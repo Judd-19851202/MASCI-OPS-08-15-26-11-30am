@@ -32,16 +32,13 @@
 // they sit between <main> and <footer> exactly where they sat in the
 // pre-refactor pages.
 import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
-import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
+import { CanonicalHeader } from "@/components/CanonicalHeader";
 
 export function PortalLoginShell({
-  headerBorderClass,   // e.g. "border-purple-700" (full literal)
-  backHoverClass = "hover:text-slate-200",      // e.g. "hover:text-purple-300" (full literal)
+  headerBorderClass,
+  backHoverClass = "hover:text-slate-200",
   backTestId,          // e.g. "hr-login-back"
   rootTestId,          // optional outer div testid (e.g. "fl-portal-login")
   footerLabel,         // already-translated label string
@@ -56,20 +53,20 @@ export function PortalLoginShell({
       data-testid={rootTestId}
     >
       <div className="caution-stripe" />
-      <header className={`wp17-public-header ${headerBorderClass}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to={homeLink}
-            className={`inline-flex items-center min-h-[44px] -ml-2 px-2 text-white ${backHoverClass} text-sm font-bold uppercase tracking-wide`}
-            data-testid={backTestId}
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink={homeLink} />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink={homeLink} />
-          <LangToggle />
-        </div>
-      </header>
+      <div className={headerBorderClass || ""} data-testid={`${rootTestId}-header-frame`}>
+        <CanonicalHeader
+          portalLabel={t("MASCI Operations Platform")}
+          pageLabel={footerLabel}
+          accent="blue"
+          backTo={homeLink}
+          backLabel={t("Home")}
+          homeTo="/"
+          showHomeLink={false}
+          showLangToggle
+          containerClassName="max-w-6xl"
+          testIdPrefix={backTestId || rootTestId || "portal-login"}
+        />
+      </div>
 
       <main className="wp17-public-main flex-1 flex items-center justify-center py-12">
         <div className="w-full max-w-md wp17-auth-stack">
