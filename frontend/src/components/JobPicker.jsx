@@ -90,7 +90,7 @@ export function JobPicker({
     : projectName
     ? `${projectName}${projectNumber ? `  ·  #${projectNumber}` : `  ·  ${t("Custom")}`}`
     : allowCustom
-    ? t("Pick a MASCI job — or choose Custom")
+    ? t("Pick a current job — or choose Custom")
     : t("Select Job");
 
   // TRACK 24.9 Phase B · Shared cmdk touch-guard hook. See

@@ -60,6 +60,7 @@ import DailyReportV3ExcavationSection from "@/components/daily-report-v3/DailyRe
 import { CheckCircle2, History } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import FormShell from "@/components/FormShell";
+import { Button } from "@/components/ui/button";
 import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
 import { useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { classifyApiError } from "@/lib/errorClassification";
@@ -1012,6 +1013,24 @@ export default function NewDailyReportV3({ publicMode = false }) {
           </span>
         ) : null
       }
+      stickyFooter={(
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-testid="dr-v3-sticky-submit-bar">
+          <div className="text-sm text-slate-600" data-testid="dr-v3-sticky-submit-status">
+            {canSubmit
+              ? t("Ready to submit once the signature is complete.")
+              : `${t("Still needed:")} ${readiness.missing.join(" · ") || t("checking…")}`}
+          </div>
+          <Button
+            type="button"
+            className="h-11 rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
+            disabled={!canSubmit || saving}
+            onClick={onSubmit}
+            data-testid="dr-v3-sticky-submit-btn"
+          >
+            {saving ? t("Submitting…") : (submitLabel || t("Submit Daily Report"))}
+          </Button>
+        </div>
+      )}
       containerTestId="dr-v3-form-shell"
     >
       <div className="mx-auto max-w-3xl px-0 py-1 sm:py-4" data-testid="dr-v3-form-root">
@@ -1265,6 +1284,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             saving={saving}
             onSubmit={onSubmit}
             submitLabel={submitLabel}
+            showInlineSubmit={false}
           />
           </div>
         </div>

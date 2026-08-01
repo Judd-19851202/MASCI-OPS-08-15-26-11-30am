@@ -825,7 +825,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         <Section number="01" title={t("Project & Operator")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("MASCI Job")}
+              {t("Current Job")}
             </Label>
             <div className="mt-2">
               <JobPicker

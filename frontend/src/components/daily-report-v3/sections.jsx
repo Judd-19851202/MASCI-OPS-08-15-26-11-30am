@@ -2380,7 +2380,7 @@ export function SectionAiSummary({ data, reportId, formKey, photoUploadState, on
 
 // ── Section 09 · Submit Readiness + Sign-Off ─────────────────
 export function SectionSignoff({
-  data, patch, readiness, onSubmit, saving, canSubmit, submitLabel,
+  data, patch, readiness, onSubmit, saving, canSubmit, submitLabel, showInlineSubmit = true,
 }) {
   const { t } = useT();
   return (
@@ -2420,15 +2420,17 @@ export function SectionSignoff({
           />
         </div>
 
-        <Button
-          type="button"
-          className="w-full bg-emerald-600 py-6 text-base font-semibold hover:bg-emerald-700"
-          disabled={!canSubmit || saving}
-          onClick={onSubmit}
-          data-testid="dr-v3-submit-btn"
-        >
-          {saving ? t("Submitting…") : (submitLabel || t("Submit Daily Report"))}
-        </Button>
+        {showInlineSubmit ? (
+          <Button
+            type="button"
+            className="w-full bg-emerald-600 py-6 text-base font-semibold hover:bg-emerald-700"
+            disabled={!canSubmit || saving}
+            onClick={onSubmit}
+            data-testid="dr-v3-submit-btn"
+          >
+            {saving ? t("Submitting…") : (submitLabel || t("Submit Daily Report"))}
+          </Button>
+        ) : null}
       </div>
     </SectionShell>
   );

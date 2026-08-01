@@ -64,7 +64,7 @@ export function SectionProjectConditions({
       <div className="space-y-4">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            <RequiredLabel label={t("MASCI Job")} />
+            <RequiredLabel label={t("Current Job")} />
           </label>
           <JobPicker
             projectNumber={data.project_number}

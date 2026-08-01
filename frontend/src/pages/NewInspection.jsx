@@ -333,7 +333,7 @@ export default function NewInspection({ publicMode = false }) {
           <HelpTipBlock formKey="inspection.context" className="mb-3" />
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("MASCI Job")}
+              {t("Current Job")}
             </Label>
             <div className="mt-2">
               <JobPicker
