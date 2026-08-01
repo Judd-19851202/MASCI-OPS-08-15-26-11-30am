@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   FileText,
   FileSpreadsheet,
@@ -15,14 +14,16 @@ import {
   Briefcase,
   Folder,
   Search,
+  ShieldCheck,
+  TriangleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { PortalShell } from "@/design-system";
+import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
-import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
+import EmptyState from "@/components/EmptyState";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
@@ -31,6 +32,37 @@ import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+function SurfaceSection({ eyebrow, title, description, actions = null, children, testId }) {
+  return (
+    <section className="wp17-panel p-5 sm:p-6" data-testid={testId}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          {eyebrow ? <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold">{eyebrow}</div> : null}
+          <h2 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900">{title}</h2>
+          {description ? <p className="mt-2 max-w-3xl text-sm sm:text-base leading-6 text-slate-600">{description}</p> : null}
+        </div>
+        {actions ? <div className="flex flex-wrap items-center gap-2 lg:justify-end">{actions}</div> : null}
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
+
+function MetricChip({ label, value, tone = "slate", testId }) {
+  const toneClass = {
+    red: "border-red-200 bg-red-50 text-red-900",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    slate: "border-slate-200 bg-white text-slate-800",
+  }[tone];
+
+  return (
+    <div className={`rounded-full border px-3 py-1.5 ${toneClass}`} data-testid={testId}>
+      <div className="font-mono text-[9px] uppercase tracking-[0.22em] font-bold opacity-70">{label}</div>
+      <div className="mt-0.5 text-sm font-semibold">{value}</div>
+    </div>
+  );
+}
 
 /**
  * JhaPlansAdmin — multi-file Job Hazard library per project.
@@ -80,6 +112,7 @@ export default function JhaPlansAdmin() {
   const [openMap, setOpenMap] = useState({});
   const [filter, setFilter] = useState("");
   const [newProject, setNewProject] = useState("");
+  const [error, setError] = useState("");
   const fileInputs = useRef({});
   // TRACK 14.0-DISCOVERABILITY · Wave B — when this page is mounted in
   // the Safety portal shell (/safety-portal/jha-plans), the safety
@@ -91,10 +124,14 @@ export default function JhaPlansAdmin() {
     && window.location.pathname.startsWith("/safety-portal/");
   const adminRoute = typeof window !== "undefined"
     && window.location.pathname.startsWith("/admin/");
-  const adminAuth = adminRoute ? { headers: buildWave3AdminHeaders() } : undefined;
+  const adminAuth = useMemo(
+    () => (adminRoute ? { headers: buildWave3AdminHeaders() } : undefined),
+    [adminRoute]
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [r, j] = await Promise.all([
         isSafetyContext
@@ -105,13 +142,15 @@ export default function JhaPlansAdmin() {
       setGroups(r.data?.projects || []);
       setJobs(j.data?.items || []);
     } catch (e) {
-      toast.error(operationalError(e,
+      const message = operationalError(e,
         "JHP library temporarily unavailable. Try again in a moment.",
-        "Your admin session expired. Please sign in again."));
+        "Your admin session expired. Please sign in again.");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, [isSafetyContext]);
+  }, [adminAuth, isSafetyContext]);
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -163,6 +202,11 @@ export default function JhaPlansAdmin() {
         r.files.some((x) => (x.filename || "").toLowerCase().includes(f))
     );
   }, [groups, jobs, jobByNumber, filter]);
+
+  const totalFiles = useMemo(
+    () => rows.reduce((sum, row) => sum + row.files.length, 0),
+    [rows]
+  );
 
   const toggleOpen = (pn) =>
     setOpenMap((m) => ({ ...m, [pn]: !m[pn] }));
@@ -228,239 +272,310 @@ export default function JhaPlansAdmin() {
     `${REACT_APP_BACKEND_URL}/api/job-hazard-files/${id}/download`;
 
   const content = (
-    <main className="min-h-screen">
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-xl">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter by project #, name, location, or filename…"
-              className="pl-9 h-10"
-              data-testid="jha-filter"
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={refresh}
-            disabled={loading}
-            className="h-10"
-            data-testid="jha-refresh"
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Refresh
-          </Button>
-        </div>
-
-        {/* New project (orphan upload) */}
-        <details className="border-2 border-slate-200 rounded p-4 bg-white">
-          <summary className="font-mono text-[11px] uppercase tracking-wide text-slate-700 cursor-pointer">
-            + Upload to a NEW / unlisted project number
-          </summary>
-          <div className="mt-3 grid sm:grid-cols-[1fr_auto] gap-2 items-end">
+    <div className="min-h-screen bg-slate-50">
+      <div className="caution-stripe print:hidden" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6" data-testid="jha-admin-page">
+        <section className="wp17-public-hero" data-testid="jha-admin-hero">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),19rem] xl:items-start">
             <div>
-              <Label className="font-mono text-[9px] uppercase tracking-wide text-slate-700">
-                Project #
-              </Label>
-              <Input
-                value={newProject}
-                onChange={(e) => setNewProject(e.target.value)}
-                placeholder="26-99 or any custom number"
-                className="h-9 mt-1"
-                data-testid="jha-new-project-input"
-              />
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold">Safety compliance · governed document control</div>
+              <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900">JHP Plans &amp; Files</h1>
+              <p className="mt-3 max-w-3xl text-sm sm:text-base leading-6 text-slate-600">
+                Upload, organize, and retrieve hazard-plan evidence by project without leaving the MASCI operating shell.
+                Every attachment stays in a governed project folder for field, admin, and audit follow-through.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <MetricChip label="Visible projects" value={rows.length} tone="red" testId="jha-visible-projects-chip" />
+                <MetricChip label="Visible files" value={totalFiles} tone="emerald" testId="jha-visible-files-chip" />
+                <MetricChip label="Master jobs" value={jobs.length} testId="jha-master-jobs-chip" />
+              </div>
             </div>
+            <div className="wp17-panel p-4" data-testid="jha-admin-attention-panel">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-700 font-bold mb-2">Operator standard</div>
+              <div className="space-y-3 text-sm text-slate-700 leading-6">
+                <div className="flex gap-2">
+                  <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0 text-emerald-700" />
+                  <span>Attach the project-specific JHP before field execution or external review handoff.</span>
+                </div>
+                <div className="flex gap-2">
+                  <Folder className="w-4 h-4 mt-0.5 shrink-0 text-slate-600" />
+                  <span>Use unlisted project upload only when the job has not yet reached the master register.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {error ? (
+          <section className="wp17-panel border border-amber-200 bg-amber-50 p-4 sm:p-5" data-testid="jha-admin-error-state">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3 text-amber-900">
+                <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <div className="font-display text-lg font-black">Library temporarily unavailable</div>
+                  <p className="mt-1 text-sm leading-6">{error}</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={refresh}
+                className="h-11 border-amber-300 bg-white text-amber-900 hover:bg-amber-100"
+                data-testid="jha-admin-error-retry"
+              >
+                Retry
+              </Button>
+            </div>
+          </section>
+        ) : null}
+
+        <SurfaceSection
+          eyebrow="Find the right folder fast"
+          title="Project library filters"
+          description="Search by project number, name, location, client, or filename before opening a folder or uploading a replacement file."
+          actions={(
             <Button
               variant="outline"
-              onClick={() => {
-                if (!newProject.trim()) {
-                  toast.error("Enter a project number first");
-                  return;
-                }
-                fileInputs.current[`__new__${newProject.trim()}`]?.click();
-              }}
-              className="h-9 text-xs font-mono uppercase"
-              data-testid="jha-new-project-pick-file"
+              onClick={refresh}
+              disabled={loading}
+              className="h-11 border-slate-300 bg-white text-slate-900 hover:border-red-500 hover:text-red-700"
+              data-testid="jha-refresh"
             >
-              Pick file
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Refresh
             </Button>
-            <input
-              type="file"
-              ref={(el) => {
-                if (newProject.trim()) {
-                  fileInputs.current[`__new__${newProject.trim()}`] = el;
-                }
-              }}
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file || !newProject.trim()) return;
-                uploadFile(newProject.trim(), file);
-                setNewProject("");
-                e.target.value = "";
-              }}
-            />
-          </div>
-        </details>
+          )}
+          testId="jha-filter-section"
+        >
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),20rem] xl:items-start">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Filter by project #, name, location, or filename…"
+                className="h-11 pl-10 border-slate-300 bg-white"
+                data-testid="jha-filter"
+              />
+            </div>
 
-        {/* Per-project rows */}
-        {loading ? (
-          <div className="text-center py-12 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin inline-block mr-2" />
-            Loading library…
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
-            No matching jobs. Adjust your filter.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {rows.map((row) => {
-              const isOpen = !!openMap[row.project_number];
-              const isBusy = busyJob === row.project_number;
-              return (
-                <div
-                  key={row.project_number}
-                  className="border-2 border-slate-200 rounded bg-white"
-                  data-testid={`jha-job-${row.project_number}`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onDrop={(e) => onDrop(row.project_number, e)}
-                >
-                  {/* Header row */}
-                  <button
-                    type="button"
-                    onClick={() => toggleOpen(row.project_number)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50"
-                    data-testid={`jha-toggle-${row.project_number}`}
-                  >
-                    {isOpen ? (
-                      <ChevronDown className="w-4 h-4 text-slate-500 shrink-0" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
-                    )}
-                    <span className="inline-block px-1.5 py-0.5 bg-red-700 text-white text-xs font-bold font-mono rounded shrink-0">
-                      {row.project_number}
-                    </span>
-                    <Briefcase className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="font-medium text-sm text-slate-900 truncate">
-                      {row.project_name}
-                    </span>
-                    <span className="text-xs text-slate-500 truncate hidden sm:inline">
-                      · {row.location || "—"} · {row.client || "—"}
-                    </span>
-                    <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
-                      <Folder className="w-3.5 h-3.5" />
-                      {row.files.length}
-                    </span>
-                  </button>
-
-                  {/* Files list (expanded) */}
-                  {isOpen && (
-                    <div className="border-t border-slate-200 px-3 py-2 bg-slate-50">
-                      {row.files.length === 0 && (
-                        <p className="text-xs text-slate-500 py-1.5">
-                          No files yet — drop one here or click <strong>+ Add file</strong>.
-                        </p>
-                      )}
-                      <ul className="space-y-1.5">
-                        {row.files.map((f) => (
-                          <li
-                            key={f.id}
-                            className="flex items-center gap-2 px-2 py-1.5 bg-white rounded border border-slate-200"
-                            data-testid={`jha-file-${f.id}`}
-                          >
-                            {fileIconFor(f.filename, f.content_type)}
-                            <a
-                              href={downloadHref(f.id)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex-1 truncate text-xs text-slate-800 hover:text-red-700 hover:underline font-medium"
-                              data-testid={`jha-file-link-${f.id}`}
-                            >
-                              {f.filename}
-                            </a>
-                            <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                              {bytesPretty(f.file_size)}
-                              {f.storage === "disk" ? " · disk" : ""}
-                            </span>
-                            <span className="text-[10px] text-slate-400 shrink-0 hidden sm:inline">
-                              {f.uploaded_at
-                                ? formatPlatformDate(f.uploaded_at)
-                                : ""}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                removeFile({ ...f, project_number: row.project_number })
-                              }
-                              className="inline-flex items-center justify-center w-6 h-6 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
-                              title="Delete"
-                              data-testid={`jha-file-delete-${f.id}`}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* Add-file row */}
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="file"
-                          ref={(el) => (fileInputs.current[row.project_number] = el)}
-                          className="hidden"
-                          onChange={(e) => onPickFile(row.project_number, e)}
-                          data-testid={`jha-file-input-${row.project_number}`}
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isBusy}
-                          onClick={() =>
-                            fileInputs.current[row.project_number]?.click()
-                          }
-                          className="h-8 text-xs font-mono uppercase tracking-wide"
-                          data-testid={`jha-add-${row.project_number}`}
-                        >
-                          {isBusy ? (
-                            <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-                          ) : (
-                            <Upload className="w-3.5 h-3.5 mr-1" />
-                          )}
-                          + Add file
-                        </Button>
-                        <span className="text-[10px] text-slate-400">
-                          PDF, Word, Excel, ZIP, images, CAD, video — up to 250 MB
-                        </span>
-                      </div>
-                    </div>
-                  )}
+            <details className="rounded-[1.25rem] border border-slate-200 bg-slate-50/90 p-4" data-testid="jha-new-project-panel">
+              <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.22em] text-slate-700">
+                Upload to a new or unlisted project
+              </summary>
+              <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr),auto] sm:items-end">
+                <div>
+                  <Label className="font-mono text-[9px] uppercase tracking-[0.22em] text-slate-600">
+                    Project #
+                  </Label>
+                  <Input
+                    value={newProject}
+                    onChange={(e) => setNewProject(e.target.value)}
+                    placeholder="26-99 or any custom number"
+                    className="mt-2 h-10 border-slate-300 bg-white"
+                    data-testid="jha-new-project-input"
+                  />
                 </div>
-              );
-            })}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (!newProject.trim()) {
+                      toast.error("Enter a project number first");
+                      return;
+                    }
+                    fileInputs.current[`__new__${newProject.trim()}`]?.click();
+                  }}
+                  className="h-10 text-xs font-mono uppercase tracking-[0.18em]"
+                  data-testid="jha-new-project-pick-file"
+                >
+                  Pick file
+                </Button>
+                <input
+                  type="file"
+                  ref={(el) => {
+                    if (newProject.trim()) {
+                      fileInputs.current[`__new__${newProject.trim()}`] = el;
+                    }
+                  }}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !newProject.trim()) return;
+                    uploadFile(newProject.trim(), file);
+                    setNewProject("");
+                    e.target.value = "";
+                  }}
+                  data-testid="jha-new-project-hidden-input"
+                />
+              </div>
+            </details>
           </div>
-        )}
-      </section>
-    </main>
+        </SurfaceSection>
+
+        <SurfaceSection
+          eyebrow="Browse · upload · replace · delete"
+          title="Project folders"
+          description="Open a folder to review attached files, add a new revision, or delete obsolete material. Drag-and-drop is enabled on every project row."
+          testId="jha-project-folders-section"
+        >
+          {loading ? (
+            <div className="flex min-h-[14rem] items-center justify-center text-slate-500" data-testid="jha-loading-state">
+              <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Loading library…
+            </div>
+          ) : rows.length === 0 ? (
+            <EmptyState
+              title="No matching jobs"
+              message="Adjust your filter or upload to a new project number to seed the first folder."
+              icon={Folder}
+              data-testid="jha-empty-state"
+            />
+          ) : (
+            <div className="space-y-3">
+              {rows.map((row) => {
+                const isOpen = !!openMap[row.project_number];
+                const isBusy = busyJob === row.project_number;
+                return (
+                  <div
+                    key={row.project_number}
+                    className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+                    data-testid={`jha-job-${row.project_number}`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => onDrop(row.project_number, e)}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleOpen(row.project_number)}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                      data-testid={`jha-toggle-${row.project_number}`}
+                    >
+                      {isOpen ? (
+                        <ChevronDown className="w-4 h-4 text-slate-500 shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                      )}
+                      <span className="inline-flex min-w-[4.25rem] justify-center rounded-full bg-red-700 px-2.5 py-1 text-[11px] font-bold font-mono text-white shrink-0">
+                        {row.project_number}
+                      </span>
+                      <Briefcase className="w-4 h-4 text-slate-400 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold text-slate-900">{row.project_name}</div>
+                        <div className="mt-0.5 truncate text-xs text-slate-500">
+                          {[row.location, row.client, row.project_manager].filter(Boolean).join(" · ") || "Metadata pending"}
+                        </div>
+                      </div>
+                      <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600 shrink-0">
+                        <Folder className="w-3.5 h-3.5" />
+                        {row.files.length}
+                      </span>
+                    </button>
+
+                    {isOpen ? (
+                      <div className="border-t border-slate-200 bg-slate-50/80 px-4 py-4" data-testid={`jha-open-panel-${row.project_number}`}>
+                        {row.files.length === 0 ? (
+                          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-500" data-testid={`jha-empty-folder-${row.project_number}`}>
+                            No files yet — drop one here or click <strong>+ Add file</strong> to create the first governed record.
+                          </div>
+                        ) : null}
+
+                        <ul className="space-y-2">
+                          {row.files.map((f) => (
+                            <li
+                              key={f.id}
+                              className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5"
+                              data-testid={`jha-file-${f.id}`}
+                            >
+                              {fileIconFor(f.filename, f.content_type)}
+                              <a
+                                href={downloadHref(f.id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 hover:text-red-700 hover:underline"
+                                data-testid={`jha-file-link-${f.id}`}
+                              >
+                                {f.filename}
+                              </a>
+                              <span className="text-[10px] font-mono text-slate-500 shrink-0">
+                                {bytesPretty(f.file_size)}
+                                {f.storage === "disk" ? " · disk" : ""}
+                              </span>
+                              <span className="text-[10px] text-slate-400 shrink-0 hidden sm:inline">
+                                {f.uploaded_at ? formatPlatformDate(f.uploaded_at) : ""}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeFile({ ...f, project_number: row.project_number })}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-600"
+                                title="Delete"
+                                data-testid={`jha-file-delete-${f.id}`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="file"
+                              ref={(el) => (fileInputs.current[row.project_number] = el)}
+                              className="hidden"
+                              onChange={(e) => onPickFile(row.project_number, e)}
+                              data-testid={`jha-file-input-${row.project_number}`}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isBusy}
+                              onClick={() => fileInputs.current[row.project_number]?.click()}
+                              className="h-9 text-xs font-mono uppercase tracking-[0.18em]"
+                              data-testid={`jha-add-${row.project_number}`}
+                            >
+                              {isBusy ? (
+                                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                              ) : (
+                                <Upload className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              Add file
+                            </Button>
+                          </div>
+                          <span className="text-[10px] text-slate-500">
+                            PDF, Word, Excel, ZIP, images, CAD, video — up to 250 MB
+                          </span>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </SurfaceSection>
+      </main>
+    </div>
   );
 
   if (adminRoute) {
     return (
-      <LegacyAdminModernShell
-        title="JHP Plans & Files"
+      <AdminRouteShell
+        pageTitle="JHP Plans & Files"
         subtitle="Project hazard plans · attached files"
-        breadcrumb={[
-          { label: "Safety & Compliance", to: "/admin" },
+        portalRole="Admin · JHP Files"
+        crumbs={[
+          { label: "Admin OS" },
+          { label: "Safety & Compliance" },
           { label: "JHA / JHP Plans" },
         ]}
-        testidPrefix="admin-jha-plans"
+        showShellHeader={false}
+        showBreadcrumbs={false}
+        contentClassName="px-0 py-0"
+        testId="admin-jha-plans-shell"
       >
         {content}
-      </LegacyAdminModernShell>
+      </AdminRouteShell>
     );
   }
 
@@ -470,6 +585,7 @@ export default function JhaPlansAdmin() {
       pageTitle="JHP Plans & Files"
       subtitle="Project hazard plans · attached files"
       sideNav={<SafetySideNavV2 />}
+      showPageHeader={false}
     >
       {content}
     </PortalShell>
