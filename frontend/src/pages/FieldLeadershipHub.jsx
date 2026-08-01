@@ -48,7 +48,6 @@ import {
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
-import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import LastActivityLine from "@/components/admin/LastActivityLine";
 
 const FL_PAL = paletteFor("leadership");
@@ -331,12 +330,13 @@ export default function FieldLeadershipHub() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Field Leadership"
+      portalRole={t("Field Leadership")}
       pageTitle={t("Field Leadership")}
       subtitle={t("Crew documentation, accountability, and field requests in one operational workspace.")}
       showBack
       backHref="/"
       portalSwitcherCurrent="leadership"
+      showNotifications={false}
       onSignOut={signOut}
       primaryActions={
         <div className="flex items-center gap-2" data-testid="leadership-header-actions">
@@ -375,8 +375,8 @@ export default function FieldLeadershipHub() {
         <section className="wp17-mission-banner mb-6" data-testid="fl-portal-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Keep crew documentation, accountability, and field requests in one clear workflow home.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Keep crew documentation, accountability, and field requests in one clear workflow home.")}</h2>
             </div>
           </div>
         </section>
@@ -385,12 +385,6 @@ export default function FieldLeadershipHub() {
             self-gated · dismissible · single-card · NEVER nags */}
         <div className="mb-8">
           <PasskeyEnrollPrompt />
-        </div>
-
-        {/* iter432 · Phase 30 · Part 6 · Option iii · ONE calm additive
-            operational-attention surface — read-only Field Memory glance. */}
-        <div className="mb-8">
-          <FieldMemoryGlance />
         </div>
 
         {/* iter440 · calm "Last activity" trace · quiet proof of platform usage. */}

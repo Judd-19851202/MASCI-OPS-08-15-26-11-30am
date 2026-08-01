@@ -17,10 +17,11 @@ export default function FieldLeadershipDriverQualification() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Field Leadership · Driver Readiness"
+      portalRole={t("Field Leadership · Driver Readiness")}
       pageTitle={t("Driver Qualification")}
       subtitle={t("Field Leadership read-only view of approved drivers and CDL readiness.")}
       showBack
+      showNotifications={false}
       backHref="/field-leadership/portal/dashboard"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5" data-testid="fl-driver-qualification-page">

@@ -11,6 +11,7 @@ import { fetchMyProjects } from "@/lib/teamRosterApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 const ROLE_LABEL = {
   pm: "PM", co_pm: "Co-PM", assistant_pm: "Assistant PM",
@@ -23,6 +24,7 @@ const ROLE_LABEL = {
 };
 
 export default function MyAssignedProjectsWidget({ title = "My assigned jobs" }) {
+  const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
@@ -44,22 +46,22 @@ export default function MyAssignedProjectsWidget({ title = "My assigned jobs" })
   const projects = Object.entries(byProject).sort();
 
   return (
-    <Card data-testid="my-assigned-projects-widget">
+    <Card className="min-w-0" data-testid="my-assigned-projects-widget">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Briefcase className="h-4 w-4" />
-          {title}
-          <Badge variant="outline" className="ml-2 text-xs">
+        <CardTitle className="text-base flex min-w-0 flex-wrap items-start gap-2">
+          <Briefcase className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1 break-words">{title}</span>
+          <Badge variant="outline" className="text-xs shrink-0">
             {projects.length}
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {loading && <p className="text-sm text-slate-500">Loading…</p>}
+        {loading && <p className="text-sm text-slate-500">{t("Loading…")}</p>}
         {err && <p className="text-sm text-red-700">{err}</p>}
         {!loading && !err && projects.length === 0 && (
           <p className="text-sm text-slate-500 italic">
-            You aren&apos;t currently assigned to any active jobs.
+            {t("You aren't currently assigned to any active jobs.")}
           </p>
         )}
         {!loading && projects.length > 0 && (
@@ -70,7 +72,7 @@ export default function MyAssignedProjectsWidget({ title = "My assigned jobs" })
                 <span className="flex gap-1 flex-wrap justify-end">
                   {[...new Set(roles)].map((r) => (
                     <Badge key={r} variant="secondary" className="text-[10px]">
-                      {ROLE_LABEL[r] || r}
+                      {t(ROLE_LABEL[r] || r)}
                     </Badge>
                   ))}
                 </span>

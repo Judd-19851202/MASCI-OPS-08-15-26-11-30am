@@ -94,7 +94,7 @@ export function FormShell({
         showLangToggle
         utilitySlot={utilityCard}
         containerClassName={widthClass}
-        testIdPrefix={containerTestId}
+        testIdPrefix="form-shell"
       />
 
       {/* MAIN */}

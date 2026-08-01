@@ -59,6 +59,210 @@ const subscribe = (cb) => {
 // to the English key itself, so wrapping a string with t(...) is safe even
 // before the Spanish translation lands.
 const ES = {
+  // ── WP-17D · Executive Amendment #5 · Field certification ─────────
+  "Field Operations": "Operaciones de Campo",
+  "Crew start point": "Punto de inicio de la cuadrilla",
+  "Start the shift, log field work, confirm equipment readiness, and open jobsite tools from one governed crew-facing surface.":
+    "Inicia el turno, registra el trabajo de campo, confirma la preparación del equipo y abre herramientas de obra desde una sola superficie operativa gobernada para la cuadrilla.",
+  "End-of-day site log covering crews, subs, visitors, equipment, materials, weather, and jobsite photos.":
+    "Registro de fin de día de la obra con cuadrillas, subcontratistas, visitantes, equipo, materiales, clima y fotos de la obra.",
+  "Start report": "Iniciar reporte",
+  "Daily heavy-equipment readiness check with pass/fail inspection items and direct out-of-service visibility.":
+    "Revisión diaria de preparación del equipo pesado con puntos de inspección de aprobado/reprobado y visibilidad directa de fuera de servicio.",
+  "Start inspection": "Iniciar inspección",
+  "Start the shift fast by selecting the driver and truck with no password or app handoff.":
+    "Inicia el turno rápido seleccionando al conductor y al camión sin contraseña ni cambio de aplicación.",
+  "Daily truck and trailer inspection with direct defect visibility for shop operations.":
+    "Inspección diaria de camión y remolque con visibilidad directa de defectos para operaciones de taller.",
+  "Weekly high-signal review for recurring issues, operational hygiene, and key safety items.":
+    "Revisión semanal de alta señal para problemas recurrentes, disciplina operativa y elementos clave de seguridad.",
+  "Start weekly lead": "Iniciar revisión semanal del líder",
+  "Verify emergency gear, dates, readiness, and presence before the truck leaves the yard.":
+    "Verifica el equipo de emergencia, las fechas, la preparación y la presencia antes de que el camión salga del patio.",
+  "Start emergency check": "Iniciar revisión de emergencia",
+  "Estimate aggregate, asphalt, concrete, truck loads, yield, waste, and conversions without leaving the field.":
+    "Estima agregado, asfalto, concreto, cargas de camión, rendimiento, desperdicio y conversiones sin salir del campo.",
+  "Open tools": "Abrir herramientas",
+  "End-of-day operational memory for the jobsite.":
+    "Memoria operativa del final del día para la obra.",
+  "Daily OSHA equipment readiness before production starts.":
+    "Verificación diaria de preparación del equipo según OSHA antes de iniciar la producción.",
+  "Shift activation, daily readiness, and recurring truck checks.":
+    "Activación del turno, preparación diaria y revisiones recurrentes de camiones.",
+  "Supporting field calculators and quick utilities.":
+    "Calculadoras de campo y utilidades rápidas de apoyo.",
+  "Field tools": "Herramientas de campo",
+  "Fast field math for aggregate, asphalt, concrete, truck loads, yield, waste, and tons-to-cubic-yard conversions.":
+    "Cálculos rápidos de campo para agregado, asfalto, concreto, cargas de camión, rendimiento, desperdicio y conversiones de toneladas a yardas cúbicas.",
+  "Choose a calculator": "Elige una calculadora",
+  "Open one estimating tool at a time, then calculate, reset, or save the result when you are ready.":
+    "Abre una herramienta de estimación a la vez; luego calcula, reinicia o guarda el resultado cuando estés listo.",
+  "Current tool": "Herramienta actual",
+  "Operations Workspace": "Espacio de operaciones",
+  "MASCI · Fleet DVIR": "MASCI · DVIR de flota",
+  "DVIR submission status": "Estado del envío del DVIR",
+  "A calm summary of what happens next after filing your daily vehicle inspection.":
+    "Un resumen claro de lo que ocurre después de enviar tu inspección diaria del vehículo.",
+  "Location permission is blocked. Allow location access for this site in your browser settings, then try again.":
+    "El permiso de ubicación está bloqueado. Permite el acceso a la ubicación para este sitio en la configuración del navegador y vuelve a intentarlo.",
+  "Location permission was not completed. Tap Use My Location and approve the browser prompt.":
+    "No se completó el permiso de ubicación. Toca Usar mi ubicación y aprueba la solicitud del navegador.",
+  "Your location could not be captured in time. Move to an open area or improve signal, then retry.":
+    "No se pudo capturar tu ubicación a tiempo. Muévete a un área abierta o mejora la señal y vuelve a intentarlo.",
+  "Your device could not determine its location. Check Location Services and cellular/Wi-Fi availability.":
+    "Tu dispositivo no pudo determinar su ubicación. Verifica los servicios de ubicación y la disponibilidad de señal celular o Wi‑Fi.",
+  "Location access is blocked inside the embedded non-production frame. Open this page in a new tab to test GPS.":
+    "El acceso a la ubicación está bloqueado dentro del marco incrustado no productivo. Abre esta página en una pestaña nueva para probar el GPS.",
+  "This browser does not support device location. Select the project location or enter coordinates manually.":
+    "Este navegador no admite la ubicación del dispositivo. Selecciona la ubicación del proyecto o ingresa coordenadas manualmente.",
+  "This page is not running in a secure HTTPS context, so device location is unavailable.":
+    "Esta página no se está ejecutando en un contexto HTTPS seguro, por lo que la ubicación del dispositivo no está disponible.",
+  "Location could not be captured. You can use project coordinates, a saved draft location, or enter coordinates manually.":
+    "No se pudo capturar la ubicación. Puedes usar coordenadas del proyecto, una ubicación guardada en borrador o ingresar coordenadas manualmente.",
+  "No previous setup found for this project yet.":
+    "Aún no se encontró una configuración previa para este proyecto.",
+  "Previous setup is not available for this account. You can continue manually.":
+    "La configuración previa no está disponible para esta cuenta. Puedes continuar manualmente.",
+  "Previous setup returned incomplete data. You can continue manually or try again.":
+    "La configuración previa devolvió datos incompletos. Puedes continuar manualmente o intentarlo de nuevo.",
+  "Previous setup could not be loaded. You can continue manually or try again.":
+    "No se pudo cargar la configuración previa. Puedes continuar manualmente o intentarlo de nuevo.",
+  "Your current setup already has values. Replace the reusable setup fields?":
+    "Tu configuración actual ya tiene valores. ¿Deseas reemplazar los campos reutilizables de la configuración?",
+  "Prefilled from {d} — review and adjust before submit":
+    "Precargado desde {d} — revisa y ajusta antes de enviar",
+  "Location captured · weather refreshed from captured coordinates":
+    "Ubicación capturada · clima actualizado desde las coordenadas capturadas",
+  "Location captured · weather unavailable. Retry weather when signal improves.":
+    "Ubicación capturada · clima no disponible. Vuelve a intentar el clima cuando mejore la señal.",
+  "Capture a location first so we know where to check the forecast.":
+    "Primero captura una ubicación para saber dónde consultar el pronóstico.",
+  "Location source": "Fuente de ubicación",
+  "Approved executive summary": "Resumen ejecutivo aprobado",
+  "Weather coordinates match report location":
+    "Las coordenadas del clima coinciden con la ubicación del reporte",
+  "Approve manual summary to unlock submit":
+    "Aprueba el resumen manual para habilitar el envío",
+  "Approve the executive summary to unlock submit":
+    "Aprueba el resumen ejecutivo para habilitar el envío",
+  "A Daily Report already exists for this project on this date":
+    "Ya existe un Reporte Diario para este proyecto en esta fecha",
+  "unknown author": "autor desconocido",
+  "Submit another one anyway?": "¿Enviar otro de todos modos?",
+  "Submit cancelled.": "Envío cancelado.",
+  "Daily report submitted · email safely captured in Preview.":
+    "Reporte diario enviado · el correo se registró de forma segura en la vista previa.",
+  "Daily report submitted · notification recorded separately.":
+    "Reporte diario enviado · la notificación se registró por separado.",
+  "Offline — saved on this device and will send when connection returns.":
+    "Sin conexión — guardado en este dispositivo y se enviará cuando regrese la conexión.",
+  "Nine short steps. Dropdowns first. AI drafts your summary. Save state, scope, and next action stay visible the whole time.":
+    "Nueve pasos cortos. Primero los menús desplegables. La IA redacta tu resumen. El estado de guardado, el alcance y la siguiente acción permanecen visibles todo el tiempo.",
+  "Ready to submit once the signature is complete.":
+    "Listo para enviar cuando la firma esté completa.",
+  "Field-ready, canonical, and draft-safe":
+    "Listo para campo, canónico y protegido para borradores",
+  "Capture one clean report, keep your draft protected, and submit the same governed payload the rest of the platform already trusts.":
+    "Captura un reporte limpio, protege tu borrador y envía la misma carga gobernada en la que ya confía el resto de la plataforma.",
+  "Use your previous submitted setup?": "¿Usar tu configuración enviada anteriormente?",
+  "{crew} crew · {equip} equipment from {date}":
+    "{crew} cuadrilla · {equip} equipos de {date}",
+  "the previous report": "el reporte anterior",
+  "Hours and setup are editable before submit.":
+    "Las horas y la configuración se pueden editar antes de enviar.",
+  "Start Fresh": "Empezar de cero",
+  "Restore Setup": "Restaurar configuración",
+  "Trying again…": "Intentando de nuevo…",
+  "Try Again": "Intentar de nuevo",
+  "Restored from {d} · review and adjust hours before submit":
+    "Restaurado desde {d} · revisa y ajusta las horas antes de enviar",
+  "Weather refreshed from the current verified location.":
+    "Clima actualizado desde la ubicación verificada actual.",
+  "Embedded preview blocked location access. Open in a new tab to test GPS.":
+    "La vista previa incrustada bloqueó el acceso a la ubicación. Abre esta página en una pestaña nueva para probar el GPS.",
+  "MASCI · Equipment Pre-Op": "MASCI · Inspección previa del equipo",
+  "Capture pre-operation status, defects, photos, and sign-off in one shared equipment workflow.":
+    "Captura el estado previo a la operación, defectos, fotos y firma en un solo flujo compartido de equipo.",
+  "Finish FAIL notes + photos before submit":
+    "Completa las notas y fotos de FALLA antes de enviar",
+  "Ready to submit · operator sign-off required":
+    "Listo para enviar · se requiere la firma del operador",
+  "Why this Pre-Op matters": "Por qué importa esta inspección previa",
+  "When to stop and call": "Cuándo detenerse y llamar",
+  "Current Job": "Trabajo actual",
+  "Submit from the sticky action bar after every fail note, fail photo, and signature is complete.":
+    "Envía desde la barra de acciones fija después de completar cada nota de falla, foto de falla y firma.",
+  "Capture vehicle condition, defects, signatures, and routing in one shared fleet workflow.":
+    "Captura el estado del vehículo, defectos, firmas y enrutamiento en un solo flujo compartido de flota.",
+  "Ready to submit · fleet routing will run automatically":
+    "Listo para enviar · el enrutamiento de flota se ejecutará automáticamente",
+  "Use the checklist below to document the unit condition before it goes to work.":
+    "Usa la lista de verificación a continuación para documentar el estado de la unidad antes de que entre en servicio.",
+  "Submit from the sticky action bar after defects and signature are complete.":
+    "Envía desde la barra de acciones fija cuando los defectos y la firma estén completos.",
+  "Back to Field Section": "Volver a la sección de campo",
+  "Could not record acknowledgement. Try again.":
+    "No se pudo registrar la confirmación. Inténtalo de nuevo.",
+  "Revision pending · please re-acknowledge":
+    "Revisión pendiente · vuelve a confirmar",
+  "Dispatch has revised your assignment. Tap ACKNOWLEDGE to confirm you've seen the changes before you move.":
+    "Despacho revisó tu asignación. Toca CONFIRMAR para indicar que viste los cambios antes de moverte.",
+  "Tap ACKNOWLEDGE so dispatch knows you've received this assignment. Then start your run.":
+    "Toca CONFIRMAR para que despacho sepa que recibiste esta asignación. Luego inicia tu recorrido.",
+  "Recording…": "Registrando…",
+  "Field Leadership Portal": "Portal de Liderazgo de Campo",
+  "Portal mission": "Misión del portal",
+  "Support field leaders with the next crew-facing action, not admin noise.":
+    "Apoya a los líderes de campo con la siguiente acción para la cuadrilla, no con ruido administrativo.",
+  "Field Leadership now lives in the same shell family as the rest of the platform while keeping dispatch visibility, accountability, and workflow launchers obvious.":
+    "Liderazgo de Campo ahora vive en la misma familia de shells que el resto de la plataforma, manteniendo visibles el despacho, la rendición de cuentas y los accesos de flujo de trabajo.",
+  "Crew accountability · employee readiness · dispatch visibility":
+    "Responsabilidad de la cuadrilla · preparación del empleado · visibilidad de despacho",
+  "Today's focus · Field Leadership": "Enfoque de hoy · Liderazgo de Campo",
+  "Assigned jobs, today's dispatch window, and driver-readiness readouts — in that order. Everything else is one click below.":
+    "Trabajos asignados, ventana de despacho de hoy y lecturas de preparación del conductor, en ese orden. Todo lo demás está a un clic abajo.",
+  "Search failed": "La búsqueda falló",
+  "Search by name or employee ID": "Buscar por nombre o ID de empleado",
+  "Could not load dashboard": "No se pudo cargar el panel",
+  "Signed out": "Sesión cerrada",
+  "Cross-Portal Grant": "Permiso multiprotal",
+  "My assigned jobs (project roster)": "Mis trabajos asignados (lista del proyecto)",
+  "You aren't currently assigned to any active jobs.":
+    "Actualmente no tienes trabajos activos asignados.",
+  "Dispatch · Today / Tomorrow": "Despacho · Hoy / Mañana",
+  "Read-only window": "Ventana de solo lectura",
+  "dispatch entries visible to Field Leadership":
+    "entradas de despacho visibles para Liderazgo de Campo",
+  "Read-only roster": "Listado de solo lectura",
+  "approved/CDL drivers in scope": "conductores aprobados/CDL dentro del alcance",
+  "Open Driver Readiness →": "Abrir preparación del conductor →",
+  "Operational workflows": "Flujos operativos",
+  "You have access to the same field workflows you use on a daily basis. Field Leadership identity does NOT include HR administration, payroll, system settings, or platform configuration.":
+    "Tienes acceso a los mismos flujos de campo que usas todos los días. La identidad de Liderazgo de Campo NO incluye administración de RRHH, nómina, configuración del sistema ni configuración de la plataforma.",
+  "Field launchpad": "Plataforma de lanzamiento de campo",
+  "Submit write-ups, recognitions, evaluations, and equipment checkouts directly from the field. These submissions append to the leadership ledger HR and admins use for accountability.":
+    "Envía reportes disciplinarios, reconocimientos, evaluaciones y entregas de equipo directamente desde el campo. Estos envíos se agregan al registro de liderazgo que RRHH y los administradores usan para la rendición de cuentas.",
+  "Employee Accountability Lookup": "Consulta de responsabilidad del empleado",
+  "Look up any employee to see CDL/medical readiness, training currency, PPE, recent incidents, and the full accountability timeline.":
+    "Consulta cualquier empleado para ver preparación CDL/médica, vigencia de capacitación, EPP, incidentes recientes y la línea de tiempo completa de responsabilidad.",
+  "Field Leadership · Driver Readiness": "Liderazgo de Campo · Preparación del conductor",
+  "Field Leadership read-only view of approved drivers and CDL readiness.":
+    "Vista de solo lectura de Liderazgo de Campo sobre conductores aprobados y preparación CDL.",
+  "Crew documentation, accountability, and field requests in one operational workspace.":
+    "Documentación de cuadrillas, rendición de cuentas y solicitudes de campo en un mismo espacio operativo.",
+  "Keep crew documentation, accountability, and field requests in one clear workflow home.":
+    "Mantén la documentación de cuadrillas, la rendición de cuentas y las solicitudes de campo en un solo centro de trabajo claro.",
+  "Superintendent": "Superintendente",
+  "Foreman": "Capataz",
+  "Safety Lead": "Líder de Seguridad",
+  "Project Engineer": "Ingeniero de Proyecto",
+  "Asset Admin": "Administrador de Activos",
+  "Locate Coordinator": "Coordinador de Localización",
+  "Dispatcher Contact": "Contacto de Despacho",
+  "Shop Contact": "Contacto de Taller",
+  "Executive Oversight": "Supervisión Ejecutiva",
+  "Read-only Stakeholder": "Interesado de solo lectura",
+
   // iter432 · Phase 30 · Part 6 · Field Memory glance (calm role-hub
   // ── Track 19.16 · Phase D · Executive Intelligence Center ──────
   "Executive Intelligence Center": "Centro de Inteligencia Ejecutiva",

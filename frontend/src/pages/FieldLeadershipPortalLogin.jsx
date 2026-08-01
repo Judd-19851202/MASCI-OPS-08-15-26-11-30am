@@ -126,8 +126,10 @@ export default function FieldLeadershipPortalLogin() {
       if (mustChange) {
         navigate("/field-leadership/portal/change-password", { replace: true });
       } else {
-        // Land directly in the Field Leadership Hub.
-        navigate("/leadership", { replace: true });
+        // FL identities land in the governed portal dashboard. Admin
+        // identities still route to the legacy leadership hub, which
+        // accepts admin tokens without minting an FL user session.
+        navigate(kind === "admin" ? "/leadership" : "/field-leadership/portal/dashboard", { replace: true });
       }
     } catch (err) {
       const status = err?.response?.status;

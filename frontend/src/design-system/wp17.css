@@ -359,6 +359,9 @@
 .wp17-detail-hero,
 .wp17-list-intro,
 .wp17-form-frame {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   background: var(--wp17-panel-bg);
   border: 1px solid var(--wp17-panel-border);
   box-shadow: var(--wp17-panel-shadow);

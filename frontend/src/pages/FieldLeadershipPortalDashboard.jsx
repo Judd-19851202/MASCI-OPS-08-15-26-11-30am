@@ -100,6 +100,9 @@ export default function FieldLeadershipPortalDashboard() {
   const [driverQual, setDriverQual] = useState({ items: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const resolvedSubtitle = user?.role === "Cross-Portal Grant"
+    ? t("Cross-Portal Grant")
+    : user?.role || t("Crew accountability · employee readiness · dispatch visibility");
 
   useEffect(() => {
     (async () => {
@@ -129,19 +132,20 @@ export default function FieldLeadershipPortalDashboard() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Field Leadership Portal"
+      portalRole={t("Field Leadership Portal")}
       pageTitle={user?.name || t("Field Leader")}
-      subtitle={user?.role || t("Crew accountability · employee readiness · dispatch visibility")}
+      subtitle={resolvedSubtitle}
+      showNotifications={false}
       onSignOut={signOut}
     >
-      <div className="max-w-6xl w-full mx-auto px-4 py-6 space-y-4" data-testid="fl-portal-dashboard">
+      <div className="max-w-6xl w-full mx-auto px-0 py-6 space-y-4" data-testid="fl-portal-dashboard">
         <section className="wp17-mission-banner" data-testid="fl-portal-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Support field leaders with the next crew-facing action, not admin noise.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Support field leaders with the next crew-facing action, not admin noise.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Field Leadership now lives in the same shell family as the rest of the platform while keeping dispatch visibility, accountability, and workflow launchers obvious.
+                {t("Field Leadership now lives in the same shell family as the rest of the platform while keeping dispatch visibility, accountability, and workflow launchers obvious.")}
               </p>
             </div>
           </div>
@@ -157,7 +161,7 @@ export default function FieldLeadershipPortalDashboard() {
           className="rounded-md border-2 border-slate-200 bg-white px-4 py-3"
         >
           <div className="font-mono text-[11px] uppercase tracking-widest font-bold text-slate-700">
-            Today&apos;s focus · Field Leadership
+            {t("Today's focus · Field Leadership")}
           </div>
           <p className="mt-1 text-xs text-slate-600">
             {t("Assigned jobs, today's dispatch window, and driver-readiness readouts — in that order. Everything else is one click below.")}
@@ -177,12 +181,12 @@ export default function FieldLeadershipPortalDashboard() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <MyAssignedProjectsWidget title="My assigned jobs (project roster)" />
+            <div className="md:col-span-2 min-w-0">
+              <MyAssignedProjectsWidget title={t("My assigned jobs (project roster)")} />
             </div>
-            <Card data-testid="fl-card-dispatch">
+            <Card className="min-w-0" data-testid="fl-card-dispatch">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-1.5">
+                <CardTitle className="text-sm flex flex-wrap items-center gap-1.5 min-w-0">
                   <Truck className="w-4 h-4 text-slate-600" /> {t("Dispatch · Today / Tomorrow")}
                 </CardTitle>
               </CardHeader>
@@ -201,9 +205,9 @@ export default function FieldLeadershipPortalDashboard() {
                 </div>
               </CardContent>
             </Card>
-            <Card data-testid="fl-card-driver-qual" className="cursor-pointer hover:border-red-300 hover:shadow-sm transition-all" onClick={() => navigate("/field-leadership/portal/driver-qualification")}>
+            <Card data-testid="fl-card-driver-qual" className="min-w-0 cursor-pointer hover:border-red-300 hover:shadow-sm transition-all" onClick={() => navigate("/field-leadership/portal/driver-qualification")}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-1.5">
+                <CardTitle className="text-sm flex flex-wrap items-center gap-1.5 min-w-0">
                   <ShieldCheck className="w-4 h-4 text-slate-600" /> {t("Driver Qualification")}
                 </CardTitle>
               </CardHeader>
@@ -222,7 +226,7 @@ export default function FieldLeadershipPortalDashboard() {
             </Card>
           </div>
         )}
-        <Card>
+        <Card className="min-w-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">{t("Operational workflows")}</CardTitle>
           </CardHeader>
@@ -233,16 +237,17 @@ export default function FieldLeadershipPortalDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {[
                 { label: t("Daily Reports"), to: "/daily/submit" },
-                { label: t("Safety Meetings"), to: "/meetings" },
-                { label: t("JHAs"), to: "/jhas" },
-                { label: t("Pre-Ops / DVIRs"), to: "/equipment" },
-                { label: t("Incidents"), to: "/safety/incident-report" },
-                { label: t("Fleet visibility"), to: "/fleet" },
-              ].map((w) => (
+                { label: t("Safety Meetings"), to: "/meetings/submit" },
+                { label: t("JHAs"), to: "/jha" },
+                { label: t("Pre-Ops / DVIRs"), to: "/equipment/submit" },
+                { label: t("Incidents"), to: "/incidents/report" },
+                { label: t("Field launchpad"), to: "/field" },
+              ].map((w, index) => (
                 <Button
                   key={w.to} variant="outline"
                   className="h-9 text-xs justify-start"
                   onClick={() => navigate(w.to)}
+                  data-testid={`fl-operational-workflow-${index}`}
                 >
                   {w.label}
                 </Button>
@@ -256,9 +261,9 @@ export default function FieldLeadershipPortalDashboard() {
             legacy /leadership hub but absent from the per-user FL
             Portal Dashboard. Forms are public-submit (no permission
             change) — additive launcher only. */}
-        <Card data-testid="fl-leadership-launchers">
+        <Card className="min-w-0" data-testid="fl-leadership-launchers">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1.5">
+            <CardTitle className="text-sm flex flex-wrap items-center gap-1.5 min-w-0">
               <HardHat className="w-4 h-4 text-red-700" />
               {t("Leadership submissions")}
             </CardTitle>
@@ -305,9 +310,9 @@ export default function FieldLeadershipPortalDashboard() {
         </Card>
 
         {/* iter353d · Employee Accountability Lookup card */}
-        <Card data-testid="fl-card-acct-lookup" className="mt-6 border-2 border-red-300">
+        <Card data-testid="fl-card-acct-lookup" className="min-w-0 mt-6 border-2 border-red-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1.5">
+            <CardTitle className="text-sm flex flex-wrap items-center gap-1.5 min-w-0">
               <ShieldCheck className="w-4 h-4 text-red-700" /> {t("Employee Accountability Lookup")}
             </CardTitle>
           </CardHeader>
