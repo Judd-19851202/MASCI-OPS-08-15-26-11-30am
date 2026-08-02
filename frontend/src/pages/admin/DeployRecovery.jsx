@@ -177,7 +177,7 @@ export default function DeployRecovery() {
               <li>Stop further writes — set the deploy back to the previous build first.</li>
               <li>Go to <Link to="/admin/system" className="font-bold underline text-amber-700">Admin → System &amp; Backups</Link> → &quot;Restore from R2 archive&quot;. Pick the most recent hourly snapshot taken BEFORE the corruption window.</li>
               <li>Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.</li>
-              <li>Cross-reference the <Link to="/admin/audit-log" className="font-bold underline text-amber-700" data-testid="recovery-audit-link">Audit Log</Link> for the actor/source-module behind the offending writes.</li>
+              <li>Cross-reference the <Link to="/admin/audit-log" className="font-bold underline text-amber-700" data-testid="recovery-audit-link">Activity History</Link> for the actor and workflow behind the offending writes.</li>
             </ol>
           </Playbook>
 

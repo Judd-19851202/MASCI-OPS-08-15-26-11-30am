@@ -282,7 +282,7 @@ export function TruthOwnerPanel({
       <div className="grid gap-2 md:grid-cols-2 text-xs text-slate-600">
         <div data-testid={`${testidPrefix}-owner-endpoint`}><span className="font-semibold text-slate-800">{t("Owner endpoint:")}</span> {sanitizeOperatorReference(surface.owner_endpoint, "Linked service")}</div>
         <div data-testid={`${testidPrefix}-owner-module`}><span className="font-semibold text-slate-800">{t("Owner module:")}</span> {sanitizeOperatorReference(surface.owner_module, "Platform service")}</div>
-        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">{t("Canonical owner:")}</span> {sanitizeOperatorReference(relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id, "Primary source")}</div>
+        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">Primary owner:</span> {sanitizeOperatorReference(relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id, "Primary source")}</div>
         <div data-testid={`${testidPrefix}-evidence-age`}><span className="font-semibold text-slate-800">{t("Evidence age:")}</span> {checkedAt || relationship?.evidence_age_source || "—"}</div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">

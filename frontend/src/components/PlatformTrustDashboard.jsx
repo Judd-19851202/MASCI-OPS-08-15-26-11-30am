@@ -155,6 +155,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
   if (!ots) return null;
   const unknowns = ots.unknowns || [];
   const contradictions = ots.contradictory_evidence || [];
+  const reference = humanizeToken(ots.audit_reference || "tracking reference");
   return (
     <div className="space-y-2" data-testid={`${testidPrefix}-wrapper`}>
       <div
@@ -183,7 +184,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
           <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).map(humanizeToken).join(" · ") || "No basis listed"}
         </div>
         <div data-testid={`${testidPrefix}-audit`}>
-          <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "No audit reference listed"}
+          <span className="font-semibold text-slate-900">Tracking reference:</span> {reference || "No tracking reference listed"}
         </div>
       </div>
       {unknowns.length > 0 && (

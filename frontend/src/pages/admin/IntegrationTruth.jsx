@@ -31,6 +31,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 import { operationalError } from "@/lib/errors";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -115,7 +116,7 @@ function AiKeysPanel({ data, onRefresh, loading, refreshCapability }) {
   return (
     <Panel
       title="AI Key Status"
-      subtitle={data?.reads_from || "Live environment values"}
+      subtitle={sanitizeOperatorReference(data?.reads_from, "Live environment values") || "Live environment values"}
       icon={KeyRound}
       right={
         <Button
@@ -162,7 +163,7 @@ function AiKeysPanel({ data, onRefresh, loading, refreshCapability }) {
                 <div className="mt-2 space-y-1 text-xs text-slate-600">
                   <div>
                     <span className="text-slate-500">env var:</span>{" "}
-                    <code className="rounded bg-slate-200 px-1">{p.env_var}</code>
+                    <code className="rounded bg-slate-200 px-1">{sanitizeOperatorReference(p.env_var, "managed value")}</code>
                   </div>
                   <div>
                     <span className="text-slate-500">present:</span>{" "}
@@ -177,7 +178,7 @@ function AiKeysPanel({ data, onRefresh, loading, refreshCapability }) {
                       </span>
                     ) : null}
                   </div>
-                  <div className="text-slate-500">{p.detail}</div>
+                  <div className="text-slate-500">{sanitizeOperatorReference(p.detail, "Live value status available.")}</div>
                 </div>
               </div>
             ))}
@@ -277,7 +278,7 @@ function IntegrationsPanel({ data, onRefresh, loading, refreshCapability }) {
                     ) : null}
                   </td>
                   <td className="py-3 pr-4 text-xs text-slate-600">
-                    {row.detail || row.connectivity_detail || "—"}
+                    {sanitizeOperatorReference(row.detail || row.connectivity_detail, "Connected status available.")}
                   </td>
                 </tr>
               ))}
@@ -293,8 +294,8 @@ function IntegrationsPanel({ data, onRefresh, loading, refreshCapability }) {
 function AliasTelemetryPanel({ data, onRefresh, loading, refreshCapability }) {
   return (
     <Panel
-      title="Legacy /api/dr-v2/* Alias Telemetry"
-      subtitle="Migration signal only. Detail events auto-expire after 30 days; aggregates persist until DR-UNIFY-005 retires the aliases."
+      title="Legacy delivery path activity"
+      subtitle="Reference-only signal. Detail events auto-expire after 30 days while summary totals stay available until cleanup completes."
       icon={History}
       right={
         <Button
@@ -352,8 +353,7 @@ function AliasTelemetryPanel({ data, onRefresh, loading, refreshCapability }) {
 
           {(data.aggregates || []).length === 0 ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-              No legacy /api/dr-v2/* hits recorded yet. When DR-UNIFY-005
-              runs, these aliases can be retired without operator disruption.
+              No legacy delivery-path hits were recorded yet. These old paths can be removed without operator disruption.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -377,7 +377,7 @@ function AliasTelemetryPanel({ data, onRefresh, loading, refreshCapability }) {
                       className="border-b border-slate-100 last:border-b-0"
                     >
                       <td className="py-2 pr-4 font-mono text-xs text-slate-900">
-                        {r.route_key}
+                        {sanitizeOperatorReference(r.route_key, "legacy route")}
                       </td>
                       <td className="py-2 pr-4">
                         <Badge status={r.retirement_recommendation} />
@@ -395,7 +395,7 @@ function AliasTelemetryPanel({ data, onRefresh, loading, refreshCapability }) {
                         {r.last_role || "—"}
                       </td>
                       <td className="py-2 pr-4 text-xs text-slate-600">
-                        {r.last_env || "—"}
+                        {sanitizeOperatorReference(r.last_env, "—")}
                       </td>
                     </tr>
                   ))}

@@ -133,7 +133,7 @@ export function formatOperatorJobLabel(projectNumber, projectName) {
 export function sanitizeOperatorReference(value, fallback = "Linked record") {
   const safe = sanitizeOperatorCopy(value, "");
   if (!safe || containsOperatorUnsafeLanguage(value)) {
-    return humanizeOperatorToken(value, fallback);
+    return humanizeOperatorToken(safe || value, fallback);
   }
   return safe;
 }

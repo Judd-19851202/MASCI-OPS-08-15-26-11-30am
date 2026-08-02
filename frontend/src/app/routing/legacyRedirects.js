@@ -24,16 +24,16 @@ export const LEGACY_MOVED_MAP = {
   // ── Platform maintenance (consolidated into OCC) ────────────────
   "/admin/system": {
     canonical: "/admin/operations-control?highlight=storage.audit",
-    canonicalTitle: "Operations Control Center · Storage & Backups",
+    canonicalTitle: "Operations Control · Storage & Backups",
     reason:
-      "System & Backups now live inside the Operations Control Center " +
-      "alongside every other maintenance action, with dry-run previews " +
-      "and an immutable audit trail.",
+      "System & Backups now live inside Operations Control " +
+      "alongside every other maintenance action, with review-first steps " +
+      "and a saved activity history.",
     occOperationId: "storage.audit",
   },
   "/admin/system-health": {
     canonical: "/admin/operations-control?highlight=health.system_overview",
-    canonicalTitle: "Operations Control Center · System Health",
+    canonicalTitle: "Operations Control · System Health",
     reason:
       "One red / yellow / green view of disk, database, AI, email, and " +
       "delivery — refreshed on demand and viewable without shell access.",
@@ -41,7 +41,7 @@ export const LEGACY_MOVED_MAP = {
   },
   "/admin/operations-dashboard": {
     canonical: "/admin/operations-control?highlight=integrations.probe_all",
-    canonicalTitle: "Operations Control Center · Integrations",
+    canonicalTitle: "Operations Control · Integrations",
     reason:
       "All third-party integration checks (Motive, MaintainX, Resend, " +
       "Cloudflare R2, Emergent LLM) share one home now.",
@@ -49,7 +49,7 @@ export const LEGACY_MOVED_MAP = {
   },
   "/admin/integration-truth": {
     canonical: "/admin/operations-control?highlight=integrations.probe_all",
-    canonicalTitle: "Operations Control Center · Integrations",
+    canonicalTitle: "Operations Control · Integrations",
     reason:
       "Provider posture, key configuration, and live health probes have " +
       "moved into the Operations Control Center as a single card.",
@@ -57,15 +57,15 @@ export const LEGACY_MOVED_MAP = {
   },
   "/admin/deploy-readiness": {
     canonical: "/admin/operations-control?highlight=deploy.readiness_check",
-    canonicalTitle: "Operations Control Center · Deploy Readiness",
+    canonicalTitle: "Operations Control · Go-Live Readiness",
     reason:
-      "The pre-deploy checklist now runs from Operations Control Center " +
+      "The go-live checklist now runs from Operations Control " +
       "so you see it next to backups, integrations, and system health.",
     occOperationId: "deploy.readiness_check",
   },
   "/admin/deploy-recovery": {
     canonical: "/admin/operations-control?highlight=deploy.recovery_playbook",
-    canonicalTitle: "Operations Control Center · Recovery Playbook",
+    canonicalTitle: "Operations Control · Recovery Playbook",
     reason:
       "The recovery playbook is now one click from every other " +
       "operational check, with the latest local backup timestamp " +
@@ -74,18 +74,18 @@ export const LEGACY_MOVED_MAP = {
   },
   "/admin/recovery": {
     canonical: "/admin/operations-control?highlight=deploy.recovery_playbook",
-    canonicalTitle: "Operations Control Center · Recovery Playbook",
+    canonicalTitle: "Operations Control · Recovery Playbook",
     reason:
-      "Recovery actions have moved into the Operations Control Center. " +
+      "Recovery actions have moved into Operations Control. " +
       "The live recovery stream remains available as a deep-dive tool.",
     occOperationId: "deploy.recovery_playbook",
   },
   "/admin/recovery-stream": {
     canonical: "/admin/operations-control?highlight=deploy.recovery_playbook",
-    canonicalTitle: "Operations Control Center · Recovery Playbook",
+    canonicalTitle: "Operations Control · Recovery Playbook",
     reason:
-      "The live recovery stream is a deep-dive tool. The canonical home " +
-      "for recovery decisions is the Operations Control Center.",
+      "The live recovery stream is a deep-dive tool. The main home " +
+      "for recovery decisions is Operations Control.",
     occOperationId: "deploy.recovery_playbook",
   },
 };

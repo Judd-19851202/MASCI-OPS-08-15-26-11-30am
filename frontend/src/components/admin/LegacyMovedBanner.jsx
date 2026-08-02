@@ -78,7 +78,7 @@ export function LegacyMovedBanner({ pathname }) {
           </div>
           <div className="mt-0.5 text-sm text-amber-900">
             <span className="font-semibold">
-              {entry.canonicalTitle || "Operations Control Center"}
+              {entry.canonicalTitle || "Operations Control"}
             </span>{" "}
             is the new home.{" "}
             <span className="text-amber-800">{entry.reason}</span>
@@ -95,7 +95,7 @@ export function LegacyMovedBanner({ pathname }) {
             className="rounded-md border border-amber-600 bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
             data-testid="legacy-moved-banner-open-canonical"
           >
-            Open in Operations Control Center
+            Open in Operations Control
           </button>
           <button
             type="button"
