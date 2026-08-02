@@ -66,8 +66,8 @@ export default function OperationsActionNew() {
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-indigo-500">
         <div className="max-w-3xl mx-auto px-4 sm:px-8 py-3 flex items-center gap-3">
-          <Link to="/" className="text-white hover:text-indigo-200 text-xs sm:text-sm font-bold" data-testid="oa-new-nav-home"><Home className="w-4 h-4 sm:mr-1 inline" /><span className="hidden sm:inline">Home</span></Link>
-          <button onClick={() => nav(-1)} className="text-white hover:text-indigo-200 text-xs sm:text-sm font-bold" data-testid="oa-new-nav-back"><ArrowLeft className="w-4 h-4 sm:mr-1 inline" /><span className="hidden sm:inline">Back</span></button>
+          <Link to="/" className="text-white hover:text-indigo-200 text-xs sm:text-sm font-bold" data-testid="oa-new-nav-home"><Home className="w-4 h-4 sm:mr-1 inline" /><span className="hidden sm:inline">{t("Home")}</span></Link>
+          <button onClick={() => nav(-1)} className="text-white hover:text-indigo-200 text-xs sm:text-sm font-bold" data-testid="oa-new-nav-back"><ArrowLeft className="w-4 h-4 sm:mr-1 inline" /><span className="hidden sm:inline">{t("Back")}</span></button>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <div className="flex-1" />
           <LangToggle />

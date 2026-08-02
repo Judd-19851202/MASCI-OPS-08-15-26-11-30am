@@ -66,16 +66,18 @@ const SEVERITY_ICON = {
 };
 
 function SeverityBadge({ severity }) {
+  const { t } = useT();
   const Icon = SEVERITY_ICON[severity] || CheckCircle2;
   const tint = SEVERITY_TINTS[severity] || SEVERITY_TINTS.info;
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 border rounded text-[10px] font-mono uppercase tracking-wider ${tint}`}>
-      <Icon className="w-3 h-3" />{severity}
+      <Icon className="w-3 h-3" />{t(severity)}
     </span>
   );
 }
 
 function SectionCard({ section }) {
+  const { t } = useT();
   const tint = SEVERITY_TINTS[section.severity] || SEVERITY_TINTS.info;
   return (
     <article
@@ -86,16 +88,16 @@ function SectionCard({ section }) {
         <SeverityBadge severity={section.severity} />
         <div className="flex-1 min-w-0">
           <h3 className="font-display text-base font-black tracking-tight text-slate-900 leading-tight">
-            {section.title}
+            {t(section.title)}
           </h3>
           {section.body ? (
-            <p className="text-xs text-slate-700 mt-1 leading-snug">{section.body}</p>
+            <p className="text-xs text-slate-700 mt-1 leading-snug">{t(section.body)}</p>
           ) : null}
         </div>
         {section.action_url ? (
           <Link to={section.action_url} className="shrink-0" data-testid={`notif-section-action-${section.key}`}>
             <Button variant="outline" size="sm">
-              View <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              {t("View")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </Link>
         ) : null}
@@ -111,7 +113,7 @@ function SectionCard({ section }) {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-slate-900 text-sm truncate max-w-full">
-                    {it.entity_name || "(unnamed)"}
+                    {it.entity_name || t("(unnamed)")}
                   </span>
                   <span className="font-mono text-[10px] text-slate-500">{it.rule_id}</span>
                 </div>
@@ -234,7 +236,7 @@ export default function NotificationsDigest() {
               <span className="font-display text-4xl font-black leading-none">{summary.score}<span className="text-base opacity-70">/100</span></span>
               <span className="font-display text-lg font-black uppercase">{summary.score_label}</span>
               <span className="font-mono text-xs ml-auto">
-                {summary.critical || 0} crit · {summary.high || 0} high · {summary.medium || 0} med · {summary.low || 0} low
+                {summary.critical || 0} {t("crit")} · {summary.high || 0} {t("high")} · {summary.medium || 0} {t("med")} · {summary.low || 0} {t("low")}
               </span>
             </div>
           </div>

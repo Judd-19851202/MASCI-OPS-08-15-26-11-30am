@@ -23,6 +23,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { listOdrs, logObservation } from "@/lib/odrApi";
 import OdrTrustBanner from "@/components/odr/OdrTrustBanner";
+import { useT } from "@/lib/i18n";
 
 const TABS = [
   { key: "needs", label: "Needs Attention", description: "Drafts and returned records waiting on you." },
@@ -35,6 +36,7 @@ const TABS = [
 ];
 
 export default function OdrCenter() {
+  const { t } = useT();
   const [tab, setTab] = React.useState("needs");
   const [data, setData] = React.useState({ items: [], fll: "", verb: "", count: 0 });
   const [err, setErr] = React.useState("");
@@ -59,9 +61,9 @@ export default function OdrCenter() {
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6" data-testid="fl-odr-center">
         <header className="mb-4">
-          <h1 className="text-2xl font-semibold text-slate-800">Field Leadership · ODR Center</h1>
+          <h1 className="text-2xl font-semibold text-slate-800">{t("Field Leadership · ODR Center")}</h1>
           <p className="text-xs text-slate-500 mt-1">
-            {data.fll || "scope loading"} · {data.verb || "—"} verb
+            {data.fll || t("scope loading")} · {data.verb || "—"} {t("verb")}
           </p>
         </header>
 
@@ -88,20 +90,20 @@ export default function OdrCenter() {
                   : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"
               }`}
             >
-              {t.label}
+              {t(t.label)}
             </button>
           ))}
         </nav>
 
         <p className="text-xs text-slate-500 mt-3" data-testid="fl-odr-tab-desc">
-          {TABS.find(x => x.key === tab)?.description}
+          {t(TABS.find(x => x.key === tab)?.description || "")}
         </p>
 
         <section className="mt-4 bg-white border border-slate-200 rounded-lg" data-testid="fl-odr-list">
-          {loading && <Empty label="Loading…" />}
-          {!loading && err && <Empty label={err} />}
+          {loading && <Empty label={t("Loading…")} />}
+          {!loading && err && <Empty label={t(err)} />}
           {!loading && !err && (data.items || []).length === 0 && (
-            <Empty label="Nothing here right now. That's good." />
+            <Empty label={t("Nothing here right now. That's good.")} />
           )}
           <ul className="divide-y divide-slate-100">
             {(data.items || []).map(o => (
@@ -134,7 +136,7 @@ export default function OdrCenter() {
                     </span>
                     {(o.amendment_count || 0) > 0 && (
                       <span className="text-[10px] text-slate-500">
-                        +{o.amendment_count} amend
+                        +{o.amendment_count} {t("amend")}
                       </span>
                     )}
                   </div>

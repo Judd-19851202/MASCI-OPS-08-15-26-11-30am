@@ -78,10 +78,10 @@ export default function OperationsActions() {
       <header className="bg-slate-900 border-b-4 border-indigo-500">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-3 flex items-center gap-3 flex-wrap">
           <Link to="/" className="inline-flex items-center text-white hover:text-indigo-200 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="oa-nav-home">
-            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Home</span>
+            <Home className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">{t("Home")}</span>
           </Link>
           <button onClick={() => nav(-1)} className="inline-flex items-center text-white hover:text-indigo-200 text-xs sm:text-sm font-bold uppercase tracking-wide" data-testid="oa-nav-back">
-            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Back</span>
+            <ArrowLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">{t("Back")}</span>
           </button>
           <MasciLogo variant="mark" size="md" homeLink="/" />
           <div className="flex-1" />
@@ -163,7 +163,7 @@ export default function OperationsActions() {
           ) : err ? (
             <div className="text-center py-10" data-testid="oa-list-error">
               <div className="inline-block bg-amber-50 border border-amber-200 rounded-md px-4 py-3 text-amber-900 text-sm max-w-md">
-                <div className="font-mono text-[10px] uppercase tracking-wider font-bold mb-1 text-amber-700">Sign-in required</div>
+                <div className="font-mono text-[10px] uppercase tracking-wider font-bold mb-1 text-amber-700">{t("Sign-in required")}</div>
                 {err}
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function OperationsActions() {
         {/* Refresh */}
         <div className="mt-3 text-right">
           <button onClick={load} className="text-[10px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-800 inline-flex items-center gap-1" data-testid="oa-list-refresh">
-            <RefreshCw className="w-3 h-3" /> Refresh
+            <RefreshCw className="w-3 h-3" /> {t("Refresh")}
           </button>
         </div>
       </main>
