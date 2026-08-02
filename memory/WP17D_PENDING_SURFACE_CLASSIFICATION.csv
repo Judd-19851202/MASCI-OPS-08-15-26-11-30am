@@ -1,12 +1,12 @@
 route,family,classification_status,rationale
 /,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /revise/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 Safety certification: public safety entry route opened cleanly in EN/ES with responsive proof.
 /safety/forms/login,Safety Operations,CERTIFIED,"Certified after shared auth/session fix + governed hero-shell convergence + ES/mobile login proof (`iteration_108`, screenshot 20260802_023255)."
 /safety/forms,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/forms/equipment-issuance/new,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/forms/equipment-issuance/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
-/safety/forms/equipment-issuance/:id/return,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/forms/equipment-issuance/:id/return,Safety Operations,CERTIFIED,2026-08-02 Level 1 Safety certification: issuance return route verified with fixture id 54e109fe-14d4-42a7-bb49-16ce4e8877a4 and responsive proof.
 /safety/forms/equipment-training/new,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/forms/equipment-training/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
 /safety/cards,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
@@ -29,12 +29,12 @@ route,family,classification_status,rationale
 /leadership/records/:id,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /leadership/:kind/new,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety/inspections/new,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
-/inspect/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/inspect/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy /inspect/new route correctly hands off through auth to canonical /safety/inspections/new.
+/submit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy /submit route correctly hands off through auth to canonical /safety/inspections/new with returnTo.
 /inspections/submit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy /inspections/submit route cleanly hands off through auth to canonical /safety/inspections/new with correct returnTo behavior.
 /inspections/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy /inspections/new route cleanly hands off through auth to canonical /safety/inspections/new with correct returnTo behavior.
-/meetings/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/meetings/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/meetings/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 Safety certification: authenticated meeting-create route opened cleanly and inherits the governed meeting workflow surface.
+/meetings/submit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 Safety certification: public meeting submission route passed EN/ES and responsive proof with form controls present.
 /jha,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /jha/submit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/jha`, which passed."
 /jha/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/jha`, which passed."
@@ -48,18 +48,18 @@ route,family,classification_status,rationale
 /transport-verify/:cnum,Transportation Operations,CERTIFIED,Ledger row already carries certification evidence.
 /incidents/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/incidents/report`, which passed."
 /incidents/submit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/incidents/report`, which passed."
-/incidents/report,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/incidents/report,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 Safety certification: public incident-report route passed EN/ES and responsive proof with all incident-type entry cards present.
 /near-miss,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/safety/cases/:caseId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/incidents/:caseId/thread,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/cases/:caseId,Safety Operations,CERTIFIED,"2026-08-02 Level 2 Safety certification: case workspace verified with discovered case INC-2026-00826 (71477b5c-13fe-4f25-9ba0-d156bf47912c), EN/ES, and responsive proof."
+/safety/incidents/:caseId/thread,Safety Operations,CERTIFIED,2026-08-02 Level 2 Safety certification: incident operational thread verified with case INC-2026-00826 and responsive proof.
 /safety/executive-intelligence,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
-/safety/cases/:caseId/reports/:reportType,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/cases/:caseId/executive-report,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/cases/:caseId/reports/:reportType,Safety Operations,CERTIFIED,2026-08-02 Level 2 Safety certification: case report route verified with case INC-2026-00826 and reportType incident.
+/safety/cases/:caseId/executive-report,Safety Operations,BLOCKED_FIXTURE_REQUIRED,"2026-08-02 exact blocker: route exists, but valid case 71477b5c-13fe-4f25-9ba0-d156bf47912c returns 404 on executive-report; prerequisite is a seeded case/report condition or backend availability for executive report generation."
 /daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/submit,Shared Operational Home and Public Entry,CERTIFIED,Certified after direct screenshot proof and shared translation fixes (`20260802_151534`); route now renders governed Spanish workflow copy and action chrome cleanly.
 /equipment/new,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES proof at 1440 + 390 (`20260802_035254`); pre-op equipment inspection now holds governed Spanish copy, responsive layout, and governed capture controls."
-/equipment/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/equipment/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/equipment/submit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 Safety certification: public equipment inspection submission route passed responsive proof with required form controls present.
+/equipment/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public equipment detail alias could not be proven because no discoverable equipment inspection id was exposed from reachable certified pages.
 /fleet/dvir/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 transportation-adjacent certification: public DVIR create surface rendered cleanly in EN/ES with responsive form controls and preview-safe input checks.
 /fleet/dvir/submit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 transportation-adjacent certification: DVIR submit entry surface rendered cleanly in EN/ES with responsive form controls and preview-safe input checks.
 /fleet/weekly-lead/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -76,7 +76,7 @@ route,family,classification_status,rationale
 /safety/trench-boxes,Safety Operations,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /safety/trench-safety,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/trench-safety/assets,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_145022`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
-/safety/trench-safety/assets/:assetId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/trench-safety/assets/:assetId,Safety Operations,CERTIFIED,2026-08-02 Level 2 Safety certification: trench-safety asset detail verified with fixture asset TB-01 and responsive proof.
 /safety/trench-safety/tabulated-data,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/trench-safety/reports,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/trench-safety/excavations,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
@@ -336,10 +336,10 @@ route,family,classification_status,rationale
 /safety-portal/documents,Safety Operations,CERTIFIED,"2026-08-02 Level 2 Safety certification: safety document center passed EN/ES, responsive proof, and runtime checks."
 /safety-portal/training,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/incidents,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_144503`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
-/safety-portal/incidents/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety-portal/meetings/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety-portal/incidents/:id,Safety Operations,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: reachable safety incident list did not expose any discoverable detail link or fixture id; clicking visible entries routed back to create/report flow instead of detail.
+/safety-portal/meetings/:id,Safety Operations,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: reachable safety meeting list showed records but no discoverable detail navigation or fixture id was exposed from the certified pages.
 /safety-portal/audits,Safety Operations,CERTIFIED,"2026-08-02 Level 2 Safety certification: safety audits consumer passed EN/ES, responsive proof, and runtime checks."
-/safety-portal/forms-records,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/forms-records,Safety Operations,CERTIFIED,2026-08-02 Level 2 Safety certification: forms-records review surface passed EN/ES and 390/1440 proof.
 /safety-portal/reports,Safety Operations,CERTIFIED,"2026-08-02 Level 2 Safety certification: safety reports consumer passed EN/ES, responsive proof, and runtime checks."
 /safety-portal/library,Safety Operations,CERTIFIED,"2026-08-02 Level 2 Safety certification: safety library consumer passed EN/ES, responsive proof, and runtime checks."
 /safety-portal/employees,Safety Operations,CERTIFIED,"2026-08-02 Level 2 Safety certification: safety employee profiles consumer passed EN/ES, responsive proof, and runtime checks."
@@ -347,7 +347,7 @@ route,family,classification_status,rationale
 /safety-portal/inspections,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/inspections/:id,Safety Operations,CERTIFIED,2026-08-02 Level 2 Safety certification: safety inspection detail opened from a real inspection id and passed EN/ES plus mobile/desktop proof.
 /safety-portal/jha-plans,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
-/safety-portal/driver/:driverKey,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety-portal/driver/:driverKey,Safety Operations,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: safety driver profile route timed out with no discoverable seeded driverKey exposed from certified Safety pages.
 /hr/safety-records,Human Resources,CERTIFIED,"Certified after shared HR sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_145022`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
 /dispatch-portal/login,Transportation Operations,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
 /leadership/login,Field Leadership,CERTIFIED,2026-08-02 Level 1 auth certification: leadership login route verified in EN/ES with responsive behavior and clean runtime.
@@ -378,12 +378,12 @@ route,family,classification_status,rationale
 /dev/login,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared-auth certification: dev login route verified in EN/ES with responsive form behavior and no runtime defects.
 /dev,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /inspections,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
-/inspect/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/inspect/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: /inspect/:id redirects to canonical /admin/inspections/:id using verified fixture 88d8b18c-df01-455b-8614-3e590613ad4d.
 /inspections/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: /inspections/:id redirects to canonical /admin/inspections/:id using a real inspection id with clean runtime.
 /meetings,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/meetings/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/meetings/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public meeting detail alias could not be proven because no discoverable seeded meeting id was exposed from reachable certified pages.
 /incidents,Shared Operational Home and Public Entry,CERTIFIED,"Certified after admin-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/incidents/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/incidents/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public incident detail alias returned 404 for the discovered case id; prerequisite is a valid public-facing incident detail record or corrected alias behavior.
 /daily,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /safety-portal/meetings,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
