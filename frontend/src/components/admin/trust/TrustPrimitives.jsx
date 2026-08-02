@@ -275,8 +275,8 @@ export function TruthOwnerPanel({
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">{localizeTrustText(title, t, lang)}</span>
         <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-slate-700" data-testid={`${testidPrefix}-role`}>{role}</span>
-        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>{localizeTrustText(`Canonical ${canonicalStatus}`, t, lang)}</span>
-        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>{localizeTrustText(`Displayed ${derivedStatus}`, t, lang)}</span>
+        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>{localizeTrustText(`Primary ${canonicalStatus}`, t, lang)}</span>
+        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>{localizeTrustText(`Shown ${derivedStatus}`, t, lang)}</span>
       </div>
       <p className="text-sm text-slate-800" data-testid={`${testidPrefix}-summary`}>{localizeTrustText(relationship?.derivation_explanation || surface.surface_name || "Structured truth contract.", t, lang)}</p>
       <div className="grid gap-2 md:grid-cols-2 text-xs text-slate-600">

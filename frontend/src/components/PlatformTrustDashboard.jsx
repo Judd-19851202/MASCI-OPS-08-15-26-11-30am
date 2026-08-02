@@ -103,18 +103,18 @@ function humanizeToken(value) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function OwnershipNote({ surface, relationship, canonicalStatus, checkedAt }) {
+function OwnershipNote({ surface, relationship, primaryStatus, checkedAt }) {
   if (!surface) return null;
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3" data-testid="trust-spine-owner-note">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Evidence ownership</span>
         <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-700">
-          {humanizeToken(canonicalStatus || relationship?.canonical_status || surface.role || "registered")}
+          {humanizeToken(primaryStatus || relationship?.canonical_status || surface.role || "registered")}
         </span>
       </div>
       <p className="text-sm text-slate-800" data-testid="trust-spine-owner-note-summary">
-        {surface.surface_name || "Platform Trust Spine"} is the canonical source for workflow lifecycle truth on this page. If another screen disagrees with it, this source wins until the conflict is investigated.
+        {surface.surface_name || "Platform Standards Monitor"} is the primary source for workflow lifecycle status on this page. If another screen disagrees with it, review the conflict before taking action.
       </p>
       <div className="grid gap-3 md:grid-cols-2 text-sm text-slate-700">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" data-testid="trust-spine-owner-note-subject">
@@ -478,7 +478,7 @@ export default function PlatformTrustDashboard() {
     return (
       <LegacyAdminModernShell
         title="Platform Trust Spine"
-        subtitle="Canonical lifecycle evidence for the Admin portal's critical workflows."
+        subtitle="Primary lifecycle evidence for the Admin portal's critical workflows."
         breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
         testidPrefix="platform-trust-spine"
       >
@@ -497,7 +497,7 @@ export default function PlatformTrustDashboard() {
     return (
       <LegacyAdminModernShell
         title="Platform Trust Spine"
-        subtitle="Canonical lifecycle evidence for the Admin portal's critical workflows."
+        subtitle="Primary lifecycle evidence for the Admin portal's critical workflows."
         breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
         testidPrefix="platform-trust-spine"
       >
@@ -526,7 +526,7 @@ export default function PlatformTrustDashboard() {
   return (
     <LegacyAdminModernShell
       title="Platform Trust Spine"
-      subtitle="Canonical lifecycle evidence for the Admin portal's critical workflows."
+      subtitle="Primary lifecycle evidence for the Admin portal's critical workflows."
       breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
       testidPrefix="platform-trust-spine"
     >
@@ -667,7 +667,7 @@ export default function PlatformTrustDashboard() {
         <OwnershipNote
           surface={data.truth_surface}
           relationship={data.truth_relationship}
-          canonicalStatus={data.canonical_status}
+          primaryStatus={data.canonical_status}
           checkedAt={data.generated_at}
         />
       </div>

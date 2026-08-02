@@ -63,13 +63,13 @@ export default function AdminRecoveryStream() {
         <div className="mb-6 flex flex-wrap items-end gap-3">
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.22em] text-amber-700">
-              FOCP Release 2 · TR-0002
+              Recovery activity
             </span>
             <h1 className="font-display text-3xl font-black tracking-tight text-slate-900 mt-1">
               Recovery Stream
             </h1>
             <p className="text-slate-600 text-sm mt-1">
-              Append-only audit of every status change across every workflow. Reversals
+              Saved history of every status change across every workflow. Reversals
               (&quot;undo&quot;) are tagged but never replace the original transition.
             </p>
           </div>

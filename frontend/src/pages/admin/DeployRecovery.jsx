@@ -12,6 +12,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const STATUS_CLS = {
   green:  "bg-emerald-50 border-emerald-300 text-emerald-900",
@@ -26,8 +27,8 @@ export default function DeployRecovery() {
     surface_name: "Operational Truth Spine",
     owner_endpoint: "/api/admin/deploy-recovery",
     owner_module: "backend/routes/admin_ops.py",
-    canonical_owner_id: "bcss_runtime_state_authority",
-    surface_id: "bcss_runtime_state_authority",
+    canonical_owner_id: "bcss_live_state_authority",
+    surface_id: "bcss_live_state_authority",
     role: "VALIDATOR",
     upstream_owner_ids: [],
   };
@@ -36,9 +37,9 @@ export default function DeployRecovery() {
     canonical_status: "UNVERIFIABLE",
     derived_status: "UNVERIFIABLE",
     derivation_explanation: loading
-      ? "Loading canonical deploy-recovery truth context."
-      : "Deploy-recovery truth context is not currently available.",
-    canonical_owner_id: "bcss_runtime_state_authority",
+      ? "Loading deploy-recovery status context."
+      : "Deploy-recovery status context is not currently available.",
+    canonical_owner_id: "bcss_live_state_authority",
     evidence_age_source: loading ? "Pending" : "Unavailable",
     conflicts: [],
     has_conflict: false,
@@ -54,11 +55,11 @@ export default function DeployRecovery() {
 
   return (
     <LegacyAdminModernShell
-      title="Deployment Recovery"
+      title="Go-Live Recovery"
       subtitle="Rollback playbook · backup chain."
       breadcrumb={[
-        { label: "Governance & Trust", to: "/admin/governance-trust" },
-        { label: "Deployment Recovery" },
+        { label: "Standards & Readiness", to: "/admin/governance-trust" },
+        { label: "Go-Live Recovery" },
       ]}
       testidPrefix="admin-deploy-recovery"
     >
@@ -72,7 +73,7 @@ export default function DeployRecovery() {
               Pre / Post-Deploy Playbook
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
-              Deployment Recovery
+              Go-Live Recovery
             </h1>
             <p className="text-sm text-slate-600 mt-1">
               Read-only operational checklist + the current backup chain state. No destructive actions on this page.
@@ -92,7 +93,7 @@ export default function DeployRecovery() {
             testidPrefix="deploy-recovery-ots-panel"
           />
           <div className="mt-2 text-xs text-slate-500" data-testid="deploy-recovery-ots-disclosure">
-            Permitted claim=<span className="font-semibold">{data?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{data?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · this page does not prove recovery readiness or BCSS recovery certification.
+            Current claim=<span className="font-semibold">{sanitizeOperatorReference(data?.ots_truth?.permitted_claim, "UNKNOWN")}</span> · confidence=<span className="font-semibold">{sanitizeOperatorReference(data?.ots_truth?.evidence_confidence, "UNKNOWN")}</span> · this page does not by itself confirm recovery readiness.
           </div>
         </div>
 

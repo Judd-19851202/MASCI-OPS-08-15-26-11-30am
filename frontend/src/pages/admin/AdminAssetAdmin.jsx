@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import AddAssetDialog from "@/components/asset/AddAssetDialog";
 import RequiredDocsEditor from "@/components/asset/RequiredDocsEditor";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const SOURCE_PILL = {
   legacy_mapped: "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -148,14 +149,14 @@ export default function AdminAssetAdmin() {
         <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
           <div>
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-700 font-bold mb-1">
-              Canonical Taxonomy · Spine v{taxonomy?.version || "1.0.0"}
+              Primary Taxonomy · Spine v{taxonomy?.version || "1.0.0"}
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">
               Asset Administration
             </h1>
             <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-              Verify every active asset against the single canonical taxonomy.
-              Each correction stamps the master record permanently — no parallel
+              Verify every active asset against the primary taxonomy.
+              Each correction updates the main asset record permanently — no parallel
               maps, no duplicate spines.
             </p>
           </div>
@@ -205,7 +206,7 @@ export default function AdminAssetAdmin() {
           <Stat
             label="Needs Review"
             value={counts.needs_review ?? "—"}
-            hint="missing canonical class/type"
+            hint="missing primary class/type"
             accent={(counts.needs_review ?? 0) > 0 ? "amber" : "emerald"}
             testid="aa-stat-review"
           />
@@ -325,7 +326,7 @@ function ReviewQueue({ taxonomy, items, loading, savingId, onVerify }) {
         <CheckCircle2 className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
         <div className="font-display text-lg font-black text-emerald-900">All assets verified</div>
         <p className="text-sm text-emerald-800 mt-1">
-          Every active record carries a canonical class / type. The spine is clean.
+          Every active record carries a primary class / type. The spine is clean.
         </p>
       </div>
     );
@@ -477,7 +478,7 @@ function LegacyCrosswalkPanel({ onApplied }) {
     setBusy(true);
     try {
       const r = await api.post("/asset-spine/taxonomy/apply-legacy-crosswalk?dry_run=false&limit=2000", {});
-      toast.success(`Stamped ${r.data?.would_verify ?? 0} canonical · ${r.data?.would_need_review ?? 0} need review`);
+      toast.success(`Stamped ${r.data?.would_verify ?? 0} primary matches · ${r.data?.would_need_review ?? 0} need review`);
       setConfirmOpen(false);
       setPreview(r.data);
       onApplied?.();
@@ -497,7 +498,7 @@ function LegacyCrosswalkPanel({ onApplied }) {
             <h3 className="font-display text-lg font-black text-slate-900">Legacy crosswalk</h3>
             <p className="text-sm text-slate-600 mt-1 max-w-2xl">
               Walks every asset in <code className="text-xs px-1 bg-slate-100 rounded">equipment_master</code>,
-              maps legacy <span className="font-mono">category</span> / <span className="font-mono">preop_equipment_type</span> / <span className="font-mono">type</span> to canonical
+              maps legacy <span className="font-mono">category</span> / <span className="font-mono">preop_equipment_type</span> / <span className="font-mono">type</span> to the primary
               <span className="font-mono"> asset_class</span> + <span className="font-mono">asset_type</span> using the spine crosswalk, and
               stamps <span className="font-mono">taxonomy_verified=true</span> when sources agree. Conflicts stay in the review queue.
             </p>
@@ -522,7 +523,7 @@ function LegacyCrosswalkPanel({ onApplied }) {
             data-testid="aa-crosswalk-apply"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            Stamp canonical
+            Stamp primary
           </button>
         </div>
       </div>
@@ -552,9 +553,9 @@ function LegacyCrosswalkPanel({ onApplied }) {
       {confirmOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" data-testid="aa-crosswalk-confirm">
           <div className="bg-white rounded shadow-xl max-w-md w-full p-5">
-            <h3 className="font-display text-lg font-black text-slate-900">Stamp canonical taxonomy?</h3>
+            <h3 className="font-display text-lg font-black text-slate-900">Stamp primary taxonomy?</h3>
             <p className="text-sm text-slate-600 mt-2">
-              This persists canonical <span className="font-mono">asset_class</span> / <span className="font-mono">asset_type</span> on
+              This persists primary <span className="font-mono">asset_class</span> / <span className="font-mono">asset_type</span> on
               every cleanly-mapped record. Conflicts remain in the review queue.
             </p>
             <div className="flex justify-end gap-2 mt-4">
@@ -626,7 +627,7 @@ function MissingTemplateBacklogPanel() {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded p-8 text-center" data-testid="aa-templates-empty">
         <CheckCircle2 className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
-        <div className="font-display text-lg font-black text-emerald-900">Every active asset type has a canonical inspection template</div>
+        <div className="font-display text-lg font-black text-emerald-900">Every active asset type has a primary inspection template</div>
         <p className="text-sm text-emerald-800 mt-1">
           Scanned {state.scanned} active assets · zero missing templates.
         </p>
@@ -636,7 +637,7 @@ function MissingTemplateBacklogPanel() {
   return (
     <div className="space-y-3" data-testid="aa-templates">
       <div className="text-xs font-mono uppercase tracking-[0.16em] text-slate-600 font-bold">
-        Scanned {state.scanned} active assets · {state.items.length} canonical type{state.items.length === 1 ? "" : "s"} missing a template
+        Scanned {state.scanned} active assets · {state.items.length} primary type{state.items.length === 1 ? "" : "s"} missing a template
       </div>
       {state.items.map((it) => (
         <div key={it.asset_type} className="bg-white border border-slate-200 rounded p-4 flex items-center justify-between gap-3" data-testid={`aa-templates-row-${it.asset_type}`}>

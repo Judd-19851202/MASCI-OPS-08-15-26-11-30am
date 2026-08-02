@@ -115,7 +115,7 @@ function AiKeysPanel({ data, onRefresh, loading, refreshCapability }) {
   return (
     <Panel
       title="AI Key Status"
-      subtitle={data?.reads_from || "Runtime environment (os.environ)"}
+      subtitle={data?.reads_from || "Live environment values"}
       icon={KeyRound}
       right={
         <Button
@@ -144,10 +144,8 @@ function AiKeysPanel({ data, onRefresh, loading, refreshCapability }) {
           <div className="mb-4 flex items-center gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">
             <Info className="h-3.5 w-3.5 text-slate-400" />
             <span>
-              Runtime truth · Emergent-injected secrets bypass the empty
-              placeholders in <code className="rounded bg-slate-200 px-1">.env</code>.
-              This panel reflects what the process actually sees at{" "}
-              <code className="rounded bg-slate-200 px-1">os.environ</code> level.
+              Live value check · managed secrets may be supplied outside the local settings file.
+              This panel reflects the values the platform is using right now.
             </span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -411,13 +409,13 @@ function AliasTelemetryPanel({ data, onRefresh, loading, refreshCapability }) {
   );
 }
 
-function TruthOwnerBanner({ surface, relationship, checkedAt, canonicalStatus }) {
+function TruthOwnerBanner({ surface, relationship, checkedAt, primaryStatus }) {
   if (!surface) return null;
   return (
     <TruthOwnerPanel
-      title="Canonical truth owner"
+      title="Primary source owner"
       surface={surface}
-      relationship={{ ...relationship, canonical_status: canonicalStatus || relationship?.canonical_status }}
+      relationship={{ ...relationship, canonical_status: primaryStatus || relationship?.canonical_status }}
       checkedAt={fmtTime(checkedAt)}
       testidPrefix="integration-truth-owner-banner"
     />
@@ -506,7 +504,7 @@ export default function IntegrationTruth() {
                 Integration Truth
               </h1>
               <p className="mt-1 text-sm text-slate-600">
-                Runtime honesty for AI keys, third-party integrations, and
+                Live status for AI keys, connected services, and
                 legacy alias usage. Configuration alone never gets a green
                 badge — only proven activity does.
               </p>
@@ -516,8 +514,7 @@ export default function IntegrationTruth() {
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
             <span>
               This surface exists so the
-              platform cannot lie about live integrations. All values read from
-              runtime <code>os.environ</code>; secrets are masked to last-4.
+              platform cannot misstate live integrations. All values reflect what the platform is using right now; secrets are masked to the last 4 characters.
             </span>
           </div>
         </header>
@@ -526,7 +523,7 @@ export default function IntegrationTruth() {
           surface={integrations?.truth_surface || telemetry?.truth_surface}
           relationship={integrations?.truth_relationship || telemetry?.truth_relationship}
           checkedAt={integrations?.checked_at || telemetry?.checked_at}
-          canonicalStatus={integrations?.overall}
+          primaryStatus={integrations?.overall}
         />
 
         <AiKeysPanel
