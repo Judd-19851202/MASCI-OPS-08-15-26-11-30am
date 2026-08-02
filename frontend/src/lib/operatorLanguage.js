@@ -24,6 +24,7 @@ const BANNED_OPERATOR_TERMS = [
 
 const OPERATOR_TERM_REPLACEMENTS = [
   [/\bpreview-safe\b/gi, "live-safe"],
+  [/\bpreview fixture\b/gi, "test account"],
   [/\bwp-?14f\b/gi, ""],
   [/\bwp-?17[a-z0-9-]*\b/gi, ""],
   [/\bcertification\b/gi, "readiness"],
@@ -35,6 +36,8 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\bruntime\b/gi, "live"],
   [/\bpreview\b/gi, ""],
   [/\bfixture\b/gi, "record"],
+  [/\bseeded\b/gi, "loaded"],
+  [/\bimplementation\b/gi, "setup"],
   [/\baudit\b/gi, "history"],
   [/\bauditable\b/gi, "tracked"],
   [/\bdeveloper\b/gi, "platform"],
@@ -49,6 +52,10 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\bdev\b/gi, "platform"],
   [/\bocr\b/gi, "document scan"],
   [/\br2\b/gi, "archive"],
+  [/\buser_directory\b/gi, "account directory"],
+  [/\brole_template\b/gi, "access template"],
+  [/\bmongo\b/gi, "data service"],
+  [/\bdb\b/gi, "data"],
 ];
 
 const INTERNAL_CODE_PATTERN = /\b(?:wp\d+[a-z0-9-]*|oppc|devhub|preview|fixture|qa|uat|r2|ocr)\b/i;
@@ -128,6 +135,14 @@ export function sanitizeOperatorReference(value, fallback = "Linked record") {
   if (!safe || containsOperatorUnsafeLanguage(value)) {
     return humanizeOperatorToken(value, fallback);
   }
+  return safe;
+}
+
+export function sanitizeOperatorError(value, fallback = "This information is unavailable right now.") {
+  const raw = String(value || "").trim();
+  if (!raw) return fallback;
+  const safe = sanitizeOperatorCopy(raw, fallback);
+  if (!safe || containsOperatorUnsafeLanguage(raw)) return fallback;
   return safe;
 }
 

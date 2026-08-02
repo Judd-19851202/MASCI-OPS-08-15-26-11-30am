@@ -26,6 +26,7 @@ import {
 import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -154,7 +155,7 @@ export default function AdminAccessControlPanel() {
       const r = await api.get("/admin/directory");
       setUsers(r.data?.users || []);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Failed to load directory");
+      toast.error(sanitizeOperatorError(err?.response?.data?.detail, "Failed to load people directory"));
     } finally {
       setLoading(false);
     }
@@ -339,7 +340,7 @@ export default function AdminAccessControlPanel() {
                         <ShieldCheck className="w-4 h-4 text-red-700" title="Super admin" />
                       )}
                       <div>
-                        <div className="font-bold text-slate-900">{u.name || u.email.split("@")[0]}</div>
+                        <div className="font-bold text-slate-900">{sanitizeOperatorReference(u.name || u.email.split("@")[0], "Team member")}</div>
                         <div className="text-xs text-slate-500">{u.email}</div>
                         <IamStandardCells user={u} portal="access-control" compact />
                         {/* Track 15.88 · credential + usability truth */}

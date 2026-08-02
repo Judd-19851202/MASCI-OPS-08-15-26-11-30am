@@ -33,6 +33,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
+import { humanizeOperatorToken, sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const SEVERITY_PILL = {
   critical: "bg-rose-100 text-rose-800 border-rose-300",
@@ -86,7 +87,7 @@ export default function EmailRoutingV2Panel() {
       const r = await api.get("/admin/email-routing/v2/routes");
       setRoutes(r?.data?.routes || []);
     } catch (e) {
-      toast.error("Failed to load V2 routes");
+      toast.error("Failed to load routing library");
     } finally {
       setLoading(false);
     }
@@ -123,11 +124,11 @@ export default function EmailRoutingV2Panel() {
         description: draft.description,
       };
       await api.put(`/admin/email-routing/v2/routes/${routeKey}`, body);
-      toast.success(`Saved ${routeKey}`);
+      toast.success(`Saved ${sanitizeOperatorReference(routeKey, "routing rule")}`);
       await load();
       cancelEdit();
     } catch (e) {
-      const msg = e?.response?.data?.detail || e?.message || "Save failed";
+      const msg = sanitizeOperatorError(e?.response?.data?.detail || e?.message, "Save failed");
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -147,13 +148,13 @@ export default function EmailRoutingV2Panel() {
           (d.resolved?.to?.length || 0) +
           (d.resolved?.cc?.length || 0) +
           (d.resolved?.bcc?.length || 0);
-        toast.success(`${routeKey} dry-run · resolved ${cnt} recipients · audit row written`);
+        toast.success(`${sanitizeOperatorReference(routeKey, "routing rule")} review · resolved ${cnt} recipients · history saved`);
       } else {
-        toast.success(`${routeKey} controlled test sent to ${d.test_recipient}`);
+        toast.success(`${sanitizeOperatorReference(routeKey, "routing rule")} test message sent to ${d.test_recipient}`);
       }
       await load();
     } catch (e) {
-      const msg = e?.response?.data?.detail || e?.message || "Test failed";
+      const msg = sanitizeOperatorError(e?.response?.data?.detail || e?.message, "Test failed");
       toast.error(msg);
     } finally {
       setTesting(false);
@@ -170,7 +171,7 @@ export default function EmailRoutingV2Panel() {
       );
       setAuditRows(r?.data?.rows || []);
     } catch (e) {
-      toast.error("Failed to load audit history");
+      toast.error("Failed to load activity history");
     } finally {
       setAuditLoading(false);
     }
@@ -187,11 +188,11 @@ export default function EmailRoutingV2Panel() {
       setHealthReport(r?.data || null);
       const s = r?.data?.summary || {};
       toast.success(
-        `Route health: ${s.green || 0} green · ${s.amber || 0} amber · ${s.red || 0} red`
+        `Routing review: ${s.green || 0} green · ${s.amber || 0} amber · ${s.red || 0} red`
       );
       await load();
     } catch (e) {
-      const msg = e?.response?.data?.detail || e?.message || "Route health failed";
+      const msg = sanitizeOperatorError(e?.response?.data?.detail || e?.message, "Routing review failed");
       toast.error(msg);
     } finally {
       setHealthLoading(false);
@@ -217,12 +218,10 @@ export default function EmailRoutingV2Panel() {
         <div className="flex-1">
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <Mail className="h-4 w-4 text-rose-600" />
-            Routing V2 · 19 logical routes
+            Routing library · 19 delivery paths
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            DB-first routes. Editing here updates the route doc; the
-            resolver picks it up within 60 seconds. Critical routes cannot be
-            disabled or saved with empty recipients.
+            Manage saved routing paths here. Changes go live quickly, and required delivery paths cannot be saved without recipients.
           </p>
         </div>
         <Button
@@ -231,14 +230,14 @@ export default function EmailRoutingV2Panel() {
           onClick={runRouteHealth}
           disabled={healthLoading || loading}
           data-testid="v2-route-health-run"
-          title="Dry-run every route for this tenant. No emails are sent. Each route gets an audit row."
+          title="Review every route for this tenant. No emails are sent. Each route is logged in activity history."
         >
           {healthLoading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
           ) : (
             <Stethoscope className="h-3.5 w-3.5 mr-1" />
           )}
-          Run Route Health
+          Run Routing Review
         </Button>
         <span
           data-testid="v2-routes-count"
@@ -254,7 +253,7 @@ export default function EmailRoutingV2Panel() {
           className="px-5 py-3 border-b border-slate-200 bg-slate-50/50 flex items-center gap-3 flex-wrap"
         >
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
-            Last route health
+            Last routing review
           </span>
           <span
             data-testid="v2-route-health-green"
@@ -281,7 +280,7 @@ export default function EmailRoutingV2Panel() {
           {(healthReport.results || []).some((r) => r.status !== "green") && (
             <details className="basis-full mt-1">
               <summary className="text-[11px] text-slate-600 cursor-pointer font-semibold">
-                Show failing routes
+                Show flagged routes
               </summary>
               <ul className="mt-1.5 text-[11px] font-mono text-slate-700 space-y-0.5">
                 {(healthReport.results || [])
@@ -297,8 +296,8 @@ export default function EmailRoutingV2Panel() {
                       >
                         {r.status === "red" ? "🔴" : "🟡"}
                       </span>
-                      <span className="font-semibold">{r.route_key}</span>
-                      <span className="text-slate-500">— {r.reason}</span>
+                      <span className="font-semibold">{sanitizeOperatorReference(r.route_key, "routing rule")}</span>
+                      <span className="text-slate-500">— {sanitizeOperatorReference(r.reason, "Review this route for more details.")}</span>
                     </li>
                   ))}
               </ul>
@@ -316,7 +315,7 @@ export default function EmailRoutingV2Panel() {
           {Object.entries(grouped).map(([cat, rows]) => (
             <div key={cat} className="px-5 py-4">
               <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">
-                {cat}
+                {humanizeOperatorToken(cat, "routing")}
               </div>
               <div className="space-y-2">
                 {rows.map((r) => (

@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -108,7 +109,7 @@ export default function AdminUnifiedDirectoryPanel() {
       setStats(sRes.data || null);
       setTemplates(tRes.data?.templates || []);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Failed to load unified directory");
+      toast.error(sanitizeOperatorError(err?.response?.data?.detail, "Failed to load people directory"));
     } finally {
       setLoading(false);
     }
@@ -136,15 +137,11 @@ export default function AdminUnifiedDirectoryPanel() {
             <h3 className="font-display text-lg font-black tracking-tight text-slate-900">
               Unified Directory{" "}
               <span className="ml-2 align-middle text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 font-bold">
-                Phase K4a · Read-only
+                Read-only view
               </span>
             </h3>
             <p className="text-xs text-slate-600 mt-1 max-w-2xl">
-              Every account that lives in the unified <code className="px-1 bg-slate-100 rounded">user_directory</code>{" "}
-              collection — including users silently mirrored from the legacy
-              per-portal collections (HR / Shop / PM / Safety / Dispatch) by
-              Phase K1. Role-template assignments shown here are non-enforcing;
-              they will only gate access after Phase K6 lands.
+              Every shared account appears here in one people directory, including users brought in from each portal account list. Access template assignments shown here are informational and help teams review access at a glance.
             </p>
           </div>
         </div>
@@ -296,7 +293,7 @@ export default function AdminUnifiedDirectoryPanel() {
                         )}
                         <div className="min-w-0">
                           <div className="font-bold text-slate-900 truncate">
-                            {u.name || u.email.split("@")[0]}
+                            {sanitizeOperatorReference(u.name || u.email.split("@")[0], "Team member")}
                           </div>
                           <div className="text-xs text-slate-500 truncate">
                             {u.email}
@@ -325,7 +322,7 @@ export default function AdminUnifiedDirectoryPanel() {
                       {tpl ? (
                         <div>
                           <div className="text-xs font-bold text-slate-800">
-                            {tpl.name}
+                            {sanitizeOperatorReference(tpl.name, "Access template")}
                           </div>
                           <div className="text-[10px] text-slate-400 font-mono">
                             {tpl.id}
@@ -379,10 +376,7 @@ export default function AdminUnifiedDirectoryPanel() {
       )}
 
       <div className="mt-4 text-[10px] text-slate-400 font-mono leading-relaxed border-t border-slate-100 pt-3">
-        Phase K4a · Read-only surface. Role-template assignment, &quot;convert
-        mirrored → managed&quot;, and per-user audit views land in Phase K4b
-        following user approval. Mutations to existing accounts continue to
-        live in the Access Control Center above.
+        Read-only people directory. Access template assignment, converting imported accounts to managed accounts, and per-user history views continue in the Access Control Center above.
       </div>
     </Card>
   );

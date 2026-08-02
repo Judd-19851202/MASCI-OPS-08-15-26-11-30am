@@ -30,6 +30,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
+
+const SOURCE_LABELS = {
+  db: "saved rules",
+  legacy: "legacy rules",
+  system: "system",
+};
+
+function humanizeMode(mode) {
+  if (mode === "v2") return "modern routing";
+  if (mode === "v1") return "legacy fallback";
+  return sanitizeOperatorReference(mode, "routing mode");
+}
 
 const BAND_STYLES = {
   green: { row: "bg-emerald-50 border-emerald-200", pill: "bg-emerald-100 text-emerald-800 border-emerald-300", icon: ShieldCheck, label: "Healthy" },
@@ -82,7 +95,7 @@ export default function RoutingStatusPanel() {
       const r = await api.get("/admin/email-routing/v2/status");
       setStatus(r.data);
     } catch (e) {
-      setStatusErr(e?.response?.data?.detail || e?.message || "Failed to load status");
+      setStatusErr(sanitizeOperatorError(e?.response?.data?.detail || e?.message, "Failed to load routing status"));
     } finally {
       setStatusLoading(false);
     }
@@ -96,13 +109,13 @@ export default function RoutingStatusPanel() {
       const r = await api.post("/admin/email-routing/v2/self-check");
       setSelfCheck(r.data);
       const overall = r.data?.overall;
-      if (overall === "green") toast.success(`Self-check passed · ${r.data.total_routes} routes healthy`);
+      if (overall === "green") toast.success(`Routing review passed · ${r.data.total_routes} routes healthy`);
       else if (overall === "amber") toast.warning(r.data.overall_reason || "Self-check flagged warnings");
-      else toast.error(r.data.overall_reason || "Self-check failed");
+      else toast.error(sanitizeOperatorError(r.data.overall_reason, "Routing review failed"));
       // Refresh status to pick up new audit timestamps
       loadStatus();
     } catch (e) {
-      toast.error(e?.response?.data?.detail || e?.message || "Self-check failed");
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail || e?.message, "Routing review failed"));
     } finally {
       setSelfCheckLoading(false);
     }
@@ -139,7 +152,7 @@ export default function RoutingStatusPanel() {
             }`}
             data-testid="routing-status-mode"
           >
-            mode={status.mode === "v2" ? "modern" : status.mode === "v1" ? "legacy fallback" : status.mode}
+            mode={humanizeMode(status.mode)}
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
@@ -173,24 +186,24 @@ export default function RoutingStatusPanel() {
       {status && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <StatLine icon={Activity}   label="Flag active"        value={status.flag_active ? "true" : "false"} mono testId="rs-flag-active" />
-          <StatLine icon={Server}     label="App env"            value={status.app_env} mono testId="rs-app-env" />
-          <StatLine icon={Database}   label="DB name"            value={status.db_name} mono testId="rs-db-name" />
-          <StatLine icon={Clock}      label="Backend uptime"     value={status.backend_uptime_s != null ? `${status.backend_uptime_s} s` : "—"} testId="rs-uptime" />
+          <StatLine icon={Server}     label="Service mode"       value={sanitizeOperatorReference(status.app_env, "standard")} mono testId="rs-app-env" />
+          <StatLine icon={Database}   label="Data source"        value={status.db_name ? "Connected" : "Unavailable"} testId="rs-db-name" />
+          <StatLine icon={Clock}      label="System uptime"      value={status.backend_uptime_s != null ? `${status.backend_uptime_s} s` : "—"} testId="rs-uptime" />
           <StatLine icon={CheckCircle2} label="Critical OK"      value={`${status.route_counts?.critical_populated || 0} / ${status.route_counts?.critical_total || 0}`} testId="rs-critical-ok" />
           <StatLine icon={AlertTriangle} label="Critical empty"  value={status.route_counts?.critical_empty || 0} testId="rs-critical-empty" />
-          <StatLine icon={Activity}   label="Routing audit (24h)" value={status.audit_counters?.db_source_last_24h ?? 0} testId="rs-db-24h" />
+          <StatLine icon={Activity}   label="Routing history (24h)" value={status.audit_counters?.db_source_last_24h ?? 0} testId="rs-db-24h" />
           <StatLine icon={XCircle}    label="Errors (24h)"       value={status.audit_counters?.errors_last_24h ?? 0} testId="rs-errors-24h" />
-          <StatLine icon={Clock}      label="Last routing audit" value={fmtAge(status.last_v2_audit_age_minutes)} testId="rs-last-v2" />
+          <StatLine icon={Clock}      label="Last routing review" value={fmtAge(status.last_v2_audit_age_minutes)} testId="rs-last-v2" />
           <StatLine icon={Clock}      label="Routes total"       value={status.route_counts?.total} testId="rs-routes-total" />
           <StatLine icon={Clock}      label="Routes disabled"    value={status.route_counts?.disabled} testId="rs-routes-disabled" />
-          <StatLine icon={RotateCw}   label="Rollback value"     value={status.rollback_target?.reverse_value} mono testId="rs-rollback-val" />
+          <StatLine icon={RotateCw}   label="Rollback value"     value={sanitizeOperatorReference(status.rollback_target?.reverse_value, "restore previous setting")} mono testId="rs-rollback-val" />
         </div>
       )}
 
       {/* Per-V2-module recency */}
       {status?.v2_module_recency && (
         <div className="rounded-lg border border-slate-200 bg-white/60 p-3" data-testid="rs-v2-modules">
-          <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Modern-routing module recency</div>
+          <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Modern routing activity</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
             {[["health_monitor", "Health monitor"], ["outage_alerts", "Outage alerts"], ["safety_digest", "Safety digest"]].map(([k, label]) => {
               const row = status.v2_module_recency[k];
@@ -201,8 +214,8 @@ export default function RoutingStatusPanel() {
                     <>
                       <span className="font-mono text-[11px] text-slate-600">{row.ts}</span>
                       <span>
-                        <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-mono mr-1 ${row.source === "db" ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{row.source}</span>
-                        <span className="text-slate-600">{row.route_key}</span>
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-mono mr-1 ${row.source === "db" ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{SOURCE_LABELS[row.source] || sanitizeOperatorReference(row.source, "system")}</span>
+                        <span className="text-slate-600">{sanitizeOperatorReference(row.route_key, "routing item")}</span>
                       </span>
                     </>
                   ) : (
@@ -218,7 +231,7 @@ export default function RoutingStatusPanel() {
       {/* Latest audit rows */}
       {status?.latest_audit_rows?.length > 0 && (
         <div className="rounded-lg border border-slate-200 bg-white/60 p-3" data-testid="rs-latest-rows">
-          <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Latest audit rows (most recent first · counts only · no recipients)</div>
+          <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Recent routing activity (most recent first · counts only · no recipients)</div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="text-slate-500">
@@ -227,7 +240,7 @@ export default function RoutingStatusPanel() {
                   <th className="text-left font-medium py-1 pr-2">route</th>
                   <th className="text-left font-medium py-1 pr-2">source</th>
                   <th className="text-left font-medium py-1 pr-2">status</th>
-                  <th className="text-left font-medium py-1 pr-2">module</th>
+                  <th className="text-left font-medium py-1 pr-2">workflow</th>
                   <th className="text-right font-medium py-1 pr-2">to</th>
                   <th className="text-right font-medium py-1 pr-2">cc</th>
                   <th className="text-right font-medium py-1">bcc</th>
@@ -237,14 +250,14 @@ export default function RoutingStatusPanel() {
                 {status.latest_audit_rows.map((row, i) => (
                   <tr key={i} className="border-t border-slate-100">
                     <td className="font-mono text-[10px] py-1 pr-2">{row.ts}</td>
-                    <td className="font-mono text-[11px] py-1 pr-2">{row.route_key}</td>
+                    <td className="font-mono text-[11px] py-1 pr-2">{sanitizeOperatorReference(row.route_key, "routing item")}</td>
                     <td className="py-1 pr-2">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${row.source === "db" ? "bg-emerald-100 text-emerald-800" : row.source === "legacy" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>{row.source}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${row.source === "db" ? "bg-emerald-100 text-emerald-800" : row.source === "legacy" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>{SOURCE_LABELS[row.source] || sanitizeOperatorReference(row.source, "system")}</span>
                     </td>
                     <td className="py-1 pr-2">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${row.status === "resolved" || row.status === "dry_run" ? "bg-emerald-50 text-emerald-700" : "bg-rose-100 text-rose-800"}`}>{row.status}</span>
                     </td>
-                    <td className="py-1 pr-2 text-slate-600">{row.calling_module}</td>
+                    <td className="py-1 pr-2 text-slate-600">{sanitizeOperatorReference(row.calling_module, "routing workflow")}</td>
                     <td className="py-1 pr-2 text-right">{row.to_count}</td>
                     <td className="py-1 pr-2 text-right">{row.cc_count}</td>
                     <td className="py-1 text-right">{row.bcc_count}</td>
@@ -260,9 +273,9 @@ export default function RoutingStatusPanel() {
       {selfCheck && (
         <div className="rounded-lg border-2 border-indigo-200 bg-indigo-50/40 p-3 space-y-2" data-testid="rs-self-check-results">
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-wide text-slate-500">Self-check result</span>
+            <span className="text-xs uppercase tracking-wide text-slate-500">Routing review result</span>
             <Pill band={selfCheck.overall}>{(BAND_STYLES[selfCheck.overall] || BAND_STYLES.amber).label}</Pill>
-            <span className="text-xs text-slate-600">{selfCheck.overall_reason}</span>
+            <span className="text-xs text-slate-600">{sanitizeOperatorReference(selfCheck.overall_reason, "Routing review completed.")}</span>
             <span className="ml-auto text-xs text-slate-500">
               green={selfCheck.summary?.green} · amber={selfCheck.summary?.amber} · red={selfCheck.summary?.red}
             </span>
@@ -282,14 +295,14 @@ export default function RoutingStatusPanel() {
                 {selfCheck.results.map((row, i) => (
                   <tr key={i} className="border-t border-slate-100" data-testid={`rs-sc-row-${row.route_key}`}>
                     <td className="font-mono text-[11px] py-1 pr-2">
-                      {row.route_key}{row.critical && <span className="ml-1 px-1 rounded bg-rose-100 text-rose-700 text-[9px]">CRIT</span>}
+                      {sanitizeOperatorReference(row.route_key, "routing item")}{row.critical && <span className="ml-1 px-1 rounded bg-rose-100 text-rose-700 text-[9px]">KEY</span>}
                     </td>
                     <td className="py-1 pr-2"><Pill band={row.status}>{(BAND_STYLES[row.status] || BAND_STYLES.amber).label}</Pill></td>
                     <td className="py-1 pr-2">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${row.source === "db" ? "bg-emerald-100 text-emerald-800" : row.source === "legacy" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>{row.source}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${row.source === "db" ? "bg-emerald-100 text-emerald-800" : row.source === "legacy" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>{SOURCE_LABELS[row.source] || sanitizeOperatorReference(row.source, "system")}</span>
                     </td>
                     <td className="py-1 pr-2 text-right font-mono text-[11px]">{row.to_count}/{row.cc_count}/{row.bcc_count}</td>
-                    <td className="py-1 text-slate-600">{row.reason}</td>
+                    <td className="py-1 text-slate-600">{sanitizeOperatorReference(row.reason, "Review this item for details.")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -301,7 +314,7 @@ export default function RoutingStatusPanel() {
       {/* Rollback hint */}
       {status?.rollback_target && (
         <div className="text-[11px] text-slate-600 border-t border-slate-200 pt-2">
-          <strong>Rollback:</strong> {status.rollback_target.mechanism}. Reverse value = <code className="font-mono">{status.rollback_target.reverse_value}</code>. Estimated time ≤ {status.rollback_target.estimated_minutes} min.
+          <strong>Rollback:</strong> {sanitizeOperatorReference(status.rollback_target.mechanism, "Restore the previous setting")}. Restore value = <code className="font-mono">{sanitizeOperatorReference(status.rollback_target.reverse_value, "previous setting")}</code>. Estimated time ≤ {status.rollback_target.estimated_minutes} min.
         </div>
       )}
 

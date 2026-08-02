@@ -10,6 +10,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 const POLL_MS = 30000;
 
 const PILL_STYLES = {
@@ -109,7 +110,7 @@ export default function AdminRecovery() {
   const otsSurface = snap?.ots_truth?.truth_surface || {
     surface_name: "Operational Truth Spine",
     owner_endpoint: "/api/admin/recovery/snapshot",
-    owner_module: "backend/routes/recovery_dashboard.py",
+    owner_module: "platform recovery service",
     canonical_owner_id: "bcss_recovery_posture",
     surface_id: "bcss_recovery_posture",
     role: "AGGREGATOR",
@@ -124,8 +125,8 @@ export default function AdminRecovery() {
     canonical_status: "UNVERIFIABLE",
     derived_status: "UNVERIFIABLE",
     derivation_explanation: loading
-      ? "Loading canonical recovery truth from Recovery Snapshot."
-      : "Canonical recovery truth is not currently available.",
+      ? "Loading recovery status from the latest snapshot."
+      : "Recovery status is not currently available.",
     canonical_owner_id: "bcss_recovery_posture",
     evidence_age_source: loading ? "Pending" : "Unavailable",
     conflicts: [],
@@ -142,7 +143,7 @@ export default function AdminRecovery() {
       setBackupTrust(trust?.data || null);
       setErr(null);
     } catch (e) {
-      setErr(String(e?.response?.data?.detail || e?.message || e));
+      setErr(sanitizeOperatorError(e?.response?.data?.detail || e?.message || e, "Recovery snapshot is unavailable right now."));
     } finally {
       setLoading(false);
     }
@@ -197,7 +198,7 @@ export default function AdminRecovery() {
             testidPrefix="recovery-ots-truth-panel"
           />
           <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
-            Truth subject=<span className="font-semibold">{snap?.ots_truth?.truth_subject || "bcss_recovery_posture"}</span> · permitted claim=<span className="font-semibold">{snap?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{snap?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · does not prove recovery certification.
+            Recovery subject=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.truth_subject, "Recovery posture")}</span> · current signal=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.permitted_claim, "UNKNOWN")}</span> · confidence=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.evidence_confidence, "UNKNOWN")}</span> · does not by itself confirm live recovery readiness.
           </div>
           {snap ? (
             <>

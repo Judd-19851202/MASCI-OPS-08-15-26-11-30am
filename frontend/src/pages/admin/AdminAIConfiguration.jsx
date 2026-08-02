@@ -38,6 +38,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 // ── Module display metadata ─────────────────────────────────────────
 const MODULE_META = [
@@ -157,7 +158,7 @@ export default function AdminAIConfiguration() {
       const { data } = opts.force ? await api.post(url, undefined, auth) : await api.get(url, auth);
       setHealth(data);
     } catch (e) {
-      setHealth({ error: operationalError(e, "Failed to load AI health") });
+      setHealth({ error: sanitizeOperatorError(operationalError(e, "Failed to load AI health"), "Failed to load AI health") });
     } finally {
       setHealthLoading(false);
     }
@@ -520,7 +521,7 @@ export default function AdminAIConfiguration() {
                     </div>
                   </div>
                   {e.note && (
-                    <div className="text-xs text-slate-600 mt-1 italic">“{e.note}”</div>
+                    <div className="text-xs text-slate-600 mt-1 italic">&ldquo;{sanitizeOperatorReference(e.note, "Update saved.")}&rdquo;</div>
                   )}
                 </div>
               ))}
@@ -675,7 +676,7 @@ function AIHealthCard({ health, loading, onRefresh }) {
 
       {health?.error && (
         <div className="mt-3 p-3 rounded-md border border-rose-200 bg-rose-50 text-rose-800 text-sm" role="alert">
-          {String(health.error)}
+          {sanitizeOperatorError(String(health.error), "AI health is unavailable right now.")}
         </div>
       )}
 

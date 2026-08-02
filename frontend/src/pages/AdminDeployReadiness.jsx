@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { EmptyState, LoadingState } from "@/components/ui/PortalStates";
 import IntegrationProbesPanel from "@/components/IntegrationProbesPanel";
 import { toast } from "sonner";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const OVERALL_BAND = {
   ready:     { bg: "bg-emerald-50", border: "border-emerald-500", text: "text-emerald-900", icon: CheckCircle2, label: "READY TO DEPLOY" },
@@ -38,7 +39,7 @@ export default function AdminDeployReadiness() {
       setState(r.data);
       if (isRefresh) toast.success("Refreshed");
     } catch (err) {
-      toast.error("Could not load readiness check");
+      toast.error("Could not load readiness review");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -56,12 +57,12 @@ export default function AdminDeployReadiness() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
-            <div className="ux-kicker">ADMIN · PRE-DEPLOY QA</div>
+            <div className="ux-kicker">ADMIN · GO-LIVE REVIEW</div>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Deploy Readiness
             </h1>
             <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-              Aggregated pre-deploy checks across Mongo, indexes, R2, Resend, integrations, and seed data. Run this before every production push.
+              Aggregated go-live checks across storage, messaging, integrations, and data readiness. Run this before every production release.
             </p>
           </div>
           <Button
@@ -79,7 +80,7 @@ export default function AdminDeployReadiness() {
         {loading ? (
           <LoadingState label="Running checks…" testId="deploy-readiness-loading" />
         ) : !state ? (
-          <EmptyState title="Could not load readiness check" body="The deploy readiness check did not return. Check System Health." />
+          <EmptyState title="Could not load readiness review" body="The readiness review did not return. Check System Health." />
         ) : (
           <>
             {/* Overall banner */}
@@ -111,13 +112,13 @@ export default function AdminDeployReadiness() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <div className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
-                            {c.label}
+                            {sanitizeOperatorReference(c.label, "Readiness check")}
                             {c.formula ? (
                               <HelpTip
                                 testId={`deploy-readiness-check-${c.id}-why`}
-                                label={`Why this number? ${c.label}`}
+                                label={`Why this number? ${sanitizeOperatorReference(c.label, "Readiness check")}`}
                                 body={[
-                                  c.formula.source_of_truth ? `Source: ${c.formula.source_of_truth}.` : null,
+                                  c.formula.source_of_truth ? `Source: ${sanitizeOperatorReference(c.formula.source_of_truth, "platform data")}.` : null,
                                   c.formula.denominator_definition ? `Denominator: ${c.formula.denominator_definition}.` : null,
                                   c.formula.threshold_pct != null ? `Threshold: ${c.formula.threshold_pct}% pass floor.` : null,
                                 ].filter(Boolean).join(" ")}
@@ -128,12 +129,12 @@ export default function AdminDeployReadiness() {
                             {c.severity}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-600 mt-0.5">{c.detail}</div>
+                        <div className="text-xs text-slate-600 mt-0.5">{sanitizeOperatorReference(c.detail, "Review this check for more information.")}</div>
                         {Array.isArray(c.details) && c.details.length > 0 ? (
                           <div className="mt-2 text-[11px] text-slate-500" data-testid={`deploy-readiness-check-${c.id}-details`}>
                             {c.details.slice(0, 3).map((row) => (
                               <div key={`${row.collection}-${row.binding_type}`}>
-                                {row.collection}.{row.binding_type}: {row.pct}% · eligible {row.eligible_total} · missing {row.missing_master_ref}
+                                {sanitizeOperatorReference(row.collection, "record")}.{sanitizeOperatorReference(row.binding_type, "status")}: {row.pct}% · eligible {row.eligible_total} · missing {row.missing_master_ref}
                               </div>
                             ))}
                           </div>

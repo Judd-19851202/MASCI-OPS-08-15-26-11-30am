@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Mail, ChevronDown, ChevronRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+import { formatOperatorJobLabel, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 export default function AutoEmailRoutingPanel() {
   const [data, setData] = useState(null);
@@ -55,9 +56,9 @@ export default function AutoEmailRoutingPanel() {
           data-testid="auto-email-status-badge"
         >
           {enabled ? (
-            <><CheckCircle2 className="w-3.5 h-3.5" /> Live — Resend connected</>
+            <><CheckCircle2 className="w-3.5 h-3.5" /> Live — delivery connected</>
           ) : (
-            <><AlertCircle className="w-3.5 h-3.5" /> Standby — set RESEND_API_KEY</>
+            <><AlertCircle className="w-3.5 h-3.5" /> Standby — delivery setup needed</>
           )}
         </span>
       </div>
@@ -83,8 +84,8 @@ export default function AutoEmailRoutingPanel() {
           <p className="text-xs text-slate-600 leading-relaxed mb-1">
             Daily Job Reports, Equipment Pre-Op. PM only — no office CC.
           </p>
-          <p className="text-xs text-slate-500 italic">
-            Knox McRae (26-06) goes to Jaymn naturally as the assigned PM.
+            <p className="text-xs text-slate-500 italic">
+            Assigned project managers receive the right updates automatically.
           </p>
         </div>
       </div>
@@ -106,7 +107,7 @@ export default function AutoEmailRoutingPanel() {
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     {open ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
-                    <span className="font-bold text-slate-900 truncate">{pm.pm_name}</span>
+                    <span className="font-bold text-slate-900 truncate">{sanitizeOperatorReference(pm.pm_name, "Project manager")}</span>
                     <span className="font-mono text-xs text-slate-500 truncate hidden sm:inline">{pm.pm_email}</span>
                   </div>
                   <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold shrink-0">
@@ -118,8 +119,8 @@ export default function AutoEmailRoutingPanel() {
                     <li className="font-mono text-xs text-slate-500 sm:hidden mb-1">{pm.pm_email}</li>
                     {pm.jobs.map(j => (
                       <li key={j.project_number} className="flex items-baseline gap-2 text-sm">
-                        <span className="font-mono text-xs text-red-700 font-bold w-20 shrink-0">{j.project_number}</span>
-                        <span className="text-slate-700 truncate">{j.project_name}</span>
+                        <span className="font-mono text-xs text-red-700 font-bold w-20 shrink-0">{sanitizeOperatorReference(j.project_number, "job")}</span>
+                        <span className="text-slate-700 truncate">{formatOperatorJobLabel(j.project_number, j.project_name)}</span>
                       </li>
                     ))}
                   </ul>

@@ -26,7 +26,7 @@ export default function AdminPeople() {
   return (
     <LegacyAdminModernShell
       title="People & Access"
-      subtitle="Access Control Center · Unified Directory · portal accounts. Modernize IAM across every portal from one screen."
+      subtitle="Access Control Center · Unified Directory · portal accounts. Review shared access from one screen."
       experienceLevel="wp17c"
       experienceTone="admin"
       breadcrumb={[
@@ -37,8 +37,8 @@ export default function AdminPeople() {
     >
       <div className="mb-5 wp17-list-intro">
         <p className="text-sm text-slate-600 leading-relaxed" data-testid="admin-people-intro">
-          <strong>Access Control Center</strong> is the source of truth for multi-portal accounts.
-          <strong> Unified Directory</strong> is the searchable identity index.
+          <strong>Access Control Center</strong> is the primary place to manage shared portal accounts.
+          <strong> Unified Directory</strong> is the searchable people directory.
           Portal-specific panels below are secondary views — expand only the one you need.
         </p>
       </div>

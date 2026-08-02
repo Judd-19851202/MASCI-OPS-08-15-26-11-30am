@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -96,7 +97,7 @@ export default function AdminEmailRoutingPanel() {
       }
       setDrafts(next);
     } catch {
-      toast.error("Failed to load routing config");
+      toast.error("Failed to load routing settings");
     }
   };
 
@@ -113,9 +114,9 @@ export default function AdminEmailRoutingPanel() {
     try {
       const res = await api.put("/admin/email-routing", { [key]: value });
       setConfig(res.data.config);
-      toast.success(`Saved · ${route.label}`);
+      toast.success(`Saved · ${sanitizeOperatorReference(route.label, "routing rule")}`);
     } catch (e) {
-      toast.error(`Save failed: ${e?.response?.data?.detail || e.message}`);
+      toast.error(`Save failed: ${sanitizeOperatorError(e?.response?.data?.detail || e.message, "Please review this routing rule and try again.")}`);
     } finally {
       setBusy(false);
       setSavingKey("");
@@ -128,7 +129,7 @@ export default function AdminEmailRoutingPanel() {
     const def = envDefaults[key];
     const text = route.type === "list" ? listToText(def) : (def || "");
     setDrafts((p) => ({ ...p, [key]: text }));
-    toast.message("Reset to default — click Save to persist");
+    toast.message("Reset to shared default — click Save to keep this change");
   };
 
   const sendTest = async () => {
@@ -141,7 +142,7 @@ export default function AdminEmailRoutingPanel() {
       const res = await api.post("/admin/email-routing/test", { to: testTo.trim() });
       toast.success(`Test email sent to ${res.data.to}`);
     } catch (e) {
-      toast.error(`Test failed: ${e?.response?.data?.detail || e.message}`);
+      toast.error(`Test failed: ${sanitizeOperatorError(e?.response?.data?.detail || e.message, "The test message could not be sent.")}`);
     } finally {
       setTestBusy(false);
     }
@@ -173,7 +174,7 @@ export default function AdminEmailRoutingPanel() {
             Email Routing
           </h2>
           <p className="text-xs text-slate-600 mt-0.5">
-            Override who receives auto-emails on every form, without a redeploy.
+            Update who receives automatic emails on every form without leaving this page.
             Empty list = silence. Comma, semicolon, or newline-separate addresses.
           </p>
         </div>
@@ -185,7 +186,7 @@ export default function AdminEmailRoutingPanel() {
           }`}
           data-testid="routing-source-badge"
         >
-          {meta.source === "db" ? "Custom (DB)" : "Defaults (env)"}
+          {meta.source === "db" ? "Saved custom rules" : "Shared defaults"}
         </span>
       </div>
 
@@ -213,7 +214,7 @@ export default function AdminEmailRoutingPanel() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">{r.description}</p>
+                  <p className="text-xs text-slate-600 mt-0.5">{sanitizeOperatorReference(r.description, "Update who receives this message.")}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -223,7 +224,7 @@ export default function AdminEmailRoutingPanel() {
                     onClick={() => resetOne(r.key)}
                     disabled={busy}
                     data-testid={`routing-reset-${r.key}`}
-                    title={`Reset to env default: ${envValue || "(empty)"}`}
+                    title={`Reset to shared default: ${envValue || "(empty)"}`}
                   >
                     <RotateCcw className="w-3.5 h-3.5 mr-1" /> Default
                   </Button>
@@ -268,7 +269,7 @@ export default function AdminEmailRoutingPanel() {
                 />
               )}
               <div className="text-[10px] font-mono text-slate-400 mt-1 truncate">
-                Env default: {envValue || "(empty)"}
+                Shared default: {envValue || "(empty)"}
               </div>
             </div>
           );
@@ -281,9 +282,7 @@ export default function AdminEmailRoutingPanel() {
           <div className="flex-1 min-w-[240px]">
             <h3 className="font-bold text-slate-900 text-sm">Send test email</h3>
             <p className="text-xs text-slate-600 mt-0.5">
-              Sends a one-off message via Resend to confirm DNS, sender domain,
-              and the destination address are all wired up before you add it
-              to a routing list above.
+              Sends a one-off message to confirm delivery before you add an address to a routing list above.
             </p>
           </div>
           <div className="flex items-center gap-2">

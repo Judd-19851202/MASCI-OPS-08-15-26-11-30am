@@ -40,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -120,7 +121,7 @@ function TruthDisclosure({ ots, testidPrefix = "platform-trust-ots-disclosure" }
         data-testid={testidPrefix}
       >
         <div className="break-words" data-testid={`${testidPrefix}-subject`}>
-          <span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}
+          <span className="font-semibold text-slate-900">Summary subject:</span> {sanitizeOperatorReference(ots.truth_subject, "Operations summary")}
         </div>
         <div className="break-words" data-testid={`${testidPrefix}-claim`}>
           <span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}
@@ -141,7 +142,7 @@ function TruthDisclosure({ ots, testidPrefix = "platform-trust-ots-disclosure" }
           <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).join(" · ") || "—"}
         </div>
         <div className="break-words" data-testid={`${testidPrefix}-audit`}>
-          <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "—"}
+          <span className="font-semibold text-slate-900">Activity reference:</span> {sanitizeOperatorReference(ots.audit_reference, "—")}
         </div>
       </div>
       {unknowns.length > 0 && (
@@ -188,7 +189,7 @@ export default function PlatformTrustValidator() {
       setData(res.data);
       setLastRun(formatPlatformTime());
     } catch (e) {
-      const msg = (e?.response?.data?.detail || e?.message || "validation failed");
+      const msg = sanitizeOperatorError(e?.response?.data?.detail || e?.message, "Validation unavailable");
       setError(String(msg));
       toast.error(`Trust validator: ${msg}`);
     } finally {
