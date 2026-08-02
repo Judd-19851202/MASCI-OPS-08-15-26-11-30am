@@ -176,6 +176,8 @@
   - final WP-17D audited-defect sweep is now closed: all 40 routes that had been parked in `AUDITED_DEFECTS_FOUND` were recertified to `CERTIFIED` after shared `i18n.js` additions, PM/HR/Safety hub helper localization, Shop Hub V2 + Shop route-shell localization, Admin profile mobile overflow repair, and focused Safety/Dispatch auth proof
   - `auto_frontend_testing_agent` first-pass batch verification certified 36/40 routes and isolated the last exact defects to shared `Dashboard` / `Profile` ES keys, one ShopHubV2 PM-summary sentence, and `/admin/profile` 390px overflow; a focused retest then passed all 10 remaining routes with **100%** EN/ES + 390/768/1440 verification
   - authoritative route math moved accordingly: `AUDITED_DEFECTS_FOUND` fell **40 → 0**, `CERTIFIED` rose **98 → 138**, and remaining pending route count dropped **345 → 305** without opening the `DISCOVERED_NOT_OPENED` or `UNTOUCHED` queues
+  - the next family-first burn-down closed 28 more surfaces in one governed shared-auth / legacy / Field batch: `/d/:token`, `/driver`, Dispatch/Safety/PM/HR/Shop/Admin auth routes, shared `/sign-in` + `/change-password`, and legacy hub aliases now have direct EN/ES + responsive proof, while `/dispatch-portal/driver/:driverKey` remains the lone exact blocker because no discoverable seeded `driverKey` fixture is exposed from certified dispatch paths
+  - route math after this batch: `CERTIFIED` **161**, `REDIRECT_CERTIFIED` **46**, `BLOCKED_FIXTURE_REQUIRED` **1**, `DISCOVERED_NOT_OPENED` **202**, `UNTOUCHED` **74**, and remaining pending route count **277**
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
@@ -183,12 +185,10 @@
 - Preview-only repair lane preserved; no production deployment or live-environment claim was made.
 
 ## Next Authorized Work
-- Continue WP-17D in the locked order now set by executive direction: governed design system → Hub implementation → platform propagation.
-- Treat the public Home correction as closed for this constitution wave and use it as the first verified implementation of the hardened design system — not as a separate product identity.
-- Propagate the new shared card / button / badge / section-heading / state primitives across the platform in the approved rollout order: Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration.
-- Continue the active **Field Operations** wave through the remaining submit/review/detail interiors so the full field family inherits the elite shared polish standard, then begin **Transportation** using the now-locked Field standard.
-- Finish the remaining Field review/detail interiors still carrying legacy layout or helper drift, then move immediately into **Transportation** with the same locked shared form/header/card/button standard.
-- The active defect queue is now eliminated. Next authorized work starts with the locked `DISCOVERED_NOT_OPENED` mass-audit wave (224 routes), and only after that should the `UNTOUCHED` wave begin (81 routes).
+- Continue WP-17D in the locked order now set by executive direction, but with the Field auth/deep-link lane materially burned down.
+- Next active family is **Transportation and Dispatch** workspace consumers: `dispatch`, `live-operations`, `trucks`, `drivers`, `carriers`, `compliance`, `orientation/*`, `academy*`, `intelligence/*`, `command-queue/*`, `reports`, `audit`, `documents`, `inspections`, `rate-schedules`, and transport-detail consumers.
+- Keep the new shared auth findings as the canonical standard while continuing the locked `DISCOVERED_NOT_OPENED` wave (`202` remaining after this batch), then consume the `UNTOUCHED` wave (`74`) only after the discovered queue is materially reduced.
+- Preserve the exact blocker on `/dispatch-portal/driver/:driverKey` until a real dispatch-visible seeded `driverKey` path or fixture is exposed; do not mark it certified without runtime proof.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
 - Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.

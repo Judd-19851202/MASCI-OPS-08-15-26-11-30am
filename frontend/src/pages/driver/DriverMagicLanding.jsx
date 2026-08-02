@@ -38,7 +38,7 @@ function consumeOnce(token) {
 }
 
 export default function DriverMagicLanding() {
-  const { t } = useT();
+  const { t, lang, setLang } = useT();
   const { token } = useParams();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -88,7 +88,7 @@ export default function DriverMagicLanding() {
         const j = await r.json().catch(() => ({}));
         if (!r.ok || !j.driver_token) {
           setStatus("error");
-          setErrorMsg(j.detail || t("This link is no longer valid. Ask dispatch for a new one."));
+          setErrorMsg(t("Magic link invalid, used, or expired."));
           return;
         }
         persistDriverSession(j);
@@ -106,6 +106,24 @@ export default function DriverMagicLanding() {
       className="wp17-public-shell min-h-screen w-full flex items-center justify-center px-6 py-12 text-slate-100"
     >
       <div className="max-w-sm w-full text-center space-y-6 wp17-public-card p-8 bg-slate-950/88 text-slate-100">
+        <div className="flex justify-end gap-2" data-testid="driver-magic-lang-toggle">
+          <button
+            type="button"
+            onClick={() => setLang("en")}
+            data-testid="driver-magic-lang-en"
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${lang === "en" ? "border-amber-400 bg-amber-400 text-slate-950" : "border-slate-600 text-slate-300 hover:border-amber-300"}`}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            onClick={() => setLang("es")}
+            data-testid="driver-magic-lang-es"
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${lang === "es" ? "border-amber-400 bg-amber-400 text-slate-950" : "border-slate-600 text-slate-300 hover:border-amber-300"}`}
+          >
+            ES
+          </button>
+        </div>
         <div
           className="inline-flex items-center justify-center h-16 w-16 rounded-full border-4 border-amber-400 text-amber-400 text-3xl font-bold"
           data-testid="driver-magic-brand"
@@ -133,7 +151,7 @@ export default function DriverMagicLanding() {
             >
               {t("Link not active")}
             </p>
-            <p className="text-base text-slate-300">{errorMsg}</p>
+            <p className="text-base text-slate-300">{errorMsg ? t(errorMsg) : ""}</p>
             <p className="text-sm text-slate-500">
               {t("Magic links expire after 15 minutes and can only be used once.")}
             </p>

@@ -8467,6 +8467,7 @@ const ES = {
   "Signing you in…": "Iniciando sesión…",
   "Hold this screen for a second — you'll land on your truck shift automatically.": "Mantenga esta pantalla un segundo — entrará automáticamente a su turno del camión.",
   "Link not active": "Enlace inactivo",
+  "Magic link invalid, used, or expired.": "Enlace mágico inválido, usado o vencido.",
   "Magic links expire after 15 minutes and can only be used once.": "Los enlaces mágicos caducan después de 15 minutos y solo pueden usarse una vez.",
   "Dispatch Portal · Driver": "Portal de Despacho · Conductor",
   "Driver Command Profile": "Perfil operativo del conductor",

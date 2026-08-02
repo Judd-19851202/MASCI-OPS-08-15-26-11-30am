@@ -88,7 +88,7 @@ route,family,classification_status,rationale
 /safety-portal/trench-safety/assets,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with governed controls and no visible drift."
 /safety-portal/trench-safety/tabulated-data,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /app/*,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Fallback alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); runtime redirects to canonical `/`, which passed."
-/admin/login,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/login,Administration,CERTIFIED,2026-08-02 Level 1 auth certification: admin login verified in EN/ES with responsive form behavior and clean runtime.
 /admin,Administration,CERTIFIED,"Certified after focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02) plus shared admin-shell translation convergence; admin landing now passes without English chrome or responsive drift."
 /admin/hub_v1,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/hub_v2,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
@@ -96,7 +96,7 @@ route,family,classification_status,rationale
 /admin/executive-intelligence,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/material-ledger-quality,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/people,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/mfa,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/mfa,Administration,CERTIFIED,2026-08-02 Level 2 auth certification: MFA route renders correctly in EN/ES with clean responsive/auth behavior.
 /admin/promo-assets,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jobs,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /admin/cost-registry,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -217,11 +217,11 @@ route,family,classification_status,rationale
 /admin/safety/issuance/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/safety/training/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/login,Project Management,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`, screenshot 20260802_023346)."
-/pm/reset/:token,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/pm/change-password,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/reset/:token,Project Management,CERTIFIED,"2026-08-02 Level 1 auth certification: PM reset form route verified with active token behavior, EN/ES copy, and responsive controls."
+/pm/change-password,Project Management,CERTIFIED,2026-08-02 Level 1 auth certification: authenticated PM change-password flow verified in EN/ES at mobile and desktop.
 /pm,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/hub,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/hub_legacy,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/hub_legacy,Project Management,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy PM hub URL redirects cleanly to canonical /pm/login with no loop.
 /pm/hub_v2,Project Management,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /pm/holds,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/due-today,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -267,10 +267,10 @@ route,family,classification_status,rationale
 /pm/trench-safety/reports,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-safety/excavations,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /shop/login,Shop Operations,CERTIFIED,Certified after shared auth/session fix + ES/mobile login proof + shop footer-label bug repair (screenshot 20260802_030300).
-/shop/reset/:token,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/change-password,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/reset/:token,Shop Operations,CERTIFIED,"2026-08-02 Level 1 auth certification: Shop reset form route verified with active token behavior, EN/ES copy, and responsive controls."
+/shop/change-password,Shop Operations,CERTIFIED,2026-08-02 Level 1 auth certification: authenticated Shop change-password flow verified in EN/ES at mobile and desktop.
 /shop,Shop Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/shop/hub_legacy,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/hub_legacy,Shop Operations,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy Shop hub URL redirects cleanly to canonical /shop/login with no loop.
 /shop/hub_v2,Shop Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /shop/asset-care,Shop Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /shop/manager/queue,Shop Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
@@ -294,13 +294,13 @@ route,family,classification_status,rationale
 /shop/equipment,Shop Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /shop/equipment/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /hr/login,Human Resources,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
-/sign-in,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/change-password,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/forgot,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/reset/:token,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/hr/change-password,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/sign-in,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared-auth certification: shared sign-in route verified in EN/ES with clean runtime and responsive controls.
+/change-password,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared-auth certification: shared directory password-change route verified in EN/ES with clean runtime and responsive controls.
+/hr/forgot,Human Resources,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: deprecated HR forgot route cleanly forwards to canonical /hr/login inline reset flow.
+/hr/reset/:token,Human Resources,CERTIFIED,"2026-08-02 Level 1 auth certification: HR reset form route verified with active token behavior, EN/ES copy, and responsive controls."
+/hr/change-password,Human Resources,CERTIFIED,2026-08-02 Level 1 auth certification: authenticated HR change-password flow verified in EN/ES at mobile and desktop.
 /hr,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/hub_legacy,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/hub_legacy,Human Resources,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy HR hub URL redirects cleanly to canonical /hr/login with no loop.
 /hr/hub_v2,Human Resources,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /hr/field-leadership,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/field-leadership-users,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -317,17 +317,17 @@ route,family,classification_status,rationale
 /hr/motive-drivers,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver/:driverKey,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /time-off/public/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/field-leadership/portal/login,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/field-leadership/portal/change-password,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/field-leadership/portal/login,Field Leadership,CERTIFIED,2026-08-02 Level 1 auth certification: foreman login route verified in EN/ES with responsive form controls and clean runtime.
+/field-leadership/portal/change-password,Field Leadership,CERTIFIED,2026-08-02 Level 1 auth certification: foreman change-password workflow verified in EN/ES after authentication.
 /field-leadership/portal/dashboard,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /field-leadership/portal,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /field-leadership/portal/driver-qualification,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/login,Safety Operations,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
-/safety-portal/forgot-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/reset/:token,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety-portal/change-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/forgot-password,Safety Operations,CERTIFIED,2026-08-02 Level 1 auth certification: bilingual forgot-password request flow verified at mobile and desktop with clean success state.
+/safety-portal/reset/:token,Safety Operations,CERTIFIED,"2026-08-02 Level 1 auth certification: Safety reset form route verified with active token behavior, EN/ES copy, and responsive controls."
+/safety-portal/change-password,Safety Operations,CERTIFIED,2026-08-02 Level 1 auth certification: authenticated Safety change-password workflow verified in EN/ES at mobile and desktop.
 /safety-portal,Safety Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/safety-portal/hub_legacy,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/hub_legacy,Safety Operations,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: legacy Safety hub URL redirects cleanly to canonical /safety-portal/login with no loop.
 /safety-portal/hub_v2,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/fleet,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/corrective-actions,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -350,12 +350,12 @@ route,family,classification_status,rationale
 /safety-portal/driver/:driverKey,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /hr/safety-records,Human Resources,CERTIFIED,"Certified after shared HR sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_145022`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
 /dispatch-portal/login,Transportation Operations,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
-/leadership/login,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/forgot-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/reset/:token,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/dispatch-portal/change-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/leadership/login,Field Leadership,CERTIFIED,2026-08-02 Level 1 auth certification: leadership login route verified in EN/ES with responsive behavior and clean runtime.
+/dispatch-portal/forgot-password,Transportation Operations,CERTIFIED,2026-08-02 Level 1 auth certification: bilingual forgot-password request flow verified at mobile and desktop with clean success state.
+/dispatch-portal/reset/:token,Transportation Operations,CERTIFIED,"2026-08-02 Level 1 auth certification: reset form route verified with working token behavior, EN/ES copy, and responsive controls."
+/dispatch-portal/change-password,Transportation Operations,CERTIFIED,"2026-08-02 Level 1 auth certification: authenticated change-password workflow verified with dispatch credentials, EN/ES copy, and responsive form controls."
 /dispatch-portal,Transportation Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/dispatch-portal/hub_legacy,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/hub_legacy,Transportation Operations,CERTIFIED,2026-08-02 Level 3 alias certification: legacy dispatch hub entry still resolves cleanly to the canonical dispatch experience with no loop or chrome drift.
 /dispatch-portal/hub_v2,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
 /dispatch-portal/board,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
 /dispatch-portal/command,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
@@ -363,7 +363,7 @@ route,family,classification_status,rationale
 /dispatch-portal/map,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
 /dispatch-portal/haul-ledger,Transportation Operations,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /dispatch-portal/driver-qualification,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
-/dispatch-portal/driver/:driverKey,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/dispatch-portal/driver/:driverKey,Transportation Operations,BLOCKED_FIXTURE_REQUIRED,"2026-08-02 exact blocker: route exists but no discoverable or seeded driverKey fixture was available from dispatch-certified paths, so individual driver profile runtime proof could not be completed honestly."
 /training,"Training, Guidance, and Coaching",DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /training-hub,"Training, Guidance, and Coaching",REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/training`, which passed."
 /training/:track,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -375,7 +375,7 @@ route,family,classification_status,rationale
 /admin/wp17d-certification,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /ops-training,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/guidance`, which passed."
 /ops-training/:slug,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Canonical route config confirmed this path redirects to `/guidance`; direct runtime proof showed `/ops-training/test123` landing on `/guidance` (`20260802_151534`).
-/dev/login,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dev/login,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared-auth certification: dev login route verified in EN/ES with responsive form behavior and no runtime defects.
 /dev,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /inspections,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
 /inspect/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -409,8 +409,8 @@ route,family,classification_status,rationale
 /access-denied,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/audit,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/health,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
-/d/:token,Field Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/driver,Field Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/d/:token,Field Operations,CERTIFIED,"2026-08-02 Level 2 auth/deep-link certification: invalid-token state now supports EN/ES toggle, passes responsive proof (390/430/1440), and shows localized single-use expiry messaging."
+/driver,Field Operations,CERTIFIED,2026-08-02 Level 2 auth-guard certification: route correctly redirects unauthenticated drivers into the canonical /shift flow with clean runtime behavior.
 /shift,Field Operations,CERTIFIED,"Certified after direct screenshot proof at 1440 + 390 (`20260802_151534`, `20260802_151821`); shift-start flow now holds governed Spanish copy and responsive layout cleanly."
 /field-leadership,Field Leadership,CERTIFIED,"Certified after foreman-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /odr/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
