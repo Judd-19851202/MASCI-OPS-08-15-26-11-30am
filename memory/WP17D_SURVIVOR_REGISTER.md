@@ -69,6 +69,9 @@ These counts are used to choose the next engineering wave from the currently act
 - Active admin closure wave converted the full 18-route `OPENED_NOT_AUDITED` admin batch into exact dispositions (6 `CERTIFIED`, 12 `AUDITED_DEFECTS_FOUND`) while recertifying `/admin/transportation/*` and `/admin/platform-readiness`
 - Shared action-chrome hardening landed through governed action labels, translated list-panel actions, PM sidebar translation, Daily Report copy repairs, and admin digest/profile shell clean-up; `/admin` and `/admin/photos` moved from active defects to `CERTIFIED`
 - The remaining 26-route `OPENED_NOT_AUDITED` queue is now fully eliminated: 11 moved to `CERTIFIED`, 12 moved to `REDIRECT_CERTIFIED`, and 3 were dispositioned into exact `AUDITED_DEFECTS_FOUND` blocker states
+- The entire 57-route `REPAIRED_NOT_CERTIFIED` queue is now eliminated: 29 moved to `CERTIFIED`, 2 moved to `REDIRECT_CERTIFIED`, and 26 were dispositioned into exact `AUDITED_DEFECTS_FOUND` families/blockers instead of remaining ambiguous repaired work
+- Shared family movement in this wave: Safety portal/sidebar repairs certified 19 routes, HR sidebar repairs certified 3 routes, Dispatch family certified 6 routes, `/pm/photos` and `/daily/submit` both returned to `CERTIFIED`, and `/shift` closed cleanly after direct responsive proof
+- Verified blocker families now isolated instead of hidden inside repaired work: Shop family mixed-language route content, PM family mixed-language route content, Dispatch root/haul-ledger mixed-language chrome, Safety hub root mixed-language hero copy, and HR hub root mixed-language hero/KPI copy
 - Login-route survivors cleared to certified candidates and then certified where proof was complete: `/pm/login`, `/shop/login`, `/hr/login`, `/dispatch-portal/login`, `/safety-portal/login`, `/safety/forms/login`
 - Admin-shell batch audit opened 18 additional admin consumers and certified `/admin/platform-overview` as a redirect alias to `/admin`
 - Auth convergence survivors cleared: safety forgot/reset/change, HR reset, dispatch reset/change, shop reset/change, PM change, dev login
@@ -85,4 +88,4 @@ These counts are used to choose the next engineering wave from the currently act
 - The ledger counts are the authoritative platform-wide denominator counts.
 - The active-route scan is the engineering work queue for the next survivor hunt.
 - A surface is not complete until it passes functional, responsive, visual, and executive certification.
-- Current authoritative route-classification pending total: **378** across the 484-route denominator after the 2026-08-02 shared-action/open-queue closure batch.
+- Current authoritative route-classification pending total: **345** across the 484-route denominator after the 2026-08-02 repaired-queue eradication wave.

@@ -3,14 +3,14 @@ route,family,classification_status,rationale
 /revise/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety/forms/login,Safety Operations,CERTIFIED,"Certified after shared auth/session fix + governed hero-shell convergence + ES/mobile login proof (`iteration_108`, screenshot 20260802_023255)."
-/safety/forms,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety/forms/equipment-issuance/new,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety/forms,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/safety/forms/equipment-issuance/new,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/forms/equipment-issuance/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
 /safety/forms/equipment-issuance/:id/return,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/forms/equipment-training/new,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety/forms/equipment-training/new,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/forms/equipment-training/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
-/safety/cards,Safety Operations,REPAIRED_NOT_CERTIFIED,Repaired shared route copy in ES and reopened visually; still needs wider-width recertification sweep before closure.
-/field,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); governed field hub now renders Spanish UI cleanly while retaining the global MASCI Operations Platform identity footer."
+/safety/cards,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/field,Shared Operational Home and Public Entry,CERTIFIED,Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); governed field hub now renders Spanish UI cleanly while retaining the global MASCI Operations Platform identity footer.
 /field/calculators,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); calculator shell, governed selects, and responsive layout held without route-local drift."
 /qaqc,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /qa-qc,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/qaqc`, which passed without overflow or English chrome leaks."
@@ -28,7 +28,7 @@ route,family,classification_status,rationale
 /leadership/records,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /leadership/records/:id,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /leadership/:kind/new,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/inspections/new,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety/inspections/new,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /inspect/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /inspections/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -52,11 +52,11 @@ route,family,classification_status,rationale
 /near-miss,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /safety/cases/:caseId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety/incidents/:caseId/thread,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/executive-intelligence,Safety Operations,REPAIRED_NOT_CERTIFIED,Repaired onto governed shell preview without auth noise; route family still needs full executive-content certification.
+/safety/executive-intelligence,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety/cases/:caseId/reports/:reportType,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety/cases/:caseId/executive-report,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/daily/submit,Shared Operational Home and Public Entry,AUDITED_DEFECTS_FOUND,"Re-audited in ES at 1440 + 390 after shared translation fixes (`auto_frontend_testing_agent`, `20260802_041958`); remaining live leaks are action chrome only: `Add crew`, `Add equipment`, and `Add sub / vendor`."
+/daily/submit,Shared Operational Home and Public Entry,CERTIFIED,Certified after direct screenshot proof and shared translation fixes (`20260802_151534`); route now renders governed Spanish workflow copy and action chrome cleanly.
 /equipment/new,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES proof at 1440 + 390 (`20260802_035254`); pre-op equipment inspection now holds governed Spanish copy, responsive layout, and governed capture controls."
 /equipment/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /equipment/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -74,16 +74,16 @@ route,family,classification_status,rationale
 /daily-reports/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /safety/jha,Safety Operations,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /safety/trench-boxes,Safety Operations,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
-/safety/trench-safety,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety/trench-safety/assets,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety/trench-safety,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/safety/trench-safety/assets,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_145022`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
 /safety/trench-safety/assets/:assetId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/trench-safety/tabulated-data,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety/trench-safety/reports,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety/trench-safety/excavations,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety/trench-safety/tabulated-data,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/safety/trench-safety/reports,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/safety/trench-safety/excavations,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /admin/trench-safety/excavations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /trench-safety/excavation/new,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/safety/trench-safety/repair-review,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety/trench-safety/field-reports,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety/trench-safety/repair-review,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/safety/trench-safety/field-reports,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/trench-safety,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
 /safety-portal/trench-safety/assets,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with governed controls and no visible drift."
 /safety-portal/trench-safety/tabulated-data,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
@@ -193,7 +193,7 @@ route,family,classification_status,rationale
 /admin/meetings/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/jha-plans,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jha,Administration,CERTIFIED,"Certified after admin-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/admin/jha/:id,Administration,AUDITED_DEFECTS_FOUND,"Blocked during admin audit (`auto_frontend_testing_agent`, 2026-08-02): no seeded canonical JHA detail fixture was available to certify the detail route."
+/admin/jha/:id,Administration,REDIRECT_CERTIFIED,Canonical route config confirmed this path redirects to `/admin/jha-plans`; direct runtime proof showed `/admin/jha/test123` landing on `/admin/jha-plans` (`20260802_151534`).
 /admin/trench-boxes,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/trench-boxes/poster,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/trench-safety,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -222,11 +222,11 @@ route,family,classification_status,rationale
 /pm,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/hub,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/hub_legacy,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/hub_v2,Project Management,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/pm/hub_v2,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
 /pm/holds,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/due-today,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/crew-compliance,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/jobs,Project Management,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/pm/jobs,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
 /pm/job/:projectNumber/team,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/project-staffing,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/project-schedule,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -246,9 +246,9 @@ route,family,classification_status,rationale
 /admin/vendors/:vendorId/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/assets/:assetRef/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/posters,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/qaqc,Project Management,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/pm/photos,Project Management,AUDITED_DEFECTS_FOUND,"Re-audited after PM-shell translation convergence in ES at 1440 + 390 (`auto_frontend_testing_agent`, `20260802_041958`); remaining blocker is 390px horizontal overflow."
-/pm/daily,Project Management,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/pm/qaqc,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
+/pm/photos,Project Management,CERTIFIED,"Certified after responsive layout hardening on the shared portal shell + photo filters; direct proof cleared 390, 430, 768, 1024, and 1440 without overflow (`20260802_134004`, `20260802_151534`)."
+/pm/daily,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
 /pm/daily/:id,Project Management,CERTIFIED,Ledger row already carries certification evidence.
 /pm/incidents,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/incidents/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -258,9 +258,9 @@ route,family,classification_status,rationale
 /pm/inspections/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/jha-plans,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-boxes,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/equipment,Project Management,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/pm/equipment,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
 /pm/equipment/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/pm/trench-safety,Project Management,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/pm/trench-safety,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
 /pm/trench-safety/assets,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-safety/assets/:assetId,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/trench-safety/tabulated-data,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -269,29 +269,29 @@ route,family,classification_status,rationale
 /shop/login,Shop Operations,CERTIFIED,Certified after shared auth/session fix + ES/mobile login proof + shop footer-label bug repair (screenshot 20260802_030300).
 /shop/reset/:token,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /shop/change-password,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /shop/hub_legacy,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/hub_v2,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/asset-care,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/manager/queue,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/me,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/units/history,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop/hub_v2,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/asset-care,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/manager/queue,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/me,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/units/history,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /shop/units/:unitNumber/history,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/fuel-lube/new,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/fuel-lube,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop/fuel-lube/new,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/fuel-lube,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /shop/fuel-lube/:visitId,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/service-truck-reconciliation/new,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/service-truck-reconciliation,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop/service-truck-reconciliation/new,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/service-truck-reconciliation,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /shop/service-truck-reconciliation/:recId,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/pm,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/pm/templates,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/pm/schedules,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/pm/work-orders,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop/pm,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/pm/templates,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/pm/schedules,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/pm/work-orders,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /shop/pm/work-orders/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/trench-safety-repairs,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/shop/fleet,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop/trench-safety-repairs,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
+/shop/fleet,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /fleet/unit/:unit_number,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/equipment,Shop Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/shop/equipment,Shop Operations,AUDITED_DEFECTS_FOUND,"Shared Shop portal defect class confirmed by direct screenshot proof on `/shop`, `/shop/hub_v2`, and `/shop/pm/work-orders` (`20260802_150819`, `20260802_144335`): route-owned hero/body copy and back-link chrome remain mixed-language across the family even after overflow fixes."
 /shop/equipment/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /hr/login,Human Resources,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
 /sign-in,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -301,18 +301,18 @@ route,family,classification_status,rationale
 /hr/change-password,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/hub_legacy,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/hub_v2,Human Resources,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/hr/hub_v2,Human Resources,AUDITED_DEFECTS_FOUND,"Direct screenshot proof at 1440 shows remaining mixed-language hub chrome (`What requires your attention today?`, English mission/body copy, and English KPI/support copy) even after the shared HR sidebar localization fix (`20260802_152008`)."
 /hr/field-leadership,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/field-leadership-users,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/employee-accountability,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/time-verification,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/time-off,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/payroll-variance,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/training-records,Human Resources,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/hr/training-records,Human Resources,CERTIFIED,"Certified after shared HR sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /hr/qualifications,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver-qualification,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver-qualification/import,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/daily-reports,Human Resources,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/hr/daily-reports,Human Resources,CERTIFIED,"Certified after shared HR sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /hr/daily-reports/:id,Human Resources,CERTIFIED,Ledger row already carries certification evidence.
 /hr/motive-drivers,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver/:driverKey,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -326,16 +326,16 @@ route,family,classification_status,rationale
 /safety-portal/forgot-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/reset/:token,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety-portal/change-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety-portal,Safety Operations,AUDITED_DEFECTS_FOUND,Direct screenshot proof at 1440 shows remaining mixed-language root-dashboard chrome (`What safety work requires attention right now?` and route-owned hero copy) even after sidebar localization (`20260802_151901`).
 /safety-portal/hub_legacy,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/hub_v2,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/fleet,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety-portal/fleet,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/corrective-actions,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/fire-extinguishers,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/fire-extinguishers/import,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/documents,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/training,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety-portal/incidents,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety-portal/training,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
+/safety-portal/incidents,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_144503`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
 /safety-portal/incidents/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety-portal/meetings/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety-portal/audits,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -344,25 +344,25 @@ route,family,classification_status,rationale
 /safety-portal/library,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/employees,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/digest,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/inspections,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety-portal/inspections,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/inspections/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety-portal/jha-plans,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety-portal/jha-plans,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /safety-portal/driver/:driverKey,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/hr/safety-records,Human Resources,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/hr/safety-records,Human Resources,CERTIFIED,"Certified after shared HR sidebar localization fix, direct screenshot spot-check, and family re-audit at 1440 + 390 (`20260802_145022`, `auto_frontend_testing_agent`); governed Spanish chrome holds cleanly."
 /dispatch-portal/login,Transportation Operations,CERTIFIED,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
 /leadership/login,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /dispatch-portal/forgot-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /dispatch-portal/reset/:token,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /dispatch-portal/change-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/dispatch-portal,Transportation Operations,AUDITED_DEFECTS_FOUND,"Direct screenshot proof at 1440 still shows mixed-language root chrome and cards (`Motive is live...`, `Open Full Live Map`, `RIGHT NOW`, English wait-reason copy) even after top-bar localization (`20260802_151821`)."
 /dispatch-portal/hub_legacy,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/hub_v2,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/dispatch-portal/board,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/dispatch-portal/command,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/dispatch-portal/fleet,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/dispatch-portal/map,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/dispatch-portal/haul-ledger,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/dispatch-portal/driver-qualification,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/dispatch-portal/hub_v2,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
+/dispatch-portal/board,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
+/dispatch-portal/command,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
+/dispatch-portal/fleet,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
+/dispatch-portal/map,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
+/dispatch-portal/haul-ledger,Transportation Operations,AUDITED_DEFECTS_FOUND,"Direct screenshot proof still shows mixed-language chrome on the ledger route (`Search`, `Sources`, `TRUCKS`) after shared top-bar and ledger translation work (`20260802_145022`, `20260802_151821`)."
+/dispatch-portal/driver-qualification,Transportation Operations,CERTIFIED,"Certified in ES at 1440 + 390 after dispatch family re-audit (`auto_frontend_testing_agent`, 2026-08-02); route passed without overflow or mixed-language chrome findings."
 /dispatch-portal/driver/:driverKey,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /training,"Training, Guidance, and Coaching",DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /training-hub,"Training, Guidance, and Coaching",REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/training`, which passed."
@@ -371,10 +371,10 @@ route,family,classification_status,rationale
 /training/:track/packet,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/training-videos,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/deploy-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/platform-readiness,Administration,CERTIFIED,"Certified after route-specific ES/content recertification at 1440 + 390 (`20260802_034413`) plus shared admin-shell dictionary convergence; route now holds governed Spanish copy and responsive layout cleanly."
+/admin/platform-readiness,Administration,CERTIFIED,Certified after route-specific ES/content recertification at 1440 + 390 (`20260802_034413`) plus shared admin-shell dictionary convergence; route now holds governed Spanish copy and responsive layout cleanly.
 /admin/wp17d-certification,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /ops-training,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/guidance`, which passed."
-/ops-training/:slug,Shared Operational Home and Public Entry,AUDITED_DEFECTS_FOUND,"Blocked during alias audit (`auto_frontend_testing_agent`, 2026-08-02): no seeded training slug fixture was available to certify the detail route."
+/ops-training/:slug,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Canonical route config confirmed this path redirects to `/guidance`; direct runtime proof showed `/ops-training/test123` landing on `/guidance` (`20260802_151534`).
 /dev/login,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /dev,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /inspections,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
@@ -386,7 +386,7 @@ route,family,classification_status,rationale
 /incidents/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /daily,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/safety-portal/meetings,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
+/safety-portal/meetings,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /admin/daily-reports,Administration,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /admin/trench-safety-assets,Administration,AUDITED_DEFECTS_FOUND,"Alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, `20260802_043527`); canonical `/admin/trench-safety/assets` still has a 1440px horizontal overflow (`scrollWidth 1459 > viewport 1440`) plus remaining English helper copy."
 /legal/terms,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -411,7 +411,7 @@ route,family,classification_status,rationale
 /admin/health,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /d/:token,Field Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /driver,Field Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shift,Field Operations,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/shift,Field Operations,CERTIFIED,"Certified after direct screenshot proof at 1440 + 390 (`20260802_151534`, `20260802_151821`); shift-start flow now holds governed Spanish copy and responsive layout cleanly."
 /field-leadership,Field Leadership,CERTIFIED,"Certified after foreman-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /odr/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /odr/center,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -434,7 +434,7 @@ route,family,classification_status,rationale
 /daily/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-report/v1,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-report/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/pm/operational-intelligence,Project Management,REPAIRED_NOT_CERTIFIED,Repaired raw 401 user leak; route still needs full content/width recertification.
+/pm/operational-intelligence,Project Management,AUDITED_DEFECTS_FOUND,"PM repaired family audit at 1440 + 390 found route-owned mixed-language content still active on the portal root/home surfaces (`auto_frontend_testing_agent`, 2026-08-02)."
 /admin/ods-intelligence,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /executive/ods-intelligence,Administration,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects to canonical `/admin/operational-intelligence`."
 /admin/occ,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.

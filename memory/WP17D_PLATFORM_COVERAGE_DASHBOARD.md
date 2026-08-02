@@ -68,6 +68,7 @@ Last updated: 2026-08-02
 - 2026-08-02 Shared admin-shell localization wave landed across `CanonicalHeader`, `PortalShell`, `MobileNavigation`, `SideNavV3`, `CommandPalette`, `PortalSwitcher`, `GlobalSearch`, `NotificationBell`, `AdminBreadcrumb`, and the admin wrappers; route-family proof completed for `/admin/daily`, `/admin/daily/:id`, and `/admin/executive-overview`.
 - 2026-08-02 Batch closure wave landed across the active admin queue: `/admin/transportation/*` and `/admin/platform-readiness` were recertified, the 18-route admin-open batch was fully dispositioned (6 certified / 12 defected), and repaired-route movement landed for `/transportation-operations/*`, `/field`, `/field/calculators`, `/equipment/new`, `/daily/submit`, and `/pm/photos`.
 - 2026-08-02 Shared action-chrome wave landed through `governedActions.js`, `BackLink.jsx`, `MasterListPanel.jsx`, `PortalStates.jsx`, `PhotoZipDownload.jsx`, PM sidebar translation, Daily Report keys, admin digest/profile fixes, and admin/governance shell translation passes; the entire remaining 26-route `OPENED_NOT_AUDITED` queue was then dispositioned to `CERTIFIED`, `REDIRECT_CERTIFIED`, or exact `AUDITED_DEFECTS_FOUND` states.
+- 2026-08-02 Active repaired-queue eradication landed: shared Safety/HR/Dispatch sidebar localization, shared portal-shell overflow guards, PM photo filter hardening, Daily submit cleanup, and redirect proof for `/admin/jha/:id` + `/ops-training/:slug` eliminated all 57 `REPAIRED_NOT_CERTIFIED` rows by moving them to `CERTIFIED`, `REDIRECT_CERTIFIED`, or exact `AUDITED_DEFECTS_FOUND` dispositions.
 - Platform discovery complete: **No**
 - Route discovery confidence = 100%: **Yes**
 - Hidden-surface discovery confidence = 100%: **Yes**
@@ -75,16 +76,16 @@ Last updated: 2026-08-02
 - Platform can begin final executive certification math: **No**
 
 ## Current Route Classification Snapshot (484-route denominator)
-- `CERTIFIED`: **67**
-- `REDIRECT_CERTIFIED`: **39**
-- `REPAIRED_NOT_CERTIFIED`: **57**
+- `CERTIFIED`: **98**
+- `REDIRECT_CERTIFIED`: **41**
+- `REPAIRED_NOT_CERTIFIED`: **0**
 - `OPENED_NOT_AUDITED`: **0**
-- `AUDITED_DEFECTS_FOUND`: **16**
+- `AUDITED_DEFECTS_FOUND`: **40**
 - `DISCOVERED_NOT_OPENED`: **224**
 - `UNTOUCHED`: **81**
-- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **106**
-- Remaining pending routes: **378**
-- Net pending reduction in this execution wave: **403 → 378** (−**25**)
+- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **139**
+- Remaining pending routes: **345**
+- Net pending reduction in this execution wave: **378 → 345** (−**33**)
 
 ## First Reachability Deliverable
 - Route-to-entry-point ledger created: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`
