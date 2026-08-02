@@ -290,7 +290,7 @@ export function TruthOwnerPanel({
           <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">{t("Upstream owners")}</div>
           {surface.upstream_owner_ids?.length ? (
             <ul className="space-y-1 text-xs text-slate-700">
-              {surface.upstream_owner_ids.map((id) => <li key={id}>{id}</li>)}
+              {surface.upstream_owner_ids.map((id) => <li key={id}>{sanitizeOperatorReference(id, "Upstream source")}</li>)}
             </ul>
           ) : <div className="text-xs text-slate-500">{t("This surface is the source owner.")}</div>}
         </div>
