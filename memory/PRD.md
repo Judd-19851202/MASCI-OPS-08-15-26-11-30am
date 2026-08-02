@@ -187,6 +187,9 @@
   - the remaining Safety family has now been retired through direct route proof plus exact blocker promotion: `/safety/forms/equipment-issuance/:id/return`, `/safety/cases/:caseId`, `/safety/incidents/:caseId/thread`, `/safety/cases/:caseId/reports/:reportType`, `/safety/trench-safety/assets/:assetId`, `/safety-portal/forms-records`, `/safety`, `/meetings/new`, `/meetings/submit`, `/incidents/report`, `/equipment/submit` are certified, while `/inspect/new`, `/submit`, and `/inspect/:id` are redirect-certified against canonical Safety/Admin inspection evidence
   - exact Safety blocker register entries were added instead of leaving vague pending states: `/safety/cases/:caseId/executive-report`, `/safety-portal/incidents/:id`, `/safety-portal/meetings/:id`, `/meetings/:id`, `/incidents/:id`, `/safety-portal/driver/:driverKey`, and `/equipment/:id` now each carry one evidence-backed blocker rationale with prerequisite and trigger embedded in the authoritative CSV
   - route math after Safety retirement: `CERTIFIED` **216**, `REDIRECT_CERTIFIED` **58**, `BLOCKED_FIXTURE_REQUIRED` **8**, `DISCOVERED_NOT_OPENED` **151**, `UNTOUCHED` **51**, and remaining pending route count **210**
+  - the full Shared Operational Home and Public Entry family is now retired to certs/redirects/exact blockers: QA/QC public entry, constraint hub/write gate, weekly fleet forms, notifications, operations center/map, legal/error pages, ODR center/new/detail public states, operational records, operations-actions hub/detail/new, transport child leaves (`assignments`, `certificates`, `emails`, `predictions`, `learning`, `cleanup`, `health`, `modules`, `modules/:mid`) and the catchall `*` route are all closed with explicit evidence
+  - new exact blocker classes were isolated instead of repeatedly retried: `/fleet/dvir/submitted/:id` remains fixture-gated, `/constraints/:id` is fixture-gated, `recommendations` and `forecast` are runtime-timeout blocked, and all `/_internal/*` preview-only routes are now explicitly blocked by developer-access gating rather than left ambiguous
+  - route math after Shared/Public retirement: `CERTIFIED` **256**, `REDIRECT_CERTIFIED` **61**, `BLOCKED_FIXTURE_REQUIRED` **6**, `BLOCKED_DEV_ACCESS_DISABLED` **5**, `BLOCKED_RUNTIME_TIMEOUT` **2**, `DISCOVERED_NOT_OPENED` **115**, `UNTOUCHED` **39**, and remaining pending route count **167**
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
@@ -195,13 +198,13 @@
 
 ## Next Authorized Work
 - Continue WP-17D in the locked order now set by executive direction, but with the Field auth/deep-link lane materially burned down.
-- Next active family is QA/QC shared/public closure and then the remaining Field family, while preserving the exact blocker register already established (`/dispatch-portal/driver/:driverKey` plus the new Safety deep-link blockers) until their prerequisites change.
-- Keep the new shared auth findings as the canonical standard while continuing the locked `DISCOVERED_NOT_OPENED` wave (`159` remaining after this batch), then consume the `UNTOUCHED` wave (`64`) only after the discovered queue is materially reduced.
+- Next active family is **Administration** (86 remaining) using archetype mass-certification, while preserving the frozen blocker register unchanged unless a prerequisite changes.
+- Keep the new shared auth findings as the canonical standard while continuing the locked actionable queue (`154` actionable routes remaining after this batch), then consume the `UNTOUCHED` wave (`39`) only after the discovered queue is materially reduced.
 - Preserve the exact blocker on `/dispatch-portal/driver/:driverKey` until a real dispatch-visible seeded `driverKey` path or fixture is exposed; do not mark it certified without runtime proof.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
 - Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.
 - Reopen and certify remaining dialogs, overlays, tables, loading/empty/error/success/warning states, and motion under the same governed primitive system after the card rollout advances.
-- Keep `DevHub.jsx` in **BLOCKED_CREDENTIALS** until backend Preview exposes `DEV_PASSWORD` plus the dev-endpoint gate; do not mark authenticated `/dev` certified before the environment is unblocked.
+- Preserve the `/_internal/*` preview-only surfaces in the blocker register as `BLOCKED_DEV_ACCESS_DISABLED`; `/dev` itself is now closed as a guarded redirect entry.
 - Continue survivor-ledger reconciliation so platform counts move by eliminated mixed-generation primitives rather than ad-hoc route polish.
 - Only after genuine full-platform convergence should WP-17E be considered.
