@@ -33,6 +33,7 @@ import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
 import MaintainxP0Tab from "@/components/admin/MaintainxP0Tab";
 import MaintainxDefectCoverageSection from "@/components/admin/MaintainxDefectCoverageSection";
 import MappingCleanupTab from "@/components/admin/MappingCleanupTab";
@@ -50,13 +51,14 @@ const STATUS_COLOR = {
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-slate-700";
 
 export default function AdminIntegrationCenter() {
+  const { t } = useT();
   return (
     <LegacyAdminModernShell
-      title="Integration Center"
-      subtitle="Motive · MaintainX · CSV feeds."
+      title={t("Integration Center")}
+      subtitle={t("Motive · MaintainX · CSV feeds.")}
       breadcrumb={[
-        { label: "Platform Configuration", to: "/admin/platform-configuration" },
-        { label: "Integrations" },
+        { label: t("Platform Configuration"), to: "/admin/platform-configuration" },
+        { label: t("Integrations") },
       ]}
       testidPrefix="admin-integration-center"
     >
@@ -67,15 +69,13 @@ export default function AdminIntegrationCenter() {
           </div>
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 font-bold">
-              Central Integration Layer
+              {t("Central Integration Layer")}
             </span>
             <h2 className="font-display text-2xl font-black mt-1 leading-tight">
-              Motive · MaintainX · Integration Framework
+              {t("Motive · MaintainX · Integration Framework")}
             </h2>
             <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-              All third-party logic flows through this single layer — Safety, Shop, HR, and Admin portals
-              read from it, never directly from Motive or MaintainX. Set the toggles + paste credentials here
-              once the Motive / MaintainX accounts are provisioned.
+              {t("All third-party logic flows through this single layer — Safety, Shop, HR, and Admin portals read from it, never directly from Motive or MaintainX. Set the toggles + paste credentials here once the Motive / MaintainX accounts are provisioned.")}
             </p>
           </div>
         </div>
@@ -83,18 +83,18 @@ export default function AdminIntegrationCenter() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="overview" data-testid="ic-tab-overview"><Plug className="w-3.5 h-3.5 mr-1" /> Overview</TabsTrigger>
+          <TabsTrigger value="overview" data-testid="ic-tab-overview"><Plug className="w-3.5 h-3.5 mr-1" /> {t("Overview")}</TabsTrigger>
           <TabsTrigger value="motive" data-testid="ic-tab-motive">Motive</TabsTrigger>
           <TabsTrigger value="maintainx" data-testid="ic-tab-maintainx">MaintainX</TabsTrigger>
-          <TabsTrigger value="maintainx-p0" data-testid="ic-tab-maintainx-p0">MaintainX · Read-First</TabsTrigger>
-          <TabsTrigger value="assets" data-testid="ic-tab-assets"><Truck className="w-3.5 h-3.5 mr-1" /> Asset Mapping</TabsTrigger>
-          <TabsTrigger value="employees" data-testid="ic-tab-employees"><Users className="w-3.5 h-3.5 mr-1" /> Employee Mapping</TabsTrigger>
-          <TabsTrigger value="cleanup" data-testid="ic-tab-cleanup"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Mapping Cleanup</TabsTrigger>
-          <TabsTrigger value="sync" data-testid="ic-tab-sync"><FileText className="w-3.5 h-3.5 mr-1" /> Sync Logs</TabsTrigger>
-          <TabsTrigger value="errors" data-testid="ic-tab-errors"><AlertOctagon className="w-3.5 h-3.5 mr-1" /> Error Logs</TabsTrigger>
-          <TabsTrigger value="csv" data-testid="ic-tab-csv"><FileUp className="w-3.5 h-3.5 mr-1" /> CSV Import / Export</TabsTrigger>
-          <TabsTrigger value="wizard" data-testid="ic-tab-wizard"><Wand2 className="w-3.5 h-3.5 mr-1" /> Mappings Wizard</TabsTrigger>
-          <TabsTrigger value="geofences" data-testid="ic-tab-geofences"><MapPin className="w-3.5 h-3.5 mr-1" /> Geofences</TabsTrigger>
+          <TabsTrigger value="maintainx-p0" data-testid="ic-tab-maintainx-p0">{t("MaintainX · Read-First")}</TabsTrigger>
+          <TabsTrigger value="assets" data-testid="ic-tab-assets"><Truck className="w-3.5 h-3.5 mr-1" /> {t("Asset Mapping")}</TabsTrigger>
+          <TabsTrigger value="employees" data-testid="ic-tab-employees"><Users className="w-3.5 h-3.5 mr-1" /> {t("Employee Mapping")}</TabsTrigger>
+          <TabsTrigger value="cleanup" data-testid="ic-tab-cleanup"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> {t("Mapping Cleanup")}</TabsTrigger>
+          <TabsTrigger value="sync" data-testid="ic-tab-sync"><FileText className="w-3.5 h-3.5 mr-1" /> {t("Sync Logs")}</TabsTrigger>
+          <TabsTrigger value="errors" data-testid="ic-tab-errors"><AlertOctagon className="w-3.5 h-3.5 mr-1" /> {t("Error Logs")}</TabsTrigger>
+          <TabsTrigger value="csv" data-testid="ic-tab-csv"><FileUp className="w-3.5 h-3.5 mr-1" /> {t("CSV Import / Export")}</TabsTrigger>
+          <TabsTrigger value="wizard" data-testid="ic-tab-wizard"><Wand2 className="w-3.5 h-3.5 mr-1" /> {t("Mappings Wizard")}</TabsTrigger>
+          <TabsTrigger value="geofences" data-testid="ic-tab-geofences"><MapPin className="w-3.5 h-3.5 mr-1" /> {t("Geofences")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab /></TabsContent>

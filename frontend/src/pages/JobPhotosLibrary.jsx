@@ -753,7 +753,7 @@ function Lightbox({ src, meta, display, onClose, onLoad }) {
         type="button"
         onClick={onClose}
         className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full"
-        aria-label="Close"
+        aria-label={tStr("Close")}
         data-testid="photos-lightbox-close"
       >
         <X className="w-6 h-6" />

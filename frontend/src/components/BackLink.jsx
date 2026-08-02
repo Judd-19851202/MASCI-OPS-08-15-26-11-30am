@@ -26,6 +26,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isShop } from "@/lib/shopAuth";
 import { isHr } from "@/lib/hrAuth";
+import { useT } from "@/lib/i18n";
 
 function autoTarget() {
   if (isAdmin()) return { to: "/admin", label: "Administration" };
@@ -49,9 +50,10 @@ export default function BackLink({
   className = "",
   testId = "back-link",
 }) {
+  const { t } = useT();
   const fallback = autoTarget();
   const dest = to || fallback.to;
-  const text = label || fallback.label;
+  const text = t(label || fallback.label);
 
   const base =
     "inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.2em] font-bold transition-colors";

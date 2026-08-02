@@ -50,6 +50,7 @@ import { formatRelativeTime } from "@/lib/platformTime";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -164,19 +165,21 @@ const STATUS_STYLES = {
 };
 
 function StatusPill({ status, testid }) {
+  const { t } = useT();
   const s = STATUS_STYLES[status] || STATUS_STYLES.loading;
   return (
     <span
       data-testid={testid}
       className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-widest ${s.bg} ${s.text} ring-1 ${s.ring}`}
     >
-      {s.label}
+      {t(s.label)}
     </span>
   );
 }
 
 // ── Domain card ────────────────────────────────────────────────────
 function DomainCard({ domain, probeResult, loaded }) {
+  const { t } = useT();
   // Three states, in order:
   //   1. Domain has no probe            → call evaluate(null) once — the
   //                                       card owns its honest "Needs
@@ -229,14 +232,14 @@ function DomainCard({ domain, probeResult, loaded }) {
               className="mt-0.5 font-display text-base font-black tracking-tight text-slate-900 leading-tight"
               data-testid={`admin-os-card-${domain.id}-label`}
             >
-              {domain.label}
+              {t(domain.label)}
             </h3>
           </div>
           <ChevronRight className="w-4 h-4 mt-2 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all shrink-0" />
         </div>
 
         <p className="text-[12px] text-slate-600 leading-snug">
-          {domain.description}
+          {t(domain.description)}
         </p>
 
         <div className="mt-auto flex items-baseline justify-between gap-2 pt-2 border-t border-slate-100">
@@ -251,14 +254,14 @@ function DomainCard({ domain, probeResult, loaded }) {
               className="mt-1 text-[11px] text-slate-500 leading-tight truncate"
               data-testid={`admin-os-card-${domain.id}-detail`}
             >
-              {evaluated.detail}
+              {typeof evaluated.detail === "string" ? t(evaluated.detail) : evaluated.detail}
             </div>
           </div>
           {evaluated.stampedAt ? (
             <div
               className="text-[10px] font-mono text-slate-400 text-right shrink-0"
               data-testid={`admin-os-card-${domain.id}-stamp`}
-              title="Last checked (your local time)"
+              title={t("Last checked (your local time)")}
             >
               {formatRelativeTime(evaluated.stampedAt)}
             </div>
@@ -625,6 +628,7 @@ const DOMAINS = [
 
 // ── Page ────────────────────────────────────────────────────────────
 export default function AdminOS() {
+  const { t } = useT();
   const [results, setResults] = useState({});
   const [loaded, setLoaded] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -687,11 +691,11 @@ export default function AdminOS() {
     >
       <PortalShell
         portalName="MASCI"
-        portalRole="Admin"
+        portalRole={t("Admin")}
         experienceLevel="wp17c"
         experienceTone="admin"
-        pageTitle="Admin Operating System"
-        subtitle="One governed command surface for platform posture, domain ownership, and the next safe action."
+        pageTitle={t("Admin Operating System")}
+        subtitle={t("One governed command surface for platform posture, domain ownership, and the next safe action.")}
         primaryActions={
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <Button
@@ -702,7 +706,7 @@ export default function AdminOS() {
               data-testid="admin-os-open-palette"
             >
               <Search className="w-3.5 h-3.5" />
-              Search everything
+              {t("Search everything")}
               <kbd className="rounded border border-[color:var(--border-bold)] px-1 py-0.5 font-mono text-[10px] text-[color:var(--ink-soft)]">
                 ⌘K
               </kbd>
@@ -714,16 +718,16 @@ export default function AdminOS() {
               size="sm"
               data-testid="admin-os-refresh"
             >
-              Refresh
+              {t("Refresh")}
             </Button>
             <Button
               type="button"
               onClick={() => exportTrustSnapshot(DOMAINS, results, summary, overallStatus)}
               data-testid="admin-os-export-snapshot"
-              title="Download a Markdown snapshot of the current platform trust state"
+              title={t("Download a Markdown snapshot of the current platform trust state")}
             >
               <Download className="w-3.5 h-3.5" />
-              Export snapshot
+              {t("Export snapshot")}
             </Button>
           </div>
         }
@@ -739,16 +743,16 @@ export default function AdminOS() {
         <section className="wp17-mission-banner mb-6" data-testid="admin-os-mission-banner">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-white">Run the platform without hunting for the right domain.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-white">{t("Run the platform without hunting for the right domain.")}</h2>
               <p className="mt-3 text-sm sm:text-base">
-                Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.
+                {t("Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.")}
               </p>
             </div>
             <div className="wp17-chip-row">
-              <Link to="/admin/operations-control" className="wp17-chip" data-testid="admin-os-next-occ-chip">Operations Control</Link>
-              <Link to="/admin/governance-trust" className="wp17-chip" data-testid="admin-os-next-governance-chip">Governance &amp; Trust</Link>
-              <Link to="/admin/platform-configuration" className="wp17-chip" data-testid="admin-os-next-config-chip">Platform Configuration</Link>
+              <Link to="/admin/operations-control" className="wp17-chip" data-testid="admin-os-next-occ-chip">{t("Operations Control")}</Link>
+              <Link to="/admin/governance-trust" className="wp17-chip" data-testid="admin-os-next-governance-chip">{t("Governance & Trust")}</Link>
+              <Link to="/admin/platform-configuration" className="wp17-chip" data-testid="admin-os-next-config-chip">{t("Platform Configuration")}</Link>
             </div>
           </div>
         </section>
@@ -760,7 +764,7 @@ export default function AdminOS() {
         >
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
-              Platform posture
+              {t("Platform posture")}
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
               <StatusPill
@@ -769,12 +773,12 @@ export default function AdminOS() {
               />
               <span className="text-sm font-semibold text-slate-900 min-w-0 break-words">
                 {overallStatus === "critical"
-                  ? "One or more domains report a critical condition."
+                  ? t("One or more domains report a critical condition.")
                   : overallStatus === "warning"
-                  ? "One or more domains need attention."
+                  ? t("One or more domains need attention.")
                   : overallStatus === "healthy"
-                  ? "All wired domains report healthy."
-                  : "Loading domain probes…"}
+                  ? t("All wired domains report healthy.")
+                  : t("Loading domain probes…")}
               </span>
             </div>
           </div>
@@ -782,7 +786,7 @@ export default function AdminOS() {
             <div data-testid="admin-os-count-healthy">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
-                Healthy
+                {t("Healthy")}
                 </div>
                 <div className="wp17-metric-card__value text-emerald-700">
                 {displaySummary ? displaySummary.healthy : "—"}
@@ -792,7 +796,7 @@ export default function AdminOS() {
             <div data-testid="admin-os-count-warning">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
-                Attention
+                {t("Attention")}
                 </div>
                 <div className="wp17-metric-card__value text-amber-700">
                 {displaySummary ? displaySummary.warning : "—"}
@@ -802,7 +806,7 @@ export default function AdminOS() {
             <div data-testid="admin-os-count-critical">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
-                Critical
+                {t("Critical")}
                 </div>
                 <div className="wp17-metric-card__value text-rose-700">
                 {displaySummary ? displaySummary.critical : "—"}
@@ -812,7 +816,7 @@ export default function AdminOS() {
             <div data-testid="admin-os-count-wiring">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
-                Awaiting signal
+                {t("Awaiting signal")}
                 </div>
                 <div className="wp17-metric-card__value text-slate-600">
                 {displaySummary ? displaySummary.wiring : "—"}
@@ -822,7 +826,7 @@ export default function AdminOS() {
             <div>
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
-                Total domains
+                {t("Total domains")}
                 </div>
                 <div className="wp17-metric-card__value text-slate-800">
                 {displaySummary ? DOMAINS.length : "—"}
@@ -857,16 +861,14 @@ export default function AdminOS() {
           className="mt-6 rounded-[var(--radius-card)] border border-dashed border-[color:var(--border-bold)] bg-white p-4 text-[12px] text-[color:var(--ink-soft)] shadow-sm wp17-panel"
         >
           <strong className="text-[color:var(--ink-strong)]">
-            Platform command center.
+            {t("Platform command center.")}
           </strong>{" "}
-          Review system health, investigate risks, and open the right operational area
-          from one screen. Every metric is read from a live platform endpoint — cards
-          without a live signal are honestly labelled &ldquo;Awaiting signal&rdquo;.
-          Search everything with{" "}
+          {t("Review system health, investigate risks, and open the right operational area from one screen. Every metric is read from a live platform endpoint — cards without a live signal are honestly labelled “Awaiting signal”.")}{" "}
+          {t("Search everything with")}{" "}
           <kbd className="rounded border border-[color:var(--border-bold)] px-1 font-mono text-[10px]">
             ⌘K
           </kbd>
-          . Timestamps display in your local time.
+          . {t("Timestamps display in your local time.")}
         </div>
       </PortalShell>
     </div>

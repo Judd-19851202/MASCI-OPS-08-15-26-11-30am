@@ -3,6 +3,7 @@ import { Download, Loader2 } from "lucide-react";
 import JSZip from "jszip";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 /**
  * PhotoZipDownload
@@ -28,6 +29,7 @@ export const PhotoZipDownload = ({
   label,
   testId = "photo-zip-download",
 }) => {
+  const { t } = useT();
   const [busy, setBusy] = useState(false);
   const count = photos?.length || 0;
 
@@ -68,9 +70,9 @@ export const PhotoZipDownload = ({
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
-      toast.success(`Saved ${count} photos as ${prefix}.zip`);
+      toast.success(t("Saved {count} photos as {file}").replace("{count}", count).replace("{file}", `${prefix}.zip`));
     } catch (e) {
-      toast.error("Could not build zip — try saving photos individually");
+      toast.error(t("Could not build zip — try saving photos individually"));
     } finally {
       setBusy(false);
     }
@@ -91,7 +93,7 @@ export const PhotoZipDownload = ({
       ) : (
         <Download className="w-3.5 h-3.5 mr-1.5" />
       )}
-      {label || `Save all (${count}) as zip`}
+      {label || t("Save all ({count}) as zip").replace("{count}", count)}
     </Button>
   );
 };

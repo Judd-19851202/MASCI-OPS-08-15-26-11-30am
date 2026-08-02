@@ -12,6 +12,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { DOMAINS_V2, FOOTER_RAIL_V2, findActiveDomainId } from "./domainMap";
+import { useT } from "@/lib/i18n";
 
 const STORAGE_KEY_OPEN = "masci.pm.sidebar.openDomains";
 
@@ -31,6 +32,7 @@ function writeOpenDomains(ids) {
 }
 
 function DomainRow({ domain, open, onToggle, activeId }) {
+  const { t } = useT();
   const Icon = domain.icon;
   const isActive = activeId === domain.id;
   return (
@@ -52,10 +54,10 @@ function DomainRow({ domain, open, onToggle, activeId }) {
         <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-100 drop-shadow-[0_2px_8px_rgba(15,23,42,0.5)]" />
         <span className="flex-1 min-w-0">
           <span className="block text-xs font-mono uppercase tracking-wider font-semibold leading-tight glass-text-light">
-            {domain.label}
+            {t(domain.label)}
           </span>
           <span className="block text-[10px] mt-0.5 leading-tight truncate glass-text-muted-light">
-            {domain.subline}
+            {t(domain.subline)}
           </span>
         </span>
         <ChevronRight
@@ -67,6 +69,7 @@ function DomainRow({ domain, open, onToggle, activeId }) {
 }
 
 function ChildRow({ route, onNavigate }) {
+  const { t } = useT();
   const Icon = route.icon;
   return (
     <NavLink
@@ -84,9 +87,9 @@ function ChildRow({ route, onNavigate }) {
     >
       <Icon className="w-3.5 h-3.5 mt-1 shrink-0 opacity-70" />
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight glass-text-light">{route.label}</span>
+        <span className="block text-sm font-medium leading-tight glass-text-light">{t(route.label)}</span>
         <span className="block text-[10px] mt-0.5 leading-tight truncate glass-text-muted-light">
-          {route.desc}
+          {t(route.desc)}
         </span>
       </span>
     </NavLink>
@@ -94,6 +97,7 @@ function ChildRow({ route, onNavigate }) {
 }
 
 export default function SideNavV2({ onNavigate }) {
+  const { t } = useT();
   const { pathname } = useLocation();
   const activeDomainId = useMemo(() => findActiveDomainId(pathname), [pathname]);
 
@@ -138,7 +142,7 @@ export default function SideNavV2({ onNavigate }) {
       })}
 
       <div className="pt-3 mt-3 border-t border-slate-700/70 space-y-0.5" data-testid="pm-nav-v2-footer-rail">
-        <div className="px-3 pb-1 text-[10px] font-mono uppercase tracking-wider glass-text-muted-light">Pinned</div>
+        <div className="px-3 pb-1 text-[10px] font-mono uppercase tracking-wider glass-text-muted-light">{t("Pinned")}</div>
         {FOOTER_RAIL_V2.map((r) => (
           <ChildRow key={r.to} route={r} onNavigate={onNavigate} />
         ))}

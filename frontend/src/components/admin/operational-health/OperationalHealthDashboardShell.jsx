@@ -7,6 +7,7 @@ import { TruthOwnerPanel, HealthCard, EvidenceDrawer, TrustStatusPill, worstStat
 import { fetchOperationalHealthModule } from "@/lib/enterpriseGovernanceApi";
 import { operationalError } from "@/lib/errors";
 import { formatPlatformTime } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 function countStatuses(sections) {
   const counts = { green: 0, yellow: 0, red: 0, unknown: 0 };
@@ -38,6 +39,7 @@ function DriverCard({ driver, testId }) {
 }
 
 export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governance" }) => {
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -77,9 +79,9 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
 
   return (
     <LegacyAdminModernShell
-      title="Operational Health Dashboard"
-      subtitle="Enterprise Governance is the first constitutional module on the shared health framework."
-      breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Operational Health Dashboard" }]}
+      title={t("Operational Health Dashboard")}
+      subtitle={t("Enterprise Governance is the first constitutional module on the shared health framework.")}
+      breadcrumb={[{ label: t("Governance & Trust"), to: "/admin/governance-trust" }, { label: t("Operational Health Dashboard") }]}
       testidPrefix="operational-health-dashboard"
       primaryActions={(
         <button
@@ -90,7 +92,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
           data-testid="operational-health-refresh"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          {loading ? "Refreshing…" : "Refresh"}
+          {loading ? t("Refreshing…") : t("Refresh")}
         </button>
       )}
     >
@@ -101,20 +103,20 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
               <div className="flex flex-wrap items-center gap-2">
                 <TrustStatusPill status={overallStatus} testid="operational-health-overall-status" />
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-700" data-testid="operational-health-framework-label">
-                  {data?.framework_label || "Operational Health Dashboard"}
+                  {t(data?.framework_label || "Operational Health Dashboard")}
                 </span>
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-950" data-testid="operational-health-title">
-                {data?.module?.label || "Enterprise Governance"}
+                {t(data?.module?.label || "Enterprise Governance")}
               </h1>
               <p className="text-sm sm:text-base text-slate-700 leading-relaxed" data-testid="operational-health-authority-statement">
-                {data?.module?.authority_statement || "This dashboard is a read-only consumer of canonical evidence. Unknown is shown whenever evidence is missing or stale."}
+                {t(data?.module?.authority_statement || "This dashboard is a read-only consumer of canonical evidence. Unknown is shown whenever evidence is missing or stale.")}
               </p>
             </div>
             <div className="grid min-w-[220px] grid-cols-2 gap-3" data-testid="operational-health-counts">
               {[["green", "Healthy"], ["yellow", "Attention"], ["red", "Critical"], ["unknown", "Unknown"]].map(([key, label]) => (
                 <div key={key} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`operational-health-count-${key}`}>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">{label}</div>
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">{t(label)}</div>
                   <div className="mt-2 text-2xl font-black text-slate-950">{counts[key] || 0}</div>
                 </div>
               ))}
@@ -143,14 +145,14 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-600" data-testid="operational-health-meta-row">
-            <span className="rounded-full bg-slate-100 px-3 py-1">Generated {data?.generated_at ? formatPlatformTime(data.generated_at) : "—"}</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1">Primary route {data?.module?.route || "/admin/governance"}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1">{t("Generated")} {data?.generated_at ? formatPlatformTime(data.generated_at) : "—"}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1">{t("Primary route")} {data?.module?.route || "/admin/governance"}</span>
           </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2" data-testid="operational-health-state-split">
           <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm" data-testid="operational-health-certification-card">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-emerald-700">Constitutional Certification</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-emerald-700">{t("Constitutional Certification")}</div>
             <div className="mt-2 text-3xl font-black text-emerald-950" data-testid="operational-health-certification-state">{data?.constitutional_certification?.state || "—"}</div>
             <div className="mt-3 grid gap-2 text-sm text-emerald-900">
               <div data-testid="operational-health-certification-certified-at"><span className="font-semibold">Certified:</span> {data?.constitutional_certification?.certified_at ? formatPlatformTime(data.constitutional_certification.certified_at) : "—"}</div>
@@ -160,7 +162,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
             </div>
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-live-card">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Current Operational Health</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{t("Current Operational Health")}</div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <TrustStatusPill status={overallStatus} testid="operational-health-live-status" />
               <div className="text-3xl font-black text-slate-950" data-testid="operational-health-determination">{data?.determination || "—"}</div>
@@ -174,13 +176,13 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
 
         <section className="grid gap-4 lg:grid-cols-2" data-testid="operational-health-driver-inventory">
           <div className="rounded-3xl border border-rose-200 bg-rose-50 p-5 shadow-sm" data-testid="operational-health-red-drivers">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-rose-700">Exact RED drivers</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-rose-700">{t("Exact RED drivers")}</div>
             <div className="mt-3 space-y-3">
               {(data?.red_drivers || []).map((driver) => <DriverCard key={driver.kpi_id} driver={driver} testId={`operational-health-red-driver-${driver.kpi_id}`} />)}
             </div>
           </div>
           <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm" data-testid="operational-health-amber-watchlist">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-700">Amber watchlist</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-700">{t("Amber watchlist")}</div>
             <div className="mt-3 space-y-3">
               {(data?.amber_watchlist || []).map((driver) => <DriverCard key={driver.kpi_id} driver={driver} testId={`operational-health-amber-driver-${driver.kpi_id}`} />)}
             </div>
@@ -196,7 +198,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
         />
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-quick-links">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Deep links</div>
+          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{t("Deep links")}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             {(data?.module?.quick_links || []).map((link) => (
               <Link
@@ -223,7 +225,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter by KPI, evidence source, producer, or root cause…"
+              placeholder={t("Filter by KPI, evidence source, producer, or root cause…")}
               className="w-full max-w-xl rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
               data-testid="operational-health-search"
             />
@@ -245,7 +247,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
 
         {loading && !data ? (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600" data-testid="operational-health-loading-banner">
-            Loading enterprise governance evidence…
+            {t("Loading enterprise governance evidence…")}
           </div>
         ) : null}
 
@@ -379,7 +381,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-slate-500" data-testid={`operational-health-section-${section.id}-empty`}>
-                    No KPI cards match the current filter.
+                    {t("No KPI cards match the current filter.")}
                   </div>
                 )}
               </section>

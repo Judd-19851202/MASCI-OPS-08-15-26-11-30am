@@ -11,6 +11,7 @@
 import React from "react";
 import { Loader2, AlertTriangle, Inbox, ShieldCheck, TriangleAlert } from "lucide-react";
 import { AppIcon } from "@/components/icons/AppIcon";
+import { useT } from "@/lib/i18n";
 
 function StateSurface({ icon, title, body, action, tone = "slate", testId = "ux-state", role = "status", busy = false }) {
   return (
@@ -31,11 +32,13 @@ function StateSurface({ icon, title, body, action, tone = "slate", testId = "ux-
 }
 
 export function EmptyState({ icon: Icon = Inbox, title, body, action, testId = "ux-empty" }) {
-  return <StateSurface icon={Icon} title={title} body={body} action={action} tone="slate" testId={testId} />;
+  const { t } = useT();
+  return <StateSurface icon={Icon} title={title ? t(title) : title} body={body ? t(body) : body} action={action} tone="slate" testId={testId} />;
 }
 
 export function LoadingState({ label = "Loading…", testId = "ux-loading" }) {
-  return <StateSurface icon={Loader2} title={label} tone="cyan" testId={testId} busy />;
+  const { t } = useT();
+  return <StateSurface icon={Loader2} title={t(label)} tone="cyan" testId={testId} busy />;
 }
 
 export function ErrorState({
@@ -44,15 +47,18 @@ export function ErrorState({
   action,
   testId = "ux-error",
 }) {
-  return <StateSurface icon={AlertTriangle} title={message} body={detail} action={action} tone="red" testId={testId} role="alert" />;
+  const { t } = useT();
+  return <StateSurface icon={AlertTriangle} title={t(message)} body={detail ? t(detail) : detail} action={action} tone="red" testId={testId} role="alert" />;
 }
 
 export function SuccessState({ title = "Complete", body = "The latest update is ready.", action, testId = "ux-success" }) {
-  return <StateSurface icon={ShieldCheck} title={title} body={body} action={action} tone="emerald" testId={testId} />;
+  const { t } = useT();
+  return <StateSurface icon={ShieldCheck} title={t(title)} body={t(body)} action={action} tone="emerald" testId={testId} />;
 }
 
 export function WarningState({ title = "Needs attention", body = "Review this item before you continue.", action, testId = "ux-warning" }) {
-  return <StateSurface icon={TriangleAlert} title={title} body={body} action={action} tone="amber" testId={testId} />;
+  const { t } = useT();
+  return <StateSurface icon={TriangleAlert} title={t(title)} body={t(body)} action={action} tone="amber" testId={testId} />;
 }
 
 export default { EmptyState, LoadingState, ErrorState, SuccessState, WarningState };

@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
+import { useGovernedActions } from "@/lib/governedActions";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -75,6 +77,8 @@ export default function MasterListPanel({
   // See /app/memory/PORTAL_AUTH_TOKEN_AUDIT.md.
   readOnly = false,
 }) {
+  const { t } = useT();
+  const { tAction } = useGovernedActions();
   const writeAllowed = !readOnly;
   const [items, setItems] = useState([]);
   const [archive, setArchive] = useState([]);
@@ -305,7 +309,7 @@ export default function MasterListPanel({
           className="h-8 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 font-mono uppercase tracking-wide text-[11px]"
           data-testid={`${testIdPrefix}-refresh`}
         >
-          <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+          <RefreshCw className="w-3.5 h-3.5 mr-1" /> {tAction("refresh")}
         </Button>
         {writeAllowed && exportEndpoint && (
           <Button
@@ -315,14 +319,14 @@ export default function MasterListPanel({
             disabled={exporting || loading}
             className="h-8 px-3 border-2 border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-mono uppercase tracking-wide text-[11px]"
             data-testid={`${testIdPrefix}-export-btn`}
-            title="Download the current active list as XLSX"
+            title={t("Download the current active list as XLSX")}
           >
             {exporting ? (
               <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
             ) : (
               <Download className="w-3.5 h-3.5 mr-1" />
             )}
-            Export
+            {tAction("export")}
           </Button>
         )}
         {writeAllowed && (
@@ -348,7 +352,7 @@ export default function MasterListPanel({
               ) : (
                 <UploadCloud className="w-3.5 h-3.5 mr-1" />
               )}
-              Bulk Replace
+              {t("Bulk Replace")}
             </Button>
           </>
         )}
@@ -408,7 +412,7 @@ export default function MasterListPanel({
                 ) : (
                   <Plus className="w-4 h-4 mr-1" />
                 )}
-                Add
+                {t("Add")}
               </Button>
             </div>
           </div>
@@ -431,7 +435,7 @@ export default function MasterListPanel({
               }`}
               data-testid={`${testIdPrefix}-tab-active`}
             >
-              Active ({items.length})
+              {t("Active")} ({items.length})
             </Button>
             <Button
               type="button"
@@ -444,11 +448,12 @@ export default function MasterListPanel({
               }`}
               data-testid={`${testIdPrefix}-tab-archive`}
             >
-              <Archive className="w-3.5 h-3.5 mr-1" /> Archive ({archive.length})
+              <Archive className="w-3.5 h-3.5 mr-1" /> {tAction("archive")} ({archive.length})
             </Button>
             {showArchive && (
               <span className="text-xs text-slate-500 ml-2">
-                Soft-deleted rows · auto-purged after {retainDays} days. Click <RotateCcw className="w-3 h-3 inline" /> to restore.
+                {t("Soft-deleted rows · auto-purged after {days} days. Click")
+                  .replace("{days}", retainDays)} <RotateCcw className="w-3 h-3 inline" /> {t("to restore.")}
               </span>
             )}
           </div>
@@ -460,7 +465,7 @@ export default function MasterListPanel({
             <Input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder={`Search ${entitySingular}…`}
+              placeholder={t("Search {entity}…").replace("{entity}", t(entitySingular))}
               className="h-9 border-2 max-w-md"
               data-testid={`${testIdPrefix}-search`}
             />
@@ -472,12 +477,12 @@ export default function MasterListPanel({
 
         {loading ? (
           <div className="py-10 text-center text-slate-500">
-            <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> Loading…
+            <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> {t("Loading…")}
           </div>
         ) : showArchive ? (
           archive.length === 0 ? (
             <p className="text-sm text-slate-500 py-8 text-center italic">
-              Archive is empty — nothing to restore.
+              {t("Archive is empty — nothing to restore.")}
             </p>
           ) : (
             <div className="overflow-auto border-2 border-slate-200 rounded max-h-[460px]">
@@ -493,10 +498,10 @@ export default function MasterListPanel({
                       </th>
                     ))}
                     <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">
-                      Deleted
+                      {t("Deleted")}
                     </th>
                     <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-24">
-                      Restore
+                      {tAction("restore")}
                     </th>
                   </tr>
                 </thead>
@@ -519,8 +524,8 @@ export default function MasterListPanel({
                           disabled={restoringId === row[itemKey]}
                           className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
                           data-testid={`${testIdPrefix}-restore-${row[itemKey]}`}
-                          aria-label="Restore to active list"
-                          title="Restore to active list"
+                          aria-label={t("Restore to active list")}
+                          title={t("Restore to active list")}
                         >
                           {restoringId === row[itemKey] ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -554,7 +559,7 @@ export default function MasterListPanel({
                   ))}
                   {writeAllowed && (
                     <th className="text-right px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold w-32">
-                      Actions
+                      {t("Actions")}
                     </th>
                   )}
                 </tr>
@@ -598,8 +603,8 @@ export default function MasterListPanel({
                               disabled={busy}
                               className="h-8 w-8 mr-1 border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
                               data-testid={`${testIdPrefix}-save-${row[itemKey]}`}
-                              aria-label="Save changes"
-                              title="Save"
+                              aria-label={t("Save changes")}
+                              title={tAction("save")}
                             >
                               {busy ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -613,8 +618,8 @@ export default function MasterListPanel({
                               onClick={cancelEdit}
                               className="h-8 w-8 border-2 border-slate-300"
                               data-testid={`${testIdPrefix}-cancel-${row[itemKey]}`}
-                              aria-label="Cancel edit"
-                              title="Cancel"
+                              aria-label={t("Cancel edit")}
+                              title={tAction("cancel")}
                             >
                               <X className="w-3.5 h-3.5" />
                             </Button>
@@ -627,8 +632,8 @@ export default function MasterListPanel({
                               onClick={() => startEdit(row)}
                               className="h-8 w-8 mr-1 border-2 border-slate-300 hover:border-amber-600 hover:text-amber-700"
                               data-testid={`${testIdPrefix}-edit-${row[itemKey]}`}
-                              aria-label="Edit row"
-                              title="Edit"
+                              aria-label={t("Edit row")}
+                              title={tAction("edit")}
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
@@ -639,8 +644,8 @@ export default function MasterListPanel({
                               disabled={busy}
                               className="h-8 w-8 border-2 border-slate-300 hover:border-red-500 hover:text-red-600"
                               data-testid={`${testIdPrefix}-delete-${row[itemKey]}`}
-                              aria-label="Delete row"
-                              title="Delete"
+                              aria-label={t("Delete row")}
+                              title={tAction("delete")}
                             >
                               {busy ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

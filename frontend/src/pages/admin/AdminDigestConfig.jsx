@@ -15,12 +15,14 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
 // TRACK 27.03 · Canonical local-time formatter.
 import { formatPlatformTime, formatPlatformTimeOnly, getPlatformTimezone } from "@/lib/platformTime";
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function AdminDigestConfig() {
+  const { t } = useT();
   const [cfg, setCfg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,7 +51,7 @@ export default function AdminDigestConfig() {
         dashboard_url: cfg.dashboard_url,
       });
       setCfg(r.data);
-      toast.success("Digest settings saved");
+      toast.success(t("Digest settings saved"));
     } catch (e) {
       toast.error(operationalError(e, "Save failed"));
     } finally { setSaving(false); }
@@ -78,7 +80,7 @@ export default function AdminDigestConfig() {
   const preview = async () => {
     try {
       const r = await api.get("/safety/digest/preview");
-      setPreviewHtml(r.data?.html || "<p>No preview available.</p>");
+      setPreviewHtml(r.data?.html || `<p>${t("No preview available.")}</p>`);
       setShowPreview(true);
     } catch (e) {
       toast.error(operationalError(e, "Preview failed"));
@@ -88,11 +90,11 @@ export default function AdminDigestConfig() {
   if (loading || !cfg) {
     return (
       <LegacyAdminModernShell
-        title="Digest Schedule"
-        subtitle="Weekly digest recipients · schedule · preview · send."
+        title={t("Digest Schedule")}
+        subtitle={t("Weekly digest recipients · schedule · preview · send.")}
         breadcrumb={[
-          { label: "Communications", to: "/admin/communications" },
-          { label: "Digest Schedule" },
+          { label: t("Communications"), to: "/admin/communications" },
+          { label: t("Digest Schedule") },
         ]}
         testidPrefix="admin-digest-config"
       >
@@ -105,11 +107,11 @@ export default function AdminDigestConfig() {
 
   return (
     <LegacyAdminModernShell
-      title="Digest Schedule"
-      subtitle="Weekly digest recipients · schedule · preview · send."
+      title={t("Digest Schedule")}
+      subtitle={t("Weekly digest recipients · schedule · preview · send.")}
       breadcrumb={[
-        { label: "Communications", to: "/admin/communications" },
-        { label: "Digest Schedule" },
+        { label: t("Communications"), to: "/admin/communications" },
+        { label: t("Digest Schedule") },
       ]}
       testidPrefix="admin-digest-config"
     >
@@ -120,14 +122,13 @@ export default function AdminDigestConfig() {
           </div>
           <div className="flex-1">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-bold">
-              Safety Operations
+              {t("Safety Operations")}
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
-              Weekly Digest
+              {t("Weekly Digest")}
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              Recipients, schedule, dashboard link, and on-demand send for the weekly safety roll-up.
-              DB values override env defaults.
+              {t("Recipients, schedule, dashboard link, and on-demand send for the weekly safety roll-up. DB values override env defaults.")}
             </p>
           </div>
           <Button onClick={load} variant="outline" size="sm" disabled={loading}>
@@ -138,14 +139,14 @@ export default function AdminDigestConfig() {
         {/* Enabled toggle */}
         <div className="bg-white border border-slate-200 rounded-md p-4 mb-3 flex items-center gap-3">
           <div className="flex-1">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold">Status</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold">{t("Status")}</div>
             <div className="font-display text-lg font-black">
-              {cfg.enabled ? "Enabled" : "Disabled"}
+              {cfg.enabled ? t("Enabled") : t("Disabled")}
             </div>
             <p className="text-xs text-slate-500">
               {cfg.enabled
-                ? "The scheduler will send on the configured day/time. Manual send works too."
-                : "The scheduler is paused. Manual send is blocked until you re-enable."}
+                ? t("The scheduler will send on the configured day/time. Manual send works too.")
+                : t("The scheduler is paused. Manual send is blocked until you re-enable.")}
             </p>
           </div>
           <button
@@ -154,14 +155,14 @@ export default function AdminDigestConfig() {
             data-testid="digest-enabled-toggle"
           >
             {cfg.enabled ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
-            {cfg.enabled ? "On" : "Off"}
+            {cfg.enabled ? t("On") : t("Off")}
           </button>
         </div>
 
         {/* Recipients */}
         <div className="bg-white border border-slate-200 rounded-md p-4 mb-3">
           <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">
-            Recipients (comma-separated)
+            {t("Recipients (comma-separated)")}
           </Label>
           <Input
             className="mt-2 h-10 border-2 font-mono"
@@ -171,25 +172,25 @@ export default function AdminDigestConfig() {
             data-testid="digest-recipients"
           />
           <p className="text-[11px] text-slate-500 mt-1 font-mono">
-            {(cfg.recipients || []).length} recipient(s) configured
+            {t("{count} recipient(s) configured").replace("{count}", (cfg.recipients || []).length)}
           </p>
         </div>
 
         {/* Schedule */}
         <div className="bg-white border border-slate-200 rounded-md p-4 mb-3 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           <div>
-            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Weekday</Label>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Weekday")}</Label>
             <Select value={String(cfg.weekday)} onValueChange={(v) => update({ weekday: parseInt(v, 10) })}>
               <SelectTrigger className="h-10 mt-2 border-2" data-testid="digest-weekday">
-                <SelectValue placeholder="Weekday" />
+                <SelectValue placeholder={t("Weekday")} />
               </SelectTrigger>
               <SelectContent>
-                {WEEKDAYS.map((w, i) => <SelectItem key={i} value={String(i)}>{w}</SelectItem>)}
+                {WEEKDAYS.map((w, i) => <SelectItem key={i} value={String(i)}>{t(w)}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Hour (platform time · scheduler)</Label>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Hour (platform time · scheduler)")}</Label>
             <Input
               type="number"
               min={0}
@@ -205,7 +206,7 @@ export default function AdminDigestConfig() {
                   formatter — no hardcoded Florida timezone. `hour_utc`
                   is the backend cron field; the label above is the
                   API contract, the value below is the operator preview. */}
-              Runs at{" "}
+              {t("Runs at")} {" "}
               {(() => {
                 const d = new Date();
                 d.setUTCHours(cfg.hour_utc || 0, 0, 0, 0);
@@ -217,7 +218,7 @@ export default function AdminDigestConfig() {
 
         {/* Dashboard URL */}
         <div className="bg-white border border-slate-200 rounded-md p-4 mb-3">
-          <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Dashboard URL</Label>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">{t("Dashboard URL")}</Label>
           <Input
             className="mt-2 h-10 border-2 font-mono"
             value={cfg.dashboard_url || ""}
@@ -229,10 +230,10 @@ export default function AdminDigestConfig() {
         {/* Last run */}
         {cfg.last_run && (
           <div className="bg-slate-50 border border-slate-200 rounded-md p-3 mb-3 text-xs font-mono">
-            <strong className="uppercase tracking-[0.15em] text-slate-600">Last run</strong>:{" "}
+            <strong className="uppercase tracking-[0.15em] text-slate-600">{t("Last run")}</strong>:{" "}
             {formatPlatformTime(cfg.last_run.at)} ·{" "}
             <span className={cfg.last_run.sent_to?.length ? "text-emerald-700" : "text-amber-700"}>
-              {cfg.last_run.sent_to?.length ? `sent to ${cfg.last_run.sent_to.length}` : "preview-only"}
+              {cfg.last_run.sent_to?.length ? `${t("sent to")} ${cfg.last_run.sent_to.length}` : t("preview-only")}
             </span>
             {cfg.last_run.errors?.length > 0 && (
               <span className="text-red-700"> · {cfg.last_run.errors.length} error(s)</span>
@@ -243,13 +244,13 @@ export default function AdminDigestConfig() {
         {/* Actions */}
         <div className="flex flex-wrap gap-2">
           <Button onClick={save} disabled={saving} className="bg-slate-900 hover:bg-slate-800 text-white" data-testid="digest-save">
-            {saving ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />} Save
+            {saving ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />} {t("Save")}
           </Button>
           <Button onClick={preview} variant="outline" data-testid="digest-preview">
-            <Eye className="w-3.5 h-3.5 mr-1" /> Preview
+            <Eye className="w-3.5 h-3.5 mr-1" /> {t("Preview")}
           </Button>
           <Button onClick={sendNow} disabled={sending || !cfg.enabled} className="bg-cyan-700 hover:bg-cyan-800 text-white" data-testid="digest-send-now">
-            {sending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1" />} Send Now
+            {sending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1" />} {t("Send Now")}
           </Button>
         </div>
 
@@ -257,8 +258,8 @@ export default function AdminDigestConfig() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
             <div className="bg-white rounded-md max-w-2xl w-full max-h-[80vh] overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-display font-black text-lg">Digest Preview</h2>
-                <Button size="sm" variant="outline" onClick={() => setShowPreview(false)}>Close</Button>
+                <h2 className="font-display font-black text-lg">{t("Digest Preview")}</h2>
+                <Button size="sm" variant="outline" onClick={() => setShowPreview(false)}>{t("Close")}</Button>
               </div>
               <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
             </div>
