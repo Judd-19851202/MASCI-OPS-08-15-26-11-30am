@@ -14,6 +14,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { persistDriverSession } from "@/lib/driverAuth";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -37,6 +38,7 @@ function consumeOnce(token) {
 }
 
 export default function DriverMagicLanding() {
+  const { t } = useT();
   const { token } = useParams();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -50,7 +52,7 @@ export default function DriverMagicLanding() {
     if (exchangedRef.current) return;
     if (!token) {
       setStatus("error");
-      setErrorMsg("Missing link token.");
+      setErrorMsg(t("Missing link token."));
       return;
     }
     // Cross-remount single-flight: only proceed if we have not yet
@@ -69,7 +71,7 @@ export default function DriverMagicLanding() {
         /* ignore */
       }
       setStatus("error");
-      setErrorMsg("This link has already been used. Ask dispatch for a new one.");
+      setErrorMsg(t("This link has already been used. Ask dispatch for a new one."));
       return;
     }
     exchangedRef.current = true;
@@ -86,17 +88,17 @@ export default function DriverMagicLanding() {
         const j = await r.json().catch(() => ({}));
         if (!r.ok || !j.driver_token) {
           setStatus("error");
-          setErrorMsg(j.detail || "This link is no longer valid. Ask dispatch for a new one.");
+          setErrorMsg(j.detail || t("This link is no longer valid. Ask dispatch for a new one."));
           return;
         }
         persistDriverSession(j);
         navigate("/driver", { replace: true });
       } catch {
         setStatus("error");
-        setErrorMsg("Connection failed. Check signal and try the link again.");
+        setErrorMsg(t("Connection failed. Check signal and try the link again."));
       }
     })();
-  }, [token, tenantOverride, navigate]);
+  }, [token, tenantOverride, navigate, t]);
 
   return (
     <div
@@ -112,9 +114,9 @@ export default function DriverMagicLanding() {
         </div>
         {status === "loading" ? (
           <>
-            <p className="text-2xl font-semibold tracking-tight">Signing you in…</p>
+            <p className="text-2xl font-semibold tracking-tight">{t("Signing you in…")}</p>
             <p className="text-base text-slate-400">
-              Hold this screen for a second — you&apos;ll land on your truck shift automatically.
+              {t("Hold this screen for a second — you'll land on your truck shift automatically.")}
             </p>
             <div
               className="mx-auto h-2 w-32 rounded-full bg-slate-800 overflow-hidden"
@@ -129,11 +131,11 @@ export default function DriverMagicLanding() {
               className="text-2xl font-semibold text-rose-300"
               data-testid="driver-magic-error"
             >
-              Link not active
+              {t("Link not active")}
             </p>
             <p className="text-base text-slate-300">{errorMsg}</p>
             <p className="text-sm text-slate-500">
-              Magic links expire after 15 minutes and can only be used once.
+              {t("Magic links expire after 15 minutes and can only be used once.")}
             </p>
           </>
         )}

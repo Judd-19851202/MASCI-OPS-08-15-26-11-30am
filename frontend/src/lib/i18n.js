@@ -8460,6 +8460,17 @@ const ES = {
   "PM Work Orders": "Órdenes de trabajo PM",
   "Queue": "Cola",
   "PM completion does not RTS.": "La finalización del PM no devuelve al servicio.",
+  "Missing link token.": "Falta el token del enlace.",
+  "This link has already been used. Ask dispatch for a new one.": "Este enlace ya fue usado. Pida a despacho uno nuevo.",
+  "This link is no longer valid. Ask dispatch for a new one.": "Este enlace ya no es válido. Pida a despacho uno nuevo.",
+  "Connection failed. Check signal and try the link again.": "Falló la conexión. Revise la señal e intente el enlace otra vez.",
+  "Signing you in…": "Iniciando sesión…",
+  "Hold this screen for a second — you'll land on your truck shift automatically.": "Mantenga esta pantalla un segundo — entrará automáticamente a su turno del camión.",
+  "Link not active": "Enlace inactivo",
+  "Magic links expire after 15 minutes and can only be used once.": "Los enlaces mágicos caducan después de 15 minutos y solo pueden usarse una vez.",
+  "Dispatch Portal · Driver": "Portal de Despacho · Conductor",
+  "Driver Command Profile": "Perfil operativo del conductor",
+  "Identity · operations · equipment": "Identidad · operaciones · equipo",
 };
 
 const DICTS = { es: ES, en: {} };
