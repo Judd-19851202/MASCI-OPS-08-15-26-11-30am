@@ -10,6 +10,7 @@ import { PortalShell } from "@/design-system";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import TransportationSideNavV2, { isTxSidebarV2Enabled } from "@/components/transportation/sidebar/TransportationSideNavV2";
 import { isAdmin } from "@/lib/adminAuth";
+import { useT } from "@/lib/i18n";
 import { TransportationSubNav } from "./_shared";
 import {
   TransportationDashboard, ComplianceDashboard, DocumentCenter,
@@ -29,6 +30,7 @@ import TransportationSearch from "./TransportationSearch";
 import { useTxOpsSlashShortcut } from "@/components/transportation/TransportationOpsTopBar";
 
 export default function TransportationApp() {
+  const { t } = useT();
   // TRACK 18.00 · Phase E — `/` keyboard shortcut focuses the Phase C
   // search rail input wherever it's mounted in the shell.
   useTxOpsSlashShortcut();
@@ -51,10 +53,10 @@ export default function TransportationApp() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Transportation Operations"
+      portalRole={t("Transportation Operations")}
       portalSwitcherCurrent="dispatch"
-      pageTitle="Transportation Operations"
-      subtitle="Mission control, live operations, carriers, drivers, fleet, compliance, and onboarding in one governed shell."
+      pageTitle={t("Transportation Operations")}
+      subtitle={t("Mission control, live operations, carriers, drivers, fleet, compliance, and onboarding in one governed shell.")}
       sideNav={effectiveSideNav}
       experienceTone="transportation"
     >
@@ -62,10 +64,10 @@ export default function TransportationApp() {
         <section className="wp17-mission-banner" data-testid="txops-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Run hauling operations without shell drift, auth confusion, or dead-end navigation.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Run hauling operations without shell drift, auth confusion, or dead-end navigation.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Transportation now uses the same canonical shell language as the rest of the platform while preserving role-based visibility for dispatch and admin users.
+                {t("Transportation now uses the same canonical shell language as the rest of the platform while preserving role-based visibility for dispatch and admin users.")}
               </p>
             </div>
           </div>
@@ -75,8 +77,8 @@ export default function TransportationApp() {
           className="wp17-transport-toolbar flex flex-wrap items-center justify-between gap-3"
         >
           <div>
-            <div className="wp17-kicker">Navigation</div>
-            <div className="mt-1 text-sm font-semibold text-slate-900">Use the sidebar for primary movement. Search is for direct access and detail discovery.</div>
+            <div className="wp17-kicker">{t("Navigation")}</div>
+            <div className="mt-1 text-sm font-semibold text-slate-900">{t("Use the sidebar for primary movement. Search is for direct access and detail discovery.")}</div>
           </div>
           <TransportationSearch />
         </div>

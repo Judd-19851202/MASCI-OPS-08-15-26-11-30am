@@ -17,6 +17,7 @@ import {
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { useT } from "@/lib/i18n";
 
 export const TENANT = "masci";
 
@@ -81,6 +82,7 @@ export const STATE_BADGE = {
 };
 
 export function Chip({ value, testid }) {
+  const { t } = useT();
   const v = (value || "unknown").toLowerCase();
   const cls = STATE_BADGE[v] || STATE_BADGE.unknown;
   return (
@@ -88,7 +90,7 @@ export function Chip({ value, testid }) {
       data-testid={testid || `chip-${v}`}
       className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-medium ${cls}`}
     >
-      {STATE_LABEL[v] || value || "—"}
+      {t(STATE_LABEL[v] || value || "—")}
     </span>
   );
 }
@@ -173,13 +175,14 @@ export const TX_OPS_NAV_GROUPS = [
 ];
 
 export function TransportationSubNav() {
+  const { t } = useT();
   const prefix = useTxPathPrefix();
   const groups = visibleTxOpsNavGroups();
   return (
     <nav
       className="wp17-transport-subnav space-y-2"
       data-testid="transportation-subnav"
-      aria-label="Transportation Operations navigation"
+      aria-label={t("Transportation Operations navigation")}
     >
       {groups.map((group) => (
         <div
@@ -191,7 +194,7 @@ export function TransportationSubNav() {
             className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mr-2 select-none"
             data-testid={`${group.testid}-label`}
           >
-            {group.label}
+            {t(group.label)}
           </span>
           {group.items.map((item) => (
             <NavLink
@@ -208,7 +211,7 @@ export function TransportationSubNav() {
               }
             >
               <item.icon className="h-3.5 w-3.5" />
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
         </div>
@@ -218,12 +221,13 @@ export function TransportationSubNav() {
 }
 
 export function PageHeader({ title, subtitle, right, testid }) {
+  const { t } = useT();
   return (
     <div className="wp17-page-header flex items-start justify-between mb-4 p-4" data-testid={testid}>
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">{t(title)}</h1>
         {subtitle && (
-          <p className="text-sm text-slate-600 mt-1 max-w-2xl">{subtitle}</p>
+          <p className="text-sm text-slate-600 mt-1 max-w-2xl">{t(subtitle)}</p>
         )}
       </div>
       {right && <div className="flex items-center gap-2">{right}</div>}
@@ -232,25 +236,27 @@ export function PageHeader({ title, subtitle, right, testid }) {
 }
 
 export function ComingSoon({ feature, testid }) {
+  const { t } = useT();
   return (
     <div
       data-testid={testid || "coming-soon"}
       className="inline-flex items-center gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-500"
     >
-      <span className="font-medium text-slate-700">{feature}</span>
-      <span className="opacity-70">· Coming soon</span>
+      <span className="font-medium text-slate-700">{t(feature)}</span>
+      <span className="opacity-70">· {t("Coming soon")}</span>
     </div>
   );
 }
 
 export function EmptyState({ title, hint, testid }) {
+  const { t } = useT();
   return (
     <div
       data-testid={testid || "empty-state"}
       className="wp17-panel border border-dashed border-slate-200 rounded-md p-6 text-center text-slate-500"
     >
-      <div className="font-medium text-slate-700">{title}</div>
-      {hint && <div className="text-xs mt-1">{hint}</div>}
+      <div className="font-medium text-slate-700">{t(title)}</div>
+      {hint && <div className="text-xs mt-1">{t(hint)}</div>}
     </div>
   );
 }
@@ -378,6 +384,7 @@ export function txCatch(err) {
 // loaders can adopt them without a new import line. Kept thin —
 // rendering is owned by /components/transportation/TxOpsRestricted.
 export function TxOpsLoaderRestricted({ workspace, testid }) {
+  const { t } = useT();
   return (
     <div
       data-testid={testid || "txops-loader-restricted"}
@@ -385,15 +392,15 @@ export function TxOpsLoaderRestricted({ workspace, testid }) {
     >
       <Lock className="mx-auto h-5 w-5 text-amber-700 mb-2" aria-hidden />
       <div className="text-[11px] uppercase tracking-wider font-semibold text-amber-800">
-        Transportation Operations
+        {t("Transportation Operations")}
       </div>
       <p className="mt-1 text-sm text-slate-700 max-w-md mx-auto">
         {workspace
-          ? `This Transportation workspace (${workspace}) is restricted for your role.`
-          : "This Transportation data is not available for your role."}
+          ? t("This Transportation workspace ({workspace}) is restricted for your role.").replace("{workspace}", workspace)
+          : t("This Transportation data is not available for your role.")}
       </p>
       <p className="mt-1 text-xs text-slate-500">
-        Contact your dispatcher lead or operations manager to request access.
+        {t("Contact your dispatcher lead or operations manager to request access.")}
       </p>
     </div>
   );

@@ -18,7 +18,8 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Loader2, X } from "lucide-react";
 import { api } from "@/lib/api";
-import { useTxPathPrefix } from "./_shared";
+import { useT } from "@/lib/i18n";
+import { STATE_LABEL, useTxPathPrefix } from "./_shared";
 
 const ENDPOINT = "/admin/transportation/search";
 const DEBOUNCE_MS = 300;
@@ -59,6 +60,7 @@ function groupResults(results) {
 }
 
 export default function TransportationSearch() {
+  const { t } = useT();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -154,7 +156,7 @@ export default function TransportationSearch() {
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder="Search drivers, trucks, carriers, projects… (press /)"
+          placeholder={t("Search drivers, trucks, carriers, projects… (press /)")}
           className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
         />
         {loading ? (
@@ -191,14 +193,14 @@ export default function TransportationSearch() {
               data-testid="txops-search-error"
               className="p-3 text-xs text-rose-700"
             >
-              Search unavailable: {error}
+              {t("Search unavailable right now.")}{error ? ` ${error}` : ""}
             </div>
           ) : !hasResults && !loading ? (
             <div
               data-testid="txops-search-empty"
               className="p-3 text-xs text-slate-500"
             >
-              No results for “{q}”. Try a unit number, name, project number, or DOT/MC.
+              {t("No results for “{q}”. Try a unit number, name, project number, or DOT/MC.").replace("{q}", q)}
             </div>
           ) : (
             Object.entries(buckets).map(([group, rows]) => (
@@ -208,7 +210,7 @@ export default function TransportationSearch() {
                 className="border-b border-slate-100 last:border-0"
               >
                 <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-slate-500 font-semibold bg-slate-50">
-                  {GROUP_LABELS[group] || group}
+                  {t(GROUP_LABELS[group] || group)}
                 </div>
                 <ul>
                   {rows.map((r, i) => (
@@ -241,7 +243,7 @@ export default function TransportationSearch() {
                               STATUS_PALETTE[r.status] || "bg-slate-100 text-slate-700"
                             }`}
                           >
-                            {String(r.status).replace(/_/g, " ")}
+                            {t(STATE_LABEL[r.status] || String(r.status).replace(/_/g, " "))}
                           </span>
                         ) : null}
                       </button>

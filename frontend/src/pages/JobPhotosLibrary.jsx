@@ -18,7 +18,7 @@ import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
-import { useT } from "@/lib/i18n";
+import { useT, tStr } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
@@ -54,6 +54,8 @@ const SOURCE_COLORS = {
   inspection: "bg-amber-600",
   qaqc: "bg-emerald-700",
 };
+
+const getSourceLabel = (source) => tStr(SOURCE_LABELS[source] || source);
 
 export default function JobPhotosLibrary({ portalKey = "admin" }) {
   const { t } = useT();
@@ -686,7 +688,7 @@ function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
           onClick={onZoom}
         >
           {broken ? (
-            <ImageIcon className="w-6 h-6 text-slate-400" title="Photo unavailable" />
+            <ImageIcon className="w-6 h-6 text-slate-400" title={tStr("Photo unavailable")} />
           ) : (
             <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
           )}
@@ -698,7 +700,7 @@ function PhotoTile({ photo, src, selected, onToggle, onZoom }) {
           SOURCE_COLORS[photo.source] || "bg-slate-700"
         } text-white text-[9px] font-mono uppercase rounded`}
       >
-        {SOURCE_LABELS[photo.source] || photo.source}
+        {getSourceLabel(photo.source)}
       </span>
       {/* Select toggle */}
       <button
@@ -745,7 +747,7 @@ function Lightbox({ src, meta, display, onClose, onLoad }) {
       data-testid="photos-lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label="Photo preview"
+      aria-label={tStr("Photo preview")}
     >
       <button
         type="button"
@@ -769,7 +771,7 @@ function Lightbox({ src, meta, display, onClose, onLoad }) {
         ) : src ? (
           <div className="px-8 py-12 bg-white/5 rounded text-white/70 text-sm font-mono text-center">
             <Camera className="w-12 h-12 mx-auto mb-3 text-white/40" />
-            Photo data unavailable or corrupt.
+            {tStr("Photo data unavailable or corrupt.")}
           </div>
         ) : (
           <Loader2 className="w-8 h-8 animate-spin text-white" />
@@ -782,7 +784,7 @@ function Lightbox({ src, meta, display, onClose, onLoad }) {
                 : `#${meta.project_number} · ${meta.project_name}`}
             </div>
             <div className="text-white/60 text-xs mt-1">
-              {SOURCE_LABELS[meta.source] || meta.source} · {meta.record_date} ·{" "}
+              {getSourceLabel(meta.source)} · {meta.record_date} ·{" "}
               {meta.submitter}
             </div>
           </div>

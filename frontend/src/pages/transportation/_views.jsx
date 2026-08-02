@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { useT } from "@/lib/i18n";
 import {
   Chip, PageHeader, ComingSoon, EmptyState, txGet, txFetchJson, STATE_LABEL, useTxPathPrefix, isTxRestricted, txCatch,
 } from "./_shared";
@@ -66,6 +67,7 @@ export function TransportationDashboard() {
 // Signals are already sorted server-side: action_required first, then
 // by affected_count desc, so signals[0] IS the top opportunity.
 function TopCleanupOpportunityCard() {
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [restricted, setRestricted] = useState(false);
@@ -86,11 +88,11 @@ function TopCleanupOpportunityCard() {
       setData(r.data);
       setErr(null);
     } catch (e) {
-      setErr(txCatch(e) || e.message || "Cleanup unavailable.");
+      setErr(txCatch(e) || e.message || t("Cleanup unavailable."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const kickoff = setTimeout(() => { load(); }, 1200);
@@ -114,7 +116,7 @@ function TopCleanupOpportunityCard() {
         data-testid="tx-dashboard-top-cleanup-loading"
         className="text-xs text-slate-400"
       >
-        Loading top cleanup signal…
+        {t("Loading top cleanup signal…")}
       </div>
     );
   }
@@ -132,11 +134,11 @@ function TopCleanupOpportunityCard() {
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-5 w-5 text-emerald-700" />
           <div className="text-sm font-medium text-emerald-900">
-            No cleanup signals detected. Transportation data is currently in a healthy state.
+            {t("No cleanup signals detected. Transportation data is currently in a healthy state.")}
           </div>
         </div>
         <div className="text-[10px] uppercase tracking-wide text-emerald-700 mt-2">
-          Source: Cleanup Companion · {data.note}
+          {t("Source: Cleanup Companion")} · {t(data.note)}
         </div>
       </section>
     );
@@ -155,13 +157,13 @@ function TopCleanupOpportunityCard() {
       <div className="flex items-center justify-between mb-2">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">
-            Attention required · Top cleanup opportunity
+            {t("Attention required · Top cleanup opportunity")}
           </div>
           <div
             className="text-lg font-semibold text-amber-900 mt-0.5"
             data-testid="tx-dashboard-top-cleanup-title"
           >
-            {top.title}
+            {t(top.title)}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -169,13 +171,13 @@ function TopCleanupOpportunityCard() {
             data-testid="tx-dashboard-top-cleanup-severity"
             className={`text-[11px] px-2 py-0.5 rounded-full border ${sevPalette}`}
           >
-            {String(sev).replace("_", " ")}
+            {t(STATE_LABEL[sev] || String(sev).replace(/_/g, " "))}
           </span>
           <span
             data-testid="tx-dashboard-top-cleanup-count"
             className="text-[11px] px-2 py-0.5 rounded-full border border-amber-400 bg-amber-100 text-amber-900"
           >
-            {top.affected_count} affected
+            {t("{count} affected").replace("{count}", top.affected_count)}
           </span>
         </div>
       </div>
@@ -183,13 +185,13 @@ function TopCleanupOpportunityCard() {
         className="text-xs text-amber-900"
         data-testid="tx-dashboard-top-cleanup-description"
       >
-        {top.description}
+        {t(top.description)}
       </div>
       <div
         className="text-xs text-amber-900 mt-1"
         data-testid="tx-dashboard-top-cleanup-recommended"
       >
-        <span className="font-medium">Recommended action: </span>{top.recommended_action}
+        <span className="font-medium">{t("Recommended action:")} </span>{t(top.recommended_action)}
       </div>
       <div className="mt-3">
         <Link
@@ -197,11 +199,11 @@ function TopCleanupOpportunityCard() {
           data-testid="tx-dashboard-top-cleanup-link"
           className="inline-flex items-center rounded bg-amber-700 hover:bg-amber-800 text-white px-3 py-1.5 text-xs font-medium"
         >
-          View in Cleanup Companion →
+          {t("View in Cleanup Companion →")}
         </Link>
       </div>
       <div className="text-[10px] uppercase tracking-wide text-amber-700 mt-2">
-        Source: Cleanup Companion · signal_key={top.signal_key}
+        {t("Source: Cleanup Companion")} · signal_key={top.signal_key}
       </div>
     </section>
   );

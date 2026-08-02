@@ -14,6 +14,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useT } from "@/lib/i18n";
 import {
   visibleTxOpsNavGroups,
   useTxPathPrefix,
@@ -36,6 +37,7 @@ function writeOpenDomains(ids) {
 }
 
 function DomainRow({ groupKey, label, meta, open, onToggle, active }) {
+  const { t } = useT();
   const Icon = meta.icon;
   return (
     <button
@@ -56,11 +58,11 @@ function DomainRow({ groupKey, label, meta, open, onToggle, active }) {
         <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-100 drop-shadow-[0_2px_8px_rgba(15,23,42,0.5)]" />
         <span className="flex-1 min-w-0">
           <span className="block text-xs font-mono uppercase tracking-wider font-semibold leading-tight glass-text-light">
-            {label}
+            {t(label)}
           </span>
           {meta.subline && (
             <span className="block text-[10px] mt-0.5 leading-tight truncate glass-text-muted-light">
-              {meta.subline}
+              {t(meta.subline)}
             </span>
           )}
         </span>
@@ -73,6 +75,7 @@ function DomainRow({ groupKey, label, meta, open, onToggle, active }) {
 }
 
 function ChildRow({ item, prefix, onNavigate }) {
+  const { t } = useT();
   const Icon = item.icon;
   const to = `${prefix}/${item.to}`.replace(/\/$/, "") || prefix;
   return (
@@ -91,7 +94,7 @@ function ChildRow({ item, prefix, onNavigate }) {
     >
       <Icon className="w-3.5 h-3.5 mt-1 shrink-0 opacity-70" />
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight glass-text-light">{item.label}</span>
+        <span className="block text-sm font-medium leading-tight glass-text-light">{t(item.label)}</span>
       </span>
     </NavLink>
   );

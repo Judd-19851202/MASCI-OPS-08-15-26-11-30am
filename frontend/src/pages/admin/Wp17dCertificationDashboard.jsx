@@ -4,6 +4,7 @@ import { ShieldCheck, ShieldAlert, Ban, Camera, BarChart3, ArrowRight } from "lu
 import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
 import { DetailPageHero } from "@/components/detail/DetailPageHero";
 import { DataTable } from "@/design-system";
+import { useT } from "@/lib/i18n";
 
 const INVENTORY_TOTAL = 1190;
 const SURVIVOR_COUNTS = [
@@ -113,41 +114,43 @@ function CountCard({ label, count, detail, testId }) {
   );
 }
 
-function statusChip(status) {
+function statusChip(status, t) {
   const map = {
     READY: "border-emerald-200 bg-emerald-50 text-emerald-900",
     IN_REVIEW: "border-amber-200 bg-amber-50 text-amber-900",
     BLOCKED_ACCESS: "border-red-200 bg-red-50 text-red-900",
   };
   const labelMap = {
-    READY: "Ready",
-    IN_REVIEW: "In review",
-    BLOCKED_ACCESS: "Blocked",
+    READY: t("Ready"),
+    IN_REVIEW: t("In review"),
+    BLOCKED_ACCESS: t("Blocked"),
   };
   return <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] ${map[status] || "border-slate-200 bg-white text-slate-700"}`}>{labelMap[status] || status}</span>;
 }
 
 export default function Wp17dCertificationDashboard() {
+  const { t } = useT();
   const survivorsRemaining = useMemo(() => SURVIVOR_COUNTS.reduce((sum, item) => sum + item.count, 0), []);
   const completionPct = useMemo(() => Math.max(0, Number((((INVENTORY_TOTAL - survivorsRemaining) / INVENTORY_TOTAL) * 100).toFixed(1))), [survivorsRemaining]);
   const readyScreens = ROUTE_STATUS.filter((route) => route.status === "READY").length;
   const blockedScreens = ROUTE_STATUS.filter((route) => route.status === "BLOCKED_ACCESS").length;
-  const readinessVerdict = blockedScreens > 0 || survivorsRemaining > 0 ? "Not ready" : "Ready";
+  const isReady = blockedScreens === 0 && survivorsRemaining === 0;
+  const readinessVerdict = blockedScreens > 0 || survivorsRemaining > 0 ? t("Not ready") : t("Ready");
 
   const columns = [
-    { key: "route", header: "Screen", wrap: true, render: (row) => <span className="font-mono text-xs text-slate-800">{row.route}</span> },
-    { key: "status", header: "Readiness", render: (row) => statusChip(row.status) },
-    { key: "evidence", header: "Review evidence", wrap: true },
-    { key: "lastCertified", header: "Last review", wrap: true },
-    { key: "block", header: "Blocking issue", wrap: true },
+    { key: "route", header: t("Screen"), wrap: true, render: (row) => <span className="font-mono text-xs text-slate-800">{t(row.route)}</span> },
+    { key: "status", header: t("Readiness"), render: (row) => statusChip(row.status, t) },
+    { key: "evidence", header: t("Review evidence"), wrap: true, render: (row) => t(row.evidence) },
+    { key: "lastCertified", header: t("Last review"), wrap: true, render: (row) => t(row.lastCertified) },
+    { key: "block", header: t("Blocking issue"), wrap: true, render: (row) => t(row.block) },
   ];
 
   return (
     <AdminRouteShell
-      pageTitle="Operations Readiness Center"
-      subtitle="Governance review and release readiness"
-      portalRole="Admin · Governance & Trust"
-      crumbs={[{ label: "Admin OS" }, { label: "Governance & Trust" }, { label: "Operations Readiness" }]}
+      pageTitle={t("Operations Readiness Center")}
+      subtitle={t("Governance review and release readiness")}
+      portalRole={t("Admin · Governance & Trust")}
+      crumbs={[{ label: t("Admin OS") }, { label: t("Governance & Trust") }, { label: t("Operations Readiness") }]}
       showShellHeader={false}
       showBreadcrumbs={false}
       contentClassName="px-0 py-0"
@@ -158,19 +161,19 @@ export default function Wp17dCertificationDashboard() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6" data-testid="wp17d-certification-page">
           <DetailPageHero
             backHref="/admin/governance-trust"
-            backLabel="Governance & Trust"
-            kicker="Governance operations"
-            title="Operations Readiness Center"
-            description="One governed view for open experience reviews, evidence posture, blocker visibility, and release readiness."
+            backLabel={t("Governance & Trust")}
+            kicker={t("Governance operations")}
+            title={t("Operations Readiness Center")}
+            description={t("One governed view for open experience reviews, evidence posture, blocker visibility, and release readiness.")}
             actions={(
               <>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-900" data-testid="wp17d-readiness-chip"><ShieldAlert className="h-3.5 w-3.5" /> {readinessVerdict}</span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900" data-testid="wp17d-progress-chip"><BarChart3 className="h-3.5 w-3.5" /> {completionPct}% aligned</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900" data-testid="wp17d-progress-chip"><BarChart3 className="h-3.5 w-3.5" /> {t("{pct}% aligned").replace("{pct}", completionPct)}</span>
               </>
             )}
             toolbar={(
               <Link to="/admin/trench-safety/assets" className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-300 bg-white px-4 text-xs font-bold uppercase tracking-[0.18em] text-slate-800 transition-colors hover:border-red-500 hover:text-red-700" data-testid="wp17d-open-active-batch-link">
-                Open current review <ArrowRight className="h-4 w-4" />
+                {t("Open current review")} <ArrowRight className="h-4 w-4" />
               </Link>
             )}
             testId="wp17d-certification-hero"
@@ -178,7 +181,7 @@ export default function Wp17dCertificationDashboard() {
 
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="wp17d-survivor-counts-grid">
             {SURVIVOR_COUNTS.map((item) => (
-              <CountCard key={item.key} label={item.label} count={item.count} detail={item.detail} testId={`wp17d-count-${item.key}`} />
+              <CountCard key={item.key} label={t(item.label)} count={item.count} detail={t(item.detail)} testId={`wp17d-count-${item.key}`} />
             ))}
           </section>
 
@@ -186,12 +189,12 @@ export default function Wp17dCertificationDashboard() {
             <div className="wp17-panel p-5 sm:p-6" data-testid="wp17d-route-status-panel">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Screen-by-screen review status</div>
-                  <h2 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Current readiness board</h2>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">{t("Screen-by-screen review status")}</div>
+                  <h2 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900">{t("Current readiness board")}</h2>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-certified-routes-chip"><ShieldCheck className="h-3.5 w-3.5 text-emerald-700" /> {readyScreens} ready</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-blocked-routes-chip"><Ban className="h-3.5 w-3.5 text-red-700" /> {blockedScreens} blocked</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-certified-routes-chip"><ShieldCheck className="h-3.5 w-3.5 text-emerald-700" /> {t("{count} ready").replace("{count}", readyScreens)}</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1" data-testid="wp17d-blocked-routes-chip"><Ban className="h-3.5 w-3.5 text-red-700" /> {t("{count} blocked").replace("{count}", blockedScreens)}</span>
                 </div>
               </div>
               <div className="mt-5">
@@ -201,31 +204,31 @@ export default function Wp17dCertificationDashboard() {
 
             <div className="space-y-6">
               <section className="wp17-panel p-5" data-testid="wp17d-readiness-summary-panel">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Release readiness</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">{t("Release readiness")}</div>
                 <div className="mt-3 flex items-end justify-between gap-3">
                   <div>
                     <div className="font-display text-4xl font-black tracking-tight text-slate-900" data-testid="wp17d-completion-pct">{completionPct}%</div>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">Calculated from the governed experience review inventory.</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{t("Calculated from the governed experience review inventory.")}</p>
                   </div>
-                  {readinessVerdict === "Ready" ? <ShieldCheck className="h-10 w-10 text-emerald-700" /> : <ShieldAlert className="h-10 w-10 text-red-700" />}
+                  {isReady ? <ShieldCheck className="h-10 w-10 text-emerald-700" /> : <ShieldAlert className="h-10 w-10 text-red-700" />}
                 </div>
                 <div className="mt-4 h-3 rounded-full bg-slate-200" data-testid="wp17d-progress-bar-track">
                   <div className="h-3 rounded-full bg-gradient-to-r from-red-700 to-emerald-600" style={{ width: `${completionPct}%` }} data-testid="wp17d-progress-bar-fill" />
                 </div>
                 <div className="mt-4 rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" data-testid="wp17d-go-no-go-panel">
-                  <strong>{readinessVerdict}</strong> · open review items and/or access blockers still remain before release signoff.
+                  <strong>{readinessVerdict}</strong> · {t("open review items and/or access blockers still remain before release signoff.")}
                 </div>
               </section>
 
               <section className="wp17-panel p-5" data-testid="wp17d-blockers-panel">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">Blocking issues</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">{t("Blocking issues")}</div>
                 <div className="mt-4 space-y-4">
                   {BLOCKERS.map((blocker) => (
                     <div key={blocker.title} className="rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-4">
-                      <div className="font-display text-lg font-black text-red-950">{blocker.title}</div>
-                      <p className="mt-2 text-sm leading-6 text-red-900">{blocker.detail}</p>
+                      <div className="font-display text-lg font-black text-red-950">{t(blocker.title)}</div>
+                      <p className="mt-2 text-sm leading-6 text-red-900">{t(blocker.detail)}</p>
                       <ul className="mt-3 space-y-1 text-xs text-red-900">
-                        {blocker.evidence.map((item) => <li key={item}>• {item}</li>)}
+                        {blocker.evidence.map((item) => <li key={item}>• {t(item)}</li>)}
                       </ul>
                     </div>
                   ))}
@@ -237,17 +240,17 @@ export default function Wp17dCertificationDashboard() {
           <section className="wp17-panel p-5 sm:p-6" data-testid="wp17d-batch-evidence-panel">
             <div className="flex items-center gap-2 text-red-700">
               <Camera className="h-4 w-4" />
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold">Review evidence log</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold">{t("Review evidence log")}</div>
             </div>
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               {BATCHES.map((batch) => (
                 <article key={batch.title} className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)]" data-testid={`wp17d-batch-${batch.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-display text-lg font-black text-slate-900 leading-tight">{batch.title}</div>
-                    {statusChip(batch.status)}
+                    <div className="font-display text-lg font-black text-slate-900 leading-tight">{t(batch.title)}</div>
+                    {statusChip(batch.status, t)}
                   </div>
                   <div className="mt-3 text-xs font-mono uppercase tracking-[0.14em] text-slate-500">{batch.timestamp}</div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{batch.evidence}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{t(batch.evidence)}</p>
                 </article>
               ))}
             </div>

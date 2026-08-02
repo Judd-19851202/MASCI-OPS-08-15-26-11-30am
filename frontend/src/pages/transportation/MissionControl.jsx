@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { txGet, useTxPathPrefix } from "./_shared";
 import { useTransportationReadiness } from "@/components/operations_transportation_integration";
+import { useT } from "@/lib/i18n";
 
 const BAND_PALETTE = {
   green:   "bg-emerald-100 text-emerald-800 border-emerald-300",
@@ -37,34 +38,42 @@ const BAND_PALETTE = {
 };
 
 function BandChip({ band, testid }) {
+  const { t } = useT();
   if (!band) return null;
   const label = band.label || "unknown";
   const palette = BAND_PALETTE[label] || BAND_PALETTE.unknown;
+  const labelMap = {
+    green: t("GREEN"),
+    yellow: t("YELLOW"),
+    red: t("RED"),
+    unknown: t("UNKNOWN"),
+  };
   return (
     <span
       data-testid={testid}
       className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[11px] font-medium ${palette}`}
     >
-      {String(label).toUpperCase()}
+      {labelMap[label] || String(label).toUpperCase()}
       {band.score !== undefined && band.score !== null ? ` · ${band.score}` : ""}
     </span>
   );
 }
 
 function MissionBrief({ overall, riskCount }) {
+  const { t } = useT();
   let tone = "border-emerald-200 bg-emerald-50 text-emerald-900";
   let icon = <CheckCircle2 className="h-4 w-4" />;
-  let line = "Transportation Operations is healthy. No action required.";
+  let line = t("Transportation Operations is healthy. No action required.");
   const label = overall?.label || "unknown";
 
   if (label === "red" || riskCount >= 2) {
     tone = "border-rose-300 bg-rose-50 text-rose-900";
     icon = <ShieldAlert className="h-4 w-4" />;
-    line = "Transportation Operations requires immediate attention.";
+    line = t("Transportation Operations requires immediate attention.");
   } else if (label === "yellow" || riskCount >= 1) {
     tone = "border-amber-300 bg-amber-50 text-amber-900";
     icon = <AlertTriangle className="h-4 w-4" />;
-    line = "Transportation Operations operating with watch items.";
+    line = t("Transportation Operations operating with watch items.");
   }
 
   return (
@@ -90,6 +99,7 @@ function McCard({
   secondaryKpi, secondaryLabel,
   summary, actionLabel, actionHref, drillHref,
 }) {
+  const { t } = useT();
   return (
     <article
       data-testid={testid}
@@ -98,7 +108,7 @@ function McCard({
       <header className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 text-slate-500 text-[10px] uppercase tracking-wider font-semibold">
           {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
-          <span>{question}</span>
+          <span>{t(question)}</span>
         </div>
         {band ? <BandChip band={band} testid={`${testid}-band`} /> : null}
       </header>
@@ -109,14 +119,14 @@ function McCard({
         >
           {primaryKpi ?? 0}
         </div>
-        <div className="text-xs text-slate-500">{primaryLabel}</div>
+        <div className="text-xs text-slate-500">{t(primaryLabel)}</div>
       </div>
       {secondaryLabel ? (
         <div
           className="text-[11px] text-slate-500"
           data-testid={`${testid}-secondary-kpi`}
         >
-          <span className="font-medium text-slate-700">{secondaryKpi ?? 0}</span> {secondaryLabel}
+          <span className="font-medium text-slate-700">{secondaryKpi ?? 0}</span> {t(secondaryLabel)}
         </div>
       ) : null}
       {summary ? (
@@ -134,7 +144,7 @@ function McCard({
             data-testid={`${testid}-action`}
             className="inline-flex items-center text-xs text-amber-700 hover:text-amber-900 font-medium"
           >
-            {actionLabel || "Open"} <ChevronRight className="h-3 w-3" />
+            {t(actionLabel || "Open")} <ChevronRight className="h-3 w-3" />
           </Link>
         ) : <span />}
         {drillHref ? (
@@ -143,7 +153,7 @@ function McCard({
             data-testid={`${testid}-drilldown`}
             className="text-[11px] text-slate-500 hover:text-slate-800 inline-flex items-center"
           >
-            View details →
+            {t("View details →")}
           </Link>
         ) : null}
       </footer>
@@ -172,15 +182,16 @@ function useRecentActivity(limit = 6, enabled = true) {
 }
 
 function RecentActivityCard({ prefix, canLoadAudit = true }) {
+  const { t } = useT();
   const rows = useRecentActivity(6, canLoadAudit);
   const count = rows == null ? null : rows.length;
   const summary = rows == null
-    ? "Loading…"
+    ? t("Loading…")
     : !canLoadAudit
-      ? "Audit timeline is available in Admin oversight. Dispatch users stay focused on live operations here."
+      ? t("Audit timeline is available in Admin oversight. Dispatch users stay focused on live operations here.")
     : count === 0
-      ? "No transportation activity in the last 24 hours."
-      : `${count} most-recent events across drivers, trucks, carriers, dispatch, automation, cleanup, and HR sync.`;
+      ? t("No transportation activity in the last 24 hours.")
+      : t("{count} most-recent events across drivers, trucks, carriers, dispatch, automation, cleanup, and HR sync.").replace("{count}", count);
   return (
     <McCard
       testid="mc-card-recent"
@@ -219,10 +230,11 @@ const WORKSPACE_STRIP = [
 ];
 
 function WorkspaceStrip({ prefix }) {
+  const { t } = useT();
   return (
     <section
       data-testid="mc-workspace-strip"
-      aria-label="Operational workspaces"
+      aria-label={t("Operational workspaces")}
       className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2"
     >
       {WORKSPACE_STRIP.map((w) => (
@@ -234,19 +246,32 @@ function WorkspaceStrip({ prefix }) {
         >
           <div className="flex items-center gap-1.5 text-slate-900">
             <w.icon className="h-4 w-4" />
-            <span className="text-xs font-semibold tracking-tight">{w.label}</span>
+            <span className="text-xs font-semibold tracking-tight">{t(w.label)}</span>
           </div>
-          <span className="text-[10.5px] text-slate-500 leading-tight">{w.hint}</span>
+          <span className="text-[10.5px] text-slate-500 leading-tight">{t(w.hint)}</span>
         </Link>
       ))}
     </section>
   );
 }
 
+function translateRiskLabel(risk, t) {
+  if (!risk) return "";
+  const count = risk.count ?? risk.value ?? risk.total ?? 0;
+  if (risk.code === "blocked_dispatches") {
+    return t("{count} dispatch(es) currently blocked").replace("{count}", count);
+  }
+  if (risk.code === "hr_mismatch") {
+    return t("{count} HR ↔ Transportation mismatch(es)").replace("{count}", count);
+  }
+  return t(risk.label || "");
+}
+
 // ─────────────────────────────────────────────────────────────────
 // Mission Control.
 // ─────────────────────────────────────────────────────────────────
 export default function MissionControl() {
+  const { t } = useT();
   const prefix = useTxPathPrefix();
   const canLoadAudit = prefix === "/admin/transportation";
   const { data, error, loading, reload } = useTransportationReadiness();
@@ -257,7 +282,7 @@ export default function MissionControl() {
         data-testid="mc-loading"
         className="text-slate-500 text-sm"
       >
-        Loading Mission Control…
+        {t("Loading Mission Control…")}
       </div>
     );
   }
@@ -267,7 +292,7 @@ export default function MissionControl() {
         data-testid="mc-error"
         className="text-slate-500 text-sm"
       >
-        Mission Control is temporarily unavailable.
+        {t("Mission Control is temporarily unavailable.")}
       </div>
     );
   }
@@ -281,8 +306,8 @@ export default function MissionControl() {
   // risks ordering (action_required first). No new ranking engine.
   const topPriority = risks[0] || null;
   const nextLabel = topPriority
-    ? topPriority.label
-    : "All clear — continue routine operations.";
+    ? translateRiskLabel(topPriority, t)
+    : t("All clear — continue routine operations.");
   const nextActionHref = topPriority?.code === "blocked_dispatches"
     ? `${prefix}/dispatch`
     : topPriority?.code === "hr_mismatch"
@@ -311,7 +336,7 @@ export default function MissionControl() {
           primaryLabel="eligible trucks"
           secondaryKpi={snap.upcoming_expirations_30d || 0}
           secondaryLabel="docs expiring 30d"
-          summary="Truck eligibility + inspection state, composed from existing fleet engines."
+          summary={t("Truck eligibility + inspection state, composed from existing fleet engines.")}
           actionLabel="Open Fleet"
           actionHref={`${prefix}/trucks`}
           drillHref={`${prefix}/inspections`}
@@ -327,7 +352,7 @@ export default function MissionControl() {
           primaryLabel="eligible drivers"
           secondaryKpi={snap.pending_reviews || 0}
           secondaryLabel="pending reviews"
-          summary="Driver eligibility composed from HR lifecycle + Transportation compliance."
+          summary={t("Driver eligibility composed from HR lifecycle + Transportation compliance.")}
           actionLabel="Open Drivers"
           actionHref={`${prefix}/drivers`}
           drillHref={`${prefix}/intelligence`}
@@ -343,7 +368,7 @@ export default function MissionControl() {
           primaryLabel="eligible carriers"
           secondaryKpi={snap.documents_awaiting_review || 0}
           secondaryLabel="docs awaiting review"
-          summary="Carrier eligibility + packet state from the Compliance Center."
+          summary={t("Carrier eligibility + packet state from the Compliance Center.")}
           actionLabel="Open Carriers"
           actionHref={`${prefix}/carriers`}
           drillHref={`${prefix}/compliance`}
@@ -359,7 +384,7 @@ export default function MissionControl() {
           primaryLabel="blocked dispatches"
           secondaryKpi={(data.dispatch_readiness?.score ?? 0).toString().split(".")[0] + "%"}
           secondaryLabel="readiness"
-          summary="Dispatch never embedded — link only. Dispatch remains the operational system of record."
+          summary={t("Dispatch never embedded — link only. Dispatch remains the operational system of record.")}
           actionLabel="Open Dispatch"
           actionHref={`${prefix}/dispatch`}
           drillHref={`${prefix}/live-operations`}
@@ -378,8 +403,8 @@ export default function MissionControl() {
           secondaryKpi={risks.filter((r) => r.severity === "action_required").length}
           secondaryLabel="action required"
           summary={riskCount === 0
-            ? "Nothing is blocking. Transportation is clear."
-            : risks.slice(0, 2).map((r) => r.label).join(" · ")}
+            ? t("Nothing is blocking. Transportation is clear.")
+            : risks.slice(0, 2).map((r) => translateRiskLabel(r, t)).join(" · ")}
           actionLabel="Open Live Operations"
           actionHref={`${prefix}/live-operations`}
           drillHref={`${prefix}/intelligence/cleanup`}
@@ -397,7 +422,7 @@ export default function MissionControl() {
           primaryLabel="open action items"
           secondaryKpi={data.cleanup?.total_signals || 0}
           secondaryLabel="materialized cleanup items"
-          summary="Surfaced from the existing Cleanup Companion + Automation action queue. No new ranking engine."
+          summary={t("Surfaced from the existing Cleanup Companion + Automation action queue. No new ranking engine.")}
           actionLabel="Open Cleanup"
           actionHref={`${prefix}/intelligence/cleanup`}
           drillHref={`${prefix}/command-queue`}
@@ -421,7 +446,7 @@ export default function MissionControl() {
 
       <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
         <div>
-          Source · composed from Tracks 16.06 / 16.07 / 16.10 / 16.11A / 16.15 / 16.15A / 16.16
+          {t("Source · composed from Tracks 16.06 / 16.07 / 16.10 / 16.11A / 16.15 / 16.15A / 16.16")}
         </div>
         <button
           type="button"
@@ -429,7 +454,7 @@ export default function MissionControl() {
           data-testid="mc-refresh"
           className="text-slate-500 hover:text-slate-800 inline-flex items-center gap-1 normal-case"
         >
-          <RefreshCw className="h-3 w-3" /> Refresh
+          <RefreshCw className="h-3 w-3" /> {t("Refresh")}
         </button>
       </div>
     </div>
