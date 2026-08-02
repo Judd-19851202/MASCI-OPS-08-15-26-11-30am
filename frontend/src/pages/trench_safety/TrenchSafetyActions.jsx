@@ -1038,7 +1038,7 @@ export function AuditTimelinePanel({ asset }) {
   return (
     <section className="bg-white border border-slate-200 rounded-md p-4" data-testid="audit-panel">
       <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold inline-flex items-center gap-1 mb-2">
-        <History className="w-3.5 h-3.5" /> {t("Audit Timeline")}
+        <History className="w-3.5 h-3.5" /> {t("Activity Timeline")}
       </div>
       {loading ? (
         <div className="text-xs text-slate-400 py-2">{t("Loading timeline…")}</div>

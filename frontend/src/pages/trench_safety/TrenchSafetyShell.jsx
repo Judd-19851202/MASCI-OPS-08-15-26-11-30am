@@ -53,7 +53,7 @@ export default function TrenchSafetyShell({ active, title, kicker, description, 
         {portalLabel} · {t("Trench Safety")}
       </div>
       <div className="mt-2 text-sm text-slate-600 max-w-3xl">
-        {t("Use one governed navigation strip for trench equipment, excavations, reports, and tabulated data across every portal context.")}
+        {t("Use one standard navigation strip for trench equipment, excavations, reports, and tabulated data across every portal context.")}
       </div>
       <nav className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5" data-testid="trench-safety-tabs">
         {TABS.map(({ key, slug, icon: Icon, label }) => {
@@ -88,7 +88,7 @@ export default function TrenchSafetyShell({ active, title, kicker, description, 
     <section className="wp17-public-hero" data-testid="trench-safety-shell-intro">
       <div className={`font-mono text-[10px] uppercase tracking-[0.22em] font-bold ${accentKicker}`}>{portalLabel} · {t("Trench Safety")}</div>
       <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900">{title}</h1>
-      <p className="mt-3 max-w-3xl text-sm sm:text-base leading-6 text-slate-600">{description || kicker || t("Field visibility, trench asset governance, and compliance reporting in one certified operating surface.")}</p>
+      <p className="mt-3 max-w-3xl text-sm sm:text-base leading-6 text-slate-600">{description || kicker || t("Field visibility, trench asset oversight, and compliance reporting in one shared operating surface.")}</p>
     </section>
   ) : null;
 

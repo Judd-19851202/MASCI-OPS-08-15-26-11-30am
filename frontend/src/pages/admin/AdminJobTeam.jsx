@@ -47,7 +47,7 @@ export default function AdminJobTeam() {
             Foreman, Project Engineer, Project Administrator, Project
             Coordinator, Safety / QA-QC / HR / Dispatch / Equipment / Shop /
             Survey / Accounting Representatives. Every assignment fires a
-            notification to the affected user and is recorded in the audit
+            notification to the affected user and is recorded in the activity
             history. PM / Co-PM email assignments are mirrored from{" "}
             <a href="/admin/jobs" className="underline">Jobs &amp; Field</a>{" "}
             on first save.

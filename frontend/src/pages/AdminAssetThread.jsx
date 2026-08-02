@@ -630,7 +630,7 @@ export default function AdminAssetThread() {
   return (
     <AdminRouteShell
       pageTitle="Asset Thread"
-      subtitle="Canonical asset history, documents, relationships, and operational signals."
+      subtitle="Complete asset history, documents, relationships, and operational signals."
       portalRole="Admin · Asset Intelligence"
       crumbs={[
         { label: "Equipment & Assets", href: "/admin/equipment" },
