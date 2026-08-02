@@ -60,6 +60,8 @@ const SHARED_API_PREFIXES = [
   "/operational-intelligence/",
   "/jobs-master",
   "/bilingual-records",
+  "/field-memory",
+  "/field-memory/",
 ];
 
 const ADMIN_SHARED_CROSS_PORTAL_PREFIXES = [
@@ -73,6 +75,7 @@ const ACTIVE_PORTAL_SHARED_API_PREFIXES = [
   "/job-hazard-files",
   "/legacy-imports",
   "/email-report",
+  "/integrations/maintainx/defect-coverage",
 ];
 
 const ADMIN_SHARED_API_PREFIXES = [

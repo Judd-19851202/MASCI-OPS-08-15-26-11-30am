@@ -20,39 +20,12 @@
 import React, { useEffect, useState } from "react";
 import { ScrollText } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getShopToken } from "@/lib/shopAuth";
-import { getPmToken } from "@/lib/pmAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getFlToken } from "@/lib/flAuth";
-import { getHrToken } from "@/lib/hrAuth";
+import { buildPortalAuthHeaders, hasAnyPortalAuthToken } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function _portalHeaders() {
-  const h = {};
-  const tryGet = (fn) => { try { return fn && fn(); } catch { return null; } };
-  const a = tryGet(getAdminToken);
-  const d = tryGet(getDispatchToken);
-  const s = tryGet(getShopToken);
-  const p = tryGet(getPmToken);
-  const sa = tryGet(getSafetyToken);
-  const f = tryGet(getFlToken);
-  const hr = tryGet(getHrToken);
-  if (a) h["X-Admin-Token"] = a;
-  if (d) h["X-Dispatch-Token"] = d;
-  if (s) h["X-Shop-Token"] = s;
-  if (p) h["X-PM-Token"] = p;
-  if (sa) h["X-Safety-Token"] = sa;
-  if (f) h["X-FL-Token"] = f;
-  if (hr) h["X-HR-Token"] = hr;
-  return h;
-}
-
-function _hasAnyPortalToken() {
-  const h = _portalHeaders();
-  return Object.keys(h).length > 0;
+  return buildPortalAuthHeaders();
 }
 
 function _relative(iso, t) {
@@ -87,11 +60,14 @@ export function FieldMemoryGlance({ limit = 3 }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!_hasAnyPortalToken()) { setLoaded(true); return; }
+      if (!hasAnyPortalAuthToken()) { setLoaded(true); return; }
       try {
         const res = await fetch(
           `${API}/api/field-memory/recent?limit=${encodeURIComponent(limit)}`,
-          { headers: _portalHeaders() },
+          {
+            headers: _portalHeaders(),
+            cache: "no-store",
+          },
         );
         if (!res.ok) { if (!cancelled) { setLoaded(true); setItems([]); } return; }
         const body = await res.json();
@@ -106,7 +82,7 @@ export function FieldMemoryGlance({ limit = 3 }) {
   }, [limit]);
 
   // Hide entirely if no portal token at all (logged-out edge cases).
-  if (!_hasAnyPortalToken()) return null;
+  if (!hasAnyPortalAuthToken()) return null;
   // Until the first fetch resolves, render nothing (calm · no skeleton).
   if (!loaded) return null;
   // iter504 · OMEGA Dispatch Production Readiness Sprint:

@@ -56,7 +56,29 @@ describe("portal auth scoping", () => {
       ),
     );
     expect(headers["X-Dispatch-Token"]).toBe("dispatch-token");
-    expect(headers["X-Directory-Token"]).toBeUndefined();
+    expect(headers["X-Directory-Token"]).toBe("directory-token");
     expect(headers["X-Admin-Token"]).toBeUndefined();
+  });
+
+  test("maintainx defect coverage inherits the active portal token", () => {
+    expect(
+      inferPortalsForApiPath(
+        "/api/integrations/maintainx/defect-coverage?sample_limit=1&since_days=60",
+        "dispatch",
+      ),
+    ).toEqual(["dispatch"]);
+
+    const dispatchHeaders = buildScopedPortalAuthHeaders(
+      inferPortalsForApiPath(
+        "/api/integrations/maintainx/defect-coverage?sample_limit=1&since_days=60",
+        "dispatch",
+      ),
+    );
+    expect(dispatchHeaders["X-Dispatch-Token"]).toBe("dispatch-token");
+    expect(dispatchHeaders["X-Admin-Token"]).toBeUndefined();
+  });
+
+  test("field memory recent inherits the active portal token", () => {
+    expect(inferPortalsForApiPath("/api/field-memory/recent?limit=3", "dispatch")).toEqual(["dispatch"]);
   });
 });
