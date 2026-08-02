@@ -898,7 +898,7 @@ export function UploadCertificationDialog({ open, onOpenChange, asset, onUploade
         <DialogHeader><DialogTitle>{t("Upload Certification")} · {asset.asset_id}</DialogTitle></DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
-            <Label className="text-xs font-bold">{t("Certification Type")}</Label>
+            <Label className="text-xs font-bold">{t("Record Type")}</Label>
             <Select value={form.kind} onValueChange={(v) => setForm({ ...form, kind: v })}>
               <SelectTrigger data-testid="cert-type"><SelectValue /></SelectTrigger>
               <SelectContent>{CERTIFICATION_KINDS.map((k) => <SelectItem key={k} value={k}>{t(k)}</SelectItem>)}</SelectContent>
@@ -924,7 +924,7 @@ export function UploadCertificationDialog({ open, onOpenChange, asset, onUploade
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t("Cancel")}</Button>
           <Button onClick={go} disabled={saving} className="bg-cyan-700 hover:bg-cyan-800" data-testid="cert-save">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("Upload Certification")}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("Upload Record")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -961,11 +961,11 @@ export function CertificationsPanel({ asset, onChange }) {
   }, [asset.asset_id, reloadKey]);
   const refresh = () => { setReloadKey((k) => k + 1); onChange?.(); };
   async function revoke(c) {
-    const reason = window.prompt(t("Reason for revoking this certification?"));
+    const reason = window.prompt(t("Reason for removing this record?"));
     if (!reason) return;
     try {
       await api.post(`/trench-safety/assets/${asset.asset_id}/certifications/${c.id}/revoke`, { reason });
-      toast.success(t("Certification revoked."));
+      toast.success(t("Record removed."));
       refresh();
     } catch (e) { toast.error(extractErr(e, t("Revoke failed."))); }
   }
@@ -973,7 +973,7 @@ export function CertificationsPanel({ asset, onChange }) {
     <section className="bg-white border border-slate-200 rounded-md p-4" data-testid="certifications-panel">
       <div className="flex items-center justify-between mb-2">
         <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold inline-flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5" /> {t("Certifications")}
+          <Calendar className="w-3.5 h-3.5" /> {t("Compliance Records")}
         </div>
         <Button size="sm" variant="outline" onClick={() => setOpenUpload(true)} data-testid="upload-cert-btn">
           <Plus className="w-3 h-3 mr-1" /> {t("Upload")}
@@ -982,7 +982,7 @@ export function CertificationsPanel({ asset, onChange }) {
       {loading ? (
         <div className="text-xs text-slate-400 py-2">{t("Loading…")}</div>
       ) : items.length === 0 ? (
-        <div className="text-xs text-slate-400 py-2" data-testid="certs-empty">{t("No certifications on file.")}</div>
+        <div className="text-xs text-slate-400 py-2" data-testid="certs-empty">{t("No compliance records on file.")}</div>
       ) : (
         <ul className="divide-y divide-slate-100 text-sm">
           {items.map((c) => {
