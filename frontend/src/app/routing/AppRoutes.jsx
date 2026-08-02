@@ -654,7 +654,7 @@ export function AppRoutes() {
                 /daily/new) AND redirected here so any legacy nav, poster,
                 or bookmarked URL still lands on the canonical V3 form. */}
             <Route path="/daily-reports" element={AP(<DailyReportsDashboard />)} />
-            <Route path="/daily-reports/:id" element={<RedirectWithId base="/pm/daily" />} />
+            <Route path="/daily-reports/:id" element={<RedirectDailyReportDetailAlias />} />
             <Route path="/safety/jha" element={<Navigate to="/jha" replace />} />
             <Route path="/safety/trench-boxes" element={<Navigate to="/trench-boxes" replace />} />
             {/* Phase 3 · Trench Safety inside the Safety portal */}
@@ -1402,5 +1402,18 @@ function RedirectWithId({ base }) {
   // discards the caller's navigation context (used by PM photo lightbox
   // to set `{from:"pm-photos"}` so the daily-report back button can
   // return to /pm/command-center).
+  return <Navigate to={`${base}/${id}`} replace state={window.history.state?.usr} />;
+}
+
+function RedirectDailyReportDetailAlias() {
+  const id = window.location.pathname.split("/").filter(Boolean).pop();
+  let base = "/pm/daily";
+  try {
+    const hasAdmin = !!window.localStorage.getItem("masci.admin.token");
+    const hasPm = !!window.localStorage.getItem("masci.pm.token");
+    base = hasAdmin ? "/admin/daily" : hasPm ? "/pm/daily" : "/pm/daily";
+  } catch {
+    base = "/pm/daily";
+  }
   return <Navigate to={`${base}/${id}`} replace state={window.history.state?.usr} />;
 }

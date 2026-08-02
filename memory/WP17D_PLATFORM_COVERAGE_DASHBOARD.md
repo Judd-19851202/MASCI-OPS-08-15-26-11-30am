@@ -1,6 +1,6 @@
 # WP-17D Platform Coverage Dashboard
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
 
 ## Governing Denominator
 - Total audited surfaces: **1,193 / 1,193** discovered in `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv`
@@ -86,14 +86,15 @@ Last updated: 2026-08-01
 
 ## Route-to-Entry Reachability Snapshot
 - `DISCOVERED_ENTRY_REVIEW_PENDING`: **335**
-- `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **100**
-- `DISCOVERED_ALIAS`: **48**
+- `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **98**
+- `DISCOVERED_ALIAS`: **37**
 - `DISCOVERED_INDEX_ROUTE_REVIEW_PENDING`: **1**
+- `PROVEN_REDIRECT`: **13**
 
 ## Hidden Surface Disposition Snapshot
 - `EXPOSED_OR_NAV_REVIEW`: **335**
-- `JUSTIFIED_HIDDEN_REVIEW`: **100**
-- `REDIRECT`: **48**
+- `JUSTIFIED_HIDDEN_REVIEW`: **98**
+- `REDIRECT`: **50**
 
 ## Current Family Distribution in Reachability Ledger
 - Administration: **147** routes
