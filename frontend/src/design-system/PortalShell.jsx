@@ -277,7 +277,7 @@ export function PortalShell({
         testIdPrefix="ds-portal-shell"
       />
 
-      <section className="wp16-shell-main wp16-mobile-safe flex-1">
+      <section className="wp16-shell-main wp16-mobile-safe flex-1 overflow-x-hidden">
         <div className="mx-auto max-w-[var(--content-max-width)] px-4 sm:px-6">
           <div className={sideNav ? "wp16-grid-columns--shell" : "min-w-0"}>
             {sideNav ? (
@@ -290,7 +290,7 @@ export function PortalShell({
               </aside>
             ) : null}
 
-            <div className="min-w-0">
+            <div className="min-w-0 overflow-x-hidden">
               {hasWorkflowContext ? (
                 <div className="wp16-shell-page-header wp16-shell-workflow-context" data-testid="ds-portal-shell-page-header">
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
