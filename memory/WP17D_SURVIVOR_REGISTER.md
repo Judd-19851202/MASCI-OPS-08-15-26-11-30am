@@ -66,6 +66,7 @@ These counts are used to choose the next engineering wave from the currently act
 ## Recently Cleared In This Wave
 - Shared auth/session survivor class cleared for the 54-route `BLOCKED_CREDENTIALS` set; all consumers moved to `REPAIRED_NOT_CERTIFIED` or better after shared portal-session proof in `iteration_107`
 - Shared admin-shell localization wave landed across header/search/switcher/profile/sidebar/mobile chrome; `/admin/daily`, `/admin/daily/:id`, and `/admin/executive-overview` now carry current EN/ES route evidence
+- Active admin closure wave converted the full 18-route `OPENED_NOT_AUDITED` admin batch into exact dispositions (6 `CERTIFIED`, 12 `AUDITED_DEFECTS_FOUND`) while recertifying `/admin/transportation/*` and `/admin/platform-readiness`
 - Login-route survivors cleared to certified candidates and then certified where proof was complete: `/pm/login`, `/shop/login`, `/hr/login`, `/dispatch-portal/login`, `/safety-portal/login`, `/safety/forms/login`
 - Admin-shell batch audit opened 18 additional admin consumers and certified `/admin/platform-overview` as a redirect alias to `/admin`
 - Auth convergence survivors cleared: safety forgot/reset/change, HR reset, dispatch reset/change, shop reset/change, PM change, dev login
@@ -82,4 +83,4 @@ These counts are used to choose the next engineering wave from the currently act
 - The ledger counts are the authoritative platform-wide denominator counts.
 - The active-route scan is the engineering work queue for the next survivor hunt.
 - A surface is not complete until it passes functional, responsive, visual, and executive certification.
-- Current authoritative route-classification pending total: **415** across the 484-route denominator after the 2026-08-02 auth/admin-shell reconciliation wave.
+- Current authoritative route-classification pending total: **403** across the 484-route denominator after the 2026-08-02 admin-closure batch.

@@ -1883,6 +1883,8 @@ const ES = {
   "Loading Mission Control…": "Cargando Control de Misión…",
   "Mission Control is temporarily unavailable.": "Control de Misión no está disponible temporalmente.",
   "No transportation activity in the last 24 hours.": "No hubo actividad de Transporte en las últimas 24 horas.",
+  "Audit timeline is available in Admin oversight. Dispatch users stay focused on live operations here.":
+    "La cronología de auditoría está disponible en la supervisión de Administración. Los usuarios de despacho se mantienen enfocados aquí en las operaciones en vivo.",
   "Open Dispatch": "Abrir Despacho",
   "Open Drivers": "Abrir Conductores",
   "Open Carriers": "Abrir Transportistas",

@@ -165,6 +165,9 @@
   - new direct route certifications landed in this execution wave: `/pm/login`, `/shop/login`, `/hr/login`, `/dispatch-portal/login`, `/safety-portal/login`, `/safety/forms/login`, `/admin/executive-overview`, and `/admin/daily`; `/admin/platform-overview` was additionally dispositioned as a redirect alias to `/admin`
   - shared admin-shell localization now covers the canonical header, portal shell, mobile navigation, admin sidebar, command palette, portal switcher, global search, notification bell, breadcrumbs, and admin route wrappers; Daily + Executive admin surfaces now inherit the repaired Spanish shell chrome instead of route-local patching
   - mass audit resumed in-family after the shell repair: 18 admin-shell consumers were opened in one batch and moved from `DISCOVERED_NOT_OPENED` to `OPENED_NOT_AUDITED` so the untouched backlog is now actively reduced instead of left dormant
+  - active admin closure wave then consumed that opened queue instead of expanding it: `/admin/transportation/*` and `/admin/platform-readiness` were recertified, 18 admin-open consumers were fully dispositioned (6 certified / 12 exact defects), and the admin-open backlog fell from `44` to `26`
+  - repaired-route movement resumed in the same batch: `/transportation-operations/*`, `/field`, `/field/calculators`, and `/equipment/new` are now certified from fresh ES + responsive proof, while `/daily/submit` and `/pm/photos` were moved to `AUDITED_DEFECTS_FOUND` with exact mixed-language defects recorded
+  - `auto_frontend_testing_agent` batch-audited 21 admin routes in Spanish at desktop/mobile after the transport/readiness fixes; that evidence now drives the authoritative route dispositions instead of leaving the batch in `OPENED_NOT_AUDITED`
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
@@ -177,6 +180,7 @@
 - Propagate the new shared card / button / badge / section-heading / state primitives across the platform in the approved rollout order: Field Operations → Transportation → Safety → QA/QC → Shop → Project Management → Human Resources → Administration.
 - Continue the active **Field Operations** wave through the remaining submit/review/detail interiors so the full field family inherits the elite shared polish standard, then begin **Transportation** using the now-locked Field standard.
 - Finish the remaining Field review/detail interiors still carrying legacy layout or helper drift, then move immediately into **Transportation** with the same locked shared form/header/card/button standard.
+- Before opening new untouched routes, keep consuming the active ledger queues in order: finish `/admin/photos`, close the 57 remaining `REPAIRED_NOT_CERTIFIED` rows, then keep draining the 26 `OPENED_NOT_AUDITED` routes through shared chrome/button/select fixes instead of route-local patches.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
 - Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.
