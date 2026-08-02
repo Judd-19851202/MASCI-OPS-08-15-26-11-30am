@@ -63,6 +63,7 @@ Last updated: 2026-08-02
 - Existing route entries with `HIDDEN` disposition in the locked ledger: **44**
 
 ## Current Executive Certification Status
+- 2026-08-02 Runtime first-pass audit artifact created: `/app/memory/WP17D_RUNTIME_FIRST_PASS_AUDIT.csv` (101 opened surfaces across Transportation, Safety, Shop, PM, HR, Administration, and redirect-reconciliation lanes).
 - Platform discovery complete: **No**
 - Route discovery confidence = 100%: **Yes**
 - Hidden-surface discovery confidence = 100%: **Yes**
@@ -85,11 +86,11 @@ Last updated: 2026-08-02
   - `source_line`
 
 ## Route-to-Entry Reachability Snapshot
-- `DISCOVERED_ENTRY_REVIEW_PENDING`: **335**
+- `DISCOVERED_ENTRY_REVIEW_PENDING`: **322**
 - `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **98**
-- `DISCOVERED_ALIAS`: **37**
+- `DISCOVERED_ALIAS`: **24**
 - `DISCOVERED_INDEX_ROUTE_REVIEW_PENDING`: **1**
-- `PROVEN_REDIRECT`: **13**
+- `PROVEN_REDIRECT`: **26**
 
 ## Hidden Surface Disposition Snapshot
 - `EXPOSED_OR_NAV_REVIEW`: **335**

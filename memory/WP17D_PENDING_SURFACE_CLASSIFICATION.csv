@@ -2,24 +2,24 @@ route,family,classification_status,rationale
 /,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /revise/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/forms/login,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/forms,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/forms/equipment-issuance/new,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms/login,Safety Operations,AUDITED_DEFECTS_FOUND,First-pass audit: login surface loads but seeded safety credential did not advance into the portal; runtime failures visible.
+/safety/forms,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: forms route redirects to safety login; seeded preview safety credential did not establish a session.
+/safety/forms/equipment-issuance/new,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: issuance entry redirects to safety login; seeded preview safety credential did not establish a session.
 /safety/forms/equipment-issuance/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
 /safety/forms/equipment-issuance/:id/return,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/forms/equipment-training/new,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms/equipment-training/new,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: training entry redirects to safety login; seeded preview safety credential did not establish a session.
 /safety/forms/equipment-training/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
-/safety/cards,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
+/safety/cards,Safety Operations,AUDITED_DEFECTS_FOUND,"First-pass audit: public safety cards route loads, but hero/icon and request-failure survivors remain open."
 /field,Shared Operational Home and Public Entry,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
 /field/calculators,Shared Operational Home and Public Entry,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
 /qaqc,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /qa-qc,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /qaqc/:slug/new,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /qaqc/:id,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/admin/qaqc,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/transportation/*,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/transportation-operations/*,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/admin/photos,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/qaqc,Administration,OPENED_NOT_AUDITED,First-pass audit: route loads in admin shell with readable title; deeper visual/functional audit still pending.
+/admin/transportation/*,Administration,AUDITED_DEFECTS_FOUND,"First-pass audit: admin transportation loads, but transportation academy canonical path discrepancy and deeper shell/hero audit remain open."
+/transportation-operations/*,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit across 16 canonical transportation subroutes: direct transportation routes redirect to shared sign-in instead of entering a dispatch-authenticated shell with seeded preview credentials.
+/admin/photos,Administration,AUDITED_DEFECTS_FOUND,First-pass audit: route loads under admin shell but title hierarchy is still weak and follow-up audit remains open.
 /constraints,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /constraints/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /constraints/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -28,7 +28,7 @@ route,family,classification_status,rationale
 /leadership/records,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /leadership/records/:id,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /leadership/:kind/new,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/inspections/new,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/inspections/new,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
 /inspect/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /inspections/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -52,7 +52,7 @@ route,family,classification_status,rationale
 /near-miss,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /safety/cases/:caseId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety/incidents/:caseId/thread,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/executive-intelligence,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/executive-intelligence,Safety Operations,AUDITED_DEFECTS_FOUND,"First-pass audit: route loads, but shell detection failed and visible executive dashboard hierarchy requires follow-up audit."
 /safety/cases/:caseId/reports/:reportType,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety/cases/:caseId/executive-report,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
@@ -72,27 +72,27 @@ route,family,classification_status,rationale
 /daily-reports/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-reports,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /daily-reports/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/safety/jha,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/safety/trench-boxes,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/safety/trench-safety,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/trench-safety/assets,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/jha,Safety Operations,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/safety/trench-boxes,Safety Operations,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/safety/trench-safety,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
+/safety/trench-safety/assets,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
 /safety/trench-safety/assets/:assetId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety/trench-safety/tabulated-data,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/trench-safety/reports,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/trench-safety/excavations,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/tabulated-data,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
+/safety/trench-safety/reports,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
+/safety/trench-safety/excavations,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
 /admin/trench-safety/excavations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /trench-safety/excavation/new,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/safety/trench-safety/repair-review,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety/trench-safety/field-reports,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/repair-review,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
+/safety/trench-safety/field-reports,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login; seeded preview safety credential did not establish a session.
 /safety-portal/trench-safety,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /safety-portal/trench-safety/assets,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /safety-portal/trench-safety/tabulated-data,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /app/*,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /admin/login,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/hub_v1,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/hub_v2,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/executive-overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/hub_v1,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/admin/hub_v2,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/admin/executive-overview,Administration,AUDITED_DEFECTS_FOUND,First-pass audit: route loads under admin shell but h1/title hierarchy and repeated failed requests require follow-up.
 /admin/executive-intelligence,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/material-ledger-quality,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/people,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -141,7 +141,7 @@ route,family,classification_status,rationale
 /admin/profile,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/operations-events,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/digest-config,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/operational-intelligence,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operational-intelligence,Administration,OPENED_NOT_AUDITED,First-pass audit: route loads in admin shell with readable title; deeper visual/functional audit still pending.
 /admin/operational-intelligence/recipients,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/system-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/audit-log,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -216,17 +216,17 @@ route,family,classification_status,rationale
 /admin/leadership/records/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/safety/issuance/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/safety/training/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/pm/login,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/login,Project Management,AUDITED_DEFECTS_FOUND,"First-pass audit: PM login surface loads, but seeded PM credential on /pm/login did not advance into the portal even though API-based PM auth exists elsewhere."
 /pm/reset/:token,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/change-password,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/hub,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/hub_legacy,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/hub_v2,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/hub_v2,Project Management,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to PM login with seeded preview PM credential unable to establish session through the UI login route.
 /pm/holds,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/due-today,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/crew-compliance,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/jobs,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/jobs,Project Management,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to PM login with seeded preview PM credential unable to establish session through the UI login route.
 /pm/job/:projectNumber/team,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/project-staffing,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/project-schedule,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -246,8 +246,8 @@ route,family,classification_status,rationale
 /admin/vendors/:vendorId/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/assets/:assetRef/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/posters,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/qaqc,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/photos,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/qaqc,Project Management,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to PM login with seeded preview PM credential unable to establish session through the UI login route.
+/pm/photos,Project Management,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to PM login with seeded preview PM credential unable to establish session through the UI login route.
 /pm/daily,Project Management,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
 /pm/daily/:id,Project Management,CERTIFIED,Ledger row already carries certification evidence.
 /pm/incidents,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -258,42 +258,42 @@ route,family,classification_status,rationale
 /pm/inspections/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/jha-plans,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-boxes,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/pm/equipment,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/equipment,Project Management,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to PM login with seeded preview PM credential unable to establish session through the UI login route.
 /pm/equipment/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/pm/trench-safety,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/trench-safety,Project Management,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to PM login with seeded preview PM credential unable to establish session through the UI login route.
 /pm/trench-safety/assets,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-safety/assets/:assetId,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/trench-safety/tabulated-data,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-safety/reports,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/trench-safety/excavations,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/login,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/login,Shop Operations,AUDITED_DEFECTS_FOUND,First-pass audit: login surface loads but seeded shop credential did not advance into the portal; repeated failed requests visible.
 /shop/reset/:token,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /shop/change-password,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /shop/hub_legacy,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/hub_v2,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/asset-care,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/manager/queue,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/me,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/units/history,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/hub_v2,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/asset-care,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/manager/queue,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/me,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/units/history,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /shop/units/:unitNumber/history,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/fuel-lube/new,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/fuel-lube,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/fuel-lube/new,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/fuel-lube,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /shop/fuel-lube/:visitId,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/service-truck-reconciliation/new,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/service-truck-reconciliation,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/service-truck-reconciliation/new,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/service-truck-reconciliation,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /shop/service-truck-reconciliation/:recId,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/pm,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/pm/templates,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/pm/schedules,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/pm/work-orders,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/pm,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/pm/templates,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/pm/schedules,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/pm/work-orders,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /shop/pm/work-orders/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/trench-safety-repairs,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/shop/fleet,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/trench-safety-repairs,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
+/shop/fleet,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /fleet/unit/:unit_number,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/shop/equipment,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/equipment,Shop Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to shop login with seeded preview shop credential unable to establish session.
 /shop/equipment/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/hr/login,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/login,Human Resources,AUDITED_DEFECTS_FOUND,"First-pass audit: HR login surface loads, but seeded HR credential on /hr/login did not advance into the portal."
 /sign-in,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /change-password,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/forgot,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -301,18 +301,18 @@ route,family,classification_status,rationale
 /hr/change-password,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/hub_legacy,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/hub_v2,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/hub_v2,Human Resources,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to HR login with seeded preview HR credential unable to establish session.
 /hr/field-leadership,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/field-leadership-users,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/employee-accountability,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/time-verification,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/time-off,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/payroll-variance,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/training-records,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/training-records,Human Resources,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to HR login with seeded preview HR credential unable to establish session.
 /hr/qualifications,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver-qualification,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver-qualification/import,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/hr/daily-reports,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/daily-reports,Human Resources,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to HR login with seeded preview HR credential unable to establish session.
 /hr/daily-reports/:id,Human Resources,CERTIFIED,Ledger row already carries certification evidence.
 /hr/motive-drivers,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/driver/:driverKey,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -322,20 +322,20 @@ route,family,classification_status,rationale
 /field-leadership/portal/dashboard,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /field-leadership/portal,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /field-leadership/portal/driver-qualification,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/login,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/login,Safety Operations,AUDITED_DEFECTS_FOUND,First-pass audit: login surface loads but seeded safety credential did not advance into the portal.
 /safety-portal/forgot-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/reset/:token,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety-portal/change-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
 /safety-portal/hub_legacy,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/hub_v2,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/fleet,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/fleet,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
 /safety-portal/corrective-actions,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/fire-extinguishers,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/fire-extinguishers/import,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/documents,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/training,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/incidents,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/training,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
+/safety-portal/incidents,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
 /safety-portal/incidents/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety-portal/meetings/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety-portal/audits,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -344,25 +344,25 @@ route,family,classification_status,rationale
 /safety-portal/library,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/employees,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /safety-portal/digest,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/safety-portal/inspections,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/inspections,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
 /safety-portal/inspections/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/safety-portal/jha-plans,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/jha-plans,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
 /safety-portal/driver/:driverKey,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/hr/safety-records,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/login,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/safety-records,Human Resources,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to HR login with seeded preview HR credential unable to establish session.
+/dispatch-portal/login,Transportation Operations,AUDITED_DEFECTS_FOUND,First-pass audit: route loads but seeded dispatch credential did not reach an authenticated shell; repeated failed requests visible on login surface.
 /leadership/login,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /dispatch-portal/forgot-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /dispatch-portal/reset/:token,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /dispatch-portal/change-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
 /dispatch-portal/hub_legacy,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/hub_v2,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/board,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/command,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/fleet,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/map,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/haul-ledger,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/dispatch-portal/driver-qualification,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/hub_v2,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
+/dispatch-portal/board,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
+/dispatch-portal/command,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
+/dispatch-portal/fleet,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
+/dispatch-portal/map,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
+/dispatch-portal/haul-ledger,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
+/dispatch-portal/driver-qualification,Transportation Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects back to dispatch login with seeded preview dispatch credential unable to establish session.
 /dispatch-portal/driver/:driverKey,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /training,"Training, Guidance, and Coaching",DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /training-hub,"Training, Guidance, and Coaching",OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
@@ -371,7 +371,7 @@ route,family,classification_status,rationale
 /training/:track/packet,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/training-videos,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/deploy-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/platform-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/platform-readiness,Administration,AUDITED_DEFECTS_FOUND,First-pass audit: route loads under admin shell but title hierarchy is still weak and follow-up audit remains open.
 /admin/wp17d-certification,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /ops-training,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /ops-training/:slug,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
@@ -386,7 +386,7 @@ route,family,classification_status,rationale
 /incidents/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /daily,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/safety-portal/meetings,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/meetings,Safety Operations,BLOCKED_CREDENTIALS,First-pass audit: route redirects to safety login with seeded preview safety credential unable to establish session.
 /admin/daily-reports,Administration,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /admin/trench-safety-assets,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /legal/terms,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -407,8 +407,8 @@ route,family,classification_status,rationale
 /project-health,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /asset-transfers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /access-denied,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/audit,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/health,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/audit,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/admin/health,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /d/:token,Field Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /driver,Field Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /shift,Field Operations,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
@@ -434,16 +434,16 @@ route,family,classification_status,rationale
 /daily/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-report/v1,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-report/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/pm/operational-intelligence,Project Management,CERTIFIED,Ledger row already carries certification evidence.
-/admin/ods-intelligence,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/pm/operational-intelligence,Project Management,AUDITED_DEFECTS_FOUND,"First-pass audit: route loads directly with shell and ES toggle, but request failures remain and deeper audit is still needed."
+/admin/ods-intelligence,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /executive/ods-intelligence,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/occ,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/executive,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/executive-dashboard,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/executive,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/occ,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/executive,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/executive-dashboard,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/admin/executive,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /fleet,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/ai,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/storage,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/ai,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
+/admin/storage,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /fl,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 *,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 (index),Transportation Operations,OPENED_NOT_AUDITED,Index-style route exists and needs route-level visual/functional audit.
