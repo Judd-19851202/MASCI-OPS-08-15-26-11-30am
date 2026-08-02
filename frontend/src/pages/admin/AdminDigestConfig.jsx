@@ -67,8 +67,8 @@ export default function AdminDigestConfig() {
       if (r.data.sent) {
         toast.success(`Sent to ${r.data.sent_to.length} recipient(s)`);
       } else {
-        toast.message("Preview-only mode", {
-          description: "AUTO_EMAIL_REPORTS is off — payload computed but no email sent. Enable in env to deliver.",
+        toast.message("Test mode", {
+          description: "Email delivery is off — the digest was prepared but not sent. Turn on delivery when you are ready.",
         });
       }
       await load();
@@ -80,10 +80,10 @@ export default function AdminDigestConfig() {
   const preview = async () => {
     try {
       const r = await api.get("/safety/digest/preview");
-      setPreviewHtml(r.data?.html || `<p>${t("No preview available.")}</p>`);
+      setPreviewHtml(r.data?.html || `<p>${t("No message review available.")}</p>`);
       setShowPreview(true);
     } catch (e) {
-      toast.error(operationalError(e, "Preview failed"));
+      toast.error(operationalError(e, "Message review failed"));
     }
   };
 
@@ -91,7 +91,7 @@ export default function AdminDigestConfig() {
     return (
       <LegacyAdminModernShell
         title={t("Digest Schedule")}
-        subtitle={t("Weekly digest recipients · schedule · preview · send.")}
+        subtitle={t("Weekly digest recipients · schedule · review · send.")}
         breadcrumb={[
           { label: t("Communications"), to: "/admin/communications" },
           { label: t("Digest Schedule") },
@@ -108,7 +108,7 @@ export default function AdminDigestConfig() {
   return (
     <LegacyAdminModernShell
       title={t("Digest Schedule")}
-      subtitle={t("Weekly digest recipients · schedule · preview · send.")}
+      subtitle={t("Weekly digest recipients · schedule · review · send.")}
       breadcrumb={[
         { label: t("Communications"), to: "/admin/communications" },
         { label: t("Digest Schedule") },
@@ -233,7 +233,7 @@ export default function AdminDigestConfig() {
             <strong className="uppercase tracking-[0.15em] text-slate-600">{t("Last run")}</strong>:{" "}
             {formatPlatformTime(cfg.last_run.at)} ·{" "}
             <span className={cfg.last_run.sent_to?.length ? "text-emerald-700" : "text-amber-700"}>
-              {cfg.last_run.sent_to?.length ? `${t("sent to")} ${cfg.last_run.sent_to.length}` : t("preview-only")}
+              {cfg.last_run.sent_to?.length ? `${t("sent to")} ${cfg.last_run.sent_to.length}` : t("prepared only")}
             </span>
             {cfg.last_run.errors?.length > 0 && (
               <span className="text-red-700"> · {cfg.last_run.errors.length} error(s)</span>
@@ -247,7 +247,7 @@ export default function AdminDigestConfig() {
             {saving ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />} {t("Save")}
           </Button>
           <Button onClick={preview} variant="outline" data-testid="digest-preview">
-            <Eye className="w-3.5 h-3.5 mr-1" /> {t("Preview")}
+            <Eye className="w-3.5 h-3.5 mr-1" /> {t("Review message")}
           </Button>
           <Button onClick={sendNow} disabled={sending || !cfg.enabled} className="bg-cyan-700 hover:bg-cyan-800 text-white" data-testid="digest-send-now">
             {sending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1" />} {t("Send Now")}
@@ -258,7 +258,7 @@ export default function AdminDigestConfig() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
             <div className="bg-white rounded-md max-w-2xl w-full max-h-[80vh] overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-display font-black text-lg">{t("Digest Preview")}</h2>
+                <h2 className="font-display font-black text-lg">{t("Digest Review")}</h2>
                 <Button size="sm" variant="outline" onClick={() => setShowPreview(false)}>{t("Close")}</Button>
               </div>
               <div dangerouslySetInnerHTML={{ __html: previewHtml }} />

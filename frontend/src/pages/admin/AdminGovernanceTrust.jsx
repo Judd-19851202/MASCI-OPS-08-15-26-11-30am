@@ -25,7 +25,7 @@ function _governance(probes) {
 }
 function _prod_cert(probes) {
   const p = probes.prod_cert;
-  if (!p?.ok) return { status: "unknown", summary: "Production certification unreachable.", evidence: { error: p?.error } };
+  if (!p?.ok) return { status: "unknown", summary: "Operations readiness is unavailable right now.", evidence: { error: p?.error } };
   const b = p.body || {};
   const band = String(b.platform_band || "").toLowerCase();
   const status = band === "green" || band === "healthy" ? "green"
@@ -68,12 +68,12 @@ function _version(probes) {
 }
 function _audit(probes) {
   const p = probes.audit;
-  if (!p?.ok) return { status: "unknown", summary: "Admin audit unreachable.", evidence: { error: p?.error } };
+  if (!p?.ok) return { status: "unknown", summary: "Activity history is unavailable right now.", evidence: { error: p?.error } };
   const entries = p.body?.entries || [];
-  if (!entries.length) return { status: "yellow", summary: "No admin audit entries in the recent window.", evidence: { entries } };
+  if (!entries.length) return { status: "yellow", summary: "No recent activity history entries were found.", evidence: { entries } };
   const latest = entries[0];
   return { status: "green",
-    summary: `Audit chain has recent activity · ${entries.length} entries in window`,
+    summary: `Activity history has recent movement · ${entries.length} entries in window`,
     checked_at: latest.ts || latest.at || null,
     evidence: { latest, count: entries.length } };
 }
@@ -114,8 +114,8 @@ function _unresolved_blockers(probes) {
 
 const manifest = {
   id: "governance-trust",
-  label: "Governance & Trust",
-  subtitle: "Production certification · governance rules · deploy readiness · audit trail.",
+  label: "Standards & Readiness",
+  subtitle: "Operations readiness · standards rules · go-live checks · activity history.",
   probes: [
     { id: "governance", path: "/admin/governance/summary" },
     { id: "prod_cert", path: "/admin/production-certification" },
@@ -125,45 +125,45 @@ const manifest = {
     { id: "trust_events", path: "/admin/occ/trust-events?limit=25" },
   ],
   cards: [
-    { id: "prod-certification", section: "certification", title: "Production Certification",
+    { id: "prod-certification", section: "readiness", title: "Operations Readiness",
       endpoint: "/api/admin/production-certification",
       drilldown: "/admin/governance", evaluator: _prod_cert },
-    { id: "deploy-readiness", section: "certification", title: "Deploy Readiness",
+    { id: "deploy-readiness", section: "readiness", title: "Go-Live Readiness",
       endpoint: "/api/admin/deploy-readiness",
       drilldown: "/admin/deploy-recovery", evaluator: _deploy },
-    { id: "unresolved-blockers", section: "certification", title: "Unresolved Deploy Blockers",
+    { id: "unresolved-blockers", section: "readiness", title: "Open Go-Live Blockers",
       endpoint: "/api/admin/occ/trust-events",
       drilldown: "/admin/deploy-recovery", evaluator: _unresolved_blockers },
-    { id: "governance-summary", section: "rules", title: "Governance Rules",
+    { id: "governance-summary", section: "rules", title: "Standards Rules",
       endpoint: "/api/admin/governance/summary",
       drilldown: "/admin/governance", evaluator: _governance },
     { id: "platform-version", section: "rules", title: "Platform Build & Uptime",
       endpoint: "/api/version", drilldown: "/admin/system-health", evaluator: _version },
-    { id: "admin-audit", section: "audit", title: "Admin Audit Freshness",
+    { id: "admin-audit", section: "activity", title: "Activity History Freshness",
       endpoint: "/api/admin/audit", drilldown: "/admin/audit-log", evaluator: _audit },
-    { id: "unified-trust-events", section: "audit", title: "Unified Trust Events (recent)",
+    { id: "unified-trust-events", section: "activity", title: "Recent Platform Events",
       endpoint: "/api/admin/occ/trust-events",
       drilldown: "/admin/audit-log", evaluator: _unified_trust_events },
   ],
   sections: [
-    { id: "certification", label: "Certification & Deploy", icon: ShieldCheck,
+    { id: "readiness", label: "Standards & Readiness", icon: ShieldCheck,
       cards: ["prod-certification", "deploy-readiness", "unresolved-blockers"] },
-    { id: "rules", label: "Governance Rules & Version", icon: ClipboardCheck,
+    { id: "rules", label: "Standards Rules & Version", icon: ClipboardCheck,
       cards: ["governance-summary", "platform-version"] },
-    { id: "audit", label: "Audit Trail", icon: History, cards: ["admin-audit", "unified-trust-events"] },
+    { id: "activity", label: "Activity History", icon: History, cards: ["admin-audit", "unified-trust-events"] },
   ],
   maintenance_actions: [
-    { id: "governance-admin", title: "Governance Admin",
+    { id: "governance-admin", title: "Standards Workspace",
       deep_link: "/admin/governance",
       description: "Rule library, findings triage, convergence trend.",
       never_touches: "Read-only until you resolve a finding." },
-    { id: "audit-log", title: "Audit Log",
+    { id: "audit-log", title: "Activity History",
       deep_link: "/admin/audit-log",
-      description: "Full admin audit chain (immutable, append-only).",
+      description: "Full admin activity timeline.",
       never_touches: "Read-only." },
-    { id: "deploy-recovery", title: "Deploy Recovery Playbook",
+    { id: "deploy-recovery", title: "Go-Live Recovery Playbook",
       deep_link: "/admin/deploy-recovery",
-      description: "Deploy readiness checklist + rollback playbook.",
+      description: "Go-live readiness checklist + rollback playbook.",
       never_touches: "Read-only until you run a checklist action." },
   ],
   trust_gaps: [
@@ -171,7 +171,7 @@ const manifest = {
       severity: "P1", owner: "platform-trust", target_track: "27.11", risk: "medium",
       current_status: "Local pytest only — CI status not surfaced in admin UI.", blocks_production: false },
   ],
-  source_endpoints_line: "/api/admin/production-certification · /api/admin/deploy-readiness · /api/admin/governance/summary · /api/version · /api/admin/audit · /api/admin/occ/trust-events",
+  source_endpoints_line: "Operations readiness service · go-live readiness service · standards summary · platform version · activity history · platform events",
 };
 
 export default function AdminGovernanceTrust() {

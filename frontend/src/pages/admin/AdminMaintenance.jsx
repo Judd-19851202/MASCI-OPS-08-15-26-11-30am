@@ -27,7 +27,7 @@ function _byCategory(probes, categories) {
 const manifest = {
   id: "maintenance",
   label: "Maintenance",
-  subtitle: "Every safe maintenance operation, grouped by domain. Actions run in OCC (dry-run first).",
+  subtitle: "Every safe maintenance operation, grouped by domain. Actions run in Operations Control after a review step.",
   probes: [
     { id: "occ", path: "/admin/operations-control/overview" },
   ],
@@ -80,11 +80,11 @@ const manifest = {
   maintenance_actions: [
     { id: "occ-console", title: "Full Maintenance Operations Console",
       deep_link: "/admin/operations-control",
-      description: "Every registered maintenance op with dry-run → apply → audit.",
-      never_touches: "Read-only until you dry-run + confirm." },
-    { id: "storage.safe_cleanup", title: "Run Safe Cleanup (dry-run)",
+      description: "Every registered maintenance task with review → apply → verify.",
+      never_touches: "Read-only until you review + confirm." },
+    { id: "storage.safe_cleanup", title: "Run Safe Cleanup (review first)",
       description: "Highlights the storage safe-cleanup card in OCC.",
-      never_touches: "Dry-run only until you enter the phrase and apply." },
+      never_touches: "Review first until you enter the phrase and apply." },
     { id: "backups.health", title: "Refresh Backup Health",
       description: "Highlights the backups.health probe in OCC.",
       never_touches: "Read-only probe." },
@@ -98,7 +98,7 @@ const manifest = {
       current_status: "Scheduler runs surfaced; general queue admin not.", blocks_production: false },
     { id: "gap-maint-history-summary", title: "Cross-domain maintenance history summary",
       severity: "P2", owner: "platform-trust", target_track: "27.13", risk: "low",
-      current_status: "Per-op audit only; no cross-domain roll-up.", blocks_production: false },
+      current_status: "Per-op review only; no cross-domain roll-up.", blocks_production: false },
   ],
   source_endpoints_line: "/api/admin/operations-control/overview (grouped by category)",
 };

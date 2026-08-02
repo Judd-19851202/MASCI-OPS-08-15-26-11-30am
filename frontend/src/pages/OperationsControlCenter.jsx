@@ -350,7 +350,7 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
             Record flow and message activity
           </h2>
           <p className="mt-2 text-sm text-slate-600" data-testid="occ-control-plane-registry-summary">
-            Track how work records, messages, and follow-up activity move through Operations Control without exposing internal platform terminology.
+            Track how work records, messages, and follow-up activity move through Operations Control without exposing technical system details.
           </p>
         </div>
       </div>

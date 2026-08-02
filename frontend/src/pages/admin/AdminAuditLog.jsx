@@ -25,6 +25,13 @@ const SOURCE_PILL = {
   integration_wizard_runs: "bg-amber-100 text-amber-900 border-amber-300",
 };
 
+const SOURCE_LABELS = {
+  audit_events: "Message activity",
+  admin_audit: "Admin activity",
+  operations_events: "Operations activity",
+  integration_wizard_runs: "Integration runs",
+};
+
 const PAGE_SIZE = 50;
 
 export default function AdminAuditLog() {
@@ -50,7 +57,7 @@ export default function AdminAuditLog() {
       const r = await api.get(`/admin/audit-log?${params.toString()}`);
       setData(r.data);
     } catch (e) {
-      toast.error(operationalError(e, "Failed to load audit log"));
+      toast.error(operationalError(e, "Failed to load activity history"));
     } finally { setLoading(false); }
   }, [action, actor, offset, q, source]);
 
@@ -67,11 +74,11 @@ export default function AdminAuditLog() {
 
   return (
     <LegacyAdminModernShell
-      title="Audit Log"
+      title="Activity History"
       subtitle="Cross-portal merged timeline of every action."
       breadcrumb={[
-        { label: "Governance & Trust", to: "/admin/governance-trust" },
-        { label: "Audit Log" },
+        { label: "Standards & Readiness", to: "/admin/governance-trust" },
+        { label: "Activity History" },
       ]}
       testidPrefix="admin-audit-log"
     >
@@ -84,10 +91,10 @@ export default function AdminAuditLog() {
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
               Unified Timeline
             </span>
-            <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">Audit Log</h1>
+            <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">Activity History</h1>
             <p className="text-sm text-slate-600 mt-1">
-              Merged feed across <em>audit_events</em>, <em>admin_audit</em>, <em>operations_events</em>,
-              and <em>integration_wizard_runs</em>. Read-only, paginated, filterable.
+              Merged feed across message activity, admin activity, operations activity,
+              and integration runs. Read-only, paginated, filterable.
             </p>
           </div>
         </div>
@@ -104,10 +111,10 @@ export default function AdminAuditLog() {
             <SelectTrigger className="h-9" data-testid="audit-source"><SelectValue placeholder="Source" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All sources</SelectItem>
-              <SelectItem value="audit_events">audit_events</SelectItem>
-              <SelectItem value="admin_audit">admin_audit</SelectItem>
-              <SelectItem value="operations_events">operations_events</SelectItem>
-              <SelectItem value="integration_wizard_runs">integration_wizard_runs</SelectItem>
+              <SelectItem value="audit_events">Message activity</SelectItem>
+              <SelectItem value="admin_audit">Admin activity</SelectItem>
+              <SelectItem value="operations_events">Operations activity</SelectItem>
+              <SelectItem value="integration_wizard_runs">Integration runs</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex gap-1">
@@ -133,7 +140,7 @@ export default function AdminAuditLog() {
           {loading && !data ? (
             <div className="text-center py-12 text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>
           ) : rows.length === 0 ? (
-            <p className="p-6 text-sm text-slate-500 italic text-center" data-testid="audit-empty">No audit events match these filters.</p>
+            <p className="p-6 text-sm text-slate-500 italic text-center" data-testid="audit-empty">No activity records match these filters.</p>
           ) : (
             <table className="w-full text-xs" data-testid="audit-table">
               <thead className="bg-slate-100 text-slate-700 font-mono uppercase tracking-[0.15em]">
@@ -159,7 +166,7 @@ export default function AdminAuditLog() {
                         <td className="px-3 py-2 truncate max-w-[14rem]">{r.target || "—"}</td>
                         <td className="px-3 py-2">
                           <span className={`px-1.5 py-0.5 rounded border text-[9px] font-mono uppercase tracking-[0.15em] font-bold ${SOURCE_PILL[r.source] || "bg-slate-100"}`}>
-                            {r.source}
+                            {SOURCE_LABELS[r.source] || r.source}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-right">
