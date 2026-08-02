@@ -22,6 +22,7 @@ import {
   Search, RefreshCcw,
 } from "lucide-react";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { useT } from "@/lib/i18n";
 // TRACK 18.00 · Phase F · Transportation Operations unified branding.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
@@ -55,6 +56,7 @@ const STATUS_TONE = {
 };
 
 function StatusChip({ value, testId }) {
+  const { t } = useT();
   const tone = STATUS_TONE[value] || STATUS_TONE.needs_review;
   const Icon = value === "verified" ? CheckCircle2 : (value === "missing_proof" ? AlertTriangle : FileCheck2);
   return (
@@ -63,7 +65,7 @@ function StatusChip({ value, testId }) {
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[11px] font-mono uppercase tracking-wide ${tone}`}
     >
       <Icon className="w-3 h-3" aria-hidden="true" />
-      {STATUS_LABEL[value] || value}
+      {t(STATUS_LABEL[value] || value)}
     </span>
   );
 }
@@ -87,6 +89,7 @@ function Rollup({ label, value, tone = "slate", testId }) {
 }
 
 export default function DispatchHaulLedger() {
+  const { t } = useT();
   // Default = last 7 days (today inclusive) — common Dispatch lookback.
   const [dateFrom, setDateFrom] = React.useState(daysAgoYyyyMmDd(6));
   const [dateTo, setDateTo] = React.useState(todayYyyyMmDd());
@@ -155,15 +158,15 @@ export default function DispatchHaulLedger() {
           className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          Back to Dispatch
+          {t("Back to Dispatch")}
         </Link>
         <Truck className="w-5 h-5 text-cyan-700 ml-2" aria-hidden="true" />
         <div>
           <h1 className="font-display text-base sm:text-lg font-bold text-slate-900" data-testid="dispatch-haul-ledger-title">
-            Haul Ledger
+            {t("Haul Ledger")}
           </h1>
           <p className="text-[11px] text-slate-500">
-            Company-wide material movement, loads, trucks, and scale-ticket proof. Companion view — the live map remains primary at <Link to="/dispatch-portal" className="underline">/dispatch-portal</Link>.
+            {t("Company-wide material movement, loads, trucks, and scale-ticket proof. Companion view — the live map remains primary at")} <Link to="/dispatch-portal" className="underline">/dispatch-portal</Link>.
           </p>
         </div>
         <button
@@ -171,7 +174,7 @@ export default function DispatchHaulLedger() {
           data-testid="dispatch-haul-ledger-refresh"
           className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 border border-slate-200 rounded px-2 py-1"
         >
-          <RefreshCcw className="w-3 h-3" aria-hidden="true" /> Refresh
+          <RefreshCcw className="w-3 h-3" aria-hidden="true" /> {t("Refresh")}
         </button>
       </header>
 
@@ -182,7 +185,7 @@ export default function DispatchHaulLedger() {
           className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-4"
         >
           <div className="flex flex-wrap gap-3 items-end">
-            <Field label="From" testId="dispatch-haul-ledger-from">
+            <Field label={t("From")} testId="dispatch-haul-ledger-from">
               <input
                 type="date"
                 value={dateFrom}
@@ -191,7 +194,7 @@ export default function DispatchHaulLedger() {
                 data-testid="dispatch-haul-ledger-from-input"
               />
             </Field>
-            <Field label="To" testId="dispatch-haul-ledger-to">
+            <Field label={t("To")} testId="dispatch-haul-ledger-to">
               <input
                 type="date"
                 value={dateTo}
@@ -200,48 +203,48 @@ export default function DispatchHaulLedger() {
                 data-testid="dispatch-haul-ledger-to-input"
               />
             </Field>
-            <Field label="Project #" testId="dispatch-haul-ledger-project">
+            <Field label={t("Project #")} testId="dispatch-haul-ledger-project">
               <input
                 type="text"
                 value={projectNumber}
                 onChange={(e) => setProjectNumber(e.target.value)}
-                placeholder="all"
+                placeholder={t("all")}
                 className="font-mono text-xs px-2 py-1 border border-slate-200 rounded bg-slate-50 w-28"
                 data-testid="dispatch-haul-ledger-project-input"
               />
             </Field>
-            <Field label="Material code" testId="dispatch-haul-ledger-material">
+            <Field label={t("Material code")} testId="dispatch-haul-ledger-material">
               <input
                 type="text"
                 value={materialCode}
                 onChange={(e) => setMaterialCode(e.target.value)}
-                placeholder="all"
+                placeholder={t("all")}
                 className="font-mono text-xs px-2 py-1 border border-slate-200 rounded bg-slate-50 w-28"
                 data-testid="dispatch-haul-ledger-material-input"
               />
             </Field>
-            <Field label="Truck" testId="dispatch-haul-ledger-truck">
+            <Field label={t("Truck")} testId="dispatch-haul-ledger-truck">
               <input
                 type="text"
                 value={truck}
                 onChange={(e) => setTruck(e.target.value)}
-                placeholder="all"
+                placeholder={t("all")}
                 className="font-mono text-xs px-2 py-1 border border-slate-200 rounded bg-slate-50 w-28"
                 data-testid="dispatch-haul-ledger-truck-input"
               />
             </Field>
-            <Field label="Verification" testId="dispatch-haul-ledger-verification">
+            <Field label={t("Verification")} testId="dispatch-haul-ledger-verification">
               <select
                 value={verification}
                 onChange={(e) => setVerification(e.target.value)}
                 className="font-mono text-xs px-2 py-1 border border-slate-200 rounded bg-slate-50"
                 data-testid="dispatch-haul-ledger-verification-select"
               >
-                <option value="">all</option>
-                <option value="verified">verified</option>
-                <option value="missing_proof">missing_proof</option>
-                <option value="partial">partial</option>
-                <option value="needs_review">needs_review</option>
+                <option value="">{t("all")}</option>
+                <option value="verified">{t("verified")}</option>
+                <option value="missing_proof">{t("missing_proof")}</option>
+                <option value="partial">{t("partial")}</option>
+                <option value="needs_review">{t("needs_review")}</option>
               </select>
             </Field>
             <button
@@ -249,11 +252,11 @@ export default function DispatchHaulLedger() {
               data-testid="dispatch-haul-ledger-apply"
               className="inline-flex items-center gap-1 text-xs bg-cyan-700 text-white rounded px-3 py-1.5 hover:bg-cyan-800"
             >
-              <Search className="w-3 h-3" aria-hidden="true" /> Apply
+              <Search className="w-3 h-3" aria-hidden="true" /> {t("Apply")}
             </button>
           </div>
           <p className="text-[10px] text-slate-500 font-mono mt-2">
-            Source: <code>/api/dispatch/haul-ledger</code> · derived view across haul_cycles · dispatch_assignments · operational_attachments · daily_reports. Max 90-day window. No fabricated quantities.
+            {t("Source:")} <code>/api/dispatch/haul-ledger</code> · {t("derived view across haul_cycles · dispatch_assignments · operational_attachments · daily_reports. Max 90-day window. No fabricated quantities.")}
           </p>
         </section>
 
@@ -263,32 +266,32 @@ export default function DispatchHaulLedger() {
             data-testid="dispatch-haul-ledger-rollups"
             className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-4"
           >
-            <Rollup testId="dispatch-haul-ledger-rollup-loads" label="Loads" value={rollups.loads_count ?? 0} />
-            <Rollup testId="dispatch-haul-ledger-rollup-cycles" label="Haul cycles" value={rollups.haul_cycles_count ?? 0} />
-            <Rollup testId="dispatch-haul-ledger-rollup-tickets" label="Scale tickets" value={rollups.scale_ticket_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-loads" label={t("Loads")} value={rollups.loads_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-cycles" label={t("Haul cycles")} value={rollups.haul_cycles_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-tickets" label={t("Scale tickets")} value={rollups.scale_ticket_count ?? 0} />
             <Rollup
               testId="dispatch-haul-ledger-rollup-missing"
-              label="Missing proof"
+              label={t("Missing proof")}
               value={rollups.missing_proof_count ?? 0}
               tone={(rollups.missing_proof_count ?? 0) > 0 ? "rose" : "slate"}
             />
             <Rollup
               testId="dispatch-haul-ledger-rollup-net-tons"
-              label="Net tons (tickets)"
+              label={t("Net tons (tickets)")}
               value={rollups.net_tons != null ? rollups.net_tons : "—"}
             />
-            <Rollup testId="dispatch-haul-ledger-rollup-projects" label="Projects" value={rollups.projects_count ?? 0} />
-            <Rollup testId="dispatch-haul-ledger-rollup-trucks" label="Trucks" value={rollups.trucks_count ?? 0} />
-            <Rollup testId="dispatch-haul-ledger-rollup-materials" label="Materials" value={rollups.materials_count ?? 0} />
-            <Rollup testId="dispatch-haul-ledger-rollup-dr-in" label="DR rows · in" value={rollups.dr_inbound_count ?? 0} />
-            <Rollup testId="dispatch-haul-ledger-rollup-dr-out" label="DR rows · out" value={rollups.dr_outbound_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-projects" label={t("Projects")} value={rollups.projects_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-trucks" label={t("Trucks")} value={rollups.trucks_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-materials" label={t("Materials")} value={rollups.materials_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-dr-in" label={t("DR rows · in")} value={rollups.dr_inbound_count ?? 0} />
+            <Rollup testId="dispatch-haul-ledger-rollup-dr-out" label={t("DR rows · out")} value={rollups.dr_outbound_count ?? 0} />
           </section>
         )}
 
         {/* Loading / Error / Empty */}
         {state.status === "loading" && (
           <p data-testid="dispatch-haul-ledger-loading" className="text-xs text-slate-500 mt-3">
-            Loading haul ledger…
+            {t("Loading haul ledger…")}
           </p>
         )}
         {state.status === "error" && (
@@ -296,7 +299,7 @@ export default function DispatchHaulLedger() {
             data-testid="dispatch-haul-ledger-error"
             className="mt-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2"
           >
-            Haul ledger feed unavailable ({state.err || "unknown"}). No data invented. Retry by changing the date range or clicking Apply.
+            {t("Haul ledger feed unavailable ({error}). No data invented. Retry by changing the date range or clicking Apply.").replace("{error}", state.err || t("unknown"))}
           </div>
         )}
         {state.status === "data" && rows.length === 0 && (
@@ -304,7 +307,7 @@ export default function DispatchHaulLedger() {
             data-testid="dispatch-haul-ledger-empty"
             className="mt-3 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded px-3 py-2"
           >
-            No haul ledger activity for this range.
+            {t("No haul ledger activity for this range.")}
           </div>
         )}
 
@@ -315,15 +318,15 @@ export default function DispatchHaulLedger() {
               <table className="w-full text-xs">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-2 py-2 text-left">Date</th>
-                    <th className="px-2 py-2 text-left">Project</th>
-                    <th className="px-2 py-2 text-left">Material</th>
-                    <th className="px-2 py-2 text-left">Truck</th>
-                    <th className="px-2 py-2 text-left">Driver</th>
-                    <th className="px-2 py-2 text-left">Source → Destination</th>
-                    <th className="px-2 py-2 text-right">Tickets</th>
-                    <th className="px-2 py-2 text-right">Net tons</th>
-                    <th className="px-2 py-2 text-left">Verification</th>
+                    <th className="px-2 py-2 text-left">{t("Date")}</th>
+                    <th className="px-2 py-2 text-left">{t("Project")}</th>
+                    <th className="px-2 py-2 text-left">{t("Material")}</th>
+                    <th className="px-2 py-2 text-left">{t("Truck")}</th>
+                    <th className="px-2 py-2 text-left">{t("Driver")}</th>
+                    <th className="px-2 py-2 text-left">{t("Source → Destination")}</th>
+                    <th className="px-2 py-2 text-right">{t("Tickets")}</th>
+                    <th className="px-2 py-2 text-right">{t("Net tons")}</th>
+                    <th className="px-2 py-2 text-left">{t("Verification")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -360,16 +363,16 @@ export default function DispatchHaulLedger() {
         {state.status === "data" && byProject.length > 0 && (
           <section className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mt-4" data-testid="dispatch-haul-ledger-by-project">
             <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-2">
-              By Project
+              {t("By Project")}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-2 py-1 text-left">Project #</th>
-                    <th className="px-2 py-1 text-right">Loads</th>
-                    <th className="px-2 py-1 text-right">Tickets</th>
-                    <th className="px-2 py-1 text-right">Missing proof</th>
+                    <th className="px-2 py-1 text-left">{t("Project #")}</th>
+                    <th className="px-2 py-1 text-right">{t("Loads")}</th>
+                    <th className="px-2 py-1 text-right">{t("Tickets")}</th>
+                    <th className="px-2 py-1 text-right">{t("Missing proof")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,15 +394,15 @@ export default function DispatchHaulLedger() {
         {state.status === "data" && byMaterial.length > 0 && (
           <section className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mt-4" data-testid="dispatch-haul-ledger-by-material">
             <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-2">
-              By Material
+              {t("By Material")}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-2 py-1 text-left">Material</th>
-                    <th className="px-2 py-1 text-right">Loads</th>
-                    <th className="px-2 py-1 text-right">Tickets</th>
+                    <th className="px-2 py-1 text-left">{t("Material")}</th>
+                    <th className="px-2 py-1 text-right">{t("Loads")}</th>
+                    <th className="px-2 py-1 text-right">{t("Tickets")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -424,7 +427,7 @@ export default function DispatchHaulLedger() {
             </p>
           )}
           <p data-testid="dispatch-haul-ledger-fleetwatcher-trust">
-            FleetWatcher not connected — ledger is currently based on MASCI daily reports, dispatch haul cycles, and scale-ticket attachments. No accounting, cost, or pay-quantity totals are computed by this surface.
+            {t("FleetWatcher not connected — ledger is currently based on MASCI daily reports, dispatch haul cycles, and scale-ticket attachments. No accounting, cost, or pay-quantity totals are computed by this surface.")}
           </p>
         </footer>
       </main>
