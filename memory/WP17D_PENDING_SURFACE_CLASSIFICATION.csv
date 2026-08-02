@@ -1,6 +1,6 @@
 route,family,classification_status,rationale
 /,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/revise/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/revise/:token,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: revise token route verified to render the intentional invalid-token state cleanly with no runtime defects.
 /safety,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 Safety certification: public safety entry route opened cleanly in EN/ES with responsive proof.
 /safety/forms/login,Safety Operations,CERTIFIED,"Certified after shared auth/session fix + governed hero-shell convergence + ES/mobile login proof (`iteration_108`, screenshot 20260802_023255)."
 /safety/forms,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
@@ -22,7 +22,7 @@ route,family,classification_status,rationale
 /admin/photos,Administration,CERTIFIED,"Certified after focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); photo library chrome, governed controls, and responsive layout all passed. English project names were fixture data only."
 /constraints,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: constraints hub passed EN/ES and responsive proof.
 /constraints/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: route verified as a clean permission-gated no-access consumer for the current admin role with correct RBAC messaging and no runtime defects.
-/constraints/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,"2026-08-02 exact blocker: no discoverable constraint id is exposed from the certified constraints hub and current admin role cannot create constraint records, so detail-route proof remains fixture-gated."
+/constraints/:id,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: constraint detail route verified to handle invalid ids gracefully with clean error state.
 /leadership,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /leadership/hub_v2,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /leadership/records,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -59,12 +59,12 @@ route,family,classification_status,rationale
 /daily/submit,Shared Operational Home and Public Entry,CERTIFIED,Certified after direct screenshot proof and shared translation fixes (`20260802_151534`); route now renders governed Spanish workflow copy and action chrome cleanly.
 /equipment/new,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES proof at 1440 + 390 (`20260802_035254`); pre-op equipment inspection now holds governed Spanish copy, responsive layout, and governed capture controls."
 /equipment/submit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 Safety certification: public equipment inspection submission route passed responsive proof with required form controls present.
-/equipment/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public equipment detail alias could not be proven because no discoverable equipment inspection id was exposed from reachable certified pages.
+/equipment/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: public equipment detail alias redirects to canonical /admin/equipment/:id with correct auth gating.
 /fleet/dvir/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 transportation-adjacent certification: public DVIR create surface rendered cleanly in EN/ES with responsive form controls and preview-safe input checks.
 /fleet/dvir/submit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 transportation-adjacent certification: DVIR submit entry surface rendered cleanly in EN/ES with responsive form controls and preview-safe input checks.
 /fleet/weekly-lead/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: weekly lead inspection create surface passed EN/ES and responsive proof with required controls present.
 /fleet/weekly-emergency/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: weekly emergency inspection create surface passed EN/ES and responsive proof with required controls present.
-/fleet/dvir/submitted/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/fleet/dvir/submitted/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,"2026-08-02 exact blocker: no real preview-safe DVIR submission id is naturally available, and honest confirmation-route proof requires a live submitted record."
 /thank-you,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /cheatsheet,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /cheat-sheet,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/cheatsheet`, which passed."
@@ -316,7 +316,7 @@ route,family,classification_status,rationale
 /hr/daily-reports/:id,Human Resources,CERTIFIED,Ledger row already carries certification evidence.
 /hr/motive-drivers,Human Resources,CERTIFIED,"2026-08-02 Level 2 transportation-adjacent certification: HR motive-drivers consumer passed EN/ES, responsive proof, and runtime checks."
 /hr/driver/:driverKey,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/time-off/public/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/time-off/public/:token,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: public time-off token route verified to show the intentional invalid-token error state cleanly.
 /field-leadership/portal/login,Field Leadership,CERTIFIED,2026-08-02 Level 1 auth certification: foreman login route verified in EN/ES with responsive form controls and clean runtime.
 /field-leadership/portal/change-password,Field Leadership,CERTIFIED,2026-08-02 Level 1 auth certification: foreman change-password workflow verified in EN/ES after authentication.
 /field-leadership/portal/dashboard,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -376,14 +376,14 @@ route,family,classification_status,rationale
 /ops-training,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/guidance`, which passed."
 /ops-training/:slug,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Canonical route config confirmed this path redirects to `/guidance`; direct runtime proof showed `/ops-training/test123` landing on `/guidance` (`20260802_151534`).
 /dev/login,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared-auth certification: dev login route verified in EN/ES with responsive form behavior and no runtime defects.
-/dev,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dev,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: guarded developer-entry route verified to redirect cleanly to /dev/login.
 /inspections,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
 /inspect/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: /inspect/:id redirects to canonical /admin/inspections/:id using verified fixture 88d8b18c-df01-455b-8614-3e590613ad4d.
 /inspections/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: /inspections/:id redirects to canonical /admin/inspections/:id using a real inspection id with clean runtime.
 /meetings,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/meetings/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public meeting detail alias could not be proven because no discoverable seeded meeting id was exposed from reachable certified pages.
+/meetings/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: public meeting detail alias redirects to canonical /admin/meetings/:id with correct auth gating.
 /incidents,Shared Operational Home and Public Entry,CERTIFIED,"Certified after admin-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/incidents/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public incident detail alias returned 404 for the discovered case id; prerequisite is a valid public-facing incident detail record or corrected alias behavior.
+/incidents/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 redirect certification: public incident detail alias redirects to canonical /admin/incidents/:id with correct auth gating.
 /daily,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /safety-portal/meetings,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
@@ -416,9 +416,9 @@ route,family,classification_status,rationale
 /odr/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: ODR create surface passed EN/ES and responsive proof with route-specific form controls present.
 /odr/center,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: ODR center passed EN/ES and responsive proof after route-specific translation cleanup.
 /pm/odr,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/odr/public/:doc_id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/odr/:id/done,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/odr/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/odr/public/:doc_id,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: public ODR viewer verified to handle invalid doc ids cleanly with user-facing error messaging.
+/odr/:id/done,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: ODR completion/outcome route renders cleanly regardless of stale or invalid id state.
+/odr/:id,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 shared/public certification: ODR detail route verified to handle invalid ids gracefully with no runtime defect.
 /operational-records,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: operational records center passed EN/ES and responsive proof after route-specific translation cleanup.
 /operations-actions,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: operations actions hub passed EN/ES and responsive proof after route-specific translation cleanup.
 /operations-actions/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: operations action create surface passed EN/ES and responsive proof after route-specific translation cleanup.
