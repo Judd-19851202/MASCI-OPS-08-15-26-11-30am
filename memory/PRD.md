@@ -191,6 +191,9 @@
   - new exact blocker classes were isolated instead of repeatedly retried: `/fleet/dvir/submitted/:id` remains fixture-gated, `/constraints/:id` is fixture-gated, `recommendations` and `forecast` are runtime-timeout blocked, and all `/_internal/*` preview-only routes are now explicitly blocked by developer-access gating rather than left ambiguous
   - route math after Shared/Public retirement: `CERTIFIED` **256**, `REDIRECT_CERTIFIED` **61**, `BLOCKED_FIXTURE_REQUIRED` **6**, `BLOCKED_DEV_ACCESS_DISABLED` **5**, `BLOCKED_RUNTIME_TIMEOUT` **2**, `DISCOVERED_NOT_OPENED` **115**, `UNTOUCHED` **39**, and remaining pending route count **167**
 
+-  - 2026-08-02 operator-language constitutional cleanup landed across Operations Control, Standards & Readiness, Maintenance, Activity History, Digest Schedule, shared admin navigation, portal continuity labels, and the readiness dashboard; operator-facing WP/certification/canonical/backend/frontend/mutation/runtime/preview/fixture/audit wording was replaced with business-language copy, internal controls were hidden or relabeled, and `/operations-control/cases*` now mount inside the MASCI shell with operator-safe case titles
+-  - a permanent banned-language baseline now exists in `/app/memory/OPERATOR_BANNED_LANGUAGE_REGISTER.md`, enforced by the updated `/app/scripts/wp17d_constitution_guard.py` operator-language scan and the shared `frontend/src/lib/operatorLanguage.js` sanitizers for dynamic case, trust, and activity content
+
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
 - No destructive redesign or whitewashed shell reset was introduced; the approved MASCI navy/frosted identity was preserved.
