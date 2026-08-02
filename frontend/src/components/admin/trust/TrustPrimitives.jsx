@@ -270,6 +270,9 @@ export function TruthOwnerPanel({
   const canonicalStatus = relationship?.canonical_status || "UNVERIFIABLE";
   const derivedStatus = relationship?.derived_status || canonicalStatus;
   const conflicts = relationship?.conflicts || [];
+  const primaryOwner = String(relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id || "")
+    .replace(/runtime state authority/gi, "current state authority")
+    .replace(/runtime_state_authority/gi, "current_state_authority");
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3" data-testid={testidPrefix}>
       <div className="flex flex-wrap items-center gap-2">
@@ -282,7 +285,7 @@ export function TruthOwnerPanel({
       <div className="grid gap-2 md:grid-cols-2 text-xs text-slate-600">
         <div data-testid={`${testidPrefix}-owner-endpoint`}><span className="font-semibold text-slate-800">{t("Owner endpoint:")}</span> {sanitizeOperatorReference(surface.owner_endpoint, "Linked service")}</div>
         <div data-testid={`${testidPrefix}-owner-module`}><span className="font-semibold text-slate-800">{t("Owner module:")}</span> {sanitizeOperatorReference(surface.owner_module, "Platform service")}</div>
-        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">Primary owner:</span> {sanitizeOperatorReference(relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id, "Primary source")}</div>
+        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">Primary owner:</span> {sanitizeOperatorReference(primaryOwner, "Primary source")}</div>
         <div data-testid={`${testidPrefix}-evidence-age`}><span className="font-semibold text-slate-800">{t("Evidence age:")}</span> {checkedAt || relationship?.evidence_age_source || "—"}</div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
