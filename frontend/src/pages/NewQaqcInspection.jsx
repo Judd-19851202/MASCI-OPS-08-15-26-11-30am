@@ -539,7 +539,7 @@ export default function NewQaqcInspection() {
             </Field>
           </Section>
 
-          <div className="sticky bottom-0 bg-white border-t-2 border-emerald-600 -mx-5 sm:-mx-8 px-5 sm:px-8 py-3 shadow-lg">
+          <div className="sticky bottom-0 bg-white border-t-2 border-emerald-600 px-0 py-3 shadow-lg">
             {data.photos.length < 4 && (
               <p
                 className="text-xs text-red-700 font-bold mb-2 text-right"
