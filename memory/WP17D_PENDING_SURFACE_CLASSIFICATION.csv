@@ -89,11 +89,11 @@ route,family,classification_status,rationale
 /safety-portal/trench-safety/tabulated-data,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /app/*,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Fallback alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); runtime redirects to canonical `/`, which passed."
 /admin/login,Administration,CERTIFIED,2026-08-02 Level 1 auth certification: admin login verified in EN/ES with responsive form behavior and clean runtime.
-/admin,Administration,CERTIFIED,"Certified after focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02) plus shared admin-shell translation convergence; admin landing now passes without English chrome or responsive drift."
+/admin,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/hub_v1,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/hub_v2,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/executive-overview,Administration,CERTIFIED,"Certified after shared admin-shell ES repair, executive reason localization, 390px proof, and no auth regressions (screenshots 20260802_025704, 20260802_025923)."
-/admin/executive-intelligence,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/executive-intelligence,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/material-ledger-quality,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/people,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/mfa,Administration,CERTIFIED,2026-08-02 Level 2 auth certification: MFA route renders correctly in EN/ES with clean responsive/auth behavior.
@@ -103,8 +103,8 @@ route,family,classification_status,rationale
 /admin/jobs/:projectNumber/team,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/project-staffing,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/geofence-reconciliation,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/operations-dashboard,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); no remaining English UI chrome or responsive drift was observed."
-/admin/operations-control,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); governed shell and route-local controls held cleanly."
+/admin/operations-dashboard,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/operations-control,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /operations-control/cases,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -119,20 +119,20 @@ route,family,classification_status,rationale
 /admin/integration-truth,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/preview-validation-identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/storage-recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/ai-operations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/communications,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed without English chrome leaks or responsive drift."
-/admin/identity-security,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/storage-recovery,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/ai-operations,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/communications,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/identity-security,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/trust-spine,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance-trust,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/platform-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/diagnostics,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/maintenance,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
+/admin/governance-trust,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/platform-configuration,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/diagnostics,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/maintenance,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/platform-overview,Administration,REDIRECT_CERTIFIED,Browser proof 2026-08-02: /admin/platform-overview redirects to /admin under authenticated admin shell (batch audit 20260802_031319).
 /admin/recovery-stream,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jha-acknowledgements,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/command-center,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly with governed shell primitives intact."
-/admin/database,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed without English UI chrome or responsive defects."
+/admin/command-center,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/database,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/integrations,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /admin/dispatch,Administration,CERTIFIED,"2026-08-02 Level 2 transportation-adjacent certification: admin dispatch console passed EN/ES, responsive proof, and runtime checks as the admin-owned dispatch surface."
 /admin/dls/shift-qr,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -140,39 +140,39 @@ route,family,classification_status,rationale
 /admin/dls/week-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/profile,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /admin/operations-events,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/digest-config,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/admin/operational-intelligence,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/admin/operational-intelligence/recipients,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/system-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/audit-log,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/digest-config,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent deep-certified interactive admin controls, EN/ES behavior, shared shell inheritance, and 390/1920 responsive behavior with no blocking defects."
+/admin/operational-intelligence,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent deep-certified interactive admin controls, EN/ES behavior, shared shell inheritance, and 390/1920 responsive behavior with no blocking defects."
+/admin/operational-intelligence/recipients,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent deep-certified interactive admin controls, EN/ES behavior, shared shell inheritance, and 390/1920 responsive behavior with no blocking defects."
+/admin/system-health,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/audit-log,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/scheduler-runs,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/legacy-imports,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/sessions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/guidance-coverage,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/sessions,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/guidance-coverage,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/operational-inventory,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /notifications,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: notifications digest passed EN/ES and responsive proof after route-specific translation cleanup.
-/admin/governance,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/admin/governance/overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/organization,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/roles,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/permissions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/policies,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/approval-flows,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/delegations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/separation-of-duties,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/authority,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/emergency-overrides,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/decisions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/audit,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/registry,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/versions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/legacy-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/overview,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/organization,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/identities,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/roles,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/permissions,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/policies,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/approval-flows,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/delegations,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/separation-of-duties,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/authority,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/emergency-overrides,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/decisions,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/audit,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/registry,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/versions,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/health,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/governance/legacy-health,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/project-identity,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance/self-protection,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/self-protection,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /admin/compliance-findings,Administration,CERTIFIED,"2026-08-02 Level 2 transportation-adjacent certification: admin compliance findings consumer passed EN/ES, responsive proof, and runtime checks."
-/admin/operational-language,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed without English chrome leaks or responsive drift."
+/admin/operational-language,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /guidance,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
 /guidance/section/:sectionId,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
 /guidance/:articleId,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
@@ -192,8 +192,8 @@ route,family,classification_status,rationale
 /admin/meetings,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/meetings/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/jha-plans,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/jha,Administration,CERTIFIED,"Certified after admin-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/admin/jha/:id,Administration,REDIRECT_CERTIFIED,Canonical route config confirmed this path redirects to `/admin/jha-plans`; direct runtime proof showed `/admin/jha/test123` landing on `/admin/jha-plans` (`20260802_151534`).
+/admin/jha,Administration,REDIRECT_CERTIFIED,2026-08-02 direct browser proof with seeded admin session: `/admin/jha` redirects cleanly to canonical `/admin/jha-plans` and inherits the already certified admin shell.
+/admin/jha/:id,Administration,REDIRECT_CERTIFIED,2026-08-02 direct browser proof with seeded admin session: `/admin/jha/:id` redirects cleanly to canonical `/admin/jha-plans` and inherits the already certified admin shell.
 /admin/trench-boxes,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/trench-boxes/poster,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/trench-safety,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -371,8 +371,8 @@ route,family,classification_status,rationale
 /training/:track/packet,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/training-videos,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/deploy-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/platform-readiness,Administration,CERTIFIED,Certified after route-specific ES/content recertification at 1440 + 390 (`20260802_034413`) plus shared admin-shell dictionary convergence; route now holds governed Spanish copy and responsive layout cleanly.
-/admin/wp17d-certification,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/platform-readiness,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
+/admin/wp17d-certification,Administration,CERTIFIED,"2026-08-02 Administration archetype batch: seeded admin session + auto_frontend_testing_agent verified shared admin-shell inheritance, route-specific content/actions, EN/ES localization, and 390/1920 responsive behavior with no horizontal overflow."
 /ops-training,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/guidance`, which passed."
 /ops-training/:slug,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Canonical route config confirmed this path redirects to `/guidance`; direct runtime proof showed `/ops-training/test123` landing on `/guidance` (`20260802_151534`).
 /dev/login,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared-auth certification: dev login route verified in EN/ES with responsive form behavior and no runtime defects.
@@ -388,7 +388,7 @@ route,family,classification_status,rationale
 /daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /safety-portal/meetings,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /admin/daily-reports,Administration,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/admin/trench-safety-assets,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
+/admin/trench-safety-assets,Administration,REDIRECT_CERTIFIED,2026-08-02 direct browser proof with seeded admin session: `/admin/trench-safety-assets` redirects cleanly to canonical `/admin/trench-safety/assets` and inherits the already certified admin shell.
 /legal/terms,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: legal terms page verified as public legal content with expected no-toggle behavior and clean responsive layout.
 /legal/privacy,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: legal privacy page verified as public legal content with expected no-toggle behavior and clean responsive layout.
 /tasks,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: tasks hub passed EN/ES and responsive proof.
@@ -436,7 +436,7 @@ route,family,classification_status,rationale
 /daily-report/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /pm/operational-intelligence,Project Management,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /admin/ods-intelligence,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
-/executive/ods-intelligence,Administration,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects to canonical `/admin/operational-intelligence`."
+/executive/ods-intelligence,Administration,REDIRECT_CERTIFIED,2026-08-02 direct browser proof with seeded admin session: `/executive/ods-intelligence` redirects cleanly to canonical `/admin/operational-intelligence` and inherits the already certified admin shell.
 /admin/occ,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /executive,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /executive-dashboard,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
