@@ -154,6 +154,35 @@ const ES = {
     "Reporte diario enviado · el correo se registró de forma segura en la vista previa.",
   "Daily report submitted · notification recorded separately.":
     "Reporte diario enviado · la notificación se registró por separado.",
+  "Review field activity, delivery status, and attachments before printing, emailing, or moving the report downstream.":
+    "Revisa la actividad de campo, el estado de entrega y los adjuntos antes de imprimir, enviar por correo o mover el reporte al siguiente paso.",
+  "Preview capture recorded. No live email was sent.":
+    "La captura de vista previa quedó registrada. No se envió ningún correo real.",
+  "Operational Summary": "Resumen operativo",
+  "Attachments & document evidence": "Adjuntos y evidencia documental",
+  "Office Review Lifecycle": "Ciclo de revisión de oficina",
+  "Open (Field)": "Abierto (campo)",
+  "Pending Office Review": "Pendiente de revisión de oficina",
+  "Submit for Office Review": "Enviar para revisión de oficina",
+  "Return to Field": "Devolver al campo",
+  "Close Report": "Cerrar reporte",
+  "Close Daily Report": "Cerrar reporte diario",
+  "Both attestations are required before close. This locks the report and feeds Payroll Variance verification.":
+    "Se requieren ambas validaciones antes del cierre. Esto bloquea el reporte y alimenta la verificación de variación de nómina.",
+  "Office review complete (entries cross-checked)":
+    "Revisión de oficina completa (entradas cotejadas)",
+  "Payroll inputs verified for this date":
+    "Entradas de nómina verificadas para esta fecha",
+  "Reopen Daily Report": "Reabrir reporte diario",
+  "A written reason is required. This will be recorded permanently in the audit trail.":
+    "Se requiere un motivo por escrito. Quedará registrado de forma permanente en la auditoría.",
+  "e.g. Discovered missing material entry after closeout.":
+    "p. ej., se detectó una entrega de material faltante después del cierre.",
+  "Return Daily Report to the Field": "Devolver reporte diario al campo",
+  "A written reason is required so the foreman knows what to fix.":
+    "Se requiere un motivo por escrito para que el capataz sepa qué corregir.",
+  "e.g. Missing crew hours from foreman.":
+    "p. ej., faltan horas de cuadrilla del capataz.",
   "Offline — saved on this device and will send when connection returns.":
     "Sin conexión — guardado en este dispositivo y se enviará cuando regrese la conexión.",
   "Nine short steps. Dropdowns first. AI drafts your summary. Save state, scope, and next action stay visible the whole time.":

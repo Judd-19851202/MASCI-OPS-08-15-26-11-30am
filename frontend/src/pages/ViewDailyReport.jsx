@@ -873,13 +873,13 @@ export default function ViewDailyReport() {
           </ReportSection>
         )}
 
-        <ReportSection number="11" title="Sign-Off">
+        <ReportSection number="11" title={t("Sign-Off")}>
           {/* DR-FIX-3 · R13 · Single accountable signer.
               Superintendent block removed; Superintendent name remains
               as informational context in Section 01. */}
           <div className="max-w-md" data-testid="dr-view-signoff">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
-              Prepared By
+              {t("Prepared By")}
             </div>
             <div className="text-base font-bold text-slate-900 mb-2">
               {data.prepared_by || "—"}
