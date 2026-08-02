@@ -29,6 +29,111 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { useT } from "@/lib/i18n";
+
+const TRUST_TEXT_EXACT_ES = {
+  HEALTHY: "SALUDABLE",
+  ATTENTION: "ATENCIÓN",
+  CRITICAL: "CRÍTICO",
+  UNKNOWN: "DESCONOCIDO",
+  "Evidence source": "Fuente de evidencia",
+  "Evidence timestamp": "Marca de tiempo de la evidencia",
+  "Last successful refresh": "Última actualización exitosa",
+  "Last verified": "Última verificación",
+  "Produced by": "Generado por",
+  "Why this status": "Por qué este estado",
+  "Why this number?": "¿Por qué este número?",
+  "Affected assets": "Activos afectados",
+  "Recommended action": "Acción recomendada",
+  "Evidence observed": "Evidencia observada",
+  "Open": "Abrir",
+  "No structured evidence captured.": "No se capturó evidencia estructurada.",
+  "Truth ownership": "Propiedad de la verdad",
+  "Conflict state": "Estado del conflicto",
+  "Upstream owners": "Responsables ascendentes",
+  "This surface is the source owner.": "Esta superficie es la fuente responsable.",
+  "No contradiction detected for this surface.": "No se detectó ninguna contradicción para esta superficie.",
+  "Owner endpoint:": "Endpoint responsable:",
+  "Owner module:": "Módulo responsable:",
+  "Canonical owner:": "Responsable canónico:",
+  "Evidence age:": "Antigüedad de la evidencia:",
+  "Why:": "Por qué:",
+  "Action:": "Acción:",
+  Evidence: "Evidencia",
+  Refreshed: "Actualizado",
+};
+
+const TRUST_TEXT_REPLACEMENTS_ES = [
+  [/Business definition/g, "Definición operativa"],
+  [/Source of truth/g, "Fuente de verdad"],
+  [/Calculation/g, "Cálculo"],
+  [/Refresh cadence/g, "Frecuencia de actualización"],
+  [/Last refresh/g, "Última actualización"],
+  [/Data age/g, "Antigüedad de los datos"],
+  [/Confidence/g, "Confianza"],
+  [/Thresholds/g, "Umbrales"],
+  [/Status explanation/g, "Explicación del estado"],
+  [/Drill-down target/g, "Destino del detalle"],
+  [/Owning subsystem/g, "Subsistema responsable"],
+  [/No structured evidence captured\./g, "No se capturó evidencia estructurada."],
+  [/Truth ownership/g, "Propiedad de la verdad"],
+  [/Canonical /g, "Canónico "] ,
+  [/Displayed /g, "Mostrado "] ,
+  [/Structured truth contract\./g, "Contrato estructurado de verdad."],
+  [/Owner endpoint:/g, "Endpoint responsable:"],
+  [/Owner module:/g, "Módulo responsable:"],
+  [/Canonical owner:/g, "Responsable canónico:"],
+  [/Evidence age:/g, "Antigüedad de la evidencia:"],
+  [/Upstream owners/g, "Responsables ascendentes"],
+  [/This surface is the source owner\./g, "Esta superficie es la fuente responsable."],
+  [/Conflict state/g, "Estado del conflicto"],
+  [/No contradiction detected for this surface\./g, "No se detectó ninguna contradicción para esta superficie."],
+  [/No summary\./g, "Sin resumen."],
+  [/Why: /g, "Por qué: "],
+  [/Action: /g, "Acción: "],
+  [/Evidence /g, "Evidencia "],
+  [/Refreshed /g, "Actualizado "],
+  [/Evidence source/g, "Fuente de evidencia"],
+  [/Evidence timestamp/g, "Marca de tiempo de la evidencia"],
+  [/Last successful refresh/g, "Última actualización exitosa"],
+  [/Last verified/g, "Última verificación"],
+  [/Produced by/g, "Generado por"],
+  [/Why this status/g, "Por qué este estado"],
+  [/Why this number\?/g, "¿Por qué este número?"],
+  [/Affected assets/g, "Activos afectados"],
+  [/Recommended action/g, "Acción recomendada"],
+  [/Evidence observed/g, "Evidencia observada"],
+  [/Open /g, "Abrir "],
+  [/Value/g, "Valor"],
+  [/Items/g, "Elementos"],
+  [/Item/g, "Elemento"],
+  [/None recorded\./g, "Nada registrado."],
+  [/more item\(s\)/g, "elemento(s) más"],
+  [/Yes/g, "Sí"],
+  [/No/g, "No"],
+  [/routes configured/g, "rutas configuradas"],
+  [/critical empty/g, "vacías críticas"],
+  [/integrations configured/g, "integraciones configuradas"],
+  [/missing config/g, "configuración faltante"],
+  [/notification sections configured/g, "secciones de notificaciones configuradas"],
+  [/for role/g, "para el rol"],
+  [/operation\(s\)/g, "operación(es)"],
+  [/critical ·/g, "críticas ·"],
+  [/attention/g, "atención"],
+  [/healthy/g, "saludables"],
+  [/failed/g, "fallidas"],
+];
+
+function localizeTrustText(value, t, lang) {
+  if (typeof value !== "string") return value;
+  const translated = t(value);
+  if (lang !== "es" || translated !== value) return translated;
+  if (TRUST_TEXT_EXACT_ES[value]) return TRUST_TEXT_EXACT_ES[value];
+  return TRUST_TEXT_REPLACEMENTS_ES.reduce(
+    (result, [pattern, replacement]) => result.replace(pattern, replacement),
+    value,
+  );
+}
 
 function labelizeKey(key) {
   return String(key || "")
@@ -123,6 +228,7 @@ function flattenEvidence(value, prefix = "", depth = 0, rows = [], limit = 18) {
 }
 
 export function EvidenceSummary({ value, testidPrefix = "evidence-summary" }) {
+  const { t, lang } = useT();
   const rows = flattenEvidence(value);
   return (
     <div className="space-y-2" data-testid={testidPrefix}>
@@ -135,15 +241,15 @@ export function EvidenceSummary({ value, testidPrefix = "evidence-summary" }) {
               data-testid={`${testidPrefix}-row-${index}`}
             >
               <dt className="mb-1 text-[10px] font-mono uppercase tracking-widest text-slate-500">
-                {row.label}
+                {localizeTrustText(row.label, t, lang)}
               </dt>
-              <dd className="text-xs text-slate-800 break-words">{row.value}</dd>
+              <dd className="text-xs text-slate-800 break-words">{localizeTrustText(row.value, t, lang)}</dd>
             </div>
           ))}
         </dl>
       ) : (
         <div className="text-xs text-slate-500" data-testid={`${testidPrefix}-empty`}>
-          No structured evidence captured.
+          {t("No structured evidence captured.")}
         </div>
       )}
     </div>
@@ -157,6 +263,7 @@ export function TruthOwnerPanel({
   checkedAt,
   testidPrefix = "truth-owner-panel",
 }) {
+  const { t, lang } = useT();
   if (!surface) return null;
   const role = relationship?.role || surface.role || "UNREGISTERED";
   const canonicalStatus = relationship?.canonical_status || "UNVERIFIABLE";
@@ -165,34 +272,34 @@ export function TruthOwnerPanel({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3" data-testid={testidPrefix}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">{title}</span>
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">{localizeTrustText(title, t, lang)}</span>
         <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-slate-700" data-testid={`${testidPrefix}-role`}>{role}</span>
-        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>Canonical {canonicalStatus}</span>
-        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>Displayed {derivedStatus}</span>
+        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>{localizeTrustText(`Canonical ${canonicalStatus}`, t, lang)}</span>
+        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>{localizeTrustText(`Displayed ${derivedStatus}`, t, lang)}</span>
       </div>
-      <p className="text-sm text-slate-800" data-testid={`${testidPrefix}-summary`}>{relationship?.derivation_explanation || surface.surface_name || "Structured truth contract."}</p>
+      <p className="text-sm text-slate-800" data-testid={`${testidPrefix}-summary`}>{localizeTrustText(relationship?.derivation_explanation || surface.surface_name || "Structured truth contract.", t, lang)}</p>
       <div className="grid gap-2 md:grid-cols-2 text-xs text-slate-600">
-        <div data-testid={`${testidPrefix}-owner-endpoint`}><span className="font-semibold text-slate-800">Owner endpoint:</span> {surface.owner_endpoint || "—"}</div>
-        <div data-testid={`${testidPrefix}-owner-module`}><span className="font-semibold text-slate-800">Owner module:</span> {surface.owner_module || "—"}</div>
-        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">Canonical owner:</span> {relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id || "—"}</div>
-        <div data-testid={`${testidPrefix}-evidence-age`}><span className="font-semibold text-slate-800">Evidence age:</span> {checkedAt || relationship?.evidence_age_source || "—"}</div>
+        <div data-testid={`${testidPrefix}-owner-endpoint`}><span className="font-semibold text-slate-800">{t("Owner endpoint:")}</span> {surface.owner_endpoint || "—"}</div>
+        <div data-testid={`${testidPrefix}-owner-module`}><span className="font-semibold text-slate-800">{t("Owner module:")}</span> {surface.owner_module || "—"}</div>
+        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">{t("Canonical owner:")}</span> {relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id || "—"}</div>
+        <div data-testid={`${testidPrefix}-evidence-age`}><span className="font-semibold text-slate-800">{t("Evidence age:")}</span> {checkedAt || relationship?.evidence_age_source || "—"}</div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" data-testid={`${testidPrefix}-upstream`}>
-          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">Upstream owners</div>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">{t("Upstream owners")}</div>
           {surface.upstream_owner_ids?.length ? (
             <ul className="space-y-1 text-xs text-slate-700">
               {surface.upstream_owner_ids.map((id) => <li key={id}>{id}</li>)}
             </ul>
-          ) : <div className="text-xs text-slate-500">This surface is the source owner.</div>}
+          ) : <div className="text-xs text-slate-500">{t("This surface is the source owner.")}</div>}
         </div>
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" data-testid={`${testidPrefix}-conflicts`}>
-          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">Conflict state</div>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">{t("Conflict state")}</div>
           {conflicts.length ? (
             <ul className="space-y-1 text-xs text-rose-700">
-              {conflicts.map((conflict, index) => <li key={`${testidPrefix}-conflict-${index}`}>{conflict}</li>)}
+              {conflicts.map((conflict, index) => <li key={`${testidPrefix}-conflict-${index}`}>{localizeTrustText(conflict, t, lang)}</li>)}
             </ul>
-          ) : <div className="text-xs text-emerald-700">No contradiction detected for this surface.</div>}
+          ) : <div className="text-xs text-emerald-700">{t("No contradiction detected for this surface.")}</div>}
         </div>
       </div>
     </div>
@@ -255,13 +362,14 @@ const _ORDER_ASC = { red: 0, yellow: 1, unknown: 2, green: 3 };
 
 // ── Status pill ────────────────────────────────────────────────
 export function TrustStatusPill({ status, testid }) {
+  const { t } = useT();
   const s = TRUST_STATUS_STYLES[status] || TRUST_STATUS_STYLES.unknown;
   return (
     <span
       data-testid={testid}
       className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-widest ${s.bg} ${s.text} ring-1 ${s.ring}`}
     >
-      {s.label}
+      {t(s.label)}
     </span>
   );
 }
@@ -271,6 +379,7 @@ export function TrustStatusPill({ status, testid }) {
 // are NEVER wired inline — they live only in the OCC maintenance
 // console (single source of action truth).
 export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
+  const { t, lang } = useT();
   const style = TRUST_STATUS_STYLES[card.status] || TRUST_STATUS_STYLES.unknown;
   return (
     <button
@@ -290,7 +399,7 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
             className="font-display text-sm font-black tracking-tight text-slate-900 leading-tight"
             data-testid={`${testidPrefix}-${card.id}-title`}
           >
-            {card.title}
+            {localizeTrustText(card.title, t, lang)}
           </h4>
           <TrustStatusPill
             status={card.status}
@@ -301,15 +410,15 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
           className="text-[12px] text-slate-700 leading-snug"
           data-testid={`${testidPrefix}-${card.id}-summary`}
         >
-          {card.summary || "No summary."}
+          {localizeTrustText(card.summary || "No summary.", t, lang)}
         </p>
         {card.root_cause_explanation && card.root_cause_explanation !== card.summary ? (
           <p
             className="text-[11px] text-slate-500 leading-snug"
             data-testid={`${testidPrefix}-${card.id}-root-cause`}
           >
-            <span className="font-semibold text-slate-600">Why: </span>
-            {card.root_cause_explanation}
+            <span className="font-semibold text-slate-600">{t("Why:")}</span>{" "}
+            {localizeTrustText(card.root_cause_explanation, t, lang)}
           </p>
         ) : null}
         {card.recommended_action ? (
@@ -317,8 +426,8 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
             className="text-[11px] text-slate-500 leading-snug"
             data-testid={`${testidPrefix}-${card.id}-action`}
           >
-            <span className="font-semibold text-slate-600">Action: </span>
-            {card.recommended_action}
+            <span className="font-semibold text-slate-600">{t("Action:")}</span>{" "}
+            {localizeTrustText(card.recommended_action, t, lang)}
           </p>
         ) : null}
         <div className="mt-auto flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
@@ -328,7 +437,7 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
               title={card.evidence_source_label || card.endpoint || ""}
               data-testid={`${testidPrefix}-${card.id}-endpoint`}
             >
-              {card.evidence_source_label || card.endpoint || "—"}
+              {localizeTrustText(card.evidence_source_label || card.endpoint || "—", t, lang)}
             </div>
             {card.checked_at ? (
               <div
@@ -336,7 +445,7 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
                 title="Last checked (your local time)"
                 data-testid={`${testidPrefix}-${card.id}-stamp`}
               >
-                Evidence {formatRelativeTime(card.checked_at)}
+                {t("Evidence")} {formatRelativeTime(card.checked_at)}
               </div>
             ) : null}
             {card.last_successful_refresh ? (
@@ -345,7 +454,7 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
                 title="Last successful refresh"
                 data-testid={`${testidPrefix}-${card.id}-refresh`}
               >
-                Refreshed {formatRelativeTime(card.last_successful_refresh)}
+                {t("Refreshed")} {formatRelativeTime(card.last_successful_refresh)}
               </div>
             ) : null}
           </div>
@@ -358,6 +467,7 @@ export function HealthCard({ card, onOpen, testidPrefix = "trust-card" }) {
 
 // ── EvidenceDrawer ─────────────────────────────────────────────
 export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust-evidence-drawer" }) {
+  const { t, lang } = useT();
   if (!card) return null;
   const style = TRUST_STATUS_STYLES[card.status] || TRUST_STATUS_STYLES.unknown;
   return (
@@ -373,7 +483,7 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
               className="text-slate-900 pr-4"
               data-testid={`${testidPrefix}-title`}
             >
-              {card.title}
+              {localizeTrustText(card.title, t, lang)}
             </SheetTitle>
             <TrustStatusPill
               status={card.status}
@@ -381,20 +491,20 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
             />
           </div>
           <SheetDescription className="text-slate-600 text-xs">
-            {card.summary}
+            {localizeTrustText(card.summary, t, lang)}
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-5 space-y-4 text-sm">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Evidence source
+              {t("Evidence source")}
             </div>
             <div
               className="font-mono text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 break-all"
               data-testid={`${testidPrefix}-endpoint`}
             >
-              {card.evidence_source_label || card.endpoint || "—"}
+              {localizeTrustText(card.evidence_source_label || card.endpoint || "—", t, lang)}
             </div>
             {card.endpoint && card.evidence_source_label && card.evidence_source_label !== card.endpoint ? (
               <div className="mt-2 text-xs text-slate-500 break-all" data-testid={`${testidPrefix}-endpoint-raw`}>
@@ -405,7 +515,7 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Evidence timestamp
+              {t("Evidence timestamp")}
             </div>
             <div
               className="text-xs text-slate-800"
@@ -417,7 +527,7 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Last successful refresh
+              {t("Last successful refresh")}
             </div>
             <div className="text-xs text-slate-800" data-testid={`${testidPrefix}-last-refresh`}>
               {card.last_successful_refresh ? formatPlatformTime(card.last_successful_refresh) : "—"}
@@ -426,7 +536,7 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Last verified
+              {t("Last verified")}
             </div>
             <div className="text-xs text-slate-800" data-testid={`${testidPrefix}-verified-at`}>
               {card.verified_at ? formatPlatformTime(card.verified_at) : (card.checked_at ? formatPlatformTime(card.checked_at) : "—")}
@@ -435,38 +545,38 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Produced by
+              {t("Produced by")}
             </div>
             <div className="text-xs text-slate-800 break-words" data-testid={`${testidPrefix}-producer`}>
-              {card.producer || "—"}
+              {localizeTrustText(card.producer || "—", t, lang)}
             </div>
           </div>
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Why this status
+              {t("Why this status")}
             </div>
             <div
               className={`text-xs rounded px-2 py-1.5 border ${style.bg} ${style.text} ring-1 ${style.ring}`}
               data-testid={`${testidPrefix}-reason`}
             >
-              {card.root_cause_explanation || card.summary}
+              {localizeTrustText(card.root_cause_explanation || card.summary, t, lang)}
             </div>
           </div>
 
           {card.kpi_metadata ? (
             <div>
               <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-                Why this number?
+                {t("Why this number?")}
               </div>
               <dl className="grid gap-2" data-testid={`${testidPrefix}-kpi-metadata`}>
                 {renderMetadataRows(card.kpi_metadata).map(([label, value], index) => (
                   <div key={`${testidPrefix}-kpi-${index}`} className="rounded-md border border-slate-200 bg-slate-50 p-2">
-                    <dt className="mb-1 text-[10px] font-mono uppercase tracking-widest text-slate-500">{label}</dt>
+                    <dt className="mb-1 text-[10px] font-mono uppercase tracking-widest text-slate-500">{t(label)}</dt>
                     <dd className="text-xs text-slate-800 break-words">
                       {isPlainObject(value) || Array.isArray(value) ? (
                         <EvidenceSummary value={value} testidPrefix={`${testidPrefix}-kpi-${index}-value`} />
-                      ) : scalarText(value)}
+                      ) : localizeTrustText(scalarText(value), t, lang)}
                     </dd>
                   </div>
                 ))}
@@ -477,7 +587,7 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
           {card.affected_assets ? (
             <div>
               <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-                Affected assets
+                {t("Affected assets")}
               </div>
               <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
                 <EvidenceSummary value={card.affected_assets} testidPrefix={`${testidPrefix}-affected-assets`} />
@@ -488,20 +598,20 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
           {card.recommended_action ? (
             <div>
               <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-                Recommended action
+                {t("Recommended action")}
               </div>
               <div
                 className="text-xs text-slate-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5"
                 data-testid={`${testidPrefix}-action`}
               >
-                {card.recommended_action}
+                {localizeTrustText(card.recommended_action, t, lang)}
               </div>
             </div>
           ) : null}
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Evidence observed
+              {t("Evidence observed")}
             </div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
               <EvidenceSummary
@@ -518,7 +628,7 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
               data-testid={`${testidPrefix}-drilldown`}
               onClick={() => onOpenChange(false)}
             >
-              Open {card.drilldown}
+              {t("Open")} {card.drilldown}
               <ExternalLink className="w-3 h-3" />
             </Link>
           ) : null}

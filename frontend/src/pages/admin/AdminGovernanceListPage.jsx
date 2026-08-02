@@ -4,6 +4,45 @@ import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { formatPlatformTime } from "@/lib/platformTime";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { operationalError } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
+
+const GOVERNANCE_TEXT_ES = {
+  "Governance reference page": "Página de referencia de gobernanza",
+  "Every card below is translated into operator language so reviewers can understand the record without reading raw payloads, enum values, or internal IDs.": "Cada tarjeta de abajo se traduce al lenguaje operativo para que los revisores entiendan el registro sin leer cargas sin procesar, valores enum o identificadores internos.",
+  "Visible items": "Elementos visibles",
+  "Last update": "Última actualización",
+  "No timestamp reported": "No se reportó ninguna marca de tiempo",
+  "Read-only evidence view": "Vista de evidencia de solo lectura",
+  "Internal identifiers hidden from the primary UI": "Identificadores internos ocultos de la interfaz principal",
+  "No governance records are currently available for this page. When the source collection is populated, this page will summarize each item in plain English here.": "Actualmente no hay registros de gobernanza disponibles para esta página. Cuando se complete la colección de origen, esta página resumirá cada elemento aquí en lenguaje operativo.",
+  "Organization Structure": "Estructura organizativa",
+  "Governed organization hierarchy.": "Jerarquía organizativa gobernada.",
+  "Identity Projections": "Proyecciones de identidad",
+  "Policy-ready identity context derived from canonical auth owners.": "Contexto de identidad listo para políticas derivado de responsables canónicos de autenticación.",
+  "Roles": "Roles",
+  "Configurable enterprise roles.": "Roles empresariales configurables.",
+  "Permissions": "Permisos",
+  "Registry-controlled permissions.": "Permisos controlados por registro.",
+  "Policies": "Políticas",
+  "Versioned governance policies.": "Políticas de gobernanza versionadas.",
+  "Approval Flows": "Flujos de aprobación",
+  "Reusable approval definitions and requests.": "Definiciones y solicitudes de aprobación reutilizables.",
+  "Delegations": "Delegaciones",
+  "Temporary and auditable delegated authority.": "Autoridad delegada temporal y auditable.",
+  "Separation of Duties": "Separación de funciones",
+  "Conflict-prevention governance rules.": "Reglas de gobernanza para prevenir conflictos.",
+  "Authority Levels": "Niveles de autoridad",
+  "Authority hierarchy for policy enforcement.": "Jerarquía de autoridad para aplicar políticas.",
+  "Emergency Overrides": "Anulaciones de emergencia",
+  "Preview-safe, fully auditable override records.": "Registros de anulación seguros para vista previa y totalmente auditables.",
+  "Governance Decisions": "Decisiones de gobernanza",
+  "Allow / deny / approval outcomes.": "Resultados de permitir / negar / aprobar.",
+  "Governance Audit": "Auditoría de gobernanza",
+  "Governance audit history.": "Historial de auditoría de gobernanza.",
+  "Governance Versions": "Versiones de gobernanza",
+  "Registry and baseline version references.": "Referencias de registro y versiones base.",
+  "Enterprise governance health summary.": "Resumen de salud de la gobernanza empresarial.",
+};
 
 const HIDDEN_KEYS = new Set([
   "id",
@@ -153,6 +192,34 @@ function inferSummary(item) {
   return "Structured governance record ready for operator review.";
 }
 
+function localizeGovernanceText(value, t, lang) {
+  if (typeof value !== "string") return value;
+  const translated = t(value);
+  if (lang !== "es" || translated !== value) return translated;
+  if (GOVERNANCE_TEXT_ES[value]) return GOVERNANCE_TEXT_ES[value];
+  return value
+    .replace(/permissions across/g, "permisos en")
+    .replace(/portal lanes/g, "portales")
+    .replace(/portal lane/g, "portal")
+    .replace(/required permission/g, "permiso requerido")
+    .replace(/required permissions/g, "permisos requeridos")
+    .replace(/approval flow/g, "flujo de aprobación")
+    .replace(/approval/g, "aprobación")
+    .replace(/approvals/g, "aprobaciones")
+    .replace(/role lanes/g, "canales de rol")
+    .replace(/role lane/g, "canal de rol")
+    .replace(/Temporary and auditable delegated authority\./g, "Autoridad delegada temporal y auditable.")
+    .replace(/Structured governance record ready for operator review\./g, "Registro de gobernanza estructurado listo para revisión operativa.")
+    .replace(/Not recorded/g, "No registrado")
+    .replace(/No permissions listed/g, "No hay permisos listados")
+    .replace(/No roles listed/g, "No hay roles listados")
+    .replace(/No portal access listed/g, "No hay acceso a portales listado")
+    .replace(/None recorded/g, "Nada registrado")
+    .replace(/Stored internally/g, "Guardado internamente")
+    .replace(/No structured details/g, "Sin detalles estructurados")
+    .replace(/When the source collection is populated, this page will summarize each item in plain English here\./g, "Cuando se complete la colección de origen, esta página resumirá cada elemento aquí en lenguaje operativo.");
+}
+
 function inferStatus(item) {
   const value = item.status || item.decision || item.employment_status || item.overall_status || item.health_label;
   if (!value) return null;
@@ -231,6 +298,8 @@ export default function AdminGovernanceListPage({
   itemKey = "items",
   transform = (data) => data,
 }) {
+  const { t, lang } = useT();
+  const gt = useCallback((value) => localizeGovernanceText(value, t, lang), [t, lang]);
   usePageTitle(`${title} · Admin`);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
@@ -267,22 +336,22 @@ export default function AdminGovernanceListPage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl space-y-2">
             <div className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-700">
-              Governance reference page
+              {gt("Governance reference page")}
             </div>
-            <h2 className="text-2xl font-black text-slate-950">{title}</h2>
+            <h2 className="text-2xl font-black text-slate-950">{gt(title)}</h2>
             <p className="text-sm text-slate-700 leading-relaxed">
-              {subtitle} Every card below is translated into operator language so reviewers can understand the record without reading raw payloads, enum values, or internal IDs.
+              {gt(subtitle)} {gt("Every card below is translated into operator language so reviewers can understand the record without reading raw payloads, enum values, or internal IDs.")}
             </p>
           </div>
           <div className="grid min-w-[220px] grid-cols-2 gap-3" data-testid={`${testidPrefix}-metrics`}>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">Visible items</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">{gt("Visible items")}</div>
               <div className="mt-2 text-2xl font-black text-slate-950" data-testid={`${testidPrefix}-count`}>{normalized.length}</div>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">Last update</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">{gt("Last update")}</div>
               <div className="mt-2 text-sm font-semibold text-slate-950" data-testid={`${testidPrefix}-last-updated`}>
-                {lastUpdated ? formatPlatformTime(lastUpdated) : "No timestamp reported"}
+                {lastUpdated ? formatPlatformTime(lastUpdated) : gt("No timestamp reported")}
               </div>
             </div>
           </div>
@@ -290,11 +359,11 @@ export default function AdminGovernanceListPage({
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-600">
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
             <Clock3 className="h-3.5 w-3.5" />
-            Read-only evidence view
+            {gt("Read-only evidence view")}
           </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
             <ShieldCheck className="h-3.5 w-3.5" />
-            Internal identifiers hidden from the primary UI
+            {gt("Internal identifiers hidden from the primary UI")}
           </span>
         </div>
       </section>
@@ -303,7 +372,7 @@ export default function AdminGovernanceListPage({
 
       {!error && normalized.length === 0 ? (
         <div className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-sm text-slate-600" data-testid={`${testidPrefix}-empty`}>
-          No governance records are currently available for this page. When the source collection is populated, this page will summarize each item in plain English here.
+          {gt("No governance records are currently available for this page. When the source collection is populated, this page will summarize each item in plain English here.")}
         </div>
       ) : null}
 
@@ -319,14 +388,14 @@ export default function AdminGovernanceListPage({
             <article key={item.id || item.email || item.user_id || index} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid={`${testidPrefix}-item-${item.id || index}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-2 min-w-0">
-                  <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 font-mono">{humanizeToken(eyebrow)}</div>
+                  <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 font-mono">{localizeGovernanceText(humanizeToken(eyebrow), t, lang)}</div>
                   <div className="text-lg font-black text-slate-950 break-words">{titleText}</div>
-                  <p className="text-sm text-slate-700 leading-relaxed">{summary}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed">{localizeGovernanceText(summary, t, lang)}</p>
                 </div>
                 {status ? (
                   <div className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold ${statusToneClasses(status.tone)}`} data-testid={`${testidPrefix}-item-status-${index}`}>
                     <StatusIcon className="h-3.5 w-3.5" />
-                    {status.label}
+                    {localizeGovernanceText(status.label, t, lang)}
                   </div>
                 ) : null}
               </div>
@@ -334,8 +403,8 @@ export default function AdminGovernanceListPage({
               <div className="mt-4 grid gap-3 sm:grid-cols-2" data-testid={`${testidPrefix}-item-rows-${index}`}>
                 {rows.map((row) => (
                   <div key={`${titleText}-${row.label}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{row.label}</div>
-                    <div className="mt-1 text-sm text-slate-900 break-words">{row.value}</div>
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{localizeGovernanceText(row.label, t, lang)}</div>
+                    <div className="mt-1 text-sm text-slate-900 break-words">{localizeGovernanceText(row.value, t, lang)}</div>
                   </div>
                 ))}
               </div>

@@ -265,8 +265,9 @@ export default function AdminLogin() {
           </div>
 
           <Button
-            type="submit"
+            type="button"
             disabled={submitting}
+            onClick={onSubmit}
             className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
             data-testid="admin-login-submit"
           >

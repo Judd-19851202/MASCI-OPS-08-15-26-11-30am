@@ -49,6 +49,7 @@ import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useT } from "@/lib/i18n";
 
 const API = (process.env.REACT_APP_BACKEND_URL || "") + "/api";
 
@@ -57,6 +58,51 @@ const SEVERITY_STYLES = {
   P1: "bg-amber-100 text-amber-900 ring-amber-200",
   P2: "bg-slate-100 text-slate-700 ring-slate-300",
 };
+
+const DOMAIN_TEXT_ES = {
+  "Executive Verdict": "Veredicto ejecutivo",
+  "Loading domain evidence…": "Cargando evidencia del dominio…",
+  "This domain has a critical condition.": "Este dominio tiene una condición crítica.",
+  "This domain needs attention.": "Este dominio necesita atención.",
+  "This domain is healthy across every wired signal.": "Este dominio está saludable en todas las señales conectadas.",
+  "Domain evidence unavailable — press Refresh.": "La evidencia del dominio no está disponible; presiona Actualizar.",
+  "Highest-risk item": "Elemento de mayor riesgo",
+  Healthy: "Saludable",
+  Attention: "Atención",
+  Critical: "Crítico",
+  Unknown: "Desconocido",
+  "Last refreshed": "Última actualización",
+  refreshed: "actualizado",
+  Sources: "Fuentes",
+  "Verification blocked": "Verificación bloqueada",
+  "Filter cards by title, summary, or endpoint…": "Filtra tarjetas por título, resumen o endpoint…",
+  All: "Todas",
+  "card(s)": "tarjeta(s)",
+  "No cards match the current filter.": "Ninguna tarjeta coincide con el filtro actual.",
+  "Maintenance Actions": "Acciones de mantenimiento",
+  "deep-link · runs in OCC console (dry-run first)": "enlace profundo · se ejecuta en la consola OCC (primero simulación)",
+  "Never touches:": "Nunca toca:",
+  "Trust Gaps": "Brechas de confianza",
+  Gap: "Brecha",
+  Severity: "Severidad",
+  Owner: "Responsable",
+  Target: "Objetivo",
+  Risk: "Riesgo",
+  Status: "Estado",
+  "Blocks prod?": "¿Bloquea prod.?",
+  YES: "SÍ",
+  no: "no",
+  Open: "Abrir",
+  Refresh: "Actualizar",
+  "Refreshing…": "Actualizando…",
+};
+
+function localizeDomainText(value, t, lang) {
+  if (typeof value !== "string") return value;
+  const translated = t(value);
+  if (lang !== "es" || translated !== value) return translated;
+  return DOMAIN_TEXT_ES[value] || value;
+}
 
 function authHeaders() {
   return buildScopedPortalAuthHeaders(["admin"]);
@@ -92,6 +138,8 @@ export function unknownCard(id, title, endpoint, drilldown, summary, err) {
  * @param {string} testidPrefix - e.g. "admin-ai-ops" — all data-testids are scoped under this.
  */
 export default function DomainLandingShell({ manifest, testidPrefix }) {
+  const { t, lang } = useT();
+  const dt = useCallback((value) => localizeDomainText(value, t, lang), [t, lang]);
   const [probes, setProbes] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshedAt, setRefreshedAt] = useState(null);
@@ -182,12 +230,12 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
         portalName="MASCI"
         portalRole="Admin"
         shellTheme="admin"
-        pageTitle={manifest.label}
-        subtitle={manifest.subtitle}
+        pageTitle={dt(manifest.label)}
+        subtitle={dt(manifest.subtitle)}
         primaryActions={
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <Button asChild variant="outline" size="sm" data-testid={`${testidPrefix}-back-adminos`}>
-              <Link to="/admin">← Admin OS</Link>
+              <Link to="/admin">← {dt("Admin OS")}</Link>
             </Button>
             <Button
               type="button"
@@ -198,7 +246,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
               data-testid={`${testidPrefix}-refresh`}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-              {loading ? "Refreshing…" : "Refresh"}
+              {loading ? dt("Refreshing…") : dt("Refresh")}
             </Button>
           </div>
         }
@@ -206,7 +254,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
       >
         {/* Universal breadcrumb — every domain page shows "Admin OS › <domain label>". */}
         <AdminBreadcrumb
-          crumbs={[{ label: manifest.label }]}
+          crumbs={[{ label: dt(manifest.label) }]}
           testidPrefix={`${testidPrefix}-breadcrumb`}
         />
 
@@ -218,39 +266,39 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-[220px]">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-                Executive Verdict
+                {dt("Executive Verdict")}
               </div>
               <div className="mt-1 flex items-center gap-2">
                 <TrustStatusPill status={overall} testid={`${testidPrefix}-verdict-pill`} />
                 <span className="text-sm font-semibold text-slate-900" data-testid={`${testidPrefix}-verdict-summary`}>
                   {loading
-                    ? `Loading ${manifest.label.toLowerCase()} evidence…`
+                    ? dt("Loading domain evidence…")
                     : overall === "red"
-                    ? `${manifest.label} has a critical condition.`
+                    ? dt("This domain has a critical condition.")
                     : overall === "yellow"
-                    ? `${manifest.label} needs attention.`
+                    ? dt("This domain needs attention.")
                     : overall === "green"
-                    ? `${manifest.label} healthy across every wired signal.`
-                    : `${manifest.label} evidence unavailable — press Refresh.`}
+                    ? dt("This domain is healthy across every wired signal.")
+                    : dt("Domain evidence unavailable — press Refresh.")}
                 </span>
               </div>
               {highest ? (
                 <p className="mt-2 text-xs text-slate-600" data-testid={`${testidPrefix}-verdict-highest`}>
-                  Highest-risk item · <strong>{highest.title}</strong>: {highest.summary}
+                  {dt("Highest-risk item")} · <strong>{dt(highest.title)}</strong>: {dt(highest.summary)}
                 </p>
               ) : null}
             </div>
             <div className="md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-sm min-w-0">
               {[["green","Healthy"],["yellow","Attention"],["red","Critical"],["unknown","Unknown"]].map(([k,label])=>(
                 <div key={k} data-testid={`${testidPrefix}-count-${k}`}>
-                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">{label}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">{dt(label)}</div>
                   <div className={`font-black text-xl leading-none ${TRUST_STATUS_STYLES[k]?.text || "text-slate-800"}`}>
                     {counts[k] || 0}
                   </div>
                 </div>
               ))}
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Last refreshed</div>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">{dt("Last refreshed")}</div>
                 <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                   <span className="font-mono text-xs text-slate-800" data-testid={`${testidPrefix}-last-refreshed`}>
                     {refreshedAt ? formatPlatformTime(refreshedAt) : "—"}
@@ -260,7 +308,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                       className="inline-flex items-center rounded px-1 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-widest bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200 transition-opacity"
                       data-testid={`${testidPrefix}-refresh-flash`}
                     >
-                      ✓ refreshed
+                      ✓ {dt("refreshed")}
                     </span>
                   ) : null}
                 </div>
@@ -269,14 +317,14 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
           </div>
           {manifest.source_endpoints_line ? (
             <div className="mt-3 text-[11px] font-mono text-slate-500" data-testid={`${testidPrefix}-verdict-sources`}>
-              Sources: {manifest.source_endpoints_line}
+              {dt("Sources")}: {manifest.source_endpoints_line}
             </div>
           ) : null}
         </section>
 
         {error ? (
           <Alert variant="destructive" className="mb-4" data-testid={`${testidPrefix}-error`}>
-            <AlertTitle>Verification blocked</AlertTitle>
+            <AlertTitle>{dt("Verification blocked")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
@@ -289,7 +337,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter cards by title, summary, or endpoint…"
+              placeholder={dt("Filter cards by title, summary, or endpoint…")}
               className="pl-8 text-sm"
               data-testid={`${testidPrefix}-search`}
             />
@@ -304,7 +352,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
               className="text-[11px] uppercase tracking-[0.14em]"
               data-testid={`${testidPrefix}-filter-${s}`}
             >
-              {s === "all" ? "All" : (TRUST_STATUS_STYLES[s]?.label || s)}
+              {s === "all" ? dt("All") : dt(TRUST_STATUS_STYLES[s]?.label || s)}
             </Button>
           ))}
         </div>
@@ -321,11 +369,11 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                 <div className="mb-2 flex items-center gap-2">
                   {Icon ? <Icon className="w-4 h-4 text-slate-500" /> : null}
                   <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-                    {sec.label}
+                    {dt(sec.label)}
                   </div>
                   <TrustStatusPill status={secStatus} testid={`${testidPrefix}-section-${sec.id}-status`} />
                   <div className="text-[10px] font-mono text-slate-400">
-                    {filtered.length}/{secCards.length} card(s)
+                    {filtered.length}/{secCards.length} {dt("card(s)")}
                   </div>
                 </div>
                 {filtered.length === 0 && !loading ? (
@@ -333,7 +381,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                     className="rounded-md border border-dashed border-slate-300 bg-white px-3 py-4 text-xs text-slate-500"
                     data-testid={`${testidPrefix}-section-${sec.id}-empty`}
                   >
-                    {secCards.length === 0 ? "Loading…" : "No cards match the current filter."}
+                    {secCards.length === 0 ? dt("Loading…") : dt("No cards match the current filter.")}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -358,10 +406,10 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
             <div className="mb-2 flex items-center gap-2">
               <Wrench className="w-4 h-4 text-slate-500" />
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-                Maintenance Actions
+                {dt("Maintenance Actions")}
               </div>
               <div className="text-[10px] font-mono text-slate-400">
-                deep-link · runs in OCC console (dry-run first)
+                {dt("deep-link · runs in OCC console (dry-run first)")}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -372,14 +420,14 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                   data-testid={`${testidPrefix}-action-${a.id}`}
                   className="group relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-150 p-4"
                 >
-                  <div className="text-sm font-semibold text-slate-900 leading-tight">{a.title}</div>
-                  <p className="mt-1 text-[12px] text-slate-600 leading-snug">{a.description}</p>
+                  <div className="text-sm font-semibold text-slate-900 leading-tight">{dt(a.title)}</div>
+                  <p className="mt-1 text-[12px] text-slate-600 leading-snug">{dt(a.description)}</p>
                   {a.never_touches ? (
                     <p className="mt-2 text-[11px] font-mono text-slate-500">
-                      Never touches: {a.never_touches}
+                      {dt("Never touches:")} {dt(a.never_touches)}
                     </p>
                   ) : null}
-                  <div className="mt-3 text-[11px] font-mono text-emerald-700">Open →</div>
+                  <div className="mt-3 text-[11px] font-mono text-emerald-700">{dt("Open")} →</div>
                 </Link>
               ))}
             </div>
@@ -391,26 +439,26 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
           <section className="mt-8 min-w-0" data-testid={`${testidPrefix}-gaps`}>
             <div className="mb-2 flex items-center gap-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-                Trust Gaps
+                {dt("Trust Gaps")}
               </div>
             </div>
             <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white">
               <table className="min-w-full text-xs">
                 <thead className="bg-slate-50 text-slate-500">
                   <tr>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Gap</th>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Severity</th>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Owner</th>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Target</th>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Risk</th>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Status</th>
-                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">Blocks prod?</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Gap")}</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Severity")}</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Owner")}</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Target")}</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Risk")}</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Status")}</th>
+                    <th className="text-left px-3 py-2 font-semibold uppercase tracking-wider text-[10px]">{dt("Blocks prod?")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {manifest.trust_gaps.map((g) => (
                     <tr key={g.id} data-testid={`${testidPrefix}-${g.id}`}>
-                      <td className="px-3 py-2 text-slate-800 font-medium">{g.title}</td>
+                      <td className="px-3 py-2 text-slate-800 font-medium">{dt(g.title)}</td>
                       <td className="px-3 py-2">
                         <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-widest ring-1 ${SEVERITY_STYLES[g.severity] || "bg-slate-100 text-slate-700 ring-slate-300"}`}>
                           {g.severity}
@@ -418,13 +466,13 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                       </td>
                       <td className="px-3 py-2 text-slate-700 font-mono">{g.owner}</td>
                       <td className="px-3 py-2 text-slate-700 font-mono">{g.target_track}</td>
-                      <td className="px-3 py-2 text-slate-700">{g.risk}</td>
-                      <td className="px-3 py-2 text-slate-700">{g.current_status}</td>
+                      <td className="px-3 py-2 text-slate-700">{dt(g.risk)}</td>
+                      <td className="px-3 py-2 text-slate-700">{dt(g.current_status)}</td>
                       <td className="px-3 py-2 text-slate-700">
                         {g.blocks_production ? (
-                          <span className="text-rose-700 font-semibold">YES</span>
+                          <span className="text-rose-700 font-semibold">{dt("YES")}</span>
                         ) : (
-                          <span className="text-slate-500">no</span>
+                          <span className="text-slate-500">{dt("no")}</span>
                         )}
                       </td>
                     </tr>
