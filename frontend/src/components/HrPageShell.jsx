@@ -22,7 +22,7 @@ export default function HrPageShell({ title, kicker, children }) {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Human Resources"
+      portalRole={t("Human Resources")}
       portalSwitcherCurrent="hr"
       pageTitle={t(title)}
       subtitle={`${kicker || t("Human Resources")} ${user?.name ? `· ${user.name}` : ""}`.trim()}
@@ -36,10 +36,10 @@ export default function HrPageShell({ title, kicker, children }) {
         <section className="wp17-mission-banner" data-testid="hr-page-shell-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Keep the workforce ready with fewer clicks and clearer operational context.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Keep the workforce ready with fewer clicks and clearer operational context.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Every HR workflow should now read like the same platform as Admin and PM: one shell, one navigation system, one information hierarchy.
+                {t("Every HR workflow should now read like the same platform as Admin and PM: one shell, one navigation system, one information hierarchy.")}
               </p>
             </div>
             <div className="wp17-chip-row">

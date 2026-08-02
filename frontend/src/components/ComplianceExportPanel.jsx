@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { todayLocalIso, toLocalIso } from "@/lib/dateUtils";
 import RestoreBackupPanel from "@/components/RestoreBackupPanel";
 import StoredBackupsPanel from "@/components/StoredBackupsPanel";
+import { useT } from "@/lib/i18n";
 
 // First day of current month + today (yyyy-mm-dd) — handy default range.
 // All helpers use LOCAL date components to avoid the UTC-rollover bug
@@ -69,6 +70,7 @@ async function downloadCsv(kind, start, end, label) {
 }
 
 export default function ComplianceExportPanel({ hideBackupTools = false } = {}) {
+  const { t } = useT();
   const [start, setStart] = useState(firstOfMonthIso());
   const [end, setEnd] = useState(todayIso());
   const [counts, setCounts] = useState(null);
@@ -187,10 +189,10 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
           </div>
           <div>
             <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">
-              Compliance Export
+              {t("Compliance Export")}
             </h2>
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
-              CSV exports for monthly OSHA / DOT review
+              {t("CSV exports for monthly OSHA / DOT review")}
             </p>
           </div>
         </div>
@@ -205,7 +207,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
           ) : (
             <Download className="w-4 h-4 mr-1" />
           )}
-          Export All ({total})
+          {t("Export All ({count})").replace("{count}", total)}
         </Button>
       </div>
 
@@ -228,7 +230,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 items-end">
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            Start date
+            {t("Start date")}
           </Label>
           <Input
             type="date"
@@ -241,7 +243,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
         </div>
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            End date
+            {t("End date")}
           </Label>
           <Input
             type="date"
@@ -261,7 +263,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin mr-1" />
           ) : null}
-          Refresh counts
+          {t("Refresh counts")}
         </Button>
       </div>
 

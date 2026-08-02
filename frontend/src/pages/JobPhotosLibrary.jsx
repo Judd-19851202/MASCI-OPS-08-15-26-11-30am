@@ -332,7 +332,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
         ) : null}
         {/* Filter bar */}
         <div
-          className="bg-white border border-slate-200 rounded-md p-3 mb-4 flex flex-wrap gap-2 items-center"
+          className="bg-white border border-slate-200 rounded-md p-3 mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 items-stretch sm:items-center min-w-0"
           data-testid="photos-filter-bar"
         >
           <Input
@@ -341,7 +341,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
               setFilter((p) => ({ ...p, search: e.target.value }))
             }
             placeholder={t("Search jobs / submitter…")}
-            className="flex-1 min-w-[200px] h-10 border-2"
+            className="w-full sm:flex-1 sm:min-w-[200px] min-w-0 h-10 border-2"
             data-testid="photos-search"
           />
           <select
@@ -349,7 +349,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
             onChange={(e) =>
               setFilter((p) => ({ ...p, source: e.target.value }))
             }
-            className="wp17-native-select h-10 px-3 font-mono text-sm bg-white"
+            className="wp17-native-select w-full sm:w-auto min-w-0 h-10 px-3 font-mono text-sm bg-white"
             data-testid="photos-source-filter"
           >
             <option value="">{t("All sources")}</option>
@@ -357,7 +357,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
             <option value="inspection">{t("Site Inspections")}</option>
             <option value="qaqc">{t("QA/QC")}</option>
           </select>
-          <span className="font-mono text-xs uppercase tracking-wider text-slate-500 ml-auto">
+          <span className="font-mono text-xs uppercase tracking-wider text-slate-500 sm:ml-auto">
             {t("Total")}: {total}
           </span>
         </div>

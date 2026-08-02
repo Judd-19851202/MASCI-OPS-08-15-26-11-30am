@@ -27,6 +27,7 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -48,6 +49,7 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
  *   GET    /api/project-managers            (active list, for the PM dropdown)
  */
 export default function AdminJobMasterPanel() {
+  const { t } = useT();
   const [jobs, setJobs] = useState([]);
   const [archive, setArchive] = useState([]);
   const [retainDays, setRetainDays] = useState(14);
@@ -427,7 +429,7 @@ export default function AdminJobMasterPanel() {
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
               <>
-                <Plus className="w-3.5 h-3.5 mr-1" /> Add / Update
+                <Plus className="w-3.5 h-3.5 mr-1" /> {t("Add / Update")}
               </>
             )}
           </Button>
@@ -447,7 +449,7 @@ export default function AdminJobMasterPanel() {
           }`}
           data-testid="job-master-tab-active"
         >
-          Active ({jobs.length})
+          {t("Active")} ({jobs.length})
         </Button>
         <Button
           type="button"
@@ -460,11 +462,11 @@ export default function AdminJobMasterPanel() {
           }`}
           data-testid="job-master-tab-archive"
         >
-          Archive ({archive.length})
+          {t("Archive")} ({archive.length})
         </Button>
         {showArchive && (
           <span className="text-xs text-slate-500 ml-2">
-            Soft-deleted jobs · auto-purged after {retainDays} days. Click ⟲ to restore.
+            {t("Soft-deleted jobs · auto-purged after {days} days. Click").replace("{days}", retainDays)} ⟲ {t("to restore.")}
           </span>
         )}
       </div>

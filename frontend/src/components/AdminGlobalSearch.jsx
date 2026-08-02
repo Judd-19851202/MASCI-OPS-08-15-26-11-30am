@@ -6,10 +6,12 @@ import { useNavigate } from "react-router-dom";
 import { Search, Loader2, ArrowRight, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 const DEBOUNCE_MS = 280;
 
 export default function AdminGlobalSearch() {
+  const { t } = useT();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ export default function AdminGlobalSearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => { if (data) setOpen(true); }}
-          placeholder="Search assets, employees, events…"
+          placeholder={t("Search assets, employees, events…")}
           className="pl-8 pr-8 h-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 focus-visible:ring-red-700"
           data-testid="admin-search-input"
         />
@@ -65,7 +67,7 @@ export default function AdminGlobalSearch() {
             onClick={() => { setQ(""); setOpen(false); }}
             className="absolute right-2 top-2 text-slate-400 hover:text-white"
             data-testid="admin-search-clear"
-            aria-label="Clear"
+            aria-label={t("Clear")}
           >
             <X className="w-4 h-4" />
           </button>
@@ -78,10 +80,10 @@ export default function AdminGlobalSearch() {
           data-testid="admin-search-dropdown"
         >
           {loading ? (
-            <div className="p-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
+            <div className="p-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin mx-auto" /> <span className="sr-only">{t("Loading")}</span></div>
           ) : (data?.groups || []).length === 0 ? (
             <p className="p-5 text-sm text-slate-500 italic text-center" data-testid="admin-search-empty">
-              No matches for <strong>&quot;{q}&quot;</strong>
+              {t("No matches for")} <strong>&quot;{q}&quot;</strong>
             </p>
           ) : (
             <div data-testid="admin-search-groups">

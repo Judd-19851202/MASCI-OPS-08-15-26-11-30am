@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 /**
  * RestoreBackupPanel — pair to the "Download Full Backup" button.
@@ -25,6 +26,7 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
  *   REPLACE — wipe collections in the .zip first, then reinsert. Destructive.
  */
 export default function RestoreBackupPanel() {
+  const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [mode, setMode] = useState("merge"); // 'merge' | 'replace'
@@ -177,10 +179,10 @@ export default function RestoreBackupPanel() {
           </div>
           <div>
             <h3 className="font-display text-base sm:text-lg font-black tracking-tight text-slate-900">
-              Restore from Backup
+              {t("Restore from Backup")}
             </h3>
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
-              Upload a MASCI .zip · rebuilds the entire system
+              {t("Upload a MASCI .zip · rebuilds the entire system")}
             </p>
           </div>
         </div>
@@ -189,7 +191,7 @@ export default function RestoreBackupPanel() {
       {/* Source toggle */}
       <div className="mt-4 flex items-center gap-2 flex-wrap">
         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-          Source:
+          {t("Source:")}
         </Label>
         <div className="inline-flex rounded-md border border-slate-200 overflow-hidden" data-testid="restore-source-toggle">
           <button
@@ -200,7 +202,7 @@ export default function RestoreBackupPanel() {
             }`}
             data-testid="restore-source-file"
           >
-            <Upload className="w-3 h-3 inline mr-1" /> Upload .zip
+            <Upload className="w-3 h-3 inline mr-1" /> {t("Upload .zip")}
           </button>
           <button
             type="button"
@@ -210,7 +212,7 @@ export default function RestoreBackupPanel() {
             }`}
             data-testid="restore-source-r2"
           >
-            <Cloud className="w-3 h-3 inline mr-1" /> From R2 archive
+            <Cloud className="w-3 h-3 inline mr-1" /> {t("From R2 archive")}
           </button>
         </div>
       </div>
@@ -218,7 +220,7 @@ export default function RestoreBackupPanel() {
       {/* Mode toggle */}
       <div className="mt-3 flex items-center gap-2 flex-wrap">
         <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-          Mode:
+          {t("Mode:")}
         </Label>
         <div className="inline-flex rounded-md border border-slate-200 overflow-hidden" data-testid="restore-mode-toggle">
           <button
@@ -229,7 +231,7 @@ export default function RestoreBackupPanel() {
             }`}
             data-testid="restore-mode-merge"
           >
-            Merge (safe)
+            {t("Merge (safe)")}
           </button>
           <button
             type="button"
@@ -239,7 +241,7 @@ export default function RestoreBackupPanel() {
             }`}
             data-testid="restore-mode-replace"
           >
-            Replace (wipe + restore)
+            {t("Replace (wipe + restore)")}
           </button>
         </div>
       </div>
@@ -268,11 +270,11 @@ export default function RestoreBackupPanel() {
             {busy ? (
               <><Loader2 className="w-4 h-4 animate-spin mr-1" /> Restoring…</>
             ) : (
-              <><Upload className="w-4 h-4 mr-1" /> Pick backup .zip</>
+              <><Upload className="w-4 h-4 mr-1" /> {t("Pick backup .zip")}</>
             )}
           </Button>
           <span className="text-xs text-slate-500">
-            ≤ 500 MB · must be a backup produced by &quot;Download Full Backup&quot;
+            {t("≤ 500 MB · must be a backup produced by “Download Full Backup”")}
           </span>
         </div>
       )}
@@ -282,12 +284,12 @@ export default function RestoreBackupPanel() {
         <div className="mt-4" data-testid="restore-r2-picker">
           {archives === null && (
             <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading R2 archives…
+              <Loader2 className="w-4 h-4 animate-spin" /> {t("Loading R2 archives…")}
             </div>
           )}
           {archives && archives.configured === false && (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-md p-3 text-xs text-amber-900">
-              R2 not configured on this deploy. Cloud archive restore is unavailable.
+              {t("R2 not configured on this deploy. Cloud archive restore is unavailable.")}
             </div>
           )}
           {archives && archives.configured !== false && (archives.backups || []).length === 0 && (

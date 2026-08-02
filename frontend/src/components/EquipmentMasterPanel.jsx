@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import WhereUsedPanel from "@/components/WhereUsedPanel";
 import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
+import { useT } from "@/lib/i18n";
 import { useWindowedRows } from "@/lib/useWindowedRows";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -104,6 +105,7 @@ const blankUnit = {
 };
 
 export default function EquipmentMasterPanel({ readOnly = false }) {
+  const { t } = useT();
   const writeAllowed = !readOnly;
   const [items, setItems] = useState([]);
   const [archive, setArchive] = useState([]);
@@ -416,7 +418,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           data-testid="equipment-master-add-btn"
           hidden={!writeAllowed}
         >
-          <Plus className="w-4 h-4 mr-1" /> Add Unit
+          <Plus className="w-4 h-4 mr-1" /> {t("Add Unit")}
         </Button>
       </div>
 
@@ -436,7 +438,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
             }`}
             data-testid="equipment-tab-active"
           >
-            Active ({items.length})
+            {t("Active")} ({items.length})
           </Button>
           <Button
             type="button"
@@ -449,11 +451,11 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
             }`}
             data-testid="equipment-tab-archive"
           >
-            <Archive className="w-3.5 h-3.5 mr-1" /> Archive ({archive.length})
+            <Archive className="w-3.5 h-3.5 mr-1" /> {t("Archive")} ({archive.length})
           </Button>
           {showArchive && (
             <span className="text-xs text-slate-500 ml-2">
-              Soft-deleted units · auto-purged after {retainDays} days. Click <RotateCcw className="w-3 h-3 inline" /> to restore.
+              {t("Soft-deleted units · auto-purged after {days} days. Click").replace("{days}", retainDays)} <RotateCcw className="w-3 h-3 inline" /> {t("to restore.")}
             </span>
           )}
         </div>
@@ -465,7 +467,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Search unit, make, model, VIN…"
+            placeholder={t("Search unit, make, model, VIN…")}
             className="h-9 border-2 max-w-md"
             data-testid="equipment-master-search"
           />
@@ -495,7 +497,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
         ) : showArchive ? (
           archive.length === 0 ? (
             <p className="text-sm text-slate-500 py-8 text-center italic">
-              Archive is empty — nothing to restore.
+              {t("Archive is empty — nothing to restore.")}
             </p>
           ) : (
             <div className="overflow-x-auto border-2 border-slate-200 rounded max-h-[480px]">
@@ -549,7 +551,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           )
         ) : items.length === 0 ? (
           <p className="text-sm text-slate-500 py-8 text-center italic">
-            Fleet is empty — click <strong>Add Unit</strong> or <strong>Bulk Replace</strong>.
+            {t("Fleet is empty — click")} <strong>{t("Add Unit")}</strong> {t("or")} <strong>{t("Bulk Replace")}</strong>.
           </p>
         ) : (
           <div ref={fleetTableScrollerRef} className="overflow-x-auto border-2 border-slate-200 rounded max-h-[480px]">
@@ -768,7 +770,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                 ) : (
                   <Plus className="w-4 h-4 mr-1" />
                 )}
-                {editing ? "Save Changes" : "Add Unit"}
+                {editing ? t("Save Changes") : t("Add Unit")}
               </Button>
             </DialogFooter>
           </form>

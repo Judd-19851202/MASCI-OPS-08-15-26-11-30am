@@ -30,7 +30,7 @@ export default function SafetyShell({
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Safety Operations"
+      portalRole={t("Safety Operations")}
       portalSwitcherCurrent="safety"
       pageTitle={t(pageTitle || title)}
       subtitle={`${subtitle || kicker || t("Safety Operations")} ${user?.name ? `· ${user.name}` : ""}`.trim()}
@@ -46,10 +46,10 @@ export default function SafetyShell({
           <section className="wp17-mission-banner" data-testid="safety-page-shell-banner">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="wp17-kicker text-white/70">Portal mission</div>
-                <h2 className="mt-2 font-display text-xl font-black text-white">Act on risk before it spreads into the field.</h2>
+                <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+                <h2 className="mt-2 font-display text-xl font-black text-white">{t("Act on risk before it spreads into the field.")}</h2>
                 <p className="mt-2 max-w-3xl text-sm text-white/80">
-                  Safety surfaces now follow the same shell, navigation hierarchy, and glass/grid system as the rest of the platform while keeping operational risk clear.
+                  {t("Safety surfaces now follow the same shell, navigation hierarchy, and glass/grid system as the rest of the platform while keeping operational risk clear.")}
                 </p>
               </div>
               <div className="wp17-chip-row">
