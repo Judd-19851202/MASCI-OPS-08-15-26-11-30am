@@ -60,8 +60,8 @@ export function OperationalPrintPageFrame({
               <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0 flex-1">
                   {HeroIcon ? (
-                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-red-700/10 text-red-700 shadow-[0_16px_32px_rgba(15,23,42,0.10)]" data-testid={`${testId}-hero-icon`}>
-                      <HeroIcon className="h-7 w-7" />
+                    <div className="wp17-hero-icon-shell wp17-hero-icon-shell--red" data-testid={`${testId}-hero-icon`}>
+                      <HeroIcon className="wp17-hero-icon-glyph" />
                     </div>
                   ) : null}
                   {kicker ? <div className="wp17-kicker mt-4">{kicker}</div> : null}

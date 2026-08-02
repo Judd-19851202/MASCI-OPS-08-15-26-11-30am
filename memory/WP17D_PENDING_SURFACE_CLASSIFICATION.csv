@@ -1,0 +1,485 @@
+route,family,classification_status,rationale
+/,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/revise/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms/login,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms/equipment-issuance/new,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms/equipment-issuance/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
+/safety/forms/equipment-issuance/:id/return,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/forms/equipment-training/new,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/forms/equipment-training/:id,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
+/safety/cards,Safety Operations,CERTIFIED,Ledger row already carries certification evidence.
+/field,Shared Operational Home and Public Entry,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/field/calculators,Shared Operational Home and Public Entry,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/qaqc,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/qa-qc,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/qaqc/:slug/new,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/qaqc/:id,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/admin/qaqc,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/transportation/*,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/transportation-operations/*,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/photos,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/constraints,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/constraints/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/constraints/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/leadership,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/leadership/hub_v2,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/leadership/records,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/leadership/records/:id,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/leadership/:kind/new,Field Leadership,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/inspections/new,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/inspect/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/inspections/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/inspections/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/meetings/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/meetings/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/jha,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/jha/submit,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/jha/new,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/trench-boxes,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/trench-safety,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/trench-safety/tabulated-data,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/trench-safety/references,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/trench-safety/report,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/trench-safety/assets/:assetId,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/transport-invite/:token,Transportation Operations,CERTIFIED,Ledger row already carries certification evidence.
+/transport-verify/:cnum,Transportation Operations,CERTIFIED,Ledger row already carries certification evidence.
+/incidents/new,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/incidents/submit,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/incidents/report,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/near-miss,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/safety/cases/:caseId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/incidents/:caseId/thread,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/executive-intelligence,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/cases/:caseId/reports/:reportType,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/cases/:caseId/executive-report,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily/submit,Shared Operational Home and Public Entry,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/equipment/new,Shared Operational Home and Public Entry,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/equipment/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/equipment/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/fleet/dvir/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/fleet/dvir/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/fleet/weekly-lead/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/fleet/weekly-emergency/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/fleet/dvir/submitted/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/thank-you,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/cheatsheet,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/cheat-sheet,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/reports/daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily-reports/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily-reports,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/daily-reports/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/safety/jha,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/safety/trench-boxes,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/safety/trench-safety,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/assets,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/assets/:assetId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety/trench-safety/tabulated-data,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/reports,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/excavations,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-safety/excavations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/trench-safety/excavation/new,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
+/safety/trench-safety/repair-review,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety/trench-safety/field-reports,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/trench-safety,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/safety-portal/trench-safety/assets,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/safety-portal/trench-safety/tabulated-data,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/app/*,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/login,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/hub_v1,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/hub_v2,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/executive-overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/executive-intelligence,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/material-ledger-quality,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/people,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/mfa,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/promo-assets,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/jobs,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/cost-registry,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/jobs/:projectNumber/team,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/project-staffing,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/geofence-reconciliation,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operations-dashboard,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operations-control,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/operations-control/cases,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/asset-mapping,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/asset-spine,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/equipment,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/email,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/training,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/compliance,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/system,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/ai-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/integration-truth,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/preview-validation-identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/storage-recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/ai-operations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/communications,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/identity-security,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trust-spine,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance-trust,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/platform-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/diagnostics,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/maintenance,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/platform-overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/recovery-stream,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/jha-acknowledgements,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/command-center,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/database,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/integrations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/dispatch,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/dls/shift-qr,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/dls/day-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/dls/week-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/profile,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operations-events,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/digest-config,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operational-intelligence,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operational-intelligence/recipients,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/system-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/audit-log,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/scheduler-runs,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/legacy-imports,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/sessions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/guidance-coverage,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operational-inventory,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/notifications,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/organization,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/roles,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/permissions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/policies,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/approval-flows,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/delegations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/separation-of-duties,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/authority,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/emergency-overrides,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/decisions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/audit,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/registry,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/versions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/legacy-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/project-identity,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance/self-protection,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/compliance-findings,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operational-language,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/guidance,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
+/guidance/section/:sectionId,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
+/guidance/:articleId,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
+/admin/deploy-recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/assets/:assetId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/asset-admin,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/driver-intel/:driverKey,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/equipment/:id/history,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/employees/:id/history,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/analytics,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/leadership-equipment,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/terminations,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/guide,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/pnl,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/inspections,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/inspections/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/meetings,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/meetings/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/jha-plans,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/jha,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/jha/:id,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/trench-boxes,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-boxes/poster,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/trench-safety,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-safety/assets,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-safety/assets/:assetId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/trench-safety/tabulated-data,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-safety/reports,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-safety/repair-review,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/trench-safety/field-reports,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/jha-plans/poster,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/posters/print-all,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/incidents,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/incidents/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/daily,Administration,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/admin/daily/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/equipment-inspections,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/equipment/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/qaqc/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/admin/leadership/records,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/leadership/records/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/safety/issuance/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/safety/training/:id,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/login,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/reset/:token,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/change-password,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/hub,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/hub_legacy,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/hub_v2,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/holds,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/due-today,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/crew-compliance,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/jobs,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/job/:projectNumber/team,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/project-staffing,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/project-schedule,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/monday-review,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/projects/:projectNumber,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/projects-legacy/:projectNumber,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/project/:projectNumber,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/project/:projectNumber/thread,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/command-center,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-center,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/executive-operational-intelligence,Administration,CERTIFIED,Ledger row already carries certification evidence.
+/operations-map,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/field-leadership,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/fleet,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/people,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/suppliers,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/vendors/:vendorId/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/assets/:assetRef/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/posters,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/qaqc,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/photos,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/daily,Project Management,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/pm/daily/:id,Project Management,CERTIFIED,Ledger row already carries certification evidence.
+/pm/incidents,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/incidents/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/meetings,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/meetings/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/inspections,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/inspections/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/jha-plans,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/trench-boxes,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/equipment,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/equipment/:id,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/trench-safety,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/trench-safety/assets,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/trench-safety/assets/:assetId,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/pm/trench-safety/tabulated-data,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/trench-safety/reports,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/trench-safety/excavations,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/login,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/reset/:token,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/shop/change-password,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/hub_legacy,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/hub_v2,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/asset-care,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/manager/queue,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/me,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/units/history,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/units/:unitNumber/history,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/shop/fuel-lube/new,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/fuel-lube,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/fuel-lube/:visitId,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/shop/service-truck-reconciliation/new,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/service-truck-reconciliation,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/service-truck-reconciliation/:recId,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/shop/pm,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/pm/templates,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/pm/schedules,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/pm/work-orders,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/pm/work-orders/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/shop/trench-safety-repairs,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/fleet,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/fleet/unit/:unit_number,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/shop/equipment,Shop Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shop/equipment/:id,Shop Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/login,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/sign-in,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/change-password,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/forgot,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/reset/:token,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/change-password,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/hub_legacy,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/hub_v2,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/field-leadership,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/field-leadership-users,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/employee-accountability,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/time-verification,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/time-off,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/payroll-variance,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/training-records,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/qualifications,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/driver-qualification,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/driver-qualification/import,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/daily-reports,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/daily-reports/:id,Human Resources,CERTIFIED,Ledger row already carries certification evidence.
+/hr/motive-drivers,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/driver/:driverKey,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/time-off/public/:token,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/field-leadership/portal/login,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/field-leadership/portal/change-password,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/field-leadership/portal/dashboard,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/field-leadership/portal,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/field-leadership/portal/driver-qualification,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/login,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/forgot-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/reset/:token,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety-portal/change-password,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/hub_legacy,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/hub_v2,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/fleet,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/corrective-actions,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/fire-extinguishers,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/fire-extinguishers/import,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/documents,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/training,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/incidents,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/incidents/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety-portal/meetings/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety-portal/audits,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/forms-records,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/reports,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/library,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/employees,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/digest,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/inspections,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/inspections/:id,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/safety-portal/jha-plans,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/safety-portal/driver/:driverKey,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/safety-records,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/login,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/leadership/login,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/forgot-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/reset/:token,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/dispatch-portal/change-password,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/hub_legacy,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/hub_v2,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/board,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/command,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/fleet,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/map,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/haul-ledger,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/driver-qualification,Transportation Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dispatch-portal/driver/:driverKey,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/training,"Training, Guidance, and Coaching",DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/training-hub,"Training, Guidance, and Coaching",OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/training/:track,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/training/:track/poster,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/training/:track/packet,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/admin/training-videos,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/deploy-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/platform-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/wp17d-certification,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/ops-training,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/ops-training/:slug,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/dev/login,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/dev,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/inspections,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/inspect/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/inspections/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/meetings,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/meetings/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/incidents,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/incidents/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/daily,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/safety-portal/meetings,Safety Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/daily-reports,Administration,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/admin/trench-safety-assets,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/legal/terms,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/legal/privacy,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/tasks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/document-expirations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/employees,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/employee-requests,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/employees/:id/accountability,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/employees/:id/thread,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/employees/:empId/profile,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/historical-records/intake,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/historical-records/queue,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/historical-records/batches,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/hr/historical-records/batches/:batchId,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/hr/incidents,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/po-requests,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/project-health,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/asset-transfers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/access-denied,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/audit,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/health,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/d/:token,Field Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/driver,Field Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/shift,Field Operations,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
+/field-leadership,Field Leadership,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/odr/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/odr/center,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/pm/odr,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/odr/public/:doc_id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/odr/:id/done,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/odr/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/operational-records,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-actions,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-actions/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-actions/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/_internal/design-system,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/_internal/pm-v2-preview,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/_internal/hr-v2-preview,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/_internal/v2-index,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/_internal/v2-compare/:portal,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/daily-report/v2,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily/v1,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily/v2,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily-report/v1,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/daily-report/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
+/pm/operational-intelligence,Project Management,CERTIFIED,Ledger row already carries certification evidence.
+/admin/ods-intelligence,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/executive/ods-intelligence,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/occ,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/executive,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/executive-dashboard,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/executive,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/fleet,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/ai,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/storage,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/fl,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+(index),Transportation Operations,OPENED_NOT_AUDITED,Index-style route exists and needs route-level visual/functional audit.
+dispatch,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+live-operations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+trucks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+trucks/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+drivers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+drivers/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+carriers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+carriers/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+compliance,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+orientation/*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+academy,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+academy/:moduleKey,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+intelligence/*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+command-queue/*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+reports,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+audit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+documents,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+inspections,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+rate-schedules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+compliance/documents,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+compliance/rate-schedules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+fleet,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+fleet/trucks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+fleet/inspections,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+administration/audit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+health,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+forecast,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+modules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+modules/:mid,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+assignments,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+certificates,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+emails,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+recommendations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+predictions,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+learning,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+cleanup,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."

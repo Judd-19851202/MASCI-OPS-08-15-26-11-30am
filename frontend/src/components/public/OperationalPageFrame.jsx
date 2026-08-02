@@ -3,16 +3,16 @@ import { CanonicalHeader } from "@/components/CanonicalHeader";
 
 const ACCENT_STYLES = {
   cyan: {
-    iconWrap: "border border-cyan-500/35 bg-slate-950 text-cyan-300 ring-1 ring-cyan-200/40 shadow-[0_18px_36px_rgba(8,145,178,0.24)]",
+    iconWrap: "wp17-hero-icon-shell wp17-hero-icon-shell--cyan",
   },
   amber: {
-    iconWrap: "border border-amber-500/35 bg-slate-950 text-amber-300 ring-1 ring-amber-200/40 shadow-[0_18px_36px_rgba(217,119,6,0.24)]",
+    iconWrap: "wp17-hero-icon-shell wp17-hero-icon-shell--amber",
   },
   red: {
-    iconWrap: "border border-rose-500/35 bg-slate-950 text-rose-300 ring-1 ring-rose-200/40 shadow-[0_18px_36px_rgba(190,24,93,0.24)]",
+    iconWrap: "wp17-hero-icon-shell wp17-hero-icon-shell--red",
   },
   emerald: {
-    iconWrap: "border border-emerald-500/35 bg-slate-950 text-emerald-300 ring-1 ring-emerald-200/40 shadow-[0_18px_36px_rgba(5,150,105,0.24)]",
+    iconWrap: "wp17-hero-icon-shell wp17-hero-icon-shell--emerald",
   },
 };
 
@@ -99,8 +99,8 @@ export function OperationalPageFrame({
               <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0 flex-1">
                   {HeroIcon ? (
-                    <div className={`inline-flex h-16 w-16 items-center justify-center rounded-[1.25rem] ${accentStyle.iconWrap}`} data-testid={`${testId}-hero-icon`}>
-                      <HeroIcon className="h-8 w-8" />
+                    <div className={accentStyle.iconWrap} data-testid={`${testId}-hero-icon`}>
+                      <HeroIcon className="wp17-hero-icon-glyph" />
                     </div>
                   ) : null}
                   {kicker ? (

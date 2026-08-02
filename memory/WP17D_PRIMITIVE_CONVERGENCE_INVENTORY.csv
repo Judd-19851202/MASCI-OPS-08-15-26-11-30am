@@ -1,0 +1,17 @@
+primitive_family,consumer_count,notes
+native_select,134,Automated consumer inventory 2026-08-02
+SearchableSelect,4,Automated consumer inventory 2026-08-02
+AsyncSearchableSelect,4,Automated consumer inventory 2026-08-02
+EmployeeCombo,17,Automated consumer inventory 2026-08-02
+FlUserCombo,2,Automated consumer inventory 2026-08-02
+MasterLookupCombobox,8,Automated consumer inventory 2026-08-02
+EquipmentCombo,4,Automated consumer inventory 2026-08-02
+JobPicker,16,Automated consumer inventory 2026-08-02
+SignaturePad,23,Automated consumer inventory 2026-08-02
+AttachmentUpload,1,Automated consumer inventory 2026-08-02
+PhotoUpload,15,Automated consumer inventory 2026-08-02
+OperationalPageFrame,12,Automated consumer inventory 2026-08-02
+OperationalOutcomeFrame,3,Automated consumer inventory 2026-08-02
+OperationalPrintPageFrame,4,Automated consumer inventory 2026-08-02
+DetailPageHero,9,Automated consumer inventory 2026-08-02
+PageHeader,18,Automated consumer inventory 2026-08-02
