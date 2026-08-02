@@ -12,17 +12,17 @@ route,family,classification_status,rationale
 /safety/cards,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /field,Shared Operational Home and Public Entry,CERTIFIED,Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); governed field hub now renders Spanish UI cleanly while retaining the global MASCI Operations Platform identity footer.
 /field/calculators,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); calculator shell, governed selects, and responsive layout held without route-local drift."
-/qaqc,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/qaqc,Shared Operational Home and Public Entry,CERTIFIED,"2026-08-02 Level 2 shared/public certification: QA/QC public hub passed EN/ES, responsive proof, and route-specific navigation checks."
 /qa-qc,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/qaqc`, which passed without overflow or English chrome leaks."
-/qaqc/:slug/new,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/qaqc/:slug/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: discovered concrete-form create route passed EN/ES and mobile/desktop proof after sticky-footer overflow fix.
 /qaqc/:id,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /admin/qaqc,Administration,CERTIFIED,"Certified after direct admin audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with governed shell chrome, no overflow, and no visible English leaks."
 /admin/transportation/*,Administration,CERTIFIED,"Certified after shared transportation-shell/i18n convergence plus direct ES proof at 1440 + 390 (`20260802_034413`, `20260802_034525`); admin transportation family now renders governed Spanish navigation, cards, and mission shell cleanly."
 /transportation-operations/*,Transportation Operations,CERTIFIED,"Certified after dispatch-side transportation-shell recertification and direct ES proof at 1440 + 390 (`20260802_035444`, `20260802_035511`); shared mission-control family now holds without mixed-language shell leaks."
 /admin/photos,Administration,CERTIFIED,"Certified after focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); photo library chrome, governed controls, and responsive layout all passed. English project names were fixture data only."
-/constraints,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/constraints/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/constraints/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/constraints,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: constraints hub passed EN/ES and responsive proof.
+/constraints/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: route verified as a clean permission-gated no-access consumer for the current admin role with correct RBAC messaging and no runtime defects.
+/constraints/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,"2026-08-02 exact blocker: no discoverable constraint id is exposed from the certified constraints hub and current admin role cannot create constraint records, so detail-route proof remains fixture-gated."
 /leadership,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /leadership/hub_v2,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /leadership/records,Field Leadership,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -62,8 +62,8 @@ route,family,classification_status,rationale
 /equipment/:id,Shared Operational Home and Public Entry,BLOCKED_FIXTURE_REQUIRED,2026-08-02 exact blocker: public equipment detail alias could not be proven because no discoverable equipment inspection id was exposed from reachable certified pages.
 /fleet/dvir/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 transportation-adjacent certification: public DVIR create surface rendered cleanly in EN/ES with responsive form controls and preview-safe input checks.
 /fleet/dvir/submit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 transportation-adjacent certification: DVIR submit entry surface rendered cleanly in EN/ES with responsive form controls and preview-safe input checks.
-/fleet/weekly-lead/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/fleet/weekly-emergency/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/fleet/weekly-lead/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: weekly lead inspection create surface passed EN/ES and responsive proof with required controls present.
+/fleet/weekly-emergency/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: weekly emergency inspection create surface passed EN/ES and responsive proof with required controls present.
 /fleet/dvir/submitted/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /thank-you,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /cheatsheet,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
@@ -150,7 +150,7 @@ route,family,classification_status,rationale
 /admin/sessions,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/guidance-coverage,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/operational-inventory,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/notifications,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/notifications,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: notifications digest passed EN/ES and responsive proof after route-specific translation cleanup.
 /admin/governance,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
 /admin/governance/overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance/organization,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -236,9 +236,9 @@ route,family,classification_status,rationale
 /pm/project/:projectNumber,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/project/:projectNumber/thread,Project Management,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/command-center,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/operations-center,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-center,Shared Operational Home and Public Entry,CERTIFIED,"2026-08-02 Level 2 shared/public certification: operations center verified with correct admin-auth gate, EN/ES content, and responsive proof."
 /admin/executive-operational-intelligence,Administration,CERTIFIED,Ledger row already carries certification evidence.
-/operations-map,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operations-map,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: operations map consumer passed EN/ES and responsive proof.
 /pm/field-leadership,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/fleet,Project Management,CERTIFIED,"2026-08-02 Level 2 transportation-adjacent certification: PM fleet visibility consumer passed EN/ES, responsive proof, and runtime checks."
 /pm/people,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -389,10 +389,10 @@ route,family,classification_status,rationale
 /safety-portal/meetings,Safety Operations,CERTIFIED,"Certified after shared Safety sidebar localization fix plus family re-audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route now renders governed Spanish chrome cleanly."
 /admin/daily-reports,Administration,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /admin/trench-safety-assets,Administration,CERTIFIED,"2026-08-02 focused recertification sweep passed EN/ES verification, responsive checks (390/768/1440), and screenshot review after shared i18n/admin/shop/root fixes."
-/legal/terms,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/legal/privacy,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/tasks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/document-expirations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/legal/terms,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: legal terms page verified as public legal content with expected no-toggle behavior and clean responsive layout.
+/legal/privacy,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: legal privacy page verified as public legal content with expected no-toggle behavior and clean responsive layout.
+/tasks,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: tasks hub passed EN/ES and responsive proof.
+/document-expirations,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: document expirations consumer passed EN/ES and responsive proof.
 /hr/employees,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/employee-requests,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/employees/:id/accountability,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -403,31 +403,31 @@ route,family,classification_status,rationale
 /hr/historical-records/batches,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /hr/historical-records/batches/:batchId,Human Resources,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /hr/incidents,Human Resources,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/po-requests,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/project-health,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/asset-transfers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/access-denied,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/po-requests,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: PO requests consumer passed EN/ES and responsive proof.
+/project-health,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: project health consumer passed EN/ES and responsive proof.
+/asset-transfers,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: asset transfers consumer passed EN/ES and responsive proof.
+/access-denied,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: access-denied route verified as correct guarded error surface with stable responsive layout.
 /admin/audit,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/health,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /d/:token,Field Operations,CERTIFIED,"2026-08-02 Level 2 auth/deep-link certification: invalid-token state now supports EN/ES toggle, passes responsive proof (390/430/1440), and shows localized single-use expiry messaging."
 /driver,Field Operations,CERTIFIED,2026-08-02 Level 2 auth-guard certification: route correctly redirects unauthenticated drivers into the canonical /shift flow with clean runtime behavior.
 /shift,Field Operations,CERTIFIED,"Certified after direct screenshot proof at 1440 + 390 (`20260802_151534`, `20260802_151821`); shift-start flow now holds governed Spanish copy and responsive layout cleanly."
 /field-leadership,Field Leadership,CERTIFIED,"Certified after foreman-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
-/odr/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/odr/center,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/odr/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: ODR create surface passed EN/ES and responsive proof with route-specific form controls present.
+/odr/center,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: ODR center passed EN/ES and responsive proof after route-specific translation cleanup.
 /pm/odr,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /odr/public/:doc_id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /odr/:id/done,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /odr/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/operational-records,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/operations-actions,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/operations-actions/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/operational-records,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: operational records center passed EN/ES and responsive proof after route-specific translation cleanup.
+/operations-actions,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: operations actions hub passed EN/ES and responsive proof after route-specific translation cleanup.
+/operations-actions/new,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 1 shared/public certification: operations action create surface passed EN/ES and responsive proof after route-specific translation cleanup.
 /operations-actions/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/_internal/design-system,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/_internal/pm-v2-preview,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/_internal/hr-v2-preview,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/_internal/v2-index,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/_internal/v2-compare/:portal,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+/_internal/design-system,Shared Operational Home and Public Entry,BLOCKED_DEV_ACCESS_DISABLED,2026-08-02 exact blocker: redirects to /dev/login and shows developer access disabled in this preview environment.
+/_internal/pm-v2-preview,Shared Operational Home and Public Entry,BLOCKED_DEV_ACCESS_DISABLED,2026-08-02 exact blocker: redirects to /dev/login and shows developer access disabled in this preview environment.
+/_internal/hr-v2-preview,Shared Operational Home and Public Entry,BLOCKED_DEV_ACCESS_DISABLED,2026-08-02 exact blocker: redirects to /dev/login and shows developer access disabled in this preview environment.
+/_internal/v2-index,Shared Operational Home and Public Entry,BLOCKED_DEV_ACCESS_DISABLED,2026-08-02 exact blocker: redirects to /dev/login and shows developer access disabled in this preview environment.
+/_internal/v2-compare/:portal,Shared Operational Home and Public Entry,BLOCKED_DEV_ACCESS_DISABLED,2026-08-02 exact blocker: redirects to /dev/login and shows developer access disabled in this preview environment.
 /daily-report/v2,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/v1,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/v2,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
@@ -445,7 +445,7 @@ route,family,classification_status,rationale
 /admin/ai,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/storage,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /fl,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects to the working field-leadership experience."
-*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
+*,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 3 disposition certification: catchall route verified to render the correct Spanish not-found experience with working navigation choices.
 (index),Transportation Operations,CERTIFIED,"Runtime index route audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); home experience passed with no overflow or visible English chrome."
 dispatch,Shared Operational Home and Public Entry,CERTIFIED,"2026-08-02 Level 2 transportation certification: dispatch bridge opened under /transportation-operations with clean EN/ES, responsive proof, and role-safe runtime."
 live-operations,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: live operations workspace opened cleanly in EN/ES at mobile and desktop with no runtime defects.
@@ -472,14 +472,14 @@ fleet,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Lev
 fleet/trucks,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: fleet/trucks now redirects cleanly to canonical trucks under the active transportation prefix.
 fleet/inspections,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: fleet/inspections now redirects cleanly to canonical inspections under the active transportation prefix.
 administration/audit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: administration/audit now redirects cleanly to canonical audit under the active transportation prefix.
-health,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-forecast,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-modules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-modules/:mid,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-assignments,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-certificates,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-emails,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-recommendations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-predictions,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-learning,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-cleanup,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+health,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: transportation command health consumer passed EN/ES and responsive proof under admin oversight.
+forecast,Shared Operational Home and Public Entry,BLOCKED_RUNTIME_TIMEOUT,2026-08-02 exact blocker: command-queue forecast route exceeded 30s load time in preview during repeated attempts; prerequisite is backend/runtime performance recovery or lighter payload.
+modules,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: orientation modules manager passed EN/ES and responsive proof under admin route evidence.
+modules/:mid,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: orientation module detail opened from the admin modules list and passed EN/ES plus mobile/desktop proof.
+assignments,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: orientation assignments consumer passed EN/ES and responsive proof.
+certificates,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: orientation certificates consumer passed EN/ES and responsive proof.
+emails,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: orientation emails consumer passed EN/ES and responsive proof.
+recommendations,Shared Operational Home and Public Entry,BLOCKED_RUNTIME_TIMEOUT,2026-08-02 exact blocker: transportation intelligence recommendations route exceeded 30s load time in preview during repeated attempts; prerequisite is backend/runtime performance recovery or lighter payload.
+predictions,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: intelligence predictions consumer passed EN/ES and responsive proof.
+learning,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: intelligence learning consumer passed EN/ES and responsive proof.
+cleanup,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 shared/public certification: intelligence cleanup consumer passed EN/ES and responsive proof.
