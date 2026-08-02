@@ -274,11 +274,11 @@ export function TruthOwnerPanel({
     <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3" data-testid={testidPrefix}>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">{localizeTrustText(title, t, lang)}</span>
-        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-slate-700" data-testid={`${testidPrefix}-role`}>{role}</span>
-        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>{localizeTrustText(`Primary ${canonicalStatus}`, t, lang)}</span>
-        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>{localizeTrustText(`Shown ${derivedStatus}`, t, lang)}</span>
+        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-slate-700" data-testid={`${testidPrefix}-role`}>{sanitizeOperatorReference(role, "Owner")}</span>
+        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>{sanitizeOperatorReference(localizeTrustText(`Primary ${canonicalStatus}`, t, lang), `Primary ${canonicalStatus}`)}</span>
+        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>{sanitizeOperatorReference(localizeTrustText(`Shown ${derivedStatus}`, t, lang), `Shown ${derivedStatus}`)}</span>
       </div>
-      <p className="text-sm text-slate-800" data-testid={`${testidPrefix}-summary`}>{localizeTrustText(relationship?.derivation_explanation || surface.surface_name || "Structured truth contract.", t, lang)}</p>
+      <p className="text-sm text-slate-800" data-testid={`${testidPrefix}-summary`}>{sanitizeOperatorReference(localizeTrustText(relationship?.derivation_explanation || surface.surface_name || "Structured truth contract.", t, lang), "This summary reflects the current source relationship.")}</p>
       <div className="grid gap-2 md:grid-cols-2 text-xs text-slate-600">
         <div data-testid={`${testidPrefix}-owner-endpoint`}><span className="font-semibold text-slate-800">{t("Owner endpoint:")}</span> {sanitizeOperatorReference(surface.owner_endpoint, "Linked service")}</div>
         <div data-testid={`${testidPrefix}-owner-module`}><span className="font-semibold text-slate-800">{t("Owner module:")}</span> {sanitizeOperatorReference(surface.owner_module, "Platform service")}</div>
@@ -298,7 +298,7 @@ export function TruthOwnerPanel({
           <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">{t("Conflict state")}</div>
           {conflicts.length ? (
             <ul className="space-y-1 text-xs text-rose-700">
-              {conflicts.map((conflict, index) => <li key={`${testidPrefix}-conflict-${index}`}>{localizeTrustText(conflict, t, lang)}</li>)}
+              {conflicts.map((conflict, index) => <li key={`${testidPrefix}-conflict-${index}`}>{sanitizeOperatorReference(localizeTrustText(conflict, t, lang), "Review this conflict before continuing.")}</li>)}
             </ul>
           ) : <div className="text-xs text-emerald-700">{t("No contradiction detected for this surface.")}</div>}
         </div>
