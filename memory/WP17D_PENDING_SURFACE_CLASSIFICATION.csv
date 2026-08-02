@@ -13,13 +13,13 @@ route,family,classification_status,rationale
 /field,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); governed field hub now renders Spanish UI cleanly while retaining the global MASCI Operations Platform identity footer."
 /field/calculators,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES screenshot proof at 1440 + 390 (`20260802_035254`); calculator shell, governed selects, and responsive layout held without route-local drift."
 /qaqc,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/qa-qc,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/qa-qc,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/qaqc`, which passed without overflow or English chrome leaks."
 /qaqc/:slug/new,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /qaqc/:id,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/admin/qaqc,Administration,OPENED_NOT_AUDITED,First-pass audit: route loads in admin shell with readable title; deeper visual/functional audit still pending.
+/admin/qaqc,Administration,CERTIFIED,"Certified after direct admin audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with governed shell chrome, no overflow, and no visible English leaks."
 /admin/transportation/*,Administration,CERTIFIED,"Certified after shared transportation-shell/i18n convergence plus direct ES proof at 1440 + 390 (`20260802_034413`, `20260802_034525`); admin transportation family now renders governed Spanish navigation, cards, and mission shell cleanly."
 /transportation-operations/*,Transportation Operations,CERTIFIED,"Certified after dispatch-side transportation-shell recertification and direct ES proof at 1440 + 390 (`20260802_035444`, `20260802_035511`); shared mission-control family now holds without mixed-language shell leaks."
-/admin/photos,Administration,AUDITED_DEFECTS_FOUND,"Shared shell repaired, but the Photos library still leaks mixed EN/ES route copy and remains open."
+/admin/photos,Administration,CERTIFIED,"Certified after focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); photo library chrome, governed controls, and responsive layout all passed. English project names were fixture data only."
 /constraints,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /constraints/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /constraints/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -36,9 +36,9 @@ route,family,classification_status,rationale
 /meetings/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /meetings/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /jha,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/jha/submit,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/jha/new,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/trench-boxes,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/jha/submit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/jha`, which passed."
+/jha/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/jha`, which passed."
+/trench-boxes,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/trench-safety/tabulated-data`, which passed."
 /trench-safety,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /trench-safety/tabulated-data,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /trench-safety/references,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
@@ -46,8 +46,8 @@ route,family,classification_status,rationale
 /trench-safety/assets/:assetId,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /transport-invite/:token,Transportation Operations,CERTIFIED,Ledger row already carries certification evidence.
 /transport-verify/:cnum,Transportation Operations,CERTIFIED,Ledger row already carries certification evidence.
-/incidents/new,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/incidents/submit,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/incidents/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/incidents/report`, which passed."
+/incidents/submit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/incidents/report`, which passed."
 /incidents/report,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /near-miss,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /safety/cases/:caseId,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -56,7 +56,7 @@ route,family,classification_status,rationale
 /safety/cases/:caseId/reports/:reportType,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /safety/cases/:caseId/executive-report,Safety Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/daily/submit,Shared Operational Home and Public Entry,AUDITED_DEFECTS_FOUND,"Audited in ES at 1440 + 390 (`20260802_035254`); route still leaks mixed EN/ES copy including `Use My Location`, voice-to-report helper text, attachment guidance, and quantity-tracking copy."
+/daily/submit,Shared Operational Home and Public Entry,AUDITED_DEFECTS_FOUND,"Re-audited in ES at 1440 + 390 after shared translation fixes (`auto_frontend_testing_agent`, `20260802_041958`); remaining live leaks are action chrome only: `Add crew`, `Add equipment`, and `Add sub / vendor`."
 /equipment/new,Shared Operational Home and Public Entry,CERTIFIED,"Certified after direct ES proof at 1440 + 390 (`20260802_035254`); pre-op equipment inspection now holds governed Spanish copy, responsive layout, and governed capture controls."
 /equipment/submit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /equipment/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -67,7 +67,7 @@ route,family,classification_status,rationale
 /fleet/dvir/submitted/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /thank-you,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /cheatsheet,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
-/cheat-sheet,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/cheat-sheet,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/cheatsheet`, which passed."
 /reports/daily/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-reports/new,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily-reports,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -84,12 +84,12 @@ route,family,classification_status,rationale
 /trench-safety/excavation/new,Shared Operational Home and Public Entry,CERTIFIED,Ledger row already carries certification evidence.
 /safety/trench-safety/repair-review,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
 /safety/trench-safety/field-reports,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/safety-portal/trench-safety,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/safety-portal/trench-safety/assets,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/safety-portal/trench-safety/tabulated-data,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/app/*,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/safety-portal/trench-safety,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
+/safety-portal/trench-safety/assets,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with governed controls and no visible drift."
+/safety-portal/trench-safety/tabulated-data,Safety Operations,CERTIFIED,"Certified after safety-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
+/app/*,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Fallback alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); runtime redirects to canonical `/`, which passed."
 /admin/login,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks shared English UI chrome including `Back`, `Search`, `Loading`, and `Export`."
+/admin,Administration,CERTIFIED,"Certified after focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02) plus shared admin-shell translation convergence; admin landing now passes without English chrome or responsive drift."
 /admin/hub_v1,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/hub_v2,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/executive-overview,Administration,CERTIFIED,"Certified after shared admin-shell ES repair, executive reason localization, 390px proof, and no auth regressions (screenshots 20260802_025704, 20260802_025923)."
@@ -98,7 +98,7 @@ route,family,classification_status,rationale
 /admin/people,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/mfa,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/promo-assets,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/jobs,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English action chrome including `Edit` and `Export`."
+/admin/jobs,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are shared/route action chrome: `Export` and `Add / Update`."
 /admin/cost-registry,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jobs/:projectNumber/team,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/project-staffing,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -110,11 +110,11 @@ route,family,classification_status,rationale
 /operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/asset-mapping,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/asset-spine,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/equipment,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Back` and `Export`."
+/admin/equipment,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are action chrome: `Export` and `Add Unit`."
 /admin/email,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/training,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Search`, `Save`, and `Export`."
-/admin/compliance,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Back` and `Export`."
-/admin/system,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Back`."
+/admin/training,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are `Export CSV` and `Search`."
+/admin/compliance,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are `Search everything⌘K`, `Export All (0)`, and `Download Full Backup`."
+/admin/system,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are `Search everything⌘K` and `Upload .zip`."
 /admin/ai-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/integration-truth,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/preview-validation-identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -127,21 +127,21 @@ route,family,classification_status,rationale
 /admin/governance-trust,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/platform-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/diagnostics,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/maintenance,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Back`."
+/admin/maintenance,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leak is shared admin search chrome: `Search everything⌘K`."
 /admin/platform-overview,Administration,REDIRECT_CERTIFIED,Browser proof 2026-08-02: /admin/platform-overview redirects to /admin under authenticated admin shell (batch audit 20260802_031319).
 /admin/recovery-stream,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jha-acknowledgements,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/command-center,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly with governed shell primitives intact."
 /admin/database,Administration,CERTIFIED,"Certified after admin-shell ES batch audit at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed without English UI chrome or responsive defects."
-/admin/integrations,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Export`."
+/admin/integrations,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are `Search everything⌘K` and `CSV Import / Export`."
 /admin/dispatch,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/dls/shift-qr,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/dls/day-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/dls/week-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/profile,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Profile`."
+/admin/profile,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, `20260802_041958`); remaining live leak is shared admin search chrome: `Search everything⌘K`."
 /admin/operations-events,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/digest-config,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Dashboard` and `Save`."
-/admin/operational-intelligence,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Export`."
+/admin/digest-config,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, `20260802_041815`); remaining live leaks are `Search everything⌘K`, `Save`, and `Dashboard URL`."
+/admin/operational-intelligence,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leaks are `Search everything⌘K` and `Export`."
 /admin/operational-intelligence/recipients,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/system-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/audit-log,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -151,7 +151,7 @@ route,family,classification_status,rationale
 /admin/guidance-coverage,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/operational-inventory,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /notifications,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance,Administration,AUDITED_DEFECTS_FOUND,"Batch-audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route still leaks English UI chrome including `Dashboard`."
+/admin/governance,Administration,AUDITED_DEFECTS_FOUND,"Focused re-audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); remaining live leak is shared admin search chrome: `Search everything⌘K`."
 /admin/governance/overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance/organization,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance/identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -192,8 +192,8 @@ route,family,classification_status,rationale
 /admin/meetings,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/meetings/:id,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/jha-plans,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/jha,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/admin/jha/:id,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/jha,Administration,CERTIFIED,"Certified after admin-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
+/admin/jha/:id,Administration,AUDITED_DEFECTS_FOUND,"Blocked during admin audit (`auto_frontend_testing_agent`, 2026-08-02): no seeded canonical JHA detail fixture was available to certify the detail route."
 /admin/trench-boxes,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/trench-boxes/poster,Administration,CERTIFIED,Ledger row already carries certification evidence.
 /admin/trench-safety,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -247,7 +247,7 @@ route,family,classification_status,rationale
 /admin/assets/:assetRef/thread,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /pm/posters,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/qaqc,Project Management,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
-/pm/photos,Project Management,AUDITED_DEFECTS_FOUND,"Audited in ES after PM login (`20260802_035350`); route still leaks mixed EN/ES PM-shell navigation including `Overview`, `Command Center`, `Operational Intelligence`, and other sidebar chrome."
+/pm/photos,Project Management,AUDITED_DEFECTS_FOUND,"Re-audited after PM-shell translation convergence in ES at 1440 + 390 (`auto_frontend_testing_agent`, `20260802_041958`); remaining blocker is 390px horizontal overflow."
 /pm/daily,Project Management,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
 /pm/daily/:id,Project Management,CERTIFIED,Ledger row already carries certification evidence.
 /pm/incidents,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -365,7 +365,7 @@ route,family,classification_status,rationale
 /dispatch-portal/driver-qualification,Transportation Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
 /dispatch-portal/driver/:driverKey,Transportation Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /training,"Training, Guidance, and Coaching",DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/training-hub,"Training, Guidance, and Coaching",OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/training-hub,"Training, Guidance, and Coaching",REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/training`, which passed."
 /training/:track,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /training/:track/poster,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /training/:track/packet,"Training, Guidance, and Coaching",UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
@@ -373,22 +373,22 @@ route,family,classification_status,rationale
 /admin/deploy-readiness,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/platform-readiness,Administration,CERTIFIED,"Certified after route-specific ES/content recertification at 1440 + 390 (`20260802_034413`) plus shared admin-shell dictionary convergence; route now holds governed Spanish copy and responsive layout cleanly."
 /admin/wp17d-certification,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/ops-training,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
-/ops-training/:slug,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/ops-training,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects cleanly to canonical `/guidance`, which passed."
+/ops-training/:slug,Shared Operational Home and Public Entry,AUDITED_DEFECTS_FOUND,"Blocked during alias audit (`auto_frontend_testing_agent`, 2026-08-02): no seeded training slug fixture was available to certify the detail route."
 /dev/login,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /dev,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/inspections,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/inspections,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed with no overflow or English chrome leaks."
 /inspect/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /inspections/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/meetings,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/meetings,Shared Operational Home and Public Entry,CERTIFIED,"Certified after PM-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /meetings/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-/incidents,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/incidents,Shared Operational Home and Public Entry,CERTIFIED,"Certified after admin-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /incidents/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /daily,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /daily/:id,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /safety-portal/meetings,Safety Operations,REPAIRED_NOT_CERTIFIED,"Shared auth/session blocker cleared across portal families; route reopened successfully after login/refresh/deep-link proof, but full route certification is still pending (`iteration_107`)."
 /admin/daily-reports,Administration,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
-/admin/trench-safety-assets,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/admin/trench-safety-assets,Administration,AUDITED_DEFECTS_FOUND,"Alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, `20260802_043527`); canonical `/admin/trench-safety/assets` still has a 1440px horizontal overflow (`scrollWidth 1459 > viewport 1440`) plus remaining English helper copy."
 /legal/terms,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /legal/privacy,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /tasks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -412,7 +412,7 @@ route,family,classification_status,rationale
 /d/:token,Field Operations,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /driver,Field Operations,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /shift,Field Operations,REPAIRED_NOT_CERTIFIED,"Opened, repaired, and re-tested but route family still has open branch/width evidence gaps."
-/field-leadership,Field Leadership,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/field-leadership,Field Leadership,CERTIFIED,"Certified after foreman-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /odr/new,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /odr/center,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /pm/odr,Project Management,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -436,17 +436,17 @@ route,family,classification_status,rationale
 /daily-report/v3,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,Alias/redirect proven by canonical browser evidence and source redirect mapping.
 /pm/operational-intelligence,Project Management,REPAIRED_NOT_CERTIFIED,Repaired raw 401 user leak; route still needs full content/width recertification.
 /admin/ods-intelligence,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
-/executive/ods-intelligence,Administration,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/executive/ods-intelligence,Administration,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects to canonical `/admin/operational-intelligence`."
 /admin/occ,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /executive,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /executive-dashboard,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/executive,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
-/fleet,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/fleet,Shared Operational Home and Public Entry,CERTIFIED,"Certified after dispatch-auth audit in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); route passed cleanly."
 /admin/ai,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/storage,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
-/fl,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
+/fl,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects to the working field-leadership experience."
 *,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-(index),Transportation Operations,OPENED_NOT_AUDITED,Index-style route exists and needs route-level visual/functional audit.
+(index),Transportation Operations,CERTIFIED,"Runtime index route audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); home experience passed with no overflow or visible English chrome."
 dispatch,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 live-operations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 trucks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."

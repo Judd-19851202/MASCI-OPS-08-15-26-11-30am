@@ -67,6 +67,7 @@ Last updated: 2026-08-02
 - 2026-08-02 Shared auth-blocker reconciliation landed: the 54-route `BLOCKED_CREDENTIALS` class was eliminated from the authoritative route ledger and reclassified as reopened `REPAIRED_NOT_CERTIFIED` consumers after `iteration_107` proved the shared session fix.
 - 2026-08-02 Shared admin-shell localization wave landed across `CanonicalHeader`, `PortalShell`, `MobileNavigation`, `SideNavV3`, `CommandPalette`, `PortalSwitcher`, `GlobalSearch`, `NotificationBell`, `AdminBreadcrumb`, and the admin wrappers; route-family proof completed for `/admin/daily`, `/admin/daily/:id`, and `/admin/executive-overview`.
 - 2026-08-02 Batch closure wave landed across the active admin queue: `/admin/transportation/*` and `/admin/platform-readiness` were recertified, the 18-route admin-open batch was fully dispositioned (6 certified / 12 defected), and repaired-route movement landed for `/transportation-operations/*`, `/field`, `/field/calculators`, `/equipment/new`, `/daily/submit`, and `/pm/photos`.
+- 2026-08-02 Shared action-chrome wave landed through `governedActions.js`, `BackLink.jsx`, `MasterListPanel.jsx`, `PortalStates.jsx`, `PhotoZipDownload.jsx`, PM sidebar translation, Daily Report keys, admin digest/profile fixes, and admin/governance shell translation passes; the entire remaining 26-route `OPENED_NOT_AUDITED` queue was then dispositioned to `CERTIFIED`, `REDIRECT_CERTIFIED`, or exact `AUDITED_DEFECTS_FOUND` states.
 - Platform discovery complete: **No**
 - Route discovery confidence = 100%: **Yes**
 - Hidden-surface discovery confidence = 100%: **Yes**
@@ -74,16 +75,16 @@ Last updated: 2026-08-02
 - Platform can begin final executive certification math: **No**
 
 ## Current Route Classification Snapshot (484-route denominator)
-- `CERTIFIED`: **54**
-- `REDIRECT_CERTIFIED`: **27**
+- `CERTIFIED`: **67**
+- `REDIRECT_CERTIFIED`: **39**
 - `REPAIRED_NOT_CERTIFIED`: **57**
-- `OPENED_NOT_AUDITED`: **26**
-- `AUDITED_DEFECTS_FOUND`: **15**
+- `OPENED_NOT_AUDITED`: **0**
+- `AUDITED_DEFECTS_FOUND`: **16**
 - `DISCOVERED_NOT_OPENED`: **224**
 - `UNTOUCHED`: **81**
-- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **81**
-- Remaining pending routes: **403**
-- Net pending reduction in this execution wave: **415 → 403** (−**12**)
+- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **106**
+- Remaining pending routes: **378**
+- Net pending reduction in this execution wave: **403 → 378** (−**25**)
 
 ## First Reachability Deliverable
 - Route-to-entry-point ledger created: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`
