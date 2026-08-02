@@ -193,6 +193,8 @@
 
 -  - 2026-08-02 operator-language constitutional cleanup landed across Operations Control, Standards & Readiness, Maintenance, Activity History, Digest Schedule, shared admin navigation, portal continuity labels, and the readiness dashboard; operator-facing WP/certification/canonical/backend/frontend/mutation/runtime/preview/fixture/audit wording was replaced with business-language copy, internal controls were hidden or relabeled, and `/operations-control/cases*` now mount inside the MASCI shell with operator-safe case titles
 -  - a permanent banned-language baseline now exists in `/app/memory/OPERATOR_BANNED_LANGUAGE_REGISTER.md`, enforced by the updated `/app/scripts/wp17d_constitution_guard.py` operator-language scan and the shared `frontend/src/lib/operatorLanguage.js` sanitizers for dynamic case, trust, and activity content
+-  - 2026-08-02 Administration family reached zero actionable pending routes under the permanent operator-language gate: 41 remaining static Administration consumers were certified, 7 real deep-link routes were certified with discovered live identifiers, and 7 deep-link routes were frozen as exact blockers (3 missing identifiers, 4 route-not-implemented)
+-  - operator-language compliance is now a mandatory certification gate for every remaining family batch, every shared component, every visible dynamic string, and every dialog/toast/status/PDF/email surface; engineering and delivery terminology is blocked from operator-facing UI unless it is valid MASCI business language
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.

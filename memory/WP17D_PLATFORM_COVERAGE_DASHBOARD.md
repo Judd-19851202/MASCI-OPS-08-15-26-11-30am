@@ -82,19 +82,20 @@ Last updated: 2026-08-02
 - Platform can begin final executive certification math: **No**
 
 ## Current Route Classification Snapshot (484-route denominator)
-- `CERTIFIED`: **256**
-- `REDIRECT_CERTIFIED`: **61**
-- `BLOCKED_FIXTURE_REQUIRED`: **6**
+- `CERTIFIED`: **333**
+- `REDIRECT_CERTIFIED`: **63**
+- `BLOCKED_FIXTURE_REQUIRED`: **9**
 - `BLOCKED_DEV_ACCESS_DISABLED`: **5**
 - `BLOCKED_RUNTIME_TIMEOUT`: **2**
+- `BLOCKED_ROUTE_NOT_IMPLEMENTED`: **4**
 - `REPAIRED_NOT_CERTIFIED`: **0**
 - `OPENED_NOT_AUDITED`: **0**
 - `AUDITED_DEFECTS_FOUND`: **0**
-- `DISCOVERED_NOT_OPENED`: **115**
-- `UNTOUCHED`: **39**
-- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **317**
-- Remaining pending routes: **167**
-- Net pending reduction in this execution wave: **210 → 167** (−**43**)
+- `DISCOVERED_NOT_OPENED`: **43**
+- `UNTOUCHED`: **25**
+- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **396**
+- Remaining pending routes: **88**
+- Net pending reduction in this execution wave: **167 → 88** (−**79**)
 
 ## First Reachability Deliverable
 - Route-to-entry-point ledger created: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`
@@ -112,12 +113,12 @@ Last updated: 2026-08-02
   - `source_line`
 
 ## Route-to-Entry Reachability Snapshot
-- `DISCOVERED_ENTRY_REVIEW_PENDING`: **317**
-- `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **98**
-- `DISCOVERED_ALIAS`: **24**
+- `DISCOVERED_ENTRY_REVIEW_PENDING`: **334**
+- `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **84**
+- `DISCOVERED_ALIAS`: **20**
 - `DISCOVERED_INDEX_ROUTE_REVIEW_PENDING`: **1**
-- `OPENED_BATCH_AUDIT_20260802`: **17**
-- `PROVEN_REDIRECT`: **27**
+- `OPENED_BATCH_AUDIT_20260802`: **7**
+- `PROVEN_REDIRECT`: **31**
 
 ## Hidden Surface Disposition Snapshot
 - `EXPOSED_OR_NAV_REVIEW`: **335**
