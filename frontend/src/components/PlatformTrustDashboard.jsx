@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -155,7 +156,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
   if (!ots) return null;
   const unknowns = ots.unknowns || [];
   const contradictions = ots.contradictory_evidence || [];
-  const reference = humanizeToken(ots.audit_reference || "tracking reference");
+  const reference = sanitizeOperatorReference(ots.audit_reference, "tracking reference");
   return (
     <div className="space-y-2" data-testid={`${testidPrefix}-wrapper`}>
       <div
@@ -195,7 +196,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
           <div className="font-semibold">Coverage gaps</div>
           <ul className="mt-1 list-disc space-y-1 pl-4">
             {unknowns.map((item, index) => (
-              <li key={`${testidPrefix}-unknown-${index}`}>{item}</li>
+              <li key={`${testidPrefix}-unknown-${index}`}>{sanitizeOperatorReference(item, "Review this missing signal.")}</li>
             ))}
           </ul>
         </div>
@@ -208,7 +209,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
           <div className="font-semibold">Conflicts found</div>
           <ul className="mt-1 list-disc space-y-1 pl-4">
             {contradictions.map((item, index) => (
-              <li key={`${testidPrefix}-contradiction-${index}`}>{item}</li>
+              <li key={`${testidPrefix}-contradiction-${index}`}>{sanitizeOperatorReference(item, "Review this conflicting signal.")}</li>
             ))}
           </ul>
         </div>
@@ -261,15 +262,15 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
           {fmtTs(lastFailure)}
         </td>
         <td className="px-3 py-2 text-xs text-slate-600 max-w-md">
-          <div className="truncate" title={row.reason}>
-            {row.reason || "No exception or remediation note was reported."}
+          <div className="truncate" title={sanitizeOperatorReference(row.reason, "No issue or next-step note was reported.")}>
+            {sanitizeOperatorReference(row.reason, "No issue or next-step note was reported.")}
           </div>
           {row.remediation && (
             <div
               className="text-xs text-slate-500 italic truncate"
-              title={row.remediation}
+              title={sanitizeOperatorReference(row.remediation, "Review this next step.")}
             >
-              → {row.remediation}
+              → {sanitizeOperatorReference(row.remediation, "Review this next step.")}
             </div>
           )}
         </td>
@@ -287,7 +288,7 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
                     Expected stages:
                   </span>{" "}
                   <code className="text-slate-600">
-                    {(row.expected_stages || []).join(" → ") || "—"}
+                    {(row.expected_stages || []).map((item) => sanitizeOperatorReference(item, "stage")).join(" → ") || "—"}
                   </code>
                 </div>
               </div>
@@ -297,16 +298,16 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
                   className="text-xs text-amber-800"
                 >
                   <span className="font-semibold">Missing in last 24h:</span>{" "}
-                  {row.missing_stages.join(", ")}
+                  {row.missing_stages.map((item) => sanitizeOperatorReference(item, "stage")).join(", ")}
                 </div>
               )}
               {row.failure_stage && (
                 <div className="text-xs text-rose-800">
                   <span className="font-semibold">Failure stage:</span>{" "}
-                  <code>{row.failure_stage}</code>
+                  <code>{sanitizeOperatorReference(row.failure_stage, "stage")}</code>
                   {row.last_failure?.failure_reason && (
                     <span className="ml-2 italic">
-                      — {row.last_failure.failure_reason}
+                      — {sanitizeOperatorReference(row.last_failure.failure_reason, "Review the latest failure reason.")}
                     </span>
                   )}
                 </div>

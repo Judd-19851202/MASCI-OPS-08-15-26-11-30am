@@ -23,6 +23,11 @@ const BANNED_OPERATOR_TERMS = [
 ];
 
 const OPERATOR_TERM_REPLACEMENTS = [
+  [/\bcanonicalize\b/gi, "standardize"],
+  [/\bcanonical_owner\b/gi, "primary owner"],
+  [/\bcanonical_archive_lineage\b/gi, "primary archive lineage"],
+  [/\bruntime_state_authority\b/gi, "current state authority"],
+  [/\baudit_written\b/gi, "activity logged"],
   [/\bpreview-safe\b/gi, "live-safe"],
   [/\bpreview fixture\b/gi, "test account"],
   [/\bwp-?14f\b/gi, ""],
