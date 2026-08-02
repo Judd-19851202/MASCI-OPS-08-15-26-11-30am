@@ -181,6 +181,9 @@
   - Transportation/Dispatch workspace consumers are now materially retired: `dispatch`, `live-operations`, `trucks`, `drivers`, `carriers`, `compliance`, `orientation/*`, `academy*`, `intelligence/*`, `command-queue/*`, `reports`, `audit`, `documents`, `inspections`, `rate-schedules`, and six alias routes now have direct EN/ES + 390/1440 proof; detail links were fixed to preserve `/transportation-operations/*` context instead of leaking into `/admin/transportation/*`
   - the transportation alias lane is now clean: `compliance/documents`, `compliance/rate-schedules`, `fleet`, `fleet/trucks`, `fleet/inspections`, and `administration/audit` all redirect to canonical workspace surfaces under the active prefix
   - route math after the transportation workspace batch: `CERTIFIED` **180**, `REDIRECT_CERTIFIED` **52**, `BLOCKED_FIXTURE_REQUIRED` **1**, `DISCOVERED_NOT_OPENED` **184**, `UNTOUCHED` **67**, and remaining pending route count **252**
+  - Transportation-adjacent consumers outside the core workspace are now materially burned down: `/admin/dispatch`, `/admin/inspections`, `/admin/inspections/:id`, `/admin/compliance-findings`, `/daily-reports`, `/pm/fleet`, `/pm/inspections`, `/pm/crew-compliance`, `/fleet/unit/:unit_number`, `/hr/motive-drivers`, `/fleet/dvir/new`, `/fleet/dvir/submit`, Safety documents/audits/reports/root/detail consumers, and trench-safety report consumers now have direct EN/ES + responsive proof
+  - legacy inspection entry paths `/inspections/new`, `/inspections/submit`, and `/inspections/:id` are now redirect-certified against the canonical Safety/Admin inspection flows with verified returnTo behavior and a real inspection id
+  - the first Safety subgroup is now closed for `hub_v2`, `corrective-actions`, `fire-extinguishers`, `fire-extinguishers/import`, `employees`, `library`, and `digest`; route math after this execution: `CERTIFIED` **205**, `REDIRECT_CERTIFIED` **55**, `BLOCKED_FIXTURE_REQUIRED` **1**, `DISCOVERED_NOT_OPENED` **159**, `UNTOUCHED` **64**, and remaining pending route count **224**
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
@@ -189,8 +192,8 @@
 
 ## Next Authorized Work
 - Continue WP-17D in the locked order now set by executive direction, but with the Field auth/deep-link lane materially burned down.
-- Next active family is the remaining Transportation-adjacent lane that still lives in other family ledgers: `/admin/dispatch` and transport-owned Public/Safety/PM/Admin inspection/compliance/fleet/report consumers, while preserving the existing `/dispatch-portal/driver/:driverKey` blocker until a real fixture is exposed.
-- Keep the new shared auth findings as the canonical standard while continuing the locked `DISCOVERED_NOT_OPENED` wave (`202` remaining after this batch), then consume the `UNTOUCHED` wave (`74`) only after the discovered queue is materially reduced.
+- Next active family is the broader Safety wave beyond the subgroup already closed: Safety cases/incidents/report details, forms-records, public issuance return/detail surfaces, trench-safety assets, and remaining admin/PM safety-owned detail/edit/report consumers, while preserving the exact `/dispatch-portal/driver/:driverKey` blocker until a real fixture is exposed.
+- Keep the new shared auth findings as the canonical standard while continuing the locked `DISCOVERED_NOT_OPENED` wave (`159` remaining after this batch), then consume the `UNTOUCHED` wave (`64`) only after the discovered queue is materially reduced.
 - Preserve the exact blocker on `/dispatch-portal/driver/:driverKey` until a real dispatch-visible seeded `driverKey` path or fixture is exposed; do not mark it certified without runtime proof.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
 - Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
