@@ -2,8 +2,10 @@
 // operator copy. Routes to /shop regardless of any subroute depth.
 import React from "react";
 import { Link } from "react-router-dom";
+import { useT } from "@/lib/i18n";
 
 export default function BackToShopLink({ style = {}, testId = "back-to-shop" }) {
+  const { t } = useT();
   return (
     <Link
       to="/shop"
@@ -17,7 +19,7 @@ export default function BackToShopLink({ style = {}, testId = "back-to-shop" }) 
         ...style,
       }}
     >
-      ← Back to Shop
+      ← {t("Back to Shop")}
     </Link>
   );
 }

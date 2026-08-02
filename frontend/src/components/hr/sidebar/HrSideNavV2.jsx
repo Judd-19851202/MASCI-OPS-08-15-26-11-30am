@@ -19,6 +19,7 @@ import {
   CalendarOff, Receipt, Truck, ClipboardList, ShieldCheck, BookOpen,
   KeyRound, FileText, AlertTriangle, Inbox, Upload,
 } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 // Domain groups · ordered by operational frequency (highest first).
 // `stripe` colour communicates the domain; routes share the same colour.
@@ -83,6 +84,7 @@ export const HR_DOMAINS_V2 = [
 ];
 
 const SideNavLink = ({ to, label, desc, icon: Icon, end = false, stripe }) => {
+  const { t } = useT();
   return (
     <NavLink
       to={to}
@@ -106,10 +108,10 @@ const SideNavLink = ({ to, label, desc, icon: Icon, end = false, stripe }) => {
           />
           <div className="min-w-0">
             <div className="font-mono text-[11px] uppercase tracking-wide font-bold leading-tight glass-text-light">
-              {label}
+              {t(label)}
             </div>
             <div className="text-[10.5px] leading-snug mt-0.5 glass-text-muted-light">
-              {desc}
+              {t(desc)}
             </div>
           </div>
         </div>
@@ -118,8 +120,9 @@ const SideNavLink = ({ to, label, desc, icon: Icon, end = false, stripe }) => {
   );
 };
 
-const DomainGroup = ({ domain }) => (
-  <div className="mb-5" data-testid={`hr-side-nav-domain-${domain.id}`}>
+const DomainGroup = ({ domain }) => {
+  const { t } = useT();
+  return <div className="mb-5" data-testid={`hr-side-nav-domain-${domain.id}`}>
     <div className="flex items-center gap-2 px-3 mb-2">
       <span
         className="inline-block w-1 h-4 rounded-sm"
@@ -129,19 +132,19 @@ const DomainGroup = ({ domain }) => (
         className="font-mono text-[10px] uppercase tracking-[0.22em] font-bold glass-text-light"
         style={{ color: domain.stripe }}
       >
-        {domain.label}
+        {t(domain.label)}
       </span>
     </div>
     <p className="px-3 text-[10.5px] leading-snug mb-2 glass-text-muted-light">
-      {domain.subline}
+      {t(domain.subline)}
     </p>
     <div className="space-y-0.5">
       {domain.routes.map((r) => (
         <SideNavLink key={r.to} {...r} stripe={domain.stripe} />
       ))}
     </div>
-  </div>
-);
+  </div>;
+};
 
 export default function HrSideNavV2({ className = "" }) {
   return (
