@@ -29,6 +29,13 @@ import LiveOperationsWorkspace from "./_live_operations";
 import TransportationSearch from "./TransportationSearch";
 import { useTxOpsSlashShortcut } from "@/components/transportation/TransportationOpsTopBar";
 
+function TxAliasRedirect({ to }) {
+  const prefix = window.location.pathname.startsWith("/admin/transportation")
+    ? "/admin/transportation"
+    : "/transportation-operations";
+  return <Navigate to={`${prefix}/${to}`} replace />;
+}
+
 export default function TransportationApp() {
   const { t } = useT();
   // TRACK 18.00 · Phase E — `/` keyboard shortcut focuses the Phase C
@@ -127,27 +134,27 @@ export default function TransportationApp() {
           <Route path="rate-schedules" element={<RateScheduleCenter />} />
           <Route
             path="compliance/documents"
-            element={<Navigate to="../documents" replace relative="path" />}
+            element={<TxAliasRedirect to="documents" />}
           />
           <Route
             path="compliance/rate-schedules"
-            element={<Navigate to="../rate-schedules" replace relative="path" />}
+            element={<TxAliasRedirect to="rate-schedules" />}
           />
           <Route
             path="fleet"
-            element={<Navigate to="../trucks" replace relative="path" />}
+            element={<TxAliasRedirect to="trucks" />}
           />
           <Route
             path="fleet/trucks"
-            element={<Navigate to="../../trucks" replace relative="path" />}
+            element={<TxAliasRedirect to="trucks" />}
           />
           <Route
             path="fleet/inspections"
-            element={<Navigate to="../../inspections" replace relative="path" />}
+            element={<TxAliasRedirect to="inspections" />}
           />
           <Route
             path="administration/audit"
-            element={<Navigate to="../audit" replace relative="path" />}
+            element={<TxAliasRedirect to="audit" />}
           />
         </Routes>
       </div>

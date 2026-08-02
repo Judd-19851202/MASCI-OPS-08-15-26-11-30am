@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, txPost, txPatch, isTxRestricted,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, txPost, txPatch, isTxRestricted, useTxPathPrefix,
 } from "./_shared";
 import {
   DocumentDropzone, InspectionWizard, ComplianceTimeline, PacketChecklist,
@@ -89,6 +89,7 @@ function CarrierStatusSummary({ rows }) {
 }
 
 export function CarriersList() {
+  const prefix = useTxPathPrefix();
   const [rows, setRows] = useState([]);
   const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -174,7 +175,7 @@ export function CarriersList() {
                       >
                         <Pencil className="inline h-3 w-3" /> Edit
                       </button>
-                      <Link to={`/admin/transportation/carriers/${c.id}`} className="text-blue-600 hover:underline text-xs" data-testid={`carrier-open-${c.id}`}>
+                      <Link to={`${prefix}/carriers/${c.id}`} className="text-blue-600 hover:underline text-xs" data-testid={`carrier-open-${c.id}`}>
                         Open <ExternalLink className="inline h-3 w-3" />
                       </Link>
                     </td>
@@ -195,6 +196,7 @@ export function CarriersList() {
 
 // ───────────────────────── Drivers list ─────────────────────────
 export function DriversList() {
+  const prefix = useTxPathPrefix();
   const [rows, setRows] = useState([]);
   const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -270,7 +272,7 @@ export function DriversList() {
                     <td className="px-3 py-2 text-slate-600">{p.license_number || "—"}</td>
                     <td className="px-3 py-2"><Chip value={p.status} /></td>
                     <td className="px-3 py-2 text-right">
-                      <Link to={`/admin/transportation/drivers/${p.id}`} className="text-blue-600 hover:underline text-xs" data-testid={`driver-open-${p.id}`}>
+                      <Link to={`${prefix}/drivers/${p.id}`} className="text-blue-600 hover:underline text-xs" data-testid={`driver-open-${p.id}`}>
                         Open <ExternalLink className="inline h-3 w-3" />
                       </Link>
                     </td>
@@ -295,6 +297,7 @@ export function DriversList() {
 // page is a VIEW into the MASCI fleet, not a separate fleet database.
 // Track 19.02A adds the bulk adoption flow + per-row operational editor.
 export function TrucksList() {
+  const prefix = useTxPathPrefix();
   const [items, setItems] = useState([]);
   const [summary, setSummary] = useState(null);
   const [restricted, setRestricted] = useState(false);
@@ -428,7 +431,7 @@ export function TrucksList() {
                   const overlay = t.transport_overlay || {};
                   const rowKey = `${t.source}-${t.id}`;
                   const detailHref = overlay.exists && overlay.truck_id
-                    ? `/admin/transportation/trucks/${overlay.truck_id}`
+                    ? `${prefix}/trucks/${overlay.truck_id}`
                     : null;
                   return (
                     <tr key={rowKey} className="border-t border-slate-100" data-testid={`trucks-list-row-${rowKey}`}>
@@ -851,6 +854,7 @@ function Field({ label, children, inline }) {
 
 // ───────────────────────── Carrier workspace ─────────────────────────
 export function CarrierWorkspace() {
+  const prefix = useTxPathPrefix();
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -954,7 +958,7 @@ export function CarrierWorkspace() {
                       <td className="px-3 py-2 text-slate-600">{p.cdl_class || "—"}</td>
                       <td className="px-3 py-2"><Chip value={p.status} /></td>
                       <td className="px-3 py-2 text-right">
-                        <Link to={`/admin/transportation/drivers/${p.id}`} className="text-blue-600 hover:underline text-xs">
+                        <Link to={`${prefix}/drivers/${p.id}`} className="text-blue-600 hover:underline text-xs">
                           Open <ExternalLink className="inline h-3 w-3" />
                         </Link>
                       </td>
@@ -990,7 +994,7 @@ export function CarrierWorkspace() {
                       <td className="px-3 py-2 text-slate-600">{t.ownership}</td>
                       <td className="px-3 py-2"><Chip value={t.status} /></td>
                       <td className="px-3 py-2 text-right">
-                        <Link to={`/admin/transportation/trucks/${t.id}`} className="text-blue-600 hover:underline text-xs">
+                        <Link to={`${prefix}/trucks/${t.id}`} className="text-blue-600 hover:underline text-xs">
                           Open <ExternalLink className="inline h-3 w-3" />
                         </Link>
                       </td>
