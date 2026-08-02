@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, FolderSearch, RefreshCw, ShieldCheck, WandSparkles } from "lucide-react";
-import { toast } from "sonner";
-import { listOperationalCases, runOperationalCaseCertification } from "@/lib/operationsControlCasesApi";
+import { AlertTriangle, FolderSearch, RefreshCw, ShieldCheck } from "lucide-react";
+import { listOperationalCases } from "@/lib/operationsControlCasesApi";
 import { formatPlatformTime } from "@/lib/platformTime";
+import {
+  formatOperatorJobLabel,
+  humanizeOperatorToken,
+  sanitizeOperatorReference,
+} from "@/lib/operatorLanguage";
 
 const STATUS_FILTERS = ["all", "OPEN", "UNDER_REVIEW", "INVESTIGATING", "ESCALATED", "PENDING_VERIFICATION", "CLOSED", "DUPLICATE"];
 
@@ -14,13 +18,12 @@ function CaseTone({ status }) {
     CLOSED: "bg-emerald-100 text-emerald-900 border-emerald-300",
     DUPLICATE: "bg-slate-200 text-slate-700 border-slate-300",
   }[status] || "bg-sky-100 text-sky-900 border-sky-300";
-  return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-wide`} data-testid={`occ-case-status-${status}`}>{status}</span>;
+  return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-wide ${tone}`} data-testid={`occ-case-status-${status}`}>{humanizeOperatorToken(status, status || "Open")}</span>;
 }
 
 export default function OperationsControlCases() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [running, setRunning] = useState(false);
   const [filter, setFilter] = useState("all");
   const [error, setError] = useState("");
 
@@ -31,7 +34,7 @@ export default function OperationsControlCases() {
       setData(next);
       setError("");
     } catch (e) {
-      setError(e?.response?.data?.detail || e?.message || "Failed to load Operational Cases.");
+      setError(e?.response?.data?.detail || e?.message || "Failed to load Operations Cases.");
     } finally {
       setLoading(false);
     }
@@ -45,45 +48,23 @@ export default function OperationsControlCases() {
     return list.filter((row) => row.status === filter);
   }, [data, filter]);
 
-  const runCertification = useCallback(async () => {
-    setRunning(true);
-    try {
-      const result = await runOperationalCaseCertification();
-      toast.success(result.release_determination || "Certification chain completed.");
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || e?.message || "Certification run failed.");
-    } finally {
-      setRunning(false);
-    }
-  }, [load]);
-
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm" data-testid="occ-cases-queue">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="occ-cases-queue">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-slate-500">Operational Case Management</div>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Dedicated Case queue</h2>
-          <p className="mt-2 text-sm text-slate-600">Every action here is persisted through the canonical backend. No UI-only state, no silent mutation, no duplicate governed outcomes.</p>
+          <div className="text-[11px] uppercase tracking-[0.3em] text-slate-500">Operations Control</div>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Operations Cases</h2>
+          <p className="mt-2 text-sm text-slate-600">Review active cases, track priorities, and open the right next step without leaving the MASCI Operations Platform.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={load}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-60"
             data-testid="occ-cases-refresh-button"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
-          </button>
-          <button
-            type="button"
-            onClick={runCertification}
-            disabled={running}
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 disabled:opacity-60"
-            data-testid="occ-cases-certification-run-button"
-          >
-            <WandSparkles className={`h-4 w-4 ${running ? "animate-pulse" : ""}`} /> {running ? "Running certification…" : "Run WP-14F certification"}
           </button>
         </div>
       </div>
@@ -98,7 +79,7 @@ export default function OperationsControlCases() {
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.key} className="rounded-3xl border border-slate-200 bg-slate-50 p-4" data-testid={`occ-cases-summary-${card.key}`}>
+            <div key={card.key} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`occ-cases-summary-${card.key}`}>
               <div className="flex items-center gap-2 text-slate-500"><Icon className="h-4 w-4" /><span className="text-[11px] uppercase tracking-[0.22em]">{card.label}</span></div>
               <div className="mt-3 text-3xl font-black text-slate-950">{card.value}</div>
             </div>
@@ -124,32 +105,32 @@ export default function OperationsControlCases() {
 
       <div className="mt-5 grid gap-4 xl:grid-cols-2" data-testid="occ-cases-list">
         {!loading && rows.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500" data-testid="occ-cases-empty">No Operational Cases match the current filter yet.</div>
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500" data-testid="occ-cases-empty">No operations cases match the current filter yet.</div>
         ) : null}
         {rows.map((row) => (
           <Link
             key={row.id}
             to={`/operations-control/cases/${encodeURIComponent(row.id)}`}
-            className="group rounded-[1.75rem] border border-slate-200 bg-white p-5 transition-transform duration-200 hover:-translate-y-0.5 hover:border-slate-400"
+            className="group rounded-2xl border border-slate-200 bg-white p-5 transition-transform duration-200 hover:-translate-y-0.5 hover:border-slate-400"
             data-testid={`occ-case-card-${row.id}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{row.case_type_label || row.case_type_id}</div>
-                <div className="mt-2 text-xl font-black text-slate-950" data-testid={`occ-case-number-${row.id}`}>{row.case_number}</div>
-                <div className="mt-1 text-sm text-slate-600">{row.project_number || "No project"} · {row.project_name || "Unlabeled project"}</div>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{humanizeOperatorToken(row.case_type_label || row.case_type_id, "Operations case")}</div>
+                <div className="mt-2 text-xl font-black text-slate-950" data-testid={`occ-case-number-${row.id}`}>{sanitizeOperatorReference(row.case_number, "Operations case")}</div>
+                <div className="mt-1 text-sm text-slate-600">{formatOperatorJobLabel(row.project_number, row.project_name)}</div>
               </div>
               <CaseTone status={row.status} />
             </div>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
-              <span className="rounded-full bg-slate-100 px-2.5 py-1" data-testid={`occ-case-severity-${row.id}`}>severity: {row.severity}</span>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1" data-testid={`occ-case-priority-${row.id}`}>priority: {row.priority}</span>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1" data-testid={`occ-case-owner-${row.id}`}>owner: {row.case_owner_name || row.case_owner_role || "—"}</span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1" data-testid={`occ-case-severity-${row.id}`}>Severity: {humanizeOperatorToken(row.severity, "Standard")}</span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1" data-testid={`occ-case-priority-${row.id}`}>Priority: {humanizeOperatorToken(row.priority, "Standard")}</span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1" data-testid={`occ-case-owner-${row.id}`}>Owner: {sanitizeOperatorReference(row.case_owner_name || row.case_owner_role, "Unassigned")}</span>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 text-sm text-slate-700">
               <div data-testid={`occ-case-origin-${row.id}`}>
-                <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Governed origin</div>
-                <div className="mt-1">{row.origin?.source_doc_id || row.origin?.source_record_id || "—"}</div>
+                <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Source record</div>
+                <div className="mt-1">{sanitizeOperatorReference(row.origin?.source_doc_id || row.origin?.source_record_id, "Linked record")}</div>
               </div>
               <div data-testid={`occ-case-updated-${row.id}`}>
                 <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Last updated</div>

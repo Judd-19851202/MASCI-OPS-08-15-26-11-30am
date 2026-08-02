@@ -47,13 +47,17 @@ import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell } from "@/design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import {
+  formatOperatorJobLabel,
+  humanizeOperatorToken,
+  sanitizeOperatorReference,
+} from "@/lib/operatorLanguage";
 
 import {
   EvidenceDrawer,
   EvidenceSummary,
   HealthCard,
   TrustStatusPill,
-  TruthOwnerPanel,
   TRUST_STATUS_STYLES,
   sortCardsByAttention,
 } from "@/components/admin/trust/TrustPrimitives";
@@ -68,7 +72,7 @@ const API = (
 const CATEGORY_LABELS = {
   health: "System Health",
   storage: "Storage & Disk",
-  governance: "Operations Repair Console",
+  governance: "Platform Standards",
   r2: "R2 Object Storage",
   backups: "Backups",
   daily_reports: "Daily Reports",
@@ -98,12 +102,12 @@ const CATEGORY_ORDER = [
 ];
 
 const RISK_STYLES = {
-  info: { bg: "bg-slate-100", fg: "text-slate-700", label: "read-only" },
-  safe_cleanup: { bg: "bg-emerald-100", fg: "text-emerald-800", label: "safe cleanup" },
-  data_migration: { bg: "bg-amber-100", fg: "text-amber-800", label: "data migration" },
-  destructive: { bg: "bg-rose-100", fg: "text-rose-800", label: "destructive" },
-  external_provider: { bg: "bg-sky-100", fg: "text-sky-800", label: "external provider" },
-  security_sensitive: { bg: "bg-purple-100", fg: "text-purple-800", label: "security sensitive" },
+  info: { bg: "bg-slate-100", fg: "text-slate-700", label: "status only" },
+  safe_cleanup: { bg: "bg-emerald-100", fg: "text-emerald-800", label: "low risk" },
+  data_migration: { bg: "bg-amber-100", fg: "text-amber-800", label: "data update" },
+  destructive: { bg: "bg-rose-100", fg: "text-rose-800", label: "high impact" },
+  external_provider: { bg: "bg-sky-100", fg: "text-sky-800", label: "connected service" },
+  security_sensitive: { bg: "bg-purple-100", fg: "text-purple-800", label: "restricted" },
 };
 
 const STATUS_STYLES = {
@@ -140,6 +144,12 @@ function normalizeTrustStatus(status) {
 function normalizeTrustCard(card) {
   return {
     ...card,
+    title: sanitizeOperatorReference(card?.title, "Operations signal"),
+    summary: sanitizeOperatorReference(card?.summary, "Review the linked signal."),
+    root_cause_explanation: sanitizeOperatorReference(card?.root_cause_explanation, "Review the linked signal."),
+    recommended_action: sanitizeOperatorReference(card?.recommended_action, "Review linked details."),
+    evidence_source_label: sanitizeOperatorReference(card?.evidence_source_label, "Linked service"),
+    producer: sanitizeOperatorReference(card?.producer, "Platform service"),
     status: normalizeTrustStatus(card?.status || card?.canonical_status),
     raw_status: card?.status || "UNKNOWN",
     raw_canonical_status: card?.canonical_status || "UNKNOWN",
@@ -184,27 +194,26 @@ function TrustLayerBoundedDisclosure({ snapshot }) {
         data-testid="trust-layer-bounded-disclosure"
       >
         <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-          Bounded aggregate disclosure
+          Platform overview
         </div>
         <p
           className="mt-2 text-sm text-slate-800"
           data-testid="trust-layer-bounded-summary"
         >
-          This OCC health layer is an aggregator over shared operational posture.
-          Child source owners remain authoritative, and this surface stays read-only.
+          This operations overview combines signals from connected teams. Source teams remain responsible for the records shown here, and this summary stays read-only.
         </p>
         <div
           className="mt-3 grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
           data-testid="trust-layer-bounded-grid"
         >
-          <div data-testid="trust-layer-bounded-role"><span className="font-semibold text-slate-900">Role:</span> {relationship.role || surface.role || "UNKNOWN"}</div>
-          <div data-testid="trust-layer-bounded-subject"><span className="font-semibold text-slate-900">Truth subject:</span> {surface.truth_subject || "UNKNOWN"}</div>
-          <div data-testid="trust-layer-bounded-owner"><span className="font-semibold text-slate-900">Canonical owner:</span> {relationship.canonical_owner_id || surface.canonical_owner_id || "UNKNOWN"}</div>
-          <div data-testid="trust-layer-bounded-owner-route"><span className="font-semibold text-slate-900">Canonical owner route:</span> {relationship.canonical_owner_route || "—"}</div>
-          <div data-testid="trust-layer-bounded-unknowns"><span className="font-semibold text-slate-900">Unverifiable cards:</span> {unknownCount}</div>
-          <div data-testid="trust-layer-bounded-neutral"><span className="font-semibold text-slate-900">Neutral / not applicable:</span> {neutralCount}</div>
-          <div data-testid="trust-layer-bounded-canonical"><span className="font-semibold text-slate-900">Canonical status:</span> {relationship.canonical_status || snapshot.overall_canonical || "UNKNOWN"}</div>
-          <div data-testid="trust-layer-bounded-derived"><span className="font-semibold text-slate-900">Displayed aggregate:</span> {relationship.derived_status || snapshot.overall_status || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-role"><span className="font-semibold text-slate-900">Area:</span> {relationship.role || surface.role || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-subject"><span className="font-semibold text-slate-900">Focus:</span> {surface.truth_subject || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-owner"><span className="font-semibold text-slate-900">Source owner:</span> {relationship.canonical_owner_id || surface.canonical_owner_id || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-owner-route"><span className="font-semibold text-slate-900">Source page:</span> {relationship.canonical_owner_route || "—"}</div>
+          <div data-testid="trust-layer-bounded-unknowns"><span className="font-semibold text-slate-900">Missing signals:</span> {unknownCount}</div>
+          <div data-testid="trust-layer-bounded-neutral"><span className="font-semibold text-slate-900">Neutral:</span> {neutralCount}</div>
+          <div data-testid="trust-layer-bounded-canonical"><span className="font-semibold text-slate-900">Source status:</span> {relationship.canonical_status || snapshot.overall_canonical || "UNKNOWN"}</div>
+          <div data-testid="trust-layer-bounded-derived"><span className="font-semibold text-slate-900">Overall status:</span> {relationship.derived_status || snapshot.overall_status || "UNKNOWN"}</div>
         </div>
         <div
           className={`mt-3 rounded-xl border p-3 text-xs ${
@@ -216,7 +225,7 @@ function TrustLayerBoundedDisclosure({ snapshot }) {
         >
           {conflicts.length ? (
             <>
-              <div className="font-semibold">Aggregate contradictions</div>
+              <div className="font-semibold">Cross-system conflicts</div>
               <ul className="mt-1 list-disc space-y-1 pl-4">
                 {conflicts.map((conflict, index) => (
                   <li key={`trust-layer-conflict-${index}`}>{conflict}</li>
@@ -225,19 +234,11 @@ function TrustLayerBoundedDisclosure({ snapshot }) {
             </>
           ) : (
             <div>
-              <span className="font-semibold">Conflict state:</span> No aggregate contradiction reported. Unknown or missing evidence still remains disclosed card-by-card.
+              <span className="font-semibold">Consistency:</span> No cross-system conflict is currently reported. Missing signals still appear card by card.
             </div>
           )}
         </div>
       </div>
-
-      <TruthOwnerPanel
-        title="Aggregator truth relationship"
-        surface={surface}
-        relationship={relationship}
-        checkedAt={snapshot?.generated_at || "—"}
-        testidPrefix="trust-layer-owner-panel"
-      />
     </div>
   );
 }
@@ -330,7 +331,7 @@ async function captureControlPlaneEvidence(recordId = "") {
   return r.data;
 }
 
-function RegistryCard({ registryData, eventsData, communicationsData, baselinesData, evidenceData, onCaptureBaseline, onCaptureEvidence, capturingBaseline, capturingEvidence }) {
+function RegistryCard({ registryData, eventsData, communicationsData, baselinesData, evidenceData }) {
   const registry = registryData?.registry;
   const snapshot = registryData?.snapshot;
   const recentEvents = eventsData?.events || [];
@@ -343,41 +344,23 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
           <div className="text-[10px] uppercase tracking-[0.28em] text-slate-500 font-mono font-bold">
-            WP-OPPC-14 constitutional layer
+            Operations support overview
           </div>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950" data-testid="occ-control-plane-registry-title">
-            Operational Registry + Event Catalog
+            Record flow and message activity
           </h2>
           <p className="mt-2 text-sm text-slate-600" data-testid="occ-control-plane-registry-summary">
-            Events now express intent only. Communications, routing, acknowledgement, escalation, and baseline evidence are governed by one registered control-plane contract.
+            Track how work records, messages, and follow-up activity move through Operations Control without exposing internal platform terminology.
           </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onCaptureEvidence}
-            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition-colors hover:bg-slate-100"
-            data-testid="occ-capture-evidence-button"
-          >
-            {capturingEvidence ? "Packaging…" : "Capture evidence package"}
-          </button>
-          <button
-            type="button"
-            onClick={onCaptureBaseline}
-            className="rounded-full border border-slate-300 bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
-            data-testid="occ-capture-baseline-button"
-          >
-            {capturingBaseline ? "Capturing…" : "Capture baseline snapshot"}
-          </button>
         </div>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4" data-testid="occ-control-plane-registry-counts">
         {[
           ["Workflows", registry?.counts?.workflows || 0],
-          ["Registered events", registry?.counts?.events || 0],
-          ["Communication intents", registry?.counts?.communication_intents || 0],
-          ["Transport providers", registry?.counts?.transports || 0],
+          ["Recent updates", registry?.counts?.events || 0],
+          ["Messages in flow", registry?.counts?.communication_intents || 0],
+          ["Delivery services", registry?.counts?.transports || 0],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`occ-registry-count-${String(label).toLowerCase().replace(/\s+/g, "-")}`}>
             <div className="text-[11px] uppercase tracking-widest text-slate-500">{label}</div>
@@ -388,12 +371,12 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
 
       <div className="mt-5 grid gap-4 xl:grid-cols-[1.3fr_1fr]">
         <div className="rounded-2xl border border-slate-200 bg-[#f6f7f2] p-4" data-testid="occ-registry-principles">
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">Constitutional principles</div>
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Operating guidelines</div>
           <ul className="mt-3 space-y-3 text-sm text-slate-700">
             {(registry?.principles || []).map((principle) => (
               <li key={principle.id} className="rounded-2xl border border-slate-200 bg-white p-3" data-testid={`occ-registry-principle-${principle.id}`}>
-                <div className="font-semibold text-slate-950">{principle.title}</div>
-                <div className="mt-1 leading-6">{principle.statement}</div>
+                <div className="font-semibold text-slate-950">{sanitizeOperatorReference(principle.title, "Operating guideline")}</div>
+                <div className="mt-1 leading-6">{sanitizeOperatorReference(principle.statement, "This guideline keeps case handling consistent and traceable.")}</div>
               </li>
             ))}
           </ul>
@@ -401,23 +384,22 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
 
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="occ-registry-snapshot">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500">Registry snapshot</div>
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">Current snapshot</div>
             <div className="mt-3 space-y-2 text-sm text-slate-700">
               <div data-testid="occ-registry-version"><span className="font-semibold text-slate-950">Version:</span> {registry?.version || "—"}</div>
-              <div data-testid="occ-registry-baseline-name"><span className="font-semibold text-slate-950">Baseline:</span> {registry?.baseline_name || "—"}</div>
-              <div data-testid="occ-registry-hash"><span className="font-semibold text-slate-950">Registry hash:</span> {registry?.registry_hash || "—"}</div>
-              <div data-testid="occ-registry-captured-at"><span className="font-semibold text-slate-950">Captured at:</span> {snapshot?.captured_at ? formatPlatformTime(snapshot.captured_at) : "—"}</div>
+              <div data-testid="occ-registry-baseline-name"><span className="font-semibold text-slate-950">Saved snapshot:</span> {sanitizeOperatorReference(registry?.baseline_name, "Current operations snapshot")}</div>
+              <div data-testid="occ-registry-captured-at"><span className="font-semibold text-slate-950">Updated:</span> {snapshot?.captured_at ? formatPlatformTime(snapshot.captured_at) : "—"}</div>
             </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="occ-registry-events-list">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500">Recent registered events</div>
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">Recent updates</div>
             <div className="mt-3 space-y-2">
-              {recentEvents.length === 0 && <div className="text-sm text-slate-500">No control-plane events yet.</div>}
+              {recentEvents.length === 0 && <div className="text-sm text-slate-500">No recent updates yet.</div>}
               {recentEvents.slice(0, 5).map((row) => (
                 <div key={row.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm" data-testid={`occ-registry-event-${row.id}`}>
-                  <div className="font-semibold text-slate-950">{row.event_type_id}</div>
-                  <div className="mt-1 text-slate-600">{row.record_doc_id || row.record_id} · {row.project_number || "No project"}</div>
+                  <div className="font-semibold text-slate-950">{humanizeOperatorToken(row.event_type_id, "Operations update")}</div>
+                  <div className="mt-1 text-slate-600">{sanitizeOperatorReference(row.record_doc_id || row.record_id, "Linked record")} · {formatOperatorJobLabel(row.project_number, row.project_name)}</div>
                 </div>
               ))}
             </div>
@@ -427,21 +409,21 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
 
       <div className="mt-5 grid gap-4 xl:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-communications-list">
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">Daily Report → OPPC proof chain</div>
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Daily report follow-up</div>
           <div className="mt-3 space-y-3">
-            {recentCommunications.length === 0 && <div className="text-sm text-slate-500">No control-plane communications yet.</div>}
+            {recentCommunications.length === 0 && <div className="text-sm text-slate-500">No messages in flow yet.</div>}
             {recentCommunications.slice(0, 6).map((row) => (
               <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`occ-registry-communication-${row.id}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="font-semibold text-slate-950">{row.communication_intent_id}</div>
+                  <div className="font-semibold text-slate-950">{humanizeOperatorToken(row.communication_intent_id, "Case communication")}</div>
                   <div className="rounded-full border border-slate-300 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-700" data-testid={`occ-registry-communication-status-${row.id}`}>
-                    {row.status}
+                    {humanizeOperatorToken(row.status, "Pending")}
                   </div>
                 </div>
-                <div className="mt-2 text-sm text-slate-600">{row.record_doc_id || row.record_id} · {row.project_number || "No project"}</div>
+                <div className="mt-2 text-sm text-slate-600">{sanitizeOperatorReference(row.record_doc_id || row.record_id, "Linked record")} · {formatOperatorJobLabel(row.project_number, row.project_name)}</div>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                  <span data-testid={`occ-registry-communication-ack-${row.id}`}>ack: {row.ack_status}</span>
-                  <span data-testid={`occ-registry-communication-transport-${row.id}`}>transport: {(row.transport_ids || []).join(", ") || "—"}</span>
+                  <span data-testid={`occ-registry-communication-ack-${row.id}`}>confirmed: {humanizeOperatorToken(row.ack_status, "Waiting")}</span>
+                  <span data-testid={`occ-registry-communication-transport-${row.id}`}>delivery: {(row.transport_ids || []).length || 0} service(s)</span>
                 </div>
               </div>
             ))}
@@ -449,31 +431,30 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-baselines-list">
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">Baseline snapshots</div>
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Saved snapshots</div>
           <div className="mt-3 space-y-3">
-            {baselines.length === 0 && <div className="text-sm text-slate-500">No baseline snapshots yet.</div>}
+            {baselines.length === 0 && <div className="text-sm text-slate-500">No saved snapshots yet.</div>}
             {baselines.slice(0, 5).map((row) => (
               <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`occ-baseline-${row.id}`}>
-                <div className="font-semibold text-slate-950">{row.baseline_name}</div>
+                <div className="font-semibold text-slate-950">{sanitizeOperatorReference(row.baseline_name, "Operations snapshot")}</div>
                 <div className="mt-1 text-sm text-slate-600">{formatPlatformTime(row.created_at)} · {row.created_by}</div>
-                <div className="mt-2 text-xs text-slate-500">hash: {row.registry_hash || "—"}</div>
               </div>
             ))}
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-evidence-list">
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">Readiness evidence</div>
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Saved case packets</div>
           <div className="mt-3 space-y-3">
-            {evidence.length === 0 && <div className="text-sm text-slate-500">No evidence packages yet.</div>}
+            {evidence.length === 0 && <div className="text-sm text-slate-500">No saved case packets yet.</div>}
             {evidence.slice(0, 5).map((row) => (
               <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`occ-evidence-${row.id}`}>
-                <div className="font-semibold text-slate-950">{row.workflow_id}</div>
+                <div className="font-semibold text-slate-950">{humanizeOperatorToken(row.workflow_id, "Operations packet")}</div>
                 <div className="mt-1 text-sm text-slate-600">{formatPlatformTime(row.created_at)} · {row.created_by}</div>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                  <span data-testid={`occ-evidence-events-${row.id}`}>events: {row.event_count}</span>
-                  <span data-testid={`occ-evidence-communications-${row.id}`}>communications: {row.communication_count}</span>
-                  <span data-testid={`occ-evidence-captures-${row.id}`}>captures: {row.capture_count}</span>
+                  <span data-testid={`occ-evidence-events-${row.id}`}>updates: {row.event_count}</span>
+                  <span data-testid={`occ-evidence-communications-${row.id}`}>messages: {row.communication_count}</span>
+                  <span data-testid={`occ-evidence-captures-${row.id}`}>attachments: {row.capture_count}</span>
                 </div>
               </div>
             ))}
@@ -555,7 +536,7 @@ function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-            Trust Center · read-only
+            Operations overview · read-only
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
             <TrustStatusPill status={overall} testid="trust-layer-overall-pill" />
@@ -764,17 +745,17 @@ function RepairHistory({ contract, operationId }) {
       data-testid={`occ-repair-history-${operationId}`}
     >
       <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-        Audit-linked repair history
+          Recent tool activity
       </div>
       <div className="mt-2 grid gap-2 sm:grid-cols-2 text-[11px] text-slate-700">
         <div data-testid={`occ-repair-history-dry-run-${operationId}`}>
-          <div className="font-semibold text-slate-900">Latest dry-run</div>
-          <div>{lastDryRun ? formatPlatformTime(lastDryRun.ts) : "No preview yet"}</div>
+          <div className="font-semibold text-slate-900">Latest check</div>
+          <div>{lastDryRun ? formatPlatformTime(lastDryRun.ts) : "No review yet"}</div>
           <div className="font-mono text-slate-500 break-words">{lastDryRun?.actor_email || lastDryRun?.actor_id || "—"}</div>
         </div>
         <div data-testid={`occ-repair-history-apply-${operationId}`}>
-          <div className="font-semibold text-slate-900">Latest apply</div>
-          <div>{lastApply ? formatPlatformTime(lastApply.ts) : "No apply yet"}</div>
+          <div className="font-semibold text-slate-900">Latest update</div>
+          <div>{lastApply ? formatPlatformTime(lastApply.ts) : "No update yet"}</div>
           <div className="font-mono text-slate-500 break-words">{lastApply?.actor_email || lastApply?.actor_id || "—"}</div>
         </div>
       </div>
@@ -797,13 +778,13 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
     (!op.requires_confirmation ||
       confirmPhrase === (dryRunState?.confirmation_phrase || ""));
   const applyReason = !op.has_apply
-    ? op.manual_reason || "Read-only operation — no apply available."
+    ? op.manual_reason || "View-only item — no update available."
     : capability.available === false
       ? capability.disabled_reason || "Capability unavailable."
     : op.requires_dry_run && !dryRunState?.dry_run_id
-      ? "Run the preview first."
+      ? "Check the impact first."
       : op.requires_confirmation && !confirmPhrase
-        ? `Type the confirmation phrase to enable apply.`
+        ? "Type the confirmation text to enable the update."
         : null;
   return (
     <div
@@ -821,12 +802,12 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-slate-900 truncate">
-              {op.title}
+              {sanitizeOperatorReference(op.title, "Operations task")}
             </h3>
             <RiskChip risk={op.risk} />
           </div>
           <p className="mt-1 text-xs text-slate-600 leading-relaxed">
-            {op.description}
+            {sanitizeOperatorReference(op.description, "Review this operations task before applying any change.")}
           </p>
         </div>
         <StatusPill status={snapshot.status || "unavailable"}>
@@ -839,7 +820,7 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
           className="mt-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700"
           data-testid={`occ-summary-${op.id}`}
         >
-          {snapshot.summary}
+          {sanitizeOperatorReference(snapshot.summary, "Review this item for the latest update.")}
         </div>
       )}
       {snapshot.candidate_count > 0 ? (
@@ -847,7 +828,7 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
           className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
           data-testid={`occ-candidate-count-${op.id}`}
         >
-          {snapshot.candidate_count} candidate change(s) currently eligible for repair.
+          {snapshot.candidate_count} item(s) are ready for update.
         </div>
       ) : null}
       {snapshot.warnings && snapshot.warnings.length > 0 && (
@@ -855,7 +836,7 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
           {snapshot.warnings.map((w, i) => (
             <li key={i} className="flex gap-2">
               <span className="text-amber-500">⚠</span>
-              <span>{w}</span>
+              <span>{sanitizeOperatorReference(w, "Review this warning before continuing.")}</span>
             </li>
           ))}
         </ul>
@@ -868,10 +849,10 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
             className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-800 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => onRun(op)}
             disabled={capability.available === false}
-            title={capability.disabled_reason || "Run dry-run"}
+            title={capability.disabled_reason || "Check impact"}
             data-testid={`occ-dry-run-${op.id}`}
           >
-            {op.risk === "info" ? "Refresh status" : "Preview / dry-run"}
+            {op.risk === "info" ? "Refresh status" : "Check impact"}
           </button>
         )}
         {op.has_apply ? (
@@ -899,9 +880,9 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
                 })
               }
               data-testid={`occ-apply-${op.id}`}
-              title={applyReason || "Ready to apply."}
+              title={applyReason || "Ready to update."}
             >
-              Apply
+              Apply change
             </button>
           </>
         ) : (
@@ -909,7 +890,7 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
             className="text-[11px] italic text-slate-400"
             data-testid={`occ-manual-${op.id}`}
           >
-            Read-only
+            View only
           </span>
         )}
         <button
@@ -918,30 +899,30 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
           onClick={() => setExpanded((x) => !x)}
           data-testid={`occ-expand-${op.id}`}
         >
-          {expanded ? "Hide contract" : "Show contract"}
+          {expanded ? "Hide details" : "Show details"}
         </button>
       </div>
 
       {expanded && (
         <div className="mt-3 rounded-md bg-slate-50 p-3 text-[11px] text-slate-600 font-mono">
           <div>
-            <span className="text-slate-400">reads:</span>{" "}
+            <span className="text-slate-400">uses data from:</span>{" "}
             {op.reads.length ? op.reads.join(" · ") : "—"}
           </div>
           <div>
-            <span className="text-slate-400">writes:</span>{" "}
+            <span className="text-slate-400">updates:</span>{" "}
             {op.writes.length ? op.writes.join(" · ") : "—"}
           </div>
           <div>
-            <span className="text-slate-400">never touches:</span>{" "}
+            <span className="text-slate-400">does not change:</span>{" "}
             {op.never_touches.length ? op.never_touches.join(" · ") : "—"}
           </div>
           <div>
-            <span className="text-slate-400">dry-run required:</span>{" "}
+            <span className="text-slate-400">review first:</span>{" "}
             {op.requires_dry_run ? "yes" : "no"}
           </div>
           <div>
-            <span className="text-slate-400">confirmation phrase:</span>{" "}
+            <span className="text-slate-400">confirmation text:</span>{" "}
             {contract.confirmation_phrase || "—"}
           </div>
         </div>
@@ -952,7 +933,7 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
       {dryRunState?.last_result && (
         <details className="mt-2 rounded-md bg-slate-900 text-slate-100 px-3 py-2">
           <summary className="cursor-pointer text-[11px] font-medium">
-            Last result
+            Latest result
           </summary>
           <div className="mt-2 rounded-md bg-slate-50 p-2 text-slate-800" data-testid={`occ-result-${op.id}`}>
             <EvidenceSummary
@@ -969,7 +950,7 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Reason (recorded in audit log, optional)"
+            placeholder="Reason for change (saved to activity history, optional)"
             className="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px]"
             data-testid={`occ-reason-${op.id}`}
           />
@@ -986,15 +967,15 @@ function AuditPanel({ rows }) {
       data-testid="occ-audit-panel"
     >
       <div className="border-b border-slate-100 px-4 py-3">
-        <h3 className="text-sm font-semibold text-slate-900">Maintenance history</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Activity history</h3>
         <p className="text-xs text-slate-500">
-          Immutable record of every dry-run and apply. Newest first.
+          Saved record of each review check and applied change. Newest first.
         </p>
       </div>
       <ul className="divide-y divide-slate-100 max-h-[420px] overflow-y-auto">
         {rows.length === 0 && (
           <li className="px-4 py-4 text-xs text-slate-500">
-            No maintenance actions yet.
+            No activity yet.
           </li>
         )}
         {rows.map((r) => (
@@ -1004,7 +985,7 @@ function AuditPanel({ rows }) {
             data-testid={`occ-audit-row-${r.action_id}`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-slate-800">{r.operation_id}</span>
+              <span className="font-mono text-slate-800">{sanitizeOperatorReference(r.operation_id, "Operations task")}</span>
               <span
                 className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
                   r.mode === "apply"
@@ -1012,7 +993,7 @@ function AuditPanel({ rows }) {
                     : "bg-sky-100 text-sky-800"
                 }`}
               >
-                {r.mode}
+                {r.mode === "apply" ? "Updated" : "Checked"}
               </span>
             </div>
             <div className="text-slate-500 flex items-center justify-between mt-0.5">
@@ -1020,11 +1001,11 @@ function AuditPanel({ rows }) {
               <span>{formatPlatformTime(r.ts)}</span>
             </div>
             {r.error && (
-              <div className="mt-1 text-rose-700 text-[11px]">error: {r.error}</div>
+              <div className="mt-1 text-rose-700 text-[11px]">error: {sanitizeOperatorReference(r.error, "This task needs a follow-up review.")}</div>
             )}
             {r.result?.summary && (
               <div className="mt-1 text-slate-700 text-[11px]">
-                {r.result.summary}
+                {sanitizeOperatorReference(r.result.summary, "Task details saved.")}
               </div>
             )}
           </li>
@@ -1158,11 +1139,11 @@ export default function OperationsControlCenter() {
             last_result: result,
           },
         }));
-        toast.success(`${op.title}: ${result?.status || "complete"}`);
+        toast.success(`${sanitizeOperatorReference(op.title, "Operations task")}: ${result?.status || "complete"}`);
         reload();
       } catch (e) {
         toast.error(
-          `${op.title}: ${e?.response?.data?.detail || e?.message || "failed"}`,
+          `${sanitizeOperatorReference(op.title, "Operations task")}: ${e?.response?.data?.detail || e?.message || "failed"}`,
         );
       }
     },
@@ -1174,10 +1155,10 @@ export default function OperationsControlCenter() {
       try {
         const { result } = await runOperation(op.id, "apply", payload);
         if (result?.status === "failed") {
-          toast.error(`${op.title}: ${result.error || "failed"}`);
+          toast.error(`${sanitizeOperatorReference(op.title, "Operations task")}: ${result.error || "failed"}`);
         } else {
           toast.success(
-            `${op.title}: ${result?.status || "applied"} · ${result?.reclaimed_human || ""}`,
+            `${sanitizeOperatorReference(op.title, "Operations task")}: ${result?.status || "applied"} · ${result?.reclaimed_human || ""}`,
           );
         }
         setDryRunState((s) => ({
@@ -1187,7 +1168,7 @@ export default function OperationsControlCenter() {
         reload();
       } catch (e) {
         toast.error(
-          `${op.title}: ${e?.response?.data?.detail || e?.message || "failed"}`,
+          `${sanitizeOperatorReference(op.title, "Operations task")}: ${e?.response?.data?.detail || e?.message || "failed"}`,
         );
       }
     },
@@ -1238,8 +1219,8 @@ export default function OperationsControlCenter() {
       <PortalShell
         portalName="MASCI"
         portalRole="Admin"
-        pageTitle="Operations Control Center"
-        subtitle="Trust Center + maintenance console — one canonical operations home."
+        pageTitle="Operations Control"
+        subtitle="View case activity, platform health, and admin tools in one place."
         primaryActions={
           <div className="flex items-center gap-2">
             <Link
@@ -1254,7 +1235,7 @@ export default function OperationsControlCenter() {
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <AdminBreadcrumb
-          crumbs={[{ label: "Operations Control Center" }]}
+          crumbs={[{ label: "Operations Control" }]}
           testidPrefix="occ-breadcrumb"
         />
 
@@ -1273,10 +1254,6 @@ export default function OperationsControlCenter() {
           communicationsData={controlPlaneCommunications}
           baselinesData={controlPlaneBaselines}
           evidenceData={controlPlaneEvidence}
-          onCaptureBaseline={onCaptureBaseline}
-          onCaptureEvidence={onCaptureEvidence}
-          capturingBaseline={capturingBaseline}
-          capturingEvidence={capturingEvidence}
         />
 
         <div className="mb-8" data-testid="occ-case-queue-section">
@@ -1286,16 +1263,16 @@ export default function OperationsControlCenter() {
         <div className="mb-8 rounded-[1.75rem] border border-slate-200 bg-white/90 p-5 shadow-sm" data-testid="occ-governance-status-section">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Enterprise Governance</div>
-              <h2 className="mt-2 text-2xl font-black text-slate-950">Governance boundary status</h2>
-              <p className="mt-2 text-sm text-slate-600">Operations Control displays governance denials, approvals, and override pressure, while canonical governance administration lives under `/admin/governance/*`.</p>
+              <div className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Platform standards</div>
+              <h2 className="mt-2 text-2xl font-black text-slate-950">Platform standards status</h2>
+              <p className="mt-2 text-sm text-slate-600">Operations Control summarizes approvals, exceptions, and follow-up pressure while the full standards workspace stays under Administration.</p>
             </div>
-            <a href="/admin/governance" className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-testid="occ-governance-open-admin-link">Open governance admin</a>
+            <a href="/admin/governance" className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-testid="occ-governance-open-admin-link">Open standards workspace</a>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm text-slate-700">
             <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-health-status">Status: {governanceHealth?.status || "unknown"}</div>
             <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-pending-approvals">Pending approvals: {governanceHealth?.counts?.pending_approvals || 0}</div>
-            <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-pending-overrides">Pending overrides: {governanceHealth?.counts?.pending_overrides || 0}</div>
+            <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-pending-overrides">Pending exceptions: {governanceHealth?.counts?.pending_overrides || 0}</div>
             <div className="rounded-2xl bg-slate-50 p-3" data-testid="occ-governance-recent-denials">Recent denials: {governanceHealth?.counts?.recent_denials || 0}</div>
           </div>
         </div>
@@ -1307,15 +1284,14 @@ export default function OperationsControlCenter() {
         >
           <div className="h-px flex-1 bg-slate-300" />
           <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-            Maintenance Operations Console · dry-run / apply
+            Platform team tools · review changes before apply
           </div>
           <div className="h-px flex-1 bg-slate-300" />
         </div>
 
         <div className="mb-4 flex items-center justify-between">
           <p className="text-xs text-slate-600 max-w-2xl">
-            Every operation below is dry-run first. Applies require the exact
-            repair contract and are recorded in the immutable audit log.
+            Every tool below checks impact first. Applied changes require confirmation and are saved to the activity history.
           </p>
           <button
             type="button"

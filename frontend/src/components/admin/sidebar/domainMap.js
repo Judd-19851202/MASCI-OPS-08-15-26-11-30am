@@ -43,7 +43,7 @@ export const DOMAINS_V2 = [
   {
     id: "workforce",
     label: "Workforce",
-    subline: "People, certifications, time-off, onboarding.",
+    subline: "People, training, time-off, onboarding.",
     stripe: "#2563eb", // blue-600
     icon: Users,
     routes: [
@@ -73,17 +73,17 @@ export const DOMAINS_V2 = [
     icon: Mail,
     routes: [
       { to: "/admin/email",         label: "Email & Routing",   desc: "Auto-routing · distribution lists",                icon: Mail },
-      { to: "/admin/digest-config", label: "Weekly Digest",     desc: "Recipients · schedule · preview · send",           icon: Mail },
+      { to: "/admin/digest-config", label: "Weekly Digest",     desc: "Recipients · schedule · review · send",            icon: Mail },
     ],
   },
   {
     id: "safety-compliance",
     label: "Safety & Compliance",
-    subline: "Incidents, audits, certifications, OSHA.",
+    subline: "Incidents, reviews, training, OSHA.",
     stripe: "#ea580c", // orange-600
     icon: ClipboardCheck,
     routes: [
-      { to: "/admin/compliance",            label: "Compliance & Audits",  desc: "Exports · date audit",                  icon: ClipboardCheck },
+      { to: "/admin/compliance",            label: "Compliance & Reviews", desc: "Exports · date review",                 icon: ClipboardCheck },
       { to: "/admin/compliance-findings",   label: "Compliance Findings",  desc: "Open governance findings · severity",   icon: AlertTriangle },
       { to: "/admin/incidents",             label: "Incidents",            desc: "Safety incidents · admin review.",      icon: AlertTriangle },
       { to: "/admin/inspections",           label: "Site Inspections",     desc: "Job-site safety inspections.",          icon: ClipboardCheck },
@@ -105,13 +105,13 @@ export const DOMAINS_V2 = [
       // dry-run → confirm → apply → audit contract. It MUST be the
       // first link under this domain so operators reach it without
       // hunting.
-      { to: "/admin/operations-control", label: "Operations Control Center", desc: "Unified maintenance · dry-run → confirm → apply · audit trail", icon: Activity },
+      { to: "/admin/operations-control", label: "Operations Control",       desc: "Platform tools · review changes · confirm · history", icon: Activity },
       { to: "/admin/system",            label: "System & Backups",   desc: "Backups · R2 · restore · recovery",            icon: Shield },
       { to: "/admin/ai-configuration",  label: "AI Configuration",   desc: "Optional intelligence · tenant switchboard",  icon: Sparkles },
-      { to: "/admin/integration-truth", label: "Integration Truth",  desc: "Runtime AI keys · integrations · legacy aliases", icon: ShieldCheck },
+      { to: "/admin/integration-truth", label: "Connections",        desc: "AI services · integrations · linked tools",      icon: ShieldCheck },
       { to: "/admin/system-health",     label: "System Health",      desc: "Green/yellow/red operational probe",           icon: Activity },
       { to: "/admin/database",          label: "Database",           desc: "Atlas capacity · 30-day storage trend",        icon: Database },
-      { to: "/admin/audit-log",         label: "Audit Log",          desc: "Unified merged timeline",                      icon: History },
+      { to: "/admin/audit-log",         label: "Activity History",   desc: "Unified activity timeline",                   icon: History },
       { to: "/admin/deploy-readiness",  label: "Deploy Readiness",   desc: "Pre-deploy QA · gates",                        icon: ListChecks },
       { to: "/admin/deploy-recovery",   label: "Deploy Recovery",    desc: "Rollback playbook · backup chain",             icon: Shield },
       { to: "/admin/analytics",         label: "Usage Analytics",    desc: "Routes · portals · friction",                  icon: ChartBar },

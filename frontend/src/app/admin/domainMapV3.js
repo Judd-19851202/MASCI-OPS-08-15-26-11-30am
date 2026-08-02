@@ -52,16 +52,16 @@ export const DOMAINS_V3 = [
     icon: Compass,
     visibleRoutes: [
       { to: "/admin",                          label: "Dashboard",              desc: "Cross-domain posture · live health.",                   end: true, icon: Compass,       keywords: ["dashboard", "landing", "overview", "posture", "domains", "home"] },
-      { to: "/admin/operations-control",       label: "Operations Control",     desc: "Trust center · maintenance console.",                    icon: Activity,      keywords: ["occ", "operations", "control", "trust", "maintenance", "run"] },
+      { to: "/admin/operations-control",       label: "Operations Control",     desc: "Platform overview · case activity · admin tools.",       icon: Activity,      keywords: ["occ", "operations", "control", "overview", "cases", "admin"] },
       { to: "/admin/storage-recovery",         label: "Storage & Recovery",     desc: "Disk · object storage · backups · restore.",             icon: HardDrive,     keywords: ["storage", "backup", "recovery", "restore", "disk", "r2"] },
       { to: "/admin/ai-operations",            label: "AI Operations",          desc: "Providers · gateways · AI-powered modules.",             icon: Sparkles,      keywords: ["ai", "gateway", "provider", "openai", "anthropic", "gemini"] },
       { to: "/admin/communications",           label: "Communications",         desc: "Email routing · providers · digests.",                    icon: Mail,          keywords: ["email", "notifications", "routing", "digest"] },
-      { to: "/admin/identity-security",        label: "Identity & Security",    desc: "Sessions · access · audit · protection.",                 icon: Users,         keywords: ["sessions", "auth", "mfa", "security"] },
-      { to: "/admin/governance-trust",         label: "Governance & Trust",     desc: "Release reviews · deploy readiness · rules.",             icon: ShieldCheck,   keywords: ["governance", "trust", "readiness", "compliance"] },
+      { to: "/admin/identity-security",        label: "Identity & Security",    desc: "Sessions · access · protection.",                         icon: Users,         keywords: ["sessions", "auth", "mfa", "security"] },
+      { to: "/admin/governance-trust",         label: "Standards & Readiness",  desc: "Release reviews · go-live readiness · rules.",            icon: ShieldCheck,   keywords: ["standards", "readiness", "compliance", "rules"] },
       { to: "/admin/platform-readiness",       label: "Platform Readiness",     desc: "Reviews · evidence · blockers.",                          icon: ShieldCheck,   keywords: ["readiness", "review", "blockers", "evidence"] },
       { to: "/admin/platform-configuration",   label: "Platform Configuration", desc: "Branding · integrations · AI · version.",                icon: Cog,           keywords: ["configuration", "settings", "branding", "integrations", "version"] },
       { to: "/admin/diagnostics",              label: "Diagnostics",            desc: "System health · scheduler · database.",                   icon: Database,      keywords: ["diagnostics", "system", "health", "logs", "latency"] },
-      { to: "/admin/maintenance",              label: "Maintenance",            desc: "Every safe operation grouped by domain.",                 icon: Archive,       keywords: ["maintenance", "cleanup", "audit", "operations"] },
+      { to: "/admin/maintenance",              label: "Maintenance",            desc: "Every safe operation grouped by domain.",                 icon: Archive,       keywords: ["maintenance", "cleanup", "history", "operations"] },
     ],
     hiddenRoutes: [
       { to: "/admin/platform-overview", label: "Platform Overview" },
@@ -77,7 +77,7 @@ export const DOMAINS_V3 = [
     purpose:
       "Deep tools that support the Admin OS domains but do not " +
       "warrant a top-level domain of their own. Every action here " +
-      "is read-only or governed by the OCC dry-run / apply contract.",
+      "follows the review-changes-then-apply process.",
     stripe: "#dc2626",
     icon: Activity,
     visibleRoutes: [
@@ -114,7 +114,7 @@ export const DOMAINS_V3 = [
       { to: "/admin/incidents",        label: "Safety & Compliance",   desc: "Incidents · JHAs · trench · findings.",                     icon: ShieldAlert, keywords: ["safety", "incidents", "capa", "compliance", "jha"] },
       { to: "/admin/people",           label: "People & Access",       desc: "Employees · sessions · terminations.",                       icon: Users, keywords: ["people", "employees", "access", "master"] },
       { to: "/admin/training",         label: "Training",              desc: "Training resources · videos · forms.",                       icon: GraduationCap, keywords: ["training", "forms", "resources"] },
-      { to: "/admin/audit-log",        label: "Audit Log",             desc: "Every action · every change · immutable.",                   icon: History, keywords: ["audit", "log", "history", "timeline"] },
+      { to: "/admin/audit-log",        label: "Activity History",      desc: "Every action · every change · saved.",                      icon: History, keywords: ["history", "log", "activity", "timeline"] },
       { to: "/admin/legacy-imports",   label: "Historical Records",    desc: "Reviewed imports from prior systems.",                       icon: Archive, keywords: ["imports", "historic", "migration"] },
       { to: "/admin/operational-language", label: "Operational Language", desc: "Shared glossary · EN + ES.",                              icon: BookOpen, keywords: ["language", "glossary", "spanish"] },
     ],
@@ -143,7 +143,7 @@ export const DOMAINS_V3 = [
       { to: "/admin/digest-config",                   label: "Digest Schedule" },
       { to: "/admin/email",                           label: "Email & Routing" },
       { to: "/admin/sessions",                        label: "Sessions" },
-      { to: "/admin/governance",                      label: "Governance Health" },
+      { to: "/admin/governance",                      label: "Standards Status" },
     ],
   },
 ];

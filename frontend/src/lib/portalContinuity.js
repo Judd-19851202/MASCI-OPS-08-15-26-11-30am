@@ -41,9 +41,9 @@ const PORTAL = {
 const WORKFLOWS = [
   // ─── Safety Portal ──────────────────────────────────────────────
   [/^\/safety-portal\/incidents/,            "Incident Reports",          "safety"],
-  [/^\/safety-portal\/audits/,               "Audits & Inspections",      "safety"],
+  [/^\/safety-portal\/audits/,               "Inspections & Reviews",     "safety"],
   [/^\/safety-portal\/corrective-actions/,   "Corrective Actions",        "safety"],
-  [/^\/safety-portal\/training/,             "Training & Certifications", "safety"],
+  [/^\/safety-portal\/training/,             "Training Records",          "safety"],
   [/^\/safety-portal\/employees/,            "Employee Safety Profiles",  "safety"],
   [/^\/safety-portal\/fire-extinguishers/,   "Fire Extinguishers",        "safety"],
   [/^\/safety-portal\/documents/,            "Safety Document Library",   "safety"],
@@ -73,7 +73,7 @@ const WORKFLOWS = [
   // ─── PM Portal ─────────────────────────────────────────────────
   [/^\/pm/,                                  "PM Portal",                 "pm"],
   // ─── Admin ─────────────────────────────────────────────────────
-  [/^\/admin/,                               "Admin Console",             "admin"],
+  [/^\/admin/,                               "Administration",            "admin"],
 ];
 
 /**

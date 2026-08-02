@@ -216,6 +216,81 @@ EMOJI_RANGES = re.compile(
     re.UNICODE,
 )
 
+OPERATOR_BANNED_TERMS = [
+    "WP-14F",
+    "WP-17",
+    "Certification",
+    "Canonical",
+    "Backend",
+    "Frontend",
+    "Mutation",
+    "Governed",
+    "Runtime",
+    "Preview",
+    "Fixture",
+    "Audit",
+    "Developer",
+    "Engineering",
+]
+
+OPERATOR_LANGUAGE_SCAN_FILES = [
+    ROOT / "frontend/src/pages/OperationsControlCases.jsx",
+    ROOT / "frontend/src/pages/OperationsControlCaseDetail.jsx",
+    ROOT / "frontend/src/pages/OperationsControlCasesRoute.jsx",
+    ROOT / "frontend/src/pages/OperationsControlCenter.jsx",
+    ROOT / "frontend/src/pages/admin/Wp17dCertificationDashboard.jsx",
+    ROOT / "frontend/src/components/admin/sidebar/domainMap.js",
+    ROOT / "frontend/src/app/admin/domainMapV3.js",
+    ROOT / "frontend/src/lib/portalContinuity.js",
+]
+
+STRING_LITERAL_PATTERN = re.compile(r'"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\'\\]*(?:\\.[^\'\\]*)*)\'')
+JSX_TEXT_PATTERN = re.compile(r">\s*([^<>{\n][^<>{}]*)\s*<")
+
+
+def strip_js_comments(content: str) -> str:
+    content = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
+    content = re.sub(r"(^|\s)//.*$", "", content, flags=re.MULTILINE)
+    return content
+
+
+def iter_operator_ui_strings(content: str):
+    for match in STRING_LITERAL_PATTERN.finditer(content):
+        value = match.group(1) or match.group(2) or ""
+        yield value.strip()
+    for match in JSX_TEXT_PATTERN.finditer(content):
+        value = match.group(1).strip()
+        yield value
+
+
+def looks_user_facing(value: str) -> bool:
+    if not value or len(value) < 4:
+        return False
+    if value.startswith(("/", ".", "#", "http", "bg-", "text-", "px-", "py-", "sm:", "md:", "lg:")):
+        return False
+    if any(token in value for token in ["data-testid", "className", "REACT_APP_", "X-Admin-Token", "X-Directory-Token"]):
+        return False
+    if re.fullmatch(r"[a-z0-9_.:/-]+", value):
+        return False
+    return bool(re.search(r"[A-Za-z]", value))
+
+
+def operator_language_failures() -> list[str]:
+    failures: list[str] = []
+    patterns = [re.compile(rf"\b{re.escape(term)}\b", re.IGNORECASE) for term in OPERATOR_BANNED_TERMS]
+    for file_path in OPERATOR_LANGUAGE_SCAN_FILES:
+        content = strip_js_comments(file_path.read_text(encoding="utf-8"))
+        for snippet in iter_operator_ui_strings(content):
+            if not looks_user_facing(snippet):
+                continue
+            for pattern in patterns:
+                if pattern.search(snippet):
+                    failures.append(f"operator_language_guard: {file_path.relative_to(ROOT)} contains banned visible copy → {snippet[:120]}")
+                    break
+            if failures and failures[-1].startswith(f"operator_language_guard: {file_path.relative_to(ROOT)}"):
+                break
+    return failures
+
 
 def main() -> int:
     failures: list[str] = []
@@ -240,6 +315,8 @@ def main() -> int:
           emoji_hits.append(str(file_path))
     if emoji_hits:
         failures.append(f"ui_emoji_guard: emoji/unicode UI symbols detected in {', '.join(emoji_hits)}")
+
+    failures.extend(operator_language_failures())
 
     if failures:
         print("WP-17D constitution guard failed:")

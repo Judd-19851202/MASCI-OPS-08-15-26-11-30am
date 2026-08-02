@@ -43,7 +43,7 @@ export function CanonicalHeader({
   const hasUtilityRail = Boolean(utilitySlot || centerSlot || preControlsSlot || postControlsSlot);
   const isHomeVariant = variant === "home";
   const brandCompany = "MASCI";
-  const brandProduct = t("Operations Platform");
+  const brandProduct = "Operations Platform";
   const utilityContent = utilitySlot || (
     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
       {centerSlot ? <div className="min-w-0" data-testid={`${testIdPrefix}-utility-primary`}>{centerSlot}</div> : <div />}
@@ -89,7 +89,7 @@ export function CanonicalHeader({
                   {brandCompany}
                 </div>
                 <div className="masci-canonical-header__brand-product" data-testid={`${testIdPrefix}-page-label`}>
-                  {brandProduct}
+                  {t(brandProduct)}
                 </div>
               </div>
 

@@ -10,9 +10,9 @@ const INVENTORY_TOTAL = 1190;
 const SURVIVOR_COUNTS = [
   { key: "workflow-reviews", label: "Open workflow reviews", count: 102, detail: "Screens still awaiting the latest navigation and layout standard." },
   { key: "navigation", label: "Navigation reviews", count: 62, detail: "Back / home / workflow hierarchy items still being reconciled." },
-  { key: "tables", label: "Records & tables", count: 100, detail: "Structured records still being aligned to the governed reading pattern." },
+  { key: "tables", label: "Records & tables", count: 100, detail: "Structured records still being aligned to the shared reading pattern." },
   { key: "dialogs", label: "Dialogs & overlays", count: 89, detail: "Shared modal and overlay experiences still being standardized." },
-  { key: "forms", label: "Forms", count: 38, detail: "Input-heavy workflows still moving to the governed field system." },
+  { key: "forms", label: "Forms", count: 38, detail: "Input-heavy workflows still moving to the shared field system." },
   { key: "coaching", label: "Guidance", count: 10, detail: "Helper copy still being simplified for field readability." },
 ];
 
@@ -46,11 +46,11 @@ const ROUTE_STATUS = [
     block: "—",
   },
   {
-    route: "Protected preview workspace",
+    route: "Protected workspace",
     status: "BLOCKED_ACCESS",
-    evidence: "GET /api/dev/check → 404 · POST /api/dev/login → 404",
-    lastCertified: "Blocked in Preview",
-    block: "Access environment still needs the protected DevHub credentials and endpoint enablement.",
+    evidence: "Protected workspace access is still unavailable in this environment.",
+    lastCertified: "Blocked",
+    block: "Secure workspace access still needs to be restored before this review can continue.",
   },
   {
     route: "Admin trench asset detail",
@@ -69,7 +69,7 @@ const ROUTE_STATUS = [
   {
     route: "Admin trench reports",
     status: "IN_REVIEW",
-    evidence: "Shared trench shell now carries the governed navigation pattern.",
+    evidence: "Shared trench shell now carries the shared navigation pattern.",
     lastCertified: "Pending this review cycle",
     block: "Needs final visual signoff.",
   },
@@ -77,9 +77,9 @@ const ROUTE_STATUS = [
 
 const BLOCKERS = [
   {
-    title: "Protected preview workspace unavailable",
-    detail: "Readiness review cannot continue in Preview because the protected workspace still fails closed.",
-    evidence: ["GET /api/dev/check → 404", "POST /api/dev/login → 404", "backend requires DEV_PASSWORD + enabled dev gate"],
+    title: "Protected workspace unavailable",
+    detail: "Readiness review cannot continue because the protected workspace is still unavailable in this environment.",
+    evidence: ["Protected workspace sign-in is unavailable", "Secure access still needs to be restored"],
   },
 ];
 
@@ -94,13 +94,13 @@ const BATCHES = [
     title: "Safety records and JHA review",
     status: "READY",
     timestamp: "2026-08-01",
-    evidence: "Safety record views and the JHA workspace now share the governed reading and navigation pattern.",
+    evidence: "Safety record views and the JHA workspace now share the same reading and navigation pattern.",
   },
   {
-    title: "DevHub access review",
+    title: "Protected workspace access review",
     status: "BLOCKED_ACCESS",
     timestamp: "2026-08-01",
-    evidence: "The login surface stays stable, but authenticated DevHub access remains unavailable until the environment is corrected.",
+    evidence: "The login surface stays stable, but secure workspace access remains unavailable until the environment is corrected.",
   },
 ];
 
@@ -148,9 +148,9 @@ export default function Wp17dCertificationDashboard() {
   return (
     <AdminRouteShell
       pageTitle={t("Operations Readiness Center")}
-      subtitle={t("Governance review and release readiness")}
-      portalRole={t("Admin · Governance & Trust")}
-      crumbs={[{ label: t("Admin OS") }, { label: t("Governance & Trust") }, { label: t("Operations Readiness") }]}
+      subtitle={t("Operations review and release readiness")}
+      portalRole={t("Admin · Standards & Readiness")}
+      crumbs={[{ label: t("Admin OS") }, { label: t("Standards & Readiness") }, { label: t("Operations Readiness") }]}
       showShellHeader={false}
       showBreadcrumbs={false}
       contentClassName="px-0 py-0"
@@ -161,10 +161,10 @@ export default function Wp17dCertificationDashboard() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6" data-testid="wp17d-certification-page">
           <DetailPageHero
             backHref="/admin/governance-trust"
-            backLabel={t("Governance & Trust")}
-            kicker={t("Governance operations")}
+            backLabel={t("Standards & Readiness")}
+            kicker={t("Operations readiness")}
             title={t("Operations Readiness Center")}
-            description={t("One governed view for open experience reviews, evidence posture, blocker visibility, and release readiness.")}
+            description={t("One shared view for open experience reviews, progress, blocker visibility, and release readiness.")}
             actions={(
               <>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-900" data-testid="wp17d-readiness-chip"><ShieldAlert className="h-3.5 w-3.5" /> {readinessVerdict}</span>
@@ -208,7 +208,7 @@ export default function Wp17dCertificationDashboard() {
                 <div className="mt-3 flex items-end justify-between gap-3">
                   <div>
                     <div className="font-display text-4xl font-black tracking-tight text-slate-900" data-testid="wp17d-completion-pct">{completionPct}%</div>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{t("Calculated from the governed experience review inventory.")}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{t("Calculated from the active platform review inventory.")}</p>
                   </div>
                   {isReady ? <ShieldCheck className="h-10 w-10 text-emerald-700" /> : <ShieldAlert className="h-10 w-10 text-red-700" />}
                 </div>
