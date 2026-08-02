@@ -482,6 +482,7 @@ function PartsOnOrderCard() {
 
 // Track 13.31 · PM Engine summary card (live · read-only).
 function PmEngineCard() {
+  const { t } = useT();
   const [d, setD] = React.useState(null);
   const [unavailable, setUnavailable] = React.useState(false);
   React.useEffect(() => {
@@ -504,10 +505,10 @@ function PmEngineCard() {
          style={{ padding: "12px 14px", fontSize: 12, color: "var(--ink-soft)",
                   background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
                   borderRadius: "var(--radius-card)" }}>
-      PM Engine summary is not available for your role. Use the PM Dashboard link below to view detail.
+      {t("PM Engine summary is not available for your role. Use the PM Dashboard link below to view detail.")}
     </div>
   );
-  if (!d)  return <div data-testid="shop-hub-v2-pm-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>;
+  if (!d)  return <div data-testid="shop-hub-v2-pm-loading" style={{ padding: 12, fontSize: 12, color: "var(--ink-soft)" }}>{t("Loading…")}</div>;
   const sc = d.schedule_counts || {};
   const wo = d.work_order_counts || {};
   const tiles = [

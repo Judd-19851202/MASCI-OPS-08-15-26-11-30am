@@ -145,7 +145,7 @@ export default function AdminProfile() {
               {passkeys.map((pk) => (
                 <li
                   key={pk.credential_id || pk.id}
-                  className="flex items-start justify-between px-5 py-4"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between px-5 py-4"
                   data-testid={`admin-profile-device-row-${pk.credential_id}`}
                 >
                   <div className="flex items-start gap-3 min-w-0">
@@ -178,7 +178,7 @@ export default function AdminProfile() {
                     onClick={() => onRemove(pk)}
                     disabled={busyId === pk.credential_id}
                     data-testid={`admin-profile-device-remove-${pk.credential_id}`}
-                    className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                    className="w-full sm:w-auto text-rose-700 hover:bg-rose-50 hover:text-rose-800"
                   >
                     <Trash2 className="w-3.5 h-3.5 mr-1" />
                     {busyId === pk.credential_id ? t("Removing…") : t("Remove")}
