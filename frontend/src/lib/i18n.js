@@ -154,6 +154,43 @@ const ES = {
     "Reporte diario enviado · el correo se registró de forma segura en la vista previa.",
   "Daily report submitted · notification recorded separately.":
     "Reporte diario enviado · la notificación se registró por separado.",
+  "English · Front": "Inglés · Frente",
+  "English · Back": "Inglés · Reverso",
+  "EN / FRONT": "EN / FRENTE",
+  "EN / BACK": "EN / REVERSO",
+  "ES / FRENTE": "ES / FRENTE",
+  "ES / REVERSO": "ES / REVERSO",
+  "Crew handouts": "Tarjetas de cuadrilla",
+  "Safety · Field Handouts": "Seguridad · Tarjetas de campo",
+  "Field Safety Cards": "Tarjetas de Seguridad de Campo",
+  "Wallet-sized bilingual handouts for every crew member. Print a single card on demand or send the full four-card set to onboarding, supervisors, or subcontractors in one step.":
+    "Tarjetas bilingües de bolsillo para cada integrante de la cuadrilla. Imprime una sola tarjeta al momento o envía el juego completo de cuatro a integración, supervisión o subcontratistas en un solo paso.",
+  "Print-ready PDFs": "PDF listos para imprimir",
+  "English + Spanish": "Inglés + Español",
+  "Crew distribution": "Distribución a cuadrilla",
+  "Fast distribution": "Distribución rápida",
+  "Send the full bilingual pack in one tap.": "Envía el paquete bilingüe completo en un solo toque.",
+  "Use the full set when a new hire, foreman, or external crew needs the same field guidance immediately.":
+    "Usa el juego completo cuando un nuevo ingreso, capataz o cuadrilla externa necesita la misma guía de campo de inmediato.",
+  "Email All 4 Cards": "Enviar por correo las 4 tarjetas",
+  "Use the same card crews carry in the field — print it or email the PDF instantly.":
+    "Usa la misma tarjeta que la cuadrilla lleva en campo: imprímela o envía el PDF al instante.",
+  "MASCI Field Safety Cards — Full Bilingual Set": "Tarjetas de Seguridad de Campo MASCI — juego bilingüe completo",
+  "MASCI Field Safety Card": "Tarjeta de Seguridad de Campo MASCI",
+  "Email All Safety Cards": "Enviar por correo las 4 tarjetas",
+  "Email Safety Card": "Enviar tarjeta por correo",
+  "Add at least one recipient email": "Agrega al menos un correo de destinatario",
+  "Sends the complete bilingual set (EN front+back, ES front+back) as 4 PDF attachments — perfect for onboarding a new hire in one tap.":
+    "Envía el juego bilingüe completo (EN frente+reverso, ES frente+reverso) como 4 adjuntos PDF, perfecto para integrar a un nuevo ingreso en un solo paso.",
+  "Sends the print-ready PDF of": "Envía el PDF listo para imprimir de",
+  "as an attachment.": "como adjunto.",
+  "Leadership signal and safety attention stay visible without leaving the Safety workspace.":
+    "La señal de liderazgo y la atención de seguridad permanecen visibles sin salir del espacio de Seguridad.",
+  "Safety · Executive Intelligence": "Seguridad · Inteligencia ejecutiva",
+  "Executive intelligence is shown in the Administration workspace in this preview. Safety leaders can keep using cards, cases, and forms here without a broken shell or auth noise.":
+    "En esta vista previa, la inteligencia ejecutiva se muestra en el espacio de Administración. Los líderes de Seguridad pueden seguir usando tarjetas, casos y formularios aquí sin un shell roto ni ruido de autenticación.",
+  "Open Field Safety Cards": "Abrir tarjetas de seguridad de campo",
+  "Open Safety Forms": "Abrir formularios de seguridad",
   "Review field activity, delivery status, and attachments before printing, emailing, or moving the report downstream.":
     "Revisa la actividad de campo, el estado de entrega y los adjuntos antes de imprimir, enviar por correo o mover el reporte al siguiente paso.",
   "Preview capture recorded. No live email was sent.":

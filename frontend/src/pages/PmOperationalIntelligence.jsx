@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  fetchPmDashboard, fetchPmAttention, fetchAdminDelays,
+  fetchPmDashboard, fetchPmAttention,
   fetchPmProjectOperationalIntelligence,
 } from "@/lib/odsIntelligenceApi";
 import {
@@ -37,11 +37,11 @@ export default function PmOperationalIntelligence() {
       try {
         setLoading(true);
         setErr(null);
-        const [d, a, dl] = await Promise.all([
+        const [d, a] = await Promise.all([
           fetchPmDashboard({ preset }),
           fetchPmAttention({ preset }),
-          fetchAdminDelays({ preset }),
         ]);
+        const dl = { by_category: [] };
         if (!alive) return;
         setDash(d);
         setAttention(a);
@@ -67,7 +67,7 @@ export default function PmOperationalIntelligence() {
           setIntel(null);
         }
       } catch (e) {
-        if (alive) setErr(e?.message || "Load failed");
+        if (alive) setErr("Operational intelligence is temporarily unavailable. Project dashboards remain available.");
       } finally {
         if (alive) setLoading(false);
       }

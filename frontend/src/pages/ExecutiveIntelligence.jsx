@@ -4,8 +4,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
-import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity, ShieldAlert } from "lucide-react";
 import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
+import { PortalShell } from "@/design-system/PortalShell";
 
 function adminConfig() {
   return { skipSessionStatus: true, headers: buildScopedPortalAuthHeaders(["admin"]) };
@@ -94,8 +95,54 @@ export default function ExecutiveIntelligence() {
   };
 
   useEffect(() => {
+    if (!isAdminRoute) return undefined;
     loadAll().then(setData).catch((e) => setErr(e?.response?.data?.detail?.detail || e.message));
-  }, []);
+    return undefined;
+  }, [isAdminRoute]);
+
+  if (!isAdminRoute) {
+    return (
+      <PortalShell
+        portalName="MASCI"
+        portalRole={t("Safety")}
+        pageTitle={t("Executive Intelligence")}
+        subtitle={t("Leadership signal and safety attention stay visible without leaving the Safety workspace.")}
+        homeHref="/safety"
+        backHref="/safety"
+        showBack
+        showSearch={false}
+        showNotifications={false}
+        showPortalSwitcher={false}
+        showSignOut={false}
+      >
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8" data-testid="safety-executive-intelligence-shell">
+          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+            <div className="flex items-start gap-4">
+              <div className="wp17-hero-icon-shell wp17-hero-icon-shell--red" data-testid="safety-exec-preview-icon">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <div className="space-y-3">
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold">
+                  {t("Safety · Executive Intelligence")}
+                </div>
+                <h1 className="font-display text-3xl font-black tracking-tight text-slate-950">
+                  {t("Executive Intelligence")}
+                </h1>
+                <p className="max-w-3xl text-sm leading-7 text-slate-700">
+                  {t("Executive intelligence is shown in the Administration workspace in this preview. Safety leaders can keep using cards, cases, and forms here without a broken shell or auth noise.")}
+                </p>
+                <div className="grid gap-3 sm:grid-cols-3 pt-2" data-testid="safety-exec-preview-links">
+                  <a href="/safety/cards" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 hover:border-red-300 hover:bg-red-50">{t("Open Field Safety Cards")}</a>
+                  <a href="/safety/forms" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 hover:border-red-300 hover:bg-red-50">{t("Open Safety Forms")}</a>
+                  <a href="/safety" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 hover:border-red-300 hover:bg-red-50">{t("Back to Safety")}</a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </PortalShell>
+    );
+  }
 
   if (err) {
     const errorContent = (

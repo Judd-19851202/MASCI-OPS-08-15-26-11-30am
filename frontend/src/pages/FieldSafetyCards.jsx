@@ -29,34 +29,34 @@ import { toast } from "sonner";
  *   • Email   → sends the high-res PDF attachment via Resend.
  */
 
-const CARDS = [
+const CARD_SPECS = [
   {
     key: "en-front",
-    title: "English · Front",
+    titleKey: "English · Front",
     img: "/safety-cards/en-front.jpg",
     accent: "bg-red-700 border-red-800",
-    label: "EN / FRONT",
+    labelKey: "EN / FRONT",
   },
   {
     key: "en-back",
-    title: "English · Back",
+    titleKey: "English · Back",
     img: "/safety-cards/en-back.jpg",
     accent: "bg-slate-800 border-slate-900",
-    label: "EN / BACK",
+    labelKey: "EN / BACK",
   },
   {
     key: "es-front",
-    title: "Español · Frente",
+    titleKey: "Español · Frente",
     img: "/safety-cards/es-front.jpg",
     accent: "bg-red-700 border-red-800",
-    label: "ES / FRENTE",
+    labelKey: "ES / FRENTE",
   },
   {
     key: "es-back",
-    title: "Español · Reverso",
+    titleKey: "Español · Reverso",
     img: "/safety-cards/es-back.jpg",
     accent: "bg-slate-800 border-slate-900",
-    label: "ES / REVERSO",
+    labelKey: "ES / REVERSO",
   },
 ];
 
@@ -65,6 +65,7 @@ const isValidEmail = (s) =>
   typeof s === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 
 function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
+  const { t } = useT();
   // mode: "single" → email one card.  "all" → email all 4 cards.
   const [recipients, setRecipients] = useState([""]);
   const [subject, setSubject] = useState("");
@@ -83,12 +84,12 @@ function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
     const valid = saved.filter(isValidEmail);
     setRecipients(valid.length > 0 ? valid : [""]);
     if (mode === "all") {
-      setSubject("MASCI Field Safety Cards — Full Bilingual Set");
+      setSubject(t("MASCI Field Safety Cards — Full Bilingual Set"));
     } else if (card) {
-      setSubject(`MASCI Field Safety Card — ${card.title}`);
+      setSubject(`${t("MASCI Field Safety Card")} — ${card.title}`);
     }
     setNote("");
-  }, [open, card, mode]);
+  }, [open, card, mode, t]);
 
   const setAt = (i, v) =>
     setRecipients((r) => r.map((x, idx) => (idx === i ? v : x)));
@@ -99,7 +100,7 @@ function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
   const send = async () => {
     const valid = recipients.map((s) => s.trim()).filter(isValidEmail);
     if (valid.length === 0) {
-      toast.error("Add at least one recipient email");
+      toast.error(t("Add at least one recipient email"));
       return;
     }
     setSending(true);
@@ -146,13 +147,13 @@ function EmailCardDialog({ open, onOpenChange, card, mode = "single" }) {
   if (mode === "single" && !card) return null;
 
   const titleText =
-    mode === "all" ? "Email All Safety Cards" : "Email Safety Card";
+    mode === "all" ? t("Email All Safety Cards") : t("Email Safety Card");
   const descText =
     mode === "all"
-      ? "Sends the complete bilingual set (EN front+back, ES front+back) as 4 PDF attachments — perfect for onboarding a new hire in one tap."
+      ? t("Sends the complete bilingual set (EN front+back, ES front+back) as 4 PDF attachments — perfect for onboarding a new hire in one tap.")
       : (
           <>
-            Sends the print-ready PDF of <strong>{card?.title}</strong> as an attachment.
+            {t("Sends the print-ready PDF of")} <strong>{card?.title}</strong> {t("as an attachment.")}
           </>
         );
 
@@ -273,6 +274,14 @@ export default function FieldSafetyCards() {
   const [printing, setPrinting] = useState(null); // card.key currently being printed
   const [emailing, setEmailing] = useState(null); // card object for single dialog
   const [emailingAll, setEmailingAll] = useState(false); // bulk dialog open?
+  const cards = React.useMemo(
+    () => CARD_SPECS.map((card) => ({
+      ...card,
+      title: t(card.titleKey),
+      label: t(card.labelKey),
+    })),
+    [t],
+  );
 
   const handlePrint = (card) => {
     // Swap in the print-only card, fire window.print(), then clear.
@@ -325,7 +334,7 @@ export default function FieldSafetyCards() {
     >
       <div className="no-print space-y-5">
         <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7" data-testid="safety-cards-grid">
-          {CARDS.map((card) => (
+          {cards.map((card) => (
             <article
               key={card.key}
               className="wp17-public-card overflow-hidden flex flex-col border border-slate-200/85 hover:border-red-400 transition-colors duration-150"
@@ -380,7 +389,7 @@ export default function FieldSafetyCards() {
       {printing && (
         <div className="print-only-card">
           <img
-            src={CARDS.find((c) => c.key === printing)?.img}
+            src={cards.find((c) => c.key === printing)?.img}
             alt="Safety Card"
           />
         </div>
