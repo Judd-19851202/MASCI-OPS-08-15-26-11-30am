@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
 
 export default function PmJobsRead() {
+  const { t } = useT();
   const [items, setItems] = useState([]);
   const [scope, setScope] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function PmJobsRead() {
       <div className="bg-slate-900 text-white px-5 py-3 flex items-center gap-3 flex-wrap">
         <Briefcase className="w-5 h-5 text-amber-300" />
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-300 font-bold flex-1">
-          Jobs Assigned to You
+          {t("Jobs Assigned to You")}
         </span>
         <Button
           type="button"
@@ -63,7 +65,7 @@ export default function PmJobsRead() {
           className="h-8 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 font-mono uppercase tracking-wide text-[11px]"
           data-testid="pm-jobs-read-refresh"
         >
-          <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+          <RefreshCw className="w-3.5 h-3.5 mr-1" /> {t("Refresh")}
         </Button>
       </div>
 
@@ -76,17 +78,17 @@ export default function PmJobsRead() {
             {items.length}
           </span>
           <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-            {items.length === 1 ? "active job" : "active jobs"}
+            {items.length === 1 ? t("active job") : t("active jobs")}
           </span>
           {scope === "admin_all" && (
             <span className="text-xs text-slate-500 flex items-center gap-1.5 ml-auto">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              Admin view — every job visible
+              {t("Admin view — every job visible")}
             </span>
           )}
           {scope === "pm_assigned" && (
             <span className="text-xs text-slate-500 ml-auto">
-              Scoped to jobs where you are primary or co-PM.
+              {t("Scoped to jobs where you are primary or co-PM.")}
             </span>
           )}
         </div>
@@ -98,7 +100,7 @@ export default function PmJobsRead() {
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Search project #, name, location…"
+            placeholder={t("Search project #, name, location…")}
             className="h-9 border-2 max-w-md"
             data-testid="pm-jobs-read-search"
           />
@@ -109,26 +111,25 @@ export default function PmJobsRead() {
 
         {loading ? (
           <div className="py-10 text-center text-slate-500">
-            <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> Loading…
+          <Loader2 className="w-5 h-5 inline-block animate-spin mr-2" /> {t("Loading…")}
           </div>
         ) : items.length === 0 ? (
           <p className="text-sm text-slate-500 py-8 text-center italic">
-            No jobs are currently assigned to you. Ask your administrator
-            if a job should be linked to your account.
+            {t("No jobs are currently assigned to you. Ask your administrator if a job should be linked to your account.")}
           </p>
         ) : (
           <div className="overflow-auto border-2 border-slate-200 rounded max-h-[520px]">
             <table className="w-full min-w-[1040px] text-sm">
               <thead className="sticky top-0 bg-slate-50 z-[1]">
                 <tr>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Project #</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Project Name</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">Location</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Primary PM</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Co-PMs</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Team</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Setup</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">% Complete</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">{t("Project #")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Project Name")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Location")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">{t("Primary PM")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">{t("Co-PMs")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">{t("Team")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">{t("Setup")}</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">{t("% Complete")}</th>
                 </tr>
               </thead>
               <tbody>

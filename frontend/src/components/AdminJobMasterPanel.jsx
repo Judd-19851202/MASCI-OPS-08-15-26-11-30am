@@ -319,7 +319,7 @@ export default function AdminJobMasterPanel() {
             ) : (
               <RefreshCcw className="w-3.5 h-3.5 mr-1" />
             )}
-            Refresh
+            {t("Refresh")}
           </Button>
           <Button
             variant="outline"
@@ -334,7 +334,7 @@ export default function AdminJobMasterPanel() {
             ) : (
               <Download className="w-3.5 h-3.5 mr-1" />
             )}
-            Export
+            {t("Export")}
           </Button>
           <Button
             variant="outline"

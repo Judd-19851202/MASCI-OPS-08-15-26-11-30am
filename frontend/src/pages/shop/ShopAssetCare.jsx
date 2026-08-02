@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { PortalShell } from "@/design-system";
+import { useT } from "@/lib/i18n";
 
 const STATUS_COLORS = {
   "Not Ready":    "bg-red-100 text-red-900 border-red-300",
@@ -29,6 +30,7 @@ const SEV_COLORS = {
 };
 
 export default function ShopAssetCare() {
+  const { t } = useT();
   const [summary, setSummary] = useState(null);
   const [readiness, setReadiness] = useState([]);
   const [alerts, setAlerts] = useState([]);

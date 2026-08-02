@@ -29,6 +29,7 @@ import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -104,12 +105,13 @@ function useSafetySignals() {
 }
 
 function SectionHeader({ kicker, title, caption, action }) {
+  const { t } = useT();
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{kicker}</div>
-        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{title}</h2>
-        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{caption}</p>}
+        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{t(kicker)}</div>
+        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{t(title)}</h2>
+        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{t(caption)}</p>}
       </div>
       {action}
     </div>
@@ -117,6 +119,7 @@ function SectionHeader({ kicker, title, caption, action }) {
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
+  const { t } = useT();
   const tone = intent === "primary"
     ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
     : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
@@ -125,28 +128,29 @@ function RealLink({ to, testid, children, intent = "default" }) {
       display: "inline-block", padding: "6px 12px", background: tone.bg, color: tone.color,
       border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
       fontSize: 12, fontWeight: 600, textDecoration: "none",
-    }}>{children}</Link>
+    }}>{typeof children === "string" ? t(children) : children}</Link>
   );
 }
 
 function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenAttention = "warning" }) {
+  const { t } = useT();
   const isAttention = loaded && typeof value === "number" && value > 0;
   return (
     <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <Card
-        title={title}
-        description={why}
+        title={t(title)}
+        description={t(why)}
         metric={loaded ? (value === null ? "—" : value) : "…"}
         variant={isAttention ? variantWhenAttention : "default"}
         status={
-          !loaded ? <StatusChip statusKey="draft" compact label="Loading" />
+          !loaded ? <StatusChip statusKey="draft" compact label={t("Loading")} />
           : value === null ? <StatusChip statusKey="offline_feed" compact />
           : isAttention ? <StatusChip statusKey="pending_verification" compact />
           : <StatusChip statusKey="verified" compact />
         }
       >
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-          {source}
+          {t(source)}
         </p>
       </Card>
     </Link>
@@ -154,6 +158,7 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
 }
 
 export default function SafetyHubV2() {
+  const { t } = useT();
   const s = useSafetySignals();
 
   const allZero = s.loaded && [
@@ -166,8 +171,8 @@ export default function SafetyHubV2() {
       <PortalShell
         portalName="MASCI"
         portalRole="Safety Operations"
-        pageTitle="What safety work requires attention right now?"
-        subtitle="Every queue is a live count — open it to see what Safety needs to act on today. Trench Safety workflows live under Trench Safety."
+        pageTitle={t("What safety work requires attention right now?")}
+        subtitle={t("Every queue is a live count — open it to see what Safety needs to act on today. Trench Safety workflows live under Trench Safety.")}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/safety/trench-safety" testid="safety-hub-v2-action-trench" intent="primary">Trench Safety</RealLink>
@@ -176,7 +181,7 @@ export default function SafetyHubV2() {
         sideNav={<SafetySideNavV2 />}
         lastActivity={
           <span data-testid="safety-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
+            {s.loaded ? t("Refreshed {time}").replace("{time}", formatPlatformTimeOnly(s.refreshedAt)) : t("Loading live signals…")}
           </span>
         }
       >

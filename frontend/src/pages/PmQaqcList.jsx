@@ -14,6 +14,7 @@ import { LangToggle } from "@/components/LangToggle";
 import JobFolderList from "@/components/JobFolderList";
 import { EmptyState } from "@/components/ui/PortalStates";
 import { api } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 const KIND_LABEL = {
   concrete_form: "Concrete Form",
@@ -33,6 +34,7 @@ const PM_PICK_KEY = "masci.pm.viewer.email";
  * filters by `pm_email` so each PM sees only their own jobs' records.
  */
 export default function PmQaqcList() {
+  const { t } = useT();
   const [pms, setPms] = useState([]);
   const [me, setMe] = useState(
     typeof window !== "undefined"
@@ -107,9 +109,9 @@ export default function PmQaqcList() {
 
   return (
     <PortalShell
-      portalName="MASCI" portalRole="PM Portal · QA/QC"
-      pageTitle="My Project QA / QC Records"
-      subtitle="Records filtered to jobs where you are the assigned PM"
+      portalName="MASCI" portalRole={t("PM Portal · QA/QC")}
+      pageTitle={t("My Project QA / QC Records")}
+      subtitle={t("Records filtered to jobs where you are the assigned PM")}
       sideNav={<PmSideNavV2 />}
     >
     <div className="min-h-screen">
@@ -118,7 +120,7 @@ export default function PmQaqcList() {
           to="/pm"
           className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-amber-700 font-bold mb-4"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> PM Portal
+          <ArrowLeft className="w-3.5 h-3.5" /> {t("PM Portal")}
         </Link>
 
         <div className="flex items-start gap-3 mb-5">
@@ -127,13 +129,13 @@ export default function PmQaqcList() {
           </div>
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
-              PM · QA/QC
+              {t("PM · QA/QC")}
             </span>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900">
-              My Project QA / QC Records
+              {t("My Project QA / QC Records")}
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Records are filtered to jobs where you are the assigned PM.
+              {t("Records are filtered to jobs where you are the assigned PM.")}
             </p>
           </div>
         </div>
@@ -143,7 +145,7 @@ export default function PmQaqcList() {
           <UserCircle2 className="w-5 h-5 text-amber-700 shrink-0" />
           <div className="flex-1 min-w-[200px]">
             <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-900 font-bold block mb-1">
-              Viewing as
+              {t("Viewing as")}
             </label>
             <select
               value={me}
@@ -151,7 +153,7 @@ export default function PmQaqcList() {
               className="h-10 w-full sm:w-80 border-2 border-amber-300 rounded px-3 text-sm bg-white"
               data-testid="pm-qaqc-viewer-picker"
             >
-              <option value="">— Pick your name —</option>
+              <option value="">{t("— Pick your name —")}</option>
               {pms.map((p) => (
                 <option key={p.id} value={p.email}>
                   {`${p.name} — ${p.email}`}

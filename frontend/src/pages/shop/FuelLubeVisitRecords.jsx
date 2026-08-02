@@ -8,6 +8,7 @@ import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const RANGES = [
@@ -40,6 +41,7 @@ function rangeIso(preset) {
 function fmt(n) { return (n == null ? "—" : Number(n).toFixed(1)); }
 
 export default function FuelLubeVisitRecords() {
+  const { t } = useT();
   const [preset, setPreset] = useState("30");
   const [filters, setFilters] = useState({
     project_number: "", fuel_lube_truck_unit: "", fuel_lube_tech_id: "",

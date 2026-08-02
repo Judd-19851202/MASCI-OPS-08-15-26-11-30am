@@ -11,6 +11,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -31,6 +32,7 @@ async function safeJson(path) {
 }
 
 export default function UnitHistoryLanding() {
+  const { t } = useT();
   const navigate = useNavigate();
   const [unit, setUnit] = useState("");
   const [recentUnits, setRecentUnits] = useState([]);
@@ -70,9 +72,9 @@ export default function UnitHistoryLanding() {
     <div data-testid="unit-history-landing-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Shop Portal · Unit History"
-        pageTitle="Open a unit's timeline"
-        subtitle="Type a unit number to see its complete operational history — pre-ops, defects, repairs, parts, fuel/lube, return-to-service."
+        portalRole={t("Shop Portal · Unit History")}
+        pageTitle={t("Open a unit's timeline")}
+        subtitle={t("Type a unit number to see its complete operational history — pre-ops, defects, repairs, parts, fuel/lube, return-to-service.")}
         primaryActions={<BackToShopLink testId="unit-history-landing-back-to-shop" />}
       >
         <Card data-testid="unit-history-landing-search-card">

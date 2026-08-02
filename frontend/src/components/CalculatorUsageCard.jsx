@@ -3,6 +3,7 @@ import { Calculator, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { useT } from "@/lib/i18n";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -16,6 +17,7 @@ import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "
  * would miss the X-Admin-Token header and 401).
  */
 export default function CalculatorUsageCard() {
+  const { t } = useT();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
@@ -65,14 +67,14 @@ export default function CalculatorUsageCard() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-800 font-bold">
-            Material Calculator Usage
+            {t("Material Calculator Usage")}
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
-            Calculator runs
+            {t("Calculator runs")}
           </h2>
           <p className="text-sm text-slate-600 mt-1.5">
-            Every time a field user hits <strong>Save Calculation</strong> on
-            Field → Material Calculators, the inputs and results land here.
+            {t("Every time a field user hits")} <strong>{t("Save Calculation")}</strong>{" "}
+            {t("on Field → Material Calculators, the inputs and results land here.")}
           </p>
         </div>
         <Button
@@ -87,13 +89,13 @@ export default function CalculatorUsageCard() {
           ) : (
             <Download className="w-4 h-4" />
           )}
-          <span className="ml-2">Export CSV</span>
+          <span className="ml-2">{t("Export CSV")}</span>
         </Button>
       </header>
 
       {loading && (
         <div className="flex items-center gap-2 text-slate-500 text-sm py-3">
-          <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+          <Loader2 className="w-4 h-4 animate-spin" /> {t("Loading…")}
         </div>
       )}
 
@@ -106,11 +108,11 @@ export default function CalculatorUsageCard() {
       {stats && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-4">
-            <BigStat label="Total runs" value={stats.totals.total} testid="calc-total" />
-            <BigStat label="English" value={stats.totals.en} tone="blue" testid="calc-en" />
-            <BigStat label="Spanish" value={stats.totals.es} tone="amber" testid="calc-es" />
+            <BigStat label={t("Total runs")} value={stats.totals.total} testid="calc-total" />
+            <BigStat label={t("English")} value={stats.totals.en} tone="blue" testid="calc-en" />
+            <BigStat label={t("Spanish")} value={stats.totals.es} tone="amber" testid="calc-es" />
             <BigStat
-              label="Most used"
+              label={t("Most used")}
               value={stats.most_used?.label || "—"}
               small
               testid="calc-most"
@@ -122,10 +124,10 @@ export default function CalculatorUsageCard() {
               <thead>
                 <tr className="border-b-2 border-slate-200 text-left">
                   <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                    Calculator
+                    {t("Calculator")}
                   </th>
                   <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 text-right">
-                    Total
+                    {t("Total")}
                   </th>
                   <th className="py-2 pr-3 font-mono text-[10px] uppercase tracking-[0.2em] text-blue-700 text-right">
                     EN
@@ -162,7 +164,7 @@ export default function CalculatorUsageCard() {
 
           {stats.last_used && (
             <p className="text-[11px] text-slate-500 mt-3">
-              Last run:{" "}
+              {t("Last run:")}{" "}
               <span className="font-mono">
                 {formatPlatformTime(stats.last_used.created_at)}
               </span>{" "}

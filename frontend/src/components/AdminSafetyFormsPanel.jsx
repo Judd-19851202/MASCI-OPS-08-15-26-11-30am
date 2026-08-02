@@ -23,6 +23,7 @@ import { useBranding } from "@/lib/BrandingProvider";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import { useT } from "@/lib/i18n";
 
 /**
  * AdminSafetyFormsPanel — admin dashboard tile for the new Safety Forms
@@ -32,6 +33,7 @@ import { formatEmployeeIdentity } from "@/lib/identity";
  * record's view page or download the PDF directly.
  */
 export default function AdminSafetyFormsPanel() {
+  const { t } = useT();
   const branding = useBranding();
   const [tab, setTab] = useState("issuance"); // "issuance" | "training"
   const [filters, setFilters] = useState({
@@ -119,14 +121,14 @@ export default function AdminSafetyFormsPanel() {
         </div>
         <div className="flex-1">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
-            Safety Department
+            {t("Safety Department")}
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
-            Safety Forms
+            {t("Safety Forms")}
           </h2>
           <p className="text-sm text-slate-600 mt-2 max-w-3xl">
-            Equipment Issuance &amp; Accountability and Use &amp; Care Training records.
-            Auto-emailed to <span className="font-mono">{branding.safety_email || branding.support_email || "your safety inbox"}</span> on submit.
+            {t("Equipment Issuance & Accountability and Use & Care Training records.")}
+            {" "}{t("Auto-emailed to")} <span className="font-mono">{branding.safety_email || branding.support_email || t("your safety inbox")}</span> {t("on submit.")}
           </p>
         </div>
         <Link
@@ -134,7 +136,7 @@ export default function AdminSafetyFormsPanel() {
           className="inline-flex items-center gap-1 h-9 px-3 rounded-md bg-red-700 text-white border-2 border-red-900 hover:bg-red-800 text-xs font-bold uppercase tracking-wide"
           data-testid="admin-safety-forms-open"
         >
-          <ExternalLink className="w-3.5 h-3.5" /> Open
+          <ExternalLink className="w-3.5 h-3.5" /> {t("Open")}
         </Link>
       </div>
 
@@ -150,7 +152,7 @@ export default function AdminSafetyFormsPanel() {
           }`}
           data-testid="admin-sf-tab-issuance"
         >
-          <HardHat className="w-3.5 h-3.5" /> Issuance
+          <HardHat className="w-3.5 h-3.5" /> {t("Issuance")}
         </button>
         <button
           type="button"
@@ -162,23 +164,23 @@ export default function AdminSafetyFormsPanel() {
           }`}
           data-testid="admin-sf-tab-training"
         >
-          <GraduationCap className="w-3.5 h-3.5" /> Training
+          <GraduationCap className="w-3.5 h-3.5" /> {t("Training")}
         </button>
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-3">
-        <FilterField label="Search" icon={Search}>
+        <FilterField label={t("Search")} icon={Search}>
           <Input
             value={filters.q}
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
             onKeyDown={(e) => e.key === "Enter" && load()}
-            placeholder="Employee, project, supervisor…"
+            placeholder={t("Employee, project, supervisor…")}
             className="h-9"
             data-testid="admin-sf-q"
           />
         </FilterField>
-        <FilterField label="Employee">
+        <FilterField label={t("Employee")}>
           <Input
             value={filters.employee}
             onChange={(e) => setFilters((f) => ({ ...f, employee: e.target.value }))}
@@ -187,7 +189,7 @@ export default function AdminSafetyFormsPanel() {
             data-testid="admin-sf-employee"
           />
         </FilterField>
-        <FilterField label="Project">
+        <FilterField label={t("Project")}>
           <Input
             value={filters.project}
             onChange={(e) => setFilters((f) => ({ ...f, project: e.target.value }))}
@@ -196,7 +198,7 @@ export default function AdminSafetyFormsPanel() {
             data-testid="admin-sf-project"
           />
         </FilterField>
-        <FilterField label="From">
+        <FilterField label={t("From")}>
           <Input
             type="date"
             value={filters.date_from}
@@ -205,7 +207,7 @@ export default function AdminSafetyFormsPanel() {
             data-testid="admin-sf-from"
           />
         </FilterField>
-        <FilterField label="To">
+        <FilterField label={t("To")}>
           <Input
             type="date"
             value={filters.date_to}
@@ -223,7 +225,7 @@ export default function AdminSafetyFormsPanel() {
           data-testid="admin-sf-apply"
         >
           {loading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Filter className="w-3.5 h-3.5 mr-1" />}
-          Apply
+          {t("Apply")}
         </Button>
         <Button
           onClick={() => {
@@ -234,10 +236,10 @@ export default function AdminSafetyFormsPanel() {
           className="h-9 border-2 border-slate-300 text-xs font-bold uppercase tracking-wide"
           data-testid="admin-sf-reset"
         >
-          Reset
+          {t("Reset")}
         </Button>
         <span className="text-xs text-slate-500 ml-2 font-mono">
-          {items.length} {items.length === 1 ? "record" : "records"}
+          {items.length} {items.length === 1 ? t("record") : t("records")}
         </span>
       </div>
 
@@ -246,7 +248,7 @@ export default function AdminSafetyFormsPanel() {
         {loading && items.length === 0 ? (
           <div className="p-10 text-center text-slate-500">
             <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
-            Loading…
+            {t("Loading…")}
           </div>
         ) : (
           <JobFolderList

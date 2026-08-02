@@ -341,7 +341,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
                 </>
               ) : (
                 <>
-                  <Archive className="w-4 h-4 mr-1" /> Download Full Backup
+                  <Archive className="w-4 h-4 mr-1" /> {t("Download Full Backup")}
                 </>
               )}
             </Button>

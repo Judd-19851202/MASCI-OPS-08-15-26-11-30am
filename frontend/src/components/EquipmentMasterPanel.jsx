@@ -348,7 +348,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           className="h-8 px-3 border-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 font-mono uppercase tracking-wide text-[11px]"
           data-testid="equipment-master-refresh"
         >
-          <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+          <RefreshCw className="w-3.5 h-3.5 mr-1" /> {t("Refresh")}
         </Button>
         {writeAllowed && (
         <>
@@ -366,7 +366,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           ) : (
             <Download className="w-3.5 h-3.5 mr-1" />
           )}
-          Export
+          {t("Export")}
         </Button>
         <input
           ref={fileRef}

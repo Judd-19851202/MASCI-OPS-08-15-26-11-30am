@@ -15,6 +15,7 @@ import BackToShopLink from "@/components/shop/BackToShopLink";
 import RepairCompletionForm from "../../components/shop/RepairCompletionForm";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -150,6 +151,7 @@ function AssignmentRow({ defect, bucketId, actorName, onAccept, onStart, onCompl
 }
 
 export default function ShopMyAssignments() {
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 

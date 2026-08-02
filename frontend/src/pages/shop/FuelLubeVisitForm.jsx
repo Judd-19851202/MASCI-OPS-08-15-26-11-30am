@@ -17,6 +17,7 @@ import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import ShopSelector from "@/components/shop/ShopSelector";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -174,6 +175,7 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
 }
 
 export default function FuelLubeVisitForm() {
+  const { t } = useT();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
   const [visit, setVisit] = useState({
@@ -244,9 +246,9 @@ export default function FuelLubeVisitForm() {
     <div data-testid="fuel-lube-visit-form-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Shop Portal · Fuel / Lube Visit"
-        pageTitle="Fuel / Lube Visit Record"
-        subtitle="One job visit · multiple equipment lines. Each service entry is saved to the unit's history. Issues create shop defects automatically."
+        portalRole={t("Shop Portal · Fuel / Lube Visit")}
+        pageTitle={t("Fuel / Lube Visit Record")}
+        subtitle={t("One job visit · multiple equipment lines. Each service entry is saved to the unit's history. Issues create shop defects automatically.")}
         primaryActions={<BackToShopLink testId="fuel-lube-visit-form-back-to-shop" />}
       >
         {result && (

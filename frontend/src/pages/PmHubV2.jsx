@@ -25,6 +25,7 @@ import {
   Card,
   EmptyState,
 } from "../design-system";
+import { useT } from "@/lib/i18n";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -175,12 +176,13 @@ function usePmSignals() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SectionHeader({ kicker, title, caption, action }) {
+  const { t } = useT();
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{kicker}</div>
-        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{title}</h2>
-        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{caption}</p>}
+        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{t(kicker)}</div>
+        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{t(title)}</h2>
+        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{t(caption)}</p>}
       </div>
       {action}
     </div>
@@ -197,6 +199,7 @@ function Section({ kicker, title, caption, action, children, testId }) {
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
+  const { t } = useT();
   const tone = intent === "primary"
     ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
     : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
@@ -205,21 +208,22 @@ function RealLink({ to, testid, children, intent = "default" }) {
       display: "inline-block", padding: "6px 12px", background: tone.bg, color: tone.color,
       border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
       fontSize: 12, fontWeight: 600, textDecoration: "none",
-    }}>{children}</Link>
+    }}>{typeof children === "string" ? t(children) : children}</Link>
   );
 }
 
 function QueueCard({ to, testid, title, why, source, value, loaded, secondary, variantWhenAttention = "warning" }) {
+  const { t } = useT();
   const isAttention = loaded && typeof value === "number" && value > 0;
   return (
     <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <Card
-        title={title}
-        description={why}
+        title={t(title)}
+        description={t(why)}
         metric={loaded ? (value === null ? "—" : value) : "…"}
         variant={isAttention ? variantWhenAttention : "default"}
         status={
-          !loaded ? <StatusChip statusKey="draft" compact label="Loading" />
+          !loaded ? <StatusChip statusKey="draft" compact label={t("Loading")} />
           : value === null ? <StatusChip statusKey="offline_feed" compact />
           : isAttention ? <StatusChip statusKey="pending_verification" compact />
           : <StatusChip statusKey="verified" compact />
@@ -228,11 +232,11 @@ function QueueCard({ to, testid, title, why, source, value, loaded, secondary, v
         {secondary && (
           <p data-testid={`${testid}-secondary`}
              style={{ margin: "4px 0 0", fontSize: 11, color: "var(--ink-strong)", fontWeight: 600 }}>
-            {secondary}
+            {t(secondary)}
           </p>
         )}
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-          {source}
+          {t(source)}
         </p>
       </Card>
     </Link>
@@ -298,6 +302,7 @@ function PoRequestsCard({ loaded, pendingApproval, pendingReceipt, overdueReceip
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function PmHubV2() {
+  const { t } = useT();
   const s = usePmSignals();
 
   const allZero = s.loaded && [
@@ -318,8 +323,8 @@ export default function PmHubV2() {
         portalRole="Project Management"
         experienceLevel="wp17c"
         experienceTone="pm"
-        pageTitle="Project Management"
-        subtitle="Today’s PM decisions, blockers, and the next queue to open — with less noise and no dead-end navigation."
+        pageTitle={t("Project Management")}
+        subtitle={t("Today’s PM decisions, blockers, and the next queue to open — with less noise and no dead-end navigation.")}
         sideNav={<PmSideNavV2 />}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -328,15 +333,15 @@ export default function PmHubV2() {
         }
         lastActivity={
           <span data-testid="pm-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
+            {s.loaded ? t("Refreshed {time}").replace("{time}", formatPlatformTimeOnly(s.refreshedAt)) : t("Loading live signals…")}
           </span>
         }
       >
         <section className="wp17-mission-banner" data-testid="pm-hub-v2-mission-banner">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-white">Build the project by clearing the next real blocker.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-2xl font-black tracking-tight text-white">{t("Build the project by clearing the next real blocker.")}</h2>
               <p className="mt-3 text-sm sm:text-base">
                 Start with the action queues that can change today’s outcome. Everything below opens a live route, not a placeholder or summary-only surface.
               </p>

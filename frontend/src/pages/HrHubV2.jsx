@@ -31,6 +31,7 @@ import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { buildKpiHelpContent } from "@/lib/kpiMetadata";
+import { useT } from "@/lib/i18n";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -125,12 +126,13 @@ function useHrSignals() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SectionHeader({ kicker, title, caption, action }) {
+  const { t } = useT();
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{kicker}</div>
-        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{title}</h2>
-        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{caption}</p>}
+        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{t(kicker)}</div>
+        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{t(title)}</h2>
+        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{t(caption)}</p>}
       </div>
       {action}
     </div>
@@ -147,6 +149,7 @@ function Section({ kicker, title, caption, action, children, testId }) {
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
+  const { t } = useT();
   const tone = intent === "primary"
     ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
     : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
@@ -155,35 +158,36 @@ function RealLink({ to, testid, children, intent = "default" }) {
       display: "inline-block", padding: "6px 12px", background: tone.bg, color: tone.color,
       border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
       fontSize: 12, fontWeight: 600, textDecoration: "none",
-    }}>{children}</Link>
+    }}>{typeof children === "string" ? t(children) : children}</Link>
   );
 }
 
 // A queue card backed by a real API. Renders "—" until loaded; never invents numbers.
 function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenAttention = "warning", metadata }) {
+  const { t } = useT();
   const isAttention = loaded && typeof value === "number" && value > 0;
   const help = buildKpiHelpContent(metadata, title);
   return (
     <div data-testid={testid} style={{ display: "block" }}>
       <Card
-        title={title}
-        description={why}
+        title={t(title)}
+        description={t(why)}
         metric={loaded ? (value === null ? "—" : value) : "…"}
         variant={isAttention ? variantWhenAttention : "default"}
         status={
-          !loaded ? <StatusChip statusKey="draft" compact label="Loading" />
+          !loaded ? <StatusChip statusKey="draft" compact label={t("Loading")} />
           : value === null ? <StatusChip statusKey="offline_feed" compact />
           : isAttention ? <StatusChip statusKey="pending_verification" compact />
           : <StatusChip statusKey="verified" compact />
         }
       >
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-          {source}
+          {t(source)}
         </p>
         {help ? (
           <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6 }} data-testid={`${testid}-metadata`}>
             <span style={{ fontSize: 10, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
-              Why this number?
+              {t("Why this number?")}
             </span>
             <HelpTip label={help.label} body={help.body} testId={`${testid}-help`} />
           </div>
@@ -194,7 +198,7 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
             data-testid={`${testid}-open`}
             style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-strong)", textDecoration: "none" }}
           >
-            Open workflow →
+            {t("Open workflow →")}
           </Link>
         </div>
       </Card>
@@ -207,6 +211,7 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function HrHubV2() {
+  const { t } = useT();
   const s = useHrSignals();
   const nav = useNavigate();
   const [dirQuery, setDirQuery] = useState("");
@@ -222,8 +227,8 @@ export default function HrHubV2() {
       <PortalShell
         portalName="MASCI"
         portalRole="Human Resources"
-        pageTitle="What requires your attention today?"
-        subtitle="HR purpose: keep the workforce ready. Every queue below is a live count — open it to see who needs your attention today."
+        pageTitle={t("What requires your attention today?")}
+        subtitle={t("HR purpose: keep the workforce ready. Every queue below is a live count — open it to see who needs your attention today.")}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RealLink to="/hr/employee-accountability" testid="hr-hub-v2-action-accountability" intent="primary">Accountability</RealLink>
@@ -232,7 +237,7 @@ export default function HrHubV2() {
         sideNav={<HrSideNavV2 />}
         lastActivity={
           <span data-testid="hr-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
+            {s.loaded ? t("Refreshed {time}").replace("{time}", formatPlatformTimeOnly(s.refreshedAt)) : t("Loading live signals…")}
           </span>
         }
       >
@@ -292,10 +297,10 @@ export default function HrHubV2() {
           }}
         >
           <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>
-            Employee Directory
+            {t("Employee Directory")}
           </div>
           <h2 style={{ margin: "2px 0 10px", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>
-            Find a person
+            {t("Find a person")}
           </h2>
           <form onSubmit={onDirSubmit} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <input
@@ -303,8 +308,8 @@ export default function HrHubV2() {
               type="search"
               value={dirQuery}
               onChange={(e) => setDirQuery(e.target.value)}
-              placeholder="Search by name, preferred name, or job title…"
-              aria-label="Search employee directory"
+              placeholder={t("Search by name, preferred name, or job title…")}
+              aria-label={t("Search employee directory")}
               style={{
                 flex: "1 1 320px",
                 minWidth: 260,
@@ -330,7 +335,7 @@ export default function HrHubV2() {
                 cursor: "pointer",
               }}
             >
-              Search
+              {t("Search")}
             </button>
             <Link
               to="/hr/employees"
@@ -346,11 +351,11 @@ export default function HrHubV2() {
                 textDecoration: "none",
               }}
             >
-              Open full directory →
+              {t("Open full directory →")}
             </Link>
           </form>
           <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink-faint)" }}>
-            Live search across the active HR roster. No keyboard shortcut needed.
+            {t("Live search across the active HR roster. No keyboard shortcut needed.")}
           </p>
         </section>
 

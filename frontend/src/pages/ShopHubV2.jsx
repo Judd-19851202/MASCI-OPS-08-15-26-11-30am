@@ -19,6 +19,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
+import { useT } from "@/lib/i18n";
 import ShopSideNavV2, { isShopSidebarV2Enabled } from "@/components/shop/sidebar/ShopSideNavV2";
 // Track 13.7B · Shop Recovery Map lens — reuse the certified
 // MapLibre engine + 15-s snapshot. NO new map system, NO new
@@ -78,18 +79,20 @@ function useShopSignals() {
 }
 
 function SectionHeader({ kicker, title, caption }) {
+  const { t } = useT();
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{kicker}</div>
-        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{title}</h2>
-        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{caption}</p>}
+        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{t(kicker)}</div>
+        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{t(title)}</h2>
+        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{t(caption)}</p>}
       </div>
     </div>
   );
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
+  const { t } = useT();
   // Retained as a tiny helper for the Recovery Map row; the previous
   // top-of-hub usage was replaced by HubCard in the Command Center
   // restructure (Track 13.30B).
@@ -101,7 +104,7 @@ function RealLink({ to, testid, children, intent = "default" }) {
       display: "inline-block", padding: "6px 12px", background: tone.bg, color: tone.color,
       border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
       fontSize: 12, fontWeight: 600, textDecoration: "none",
-    }}>{children}</Link>
+    }}>{typeof children === "string" ? t(children) : children}</Link>
   );
 }
 
@@ -124,8 +127,9 @@ const REASON_NEXT = {
 };
 
 function ShopRecoveryRow({ asset, highlighted, onClick }) {
+  const { t } = useT();
   const tone = REASON_TONE[asset.attention_reason] || { bg: "#f8fafc", color: "#0f172a", border: "#e2e8f0" };
-  const where = (asset.assignment && asset.assignment.name) || "Unassigned / Unknown";
+  const where = (asset.assignment && asset.assignment.name) || t("Unassigned / Unknown");
   const hasUnit = !!asset.unit_number;
   return (
     <button
@@ -156,10 +160,10 @@ function ShopRecoveryRow({ asset, highlighted, onClick }) {
         fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
         padding: "2px 8px", borderRadius: 999,
         background: tone.bg, color: tone.color, border: `1px solid ${tone.border}`,
-      }}>{REASON_LABEL[asset.attention_reason] || asset.attention_reason}</span>
+      }}>{t(REASON_LABEL[asset.attention_reason] || asset.attention_reason)}</span>
       <span style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <span style={{ fontSize: 11, color: "#0f766e", fontWeight: 700 }}>
-          Next: {REASON_NEXT[asset.attention_reason] || "Shop review"}
+          {t("Next:")} {t(REASON_NEXT[asset.attention_reason] || "Shop review")}
         </span>
         {hasUnit && (
           <Link
@@ -171,7 +175,7 @@ function ShopRecoveryRow({ asset, highlighted, onClick }) {
               color: "var(--brand-primary, #1b4965)", textDecoration: "none",
             }}
           >
-            Open History →
+            {t("Open History →")}
           </Link>
         )}
       </span>
@@ -339,16 +343,17 @@ import YourQueueStripComponent from "@/components/shop/YourQueueStrip";
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function HubCard({ to, testid, title, body, metric, status, dense }) {
+  const { t } = useT();
   const showMetric = metric !== undefined && metric !== null;
   return (
     <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <Card
-        title={title}
-        description={body}
+        title={t(title)}
+        description={t(body)}
         metric={showMetric ? metric : undefined}
         variant={status === "attention" ? "warning" : "default"}
         status={
-          status === "loading" ? <StatusChip statusKey="draft" compact label="Loading" />
+          status === "loading" ? <StatusChip statusKey="draft" compact label={t("Loading")} />
           : status === "offline" ? <StatusChip statusKey="offline_feed" compact />
           : status === "attention" ? <StatusChip statusKey="pending_verification" compact />
           : status === "verified" ? <StatusChip statusKey="verified" compact />
@@ -364,6 +369,7 @@ function HubCard({ to, testid, title, body, metric, status, dense }) {
 // Stronger visual hierarchy: red for live attention, amber for needs
 // review, calm for clear. Loads with "—" until live signals hydrate.
 function PriorityMetric({ to, testid, label, description, value, loaded, accent }) {
+  const { t } = useT();
   const hasValue = loaded && typeof value === "number";
   const active = hasValue && value > 0;
   const palette = active
@@ -372,7 +378,7 @@ function PriorityMetric({ to, testid, label, description, value, loaded, accent 
         : { bg: "#fffbeb", border: "#fde68a", text: "#92400e", chip: "pending_verification" })
     : { bg: "var(--paper-card)", border: "var(--border-bold)", text: "var(--ink-strong)",
         chip: loaded ? "verified" : "draft" };
-  const chipLabel = !loaded ? "Loading" : (value === null || value === undefined ? "Offline" : (active ? "Action" : "Clear"));
+  const chipLabel = !loaded ? t("Loading") : (value === null || value === undefined ? t("Offline") : (active ? t("Action") : t("Clear")));
   return (
     <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <div style={{
@@ -381,7 +387,7 @@ function PriorityMetric({ to, testid, label, description, value, loaded, accent 
         display: "flex", flexDirection: "column", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: palette.text, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: palette.text, textTransform: "uppercase", letterSpacing: ".04em" }}>{t(label)}</div>
           <StatusChip statusKey={palette.chip} compact label={chipLabel} />
         </div>
         <div data-testid={`${testid}-value`} style={{
@@ -390,7 +396,7 @@ function PriorityMetric({ to, testid, label, description, value, loaded, accent 
         }}>
           {!loaded ? "…" : (value == null ? "—" : value)}
         </div>
-        <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-soft)" }}>{description}</div>
+        <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-soft)" }}>{t(description)}</div>
       </div>
     </Link>
   );
@@ -617,6 +623,7 @@ function MechanicWorkloadCard() {
 }
 
 export default function ShopHubV2() {
+  const { t } = useT();
   const s = useShopSignals();
   const allZero = s.loaded && [
     s.defects_open, s.defects_acked, s.oos_units, s.active_recovery,
@@ -652,25 +659,25 @@ export default function ShopHubV2() {
       <PortalShell
         portalName="MASCI"
         portalRole="Shop Operations"
-        pageTitle="Shop Command Center"
-        subtitle="What needs attention · what's assigned · what's waiting. Repair complete still requires RTS verification by Dispatch."
+        pageTitle={t("Shop Command Center")}
+        subtitle={t("What needs attention · what's assigned · what's waiting. Repair complete still requires RTS verification by Dispatch.")}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <Link to="/shop/equipment" data-testid="shop-hub-v2-action-preops"
                   style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
                            background: "var(--paper-card)", color: "var(--ink-strong)",
                            border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-                           textDecoration: "none" }}>Equipment Pre-Ops</Link>
+                           textDecoration: "none" }}>{t("Equipment Pre-Ops")}</Link>
             <Link to="/shop/fleet" data-testid="shop-hub-v2-action-fleet"
                   style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
                            background: "var(--brand-primary)", color: "var(--brand-on-primary)",
                            border: "1px solid var(--brand-primary)", borderRadius: "var(--radius-card)",
-                           textDecoration: "none" }}>Fleet Visibility</Link>
+                           textDecoration: "none" }}>{t("Fleet Visibility")}</Link>
             <Link to="/shop/fuel-lube/new" data-testid="shop-hub-v2-action-fuel-lube-new-top"
                   style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
                            background: "var(--paper-card)", color: "var(--ink-strong)",
                            border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-                           textDecoration: "none" }}>New Fuel/Lube Visit</Link>
+                           textDecoration: "none" }}>{t("New Fuel/Lube Visit")}</Link>
             {/* Track 15.13A · Asset Care entry point on the Shop Hub.
                 Always visible — same design system, same chrome — so any
                 shop user (Asset Admin, Asset Manager, Shop Manager,
@@ -682,12 +689,12 @@ export default function ShopHubV2() {
                   style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600,
                            background: "var(--paper-card)", color: "var(--ink-strong)",
                            border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
-                           textDecoration: "none" }}>Asset Care &amp; Readiness</Link>
+                           textDecoration: "none" }}>{t("Asset Care & Readiness")}</Link>
           </div>
         }
         lastActivity={
           <span data-testid="shop-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
+            {s.loaded ? t("Refreshed {time}").replace("{time}", formatPlatformTimeOnly(s.refreshedAt)) : t("Loading live signals…")}
           </span>
         }
         sideNav={isShopSidebarV2Enabled() ? <ShopSideNavV2 /> : undefined}
@@ -695,10 +702,10 @@ export default function ShopHubV2() {
         <section className="wp17-mission-banner" data-testid="shop-hub-v2-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Return equipment to service with fewer clicks and clearer recovery priorities.</h2>
+              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Return equipment to service with fewer clicks and clearer recovery priorities.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Shop operations now share the same shell language as the rest of the platform while keeping maintenance, inspection, and recovery work visible first.
+                {t("Shop operations now share the same shell language as the rest of the platform while keeping maintenance, inspection, and recovery work visible first.")}
               </p>
             </div>
           </div>

@@ -228,7 +228,7 @@ export default function TrenchSafetyAssetsList() {
                 <th className="px-3 py-2 hidden md:table-cell">{t("Location")}</th>
                 <th className="px-3 py-2 hidden lg:table-cell">{t("Current Project")}</th>
                 <th className="px-3 py-2 hidden lg:table-cell">{t("Last Inspection")}</th>
-                <th className="px-3 py-2 hidden xl:table-cell">{t("Alerts")}</th>
+                <th className="px-3 py-2 hidden 2xl:table-cell">{t("Alerts")}</th>
               </tr>
             </thead>
             <tbody>
@@ -265,7 +265,7 @@ export default function TrenchSafetyAssetsList() {
                   <td className="px-3 py-2 hidden lg:table-cell font-mono text-xs">
                     {a.last_inspection_at ? a.last_inspection_at.slice(0, 10) : <span className="text-amber-700">{t("never")}</span>}
                   </td>
-                  <td className="px-3 py-2 hidden xl:table-cell">
+                  <td className="px-3 py-2 hidden 2xl:table-cell">
                     <div className="flex gap-1">
                       {a.missing_serial_number && <span title={t("Missing Serial Number")} className="inline-flex items-center gap-1 text-amber-700 text-xs"><FileWarning className="w-3 h-3" />SN</span>}
                       {a.needs_review && <span title={t("Needs Review")} className="inline-flex items-center gap-1 text-amber-700 text-xs"><AlertTriangle className="w-3 h-3" />RV</span>}

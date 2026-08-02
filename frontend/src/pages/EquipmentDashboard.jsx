@@ -20,8 +20,10 @@ import { toast } from "sonner";
 import { InformationCard } from "@/components/CanonicalCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import EmptyState from "@/components/EmptyState";
+import { useT } from "@/lib/i18n";
 
 export default function EquipmentDashboard() {
+  const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
@@ -87,7 +89,7 @@ export default function EquipmentDashboard() {
     <PortalShell
       portalName="MASCI"
       portalRole={portalRole}
-      pageTitle="Equipment Pre-Op"
+      pageTitle={t("Equipment Pre-Op")}
       sideNav={sideNav}
       primaryActions={
         !isPmContext ? (
@@ -95,8 +97,8 @@ export default function EquipmentDashboard() {
             <ShareFormDialog
               formType="equipment-inspection"
               path="/equipment/submit"
-              title="Share Equipment Form"
-              description="Anyone with this link can file an Equipment Pre-Op Inspection. No login required."
+              title={t("Share Equipment Form")}
+              description={t("Anyone with this link can file an Equipment Pre-Op Inspection. No login required.")}
               testIdPrefix="share-equipment"
             />
             <Button
@@ -105,8 +107,8 @@ export default function EquipmentDashboard() {
               data-testid="new-equipment-btn"
             >
               <Plus className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">New Inspection</span>
-              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">{t("New Inspection")}</span>
+              <span className="sm:hidden">{t("New")}</span>
             </Button>
           </div>
         ) : null
@@ -115,23 +117,23 @@ export default function EquipmentDashboard() {
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="equipment-dashboard-page">
         {pathname.startsWith("/admin/") ? (
           <AdminBreadcrumb crumbs={[
-            { label: "Field Operations" },
-            { label: "Equipment Pre-Op" },
+            { label: t("Field Operations") },
+            { label: t("Equipment Pre-Op") },
           ]} />
         ) : null}
         <InformationCard
           icon={Wrench}
           tone="slate"
-          eyebrow="Field readiness"
-          title="Daily Walk-Arounds"
-          description="OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job. Review the latest condition, open issues, and cleared units from one governed surface."
+          eyebrow={t("Field readiness")}
+          title={t("Daily Walk-Arounds")}
+          description={t("OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job. Review the latest condition, open issues, and cleared units from one governed surface.")}
           testId="equipment-dashboard-summary"
           className="mb-8"
         >
           {failCount > 0 ? (
             <div className="pt-1">
               <span className="wp17-status-badge wp17-tone--red" data-testid="equipment-dashboard-fail-badge">
-                <AlertOctagon className="w-3.5 h-3.5" /> {failCount} unit{failCount === 1 ? "" : "s"} flagged fail
+                <AlertOctagon className="w-3.5 h-3.5" /> {failCount} {t(failCount === 1 ? "unit flagged fail" : "units flagged fail")}
               </span>
             </div>
           ) : null}
@@ -139,18 +141,18 @@ export default function EquipmentDashboard() {
 
         <SectionHeading
           index="01"
-          title="Pre-Op trends and inspections"
-          subtitle="Monitor current condition, open issues, and the latest inspection records without switching visual systems."
+          title={t("Pre-Op trends and inspections")}
+          subtitle={t("Monitor current condition, open issues, and the latest inspection records without switching visual systems.")}
           testId="equipment-dashboard-heading"
         />
 
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-slate-200/80 pb-4">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle>Pre-Op Trends &amp; Recent Inspections</CardTitle>
+              <CardTitle>{t("Pre-Op Trends & Recent Inspections")}</CardTitle>
             {!loading && (
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-                {items.length} on file
+                {items.length} {t("on file")}
               </span>
             )}
             </div>

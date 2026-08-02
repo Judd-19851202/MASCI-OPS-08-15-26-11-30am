@@ -16,6 +16,7 @@ import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -215,6 +216,7 @@ function DefectRow({ defect, mechanics, onAssign, onReview, bucketId }) {
 }
 
 export default function ShopManagerQueue() {
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [mechanics, setMechanics] = useState([]);
@@ -271,9 +273,9 @@ export default function ShopManagerQueue() {
     <div data-testid="shop-manager-queue-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Shop Portal · Manager Queue"
-        pageTitle="Shop Manager Queue"
-        subtitle="Every defect by assignment state. Assign · reassign · review repairs. Repair complete still requires return-to-service verification by Dispatch."
+        portalRole={t("Shop Portal · Manager Queue")}
+        pageTitle={t("Shop Manager Queue")}
+        subtitle={t("Every defect by assignment state. Assign · reassign · review repairs. Repair complete still requires return-to-service verification by Dispatch.")}
         primaryActions={
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <BackToShopLink testId="shop-manager-queue-back-to-shop" />

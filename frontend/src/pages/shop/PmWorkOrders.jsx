@@ -8,6 +8,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -36,6 +37,7 @@ export default function PmWorkOrders() {
 }
 
 function PmWorkOrderQueue() {
+  const { t } = useT();
   const [params] = useSearchParams();
   const filter = params.get("status") || "";
   const [items, setItems] = useState([]);
@@ -54,9 +56,9 @@ function PmWorkOrderQueue() {
 
   return (
     <div data-testid="pm-work-orders-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      <PortalShell portalName="MASCI" portalRole="Shop Operations"
-                   pageTitle="PM Work Orders"
-                   subtitle={`Queue${filter ? ` · ${STATUS_TONE[filter]?.label || filter}` : ""}. PM completion does not RTS.`}>
+      <PortalShell portalName="MASCI" portalRole={t("Shop Operations")}
+                   pageTitle={t("PM Work Orders")}
+                   subtitle={`${t("Queue")}${filter ? ` · ${t(STATUS_TONE[filter]?.label || filter)}` : ""}. ${t("PM completion does not RTS.")}`}>
         <BackToShopLink />
         {err && <div data-testid="pm-work-orders-error" style={{ padding: 12, background: "#fee2e2", color: "#7f1d1d", borderRadius: 4, marginBottom: 12 }}>{err}</div>}
         {items.length === 0 && <div data-testid="pm-work-orders-empty" style={{ padding: 12, background: "var(--paper-card)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)", fontSize: 12, color: "var(--ink-soft)" }}>No PM work orders matching this filter.</div>}
