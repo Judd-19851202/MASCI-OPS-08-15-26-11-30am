@@ -447,31 +447,31 @@ route,family,classification_status,rationale
 /fl,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,"Legacy alias audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); redirects to the working field-leadership experience."
 *,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 (index),Transportation Operations,CERTIFIED,"Runtime index route audited in ES at 1440 + 390 (`auto_frontend_testing_agent`, 2026-08-02); home experience passed with no overflow or visible English chrome."
-dispatch,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-live-operations,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-trucks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-trucks/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-drivers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-drivers/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-carriers,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-carriers/:id,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-compliance,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-orientation/*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-academy,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-academy/:moduleKey,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-intelligence/*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-command-queue/*,Shared Operational Home and Public Entry,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
-reports,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-audit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-documents,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-inspections,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-rate-schedules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-compliance/documents,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-compliance/rate-schedules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-fleet,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-fleet/trucks,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-fleet/inspections,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-administration/audit,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+dispatch,Shared Operational Home and Public Entry,CERTIFIED,"2026-08-02 Level 2 transportation certification: dispatch bridge opened under /transportation-operations with clean EN/ES, responsive proof, and role-safe runtime."
+live-operations,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: live operations workspace opened cleanly in EN/ES at mobile and desktop with no runtime defects.
+trucks,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: trucks list opened in EN/ES with responsive table behavior and clean runtime.
+trucks/:id,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: truck detail opened from dispatch list and now stays under /transportation-operations/trucks/:id with clean EN/ES and responsive proof.
+drivers,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: drivers list opened in EN/ES with responsive search/table behavior and clean runtime.
+drivers/:id,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: driver detail opened from dispatch list and stays under /transportation-operations/drivers/:id with clean EN/ES and responsive proof.
+carriers,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: carriers list opened in EN/ES with responsive table behavior and clean runtime.
+carriers/:id,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: carrier detail opened from dispatch list and stays under /transportation-operations/carriers/:id with clean EN/ES and responsive proof.
+compliance,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: compliance dashboard opened in EN/ES with mobile/desktop proof and no runtime issues.
+orientation/*,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: orientation center opened cleanly in EN/ES with responsive proof and valid module navigation.
+academy,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: academy landing opened cleanly in EN/ES with responsive proof.
+academy/:moduleKey,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: academy module detail opened from live data with EN/ES and responsive proof.
+intelligence/*,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: intelligence workspace (including cleanup entry) opened cleanly in EN/ES with no runtime defects.
+command-queue/*,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: command queue and forecast consumers opened cleanly in EN/ES with responsive proof.
+reports,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: reports workspace opened under admin transportation oversight with EN/ES and responsive proof.
+audit,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: audit timeline opened under admin transportation oversight with EN/ES and responsive proof.
+documents,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: document center opened cleanly in EN/ES with responsive selectors and no runtime defects.
+inspections,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: inspection center opened cleanly in EN/ES with responsive launcher controls and no runtime defects.
+rate-schedules,Shared Operational Home and Public Entry,CERTIFIED,2026-08-02 Level 2 transportation certification: rate schedule center opened cleanly in EN/ES with responsive controls and no runtime defects.
+compliance/documents,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: compliance/documents now redirects cleanly to canonical documents under the active transportation prefix.
+compliance/rate-schedules,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: compliance/rate-schedules now redirects cleanly to canonical rate-schedules under the active transportation prefix.
+fleet,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: fleet now redirects cleanly to canonical trucks under the active transportation prefix.
+fleet/trucks,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: fleet/trucks now redirects cleanly to canonical trucks under the active transportation prefix.
+fleet/inspections,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: fleet/inspections now redirects cleanly to canonical inspections under the active transportation prefix.
+administration/audit,Shared Operational Home and Public Entry,REDIRECT_CERTIFIED,2026-08-02 Level 3 alias certification: administration/audit now redirects cleanly to canonical audit under the active transportation prefix.
 health,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 forecast,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 modules,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."

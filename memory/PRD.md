@@ -178,6 +178,9 @@
   - authoritative route math moved accordingly: `AUDITED_DEFECTS_FOUND` fell **40 → 0**, `CERTIFIED` rose **98 → 138**, and remaining pending route count dropped **345 → 305** without opening the `DISCOVERED_NOT_OPENED` or `UNTOUCHED` queues
   - the next family-first burn-down closed 28 more surfaces in one governed shared-auth / legacy / Field batch: `/d/:token`, `/driver`, Dispatch/Safety/PM/HR/Shop/Admin auth routes, shared `/sign-in` + `/change-password`, and legacy hub aliases now have direct EN/ES + responsive proof, while `/dispatch-portal/driver/:driverKey` remains the lone exact blocker because no discoverable seeded `driverKey` fixture is exposed from certified dispatch paths
   - route math after this batch: `CERTIFIED` **161**, `REDIRECT_CERTIFIED` **46**, `BLOCKED_FIXTURE_REQUIRED` **1**, `DISCOVERED_NOT_OPENED` **202**, `UNTOUCHED` **74**, and remaining pending route count **277**
+  - Transportation/Dispatch workspace consumers are now materially retired: `dispatch`, `live-operations`, `trucks`, `drivers`, `carriers`, `compliance`, `orientation/*`, `academy*`, `intelligence/*`, `command-queue/*`, `reports`, `audit`, `documents`, `inspections`, `rate-schedules`, and six alias routes now have direct EN/ES + 390/1440 proof; detail links were fixed to preserve `/transportation-operations/*` context instead of leaking into `/admin/transportation/*`
+  - the transportation alias lane is now clean: `compliance/documents`, `compliance/rate-schedules`, `fleet`, `fleet/trucks`, `fleet/inspections`, and `administration/audit` all redirect to canonical workspace surfaces under the active prefix
+  - route math after the transportation workspace batch: `CERTIFIED` **180**, `REDIRECT_CERTIFIED` **52**, `BLOCKED_FIXTURE_REQUIRED` **1**, `DISCOVERED_NOT_OPENED` **184**, `UNTOUCHED` **67**, and remaining pending route count **252**
 
 ## Constraints Still Honored
 - No stable business logic, routing semantics, API contracts, or stored-data behavior were rewritten for this visual-governance wave.
@@ -186,7 +189,7 @@
 
 ## Next Authorized Work
 - Continue WP-17D in the locked order now set by executive direction, but with the Field auth/deep-link lane materially burned down.
-- Next active family is **Transportation and Dispatch** workspace consumers: `dispatch`, `live-operations`, `trucks`, `drivers`, `carriers`, `compliance`, `orientation/*`, `academy*`, `intelligence/*`, `command-queue/*`, `reports`, `audit`, `documents`, `inspections`, `rate-schedules`, and transport-detail consumers.
+- Next active family is the remaining Transportation-adjacent lane that still lives in other family ledgers: `/admin/dispatch` and transport-owned Public/Safety/PM/Admin inspection/compliance/fleet/report consumers, while preserving the existing `/dispatch-portal/driver/:driverKey` blocker until a real fixture is exposed.
 - Keep the new shared auth findings as the canonical standard while continuing the locked `DISCOVERED_NOT_OPENED` wave (`202` remaining after this batch), then consume the `UNTOUCHED` wave (`74`) only after the discovered queue is materially reduced.
 - Preserve the exact blocker on `/dispatch-portal/driver/:driverKey` until a real dispatch-visible seeded `driverKey` path or fixture is exposed; do not mark it certified without runtime proof.
 - While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.

@@ -71,6 +71,7 @@ Last updated: 2026-08-02
 - 2026-08-02 Active repaired-queue eradication landed: shared Safety/HR/Dispatch sidebar localization, shared portal-shell overflow guards, PM photo filter hardening, Daily submit cleanup, and redirect proof for `/admin/jha/:id` + `/ops-training/:slug` eliminated all 57 `REPAIRED_NOT_CERTIFIED` rows by moving them to `CERTIFIED`, `REDIRECT_CERTIFIED`, or exact `AUDITED_DEFECTS_FOUND` dispositions.
 - 2026-08-02 Final audited-defect eradication landed: shared `i18n.js` additions, Admin profile/mobile cleanup, Shop Hub V2 helper translation, PM/HR/Safety hub helper translation, Shop route-shell translation, and focused root-auth revalidation cleared all 40 `AUDITED_DEFECTS_FOUND` routes to `CERTIFIED` with EN/ES + responsive proof.
 - 2026-08-02 Field + shared auth/legacy burn-down landed: a 29-route cross-family batch closed 28 pending surfaces (Field driver auth guards, Dispatch/Safety/PM/HR/Shop/Admin auth flows, legacy hub aliases, and shared sign-in/change-password routes) and isolated one exact seeded-fixture blocker at `/dispatch-portal/driver/:driverKey`.
+- 2026-08-02 Transportation workspace closure landed: all remaining canonical `/transportation-operations/*` workspace consumers plus six alias paths were certified or redirect-certified after fixing dispatch-context detail links and canonical alias redirects; only `/dispatch-portal/driver/:driverKey` remains blocked for missing seeded fixture proof.
 - Platform discovery complete: **No**
 - Route discovery confidence = 100%: **Yes**
 - Hidden-surface discovery confidence = 100%: **Yes**
@@ -78,17 +79,17 @@ Last updated: 2026-08-02
 - Platform can begin final executive certification math: **No**
 
 ## Current Route Classification Snapshot (484-route denominator)
-- `CERTIFIED`: **161**
-- `REDIRECT_CERTIFIED`: **46**
+- `CERTIFIED`: **180**
+- `REDIRECT_CERTIFIED`: **52**
 - `BLOCKED_FIXTURE_REQUIRED`: **1**
 - `REPAIRED_NOT_CERTIFIED`: **0**
 - `OPENED_NOT_AUDITED`: **0**
 - `AUDITED_DEFECTS_FOUND`: **0**
-- `DISCOVERED_NOT_OPENED`: **202**
-- `UNTOUCHED`: **74**
-- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **207**
-- Remaining pending routes: **277**
-- Net pending reduction in this execution wave: **305 → 277** (−**28**)
+- `DISCOVERED_NOT_OPENED`: **184**
+- `UNTOUCHED`: **67**
+- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **232**
+- Remaining pending routes: **252**
+- Net pending reduction in this execution wave: **277 → 252** (−**25**)
 
 ## First Reachability Deliverable
 - Route-to-entry-point ledger created: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`
