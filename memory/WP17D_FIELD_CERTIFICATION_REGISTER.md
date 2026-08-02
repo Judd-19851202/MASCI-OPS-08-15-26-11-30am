@@ -1,6 +1,6 @@
 # WP-17D Field Certification Register
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
 
 ## Scope Rule
 - This register tracks **rendered Field-family surfaces only**.
@@ -111,9 +111,9 @@ Status values: `REOPENED`, `IN_PROGRESS`, `COMPLETE`, `BLOCKED`
 | `/field-leadership/portal/dashboard` | Field Leadership portal dashboard | IN_PROGRESS | `field-leadership-portal` | Pass (smoke) | Partial | Pass | Pass | Pass (390) | No | Full dashboard-to-record completion pending | ES dashboard copy repaired, mobile overflow removed, and workflow launchers 0-4 now route correctly. |
 | `/field-leadership/portal` | Field Leadership portal root | REOPENED | `field-leadership-portal` | Reopened | Reopened | Reopened | Reopened | Reopened | No | Root route needs direct evidence | Separate route path; no inherited pass-through allowed. |
 | `/field-leadership/portal/driver-qualification` | Field Leadership driver qualification | IN_PROGRESS | `driver-qualification` | Pass (smoke) | Partial | Pass | Pass | Pass (390) | No | Full list/filter/return coverage pending | ES subtitle/portal chrome repaired and 390px mobile layout passes without overflow. |
-| `/admin/daily` | Admin daily list | REOPENED | `daily-report-review` | Prior evidence | Reopened | Prior evidence | Reopened | Prior evidence | No | Admin review path not yet exercised | Field workflow review surface. |
+| `/admin/daily` | Admin daily list | COMPLETE | `daily-report-review` | Pass | Pass | Pass | Pass | Pass (390/1440) | No | Review/return workflow still open beyond the list surface | Shared admin-shell ES repair landed; list route now passes authenticated EN/ES shell proof, mobile no-overflow, and governed Daily review chrome (`20260802_025648`, `20260802_030403`). |
 | `/daily-reports` | Daily report review alias | REOPENED | `daily-report-review` | Reopened | Reopened | Reopened | Reopened | Reopened | No | Hidden field review list discovered in HUNT MODE | Canonical list route separate from `/admin/daily` and must be certified independently. |
-| `/admin/daily/:id` | Admin daily detail | REOPENED | `daily-report-review` | Prior evidence | Reopened | Prior evidence | Reopened | Prior evidence | No | Detail review/print/return path pending | Field workflow detail surface. |
+| `/admin/daily/:id` | Admin daily detail | COMPLETE | `daily-report-review` | Pass | Pass | Pass | Pass | Pass (390/1440) | No | Return/review transitions still open beyond the detail surface | Detail route now passes authenticated EN/ES shell proof, media/signature rendering, no-overflow checks, and canonical `%PDF` artifact generation (`20260802_021357`, `20260802_021755`). |
 | `/pm/daily` | PM daily list | REOPENED | `daily-report-review` | Reopened | Reopened | Reopened | Reopened | Reopened | No | PM review path pending | Needs full certification. |
 | `/pm/daily/:id` | PM daily detail | REOPENED | `daily-report-review` | Prior evidence | Reopened | Prior evidence | Reopened | Prior evidence | No | Detail review/return path pending | Field workflow detail surface. |
 | `/admin/equipment-inspections` | Admin equipment list | REOPENED | `equipment-review` | Prior evidence | Reopened | Prior evidence | Reopened | Prior evidence | No | Admin equipment review path pending | Field workflow review surface. |

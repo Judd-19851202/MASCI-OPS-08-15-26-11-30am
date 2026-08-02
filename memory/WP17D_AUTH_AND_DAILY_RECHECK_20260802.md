@@ -20,6 +20,8 @@
 - Classification ledger blocker set: 54 previously `BLOCKED_CREDENTIALS` routes re-opened in browser proof.
 - Runtime expansion proof: 70/70 blocked runtime routes passed authenticated login, refresh, and deep-link checks in `/app/test_reports/iteration_107.json`.
 - Shared-auth blocker remaining: 0 routes still blocked by the original credential/session defect.
+- Authoritative classification result after reconciliation: all 54 original blocker routes now sit in `REPAIRED_NOT_CERTIFIED` pending full route-by-route closure; none remain under the eliminated blocker taxonomy.
+- Net route-denominator movement in this execution wave: closed routes `60 → 69`, pending routes `424 → 415`.
 
 ## Daily closure evidence
 - Public Daily submit proved with GPS weather refresh, camera-path photo upload, attachment upload, approved summary, signature capture, and successful outcome route (`/thank-you`).
@@ -33,3 +35,7 @@
   - `/pm/operational-intelligence` no longer exposes a raw 401 to the user.
   - `/safety/forms/login` now uses the governed hero icon shell.
 - Remaining audited-defect family work still to disposition: `/admin/transportation`, `/admin/photos`, `/admin/executive-overview`, `/admin/platform-readiness`, plus any shell-wide ES defects shared across admin surfaces.
+
+## Mass audit continuation started
+- Additional admin-shell batch opened in the same run: `/admin`, `/admin/command-center`, `/admin/jobs`, `/admin/equipment`, `/admin/training`, `/admin/compliance`, `/admin/system`, `/admin/profile`, `/admin/operational-language`, `/admin/operations-control`, `/admin/operations-dashboard`, `/admin/digest-config`, `/admin/governance`, `/admin/database`, `/admin/integrations`, `/admin/communications`, `/admin/maintenance`.
+- `/admin/platform-overview` was dispositioned as a redirect alias to `/admin` and moved to `REDIRECT_CERTIFIED` after browser proof.

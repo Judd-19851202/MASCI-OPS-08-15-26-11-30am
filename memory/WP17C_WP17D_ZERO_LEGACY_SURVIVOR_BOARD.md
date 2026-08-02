@@ -1,6 +1,14 @@
 # WP17C + WP17D Zero-Legacy Survivor Board
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
+
+### 2026-08-02 · Shared Auth Blocker Reconciliation + Admin Shell Localization + Admin Batch Audit · ACTIVE PROGRESSION
+- Shared auth/session blocker class cleared: the 54-route `BLOCKED_CREDENTIALS` set was re-opened under shared portal-session proof and removed from the blocker taxonomy in the authoritative route ledger.
+- New direct certifications closed in this wave: `/pm/login`, `/shop/login`, `/hr/login`, `/dispatch-portal/login`, `/safety-portal/login`, `/safety/forms/login`, `/admin/executive-overview`, `/admin/daily`.
+- Hidden/detail carry-forward still holds: `/admin/daily/:id` remains route-certified with new ES/media/PDF evidence attached in the Field register.
+- Shared admin-shell localization landed at the primitive level (`CanonicalHeader`, `PortalShell`, `MobileNavigation`, `SideNavV3`, `CommandPalette`, `PortalSwitcher`, `GlobalSearch`, `NotificationBell`, `AdminBreadcrumb`, admin wrappers), then 18 admin-shell consumers were opened in one batch so the untouched backlog resumed moving in the same run.
+- Redirect disposition added: `/admin/platform-overview` now has authenticated browser proof to `/admin` and is tracked as `REDIRECT_CERTIFIED`.
+- Remaining active screenshot-evidence blockers after the shell wave: `/admin/photos` (mixed EN/ES route copy), `/admin/transportation/*` (mixed EN/ES route copy), and route-family content still not yet normalized across the newly opened admin-shell batch.
 
 ## Executive Rule
 A survivor is open until it is either:

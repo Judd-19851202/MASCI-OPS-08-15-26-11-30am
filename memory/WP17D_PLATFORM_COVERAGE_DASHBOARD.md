@@ -64,11 +64,25 @@ Last updated: 2026-08-02
 
 ## Current Executive Certification Status
 - 2026-08-02 Runtime first-pass audit artifact created: `/app/memory/WP17D_RUNTIME_FIRST_PASS_AUDIT.csv` (101 opened surfaces across Transportation, Safety, Shop, PM, HR, Administration, and redirect-reconciliation lanes).
+- 2026-08-02 Shared auth-blocker reconciliation landed: the 54-route `BLOCKED_CREDENTIALS` class was eliminated from the authoritative route ledger and reclassified as reopened `REPAIRED_NOT_CERTIFIED` consumers after `iteration_107` proved the shared session fix.
+- 2026-08-02 Shared admin-shell localization wave landed across `CanonicalHeader`, `PortalShell`, `MobileNavigation`, `SideNavV3`, `CommandPalette`, `PortalSwitcher`, `GlobalSearch`, `NotificationBell`, `AdminBreadcrumb`, and the admin wrappers; route-family proof completed for `/admin/daily`, `/admin/daily/:id`, and `/admin/executive-overview`.
 - Platform discovery complete: **No**
 - Route discovery confidence = 100%: **Yes**
 - Hidden-surface discovery confidence = 100%: **Yes**
 - Component-family discovery confidence = 100%: **Yes (discovery only; certification still open)**
 - Platform can begin final executive certification math: **No**
+
+## Current Route Classification Snapshot (484-route denominator)
+- `CERTIFIED`: **42**
+- `REDIRECT_CERTIFIED`: **27**
+- `REPAIRED_NOT_CERTIFIED`: **63**
+- `OPENED_NOT_AUDITED`: **44**
+- `AUDITED_DEFECTS_FOUND`: **3**
+- `DISCOVERED_NOT_OPENED`: **224**
+- `UNTOUCHED`: **81**
+- Closed routes (`CERTIFIED` + `REDIRECT_CERTIFIED`): **69**
+- Remaining pending routes: **415**
+- Net pending reduction in this execution wave: **424 → 415** (−**9**)
 
 ## First Reachability Deliverable
 - Route-to-entry-point ledger created: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`
@@ -86,11 +100,12 @@ Last updated: 2026-08-02
   - `source_line`
 
 ## Route-to-Entry Reachability Snapshot
-- `DISCOVERED_ENTRY_REVIEW_PENDING`: **322**
+- `DISCOVERED_ENTRY_REVIEW_PENDING`: **317**
 - `DISCOVERED_NEEDS_REACHABILITY_PROOF`: **98**
 - `DISCOVERED_ALIAS`: **24**
 - `DISCOVERED_INDEX_ROUTE_REVIEW_PENDING`: **1**
-- `PROVEN_REDIRECT`: **26**
+- `OPENED_BATCH_AUDIT_20260802`: **17**
+- `PROVEN_REDIRECT`: **27**
 
 ## Hidden Surface Disposition Snapshot
 - `EXPOSED_OR_NAV_REVIEW`: **335**

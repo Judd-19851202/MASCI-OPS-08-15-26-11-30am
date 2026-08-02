@@ -89,7 +89,7 @@ route,family,classification_status,rationale
 /safety-portal/trench-safety/tabulated-data,Safety Operations,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /app/*,Shared Operational Home and Public Entry,OPENED_NOT_AUDITED,Fallback classification from reachability status DISCOVERED_ALIAS.
 /admin/login,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/hub_v1,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/hub_v2,Administration,REDIRECT_CERTIFIED,Browser redirect proof captured 2026-08-02; canonical target verified.
 /admin/executive-overview,Administration,CERTIFIED,"Certified after shared admin-shell ES repair, executive reason localization, 390px proof, and no auth regressions (screenshots 20260802_025704, 20260802_025923)."
@@ -98,49 +98,49 @@ route,family,classification_status,rationale
 /admin/people,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/mfa,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/promo-assets,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/jobs,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/jobs,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/cost-registry,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jobs/:projectNumber/team,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/project-staffing,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/geofence-reconciliation,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/operations-dashboard,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/operations-control,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operations-dashboard,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
+/admin/operations-control,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /operations-control/cases,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /operations-control/cases/:caseId,Administration,UNTOUCHED,Surface discovered from source/runtime inventory and still lacks direct runtime proof.
 /admin/asset-mapping,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/asset-spine,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/equipment,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/equipment,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/email,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/training,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/compliance,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/system,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/training,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
+/admin/compliance,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
+/admin/system,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/ai-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/integration-truth,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/preview-validation-identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/storage-recovery,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/ai-operations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/communications,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/communications,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/identity-security,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/trust-spine,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance-trust,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/platform-configuration,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/diagnostics,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/maintenance,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/platform-overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/maintenance,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
+/admin/platform-overview,Administration,REDIRECT_CERTIFIED,Browser proof 2026-08-02: /admin/platform-overview redirects to /admin under authenticated admin shell (batch audit 20260802_031319).
 /admin/recovery-stream,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/jha-acknowledgements,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/command-center,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/database,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/integrations,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/command-center,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
+/admin/database,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
+/admin/integrations,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/dispatch,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/dls/shift-qr,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/dls/day-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/dls/week-1-debrief,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/profile,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/profile,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/operations-events,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/digest-config,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/digest-config,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/operational-intelligence,Administration,OPENED_NOT_AUDITED,First-pass audit: route loads in admin shell with readable title; deeper visual/functional audit still pending.
 /admin/operational-intelligence/recipients,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/system-health,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -151,7 +151,7 @@ route,family,classification_status,rationale
 /admin/guidance-coverage,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/operational-inventory,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /notifications,Shared Operational Home and Public Entry,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/governance,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/governance,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /admin/governance/overview,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance/organization,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance/identities,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
@@ -172,7 +172,7 @@ route,family,classification_status,rationale
 /admin/project-identity,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/governance/self-protection,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
 /admin/compliance-findings,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
-/admin/operational-language,Administration,DISCOVERED_NOT_OPENED,"Reachable route known, but no route-level certification evidence yet."
+/admin/operational-language,Administration,OPENED_NOT_AUDITED,Admin-shell consumer opened in the 18-route batch audit after the shared shell localization pass; route renders with MASCI identity but still needs full EN/ES/functional certification (screenshot batch 20260802_031319).
 /guidance,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
 /guidance/section/:sectionId,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
 /guidance/:articleId,"Training, Guidance, and Coaching",CERTIFIED,Ledger row already carries certification evidence.
