@@ -105,7 +105,7 @@ export function FormShell({
       {/* STICKY FOOTER */}
       {stickyFooter && (
         <div
-          className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-[rgba(246,248,252,0.94)] shadow-[0_-14px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl wp17-shell-footer"
+          className="fixed bottom-0 inset-x-0 z-30 max-w-full overflow-x-hidden border-t border-slate-200 bg-[rgba(246,248,252,0.94)] shadow-[0_-14px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl wp17-shell-footer"
           data-testid={`${containerTestId}-sticky-footer`}
         >
           <div className={`${widthClass} mx-auto px-4 sm:px-6 py-3`}>
