@@ -17,6 +17,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Search, ChevronDown, Menu, X } from "lucide-react";
 import { isAdmin } from "@/lib/adminAuth";
+import { useT } from "@/lib/i18n";
 
 const NAV_GROUPS = [
   {
@@ -73,6 +74,7 @@ function visibleNavGroups() {
 }
 
 function NavMenu({ group, onItemClick }) {
+  const { t } = useT();
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
 
@@ -93,7 +95,7 @@ function NavMenu({ group, onItemClick }) {
         onClick={() => setOpen((v) => !v)}
         className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider font-semibold text-slate-300 hover:text-white px-2 py-1.5 rounded transition-colors"
       >
-        {group.label}
+        {t(group.label)}
         <ChevronDown
           className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
         />
@@ -111,7 +113,7 @@ function NavMenu({ group, onItemClick }) {
               onClick={() => { setOpen(false); onItemClick && onItemClick(item); }}
               className="block px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 hover:text-white"
             >
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
         </div>
@@ -148,6 +150,7 @@ export function useTxOpsSlashShortcut() {
 }
 
 export default function TransportationOpsTopBar() {
+  const { t } = useT();
   useTxOpsSlashShortcut();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const groups = visibleNavGroups();
@@ -164,7 +167,7 @@ export default function TransportationOpsTopBar() {
         >
           <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
           <span className="text-[11px] uppercase tracking-[0.18em] font-semibold text-white">
-            Transportation Operations
+            {t("Transportation Operations")}
           </span>
         </Link>
 
@@ -192,10 +195,10 @@ export default function TransportationOpsTopBar() {
             to="/transportation-operations"
             data-testid="txops-portal-topbar-search"
             className="inline-flex items-center gap-1.5 rounded bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 text-[11px] text-slate-200 transition-colors"
-            title="Open Transportation search ( / )"
+            title={t("Open Transportation search ( / )")}
           >
             <Search className="h-3 w-3" />
-            <span>Search</span>
+            <span>{t("Search")}</span>
             <kbd className="ml-1 hidden lg:inline rounded border border-slate-600 px-1 text-[9px] font-mono text-slate-300">
               /
             </kbd>
@@ -205,7 +208,7 @@ export default function TransportationOpsTopBar() {
             data-testid="txops-portal-topbar-mission-control"
             className="hidden sm:inline-flex items-center gap-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
           >
-            Mission Control →
+            {t("Mission Control →")}
           </Link>
         </div>
       </div>
@@ -218,7 +221,7 @@ export default function TransportationOpsTopBar() {
           {groups.map((g) => (
             <div key={g.id}>
               <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
-                {g.label}
+                {t(g.label)}
               </div>
               <div className="flex flex-col gap-1">
                 {g.items.map((item) => (
@@ -229,7 +232,7 @@ export default function TransportationOpsTopBar() {
                     onClick={() => setMobileOpen(false)}
                     className="text-xs text-slate-200 hover:text-white px-2 py-1.5 rounded hover:bg-slate-800"
                   >
-                    {item.label}
+                    {t(item.label)}
                   </Link>
                 ))}
               </div>

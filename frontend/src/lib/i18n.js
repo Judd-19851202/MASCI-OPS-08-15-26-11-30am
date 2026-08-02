@@ -527,6 +527,11 @@ const ES = {
   "Guidance & Support": "Guía y Soporte",
   "Operator guides, password rotation, training center.": "Guías operativas, rotación de contraseña y centro de capacitación.",
   "Update your Transportation Operations password.": "Actualiza tu contraseña de Operaciones de Transporte.",
+  "Open Transportation search ( / )": "Abrir búsqueda de Transporte ( / )",
+  "Mission Control →": "Control de Misión →",
+  "Keep hauling moving by surfacing live exceptions before they stall the board.": "Mantén el acarreo en movimiento mostrando excepciones en vivo antes de que detengan el tablero.",
+  "Dispatch is now aligned to the same shell and visual language as Transportation, Admin, and PM while keeping live board work first.": "Despacho ahora está alineado al mismo shell y lenguaje visual que Transporte, Administración y PM, manteniendo el tablero en vivo como prioridad.",
+  "Pick who's driving and which truck. Subs and rentals aren't in the system yet — use Add temporary if needed.": "Elige quién conduce y qué camión. Los subcontratos y alquileres todavía no están en el sistema; usa Agregar temporal si es necesario.",
   "Back to Dispatch": "Volver a Despacho",
   "Haul Ledger": "Libro de Acarreos",
   "Company-wide material movement, loads, trucks, and scale-ticket proof. Companion view — the live map remains primary at":
