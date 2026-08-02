@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle, Search, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { RemoveReasonDialog } from "@/components/team/RemoveReasonDialog";
@@ -71,14 +72,14 @@ function displayNameOf(it) {
   if (!it || typeof it !== "object") return "Unknown person — Admin review required";
   const tryStr = (s) => (typeof s === "string" ? s.trim() : "");
   const full = tryStr(it.full_name);
-  if (full) return full;
+  if (full) return sanitizeOperatorReference(full, full);
   const disp = tryStr(it.display_name);
-  if (disp) return disp;
+  if (disp) return sanitizeOperatorReference(disp, disp);
   const nm = tryStr(it.name);
-  if (nm) return nm;
+  if (nm) return sanitizeOperatorReference(nm, nm);
   const first = tryStr(it.first_name);
   const last = tryStr(it.last_name);
-  if (first || last) return [first, last].filter(Boolean).join(" ");
+  if (first || last) return sanitizeOperatorReference([first, last].filter(Boolean).join(" "), "Team member");
   const em = tryStr(it.email);
   if (em) return em;
   const emp = tryStr(it.employee_id);

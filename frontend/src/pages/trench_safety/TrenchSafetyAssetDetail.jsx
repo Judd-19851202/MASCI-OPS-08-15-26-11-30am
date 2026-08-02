@@ -293,7 +293,7 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Yard")}              value={doc.yard_location} testId="f-yard" />
               <Field label={t("Last Inspection")}   value={doc.last_inspection_at ? doc.last_inspection_at.slice(0, 10) : null} testId="f-last-insp" />
               <Field label={t("Next Inspection Due")} value={doc.next_inspection_due ? doc.next_inspection_due.slice(0, 10) : null} testId="f-next-insp" />
-              <Field label={t("Certification Expires")} value={doc.certification_expires_at ? doc.certification_expires_at.slice(0, 10) : null} testId="f-cert-exp" />
+              <Field label={t("Compliance Expires")} value={doc.certification_expires_at ? doc.certification_expires_at.slice(0, 10) : null} testId="f-cert-exp" />
               <Field label={t("Last Repair")}       value={doc.last_repair_at ? doc.last_repair_at.slice(0, 10) : null} testId="f-last-repair" />
             </div>
           </SurfaceCard>
