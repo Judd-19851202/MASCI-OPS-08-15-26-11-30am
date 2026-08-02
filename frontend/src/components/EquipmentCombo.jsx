@@ -163,7 +163,7 @@ export const EquipmentCombo = ({
           }}
           onFocus={() => setOpen(true)}
           placeholder={ph}
-          className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
+          className="flex-1 h-12 text-[0.95rem] border-[color:var(--border-bold)] focus:border-[color:var(--brand-primary)]"
           data-testid={`${testIdBase}-input`}
           autoComplete="off"
         />
@@ -171,7 +171,7 @@ export const EquipmentCombo = ({
           type="button"
           variant="outline"
           size="icon"
-          className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
+          className="h-12 w-12 shrink-0 rounded-[1rem] border-[color:var(--border-bold)] hover:border-red-700 hover:text-red-700"
           onClick={() => {
             // Self-recover: if cache loaded empty, force a re-fetch.
             if ((data?.items?.length || 0) === 0) {
@@ -190,11 +190,11 @@ export const EquipmentCombo = ({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full max-h-80 overflow-auto rounded-md border-2 border-slate-300 bg-white shadow-xl"
+          className="wp17-picker-panel absolute z-30 mt-2 w-full max-h-80 overflow-auto p-1.5"
           data-testid={`${testIdBase}-panel`}
         >
           {totalShown === 0 ? (
-            <div className="p-4 text-sm text-slate-500 text-center">
+            <div className="wp17-picker-empty text-center">
               {data.count === 0
                 ? t("Equipment list not loaded yet.")
                 : t("No matches — your typed value will be saved.")}
@@ -202,7 +202,7 @@ export const EquipmentCombo = ({
           ) : (
             Object.entries(grouped).map(([cat, list]) => (
               <div key={cat}>
-                <div className="sticky top-0 bg-slate-100 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-700 font-bold px-3 py-1.5 border-y border-slate-200">
+                <div className="sticky top-0 rounded-[0.85rem] border border-slate-200/80 bg-slate-100/95 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-700">
                   {cat}
                   <span className="ml-2 text-slate-500 normal-case font-normal tracking-normal">
                     ({list.length})
@@ -217,9 +217,8 @@ export const EquipmentCombo = ({
                       type="button"
                       onClick={() => pick(it)}
                       onMouseDown={(e) => e.preventDefault()}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-red-50 border-b border-slate-100 ${
-                        selected ? "bg-red-100" : ""
-                      }`}
+                      className="wp17-picker-option group text-left text-sm"
+                      data-selected={selected ? "true" : "false"}
                       data-testid={`${testIdBase}-item-${cat}-${idx}`}
                     >
                       <div className="flex items-center gap-2">

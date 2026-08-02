@@ -161,7 +161,7 @@ export const FlUserCombo = ({
           }}
           onFocus={() => setOpen(true)}
           placeholder={ph}
-          className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
+          className="flex-1 h-12 text-[0.95rem] border-[color:var(--border-bold)] focus:border-[color:var(--brand-primary)]"
           data-testid={`${testId}-input`}
           autoComplete="off"
         />
@@ -169,7 +169,7 @@ export const FlUserCombo = ({
           type="button"
           variant="outline"
           size="icon"
-          className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
+          className="h-12 w-12 shrink-0 rounded-[1rem] border-[color:var(--border-bold)] hover:border-red-700 hover:text-red-700"
           onClick={() => {
             if ((data.items || []).length === 0) {
               clearFlRosterCache();
@@ -195,11 +195,11 @@ export const FlUserCombo = ({
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full max-h-72 overflow-auto rounded-md border border-slate-300 bg-white shadow-lg"
+          className="wp17-picker-panel absolute z-30 mt-2 w-full max-h-72 overflow-auto p-1.5"
           data-testid={`${testId}-list`}
         >
           {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-slate-500 font-mono">
+            <div className="wp17-picker-empty font-mono text-xs">
               {total === 0
                 ? t("Roster unavailable — manual entry is fine.")
                 : t("No matches. Manual entry is fine.")}
@@ -215,7 +215,7 @@ export const FlUserCombo = ({
                   key={`${it.name}-${i}`}
                   type="button"
                   onClick={() => pick(it)}
-                  className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                  className="wp17-picker-option group text-left"
                   data-testid={`${testId}-option-${i}`}
                 >
                   <div className="text-sm text-slate-900">

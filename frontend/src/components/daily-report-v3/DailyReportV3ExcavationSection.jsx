@@ -159,7 +159,7 @@ export default function DailyReportV3ExcavationSection({
                      className={inputCls} data-testid="exc-depth" disabled={disabled} spellCheck={false} />
               <select value={exc.dimension_unit || "ft"}
                       onChange={(e) => set({ dimension_unit: e.target.value })}
-                      className={inputCls} data-testid="exc-dimension-unit" disabled={disabled}>
+                      className="wp17-native-select" data-testid="exc-dimension-unit" disabled={disabled}>
                 <option value="ft">{t("Feet")}</option>
                 <option value="m">{t("Metres")}</option>
               </select>
@@ -194,7 +194,7 @@ export default function DailyReportV3ExcavationSection({
             </div>
             <select value={exc.soil_type || ""}
                     onChange={(e) => set({ soil_type: e.target.value })}
-                    className={`${inputCls} max-w-xs`}
+                    className="wp17-native-select max-w-xs"
                     data-testid="exc-soil-type" disabled={disabled}>
               <option value="">{t("— Select —")}</option>
               {SOIL_TYPES.map((tp) => (
@@ -354,7 +354,7 @@ export default function DailyReportV3ExcavationSection({
                 {t("Access/egress compliant?")}
                 <select value={exc.access_egress_compliant || ""}
                         onChange={(e) => set({ access_egress_compliant: e.target.value })}
-                        className={inputCls} data-testid="exc-access-compliant" disabled={disabled}>
+                        className="wp17-native-select" data-testid="exc-access-compliant" disabled={disabled}>
                   <option value="">—</option>
                   <option value="yes">{t("Yes")}</option>
                   <option value="no">{t("No")}</option>
@@ -365,7 +365,7 @@ export default function DailyReportV3ExcavationSection({
                 {t("Atmospheric testing required?")}
                 <select value={exc.atmospheric_testing_required || ""}
                         onChange={(e) => set({ atmospheric_testing_required: e.target.value })}
-                        className={inputCls} data-testid="exc-atm-required" disabled={disabled}>
+                        className="wp17-native-select" data-testid="exc-atm-required" disabled={disabled}>
                   <option value="">—</option>
                   <option value="yes">{t("Yes")}</option>
                   <option value="no">{t("No")}</option>

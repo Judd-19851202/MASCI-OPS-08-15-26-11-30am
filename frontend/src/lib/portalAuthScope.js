@@ -72,6 +72,7 @@ const ACTIVE_PORTAL_SHARED_API_PREFIXES = [
   "/project-staffing",
   "/job-hazard-files",
   "/legacy-imports",
+  "/email-report",
 ];
 
 const ADMIN_SHARED_API_PREFIXES = [

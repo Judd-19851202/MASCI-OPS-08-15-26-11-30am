@@ -19564,7 +19564,7 @@ async def admin_photos_migrate_reset(
 
 @_email_router.post("/email-report")
 async def email_report(
-    body: EmailReportRequest, _: bool = Depends(require_admin)
+    body: EmailReportRequest, _: bool = Depends(require_pm_portal_or_super_admin)
 ):
     if body.kind not in _KIND_TO_COLLECTION:
         raise HTTPException(status_code=400, detail=f"Unknown kind: {body.kind}")

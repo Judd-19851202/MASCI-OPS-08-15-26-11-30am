@@ -1,0 +1,7 @@
+route,coaching_surface,primitive_used,en_verified,es_verified,responsive_verified,visual_verified,status,evidence
+/daily/submit,FormShell subtitle + Operational Summary Assist,FormShell subtitle + DailySummaryAssist,Y,Y,"390,430,768,1024",Y,IN_PROGRESS_FUNCTIONAL_BRANCHES_OPEN,"20260802_003201, 20260802_003444, 20260802_003725, 20260802_004646, 20260802_004718"
+/admin/daily,Hero summary + OperationalCoachingStrip (4 cards),OperationalCoachingStrip,Y,N,390,Y,PARTIAL_WIDTHS_OPEN,20260801_231803
+/pm/daily,Hero summary + OperationalCoachingStrip (4 cards),OperationalCoachingStrip,Y,Y,"390,1024,1440",Y,PARTIAL_WIDTHS_OPEN,"20260802_000318, 20260802_003855, 20260802_004210"
+/admin/daily/:id,Detail hero operational framing,DetailPageHero,Y,N,"390,1024",Y,DETAIL_CHAIN_OPEN,"20260801_235440, 20260802_004111"
+/pm/daily/:id,Detail hero operational framing,DetailPageHero,Y,Y,"390,1024",Y,DETAIL_CHAIN_OPEN,"20260802_000054, 20260802_000119, 20260802_004111"
+/daily-reports/:id,Alias deep-link to portal detail hero,RedirectDailyReportDetailAlias → DetailPageHero,Y,N,390,Y,ALIAS_CERTIFIED,"20260801_235935, 20260801_235529"

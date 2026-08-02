@@ -148,7 +148,7 @@ export default function CompetentPersonCombo({
             <select
               value={value || ""}
               onChange={(e) => pick(e.target.value)}
-              className="mt-2 h-9 w-full text-sm border-2 border-slate-300 rounded px-2"
+              className="wp17-native-select mt-2"
               data-testid={`${testidPrefix}-select`}
             >
               <option value="">{t("— Select Competent Person —")}</option>

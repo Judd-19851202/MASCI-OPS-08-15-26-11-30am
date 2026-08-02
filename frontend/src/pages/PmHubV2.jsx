@@ -69,7 +69,7 @@ function usePmSignals() {
     capas_due:          null,    // /api/pm/crew/capas (open/pending)
     constraints_open:   null,    // /api/constraints?status=open (or non-closed)
     projects_attention: null,    // /api/pm/jobs (filter to projects with signals)
-    qaqc_action:        null,    // /api/qaqc/inspections?status=pending_verification
+    qaqc_action:        null,    // /api/qaqc-inspections?status=pending_verification
     crew_accountability:null,    // /api/pm/crew/summary
     photos_recent:      null,    // /api/job-photos?limit=10
     // Track 13.6F · Phase 3 / 4 — unified aggregators (real engines).
@@ -100,7 +100,7 @@ function usePmSignals() {
       safeJson(`/api/pm/crew/capas`),
       safeJson(`/api/constraints?limit=200`),
       safeJson(`/api/pm/jobs`),
-      safeJson(`/api/qaqc/inspections?limit=200`),
+      safeJson(`/api/qaqc-inspections?limit=200`),
       safeJson(`/api/pm/crew/summary`),
       safeJson(`/api/job-photos?limit=10`),
       safeJson(`/api/pm/command-center/holds`),

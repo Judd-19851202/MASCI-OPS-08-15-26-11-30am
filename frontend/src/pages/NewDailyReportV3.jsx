@@ -1026,7 +1026,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-testid="dr-v3-sticky-submit-bar">
           <div className="text-sm text-slate-600" data-testid="dr-v3-sticky-submit-status">
             {canSubmit
-              ? t("Ready to submit once the signature is complete.")
+              ? t("Ready to submit")
               : `${t("Still needed:")} ${readiness.missing.join(" · ") || t("checking…")}`}
           </div>
           <Button

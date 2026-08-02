@@ -1005,7 +1005,7 @@ export function CostCodePicker({ value, options, onChange, testId }) {
         data-testid={testId}
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm"
+        className="wp17-native-select"
       >
         <option value="">— Select —</option>
         {options.map((cc) => (
@@ -1945,7 +1945,7 @@ export function SectionImpactSafety({ data, patch }) {
                   p.injuries_reported = (v === "injury" || v === "accident") ? "Yes" : "No";
                   patch(p);
                 }}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                className="wp17-native-select"
                 data-testid="dr-v3-safety-event-type"
               >
                 <option value="">— Select —</option>
@@ -2024,7 +2024,7 @@ export function SectionImpactSafety({ data, patch }) {
                       onChange={(e) =>
                         patch({ safety_contact_method: e.target.value })
                       }
-                      className="rounded-md border border-slate-300 bg-white px-2 py-2 text-sm"
+                      className="wp17-native-select"
                       data-testid="dr-v3-safety-contact-method"
                     >
                       <option value="">— Select —</option>

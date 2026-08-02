@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Plus,
@@ -31,12 +31,14 @@ import { InformationCard } from "@/components/CanonicalCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import EmptyState from "@/components/EmptyState";
 import { OperationalCoachingStrip } from "@/components/OperationalCoachingStrip";
+import { Input } from "@/components/ui/input";
 
 export default function DailyReportsDashboard() {
   const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [jobsMaster, setJobsMaster] = useState({});  // DR-JOB-002 canonical map
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isAdminRoute = pathname.startsWith("/admin/");
@@ -136,6 +138,24 @@ export default function DailyReportsDashboard() {
     },
   ];
 
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return items;
+    return items.filter((item) => {
+      const haystack = [
+        item.project_name,
+        item.project_number,
+        item.prepared_by,
+        item.report_date,
+        item.location,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [items, searchQuery]);
+
   return (
     <PortalShell
       portalName="MASCI" portalRole={isAdminRoute ? "Administration" : "Project Management"}
@@ -183,9 +203,18 @@ export default function DailyReportsDashboard() {
               <CardTitle>{t("Recent Reports")}</CardTitle>
             {!loading && (
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500" data-testid="daily-report-count-label">
-                {items.length} {t("on file")}
+                {filteredItems.length} {t("on file")}
               </span>
             )}
+            </div>
+            <div className="mt-4">
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t("Search by project, number, preparer, date, or location")}
+                data-testid="daily-report-search-input"
+                className="h-12 border-[color:var(--border-bold)] text-[0.95rem]"
+              />
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -193,19 +222,19 @@ export default function DailyReportsDashboard() {
             <div className="p-12 flex items-center justify-center text-slate-500">
               <Loader2 className="w-6 h-6 animate-spin mr-2" /> {t("Loading...")}
             </div>
-          ) : items.length === 0 ? (
+          ) : filteredItems.length === 0 ? (
             <div className="p-8 sm:p-10">
               <EmptyState
                 icon={ClipboardList}
-                title={t("No daily reports yet")}
-                body={t("File one before the crew leaves the site at end of day.")}
+                title={searchQuery ? t("No reports match this search") : t("No daily reports yet")}
+                body={searchQuery ? t("Try another project name, report number, date, or preparer.") : t("File one before the crew leaves the site at end of day.")}
                 testId="empty-state"
                 action={{ label: t("File First Report"), onClick: () => navigate("/daily/submit"), testId: "empty-cta" }}
               />
             </div>
           ) : (
             <JobFolderList
-              items={items}
+              items={filteredItems}
               dateField="report_date"
               testIdPrefix="daily-folders"
               jobsMaster={jobsMaster}
