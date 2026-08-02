@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { globalSearch, hasAnyPortalToken } from "@/lib/searchApi";
+import { useT } from "@/lib/i18n";
 
 const DEBOUNCE_MS = 260;
 const RECENT_KEY_PREFIX = "masci.search.recent.v1.";
@@ -91,6 +92,7 @@ export default function GlobalSearch({
   placeholder = "Search platform — tasks, employees, equipment, POs…",
   className = "",
 }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
@@ -203,10 +205,10 @@ export default function GlobalSearch({
         onClick={openOverlay}
         className={`inline-flex items-center gap-2 h-9 px-3 rounded-md border-2 text-sm font-medium transition-colors ${triggerBase} ${className}`}
         data-testid="global-search-trigger"
-        title="Search platform (Cmd+K)"
+        title={t("Search platform (Cmd+K)")}
       >
         <Search className="w-4 h-4 shrink-0" />
-        <span className="hidden md:inline text-xs uppercase font-mono tracking-[0.16em]">Search</span>
+        <span className="hidden md:inline text-xs uppercase font-mono tracking-[0.16em]">{t("Search")}</span>
         <span className="hidden md:inline ml-1 text-[10px] font-mono opacity-70 border rounded px-1 py-0.5">
           ⌘K
         </span>
@@ -218,7 +220,7 @@ export default function GlobalSearch({
           data-testid="global-search-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Global Search"
+          aria-label={t("Global Search")}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closeOverlay();
           }}
@@ -234,7 +236,7 @@ export default function GlobalSearch({
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={onKeyDownInput}
-                placeholder={placeholder}
+                placeholder={t(placeholder)}
                 className="flex-1 border-0 focus-visible:ring-0 text-sm h-9 px-1"
                 data-testid="global-search-input"
                 autoComplete="off"
@@ -247,7 +249,7 @@ export default function GlobalSearch({
                 onClick={closeOverlay}
                 className="h-8 px-2"
                 data-testid="global-search-close"
-                aria-label="Close search"
+                aria-label={t("Close search")}
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -261,9 +263,9 @@ export default function GlobalSearch({
                   data-testid="global-search-auth-required"
                 >
                   <AlertCircle className="w-5 h-5 mx-auto mb-2 text-amber-600" />
-                  <div className="font-bold mb-1">Sign in to search</div>
+                  <div className="font-bold mb-1">{t("Sign in to search")}</div>
                   <div className="text-xs text-slate-500">
-                    Global search requires an active portal session.
+                    {t("Global search requires an active portal session.")}
                   </div>
                 </div>
               )}
@@ -274,7 +276,7 @@ export default function GlobalSearch({
                   className="p-4 text-sm text-rose-700 bg-rose-50 border-t border-rose-200"
                   data-testid="global-search-error"
                 >
-                  Could not load search results. Try again.
+                  {t("Could not load search results. Try again.")}
                 </div>
               )}
 
@@ -283,14 +285,14 @@ export default function GlobalSearch({
                 <div className="p-3" data-testid="global-search-recents">
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 font-bold flex items-center gap-1">
-                      <History className="w-3.5 h-3.5" /> Recent
+                      <History className="w-3.5 h-3.5" /> {t("Recent")}
                     </div>
                     <button
                       className="text-[10px] text-slate-500 hover:text-slate-800 underline"
                       onClick={() => { clearRecents(); setRecents([]); }}
                       data-testid="global-search-recents-clear"
                     >
-                      Clear
+                      {t("Clear")}
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -314,7 +316,7 @@ export default function GlobalSearch({
                   className="p-6 text-center text-xs text-slate-500"
                   data-testid="global-search-hint"
                 >
-                  Type at least 2 characters to search.
+                  {t("Type at least 2 characters to search.")}
                 </div>
               )}
 
@@ -324,7 +326,7 @@ export default function GlobalSearch({
                   className="p-6 text-center text-sm text-slate-600"
                   data-testid="global-search-empty"
                 >
-                  No matches for <span className="font-mono">&ldquo;{q.trim()}&rdquo;</span>.
+                  {t("No matches for")} <span className="font-mono">&ldquo;{q.trim()}&rdquo;</span>.
                 </div>
               )}
 
@@ -390,10 +392,12 @@ export default function GlobalSearch({
             {/* Footer hint */}
             <div className="px-3 py-2 border-t border-slate-200 bg-slate-50 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500 flex items-center justify-between">
               <span data-testid="global-search-scope">
-                {data?.role ? `Scope · ${data.role}` : "Scoped to your role"}
+                {data?.role ? `${t("Scope")} · ${data.role}` : t("Scoped to your role")}
               </span>
               <span className="hidden sm:inline">
-                ↑↓ navigate · <span className="px-1 border rounded">↵</span> open · <span className="px-1 border rounded">esc</span> close
+                {t("↑↓ navigate")}
+                {" · "}<span className="px-1 border rounded">↵</span> {t("open")}
+                {" · "}<span className="px-1 border rounded">esc</span> {t("close")}
               </span>
             </div>
           </div>

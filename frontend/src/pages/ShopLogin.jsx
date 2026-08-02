@@ -184,7 +184,7 @@ export default function ShopLogin() {
       backHoverClass="hover:text-amber-300"
       backTestId="shop-login-back"
       rootTestId="shop-portal-login"
-      footerLabel={<>MASCI · {t("Shop Use Only")}</>}
+      footerLabel={`MASCI · ${t("Shop Use Only")}`}
       dialogs={
         <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
           <DialogContent data-testid="shop-forgot-dialog">

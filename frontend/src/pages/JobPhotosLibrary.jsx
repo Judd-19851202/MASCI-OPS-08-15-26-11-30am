@@ -324,8 +324,8 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6" data-testid="job-photos-library-page">
         {portalKey === "admin" ? (
           <AdminBreadcrumb crumbs={[
-            { label: "Field Operations" },
-            { label: "Photos" },
+            { label: t("Field Operations") },
+            { label: t("Photos") },
           ]} />
         ) : null}
         {/* Filter bar */}
@@ -347,7 +347,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
             onChange={(e) =>
               setFilter((p) => ({ ...p, source: e.target.value }))
             }
-            className="h-10 px-3 border border-slate-200 rounded-md font-mono text-sm bg-white"
+            className="wp17-native-select h-10 px-3 font-mono text-sm bg-white"
             data-testid="photos-source-filter"
           >
             <option value="">{t("All sources")}</option>

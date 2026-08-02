@@ -33,6 +33,7 @@ import { isSignedInAnywhere } from "@/lib/permissions";
 import { onQueueChange } from "@/lib/resiliency";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 const SEV_ICON = {
   Info: Info,
@@ -211,6 +212,7 @@ function playChime() {
 }
 
 export default function NotificationBell({ accent = "slate", variant = "default" }) {
+  const { t } = useT();
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
@@ -357,9 +359,9 @@ export default function NotificationBell({ accent = "slate", variant = "default"
         <button
           type="button"
           className={`relative inline-flex items-center justify-center w-9 h-9 rounded-md ${accent === "white" ? "text-white hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"} transition-colors`}
-          title={muted ? "Notifications · sound muted" : "Notifications"}
+          title={muted ? t("Notifications · sound muted") : t("Notifications")}
           data-testid="notification-bell"
-          aria-label="Notifications"
+          aria-label={t("Notifications")}
         >
           {muted ? <BellOff className="w-5 h-5 opacity-80" /> : <Bell className="w-5 h-5" />}
           {unread > 0 && (
@@ -374,7 +376,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
             <span
               className="absolute -bottom-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-black border-2 border-white"
               data-testid="notification-bell-queue-badge"
-              title={`${queueDepth} upload${queueDepth === 1 ? "" : "s"} queued`}
+              title={`${queueDepth} ${t(queueDepth === 1 ? "upload queued" : "uploads queued")}`}
             >
               <Upload className="w-2.5 h-2.5" />
             </span>
@@ -388,7 +390,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
               right-4 top-4); flex-wrap on the sound row prevents
               cramped overflow on iPad portrait widths. */}
           <div className="flex items-center justify-between gap-3 pr-12">
-            <SheetTitle className="font-display text-lg">Notifications</SheetTitle>
+            <SheetTitle className="font-display text-lg">{t("Notifications")}</SheetTitle>
             <Button
               variant="outline"
               size="sm"
@@ -397,11 +399,11 @@ export default function NotificationBell({ accent = "slate", variant = "default"
               className="text-xs whitespace-nowrap"
               data-testid="notification-mark-all-read"
             >
-              <CheckCheck className="w-3.5 h-3.5 mr-1" /> Mark all read
+              <CheckCheck className="w-3.5 h-3.5 mr-1" /> {t("Mark all read")}
             </Button>
           </div>
           <div className="flex items-center gap-2 mt-3 flex-wrap" data-testid="notification-sound-controls">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 shrink-0">Sound</span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 shrink-0">{t("Sound")}</span>
             <Button
               type="button"
               size="sm"
@@ -411,7 +413,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
               data-testid="notification-sound-on"
               aria-pressed={!muted}
             >
-              <BellRing className="w-3 h-3 mr-1" /> On
+              <BellRing className="w-3 h-3 mr-1" /> {t("On")}
             </Button>
             <Button
               type="button"
@@ -421,7 +423,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
               className="h-8 px-2.5 text-[11px]"
               data-testid="notification-snooze-1h"
             >
-              Snooze 1h
+              {t("Snooze 1h")}
             </Button>
             <Button
               type="button"
@@ -431,7 +433,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
               className="h-8 px-2.5 text-[11px]"
               data-testid="notification-snooze-8h"
             >
-              Snooze 8h
+              {t("Snooze 8h")}
             </Button>
             <Button
               type="button"
@@ -440,23 +442,23 @@ export default function NotificationBell({ accent = "slate", variant = "default"
               onClick={() => applyMute(24 * 365)}
               className="h-8 px-2.5 text-[11px]"
               data-testid="notification-mute"
-              title="Mute notification sounds on this device"
+              title={t("Mute notification sounds on this device")}
             >
-              <VolumeX className="w-3 h-3 mr-1" /> Mute
+              <VolumeX className="w-3 h-3 mr-1" /> {t("Mute")}
             </Button>
           </div>
           {muted && (
             <p className="text-[10px] text-slate-500 mt-1" data-testid="notification-mute-status">
-              Sound muted until {formatPlatformTime(muteUntil)}. Notifications still arrive silently.
+              {t("Sound muted until")} {formatPlatformTime(muteUntil)}. {t("Notifications still arrive silently.")}
             </p>
           )}
         </SheetHeader>
         <div className={`flex-1 overflow-y-auto ${isWp17 ? "wp17-drawer-list" : ""}`}>
           {loading ? (
-            <div className="text-center text-slate-500 py-10 text-sm">Loading…</div>
+            <div className="text-center text-slate-500 py-10 text-sm">{t("Loading…")}</div>
           ) : items.length === 0 ? (
             <div className="text-center text-slate-500 py-10 text-sm" data-testid="notification-empty">
-              You&apos;re all caught up.
+              {t("You're all caught up.")}
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
@@ -491,7 +493,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
                           <span
                             className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
                             data-testid={`notification-type-${n.id}`}
-                            title={`Action · ${n.type}`}
+                            title={`${t("Action")} · ${n.type}`}
                           >
                             {actionLabelFor(n.type)}
                           </span>
@@ -499,14 +501,14 @@ export default function NotificationBell({ accent = "slate", variant = "default"
                             <span
                               className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200"
                               data-testid={`notification-source-${n.id}`}
-                              title={`Source module · ${n.linked_source_module}`}
+                              title={`${t("Source module")} · ${n.linked_source_module}`}
                             >
                               {sourceLabel}
                             </span>
                           )}
                           <span
                             className="text-slate-400 normal-case tracking-normal"
-                            title="Local device time"
+                            title={t("Local device time")}
                             data-testid={`notification-time-${n.id}`}
                           >
                             {localTime}
@@ -518,7 +520,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
                               onClick={(e) => e.stopPropagation()}
                               data-testid={`notification-task-link-${n.id}`}
                             >
-                              Task <ExternalLink className="w-2.5 h-2.5" />
+                              {t("Task")} <ExternalLink className="w-2.5 h-2.5" />
                             </Link>
                           )}
                         </div>
@@ -536,7 +538,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
                         <span
                           className="inline-block w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0 animate-pulse"
                           data-testid={`notification-recent-dot-${n.id}`}
-                          title="Recently read"
+                          title={t("Recently read")}
                         />
                       ) : null}
                     </div>
@@ -553,7 +555,7 @@ export default function NotificationBell({ accent = "slate", variant = "default"
             onClick={() => setOpen(false)}
             data-testid="notification-tasks-link"
           >
-            View all tasks →
+            {t("View all tasks")} →
           </Link>
         </div>
       </SheetContent>

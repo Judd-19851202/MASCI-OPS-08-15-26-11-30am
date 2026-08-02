@@ -27,6 +27,7 @@ import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { buildKpiHelpContent } from "@/lib/kpiMetadata";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -40,7 +41,31 @@ function fmt(n) {
   return Number.isFinite(n) ? n.toLocaleString() : "—";
 }
 
+function translateExecutiveReason(value, t) {
+  if (!value) return value;
+  const text = String(value);
+  if (/^No Daily Report in 3\+ days$/i.test(text)) return t("No Daily Report in 3+ days");
+  let match = text.match(/^(\d+) open incident\(s\)$/i);
+  if (match) return `${match[1]} ${t("open incident(s)")}`;
+  match = text.match(/^(\d+) units out of service \(threshold > (\d+)\)$/i);
+  if (match) return `${match[1]} ${t("units out of service")} (${t("threshold") } > ${match[2]})`;
+  match = text.match(/^(\d+) unresolved incidents \(threshold > (\d+)\)$/i);
+  if (match) return `${match[1]} ${t("unresolved incidents")} (${t("threshold")} > ${match[2]})`;
+  match = text.match(/^(\d+) overdue corrective actions \(threshold > (\d+)\)$/i);
+  if (match) return `${match[1]} ${t("overdue corrective actions")} (${t("threshold")} > ${match[2]})`;
+  match = text.match(/^(\d+) projects with no DR in 3\+ days \(threshold > (\d+)\)$/i);
+  if (match) return `${match[1]} ${t("projects with no DR in 3+ days")} (${t("threshold")} > ${match[2]})`;
+  match = text.match(/^(\d+) open corrective actions \(threshold > (\d+)\)$/i);
+  if (match) return `${match[1]} ${t("open corrective actions")} (${t("threshold")} > ${match[2]})`;
+  match = text.match(/^(\d+) workplace-violence incident\(s\) in last 90 days$/i);
+  if (match) return `${match[1]} ${t("workplace-violence incident(s) in last 90 days")}`;
+  match = text.match(/^(\d+) public-interaction incidents in last 30 days \(threshold > (\d+)\)$/i);
+  if (match) return `${match[1]} ${t("public-interaction incidents in last 30 days")} (${t("threshold")} > ${match[2]})`;
+  return t(text);
+}
+
 function Tile({ title, count, countTone = "slate", description, lines, sources, drillTo, testid, metadata }) {
+  const { t } = useT();
   const toneClasses = {
     slate:  "text-slate-900",
     amber:  "text-amber-700",
@@ -57,7 +82,7 @@ function Tile({ title, count, countTone = "slate", description, lines, sources, 
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-1.5">
-            <div className="text-xs font-mono uppercase tracking-widest text-slate-500">{title}</div>
+            <div className="text-xs font-mono uppercase tracking-widest text-slate-500">{t(title)}</div>
             {help ? (
               <HelpTip
                 label={help.label}
@@ -69,7 +94,7 @@ function Tile({ title, count, countTone = "slate", description, lines, sources, 
           <div className={`mt-2 text-5xl font-extrabold leading-none ${toneClasses[countTone] || toneClasses.slate}`}>
             {fmt(count)}
           </div>
-          <div className="mt-1 text-sm text-slate-600">{description}</div>
+          <div className="mt-1 text-sm text-slate-600">{t(description)}</div>
         </div>
       </div>
       {Array.isArray(lines) && lines.length > 0 && (
@@ -81,11 +106,11 @@ function Tile({ title, count, countTone = "slate", description, lines, sources, 
       )}
       <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
         <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-          Source: {(sources || []).join(" · ") || "—"}
+          {t("Source")}: {(sources || []).join(" · ") || "—"}
         </div>
         {drillTo && (
           <Link to={drillTo} className="text-xs font-mono uppercase tracking-wider text-blue-700 hover:text-blue-900">
-            DRILL →
+            {t("Drill")} →
           </Link>
         )}
       </div>
@@ -94,6 +119,7 @@ function Tile({ title, count, countTone = "slate", description, lines, sources, 
 }
 
 export default function ExecutiveOverview() {
+  const { t } = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
@@ -127,13 +153,13 @@ export default function ExecutiveOverview() {
     return (
       <PortalShell
         portalName="MASCI"
-        portalRole="Admin"
-        pageTitle="Executive Overview"
-        subtitle="Read-only · attention surface for executives"
+        portalRole={t("Admin")}
+        pageTitle={t("Executive Overview")}
+        subtitle={t("Read-only · attention surface for executives")}
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <div className="p-8 text-slate-600" data-testid="executive-overview-loading">
-          Loading executive overview…
+          {t("Loading executive overview…")}
         </div>
       </PortalShell>
     );
@@ -142,19 +168,19 @@ export default function ExecutiveOverview() {
     return (
       <PortalShell
         portalName="MASCI"
-        portalRole="Admin"
-        pageTitle="Executive Overview"
-        subtitle="Read-only · attention surface for executives"
+        portalRole={t("Admin")}
+        pageTitle={t("Executive Overview")}
+        subtitle={t("Read-only · attention surface for executives")}
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <div className="p-8 text-red-700" data-testid="executive-overview-error">
-          Failed to load executive overview: {err || "no data"}
+          {t("Failed to load executive overview")}: {err || t("no data")}
         </div>
       </PortalShell>
     );
   }
 
-  const t = data.tiles || {};
+  const tiles = data.tiles || {};
   const theme = VERDICT_THEME[data.verdict] || VERDICT_THEME.YELLOW;
   const VerdictIcon = theme.icon;
   const verdictHelp = buildKpiHelpContent(data.kpi_metadata?.verdict, "Executive Verdict");
@@ -162,9 +188,9 @@ export default function ExecutiveOverview() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Admin"
-      pageTitle="Executive Overview"
-      subtitle={`Read-only · v${data.foundation_version} · attention surface`}
+      portalRole={t("Admin")}
+      pageTitle={t("Executive Overview")}
+      subtitle={`${t("Read-only")} · v${data.foundation_version} · ${t("attention surface")}`}
       primaryActions={
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <Link
@@ -172,7 +198,7 @@ export default function ExecutiveOverview() {
             className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100 shrink-0"
             data-testid="executive-overview-back-adminos"
           >
-            ← Admin OS
+            ← {t("Admin OS")}
           </Link>
           <button
             onClick={load}
@@ -180,24 +206,24 @@ export default function ExecutiveOverview() {
             data-testid="executive-refresh"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
+            {t("Refresh")}
           </button>
         </div>
       }
       sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
     >
       <AdminBreadcrumb
-        crumbs={[{ label: "Executive Overview" }]}
+        crumbs={[{ label: t("Executive Overview") }]}
         testidPrefix="executive-overview-breadcrumb"
       />
       <div data-testid="executive-overview" className="min-w-0">
       <section className="wp17-mission-banner mb-6" data-testid="executive-overview-mission-banner">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="wp17-kicker text-white/70">Portal mission</div>
-            <h2 className="mt-2 font-display text-xl font-black text-white">Give leadership the shortest possible path to risk, not a second analytics maze.</h2>
+            <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+            <h2 className="mt-2 font-display text-xl font-black text-white">{t("Give leadership the shortest possible path to risk, not a second analytics maze.")}</h2>
             <p className="mt-2 max-w-3xl text-sm text-white/80">
-              Executive views now participate in the same canonical shell while staying intentionally concise, role-appropriate, and operationally clear.
+              {t("Executive views now participate in the same canonical shell while staying intentionally concise, role-appropriate, and operationally clear.")}
             </p>
           </div>
         </div>
@@ -211,7 +237,7 @@ export default function ExecutiveOverview() {
             <div className="min-w-0">
               <div className={`text-2xl font-extrabold ${theme.text}`} data-testid="executive-verdict">
                 <span className="inline-flex items-center gap-2">
-                  <span>{theme.label}</span>
+                  <span>{t(theme.label)}</span>
                   {verdictHelp ? (
                     <HelpTip
                       label={verdictHelp.label}
@@ -222,7 +248,7 @@ export default function ExecutiveOverview() {
                 </span>
               </div>
               <div className={`text-sm ${theme.text} opacity-80`}>
-                Executive Overview · v{data.foundation_version}
+                {t("Executive Overview")} · v{data.foundation_version}
               </div>
               {/* TRACK 15.46 · FR-02 · "Why RED?" deterministic reasons */}
               {Array.isArray(data.verdict_reasons) && data.verdict_reasons.length > 0 && (
@@ -231,7 +257,7 @@ export default function ExecutiveOverview() {
                   data-testid="executive-verdict-reasons"
                 >
                   {data.verdict_reasons.map((r, i) => (
-                    <li key={i} data-testid={`executive-verdict-reason-${i}`}>{r}</li>
+                    <li key={i} data-testid={`executive-verdict-reason-${i}`}>{translateExecutiveReason(r, t)}</li>
                   ))}
                 </ul>
               )}
@@ -239,7 +265,7 @@ export default function ExecutiveOverview() {
           </div>
         </div>
         <div className="mt-2 text-[11px] font-mono uppercase tracking-wider text-slate-500">
-          Generated {formatPlatformTime(data.generated_at)} · Loaded in {tookMs}ms
+          {t("Generated")} {formatPlatformTime(data.generated_at)} · {t("Loaded in")} {tookMs}ms
         </div>
       </div>
 
@@ -248,117 +274,117 @@ export default function ExecutiveOverview() {
         <Tile
           testid="tile-jobs"
           title="Jobs Requiring Attention"
-          count={t.jobs?.total_attention_jobs || 0}
-          countTone={(t.jobs?.total_attention_jobs || 0) > 0 ? "amber" : "green"}
+          count={tiles.jobs?.total_attention_jobs || 0}
+          countTone={(tiles.jobs?.total_attention_jobs || 0) > 0 ? "amber" : "green"}
           description="Active projects flagged by DR cadence + open incidents"
-          lines={(t.jobs?.top_jobs || []).slice(0, 5).map((j) => (
+          lines={(tiles.jobs?.top_jobs || []).slice(0, 5).map((j) => (
             <span key={j.project_number}>
               <strong>{j.project_number}</strong>
-              <span className="text-slate-500"> · {(j.reasons || []).join(" · ")}</span>
+              <span className="text-slate-500"> · {(j.reasons || []).map((reason) => translateExecutiveReason(reason, t)).join(" · ")}</span>
             </span>
           ))}
-          sources={t.jobs?.source_modules}
-          metadata={t.jobs?.kpi_metadata}
+          sources={tiles.jobs?.source_modules}
+          metadata={tiles.jobs?.kpi_metadata}
           drillTo="/admin/jobs"
         />
 
         <Tile
           testid="tile-overdue"
           title="Overdue Operational Items"
-          count={(t.overdue?.overdue_corrective_actions || 0) + (t.overdue?.stale_projects_no_dr_in_3d || 0)}
+          count={(tiles.overdue?.overdue_corrective_actions || 0) + (tiles.overdue?.stale_projects_no_dr_in_3d || 0)}
           countTone={
-            ((t.overdue?.overdue_corrective_actions || 0) + (t.overdue?.stale_projects_no_dr_in_3d || 0)) > 0
+            ((tiles.overdue?.overdue_corrective_actions || 0) + (tiles.overdue?.stale_projects_no_dr_in_3d || 0)) > 0
               ? "amber" : "green"
           }
           description="Corrective actions past due + stale DR cadence"
           lines={[
-            <span key="capa"><strong>{fmt(t.overdue?.overdue_corrective_actions)}</strong> overdue corrective actions</span>,
-            <span key="dr"><strong>{fmt(t.overdue?.stale_projects_no_dr_in_3d)}</strong> projects · no DR in 3+ days</span>,
-            ...((t.overdue?.stale_projects_sample || []).slice(0, 3).map((p, i) => (
+            <span key="capa"><strong>{fmt(tiles.overdue?.overdue_corrective_actions)}</strong> {t("overdue corrective actions")}</span>,
+            <span key="dr"><strong>{fmt(tiles.overdue?.stale_projects_no_dr_in_3d)}</strong> {t("projects · no DR in 3+ days")}</span>,
+            ...((tiles.overdue?.stale_projects_sample || []).slice(0, 3).map((p, i) => (
               <span key={`p-${i}`} className="text-slate-500 text-xs">↳ {p}</span>
             ))),
           ]}
-          sources={t.overdue?.source_modules}
-          metadata={t.overdue?.kpi_metadata}
+          sources={tiles.overdue?.source_modules}
+          metadata={tiles.overdue?.kpi_metadata}
           drillTo="/admin/qaqc"
         />
 
         <Tile
           testid="tile-staffing"
           title="Staffing Issues"
-          count={(t.staffing?.projects_missing_pm || 0) + (t.staffing?.projects_missing_foreman || 0)}
+          count={(tiles.staffing?.projects_missing_pm || 0) + (tiles.staffing?.projects_missing_foreman || 0)}
           countTone={
-            ((t.staffing?.projects_missing_pm || 0) + (t.staffing?.projects_missing_foreman || 0)) > 0
+            ((tiles.staffing?.projects_missing_pm || 0) + (tiles.staffing?.projects_missing_foreman || 0)) > 0
               ? "amber" : "green"
           }
-          description={`Across ${fmt(t.staffing?.active_projects_count)} active projects (7-day DR window)`}
+          description={`${t("Across")} ${fmt(tiles.staffing?.active_projects_count)} ${t("active projects (7-day DR window)")}`}
           lines={[
-            <span key="pm"><strong>{fmt(t.staffing?.projects_missing_pm)}</strong> projects missing a PM</span>,
-            <span key="fm"><strong>{fmt(t.staffing?.projects_missing_foreman)}</strong> projects missing a Foreman</span>,
-            ...((t.staffing?.projects_missing_pm_sample || []).slice(0, 2).map((p, i) => (
-              <span key={`pm-${i}`} className="text-slate-500 text-xs">↳ no PM · {p}</span>
+            <span key="pm"><strong>{fmt(tiles.staffing?.projects_missing_pm)}</strong> {t("projects missing a PM")}</span>,
+            <span key="fm"><strong>{fmt(tiles.staffing?.projects_missing_foreman)}</strong> {t("projects missing a Foreman")}</span>,
+            ...((tiles.staffing?.projects_missing_pm_sample || []).slice(0, 2).map((p, i) => (
+              <span key={`pm-${i}`} className="text-slate-500 text-xs">↳ {t("no PM")} · {p}</span>
             ))),
           ]}
-          sources={t.staffing?.source_modules}
-          metadata={t.staffing?.kpi_metadata}
+          sources={tiles.staffing?.source_modules}
+          metadata={tiles.staffing?.kpi_metadata}
           drillTo="/admin/jobs"
         />
 
         <Tile
           testid="tile-equipment"
           title="Equipment Issues"
-          count={(t.equipment?.out_of_service_units || 0) + (t.equipment?.open_defects || 0)}
+          count={(tiles.equipment?.out_of_service_units || 0) + (tiles.equipment?.open_defects || 0)}
           countTone={
-            (t.equipment?.out_of_service_units || 0) > 0 || (t.equipment?.active_high_severity_holds || 0) > 0
-              ? "red" : ((t.equipment?.monitor_units || 0) > 0 ? "amber" : "green")
+            (tiles.equipment?.out_of_service_units || 0) > 0 || (tiles.equipment?.active_high_severity_holds || 0) > 0
+              ? "red" : ((tiles.equipment?.monitor_units || 0) > 0 ? "amber" : "green")
           }
           description="Out-of-service units + open fleet defects"
           lines={[
-            <span key="oos"><strong>{fmt(t.equipment?.out_of_service_units)}</strong> units out of service</span>,
-            <span key="mon"><strong>{fmt(t.equipment?.monitor_units)}</strong> units on monitor</span>,
-            <span key="def"><strong>{fmt(t.equipment?.open_defects)}</strong> open fleet defects</span>,
-            <span key="holds"><strong>{fmt(t.equipment?.active_asset_holds_total)}</strong> active asset holds ({fmt(t.equipment?.active_high_severity_holds)} high-severity)</span>,
+            <span key="oos"><strong>{fmt(tiles.equipment?.out_of_service_units)}</strong> {t("units out of service")}</span>,
+            <span key="mon"><strong>{fmt(tiles.equipment?.monitor_units)}</strong> {t("units on monitor")}</span>,
+            <span key="def"><strong>{fmt(tiles.equipment?.open_defects)}</strong> {t("open fleet defects")}</span>,
+            <span key="holds"><strong>{fmt(tiles.equipment?.active_asset_holds_total)}</strong> {t("active asset holds")} ({fmt(tiles.equipment?.active_high_severity_holds)} {t("high-severity")})</span>,
           ]}
-          sources={t.equipment?.source_modules}
-          metadata={t.equipment?.kpi_metadata}
+          sources={tiles.equipment?.source_modules}
+          metadata={tiles.equipment?.kpi_metadata}
           drillTo="/equipment"
         />
 
         <Tile
           testid="tile-safety"
           title="Safety Attention Items"
-          count={(t.safety?.unresolved_incidents || 0) + (t.safety?.unresolved_corrective_actions || 0)}
+          count={(tiles.safety?.unresolved_incidents || 0) + (tiles.safety?.unresolved_corrective_actions || 0)}
           countTone={
-            (t.safety?.wv_incidents_90d || 0) > 0 ? "red" :
-            (t.safety?.training_overdue || 0) > 0 ? "red" :
-            (t.safety?.unresolved_incidents || 0) > 0 ? "red" :
-            (t.safety?.unresolved_corrective_actions || 0) > 0 ? "amber" : "green"
+            (tiles.safety?.wv_incidents_90d || 0) > 0 ? "red" :
+            (tiles.safety?.training_overdue || 0) > 0 ? "red" :
+            (tiles.safety?.unresolved_incidents || 0) > 0 ? "red" :
+            (tiles.safety?.unresolved_corrective_actions || 0) > 0 ? "amber" : "green"
           }
           description="Unresolved incidents + open CAPAs + workplace violence + public interaction + retraining"
           lines={[
-            <span key="inc"><strong>{fmt(t.safety?.unresolved_incidents)}</strong> unresolved incidents</span>,
-            <span key="capa"><strong>{fmt(t.safety?.unresolved_corrective_actions)}</strong> open corrective actions</span>,
-            <span key="trench"><strong>{fmt(t.safety?.active_trench_safety_holds)}</strong> active trench-safety holds</span>,
+            <span key="inc"><strong>{fmt(tiles.safety?.unresolved_incidents)}</strong> {t("unresolved incidents")}</span>,
+            <span key="capa"><strong>{fmt(tiles.safety?.unresolved_corrective_actions)}</strong> {t("open corrective actions")}</span>,
+            <span key="trench"><strong>{fmt(tiles.safety?.active_trench_safety_holds)}</strong> {t("active trench-safety holds")}</span>,
             // TRACK 15.48 · Workplace-violence + Public-Interaction visibility.
-            <span key="wv" data-testid="tile-safety-wv" className={(t.safety?.wv_incidents_90d || 0) > 0 ? "text-red-700 font-bold" : ""}>
-              <strong>{fmt(t.safety?.wv_incidents_90d)}</strong> workplace-violence incidents (90d)
+            <span key="wv" data-testid="tile-safety-wv" className={(tiles.safety?.wv_incidents_90d || 0) > 0 ? "text-red-700 font-bold" : ""}>
+              <strong>{fmt(tiles.safety?.wv_incidents_90d)}</strong> {t("workplace-violence incidents (90d)")}
             </span>,
-            <span key="pi" data-testid="tile-safety-public-interaction" className={(t.safety?.public_interaction_30d || 0) > 0 ? "text-amber-700 font-medium" : ""}>
-              <strong>{fmt(t.safety?.public_interaction_30d)}</strong> public-interaction incidents (30d)
+            <span key="pi" data-testid="tile-safety-public-interaction" className={(tiles.safety?.public_interaction_30d || 0) > 0 ? "text-amber-700 font-medium" : ""}>
+              <strong>{fmt(tiles.safety?.public_interaction_30d)}</strong> {t("public-interaction incidents (30d)")}
             </span>,
             // TRACK 15.50 · Recurrence-prevention training compliance.
             <span key="tr_req" data-testid="tile-safety-training-required">
-              <strong>{fmt(t.safety?.training_required)}</strong> incident-triggered retraining required
+              <strong>{fmt(tiles.safety?.training_required)}</strong> {t("incident-triggered retraining required")}
             </span>,
             <span key="tr_done" data-testid="tile-safety-training-completed">
-              <strong>{fmt(t.safety?.training_completed)}</strong> retraining completed
+              <strong>{fmt(tiles.safety?.training_completed)}</strong> {t("retraining completed")}
             </span>,
-            <span key="tr_ovd" data-testid="tile-safety-training-overdue" className={(t.safety?.training_overdue || 0) > 0 ? "text-red-700 font-bold" : ""}>
-              <strong>{fmt(t.safety?.training_overdue)}</strong> retraining overdue
+            <span key="tr_ovd" data-testid="tile-safety-training-overdue" className={(tiles.safety?.training_overdue || 0) > 0 ? "text-red-700 font-bold" : ""}>
+              <strong>{fmt(tiles.safety?.training_overdue)}</strong> {t("retraining overdue")}
             </span>,
           ]}
-          sources={t.safety?.source_modules}
-          metadata={t.safety?.kpi_metadata}
+          sources={tiles.safety?.source_modules}
+          metadata={tiles.safety?.kpi_metadata}
           drillTo="/safety"
         />
 
@@ -366,28 +392,28 @@ export default function ExecutiveOverview() {
           testid="tile-activity"
           title="Activity Snapshot (Today)"
           count={
-            (t.activity?.daily_reports_today || 0) +
-            (t.activity?.safety_meetings_today || 0) +
-            (t.activity?.jhas_today || 0) +
-            (t.activity?.equipment_inspections_today || 0)
+            (tiles.activity?.daily_reports_today || 0) +
+            (tiles.activity?.safety_meetings_today || 0) +
+            (tiles.activity?.jhas_today || 0) +
+            (tiles.activity?.equipment_inspections_today || 0)
           }
           countTone="blue"
           description="Is the company operating today?"
           lines={[
-            <span key="dr"><strong>{fmt(t.activity?.daily_reports_today)}</strong> Daily Reports submitted today</span>,
-            <span key="dry" className="text-slate-500 text-xs">↳ vs <strong>{fmt(t.activity?.daily_reports_yesterday)}</strong> yesterday</span>,
-            <span key="mtg"><strong>{fmt(t.activity?.safety_meetings_today)}</strong> Safety Meetings · <strong>{fmt(t.activity?.jhas_today)}</strong> JHAs</span>,
-            <span key="ins"><strong>{fmt(t.activity?.equipment_inspections_today)}</strong> Equipment Inspections</span>,
+            <span key="dr"><strong>{fmt(tiles.activity?.daily_reports_today)}</strong> {t("Daily Reports submitted today")}</span>,
+            <span key="dry" className="text-slate-500 text-xs">↳ {t("vs")} <strong>{fmt(tiles.activity?.daily_reports_yesterday)}</strong> {t("yesterday")}</span>,
+            <span key="mtg"><strong>{fmt(tiles.activity?.safety_meetings_today)}</strong> {t("Safety Meetings")} · <strong>{fmt(tiles.activity?.jhas_today)}</strong> {t("JHAs")}</span>,
+            <span key="ins"><strong>{fmt(tiles.activity?.equipment_inspections_today)}</strong> {t("Equipment Inspections")}</span>,
           ]}
-          sources={t.activity?.source_modules}
-          metadata={t.activity?.kpi_metadata}
+          sources={tiles.activity?.source_modules}
+          metadata={tiles.activity?.kpi_metadata}
           drillTo="/daily-reports"
         />
       </div>
 
       {/* TRACEABILITY FOOTER */}
       <div className="mt-8 text-[10px] font-mono uppercase tracking-wider text-slate-400 text-center">
-        Read-only · No new collections · No background jobs · No AI · Data from existing certified records only.
+        {t("Read-only · No new collections · No background jobs · No AI · Data from existing certified records only.")}
       </div>
       </div>
     </PortalShell>

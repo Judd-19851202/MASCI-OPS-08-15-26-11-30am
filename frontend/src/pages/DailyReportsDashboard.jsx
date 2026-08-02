@@ -54,8 +54,8 @@ export default function DailyReportsDashboard() {
       <ShareFormDialog
         formType="daily-report"
         path="/daily/submit"
-        title="Share Daily Report Form"
-        description="Anyone with this link can fill out a Daily Job Report from the field."
+        title={t("Share Daily Report Form")}
+        description={t("Anyone with this link can fill out a Daily Job Report from the field.")}
         testIdPrefix="share-daily"
       />
       <Button
@@ -170,7 +170,7 @@ export default function DailyReportsDashboard() {
         </div>
         {pathname.startsWith("/admin/") ? (
           <AdminBreadcrumb crumbs={[
-            { label: "Field Operations" },
+            { label: t("Field Operations") },
             { label: "Daily Reports" },
           ]} />
         ) : null}

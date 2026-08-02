@@ -1,13 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export default function AdminBreadcrumb({ crumbs = [], testidPrefix = "admin-breadcrumb" }) {
-  const trail = [{ label: "Admin OS", to: "/admin", icon: Home, root: true }, ...crumbs];
+  const { t } = useT();
+  const trail = [{ label: t("Admin OS"), to: "/admin", icon: Home, root: true }, ...crumbs.map((crumb) => ({ ...crumb, label: t(crumb.label) }))];
 
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={t("Breadcrumb")}
       data-testid={testidPrefix}
       data-admin-breadcrumb="true"
       className="mb-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.16em] text-[color:var(--ink-soft)]"

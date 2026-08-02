@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { SemanticIcon } from "@/components/icons/AppIcon";
+import { useT } from "@/lib/i18n";
 
 function HeaderNavButton({ to, label, iconName, testId }) {
   return (
@@ -38,10 +39,11 @@ export function CanonicalHeader({
   containerClassName = "max-w-6xl",
   testIdPrefix = "masci-header",
 }) {
+  const { t } = useT();
   const hasUtilityRail = Boolean(utilitySlot || centerSlot || preControlsSlot || postControlsSlot);
   const isHomeVariant = variant === "home";
   const brandCompany = "MASCI";
-  const brandProduct = "Operations Platform";
+  const brandProduct = t("Operations Platform");
   const utilityContent = utilitySlot || (
     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
       {centerSlot ? <div className="min-w-0" data-testid={`${testIdPrefix}-utility-primary`}>{centerSlot}</div> : <div />}
@@ -54,7 +56,7 @@ export function CanonicalHeader({
     </div>
   );
   const homeControlAllowed = Boolean(showHomeLink && homeTo);
-  const resolvedContextLabel = contextLabel || (!isHomeVariant ? pageLabel || portalLabel || "Operational workflow" : null);
+  const resolvedContextLabel = contextLabel || (!isHomeVariant ? pageLabel || portalLabel || t("Operational workflow") : null);
   const resolvedContextMeta = !isHomeVariant ? contextMeta : null;
 
   return (
@@ -64,8 +66,8 @@ export function CanonicalHeader({
           <div className="masci-canonical-header__row masci-canonical-header__row--global" data-testid={`${testIdPrefix}-global-row`}>
             <div className="flex min-w-0 items-center gap-2.5" data-testid={`${testIdPrefix}-identity`}>
               <MasciLogo variant="mark" size="md" className="shrink-0" homeLink={homeTo || "/"} />
-              {backTo ? <HeaderNavButton to={backTo} label={backLabel} iconName="back" testId={`${testIdPrefix}-back`} /> : null}
-              {homeControlAllowed ? <HeaderNavButton to={homeTo} label="Home" iconName="home" testId={`${testIdPrefix}-home`} /> : null}
+              {backTo ? <HeaderNavButton to={backTo} label={t(backLabel)} iconName="back" testId={`${testIdPrefix}-back`} /> : null}
+              {homeControlAllowed ? <HeaderNavButton to={homeTo} label={t("Home")} iconName="home" testId={`${testIdPrefix}-home`} /> : null}
             </div>
 
             <div className="flex items-center justify-end gap-2" data-testid={`${testIdPrefix}-actions`}>

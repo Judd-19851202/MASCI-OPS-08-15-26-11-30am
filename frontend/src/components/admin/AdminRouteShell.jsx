@@ -2,6 +2,7 @@ import React from "react";
 import { PortalShell } from "@/design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import { useT } from "@/lib/i18n";
 
 export function renderAdminRouteSideNav() {
   return <SideNavV3 variant="admin" onOpenPalette={() => window.__masciAdminOpenPalette?.()} />;
@@ -19,13 +20,14 @@ export function AdminRouteShell({
   children,
   testId = "admin-route-shell",
 }) {
+  const { t } = useT();
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole={portalRole}
+      portalRole={t(portalRole)}
       shellTheme="admin"
-      pageTitle={pageTitle}
-      subtitle={subtitle}
+      pageTitle={typeof pageTitle === "string" ? t(pageTitle) : pageTitle}
+      subtitle={typeof subtitle === "string" ? t(subtitle) : subtitle}
       primaryActions={primaryActions}
       showPageHeader={showShellHeader}
       sideNav={renderAdminRouteSideNav()}

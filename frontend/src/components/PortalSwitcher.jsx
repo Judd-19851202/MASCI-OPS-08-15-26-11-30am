@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useT } from "@/lib/i18n";
 
 const PORTAL_LABEL = {
   admin: "Administration",
@@ -52,6 +53,7 @@ function emailOf(user) {
 }
 
 export default function PortalSwitcher({ current, className = "", variant = "dark" }) {
+  const { t } = useT();
   const user = getDirectoryUser();
   const dirToken = getDirectoryToken();
 
@@ -88,13 +90,13 @@ export default function PortalSwitcher({ current, className = "", variant = "dar
           data-testid="portal-switcher-trigger"
         >
           <LayoutGrid className="h-3.5 w-3.5" />
-          Switch portal
+          {t("Switch portal")}
           <ChevronDown className="h-3.5 w-3.5 opacity-70" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64" data-testid="portal-switcher-menu">
         <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ink-soft)]">
-          {user.name || user.email} · Access
+          {user.name || user.email} · {t("Access")}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {user.portals.map((portal) => {
@@ -113,11 +115,11 @@ export default function PortalSwitcher({ current, className = "", variant = "dar
               >
                 <span className="inline-flex items-center gap-2">
                   <span className={`inline-block h-2.5 w-2.5 rounded-full ${PORTAL_DOT_COLOR[portal] || "bg-stone-500"}`} />
-                  <span className="font-semibold text-[color:var(--ink-strong)]">{PORTAL_LABEL[portal] || portal}</span>
+                  <span className="font-semibold text-[color:var(--ink-strong)]">{t(PORTAL_LABEL[portal] || portal)}</span>
                 </span>
                 {isCurrent && (
                   <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[color:var(--ink-soft)]">
-                    Current
+                    {t("Current")}
                   </span>
                 )}
               </Link>

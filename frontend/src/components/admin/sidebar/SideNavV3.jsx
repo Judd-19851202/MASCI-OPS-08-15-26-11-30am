@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronRight, Search } from "lucide-react";
 import { DOMAINS_V3, findActiveDomainIdV3 } from "@/app/admin/domainMapV3";
+import { useT } from "@/lib/i18n";
 
 const STORAGE_KEY_OPEN = "masci.admin.sidebar.v3.openDomains";
 
@@ -92,9 +93,23 @@ function ChildRow({ route, onNavigate, isAdminTheme }) {
 }
 
 export default function SideNavV3({ onNavigate, onOpenPalette, variant = null }) {
+  const { t } = useT();
   const { pathname } = useLocation();
   const isAdminTheme = (variant || (pathname.startsWith("/admin") ? "admin" : "default")) === "admin";
   const activeDomainId = useMemo(() => findActiveDomainIdV3(pathname), [pathname]);
+  const localizedDomains = useMemo(
+    () => DOMAINS_V3.map((domain) => ({
+      ...domain,
+      label: t(domain.label),
+      subline: t(domain.subline),
+      visibleRoutes: (domain.visibleRoutes || []).map((route) => ({
+        ...route,
+        label: t(route.label),
+        desc: route.desc ? t(route.desc) : route.desc,
+      })),
+    })),
+    [t],
+  );
 
   const [openDomains, setOpenDomains] = useState(() => {
     const stored = readOpenDomains();
@@ -122,7 +137,7 @@ export default function SideNavV3({ onNavigate, onOpenPalette, variant = null })
         ? "space-y-3 p-3 elite-fluid-stack glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem]"
         : "space-y-3 rounded-[calc(var(--radius-card)+0.125rem)] border border-[color:var(--border-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,250,249,0.94))] p-3 shadow-[var(--shadow-panel)]"}
       data-testid="admin-side-nav-v3"
-      aria-label="Administrative navigation"
+      aria-label={t("Administrative navigation")}
     >
       <button
         type="button"
@@ -131,7 +146,7 @@ export default function SideNavV3({ onNavigate, onOpenPalette, variant = null })
           ? "w-full flex min-h-[44px] items-center gap-2 rounded-[1rem] bg-slate-900/60 border border-white/15 px-3 py-2.5 text-left transition-colors hover:bg-slate-800 elite-glass-panel glass-blur glass-bg glass-dark"
           : "wp16-focus-ring flex min-h-[44px] w-full items-center gap-2 rounded-[calc(var(--radius-card)-0.125rem)] border border-[color:var(--border-hairline)] bg-[color:var(--paper-card-muted)] px-3 py-2.5 text-left transition-[background-color,border-color,color] duration-[140ms] hover:border-[color:var(--border-bold)] hover:bg-white"}
         data-testid="admin-nav-v3-open-palette"
-        aria-label="Open universal search"
+        aria-label={t("Open universal search")}
       >
         <span className={isAdminTheme
           ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-900/40 text-slate-100"
@@ -139,7 +154,7 @@ export default function SideNavV3({ onNavigate, onOpenPalette, variant = null })
         >
           <Search className="h-3.5 w-3.5" />
         </span>
-        <span className={isAdminTheme ? "flex-1 text-sm font-semibold glass-text-light" : "flex-1 text-sm font-semibold text-[color:var(--ink-strong)]"}>Search everything</span>
+        <span className={isAdminTheme ? "flex-1 text-sm font-semibold glass-text-light" : "flex-1 text-sm font-semibold text-[color:var(--ink-strong)]"}>{t("Search everything")}</span>
         <kbd className={isAdminTheme
           ? "rounded-md border border-slate-700 bg-slate-900/30 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] glass-text-muted-light"
           : "rounded-md border border-[color:var(--border-bold)] bg-white px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--ink-soft)]"}
@@ -148,7 +163,7 @@ export default function SideNavV3({ onNavigate, onOpenPalette, variant = null })
         </kbd>
       </button>
 
-      {DOMAINS_V3.map((domain) => {
+      {localizedDomains.map((domain) => {
         const open = openDomains.includes(domain.id);
         return (
           <div key={domain.id} className="space-y-1.5">

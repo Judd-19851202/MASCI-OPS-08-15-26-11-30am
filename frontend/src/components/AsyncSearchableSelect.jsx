@@ -144,7 +144,7 @@ export function AsyncSearchableSelect({
                 setOpen(true);
               }}
               onFocus={() => setOpen(true)}
-              placeholder={placeholder}
+              placeholder={t(placeholder)}
               required={!!required}
               autoFocus={!!autoFocus}
               autoComplete="off"

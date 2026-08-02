@@ -1,102 +1,102 @@
-family,route,final_url,first_pass_status,evidence_run
-Transportation,/dispatch-portal/login,/dispatch-portal/login,AUDITED_DEFECTS_FOUND,20260802_010650
-Transportation,/dispatch-portal,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/hub_v2,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/board,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/command,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/fleet,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/map,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/haul-ledger,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/dispatch-portal/driver-qualification,/dispatch-portal/login,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/dispatch,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/live-operations,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/trucks,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/drivers,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/carriers,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/compliance,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/orientation,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/academy,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/intelligence,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/command-queue,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/reports,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/audit,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/documents,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/inspections,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/rate-schedules,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Transportation,/transportation-operations/fleet,/sign-in,BLOCKED_CREDENTIALS,20260802_010650
-Safety,/safety,/safety,AUDITED_DEFECTS_FOUND,20260802_011447
-Safety,/safety/forms/login,/safety/forms/login,AUDITED_DEFECTS_FOUND,20260802_011447
-Safety,/safety/forms,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/forms/equipment-issuance/new,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/forms/equipment-training/new,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/cards,/safety/cards,AUDITED_DEFECTS_FOUND,20260802_011447
-Safety,/safety/inspections/new,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/executive-intelligence,/safety/executive-intelligence,AUDITED_DEFECTS_FOUND,20260802_011447
-Safety,/safety/trench-safety,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/trench-safety/assets,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/trench-safety/tabulated-data,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/trench-safety/reports,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/trench-safety/excavations,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/trench-safety/repair-review,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety/trench-safety/field-reports,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/login,/safety-portal/login,AUDITED_DEFECTS_FOUND,20260802_011447
-Safety,/safety-portal,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/fleet,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/training,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/incidents,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/inspections,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/jha-plans,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Safety,/safety-portal/meetings,/safety-portal/login,BLOCKED_CREDENTIALS,20260802_011447
-Shop,/shop/login,/shop/login,AUDITED_DEFECTS_FOUND,20260802_011623
-Shop,/shop,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/hub_v2,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/asset-care,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/manager/queue,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/me,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/units/history,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/fuel-lube/new,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/fuel-lube,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/service-truck-reconciliation/new,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/service-truck-reconciliation,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/pm,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/pm/templates,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/pm/schedules,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/pm/work-orders,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/trench-safety-repairs,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/fleet,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Shop,/shop/equipment,/shop/login,BLOCKED_CREDENTIALS,20260802_011623
-Management,/pm/login,/pm/login,AUDITED_DEFECTS_FOUND,20260802_011806
-Management,/pm/hub_v2,/pm/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/pm/jobs,/pm/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/pm/qaqc,/pm/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/pm/photos,/pm/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/pm/equipment,/pm/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/pm/trench-safety,/pm/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/pm/operational-intelligence,/pm/operational-intelligence,AUDITED_DEFECTS_FOUND,20260802_011806
-Management,/hr/login,/hr/login,AUDITED_DEFECTS_FOUND,20260802_011806
-Management,/hr/hub_v2,/hr/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/hr/training-records,/hr/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/hr/daily-reports,/hr/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/hr/safety-records,/hr/login,BLOCKED_CREDENTIALS,20260802_011806
-Management,/admin/login,/admin/login,OPENED_NOT_AUDITED,20260802_011806
-Management,/admin/executive-overview,/admin/executive-overview,AUDITED_DEFECTS_FOUND,20260802_011806
-Management,/admin/qaqc,/admin/qaqc,OPENED_NOT_AUDITED,20260802_011806
-Management,/admin/transportation,/admin/transportation,AUDITED_DEFECTS_FOUND,20260802_011806
-Management,/admin/photos,/admin/photos,AUDITED_DEFECTS_FOUND,20260802_011806
-Management,/admin/storage,/admin/storage-recovery,REDIRECT_CERTIFIED,20260802_011806
-Management,/admin/operational-intelligence,/admin/operational-intelligence,OPENED_NOT_AUDITED,20260802_011806
-Management,/admin/platform-readiness,/admin/platform-readiness,AUDITED_DEFECTS_FOUND,20260802_011806
-Cross-portal,/admin/hub_v1,/admin,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/hub_v2,/admin,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/audit,/admin/audit-log,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/health,/admin/system-health,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/ods-intelligence,/admin/operational-intelligence,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/occ,/admin/operations-control,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/executive,/admin/executive-overview,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/executive-dashboard,/admin/executive-overview,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/executive,/admin/executive-overview,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/ai,/admin/ai-operations,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/safety/jha,/jha,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/safety/trench-boxes,/trench-safety/tabulated-data,REDIRECT_CERTIFIED,20260802_012148/20260802_012249
-Cross-portal,/admin/transportation/academy,/admin/transportation/academy,OPENED_NOT_AUDITED,20260802_012148/20260802_012249
+family,route,final_url,first_pass_status,evidence_run,first_pass_notes
+Transportation,/dispatch-portal/login,/dispatch-portal/login,CERTIFIED,20260802_010650,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
+Transportation,/dispatch-portal,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/hub_v2,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/board,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/command,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/fleet,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/map,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/haul-ledger,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/dispatch-portal/driver-qualification,/dispatch-portal/login,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/dispatch,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/live-operations,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/trucks,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/drivers,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/carriers,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/compliance,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/orientation,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/academy,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/intelligence,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/command-queue,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/reports,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/audit,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/documents,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/inspections,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/rate-schedules,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Transportation,/transportation-operations/fleet,/sign-in,REPAIRED_NOT_CERTIFIED,20260802_010650,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety,/safety,AUDITED_DEFECTS_FOUND,20260802_011447,
+Safety,/safety/forms/login,/safety/forms/login,CERTIFIED,20260802_011447,"Certified after shared auth/session fix + governed hero-shell convergence + ES/mobile login proof (`iteration_108`, screenshot 20260802_023255)."
+Safety,/safety/forms,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/forms/equipment-issuance/new,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/forms/equipment-training/new,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/cards,/safety/cards,REPAIRED_NOT_CERTIFIED,20260802_011447,Repaired shared route copy in ES and reopened visually; still needs wider-width recertification sweep before closure.
+Safety,/safety/inspections/new,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/executive-intelligence,/safety/executive-intelligence,REPAIRED_NOT_CERTIFIED,20260802_011447,Repaired onto governed shell preview without auth noise; route family still needs full executive-content certification.
+Safety,/safety/trench-safety,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/trench-safety/assets,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/trench-safety/tabulated-data,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/trench-safety/reports,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/trench-safety/excavations,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/trench-safety/repair-review,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety/trench-safety/field-reports,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/login,/safety-portal/login,CERTIFIED,20260802_011447,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
+Safety,/safety-portal,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/fleet,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/training,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/incidents,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/inspections,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/jha-plans,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Safety,/safety-portal/meetings,/safety-portal/login,REPAIRED_NOT_CERTIFIED,20260802_011447,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/login,/shop/login,CERTIFIED,20260802_011623,Certified after shared auth/session fix + ES/mobile login proof + shop footer-label bug repair (screenshot 20260802_030300).
+Shop,/shop,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/hub_v2,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/asset-care,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/manager/queue,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/me,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/units/history,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/fuel-lube/new,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/fuel-lube,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/service-truck-reconciliation/new,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/service-truck-reconciliation,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/pm,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/pm/templates,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/pm/schedules,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/pm/work-orders,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/trench-safety-repairs,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/fleet,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Shop,/shop/equipment,/shop/login,REPAIRED_NOT_CERTIFIED,20260802_011623,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/login,/pm/login,CERTIFIED,20260802_011806,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`, screenshot 20260802_023346)."
+Management,/pm/hub_v2,/pm/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/jobs,/pm/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/qaqc,/pm/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/photos,/pm/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/equipment,/pm/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/trench-safety,/pm/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/pm/operational-intelligence,/pm/operational-intelligence,REPAIRED_NOT_CERTIFIED,20260802_011806,Repaired raw 401 user leak; route still needs full content/width recertification.
+Management,/hr/login,/hr/login,CERTIFIED,20260802_011806,"Certified after shared auth/session fix + ES/mobile login proof + runtime pass (`iteration_107`, `iteration_108`)."
+Management,/hr/hub_v2,/hr/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/hr/training-records,/hr/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/hr/daily-reports,/hr/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/hr/safety-records,/hr/login,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared portal auth/session blocker cleared; runtime reopen/login/refresh/deep-link proof passed in iteration_107. Full page certification still pending.
+Management,/admin/login,/admin/login,OPENED_NOT_AUDITED,20260802_011806,
+Management,/admin/executive-overview,/admin/executive-overview,CERTIFIED,20260802_011806,"Certified after shared admin-shell ES repair, executive reason localization, 390px proof, and no auth regressions (screenshots 20260802_025704, 20260802_025923)."
+Management,/admin/qaqc,/admin/qaqc,OPENED_NOT_AUDITED,20260802_011806,
+Management,/admin/transportation,/admin/transportation,AUDITED_DEFECTS_FOUND,20260802_011806,
+Management,/admin/photos,/admin/photos,REPAIRED_NOT_CERTIFIED,20260802_011806,"Shared shell repaired, but route content still leaks mixed EN/ES labels and remains open."
+Management,/admin/storage,/admin/storage-recovery,REDIRECT_CERTIFIED,20260802_011806,
+Management,/admin/operational-intelligence,/admin/operational-intelligence,OPENED_NOT_AUDITED,20260802_011806,
+Management,/admin/platform-readiness,/admin/platform-readiness,REPAIRED_NOT_CERTIFIED,20260802_011806,Shared shell repaired; full route-level ES/content recertification still pending.
+Cross-portal,/admin/hub_v1,/admin,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/hub_v2,/admin,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/audit,/admin/audit-log,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/health,/admin/system-health,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/ods-intelligence,/admin/operational-intelligence,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/occ,/admin/operations-control,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/executive,/admin/executive-overview,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/executive-dashboard,/admin/executive-overview,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/executive,/admin/executive-overview,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/ai,/admin/ai-operations,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/safety/jha,/jha,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/safety/trench-boxes,/trench-safety/tabulated-data,REDIRECT_CERTIFIED,20260802_012148/20260802_012249,
+Cross-portal,/admin/transportation/academy,/admin/transportation/academy,OPENED_NOT_AUDITED,20260802_012148/20260802_012249,

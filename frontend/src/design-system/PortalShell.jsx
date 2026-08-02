@@ -12,6 +12,7 @@ import { MobileNavigation } from "@/design-system/MobileNavigation";
 import { useBranding } from "@/lib/BrandingProvider";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 function resolveShellTheme(explicitTheme) {
   if (explicitTheme) return explicitTheme;
@@ -95,6 +96,7 @@ function ProfileMenu({
   theme,
   testIdPrefix = "ds-portal-shell-profile",
 }) {
+  const { t } = useT();
   const isLightSurface = theme === "light";
   return (
     <Popover>
@@ -118,7 +120,7 @@ function ProfileMenu({
         <div className="space-y-3">
           <div>
             <div className="wp17-kicker text-slate-300">{portalRole}</div>
-            <div className="mt-1 text-sm font-semibold text-slate-100">{signedInName || "Signed in"}</div>
+            <div className="mt-1 text-sm font-semibold text-slate-100">{signedInName || t("Signed in")}</div>
             <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-slate-300">
               <SemanticIcon name="workflow" size="xs" className="opacity-70" />
               {localTimeLabel}
@@ -133,7 +135,7 @@ function ProfileMenu({
             data-testid={`${testIdPrefix}-signout`}
           >
             <SemanticIcon name="signOut" size="xs" />
-            Sign out
+            {t("Sign out")}
           </button>
         </div>
       </PopoverContent>
@@ -169,6 +171,7 @@ export function PortalShell({
   children,
   className = "",
 }) {
+  const { t } = useT();
   const branding = useBranding();
   const platformDisplay = branding.platform_display_name || "Operations Platform";
   const platformShort = branding.platform_short_name || portalName;
@@ -183,7 +186,10 @@ export function PortalShell({
   const notificationAccent = "slate";
   const portalSwitcherVariant = "light";
   const isWp17 = experienceLevel === "wp17c";
-  const resolvedExperienceTone = resolveExperienceTone(experienceTone, portalRole, theme);
+  const localizedPortalRole = typeof portalRole === "string" ? t(portalRole) : portalRole;
+  const localizedPageTitle = typeof pageTitle === "string" ? t(pageTitle) : pageTitle;
+  const localizedSubtitle = typeof subtitle === "string" ? t(subtitle) : subtitle;
+  const resolvedExperienceTone = resolveExperienceTone(experienceTone, localizedPortalRole, theme);
   const shouldShowHomeShortcut = false;
   const shouldShowBackShortcut = showBack && backHref;
   const rootClasses = [
@@ -192,16 +198,16 @@ export function PortalShell({
     isWp17 ? `wp17-shell wp17-shell--${resolvedExperienceTone}` : "",
     className,
   ].filter(Boolean).join(" ");
-  const resolvedContextLabel = headerIdentityOverride?.pageLabel || pageTitle || portalRole;
+  const resolvedContextLabel = headerIdentityOverride?.pageLabel || localizedPageTitle || localizedPortalRole;
   const headerIdentityValue = React.useMemo(
     () => ({
       headerOwnsWorkflowIdentity: Boolean(resolvedContextLabel),
       pageTitle: resolvedContextLabel,
-      portalLabel: portalRole,
+      portalLabel: localizedPortalRole,
       setHeaderIdentity: setHeaderIdentityOverride,
       clearHeaderIdentity: () => setHeaderIdentityOverride(null),
     }),
-    [portalRole, resolvedContextLabel]
+    [localizedPortalRole, resolvedContextLabel]
   );
 
   const handleSignOut = async () => {
@@ -237,11 +243,11 @@ export function PortalShell({
           {showSignOut ? (
             <ProfileMenu
               signedInName={signedInName}
-              portalRole={portalRole}
+              portalRole={localizedPortalRole}
               localTimeLabel={localTimeLabel}
               onSignOut={handleSignOut}
               disabled={!!signOutCapability && signOutCapability.available !== true}
-              title={signOutCapability?.disabled_reason || "Sign out"}
+              title={signOutCapability?.disabled_reason || t("Sign out")}
               theme="light"
             />
           ) : null}
@@ -250,7 +256,7 @@ export function PortalShell({
     </div>
   ) : null;
 
-  const hasWorkflowContext = Boolean(showPageHeader && (subtitle || primaryActions || renderedLastActivity));
+  const hasWorkflowContext = Boolean(showPageHeader && (localizedSubtitle || primaryActions || renderedLastActivity));
 
   return (
     <div
@@ -262,7 +268,7 @@ export function PortalShell({
         contextLabel={resolvedContextLabel}
         accent="blue"
         backTo={shouldShowBackShortcut ? backHref : null}
-        backLabel="Back"
+        backLabel={t("Back")}
         homeTo="/"
         showHomeLink={shouldShowHomeShortcut}
         showLangToggle
@@ -289,7 +295,7 @@ export function PortalShell({
                 <div className="wp16-shell-page-header wp16-shell-workflow-context" data-testid="ds-portal-shell-page-header">
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0 flex-1">
-                      {subtitle ? <p className="mt-2 max-w-[76ch] text-sm text-[color:var(--ink-soft)] sm:text-base">{subtitle}</p> : null}
+                      {localizedSubtitle ? <p className="mt-2 max-w-[76ch] text-sm text-[color:var(--ink-soft)] sm:text-base">{localizedSubtitle}</p> : null}
                     </div>
 
                     <div className="min-w-0 xl:max-w-[28rem] xl:text-right">
@@ -315,7 +321,7 @@ export function PortalShell({
 
       <MobileNavigation
         portalName={portalName}
-        portalRole={portalRole}
+        portalRole={localizedPortalRole}
         homeHref={homeHref}
         backHref={backHref}
         showHome={showHome}

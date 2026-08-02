@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useBranding } from "@/lib/BrandingProvider";
+import { useT } from "@/lib/i18n";
 
 export const ShareFormDialog = ({
   formType = "inspection",
@@ -21,6 +22,7 @@ export const ShareFormDialog = ({
   description = "Give this link or QR code to anyone who needs to fill out a safety inspection. No login required — submissions show up here automatically.",
   testIdPrefix = "share",
 }) => {
+  const { t } = useT();
   const branding = useBranding();
   const platformName = branding.platform_display_name || "Operations Platform";
   const safetyTitle = branding.company_name
@@ -38,17 +40,17 @@ export const ShareFormDialog = ({
     try {
       await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
-      toast.success("Copied.");
+      toast.success(t("Copied."));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Copy failed — write it down by hand.");
+      toast.error(t("Copy failed — write it down by hand."));
     }
   };
 
   const nativeShare = async () => {
     const shareData = {
       title: safetyTitle,
-      text: "Fill out today's safety inspection:",
+      text: t("Fill out today's safety inspection:"),
       url: publicUrl,
     };
     if (navigator.share) {
@@ -65,7 +67,7 @@ export const ShareFormDialog = ({
   const printQr = () => {
     const w = window.open("", "_blank");
     if (!w) {
-      toast.error("Pop-up blocked. Allow pop-ups to print the QR poster.");
+      toast.error(t("Pop-up blocked. Allow pop-ups to print the QR poster."));
       return;
     }
     w.document.write(`<!doctype html>
@@ -103,8 +105,8 @@ export const ShareFormDialog = ({
           data-testid={`${testIdPrefix}-form-btn`}
         >
           <Share2 className="w-4 h-4 mr-2" />
-          <span className="hidden sm:inline">Share Form</span>
-          <span className="sm:hidden">Share</span>
+          <span className="hidden sm:inline">{t("Share Form")}</span>
+          <span className="sm:hidden">{t("Share")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md" data-testid={`${testIdPrefix}-form-dialog`}>
@@ -128,7 +130,7 @@ export const ShareFormDialog = ({
               />
             </div>
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700 font-bold">
-              Scan with phone camera
+              {t("Scan with phone camera")}
             </div>
           </div>
 
@@ -158,7 +160,7 @@ export const ShareFormDialog = ({
               data-testid={`${testIdPrefix}-native`}
             >
               <Share2 className="w-4 h-4 mr-2" />
-              Share
+              {t("Share")}
             </Button>
             <Button
               onClick={printQr}
@@ -167,7 +169,7 @@ export const ShareFormDialog = ({
               data-testid={`${testIdPrefix}-print-qr`}
             >
               <Printer className="w-4 h-4 mr-2" />
-              Print QR
+              {t("Print QR")}
             </Button>
           </div>
 
@@ -178,7 +180,7 @@ export const ShareFormDialog = ({
             className="flex items-center justify-center gap-1 text-sm text-slate-600 hover:text-red-700 font-mono uppercase tracking-wider"
             data-testid={`${testIdPrefix}-open`}
           >
-            Preview the form <ExternalLink className="w-3 h-3" />
+            {t("Preview the form")} <ExternalLink className="w-3 h-3" />
           </a>
         </div>
       </DialogContent>

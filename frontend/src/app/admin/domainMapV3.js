@@ -167,7 +167,7 @@ export function findActiveDomainIdV3(pathname) {
   return null;
 }
 
-export function buildSearchIndex() {
+export function buildSearchIndex(localize = (value) => value) {
   const items = [];
   for (const domain of DOMAINS_V3) {
     for (const r of domain.visibleRoutes) {
@@ -175,10 +175,10 @@ export function buildSearchIndex() {
         id: `nav:${r.to}`,
         kind: "page",
         domain: domain.id,
-        domainLabel: domain.label,
+        domainLabel: localize(domain.label),
         stripe: domain.stripe,
-        label: r.label,
-        description: r.desc,
+        label: localize(r.label),
+        description: r.desc ? localize(r.desc) : r.desc,
         route: r.to,
         keywords: r.keywords || [],
         hidden: false,
@@ -189,10 +189,10 @@ export function buildSearchIndex() {
         id: `nav-hidden:${r.to}`,
         kind: "page",
         domain: domain.id,
-        domainLabel: domain.label,
+        domainLabel: localize(domain.label),
         stripe: domain.stripe,
-        label: r.label,
-        description: `${domain.label} · detail page`,
+        label: localize(r.label),
+        description: `${localize(domain.label)} · ${localize("detail page")}`,
         route: r.to,
         keywords: [],
         hidden: true,

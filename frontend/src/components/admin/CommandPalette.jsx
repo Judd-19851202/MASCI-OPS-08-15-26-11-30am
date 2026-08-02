@@ -24,6 +24,7 @@ import {
   buildSearchIndex,
 } from "@/app/admin/domainMapV3";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -58,6 +59,7 @@ function scoreItem(item, q) {
 }
 
 function CommandPaletteInner({ open, onClose }) {
+  const { t } = useT();
   const [q, setQ] = useState("");
   const [occOps, setOccOps] = useState([]);
   const [entityHits, setEntityHits] = useState([]);
@@ -65,7 +67,7 @@ function CommandPaletteInner({ open, onClose }) {
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  const staticIndex = useMemo(() => buildSearchIndex(), []);
+  const staticIndex = useMemo(() => buildSearchIndex((value) => t(value)), [t]);
 
   // Reset when opened / closed.
   useEffect(() => {
@@ -96,10 +98,10 @@ function CommandPaletteInner({ open, onClose }) {
           id: `occ:${op.id}`,
           kind: "operation",
           domain: "operations-control",
-          domainLabel: "Operations Control Center",
+          domainLabel: t("Operations Control Center"),
           stripe: "#dc2626",
           label: op.title || op.id,
-          description: op.description || "OCC operation",
+          description: op.description ? t(op.description) : t("OCC operation"),
           route: `/admin/operations-control?highlight=${encodeURIComponent(op.id)}`,
           keywords: ["occ", "operation", op.id, op.category].filter(Boolean),
         }));
@@ -138,7 +140,7 @@ function CommandPaletteInner({ open, onClose }) {
         const groups = Array.isArray(data?.groups) ? data.groups : [];
         const mapped = [];
         for (const g of groups) {
-          const groupLabel = g.label || "Entity";
+          const groupLabel = t(g.label || "Entity");
           for (const row of g.rows || []) {
             mapped.push({
               id: `entity:${groupLabel}:${row.id}`,
@@ -259,7 +261,7 @@ function CommandPaletteInner({ open, onClose }) {
       className="fixed inset-0 z-[60] flex items-start justify-center bg-slate-950/70 backdrop-blur-sm px-4 pt-[8vh]"
       role="dialog"
       aria-modal="true"
-      aria-label="Universal search"
+      aria-label={t("Universal search")}
       data-testid="admin-command-palette"
       onMouseDown={onBackdropClick}
       onClick={onBackdropClick}
@@ -277,7 +279,7 @@ function CommandPaletteInner({ open, onClose }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search pages · operations · projects · employees · equipment…"
+            placeholder={t("Search pages · operations · projects · employees · equipment…")}
             className="flex-1 bg-transparent outline-none text-sm text-slate-100 placeholder-slate-500"
             data-testid="admin-command-palette-input"
             autoComplete="off"
@@ -290,7 +292,7 @@ function CommandPaletteInner({ open, onClose }) {
             type="button"
             onClick={onClose}
             className="ml-1 rounded p-1 hover:bg-slate-800 text-slate-400"
-            aria-label="Close search"
+            aria-label={t("Close search")}
             data-testid="admin-command-palette-close"
           >
             <X className="w-4 h-4" />
@@ -303,7 +305,7 @@ function CommandPaletteInner({ open, onClose }) {
         >
           {grouped.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-slate-500" data-testid="admin-command-palette-empty">
-              {entityLoading ? "Searching…" : "No matches. Try a different search."}
+              {entityLoading ? t("Searching…") : t("No matches. Try a different search.")}
             </div>
           )}
           {grouped.map((g) => (
@@ -339,7 +341,7 @@ function CommandPaletteInner({ open, onClose }) {
                     ) : null}
                   </div>
                   <div className="text-[10px] text-slate-500 shrink-0 mt-1 font-mono">
-                    {item.kind === "operation" ? "OCC" : item.kind === "page" ? "Page" : "Entity"}
+                    {item.kind === "operation" ? "OCC" : item.kind === "page" ? t("Page") : t("Entity")}
                   </div>
                 </button>
               ))}
@@ -350,9 +352,9 @@ function CommandPaletteInner({ open, onClose }) {
         <div className="border-t border-slate-800 px-3 py-2 flex items-center justify-between text-[10px] text-slate-500">
           <span>
             <kbd className="px-1 py-0.5 rounded border border-slate-700 mr-1">↵</kbd>
-            open the top match
+            {t("open the top match")}
           </span>
-          <span>Tip: type a page, an operation, a project, or a person.</span>
+          <span>{t("Tip: type a page, an operation, a project, or a person.")}</span>
         </div>
       </div>
     </div>

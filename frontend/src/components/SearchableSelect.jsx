@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 /**
  * SearchableSelect — typeahead combobox that drops in where a native
@@ -32,6 +33,7 @@ export function SearchableSelect({
   searchPlaceholder = "Search…",
   disabled = false,
 }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -120,7 +122,7 @@ export function SearchableSelect({
         } ${className}`}
       >
         <span className={`truncate ${selectedLabel ? "text-[color:var(--ink-strong)]" : "text-[color:var(--ink-faint)]"}`}>
-          {selectedLabel || placeholder}
+          {selectedLabel || t(placeholder)}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-[color:var(--ink-faint)] shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -141,7 +143,7 @@ export function SearchableSelect({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder={searchPlaceholder}
+                placeholder={t(searchPlaceholder)}
                 className="wp17-focus-ring wp17-control w-full h-10 rounded-[0.9rem] border border-[color:var(--border-bold)] bg-white pl-8 pr-8 text-sm text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-faint)]"
                 data-testid={testId ? `${testId}-search` : undefined}
               />
@@ -150,7 +152,7 @@ export function SearchableSelect({
                   type="button"
                   onClick={() => setQuery("")}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                  aria-label="Clear search"
+                  aria-label={t("Clear search")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -159,7 +161,7 @@ export function SearchableSelect({
           </div>
           <ul className="max-h-64 overflow-y-auto p-1.5" role="listbox">
             {filtered.length === 0 && (
-              <li className="wp17-picker-empty italic">No matches</li>
+              <li className="wp17-picker-empty italic">{t("No matches")}</li>
             )}
             {filtered.map((opt, i) => {
               const active = i === activeIdx;

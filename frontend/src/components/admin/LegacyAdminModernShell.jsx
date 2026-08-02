@@ -43,6 +43,7 @@ import { PortalShell } from "@/design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n";
 
 export default function LegacyAdminModernShell({
   title,
@@ -56,6 +57,7 @@ export default function LegacyAdminModernShell({
   signOutCapability = null,
   children,
 }) {
+  const { t } = useT();
   const actions = (
     <div className="flex items-center gap-2">
       <Button
@@ -66,7 +68,7 @@ export default function LegacyAdminModernShell({
       >
         <Link to="/admin">
           <ArrowLeft className="w-3.5 h-3.5" />
-          Admin OS
+          {t("Admin OS")}
         </Link>
       </Button>
       {primaryActions}
@@ -77,12 +79,12 @@ export default function LegacyAdminModernShell({
     <div className="min-h-screen bg-slate-50" data-testid={`${testidPrefix}-root`}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Admin"
+        portalRole={t("Admin")}
         shellTheme="admin"
         experienceLevel={experienceLevel}
         experienceTone={experienceTone}
-        pageTitle={title}
-        subtitle={subtitle}
+        pageTitle={typeof title === "string" ? t(title) : title}
+        subtitle={typeof subtitle === "string" ? t(subtitle) : subtitle}
         primaryActions={actions}
         onSignOut={onSignOut}
         signOutCapability={signOutCapability}

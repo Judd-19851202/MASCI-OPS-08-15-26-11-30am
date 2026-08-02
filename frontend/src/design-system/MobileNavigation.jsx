@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import { PlatformIcon } from "./icons";
+import { useT } from "@/lib/i18n";
 
 export function MobileNavigation({
   portalName,
@@ -21,6 +22,7 @@ export function MobileNavigation({
   className = "",
   "data-testid": testId = "ds-mobile-navigation",
 }) {
+  const { t } = useT();
   if (!showHome && !showBack && !showSearch && !showNotifications && !sideNav) return null;
 
   const isAdminTheme = theme === "admin";
@@ -36,12 +38,12 @@ export function MobileNavigation({
           {showHome ? (
             <Link to={homeHref} className={navButtonClasses} data-testid={`${testId}-home`}>
               <PlatformIcon name="home" className="h-4 w-4" />
-              Home
+              {t("Home")}
             </Link>
           ) : showBack && backHref ? (
             <Link to={backHref} className={navButtonClasses} data-testid={`${testId}-back`}>
               <PlatformIcon name="arrow-left" className="h-4 w-4" />
-              Back
+              {t("Back")}
             </Link>
           ) : null}
         </div>
@@ -61,7 +63,7 @@ export function MobileNavigation({
               <SheetTrigger asChild>
                 <button type="button" className={navButtonClasses} data-testid={`${testId}-menu`}>
                   <PlatformIcon name="menu" className="h-4 w-4" />
-                  Modules
+                  {t("Modules")}
                 </button>
               </SheetTrigger>
               <SheetContent
@@ -73,10 +75,10 @@ export function MobileNavigation({
                   className={`shrink-0 border-b px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] ${isAdminTheme ? "border-slate-800" : "border-[color:var(--border-hairline)]"}`}
                 >
                   <SheetTitle className={`text-left font-display text-2xl font-black tracking-tight ${isAdminTheme ? "text-slate-100" : "text-[color:var(--ink-strong)]"}`}>
-                    {portalName} navigation
+                    {portalName} {t("navigation")}
                   </SheetTitle>
                   <SheetDescription className={`text-left text-sm ${isAdminTheme ? "text-slate-300" : "text-[color:var(--ink-soft)]"}`}>
-                    {portalRole} modules and shared destinations.
+                    {portalRole} {t("modules and shared destinations.")}
                   </SheetDescription>
                 </SheetHeader>
                 <div
