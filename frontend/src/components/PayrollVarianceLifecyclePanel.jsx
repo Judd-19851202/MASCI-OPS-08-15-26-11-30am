@@ -55,7 +55,7 @@ const CONFIG = {
     fromState: "FINALIZED",
     targetStates: ["UNDER_REVIEW"],
     title: "Reopen Payroll Variance Batch",
-    description: "A written reason is required. This will be recorded permanently in the audit trail.",
+    description: "A written reason is required. This will be recorded permanently in the batch history.",
     placeholder: "e.g. Discovered overtime miscalculation after finalize.",
   },
 

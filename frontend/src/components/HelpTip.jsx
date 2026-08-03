@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 const KIND_META = {
   why: {
@@ -93,9 +94,10 @@ export function HelpTip({
   const Icon = meta.icon;
   const [open, setOpen] = useState(Boolean(defaultOpen));
 
-  const renderedTitle =
-    (lang === "es" && title_es) ? title_es : (title || (lang === "es" ? meta.label_es : meta.label_en));
-  const renderedBody = (lang === "es" && body_es) ? body_es : body;
+  const rawTitle = (lang === "es" && title_es) ? title_es : (title || (lang === "es" ? meta.label_es : meta.label_en));
+  const rawBody = (lang === "es" && body_es) ? body_es : body;
+  const renderedTitle = sanitizeOperatorCopy(rawTitle, rawTitle);
+  const renderedBody = sanitizeOperatorCopy(rawBody, rawBody);
 
   if (!renderedBody) return null;
 

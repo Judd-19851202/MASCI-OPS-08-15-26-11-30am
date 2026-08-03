@@ -7,11 +7,13 @@ import { getHrUser } from "@/lib/hrAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { api } from "@/lib/api";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 export default function HrPageShell({ title, kicker, children }) {
   const { t } = useT();
   const nav = useNavigate();
   const user = getHrUser();
+  const safeUserName = sanitizeOperatorReference(user?.name, "");
 
   const signOut = async () => {
     try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
@@ -25,7 +27,7 @@ export default function HrPageShell({ title, kicker, children }) {
       portalRole={t("Human Resources")}
       portalSwitcherCurrent="hr"
       pageTitle={t(title)}
-      subtitle={`${kicker || t("Human Resources")} ${user?.name ? `· ${user.name}` : ""}`.trim()}
+      subtitle={`${kicker || t("Human Resources")} ${safeUserName ? `· ${safeUserName}` : ""}`.trim()}
       sideNav={<HrSideNavV2 />}
       showBack
       backHref="/hr"

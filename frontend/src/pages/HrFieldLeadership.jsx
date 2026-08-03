@@ -17,6 +17,7 @@ import { HelpTipBlock } from "@/components/HelpTip";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { sanitizeOperatorProjectName, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const KINDS = [
   { value: "", label: "All forms" },
@@ -148,16 +149,22 @@ export default function HrFieldLeadership() {
             </thead>
             <tbody>
               {items.map((r) => (
+                (() => {
+                  const safeEmployee = sanitizeOperatorReference(r.employee_name, "Crew record");
+                  const safeSupervisor = sanitizeOperatorReference(r.supervisor_name, "Supervisor record");
+                  const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Operations support");
+                  const safeProjectName = sanitizeOperatorProjectName(r.project_name, "Operations support work");
+                  return (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50">
                   <td className="px-3 py-2 font-mono text-xs">{(r.occurred_at || "").slice(0, 10)}</td>
-                  <td className="px-3 py-2 font-semibold">{r.employee_name || "—"}</td>
+                  <td className="px-3 py-2 font-semibold">{safeEmployee || "—"}</td>
                   <td className="px-3 py-2">
                     <span className="inline-block px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-xs font-mono">{r.kind}</span>
                   </td>
-                  <td className="px-3 py-2 text-slate-700">{r.supervisor_name || "—"}</td>
+                  <td className="px-3 py-2 text-slate-700">{safeSupervisor || "—"}</td>
                   <td className="px-3 py-2 text-slate-700">
-                    <div className="font-mono text-xs text-slate-500">{r.project_number}</div>
-                    <div>{r.project_name}</div>
+                    <div className="font-mono text-xs text-slate-500">{safeProjectNumber}</div>
+                    <div>{safeProjectName}</div>
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1">
@@ -170,6 +177,8 @@ export default function HrFieldLeadership() {
                     </div>
                   </td>
                 </tr>
+                  );
+                })()
               ))}
             </tbody>
           </table>
@@ -185,6 +194,10 @@ function HrFlDetailDrawer({ rec, onClose, onPdf }) {
   const { t } = useT();
   const details = rec.details || {};
   const detailEntries = Object.entries(details).filter(([k, v]) => v !== "" && v != null && k !== "outstanding_equipment_acknowledged");
+  const safeEmployee = sanitizeOperatorReference(rec.employee_name, "Crew record");
+  const safeSupervisor = sanitizeOperatorReference(rec.supervisor_name, "Supervisor record");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(rec.project_number, "Operations support");
+  const safeProjectName = sanitizeOperatorProjectName(rec.project_name, "Operations support work");
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4" onClick={onClose} data-testid="hr-fl-drawer">
@@ -192,7 +205,7 @@ function HrFlDetailDrawer({ rec, onClose, onPdf }) {
         <div className="sticky top-0 bg-white border-b-2 border-slate-200 px-5 py-3 flex items-center justify-between">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-purple-700 font-bold">{rec.kind}</div>
-            <h3 className="font-display text-xl font-black">{rec.employee_name || rec.kind}</h3>
+            <h3 className="font-display text-xl font-black">{safeEmployee || rec.kind}</h3>
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => onPdf(rec)}><FileText className="w-3.5 h-3.5 mr-1" />{t("PDF")}</Button>
@@ -201,8 +214,8 @@ function HrFlDetailDrawer({ rec, onClose, onPdf }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <Field label={t("Date")} value={rec.occurred_at} />
-          <Field label={t("Supervisor")} value={rec.supervisor_name} />
-          <Field label={t("Project")} value={`${rec.project_number || ""} ${rec.project_name || ""}`.trim()} />
+          <Field label={t("Supervisor")} value={safeSupervisor} />
+          <Field label={t("Project")} value={`${safeProjectNumber || ""} ${safeProjectName || ""}`.trim()} />
           <Field label={t("Location")} value={rec.location} />
           {detailEntries.map(([k, v]) => (
             <Field key={k} label={prettifyKey(k)} value={renderValue(v)} />

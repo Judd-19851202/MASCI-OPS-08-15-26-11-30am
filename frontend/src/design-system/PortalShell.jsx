@@ -67,7 +67,7 @@ function resolveSignedInName() {
       if (!raw) continue;
       const parsed = JSON.parse(raw);
       const candidate = parsed?.name || parsed?.full_name || parsed?.email || parsed?.user?.name || parsed?.user?.email;
-      if (candidate) return String(candidate).replace(/^cert\s+/i, "");
+      if (candidate) return String(candidate).replace(/^(cert|preview|test)\s+/i, "");
     } catch {
       /* noop */
     }

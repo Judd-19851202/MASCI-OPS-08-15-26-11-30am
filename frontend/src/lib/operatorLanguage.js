@@ -25,6 +25,7 @@ const BANNED_OPERATOR_TERMS = [
   "defect",
   "internal",
   "code name",
+  "cert",
 ];
 
 const OPERATOR_TERM_REPLACEMENTS = [
@@ -37,6 +38,7 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\bpreview fixture\b/gi, "test account"],
   [/\bwp-?14f\b/gi, ""],
   [/\bwp-?17[a-z0-9-]*\b/gi, ""],
+  [/\bcert\b/gi, ""],
   [/\bcertification\b/gi, "readiness"],
   [/\bcanonical\b/gi, "platform"],
   [/\bbackend\b/gi, "platform"],

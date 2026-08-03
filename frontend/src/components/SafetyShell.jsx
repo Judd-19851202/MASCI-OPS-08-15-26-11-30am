@@ -7,6 +7,7 @@ import { getSafetyUser } from "@/lib/safetyAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { api } from "@/lib/api";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 export default function SafetyShell({
   title,
@@ -20,6 +21,7 @@ export default function SafetyShell({
   const { t } = useT();
   const nav = useNavigate();
   const user = getSafetyUser();
+  const safeUserName = sanitizeOperatorReference(user?.name, "");
 
   const signOut = async () => {
     try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
@@ -33,7 +35,7 @@ export default function SafetyShell({
       portalRole={t("Safety Operations")}
       portalSwitcherCurrent="safety"
       pageTitle={t(pageTitle || title)}
-      subtitle={`${subtitle || kicker || t("Safety Operations")} ${user?.name ? `· ${user.name}` : ""}`.trim()}
+      subtitle={`${subtitle || kicker || t("Safety Operations")} ${safeUserName ? `· ${safeUserName}` : ""}`.trim()}
       sideNav={<SafetySideNavV2 />}
       showBack
       backHref="/safety-portal"

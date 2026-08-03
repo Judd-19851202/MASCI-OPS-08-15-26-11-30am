@@ -29,6 +29,7 @@ import { operationalError } from "@/lib/errors";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import axios from "axios";
+import { sanitizeOperatorProjectName, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const HR_PAL = paletteFor("hr");
@@ -212,17 +213,24 @@ export default function HrDailyReports() {
               </thead>
               <tbody>
                 {items.map((r, idx) => (
+                  (() => {
+                    const safeProjectName = sanitizeOperatorProjectName(r.project_name, "Operations support work");
+                    const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Operations support");
+                    const safePmName = sanitizeOperatorReference(r.pm_name, "Project manager");
+                    const safeSuperintendent = sanitizeOperatorReference(r.superintendent, "Superintendent");
+                    const safePreparedBy = sanitizeOperatorReference(r.prepared_by, "Field record");
+                    return (
                   <tr key={r.id || idx} className="border-t border-slate-100 hover:bg-slate-50" data-testid={`hr-dr-row-${idx}`}>
                     <td className="px-3 py-2 font-mono text-xs text-slate-600 whitespace-nowrap">{r.report_date || "—"}</td>
                     <td className="px-3 py-2 font-mono text-xs text-slate-700">{r.report_number || "—"}</td>
                     <td className="px-3 py-2 truncate max-w-[16rem]">
-                      <div className="font-bold">{r.project_name || "—"}</div>
-                      {r.project_number && <div className="text-xs text-slate-500 font-mono">{r.project_number}</div>}
+                      <div className="font-bold">{safeProjectName || "—"}</div>
+                      {r.project_number && <div className="text-xs text-slate-500 font-mono">{safeProjectNumber}</div>}
                     </td>
                     <td className="px-3 py-2 text-slate-700 truncate max-w-[11rem]" data-testid={`hr-dr-row-${idx}-pm`}>
-                      {r.pm_name ? (
+                      {safePmName ? (
                         <>
-                          <div className="font-bold text-xs">{r.pm_name}</div>
+                          <div className="font-bold text-xs">{safePmName}</div>
                           {r.pm_email && <div className="text-[10px] text-slate-500 font-mono truncate">{r.pm_email}</div>}
                         </>
                       ) : (
@@ -230,9 +238,9 @@ export default function HrDailyReports() {
                       )}
                     </td>
                     <td className="px-3 py-2 text-slate-700 truncate max-w-[10rem]" data-testid={`hr-dr-row-${idx}-superintendent`}>
-                      {r.superintendent || <span className="text-slate-400">—</span>}
+                      {safeSuperintendent || <span className="text-slate-400">—</span>}
                     </td>
-                    <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{r.prepared_by || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600 truncate max-w-[10rem]">{safePreparedBy || "—"}</td>
                     <td className="px-3 py-2 text-center font-mono font-bold">{r.crew_count || 0}</td>
                     <td className="px-3 py-2 text-center font-mono">{r.sub_count || 0}</td>
                     <td className="px-3 py-2 text-center font-mono">{r.visitor_count || 0}</td>
@@ -246,6 +254,8 @@ export default function HrDailyReports() {
                       </Link>
                     </td>
                   </tr>
+                    );
+                  })()
                 ))}
               </tbody>
             </table>
