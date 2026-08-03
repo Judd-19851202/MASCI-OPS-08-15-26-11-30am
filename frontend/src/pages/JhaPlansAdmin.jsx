@@ -28,6 +28,7 @@ import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -434,6 +435,13 @@ export default function JhaPlansAdmin() {
               {rows.map((row) => {
                 const isOpen = !!openMap[row.project_number];
                 const isBusy = busyJob === row.project_number;
+                const safeProjectNumber = sanitizeOperatorProjectNumber(row.project_number, "Operations support");
+                const safeProjectLabel = formatOperatorJobLabel(row.project_number, row.project_name);
+                const safeMeta = [row.location, row.client, row.project_manager]
+                  .filter(Boolean)
+                  .map((value) => sanitizeOperatorReference(value, ""))
+                  .filter(Boolean)
+                  .join(" · ");
                 return (
                   <div
                     key={row.project_number}
@@ -457,13 +465,13 @@ export default function JhaPlansAdmin() {
                         <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
                       )}
                       <span className="inline-flex min-w-[4.25rem] justify-center rounded-full bg-red-700 px-2.5 py-1 text-[11px] font-bold font-mono text-white shrink-0">
-                        {row.project_number}
+                        {safeProjectNumber}
                       </span>
                       <Briefcase className="w-4 h-4 text-slate-400 shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold text-slate-900">{row.project_name}</div>
+                        <div className="truncate text-sm font-semibold text-slate-900">{safeProjectLabel}</div>
                         <div className="mt-0.5 truncate text-xs text-slate-500">
-                          {[row.location, row.client, row.project_manager].filter(Boolean).join(" · ") || "Metadata pending"}
+                          {safeMeta || "Metadata pending"}
                         </div>
                       </div>
                       <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600 shrink-0">

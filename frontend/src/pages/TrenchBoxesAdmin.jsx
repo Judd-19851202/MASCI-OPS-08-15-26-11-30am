@@ -14,6 +14,7 @@ import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import TrenchBoxTabulatedLibrary from "@/components/TrenchBoxTabulatedLibrary";
+import { containsOperatorUnsafeLanguage, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const EMPTY = {
   manufacturer: "", model: "", serial_number: "", box_type: "Steel",
@@ -244,11 +245,16 @@ export default function TrenchBoxesAdmin() {
                 />
               ) : (
                 <ul className="space-y-3" data-testid="admin-trench-list">
-                  {boxes.map((b) => (
+                  {boxes.map((b) => {
+                    const safeManufacturer = containsOperatorUnsafeLanguage(b.manufacturer)
+                      ? "Demo Co"
+                      : sanitizeOperatorReference(b.manufacturer, "Demo Co");
+                    const safeModel = sanitizeOperatorReference(b.model, "Demo Box");
+                    return (
                     <li key={b.id} className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] sm:px-5" data-testid={`admin-trench-row-${b.id}`}>
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                         <div className="min-w-0 flex-1">
-                          <div className="font-display text-xl font-black text-slate-900 truncate">{b.manufacturer} · {b.model}</div>
+                          <div className="font-display text-xl font-black text-slate-900 truncate">{safeManufacturer} · {safeModel}</div>
                           <div className="mt-1 text-xs text-slate-500">
                             {b.serial_number && `S/N ${b.serial_number} · `}{b.length_ft && `${b.length_ft} ft · `}{b.weight_lbs && `${b.weight_lbs} lbs`}
                           </div>
@@ -268,7 +274,8 @@ export default function TrenchBoxesAdmin() {
                         </div>
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               )}
             </StepPanel>
@@ -277,7 +284,7 @@ export default function TrenchBoxesAdmin() {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border border-white/15 bg-[#0f1c33]/96 text-white shadow-[0_28px_90px_rgba(2,6,23,0.58)] backdrop-blur-2xl sm:rounded-[1.75rem]" data-testid="trench-box-dialog">
               <DialogHeader>
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-300">Governed trench asset editor</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-300">Trench asset editor</div>
                 <DialogTitle className="font-display font-black text-2xl text-white">{editingId ? "Edit Trench Box" : "Add Trench Box"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-5">
