@@ -22,6 +22,7 @@
 - Release-candidate deployment readiness check executed in preview.
 - Preview app available at `https://backup-forensics.preview.emergentagent.com`.
 - No new Category 1 or Category 5 defect was detected during release review.
+- Deployment readiness scan status: `PASS` via `deployment_agent`.
 
 ## Immediate Smoke-Test Results
 - Executive smoke test passed `18/18` checks.
