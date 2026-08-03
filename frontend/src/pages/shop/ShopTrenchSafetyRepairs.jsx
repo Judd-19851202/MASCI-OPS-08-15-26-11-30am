@@ -37,6 +37,11 @@ const HOLD_BADGE = {
   "Inspection Hold":    "bg-amber-50 text-amber-800 border-amber-400",
 };
 
+function formatHoldLabel(value) {
+  if (!value) return "—";
+  return String(value).replace(/\bCertification Hold\b/gi, "Compliance Hold");
+}
+
 export default function ShopTrenchSafetyRepairs() {
   const { t } = useT();
   const navigate = useNavigate();
@@ -170,7 +175,7 @@ function RepairRow({ repair: r }) {
             </span>
             {r.operational_status && HOLD_BADGE[r.operational_status] && (
               <span className={"inline-block px-2 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold " + HOLD_BADGE[r.operational_status]}>
-                {t(r.operational_status)}
+                {t(formatHoldLabel(r.operational_status))}
               </span>
             )}
             {r.requires_reinspection && (

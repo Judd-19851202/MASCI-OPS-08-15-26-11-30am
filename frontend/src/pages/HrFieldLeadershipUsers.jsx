@@ -46,7 +46,7 @@ export default function HrFieldLeadershipUsers() {
           <Users className="h-4 w-4 text-purple-700" />
           <span>
             {t(
-              "Manage MASCI Field Leadership Portal accounts. Issue per-user temporary passwords, reset passwords, and deactivate field leaders. This is the governed per-user portal — distinct from the legacy shared-password document gate."
+              "Manage MASCI Field Leadership Portal accounts. Issue per-user temporary passwords, reset passwords, and deactivate field leaders. This is the dedicated per-user sign-in area — separate from the legacy shared-password document gate."
             )}
           </span>
         </div>

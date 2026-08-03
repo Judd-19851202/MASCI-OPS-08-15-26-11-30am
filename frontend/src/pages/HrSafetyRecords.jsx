@@ -23,6 +23,11 @@ import { toast } from "sonner";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const auth = () => ({ headers: buildScopedPortalAuthHeaders(["hr"]) });
 
+function formatCredentialLabel(value) {
+  if (!value) return "—";
+  return String(value).replace(/\bcertification\b/gi, "Credential");
+}
+
 function bytes(n) {
   if (!n) return "0 B";
   const u = ["B", "KB", "MB", "GB"];
@@ -342,7 +347,7 @@ export default function HrSafetyRecords() {
         <ShieldCheck className="w-5 h-5 text-purple-700 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-slate-800">
           <strong className="text-purple-900">{t("Shared HR + Safety accountability surface.")}</strong> {" "}
-          {t("HR can add training, upload safety documents, and archive records. Safety governance (incidents, JHAs, inspections) remains in the Safety Portal. Hard-delete is reserved for Safety/Admin — HR archives instead.")}
+          {t("HR can add training, upload safety documents, and archive records. Safety oversight (incidents, JHAs, inspections) remains in the Safety Portal. Hard-delete is reserved for Safety/Admin — HR archives instead.")}
         </div>
       </div>
 
@@ -481,7 +486,7 @@ export default function HrSafetyRecords() {
                             {archived && <Badge variant="outline" className="ml-2 bg-slate-200 text-slate-700 border-slate-300 text-[9px] font-mono uppercase">{t("ARCHIVED")}</Badge>}
                           </td>
                           <td className="px-3 py-2">{r.training_name}</td>
-                          <td className="px-3 py-2 text-slate-600 text-xs font-mono">{r.certification_type || "—"}</td>
+                          <td className="px-3 py-2 text-slate-600 text-xs font-mono">{formatCredentialLabel(r.certification_type)}</td>
                           <td className="px-3 py-2">{r.completed_date || "—"}</td>
                           <td className="px-3 py-2">
                             {r.expiration_date || <span className="text-slate-400">—</span>}

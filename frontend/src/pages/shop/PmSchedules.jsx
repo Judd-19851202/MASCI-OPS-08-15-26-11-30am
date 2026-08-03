@@ -148,7 +148,7 @@ export default function PmSchedules() {
                        onChange={(e) => setForm(f => ({ ...f, paused: e.target.checked }))} /> Paused
               </label>
               {form.paused && (
-                <input data-testid="pm-schedules-input-pause-reason" placeholder="Pause reason (required for audit)"
+                <input data-testid="pm-schedules-input-pause-reason" placeholder="Pause reason (saved to history)"
                        value={form.override_reason}
                        onChange={(e) => setForm(f => ({ ...f, override_reason: e.target.value }))}
                        style={{ ...inpStyle, maxWidth: 360 }} />

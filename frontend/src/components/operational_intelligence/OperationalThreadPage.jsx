@@ -355,18 +355,18 @@ export default function OperationalThreadPage({
         )}
       </section>
 
-      {/* Section 10 — Audit */}
+      {/* Section 10 — History */}
       <section
         data-testid={`${testId}-section-10-audit`}
         className="rounded-md border-2 border-slate-200 bg-white px-4 py-3"
       >
-        <SectionHeader index={10} title="Audit · read-only" icon={ShieldCheck} />
+        <SectionHeader index={10} title="History · read-only" icon={ShieldCheck} />
         {audit.length === 0 ? (
           <div
             data-testid={`${testId}-audit-empty`}
             className="text-xs text-slate-500 italic"
           >
-            No audit entries on record.
+            No history entries on record.
           </div>
         ) : (
           <ul className="text-xs space-y-1">

@@ -110,7 +110,7 @@ export default function PmTemplates() {
                 <select data-testid="pm-templates-input-asset-type" required
                        value={form.asset_type} onChange={(e) => setForm(f => ({ ...f, asset_type: e.target.value }))}
                        style={inpStyle}>
-                  <option value="">— select canonical asset type —</option>
+                  <option value="">— select asset type —</option>
                   {taxonomy?.asset_types_by_class
                     ? Object.entries(taxonomy.asset_types_by_class).flatMap(([cls, types]) => [
                         <optgroup key={cls} label={cls}>

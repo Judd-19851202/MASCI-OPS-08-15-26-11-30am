@@ -22,6 +22,11 @@ const SOURCE_PILL = {
   track:  "bg-purple-100 text-purple-900 border-purple-300",
 };
 
+function formatCredentialLabel(value) {
+  if (!value) return "—";
+  return String(value).replace(/\bcertification\b/gi, "Credential");
+}
+
 function expStatus(r) {
   if (!r.expiration_date) return "none";
   const today = new Date().toISOString().slice(0, 10);
@@ -142,7 +147,7 @@ export default function HrTrainingRecords() {
                       )}
                     </td>
                     <td className="px-3 py-2">{r.training_name || r.track_name || r.track_slug || "—"}</td>
-                    <td className="px-3 py-2 text-slate-600 text-xs font-mono">{r.certification_type || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600 text-xs font-mono">{formatCredentialLabel(r.certification_type)}</td>
                     <td className="px-3 py-2 font-mono text-xs">{(r.completed_date || r.completed_at || "").slice(0, 10) || "—"}</td>
                     <td className="px-3 py-2 font-mono text-xs">
                       {r.expiration_date || <span className="text-slate-400">—</span>}
