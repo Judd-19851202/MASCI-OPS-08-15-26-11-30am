@@ -492,3 +492,23 @@
 - Executive review must now evaluate the **combined** constitutional package: `WP18B_*` + `WP18BR_*`.
 - Keep WP-18C **blocked** until the amended charter is explicitly accepted.
 - If WP-18C is later authorized, the entry criteria must include the WP-18BR amendments before any Budget or Earned Value build begins.
+
+## 2026-08-03 — WP-18C3 Budget Hierarchy, Project Pay-Item Financial Foundation & Governed Import/Export
+- WP-18C3 is now implemented as an additive budget authority package, preserving accepted WP-18C1 and WP-18C2 foundations.
+- New backend authority/service: `backend/services/project_budget_authority.py`.
+- New PM/admin budget surfaces: `/pm/project-controls/budget` and `/admin/governance/project-controls/budget`.
+- New additive collections and runtime counts at closeout: `project_budget_versions=2`, `project_budget_lines=2`, `project_budget_import_sessions=2`, `project_budget_import_rows=2`, `project_budget_distribution_audit=2`, `project_budget_runs=1`.
+- The import workflow is now constitutionally enforced as: `Import → advisory suggestions → PM review → PM approval → activation`.
+- Budget, commitment, actual cost, forecast, revenue, billing, and collections remain separate concepts/fields; accounting/ERP truth was not duplicated.
+- Commitment and actual-cost foundations were added as review-only candidate layers: systemwide certification snapshot `32` commitment candidates and `8` actual-cost candidates, with no guessed budget linkage.
+- Certified runtime project: `ZZ-RUNTIME-CERT-2026`; two governed imports created a superseded `1000.0` current-approved budget version and an active `1200.0` current-approved budget version.
+- Testing/certification evidence:
+  - unit tests `4 passed`
+  - live API certification flow passed (import, review, activation, budget export, comparison export)
+  - PM screenshot smoke passed
+  - specialist test report `/app/test_reports/iteration_112.json` passed (`backend 100%`, `frontend 100%`)
+
+## Updated next authorized work after WP-18C3
+- Preserve the new C3 trust lines and versioned budget authority exactly as implemented.
+- If the executive sequence advances, WP-18C4 should connect schedule/work-package truth to the budget foundation without introducing Earned Value or full forecasting.
+- Continue keeping ambiguous financial/source data in governed review queues instead of guessing.

@@ -1,3 +1,15 @@
+# 2026-08-03 — WP-18C3 Budget Hierarchy, Project Pay-Item Financial Foundation & Governed Import/Export
+
+- Added additive backend authority in `backend/services/project_budget_authority.py` for governed budget versions, budget lines, import staging, row review, activation, exports, distribution audit, and bounded backfill.
+- Extended `backend/routes/enterprise_governance.py` with PM/admin budget endpoints under the accepted project-controls governance surface.
+- Added new PM and admin UI routes `/pm/project-controls/budget` and `/admin/governance/project-controls/budget`, plus sidebar discoverability and full `data-testid` coverage.
+- Implemented governed import support for CSV, Excel, and review-assisted PDF parsing foundations; runtime certification executed two CSV imports on `ZZ-RUNTIME-CERT-2026`.
+- Preserved financial separation: budget versions/lines are planning truth only; commitments derive from `po_requests`; actual-cost candidates remain review-only and do not replace accounting truth.
+- Added bounded migration/backfill support with a non-blocking admin queue route and a directly verifiable additive service run.
+- Added the 13 required `WP18C3_*` closeout artifacts under `/app/memory/`.
+- Verification passed: backend unit tests `4 passed`; live PM/API certification flow passed; PM screenshot smoke passed; specialist testing report `/app/test_reports/iteration_112.json` passed overall (`backend 100%`, `frontend 100%`).
+- Final WP-18C3 closeout result: **GO**. Recommendation for WP-18C4: **prepare the schedule/work-package connection package next, but do not begin implementation inside this closeout.**
+
 # 2026-08-03 — WP-18C2 Authority, Source-of-Truth & Operational Ledger Foundation
 
 - Added backend foundation in `services/project_controls_authority.py` and exposed admin/PM authority routes in `routes/enterprise_governance.py`.

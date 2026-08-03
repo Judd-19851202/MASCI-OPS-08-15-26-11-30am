@@ -1,3 +1,23 @@
+# 2026-08-03 — WP-18C3 closeout roadmap state
+
+## Current top priority
+
+- **WP-18C3 is complete and closed GO.**
+- **WP-18C4 is the next possible package, but it is not started in this closeout.**
+- **The new budget authority, import-review-activation workflow, and financial trust-line separation must now be preserved as the basis for later packages.**
+
+## P0
+- preserve the governed distinction between enterprise work types, customer pay items, budget versions, budget lines, commitments, actual-cost candidates, and operational work ledger truth
+- preserve the no-silent-activation / no-silent-normalization import workflow exactly as implemented
+- preserve original/current historical versioning behavior and avoid budget overwrite patterns
+
+## P1
+- when separately authorized, begin WP-18C4 by connecting budget lines to schedule/work-package truth more deeply
+- keep commitment and actual-cost linkage review-governed until stronger source systems are integrated
+
+## P2
+- no Earned Value implementation, no full forecasting engine, and no accounting-ledger duplication before their later authorized packages
+
 # 2026-08-03 — WP-18C2 closeout roadmap state
 
 ## Current top priority
