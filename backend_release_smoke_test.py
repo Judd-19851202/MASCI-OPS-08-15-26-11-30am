@@ -4,7 +4,7 @@ Backend API Release Candidate Smoke Test
 Production-promotion verification for backup-forensics preview branch.
 
 Context:
-- Preview base URL: https://backup-forensics.preview.emergentagent.com
+- Preview base URL: https://masci-audit-hub.preview.emergentagent.com
 - This is NOT broad recertification. It is a production-promotion smoke only.
 - Local guard checks already passed
 
@@ -30,7 +30,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

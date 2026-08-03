@@ -3,7 +3,7 @@
 Daily Report Anonymous Public API Contract Test
 
 Tests the backend/public API contract supporting the public anonymous Daily Report workflow.
-Base URL: https://backup-forensics.preview.emergentagent.com/api
+Base URL: https://masci-audit-hub.preview.emergentagent.com/api
 
 Test Coverage:
 1. GET /hr/employee-roster/public - Returns active employee items for public dropdown use
@@ -22,7 +22,7 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test results storage
 test_results = {

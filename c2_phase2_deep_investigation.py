@@ -6,7 +6,7 @@ Deep investigation of potential deployment blockers
 import requests
 import json
 
-PREVIEW_BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+PREVIEW_BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE_URL = f"{PREVIEW_BASE_URL}/api"
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"

@@ -19,7 +19,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 TIMEOUT = 15
 
 def test_health_endpoint():

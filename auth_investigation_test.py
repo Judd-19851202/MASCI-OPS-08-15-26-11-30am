@@ -6,7 +6,7 @@ Investigate specific auth issues found in initial test
 import requests
 import json
 
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 CREDENTIALS = {

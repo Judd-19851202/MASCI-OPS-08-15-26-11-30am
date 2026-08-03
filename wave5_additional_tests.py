@@ -8,7 +8,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Use Safety token from initial test

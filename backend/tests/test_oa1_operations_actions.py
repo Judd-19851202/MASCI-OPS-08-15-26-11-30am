@@ -8,7 +8,7 @@ import requests
 from dotenv import dotenv_values
 from pymongo import MongoClient
 
-API = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com") + "/api"
+API = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com") + "/api"
 
 
 def _call(method: str, url: str, **kwargs):

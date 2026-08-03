@@ -22,7 +22,7 @@ import requests
 from dotenv import load_dotenv
 
 load_dotenv("/app/backend/.env")
-API = os.environ.get("FT_API", "https://backup-forensics.preview.emergentagent.com")
+API = os.environ.get("FT_API", "https://masci-audit-hub.preview.emergentagent.com")
 ADMIN_PWD = "MASCI1982!"
 
 OUT = Path("/app/memory/field_trial_results.json")

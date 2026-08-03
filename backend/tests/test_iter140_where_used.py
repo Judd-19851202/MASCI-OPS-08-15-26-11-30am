@@ -10,7 +10,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com").rstrip("/")
 
 # Known iter140 master IDs from review_request
 EQUIPMENT_MASTER_ID = "10127b48-af7e-4a24-9fde-a3f14734d0cf"  # FBT-1476

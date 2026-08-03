@@ -8,7 +8,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 def test_health_endpoint():
     """Test 1: GET /api/health returns 200 and ok=true"""

@@ -1,6 +1,6 @@
 {
   "test_started_at": "2026-07-23T19:16:15.411653Z",
-  "test_url": "https://backup-forensics.preview.emergentagent.com/daily/submit",
+  "test_url": "https://masci-audit-hub.preview.emergentagent.com/daily/submit",
   "certification_cases": {
     "case_3_tab_close_reopen": {
       "status": "SKIP",
@@ -55,31 +55,31 @@
     "protected_endpoints": {
       "/admin": {
         "protected": true,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/admin/login"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/admin/login"
       },
       "/pm": {
         "protected": true,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/pm/login"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/pm/login"
       },
       "/hr": {
         "protected": true,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/hr/login"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/hr/login"
       },
       "/dispatch": {
         "protected": false,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/dispatch"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/dispatch"
       },
       "/field-leadership": {
         "protected": true,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/leadership/login"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/leadership/login"
       },
       "/safety": {
         "protected": false,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/safety"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/safety"
       },
       "/shop": {
         "protected": true,
-        "redirected_to": "https://backup-forensics.preview.emergentagent.com/shop/login"
+        "redirected_to": "https://masci-audit-hub.preview.emergentagent.com/shop/login"
       }
     },
     "boundary_status": "PARTIAL"

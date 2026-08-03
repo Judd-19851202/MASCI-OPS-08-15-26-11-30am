@@ -9,7 +9,7 @@ Tests the following requirements:
 3. /api/daily-reports/{id}/photo-intelligence returns truthful status contract
 4. No runtime regressions for legacy write containment (/api/dr-v2/... still 410)
 
-Test against: https://backup-forensics.preview.emergentagent.com/api
+Test against: https://masci-audit-hub.preview.emergentagent.com/api
 Credentials: jaymn.judd@mascigc.com / Maddix123!
 """
 
@@ -18,7 +18,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

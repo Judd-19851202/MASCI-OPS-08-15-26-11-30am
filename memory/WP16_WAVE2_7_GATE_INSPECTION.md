@@ -16,7 +16,7 @@ Scope lock: Wave 2 only. No repairs performed.
 
 ## Inspection sources
 
-- Runtime route verification in preview: `https://backup-forensics.preview.emergentagent.com`
+- Runtime route verification in preview: `https://masci-audit-hub.preview.emergentagent.com`
 - Focused browser evidence via screenshot automation on 2026-07-30
 - Wave 2 denominator source: `/app/memory/WP16_WAVE2_INVENTORY_AND_RECONCILIATION.md`
 - Certification ledger: `/app/memory/WP16_CERTIFICATION_REGISTER.csv`

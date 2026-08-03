@@ -2,7 +2,7 @@
 WP-OPPC-14F Operational Case Management Backend Verification
 
 This script verifies the new WP-OPPC-14F Operational Case Management backend
-against https://backup-forensics.preview.emergentagent.com using super admin credentials.
+against https://masci-audit-hub.preview.emergentagent.com using super admin credentials.
 
 Test flows:
 1. Obtain admin + directory session
@@ -30,7 +30,7 @@ from typing import Any, Dict, List, Optional
 import requests
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

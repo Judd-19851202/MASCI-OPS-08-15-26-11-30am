@@ -1,7 +1,7 @@
 # C2 Phase 2 Pre-Deployment Readiness Review
 ## Final Evidence Report
 
-**Environment**: https://backup-forensics.preview.emergentagent.com  
+**Environment**: https://masci-audit-hub.preview.emergentagent.com  
 **Test Date**: 2026-07-22  
 **Test Type**: READ-ONLY verification (no destructive writes)  
 **Credentials Used**: Super Admin (jaymn.judd@mascigc.com) from /app/memory/test_credentials.md
@@ -167,7 +167,7 @@
 
 - **Backend Configuration** (from /app/backend/.env):
   ```
-  CORS_ORIGINS="https://mascidocs.com, https://www.mascidocs.com, https://backup-forensics.preview.emergentagent.com"
+  CORS_ORIGINS="https://mascidocs.com, https://www.mascidocs.com, https://masci-audit-hub.preview.emergentagent.com"
   CORS_ORIGIN_REGEX=https://((.*\.)?mascidocs\.com|.*\.(preview\.emergentagent\.com|emergent\.host|emergentagent\.com))
   ```
 

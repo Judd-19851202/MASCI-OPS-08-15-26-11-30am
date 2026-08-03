@@ -181,7 +181,7 @@
     {
       "test": "Test 3: POST preview-daily-report",
       "passed": true,
-      "details": "Created preview Daily Report (id=3a8634d9-db8a-46c6-bcfb-ac1165796fb9) and governed case (id=06ce0c20-8af8-48f8-9747-9f43bd53d5b3, case_number=OPC-20260728-F45E36, status=OPEN)",
+      "details": "Created preview Daily Report (id=masci-audit-hub) and governed case (id=masci-audit-hub, case_number=OPC-20260728-F45E36, status=OPEN)",
       "timestamp": "2026-07-28T23:50:27.651168",
       "response_data": {
         "daily_report_id": "3a8634d9-db8a-46c6-bcfb-ac1165796fb9",
@@ -347,7 +347,7 @@
     {
       "test": "Test 9: Duplicate handling",
       "passed": true,
-      "details": "Different originating events - two separate cases expected (case1_id=80522d4d-2c1c-4fbd-b1b6-2b1e476621a2, case2_id=9ad4becb-6bb7-4e1b-917e-98ad6275850c)",
+      "details": "Different originating events - two separate cases expected (case1_id=masci-audit-hub, case2_id=masci-audit-hub)",
       "timestamp": "2026-07-28T23:51:06.500393",
       "response_data": {
         "case1_id": "80522d4d-2c1c-4fbd-b1b6-2b1e476621a2",

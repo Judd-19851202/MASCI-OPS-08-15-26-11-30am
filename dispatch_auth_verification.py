@@ -12,7 +12,7 @@ import json
 from datetime import datetime, timezone
 
 # Backend URL from frontend/.env
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 DISPATCH_EMAIL = "cert.dispatch@example.com"

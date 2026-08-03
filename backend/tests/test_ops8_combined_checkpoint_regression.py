@@ -16,7 +16,7 @@ import time
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
-    BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+    BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 # Test credentials
 SUPER_ADMIN = {"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"}

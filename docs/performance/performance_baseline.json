@@ -9,7 +9,7 @@
   ],
   "backend": {
     "preview_probe": {
-      "base_url": "https://backup-forensics.preview.emergentagent.com",
+      "base_url": "https://masci-audit-hub.preview.emergentagent.com",
       "health": {"status": 502, "seconds": 0.297627, "disposition": "INTENTIONAL_FAIL_CLOSED"},
       "ready": {"status": 502, "seconds": 0.116346, "disposition": "INTENTIONAL_FAIL_CLOSED"},
       "version": {"status": 502, "seconds": 0.130585, "disposition": "INTENTIONAL_FAIL_CLOSED"},

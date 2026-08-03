@@ -1,7 +1,7 @@
 # Second Frontend Certification Sweep - Coverage Gap Closure Report
 
 **Test Date:** 2026-07-24 03:28-03:35 UTC  
-**Environment:** https://backup-forensics.preview.emergentagent.com  
+**Environment:** https://masci-audit-hub.preview.emergentagent.com  
 **Scope:** READ-ONLY verification of previously NOT_YET_EXERCISED surfaces and defect reclassification  
 **Test Type:** Browser/Frontend certification pass (no code modifications)
 

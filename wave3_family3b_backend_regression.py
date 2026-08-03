@@ -26,7 +26,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test results
 results = {

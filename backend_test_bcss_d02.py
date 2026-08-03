@@ -5,7 +5,7 @@ BCSS Release 2 / TRACK D-02 Backend Verification
 Backend-only verification for BCSS Release 2 / TRACK D-02 in Preview.
 
 App context:
-- Preview backend base URL: https://backup-forensics.preview.emergentagent.com
+- Preview backend base URL: https://masci-audit-hub.preview.emergentagent.com
 - Environment target is PREVIEW only
 - Login endpoint: POST /api/auth/multi-login
 - Admin test credentials:
@@ -27,7 +27,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

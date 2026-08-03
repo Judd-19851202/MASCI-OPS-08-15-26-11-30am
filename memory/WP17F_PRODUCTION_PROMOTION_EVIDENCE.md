@@ -20,7 +20,7 @@
 
 ## Deployment Result
 - Release-candidate deployment readiness check executed in preview.
-- Preview app available at `https://backup-forensics.preview.emergentagent.com`.
+- Preview app available at `https://masci-audit-hub.preview.emergentagent.com`.
 - No new Category 1 or Category 5 defect was detected during release review.
 - Deployment readiness scan status: `PASS` via `deployment_agent`.
 

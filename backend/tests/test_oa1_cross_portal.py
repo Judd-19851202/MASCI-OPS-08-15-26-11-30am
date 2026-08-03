@@ -7,7 +7,7 @@ import time
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com")
 LOGIN_URL = f"{BASE_URL}/api/auth/multi-login"
 
 PORTAL_RESPONSE_KEY = {

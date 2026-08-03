@@ -3,7 +3,7 @@
 WP-16 Wave 6 Backend API Inspection
 Dispatch & Transportation backend/API verification
 
-Base URL: https://backup-forensics.preview.emergentagent.com
+Base URL: https://masci-audit-hub.preview.emergentagent.com
 Authoritative inventory: /app/memory/WP16_WAVE6_INVENTORY_AND_RECONCILIATION.md
 Credentials: /app/memory/test_credentials.md
 """
@@ -13,7 +13,7 @@ import json
 import sys
 from typing import Dict, Any, List, Optional, Tuple
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials from /app/memory/test_credentials.md

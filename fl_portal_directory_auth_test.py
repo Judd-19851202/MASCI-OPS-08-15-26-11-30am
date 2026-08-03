@@ -6,7 +6,7 @@ Test FL portal endpoints with directory-based tokens
 import requests
 import json
 
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 CREDENTIALS = {

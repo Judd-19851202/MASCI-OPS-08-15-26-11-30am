@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 import requests
 
 # Configuration
-BACKEND_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com")
+BACKEND_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com")
 BASE_URL = f"{BACKEND_URL}/api"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"

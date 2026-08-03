@@ -1,6 +1,6 @@
 {
   "test_run_timestamp": "2026-07-24T00:50:16.915251Z",
-  "backend_url": "https://backup-forensics.preview.emergentagent.com",
+  "backend_url": "https://masci-audit-hub.preview.emergentagent.com",
   "tests": [
     {
       "name": "Multi-login returns directory token + portal tokens",
@@ -508,19 +508,19 @@
       "details": {
         "endpoint_results": [
           {
-            "endpoint": "https://backup-forensics.preview.emergentagent.com/api/admin/deployment-readiness",
+            "endpoint": "https://masci-audit-hub.preview.emergentagent.com/api/admin/deployment-readiness",
             "expected_status": 200,
             "actual_status": 200,
             "success": true
           },
           {
-            "endpoint": "https://backup-forensics.preview.emergentagent.com/api/version",
+            "endpoint": "https://masci-audit-hub.preview.emergentagent.com/api/version",
             "expected_status": 200,
             "actual_status": 200,
             "success": true
           },
           {
-            "endpoint": "https://backup-forensics.preview.emergentagent.com/api/health/full",
+            "endpoint": "https://masci-audit-hub.preview.emergentagent.com/api/health/full",
             "expected_status": 200,
             "actual_status": 200,
             "success": true

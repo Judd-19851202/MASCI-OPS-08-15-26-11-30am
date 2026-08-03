@@ -6,7 +6,7 @@ Scope 1 — Public/protected boundary
 Scope 2 — Photo analysis/citation parity  
 Scope 3 — Async persistence safety
 
-Test against: https://backup-forensics.preview.emergentagent.com/api
+Test against: https://masci-audit-hub.preview.emergentagent.com/api
 """
 
 import asyncio
@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 TIMEOUT = 60.0
 
 # Test results storage
@@ -937,7 +937,7 @@ async def main():
     """Run all certification tests"""
     print("\n" + "=" * 80)
     print("DAILY REPORT ANONYMOUS/PUBLIC BACKEND CERTIFICATION")
-    print("Release Candidate: https://backup-forensics.preview.emergentagent.com/api")
+    print("Release Candidate: https://masci-audit-hub.preview.emergentagent.com/api")
     print("=" * 80)
 
     try:

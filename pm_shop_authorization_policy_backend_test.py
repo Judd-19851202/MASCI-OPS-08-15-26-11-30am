@@ -5,7 +5,7 @@ PM/Shop Authorization Policy Repair - Final Backend Verification
 Tests the bounded policy fix where ordinary Admin is NOT Super Admin and must
 not access PM or Shop unless explicitly granted. Super Admin retains full access.
 
-Preview backend: https://backup-forensics.preview.emergentagent.com/api
+Preview backend: https://masci-audit-hub.preview.emergentagent.com/api
 """
 import json
 import os
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 import requests
 
 # Test credentials from /app/memory/test_credentials.md
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 CREDENTIALS = {
     "super_admin": {
@@ -570,7 +570,7 @@ except Exception as e:
 
 # Test public home stays public
 try:
-    resp = requests.get("https://backup-forensics.preview.emergentagent.com", timeout=30)
+    resp = requests.get("https://masci-audit-hub.preview.emergentagent.com", timeout=30)
     log_test(
         "8.5: Public home stays public",
         resp.status_code == 200,

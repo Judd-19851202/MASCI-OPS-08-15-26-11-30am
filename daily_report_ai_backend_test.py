@@ -24,7 +24,7 @@ from typing import Any, Dict, List
 import requests
 
 # Backend URL from environment
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test configuration
 MAX_POLL_ATTEMPTS = 30  # 30 attempts * 2 seconds = 60 seconds max

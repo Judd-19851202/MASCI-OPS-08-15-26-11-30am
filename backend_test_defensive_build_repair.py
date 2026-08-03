@@ -16,7 +16,7 @@ import requests
 import sys
 from datetime import datetime, timezone
 
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

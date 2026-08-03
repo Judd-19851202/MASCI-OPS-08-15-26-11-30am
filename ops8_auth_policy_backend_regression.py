@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 TEST_PERSONAS = {

@@ -16,7 +16,7 @@ Tests the following requirements for DR-03 Gate 5 repair:
 6. /api/version reports frontend_backend_release_match=true
 7. No backend 500s or unstable duplicate request behavior
 
-Test against: https://backup-forensics.preview.emergentagent.com/api
+Test against: https://masci-audit-hub.preview.emergentagent.com/api
 Credentials: jaymn.judd@mascigc.com / Maddix123!
 """
 
@@ -25,7 +25,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

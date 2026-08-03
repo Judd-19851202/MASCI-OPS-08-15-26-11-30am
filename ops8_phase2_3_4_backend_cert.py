@@ -16,7 +16,7 @@ import sys
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 # Test credentials from /app/memory/test_credentials.md

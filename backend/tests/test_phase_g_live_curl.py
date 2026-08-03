@@ -3,7 +3,7 @@ detail endpoints still admin-strict, related driver endpoint redacted."""
 import os
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com").rstrip("/")
 
 DISPATCH_EMAIL = "dispatch@mascigc.com"
 DISPATCH_PASSWORD = "DispatchTest2026!"

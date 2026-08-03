@@ -19,7 +19,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"

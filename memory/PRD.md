@@ -131,7 +131,7 @@
   - post-forensic local validation: `python /app/scripts/wp17_hidden_surface_forensics.py`
   - post-forensic governance validation: `python /app/scripts/wp17_route_governance_guard.py`
   - post-forensic anti-drift validation: `python /app/scripts/wp17d_constitution_guard.py`
-  - public smoke verification: home route rendered successfully at `https://backup-forensics.preview.emergentagent.com`
+  - public smoke verification: home route rendered successfully at `https://masci-audit-hub.preview.emergentagent.com`
   - `/app/test_reports/iteration_93.json`
   - `/app/test_reports/iteration_94.json`
   - `/app/test_reports/iteration_95.json`
@@ -235,3 +235,15 @@
 - If a legitimate production record naturally appears for any Category 2 route, validate only that route and any directly shared consumer; do not reopen platform-wide certification unless evidence shows a systemic regression.
 - Keep `/_internal/*` routes intentionally restricted unless governance changes explicitly authorize them for operator-facing use.
 - Do not begin WP-18B design/build/execution unless explicit executive authorization is given after review of the completed WP-18A package.
+
+## 2026-08-03 — WP-18B Executive Architecture Authority Audit complete
+- Explicit executive authorization was provided for an uninterrupted, documentation-only WP-18B run.
+- The 14 required `WP18B_*` constitutional architecture artifacts were created under `/app/memory/`.
+- WP-18B answered the executive questions on existing capabilities, engines, duplication, underutilization, disconnected systems, trust-line strength, Single Source of Truth, and lowest-risk implementation sequencing.
+- Constitutional Project Controls denominator for WP-18B: `12` domains audited; `10` already evidenced as reusable/extendable/consolidatable; `2` evidence-backed `BUILD_NEW` domains only (`Budget Hierarchy`, `Earned Value`).
+- No application code, UI, API, workflow, database, configuration, business-logic, model, or data changes were performed in WP-18B.
+
+## Updated next authorized work
+- Review and accept the completed WP-18B constitutional package.
+- Keep WP-18C **blocked pending explicit executive authorization**.
+- If WP-18C is later authorized, begin with the sequence in `/app/memory/WP18B_RECOMMENDED_IMPLEMENTATION_SEQUENCE.md` and preserve the reuse-first constitution documented in `/app/memory/WP18B_MASTER_EXECUTIVE_ARCHITECTURE_AUDIT.md`.

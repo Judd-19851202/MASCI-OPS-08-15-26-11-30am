@@ -3,7 +3,7 @@
 Backup/Recovery Hardening Backend Verification Test
 
 Validates the hardened backup/recovery backend in Preview at
-https://backup-forensics.preview.emergentagent.com using admin credentials.
+https://masci-audit-hub.preview.emergentagent.com using admin credentials.
 
 Focus on these backend behaviors only:
 1. /api/admin/backups-complete-r2-state returns backup_runtime and keeps
@@ -26,7 +26,7 @@ from typing import Any, Dict, List
 import requests
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

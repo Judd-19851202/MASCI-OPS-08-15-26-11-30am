@@ -2,7 +2,7 @@
 """
 C2 Phase 2 Pre-Deployment Readiness Review
 READ-ONLY verification against preview environment
-https://backup-forensics.preview.emergentagent.com
+https://masci-audit-hub.preview.emergentagent.com
 """
 
 import requests
@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Any, Tuple
 
 # Preview environment configuration
-PREVIEW_BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+PREVIEW_BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE_URL = f"{PREVIEW_BASE_URL}/api"
 
 # Test credentials from /app/memory/test_credentials.md

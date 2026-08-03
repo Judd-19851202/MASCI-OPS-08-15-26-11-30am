@@ -20,7 +20,7 @@ import pytest
 
 API_URL = os.environ.get(
     "API_URL",
-    "https://backup-forensics.preview.emergentagent.com",
+    "https://masci-audit-hub.preview.emergentagent.com",
 ).rstrip("/")
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"

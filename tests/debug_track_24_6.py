@@ -8,7 +8,7 @@ async def main():
         page = await ctx.new_page()
         page.on("console", lambda m: print("CONSOLE:", m.type, m.text[:200]))
         page.on("pageerror", lambda e: print("PAGEERR:", e))
-        await page.goto("https://backup-forensics.preview.emergentagent.com/daily/submit", wait_until="networkidle", timeout=30000)
+        await page.goto("https://masci-audit-hub.preview.emergentagent.com/daily/submit", wait_until="networkidle", timeout=30000)
         await page.wait_for_timeout(1500)
         await page.screenshot(path="/tmp/s1_land.jpg", quality=40)
         # Check what's on the page

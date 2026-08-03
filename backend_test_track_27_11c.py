@@ -1,7 +1,7 @@
 """
 TRACK 27.11C/27.11B Backend Closeout Verification
 NARROW SCOPE: Only verify 3 specific endpoints with exact contract requirements.
-Base URL: https://backup-forensics.preview.emergentagent.com
+Base URL: https://masci-audit-hub.preview.emergentagent.com
 """
 
 import requests
@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 

@@ -1,6 +1,6 @@
 # Backend/API Certification Sweep - Expanded Defect Baseline
 
-**Target:** https://backup-forensics.preview.emergentagent.com/api  
+**Target:** https://masci-audit-hub.preview.emergentagent.com/api  
 **Timestamp:** 2026-07-24T03:05:42Z  
 **Scope:** READ-ONLY backend/API certification sweep  
 **Test Coverage:** 63 surfaces exercised (126% of estimated mandatory surfaces)
@@ -509,7 +509,7 @@ Before production deployment, verify:
 
 ### Multi-Login (Super Admin)
 ```bash
-curl -X POST https://backup-forensics.preview.emergentagent.com/api/auth/multi-login \
+curl -X POST https://masci-audit-hub.preview.emergentagent.com/api/auth/multi-login \
   -H "Content-Type: application/json" \
   -d '{"email":"jaymn.judd@mascigc.com","password":"Maddix123!"}'
 
@@ -533,7 +533,7 @@ curl -X POST https://backup-forensics.preview.emergentagent.com/api/auth/multi-l
 
 ### Protected Endpoint (Admin)
 ```bash
-curl -X GET https://backup-forensics.preview.emergentagent.com/api/admin/deployment-readiness \
+curl -X GET https://masci-audit-hub.preview.emergentagent.com/api/admin/deployment-readiness \
   -H "X-Admin-Token: <admin_token>" \
   -H "X-Directory-Token: <session_token>"
 
@@ -548,7 +548,7 @@ curl -X GET https://backup-forensics.preview.emergentagent.com/api/admin/deploym
 
 ### Public Endpoint (No Auth)
 ```bash
-curl -X GET https://backup-forensics.preview.emergentagent.com/api/hr/employee-roster/public
+curl -X GET https://masci-audit-hub.preview.emergentagent.com/api/hr/employee-roster/public
 
 # Response: 200 OK
 # {
@@ -560,7 +560,7 @@ curl -X GET https://backup-forensics.preview.emergentagent.com/api/hr/employee-r
 
 ### Protected Endpoint (Anonymous Rejection)
 ```bash
-curl -X GET https://backup-forensics.preview.emergentagent.com/api/daily-reports
+curl -X GET https://masci-audit-hub.preview.emergentagent.com/api/daily-reports
 
 # Response: 401 Unauthorized
 # {
@@ -570,7 +570,7 @@ curl -X GET https://backup-forensics.preview.emergentagent.com/api/daily-reports
 
 ### Deprecated Endpoint
 ```bash
-curl -X POST https://backup-forensics.preview.emergentagent.com/api/admin/login \
+curl -X POST https://masci-audit-hub.preview.emergentagent.com/api/admin/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@example.com","password":"admin123"}'
 

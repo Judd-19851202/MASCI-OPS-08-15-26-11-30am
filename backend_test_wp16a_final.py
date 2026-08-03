@@ -21,7 +21,7 @@ import json
 import time
 from typing import Dict, Optional
 
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 DISPATCH_CREDS = {
     "email": "cert.dispatch@example.com",

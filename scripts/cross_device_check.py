@@ -20,7 +20,7 @@ from playwright.async_api import async_playwright
 
 BASE = os.environ.get(
     "MASCI_BASE_URL",
-    "https://backup-forensics.preview.emergentagent.com",
+    "https://masci-audit-hub.preview.emergentagent.com",
 )
 ADMIN_PW = "MASCI1982!"
 PM_EMAIL = "chriswright@mascigc.com"

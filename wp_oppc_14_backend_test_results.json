@@ -1,7 +1,7 @@
 {
   "test_suite": "WP-OPPC-14 Operations Control Plane Backend Verification",
   "timestamp": "2026-07-28T22:20:56.233845Z",
-  "base_url": "https://backup-forensics.preview.emergentagent.com",
+  "base_url": "https://masci-audit-hub.preview.emergentagent.com",
   "tests": [
     {
       "test": "Registry endpoint returns 200 with constitutional registry summary",

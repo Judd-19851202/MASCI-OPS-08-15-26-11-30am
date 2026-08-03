@@ -1,7 +1,7 @@
 # MASCI OPS 8 PM/Shop Authorization Policy - Backend/API Regression Verification Report
 
 **Test Date:** 2026-07-24 02:13 UTC  
-**Backend URL:** https://backup-forensics.preview.emergentagent.com/api  
+**Backend URL:** https://masci-audit-hub.preview.emergentagent.com/api  
 **Test Type:** Independent Backend/API Regression Verification (VERIFICATION ONLY - No Code Modifications)  
 **Commit:** c77ef2847bb1
 

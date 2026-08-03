@@ -20,7 +20,7 @@ import requests
 
 API = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://backup-forensics.preview.emergentagent.com",
+    "https://masci-audit-hub.preview.emergentagent.com",
 ).rstrip("/")
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"

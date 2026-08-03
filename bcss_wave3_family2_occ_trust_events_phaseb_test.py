@@ -3,7 +3,7 @@
 BCSS Release 2 Program 2 Wave 3 Family 2 OCC Trust Events Phase B Backend Verification
 
 Verify OCC Trust Events Phase B on Preview only.
-Preview base URL: https://backup-forensics.preview.emergentagent.com
+Preview base URL: https://masci-audit-hub.preview.emergentagent.com
 
 Verification Points:
 1. Authenticate through POST /api/auth/multi-login and obtain admin + directory tokens
@@ -20,7 +20,7 @@ import requests
 import json
 from typing import Dict, Any, List
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials from /app/memory/test_credentials.md

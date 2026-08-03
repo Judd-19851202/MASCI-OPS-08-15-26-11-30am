@@ -431,3 +431,23 @@
 - Closed Phase B with bounded verification evidence: `42/42` Family 3B tests passed locally, independent verification passed in `/app/test_reports/iteration_42.json`, and final backend regression sweep passed `19/19`.
 - Hardened the Family 3B auth gate further to reject multiple portal headers while preserving the required valid directory session pairing.
 - Recorded Phase B latency evidence: list and owner-search improved in preview; summary remained shared-infrastructure dominated.
+
+## 2026-08-03 — WP-18B Executive Architecture Authority Audit package
+
+- Added the 14 required WP-18B artifacts under `/app/memory/`:
+  - `WP18B_MASTER_EXECUTIVE_ARCHITECTURE_AUDIT.md`
+  - `WP18B_AUTHORITY_MATRIX.csv`
+  - `WP18B_SOURCE_OF_TRUTH_MATRIX.csv`
+  - `WP18B_DATA_FLOW_REGISTER.csv`
+  - `WP18B_TRUST_LINE_REGISTER.csv`
+  - `WP18B_DUPLICATION_REGISTER.csv`
+  - `WP18B_CAPABILITY_AND_ENGINE_MAP.csv`
+  - `WP18B_PROJECT_CONTROLS_READINESS_AUDIT.md`
+  - `WP18B_COST_CODE_AUTHORITY_AUDIT.md`
+  - `WP18B_SCHEDULE_AUTHORITY_AUDIT.md`
+  - `WP18B_OPERATOR_EXPERIENCE_AUDIT.md`
+  - `WP18B_RISK_AND_DEPENDENCY_REGISTER.csv`
+  - `WP18B_RECOMMENDED_IMPLEMENTATION_SEQUENCE.md`
+  - `WP18B_FINAL_EXECUTIVE_REPORT.md`
+- Recorded the constitutional conclusions for the 12 executive-requested Project Controls domains: `10` existing reusable/extendable/consolidatable domains and `2` evidence-backed `BUILD_NEW` domains only (`Budget Hierarchy`, `Earned Value`).
+- Completed documentation-only integrity validation: all 14 artifacts exist, cross-references resolve, disposition counts reconcile (`REUSE 1 / EXTEND 8 / CONSOLIDATE 1 / BUILD_NEW 2`), and no implementation work occurred.

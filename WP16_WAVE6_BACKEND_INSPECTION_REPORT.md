@@ -2,7 +2,7 @@
 ## Dispatch & Transportation API Verification
 
 **Date:** 2026-07-30  
-**Base URL:** https://backup-forensics.preview.emergentagent.com  
+**Base URL:** https://masci-audit-hub.preview.emergentagent.com  
 **Inspector:** Testing Agent (E2)  
 **Scope:** W6-001 through W6-010 backend API inspection
 
@@ -44,7 +44,7 @@ Dispatch portal tokens are incorrectly accepted on 6 admin-only transportation e
 **Evidence:**
 ```bash
 curl -H "X-Dispatch-Token: <dispatch_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/admin/transportation/carriers
+  https://masci-audit-hub.preview.emergentagent.com/api/admin/transportation/carriers
 # Returns: 200 OK with full carrier list (91KB response)
 # Expected: 401 Unauthorized
 ```
@@ -72,7 +72,7 @@ The fleet visibility endpoint documented in the inventory (`/api/fleet/visibilit
 **Evidence:**
 ```bash
 curl -H "X-Dispatch-Token: <dispatch_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/fleet/visibility
+  https://masci-audit-hub.preview.emergentagent.com/api/fleet/visibility
 # Returns: 404 {"detail":"Not Found"}
 ```
 
@@ -86,7 +86,7 @@ curl -H "X-Dispatch-Token: <dispatch_token>" \
 The inventory references prior evidence note "WP16-DEF-011 / MaintainX or fleet-GPS degradation" for W6-003. The MaintainX defect coverage endpoint also returns 404:
 ```bash
 curl -H "X-Dispatch-Token: <dispatch_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/integrations/maintainx/defect-coverage
+  https://masci-audit-hub.preview.emergentagent.com/api/integrations/maintainx/defect-coverage
 # Returns: 404 {"detail":"Not Found"}
 ```
 
@@ -113,11 +113,11 @@ Two operations map endpoints return 404 Not Found, preventing dispatch users fro
 **Evidence:**
 ```bash
 curl -H "X-Dispatch-Token: <dispatch_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/operations-map
+  https://masci-audit-hub.preview.emergentagent.com/api/operations-map
 # Returns: 404 {"detail":"Not Found"}
 
 curl -H "X-Dispatch-Token: <dispatch_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/dispatch/motive-posture
+  https://masci-audit-hub.preview.emergentagent.com/api/dispatch/motive-posture
 # Returns: 404 {"detail":"Not Found"}
 ```
 
@@ -138,7 +138,7 @@ The dispatch command center drivers endpoint returns an empty list, preventing t
 **Evidence:**
 ```bash
 curl -H "X-Dispatch-Token: <dispatch_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/dispatch/command/drivers
+  https://masci-audit-hub.preview.emergentagent.com/api/dispatch/command/drivers
 # Returns: 200 OK with {"drivers": []}
 ```
 
@@ -163,7 +163,7 @@ The invite creation endpoint requires `carrier_id` field which was not documente
 ```bash
 curl -X POST -H "X-Admin-Token: <admin_token>" \
   -d '{"carrier_name":"Test","contact_email":"test@example.com","contact_name":"Test"}' \
-  https://backup-forensics.preview.emergentagent.com/api/admin/transportation/invites
+  https://masci-audit-hub.preview.emergentagent.com/api/admin/transportation/invites
 # Returns: 422 {"detail":[{"type":"missing","loc":["body","carrier_id"],"msg":"Field required"}]}
 ```
 
@@ -184,7 +184,7 @@ The orientation certificates endpoint returns an empty list, preventing testing 
 **Evidence:**
 ```bash
 curl -H "X-Admin-Token: <admin_token>" \
-  https://backup-forensics.preview.emergentagent.com/api/admin/transportation/orientation/certificates
+  https://masci-audit-hub.preview.emergentagent.com/api/admin/transportation/orientation/certificates
 # Returns: 200 OK with {"certificates": []}
 ```
 

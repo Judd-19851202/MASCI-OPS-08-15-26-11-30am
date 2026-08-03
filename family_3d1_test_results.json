@@ -8,7 +8,7 @@
     {
       "name": "POST returns dot_expiration and calibration_expiration",
       "passed": true,
-      "details": "asset_id=bdd8687a-423e-4654-a7c3-d0101d5f55b6, dot_expiration=2026-12-31, calibration_expiration=2027-01-15"
+      "details": "asset_id=masci-audit-hub, dot_expiration=2026-12-31, calibration_expiration=2027-01-15"
     },
     {
       "name": "GET returns persisted expiration fields",
@@ -28,7 +28,7 @@
     {
       "name": "Duplicate asset_number rejected with 409",
       "passed": true,
-      "details": "Duplicate correctly rejected: {\"detail\":\"asset_number 'TEST-DUP-6F8BB416' already exists (id=23c45bd4-f792-49cf-bdac-9b6152d8b54e)"
+      "details": "Duplicate correctly rejected: {\"detail\":\"asset_number 'TEST-DUP-6F8BB416' already exists (id=masci-audit-hub)"
     },
     {
       "name": "Create without auth rejected",

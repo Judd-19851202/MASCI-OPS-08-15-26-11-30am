@@ -87,7 +87,7 @@ That drift risked false operator interpretation of live aggregate posture.
 
 Verified on:
 
-- `https://backup-forensics.preview.emergentagent.com/admin/operations-control`
+- `https://masci-audit-hub.preview.emergentagent.com/admin/operations-control`
 
 Confirmed live payload includes:
 

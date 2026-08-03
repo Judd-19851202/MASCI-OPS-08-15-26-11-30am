@@ -24,7 +24,7 @@ Known recent fixes to validate:
 - PDF attachment evidence fallback
 
 Base URLs:
-- External: https://backup-forensics.preview.emergentagent.com
+- External: https://masci-audit-hub.preview.emergentagent.com
 - Local: http://127.0.0.1:8001
 
 Credentials: jaymn.judd@mascigc.com / Maddix123!
@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 import requests
 
 # Backend URLs
-EXTERNAL_URL = "https://backup-forensics.preview.emergentagent.com"
+EXTERNAL_URL = "https://masci-audit-hub.preview.emergentagent.com"
 LOCAL_URL = "http://127.0.0.1:8001"
 
 # Use external URL as primary (as specified in review request)

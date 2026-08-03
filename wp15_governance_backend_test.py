@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, Tuple
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 # Test credentials from /app/memory/test_credentials.md
 CREDENTIALS = {

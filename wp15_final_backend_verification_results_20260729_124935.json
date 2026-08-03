@@ -1,6 +1,6 @@
 {
   "test_run_timestamp": "2026-07-29T12:49:15.899272Z",
-  "base_url": "https://backup-forensics.preview.emergentagent.com",
+  "base_url": "https://masci-audit-hub.preview.emergentagent.com",
   "tests": [
     {
       "test": "1. Multi-login directory session + portal tokens",
@@ -41,7 +41,7 @@
       "status": "PASS",
       "details": {
         "status_code": 200,
-        "endpoint": "https://backup-forensics.preview.emergentagent.com/api/pm/command-center/overview",
+        "endpoint": "https://masci-audit-hub.preview.emergentagent.com/api/pm/command-center/overview",
         "message": "PM governed read with valid X-PM-Token + X-Directory-Token successful"
       },
       "timestamp": "2026-07-29T12:49:21.236028Z"

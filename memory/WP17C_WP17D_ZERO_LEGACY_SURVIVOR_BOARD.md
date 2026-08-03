@@ -156,7 +156,7 @@ A survivor is open until it is either:
 
 ### 2026-08-01 · DevHub Authenticated Visual Certification · BLOCKED_CREDENTIALS
 - Blocked routes: `/dev/login`, `/dev`
-- Exact evidence captured by main agent: `GET /api/dev/check` returned `404 Not Found`; `POST /api/dev/login` returned `404 Not Found` in Preview on `https://backup-forensics.preview.emergentagent.com`
+- Exact evidence captured by main agent: `GET /api/dev/check` returned `404 Not Found`; `POST /api/dev/login` returned `404 Not Found` in Preview on `https://masci-audit-hub.preview.emergentagent.com`
 - Backend code evidence: `/app/backend/server.py` lines `2237-2251` fail closed when developer endpoints are disabled or `DEV_PASSWORD` is missing; the route explicitly raises `404` when `_dev_endpoints_enabled()` is false or `DEV_PASSWORD` is empty
 - Why certification cannot continue: authenticated entry into `/dev` is impossible in this environment, so the actual DevHub surface cannot be opened, visually reviewed, or certified. Only the disabled login shell can be seen.
 - Required environment to unblock: backend Preview environment must define `DEV_PASSWORD` and enable the dev endpoints gate consumed by `_dev_endpoints_enabled()`; only after that can authenticated `/dev` certification proceed.

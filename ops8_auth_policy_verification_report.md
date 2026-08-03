@@ -1,7 +1,7 @@
 # MASCI OPS 8 PM/Shop Authorization Policy Verification Report
 
 **Test Date:** 2026-07-24  
-**Environment:** https://backup-forensics.preview.emergentagent.com  
+**Environment:** https://masci-audit-hub.preview.emergentagent.com  
 **Test Type:** Independent Frontend/Browser Verification  
 **Scope:** Authorization policy repair for multi-portal access control
 
@@ -238,5 +238,5 @@ The MASCI OPS 8 PM/Shop authorization policy repair has been successfully verifi
 
 **Tested By:** Testing Agent (E2)  
 **Review Request:** MASCI OPS 8 PM/Shop Authorization Policy Repair  
-**Test Environment:** Preview (https://backup-forensics.preview.emergentagent.com)  
+**Test Environment:** Preview (https://masci-audit-hub.preview.emergentagent.com)  
 **Test Date:** 2026-07-24 02:01-02:08 UTC

@@ -29,7 +29,7 @@ async def main():
         try:
             # Step 1: Login
             print("\n[STEP 1] Logging in with PM credentials...")
-            await page.goto("https://backup-forensics.preview.emergentagent.com/pm/login")
+            await page.goto("https://masci-audit-hub.preview.emergentagent.com/pm/login")
             await page.wait_for_selector('input[type="email"]', timeout=15000)
             
             await page.fill('input[type="email"]', "cert.pm@example.com")
@@ -65,7 +65,7 @@ async def main():
                 try:
                     print(f"\n[{idx}/{len(routes)}] {name}")
                     
-                    await page.goto(f"https://backup-forensics.preview.emergentagent.com{route}", 
+                    await page.goto(f"https://masci-audit-hub.preview.emergentagent.com{route}", 
                                   wait_until='networkidle', timeout=15000)
                     await asyncio.sleep(1)
                     

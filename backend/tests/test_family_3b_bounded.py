@@ -22,7 +22,7 @@ import requests
 from dotenv import dotenv_values
 from pymongo import MongoClient
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com")
 API = f"{BASE_URL}/api"
 
 PORTAL_RESPONSE_KEY = {

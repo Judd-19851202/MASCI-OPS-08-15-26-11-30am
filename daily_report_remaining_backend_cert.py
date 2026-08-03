@@ -28,7 +28,7 @@ import uuid
 from datetime import datetime, timezone
 import requests
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 def log_test(test_name, status, details=""):
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -751,7 +751,7 @@ def test_anonymous_submission_safety():
 def main():
     print("=" * 80)
     print("Daily Report Remaining Backend Certification Gates")
-    print("Target: https://backup-forensics.preview.emergentagent.com/api")
+    print("Target: https://masci-audit-hub.preview.emergentagent.com/api")
     print("=" * 80)
     
     all_results = {

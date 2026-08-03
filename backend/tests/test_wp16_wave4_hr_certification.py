@@ -22,7 +22,7 @@ import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
-    BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+    BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 # Test IDs from main agent verification
 DAILY_REPORT_ID = "713ba03a-0e7c-4239-915d-a4b0ae82b220"

@@ -5,7 +5,7 @@ Backend Sanity Check for WP-17C/WP-17D Shared Table Batch
 Focused backend verification for the completed WP-17C/WP-17D shared table batch.
 Tests only the impacted backend paths after the LastActivityLine portal fix.
 
-Base URL: https://backup-forensics.preview.emergentagent.com
+Base URL: https://masci-audit-hub.preview.emergentagent.com
 Preview credential: ops8-admin-pm-preview@example.com / AdminPmOps8!
 Login endpoint: POST /api/auth/multi-login
 
@@ -28,7 +28,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials from review request
 CREDENTIALS = {

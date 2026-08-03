@@ -17,7 +17,7 @@ PUBLIC_URL = os.environ.get(
     "PUBLIC_FRONTEND_URL",
     os.environ.get(
         "REACT_APP_BACKEND_URL",
-        "https://backup-forensics.preview.emergentagent.com",
+        "https://masci-audit-hub.preview.emergentagent.com",
     ),
 )
 

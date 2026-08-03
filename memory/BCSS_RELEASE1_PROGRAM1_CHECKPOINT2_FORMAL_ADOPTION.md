@@ -180,7 +180,7 @@ Skipped tests were truthful and non-fabricated:
 - `GET http://127.0.0.1:8001/api/health/full` → `200`, `ok=true`, `backup_recent=true`
 
 ## 19. Route-specific operator smoke evidence
-Preview URL: `https://backup-forensics.preview.emergentagent.com`
+Preview URL: `https://masci-audit-hub.preview.emergentagent.com`
 
 ### `/admin/system`
 - viewport: desktop `1920x800`

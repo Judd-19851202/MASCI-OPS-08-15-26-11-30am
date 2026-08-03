@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Batch 1 Final Backend/API Verification
-READ-ONLY verification against https://backup-forensics.preview.emergentagent.com/api
+READ-ONLY verification against https://masci-audit-hub.preview.emergentagent.com/api
 NO CODE MODIFICATIONS
 """
 
@@ -10,7 +10,7 @@ import json
 from typing import Dict, List, Tuple
 from datetime import datetime
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials from review request
 CREDENTIALS = {

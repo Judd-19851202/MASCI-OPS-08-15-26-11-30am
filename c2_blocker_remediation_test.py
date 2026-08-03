@@ -16,7 +16,7 @@ Test Requirements:
 3. Validate backend evidence surfaces truthful status on preview capture
 4. Verify no deployment/readiness/backup evidence incorrectly downgraded
 
-Target: https://backup-forensics.preview.emergentagent.com
+Target: https://masci-audit-hub.preview.emergentagent.com
 """
 
 import json
@@ -24,7 +24,7 @@ import requests
 import sys
 from datetime import datetime
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API = f"{BASE_URL}/api"
 
 # Credentials from review request

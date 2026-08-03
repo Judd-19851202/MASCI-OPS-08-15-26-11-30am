@@ -53,7 +53,7 @@ TEST_FIXTURE_FILE = REPO_ROOT / "backend/tests/test_hub_banners_iter65.py"
 
 BASE_URL = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://backup-forensics.preview.emergentagent.com",
+    "https://masci-audit-hub.preview.emergentagent.com",
 ).rstrip("/")
 
 

@@ -7,7 +7,7 @@ import requests
 import time
 import sys
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 def test_stability_smoke():

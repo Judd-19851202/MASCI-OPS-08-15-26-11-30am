@@ -11,7 +11,7 @@ Expected state:
 - special_case_infrastructure = 52 (documented constitutional exemptions)
 - Local certification bundle: 152 passed
 
-Preview URL: https://backup-forensics.preview.emergentagent.com
+Preview URL: https://masci-audit-hub.preview.emergentagent.com
 
 Credentials:
 - Super admin: jaymn.judd@mascigc.com / Maddix123!
@@ -37,7 +37,7 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 # Test credentials
 CREDENTIALS = {

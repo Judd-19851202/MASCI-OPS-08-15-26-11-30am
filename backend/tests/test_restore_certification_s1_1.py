@@ -28,7 +28,7 @@ from datetime import datetime
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
     # Fallback for local testing
-    BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+    BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 # Test credentials from /app/memory/test_credentials.md
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"

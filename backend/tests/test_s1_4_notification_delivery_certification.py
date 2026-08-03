@@ -10,8 +10,8 @@ Verifies the scoped Preview-only override mechanism for certification runs:
 6. Webhook reconciliation logic remains intact
 
 Run IDs from main agent context:
-- Latest live certification run: run_id=s1-4-cert-e217a5ffd8, record_id=2e690268-7dba-42d7-aeea-c1d858797c91, doc_id=DR-2026-03557
-- Prior non-live stale-code run: run_id=s1-4-cert-f470927a9b, record_id=369cde60-8e29-4e0c-b7e2-3c93cec2eef9
+- Latest live certification run: run_id=s1-4-cert-e217a5ffd8, record_id=masci-audit-hub, doc_id=DR-2026-03557
+- Prior non-live stale-code run: run_id=s1-4-cert-f470927a9b, record_id=masci-audit-hub
 """
 import os
 import pytest
@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
-    BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+    BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 
 # Known certification run IDs from main agent context
 LATEST_LIVE_RUN_ID = "s1-4-cert-e217a5ffd8"

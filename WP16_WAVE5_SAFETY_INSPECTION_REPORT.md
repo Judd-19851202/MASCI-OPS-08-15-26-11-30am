@@ -3,7 +3,7 @@
 **Date:** 2026-07-30  
 **Inspector:** Testing Agent (E2)  
 **Scope:** Backend API inspection for Wave 5 Safety Certification (W5-001 to W5-052)  
-**Base URL:** https://backup-forensics.preview.emergentagent.com  
+**Base URL:** https://masci-audit-hub.preview.emergentagent.com  
 **Inspection Type:** READ-ONLY verification, no code changes, no data writes
 
 ---

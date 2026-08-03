@@ -14,7 +14,7 @@ import sys
 import time
 from datetime import datetime
 
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials from test_credentials.md
 CERT_FOREMAN_EMAIL = "cert.foreman@example.com"

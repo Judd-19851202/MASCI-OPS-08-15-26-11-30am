@@ -2,7 +2,7 @@
 """
 Daily Report AI + Photo Intelligence Bounded Repair - Backend Verification
 
-Tests the following endpoints on preview (https://backup-forensics.preview.emergentagent.com):
+Tests the following endpoints on preview (https://masci-audit-hub.preview.emergentagent.com):
 1. POST /api/daily-reports/photo-intelligence/draft
 2. POST /api/daily-reports/summary/draft
 3. POST /api/daily-reports
@@ -28,7 +28,7 @@ from pathlib import Path
 import requests
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials (super admin)

@@ -376,7 +376,7 @@ async def verify_auth_and_health():
     all_pass = True
     
     # Test anonymous access is rejected
-    api_url = "https://backup-forensics.preview.emergentagent.com"
+    api_url = "https://masci-audit-hub.preview.emergentagent.com"
     try:
         urllib.request.urlopen(f"{api_url}/api/admin/platform-trust/validate", timeout=15)
         print_fail("Anonymous access NOT rejected (should return 401/403)")
@@ -431,7 +431,7 @@ async def verify_upstream_owner_reference():
     import urllib.request
     
     all_pass = True
-    api_url = "https://backup-forensics.preview.emergentagent.com"
+    api_url = "https://masci-audit-hub.preview.emergentagent.com"
     
     # Test /api/admin/platform/status endpoint exists (upstream owner)
     try:

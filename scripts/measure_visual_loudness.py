@@ -22,7 +22,7 @@ will fail builds whose portal-wide loudness average regresses.
 
 Usage:
   python scripts/measure_visual_loudness.py \\
-    --base-url https://backup-forensics.preview.emergentagent.com \\
+    --base-url https://masci-audit-hub.preview.emergentagent.com \\
     --routes /admin /pm /pm/daily \\
     --iteration iter437-iv-beta-2
 """

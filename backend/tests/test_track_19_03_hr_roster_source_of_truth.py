@@ -30,7 +30,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 load_dotenv("/app/backend/.env")
 API = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://backup-forensics.preview.emergentagent.com",
+    "https://masci-audit-hub.preview.emergentagent.com",
 ).rstrip("/")
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]

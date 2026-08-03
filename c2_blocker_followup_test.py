@@ -12,7 +12,7 @@ import sys
 import time
 from datetime import datetime
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API = f"{BASE_URL}/api"
 
 # Super admin credentials for record retrieval

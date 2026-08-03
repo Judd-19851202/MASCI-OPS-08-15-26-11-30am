@@ -402,3 +402,34 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 - Family 3D-1 direct-consumer UI parity for `inspection_expiration`
 - Family 3D-1 legacy overlap containment / migration items
 - Family 1 legacy verification modernization
+
+## 2026-08-03 — Governing roadmap after WP-18B constitutional audit
+
+### Current execution state
+
+- WP-17 executive closeout: **LOCKED**
+- WP-18A discovery audit: **COMPLETE**
+- WP-18B executive architecture authority audit: **COMPLETE**
+- WP-18C implementation: **NOT AUTHORIZED / BLOCKED**
+
+### Governing sequence
+
+1. Accept the WP-18B constitutional package
+2. Preserve all reuse-first decisions in `WP18B_MASTER_EXECUTIVE_ARCHITECTURE_AUDIT.md`
+3. If and only if later authorized, execute WP-18C in this order:
+   - authority freeze
+   - cost-code spine lock
+   - schedule / lookahead / forecast formalization
+   - trust-line repair
+   - resource and equipment federation connection
+   - Monday rhythm connection
+   - executive KPI consolidation
+   - Budget Hierarchy
+   - Earned Value
+
+### Immediate backlog by priority
+
+- **P0:** Executive review of the completed WP-18B package
+- **P0:** Preserve the documented constitutional owners and never-rebuild engines
+- **P1:** If later authorized, begin WP-18C from the approved sequence only
+- **P2:** No additional future work authorized beyond the documented sequence

@@ -18,7 +18,7 @@ import requests
 import time
 from pathlib import Path
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com").rstrip("/")
 REAL_IMAGES_DIR = Path("/app/test_artifacts/daily_report_fixtures/rcv1/real_images")
 
 # Test credentials

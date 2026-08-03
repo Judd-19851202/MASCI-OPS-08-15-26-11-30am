@@ -5,7 +5,7 @@ MASCI OPS 8 Focused Backend Certification Sweep
 Tests authentication + session security, dual-token contract validation,
 backup integrity visibility, and legacy endpoint disposition.
 
-Preview Environment: https://backup-forensics.preview.emergentagent.com
+Preview Environment: https://masci-audit-hub.preview.emergentagent.com
 
 Test Scope:
 1. Authentication + session security
@@ -48,7 +48,7 @@ import requests
 from datetime import datetime
 
 # Backend URL from environment
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com").rstrip("/")
 
 # Test credentials from review request
 CREDENTIALS = {

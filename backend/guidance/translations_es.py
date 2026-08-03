@@ -978,7 +978,7 @@ TRANSLATIONS_ES: dict[str, dict] = {
         "body_es": [
             {"type": "p", "text": "Casi todos los formularios de campo en MASCI se pueden llenar sin iniciar sesión — basta con escanear el código QR del cartel o usar el enlace público. Solo necesita inicio de sesión para los portales (RH, Seguridad, Taller, Despacho, PM, Admin, Liderazgo de Campo)."},
             {"type": "steps", "items": [
-                "Abra https://backup-forensics.preview.emergentagent.com en su teléfono o computadora.",
+                "Abra https://masci-audit-hub.preview.emergentagent.com en su teléfono o computadora.",
                 "Toque 'Iniciar sesión' arriba a la derecha.",
                 "Escriba su correo de trabajo y su contraseña.",
                 "Si es la primera vez, le pedirá cambiar la contraseña.",

@@ -1,7 +1,7 @@
 # Daily Report Anonymous Public Certification Pass - Summary
 
 **Test Date:** 2026-07-23  
-**Test URL:** https://backup-forensics.preview.emergentagent.com/daily/submit  
+**Test URL:** https://masci-audit-hub.preview.emergentagent.com/daily/submit  
 **Scope:** Anonymous public field workflow - NO authentication required  
 **Test Type:** Strict anonymous-public certification pass with 15 certification cases
 
@@ -272,6 +272,6 @@ The Daily Report anonymous public workflow is **FULLY FUNCTIONAL** with proper d
 
 **Test Completed:** 2026-07-23T19:18:57Z  
 **Test Duration:** ~3 minutes  
-**Test Environment:** Preview (https://backup-forensics.preview.emergentagent.com)  
+**Test Environment:** Preview (https://masci-audit-hub.preview.emergentagent.com)  
 **Test Framework:** Python Playwright  
 **Test Agent:** Testing Agent (E2)

@@ -20,7 +20,7 @@ Test Scope:
 11. Confirm no evidence that user identity records or portal assignments changed
 12. Look for any remaining 401s or auth regressions
 
-Backend: https://backup-forensics.preview.emergentagent.com
+Backend: https://masci-audit-hub.preview.emergentagent.com
 Frontend: http://127.0.0.1:3000 (not tested - backend only)
 """
 
@@ -31,7 +31,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 
 # Backend URL
-BACKEND_URL = "https://backup-forensics.preview.emergentagent.com"
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials from /app/memory/test_credentials.md

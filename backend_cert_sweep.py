@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Expanded READ-ONLY Backend/API Certification Sweep
-Target: https://backup-forensics.preview.emergentagent.com/api
+Target: https://masci-audit-hub.preview.emergentagent.com/api
 Purpose: Reclassify initial defects and expand backend surface coverage
 """
 
@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
-BASE_URL = "https://backup-forensics.preview.emergentagent.com/api"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 CREDENTIALS = {

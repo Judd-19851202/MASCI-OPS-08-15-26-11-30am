@@ -3,7 +3,7 @@
 WP-16 Wave 5 Safety Certification - Backend API Inspection
 Inspection-only. No code changes. No data writes.
 
-Base URL: https://backup-forensics.preview.emergentagent.com
+Base URL: https://masci-audit-hub.preview.emergentagent.com
 Scope: Verify Safety login, token-backed API access, permissions, operational workflows,
        life-safety/compliance integrity for W5-001 to W5-052.
 """
@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple, Optional
 from datetime import datetime
 
 # Base configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials from /app/memory/test_credentials.md
