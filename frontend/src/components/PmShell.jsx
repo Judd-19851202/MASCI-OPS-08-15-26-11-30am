@@ -31,7 +31,7 @@ export default function PmShell({
       portalRole={t("Project Management")}
       portalSwitcherCurrent="pm"
       pageTitle={typeof title === "string" ? t(title) : title}
-      subtitle={subtitle ? t(subtitle) : t("Project execution, blockers, due work, and field coordination in one shared workspace.")}
+      subtitle={subtitle ? t(subtitle) : t("Track project work, blockers, due dates, and field coordination in one place.")}
       sideNav={<SideNavV2 />}
       onSignOut={signOut}
       experienceTone="pm"
@@ -42,10 +42,10 @@ export default function PmShell({
           <section className="wp17-mission-banner" data-testid="pm-section-banner">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+                <div className="wp17-kicker text-white/70">{t("Today's focus")}</div>
                 <h2 className="mt-2 font-display text-xl font-black text-white">{t("Turn project noise into the next useful action.")}</h2>
                 <p className="mt-2 max-w-3xl text-sm text-white/80">
-                  {t("PM work now shares the same shell, hierarchy, and responsive behavior across details, lists, forms, and dashboards.")}
+                  {t("See what needs attention, open the right record, and keep the job moving.")}
                 </p>
               </div>
             </div>

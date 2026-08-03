@@ -188,10 +188,10 @@ export default function SafetyHubV2() {
         <section className="wp17-mission-banner" data-testid="safety-hub-v2-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <div className="wp17-kicker text-white/70">Today’s focus</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">Reduce field risk by turning incidents, CAPAs, and compliance gaps into the next visible action.</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Safety now shares the same shell, navigation system, and glass/grid direction as the broader platform while keeping operational urgency clear.
+                See incidents, corrective actions, and gaps early so the field gets answers fast.
               </p>
             </div>
           </div>

@@ -73,10 +73,10 @@ export default function LeadershipHubV2() {
         <section className="wp17-mission-banner" data-testid="leadership-hub-v2-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <div className="wp17-kicker text-white/70">Today’s focus</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">Show leadership only the threats that need intervention, not a second admin portal.</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Leadership and field attention now sit inside the same shared shell with clearer context and lower noise.
+                See the biggest operational threats quickly and open the work that clears them.
               </p>
             </div>
           </div>

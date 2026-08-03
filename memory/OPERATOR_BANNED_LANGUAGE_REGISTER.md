@@ -18,6 +18,11 @@ Operator-facing MASCI screens must use business language only. Internal implemen
 - Audit
 - Developer terminology
 - Engineering terminology
+- Same shell
+- Shared workspace
+- Navigation system
+- Responsive behavior
+- Information hierarchy
 - Internal project names
 - Code names
 
@@ -31,6 +36,9 @@ Operator-facing MASCI screens must use business language only. Internal implemen
 - Preview → Review / draft / staged
 - Fixture → Record / example
 - Audit → History / review / activity history
+- Same shell / shared workspace → One place / work area
+- Navigation system / information hierarchy → Clear path / clear priorities
+- Responsive behavior → Mobile and desktop support
 
 ## Constitutional Rule
 Any screen that looks like an engineering, QA, certification, debugging, or developer utility must either:

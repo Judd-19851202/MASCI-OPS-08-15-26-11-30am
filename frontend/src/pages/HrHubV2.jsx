@@ -244,10 +244,10 @@ export default function HrHubV2() {
         <section className="wp17-mission-banner" data-testid="hr-page-shell-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Portal mission</div>
+              <div className="wp17-kicker text-white/70">Today’s focus</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">Keep the workforce ready by showing attention, next actions, and the shortest path to real records.</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                HR is now converging on the same platform language as Admin and PM: one shell, one hierarchy, and less operational noise.
+                See requests, renewals, and record issues in one place so HR can act fast.
               </p>
             </div>
             <div className="wp17-chip-row">

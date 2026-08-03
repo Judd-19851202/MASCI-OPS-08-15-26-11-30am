@@ -384,9 +384,14 @@ const ES = {
   "Sign-in credentials.": "Credenciales de inicio de sesión.",
   "Project execution, blockers, due work, and field coordination in one canonical shell.":
     "Ejecución de proyectos, bloqueos, trabajo pendiente y coordinación de campo en un único shell canónico.",
+  "Track project work, blockers, due dates, and field coordination in one place.":
+    "Sigue el trabajo del proyecto, los bloqueos, las fechas límite y la coordinación de campo en un solo lugar.",
+  "Today's focus": "Enfoque de hoy",
   "Turn project noise into the next useful action.": "Convierte el ruido del proyecto en la siguiente acción útil.",
   "PM work now shares the same shell, hierarchy, and responsive behavior across details, lists, forms, and dashboards.":
     "El trabajo de PM ahora comparte el mismo shell, jerarquía y comportamiento responsive en detalles, listas, formularios y tableros.",
+  "See what needs attention, open the right record, and keep the job moving.":
+    "Ve lo que necesita atención, abre el registro correcto y mantén el trabajo avanzando.",
   "Back to PM Overview": "Volver al resumen de PM",
   "Act on risk before it spreads into the field.": "Actúa sobre el riesgo antes de que se extienda al campo.",
   "Safety surfaces now follow the same shell, navigation hierarchy, and glass/grid system as the rest of the platform while keeping operational risk clear.":
@@ -395,6 +400,16 @@ const ES = {
     "Mantén a la fuerza laboral lista con menos clics y un contexto operativo más claro.",
   "Every HR workflow should now read like the same platform as Admin and PM: one shell, one navigation system, one information hierarchy.":
     "Cada flujo de RR. HH. debe leerse ahora como la misma plataforma que Administración y PM: un solo shell, un solo sistema de navegación y una sola jerarquía de información.",
+  "See who needs action, open the right record, and keep the workforce ready.":
+    "Ve quién necesita acción, abre el registro correcto y mantén a la fuerza laboral lista.",
+  "See requests, renewals, and record issues in one place so HR can act fast.":
+    "Ve solicitudes, renovaciones y problemas de registros en un solo lugar para que RR. HH. actúe rápido.",
+  "See the next safety action clearly, open the right record, and close the risk.":
+    "Ve claramente la siguiente acción de seguridad, abre el registro correcto y cierra el riesgo.",
+  "See incidents, corrective actions, and gaps early so the field gets answers fast.":
+    "Ve incidentes, acciones correctivas y brechas a tiempo para que el campo reciba respuestas rápido.",
+  "See the biggest operational threats quickly and open the work that clears them.":
+    "Ve rápidamente las mayores amenazas operativas y abre el trabajo que las resuelve.",
   "Search assets, employees, events…": "Buscar activos, empleados y eventos…",
   "No matches for": "No hay coincidencias para",
   "Add / Update": "Agregar / Actualizar",
@@ -531,6 +546,11 @@ const ES = {
   "Mission Control →": "Control de Misión →",
   "Keep hauling moving by surfacing live exceptions before they stall the board.": "Mantén el acarreo en movimiento mostrando excepciones en vivo antes de que detengan el tablero.",
   "Dispatch is now aligned to the same shell and visual language as Transportation, Admin, and PM while keeping live board work first.": "Despacho ahora está alineado al mismo shell y lenguaje visual que Transporte, Administración y PM, manteniendo el tablero en vivo como prioridad.",
+  "See live exceptions quickly, act on the next move, and keep loads moving.": "Ve rápidamente las excepciones en vivo, actúa sobre el siguiente movimiento y mantén las cargas en marcha.",
+  "Mission control, live operations, carriers, drivers, fleet, compliance, and onboarding in one place.": "Control de misión, operaciones en vivo, transportistas, conductores, flota, cumplimiento e incorporación en un solo lugar.",
+  "Run hauling operations with clear assignments, live exceptions, and direct next steps.": "Opera el acarreo con asignaciones claras, excepciones en vivo y próximos pasos directos.",
+  "See carriers, drivers, fleet, and compliance work in one place with the right access for each role.": "Ve transportistas, conductores, flota y trabajo de cumplimiento en un solo lugar con el acceso correcto para cada rol.",
+  "Review active cases, priorities, and next steps in one place.": "Revisa casos activos, prioridades y próximos pasos en un solo lugar.",
   "Pick who's driving and which truck. Subs and rentals aren't in the system yet — use Add temporary if needed.": "Elige quién conduce y qué camión. Los subcontratos y alquileres todavía no están en el sistema; usa Agregar temporal si es necesario.",
   "Back to Dispatch": "Volver a Despacho",
   "Haul Ledger": "Libro de Acarreos",
@@ -8432,6 +8452,8 @@ const ES = {
   "Asset Care & Readiness": "Cuidado y preparación del activo",
   "Return equipment to service with fewer clicks and clearer recovery priorities.": "Devuelva el equipo al servicio con menos clics y prioridades de recuperación más claras.",
   "Shop operations now share the same shell language as the rest of the platform while keeping maintenance, inspection, and recovery work visible first.": "Las operaciones del taller ahora comparten el mismo lenguaje de interfaz que el resto de la plataforma mientras mantienen visibles primero el mantenimiento, la inspección y el trabajo de recuperación.",
+  "See maintenance, inspection, and recovery work clearly so equipment gets back in service faster.": "Ve con claridad el trabajo de mantenimiento, inspección y recuperación para que el equipo vuelva al servicio más rápido.",
+  "See crew tasks, accountability, and dispatch updates clearly so the day keeps moving.": "Ve con claridad las tareas de la cuadrilla, la rendición de cuentas y las actualizaciones de despacho para que el día siga avanzando.",
   "Unassigned / Unknown": "Sin asignar / desconocido",
   "Next:": "Siguiente:",
   "Shop review": "Revisión del taller",

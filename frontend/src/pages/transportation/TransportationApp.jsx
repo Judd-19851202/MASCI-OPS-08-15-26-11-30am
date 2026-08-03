@@ -63,7 +63,7 @@ export default function TransportationApp() {
       portalRole={t("Transportation Operations")}
       portalSwitcherCurrent="dispatch"
       pageTitle={t("Transportation Operations")}
-      subtitle={t("Mission control, live operations, carriers, drivers, fleet, compliance, and onboarding in one governed shell.")}
+      subtitle={t("Mission control, live operations, carriers, drivers, fleet, compliance, and onboarding in one place.")}
       sideNav={effectiveSideNav}
       experienceTone="transportation"
     >
@@ -71,10 +71,10 @@ export default function TransportationApp() {
         <section className="wp17-mission-banner" data-testid="txops-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Run hauling operations without shell drift, auth confusion, or dead-end navigation.")}</h2>
+              <div className="wp17-kicker text-white/70">{t("Today's focus")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Run hauling operations with clear assignments, live exceptions, and direct next steps.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                {t("Transportation now uses the same canonical shell language as the rest of the platform while preserving role-based visibility for dispatch and admin users.")}
+                {t("See carriers, drivers, fleet, and compliance work in one place with the right access for each role.")}
               </p>
             </div>
           </div>

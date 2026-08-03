@@ -703,10 +703,10 @@ export default function ShopHubV2() {
         <section className="wp17-mission-banner" data-testid="shop-hub-v2-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <div className="wp17-kicker text-white/70">{t("Today's focus")}</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">{t("Return equipment to service with fewer clicks and clearer recovery priorities.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                {t("Shop operations now share the same shell language as the rest of the platform while keeping maintenance, inspection, and recovery work visible first.")}
+                {t("See maintenance, inspection, and recovery work clearly so equipment gets back in service faster.")}
               </p>
             </div>
           </div>

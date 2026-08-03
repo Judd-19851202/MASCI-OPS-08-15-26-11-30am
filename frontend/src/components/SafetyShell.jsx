@@ -46,10 +46,10 @@ export default function SafetyShell({
           <section className="wp17-mission-banner" data-testid="safety-page-shell-banner">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+                <div className="wp17-kicker text-white/70">{t("Today's focus")}</div>
                 <h2 className="mt-2 font-display text-xl font-black text-white">{t("Act on risk before it spreads into the field.")}</h2>
                 <p className="mt-2 max-w-3xl text-sm text-white/80">
-                  {t("Safety surfaces now follow the same shell, navigation hierarchy, and glass/grid system as the rest of the platform while keeping operational risk clear.")}
+                  {t("See the next safety action clearly, open the right record, and close the risk.")}
                 </p>
               </div>
               <div className="wp17-chip-row">

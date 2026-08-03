@@ -142,10 +142,10 @@ export default function FieldLeadershipPortalDashboard() {
         <section className="wp17-mission-banner" data-testid="fl-portal-mission-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
+              <div className="wp17-kicker text-white/70">{t("Today's focus")}</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">{t("Support field leaders with the next crew-facing action, not admin noise.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                {t("Field Leadership now lives in the same shell family as the rest of the platform while keeping dispatch visibility, accountability, and workflow launchers obvious.")}
+                {t("See crew tasks, accountability, and dispatch updates clearly so the day keeps moving.")}
               </p>
             </div>
           </div>
