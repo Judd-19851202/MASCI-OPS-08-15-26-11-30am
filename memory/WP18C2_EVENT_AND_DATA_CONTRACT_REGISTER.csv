@@ -1,0 +1,8 @@
+event_key,producer,authority_owner,consumers,idempotency_key,operator_visible_consequence,wp18c2_status
+project_pay_item.created,project_controls_authority,project_pay_item_registry,"pm_project_controls|work_ledger|operator_audit",project_number:pay_item_id:version,"Pay item appears in PM project controls.",Implemented
+project_pay_item.mapping_review_required,project_controls_authority,project_controls_review_queue,"admin_project_controls|pm_project_controls",project_number:pay_item_id:review_type,"Mapping needs review before it is treated as governed.",Implemented
+daily_report.work_blocks_derived,daily_reports,daily_reports,"work_ledger|pm_project_controls|crew_intelligence",report_id:work_blocks_version,"Work blocks become visible in the report and PM views.",Implemented
+crew_pattern.observed,crew_intelligence,project_controls_crew_observations,"pm_project_controls|admin_project_controls",project_number:source_record_id,"Crew suggestion becomes explainable and reviewable.",Implemented
+crew.confirmed,crew_intelligence,project_controls_confirmed_crews,"pm_project_controls|daily_reports",project_number:crew_id:version,"Confirmed crew becomes selectable and historically traceable.",Implemented
+lookahead.published,project_controls_authority,project_controls_lookaheads,"pm_project_controls|monday_review",project_number:lookahead_id:published_at,"Two-week lookahead is visible as the PM working plan.",Implemented
+project.lifecycle_changed,project_controls_authority,project_controls_project_lifecycle,"pm_project_controls|admin_project_controls|operator_audit",project_number:lifecycle_version,"Project lifecycle and archive state change without deleting history.",Implemented

@@ -987,8 +987,9 @@ def _work_block_summary(blocks: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
-async def sync_work_blocks_for_report(db, report: Dict[str, Any]) -> Dict[str, Any]:
-    await ensure_project_controls_foundation(db)
+async def sync_work_blocks_for_report(db, report: Dict[str, Any], *, foundation_ready: bool = False) -> Dict[str, Any]:
+    if not foundation_ready:
+        await ensure_project_controls_foundation(db)
     blocks = derive_work_blocks_from_report(report)
     summary = _work_block_summary(blocks)
     report_id = _clean(report.get("id") or report.get("doc_id"))
@@ -1077,8 +1078,9 @@ def _derive_crew_observation(report: Dict[str, Any]) -> Optional[Dict[str, Any]]
     }
 
 
-async def sync_crew_observation_for_report(db, report: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    await ensure_project_controls_foundation(db)
+async def sync_crew_observation_for_report(db, report: Dict[str, Any], *, foundation_ready: bool = False) -> Optional[Dict[str, Any]]:
+    if not foundation_ready:
+        await ensure_project_controls_foundation(db)
     observation = _derive_crew_observation(report)
     if not observation:
         return None
@@ -1413,6 +1415,7 @@ async def get_admin_project_controls_overview(db) -> Dict[str, Any]:
 
 async def run_project_controls_backfill(db, *, force: bool = False) -> Dict[str, Any]:
     await _ensure_indexes(db)
+    await _seed_work_types(db)
     run_id = f"wp18c2-backfill:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
     ledger_reports = 0
     crew_observations = 0
@@ -1423,7 +1426,7 @@ async def run_project_controls_backfill(db, *, force: bool = False) -> Dict[str,
         return _sanitize(last_run)
 
     async for report in db.daily_reports.find({}, {"_id": 0}).sort("report_date", -1):
-        sync_result = await sync_work_blocks_for_report(db, report)
+        sync_result = await sync_work_blocks_for_report(db, report, foundation_ready=True)
         report_patch = {
             "work_blocks": sync_result["work_blocks"],
             "work_block_summary": sync_result["work_block_summary"],
@@ -1432,7 +1435,7 @@ async def run_project_controls_backfill(db, *, force: bool = False) -> Dict[str,
         }
         await db.daily_reports.update_one({"id": report.get("id")}, {"$set": report_patch})
         ledger_reports += 1
-        obs = await sync_crew_observation_for_report(db, {**report, **report_patch})
+        obs = await sync_crew_observation_for_report(db, {**report, **report_patch}, foundation_ready=True)
         if obs:
             crew_observations += 1
 

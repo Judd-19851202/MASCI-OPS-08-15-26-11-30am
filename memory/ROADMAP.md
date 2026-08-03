@@ -1,3 +1,24 @@
+# 2026-08-03 — WP-18C2 closeout roadmap state
+
+## Current top priority
+
+- **WP-18C2 is complete and closed GO.**
+- **WP-18C3 Budget Hierarchy is the next separately authorized package.**
+- **The new authority foundation (work types, pay items, mappings, lookahead, lifecycle, crews, Daily Report work blocks, work ledger) must now be preserved as the basis for later packages.**
+
+## P0
+- preserve the WP18C2 authority boundaries exactly as implemented
+- keep project pay items separate from enterprise work types
+- keep Daily Reports as field-actual authority and schedule truth separate
+- begin WP-18C3 only as Budget Hierarchy, not as a broad rebuild
+
+## P1
+- deepen operator workflows on the live project-controls surfaces now that authority boundaries are implemented
+- expand deterministic historical linkage only when stronger evidence is available, without fabricating contract/schedule relationships
+
+## P2
+- no Earned Value implementation until its separate package is authorized after budget prerequisites
+
 # 2026-08-03 — WP-18C1 closeout roadmap state
 
 ## Current top priority

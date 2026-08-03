@@ -1,3 +1,14 @@
+# 2026-08-03 — WP-18C2 Authority, Source-of-Truth & Operational Ledger Foundation
+
+- Added backend foundation in `services/project_controls_authority.py` and exposed admin/PM authority routes in `routes/enterprise_governance.py`.
+- Extended `routes/daily_reports.py` with governed `work_blocks` support plus additive work-ledger / crew-observation synchronization.
+- Added new operator/admin routes `/pm/project-controls` and `/admin/governance/project-controls`, plus sidebar discoverability.
+- Added Daily Report work-block preview/detail surfaces without rebuilding the Daily Report workflow.
+- Runtime counts at closeout: `16` enterprise work types, `1` project pay item, `1` approved governed mapping, `1` lookahead, `1` lifecycle record, `1` confirmed crew, `2` crew observations, `178` work-ledger rows.
+- Completed compatibility closeout: `3367 / 3367` Daily Reports now carry `work_blocks_version = wp18c2.v1`; `2723` untouched historical reports were zero-block stamped instead of guessed.
+- Verification passed: new backend WP18C2 unit tests `3 passed`, manual live API verification passed, archive/restore and PM scope denial passed, and testing agent report `/app/test_reports/iteration_111.json` passed overall.
+- Final WP-18C2 closeout result: **GO**. Recommendation for WP-18C3: **Go to begin the separate Budget Hierarchy package only after accepting WP18C2 as the active authority foundation.**
+
 # 2026-08-03 — WP-18C1 Enterprise Hierarchy Foundation
 
 - Implemented the additive enterprise hierarchy foundation in code with a new backend service and hierarchy APIs plus a governed admin page at `/admin/governance/organization`.

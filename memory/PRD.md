@@ -1,5 +1,42 @@
 # PRD
 
+## 2026-08-03 — WP-18C2 Authority, Source-of-Truth & Operational Ledger Foundation
+
+### Governing implementation authorization
+- Implement WP-18C2 additively and autonomously within the authorized package only.
+- Preserve protected systems, preserve Daily Reports, and do not cross into WP-18C3 Budget Hierarchy or WP-18C8 Earned Value.
+- Apply the smallest safe repair for ambiguity: preserve source records, avoid fabrication, and use governed review/compatibility handling instead of guessing.
+
+### What WP-18C2 implemented
+- Enterprise work-type registry and admin governance surface at `/admin/governance/project-controls`.
+- Project-scoped PM authority surface at `/pm/project-controls` for pay items, governed mappings, two-week lookaheads, lifecycle/archive, crew confirmation, and work-ledger visibility.
+- Additive Daily Report governed work-block contract and report/detail visibility.
+- Additive operational work ledger, crew observation substrate, confirmed crew authority, and project lifecycle/archive authority.
+
+### Current runtime state established
+- Enterprise work types: `16`
+- Project pay items: `1`
+- Governed mappings: `1`
+- Lookaheads: `1`
+- Lifecycle records: `1`
+- Confirmed crews: `1`
+- Crew observations: `2`
+- Work ledger rows: `178`
+- Daily Reports carrying `work_blocks_version = wp18c2.v1`: `3367 / 3367`
+
+### Compatibility closeout note
+- `644` reports already carried governed versioning before final closeout.
+- `2723` untouched historical reports were compatibility-stamped with zero-block summaries rather than guessed/fabricated contractual links.
+
+### Verification status
+- Backend unit tests added for WP18C2 passed (`3 passed`).
+- Manual live API verification passed for admin work types, PM pay items/mappings/lookahead/lifecycle/archive/restore/crew confirmation, and PM scope denial.
+- Testing agent report `iteration_111.json` passed overall for admin/PM routes, responsive behavior, and language toggle sanity.
+
+### Current next step
+- WP-18C2 closed `GO`.
+- WP-18C3 may begin only as the separately authorized Budget Hierarchy package on top of this now-active authority foundation.
+
 ## 2026-08-03 — WP-18C1 Enterprise Hierarchy Foundation
 
 ### Governing implementation authorization
