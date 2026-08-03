@@ -37,6 +37,7 @@ import { HelpTipBlock } from "@/components/HelpTip";
 import FocusBanner from "@/components/triage/FocusBanner";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 import { Link } from "react-router-dom";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -196,7 +197,7 @@ function AuditExpand({ defectId, t, unit, index }) {
         data-testid={`fleet-unit-card-${unit}-defect-${index}-audit-toggle`}
       >
         <History className="w-3.5 h-3.5" />
-        {open ? t("Hide audit trail") : t("View audit trail")}
+        {open ? t("Hide history") : t("View history")}
       </button>
       {open && (
         <div className="mt-1.5">
@@ -270,7 +271,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
         <div className="border-t-2 border-slate-200 px-4 py-3 bg-slate-50/40">
           <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2">
             {t("Latest DVIR")}: {lastAt}
-            {group.latest_driver_name && ` · ${t("Driver")}: ${group.latest_driver_name}`}
+            {group.latest_driver_name && ` · ${t("Driver")}: ${sanitizeOperatorReference(group.latest_driver_name, t("Driver record"))}`}
           </div>
           <ul className="space-y-2.5">
             {group.defects.map((d, i) => {
@@ -316,7 +317,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
                       <div className="text-[13px] text-emerald-900 leading-snug">&quot;{d.repair_notes}&quot;</div>
                     )}
                     <div className="text-[11px] text-emerald-800 mt-0.5 font-mono">
-                      {d.repaired_by_name || t("Mechanic")}
+                      {sanitizeOperatorReference(d.repaired_by_name, t("Mechanic")) || t("Mechanic")}
                       {d.repaired_at && ` · ${formatPlatformTime(d.repaired_at)}`}
                     </div>
                     {Array.isArray(d.repair_photos) && d.repair_photos.length > 0 && (

@@ -126,7 +126,7 @@ export default function EquipmentDashboard() {
           tone="slate"
           eyebrow={t("Field readiness")}
           title={t("Daily Walk-Arounds")}
-          description={t("OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job. Review the latest condition, open issues, and cleared units from one governed surface.")}
+          description={t("OSHA pre-shift inspections for every truck, excavator, roller, and tool on the job. Review the latest condition, open issues, and cleared units from one unified view.")}
           testId="equipment-dashboard-summary"
           className="mb-8"
         >

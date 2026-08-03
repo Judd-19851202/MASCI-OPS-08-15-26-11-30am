@@ -16,6 +16,7 @@ import RepairCompletionForm from "../../components/shop/RepairCompletionForm";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 import { useT } from "@/lib/i18n";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -165,7 +166,7 @@ export default function ShopMyAssignments() {
 
   useEffect(() => { load(); }, [load]);
 
-  const actorName = (data && data.actor_name) || "Shop User";
+  const actorName = sanitizeOperatorReference((data && data.actor_name) || "Shop User", "Shop User");
 
   const onAccept = useCallback(async (defect) => {
     await api(`/api/shop/fleet/defects/${defect.id}/accept`, { method: "POST", body: { notes: "" } });
