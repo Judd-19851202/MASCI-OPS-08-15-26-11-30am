@@ -52,3 +52,7 @@ These checks must expand during propagation to cover:
 - A route does not pass because a script passes.
 - Anti-drift automation is a gate, not a substitute for visual and functional certification.
 - Operator-facing UI must not expose internal engineering, QA, certification, debugging, or project-code language. See `OPERATOR_BANNED_LANGUAGE_REGISTER.md`.
+- Every routed object must now carry a matching row in `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv`.
+- The route-governance gate is enforced by `/app/scripts/wp17_route_governance_guard.py` and chained into `/app/scripts/wp17d_constitution_guard.py`.
+- A route-governance row is invalid if any of these are blank: owner, family, intended audience, entry path, navigation source, role requirements, intentionally hidden flag, hidden rationale, canonical relationship, EN/ES compliance state, responsive compliance state, certification evidence.
+- A route-governance failure is a hard release stop even if the route still renders.

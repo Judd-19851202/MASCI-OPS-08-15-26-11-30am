@@ -5,6 +5,8 @@ import re
 import sys
 from pathlib import Path
 
+from wp17_route_governance_guard import validate_route_governance
+
 ROOT = Path("/app")
 
 CHECKS = [
@@ -317,6 +319,7 @@ def main() -> int:
         failures.append(f"ui_emoji_guard: emoji/unicode UI symbols detected in {', '.join(emoji_hits)}")
 
     failures.extend(operator_language_failures())
+    failures.extend(validate_route_governance())
 
     if failures:
         print("WP-17D constitution guard failed:")
