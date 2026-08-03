@@ -1,3 +1,29 @@
+# 2026-08-03 — WP-18BR3 constitutional architecture review roadmap state
+
+## Current top priority
+
+- **WP-18BR3 is complete and the final gate is GO WITH REQUIRED AMENDMENTS.**
+- **WP-18C implementation remains BLOCKED until BR3 blocking amendments are accepted.**
+- **Validated architecture must be preserved by default; redesign/replacement must remain the exception.**
+
+## P0
+- preserve the full `WP18BR3_*` package as the current executive decision layer over `WP17_*`, `WP18A_*`, `WP18B_*`, `WP18BR_*`, and `WP18BR2_*`
+- preserve the BR3 finding that most architecture should stay and only bounded domains require redesign or net-new work
+- treat these as the BR3 blocking amendments before any WP-18C implementation authorization:
+  1. enterprise hierarchy propagation through downstream readers
+  2. one executive reporting hierarchy
+  3. canonical Budget Hierarchy
+  4. canonical Earned Value derived layer
+  5. explicit resource / constraint federation rules
+
+## P1
+- if executive direction reopens implementation, begin from the BR3 preservation-first architecture, not from a broad rebuild premise
+- maintain `WP18BR3_MASTER_DECISION_MATRIX.csv` as the current executive disposition ledger
+- maintain `WP18BR3_INVESTMENT_PROTECTION_ANALYSIS.md` as the current investment-protection answer
+
+## P2
+- no broad redesign, platform replacement, or WP-18C implementation is authorized until the BR3 amendments are accepted
+
 # 2026-08-03 — WP-18BR2 final constitutional challenge roadmap state
 
 ## Current top priority

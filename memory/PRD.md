@@ -1,5 +1,62 @@
 # PRD
 
+## 2026-08-03 — WP-18BR3 Constitutional Architecture Review
+
+### Governing problem statement
+- Execute **WP-18BR3 — Constitutional Architecture Review** as the final documentation-only constitutional review before implementation.
+- Treat `WP17_*`, `WP18A_*`, `WP18B_*`, `WP18BR_*`, `WP18BR2_*`, `PRD.md`, `ROADMAP.md`, `CHANGELOG.md`, and the actual platform architecture as independent evidence sources.
+- Answer: **If the platform were rebuilt today using everything learned, what would remain exactly the same, what would change, and why?**
+- Apply the preservation-first rule: validated work has value; redesign, retirement, and build-new recommendations carry the burden of proof.
+
+### Current WP-18BR3 status
+- The BR3 executive decision package is complete in `/app/memory/WP18BR3_*`.
+- Final gate: **GO WITH REQUIRED AMENDMENTS**.
+- WP-18C remains blocked until BR3 blocking amendments are accepted as governing architecture.
+- No application code, UI, API, workflow, database schema, or runtime behavior changes were performed.
+
+### WP-18BR3 package created
+- `WP18BR3_EXECUTIVE_DECISION_BOOK.md`
+- `WP18BR3_MASTER_DECISION_MATRIX.csv`
+- `WP18BR3_PRESERVATION_REPORT.csv`
+- `WP18BR3_INVESTMENT_PROTECTION_ANALYSIS.md`
+- `WP18BR3_CROSS_SYSTEM_ARCHITECTURE_REGISTER.csv`
+- `WP18BR3_FINANCIAL_CONSTITUTIONAL_REVIEW.md`
+- `WP18BR3_OPERATIONAL_CONSTITUTIONAL_REVIEW.md`
+- `WP18BR3_EXECUTIVE_OPERATOR_REVIEW.md`
+- `WP18BR3_FIVE_YEAR_REVIEW.md`
+- `WP18BR3_REBUILD_TEST_AND_ROI_MATRIX.csv`
+- `WP18BR3_BLOCKING_AMENDMENTS.md`
+- `WP18BR3_IMPLEMENTATION_GATE.md`
+
+### BR3 constitutional outcomes
+- BR3 challenged BR2 and concluded the platform is **more preservable than BR2 stated**.
+- The enterprise hierarchy is **not absent**; it already exists in governance form and should be **extended**, not rebuilt.
+- The platform already contains substantial reusable value in project identity, cost-code registry, project cost-code planning, schedule, daily-report field capture, roster authority, Asset Spine, governance/audit, and multi-role portals.
+- The clearest remaining weak zones are:
+  1. enterprise hierarchy propagation into downstream readers
+  2. executive reporting hierarchy overlap
+  3. Budget Hierarchy absence
+  4. Earned Value absence
+  5. resource / constraint federation clarity
+
+### BR3 preservation answer
+- `KEEP EXACTLY AS IS`: project identity, project team roster, cost-code registry, payroll variance, governance/audit backbone
+- `KEEP WITH MINOR REFINEMENT`: Monday review/briefing, Daily Reports, Project Health, AI assistive layer, Project P&L snapshot, PO workflow
+- `EXTEND`: enterprise governance hierarchy propagation, project cost-code planning, schedule engine, lookahead, forecast lineage, constraints, Asset Spine, KPI rollups, operator routing
+- `CONSOLIDATE`: resource federation
+- `REDESIGN`: executive reporting hierarchy
+- `RETIRE`: legacy operational intelligence digest
+- `BUILD NEW`: Budget Hierarchy, Earned Value
+
+### BR3 investment protection answer
+- Estimated preserved architecture foundation: `84%`
+- Estimated net-new subsystem work: `8%`
+- BR3 finding: the highest-risk mistake is broad rebuilding of already-validated architecture.
+
+### Next constitutional step
+- Preserve BR3 as the current governing constitutional layer.
+- Do not begin WP-18C unless BR3 blocking amendments are explicitly accepted.
+
 ## 2026-08-03 — WP-18BR2 Final Executive Constitutional Challenge
 
 ### Governing problem statement

@@ -1,0 +1,13 @@
+subsystem,recommendation,why,rebuild_exactly,evidence,existing_work_preserved_pct
+Project identity / jobs_master,KEEP EXACTLY AS IS,"Already the right project root and avoids duplicate project authority.",Yes,"backend/server.py:6568-6576; backend/routes/project_health.py:103-118",95
+Enterprise governance / hierarchy,EXTEND,"Hierarchy and authority structures already exist in governance; propagation is the issue, not absence.",No,"backend/services/enterprise_governance.py:202-233,760-805,858-905,1536-1551",80
+Project team roster,KEEP EXACTLY AS IS,"Roster ownership is already explicit and useful.",Yes,"backend/routes/project_team_assignments.py:824-847,878-1160",95
+Cost code registry,KEEP EXACTLY AS IS,"Reusable definition owner is already correct.",Yes,"backend/routes/cost_codes.py:324-352",95
+Project-controls planning + schedule,EXTEND,"Planning, scheduling, forecast, and lookahead already share one coherent spine.",No,"backend/routes/cost_codes.py:363-520,760-920; backend/services/cost_codes/schedule_engine.py:211-540",89
+Daily production + payroll lanes,KEEP WITH MINOR REFINEMENT,"Field capture and labor reconciliation are already valuable; only fact-family boundaries need clarification.",Mostly,"backend/routes/daily_reports.py:1421-1664; backend/routes/payroll_variance.py:1-22,193-280",90
+Constraints,EXTEND,"Dual-lane constraint architecture exists and should be formalized, not replaced.",No,"backend/routes/daily_reports.py:7-8; backend/routes/operational_constraints.py:7-19,67-121",85
+Resources + dispatch,CONSOLIDATE,"Demand, roster, and deployment all exist, but semantics are split across lanes.",No,"backend/services/cost_codes/foundation.py:173-191; frontend/src/app/routing/AppRoutes.jsx:1153-1192",82
+Equipment / Asset Spine,EXTEND,"Registry core is strong; provider-local seams should stay subordinate.",No,"backend/services/asset_spine.py:161-177,457-472; backend/routes/asset_spine.py:223-259",88
+Executive reporting,REDESIGN,"ODS, Project Health, KPI rollups, and legacy intelligence overlap and should become one hierarchy.",No,"backend/routes/ods_intelligence.py:71-123; backend/routes/project_health.py:4-7; backend/routes/operational_kpis.py:138-152; backend/operational_intelligence/routes.py:16-76",75
+AI assistive layer,KEEP WITH MINOR REFINEMENT,"AI is already useful as a bounded downstream assistant and should remain so.",Mostly,"backend/routes/ai_admin_config.py:47-52; backend/routes/translation.py:57-130",86
+Finance architecture,BUILD NEW,"Budget Hierarchy and Earned Value are still missing, but current cost-code, PO, P&L, and production work should be preserved underneath.",No,"backend/server.py:6619-6754; backend/routes/po_requests.py:586-772; backend/services/cost_codes/foundation.py:15",65

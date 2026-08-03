@@ -1,3 +1,25 @@
+# 2026-08-03 — WP-18BR3 constitutional architecture review
+
+- Added the full BR3 executive decision package under `/app/memory/`:
+  - `WP18BR3_EXECUTIVE_DECISION_BOOK.md`
+  - `WP18BR3_MASTER_DECISION_MATRIX.csv`
+  - `WP18BR3_PRESERVATION_REPORT.csv`
+  - `WP18BR3_INVESTMENT_PROTECTION_ANALYSIS.md`
+  - `WP18BR3_CROSS_SYSTEM_ARCHITECTURE_REGISTER.csv`
+  - `WP18BR3_FINANCIAL_CONSTITUTIONAL_REVIEW.md`
+  - `WP18BR3_OPERATIONAL_CONSTITUTIONAL_REVIEW.md`
+  - `WP18BR3_EXECUTIVE_OPERATOR_REVIEW.md`
+  - `WP18BR3_FIVE_YEAR_REVIEW.md`
+  - `WP18BR3_REBUILD_TEST_AND_ROI_MATRIX.csv`
+  - `WP18BR3_BLOCKING_AMENDMENTS.md`
+  - `WP18BR3_IMPLEMENTATION_GATE.md`
+- Challenged all prior constitutional packages plus the actual platform architecture as independent evidence and answered the preservation-first rebuild question: what stays exactly the same, what changes, and why.
+- BR3 conclusion: the platform is **more preservable than BR2 concluded**; most architecture should remain and be extended, consolidated, or lightly refined rather than rebuilt.
+- Final gate changed from BR2 `NO-GO` to **GO WITH REQUIRED AMENDMENTS**.
+- Core BR3 outcome: enterprise hierarchy should be **extended** from the existing governance spine rather than built from scratch; Budget Hierarchy and Earned Value remain the only clearly justified net-new subsystems.
+- Documentation-only validation passed: `12` required BR3 files present, `25` master-matrix rows, `25` rebuild/ROI rows, valid recommendation vocabulary, Preservation Report section present, and final gate present.
+- No application code, UI, API, workflow, database schema, or runtime behavior changes were performed as part of BR3.
+
 # 2026-08-03 — WP-18BR2 final executive constitutional challenge
 
 - Added the full WP-18BR2 package under `/app/memory/`:
