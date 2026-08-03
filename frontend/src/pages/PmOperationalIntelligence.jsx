@@ -110,8 +110,8 @@ export default function PmOperationalIntelligence() {
           <div className="text-sm text-slate-700 leading-relaxed">
             Three horizons over your assigned projects — What Happened,
             What Is Happening, What Needs Attention. Every KPI, delay,
-            finding, and operational summary is backed by trusted ODS
-            facts with source traceability.
+            finding, and operational summary is backed by trusted project
+            records with clear source traceability.
           </div>
         </div>
       }

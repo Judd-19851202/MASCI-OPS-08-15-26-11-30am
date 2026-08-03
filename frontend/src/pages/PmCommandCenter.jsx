@@ -39,6 +39,7 @@ import { OperationsTransportationHealthWidget } from "@/components/operations_tr
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 const OVERVIEW_POLL_MS = 45000;
 
@@ -91,7 +92,7 @@ export default function PmCommandCenter() {
   }, []);
 
   const headerSubtitle = useMemo(() => {
-    if (projectNumber) return `Project · ${projectNumber}`;
+    if (projectNumber) return `Project · ${sanitizeOperatorProjectNumber(projectNumber, "Operations support")}`;
     return "Projects assigned to you";
   }, [projectNumber]);
 

@@ -264,7 +264,7 @@ export default function HrEmployeeRequestsQueue() {
           <ClipboardList className="w-4 h-4 mt-0.5 shrink-0" />
           <div>
             <span className="font-bold">Review pending employee requests.</span>{" "}
-            Approve to create or update the employee record. Send back for revision if anything is unclear or incomplete — the submitter and the audit log both get your note.
+            Approve to create or update the employee record. Send back for revision if anything is unclear or incomplete — the submitter and the request history both receive your note.
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap" data-testid="hr-requests-filters">
@@ -478,9 +478,9 @@ export default function HrEmployeeRequestsQueue() {
             </div>
           )}
           <div className="py-1">
-            <Label className="text-[10px] uppercase tracking-wide font-bold">HR Notes (audit)</Label>
+            <Label className="text-[10px] uppercase tracking-wide font-bold">HR Notes (history)</Label>
             <Textarea value={hrNotes} onChange={e => setHrNotes(e.target.value)}
-                      rows={2} placeholder="Optional · added to the lifecycle event ledger"
+                      rows={2} placeholder="Optional · added to the request history"
                       className="mt-1" data-testid="hr-requests-approve-notes" />
           </div>
           <DialogFooter>
@@ -501,7 +501,7 @@ export default function HrEmployeeRequestsQueue() {
           <DialogHeader>
             <DialogTitle>Send Back for Revision</DialogTitle>
             <DialogDescription>
-              A short reason (5+ characters) goes back to the submitter and stays in the audit log.
+              A short reason (5+ characters) goes back to the submitter and stays in the request history.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">

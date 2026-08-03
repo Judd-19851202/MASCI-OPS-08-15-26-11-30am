@@ -9,6 +9,7 @@ import React, { useEffect, useState } from "react";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 import { getPmToken } from "@/lib/pmAuth";
+import { containsOperatorUnsafeLanguage, formatOperatorJobLabel } from "@/lib/operatorLanguage";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -57,9 +58,6 @@ export default function PmProjectSelector({ value, onChange }) {
         out.unshift({ project_number: currentValue, project_name: "Current project" });
       }
       setOptions(out);
-      if (!currentValue && out[0] && typeof onChange === "function") {
-        onChange(out[0].project_number);
-      }
       setLoading(false);
     });
     return () => { live = false; };
@@ -80,7 +78,9 @@ export default function PmProjectSelector({ value, onChange }) {
         <option value="">{loading ? "Loading projects…" : "All my projects"}</option>
         {options.map((o) => (
           <option key={o.project_number} value={o.project_number}>
-            {o.project_name ? `${o.project_number} · ${o.project_name}` : o.project_number}
+            {containsOperatorUnsafeLanguage(`${o.project_number} ${o.project_name || ""}`)
+              ? "Operations support"
+              : formatOperatorJobLabel(o.project_number, o.project_name || o.project_number)}
           </option>
         ))}
       </select>

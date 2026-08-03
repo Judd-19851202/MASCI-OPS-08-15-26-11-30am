@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -227,6 +228,7 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
             const incidentCount = incidentsByPn[pn] ?? 0;
             const lastIso = latestDailyByPn[pn];
             const action = nextActionFor(pn);
+            const safeProjectLabel = sanitizeOperatorProjectNumber(pn, "Operations support");
             const actionTone =
               action === t("Missing Daily Report") ? "amber"
               : action === t("Review Safety Item") ? "rose"
@@ -246,7 +248,7 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
                   <div className="flex items-center gap-3 min-w-0">
                     <Briefcase className="w-4 h-4 text-red-700 shrink-0" />
                     <div className="min-w-0">
-                      <div className="font-bold text-slate-900 text-sm font-mono">{pn}</div>
+                      <div className="font-bold text-slate-900 text-sm font-mono">{safeProjectLabel}</div>
                       <div className="text-[11px] text-slate-500">
                         {lastIso
                           ? `${t("Last activity")}: ${relAgo(lastIso)}`
@@ -315,6 +317,8 @@ function PhotoLightbox({ photos, openIndex, onClose, onNext, onPrev }) {
   const reportRef = p.report_number || p.source_id || "";
   const dateLabel = p.record_date || p.captured_at || "";
   const dateText = dateLabel ? String(dateLabel).slice(0, 10) : "";
+  const safePhotoProject = formatOperatorJobLabel(p.project_number, p.project_name || p.project_number || t("Operations support"));
+  const safePhotoProjectNumber = sanitizeOperatorProjectNumber(p.project_number, t("Operations support"));
 
   const openReport = () => {
     if (!p.source_id) return;
@@ -347,10 +351,10 @@ function PhotoLightbox({ photos, openIndex, onClose, onNext, onPrev }) {
               {t("Field Photo")}
             </div>
             <div className="text-base font-bold truncate">
-              {p.project_name || p.project_number || t("(no project)")}
+              {safePhotoProject}
             </div>
             <div className="text-xs text-slate-400 truncate">
-              {[p.project_number, dateText, reportRef].filter(Boolean).join(" · ")}
+              {[safePhotoProjectNumber, dateText, reportRef].filter(Boolean).join(" · ")}
               {p.submitter ? ` · ${p.submitter}` : ""}
             </div>
           </div>
@@ -370,7 +374,7 @@ function PhotoLightbox({ photos, openIndex, onClose, onNext, onPrev }) {
           {src ? (
             <img
               src={src}
-              alt={p.project_number || "photo"}
+                        alt={safePhotoProjectNumber || "photo"}
               className="max-h-[70vh] w-auto object-contain"
               data-testid="pm-pfh-photo-lightbox-img"
             />
@@ -476,6 +480,9 @@ function FieldTruth({ photos, dailies, loading }) {
             <ul className="space-y-1.5" data-testid="pm-pfh-daily-list">
               {dailies.slice(0, 5).map((d) => (
                 <li key={d.id || d.report_id}>
+                  {(() => {
+                    const safeDailyProject = formatOperatorJobLabel(d.project_number, d.project_name || d.project_number || t("Operations support"));
+                    return (
                   <Link
                     to={`/daily/${d.id || d.report_id}`}
                     className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-slate-200 hover:border-slate-400 hover:bg-slate-50"
@@ -485,12 +492,14 @@ function FieldTruth({ photos, dailies, loading }) {
                       {d.report_id || (d.id || "").slice(0, 8)}
                     </span>
                     <span className="text-xs text-slate-500 truncate flex-1 mx-2">
-                      {d.project_name || d.project_number || t("(no project)")}
+                      {safeDailyProject}
                     </span>
                     <span className="text-[10px] font-mono text-slate-400 shrink-0">
                       {d.created_at ? formatPlatformDate(d.created_at) : ""}
                     </span>
                   </Link>
+                    );
+                  })()}
                 </li>
               ))}
             </ul>
@@ -517,7 +526,8 @@ function FieldTruth({ photos, dailies, loading }) {
             <div className="grid grid-cols-4 gap-1.5" data-testid="pm-pfh-photo-grid">
               {safePhotos.slice(0, 8).map((p, i) => {
                 const src = thumbSrc(p);
-                const cap = [p.project_number, p.record_date].filter(Boolean).join(" · ");
+                const safeCapProject = sanitizeOperatorProjectNumber(p.project_number, t("Operations support"));
+                const cap = [safeCapProject, p.record_date].filter(Boolean).join(" · ");
                 return (
                   <button
                     key={p.id}

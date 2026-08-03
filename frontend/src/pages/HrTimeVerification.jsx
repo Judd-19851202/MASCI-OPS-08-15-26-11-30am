@@ -463,7 +463,7 @@ export default function HrTimeVerification() {
         {/* E · Print-only · executive footer */}
         <div data-print-only className="pr-footer">
           <div className="brand">MASCI Operations Platform</div>
-          <div className="powered">Powered by ForgedOps</div>
+          <div className="powered">MASCI Operations Platform</div>
           <div className="sub">
             Generated {formatPlatformStamp(new Date())} · Confidential payroll cross-check
             {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (

@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import forgedOpsLogo from "@/assets/forgedops-logo.png";
 import { BUILD_SOURCE_HASH, BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
 import { useT } from "@/lib/i18n";
 import { useBranding } from "@/lib/BrandingProvider";
@@ -11,24 +10,9 @@ import { useBranding } from "@/lib/BrandingProvider";
  * mascidocs.com is a customer-branded deployment of an enterprise
  * operations platform. The branding standard is:
  *
- *   MASCI     = operational environment / client platform
- *   ForgedOps = underlying operations technology platform
+ *   MASCI = operational environment / client platform
  *
- * UI surfaces use "ForgedOps™" (trademark, no "LLC"). The "LLC" legal
- * name is reserved for terms, privacy, contracts, and other legal
- * documents — never for UI chrome.
- *
- * Variants:
- *   • global — every-page footer. Single clean stack:
- *              ┌─────────────────────────────────────┐
- *              │  MASCI Operations Platform          │  primary
- *              │  Powered by ForgedOps™              │  secondary
- *              │  Terms · Privacy · vYYYY.MM.DD-hash │  legal/version
- *              └─────────────────────────────────────┘
- *   • login  — subtle "Powered by ForgedOps™" line beneath the login
- *              form, with the small ForgedOps mark.
- *   • admin  — slightly stronger "MASCI Operations Platform · Powered
- *              by ForgedOps™" for admin chrome.
+ * Variants keep MASCI as the operator-facing identity across the platform.
  */
 
 export function ForgedOpsAttribution({ variant = "global", className = "" }) {
@@ -41,12 +25,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         className={`flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 ${className}`}
         data-testid="forgedops-attr-login"
       >
-        <img
-          src={forgedOpsLogo}
-          alt="ForgedOps"
-          className="h-5 w-auto opacity-80"
-        />
-        <span>Powered by ForgedOps™</span>
+        <span>{platform}</span>
       </div>
     );
   }
@@ -57,15 +36,8 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         className={`flex flex-col sm:flex-row items-center justify-center gap-3 ${className}`}
         data-testid="forgedops-attr-admin"
       >
-        <img
-          src={forgedOpsLogo}
-          alt="ForgedOps"
-          className="h-7 w-auto opacity-90"
-        />
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-600 font-bold">
-          {platform}{" "}
-          <span className="text-slate-400 font-normal mx-1.5">·</span>{" "}
-          Powered by ForgedOps™
+          {platform}
         </div>
       </div>
     );
@@ -87,7 +59,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500"
         data-testid="footer-secondary"
       >
-        Powered by ForgedOps™
+        Shared operations workspace
       </div>
       <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400">
         <Link

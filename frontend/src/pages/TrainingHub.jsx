@@ -87,7 +87,7 @@ export default function TrainingHub() {
               <div className="wp17-kicker text-white/70">Portal mission</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">Teach the platform once so every operator understands the next task everywhere.</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Training, guides, and packets now live inside the same canonical system and route users to the right role-specific material without feeling like a separate site.
+                Training, guides, and packets now live in one shared system and route users to the right role-specific material without feeling like a separate site.
               </p>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function TrainingHub() {
                 {t("PDF training packets")}
               </h3>
               <p className="text-slate-300 text-sm mt-1 leading-relaxed max-w-2xl">
-                {t("Field Crew is public — share with insurance, auditors, or new-hire onboarding. Internal Shop, PM, and Admin packets are managed in the Admin Console.")}
+                {t("Field Crew is public — share with insurance partners or new-hire onboarding. Internal Shop, PM, and Admin packets are managed in the Admin Console.")}
               </p>
             </div>
           </div>

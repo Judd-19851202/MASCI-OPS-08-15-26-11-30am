@@ -116,7 +116,7 @@ export function DrV2ApprovedReportsPanel({
             Approved Daily Reports · Export
           </div>
           <div className="text-sm text-neutral-700">
-            Canonical English record-of-truth PDF · legacy + modern records · management access only
+            English PDF ready for filing · historical + current records · management access only
           </div>
         </div>
         <FileDown className="w-4 h-4 text-neutral-400" aria-hidden />

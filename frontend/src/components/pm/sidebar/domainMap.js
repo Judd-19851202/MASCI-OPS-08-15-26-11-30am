@@ -26,7 +26,7 @@ export const DOMAINS_V2 = [
     routes: [
       { to: "/pm",                   label: "Overview",          desc: "Today's signal across your projects.",         icon: Briefcase, end: true },
       { to: "/pm/command-center",    label: "Command Center",    desc: "Live operations · jobs · timeline · risk.",    icon: Radar },
-      { to: "/pm/operational-intelligence", label: "Operational Intelligence", desc: "Three horizons · ODS-backed KPIs · attention.", icon: Activity },
+      { to: "/pm/operational-intelligence", label: "Operational Intelligence", desc: "Three horizons · trusted project signals · attention.", icon: Activity },
       { to: "/pm/jobs",              label: "Jobs",              desc: "Jobs assigned to you (read-only).",            icon: Building2 },
       { to: "/pm/holds",             label: "Holds",             desc: "Open holds across your projects.",             icon: PauseCircle },
       { to: "/pm/due-today",         label: "Due Today",         desc: "Items due today across your projects.",        icon: CalendarClock },
