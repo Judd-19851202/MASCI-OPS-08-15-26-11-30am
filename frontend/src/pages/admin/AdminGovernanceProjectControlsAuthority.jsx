@@ -121,10 +121,9 @@ export default function AdminGovernanceProjectControlsAuthority() {
     <LegacyAdminModernShell
       title={localize("Project Controls Authority", t, lang)}
       subtitle={localize("Govern enterprise work types, review unresolved mappings, and verify the event contracts behind governed project controls.", t, lang)}
-      data-testid="admin-project-controls-authority-page"
     >
-      <div className="space-y-6" data-testid="admin-project-controls-authority-root">
-        <div className="flex flex-wrap gap-3">
+      <div className="space-y-6" data-testid="admin-project-controls-authority-page">
+        <div className="flex flex-wrap gap-3" data-testid="admin-project-controls-action-row">
           <Button type="button" variant="outline" onClick={load} data-testid="admin-project-controls-refresh-button">
             <RefreshCw className="mr-2 h-4 w-4" /> {localize("Refresh", t, lang)}
           </Button>

@@ -1,0 +1,91 @@
+{
+  "test_run_timestamp": "2026-08-03T22:25:50.676741Z",
+  "base_url": "https://masci-audit-hub.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "test": "Admin Multi-Login",
+      "passed": true,
+      "details": "Login successful. Session token length: 43, Admin token length: 101",
+      "timestamp": "2026-08-03T22:25:51.365261Z"
+    },
+    {
+      "test": "PM Multi-Login",
+      "passed": true,
+      "details": "Login successful. Session token length: 43, PM token length: 101",
+      "timestamp": "2026-08-03T22:25:51.910318Z"
+    },
+    {
+      "test": "Admin Work Types Endpoint",
+      "passed": true,
+      "details": "HTTP 200. Work types count: 16",
+      "timestamp": "2026-08-03T22:25:53.683528Z"
+    },
+    {
+      "test": "Admin Overview Endpoint",
+      "passed": true,
+      "details": "HTTP 200. Response keys: ['summary', 'work_types', 'review_queue', 'event_contracts']",
+      "timestamp": "2026-08-03T22:26:00.137864Z"
+    },
+    {
+      "test": "Admin Review Queue Endpoint",
+      "passed": true,
+      "details": "HTTP 200. Review queue count: 1",
+      "timestamp": "2026-08-03T22:26:01.932580Z"
+    },
+    {
+      "test": "PM Overview Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Response keys: ['project', 'authority_boundaries', 'counts', 'lifecycle', 'lookahead', 'schedule_authority', 'crew_intelligence', 'latest_work_ledger', 'latest_reports', 'event_contracts']",
+      "timestamp": "2026-08-03T22:26:16.727532Z"
+    },
+    {
+      "test": "PM Pay Items Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Pay items count: 1",
+      "timestamp": "2026-08-03T22:26:19.330346Z"
+    },
+    {
+      "test": "PM Mappings Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Mappings count: 1",
+      "timestamp": "2026-08-03T22:26:21.865010Z"
+    },
+    {
+      "test": "PM Lookahead Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Response keys: ['lookahead_id', 'project_number', 'window_days', 'anchor_date', 'window_start_date', 'window_end_date', 'status', 'published_at', 'published_by', 'version', 'tasks', 'constraints', 'comparison_note', 'created_at', 'updated_at', 'updated_by']",
+      "timestamp": "2026-08-03T22:26:24.453015Z"
+    },
+    {
+      "test": "PM Lifecycle Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Response keys: ['project_number', 'project_name', 'current_state', 'archive_status', 'previous_state', 'allowed_states', 'state_history', 'archive_history', 'permissions_boundary', 'updated_at', 'updated_by', 'source_job_snapshot', 'derived_state_from_source', 'derived_notes']",
+      "timestamp": "2026-08-03T22:26:27.025728Z"
+    },
+    {
+      "test": "PM Crew Intelligence Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Response keys: ['confirmed_crews', 'suggestions', 'observations']",
+      "timestamp": "2026-08-03T22:26:31.141942Z"
+    },
+    {
+      "test": "PM Work Ledger Endpoint (ZZ-RUNTIME-CERT-2026)",
+      "passed": true,
+      "details": "HTTP 200. Response keys: ['count', 'items']",
+      "timestamp": "2026-08-03T22:26:33.690301Z"
+    },
+    {
+      "test": "PM Scope Denial (ZZ-UNASSIGNED-TEST-PROJECT)",
+      "passed": true,
+      "details": "HTTP 403. Correctly denied access to unassigned project.",
+      "timestamp": "2026-08-03T22:26:34.745232Z"
+    },
+    {
+      "test": "Daily Report Work Blocks Compatibility",
+      "passed": true,
+      "details": "HTTP 200. work_blocks: True, work_block_summary: True, compatibility_version: False",
+      "timestamp": "2026-08-03T22:26:35.521484Z"
+    }
+  ],
+  "summary": "\u2705 ALL TESTS PASSED (14/14, 100%)"
+}
