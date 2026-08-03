@@ -111,7 +111,7 @@ export default function HistoricalRecordsQueue() {
             {t("Review & Approve Records")}
           </h1>
           <p className="mt-2 text-sm text-slate-600 max-w-3xl">
-            {t("Approved records surface on Employee 360°. Rejected records are archived for audit but never appear as active lifecycle events.")}
+            {t("Approved records surface on Employee 360°. Rejected records are archived for record-keeping but never appear as active lifecycle events.")}
           </p>
         </header>
 

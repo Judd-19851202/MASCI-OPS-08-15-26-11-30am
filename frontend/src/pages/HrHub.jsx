@@ -27,6 +27,7 @@ import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import { setPortalContext } from "@/lib/portalContext";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell } from "@/design-system/PortalShell";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const HR_PAL = paletteFor("hr");
 
@@ -164,6 +165,7 @@ export default function HrHub() {
   const { t } = useT();
   const nav = useNavigate();
   const user = getHrUser();
+  const safeUserName = sanitizeOperatorReference(user?.name, "");
   const [stats, setStats] = React.useState({});
 
   // TRUST-PO-1 · 2026-05-28 — declare portal context on mount so
@@ -247,7 +249,7 @@ export default function HrHub() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
         <div className={`font-mono text-xs uppercase tracking-[0.2em] ${HR_PAL.hubKicker}`}>
-          <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {t("Human Resources")} · {user?.name || ""}
+          <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {t("Human Resources")} · {safeUserName || ""}
         </div>
         <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{t("Employee Records & Accountability")}</h1>
         <p className="text-slate-600 mt-2 max-w-2xl">
