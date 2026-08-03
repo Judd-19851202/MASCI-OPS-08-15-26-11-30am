@@ -32,6 +32,7 @@ import { SectionHeading } from "@/components/SectionHeading";
 import EmptyState from "@/components/EmptyState";
 import { OperationalCoachingStrip } from "@/components/OperationalCoachingStrip";
 import { Input } from "@/components/ui/input";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 export default function DailyReportsDashboard() {
   const { t } = useT();
@@ -119,7 +120,7 @@ export default function DailyReportsDashboard() {
       icon: Eye,
       tone: "sky",
       label: t("Who reviews it"),
-      body: t("Project Management, Administration, and downstream operations teams use the same governed record to verify what happened on site."),
+      body: t("Project Management, Administration, and downstream operations teams use the same shared record to verify what happened on site."),
       testId: "daily-reports-coaching-who",
     },
     {
@@ -179,7 +180,7 @@ export default function DailyReportsDashboard() {
           tone="red"
           eyebrow={t("Field review")}
           title={t("Today's site activity, captured.")}
-          description={t("Crews, subs, visitors, equipment, materials, weather, and photos in one governed operational review surface.")}
+          description={t("Crews, subs, visitors, equipment, materials, weather, and photos in one unified operational review surface.")}
           testId="daily-reports-summary"
           className="mb-8"
         />
@@ -239,7 +240,10 @@ export default function DailyReportsDashboard() {
               testIdPrefix="daily-folders"
               jobsMaster={jobsMaster}
               showCert={showCert}
-              renderItem={(it) => (
+              renderItem={(it) => {
+                const safeProjectLabel = formatOperatorJobLabel(it.project_number, it.project_name || jobsMaster[(it.project_number || "").trim()] || it.project_number);
+                const safeProjectNumber = sanitizeOperatorProjectNumber(it.project_number, "Operations support");
+                return (
                 <div
                   onClick={() => navigate(`${dailyReportDetailBase}/${it.id}`)}
                   className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
@@ -252,11 +256,11 @@ export default function DailyReportsDashboard() {
                       </span>
                       {it.project_number && (
                         <span className="inline-flex items-center px-2 py-0.5 bg-slate-800 text-white text-[10px] font-mono uppercase tracking-wider rounded">
-                          #{it.project_number}
+                          #{safeProjectNumber}
                         </span>
                       )}
                       <span className="font-display text-lg font-bold text-slate-900 truncate">
-                        {it.project_name || "—"}
+                        {safeProjectLabel || "—"}
                       </span>
                     </div>
                     <div className="text-sm text-slate-600 mt-1 flex flex-wrap gap-x-3 gap-y-1">
@@ -301,7 +305,8 @@ export default function DailyReportsDashboard() {
                     </Button>
                   </div>
                 </div>
-              )}
+                );
+              }}
             />
           )}
           </CardContent>

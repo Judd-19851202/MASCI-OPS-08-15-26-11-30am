@@ -45,11 +45,11 @@ export const SAFETY_DOMAINS_V2 = [
   {
     id: "documents-training",
     label: "Documents & Training",
-    subline: "Library, certifications, accountability, PPE issuance.",
+    subline: "Library, training records, accountability, PPE issuance.",
     stripe: "#0e7490", // cyan-700 — Safety brand chrome
     icon: Award,
     routes: [
-      { to: "/safety-portal/training",      label: "Training & Certifications",     desc: "Records, renewals, sign-in sheets.",          icon: Award },
+      { to: "/safety-portal/training",      label: "Training & Records",             desc: "Records, renewals, sign-in sheets.",          icon: Award },
       { to: "/safety-portal/documents",     label: "Safety Document Library",       desc: "OSHA, SDS, EAPs, fall protection.",            icon: FolderArchive },
       { to: "/safety-portal/forms-records", label: "Equipment & PPE Accountability", desc: "Issuance, returns, use and care training.", icon: Package },
       { to: "/safety-portal/employees",     label: "Employee Safety Profiles",      desc: "Per-employee training, incidents, PPE.",      icon: Users },
@@ -96,7 +96,7 @@ export const SAFETY_DOMAINS_V2 = [
     stripe: "#475569", // slate-600
     icon: ShieldAlert,
     routes: [
-      { to: "/safety-portal/audits",  label: "Audits & Inspections", desc: "Job-site safety inspection review.",      icon: ShieldAlert },
+      { to: "/safety-portal/audits",  label: "Reviews & Inspections", desc: "Job-site safety inspection review.",      icon: ShieldAlert },
       { to: "/odr/center",            label: "Operational Daily Records", desc: "Field-day events · readiness signals.", icon: NotebookPen },
       { to: "/safety-portal/library", label: "Topic Library",        desc: "Filter and pack safety topics for prep.", icon: BookOpen },
       { to: "/safety-portal/fleet",   label: "Trucking · Fleet",     desc: "Defects, driver notes, severity context.", icon: Truck },

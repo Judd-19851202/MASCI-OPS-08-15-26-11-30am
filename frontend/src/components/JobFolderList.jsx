@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown, FolderOpen, Folder, Search, X } from "lucide
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { formatDateLong } from "@/lib/utils";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 /**
  * <JobFolderList>
@@ -229,11 +230,11 @@ export default function JobFolderList({
                     <div className="flex items-center gap-2 flex-wrap">
                       {folder.number !== "—" && (
                         <span className="inline-flex items-center px-2 py-0.5 bg-slate-800 text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
-                          #{folder.number}
+                          #{sanitizeOperatorProjectNumber(folder.number, "Operations support")}
                         </span>
                       )}
                       <span className="font-display text-base sm:text-lg font-bold text-slate-900 truncate">
-                        {folder.name}
+                        {formatOperatorJobLabel(folder.number, folder.name)}
                       </span>
                     </div>
                     {folder.mostRecent && (

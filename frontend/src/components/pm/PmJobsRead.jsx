@@ -14,6 +14,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
+import { formatOperatorJobLabel, sanitizeOperatorProjectName, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 export default function PmJobsRead() {
   const { t } = useT();
@@ -134,6 +135,12 @@ export default function PmJobsRead() {
               </thead>
               <tbody>
                 {filtered.map((j) => (
+                  (() => {
+                    const safeProjectNumber = sanitizeOperatorProjectNumber(j.project_number, "Operations support");
+                    const safeProjectName = sanitizeOperatorProjectName(j.project_name, "Operations support work");
+                    const safeLocation = sanitizeOperatorReference(j.location, "Operations support yard");
+                    const safeManager = sanitizeOperatorReference(j.project_manager, "Assigned PM");
+                    return (
                   <tr
                     key={j.id || j.project_number}
                     className="border-t border-slate-100 hover:bg-slate-50"
@@ -151,18 +158,18 @@ export default function PmJobsRead() {
                           data-testid={`pm-jobs-read-row-link-${j.project_number}`}
                           className="hover:underline underline-offset-2 hover:text-amber-700 transition-colors"
                         >
-                          {j.project_number}
+                          {safeProjectNumber}
                         </Link>
                       ) : <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-3 py-2 text-slate-800">
-                      {j.project_name || <span className="text-slate-400">—</span>}
+                      {safeProjectName || <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-3 py-2 text-slate-700">
-                      {j.location || <span className="text-slate-400">—</span>}
+                      {safeLocation || <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-3 py-2 text-slate-700 whitespace-nowrap">
-                      {j.project_manager || <span className="text-slate-400">—</span>}
+                      {safeManager || <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-3 py-2 text-slate-500 text-xs">
                       {Array.isArray(j.co_pms) && j.co_pms.length > 0
@@ -195,6 +202,8 @@ export default function PmJobsRead() {
                       {Number(j.cost_code_progress_percent || 0).toFixed(2)}%
                     </td>
                   </tr>
+                    );
+                  })()
                 ))}
               </tbody>
             </table>

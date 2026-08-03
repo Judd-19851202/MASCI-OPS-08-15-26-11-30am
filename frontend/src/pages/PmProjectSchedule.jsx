@@ -8,8 +8,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
 
-const ADMIN_FALLBACK_PROJECT = "24-06";
-
 function portalConfig(extra = {}) {
   return { ...extra, headers: buildScopedPortalAuthHeaders(["admin", "pm"], extra.headers || {}) };
 }
@@ -105,16 +103,6 @@ export default function PmProjectSchedule() {
     const pn = params.get("project_number") || "";
     setProjectNumber(pn);
   }, [params]);
-
-  useEffect(() => {
-    if (!projectNumber && !params.get("project_number")) {
-      setParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("project_number", ADMIN_FALLBACK_PROJECT);
-        return next;
-      }, { replace: true });
-    }
-  }, [params, projectNumber, setParams]);
 
   const load = async (pn) => {
     if (!pn) return;
@@ -291,6 +279,11 @@ export default function PmProjectSchedule() {
             <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50/90 px-4 py-3 text-sm text-amber-900 flex gap-2" data-testid="pm-project-schedule-warning">
               <AlertTriangle className="w-4 h-4 mt-0.5" />
               <div>{payload.schedule.warnings.join(" ")}</div>
+            </div>
+          ) : null}
+          {!projectNumber ? (
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 px-4 py-4 text-sm text-slate-700" data-testid="pm-project-schedule-empty-state">
+              Choose a project to open its 14-day schedule, Monday review summary, and forecast controls.
             </div>
           ) : null}
           {payload ? (

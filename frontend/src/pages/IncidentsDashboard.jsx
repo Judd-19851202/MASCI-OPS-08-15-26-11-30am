@@ -16,6 +16,7 @@ import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { toast } from "sonner";
 import { SEVERITY_LEVELS } from "@/lib/incidentSchema";
+import { formatOperatorJobLabel } from "@/lib/operatorLanguage";
 // Track 13.6G — Deep-link triage banner (renders only when ?focus_capa is present).
 import FocusBanner from "@/components/triage/FocusBanner";
 
@@ -166,6 +167,7 @@ export default function IncidentsDashboard() {
               jobsMaster={jobsMaster}
               renderItem={(it) => {
                 const sev = severityOf(it.severity);
+                const safeProjectLabel = formatOperatorJobLabel(it.project_number, jobsMaster[((it.project_number || "").trim())] || it.project_name || it.project_number);
                 return (
                   <div
                     onClick={() => navigate(`${pathname}/${it.id}`, {
@@ -198,7 +200,7 @@ export default function IncidentsDashboard() {
                         </span>
                       </div>
                       <div className="text-sm text-slate-600 mt-1">
-                        {(jobsMaster[((it.project_number || "").trim())] || it.project_name || "—")}
+                        {safeProjectLabel || "—"}
                         {it.person_name ? ` · Involved: ${it.person_name}` : ""}
                       </div>
                       <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">

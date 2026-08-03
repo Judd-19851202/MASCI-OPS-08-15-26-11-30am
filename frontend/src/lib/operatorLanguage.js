@@ -119,10 +119,7 @@ export function sanitizeOperatorProjectNumber(value, fallback = "Operations supp
 
 export function sanitizeOperatorProjectName(value, fallback = "Operations support work") {
   const raw = sanitizeOperatorCopy(value, "");
-  if (!raw || containsOperatorUnsafeLanguage(value)) {
-    const humanized = humanizeOperatorToken(value, fallback);
-    return humanized || fallback;
-  }
+  if (!raw || containsOperatorUnsafeLanguage(value)) return fallback;
   return raw;
 }
 
@@ -130,8 +127,10 @@ export function formatOperatorJobLabel(projectNumber, projectName) {
   const safeNumber = sanitizeOperatorProjectNumber(projectNumber, "Operations support");
   const safeName = sanitizeOperatorProjectName(projectName, "Operations support work");
   if (!safeNumber && !safeName) return "Operations support work";
+  if (safeNumber === "Operations support" && safeName === "Operations support work") return safeNumber;
   if (!safeNumber) return safeName;
   if (!safeName || safeNumber === safeName) return safeNumber;
+  if (safeName.startsWith(safeNumber)) return safeName;
   return `${safeNumber} · ${safeName}`;
 }
 

@@ -12,6 +12,7 @@ import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel"
 import PmShell from "@/components/PmShell";
 import { Activity } from "lucide-react";
 import { DataTable } from "@/design-system";
+import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 /**
  * DR-ROI-001E · PM Operational Intelligence
@@ -88,7 +89,7 @@ export default function PmOperationalIntelligence() {
     {
       key: "project",
       header: "Project",
-      render: (p) => <span className="font-mono text-neutral-800">{p.project_id}</span>,
+      render: (p) => <span className="font-mono text-neutral-800">{sanitizeOperatorProjectNumber(p.project_id, "Operations support")}</span>,
     },
     { key: "labor_hours", header: "Labor", align: "right", render: (p) => <span className="tabular-nums">{p.labor_hours}</span> },
     { key: "equipment_hours", header: "Equip", align: "right", render: (p) => <span className="tabular-nums">{p.equipment_hours}</span> },
@@ -321,7 +322,7 @@ export default function PmOperationalIntelligence() {
             photoTags={intel.photo_observation_tags}
             title={
               intel.project_id
-                ? `Recent Operational Intelligence · ${intel.project_id}`
+                ? `Recent Operational Intelligence · ${sanitizeOperatorProjectNumber(intel.project_id, "Operations support")}`
                 : "Recent Operational Intelligence"
             }
             testid="pm-operational-intelligence-card"

@@ -229,7 +229,7 @@ export default function TrenchSafetyHub() {
           {/* In-progress strip */}
           <section className="mt-6 p-3 border border-slate-200 bg-slate-50 rounded text-xs text-slate-600" data-testid="trench-hub-roadmap">
             <strong className="text-slate-700">{t("Coming in later certified phases:")}</strong>{" "}
-            {t("Inspections workflow · Repairs workflow · Certifications · Deployments history · Reports · QR PNG label generator · OCR for serial plates.")}
+            {t("Inspections workflow · Repairs workflow · compliance records · deployments history · reports · QR PNG label generator · document scan for serial plates.")}
           </section>
         </>
       )}

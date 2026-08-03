@@ -93,12 +93,12 @@ export function DailyPosturePanel({ adminPortal = false }) {
     <section className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2" data-testid="daily-posture">
       {tile("safety-holds",   t("Safety Holds"),         c["Safety Hold"] || 0,  "danger", `${base}/assets?status=Safety+Hold`)}
       {tile("insp-holds",     t("Inspection Holds"),     c["Inspection Hold"] || 0, "warn", `${base}/assets?status=Inspection+Hold`)}
-      {tile("cert-holds",     t("Certification Holds"),  c["Certification Hold"] || 0, "warn", `${base}/assets?status=Certification+Hold`)}
+      {tile("cert-holds",     t("Compliance Holds"),     c["Certification Hold"] || 0, "warn", `${base}/assets?status=Certification+Hold`)}
       {tile("await-verify",   t("Awaiting Verification"), a.repairs_awaiting_verification || 0, "warn", `${base}/repair-review?status=awaiting`)}
       {tile("crit-repairs",   t("Critical Repairs"),     a.critical_repairs || 0,    "danger", `${base}/repair-review?severity=Critical`)}
       {tile("fail-insp-7",    t("Failed Insp. 7d"),      a.failed_inspections_7d || 0,   "warn",   `${base}/assets?needs_review=yes`)}
       {tile("damage-reports", t("Damage Reports"),       a.new_damage_reports_7d || 0, "warn", `${base}/field-reports`)}
-      {tile("cert-exp-30",    t("Cert Exp. 30d"),        a.expiring_certifications_30d || 0, "warn", `${base}/assets?needs_review=yes`)}
+      {tile("cert-exp-30",    t("Renewals Due 30d"),     a.expiring_certifications_30d || 0, "warn", `${base}/assets?needs_review=yes`)}
       {tile("oos",            t("Out Of Service"),       (c["Maintenance Hold"]||0) + (c["Retired"]||0), "default", `${base}/assets`)}
     </section>
   );
@@ -143,7 +143,7 @@ function VerifyRepairDialog({ open, onOpenChange, repair, onDone }) {
         <DialogHeader><DialogTitle>{t("Verify Repair")} · {repair.asset_id}</DialogTitle></DialogHeader>
         <div className="bg-amber-50 border border-amber-300 rounded p-2 text-xs text-amber-900">
           <ShieldAlert className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />
-          {t("Repair Complete does not mean Safe To Use. Verification is what releases the Inspection Hold. Safety Holds and Certification Holds are never auto-cleared.")}
+          {t("Repair Complete does not mean Safe To Use. Verification is what releases the Inspection Hold. Safety Holds and Compliance Holds are never auto-cleared.")}
         </div>
         <div className="text-xs text-slate-600">
           <strong>{t("Issue:")}</strong> {repair.issue_description || "—"}<br />
