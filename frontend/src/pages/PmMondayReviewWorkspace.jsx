@@ -352,7 +352,7 @@ export default function PmMondayReviewWorkspace() {
   ]), [health, workspace, readiness]);
 
   return (
-    <PmShell title="Monday Review Workspace" section="jobs" intro={<p className="text-xs text-slate-500">Canonical plan vs actual vs payroll workflow. No duplicate engines.</p>}>
+    <PmShell title="Monday Review Workspace" section="jobs" intro={<p className="text-xs text-slate-500">Primary plan, actual work, and payroll workflow in one place.</p>}>
       <div className="space-y-4" data-testid="pm-monday-review-page">
         <div className="rounded-[2rem] border border-white/40 bg-white/80 p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -383,7 +383,7 @@ export default function PmMondayReviewWorkspace() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-black text-slate-900"><FileText className="h-4 w-4" /> Monday Morning Briefing</div>
-                <div className="text-xs text-slate-500">The canonical workspace is still authorizing in preview. The briefing controls remain visible for governance review.</div>
+                <div className="text-xs text-slate-500">This workspace is still signing you in. The briefing controls stay visible for review.</div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
@@ -422,7 +422,7 @@ export default function PmMondayReviewWorkspace() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2 text-sm font-black text-slate-900"><FileText className="h-4 w-4" /> Monday Morning Briefing</div>
-                    <div className="text-xs text-slate-500">Project briefing sourced from the canonical schedule, confidence, production, payroll, and variance engines.</div>
+                    <div className="text-xs text-slate-500">Project briefing uses the primary schedule, confidence, production, payroll, and variance records.</div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
@@ -461,7 +461,7 @@ export default function PmMondayReviewWorkspace() {
               <div className="rounded-[2rem] border border-white/40 bg-white/80 p-5 shadow-sm" data-testid="pm-monday-review-variance-panel">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-sm font-black text-slate-900">Canonical Variance Intelligence</div>
+                    <div className="text-sm font-black text-slate-900">Variance Intelligence</div>
                     <div className="text-xs text-slate-500">One reusable variance engine across production, labor, schedule, and recovery.</div>
                   </div>
                   <div className="text-xs text-slate-500" data-testid="pm-monday-review-variance-count">{varianceItems.length} tracked variances</div>

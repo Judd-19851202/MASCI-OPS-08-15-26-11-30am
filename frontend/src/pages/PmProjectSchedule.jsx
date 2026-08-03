@@ -212,9 +212,9 @@ export default function PmProjectSchedule() {
     try {
       const r = await api.get(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/weekly-rollover/preview`, portalConfig());
       setRolloverPreview(r.data?.weekly_rollover || null);
-      toast.success("Weekly rollover preview ready.");
+      toast.success("Weekly rollover review is ready.");
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not build weekly rollover preview.");
+      toast.error(e?.response?.data?.detail || "Could not prepare the weekly rollover review.");
     }
   };
 
@@ -260,7 +260,7 @@ export default function PmProjectSchedule() {
         evidence_links: [],
       }, portalConfig());
       setPayload((prev) => ({ ...prev, forecasting: r.data?.forecasting || prev?.forecasting, schedule: r.data?.schedule || prev?.schedule }));
-      toast.success("Forecast override recorded and audited.");
+      toast.success("Forecast override saved to project history.");
       await load(projectNumber);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Could not save forecast override.");
@@ -280,7 +280,7 @@ export default function PmProjectSchedule() {
               <PmProjectSelector value={projectNumber} onChange={onSelectProject} />
               <Button variant="outline" onClick={() => load(projectNumber)} data-testid="pm-project-schedule-refresh"><RefreshCw className="w-4 h-4 mr-2" />Refresh</Button>
               <Button variant="outline" onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}/api/cost-codes/projects/${encodeURIComponent(projectNumber)}/schedule/dot-report.pdf`, "_blank")} disabled={!projectNumber} data-testid="pm-project-schedule-dot-export"><Download className="w-4 h-4 mr-2" />DOT Schedule Report</Button>
-              <Button variant="outline" onClick={previewRollover} disabled={!projectNumber || !payload?.planning_readiness?.supports_weekly_rollover} data-testid="pm-project-schedule-rollover-preview"><CalendarRange className="w-4 h-4 mr-2" />Preview Weekly Rollover</Button>
+              <Button variant="outline" onClick={previewRollover} disabled={!projectNumber || !payload?.planning_readiness?.supports_weekly_rollover} data-testid="pm-project-schedule-rollover-preview"><CalendarRange className="w-4 h-4 mr-2" />Review Weekly Rollover</Button>
               <Button variant="outline" onClick={applyRollover} disabled={!projectNumber || !rolloverPreview?.supports_apply} data-testid="pm-project-schedule-rollover-apply"><CalendarRange className="w-4 h-4 mr-2" />Apply Weekly Rollover</Button>
               <Button variant="outline" onClick={publish} disabled={!projectNumber || !payload?.planning_lifecycle?.supports_publish} data-testid="pm-project-schedule-publish"><CalendarRange className="w-4 h-4 mr-2" />Publish 14-Day Plan</Button>
               <Button onClick={save} disabled={!projectNumber || !editable} data-testid="pm-project-schedule-save"><Save className="w-4 h-4 mr-2" />Save Schedule</Button>
@@ -328,7 +328,7 @@ export default function PmProjectSchedule() {
                   <div className="mt-1 text-xs text-slate-500">Overrides: {scenarioComparison?.baseline?.override_count || 0} · Critical path: {scenarioComparison?.baseline?.critical_path_count || 0}</div>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white/70 px-4 py-3" data-testid="pm-project-schedule-forecast-governance-summary">
-                  <div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Governance</div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] glass-text-muted-dark">Review</div>
                   <div className="mt-1 text-base font-black text-slate-900">{governance.snapshot_count || 0} snapshots</div>
                   <div className="mt-1 text-xs text-slate-500">Active overrides: {governance.active_override_count || 0}</div>
                 </div>
@@ -360,8 +360,8 @@ export default function PmProjectSchedule() {
             </div>
 
             <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-override-panel">
-              <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><ShieldCheck className="w-4 h-4" /> Authorized Override Governance</div>
-              <div className="mt-1 text-xs glass-text-muted-dark">Overrides remain audited evidence and never replace calculated truth.</div>
+              <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><ShieldCheck className="w-4 h-4" /> Authorized Override Review</div>
+              <div className="mt-1 text-xs glass-text-muted-dark">Overrides stay in project history and never replace calculated truth.</div>
               <div className="mt-4 grid gap-3">
                 <label className="text-xs font-semibold text-slate-600">Activity
                   <select value={overrideDraft.cost_code} onChange={(e) => {
@@ -384,7 +384,7 @@ export default function PmProjectSchedule() {
                 <label className="text-xs font-semibold text-slate-600">Note
                   <textarea value={overrideDraft.note} onChange={(e) => setOverrideDraft((prev) => ({ ...prev, note: e.target.value }))} rows={3} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" data-testid="pm-project-schedule-override-note" />
                 </label>
-                <Button onClick={saveOverride} disabled={!overrideDraft.cost_code || !overrideDraft.adjusted_finish_date || !overrideDraft.reason} data-testid="pm-project-schedule-override-save">Save Audited Override</Button>
+                <Button onClick={saveOverride} disabled={!overrideDraft.cost_code || !overrideDraft.adjusted_finish_date || !overrideDraft.reason} data-testid="pm-project-schedule-override-save">Save Override</Button>
               </div>
               <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3" data-testid="pm-project-schedule-override-history">
                 <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Recent override history</div>
@@ -396,7 +396,7 @@ export default function PmProjectSchedule() {
                       <div className="text-xs text-slate-500">Calculated: {item.calculated_finish_date} · By: {item.updated_by || item.created_by}</div>
                     </div>
                   ))}
-                  {!(governance.overrides || []).length ? <div className="text-xs text-slate-500">No authorized overrides recorded.</div> : null}
+                  {!(governance.overrides || []).length ? <div className="text-xs text-slate-500">No authorized overrides saved yet.</div> : null}
                 </div>
               </div>
             </div>
@@ -405,16 +405,16 @@ export default function PmProjectSchedule() {
           <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
             <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-forecast-panel">
               <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><GitCompareArrows className="w-4 h-4" /> Deterministic Forecast Scenarios</div>
-              <div className="mt-2 text-xs glass-text-muted-dark" data-testid="pm-project-schedule-forecast-baseline">Preview auth is still loading the canonical schedule payload for this PM surface.</div>
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-xs text-slate-600" data-testid="pm-project-schedule-forecast-governance-summary">Governance panel remains mounted for certification even when preview auth blocks the data fetch.</div>
+              <div className="mt-2 text-xs glass-text-muted-dark" data-testid="pm-project-schedule-forecast-baseline">Sign-in is still loading the primary schedule details for this PM workspace.</div>
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-xs text-slate-600" data-testid="pm-project-schedule-forecast-governance-summary">This review panel stays available even while sign-in finishes loading.</div>
               <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 text-xs text-slate-600" data-testid="pm-project-schedule-hardening-top-candidates">Critical-path hardening candidates will appear once the schedule payload resolves.</div>
             </div>
             <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-override-panel">
-              <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><ShieldCheck className="w-4 h-4" /> Authorized Override Governance</div>
-              <div className="mt-2 text-xs glass-text-muted-dark">Controls stay visible while the preview session authenticates.</div>
+              <div className="flex items-center gap-2 text-sm font-black glass-text-dark"><ShieldCheck className="w-4 h-4" /> Authorized Override Review</div>
+              <div className="mt-2 text-xs glass-text-muted-dark">Controls stay visible while your sign-in finishes loading.</div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button variant="outline" data-testid="pm-project-schedule-snapshot-save">Save Snapshot</Button>
-                <Button data-testid="pm-project-schedule-override-save">Save Audited Override</Button>
+                <Button data-testid="pm-project-schedule-override-save">Save Override</Button>
               </div>
             </div>
           </div>
@@ -450,7 +450,7 @@ export default function PmProjectSchedule() {
           <div className="elite-glass-panel glass-blur glass-bg rounded-[2rem] border border-white/40 p-5" data-testid="pm-project-schedule-rollover-panel">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-sm font-black glass-text-dark">Weekly Rollover Preview</div>
+                <div className="text-sm font-black glass-text-dark">Weekly Rollover Review</div>
                 <div className="text-xs glass-text-muted-dark" data-testid="pm-project-schedule-rollover-anchor">{rolloverPreview.current_anchor_date || "—"} → {rolloverPreview.rollover_anchor_date || "—"}</div>
               </div>
               <div className={`rounded-full px-3 py-1 text-xs font-bold ${rolloverPreview.status === "ready" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`} data-testid="pm-project-schedule-rollover-status">{rolloverPreview.status}</div>

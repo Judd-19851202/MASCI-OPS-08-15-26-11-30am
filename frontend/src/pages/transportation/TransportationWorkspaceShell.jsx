@@ -196,7 +196,7 @@ function RelatedRow({ row, testid }) {
   );
 }
 
-function AuditRow({ row, testid }) {
+function HistoryRow({ row, testid }) {
   const prefix = useTxPathPrefix();
   const target = _rewriteToPrefix(row.route, prefix) || `${prefix}/administration/audit`;
   return (
@@ -253,7 +253,7 @@ function ErrorHint({ testid, message }) {
  * ────────────────────────────────────────────────────────────── */
 export function TxOpsRightRail({
   entityContext,
-  auditHref,
+  historyHref,
   testid,
 }) {
   const location = useLocation();
@@ -283,7 +283,7 @@ export function TxOpsRightRail({
   const counts = (payload && payload.counts) || {};
 
   const noContext = !ctx;
-  const auditFallback = auditHref || "/admin/transportation/administration/audit";
+  const historyFallback = historyHref || "/admin/transportation/administration/audit";
 
   const renderBody = (section, render, emptyLabel, emptyTestid) => {
     if (noContext) {
@@ -349,7 +349,7 @@ export function TxOpsRightRail({
           (rows) => (
             <div className="space-y-1">
               {rows.map((r, i) => (
-                <AuditRow
+                <HistoryRow
                   key={`ra-${i}`}
                   row={r}
                   testid={`txops-rail-recent-activity-row-${i}`}
@@ -373,7 +373,7 @@ export function TxOpsRightRail({
           (rows) => (
             <div className="space-y-1">
               {rows.map((r, i) => (
-                <AuditRow
+                <HistoryRow
                   key={`tl-${i}`}
                   row={r}
                   testid={`txops-rail-timeline-row-${i}`}
@@ -436,7 +436,7 @@ export function TxOpsRightRail({
 
       <RailSection
         icon={Sparkles}
-        title="Audit"
+        title="History"
         testid="txops-rail-audit"
         count={counts.audit}
       >
@@ -445,31 +445,31 @@ export function TxOpsRightRail({
           (rows) => (
             <div className="space-y-1">
               {rows.map((r, i) => (
-                <AuditRow
+                <HistoryRow
                   key={`au-${i}`}
                   row={r}
                   testid={`txops-rail-audit-row-${i}`}
                 />
               ))}
               <Link
-                to={auditFallback}
+                to={historyFallback}
                 data-testid="txops-rail-audit-link"
                 className="block mt-1 text-amber-700 hover:text-amber-900 underline-offset-2 hover:underline"
               >
-                Open the full audit timeline →
+                Open the full history timeline →
               </Link>
             </div>
           ),
-          "No audit events.",
+          "No history items.",
           "txops-rail-audit-empty",
         )}
         {noContext ? (
           <Link
-            to={auditFallback}
+            to={historyFallback}
             data-testid="txops-rail-audit-link"
             className="block mt-2 text-amber-700 hover:text-amber-900 underline-offset-2 hover:underline"
           >
-            Open the full audit timeline →
+            Open the full history timeline →
           </Link>
         ) : null}
       </RailSection>

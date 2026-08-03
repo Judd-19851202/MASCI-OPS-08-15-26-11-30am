@@ -110,7 +110,7 @@ export default function PmOperationalIntelligence() {
           <div className="text-sm text-slate-700 leading-relaxed">
             Three horizons over your assigned projects — What Happened,
             What Is Happening, What Needs Attention. Every KPI, delay,
-            finding, and operational summary is backed by canonical ODS
+            finding, and operational summary is backed by trusted ODS
             facts with source traceability.
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function PmOperationalIntelligence() {
           <HorizonHeader
             number={4}
             title="Approved Daily Reports"
-            subtitle="Canonical English PDF export · management access only"
+            subtitle="English PDF export · management access only"
             testid="pm-horizon-4-header"
           />
           <DrV2ApprovedReportsPanel audience="pm" />

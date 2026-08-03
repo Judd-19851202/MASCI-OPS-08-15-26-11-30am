@@ -48,7 +48,7 @@ export default function PmJobTeam() {
           Coordinator, Safety / QA-QC / HR / Dispatch / Equipment / Shop /
           Survey / Accounting Representatives. Project Manager, Co-PM, and
           Executive Oversight stay admin-managed and are visible read-only
-          here. Every change fires a notification and is audited.
+          here. Every change sends a notice and appears in project history.
         </p>
         <JobTeamRosterPanel projectNumber={projectNumber} scope="pm" />
       </div>
