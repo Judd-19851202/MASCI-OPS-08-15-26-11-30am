@@ -25,6 +25,7 @@ import React from "react";
 import { Clock3, RefreshCw } from "lucide-react";
 import ChronologyPanel from "@/components/operational/ChronologyPanel";
 import { getTimeline } from "@/lib/operationalApi";
+import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 const MAX_VISIBLE = 30;
 // Wave 1.1 doctrine: keep the sidecar TIGHT. We bound max-visible at
@@ -33,6 +34,7 @@ const MAX_VISIBLE = 30;
 // surface that calmly at the foot.
 
 export default function OperationalTimelineSidecar({ projectNumber }) {
+  const safeProjectNumber = sanitizeOperatorProjectNumber(projectNumber, "Operations support");
   const [state, setState] = React.useState({
     items: null,
     truncated: false,
@@ -96,7 +98,7 @@ export default function OperationalTimelineSidecar({ projectNumber }) {
           Operational chronology
         </h2>
         <span className="text-xs text-slate-400 ml-1">
-          · {projectNumber || "—"}
+          · {safeProjectNumber || "—"}
         </span>
         <button
           type="button"

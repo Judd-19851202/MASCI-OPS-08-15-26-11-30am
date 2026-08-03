@@ -18,6 +18,7 @@ import {
   batchApply, batchApproveAll, batchUpload, fetchBatch, fetchVocabulary,
 } from "@/lib/employeeRecordsApi";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const LANE_LABEL = {
   hr: "HR", safety: "Safety", asset: "Asset", corporate_import: "Corporate Import",
@@ -157,7 +158,7 @@ export default function HistoricalRecordsBatchDetail() {
             {t("Batch")} · {LANE_LABEL[batch.ownership_lane]} · #{batch.id.slice(0, 8)}
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-            {batch.label || t("(unlabeled batch)")}
+            {sanitizeOperatorReference(batch.label, t("(unlabeled batch)")) || t("(unlabeled batch)")}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <StatChip label={t("Files")}       value={batch.file_count ?? 0} />
@@ -172,9 +173,9 @@ export default function HistoricalRecordsBatchDetail() {
             <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700"
                  data-testid="batch-detail-provenance">
               <span className="font-mono uppercase tracking-widest text-[9px] text-slate-500">{t("Session")}</span>
-              {batch.source_name && <span><b>{batch.source_name}</b></span>}
-              {batch.source_type && <span className="text-slate-500">· {batch.source_type}</span>}
-              {batch.source_location && <span className="text-slate-500">· {batch.source_location}</span>}
+              {batch.source_name && <span><b>{sanitizeOperatorReference(batch.source_name, batch.source_name)}</b></span>}
+              {batch.source_type && <span className="text-slate-500">· {sanitizeOperatorReference(batch.source_type, batch.source_type)}</span>}
+              {batch.source_location && <span className="text-slate-500">· {sanitizeOperatorReference(batch.source_location, batch.source_location)}</span>}
               <span className="ml-auto text-[10px] text-slate-500">
                 {t("Every file in this batch inherits this provenance.")}
               </span>
@@ -317,10 +318,10 @@ export default function HistoricalRecordsBatchDetail() {
                       </span>
                     </div>
                     <div className="mt-0.5 text-xs text-slate-600 flex flex-wrap gap-x-3">
-                      <span className="font-mono text-[11px]">{r.source_file_name || "—"}</span>
+                      <span className="font-mono text-[11px]">{sanitizeOperatorReference(r.source_file_name, "—") || "—"}</span>
                       {r.employee_name_snapshot ? (
                         <span className="inline-flex items-center gap-1">
-                          <UserCheck className="w-3 h-3 text-emerald-600" /> {r.employee_name_snapshot}
+                          <UserCheck className="w-3 h-3 text-emerald-600" /> {sanitizeOperatorReference(r.employee_name_snapshot, t("Employee record"))}
                         </span>
                       ) : (
                         <span className="text-amber-800">{t("(no employee yet)")}</span>

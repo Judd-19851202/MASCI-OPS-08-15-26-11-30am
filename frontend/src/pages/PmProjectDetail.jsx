@@ -33,7 +33,7 @@ import {
   TransportationRiskBanner,
   TransportationCloseoutAwareness,
 } from "@/components/operations_transportation_integration";
-import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
+import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -170,7 +170,7 @@ function ProjectDayEventsPanel({ projectNumber }) {
                   className="border-b border-slate-100 last:border-b-0"
                 >
                   <td className="py-1.5 pr-3 font-mono text-slate-800">
-                    {a.asset_label || a.asset_key}
+                    {sanitizeOperatorReference(a.asset_label || a.asset_key, "Asset record")}
                   </td>
                   <td className="py-1.5 pr-3 text-slate-600">
                     {a.asset_kind || "—"}
@@ -318,7 +318,7 @@ function ProjectMaterialMovementPanel({ projectNumber }) {
       </header>
 
       <p className="text-[11px] text-slate-500 mt-2">
-        Source: <code className="font-mono">/api/material-movement/daily/{`{project_number}`}/{`{date}`}</code> · derived view across daily reports · dispatch · haul cycles · scale-ticket proof. No invented quantities.
+        Material movement for the chosen day — derived from daily reports, dispatch, haul cycles, and scale-ticket proof. No invented quantities.
       </p>
 
       {state.status === "loading" && (
@@ -463,7 +463,7 @@ function ProjectMaterialMovementPanel({ projectNumber }) {
                     {haulCycles.map((c, i) => (
                       <tr key={`hc-${c.id || i}`} className="border-t border-slate-100" data-testid={`pm-project-mm-cycle-row-${i}`}>
                         <td className="px-2 py-1 font-mono">{c.truck_id || "—"}</td>
-                        <td className="px-2 py-1">{c.driver_name || ""}</td>
+                        <td className="px-2 py-1">{sanitizeOperatorReference(c.driver_name, "")}</td>
                         <td className="px-2 py-1">{c.material || ""}</td>
                         <td className="px-2 py-1">{c.haul_type || "Material"}</td>
                         <td className="px-2 py-1 text-slate-600">{[c.source_location, c.destination].filter(Boolean).join(" → ") || ""}</td>

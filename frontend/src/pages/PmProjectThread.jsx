@@ -73,10 +73,10 @@ function todayYyyyMmDd() {
 
 function missionAdapter({ job, recent, oi }) {
   const projectName = sanitizeOperatorReference(job?.project_name, "Operations support work") || "—";
-  const location    = job?.location || "—";
-  const client      = job?.client || "—";
-  const pm          = job?.project_manager || "—";
-  const superintendent = recent?.superintendent || "—";
+  const location    = sanitizeOperatorReference(job?.location, "—") || "—";
+  const client      = sanitizeOperatorReference(job?.client, "—") || "—";
+  const pm          = sanitizeOperatorReference(job?.project_manager, "—") || "—";
+  const superintendent = sanitizeOperatorReference(recent?.superintendent, "—") || "—";
   const sourceDate = recent?.source_report_date || null;
   const safeProjectNumber = sanitizeOperatorProjectNumber(job?.project_number, "Operations support");
 

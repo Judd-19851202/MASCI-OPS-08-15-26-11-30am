@@ -31,6 +31,7 @@ import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
 } from "@/lib/incidentSchema";
+import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -458,14 +459,14 @@ export default function ViewIncident() {
 
         <ReportSection number="01" title={t("Report Information")}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-            <KV label={t("Project Name")} value={data.project_name} />
-            <KV label={t("Project Number")} value={data.project_number} />
+            <KV label={t("Project Name")} value={sanitizeOperatorReference(data.project_name, "Operations support work")} />
+            <KV label={t("Project Number")} value={sanitizeOperatorProjectNumber(data.project_number, "Operations support")} />
             <div className="lg:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                 {t("Location")}
               </div>
               <div className="text-base text-slate-900 mt-1 whitespace-pre-wrap">
-                {data.location || "—"}
+                {sanitizeOperatorReference(data.location, "—") || "—"}
               </div>
               {data.gps_lat != null && (
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-1 flex-wrap">
@@ -795,7 +796,7 @@ export default function ViewIncident() {
       crumbs={[
         { label: "Field Operations" },
         { label: "Incidents" },
-        { label: data.project_name || data.id?.slice(0, 8)?.toUpperCase() || "Incident" },
+        { label: sanitizeOperatorReference(data.project_name, data.id?.slice(0, 8)?.toUpperCase() || "Incident") },
       ]}
       showShellHeader={false}
       showBreadcrumbs={false}

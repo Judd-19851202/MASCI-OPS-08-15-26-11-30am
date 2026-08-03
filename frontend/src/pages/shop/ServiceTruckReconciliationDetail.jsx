@@ -11,6 +11,7 @@ import BackToShopLink from "@/components/shop/BackToShopLink";
 import { formatEmployeeIdentity } from "@/lib/identity";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -108,13 +109,13 @@ export default function ServiceTruckReconciliationDetail() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, fontSize: 12 }}>
                 <div>Date: <strong>{doc.date}</strong></div>
                 <div>Truck: <strong>{doc.service_truck_unit}</strong></div>
-                <div>Tech: <strong>{doc.tech_name}</strong>{doc.tech_id ? ` (${doc.tech_id})` : ""}</div>
+                <div>Tech: <strong>{sanitizeOperatorReference(doc.tech_name, "Tech record")}</strong>{doc.tech_id ? ` (${doc.tech_id})` : ""}</div>
                 <div>Status: <strong data-testid="strr-detail-status">{doc.status}</strong></div>
                 <div>Variance status: <StatusChip status={doc.variance_status} /></div>
                 <div>Visits linked: <strong data-testid="strr-detail-visit-count">{doc.dispensed_quantities?.visit_count ?? 0}</strong></div>
                 <div>Start submitted: <strong>{doc.start_submitted_at ? formatPlatformTime(doc.start_submitted_at) : "—"}</strong></div>
                 <div>End submitted: <strong>{doc.end_submitted_at ? formatPlatformTime(doc.end_submitted_at) : "—"}</strong></div>
-                <div>Reviewed by: <strong>{doc.reviewed_by || "—"}</strong>{doc.reviewed_at ? ` · ${formatPlatformTime(doc.reviewed_at)}` : ""}</div>
+                <div>Reviewed by: <strong>{sanitizeOperatorReference(doc.reviewed_by, "—") || "—"}</strong>{doc.reviewed_at ? ` · ${formatPlatformTime(doc.reviewed_at)}` : ""}</div>
               </div>
             </Card>
 
@@ -163,7 +164,7 @@ export default function ServiceTruckReconciliationDetail() {
                     <Link key={v.id} to={`/shop/fuel-lube/${v.id}`}
                           data-testid={`strr-detail-visit-${v.id}`}
                           style={{ display: "block", padding: 8, background: "#f6f6f6", borderRadius: 3, textDecoration: "none", color: "inherit", fontSize: 12 }}>
-                      <strong>{v.id}</strong> · Project {v.project_number || "—"} · Tech {v.fuel_lube_tech_name || "—"} ·
+                      <strong>{v.id}</strong> · Project {sanitizeOperatorProjectNumber(v.project_number, "Operations support") || "—"} · Tech {sanitizeOperatorReference(v.fuel_lube_tech_name, "Tech record") || "—"} ·
                       Units serviced {v.units_serviced} · Issues {v.issues_found_count || 0} ·
                       Red diesel {Number(v.totals?.red_diesel_gallons || 0).toFixed(1)} gal ·
                       DEF {Number(v.totals?.def_gallons || 0).toFixed(1)} gal

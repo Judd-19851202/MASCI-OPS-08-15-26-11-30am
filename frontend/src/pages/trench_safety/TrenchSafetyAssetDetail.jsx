@@ -34,6 +34,7 @@ import {
   QRManagementPanel,
   PhotoManagementPanel,
 } from "@/pages/trench_safety/TrenchSafetyOpsCenter";
+import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const STATUS_COLOR = {
   "Available":          "bg-emerald-50 text-emerald-900 border-emerald-300",
@@ -127,11 +128,11 @@ export default function TrenchSafetyAssetDetail() {
   const deploymentRows = useMemo(
     () => (allDeps || []).map((d) => ({
       id: d.id,
-      project: d.project_name || "—",
-      projectNumber: d.project_number || "—",
+      project: sanitizeOperatorReference(d.project_name, "Operations support work") || "—",
+      projectNumber: sanitizeOperatorProjectNumber(d.project_number, "Operations support") || "—",
       superintendent: d.superintendent || "—",
       foreman: d.foreman || "—",
-      assignedBy: d.assigned_by || "—",
+      assignedBy: sanitizeOperatorReference(d.assigned_by, "—") || "—",
       assignedAt: d.assigned_at?.slice(0, 16) || "—",
       returnedAt: d.returned_at || null,
       source: d.source || "—",
@@ -257,7 +258,7 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Type")}         value={t(doc.asset_type || "Trench Box")} testId="f-type" />
               <Field label={t("Size")}         value={doc.size} testId="f-size" />
               <Field label={t("Serial #")}     value={doc.serial_number} mono testId="f-serial" />
-              <Field label={t("Manufacturer")} value={doc.manufacturer} testId="f-mfr" />
+              <Field label={t("Manufacturer")} value={sanitizeOperatorReference(doc.manufacturer, "—")} testId="f-mfr" />
               <Field label={t("Model")}        value={doc.model} testId="f-model" />
               <Field label={t("Color")}        value={doc.color} testId="f-color" />
               <Field label={t("Condition")}    value={t(doc.condition || "Good")} testId="f-condition" />
@@ -286,8 +287,8 @@ export default function TrenchSafetyAssetDetail() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
               <Field label={t("Status")}            value={t(doc.operational_status || "Available")} testId="f-status" />
               <Field label={t("Current Location")}  value={doc.current_location} testId="f-location" />
-              <Field label={t("Current Project")}   value={doc.current_project_name} testId="f-project" />
-              <Field label={t("Project Number")}    value={doc.current_project_number} mono testId="f-project-number" />
+              <Field label={t("Current Project")}   value={sanitizeOperatorReference(doc.current_project_name, "—")} testId="f-project" />
+              <Field label={t("Project Number")}    value={sanitizeOperatorProjectNumber(doc.current_project_number, "Operations support")} mono testId="f-project-number" />
               <Field label={t("Superintendent")}    value={doc.current_superintendent} testId="f-superintendent" />
               <Field label={t("Foreman")}           value={doc.current_foreman} testId="f-foreman" />
               <Field label={t("Yard")}              value={doc.yard_location} testId="f-yard" />
@@ -350,7 +351,7 @@ export default function TrenchSafetyAssetDetail() {
                 <ul className="text-sm divide-y divide-slate-100">
                   {deps.map((d) => (
                     <li key={d.id} className="py-1.5">
-                      <div className="font-bold text-slate-900">{d.project_name || "—"}</div>
+                      <div className="font-bold text-slate-900">{sanitizeOperatorReference(d.project_name, "Operations support work") || "—"}</div>
                       <div className="text-xs text-slate-500 font-mono">{d.assigned_at?.slice(0, 10)}{d.returned_at ? ` → ${d.returned_at.slice(0, 10)}` : ` · ${t("active")}`}</div>
                     </li>
                   ))}

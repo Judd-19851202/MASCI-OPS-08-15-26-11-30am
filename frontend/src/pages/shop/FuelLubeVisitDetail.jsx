@@ -8,6 +8,7 @@ import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -66,12 +67,12 @@ export default function FuelLubeVisitDetail() {
             <Card data-testid="fuel-lube-detail-header">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, fontSize: 12 }}>
                 <div>Date: <strong>{visit.visit_date}</strong></div>
-                <div>Project: <strong>{visit.project_number || "—"}</strong>{visit.project_name ? ` · ${visit.project_name}` : ""}</div>
+                <div>Project: <strong>{sanitizeOperatorProjectNumber(visit.project_number, "Operations support") || "—"}</strong>{visit.project_name ? ` · ${sanitizeOperatorReference(visit.project_name, "Operations support work")}` : ""}</div>
                 <div>Truck: <strong>{visit.fuel_lube_truck_unit || "—"}</strong></div>
-                <div>Tech: <strong>{visit.fuel_lube_tech_name || "—"}</strong>{visit.fuel_lube_tech_id ? ` (${visit.fuel_lube_tech_id})` : ""}</div>
+                <div>Tech: <strong>{sanitizeOperatorReference(visit.fuel_lube_tech_name, "Tech record") || "—"}</strong>{visit.fuel_lube_tech_id ? ` (${visit.fuel_lube_tech_id})` : ""}</div>
                 <div>Arrival → Departure: <strong>{visit.arrival_time || "—"}</strong> → <strong>{visit.departure_time || "—"}</strong></div>
                 <div>Location source: <strong>{visit.location_source || "—"}</strong></div>
-                <div>Submitted by: <strong>{visit.submitted_by || "—"}</strong></div>
+                <div>Submitted by: <strong>{sanitizeOperatorReference(visit.submitted_by, "Crew record") || "—"}</strong></div>
                 <div>Submitted at: <strong>{visit.submitted_at ? formatPlatformTime(visit.submitted_at) : "—"}</strong></div>
                 <div>Status: <strong>{visit.status || "—"}</strong></div>
               </div>
@@ -101,7 +102,7 @@ export default function FuelLubeVisitDetail() {
                 <Card key={i} data-testid={`fuel-lube-detail-line-${i}`}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
                     <div style={{ fontSize: 13, fontWeight: 700 }}>
-                      Unit <strong>{l.unit_number}</strong>{l.equipment_name ? ` · ${l.equipment_name}` : ""}
+                      Unit <strong>{sanitizeOperatorReference(l.unit_number, "Unit")}</strong>{l.equipment_name ? ` · ${sanitizeOperatorReference(l.equipment_name, "Equipment")}` : ""}
                       {l.issue_found && (
                         <span data-testid={`fuel-lube-detail-line-issue-flag-${i}`} style={{ marginLeft: 8, padding: "1px 6px", fontSize: 10, background: "#fae2e0", color: "#a33", borderRadius: 3, fontWeight: 700 }}>
                           ISSUE · {l.issue_severity || "—"}
@@ -122,7 +123,7 @@ export default function FuelLubeVisitDetail() {
                     Red diesel {fmt(l.red_diesel_gallons)} · Clear diesel {fmt(l.clear_diesel_gallons)} · Gas {fmt(l.gasoline_gallons)} · DEF {fmt(l.def_gallons)} ·
                     Engine oil {fmt(l.engine_oil_quarts)} · Hyd {fmt(l.hydraulic_oil_quarts)} · Coolant {fmt(l.coolant_quarts)} · Trans {fmt(l.transmission_fluid_quarts)} · Gear {fmt(l.gear_oil_quarts)}
                   </div>
-                  {l.line_notes && (<div style={{ fontSize: 11, color: "#222", marginTop: 4 }}>Notes: {l.line_notes}</div>)}
+                  {l.line_notes && (<div style={{ fontSize: 11, color: "#222", marginTop: 4 }}>Notes: {sanitizeOperatorReference(l.line_notes, l.line_notes)}</div>)}
                   {l.issue_found && (
                     <div style={{ marginTop: 6, padding: 8, background: "#fdf3f0", borderRadius: 4 }}>
                       <div style={{ fontSize: 11, fontWeight: 700 }}>Issue · {l.issue_category || "—"} · {l.issue_severity || "—"}</div>

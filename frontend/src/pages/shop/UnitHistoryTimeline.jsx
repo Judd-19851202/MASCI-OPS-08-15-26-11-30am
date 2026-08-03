@@ -23,6 +23,7 @@ import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter + local calendar date.
 import { formatPlatformTime, getPlatformTimezone } from "@/lib/platformTime";
+import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -121,8 +122,8 @@ function PartsBlock({ partsUsed = [], partsOnOrder = [] }) {
                 <tr key={i} data-testid={`unit-history-part-used-row-${i}`} style={{ borderTop: "1px solid #e3e6ea" }}>
                   <td style={{ padding: 3 }}>{p.part_name || "—"}</td>
                   <td style={{ padding: 3 }}>{p.part_number || "—"}</td>
-                  <td style={{ padding: 3 }}>{p.manufacturer || "—"}</td>
-                  <td style={{ padding: 3 }}>{p.supplier || "—"}</td>
+                  <td style={{ padding: 3 }}>{sanitizeOperatorReference(p.manufacturer, "—") || "—"}</td>
+                  <td style={{ padding: 3 }}>{sanitizeOperatorReference(p.supplier, "—") || "—"}</td>
                   <td style={{ padding: 3, textAlign: "right" }}>{p.quantity ?? 1}</td>
                   <td style={{ padding: 3, color: "#666" }}>{p.notes || ""}</td>
                 </tr>
@@ -152,8 +153,8 @@ function PartsBlock({ partsUsed = [], partsOnOrder = [] }) {
                 <tr key={i} data-testid={`unit-history-part-order-row-${i}`} style={{ borderTop: "1px solid #e3e6ea" }}>
                   <td style={{ padding: 3 }}>{p.part_name || "—"}</td>
                   <td style={{ padding: 3 }}>{p.part_number || "—"}</td>
-                  <td style={{ padding: 3 }}>{p.manufacturer || "—"}</td>
-                  <td style={{ padding: 3 }}>{p.supplier || "—"}</td>
+                  <td style={{ padding: 3 }}>{sanitizeOperatorReference(p.manufacturer, "—") || "—"}</td>
+                  <td style={{ padding: 3 }}>{sanitizeOperatorReference(p.supplier, "—") || "—"}</td>
                   <td style={{ padding: 3, textAlign: "right" }}>{p.quantity ?? 1}</td>
                   <td style={{ padding: 3 }}>{p.ordered_date || "—"}</td>
                   <td style={{ padding: 3 }}>{p.expected_date || "—"}</td>
@@ -179,7 +180,7 @@ function EventCard({ ev }) {
     ev.related_dvir_id ? `DVIR ${ev.related_dvir_id.slice(-8)}` : null,
     ev.related_work_order_id ? `WO ${ev.related_work_order_id.slice(-8)}` : null,
     ev.related_attachment_id ? `attach ${ev.related_attachment_id.slice(-8)}` : null,
-    ev.project_number ? `project ${ev.project_number}` : null,
+    ev.project_number ? `project ${sanitizeOperatorProjectNumber(ev.project_number, "Operations support")}` : null,
   ].filter(Boolean);
   return (
     <Card data-testid={`unit-history-event-${ev.event_id}`}>
@@ -196,8 +197,8 @@ function EventCard({ ev }) {
             <span style={{ fontSize: 11, color: "#666", whiteSpace: "nowrap" }}>{formatTs(ev.timestamp)}</span>
           </div>
           <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
-            {ev.actor_name && (<span>by <strong>{ev.actor_name}</strong>{ev.actor_role ? ` (${ev.actor_role})` : ""} · </span>)}
-            source <code style={{ fontSize: 10, background: "#eef0f3", padding: "1px 4px", borderRadius: 3 }}>{ev.source_system}</code>
+            {ev.actor_name && (<span>by <strong>{sanitizeOperatorReference(ev.actor_name, "Crew record")}</strong>{ev.actor_role ? ` (${ev.actor_role})` : ""} · </span>)}
+            source <code style={{ fontSize: 10, background: "#eef0f3", padding: "1px 4px", borderRadius: 3 }}>{sanitizeOperatorReference(ev.source_system, "system")}</code>
           </div>
           {(ev.status_before || ev.status_after) && (
             <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
@@ -208,7 +209,7 @@ function EventCard({ ev }) {
             </div>
           )}
           {ev.notes && (
-            <div style={{ fontSize: 12, color: "#222", marginTop: 4 }}>{ev.notes}</div>
+            <div style={{ fontSize: 12, color: "#222", marginTop: 4 }}>{sanitizeOperatorReference(ev.notes, ev.notes)}</div>
           )}
           {relateds.length > 0 && (
             <div style={{ fontSize: 10, color: "#888", marginTop: 4 }}>

@@ -21,6 +21,7 @@ import { itemSeverity } from "@/lib/equipmentSeverity";
 import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const KV = ({ label, value, full = false }) => (
   <div className={full ? "lg:col-span-2" : ""}>
@@ -208,10 +209,10 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
         <Card className="print-section">
           <CardHeader className="pb-4"><CardTitle>Project & Operator</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-            <KV label="Project" value={data.project_name} />
-            <KV label="Project #" value={data.project_number} />
-            <KV label="Location" value={data.location} full />
-            <KV label="Operator" value={formatEmployeeIdentity(data) || data.operator_name} />
+            <KV label="Project" value={sanitizeOperatorReference(data.project_name, "Operations support work")} />
+            <KV label="Project #" value={sanitizeOperatorProjectNumber(data.project_number, "Operations support")} />
+            <KV label="Location" value={sanitizeOperatorReference(data.location, "—")} full />
+            <KV label="Operator" value={sanitizeOperatorReference(formatEmployeeIdentity(data) || data.operator_name, "Operator record")} />
             <KV label="Date / Time" value={`${data.inspection_date} ${data.inspection_time}`} />
           </CardContent>
         </Card>
@@ -360,7 +361,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
           <Card className="print-section">
             <CardHeader className="pb-4"><CardTitle>Sign-Off</CardTitle></CardHeader>
             <CardContent>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {formatEmployeeIdentity(data) || data.operator_name}</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">Operator: {sanitizeOperatorReference(formatEmployeeIdentity(data) || data.operator_name, "Operator record")}</div>
               <img src={resolvePhotoSrc(data.operator_signature)} alt="Operator signature" className="max-h-32 border-b-2 border-slate-300" />
             </CardContent>
           </Card>
