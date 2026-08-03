@@ -23,6 +23,21 @@ from services.enterprise_governance import (
     list_overrides,
     seed_governance_admin_surface,
 )
+from services.enterprise_hierarchy_foundation import (
+    bind_existing_record,
+    create_hierarchy_node,
+    ensure_enterprise_hierarchy_foundation,
+    get_hierarchy_node_detail,
+    get_hierarchy_overview,
+    get_latest_backfill_report,
+    get_scope_preview,
+    list_hierarchy_bindings,
+    list_hierarchy_nodes,
+    list_resource_assignments,
+    list_review_queue,
+    set_hierarchy_node_state,
+    update_hierarchy_node,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +75,54 @@ class OverrideBody(BaseModel):
     operational_urgency: str = Field(..., min_length=2, max_length=200)
     evidence: List[str] = Field(default_factory=list)
     expires_at: str = ""
+
+
+class HierarchyNodeBody(BaseModel):
+    code: str = Field(..., min_length=2, max_length=120)
+    name: str = Field(..., min_length=2, max_length=200)
+    type: str = Field(..., min_length=2, max_length=60)
+    subtype: str = ""
+    parent_id: Optional[str] = None
+    description: str = ""
+    company_scope: str = "masci"
+    effective_start: str = ""
+    effective_end: Optional[str] = None
+    active_status: bool = True
+    archive_status: bool = False
+    owner_steward: str = ""
+    steward: str = ""
+    external_source_identifier: str = ""
+    display_order: int = 0
+    metadata_extension: Dict[str, Any] = Field(default_factory=dict)
+
+
+class HierarchyNodePatchBody(BaseModel):
+    name: Optional[str] = None
+    parent_id: Optional[str] = None
+    description: Optional[str] = None
+    effective_start: Optional[str] = None
+    effective_end: Optional[str] = None
+    active_status: Optional[bool] = None
+    archive_status: Optional[bool] = None
+    owner_steward: Optional[str] = None
+    steward: Optional[str] = None
+    display_order: Optional[int] = None
+    metadata_extension: Dict[str, Any] = Field(default_factory=dict)
+
+
+class HierarchyBindingBody(BaseModel):
+    record_type: str = Field(..., min_length=2, max_length=80)
+    source_collection: str = Field(..., min_length=2, max_length=120)
+    source_record_id: str = Field(..., min_length=1, max_length=200)
+    source_label: str = Field(..., min_length=1, max_length=240)
+    target_node_id: str = Field(..., min_length=2, max_length=240)
+    binding_kind: str = Field(..., min_length=2, max_length=80)
+    confidence: str = "high"
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class GovernanceActionBody(BaseModel):
+    reason: str = ""
 
 
 def _runtime_db(request: Optional[Request], db):
@@ -102,9 +165,168 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
     @api_router.get("/api/admin/governance/organization")
     async def governance_organization(request: Request, actor=Depends(require_admin)):
         runtime_db = _runtime_db(request, db)
-        await seed_governance_admin_surface(runtime_db)
-        rows = await list_org_nodes(runtime_db)
+        await ensure_enterprise_hierarchy_foundation(runtime_db)
+        rows = await list_hierarchy_nodes(runtime_db)
         return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/hierarchy/overview")
+    async def governance_hierarchy_overview(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        return await get_hierarchy_overview(runtime_db)
+
+    @api_router.post("/api/admin/governance/hierarchy/backfill/run")
+    async def governance_hierarchy_backfill_run(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        return await ensure_enterprise_hierarchy_foundation(runtime_db, force=True)
+
+    @api_router.get("/api/admin/governance/hierarchy/backfill/latest")
+    async def governance_hierarchy_backfill_latest(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        return await get_latest_backfill_report(runtime_db)
+
+    @api_router.get("/api/admin/governance/hierarchy/nodes")
+    async def governance_hierarchy_nodes(
+        request: Request,
+        node_type: str = "",
+        parent_id: str = "",
+        search: str = "",
+        include_archived: bool = False,
+        actor=Depends(require_admin),
+    ):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_hierarchy_nodes(
+            runtime_db,
+            node_type=node_type,
+            parent_id=parent_id,
+            search=search,
+            include_archived=include_archived,
+        )
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/hierarchy/nodes/{node_id}")
+    async def governance_hierarchy_node_detail(request: Request, node_id: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            return await get_hierarchy_node_detail(runtime_db, node_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.get("/api/admin/governance/hierarchy/nodes/{node_id}/children")
+    async def governance_hierarchy_node_children(request: Request, node_id: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            detail = await get_hierarchy_node_detail(runtime_db, node_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"count": len(detail["children"]), "items": detail["children"]}
+
+    @api_router.get("/api/admin/governance/hierarchy/nodes/{node_id}/ancestry")
+    async def governance_hierarchy_node_ancestry(request: Request, node_id: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            detail = await get_hierarchy_node_detail(runtime_db, node_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"count": len(detail["ancestry"]), "items": detail["ancestry"]}
+
+    @api_router.post("/api/admin/governance/hierarchy/nodes")
+    async def governance_hierarchy_create_node(request: Request, body: HierarchyNodeBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            resolved = await resolve_actor_from_request(runtime_db, request, actor)
+            node = await create_hierarchy_node(runtime_db, body=body.model_dump(), actor=resolved)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("governance hierarchy create failed")
+            raise HTTPException(500, "governance_hierarchy_create_failed") from exc
+        return {"ok": True, "node": node}
+
+    @api_router.patch("/api/admin/governance/hierarchy/nodes/{node_id}")
+    async def governance_hierarchy_update_node(request: Request, node_id: str, body: HierarchyNodePatchBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            resolved = await resolve_actor_from_request(runtime_db, request, actor)
+            node = await update_hierarchy_node(runtime_db, node_id=node_id, body=body.model_dump(exclude_none=True), actor=resolved)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("governance hierarchy update failed")
+            raise HTTPException(500, "governance_hierarchy_update_failed") from exc
+        return {"ok": True, "node": node}
+
+    @api_router.post("/api/admin/governance/hierarchy/nodes/{node_id}/activate")
+    async def governance_hierarchy_activate_node(request: Request, node_id: str, body: GovernanceActionBody = Body(default=GovernanceActionBody()), actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            resolved = await resolve_actor_from_request(runtime_db, request, actor)
+            node = await set_hierarchy_node_state(runtime_db, node_id=node_id, actor=resolved, action="activate", reason=body.reason)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "node": node}
+
+    @api_router.post("/api/admin/governance/hierarchy/nodes/{node_id}/deactivate")
+    async def governance_hierarchy_deactivate_node(request: Request, node_id: str, body: GovernanceActionBody = Body(default=GovernanceActionBody()), actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            resolved = await resolve_actor_from_request(runtime_db, request, actor)
+            node = await set_hierarchy_node_state(runtime_db, node_id=node_id, actor=resolved, action="deactivate", reason=body.reason)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "node": node}
+
+    @api_router.post("/api/admin/governance/hierarchy/nodes/{node_id}/archive")
+    async def governance_hierarchy_archive_node(request: Request, node_id: str, body: GovernanceActionBody = Body(default=GovernanceActionBody()), actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            resolved = await resolve_actor_from_request(runtime_db, request, actor)
+            node = await set_hierarchy_node_state(runtime_db, node_id=node_id, actor=resolved, action="archive", reason=body.reason)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "node": node}
+
+    @api_router.get("/api/admin/governance/hierarchy/bindings")
+    async def governance_hierarchy_bindings(request: Request, status: str = "", record_type: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_hierarchy_bindings(runtime_db, status=status, record_type=record_type)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.post("/api/admin/governance/hierarchy/bindings")
+    async def governance_hierarchy_bind_record(request: Request, body: HierarchyBindingBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            resolved = await resolve_actor_from_request(runtime_db, request, actor)
+            row = await bind_existing_record(runtime_db, actor=resolved, **body.model_dump())
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "binding": row}
+
+    @api_router.get("/api/admin/governance/hierarchy/review-queue")
+    async def governance_hierarchy_review_queue(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_review_queue(runtime_db)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/hierarchy/resource-assignments")
+    async def governance_hierarchy_resource_assignments(request: Request, resource_type: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_resource_assignments(runtime_db, resource_type=resource_type)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/hierarchy/scope")
+    async def governance_hierarchy_scope(request: Request, email: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        return await get_scope_preview(runtime_db, email=email)
 
     @api_router.get("/api/admin/governance/roles")
     async def governance_roles(request: Request, actor=Depends(require_admin)):

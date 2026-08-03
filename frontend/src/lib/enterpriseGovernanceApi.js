@@ -20,6 +20,71 @@ export async function fetchGovernanceOrganization() {
   return data;
 }
 
+export async function fetchGovernanceHierarchyOverview() {
+  const { data } = await api.get("/admin/governance/hierarchy/overview");
+  return data;
+}
+
+export async function runGovernanceHierarchyBackfill() {
+  const { data } = await api.post("/admin/governance/hierarchy/backfill/run");
+  return data;
+}
+
+export async function fetchGovernanceHierarchyLatestRun() {
+  const { data } = await api.get("/admin/governance/hierarchy/backfill/latest");
+  return data;
+}
+
+export async function fetchGovernanceHierarchyNodes(params = {}) {
+  const { data } = await api.get("/admin/governance/hierarchy/nodes", { params });
+  return data;
+}
+
+export async function fetchGovernanceHierarchyNodeDetail(nodeId) {
+  const { data } = await api.get(`/admin/governance/hierarchy/nodes/${encodeURIComponent(nodeId)}`);
+  return data;
+}
+
+export async function createGovernanceHierarchyNode(payload) {
+  const { data } = await api.post("/admin/governance/hierarchy/nodes", payload);
+  return data;
+}
+
+export async function updateGovernanceHierarchyNode(nodeId, payload) {
+  const { data } = await api.patch(`/admin/governance/hierarchy/nodes/${encodeURIComponent(nodeId)}`, payload);
+  return data;
+}
+
+export async function setGovernanceHierarchyNodeState(nodeId, action, payload = {}) {
+  const { data } = await api.post(`/admin/governance/hierarchy/nodes/${encodeURIComponent(nodeId)}/${encodeURIComponent(action)}`, payload);
+  return data;
+}
+
+export async function fetchGovernanceHierarchyBindings(params = {}) {
+  const { data } = await api.get("/admin/governance/hierarchy/bindings", { params });
+  return data;
+}
+
+export async function createGovernanceHierarchyBinding(payload) {
+  const { data } = await api.post("/admin/governance/hierarchy/bindings", payload);
+  return data;
+}
+
+export async function fetchGovernanceHierarchyReviewQueue() {
+  const { data } = await api.get("/admin/governance/hierarchy/review-queue");
+  return data;
+}
+
+export async function fetchGovernanceHierarchyAssignments(params = {}) {
+  const { data } = await api.get("/admin/governance/hierarchy/resource-assignments", { params });
+  return data;
+}
+
+export async function fetchGovernanceHierarchyScope(params = {}) {
+  const { data } = await api.get("/admin/governance/hierarchy/scope", { params });
+  return data;
+}
+
 export async function fetchGovernancePolicies() {
   const { data } = await api.get("/admin/governance/policies");
   return data;

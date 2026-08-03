@@ -1,5 +1,6 @@
 import React from "react";
 import AdminGovernanceListPage from "@/pages/admin/AdminGovernanceListPage";
+import AdminGovernanceHierarchyFoundation from "@/pages/admin/AdminGovernanceHierarchyFoundation";
 import {
   fetchGovernanceApprovalFlows,
   fetchGovernanceAudit,
@@ -18,7 +19,7 @@ import {
 } from "@/lib/enterpriseGovernanceApi";
 
 export function AdminGovernanceOrganizationPage() {
-  return <AdminGovernanceListPage title="Organization Structure" subtitle="Governed organization hierarchy." breadcrumb={[{ label: "Enterprise Governance", to: "/admin/governance" }, { label: "Organization" }]} testidPrefix="gov-org" loader={fetchGovernanceOrganization} />;
+  return <AdminGovernanceHierarchyFoundation />;
 }
 export function AdminGovernanceIdentitiesPage() {
   return <AdminGovernanceListPage title="Identity Projections" subtitle="Policy-ready identity context derived from canonical auth owners." breadcrumb={[{ label: "Enterprise Governance", to: "/admin/governance" }, { label: "Identities" }]} testidPrefix="gov-identities" loader={fetchGovernanceIdentities} />;
