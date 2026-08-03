@@ -3,8 +3,11 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request
+import io
+
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
+from fastapi.responses import StreamingResponse
 from lib.enterprise_governance import governance_project_scope, resolve_actor_from_request
 
 from services.enterprise_governance import (
@@ -60,6 +63,23 @@ from services.project_controls_authority import (
     upsert_enterprise_work_type,
     upsert_project_mapping,
     upsert_project_pay_item,
+)
+from services.project_budget_authority import (
+    BUDGET_EVENT_CONTRACTS,
+    activate_budget_import_session,
+    create_budget_import_session,
+    ensure_project_budget_foundation,
+    export_budget_version_comparison,
+    export_budget_version_rows,
+    get_admin_project_budget_overview,
+    get_budget_import_session_detail,
+    get_project_budget_overview,
+    list_budget_import_sessions,
+    list_budget_review_queue,
+    list_project_budget_lines,
+    list_project_budget_versions,
+    review_budget_import_row,
+    run_project_budget_backfill,
 )
 from pm_auth import is_valid_pm_user_token_async
 
@@ -230,6 +250,25 @@ class CrewConfirmBody(BaseModel):
 
 class ReviewNoteBody(BaseModel):
     note: str = ""
+
+
+class BudgetImportRowReviewBody(BaseModel):
+    action: str = "approve"
+    customer_pay_item_id: str = ""
+    customer_pay_item_number: str = ""
+    description: str = ""
+    quantity: float = 0.0
+    unit: str = ""
+    unit_price: float = 0.0
+    budget_amount: float = 0.0
+    enterprise_work_type_id: str = ""
+    project_cost_code: str = ""
+    phase_id: str = ""
+    work_package_id: str = ""
+    schedule_activity_id: str = ""
+    schedule_activity_name: str = ""
+    line_kind: str = "direct_cost"
+    review_note: str = ""
 
 
 def _runtime_db(request: Optional[Request], db):
@@ -657,6 +696,79 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         await ensure_project_controls_foundation(runtime_db)
         return {"count": len(EVENT_CONTRACTS), "items": EVENT_CONTRACTS}
 
+    @api_router.get("/api/admin/governance/project-controls/budget/overview")
+    async def governance_project_budget_overview(request: Request, project_number: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_budget_foundation(runtime_db)
+        return await get_admin_project_budget_overview(runtime_db, project_number=project_number)
+
+    @api_router.post("/api/admin/governance/project-controls/budget/backfill/run")
+    async def governance_project_budget_backfill(request: Request, background_tasks: BackgroundTasks, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_budget_foundation(runtime_db)
+        background_tasks.add_task(run_project_budget_backfill, runtime_db, force=True)
+        return {"ok": True, "status": "queued", "message": "wp18c3 budget backfill queued"}
+
+    @api_router.get("/api/admin/governance/project-controls/budget/review-queue")
+    async def governance_project_budget_review(request: Request, project_number: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_budget_review_queue(runtime_db, project_number=project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/budget/versions")
+    async def governance_project_budget_versions(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_project_budget_versions(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/budget/versions/{version_id}/lines")
+    async def governance_project_budget_lines(request: Request, version_id: str, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_project_budget_lines(runtime_db, project_number, version_id=version_id)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/budget/imports")
+    async def governance_project_budget_imports(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_budget_import_sessions(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/budget/imports/{import_id}")
+    async def governance_project_budget_import_detail(request: Request, import_id: str, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            return await get_budget_import_session_detail(runtime_db, project_number, import_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.get("/api/admin/governance/project-controls/budget/export/budget")
+    async def governance_project_budget_export(request: Request, project_number: str, version_id: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        try:
+            payload = await export_budget_version_rows(runtime_db, project_number, version_id, actor=resolved)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
+    @api_router.get("/api/admin/governance/project-controls/budget/export/comparison")
+    async def governance_project_budget_export_comparison(request: Request, project_number: str, left_version_id: str, right_version_id: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        try:
+            payload = await export_budget_version_comparison(runtime_db, project_number, left_version_id=left_version_id, right_version_id=right_version_id, actor=resolved)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
     @api_router.get("/api/pm/project-controls/overview")
     async def pm_project_controls_overview(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
@@ -784,3 +896,125 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         await _require_project_scope(runtime_db, request, project_number)
         rows = await list_project_work_ledger(runtime_db, project_number, limit=limit)
         return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/overview")
+    async def pm_project_budget_overview(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_budget_overview(runtime_db, project_number)
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/versions")
+    async def pm_project_budget_versions(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_project_budget_versions(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/versions/{version_id}/lines")
+    async def pm_project_budget_lines(request: Request, project_number: str, version_id: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_project_budget_lines(runtime_db, project_number, version_id=version_id)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/review-queue")
+    async def pm_project_budget_review_queue(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_budget_review_queue(runtime_db, project_number=project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/imports")
+    async def pm_project_budget_imports(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_budget_import_sessions(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/imports/{import_id}")
+    async def pm_project_budget_import_detail(request: Request, project_number: str, import_id: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        try:
+            return await get_budget_import_session_detail(runtime_db, project_number, import_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/budget/imports")
+    async def pm_project_budget_create_import(
+        request: Request,
+        project_number: str,
+        file: UploadFile = File(...),
+        source_kind: str = Form("csv"),
+        target_version_stage: str = Form("original_approved_budget"),
+        version_name: str = Form(""),
+    ):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        data = await file.read()
+        try:
+            return await create_budget_import_session(
+                runtime_db,
+                project_number,
+                filename=file.filename or "budget-upload",
+                content_type=file.content_type or "application/octet-stream",
+                data=data,
+                source_kind=source_kind,
+                target_version_stage=target_version_stage,
+                version_name=version_name,
+                actor=actor,
+            )
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/budget/imports/{import_id}/rows/{row_id}/review")
+    async def pm_project_budget_review_row(request: Request, project_number: str, import_id: str, row_id: str, body: BudgetImportRowReviewBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await review_budget_import_row(runtime_db, project_number, import_id, row_id, body.model_dump(), actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "row": row}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/budget/imports/{import_id}/activate")
+    async def pm_project_budget_activate(request: Request, project_number: str, import_id: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            result = await activate_budget_import_session(runtime_db, project_number, import_id, actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, **result}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/export/budget")
+    async def pm_project_budget_export(request: Request, project_number: str, version_id: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            payload = await export_budget_version_rows(runtime_db, project_number, version_id, actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/export/comparison")
+    async def pm_project_budget_export_comparison(request: Request, project_number: str, left_version_id: str, right_version_id: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            payload = await export_budget_version_comparison(runtime_db, project_number, left_version_id=left_version_id, right_version_id=right_version_id, actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )

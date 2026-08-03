@@ -117,3 +117,116 @@ export async function fetchPmProjectWorkLedger(projectNumber, limit = 100) {
   const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/work-ledger?limit=${encodeURIComponent(limit)}`);
   return data;
 }
+
+export async function fetchAdminProjectBudgetOverview(projectNumber = "") {
+  const suffix = projectNumber ? `?project_number=${encodeURIComponent(projectNumber)}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/budget/overview${suffix}`);
+  return data;
+}
+
+export async function runAdminProjectBudgetBackfill() {
+  const { data } = await api.post("/admin/governance/project-controls/budget/backfill/run", {});
+  return data;
+}
+
+export async function fetchAdminProjectBudgetReviewQueue(projectNumber = "") {
+  const suffix = projectNumber ? `?project_number=${encodeURIComponent(projectNumber)}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/budget/review-queue${suffix}`);
+  return data;
+}
+
+export async function fetchAdminProjectBudgetVersions(projectNumber) {
+  const { data } = await api.get(`/admin/governance/project-controls/budget/versions?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function fetchAdminProjectBudgetLines(projectNumber, versionId) {
+  const { data } = await api.get(`/admin/governance/project-controls/budget/versions/${encodeURIComponent(versionId)}/lines?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function fetchAdminProjectBudgetImports(projectNumber) {
+  const { data } = await api.get(`/admin/governance/project-controls/budget/imports?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function fetchAdminProjectBudgetImportDetail(projectNumber, importId) {
+  const { data } = await api.get(`/admin/governance/project-controls/budget/imports/${encodeURIComponent(importId)}?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function downloadAdminBudgetExport(projectNumber, versionId) {
+  return api.get(`/admin/governance/project-controls/budget/export/budget?project_number=${encodeURIComponent(projectNumber)}&version_id=${encodeURIComponent(versionId)}`, {
+    responseType: "blob",
+  });
+}
+
+export async function downloadAdminBudgetComparison(projectNumber, leftVersionId, rightVersionId) {
+  return api.get(`/admin/governance/project-controls/budget/export/comparison?project_number=${encodeURIComponent(projectNumber)}&left_version_id=${encodeURIComponent(leftVersionId)}&right_version_id=${encodeURIComponent(rightVersionId)}`, {
+    responseType: "blob",
+  });
+}
+
+export async function fetchPmProjectBudgetOverview(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/overview`);
+  return data;
+}
+
+export async function fetchPmProjectBudgetVersions(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/versions`);
+  return data;
+}
+
+export async function fetchPmProjectBudgetLines(projectNumber, versionId) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/versions/${encodeURIComponent(versionId)}/lines`);
+  return data;
+}
+
+export async function fetchPmProjectBudgetReviewQueue(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/review-queue`);
+  return data;
+}
+
+export async function fetchPmProjectBudgetImports(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/imports`);
+  return data;
+}
+
+export async function fetchPmProjectBudgetImportDetail(projectNumber, importId) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/imports/${encodeURIComponent(importId)}`);
+  return data;
+}
+
+export async function createPmProjectBudgetImport(projectNumber, payload) {
+  const formData = new FormData();
+  formData.append("file", payload.file);
+  formData.append("source_kind", payload.source_kind || "csv");
+  formData.append("target_version_stage", payload.target_version_stage || "original_approved_budget");
+  formData.append("version_name", payload.version_name || "");
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/imports`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
+export async function reviewPmProjectBudgetImportRow(projectNumber, importId, rowId, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/imports/${encodeURIComponent(importId)}/rows/${encodeURIComponent(rowId)}/review`, payload);
+  return data;
+}
+
+export async function activatePmProjectBudgetImport(projectNumber, importId) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/imports/${encodeURIComponent(importId)}/activate`, {});
+  return data;
+}
+
+export async function downloadPmBudgetExport(projectNumber, versionId) {
+  return api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/export/budget?version_id=${encodeURIComponent(versionId)}`, {
+    responseType: "blob",
+  });
+}
+
+export async function downloadPmBudgetComparison(projectNumber, leftVersionId, rightVersionId) {
+  return api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/export/comparison?left_version_id=${encodeURIComponent(leftVersionId)}&right_version_id=${encodeURIComponent(rightVersionId)}`, {
+    responseType: "blob",
+  });
+}

@@ -386,7 +386,9 @@ const PmProjectThread = React.lazy(() => import("@/pages/PmProjectThread"));
 const PmProjectSchedule = React.lazy(() => import("@/pages/PmProjectSchedule"));
 const PmMondayReviewWorkspace = React.lazy(() => import("@/pages/PmMondayReviewWorkspace"));
 const PmProjectControlsAuthority = React.lazy(() => import("@/pages/PmProjectControlsAuthority"));
+const PmProjectBudgetAuthority = React.lazy(() => import("@/pages/PmProjectBudgetAuthority"));
 const AdminGovernanceProjectControlsAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectControlsAuthority"));
+const AdminGovernanceProjectBudgetAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectBudgetAuthority"));
 // PM Command Center · Phase 4B · 2026-02-10
 // One operational command screen for the PM (resources · hauls ·
 // materials · shop · safety · timeline). Reads strictly from the
@@ -778,6 +780,7 @@ export function AppRoutes() {
             <Route path="/admin/governance/overview" element={A(<AdminGovernanceOperatingSystem />)} />
             <Route path="/admin/governance/organization" element={A(<AdminGovernanceOrganizationPage />)} />
             <Route path="/admin/governance/project-controls" element={A(<AdminGovernanceProjectControlsAuthority />)} />
+            <Route path="/admin/governance/project-controls/budget" element={A(<AdminGovernanceProjectBudgetAuthority />)} />
             <Route path="/admin/governance/identities" element={A(<AdminGovernanceIdentitiesPage />)} />
             <Route path="/admin/governance/roles" element={A(<AdminGovernanceRolesPage />)} />
             <Route path="/admin/governance/permissions" element={A(<AdminGovernancePermissionsPage />)} />
@@ -902,6 +905,7 @@ export function AppRoutes() {
             <Route path="/pm/project-schedule"  element={P(<PmProjectSchedule />)} />
             <Route path="/pm/monday-review"  element={P(<PmMondayReviewWorkspace />)} />
             <Route path="/pm/project-controls"  element={P(<PmProjectControlsAuthority />)} />
+            <Route path="/pm/project-controls/budget"  element={P(<PmProjectBudgetAuthority />)} />
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal
