@@ -1,3 +1,13 @@
+# 2026-08-03 — WP-18C1 Enterprise Hierarchy Foundation
+
+- Implemented the additive enterprise hierarchy foundation in code with a new backend service and hierarchy APIs plus a governed admin page at `/admin/governance/organization`.
+- Bound current MASCI source evidence into the hierarchy foundation: `33` projects from `jobs_master`, `4` governed facilities, `81` resource-assignment foundation rows, and `14` explicit unresolved mapping review items.
+- Preserved protected systems including project identity, auth/session handling, permissions, Daily Reports, existing domain workflows, portal shells, notifications, PDFs/emails, and validated APIs/models.
+- Added WP-18C1 evidence artifacts under `/app/memory/`: implementation ledger, hierarchy binding register, migration/backfill report, permission/scope evidence, API/model evidence, operator experience evidence, test/certification report, and executive closeout.
+- Verification passed: backend hierarchy pytest suite `24 passed`; testing agent frontend checks passed for page load, search, details, responsive widths `390/430/768/1024/1440`, Spanish labels, and governance regression smoke.
+- Fixed implementation defects discovered during verification: Mongo upsert field conflicts, review-queue serialization, unstable equipment binding ids, archived-root selection, and backend test auth-header coverage.
+- Final WP-18C1 closeout result: **GO**. Authorization recommendation for WP-18C2: **Authorized to begin**.
+
 # 2026-08-03 — WP-18 Executive Constitutional Amendment Packet (ECAP)
 
 - Added the full ECAP implementation-contract package under `/app/memory/` with `45` required `WP18_ECAP_*` artifacts covering:

@@ -1,3 +1,23 @@
+# 2026-08-03 — WP-18C1 closeout roadmap state
+
+## Current top priority
+
+- **WP-18C1 is complete and closed GO.**
+- **WP-18C2 is the next authorized package.**
+- **The hierarchy foundation, backfill, review queue, and scope foundation must now be preserved as the basis for WP-18C2.**
+
+## P0
+- preserve the governed hierarchy foundation implemented in WP-18C1
+- preserve `jobs_master` project identity while extending authority and source-of-truth enforcement in WP-18C2
+- carry forward the unresolved hierarchy review queue instead of silently merging ambiguous facilities
+
+## P1
+- begin WP-18C2 only within the accepted ECAP sequence and preservation rules
+- keep review-queue items explicit until later authoritative decisions resolve them
+
+## P2
+- no scope from Budget Hierarchy, Earned Value, or later WP-18C packages should be backported into WP-18C1
+
 # 2026-08-03 — WP-18 ECAP final pre-implementation roadmap state
 
 ## Current top priority

@@ -710,7 +710,7 @@ async def ensure_enterprise_hierarchy_foundation(db, *, force: bool = False) -> 
         "assignment_stats": assignment_stats,
         "legacy_rows_archived": legacy_rows,
     }
-    await db[COLLECTION_RUNS].insert_one(report)
+    await db[COLLECTION_RUNS].insert_one(deepcopy(report))
     return report
 
 

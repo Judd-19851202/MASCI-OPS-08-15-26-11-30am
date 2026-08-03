@@ -1,0 +1,10 @@
+binding_group,source_system,target_hierarchy,result,proof,evidence
+Company root,enterprise governance seed,Company: MASCI,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"company:masci established as the canonical company root"
+Operating division,enterprise governance seed,Division: Operations,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"division:operations established beneath MASCI"
+Departments,enterprise governance seed,"Project Management; Field Operations; Shop Operations; Safety; Human Resources",BOUND,SOURCE_AND_RUNTIME_VERIFIED,"5 active department nodes bound under Operations"
+Projects,jobs_master,Project nodes,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"33 jobs_master projects bound without duplicating project identity"
+Facility references,operational_locations,Facility nodes,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"3 explicit operational location references bound into the facility foundation"
+Equipment facility bindings,equipment_master,Facility nodes,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"120 equipment location bindings mapped deterministically to governed facilities"
+Resource assignments,project_team_assignments,Project assignment layer,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"81 active resource-assignment foundation records created from project_team_assignments"
+Scope preview,enterprise_governance_identity_projections,Hierarchy-aware scope foundation,BOUND,SOURCE_AND_RUNTIME_VERIFIED,"27 current identity projections resolve to governed company/division/project scope previews"
+Unresolved facility-like references,operational_locations + equipment_master,Review queue,REVIEW_REQUIRED,SOURCE_AND_RUNTIME_VERIFIED,"14 ambiguous facility-like values preserved without silent guessing"

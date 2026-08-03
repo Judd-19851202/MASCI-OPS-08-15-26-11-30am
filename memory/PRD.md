@@ -1,5 +1,36 @@
 # PRD
 
+## 2026-08-03 — WP-18C1 Enterprise Hierarchy Foundation
+
+### Governing implementation authorization
+- ECAP is accepted and WP-18C1 was authorized under `AUTHORIZED_FOR_WP18C_WITH_ACCEPTED_CONDITIONS`.
+- WP-18C1 scope only: Enterprise Hierarchy Foundation.
+- No WP-18C2 through WP-18C10 scope was implemented in this package.
+
+### What WP-18C1 implemented
+- Additive enterprise hierarchy foundation with governed nodes for company, division, department, region, facility, project, contract, phase, work package, cost code, and schedule activity types.
+- Resource-assignment foundation for employees and future typed resource bindings.
+- Deterministic hierarchy bindings and review queue for unresolved facility-like mappings.
+- Hierarchy-aware scope preview foundation without changing live permission enforcement.
+- New governed admin surface at `/admin/governance/organization` using the existing admin shell and EN/ES-safe operator language.
+
+### Current MASCI hierarchy state established
+- Company: `MASCI`
+- Division: `Operations`
+- Active departments: `5`
+- Active governed facilities: `4`
+- Active governed projects bound from `jobs_master`: `33`
+- Active resource-assignment foundation rows: `81`
+- Explicit unresolved hierarchy review items: `14`
+
+### Verification status
+- Backend hierarchy pytest suite: `24 passed`
+- Testing agent frontend verification passed for page load, detail flow, search, responsive widths (`390/430/768/1024/1440`), Spanish labels, and governance navigation regression smoke.
+
+### Current next step
+- WP-18C1 closed `GO`.
+- WP-18C2 is authorized to begin after this closeout, using the accepted hierarchy foundation now in place.
+
 ## 2026-08-03 — WP-18 Executive Constitutional Amendment Packet (ECAP)
 
 ### Governing problem statement

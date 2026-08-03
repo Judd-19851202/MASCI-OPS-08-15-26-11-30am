@@ -3,10 +3,24 @@ WP-18C1 Enterprise Hierarchy Foundation - Backend API Tests
 Tests the new hierarchy endpoints under /api/admin/governance/hierarchy/*
 """
 import os
+from pathlib import Path
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+
+def _resolve_base_url():
+    from_env = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip().rstrip("/")
+    if from_env:
+        return from_env
+    env_path = Path("/app/frontend/.env")
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            if line.startswith("REACT_APP_BACKEND_URL="):
+                return line.split("=", 1)[1].strip().strip('"').rstrip("/")
+    return ""
+
+
+BASE_URL = _resolve_base_url()
 
 # Test credentials from test_credentials.md
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -18,7 +32,7 @@ class TestWP18C1HierarchyFoundation:
 
     @pytest.fixture(scope="class")
     def auth_token(self):
-        """Get admin authentication token via multi-login"""
+        """Get admin + directory authentication tokens via multi-login"""
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
@@ -28,15 +42,20 @@ class TestWP18C1HierarchyFoundation:
             # Get the admin portal token from portal_tokens
             portal_tokens = data.get("portal_tokens", {})
             admin_token = portal_tokens.get("admin")
-            if admin_token:
-                return admin_token
-            pytest.skip("No admin token in response")
+            directory_token = data.get("session_token")
+            if admin_token and directory_token:
+                return {"admin": admin_token, "directory": directory_token}
+            pytest.skip("Missing admin or directory token in response")
         pytest.skip(f"Authentication failed: {response.status_code} - {response.text}")
 
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
-        """Get headers with admin token - uses X-Admin-Token header"""
-        return {"X-Admin-Token": auth_token, "Content-Type": "application/json"}
+        """Get headers with both required auth tokens"""
+        return {
+            "X-Admin-Token": auth_token["admin"],
+            "X-Directory-Token": auth_token["directory"],
+            "Content-Type": "application/json",
+        }
 
     # ==================== HIERARCHY OVERVIEW ====================
     def test_hierarchy_overview_returns_valid_structure(self, auth_headers):
@@ -321,7 +340,7 @@ class TestWP18C1HierarchyFoundation:
         assert created_node["type"] == "department", "Type mismatch"
         
         print(f"✓ Created node: {created_node['id']}")
-        return created_node
+        self.__class__.created_node = created_node
 
     def test_update_hierarchy_node(self, auth_headers):
         """Test updating a hierarchy node"""

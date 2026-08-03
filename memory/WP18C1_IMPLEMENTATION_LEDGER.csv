@@ -1,0 +1,8 @@
+ledger_id,area,file,change_type,status,proof,evidence
+L01,Backend service,/app/backend/services/enterprise_hierarchy_foundation.py,add,COMPLETE,SOURCE_AND_RUNTIME_VERIFIED,"Implemented canonical hierarchy nodes, bindings, review queue, resource assignments, scope preview, backfill, idempotent seeding, and audit helpers."
+L02,Backend routes,/app/backend/routes/enterprise_governance.py,extend,COMPLETE,SOURCE_AND_RUNTIME_VERIFIED,"Added `/api/admin/governance/hierarchy/*` endpoints and redirected `/api/admin/governance/organization` to the hierarchy foundation."
+L03,Frontend admin page,/app/frontend/src/pages/admin/AdminGovernanceHierarchyFoundation.jsx,add,COMPLETE,SOURCE_AND_RUNTIME_VERIFIED,"Added governed Organization Structure page with summary cards, node list, detail panel, review queue, assignments, scope preview, and create/edit/archive flows."
+L04,Frontend route wiring,/app/frontend/src/pages/admin/AdminGovernanceSectionRoutes.jsx,extend,COMPLETE,SOURCE_VERIFIED,"Organization route now mounts the governed hierarchy foundation page."
+L05,Frontend API client,/app/frontend/src/lib/enterpriseGovernanceApi.js,extend,COMPLETE,SOURCE_AND_RUNTIME_VERIFIED,"Added hierarchy overview, node, binding, review-queue, assignment, scope, and backfill client methods."
+L06,Backend verification tests,/app/backend/tests/test_wp18c1_hierarchy_foundation.py,extend,COMPLETE,SOURCE_AND_RUNTIME_VERIFIED,"Fixed session-auth headers and passed full pytest verification suite for hierarchy APIs."
+L07,Memory evidence,/app/memory/WP18C1_*.md + .csv,add,COMPLETE,DOCUMENTED_ONLY,"Recorded migration, permission, API/model, UX, testing, and executive closeout evidence for WP-18C1."
