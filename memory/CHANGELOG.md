@@ -2,6 +2,13 @@
 
 # 2026-07-31 — WP-17D convergence wave
 
+## 2026-08-03 — WP-17 forensic hidden-surface closeout
+
+- Generated `/app/memory/WP17_HIDDEN_SURFACE_FORENSIC_REGISTER.csv` with the reconciled **305-surface** forensic denominator (**169 route surfaces + 136 overlay-only surfaces**) and explicit origin/disposition evidence for every row.
+- Generated `/app/memory/WP17_HIDDEN_SURFACE_EXECUTIVE_REPORT.md` and `/app/memory/WP17_HIDDEN_SURFACE_FAMILY_SUMMARY.md`, explaining the `1190` historical baseline, `1193` current master ledger, `484` routed-object denominator, and locked `113` hidden/detail route denominator.
+- Added `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv` plus `/app/scripts/wp17_route_governance_guard.py`; `/app/scripts/wp17d_constitution_guard.py` now chains the governance gate and fails if any routed object is missing owner/family/audience/entry-path/navigation/role/hidden-rationale/canonical/EN-ES/responsive/certification metadata.
+- Verification evidence: `python /app/scripts/wp17_hidden_surface_forensics.py`, `python /app/scripts/wp17_route_governance_guard.py`, `python /app/scripts/wp17d_constitution_guard.py`, manual public smoke screenshot, `auto_frontend_testing_agent` home smoke pass, and `deep_testing_backend_v2` lightweight final verification pass.
+
 ## 2026-08-01 — WP-17D constitution hardening · Home correction + guardrails
 
 - Corrected the Home experience under the executive constitution without redesigning the platform identity:

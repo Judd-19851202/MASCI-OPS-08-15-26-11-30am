@@ -20,7 +20,7 @@
   - shared frontend foundation implemented in `frontend/src/design-system/wp17.css`, `PortalShell.jsx`, `MobileNavigation.jsx`, and representative wrappers/components
   - representative implementation completed on public sign-in, public landing, Admin landing, PM landing, list/detail/form/table/modal workflows, and tablet/phone views
 - WP-17D is in active autonomous execution:
-  - `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` created with the full `1190`-surface denominator
+  - `WP17D_PLATFORM_CONVERGENCE_LEDGER.csv` reconciled to the current full `1193`-surface denominator (with the historical `1190` baseline preserved in `WP17C_IMPLEMENTATION_LEDGER.csv`)
   - shared shell defaults widened so `PortalShell` surfaces converge on the WP-17D canonical shell automatically
   - portal wrappers converged for logins, HR, Safety, PM, and shared form flows
   - standalone authentication convergence completed for the current P0 wave: `AdminLogin.jsx`, `PmResetPassword.jsx`, `SafetyFormsLogin.jsx`, `HrChangePassword.jsx`, and `DispatchForgotPassword.jsx` now render through `PortalLoginShell`
@@ -82,12 +82,22 @@
   - final operator-language cleanup hardened shared shells, mission banners, seeded-name sanitizers, project-number sanitizers, and deep-link detail routes across PM, HR, Field Leadership, Shop, Transportation, and Training so developer/internal wording no longer reaches operator-facing UI in the certified paths
   - final authoritative artifacts were reconciled: `/app/memory/WP17D_PLATFORM_REACHABILITY_LEDGER.csv`, `/app/memory/WP17D_PLATFORM_COVERAGE_DASHBOARD.md`, and `/app/memory/WP17D_FINAL_BLOCKER_REGISTER.md`
   - final active-family outcome: Project Management **43 certified/redirect + 4 blocked**, Human Resources **31 certified + 1 blocked**, Field Leadership **12 certified/redirect + 0 blocked**, Shop Operations **22 certified + 4 blocked**, Training / Guidance / Coaching **8 certified/redirect + 0 blocked**
+- WP-17 forensic closeout is now complete:
+  - `/app/memory/WP17_HIDDEN_SURFACE_FORENSIC_REGISTER.csv` reconciles the hidden-surface universe to **305** evidence-backed surfaces (**169 route surfaces + 136 overlay-only surfaces**)
+  - `/app/memory/WP17_HIDDEN_SURFACE_EXECUTIVE_REPORT.md` explains the 1190 → 1193 full-ledger evolution, the 484 routed-object denominator, the locked 113 hidden/detail denominator, and the broad 305-surface forensic denominator without unexplained deltas
+  - `/app/memory/WP17_HIDDEN_SURFACE_FAMILY_SUMMARY.md` provides family-by-family counts, origin classes, and final dispositions
+  - `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv` now documents all **484** routed objects with owner, family, audience, entry path, navigation source, role requirements, hidden rationale, canonical relationship, EN/ES status, responsive status, and certification evidence
+  - `/app/scripts/wp17_route_governance_guard.py` now fails if any routed object is missing the required governance metadata, and `/app/scripts/wp17d_constitution_guard.py` chains that validation into the standing anti-drift gate
 
 ## Locked Totals Preserved
-- `1190` audited platform surfaces
+- historical baseline: `1190` audited platform surfaces
+- current full ledger: `1193` audited platform surfaces
 - `13` portal / family groupings
-- `481` routes
+- `484` routed objects
 - `113` hidden/detail surfaces
+- `169` route-level forensic hidden / alias / tooling surfaces
+- `136` overlay-only surfaces
+- `305` broad hidden-surface forensic denominator
 - `66` forms
 - `15` PDF source surfaces
 - `14` email/template source surfaces
@@ -118,6 +128,10 @@
   - `/app/test_reports/iteration_90.json`
   - `/app/test_reports/iteration_91.json`
   - `/app/test_reports/iteration_92.json`
+  - post-forensic local validation: `python /app/scripts/wp17_hidden_surface_forensics.py`
+  - post-forensic governance validation: `python /app/scripts/wp17_route_governance_guard.py`
+  - post-forensic anti-drift validation: `python /app/scripts/wp17d_constitution_guard.py`
+  - public smoke verification: home route rendered successfully at `https://backup-forensics.preview.emergentagent.com`
   - `/app/test_reports/iteration_93.json`
   - `/app/test_reports/iteration_94.json`
   - `/app/test_reports/iteration_95.json`
