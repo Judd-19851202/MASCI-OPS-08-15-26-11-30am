@@ -1,3 +1,31 @@
+# 2026-08-03 — WP-18BR2 final constitutional challenge roadmap state
+
+## Current top priority
+
+- **WP-18BR2 is complete and the final gate is NO-GO.**
+- **WP-18C implementation remains BLOCKED.**
+- **No implementation may begin until enterprise hierarchy, executive reporting hierarchy, Budget Hierarchy, and Earned Value constitutional gaps are explicitly resolved.**
+
+## P0
+- preserve the full `WP18BR2_*` package as the governing final constitutional layer over `WP17_*`, `WP18A_*`, `WP18B_*`, and `WP18BR_*`
+- preserve the scale-specific executive finding that the platform is reusable but **not yet constitutionally proven** for a `$500M+` multi-company heavy civil enterprise
+- preserve the final `NO-GO` gate and block WP-18C
+- treat these as the mandatory constitutional blockers:
+  1. enterprise company/division/business-unit/region/tenant hierarchy
+  2. executive reporting hierarchy consolidation
+  3. production / constraints / crews / resources / equipment decomposition lock
+  4. Budget Hierarchy authority
+  5. Earned Value authority
+  6. enterprise portfolio scale posture for executive rollups
+
+## P1
+- if executive direction later reopens authorization, the next permissible step is **constitutional amendment acceptance**, not implementation
+- maintain the `WP18BR2_EXECUTIVE_DECISION_REGISTER.csv` as the current disposition ledger for all major capabilities
+- maintain `WP18BR2_SCALE_VALIDATION.md` as the governing answer to enterprise-scale readiness
+
+## P2
+- no WP-18C implementation, redesign, or adjacent build work is authorized while the gate remains `NO-GO`
+
 # 2026-08-03 — WP-18BR executive ratification roadmap state
 
 ## Current top priority

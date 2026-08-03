@@ -1,3 +1,26 @@
+# 2026-08-03 — WP-18BR2 final executive constitutional challenge
+
+- Added the full WP-18BR2 package under `/app/memory/`:
+  - `WP18BR2_EXECUTIVE_CONSTITUTIONAL_CHALLENGE.md`
+  - `WP18BR2_EXECUTIVE_DECISION_REGISTER.csv`
+  - `WP18BR2_CONSTITUTIONAL_RISK_REGISTER.md`
+  - `WP18BR2_IMPLEMENTATION_GATE.md`
+  - `WP18BR2_AUTHORITY_CONFLICT_REGISTER.md`
+  - `WP18BR2_TRUSTLINE_EXCEPTION_REGISTER.md`
+  - `WP18BR2_PROJECT_CONTROLS_CONSTITUTION.md`
+  - `WP18BR2_COST_CODE_CONSTITUTION.md`
+  - `WP18BR2_SCHEDULE_CONSTITUTION.md`
+  - `WP18BR2_BUDGET_HIERARCHY_CONSTITUTION.md`
+  - `WP18BR2_EARNED_VALUE_CONSTITUTION.md`
+  - `WP18BR2_OPERATOR_EXPERIENCE_CONSTITUTION.md`
+  - `WP18BR2_SCALE_VALIDATION.md`
+  - `WP18BR2_EXECUTIVE_SIGNOFF.md`
+- Challenged all prior WP-17 / WP-18A / WP-18B / WP-18BR conclusions under a stricter final evidentiary standard and added **Executive Operational Architecture & Scalability** as a first-class constitutional audit.
+- Final WP-18BR2 enterprise answer: the platform is strongly reusable, but **not yet constitutionally proven** to operate as a `$500M+` multi-company heavy civil contractor without additional constitutional amendments.
+- Final implementation gate: **NO-GO**.
+- Documentation-only integrity validation passed: `14` required files present, `23` decision-register rows, valid disposition vocabulary, explicit five-year-regret section present, explicit scale verdict present, and final gate present.
+- No application code, UI, API, workflow, database, model, configuration, or runtime behavior changes were performed as part of WP-18BR2.
+
 # 2026-08-03 — WP-18BR executive architecture ratification
 
 - Added the WP-18BR ratification package under `/app/memory/`:

@@ -1,0 +1,25 @@
+# WP18BR2 Authority Conflict Register
+
+Date: 2026-08-03
+
+## Purpose
+
+Record the domains where authority is split, overstated, missing, or likely to drift at enterprise scale.
+
+## Authority conflicts
+
+| Conflict ID | Domain | Conflicting or incomplete authorities | Primary evidence | Current effect | Enterprise consequence | Required disposition |
+|---|---|---|---|---|---|---|
+| AC-01 | Production truth | `daily_reports` is real, but production is not singular once payroll variance and haul-cycle fact families are acknowledged. | `backend/routes/daily_reports.py:1-11`; `backend/routes/payroll_variance.py:1-22`; `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md:51-58` | Production reporting can be directionally right while still constitutionally coarse. | Enterprise reporting could flatten unlike facts into one misleading control number. | Extend |
+| AC-02 | Constraint truth | `daily_reports.constraints` captures daily field facts; `operational_constraints` captures standing blocker workflow. | `backend/routes/daily_reports.py:7-8`; `backend/routes/operational_constraints.py:7-19`; `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md:60-66` | Constraint consumers may assume one owner when two fact lanes already exist. | Schedule/KPI binding will be fragile unless both lanes are explicitly modeled. | Extend |
+| AC-03 | Equipment identity | Asset Spine is the strongest enterprise registry, but provider-local mappings and legacy `equipment_master` references still matter operationally. | `backend/routes/asset_spine.py:1-19,37-82,223-259`; `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md:68-70,145` | The identity answer is better than before, but not fully singular across all seams. | Each acquisition or new telematics/maintenance provider raises drift cost. | Consolidate |
+| AC-04 | Resource planning | Demand lives in cost-code assignments, roster lives in project-team assignments, and active deployment lives in dispatch. | `backend/services/cost_codes/foundation.py:173-191`; `backend/routes/project_team_assignments.py:878-1160`; `WP18BR_PROJECT_CONTROLS_CONSTITUTIONAL_RATIFICATION.md:16,18` | Project planning is real, but resource authority is federated rather than clearly narrated. | Multi-division staffing and service-line growth may create parallel planning habits. | Consolidate |
+| AC-05 | Executive signal hierarchy | ODS, Project Health, operational KPI lanes, OPPC recap, KPI dictionary, and legacy operational intelligence all participate in executive reporting. | `backend/routes/ods_intelligence.py:1-6,312-494`; `backend/routes/project_health.py:4-7`; `backend/routes/operational_kpis.py:16-18`; `backend/operational_intelligence/routes.py:16-76` | Multiple read surfaces coexist without one explicit executive owner hierarchy. | Executives can receive semantically different answers from adjacent dashboards. | Consolidate |
+| AC-06 | Finance-side project controls | PO request approvals and project-health financial-adjacent indicators exist, but no budget constitutional owner exists. | `backend/routes/po_requests.py:580-711`; `backend/routes/project_health.py:167-186`; `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md:122-133` | Finance-like signals appear in the platform without a true finance control constitution. | Budget work done too early would create duplicate truth and reconciliation debt. | Build New |
+| AC-07 | Earned Value | Upstream schedule/progress inputs exist, but no EV owner, formulas, or store were evidenced. | `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md:132-149`; `WP18B_PROJECT_CONTROLS_READINESS_AUDIT.md:196-200` | EV cannot be truthfully claimed today. | Any premature EV surface would be architecturally deceptive. | Build New |
+| AC-08 | Enterprise operating scope | Asset fields suggest company/division/region awareness, but ODS/KPI/AI readers still assume MASCI defaults. | `backend/routes/asset_spine.py:65-82`; `backend/routes/ods_intelligence.py:29,75-83`; `backend/routes/operational_kpis.py:173-187`; `backend/routes/ai_admin_config.py:47-52` | Some parts of the platform think in enterprise terms; others remain single-tenant/single-company by assumption. | This is the clearest architectural blocker to clean acquisition and multi-company scale. | Build New |
+| AC-09 | Operator experience authority | Many routes exist, but no evidence proves one enterprise navigation hierarchy that keeps complexity shrinking as scope grows. | `frontend/src/app/routing/AppRoutes.jsx:1-320`; `WP18BR_PROJECT_CONTROLS_CONSTITUTIONAL_RATIFICATION.md:84-102` | Route existence can be mistaken for enterprise operator clarity. | Surface growth could outpace user comprehension and governance. | Extend |
+
+## Executive reading
+
+The platform’s main authority problem is **not absence**. It is **overlap, implicitness, and uneven enterprise scoping**. That is why the right response is selective constitutional tightening rather than wholesale replacement.

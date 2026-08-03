@@ -1,5 +1,55 @@
 # PRD
 
+## 2026-08-03 — WP-18BR2 Final Executive Constitutional Challenge
+
+### Governing problem statement
+- Execute **WP-18BR2 — Final Executive Constitutional Challenge** as a documentation-only, evidence-first, zero-code-change audit before any WP-18C implementation can be authorized.
+- Independently challenge prior `WP17_*`, `WP18A_*`, `WP18B_*`, and `WP18BR_*` conclusions as hypotheses rather than self-proving truth.
+- Add **Executive Operational Architecture & Scalability** as a first-class constitutional audit, including whether the platform can support a `$500M+` heavy civil contractor, multi-company/division growth, acquisitions, multiple regions/states/DOTs, new service lines, and enterprise-scale operator clarity without future rewrites.
+
+### Current WP-18BR2 status
+- All `14` required `WP18BR2_*` artifacts are now present in `/app/memory/`.
+- Final gate: **NO-GO**.
+- WP-18C remains blocked.
+- No application code, UI, API, workflow, database, configuration, or runtime behavior changes were performed as part of WP-18BR2.
+
+### WP-18BR2 package created
+- `WP18BR2_EXECUTIVE_CONSTITUTIONAL_CHALLENGE.md`
+- `WP18BR2_EXECUTIVE_DECISION_REGISTER.csv`
+- `WP18BR2_CONSTITUTIONAL_RISK_REGISTER.md`
+- `WP18BR2_IMPLEMENTATION_GATE.md`
+- `WP18BR2_AUTHORITY_CONFLICT_REGISTER.md`
+- `WP18BR2_TRUSTLINE_EXCEPTION_REGISTER.md`
+- `WP18BR2_PROJECT_CONTROLS_CONSTITUTION.md`
+- `WP18BR2_COST_CODE_CONSTITUTION.md`
+- `WP18BR2_SCHEDULE_CONSTITUTION.md`
+- `WP18BR2_BUDGET_HIERARCHY_CONSTITUTION.md`
+- `WP18BR2_EARNED_VALUE_CONSTITUTION.md`
+- `WP18BR2_OPERATOR_EXPERIENCE_CONSTITUTION.md`
+- `WP18BR2_SCALE_VALIDATION.md`
+- `WP18BR2_EXECUTIVE_SIGNOFF.md`
+
+### Key constitutional outcomes
+- Existing project-controls foundations remain strongly reusable: cost-code registry, project cost-code planning, deterministic schedule engine, daily production spine, team assignments, payroll variance, operational constraints, Asset Spine, and derived executive readers.
+- Enterprise-scale claims did **not** pass the stricter challenge unchanged.
+- The strongest remaining enterprise blockers are:
+  1. missing enterprise company/division/region/tenant hierarchy
+  2. missing Budget Hierarchy owner
+  3. missing Earned Value owner
+  4. overlapping executive reporting lanes
+  5. bounded portfolio rollup scale posture
+
+### Current disposition summary
+- `Reuse`: project identity, team roster, cost-code registry, payroll variance, project health, governance/audit backbone
+- `Extend`: project cost-code planning, schedule, lookahead, forecasting, Monday review/briefing, daily production, constraints, operational KPI rollups, AI assistive layer, operator experience
+- `Consolidate`: resource federation, equipment identity, ODS/executive intelligence hierarchy
+- `Retire`: legacy operational intelligence digest engine
+- `Build New`: enterprise operating model hierarchy, Budget Hierarchy, Earned Value
+
+### Next constitutional step
+- Preserve WP-18BR2 as the governing final gate.
+- Do not begin WP-18C unless the gate is later improved from **NO-GO** through explicit constitutional amendments.
+
 ## Original Problem Statement
 - Complete WP-17A production stabilization, release gating, and deployment validation.
 - Execute WP-17B as the authoritative platform audit across UX, IA, navigation, components, terminology, coaching, PDFs, emails, notifications, and white-label surfaces.
