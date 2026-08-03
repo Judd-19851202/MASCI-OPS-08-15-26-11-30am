@@ -68,7 +68,7 @@ export default function TrainingQrPoster() {
             </div>
             <h2 className="font-display text-2xl font-black text-slate-900">Internal poster · password required</h2>
             <p className="text-slate-600 text-sm mt-3">
-              This trailer poster is for {audience === "admin" ? "Admin" : audience === "pm" ? "PM" : "Shop"} staff only. Sign in to preview and print.
+              This trailer poster is for {audience === "admin" ? "Admin" : audience === "pm" ? "PM" : "Shop"} staff only. Sign in to open and print.
             </p>
             <div className="mt-5 flex flex-col gap-2">
               <Link
@@ -135,7 +135,7 @@ export default function TrainingQrPoster() {
           </div>
         </header>
         <div className="max-w-4xl mx-auto px-5 sm:px-8 py-5 text-xs text-slate-500 font-mono uppercase tracking-[0.2em]">
-          Scan-&-Go QR Poster · {trackSlug} · preview — click Print to output a single letter-size page
+          Scan-&-Go QR Poster · {trackSlug} · ready to print — click Print to output a single letter-size page
         </div>
       </div>
 
@@ -221,7 +221,7 @@ export default function TrainingQrPoster() {
             </div>
           </footer>
           <div className="qp-legal">
-            Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™ · Post inside
+            Generated through MASCI Operations Platform | © 2026 MASCI · Post inside
             every site trailer / Pegue dentro de cada tráiler
           </div>
         </div>

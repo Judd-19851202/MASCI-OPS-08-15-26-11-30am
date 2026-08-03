@@ -246,7 +246,7 @@ export default function HrDriverQualificationDashboard() {
             <Button
               variant="outline"
               className="h-7 text-xs border-emerald-700 text-emerald-700 hover:bg-emerald-50"
-              title={t("Upload XLSX or CSV roster — preview matches, confirm, audit.")}
+              title={t("Upload XLSX or CSV roster — review matches, confirm, and save to history.")}
               data-testid="dq-import-btn"
             >
               <Upload className="w-3.5 h-3.5 mr-1" />

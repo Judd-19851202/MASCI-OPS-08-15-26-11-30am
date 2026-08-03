@@ -31,7 +31,7 @@ export default function PmShell({
       portalRole={t("Project Management")}
       portalSwitcherCurrent="pm"
       pageTitle={typeof title === "string" ? t(title) : title}
-      subtitle={subtitle ? t(subtitle) : t("Project execution, blockers, due work, and field coordination in one canonical shell.")}
+      subtitle={subtitle ? t(subtitle) : t("Project execution, blockers, due work, and field coordination in one shared workspace.")}
       sideNav={<SideNavV2 />}
       onSignOut={signOut}
       experienceTone="pm"

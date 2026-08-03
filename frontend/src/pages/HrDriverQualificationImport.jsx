@@ -56,7 +56,7 @@ export default function HrDriverQualificationImport() {
       setAuditList(r.data?.items || []);
     } catch (err) {
       // calm — audit list is non-critical
-      toast.error(operationalError(err, t("Audit history temporarily unavailable.")));
+      toast.error(operationalError(err, t("Import history temporarily unavailable.")));
     } finally {
       setAuditLoading(false);
     }
@@ -94,7 +94,7 @@ export default function HrDriverQualificationImport() {
         if (!row.employee_id) auto.add(i);
       });
       setSkipRows(auto);
-      toast.success(t("Preview ready. Review each row before applying."));
+      toast.success(t("Import review is ready. Check each row before applying."));
     } catch (err) {
       toast.error(operationalError(err, t("Could not read the roster file. Confirm it's a valid XLSX or CSV with a 'name' column.")));
     } finally {
@@ -180,7 +180,7 @@ export default function HrDriverQualificationImport() {
               data-testid="dqi-preview-btn"
             >
               {previewLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ArrowRight className="w-4 h-4 mr-2" />}
-              {t("Preview Import")}
+              {t("Review Import")}
             </Button>
           </div>
         </Card>
@@ -191,7 +191,7 @@ export default function HrDriverQualificationImport() {
         <>
           <Card className="p-4 mb-4 border-2 border-purple-200">
             <div className="flex flex-wrap gap-2 items-center justify-between mb-3">
-              <div className="font-bold text-slate-900">{t("Preview Summary")}</div>
+              <div className="font-bold text-slate-900">{t("Review Summary")}</div>
               <Button variant="outline" onClick={reset} size="sm" data-testid="dqi-restart-btn">{t("Start Over")}</Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-center" data-testid="dqi-summary-strip">
@@ -364,7 +364,7 @@ export default function HrDriverQualificationImport() {
       <Card className="p-4" data-testid="dqi-audit-card">
         <div className="flex items-center gap-2 mb-3">
           <History className="w-4 h-4 text-slate-700" />
-          <div className="font-bold text-slate-900">{t("Import Audit History")}</div>
+          <div className="font-bold text-slate-900">{t("Import History")}</div>
         </div>
         {auditLoading ? (
           <div className="text-center py-6"><Loader2 className="w-5 h-5 mx-auto animate-spin text-slate-400" /></div>

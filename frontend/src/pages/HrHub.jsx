@@ -91,7 +91,7 @@ const TILE_DEFS = {
     desc: "OSHA, TWIC, CDL, training cert windows.",
     stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   trainingRecords: { to: "/hr/training-records", icon: GraduationCap, label: "Training Records",
-    desc: "Completed tracks and certification roster.",
+    desc: "Completed tracks and credential roster.",
     stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   driverQual: { to: "/hr/driver-qualification", icon: Truck, label: "Driver Qualification",
     desc: "CDL holders, endorsements, tanker capability.",
@@ -136,7 +136,7 @@ const TILE_GROUPS = [
   {
     key: "compliance-records",
     heading: "Compliance & Records",
-    sub: "Certifications, driver qualification, safety overlap.",
+    sub: "Credentials, driver qualification, safety overlap.",
     tiles: ["docExpirations", "trainingRecords", "driverQual", "motiveDrivers", "safetyRecords", "dailyReports"],
   },
   {
@@ -337,7 +337,7 @@ export default function HrHub() {
 
         {/* Sprint A · DocExp-60/90 · expiration intelligence for HR */}
         <div className="mt-6" data-testid="hr-expirations-section">
-          <ExpirationsSummary title="Employee Document & Certification Expirations" />
+          <ExpirationsSummary title="Employee Document & Credential Expirations" />
         </div>
 
         {/* TRACK 16.11A · Transportation Readiness · read-only KPI

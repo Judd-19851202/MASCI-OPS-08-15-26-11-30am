@@ -34,7 +34,7 @@ const ACTION_QUEUES = [
     id: "pending_requests",
     title: "Employee Requests · pending",
     metric: 5,
-    caption: "Source: /api/hr/employee-requests?status=pending",
+    caption: "Employee requests still waiting on an HR decision",
     why: "PTO · offboard · reactivate · profile changes — HR action required",
     statusKey: "pending_verification",
     variant: "warning",
@@ -42,9 +42,9 @@ const ACTION_QUEUES = [
   },
   {
     id: "certs_expiring",
-    title: "Certifications Expiring in 30 d",
+    title: "Credentials Expiring in 30 d",
     metric: 11,
-    caption: "Source: /api/hr/driver-qualification/dashboard + training-records (≤30d)",
+    caption: "Driver qualification and training renewals due soon",
     why: "Renewals must be scheduled before expiry · field readiness at risk",
     statusKey: "submitted",
     variant: "warning",
@@ -54,7 +54,7 @@ const ACTION_QUEUES = [
     id: "daily_attention",
     title: "Daily Reports Flagged by HR",
     metric: 2,
-    caption: "Source: /api/hr/daily-reports?status=needs_attention",
+    caption: "Crew reports with time and payroll questions",
     why: "Man-hour discrepancies · payroll variance check before lock",
     statusKey: "needs_revision",
     variant: "warning",
@@ -64,7 +64,7 @@ const ACTION_QUEUES = [
     id: "accountability_open",
     title: "Accountability Signals Open",
     metric: 3,
-    caption: "Source: /api/hr/employee-accountability?status=open",
+    caption: "Open accountability items still needing follow-up",
     why: "Coaching signals (positive + attention) · review and close",
     statusKey: "submitted",
     variant: "default",
@@ -166,7 +166,7 @@ function ActionQueues() {
     <Section
       kicker="01 · What requires you today"
       title="Open HR action queues"
-      caption="Every card opens a real /hr queue. Numbers are queue sizes (work-to-do), never inventory tallies."
+      caption="Every card opens a live HR work queue. Numbers reflect work waiting on action, not inventory totals."
       testId="hr-v2-section-queues"
     >
       <div data-testid="hr-v2-queue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
@@ -196,7 +196,7 @@ function RequestsQueue() {
     <Section
       kicker="02 · Employee Requests"
       title="PTO · Offboard · Reactivate · Profile changes"
-      caption="Backed by /api/hr/employee-requests. Approve / reject lives inside the live HR portal."
+      caption="Employee requests that still need an HR decision inside the live portal."
       testId="hr-v2-section-requests"
       action={<RealLink to="/hr/time-off?status=pending" testid="hr-v2-requests-open">Open Time-Off Queue</RealLink>}
     >
@@ -233,7 +233,7 @@ function ComplianceExpiry() {
     <Section
       kicker="03 · Compliance expiry queue"
       title="Driver qualification & training renewals"
-      caption="Backed by /api/hr/driver-qualification/dashboard and /api/hr/training-records — filtered to ≤ 30 day window."
+      caption="Driver qualification and training renewals due within the next 30 days."
       testId="hr-v2-section-compliance"
     >
       <div data-testid="hr-v2-compliance-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
@@ -242,7 +242,7 @@ function ComplianceExpiry() {
           columns={dqCols}
           rows={EXPIRING_DRIVERS}
           rowKey={(r) => r.id}
-          caption="Driver Qualifications · expiring ≤ 30d"
+          caption="Driver qualifications · expiring ≤ 30d"
           empty={<EmptyState title="No driver qualifications expiring." severity="good" />}
         />
         <DataTable
@@ -272,7 +272,7 @@ function PayrollVariance() {
     <Section
       kicker="04 · Payroll variance"
       title="Man-hour flags before payroll lock"
-      caption="Backed by /api/hr/payroll-variance and /api/hr/daily-reports. HR reads + flags · never edits engine records."
+      caption="Payroll differences flagged before lock so HR can review the source records."
       testId="hr-v2-section-payroll"
       action={<RealLink to="/hr/payroll-variance" testid="hr-v2-payroll-open">Open Payroll Variance</RealLink>}
     >
@@ -304,7 +304,7 @@ function Accountability() {
     <Section
       kicker="05 · Accountability signals"
       title="Open coaching items (positive + attention)"
-      caption="Backed by /api/hr/employee-accountability — calm, non-punitive voice. Positive recognition has equal weight."
+      caption="Read the full context, support the crew, and close the loop with the same calm voice used across the platform."
       testId="hr-v2-section-accountability"
       action={<RealLink to="/hr/employee-accountability" testid="hr-v2-accountability-open">Open Accountability</RealLink>}
     >
@@ -339,16 +339,16 @@ export default function HrV2Preview() {
 
       <PortalShell
         portalName="MASCI"
-        portalRole="HR Portal · V2 Preview · Action-Queue Edition"
+        portalRole="HR Portal · Action Queue Workspace"
         pageTitle={`What requires your attention today, ${MOCK_HR.name.split(" ")[0]}?`}
         subtitle={`${MOCK_HR.role} · ${MOCK_HR.region}. HR purpose: MAINTAIN WORKFORCE READINESS. Every surface below is a queue of people who need an HR action — never a vanity headcount.`}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/hr/driver-qualification?expiring=30" testid="hr-v2-action-expiring">Expiring Certs</RealLink>
+            <RealLink to="/hr/driver-qualification?expiring=30" testid="hr-v2-action-expiring">Expiring Credentials</RealLink>
             <RealLink to="/hr/employee-accountability" testid="hr-v2-action-accountability" intent="primary">Open Accountability</RealLink>
           </div>
         }
-        lastActivity={<span data-testid="hr-v2-last-activity">Preview only · live HR portal continues at /hr/*</span>}
+        lastActivity={<span data-testid="hr-v2-last-activity">Live HR action queues ready</span>}
       >
         <ActionQueues />
         <RequestsQueue />
@@ -364,9 +364,9 @@ export default function HrV2Preview() {
             borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
           }}
         >
-          <strong style={{ color: "var(--ink-strong)" }}>HR portal purpose · enforced in 13.6B:</strong>
+          <strong style={{ color: "var(--ink-strong)" }}>HR portal purpose:</strong>
           {" "}<em>Maintain workforce readiness.</em> Every visible card and row represents a person or a person&apos;s compliance item that needs HR action.
-          {" "}Vanity headcount ({"\u201C"}217 employees{"\u201D"}) is intentionally absent — Active Employees lives in the live HR Hub for inventory; this preview is operational only.
+          {" "}Vanity headcount ({"\u201C"}217 employees{"\u201D"}) is intentionally absent — Active Employees lives in the live HR Hub for inventory; this workspace stays focused on action.
         </div>
       </PortalShell>
     </div>

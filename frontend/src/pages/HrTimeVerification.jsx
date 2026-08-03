@@ -337,7 +337,7 @@ export default function HrTimeVerification() {
               <div className="gen-lbl">Generated</div>
               <div className="gen-val">{formatPlatformStamp(new Date())}</div>
               {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (
-                <div className="env-label">Preview · Not Operational Data</div>
+                <div className="env-label">Staged Site · Not Operational Data</div>
               ) : null}
             </div>
           </div>
@@ -467,7 +467,7 @@ export default function HrTimeVerification() {
           <div className="sub">
             Generated {formatPlatformStamp(new Date())} · Confidential payroll cross-check
             {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (
-              <> · Preview Environment · Not Operational Data</>
+              <> · Staged Environment · Not Operational Data</>
             ) : null}
           </div>
         </div>

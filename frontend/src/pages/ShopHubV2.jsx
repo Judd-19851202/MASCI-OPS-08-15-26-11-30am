@@ -892,7 +892,7 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-records" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="08 · Records"
-            title="Archive · audits · history"
+            title="Archive · records · history"
             caption="Pre-Ops · Truck DVIRs · Fuel/Lube · Reconciliations. Honest empty states · no fake exports."
           />
           <div data-testid="shop-hub-v2-records-grid"

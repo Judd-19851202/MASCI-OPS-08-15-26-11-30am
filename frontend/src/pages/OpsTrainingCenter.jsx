@@ -110,10 +110,10 @@ export default function OpsTrainingCenter() {
 
       <div className="wp17-public-main py-6">
         <section className="wp17-public-hero mb-6" data-testid="ops-training-mission-banner">
-          <div className="wp17-kicker">Public guidance mission</div>
-          <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-950">Operator guides, packets, and how-to references in one canonical family.</h1>
+          <div className="wp17-kicker">Operations learning</div>
+          <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-950">Operator guides, packets, and how-to references in one place.</h1>
           <p className="mt-4 max-w-3xl text-sm sm:text-base text-slate-700 leading-relaxed">
-            The Training Center is now aligned with the same glass/grid system as the platform so public guidance and authenticated work no longer feel unrelated.
+            The Training Center uses the same MASCI visual language as the rest of the platform so guidance and daily work feel connected.
           </p>
         </section>
 
@@ -129,7 +129,7 @@ export default function OpsTrainingCenter() {
               {t("MASCI Training Center & Operator Guides")}
             </h1>
             <p className="text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
-              {t("Step-by-step guides for every portal, every integration, and platform reliability. Download any guide as PDF for offline reference, classroom training, or new-hire packets.")}
+              {t("Step-by-step guides for every portal, every workflow, and key support topic. Download any guide as PDF for offline reference, classroom training, or new-hire packets.")}
             </p>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function OpsTrainingCenter() {
         ) : filtered.length === 0 ? (
           <EmptyState
             title={t("No guides match your filter")}
-            body={t("Try clearing the search or selecting a different portal. The Training Center is admin-editable — new guides can be added at any time.")}
+            body={t("Try clearing the search or selecting a different portal. New guides can be added at any time.")}
             testId="ops-training-empty"
           />
         ) : (

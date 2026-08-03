@@ -109,7 +109,7 @@ export default function HrTrainingRecords() {
           <GraduationCap className="w-10 h-10 mx-auto text-slate-400 mb-3" />
           <div className="font-bold text-base text-slate-900">{t("No training records yet")}</div>
           <p className="text-sm text-slate-600 mt-2 max-w-md mx-auto">
-            {t("Training records appear here automatically when Safety logs a certification or an employee finishes a Training Center track. Read-only — uploads and edits live in the Safety Portal.")}
+            {t("Training records appear here automatically when Safety logs a credential or an employee finishes a Training Center track. Read-only — uploads and edits live in the Safety Portal.")}
           </p>
         </Card>
       ) : (

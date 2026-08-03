@@ -32,7 +32,7 @@ export const HR_DOMAINS_V2 = [
     icon: Users,
     routes: [
       { to: "/hr",                        label: "Overview",            desc: "Today's HR signal across the field.",                 icon: Activity, end: true },
-      { to: "/hr/daily-reports",          label: "Daily Reports",       desc: "Read-only HR audit of crew daily reports.",            icon: ClipboardList },
+      { to: "/hr/daily-reports",          label: "Daily Reports",       desc: "Read-only HR review of crew daily reports.",           icon: ClipboardList },
       { to: "/hr/employees",              label: "Employee Lifecycle",  desc: "Add, status, offboarding, termination playbook.",     icon: Users },
       { to: "/hr/employee-accountability", label: "Employee Accountability", desc: "Per-employee records, history, equipment, clearance.", icon: Search },
       { to: "/hr/incidents",              label: "Incidents",            desc: "Read-only OSHA-relevant list · CSV export.",          icon: AlertTriangle },
@@ -56,13 +56,13 @@ export const HR_DOMAINS_V2 = [
   {
     id: "compliance-records",
     label: "Compliance & Records",
-    subline: "Certifications, driver qualification, safety overlap.",
+    subline: "Credentials, driver qualification, safety overlap.",
     stripe: "#7c3aed", // violet-600
     icon: ShieldCheck,
     routes: [
       { to: "/document-expirations",     label: "Document Expirations", desc: "OSHA, TWIC, CDL, training cert windows.",         icon: FileText },
       { to: "/hr/qualifications",        label: "Professional Qualifications", desc: "Competent Person + all OSHA / MSHA / trade credentials.", icon: ShieldCheck },
-      { to: "/hr/training-records",      label: "Training Records",     desc: "Completed tracks and certification roster.",      icon: GraduationCap },
+      { to: "/hr/training-records",      label: "Training Records",     desc: "Completed tracks and credential roster.",         icon: GraduationCap },
       { to: "/hr/driver-qualification",  label: "Driver Qualification", desc: "CDL holders, endorsements, tanker capability.",   icon: Truck },
       { to: "/hr/safety-records",        label: "Safety Records",       desc: "Read-only Safety document library and per-employee training.", icon: ShieldCheck },
       { to: "/hr/historical-records/intake", label: "Historical Records Intake", desc: "Upload legacy records — HR, Safety, Asset lanes.", icon: Upload },

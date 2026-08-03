@@ -126,7 +126,7 @@ function AddTrainingForm({ onCreated, onCancel, t }) {
           <Input value={trainingName} onChange={(e) => setTrainingName(e.target.value)} className={inputCls()} placeholder="OSHA 10-hour" data-testid="hr-safety-add-training-name" />
         </label>
         <label className="block">
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Certification Type")}</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Credential Type")}</div>
           <Input value={certType} onChange={(e) => setCertType(e.target.value)} className={inputCls()} placeholder="OSHA · CPR · CDL · Equipment" data-testid="hr-safety-add-training-type" />
         </label>
         <label className="block">
@@ -212,7 +212,7 @@ function UploadDocForm({ onUploaded, onCancel, t }) {
         <label className="block">
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 font-bold mb-1">{t("Category")}</div>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls("w-full px-2 bg-white")} data-testid="hr-safety-upload-doc-category">
-            {["General", "OSHA", "CDL", "Medical", "Certification", "Fit-for-Duty", "Onboarding", "Insurance", "Policy"].map((c) =>
+            {["General", "OSHA", "CDL", "Medical", "Credential", "Fit-for-Duty", "Onboarding", "Insurance", "Policy"].map((c) =>
               <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
@@ -300,7 +300,7 @@ export default function HrSafetyRecords() {
 
   // iter353a-UI · PATCH-to-archive pattern (no hard delete)
   const archiveTraining = async (rec) => {
-    if (!window.confirm(t("Archive this training record? It will be hidden from active views but preserved in audit history."))) return;
+    if (!window.confirm(t("Archive this training record? It will be hidden from active views but preserved in history."))) return;
     setArchiving((a) => ({ ...a, [rec.id]: true }));
     try {
       await axios.patch(`${API}/safety/training-records/${rec.id}`, {
@@ -317,7 +317,7 @@ export default function HrSafetyRecords() {
   };
 
   const archiveDoc = async (d) => {
-    if (!window.confirm(t("Archive this document? It will be hidden from active views but preserved in audit history."))) return;
+    if (!window.confirm(t("Archive this document? It will be hidden from active views but preserved in history."))) return;
     setArchiving((a) => ({ ...a, [d.id]: true }));
     try {
       await axios.patch(`${API}/safety/documents/${d.id}`, {

@@ -86,7 +86,7 @@ export default function HrFieldLeadership() {
         <div className="text-sm text-slate-700">
           <span className="font-semibold text-slate-900">{t("Field Leadership Records")}</span>{" "}
           <span className="text-slate-600">
-            {t("· read-only audit of write-ups, coaching, recognition, evaluations.")}
+            {t("· read-only history of write-ups, coaching, recognition, and evaluations.")}
           </span>
         </div>
         <Link to="/hr/field-leadership-users" data-testid="hr-fl-records-to-users">

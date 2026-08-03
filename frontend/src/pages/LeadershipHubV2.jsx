@@ -63,18 +63,11 @@ export default function LeadershipHubV2() {
   const sa = s.sa || {};
   const ex = s.ex?.counts || {};
   const ds = s.ds || {};
-  const isPreview = typeof window !== "undefined" && /preview/i.test(window.location.host);
-
   return (
     <div data-testid="leadership-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      {isPreview && (
-        <div data-testid="leadership-hub-v2-preview-banner" style={{ background: "var(--brand-primary)", color: "var(--brand-on-primary)", padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 700, textAlign: "center" }}>
-          Leadership Hub V2 · Non-production companion lane · Classic surfaces remain canonical
-        </div>
-      )}
       <PortalShell
-        portalName="MASCI" portalRole="Leadership · Hub V2"
-        pageTitle="What requires executive attention?"
+        portalName="MASCI" portalRole="Leadership Hub"
+        pageTitle="What requires leadership attention?"
         subtitle="Cross-portal threats to execution, schedule, safety, compliance. No vanity metrics. Every card opens the workflow that resolves it."
       >
         <section className="wp17-mission-banner" data-testid="leadership-hub-v2-mission-banner">
@@ -83,7 +76,7 @@ export default function LeadershipHubV2() {
               <div className="wp17-kicker text-white/70">Portal mission</div>
               <h2 className="mt-2 font-display text-xl font-black text-white">Show leadership only the threats that need intervention, not a second admin portal.</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                Executive and field-leadership attention now sits inside the same canonical shell family with clearer context and lower noise.
+                Leadership and field attention now sit inside the same shared shell with clearer context and lower noise.
               </p>
             </div>
           </div>
@@ -98,27 +91,27 @@ export default function LeadershipHubV2() {
             testid="lead-hub-v2-q-executive-overview"
             title="Executive Overview →"
             why="Jobs / Overdue / Staffing / Equipment / Safety / Activity — single page"
-            source="Source: /api/admin/executive/overview"
+            source="Company operations overview"
             value={null}
             loaded={true}
           />
         </Section>
 
-        <Section k="01 · Threats to Safety · live" t="Safety attention items" c="Real from /api/safety/overview">
-          <QC to="/safety-portal" testid="lead-hub-v2-q-incidents-open" title="Open Incidents" why="Incidents not yet closed by Safety" source="Source: safety/overview" value={ds.safety?.incidents_open ?? null} loaded={s.loaded} />
-          <QC to="/safety-portal" testid="lead-hub-v2-q-capas-overdue" title="Overdue CAPAs" why="Corrective actions past due_date" source="Source: safety/overview.corrective_actions_overdue" value={sa.corrective_actions_overdue ?? null} loaded={s.loaded} />
-          <QC to="/safety-portal" testid="lead-hub-v2-q-training-expired" title="Training · Expired" why="Certs already expired — recert needed" source="Source: safety/overview.training_expired" value={sa.training_expired ?? null} loaded={s.loaded} />
+        <Section k="01 · Threats to Safety · live" t="Safety attention items" c="Live safety summary">
+          <QC to="/safety-portal" testid="lead-hub-v2-q-incidents-open" title="Open Incidents" why="Incidents not yet closed by Safety" source="Safety summary" value={ds.safety?.incidents_open ?? null} loaded={s.loaded} />
+          <QC to="/safety-portal" testid="lead-hub-v2-q-capas-overdue" title="Overdue CAPAs" why="Corrective actions past due dates" source="Corrective action summary" value={sa.corrective_actions_overdue ?? null} loaded={s.loaded} />
+          <QC to="/safety-portal" testid="lead-hub-v2-q-training-expired" title="Training · Expired" why="Credentials already expired — renewal needed" source="Training status summary" value={sa.training_expired ?? null} loaded={s.loaded} />
         </Section>
 
         <Section k="02 · Threats to Execution · live" t="Fleet + shop signals" c="Cross-portal read into dispatch + shop">
-          <QC to="/dispatch-portal" testid="lead-hub-v2-q-fleet-oos" title="Fleet · OOS" why="Units out of service across the fleet" source="Source: dispatch.command.summary.fleet.counts.oos" value={ds.fleet?.counts?.oos ?? null} loaded={s.loaded} />
-          <QC to="/dispatch-portal" testid="lead-hub-v2-q-breakdowns" title="Active Breakdowns" why="Breakdowns blocking the haul plan" source="Source: dispatch.command.summary.haul.counts.breakdown_impacts" value={ds.haul?.counts?.breakdown_impacts ?? null} loaded={s.loaded} />
-          <QC to="/shop" testid="lead-hub-v2-q-shop-defects" title="Open Shop Defects" why="Defects active across the fleet" source="Source: dispatch.command.summary.shop.defects_open" value={ds.shop?.defects_open ?? null} loaded={s.loaded} />
+          <QC to="/dispatch-portal" testid="lead-hub-v2-q-fleet-oos" title="Fleet · OOS" why="Units out of service across the fleet" source="Fleet status summary" value={ds.fleet?.counts?.oos ?? null} loaded={s.loaded} />
+          <QC to="/dispatch-portal" testid="lead-hub-v2-q-breakdowns" title="Active Breakdowns" why="Breakdowns blocking the haul plan" source="Haul impact summary" value={ds.haul?.counts?.breakdown_impacts ?? null} loaded={s.loaded} />
+          <QC to="/shop" testid="lead-hub-v2-q-shop-defects" title="Open Shop Defects" why="Defects active across the fleet" source="Shop defect summary" value={ds.shop?.defects_open ?? null} loaded={s.loaded} />
         </Section>
 
-        <Section k="03 · Threats to Compliance · live" t="Document + cert expirations" c="Real dates from real engines">
-          <QC to="/admin/training" testid="lead-hub-v2-q-exp-expired" title="Documents · Expired" why="Already past expiration date" source="Source: operations/expirations.counts.expired" value={ex.expired ?? null} loaded={s.loaded} />
-          <QC to="/admin/training" testid="lead-hub-v2-q-exp-30" title="Expiring ≤ 30 days" why="Inside 30-day expiration window" source="Source: counts.in_30" value={ex.in_30 ?? null} loaded={s.loaded} />
+        <Section k="03 · Threats to Compliance · live" t="Document + credential expirations" c="Live expiration dates from shared records">
+          <QC to="/admin/training" testid="lead-hub-v2-q-exp-expired" title="Documents · Expired" why="Already past expiration date" source="Expiration summary" value={ex.expired ?? null} loaded={s.loaded} />
+          <QC to="/admin/training" testid="lead-hub-v2-q-exp-30" title="Expiring ≤ 30 days" why="Inside the next 30-day renewal window" source="30-day renewal summary" value={ex.in_30 ?? null} loaded={s.loaded} />
         </Section>
 
         <div data-testid="leadership-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>

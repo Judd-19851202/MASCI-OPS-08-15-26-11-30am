@@ -45,7 +45,7 @@ const ACTION_QUEUES = [
     id: "daily_needs_revision",
     title: "Daily Reports to Revise",
     metric: 1,
-    caption: "Source: /api/daily-reports?status=needs_revision · PM-scoped",
+    caption: "Crew reports flagged for PM follow-up",
     why: "Foreman flagged · PM action required to verify or revise",
     statusKey: "needs_revision",
     variant: "warning",
@@ -53,9 +53,9 @@ const ACTION_QUEUES = [
   },
   {
     id: "incidents_pending",
-    title: "Incidents Awaiting Your Verify",
+    title: "Incidents Awaiting Your Review",
     metric: 2,
-    caption: "Source: /api/incidents?status=pending_verification",
+    caption: "Incident records waiting on PM review",
     why: "Submitted by foreman · PM must verify before close",
     statusKey: "pending_verification",
     variant: "warning",
@@ -65,7 +65,7 @@ const ACTION_QUEUES = [
     id: "capas_due",
     title: "CAPAs Due This Week",
     metric: 1,
-    caption: "Source: /api/pm/crew/capas · scoped",
+    caption: "Corrective actions due this week",
     why: "Corrective action approaching due date · must close or extend",
     statusKey: "pending_verification",
     variant: "warning",
@@ -75,7 +75,7 @@ const ACTION_QUEUES = [
     id: "constraints_open",
     title: "Constraints to Resolve",
     metric: 3,
-    caption: "Source: /api/constraints?status=open · PM-scoped",
+    caption: "Project blockers still waiting on a decision",
     why: "Project blockers · each prevents work · resolve or escalate",
     statusKey: "submitted",
     variant: "warning",
@@ -218,7 +218,7 @@ function ProjectsNeedingAction() {
     <Section
       kicker="02 · Projects · only those needing action"
       title="Filtered project queue"
-      caption="Source: derived from /api/pm/jobs joined to open daily / incident / constraint records. Projects with zero signals are intentionally absent from this view."
+      caption="Projects with open signals only. Jobs with no active issues stay out of this list on purpose."
       testId="pm-v2-section-projects-action"
       action={<RealLink to="/pm/jobs" testid="pm-v2-projects-open">Open All Projects</RealLink>}
     >
@@ -261,8 +261,8 @@ function VerifyQueue() {
   return (
     <Section
       kicker="03 · Verify queue"
-      title="Submitted by foremen · awaiting your verify"
-      caption="Backed by /api/incidents?status=submitted and /api/daily-reports?status=needs_revision. Verify-or-revise actions live inside the linked surfaces."
+      title="Submitted by foremen · awaiting your review"
+      caption="Incidents and daily reports that still need PM review or revision."
       testId="pm-v2-section-verify"
       action={<RealLink to="/pm/incidents?status=pending_verification" testid="pm-v2-verify-open">Open Verify Queue</RealLink>}
     >
@@ -308,7 +308,7 @@ function CapaAndConstraints() {
     <Section
       kicker="04 · Close-out queues"
       title="CAPAs & Project Constraints"
-      caption="Backed by /api/pm/crew/capas and /api/constraints (real engines). Both queues drive 'project ready to close' decisions."
+      caption="Corrective actions and project constraints that still affect close-out decisions."
       testId="pm-v2-section-capa-constraints"
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
@@ -338,21 +338,21 @@ function FieldEvidence() {
     <Section
       kicker="05 · Field evidence"
       title="Today's photos & daily reports"
-      caption="Both link straight to the real PM surfaces. No mock thumbnails — operator opens the real library."
+      caption="Both cards open the live PM work areas so you can review the latest field updates."
       testId="pm-v2-section-evidence"
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
         <Link to="/pm/photos" data-testid="pm-v2-photos-card" style={{ textDecoration: "none", color: "inherit" }}>
           <Card
             title="Job Photos Library"
-            description="Backed by /pm/photos · real R2 storage. No mock thumbnails are rendered here — open the real library to review."
+            description="Open the live photo library to review field images without leaving the PM workspace."
             status={<StatusChip statusKey="verified" compact />}
           />
         </Link>
         <Link to="/pm/daily" data-testid="pm-v2-daily-card" style={{ textDecoration: "none", color: "inherit" }}>
           <Card
             title="All Daily Reports"
-            description="Backed by /api/daily-reports — PM-scoped read + verify chain."
+            description="Open the live daily report list to review, revise, and close the day with confidence."
             status={<StatusChip statusKey="submitted" compact />}
           />
         </Link>
@@ -381,7 +381,7 @@ export default function PmV2Preview() {
 
       <PortalShell
         portalName="MASCI"
-        portalRole="PM Portal · V2 Preview · Action-Queue Edition"
+        portalRole="PM Portal · Action Queue Workspace"
         pageTitle={`What requires your attention today, ${MOCK_PM.name.split(" ")[0]}?`}
         subtitle={`${MOCK_PM.role} · ${MOCK_PM.region}. PM purpose: BUILD PROJECTS. Every surface below is a queue you can act on — counts are queue sizes, never vanity numbers.`}
         primaryActions={
@@ -390,7 +390,7 @@ export default function PmV2Preview() {
             <RealLink to="/pm/command-center" testid="pm-v2-action-cc" intent="primary">Open Command Center</RealLink>
           </div>
         }
-        lastActivity={<span data-testid="pm-v2-last-activity">Preview only · live PM portal continues at /pm/*</span>}
+        lastActivity={<span data-testid="pm-v2-last-activity">Live PM action queues ready</span>}
       >
         <ActionQueues />
         <ProjectsNeedingAction />
@@ -406,8 +406,8 @@ export default function PmV2Preview() {
             borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
           }}
         >
-          <strong style={{ color: "var(--ink-strong)" }}>PM portal purpose · enforced in 13.6B:</strong>
-          {" "}<em>Build projects.</em> Every visible object on this preview serves that purpose.
+          <strong style={{ color: "var(--ink-strong)" }}>PM portal purpose:</strong>
+          {" "}<em>Build projects.</em> Every visible object in this workspace serves that purpose.
           {" "}Anything that did not — vanity totals, count-of-everything cards, RFI/Submittal/Risk mocks — was removed.
           {" "}Counts here are queue sizes (work-to-do), never inventory tallies.
         </div>
