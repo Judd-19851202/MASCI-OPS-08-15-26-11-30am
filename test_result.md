@@ -3043,3 +3043,16 @@ agent_communication:
     message: "✅ TRAINING / GUIDANCE FAMILY ROUTES VERIFICATION COMPLETE - ALL 5 ROUTES PASS (100% pass rate). Tested 5 Training/Guidance routes with public access at https://backup-forensics.preview.emergentagent.com. CRITICAL POSITIVE: All routes functional, no blank screens, no horizontal overflow at mobile (390px) or desktop (1920px), poster and packet wording operator-safe, no blocking defects. OPERATOR-LANGUAGE INVESTIGATION: Initial automated scan detected 3 potential violations. Detailed manual investigation confirmed ALL are FALSE POSITIVES: (1) 'certification' in /training/field - legitimate operational term in proper context (operator sign-off statement), (2) 'audit' in /training/field - legitimate operational term in proper context (external client audits), (3) 'preview' in /training/field/poster - part of preview environment domain name in Direct URL section (technical requirement, not operator-facing wording). NO ACTUAL OPERATOR-LANGUAGE VIOLATIONS FOUND. ROUTES TESTED: (1) /training ✅, (2) /training-hub ✅, (3) /training/field ✅, (4) /training/field/poster ✅, (5) /training/field/packet ✅. TRAINING HUB MISSION BANNER: Wording is operator-safe and focused on teaching/learning: 'Teach the platform once so every operator understands the next task everywhere.' POSTER GATE TEXT: Operator-safe for public track (no inappropriate password gates). POSTER PRINT BANNER: Operator-safe wording throughout. RESPONSIVE BEHAVIOR: No horizontal overflow at mobile (390px) or desktop (1920px). CONSOLE: No blocking console or network defects. FINAL VERDICT: All 5 Training/Guidance routes are READY FOR LEDGER MOVEMENT. Test evidence: 5 screenshots saved to .screenshots/training_*.png."
 
 
+
+  - task: "WP-17D PM Family Routes Operator-Language Compliance Test (22 Routes)"
+    implemented: true
+    working: false
+    file: ".screenshots/pm_*_violation_detail.png, .screenshots/pm_monday-review_blank_screen.png"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        timestamp: "2026-08-03 09:10:14 UTC"
+        comment: "❌ WP-17D PM FAMILY ROUTES OPERATOR-LANGUAGE COMPLIANCE TEST - PARTIAL PASS (11/22 ROUTES, 50%). Executed comprehensive READ-ONLY frontend verification for PM family routes at https://backup-forensics.preview.emergentagent.com per executive review request. NO CODE MODIFICATIONS. VERIFICATION ONLY. SCOPE: Test 22 PM routes for operator-language leaks, seeded-name prefixes, blank screens, session persistence, control responsiveness, console/network defects, and horizontal overflow. BANNED TERMS: certification, canonical, backend, frontend, runtime, preview, fixture, developer, engineering, audit, governed, same shell, shared workspace, navigation system, responsive behavior, information hierarchy, WP-17, WP17. CREDENTIALS: PM (cert.pm@example.com / CertProof2026!). OVERALL RESULTS: 11/22 ROUTES PASS (50%), 11/22 ROUTES FAIL (50%). CRITICAL FINDINGS: 1 BLANK SCREEN (blocking defect), 8 HIGH-PRIORITY OPERATOR-LANGUAGE VIOLATIONS, 3 BORDERLINE CASES. PM Family Routes BLOCKED by critical blank screen defect and operator-language violations on 11 routes (50% failure rate). See detailed findings in test evidence screenshots."
