@@ -49,15 +49,17 @@ export function getPlatformTimezone() {
   return SERVER_FALLBACK_TZ;
 }
 
-export function setUserTimezone(tz)         { try { localStorage.setItem(LS_USER_TZ, tz); } catch (_) {} }
-export function setOrganizationTimezone(tz) { try { localStorage.setItem(LS_ORG_TZ, tz); }  catch (_) {} }
-export function clearUserTimezone()         { try { localStorage.removeItem(LS_USER_TZ); }  catch (_) {} }
+export function setUserTimezone(tz)         { try { localStorage.setItem(LS_USER_TZ, tz); } catch (_) { return undefined; } }
+export function setOrganizationTimezone(tz) { try { localStorage.setItem(LS_ORG_TZ, tz); }  catch (_) { return undefined; } }
+export function clearUserTimezone()         { try { localStorage.removeItem(LS_USER_TZ); }  catch (_) { return undefined; } }
 
 export function getHourFormat() {
   try {
     const v = localStorage.getItem(LS_HOUR_FMT);
     if (v === "12" || v === "24") return v;
-  } catch (_) {}
+  } catch (_) {
+    return "12";
+  }
   return "12";
 }
 
@@ -222,5 +224,7 @@ export function _resetForTests() {
     localStorage.removeItem(LS_USER_TZ);
     localStorage.removeItem(LS_ORG_TZ);
     localStorage.removeItem(LS_HOUR_FMT);
-  } catch (_) {}
+  } catch (_) {
+    return undefined;
+  }
 }
