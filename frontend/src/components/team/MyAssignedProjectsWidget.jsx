@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { sanitizeOperatorError, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 const ROLE_LABEL = {
   pm: "PM", co_pm: "Co-PM", assistant_pm: "Assistant PM",
@@ -32,7 +33,7 @@ export default function MyAssignedProjectsWidget({ title = "My assigned jobs" })
   useEffect(() => {
     fetchMyProjects()
       .then((d) => setItems(d.items || []))
-      .catch((e) => setErr(e.message))
+      .catch((e) => setErr(sanitizeOperatorError(e.message, t("Project roster unavailable right now."))))
       .finally(() => setLoading(false));
   }, []);
 
@@ -68,7 +69,7 @@ export default function MyAssignedProjectsWidget({ title = "My assigned jobs" })
           <ul className="divide-y divide-slate-100">
             {projects.map(([pn, roles]) => (
               <li key={pn} className="py-2 flex items-center justify-between" data-testid={`mp-row-${pn}`}>
-                <span className="font-mono text-sm text-slate-800">{pn}</span>
+                <span className="font-mono text-sm text-slate-800">{sanitizeOperatorProjectNumber(pn, t("Operations support"))}</span>
                 <span className="flex gap-1 flex-wrap justify-end">
                   {[...new Set(roles)].map((r) => (
                     <Badge key={r} variant="secondary" className="text-[10px]">
