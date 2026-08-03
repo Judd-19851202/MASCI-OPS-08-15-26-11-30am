@@ -7,6 +7,7 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
+import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const BAND_PILL = {
   expired: "bg-rose-100 text-rose-900 border-rose-300",
@@ -38,7 +39,7 @@ export default function ExpirationsSummary({ title = "Document Expirations", cla
       // its own inline error band instead.
       const r = await api.get("/operations/expirations/summary", { skipSessionStatus: true });
       setData(r.data);
-    } catch (e) { setErr(e?.response?.data?.detail || "Failed to load expirations"); }
+    } catch (e) { setErr(sanitizeOperatorError(e?.response?.data?.detail, "Failed to load expirations")); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
@@ -80,8 +81,8 @@ export default function ExpirationsSummary({ title = "Document Expirations", cla
           {list.map((d, i) => (
             <li key={`${d.id}-${i}`} className="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0 text-xs">
               <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold ${BAND_PILL[activeBand]}`}>{BAND_LABEL[activeBand]}</span>
-              <span className="text-slate-900 truncate flex-1 font-bold">{d.title}</span>
-              <span className="text-[10px] text-slate-500 truncate max-w-[200px]">{d.owner_name || "—"}</span>
+              <span className="text-slate-900 truncate flex-1 font-bold">{sanitizeOperatorReference(d.title, "Document record")}</span>
+              <span className="text-[10px] text-slate-500 truncate max-w-[200px]">{sanitizeOperatorReference(d.owner_name, "—") || "—"}</span>
               <span className="text-[10px] font-mono text-slate-500 shrink-0">{d.expiration_date || "—"}</span>
             </li>
           ))}
