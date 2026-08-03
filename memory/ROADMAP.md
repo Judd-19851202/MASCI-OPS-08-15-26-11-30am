@@ -1,3 +1,29 @@
+# 2026-08-03 — WP-17 executive lock / WP-18A roadmap state
+
+## Current top priority
+
+- **WP-17 is executive locked at GO WITH ACCEPTED RISKS.**
+- **WP-18A discovery audit is complete and documented in `/app/memory/WP18A_*`.**
+- **No WP-18B implementation, redesign, or behavior change is authorized by this state update.**
+
+## P0
+- preserve `/app/memory/WP17_EXECUTIVE_CLOSEOUT_AND_LOCK.md` as the governing executive closeout
+- preserve the WP-18A evidence package as the source of truth for any later WP-18B authorization
+- if WP-18B is later authorized, begin with authority contracts and trust-line formalization before any build work
+
+## P1
+- sequence future WP-18B only in this order:
+  1. source-of-truth contract lock
+  2. existing controls spine formalization
+  3. constraints connectivity
+  4. intelligence-lane rationalization
+  5. executive KPI unification
+  6. provider-connector layering over the existing fallback path
+
+## P2
+- targeted runtime validation only where future architecture decisions require it
+- no platform-wide recertification unless new evidence reopens WP-17 posture
+
 # 2026-07-31 — WP-17C foundation completion roadmap update
 
 ## 2026-08-01 — WP-17D constitution hardening roadmap

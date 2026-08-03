@@ -1,3 +1,11 @@
+# 2026-08-03 — WP-17 executive lock + WP-18A discovery audit
+
+## 2026-08-03 — WP-17 executive lock + WP-18A discovery audit
+
+- Created `/app/memory/WP17_EXECUTIVE_CLOSEOUT_AND_LOCK.md` to permanently lock the accepted executive position: **GO WITH ACCEPTED RISKS**, release candidate `c31011d18c20d46d99d67ffd76cc17a168a39135`, rollback anchor `f12eacf2c509b068ba1b0357068419efcb0abae7`, `0` proven Category 1 production defects, `0` Category 5 blockers, `15` Category 2 Preview/runtime-data evidence limitations, and `5` Category 4 internal-only restricted routes.
+- Completed the full WP-18A evidence package in `/app/memory`, including the capability register, engine/service register, trust-line register, project-controls existing-state audit, forensic audits for cost codes/schedule/lookahead/Daily Reports/Monday recap, import/export and PM navigation audits, duplication/reuse decisions, gap register, architecture map, and executive audit report.
+- Locked the WP-18A conclusion as reuse-first: the platform already contains substantial project-controls capability, `BUILD_NEW` was justified for `0` audited capabilities, and WP-18B should proceed only as a formalization / connection / consolidation sequence after executive authorization.
+
 # 2026-07-31 — WP-17C foundation completion
 
 # 2026-07-31 — WP-17D convergence wave

@@ -221,9 +221,17 @@
 - No destructive redesign or whitewashed shell reset was introduced; the approved MASCI navy/frosted identity was preserved.
 - Preview-only repair lane preserved; no production deployment or live-environment claim was made.
 
+## 2026-08-03 — WP-17 lock and WP-18A discovery completion
+- WP-17 executive closeout is now formally locked in `/app/memory/WP17_EXECUTIVE_CLOSEOUT_AND_LOCK.md` with the accepted release posture preserved exactly: **GO WITH ACCEPTED RISKS**, release candidate `c31011d18c20d46d99d67ffd76cc17a168a39135`, rollback anchor `f12eacf2c509b068ba1b0357068419efcb0abae7`, `0` proven Category 1 production defects, `0` Category 5 blockers, `15` Category 2 Preview/runtime-data evidence limitations, and `5` Category 4 internal-only restricted routes.
+- WP-18A Platform Architecture, Capability & Project Controls Discovery Audit is complete as an evidence-only package in `/app/memory/WP18A_*`.
+- WP-18A conclusion: the platform already contains substantial project-controls architecture across project identity, staffing, cost codes, schedule, Daily Reports, planning lifecycle, Monday review/briefings, PM command surfaces, ODS intelligence, and manual integration fallback.
+- Audited WP-18A denominators: `23` capabilities, `22` engines/services, `20` traced producer→storage/API/service→consumer trust lines.
+- `BUILD_NEW` was justified for `0` audited capabilities. The recommended next phase, if later authorized, is reuse-first WP-18B architecture formalization and consolidation only.
+
 ## Next Authorized Work
 - WP-17F executive release decision is accepted: **GO WITH ACCEPTED RISKS**.
 - Preserve `/app/memory/WP17F_ACCEPTED_RISK_REGISTER.md` and do not convert any Category 2 route to unconditional PASS without a legitimate record.
 - Preserve `/app/memory/WP17F_PRODUCTION_PROMOTION_EVIDENCE.md` as the rollback/release/smoke evidence anchor for controlled promotion.
 - If a legitimate production record naturally appears for any Category 2 route, validate only that route and any directly shared consumer; do not reopen platform-wide certification unless evidence shows a systemic regression.
 - Keep `/_internal/*` routes intentionally restricted unless governance changes explicitly authorize them for operator-facing use.
+- Do not begin WP-18B design/build/execution unless explicit executive authorization is given after review of the completed WP-18A package.
