@@ -33,6 +33,7 @@ import {
   TransportationRiskBanner,
   TransportationCloseoutAwareness,
 } from "@/components/operations_transportation_integration";
+import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -543,6 +544,7 @@ function Counter({ testId, label, value, tone }) {
 export default function PmProjectDetail() {
   const { projectNumber } = useParams();
   const pn = (projectNumber || "").trim();
+  const safePn = sanitizeOperatorProjectNumber(pn, "Operations support");
 
   return (
     <PmShell
@@ -564,7 +566,7 @@ export default function PmProjectDetail() {
             data-testid="pm-project-detail-number"
             className="font-mono font-bold text-slate-900 text-lg break-all"
           >
-            {pn || "—"}
+            {safePn || "—"}
           </span>
           {pn && (
             <Link
@@ -584,7 +586,7 @@ export default function PmProjectDetail() {
           </Link>
         </header>
         <p className="text-xs text-slate-500 mt-1">
-          Operational chronology for this project, plus the enterprise job-setup spine for cost-code assignments.
+          Operational chronology for this project, plus the job-setup view for cost-code assignments.
         </p>
       </div>
 
@@ -634,14 +636,12 @@ export default function PmProjectDetail() {
 
       {/* Track 13.13 · Build Queue #4 — Operational Events Project-Day
           panel. Read-only · honest empty/error states · no charts ·
-          no invented categories. Source: GET /api/operational-events/
-          project-day/{project_number}/{date}. */}
+          no invented categories. Uses the live project-day activity feed. */}
       {pn && <ProjectDayEventsPanel projectNumber={pn} />}
 
       {/* Track 13.20 · Phase B · Material Movement Ledger PM panel.
           Read-only · project-scoped · honest empty/error states.
-          Source: GET /api/material-movement/daily/{project_number}/{date}
-          (enriched in Track 13.19). */}
+          Uses the live material-movement feed for the chosen project day. */}
       {pn && <ProjectMaterialMovementPanel projectNumber={pn} />}
 
       {/* Phase 4A — Trench Safety Operations Integration */}

@@ -45,6 +45,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { operationalError } from "@/lib/errors";
 import OperationalThreadPage from "@/components/operational_intelligence/OperationalThreadPage";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -71,12 +72,13 @@ function todayYyyyMmDd() {
 // ─────────────────────────────────────────────────────────────
 
 function missionAdapter({ job, recent, oi }) {
-  const projectName = job?.project_name || "—";
+  const projectName = sanitizeOperatorReference(job?.project_name, "Operations support work") || "—";
   const location    = job?.location || "—";
   const client      = job?.client || "—";
   const pm          = job?.project_manager || "—";
   const superintendent = recent?.superintendent || "—";
   const sourceDate = recent?.source_report_date || null;
+  const safeProjectNumber = sanitizeOperatorProjectNumber(job?.project_number, "Operations support");
 
   // Health derives client-side ONLY from the certified OI attention
   // level — no new scoring is invented. Plain-English "Why" mirrors
@@ -110,7 +112,7 @@ function missionAdapter({ job, recent, oi }) {
   }
 
   const facts = [
-    { label: "Project #",       value: job?.project_number || "—" },
+    { label: "Project #",       value: safeProjectNumber || "—" },
     { label: "Client / Owner",  value: client },
     { label: "Location",        value: location },
     { label: "Project Manager", value: pm },
@@ -324,6 +326,7 @@ function documentsAdapter(jhaItems) {
 export default function PmProjectThread() {
   const { projectNumber } = useParams();
   const pn = (projectNumber || "").trim();
+  const safePn = sanitizeOperatorProjectNumber(pn, "Operations support");
   const allowed = isPm() || isAdmin();
 
   const [state, setState] = useState({
@@ -413,11 +416,11 @@ export default function PmProjectThread() {
     subject: {
       id: `project-${pn}`,
       kind: "asset",
-      label: state.job?.project_name || pn || "—",
-      sublabel: `Project · ${pn || "—"}`,
+      label: formatOperatorJobLabel(pn, state.job?.project_name || pn || "—"),
+      sublabel: `Project · ${safePn || "—"}`,
     },
     edges: relationshipAdapter({ job: state.job, recent: state.recent }),
-  }), [pn, state.job, state.recent]);
+  }), [pn, safePn, state.job, state.recent]);
   const documents = useMemo(
     () => documentsAdapter(state.jhaItems || []),
     [state.jhaItems]
@@ -431,9 +434,8 @@ export default function PmProjectThread() {
       section="jobs"
       intro={
         <p className="text-xs text-slate-500">
-          Universal Operational Thread · presentation layer over the certified
-          project, recent-context, project-day events, material-movement, JHA,
-          and Project Intelligence endpoints. Read-only.
+          Operational thread for the selected project. Read-only timeline,
+          field activity, materials, JHA, and project intelligence context.
         </p>
       }
     >
@@ -442,7 +444,7 @@ export default function PmProjectThread() {
           className="font-mono text-xs uppercase tracking-widest text-slate-500"
           data-testid="pm-project-thread-header"
         >
-          Project #{pn || "—"}
+          Project #{safePn || "—"}
         </div>
         <Link
           to={`/pm/project/${encodeURIComponent(pn)}`}

@@ -7,11 +7,13 @@ import { Link, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import PortalShell from "@/design-system/PortalShell";
 import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
+import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 export default function PmJobTeam() {
   const { projectNumber } = useParams();
+  const safeProjectNumber = sanitizeOperatorProjectNumber(projectNumber, "Operations support");
   return (
-    <PortalShell portal="pm" title={`Job Team — ${projectNumber}`}>
+    <PortalShell portal="pm" title={`Job Team — ${safeProjectNumber}`}>
       <div className="space-y-4 p-4">
         {/* TRACK 15.10 · breadcrumb + sticky back action so PM is
             never trapped on iPad portrait/landscape. Visible on
@@ -30,7 +32,7 @@ export default function PmJobTeam() {
           </Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-slate-800 font-bold" data-testid="pm-job-team-crumb-current">
-            Project {projectNumber} Team
+            Project {safeProjectNumber} Team
           </span>
         </nav>
         <div className="flex items-center justify-between gap-3">

@@ -121,6 +121,7 @@ function LoginStatusBadge({ status }) {
 
 export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const adminScope = scope === "admin";
+  const safeProjectNumber = sanitizeOperatorReference(projectNumber, "Operations support");
   const [items, setItems] = useState([]);
   const [registry, setRegistry] = useState([]);
   const [directory, setDirectory] = useState([]);
@@ -335,7 +336,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Project Team — {projectNumber}
+          Project Team — {safeProjectNumber}
           <Badge variant="outline" className="ml-2">
             {items.filter((i) => i.active).length} active
           </Badge>
