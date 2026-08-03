@@ -1,0 +1,11 @@
+step_id,work_package,proof_label,depends_on,critical_path_reason
+S01,WP-18C1 Enterprise Hierarchy Foundation,DOCUMENTED_ONLY,none,"All downstream scope, rollup, and inheritance logic depends on hierarchy"
+S02,WP-18C2 Authority and Source-of-Truth Enforcement,DOCUMENTED_ONLY,S01,"Budget/reporting/AI/workflow changes need final ownership lines first"
+S03,WP-18C3 Budget Hierarchy Foundation,DOCUMENTED_ONLY,S01;S02,"Budget cannot be safe without hierarchy and authority enforcement"
+S04,WP-18C4 Cost-Code and Estimate Mapping,DOCUMENTED_ONLY,S03,"Budget lines need canonical cost-code and estimate mapping"
+S05,WP-18C5 Schedule / Lookahead / Actuals Spine,DOCUMENTED_ONLY,S02;S04,"Progress and quantity truth must align to the authorized controls structure"
+S06,WP-18C6 Production and Quantity Intelligence,DOCUMENTED_ONLY,S05,"Accepted quantity and productivity depend on schedule/actuals governance"
+S07,WP-18C7 Forecasting and Commitments,DOCUMENTED_ONLY,S03;S04;S05;S06,"Forecast requires budget, commitments, actuals, and quantity/progress trust"
+S08,WP-18C8 Earned Value Engine,DOCUMENTED_ONLY,S03;S05;S06;S07,"EV depends on budget, schedule, quantity/progress, and actual-cost truth"
+S09,WP-18C9 Executive and Portfolio Intelligence,DOCUMENTED_ONLY,S01;S02;S03;S07;S08,"Executive hierarchy must summarize the now-governed underlying truths"
+S10,WP-18C10 Migration, Backfill, Reconciliation, and Certification,DOCUMENTED_ONLY,S01;S02;S03;S04;S05;S06;S07;S08;S09,"Final cutover requires every dependency to be implemented and testable"

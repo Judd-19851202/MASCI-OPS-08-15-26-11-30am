@@ -1,5 +1,45 @@
 # PRD
 
+## 2026-08-03 — WP-18 Executive Constitutional Amendment Packet (ECAP)
+
+### Governing problem statement
+- Execute the **WP-18 Executive Constitutional Amendment Packet (ECAP)** as the final pre-implementation architecture contract for WP-18C authorization.
+- Convert all required WP-18BR3 amendments into one complete, implementation-ready executive contract.
+- Preserve validated platform value by default; rebuild only where evidence justifies it.
+- Decide the final enterprise hierarchy, reporting hierarchy, Budget Hierarchy, Earned Value architecture, Project Controls operating model, migration strategy, implementation sequence, and WP-18C package boundaries.
+
+### Current ECAP status
+- All `45` required `WP18_ECAP_*` artifacts are complete in `/app/memory/`.
+- Final authorization gate: **AUTHORIZED_FOR_WP18C_WITH_ACCEPTED_CONDITIONS**.
+- No application code, UI, API, workflows, database schema, permissions, configuration, runtime behavior, infrastructure, or integrations were modified.
+
+### Final ECAP outcomes
+- Preserved exactly: `19.4%`
+- Preserved and governed: `44.4%`
+- Extended: `22.2%`
+- Consolidated: `2.8%`
+- Refactored in place: `2.8%`
+- Retired: `2.8%`
+- Built new: `5.6%`
+
+### Final architecture answers
+- **Preserve exactly:** project identity, authentication continuity, role/permission enforcement, project team assignments, cost-code registry, payroll variance, backup/recovery
+- **Preserve and govern:** portal shells, design system, forms, public workflows, Daily Reports, safety, QA/QC, dispatch, shop, HR, notifications, AI assistive layer, P&L snapshot, PO workflow, PDF/email/report framework, integration adapters
+- **Extend:** enterprise hierarchy propagation, project cost-code planning, schedule engine, lookahead/Monday review, forecast/commitments, operational constraints, Asset Spine, KPI rollups
+- **Consolidate:** resource federation
+- **Refactor in place:** executive reporting hierarchy
+- **Retire:** legacy operational intelligence digest
+- **Build new:** Budget Hierarchy, Earned Value engine
+
+### WP-18C authorization basis
+- BR3 blocking amendments are accepted in contract form.
+- Final enterprise hierarchy, reporting hierarchy, financial trust model, migration strategy, implementation sequence, and acceptance matrix are all defined.
+- No unresolved blocking contradiction remains.
+
+### Next constitutional step
+- WP-18C may begin only through the ECAP work-package sequence and stop conditions.
+- No additional generic pre-implementation review packet is authorized unless a genuine contradiction or impossible requirement is evidenced.
+
 ## 2026-08-03 — WP-18BR3 Constitutional Architecture Review
 
 ### Governing problem statement

@@ -1,3 +1,23 @@
+# 2026-08-03 — WP-18 Executive Constitutional Amendment Packet (ECAP)
+
+- Added the full ECAP implementation-contract package under `/app/memory/` with `45` required `WP18_ECAP_*` artifacts covering:
+  - executive decision / authorization
+  - amendment acceptance
+  - preservation / no-rebuild / retirement
+  - enterprise hierarchy and reporting hierarchy
+  - authority and data ownership
+  - Budget Hierarchy and Earned Value constitutions
+  - Project Controls, schedule, production, forecast, commitment, and KPI architecture
+  - cross-system events, integration boundaries, notifications, and AI authority
+  - operator impact, navigation, EN/ES, and report/PDF/email impact
+  - implementation sequence, migration, risks, acceptance, and WP-18C work packages
+  - evidence, unresolved decisions, contradictions, integrity, and final authorization
+- Final ECAP authorization gate: **AUTHORIZED_FOR_WP18C_WITH_ACCEPTED_CONDITIONS**.
+- Preservation result from the authoritative disposition matrix (`36` major subsystems): `19.4%` preserved exactly, `44.4%` preserved and governed, `22.2%` extended, `2.8%` consolidated, `2.8%` refactored in place, `2.8%` retired, `5.6%` built new.
+- Budget Hierarchy and Earned Value remain the only two justified net-new subsystems; enterprise hierarchy is extended from existing governance rather than rebuilt.
+- ECAP integrity validation passed: `45/45` required artifacts present, `36` disposition rows, `10` amendment statuses, `10` WP-18C sequence steps, `10` dependency rows, `10` acceptance rows, and no invalid disposition tokens.
+- No application code, UI, API, workflows, database schema, permissions, configuration, runtime behavior, infrastructure, or integrations were changed during ECAP.
+
 # 2026-08-03 — WP-18BR3 constitutional architecture review
 
 - Added the full BR3 executive decision package under `/app/memory/`:

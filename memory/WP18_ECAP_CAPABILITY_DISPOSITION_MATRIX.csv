@@ -1,0 +1,37 @@
+capability_id,subsystem,proof_label,current_state,final_disposition,reason,wp18c_phase,blocking
+D01,Project identity / jobs_master,SOURCE_VERIFIED,"Canonical project root already exists and is broadly consumed.",PRESERVE_EXACTLY,"Correct owner already exists; rebuilding would only create drift.",WP18C2,Yes
+D02,Enterprise governance hierarchy,SOURCE_VERIFIED,"Governance already models company/division/department/region but propagation is incomplete.",EXTEND,"Architecture exists in governance and should be propagated rather than replaced.",WP18C1,Yes
+D03,Authentication / MFA / passkeys / session minting,SOURCE_VERIFIED,"Auth continuity, MFA, passkeys, and session minting already exist.",PRESERVE_EXACTLY,"No critical defect evidenced; preserve the validated security architecture.",Out of scope,No
+D04,Role / permission / approval enforcement,SOURCE_VERIFIED,"Enterprise governance registry and approval flows already enforce authority.",PRESERVE_EXACTLY,"This is a protected system-of-governance asset.",WP18C2,Yes
+D05,Portal shells,DOCUMENTED_ONLY,"Shared portal/shell architecture already supports multiple operator domains.",PRESERVE_AND_GOVERN,"Preserve the route/shell structure while governing new entry paths.",WP18C9,No
+D06,Design system,DOCUMENTED_ONLY,"WP-17 governed design system and shared primitives already exist.",PRESERVE_AND_GOVERN,"Validated UI system should be extended, not replaced.",Out of scope,No
+D07,Forms / schema-driven capture,DOCUMENTED_ONLY,"The platform already contains extensive structured form architecture.",PRESERVE_AND_GOVERN,"Form infrastructure is validated platform value.",WP18C5,No
+D08,Public workflows,DOCUMENTED_ONLY,"Public and semi-public operating workflows already exist in the platform surface.",PRESERVE_AND_GOVERN,"No evidence supports replacing the public workflow foundation.",WP18C9,No
+D09,Daily Reports architecture,SOURCE_VERIFIED,"Daily Reports remain the primary field-entry spine for labor, materials, equipment, and quantities.",PRESERVE_AND_GOVERN,"Keep the architecture and tighten downstream governance.",WP18C5,Yes
+D10,Project team assignments,SOURCE_VERIFIED,"Canonical project roster/assignment owner already exists.",PRESERVE_EXACTLY,"The ownership answer is already right.",WP18C2,No
+D11,Cost-code registry,SOURCE_VERIFIED,"Reusable cost-code definition library already exists.",PRESERVE_EXACTLY,"A second library would weaken source-of-truth discipline.",WP18C4,No
+D12,Project cost-code planning,SOURCE_VERIFIED,"Planning already persists on jobs_master.assigned_cost_codes.",EXTEND,"Strong architecture exists and should be enriched rather than moved.",WP18C4,Yes
+D13,Schedule engine,SOURCE_VERIFIED,"Deterministic schedule engine already exists.",EXTEND,"Schedule math is already a reusable asset.",WP18C5,Yes
+D14,Lookahead / Monday review,SOURCE_VERIFIED,"Planning lifecycle and Monday operational cadence already exist.",EXTEND,"Preserve the cadence and tighten the operating contract.",WP18C5,No
+D15,Forecast / commitments / overrides,SOURCE_VERIFIED,"Forecast lineage and committed dates already exist on the planning spine.",EXTEND,"The right foundation already exists.",WP18C7,Yes
+D16,Payroll variance,SOURCE_VERIFIED,"Weekly labor reconciliation lane already exists.",PRESERVE_EXACTLY,"Useful bounded subsystem; no evidence supports replacing it.",WP18C7,No
+D17,Operational constraints,SOURCE_VERIFIED,"Constraint capture exists in both field and standing-blocker lanes.",EXTEND,"Dual-lane model should be governed, not replaced.",WP18C5,Yes
+D18,Resource federation,SOURCE_VERIFIED,"Demand, roster, and deployment exist but semantics are split.",CONSOLIDATE,"Value exists; duplication is semantic rather than architectural.",WP18C2,Yes
+D19,Asset Spine / equipment identity,SOURCE_VERIFIED,"Asset Spine is the strongest equipment registry core.",EXTEND,"Extend the registry core and subordinate provider-local seams.",WP18C5,No
+D20,Safety workflows,DOCUMENTED_ONLY,"Safety portals, incidents, audits, documents, and training already exist.",PRESERVE_AND_GOVERN,"Validated operational workflows should be preserved.",Out of scope,No
+D21,QA/QC workflows,DOCUMENTED_ONLY,"QA/QC operating surfaces already exist in the current platform.",PRESERVE_AND_GOVERN,"No evidence supports replacing QA/QC architecture during WP-18C.",Out of scope,No
+D22,Transportation / dispatch workflows,SOURCE_VERIFIED,"Dispatch portal, board, command, map, and fleet surfaces already exist.",PRESERVE_AND_GOVERN,"Preserve the validated transportation operating model.",Out of scope,No
+D23,Shop workflows,SOURCE_VERIFIED,"Shop hub, queue, PM schedules, work orders, and equipment views already exist.",PRESERVE_AND_GOVERN,"Shop operations are validated platform value.",Out of scope,No
+D24,HR workflows,SOURCE_VERIFIED,"HR hub, payroll variance, time verification, records, and qualification surfaces already exist.",PRESERVE_AND_GOVERN,"HR operating surfaces should remain in place.",Out of scope,No
+D25,Notifications / approvals / escalations,SOURCE_VERIFIED,"Notification acknowledgements and approval flows already exist under governance.",PRESERVE_AND_GOVERN,"Keep the framework while attaching new budget/controls events to it.",WP18C2,No
+D26,AI assistive layer,SOURCE_VERIFIED,"AI config, translation, and briefing assist already exist as downstream tools.",PRESERVE_AND_GOVERN,"Preserve AI as assistive, not authoritative.",WP18C9,No
+D27,Project P&L snapshot,SOURCE_VERIFIED,"Derived job-cost snapshot already exists from Daily Reports.",PRESERVE_AND_GOVERN,"Keep as a bounded derived surface, not a budget owner.",WP18C9,No
+D28,PO workflow,SOURCE_VERIFIED,"PO requests already track estimate, approval, issue, and receipt signal.",PRESERVE_AND_GOVERN,"Preserve as procurement truth input to budget, not budget itself.",WP18C7,No
+D29,PDF / email / report framework,DOCUMENTED_ONLY,"Current platform already contains extensive PDF/email/report generation.",PRESERVE_AND_GOVERN,"Validated communications infrastructure should not be replaced during WP-18C.",Out of scope,No
+D30,Backup / recovery systems,DOCUMENTED_ONLY,"Backup and recovery systems are already governed and should remain protected.",PRESERVE_EXACTLY,"No evidence supports touching recovery posture in WP-18C.",Out of scope,No
+D31,ODS / executive reporting,SOURCE_VERIFIED,"Executive read-side surfaces exist but overlap semantically.",REFACTOR_IN_PLACE,"Keep the readers but refactor them under one reporting hierarchy.",WP18C9,Yes
+D32,Operational KPI rollups,SOURCE_VERIFIED,"KPI aggregation already exists and is explicitly non-financial.",EXTEND,"Useful aggregation pattern should mature under the final reporting hierarchy.",WP18C9,No
+D33,Legacy operational intelligence digest,SOURCE_VERIFIED,"Legacy digest lane duplicates newer executive visibility surfaces.",RETIRE,"Retirement reduces semantic duplication and preserves newer value.",WP18C9,No
+D34,Integration adapters / import-export,DOCUMENTED_ONLY,"Integration and import/export capability already exists and should remain additive.",PRESERVE_AND_GOVERN,"Keep adapters subordinate to authoritative domain owners.",WP18C10,No
+D35,Budget Hierarchy,PARTIAL_EVIDENCE,"No canonical budget baseline owner currently exists.",BUILD_NEW,"This is one of the two justified net-new subsystems.",WP18C3,Yes
+D36,Earned Value engine,NOT_FOUND,"No canonical EV engine currently exists.",BUILD_NEW,"This is the second and final justified net-new subsystem.",WP18C8,Yes

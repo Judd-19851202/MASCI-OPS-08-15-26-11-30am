@@ -1,0 +1,11 @@
+risk_id,proof_label,risk,severity,affected_package,mitigation,executive_stop_condition
+IR01,DOCUMENTED_ONLY,"enterprise hierarchy propagates inconsistently across readers",High,WP-18C1;WP-18C9,"enforce one hierarchy map and inheritance tests",yes
+IR02,DOCUMENTED_ONLY,"budget line mapping duplicates cost-code ownership",Critical,WP-18C3;WP-18C4,"budget lines reference but do not replace canonical cost codes",yes
+IR03,DOCUMENTED_ONLY,"actual-cost trust cannot reconcile with external accounting/payroll inputs",Critical,WP-18C3;WP-18C7,"use additive actual-cost layer plus explicit reconciliation status",yes
+IR04,DOCUMENTED_ONLY,"Daily Reports overwrite schedule truth without governed review",High,WP-18C5,"force review queue and approval chain",yes
+IR05,DOCUMENTED_ONLY,"accepted quantity and QA/QC acceptance diverge",High,WP-18C6,"require accepted quantity certification rules",yes
+IR06,DOCUMENTED_ONLY,"EV publishes false precision with incomplete actuals or quantities",Critical,WP-18C8,"publish confidence states and block weak outputs",yes
+IR07,DOCUMENTED_ONLY,"executive reporting refactor introduces duplicate KPI formulas",High,WP-18C9,"single KPI dictionary and drill-down contract",yes
+IR08,DOCUMENTED_ONLY,"migration/backfill silently rewrites historical financial truth",Critical,WP-18C10,"use shadow calculations, exception queues, rollback",yes
+IR09,DOCUMENTED_ONLY,"protected subsystem rebuild is proposed without evidence",High,All,"enforce no-rebuild register and contradiction log",yes
+IR10,DOCUMENTED_ONLY,"operator burden increases materially",High,All,"use operator impact matrix and acceptance proof",yes

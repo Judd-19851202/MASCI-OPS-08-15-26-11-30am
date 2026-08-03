@@ -1,3 +1,32 @@
+# 2026-08-03 — WP-18 ECAP final pre-implementation roadmap state
+
+## Current top priority
+
+- **ECAP is complete and WP-18C is AUTHORIZED_FOR_WP18C_WITH_ACCEPTED_CONDITIONS.**
+- **WP-18C must begin only through the accepted ECAP work-package sequence.**
+- **No broad rebuild is authorized; protected systems remain protected.**
+
+## P0
+- preserve the full `WP18_ECAP_*` packet as the governing contract for WP-18C
+- begin implementation only in this dependency order:
+  1. enterprise hierarchy foundation
+  2. authority and source-of-truth enforcement
+  3. Budget Hierarchy foundation
+  4. cost-code and estimate mapping
+  5. schedule / lookahead / actuals spine
+  6. production and quantity intelligence
+  7. forecasting and commitments
+  8. Earned Value engine
+  9. executive and portfolio intelligence
+  10. migration, backfill, reconciliation, and certification
+
+## P1
+- enforce ECAP stop conditions during every WP-18C sub-package
+- preserve the no-rebuild register, preservation map, and acceptance/certification matrix as active controls during implementation
+
+## P2
+- future phases outside WP-18C remain out of scope unless separately evidenced and authorized
+
 # 2026-08-03 — WP-18BR3 constitutional architecture review roadmap state
 
 ## Current top priority

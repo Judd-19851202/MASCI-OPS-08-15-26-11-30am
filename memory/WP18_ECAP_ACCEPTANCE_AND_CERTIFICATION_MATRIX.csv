@@ -1,0 +1,11 @@
+work_package,source_tests,backend_tests,frontend_tests,integration_tests,workflow_tests,financial_reconciliation_tests,role_permission_tests,en_es_tests,responsive_tests,pdf_email_tests,migration_tests,rollback_tests,performance_scale_tests,audit_security_tests,executive_screenshot_proof
+WP-18C1 Enterprise Hierarchy Foundation,required,required,required,required,required,not_applicable,required,required,required,not_applicable,required,required,required,required,required
+WP-18C2 Authority and Source-of-Truth Enforcement,required,required,required,required,required,required,required,required,required,not_applicable,required,required,required,required,required
+WP-18C3 Budget Hierarchy Foundation,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
+WP-18C4 Cost-Code and Estimate Mapping,required,required,required,required,required,required,required,required,required,not_applicable,required,required,required,required,required
+WP-18C5 Schedule / Lookahead / Actuals Spine,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
+WP-18C6 Production and Quantity Intelligence,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
+WP-18C7 Forecasting and Commitments,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
+WP-18C8 Earned Value Engine,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
+WP-18C9 Executive and Portfolio Intelligence,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
+WP-18C10 Migration, Backfill, Reconciliation, and Certification,required,required,required,required,required,required,required,required,required,required,required,required,required,required,required
