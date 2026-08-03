@@ -1,3 +1,18 @@
+# 2026-08-03 — WP-18BR executive architecture ratification
+
+- Added the WP-18BR ratification package under `/app/memory/`:
+  - `WP18BR_DECISION_RATIFICATION_MATRIX.csv`
+  - `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md`
+  - `WP18BR_PROJECT_CONTROLS_CONSTITUTIONAL_RATIFICATION.md`
+  - `WP18BR_SOURCE_OF_TRUTH_CHALLENGE_REGISTER.csv`
+  - `WP18BR_TRUST_LINE_CHALLENGE_REGISTER.csv`
+- Challenged the WP-18B package adversarially across source-of-truth ownership, trust lines, reuse/extend decisions, `BUILD_NEW` claims, Project Controls ownership, cost codes, schedules, operator discoverability, ten-year scale, AI readiness, and executive cross-examination.
+- Final WP-18BR outcome: **WP-18B RATIFIED WITH AMENDMENTS**.
+- Ratification counts: `24` decisions → `7 APPROVED`, `13 REVISED`, `0 REJECTED`, `4 DEFERRED`.
+- Final executive answer on whether WP-18C could begin tomorrow with complete confidence: **NO**.
+- Exact blockers preserved in the package: absent Budget Hierarchy owner, absent Earned Value owner, unresolved production/constraint/equipment/crew amendments if left coarse, deferred KPI hierarchy, and bounded executive portfolio latency.
+- Documentation-only validation passed (`VALIDATION_OK`); no application code, UI, API, workflow, database, model, configuration, or data changes were performed.
+
 # 2026-08-03 — WP-17 executive lock + WP-18A discovery audit
 
 ## 2026-08-03 — WP-17 executive lock + WP-18A discovery audit

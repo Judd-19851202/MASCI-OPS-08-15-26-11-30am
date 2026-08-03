@@ -1,3 +1,28 @@
+# 2026-08-03 — WP-18BR executive ratification roadmap state
+
+## Current top priority
+
+- **WP-18B is ratified with amendments, not accepted unchanged.**
+- **WP-18C implementation remains NOT AUTHORIZED / BLOCKED.**
+- **No implementation may begin until the combined `WP18B_*` + `WP18BR_*` charter is explicitly accepted.**
+
+## P0
+- preserve the completed WP-18BR ratification package as the governing challenge layer over WP-18B
+- preserve the amended constitutional owner model for production, constraints, equipment identity, crew planning, and executive KPI hierarchy
+- do not authorize Budget Hierarchy or Earned Value work until the WP-18BR prerequisites are accepted
+
+## P1
+- if WP-18C is later authorized, start from the reuse-first sequence in `WP18B_RECOMMENDED_IMPLEMENTATION_SEQUENCE.md` **as amended by WP18BR**
+- treat these as mandatory entry conditions before any finance-side build:
+  1. production fact-family decomposition
+  2. dual-lane constraint model
+  3. Asset Spine acknowledgement in equipment identity
+  4. explicit crew-planning constitutional split
+  5. executive KPI consolidation / scale posture handling
+
+## P2
+- no additional implementation or adjacent build work is authorized beyond the amended constitutional charter
+
 # 2026-08-03 — WP-17 executive lock / WP-18A roadmap state
 
 ## Current top priority

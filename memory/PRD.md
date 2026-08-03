@@ -247,3 +247,33 @@
 - Review and accept the completed WP-18B constitutional package.
 - Keep WP-18C **blocked pending explicit executive authorization**.
 - If WP-18C is later authorized, begin with the sequence in `/app/memory/WP18B_RECOMMENDED_IMPLEMENTATION_SEQUENCE.md` and preserve the reuse-first constitution documented in `/app/memory/WP18B_MASTER_EXECUTIVE_ARCHITECTURE_AUDIT.md`.
+
+## 2026-08-03 — WP-18BR executive architecture ratification complete
+- WP-18BR is now complete as a documentation-only adversarial ratification of WP-18B.
+- The WP-18BR artifact set in `/app/memory/` now includes:
+  - `WP18BR_DECISION_RATIFICATION_MATRIX.csv`
+  - `WP18BR_EXECUTIVE_RATIFICATION_REPORT.md`
+  - `WP18BR_PROJECT_CONTROLS_CONSTITUTIONAL_RATIFICATION.md`
+  - `WP18BR_SOURCE_OF_TRUTH_CHALLENGE_REGISTER.csv`
+  - `WP18BR_TRUST_LINE_CHALLENGE_REGISTER.csv`
+- Ratification result: WP-18B **does not pass unchanged**. It is **RATIFIED WITH AMENDMENTS**.
+- Final ratification counts: `24` decisions total → `7 APPROVED`, `13 REVISED`, `0 REJECTED`, `4 DEFERRED`.
+- The ratification challenge preserved reuse-first architecture but tightened the constitutional owner model in these areas:
+  - production must be treated as a fact family (`daily_reports`, `haul_cycles`, `payroll_variance_batches`)
+  - constraints must be treated as a dual-lane model (`daily_reports.constraints` + `operational_constraints`)
+  - equipment identity must acknowledge Asset Spine above raw `equipment_master` interpretation
+  - crew planning must be explicit and separate from generic resource planning
+  - executive KPI hierarchy remains deferred pending consolidation and scale treatment
+  - ten-year executive scale remains bounded rather than unconditionally ratified
+- Final executive answer for immediate WP-18C confidence: **NO**.
+- Exact blockers to an unequivocal YES remain:
+  - no canonical Budget Hierarchy owner
+  - no canonical Earned Value owner
+  - unresolved production / constraint / equipment / crew constitutional amendments if ignored
+  - deferred executive KPI hierarchy and bounded executive portfolio latency
+- Documentation-only validation passed after completion of WP-18BR (`VALIDATION_OK`).
+
+## Updated next authorized work after WP-18BR
+- Executive review must now evaluate the **combined** constitutional package: `WP18B_*` + `WP18BR_*`.
+- Keep WP-18C **blocked** until the amended charter is explicitly accepted.
+- If WP-18C is later authorized, the entry criteria must include the WP-18BR amendments before any Budget or Earned Value build begins.
