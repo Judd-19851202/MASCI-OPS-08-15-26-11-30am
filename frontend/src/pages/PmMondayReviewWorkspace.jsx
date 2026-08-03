@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
-
-const ADMIN_FALLBACK_PROJECT = "24-06";
+import { sanitizeOperatorError } from "@/lib/operatorLanguage";
 
 function portalConfig(extra = {}) {
   return { ...extra, headers: buildScopedPortalAuthHeaders(["admin", "pm"], extra.headers || {}) };
@@ -190,7 +189,7 @@ export default function PmMondayReviewWorkspace() {
       const brief = await api.get(`/oppc/projects/${encodeURIComponent(pn)}/monday-briefing`, portalConfig({ params: { week_ending: we || undefined } }));
       setBriefing(brief.data?.briefing || null);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not load the Monday review workspace.");
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail, "Could not load the Monday review workspace."));
       setWorkspace(null);
       setBriefing(null);
     } finally {
@@ -202,16 +201,6 @@ export default function PmMondayReviewWorkspace() {
     setProjectNumber(params.get("project_number") || "");
     setWeekEnding(params.get("week_ending") || "");
   }, [params]);
-
-  useEffect(() => {
-    if (!projectNumber && !params.get("project_number")) {
-      setParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("project_number", ADMIN_FALLBACK_PROJECT);
-        return next;
-      }, { replace: true });
-    }
-  }, [params, projectNumber, setParams]);
 
   useEffect(() => { if (projectNumber) load(projectNumber, weekEnding); }, [projectNumber, weekEnding]);
 
@@ -334,7 +323,7 @@ export default function PmMondayReviewWorkspace() {
       setBriefing(r.data?.briefing || null);
       toast.success(successMessage);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || `Could not ${path.replaceAll("/", " ")}.`);
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail, `Could not ${path.replaceAll("/", " ")}.`));
     }
   };
 
@@ -383,7 +372,7 @@ export default function PmMondayReviewWorkspace() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-black text-slate-900"><FileText className="h-4 w-4" /> Monday Morning Briefing</div>
-                <div className="text-xs text-slate-500">This workspace is still signing you in. The briefing controls stay visible for review.</div>
+                <div className="text-xs text-slate-500">Choose a project to open the Monday review workspace. The briefing controls stay available here.</div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>

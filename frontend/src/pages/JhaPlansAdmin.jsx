@@ -278,11 +278,11 @@ export default function JhaPlansAdmin() {
         <section className="wp17-public-hero" data-testid="jha-admin-hero">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),19rem] xl:items-start">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold">Safety compliance · governed document control</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-700 font-bold">Safety compliance · document control</div>
               <h1 className="mt-3 font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900">JHP Plans &amp; Files</h1>
               <p className="mt-3 max-w-3xl text-sm sm:text-base leading-6 text-slate-600">
-                Upload, organize, and retrieve hazard-plan evidence by project without leaving the MASCI operating shell.
-                Every attachment stays in a governed project folder for field, admin, and audit follow-through.
+                Upload, organize, and retrieve hazard-plan files by project without leaving the MASCI project workspace.
+                Every attachment stays in a managed project folder for field, admin, and review follow-through.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <MetricChip label="Visible projects" value={rows.length} tone="red" testId="jha-visible-projects-chip" />
@@ -476,7 +476,7 @@ export default function JhaPlansAdmin() {
                       <div className="border-t border-slate-200 bg-slate-50/80 px-4 py-4" data-testid={`jha-open-panel-${row.project_number}`}>
                         {row.files.length === 0 ? (
                           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-500" data-testid={`jha-empty-folder-${row.project_number}`}>
-                            No files yet — drop one here or click <strong>+ Add file</strong> to create the first governed record.
+                            No files yet — drop one here or click <strong>+ Add file</strong> to create the first project record.
                           </div>
                         ) : null}
 

@@ -15,6 +15,7 @@ import JobFolderList from "@/components/JobFolderList";
 import { EmptyState } from "@/components/ui/PortalStates";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const KIND_LABEL = {
   concrete_form: "Concrete Form",
@@ -104,7 +105,10 @@ export default function PmQaqcList() {
   }, [rows, kindFilter, q]);
 
   const myName =
-    pms.find((p) => (p.email || "").toLowerCase() === me.toLowerCase())?.name ||
+    sanitizeOperatorReference(
+      pms.find((p) => (p.email || "").toLowerCase() === me.toLowerCase())?.name || "",
+      ""
+    ) ||
     "";
 
   return (
@@ -156,7 +160,7 @@ export default function PmQaqcList() {
               <option value="">{t("— Pick your name —")}</option>
               {pms.map((p) => (
                 <option key={p.id} value={p.email}>
-                  {`${p.name} — ${p.email}`}
+                  {`${sanitizeOperatorReference(p.name, "PM Demo")} — ${p.email}`}
                 </option>
               ))}
             </select>

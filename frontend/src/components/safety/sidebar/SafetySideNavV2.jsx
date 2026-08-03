@@ -80,7 +80,7 @@ export const SAFETY_DOMAINS_V2 = [
     stripe: "#7c3aed", // violet-600
     icon: FileText,
     routes: [
-      { to: "/document-expirations",             label: "Document Expirations", desc: "Cert and qualification windows.",        icon: FileText },
+      { to: "/document-expirations",             label: "Document Expirations", desc: "Credential and qualification windows.", icon: FileText },
       { to: "/safety-portal/fire-extinguishers", label: "Fire Extinguishers",   desc: "Monthly inspections and unit history.",   icon: Flame },
       { to: "/safety-portal/digest",             label: "Weekly Digest",        desc: "Monday email of open and overdue items.", icon: Mail },
       { to: "/safety-portal/reports",            label: "Reports & Exports",    desc: "OSHA 300, trend, executive roll-ups.",    icon: BarChart3 },

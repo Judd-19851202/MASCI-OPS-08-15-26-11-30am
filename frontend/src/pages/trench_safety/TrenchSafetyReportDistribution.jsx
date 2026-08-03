@@ -25,7 +25,7 @@ const REPORT_OPTIONS = [
   { id: "utilization",           label: "Asset Utilization" },
   { id: "missing-data",          label: "Missing Data" },
   { id: "project-assets",        label: "Project Asset" },
-  { id: "activity",              label: "Activity & Audit" },
+  { id: "activity",              label: "Activity & History" },
 ];
 
 function extractErr(e, fb) {

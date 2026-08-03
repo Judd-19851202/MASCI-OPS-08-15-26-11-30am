@@ -12,12 +12,14 @@ import { PortalShell } from "@/design-system";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
 import { formatDateLong } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
+import { formatOperatorJobLabel, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 export default function MeetingsDashboard() {
   const t = useT();
@@ -27,6 +29,7 @@ export default function MeetingsDashboard() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isAdminRoute = pathname.startsWith("/admin/");
+  const isPmRoute = pathname.startsWith("/pm/");
 
   const load = async () => {
     setLoading(true);
@@ -66,7 +69,7 @@ export default function MeetingsDashboard() {
 
   return (
     <PortalShell
-      portalName="MASCI" portalRole={isAdminRoute ? "Admin · Safety Meetings" : "Safety Portal · Safety Meetings"}
+      portalName="MASCI" portalRole={isAdminRoute ? "Admin · Safety Meetings" : isPmRoute ? "PM Portal · Meetings" : "Safety Portal · Safety Meetings"}
       pageTitle="Safety Meetings"
       subtitle="Toolbox talks · jobsite safety meetings"
       primaryActions={
@@ -89,7 +92,7 @@ export default function MeetingsDashboard() {
           </Button>
         </div>
       }
-      sideNav={isAdminRoute ? renderAdminRouteSideNav() : <SafetySideNavV2 />}
+      sideNav={isAdminRoute ? renderAdminRouteSideNav() : isPmRoute ? <PmSideNavV2 /> : <SafetySideNavV2 />}
     >
     <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
@@ -167,7 +170,7 @@ export default function MeetingsDashboard() {
                       )}
                     </div>
                     <div className="text-sm text-slate-600 mt-1">
-                      {(jobsMaster[((it.project_number || "").trim())] || it.project_name || "—")} · Conducted by: {it.conducted_by || "—"}
+                      {formatOperatorJobLabel(it.project_number, jobsMaster[((it.project_number || "").trim())] || it.project_name || "—")} · Conducted by: {sanitizeOperatorReference(it.conducted_by, "Team lead") || "—"}
                     </div>
                     <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mt-1">
                       {formatDateLong(it.meeting_date)} · {it.attendee_count || 0} attendee

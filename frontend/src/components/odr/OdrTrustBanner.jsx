@@ -37,7 +37,7 @@ export default function OdrTrustBanner({ dataTestId = "odr-trust-banner" }) {
         <path d="M12 3l8 4v5c0 4.5-3 8.5-8 9-5-.5-8-4.5-8-9V7l8-4z" />
       </svg>
       <span className="flex-1">
-        Operational Record · Audit history protected · Amendments tracked.
+        Operational Record · History protected · Amendments tracked.
       </span>
       <button
         type="button"

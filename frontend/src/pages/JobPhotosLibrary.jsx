@@ -26,6 +26,7 @@ import {
   resolveProjectIdentity,
   displayProjectIdentity,
 } from "@/lib/projectIdentity";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 /**
  * <JobPhotosLibrary>
@@ -383,6 +384,10 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
                 0
               );
               return (
+                (() => {
+                  const safeFolderNumber = sanitizeOperatorProjectNumber(folder.number, "Operations support");
+                  const safeFolderLabel = formatOperatorJobLabel(folder.number, folder.name);
+                  return (
                 <li
                   key={folder.key}
                   className="bg-white border border-slate-200 rounded-md overflow-hidden"
@@ -402,11 +407,11 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
                     )}
                     {folder.number !== "—" && (
                       <span className="inline-flex items-center px-2 py-0.5 bg-slate-800 text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
-                        #{folder.number}
+                        #{safeFolderNumber}
                       </span>
                     )}
                     <span className="font-display text-base sm:text-lg font-bold text-slate-900 flex-1 text-left truncate">
-                      {folder.name}
+                      {safeFolderLabel}
                     </span>
                     <span className="inline-flex items-center justify-center min-w-[2.5rem] h-7 px-2 rounded bg-red-700 text-white text-xs font-mono font-bold">
                       {folderTotal}
@@ -474,6 +479,8 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
                     </div>
                   )}
                 </li>
+                  );
+                })()
               );
             })}
           </ul>
@@ -740,6 +747,10 @@ function Lightbox({ src, meta, display, onClose, onLoad }) {
     src !== "error" &&
     (src.startsWith("data:image/") || src.startsWith("blob:") || src.startsWith("http")) &&
     src.length > 30;
+  const safeDisplayLabel = display
+    ? formatOperatorJobLabel(display.number, display.name)
+    : formatOperatorJobLabel(meta?.project_number, meta?.project_name);
+  const safeSubmitter = sanitizeOperatorReference(meta?.submitter, "Crew record");
   return (
     <div
       className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
@@ -779,13 +790,11 @@ function Lightbox({ src, meta, display, onClose, onLoad }) {
         {meta && (
           <div className="mt-3 text-white/90 text-sm font-mono text-center">
             <div className="font-bold">
-              {display
-                ? `#${display.number} · ${display.name}`
-                : `#${meta.project_number} · ${meta.project_name}`}
+              {safeDisplayLabel}
             </div>
             <div className="text-white/60 text-xs mt-1">
               {getSourceLabel(meta.source)} · {meta.record_date} ·{" "}
-              {meta.submitter}
+              {safeSubmitter}
             </div>
           </div>
         )}

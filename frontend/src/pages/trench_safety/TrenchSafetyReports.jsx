@@ -28,7 +28,7 @@ const REPORTS = [
   { id: "utilization",           icon: Boxes,           title: "Asset Utilization" },
   { id: "missing-data",          icon: FileQuestion,    title: "Missing Data" },
   { id: "project-assets",        icon: MapPin,          title: "Project Asset" },
-  { id: "activity",              icon: Activity,        title: "Activity & Audit" },
+  { id: "activity",              icon: Activity,        title: "Activity & History" },
 ];
 
 const STATUSES = [
@@ -560,7 +560,7 @@ export default function TrenchSafetyReports() {
       </div>
       <div className="mt-6 p-3 border border-slate-200 rounded bg-slate-50 text-xs text-slate-600" data-testid="reports-footnote">
         <History className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />
-        {t("All figures are read directly from the certified Trench Safety registry, audit log, inspection/repair/hold collections, and the latest stored Pulse snapshot. No analytics engine, no separate data store.")}
+        {t("All figures are read directly from the Trench Safety registry, activity log, inspection/repair/hold collections, and the latest stored Pulse snapshot. No separate analytics layer or duplicate data store.")}
       </div>
     </TrenchSafetyShell>
   );

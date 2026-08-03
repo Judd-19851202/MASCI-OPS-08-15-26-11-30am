@@ -170,7 +170,7 @@ export default function TrenchBoxesAdmin() {
             backLabel="Admin OS"
             kicker="Trench Safety · fleet and reference control"
             title="Trench Box Fleet"
-            description="Maintain the governed trench shield registry, tabulated data, and printable field access tools from one MASCI surface."
+            description="Maintain the trench shield registry, tabulated data, and printable field access tools from one MASCI surface."
             actions={(
               <>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-900" data-testid="trench-box-count-chip">
@@ -238,7 +238,7 @@ export default function TrenchBoxesAdmin() {
               ) : boxes.length === 0 ? (
                 <EmptyState
                   title="No trench boxes yet"
-                  message="Use Add Box to enter the first shield and start the governed field library."
+                  message="Use Add Box to enter the first shield and start the field library."
                   icon={FolderOpen}
                   data-testid="admin-trench-empty-state"
                 />

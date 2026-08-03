@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { containsOperatorUnsafeLanguage, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -102,9 +103,13 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
       isGeneral: true,
     });
     for (const b of boxes) {
+      const safeManufacturer = containsOperatorUnsafeLanguage(b.manufacturer)
+        ? t("Demo Co")
+        : sanitizeOperatorReference(b.manufacturer, "");
+      const safeModelNumber = sanitizeOperatorReference(b.model_number, t("Demo Box"));
       out.push({
         key: b.id,
-        label: `${b.manufacturer ? b.manufacturer + " · " : ""}${b.model_number || "(unnamed)"}${b.inside_width_in && b.inside_length_in ? ` · ${b.inside_length_in}×${b.inside_height_in}×${b.inside_width_in}` : ""}`,
+        label: `${safeManufacturer ? safeManufacturer + " · " : ""}${safeModelNumber || t("(unnamed)")}${b.inside_width_in && b.inside_length_in ? ` · ${b.inside_length_in}×${b.inside_height_in}×${b.inside_width_in}` : ""}`,
         files: filesByKey[b.id] || [],
         isGeneral: false,
       });
