@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
-from lib.enterprise_governance import resolve_actor_from_request
+from lib.enterprise_governance import governance_project_scope, resolve_actor_from_request
 
 from services.enterprise_governance import (
     approve_request,
@@ -38,6 +38,30 @@ from services.enterprise_hierarchy_foundation import (
     set_hierarchy_node_state,
     update_hierarchy_node,
 )
+from services.project_controls_authority import (
+    EVENT_CONTRACTS,
+    archive_project,
+    confirm_project_crew,
+    ensure_project_controls_foundation,
+    get_admin_project_controls_overview,
+    get_project_controls_overview,
+    get_project_lifecycle,
+    get_project_lookahead,
+    list_enterprise_work_types,
+    list_project_crew_intelligence,
+    list_project_mappings,
+    list_project_pay_items,
+    list_project_work_ledger,
+    list_review_queue as list_project_controls_review_queue,
+    restore_project,
+    save_project_lookahead,
+    set_crew_suggestion_review_state,
+    set_project_lifecycle_state,
+    upsert_enterprise_work_type,
+    upsert_project_mapping,
+    upsert_project_pay_item,
+)
+from pm_auth import is_valid_pm_user_token_async
 
 
 logger = logging.getLogger(__name__)
@@ -125,6 +149,89 @@ class GovernanceActionBody(BaseModel):
     reason: str = ""
 
 
+class WorkTypeBody(BaseModel):
+    code: str = Field(..., min_length=2, max_length=80)
+    name: str = Field(..., min_length=2, max_length=160)
+    description: str = ""
+    category: str = "General"
+    keywords: List[str] = Field(default_factory=list)
+    status: str = "active"
+    effective_start: str = ""
+    effective_end: str = ""
+
+
+class ProjectPayItemBody(BaseModel):
+    pay_item_id: str = ""
+    project_name: str = ""
+    customer_pay_item_number: str = Field(..., min_length=1, max_length=120)
+    description: str = Field(..., min_length=2, max_length=240)
+    unit: str = ""
+    contract_quantity: float = 0.0
+    contract_unit_price: float = 0.0
+    contract_value: float = 0.0
+    contract_id: str = ""
+    phase_id: str = ""
+    work_package_id: str = ""
+    schedule_activity_id: str = ""
+    schedule_activity_name: str = ""
+    status: str = "active"
+    effective_start: str = ""
+    effective_end: str = ""
+    billing_relevance: bool = True
+    production_relevance: bool = True
+    schedule_relevance: bool = True
+    source: str = "manual_governed_entry"
+    source_record: Dict[str, Any] = Field(default_factory=dict)
+    provenance: Dict[str, Any] = Field(default_factory=dict)
+    confidence: str = "human_confirmed"
+
+
+class ProjectMappingBody(BaseModel):
+    pay_item_id: str = Field(..., min_length=2, max_length=180)
+    mapping_id: str = ""
+    primary_work_type_id: str = ""
+    secondary_work_type_ids: List[str] = Field(default_factory=list)
+    confidence: str = ""
+    source: str = ""
+    effective_start: str = ""
+    effective_end: str = ""
+    status: str = "pending_review"
+    mapper: str = ""
+    approver: str = ""
+    explanation: str = ""
+
+
+class LookaheadBody(BaseModel):
+    status: str = "draft"
+    tasks: List[Dict[str, Any]] = Field(default_factory=list)
+    constraints: List[Dict[str, Any]] = Field(default_factory=list)
+    comparison_note: str = ""
+
+
+class LifecycleBody(BaseModel):
+    next_state: str = Field(..., min_length=2, max_length=80)
+    reason: str = ""
+
+
+class CrewConfirmBody(BaseModel):
+    suggestion_id: str = ""
+    crew_id: str = ""
+    crew_name: str = ""
+    leader: str = ""
+    members: List[str] = Field(default_factory=list)
+    effective_start: str = ""
+    effective_end: str = ""
+    facility_scope: str = ""
+    lifecycle_status: str = "active"
+    source: str = ""
+    confidence: str = "human_confirmed"
+    signature: str = ""
+
+
+class ReviewNoteBody(BaseModel):
+    note: str = ""
+
+
 def _runtime_db(request: Optional[Request], db):
     state_db = getattr(getattr(getattr(request, "app", None), "state", None), "db", None)
     if state_db is not None:
@@ -133,6 +240,28 @@ def _runtime_db(request: Optional[Request], db):
     if target is not None:
         return target
     return db
+
+
+async def _require_pm_or_admin_actor(runtime_db, request: Request) -> Dict[str, Any]:
+    if request.headers.get("X-Admin-Token") and request.headers.get("X-Directory-Token"):
+        actor = await resolve_actor_from_request(runtime_db, request, True)
+        actor_kind = str(actor.get("_actor") or actor.get("role") or "").strip().lower()
+        if actor_kind == "admin":
+            return actor
+    pm_token = request.headers.get("X-PM-Token") or ""
+    if pm_token and "." in pm_token:
+        pm_doc = await is_valid_pm_user_token_async(runtime_db, pm_token)
+        if pm_doc:
+            return {**pm_doc, "_actor": "pm", "role": "pm", "_actor_kind": "pm_user"}
+    raise HTTPException(status_code=401, detail="portal authentication required")
+
+
+async def _require_project_scope(runtime_db, request: Request, project_number: str) -> Dict[str, Any]:
+    actor = await _require_pm_or_admin_actor(runtime_db, request)
+    scope = await governance_project_scope(runtime_db, actor)
+    if not scope.allows(project_number):
+        raise HTTPException(status_code=403, detail="project scope denied")
+    return actor
 
 
 def register_enterprise_governance_routes(api_router: APIRouter, db, require_admin) -> None:
@@ -478,3 +607,180 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
             "counts": counts,
             "recent_decisions": overview.get("recent_decisions") or [],
         }
+
+    @api_router.get("/api/admin/governance/project-controls/overview")
+    async def governance_project_controls_overview(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_controls_foundation(runtime_db)
+        return await get_admin_project_controls_overview(runtime_db)
+
+    @api_router.post("/api/admin/governance/project-controls/backfill/run")
+    async def governance_project_controls_backfill(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        return await ensure_project_controls_foundation(runtime_db, force_backfill=True)
+
+    @api_router.get("/api/admin/governance/project-controls/work-types")
+    async def governance_project_controls_work_types(request: Request, include_archived: bool = False, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_enterprise_work_types(runtime_db, include_archived=include_archived)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.post("/api/admin/governance/project-controls/work-types")
+    async def governance_project_controls_create_work_type(request: Request, body: WorkTypeBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        try:
+            row = await upsert_enterprise_work_type(runtime_db, body.model_dump(), actor=resolved)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "work_type": row}
+
+    @api_router.patch("/api/admin/governance/project-controls/work-types/{work_type_id}")
+    async def governance_project_controls_update_work_type(request: Request, work_type_id: str, body: WorkTypeBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        try:
+            row = await upsert_enterprise_work_type(runtime_db, body.model_dump(), actor=resolved, work_type_id=work_type_id)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "work_type": row}
+
+    @api_router.get("/api/admin/governance/project-controls/review-queue")
+    async def governance_project_controls_review(request: Request, project_number: str = "", status: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_project_controls_review_queue(runtime_db, project_number=project_number, status=status)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/event-contracts")
+    async def governance_project_controls_events(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_controls_foundation(runtime_db)
+        return {"count": len(EVENT_CONTRACTS), "items": EVENT_CONTRACTS}
+
+    @api_router.get("/api/pm/project-controls/overview")
+    async def pm_project_controls_overview(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_controls_overview(runtime_db, project_number)
+
+    @api_router.get("/api/pm/project-controls/work-types")
+    async def pm_project_controls_work_types(request: Request):
+        runtime_db = _runtime_db(request, db)
+        await _require_pm_or_admin_actor(runtime_db, request)
+        rows = await list_enterprise_work_types(runtime_db, include_archived=False)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/pay-items")
+    async def pm_project_controls_pay_items(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_project_pay_items(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/pay-items")
+    async def pm_project_controls_upsert_pay_item(request: Request, project_number: str, body: ProjectPayItemBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await upsert_project_pay_item(runtime_db, project_number, body.model_dump(), actor=actor)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "pay_item": row}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/mappings")
+    async def pm_project_controls_mappings(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_project_mappings(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/mappings")
+    async def pm_project_controls_upsert_mapping(request: Request, project_number: str, body: ProjectMappingBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await upsert_project_mapping(runtime_db, project_number, body.model_dump(), actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "mapping": row}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/lookahead")
+    async def pm_project_controls_lookahead(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_lookahead(runtime_db, project_number)
+
+    @api_router.put("/api/pm/project-controls/projects/{project_number}/lookahead")
+    async def pm_project_controls_save_lookahead(request: Request, project_number: str, body: LookaheadBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await save_project_lookahead(runtime_db, project_number, body.model_dump(), actor=actor)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "lookahead": row}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/lifecycle")
+    async def pm_project_controls_lifecycle(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_lifecycle(runtime_db, project_number)
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/lifecycle")
+    async def pm_project_controls_set_lifecycle(request: Request, project_number: str, body: LifecycleBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await set_project_lifecycle_state(runtime_db, project_number, actor=actor, next_state=body.next_state, reason=body.reason)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "lifecycle": row}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/archive")
+    async def pm_project_controls_archive(request: Request, project_number: str, body: GovernanceActionBody = Body(default=GovernanceActionBody())):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return {"ok": True, "lifecycle": await archive_project(runtime_db, project_number, actor=actor, reason=body.reason)}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/restore")
+    async def pm_project_controls_restore(request: Request, project_number: str, body: GovernanceActionBody = Body(default=GovernanceActionBody())):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return {"ok": True, "lifecycle": await restore_project(runtime_db, project_number, actor=actor, reason=body.reason)}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/crew-intelligence")
+    async def pm_project_controls_crew_intel(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await list_project_crew_intelligence(runtime_db, project_number)
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/crew-intelligence/confirm")
+    async def pm_project_controls_confirm_crew(request: Request, project_number: str, body: CrewConfirmBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await confirm_project_crew(runtime_db, project_number, body.model_dump(), actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "crew": row}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/crew-intelligence/suggestions/{suggestion_id}/{action}")
+    async def pm_project_controls_crew_review(request: Request, project_number: str, suggestion_id: str, action: str, body: ReviewNoteBody = Body(default=ReviewNoteBody())):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await set_crew_suggestion_review_state(runtime_db, project_number, suggestion_id, actor=actor, action=action, note=body.note)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "review": row}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/work-ledger")
+    async def pm_project_controls_work_ledger(request: Request, project_number: str, limit: int = 100):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_project_work_ledger(runtime_db, project_number, limit=limit)
+        return {"count": len(rows), "items": rows}

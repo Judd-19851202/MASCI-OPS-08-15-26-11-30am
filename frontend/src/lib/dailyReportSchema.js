@@ -127,6 +127,12 @@ export function buildDailyReportDefaults() {
     //            cpm_activity_id, cpm_activity_name, schedule_phase }
     cost_code_quantities: [],
 
+    // WP-18C2 · governed work blocks stay additive. The backend can derive
+    // them from production / cost-code quantities / crews / equipment /
+    // materials when this remains empty, but the operator always gets a
+    // truthful preview of what will link.
+    work_blocks: [],
+
     // Photos — MIN 6
     photos: [],
     photo_min: 6,

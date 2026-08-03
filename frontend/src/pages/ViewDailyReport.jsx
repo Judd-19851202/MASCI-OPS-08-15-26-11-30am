@@ -790,6 +790,38 @@ export default function ViewDailyReport() {
           </div>
         )}
 
+        {(data.work_blocks?.length || 0) > 0 && (
+          <div data-testid="dr-view-work-blocks">
+            <ReportSection number="09d" title={`${t("Governed Work Blocks")} (${data.work_blocks.length})`}>
+              <div className="space-y-4">
+                {(data.work_blocks || []).map((row, index) => (
+                  <div key={row.work_block_id || index} className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4" data-testid={`dr-view-work-block-row-${index}`}>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="font-semibold text-slate-900">{row.title || t("Work block")}</div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          {(row.customer_pay_item_number || row.pay_item_id || row.cost_code || t("No governed code yet"))}
+                          {row.schedule_activity_id ? ` · ${row.schedule_activity_id}` : ""}
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700" data-testid={`dr-view-work-block-status-${index}`}>
+                        {row.schedule_actual_proposal_status || "proposed_only"}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-4 text-sm text-slate-700">
+                      <div>{t("Installed")}: <span className="font-semibold text-slate-900">{row.installed_quantity || 0}</span> {row.unit || ""}</div>
+                      <div>{t("Labor rows")}: <span className="font-semibold text-slate-900">{(row.labor_entries || []).length}</span></div>
+                      <div>{t("Equipment rows")}: <span className="font-semibold text-slate-900">{(row.equipment_entries || []).length}</span></div>
+                      <div>{t("Material rows")}: <span className="font-semibold text-slate-900">{(row.material_entries || []).length}</span></div>
+                    </div>
+                    {row.field_notes ? <div className="mt-3 text-sm text-slate-700">{row.field_notes}</div> : null}
+                  </div>
+                ))}
+              </div>
+            </ReportSection>
+          </div>
+        )}
+
         {/* E-1 · MM-001B · Material Movement visibility tile.
             Read-only · derived from dispatch_assignments + DR rows.
             Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md */}

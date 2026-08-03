@@ -98,6 +98,58 @@ function numericFieldClass() {
   return "w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm";
 }
 
+function buildWorkBlockPreview(data) {
+  const costRows = (data.cost_code_quantities || []).filter((row) =>
+    Number(row?.installed_quantity || 0) > 0 || String(row?.notes || "").trim() || String(row?.cost_code || "").trim()
+  );
+  if (costRows.length > 0) {
+    return costRows.map((row, index) => ({
+      id: row.row_id || row.cost_code || `cost-row-${index}`,
+      title: row.item_name || row.cost_code || `Work Block ${index + 1}`,
+      code: row.customer_pay_item_number || row.cost_code || "No governed code yet",
+      quantity: row.installed_quantity || "0",
+      unit: row.unit_of_measure || row.unit || "",
+      activity: row.cpm_activity_name || row.cpm_activity_id || "",
+      crewCount: (data.masci_crews || []).length,
+      equipmentCount: (data.equipment || []).length,
+      materialCount: (data.materials || []).length,
+      sourceMode: "cost-code-linked",
+    }));
+  }
+  const productionRows = (data.production || []).filter((row) =>
+    Number(row?.quantity || 0) > 0 || String(row?.description || "").trim()
+  );
+  if (productionRows.length > 0) {
+    return productionRows.map((row, index) => ({
+      id: row.row_id || `production-row-${index}`,
+      title: row.description || `Work Block ${index + 1}`,
+      code: row.cost_code || "No governed code yet",
+      quantity: row.quantity || "0",
+      unit: row.unit || "",
+      activity: row.schedule_activity_name || row.activity_code || "",
+      crewCount: (data.masci_crews || []).length,
+      equipmentCount: (data.equipment || []).length,
+      materialCount: (data.materials || []).length,
+      sourceMode: "production-linked",
+    }));
+  }
+  if ((data.masci_crews || []).length || (data.equipment || []).length || (data.materials || []).length) {
+    return [{
+      id: "general-field-work",
+      title: "General Field Work",
+      code: "Derived from report resources",
+      quantity: "0",
+      unit: "",
+      activity: "",
+      crewCount: (data.masci_crews || []).length,
+      equipmentCount: (data.equipment || []).length,
+      materialCount: (data.materials || []).length,
+      sourceMode: "resource-linked",
+    }];
+  }
+  return [];
+}
+
 function VoiceToReportCard({ data, patch }) {
   const { t } = useT();
   const mediaRecorderRef = useRef(null);
@@ -1024,6 +1076,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
   const prod = data.production || [];
   const costQuantities = data.cost_code_quantities || [];
   const hasCodes = (costCodes?.length || 0) > 0;
+  const workBlockPreview = useMemo(() => buildWorkBlockPreview(data), [data]);
 
   const updateCostQuantity = (index, delta) => {
     const next = costQuantities.slice();
@@ -1175,6 +1228,42 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
             }
           >
             <Plus className="mr-1 h-4 w-4" />{t("Add row")}</Button>
+        </div>
+        <div className="rounded-2xl border border-violet-100 bg-violet-50/70 p-4" data-testid="dr-v3-work-block-preview-card">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-700">{t("Governed work blocks")}</div>
+              <p className="mt-1 text-sm text-slate-700" data-testid="dr-v3-work-block-preview-helper">
+                {t("The system will preserve today's field entries and build governed work blocks from production, cost-code quantities, crews, equipment, materials, and constraints without replacing the Daily Report.")}
+              </p>
+            </div>
+            <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700" data-testid="dr-v3-work-block-preview-count">
+              {t("Preview blocks")}: {workBlockPreview.length}
+            </div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {workBlockPreview.length === 0 ? (
+              <div className="rounded-xl bg-white/90 px-3 py-2 text-sm text-slate-500" data-testid="dr-v3-work-block-preview-empty">
+                {t("Enter production, a cost-code quantity, or report-level resources to preview governed work blocks.")}
+              </div>
+            ) : workBlockPreview.map((row, index) => (
+              <div key={row.id} className="rounded-xl border border-violet-100 bg-white/90 p-3" data-testid={`dr-v3-work-block-preview-row-${index}`}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">{row.title}</div>
+                    <div className="mt-1 text-xs text-slate-500">{row.code}{row.activity ? ` · ${row.activity}` : ""}</div>
+                  </div>
+                  <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-violet-700">{row.sourceMode}</span>
+                </div>
+                <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-4">
+                  <div data-testid={`dr-v3-work-block-preview-qty-${index}`}>{t("Installed")}: <span className="font-semibold text-slate-900">{row.quantity}</span> {row.unit}</div>
+                  <div>{t("Crew rows")}: <span className="font-semibold text-slate-900">{row.crewCount}</span></div>
+                  <div>{t("Equipment rows")}: <span className="font-semibold text-slate-900">{row.equipmentCount}</span></div>
+                  <div>{t("Material rows")}: <span className="font-semibold text-slate-900">{row.materialCount}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         {prod.length === 0 && (
           <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">{t("No production tracked today.")}</p>

@@ -39,6 +39,7 @@ from services.cost_codes.foundation import (
     now_iso,
     recompute_project_progress,
 )
+from services.project_controls_authority import sync_crew_observation_for_report, sync_work_blocks_for_report
 from lib.notification_delivery import STATUS_PENDING, delivery_contract
 
 
@@ -288,6 +289,38 @@ class ProductionRow(BaseModel):
     percent_complete: Optional[float] = None
     activity_code: Optional[str] = None
     cost_code_snapshot: Optional[str] = None
+
+
+class WorkBlockRow(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    work_block_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str = ""
+    contract_id: str = ""
+    phase_id: str = ""
+    work_package_id: str = ""
+    pay_item_id: str = ""
+    customer_pay_item_number: str = ""
+    cost_code: str = ""
+    primary_work_type_id: str = ""
+    work_type_ids: List[str] = Field(default_factory=list)
+    schedule_activity_id: str = ""
+    schedule_activity_name: str = ""
+    installed_quantity: float = 0.0
+    unit: str = ""
+    location: str = ""
+    work_area: str = ""
+    field_notes: str = ""
+    labor_entries: List[Dict[str, Any]] = Field(default_factory=list)
+    equipment_entries: List[Dict[str, Any]] = Field(default_factory=list)
+    material_entries: List[Dict[str, Any]] = Field(default_factory=list)
+    subcontractor_entries: List[Dict[str, Any]] = Field(default_factory=list)
+    constraint_entries: List[Dict[str, Any]] = Field(default_factory=list)
+    photo_refs: List[str] = Field(default_factory=list)
+    attachment_refs: List[str] = Field(default_factory=list)
+    qaqc_refs: List[Dict[str, Any]] = Field(default_factory=list)
+    safety_refs: List[Dict[str, Any]] = Field(default_factory=list)
+    schedule_actual_proposal_status: str = "proposed_only"
 
 
 # TRACK 26.02 · label → canonical code normalizer for production rows.
@@ -573,6 +606,7 @@ class DailyReportCreate(BaseModel):
     production: List[ProductionRow] = Field(default_factory=list)
     constraints: List[ConstraintRow] = Field(default_factory=list)
     cost_code_quantities: List[Dict[str, Any]] = Field(default_factory=list)
+    work_blocks: List[WorkBlockRow] = Field(default_factory=list)
 
     photos: List[str] = Field(default_factory=list)
     photo_observations: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
@@ -1444,6 +1478,24 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             doc["conflict_watchdog"] = await _build_watchdog_flags(db, doc)
             if doc["conflict_watchdog"].get("requires_pm_review"):
                 doc["pm_review_required"] = True
+            try:
+                work_block_result = await sync_work_blocks_for_report(db, doc)
+                doc["work_blocks"] = work_block_result.get("work_blocks") or []
+                doc["work_block_summary"] = work_block_result.get("work_block_summary") or {}
+                doc["work_blocks_version"] = "wp18c2.v1"
+                doc["work_blocks_governed_at"] = now_iso()
+            except Exception:  # noqa: BLE001
+                doc.setdefault("work_blocks", [])
+                doc.setdefault("work_block_summary", {
+                    "work_block_count": 0,
+                    "blocks_with_pay_item": 0,
+                    "blocks_with_schedule_activity": 0,
+                    "labor_rows": 0,
+                    "equipment_rows": 0,
+                    "material_rows": 0,
+                    "subcontractor_rows": 0,
+                    "constraint_rows": 0,
+                })
             # Wave-1A · audit envelope hash (continuity + tamper detection).
             doc["audit_envelope_sha256"] = _compute_audit_envelope_sha256(doc)
             # Build the response dict from the sanitized doc so the API
@@ -1471,6 +1523,10 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             except Exception:  # noqa: BLE001 — snapshot is best-effort
                 pass
             await db.daily_reports.insert_one(doc)
+            try:
+                await sync_crew_observation_for_report(db, doc)
+            except Exception:  # noqa: BLE001
+                pass
             progress_snapshot = await recompute_project_progress(db, doc.get("project_number") or "")
             if progress_snapshot:
                 doc["job_cost_code_progress"] = progress_snapshot

@@ -88,6 +88,7 @@ export const DOMAINS_V2 = [
       { to: "/admin/incidents",             label: "Incidents",            desc: "Safety incidents · admin review.",      icon: AlertTriangle },
       { to: "/admin/inspections",           label: "Site Inspections",     desc: "Job-site safety inspections.",          icon: ClipboardCheck },
       { to: "/admin/governance",            label: "Governance Health",    desc: "Cross-portal contradictions · score",   icon: Shield },
+      { to: "/admin/governance/project-controls", label: "Project Controls Authority", desc: "Work types · review queue · event contracts", icon: ListChecks },
       { to: "/admin/project-identity",      label: "Project Identity Governance", desc: "Detect drift · project numbers/names.", icon: Shield },
       { to: "/admin/operational-language",  label: "Operational Language", desc: "Shared glossary · EN + ES",             icon: BookOpen },
     ],
