@@ -2,6 +2,12 @@
 
 # 2026-07-31 — WP-17D convergence wave
 
+## 2026-08-03 — WP-17F production promotion evidence
+
+- Captured permanent release-readiness evidence in `/app/memory/WP17F_PRODUCTION_PROMOTION_EVIDENCE.md`, including rollback anchors, release commit/version, guard results, smoke validation, PDF/detail fixture proof, and final status.
+- Preserved the executive accepted-risk matrix in `/app/memory/WP17F_ACCEPTED_RISK_REGISTER.md` so the `15` record-dependent routes remain explicitly unproven in Preview and the `5` `/_internal/*` routes remain intentionally restricted.
+- Repaired one shared release-surface lint defect in `frontend/src/lib/platformTime.js` and revalidated the route-governance and constitutional guards.
+
 ## 2026-08-03 — WP-17 forensic hidden-surface closeout
 
 - Generated `/app/memory/WP17_HIDDEN_SURFACE_FORENSIC_REGISTER.csv` with the reconciled **305-surface** forensic denominator (**169 route surfaces + 136 overlay-only surfaces**) and explicit origin/disposition evidence for every row.

@@ -222,14 +222,8 @@
 - Preview-only repair lane preserved; no production deployment or live-environment claim was made.
 
 ## Next Authorized Work
-- Continue WP-17D in the locked order now set by executive direction, but with the Field auth/deep-link lane materially burned down.
-- Next active family is **Administration** (86 remaining) using archetype mass-certification, while preserving the frozen blocker register unchanged unless a prerequisite changes.
-- Keep the new shared auth findings as the canonical standard while continuing the locked actionable queue (`154` actionable routes remaining after this batch), then consume the `UNTOUCHED` wave (`39`) only after the discovered queue is materially reduced.
-- Preserve the exact blocker on `/dispatch-portal/driver/:driverKey` until a real dispatch-visible seeded `driverKey` path or fixture is exposed; do not mark it certified without runtime proof.
-- While propagating, replace legacy local card/tile implementations with the governed shared primitives instead of redesigning routes individually.
-- Continue the icon-system sweep in every touched route so mixed icon families, stroke weights, containers, and spacing are eliminated alongside card migration.
-- Expand anti-drift automation beyond the Home lane to cover banned visible terminology scans, unicode/emoji UI icon scans, local card implementation scans, direct-header scans, duplicate-title / duplicate-sign-in scans, and representative screenshot regression gates for each portal family.
-- Reopen and certify remaining dialogs, overlays, tables, loading/empty/error/success/warning states, and motion under the same governed primitive system after the card rollout advances.
-- Preserve the `/_internal/*` preview-only surfaces in the blocker register as `BLOCKED_DEV_ACCESS_DISABLED`; `/dev` itself is now closed as a guarded redirect entry.
-- Continue survivor-ledger reconciliation so platform counts move by eliminated mixed-generation primitives rather than ad-hoc route polish.
-- Only after genuine full-platform convergence should WP-17E be considered.
+- WP-17F executive release decision is accepted: **GO WITH ACCEPTED RISKS**.
+- Preserve `/app/memory/WP17F_ACCEPTED_RISK_REGISTER.md` and do not convert any Category 2 route to unconditional PASS without a legitimate record.
+- Preserve `/app/memory/WP17F_PRODUCTION_PROMOTION_EVIDENCE.md` as the rollback/release/smoke evidence anchor for controlled promotion.
+- If a legitimate production record naturally appears for any Category 2 route, validate only that route and any directly shared consumer; do not reopen platform-wide certification unless evidence shows a systemic regression.
+- Keep `/_internal/*` routes intentionally restricted unless governance changes explicitly authorize them for operator-facing use.
