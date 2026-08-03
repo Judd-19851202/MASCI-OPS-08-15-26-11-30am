@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { setFlToken, getFlUser } from "@/lib/flAuth";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 /**
  * FieldLeadershipPortalChangePassword (iter314)
@@ -22,6 +23,7 @@ export default function FieldLeadershipPortalChangePassword() {
   const { t } = useT();
   const navigate = useNavigate();
   const user = getFlUser();
+  const safeUserName = sanitizeOperatorReference(user?.name, "");
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -80,7 +82,7 @@ export default function FieldLeadershipPortalChangePassword() {
             </div>
           </div>
           <p className="text-slate-600 text-sm">
-            {user?.name ? `${user.name}${user.role ? ` · ${user.role}` : ""}` : t("Field Leadership Portal")}
+            {safeUserName ? `${safeUserName}${user.role ? ` · ${user.role}` : ""}` : t("Field Leadership Portal")}
           </p>
           <HelpTipBlock formKey="field-leadership.change-password" />
           <div>

@@ -27,6 +27,7 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { PortalShell } from "@/design-system";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
+import { sanitizeOperatorProjectName, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, "");
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
@@ -256,13 +257,18 @@ export default function FieldLeadershipRecords() {
                 <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-500">{t("Loading…")}</td></tr>
               ) : items.length === 0 ? (
                 <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-500" data-testid="leadership-empty">{t("No records yet for the current filters.")}</td></tr>
-              ) : items.map((r) => (
+              ) : items.map((r) => {
+                const safeEmployee = sanitizeOperatorReference(r.employee_name, t("Crew member"));
+                const safeJobNumber = sanitizeOperatorProjectNumber(r.project_number, t("Operations support"));
+                const safeJobName = sanitizeOperatorProjectName(r.project_name, t("Operations support work"));
+                const safeSupervisor = sanitizeOperatorReference(r.supervisor_name, t("Supervisor"));
+                return (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50" data-testid={`leadership-row-${r.id}`}>
                   <td className="px-3 py-2 font-mono text-xs">{(r.occurred_at || "").replace("T", " ").slice(0, 16)}</td>
                   <td className="px-3 py-2">{kindLabel(r.kind)}</td>
-                  <td className="px-3 py-2 font-semibold">{r.employee_name || "—"}</td>
-                  <td className="px-3 py-2 text-slate-700">{r.project_number ? `${r.project_number} · ${r.project_name || ""}` : (r.project_name || "—")}</td>
-                  <td className="px-3 py-2 text-slate-700">{r.supervisor_name || "—"}</td>
+                  <td className="px-3 py-2 font-semibold">{safeEmployee || "—"}</td>
+                  <td className="px-3 py-2 text-slate-700">{safeJobNumber ? `${safeJobNumber} · ${safeJobName || ""}` : (safeJobName || "—")}</td>
+                  <td className="px-3 py-2 text-slate-700">{safeSupervisor || "—"}</td>
                   <td className="px-3 py-2 text-right">
                     <Button asChild variant="outline" size="sm" className="mr-1" data-testid={`leadership-open-${r.id}`}>
                       <Link to={detailHref(r.id)}><FileText className="w-3.5 h-3.5" /></Link>
@@ -277,7 +283,8 @@ export default function FieldLeadershipRecords() {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           </div>

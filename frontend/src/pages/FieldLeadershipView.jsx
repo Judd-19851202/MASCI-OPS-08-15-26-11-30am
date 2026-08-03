@@ -20,6 +20,7 @@ import { PortalShell } from "@/design-system";
 import { formatEmployeeIdentity } from "@/lib/identity";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
+import { sanitizeOperatorProjectName, sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL.replace(/\/$/, "");
 
@@ -45,7 +46,7 @@ function renderDetailValue(value, opts = {}) {
   const { originals, path, t } = opts;
   const original = getOriginalValue(originals, path);
   if (typeof original === "string" && original.trim()) {
-    return original;
+    return sanitizeOperatorReference(original, original);
   }
   if (value === null || value === undefined || value === "") {
     return <span className="text-slate-400">{t ? t("No answer recorded") : "No answer recorded"}</span>;
@@ -73,7 +74,7 @@ function renderDetailValue(value, opts = {}) {
       </table>
     );
   }
-  return String(value);
+  return sanitizeOperatorReference(String(value), String(value));
 }
 
 export default function FieldLeadershipView() {
@@ -198,10 +199,10 @@ export default function FieldLeadershipView() {
   const detailEntries = Object.entries(details).filter(([key, value]) => !isInternalDetailKey(key) && value !== null && value !== undefined && value !== "");
   const meta = [
     [t("Form Type"), kindLabel(rec.kind)],
-    [t("Employee"), preferOriginal("/employee_name", rec.employee_name)],
+    [t("Employee"), sanitizeOperatorReference(preferOriginal("/employee_name", rec.employee_name), t("Crew member"))],
     [t("Position"), preferOriginal("/employee_position", rec.employee_position)],
-    [t("Supervisor"), preferOriginal("/supervisor_name", rec.supervisor_name)],
-    [t("Job"), rec.project_number ? `${rec.project_number} · ${rec.project_name || ""}` : rec.project_name],
+    [t("Supervisor"), sanitizeOperatorReference(preferOriginal("/supervisor_name", rec.supervisor_name), t("Supervisor"))],
+    [t("Job"), rec.project_number ? `${sanitizeOperatorProjectNumber(rec.project_number, t("Operations support"))} · ${sanitizeOperatorProjectName(rec.project_name, t("Operations support work")) || ""}` : sanitizeOperatorProjectName(rec.project_name, t("Operations support work"))],
     [t("Location"), rec.location || rec.work_area],
     [t("Assigned PM"), rec.assigned_pm],
     [t("Date / Time"), (rec.occurred_at || "").replace("T", " ").slice(0, 16)],
@@ -220,7 +221,7 @@ export default function FieldLeadershipView() {
           <div>
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
             <div className="mt-2 text-sm text-slate-600" data-testid="leadership-view-summary-line">
-              {preferOriginal("/employee_name", rec.employee_name) || t("Employee")} · {(rec.occurred_at || "").replace("T", " ").slice(0, 16)}
+              {sanitizeOperatorReference(preferOriginal("/employee_name", rec.employee_name), t("Employee")) || t("Employee")} · {(rec.occurred_at || "").replace("T", " ").slice(0, 16)}
             </div>
             {originalLanguage === "es" || rec.submit_language === "es" ? <SubmitLangBadge lang="es" className="mt-2" /> : null}
           </div>

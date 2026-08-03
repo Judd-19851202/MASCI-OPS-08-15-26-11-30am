@@ -18,6 +18,7 @@ import {
   FIELD_LEADERSHIP_FORMS,
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
+import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 // iter353d · inline lookup helper (queries the FL DQ endpoint to
 // resolve a name → employee_id, then renders the mini-widget).
@@ -65,7 +66,7 @@ function FlAccountabilityLookup() {
               className="w-full text-left flex items-center justify-between p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-sm"
               data-testid={`fl-lookup-result-${e.id}`}
             >
-              <span className="font-semibold">{e.name}</span>
+              <span className="font-semibold">{sanitizeOperatorReference(e.name, t("Crew member"))}</span>
               <span className="text-[10px] font-mono text-slate-500">{e.trade || ""}</span>
             </button>
           ))}
@@ -96,6 +97,7 @@ export default function FieldLeadershipPortalDashboard() {
   const { t } = useT();
   const navigate = useNavigate();
   const user = getFlUser();
+  const safeUserName = sanitizeOperatorReference(user?.name, t("Field Leader"));
   const [dispatch, setDispatch] = useState({ items: [], window: null });
   const [driverQual, setDriverQual] = useState({ items: [], count: 0 });
   const [loading, setLoading] = useState(true);
@@ -133,7 +135,7 @@ export default function FieldLeadershipPortalDashboard() {
     <PortalShell
       portalName="MASCI"
       portalRole={t("Field Leadership Portal")}
-      pageTitle={user?.name || t("Field Leader")}
+      pageTitle={safeUserName || t("Field Leader")}
       subtitle={resolvedSubtitle}
       showNotifications={false}
       onSignOut={signOut}
