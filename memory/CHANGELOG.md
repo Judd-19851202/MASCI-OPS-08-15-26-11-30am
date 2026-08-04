@@ -619,3 +619,9 @@
 - Added the WP18CX language authority document plus standards and reports for navigation, coaching, role certification, duplicate-entry reduction, decision quality, constitutional compliance, integrity, executive closeout, and GO/NO-GO status.
 - Updated audited PM/admin/executive web surfaces to construction-first wording (`Project Performance`, `Items needing review`, `Project Controls Standards`, `Operations Dashboard Review`, etc.) without altering C1–C6 architecture.
 - Verified touched UI with targeted lint, smoke-load proof, and `/app/test_reports/iteration_117.json`; final constitutional GO remains blocked pending channel-level runtime evidence for PDF/email/export/AI and remaining role walkthroughs.
+
+## 2026-08-04 — WP18CX.2 expanded role-surface certification
+
+- Extended operator-language refinements to Safety Hub V2, Dispatch Hub V2, Shop Hub V2, HR Hub V2, Field Leadership Portal Dashboard, Equipment Dashboard, Notifications Digest, AI summary presentation sanitization, and email-report wording.
+- Added `WP18CX_EXECUTIVE_OPERATOR_EXPERIENCE_REGRESSION_CHECKLIST.md` as the permanent inheritance checklist for future packages.
+- Verified expanded role surfaces with `/app/test_reports/iteration_118.json` (`frontend 100%`); final constitutional GO remains blocked only on PDF body runtime proof, email send-flow runtime proof, direct AI-summary runtime proof, Survey/Payroll walkthroughs, and deeper accessibility/mobile evidence.

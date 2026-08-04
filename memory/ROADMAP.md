@@ -695,9 +695,9 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 ## 2026-08-04 — WP18CX remaining gate work
 
 ### P0
-- Capture runtime language evidence for PDF, email, export-output, and AI-summary channels.
-- Run direct role walkthroughs for Safety, HR, Dispatch, Shop, Equipment, and Survey portals.
-- Capture explicit mobile and accessibility evidence needed to convert WP18CX from web-surface pass to final constitutional GO.
+- Capture runtime language evidence for PDF body output, email send flow, and direct AI-summary channels.
+- Run direct role walkthroughs for Survey and Payroll portals.
+- Capture explicit accessibility evidence and broaden mobile runtime evidence needed to convert WP18CX from web-surface pass to final constitutional GO.
 
 ### P1
 - Normalize the legacy `frontend/src/lib/i18n.js` duplicate-key debt in a dedicated safe-repair package.

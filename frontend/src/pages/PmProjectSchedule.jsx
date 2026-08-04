@@ -35,11 +35,11 @@ import {
 } from "@/lib/projectControlsApi";
 
 const SOURCE_OPTIONS = [
-  ["csv", "CSV (runtime certified)"],
-  ["primavera_p6", "Primavera P6 (extension lane)"],
-  ["ms_project", "Microsoft Project (extension lane)"],
-  ["excel", "Excel (extension lane)"],
-  ["pdf_review", "PDF review assisted (extension lane)"],
+  ["csv", "CSV (field validated)"],
+  ["primavera_p6", "Primavera P6 (review path)"],
+  ["ms_project", "Microsoft Project (review path)"],
+  ["excel", "Excel (review path)"],
+  ["pdf_review", "PDF review assisted (review path)"],
 ];
 
 const VERSION_OPTIONS = [

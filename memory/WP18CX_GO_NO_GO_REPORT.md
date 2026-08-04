@@ -10,7 +10,7 @@ WP18CX web-surface operator-language certification is materially complete, but t
 - email
 - export outputs
 - AI wording channels
-- direct role walkthroughs beyond PM/admin/executive
+- remaining uncovered role walkthroughs
 
 Those areas are not all runtime-certified yet.
 
@@ -18,18 +18,21 @@ Those areas are not all runtime-certified yet.
 - PM audited surfaces: pass
 - Admin governance audited surfaces: pass
 - Executive dashboard / overview audited surfaces: pass after language cleanup
+- Safety / Dispatch / Shop / HR / Equipment / Field Leadership web surfaces: pass in iteration 118
+- Notifications digest runtime wording: pass in iteration 118
 - EN/ES toggle on touched web surfaces: pass
 - no blank-page, overflow, or console-error regressions in QA: pass
+- mobile responsive spot checks: pass on Safety Hub V2 and HR Hub V2
 
 ## What still blocks GO
-- full channel runtime certification for PDF/email/export/AI narrative outputs
-- direct role walkthrough certification for Safety / HR / Dispatch / Shop / Equipment / Survey
-- deeper mobile/accessibility certification evidence set
+- full channel runtime certification for PDF body, email send flow, and direct AI-summary outputs
+- direct role walkthrough certification for Survey and Payroll, plus isolated sessions for all executive-management variants if required by leadership
+- deeper accessibility evidence set and broader mobile runtime coverage
 
 ## Immediate next gate tasks
-1. Capture runtime evidence for PDF/email/export/AI outputs.
-2. Execute dedicated role walkthroughs for the remaining role portals.
-3. Capture explicit mobile/accessibility evidence.
+1. Capture runtime evidence for PDF body output, email send flow, and direct AI-summary outputs.
+2. Execute dedicated runtime walkthroughs for Survey and Payroll role surfaces.
+3. Capture explicit accessibility evidence and broaden mobile runtime checks beyond the current spot checks.
 
 ## C7 implication
 C7 remains blocked until these remaining WP18CX gate items are satisfied.

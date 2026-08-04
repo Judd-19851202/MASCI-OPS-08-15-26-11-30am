@@ -641,6 +641,10 @@
   - smoke screenshot confirmed frontend load
   - targeted lint passed on touched UI files outside the legacy `frontend/src/lib/i18n.js` duplicate-key baseline
   - `/app/test_reports/iteration_117.json` passed PM/admin/executive web-surface verification and EN/ES toggle checks
+- WP18CX.2 expansion:
+  - `/app/test_reports/iteration_118.json` passed Safety, Dispatch, Shop, HR, Field Leadership, Equipment, Notifications, PM, and Admin runtime checks
+  - created `WP18CX_EXECUTIVE_OPERATOR_EXPERIENCE_REGRESSION_CHECKLIST.md` as the permanent inheritance gate checklist
 - Current gate status:
   - audited PM/admin/executive web surfaces: certified
-  - final WP18CX constitutional gate: **still blocked** pending runtime evidence for PDF/email/export/AI channels and direct walkthroughs for remaining role-specific portals
+  - expanded role web surfaces (Safety / Dispatch / Shop / HR / Equipment / Field Leadership / Notifications): certified
+  - final WP18CX constitutional gate: **still blocked** pending runtime evidence for PDF body output, email send flow, direct AI-summary output, Survey/Payroll walkthroughs, and deeper accessibility/mobile evidence

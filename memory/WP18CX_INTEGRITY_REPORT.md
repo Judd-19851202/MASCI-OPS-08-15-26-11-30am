@@ -4,6 +4,7 @@
 - all touched UI files linted clean outside the legacy `i18n.js` duplicate-key baseline
 - smoke screenshot confirmed frontend load
 - testing report `iteration_117.json` passed all functional UI checks
+- testing report `iteration_118.json` passed all expanded role-surface UI checks
 - post-QA minor language issues were repaired in source
 
 ## Known baseline constraint
@@ -14,6 +15,7 @@
 - standards present
 - audit reports present
 - decision book present
+- regression checklist present
 - GO/NO-GO report present
 - certification matrix present
 

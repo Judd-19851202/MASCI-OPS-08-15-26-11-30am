@@ -10,11 +10,18 @@ Admin Project Schedule Review,web_surface,pass,iteration_117 + post-QA repair,pl
 Admin Operations Dashboard Review,web_surface,pass,iteration_117,operator-safe wording verified
 Executive Operations Dashboard,web_surface,pass,iteration_117 + targeted lint,executive wording aligned
 Executive Overview mission panel,web_surface,pass,iteration_117 + post-QA repair,canonical-shell wording removed
+Safety Hub V2,web_surface,pass,iteration_118,construction-first safety wording verified at runtime
+Dispatch Hub V2,web_surface,pass,iteration_118,construction-first dispatch wording verified at runtime
+Shop Hub V2,web_surface,pass,iteration_118,construction-first shop wording verified at runtime
+HR Hub V2,web_surface,pass,iteration_118,construction-first workforce wording verified at runtime
+Field Leadership Portal Dashboard,web_surface,pass,iteration_118,field-leadership wording verified at runtime
+Equipment Dashboard,web_surface,pass,iteration_118,equipment wording verified at runtime
+Notifications Digest,web_surface,pass,iteration_118,notification coaching language verified at runtime
 EN/ES touched web parity,language_consistency,pass,iteration_117,language toggle passed
-Mobile certification,mobile,partial,qa_overflow_check_only,needs dedicated runtime evidence
+Mobile certification,mobile,partial,iteration_118 spot checks,safety and hr responsive checks passed but broader coverage still needed
 Accessibility certification,accessibility,partial,qa_console_and_click_check_only,needs explicit accessibility walkthrough
 PDF output wording,channel_output,partial,source + entry-point evidence only,needs runtime document audit
-Email wording,channel_output,pending,source-only,needs runtime evidence
-AI summary wording,channel_output,partial,web recommendation evidence only,needs downstream channel audit
-Remaining role walkthroughs,role_experience,pending,documentary only,safety hr dispatch shop equipment survey still open
+Email wording,channel_output,partial,source + visible dialog copy,needs runtime open/send evidence
+AI summary wording,channel_output,partial,source + sanitization integration,needs direct runtime output evidence
+Remaining role walkthroughs,role_experience,partial,iteration_118 runtime coverage,survey and payroll still open
 WP18CX final gate,constitutional_release,no-go,go_no_go_report,blocked on remaining runtime evidence
