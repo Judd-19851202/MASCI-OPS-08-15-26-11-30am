@@ -1,0 +1,7 @@
+change_id,file_or_collection,change_type,change,reason,evidence,write_cost_assessment
+CY-IDX-001,backup_health,index_add,"(mode, ts desc) as backup_health_mode_ts_desc",Supports recovery dashboard latest-by-mode reads,Bounded explain and source callsites,Low append-only cost
+CY-IDX-002,backup_health,index_add,"(ok, ts desc) as backup_health_ok_ts_desc",Supports latest successful backup reads,Bounded explain before/after,Low append-only cost
+CY-IDX-003,drill_runs,index_add,"(state, started_at desc) as drill_runs_state_started_desc",Supports latest restore-drill reads,Bounded explain before/after,Low append-only cost
+CY-QRY-001,services/operations_control/control_plane.py,query_path_repair,Daily Report OPPC email transport now delegates recipient-facing packaging to canonical Daily Report renderer,Fix first divergence without changing event authority,Preview capture + test agent proof,None
+CY-QRY-002,lib/notification_delivery.py,delivery_contract_repair,To/CC/BCC preserved separately in capture and provider payload,Restore routing truth for certification,Unit test + preview capture proof,None
+CY-QRY-003,server.py,delivery_contract_repair,Canonical auto-email dispatcher now passes To/CC/BCC through deliver_notification,Keep family-wide routing truth consistent,Source audit,None

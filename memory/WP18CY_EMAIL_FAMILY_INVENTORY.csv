@@ -1,0 +1,10 @@
+email_family,release_scope,status,evidence_class,exact_cause_or_basis
+daily_report,Release_1.0,REPAIRED_AND_CERTIFIED,PREVIEW_RUNTIME+PREVIEW_DB+TEST_AGENT,Preview submit verified branded subject/body/PDF and no internal jargon
+inspection,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,SOURCE_ONLY,Canonical auto-email path exists but no WP18CY runtime event was executed in this run
+meeting,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,SOURCE_ONLY,Canonical auto-email path exists but no WP18CY runtime event was executed in this run
+jha,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,SOURCE_ONLY,Canonical auto-email path exists but no WP18CY runtime event was executed in this run
+incident,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,SOURCE_ONLY,Canonical auto-email path exists but no WP18CY runtime event was executed in this run
+equipment_inspection,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,SOURCE_ONLY,Canonical auto-email path exists but no WP18CY runtime event was executed in this run
+backup_verification,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,PREVIEW_DB_ONLY,Backup evidence exists but current freshness/cadence contract is not met
+directory_account_onboarding_reset,Release_1.0,BLOCKED_WITH_EXACT_CAUSE,SOURCE_ONLY,Shared branded portal template exists but no WP18CY runtime certification was executed
+payroll_variance,Release_1.0,DEFERRED_NOT_IN_RELEASE_SCOPE,SOURCE_ONLY,Not part of the Daily Report and backup stabilization gate exercised here

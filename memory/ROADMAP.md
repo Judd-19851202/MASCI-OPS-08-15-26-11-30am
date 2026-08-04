@@ -707,3 +707,16 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P2
 - Future C7 work may start only after WP18CY and only while inheriting the locked WP17 / ECAP / Operational Intelligence / Operational Decision Engine / Executive Operator Experience constitutions.
+
+## 2026-08-04 — WP18CY post-run roadmap update
+
+### P0
+- Obtain direct production proof for Daily Report email/provider behavior, backup cadence, and Atlas query offenders.
+- Resolve the `complete-r2` stale-job pattern so the latest recoverable point returns to <=60 minutes.
+- Complete runtime certification of remaining Release 1.0 email families or formally narrow the gate.
+
+### P1
+- Re-run the WP18CY gate after direct production evidence and backup/runtime stabilization are available.
+
+### P2
+- Keep WP-18C7 blocked until WP18CY reaches GO.

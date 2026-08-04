@@ -637,3 +637,11 @@
 - Added final Release 1.0 scope and closeout artifacts: `WP18CX5_PRODUCTION_SCOPE.md`, `WP18CX5_RELEASE1_RUNTIME_CERTIFICATION.md`, `WP18CX5_PRODUCTION_MODULE_MATRIX.csv`, `WP18CX5_AI_RUNTIME_REPORT.md`, `WP18CX5_PDF_RUNTIME_REPORT.md`, `WP18CX5_EMAIL_RUNTIME_REPORT.md`, `WP18CX5_EXPORT_RUNTIME_REPORT.md`, `WP18CX5_ROLE_CERTIFICATION.md`, `WP18CX5_FINAL_BLOCKER_REGISTER.md`, `WP18CX5_EXECUTIVE_CLOSEOUT.md`, `WP18CX5_EXECUTIVE_GO_GATE.md`.
 - Accepted `/app/test_reports/iteration_121.json` as the final Release 1.0 runtime qualification report, resulting in **GO WITH DEFERRED MODULES**.
 - Permanently closed WP18CX, locked the Executive Operator Experience Constitution as an inheritance layer, and moved the next authorized package to `WP18CY — MongoDB Performance & Production Readiness Certification`.
+
+## 2026-08-04 — WP18CY Daily Report repair, backup evidence, and Mongo query hardening
+
+- Fixed the Daily Report recipient-email divergence by repairing the OPPC Daily Report email transport to send the branded Daily Report subject/body/PDF package instead of the generic control-plane message.
+- Preserved To/CC/BCC route truth in notification delivery capture and canonical auto-email dispatch.
+- Added `backup_health_mode_ts_desc`, `backup_health_ok_ts_desc`, and `drill_runs_state_started_desc` to bound recovery-dashboard certification reads.
+- Added targeted regression tests and received independent verification in `/app/test_reports/iteration_122.json`.
+- Gate outcome for this run: **WP18CY NO-GO** due missing direct production proof and backup freshness still out of contract in preview.

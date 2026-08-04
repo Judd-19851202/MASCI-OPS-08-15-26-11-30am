@@ -1,0 +1,7 @@
+query_id,collection,caller,query_shape,before_docs_examined,before_returned,before_ratio,before_plan,after_docs_examined,after_returned,after_ratio,after_plan,status
+CY-MONGO-BH-001,backup_health,recovery/health latest-success,"{ok:true}.sort(ts desc).limit(5)",200,5,40.0,COLLSCAN+SORT,5,5,1.0,IXSCAN backup_health_ok_ts_desc,REPAIRED
+CY-MONGO-BH-002,backup_health,recovery dashboard mode latest,"{mode:'complete-r2'}.sort(ts desc).limit(5)",not_captured_pre_change,5,unknown,unknown,5,5,1.0,IXSCAN backup_health_mode_ts_desc,REPAIRED
+CY-MONGO-BH-003,backup_health,recovery dashboard usage latest,"{mode:{$in:['r2-usage-alert','r2-usage-warn']}}.sort(ts desc).limit(5)",not_captured_pre_change,5,unknown,unknown,5,5,1.0,SORT_MERGE over IXSCAN backup_health_mode_ts_desc,REPAIRED
+CY-MONGO-DR-001,drill_runs,recovery dashboard latest-done,"{state:'done'}.sort(started_at desc).limit(5)",99,5,19.8,COLLSCAN+SORT,5,5,1.0,IXSCAN drill_runs_state_started_desc,REPAIRED
+CY-MONGO-DRR-002,daily_reports,daily report by project,"{project_number:'26-06'}.sort(created_at desc).limit(5)",1,1,1.0,IXSCAN project_number_1,1,1,1.0,IXSCAN project_number_1,UNCHANGED_OK
+CY-MONGO-OCC-003,operations_control_plane_communications,Daily Report communication history,"{workflow_id:'oppc.daily_report_to_oppc',status:'captured_preview'}.sort(created_at desc).limit(5)",5,5,1.0,IXSCAN workflow_id_1_status_1_created_at_-1,5,5,1.0,IXSCAN workflow_id_1_status_1_created_at_-1,UNCHANGED_OK

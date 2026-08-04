@@ -1,0 +1,7 @@
+issue_id,subsystem,truth_class,symptom,before_state,status,owner_note
+CY-EMAIL-001,Daily Report email,SOURCE+PREVIEW_DB,Recipients received generic operational email instead of branded Daily Report package,"OPPC transport suppressed canonical auto-email and sent generic body with 0 attachments",REPAIRED_PREVIEW_VERIFIED,Production still requires direct proof
+CY-EMAIL-002,Daily Report routing,PREVIEW_DB,To/CC/BCC truth not preserved in capture evidence,"notification capture only stored flat recipients list",REPAIRED_PREVIEW_VERIFIED,Now stores to/cc/bcc separately
+CY-BACKUP-001,Backup freshness,PREVIEW_DB,Recoverable point older than 60 minutes,"latest backup row age ~797.7 minutes; latest complete-r2 success 2026-07-31",OPEN_BLOCKER,No safe production proof and preview still out of contract
+CY-BACKUP-002,Backup scheduler,PREVIEW_DB,Scheduled complete-r2 jobs not closing successfully,"recent scheduler_nightly complete-r2 jobs became stale at archive_construction",OPEN_BLOCKER,Needs runtime/platform remediation beyond this safe code patch set
+CY-MONGO-001,Recovery dashboard queries,PREVIEW_DB,Backup and drill reads performed full scans,"backup_health and drill_runs lacked fitting sort/filter indexes",REPAIRED_PREVIEW_VERIFIED,Bounded explain now uses IXSCAN
+CY-DRIFT-001,Production vs preview,UNAVAILABLE,No direct production runtime evidence,"production deployment, provider, scheduler, and Atlas telemetry unavailable",OPEN_BLOCKER,Final gate cannot be GO

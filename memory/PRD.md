@@ -670,3 +670,9 @@
   - Operational Decision Engine Constitution
   - Executive Operator Experience Constitution
 - The next authorized package is `WP18CY — MongoDB Performance & Production Readiness Certification`.
+
+## 2026-08-04 — WP18CY email / backup / Mongo certification update
+- Repaired the first proven Daily Report email divergence: OPPC Daily Report transport now uses the canonical Daily Report subject/body/PDF package while preserving OPPC eventing and trust lines.
+- Preserved To/CC/BCC routing truth through `deliver_notification` and the canonical auto-email dispatcher; independent testing verified branded Daily Report capture, one PDF attachment, and no leaked internal OPPC language.
+- Added evidence-backed recovery-query indexes for `backup_health` and `drill_runs`; bounded preview explains improved from COLLSCAN (`200/5`, `99/5`) to IXSCAN (`5/5`, `5/5`).
+- WP18CY remains **NO-GO** because direct production proof is unavailable and preview backup freshness was still outside the 60-minute contract at capture time.
