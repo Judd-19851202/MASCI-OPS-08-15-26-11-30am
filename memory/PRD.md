@@ -1,5 +1,34 @@
 # PRD
 
+## 2026-08-04 — WP-18C5 Schedule / Lookahead / Actuals Spine
+
+### Governing implementation authorization
+- Implement WP-18C5 additively and autonomously inside the approved scope only.
+- Preserve C1–C4 authority boundaries, Daily Reports as fact truth, PM review as the schedule-actual authority gate, and baseline/current/forecast separation.
+- Reuse governed equipment and supplier registries; preserve material delivery vs installation/consumption distinction; do not start C6–C10.
+
+### What WP-18C5 implemented
+- Additive schedule actual candidate spine and PM approval workflow in `backend/services/project_schedule_actuals_spine.py`.
+- PM routes for actuals overview/review and daily work plans plus admin read-only actuals oversight in `backend/routes/enterprise_governance.py`.
+- Daily Report submit/detail candidate integration in `backend/routes/daily_reports.py` without replacing original report facts.
+- Forecast, schedule-actuals, and daily-work-plan exports plus C5 overview/backfill integration in `backend/services/project_schedule_authority.py`.
+- PM/admin/report UI surfaces in `frontend/src/pages/PmProjectSchedule.jsx`, `frontend/src/pages/admin/AdminGovernanceProjectScheduleAuthority.jsx`, and `frontend/src/pages/ViewDailyReport.jsx`.
+
+### Current runtime state established
+- Schedule actual candidate collection: `project_schedule_actual_candidates`
+- Daily work plan collection: `project_daily_work_plans`
+- Runtime certification project: `ZZ-RUNTIME-CERT-2026`
+- Specialist QA verified `3` approved schedule actual candidates on the runtime project in `iteration_115.json`.
+
+### Verification status
+- Targeted backend tests passed: `test_wp18c5_schedule_actuals_foundation.py` (`3 passed`) and `test_wp18c5_schedule_actuals_api.py` (`1 passed`).
+- Targeted Python and JavaScript lint on all touched files passed.
+- Specialist testing report `iteration_115.json` passed overall for backend, frontend, permissions, EN/ES, and responsive behavior.
+
+### Current next step
+- WP-18C5 closed `GO`.
+- C6 is not started; authorization may be considered only after executive acceptance of the C5 closeout artifacts.
+
 ## 2026-08-03 — WP-18C2 Authority, Source-of-Truth & Operational Ledger Foundation
 
 ### Governing implementation authorization

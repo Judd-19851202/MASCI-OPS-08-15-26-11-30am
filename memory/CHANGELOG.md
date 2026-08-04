@@ -1,3 +1,14 @@
+# 2026-08-04 — WP-18C5 Schedule / Lookahead / Actuals Spine
+
+- Added additive C5 backend authority in `backend/services/project_schedule_actuals_spine.py` for schedule actual candidates, PM review approvals, forecast derivation, and daily work plans.
+- Extended `backend/routes/enterprise_governance.py` with PM C5 routes for actuals overview/review and daily work plans, plus an admin read-only actuals oversight route.
+- Extended `backend/routes/daily_reports.py` so Daily Report submit/detail flows surface schedule actual candidates without replacing original Daily Report facts.
+- Extended `backend/services/project_schedule_authority.py` with C5 overview/export/backfill integration and added forecast / schedule-actuals / daily-work-plan CSV exports.
+- Updated PM/admin/report UI surfaces in `frontend/src/pages/PmProjectSchedule.jsx`, `frontend/src/pages/admin/AdminGovernanceProjectScheduleAuthority.jsx`, and `frontend/src/pages/ViewDailyReport.jsx`, plus new C5 components under `frontend/src/components/pm/schedule/`.
+- Added the 16 required `WP18C5_*` closeout artifacts under `/app/memory/`.
+- Verification passed: targeted backend tests `4/4`, targeted lint passed on all changed Python/JS files, runtime C5 API certification passed, and specialist testing report `/app/test_reports/iteration_115.json` passed overall (`backend 100%`, `frontend 100%`).
+- Final WP-18C5 closeout result: **GO**. Recommendation for C6: **do not start until executive acceptance of this C5 closeout.**
+
 # 2026-08-04 — WP-18C4 Project Schedule Authority, Work Package Spine & Governed Import/Activation
 
 - Verified the two inherited C4 groundwork patches first, repaired evidence-backed issues only, and added focused regression tests for structured planned assignments and assignment projection behavior.

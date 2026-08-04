@@ -1,3 +1,24 @@
+# 2026-08-04 — WP-18C5 closeout roadmap state
+
+## Current top priority
+
+- **WP-18C5 is complete and closed GO.**
+- **The schedule / lookahead / daily-work-plan / Daily Report actual-candidate / PM approval spine must now be preserved as the basis for later packages.**
+- **C6 remains blocked until separately accepted and authorized.**
+
+## P0
+- preserve Daily Reports as fact truth and PM review as the only schedule-actual approval gate
+- preserve baseline / current / forecast separation exactly as implemented
+- preserve governed equipment and supplier registry reuse; do not create duplicate identity truth
+- preserve material delivery versus installation / consumption separation and keep ambiguous outbound rows review-governed
+
+## P1
+- if and only if separately authorized, prepare WP-18C6 against the completed C5 spine without redesigning C1–C5 trust lines
+- keep C5 backfill additive and non-destructive if a later executive run is requested
+
+## P2
+- no C6/C7/C8/C9/C10 analytics, forecasting, earned value, or executive-intelligence work may start from this closeout alone
+
 # 2026-08-04 — WP-18C4 closeout roadmap state
 
 ## Current top priority
