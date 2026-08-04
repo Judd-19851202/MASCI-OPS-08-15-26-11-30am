@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useT } from "@/lib/i18n";
+import { operatorConfidenceLabel, operatorStatusLabel } from "@/lib/operatorLanguage";
 import {
   activatePmProjectBudgetImport,
   createPmProjectBudgetImport,
@@ -156,7 +157,7 @@ export default function PmProjectBudgetAuthority() {
         setCompareWith(versionData.items[1].version_id);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not load the governed budget workspace."));
+      toast.error(error?.response?.data?.detail || t("Could not load the project budget."));
     } finally {
       setLoading(false);
     }
@@ -214,7 +215,7 @@ export default function PmProjectBudgetAuthority() {
     setWorking(true);
     try {
       await activatePmProjectBudgetImport(projectNumber, activeImportId);
-      toast.success(t("Governed budget version activated."));
+      toast.success(t("Budget version activated."));
       await load(projectNumber, activeImportId);
     } catch (error) {
       toast.error(error?.response?.data?.detail || t("Could not activate the budget version."));
@@ -251,17 +252,17 @@ export default function PmProjectBudgetAuthority() {
 
   return (
     <PmShell
-      title="Project Budget Authority"
+      title="Project Budget"
       section="jobs"
-      subtitle="Stage governed budget imports, approve mappings, and activate budget versions without guessing financial truth."
+      subtitle="Review budget imports, approve line setup, and activate the budget version without guessing job cost truth."
     >
       <div className="space-y-6" data-testid="pm-project-budget-authority-page">
         <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm backdrop-blur" data-testid="pm-project-budget-header-card">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("Budget hierarchy")}</div>
-              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Budget Authority")}</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Customer pay items stay contractual truth, enterprise work types stay governed, and every budget line remains future-ready for commitments, actuals, forecast, and field-work linkage.")}</p>
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("Budget setup")}</div>
+              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Budget")}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Customer pay items stay contract truth, company work types stay admin-managed, and each budget line stays ready for job cost review.")}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button type="button" variant="outline" onClick={() => load(projectNumber, activeImportId)} data-testid="pm-project-budget-refresh-button">
@@ -278,11 +279,11 @@ export default function PmProjectBudgetAuthority() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-4" data-testid="pm-project-budget-summary-grid">
-          {cards.map(([label, value, Icon]) => (
-            <div key={label} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-budget-summary-${label}`}>
+          {[["versions", cards[0]?.[1], cards[0]?.[2], t("Budget versions")], ["active-lines", cards[1]?.[1], cards[1]?.[2], t("Active lines")], ["imports", cards[2]?.[1], cards[2]?.[2], t("Imports")], ["review-queue-open", cards[3]?.[1], cards[3]?.[2], t("Items needing review")]].map(([key, value, Icon, label]) => (
+            <div key={key} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-budget-summary-${key}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
                   <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
                 </div>
                 <div className="rounded-full bg-emerald-50 p-3 text-emerald-700"><Icon className="h-5 w-5" /></div>
@@ -293,9 +294,9 @@ export default function PmProjectBudgetAuthority() {
 
         <Alert data-testid="pm-project-budget-guardrail-alert">
           <ShieldCheck className="h-4 w-4" />
-          <AlertTitle>{t("Constitutional guardrails")}</AlertTitle>
+          <AlertTitle>{t("Financial rules")}</AlertTitle>
           <AlertDescription>
-            {t("Imports never activate automatically. PM approval is required, ambiguous rows stay in governed review, and commitments / actual costs remain separate trust lines from the budget itself.")}
+            {t("Imports never activate automatically. PM approval is required, unclear rows stay in review, and commitments plus actual costs stay separate from the budget itself.")}
           </AlertDescription>
         </Alert>
 
@@ -311,8 +312,8 @@ export default function PmProjectBudgetAuthority() {
               <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
                 <div className="space-y-4">
                   <div>
-                    <h2 className="text-xl font-black text-slate-900">{t("Governed import")}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{t("Supported entry lanes: SOV, bid tabs, pay-item lists, CSV, Excel, and review-assisted PDF. Nothing activates until you approve it.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Import for review")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Supported entry lanes include SOV, bid tabs, pay-item lists, CSV, Excel, and PDF review. Nothing activates until you approve it.")}</p>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
@@ -331,7 +332,7 @@ export default function PmProjectBudgetAuthority() {
                     <Input type="file" accept=".csv,.xlsx,.xlsm,.xltx,.xltm,.pdf" onChange={(event) => setImportForm((prev) => ({ ...prev, file: event.target.files?.[0] || null }))} data-testid="pm-project-budget-file-input" />
                   </div>
                   <div className="flex justify-end">
-                    <Button type="button" onClick={onImport} disabled={!projectNumber || !importForm.file || working} data-testid="pm-project-budget-upload-button">{working ? t("Working…") : t("Stage import")}</Button>
+                    <Button type="button" onClick={onImport} disabled={!projectNumber || !importForm.file || working} data-testid="pm-project-budget-upload-button">{working ? t("Working…") : t("Start import review")}</Button>
                   </div>
                 </div>
                 <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4" data-testid="pm-project-budget-import-session-list">
@@ -344,9 +345,9 @@ export default function PmProjectBudgetAuthority() {
                       <button key={row.import_id} type="button" className={`w-full rounded-2xl border p-3 text-left transition ${activeImportId === row.import_id ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`} onClick={async () => { setActiveImportId(row.import_id); const detail = await fetchPmProjectBudgetImportDetail(projectNumber, row.import_id); setImportDetail(detail); setRowDrafts(buildDrafts(detail?.rows || [])); }} data-testid={`pm-project-budget-import-card-${row.import_id}`}>
                         <div className="flex items-center justify-between gap-3">
                           <div className="font-semibold text-slate-900">{row.filename}</div>
-                          <Badge variant={row.status === "activated" ? "default" : "secondary"}>{row.status}</Badge>
+                          <Badge variant={row.status === "activated" ? "default" : "secondary"}>{operatorStatusLabel(row.status, t)}</Badge>
                         </div>
-                        <div className="mt-2 text-xs text-slate-500">{row.source_kind} · {row.target_version_stage} · {row.total_rows} {t("rows")}</div>
+                        <div className="mt-2 text-xs text-slate-500">{operatorStatusLabel(row.source_kind, t)} · {operatorStatusLabel(row.target_version_stage, t)} · {row.total_rows} {t("rows")}</div>
                       </button>
                     ))}
                     {!loading && imports.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500" data-testid="pm-project-budget-import-empty-state">{t("No staged budget imports yet.")}</div> : null}
@@ -359,12 +360,12 @@ export default function PmProjectBudgetAuthority() {
               <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-import-detail-section">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-black text-slate-900">{t("Review staged rows")}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{t("Workflow: import → suggestions → PM review → PM approval → activation.")}</p>
+                    <h2 className="text-xl font-black text-slate-900">{t("Review imported rows")}</h2>
+                    <p className="mt-1 text-sm text-slate-600">{t("Workflow: import → suggested matches → PM review → PM approval → activation.")}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge data-testid="pm-project-budget-active-import-status">{importDetail?.session?.status || "review_required"}</Badge>
-                    <Button type="button" onClick={onActivateImport} disabled={working || !["approved_ready", "partially_reviewed"].includes(importDetail?.session?.status)} data-testid="pm-project-budget-activate-import-button">{t("Activate budget")}</Button>
+                    <Badge data-testid="pm-project-budget-active-import-status">{operatorStatusLabel(importDetail?.session?.status || "review_required", t)}</Badge>
+                    <Button type="button" onClick={onActivateImport} disabled={working || !["approved_ready", "partially_reviewed"].includes(importDetail?.session?.status)} data-testid="pm-project-budget-activate-import-button">{t("Activate budget version")}</Button>
                   </div>
                 </div>
                 {(importDetail?.session?.parser_warnings || []).length ? (
@@ -380,20 +381,20 @@ export default function PmProjectBudgetAuthority() {
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{t("Row")} {row.row_number}</div>
-                            <div className="mt-1 font-semibold text-slate-900">{row.normalized?.customer_pay_item_number || t("Unnumbered row")} · {row.normalized?.description || t("Needs description review")}</div>
+                            <div className="mt-1 font-semibold text-slate-900">{row.normalized?.customer_pay_item_number || t("Unnumbered pay item")} · {row.normalized?.description || t("Needs description review")}</div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="secondary" data-testid={`pm-project-budget-row-status-${row.row_id}`}>{row.review_status}</Badge>
-                            <Badge variant={row.suggestion?.confidence === "high" ? "default" : "outline"}>{row.suggestion?.confidence || "review_required"}</Badge>
+                            <Badge variant="secondary" data-testid={`pm-project-budget-row-status-${row.row_id}`}>{operatorStatusLabel(row.review_status, t)}</Badge>
+                            <Badge variant={row.suggestion?.confidence === "high" ? "default" : "outline"}>{operatorConfidenceLabel(row.suggestion?.confidence || "review_required", t)}</Badge>
                           </div>
                         </div>
                         <div className="mt-3 grid gap-3 lg:grid-cols-2">
                           <div className="rounded-2xl border border-slate-200 bg-white p-3" data-testid={`pm-project-budget-row-source-${row.row_id}`}>
-                            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Preserved source")}</div>
+                            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Original source")}</div>
                             <div className="mt-2 text-sm text-slate-700">{Object.entries(row.source_values || {}).slice(0, 8).map(([key, value]) => <div key={key}><strong>{key}:</strong> {String(value || "—")}</div>)}</div>
                           </div>
                           <div className="rounded-2xl border border-slate-200 bg-white p-3" data-testid={`pm-project-budget-row-suggestion-${row.row_id}`}>
-                            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Suggestion")}</div>
+                            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Suggested match")}</div>
                             <div className="mt-2 text-sm text-slate-700">{(row.suggestion?.reasons || []).map((reason, index) => <div key={`${reason}-${index}`}>{reason}</div>)}</div>
                             {(row.suggestion?.warnings || []).length ? <div className="mt-2 text-xs text-amber-700">{(row.suggestion.warnings || []).join(" • ")}</div> : null}
                           </div>
@@ -436,10 +437,10 @@ export default function PmProjectBudgetAuthority() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-active-version-section">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Active budget version")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Budget, commitment, actual cost, forecast, revenue, billing, and collections stay separate here.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Active budget")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Budget, commitments, receipts, forecast, revenue, billing, and collections stay separate here.")}</p>
                 </div>
-                {activeVersion ? <Badge data-testid="pm-project-budget-active-version-badge">{activeVersion.stage}</Badge> : null}
+                {activeVersion ? <Badge data-testid="pm-project-budget-active-version-badge">{operatorStatusLabel(activeVersion.stage, t)}</Badge> : null}
               </div>
               {activeVersion ? (
                 <div className="mt-4 grid gap-4 md:grid-cols-3" data-testid="pm-project-budget-version-metrics-grid">
@@ -454,7 +455,7 @@ export default function PmProjectBudgetAuthority() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-black text-slate-900">{t("Budget lines")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Every line is future-ready for work blocks, crews, employees, equipment, materials, vendors, subcontractors, commitments, actuals, and forecasts.")}</p>
+                  <p className="mt-1 text-sm text-slate-600">{t("Each line stays ready for work blocks, crews, equipment, materials, vendors, subcontractors, commitments, receipts, and forecasts.")}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" value={compareWith} onChange={(event) => setCompareWith(event.target.value)} data-testid="pm-project-budget-compare-version-select">
@@ -498,8 +499,8 @@ export default function PmProjectBudgetAuthority() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-review-queue-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Governed review queue")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Unknown financial links stay here with a rationale. Nothing is fabricated or silently normalized.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Items needing review")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Unknown financial links stay here with a reason. Nothing is guessed or silently changed.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="pm-project-budget-review-count-badge">{reviewQueue.length}</Badge>
               </div>
@@ -508,19 +509,19 @@ export default function PmProjectBudgetAuthority() {
                   <div key={row.review_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-budget-review-item-${row.review_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.title}</div>
-                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{row.reason}</div>
                     <div className="mt-2 text-xs text-slate-500">{t("Source")}: {row.source_kind || row.source_record_id}</div>
                   </div>
                 ))}
-                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-budget-review-empty-state">{t("No governed budget review items are open right now.")}</div> : null}
+                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-budget-review-empty-state">{t("No budget items need review right now.")}</div> : null}
               </div>
             </section>
 
             <section className="grid gap-6 xl:grid-cols-2" data-testid="pm-project-budget-trustline-grid">
               <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-commitment-candidates-section">
-                <h2 className="text-xl font-black text-slate-900">{t("Commitment candidates")}</h2>
+                <h2 className="text-xl font-black text-slate-900">{t("PO links needing review")}</h2>
                 <p className="mt-1 text-sm text-slate-600">{t("PO Requests remain commitment truth. Unlinked commitments are preserved for review.")}</p>
                 <div className="mt-4 space-y-3">
                   {(overview?.commitment_candidates || []).map((row) => (
@@ -530,12 +531,12 @@ export default function PmProjectBudgetAuthority() {
                       <div className="mt-2 text-xs text-slate-500">${Number(row.commitment_amount || 0).toFixed(2)} · {row.review_status}</div>
                     </div>
                   ))}
-                  {!loading && !(overview?.commitment_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No commitment candidates for this project yet.")}</div> : null}
+                  {!loading && !(overview?.commitment_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No PO links need review for this project yet.")}</div> : null}
                 </div>
               </div>
 
               <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-actual-cost-candidates-section">
-                <h2 className="text-xl font-black text-slate-900">{t("Actual-cost candidates")}</h2>
+                <h2 className="text-xl font-black text-slate-900">{t("Receipts needing review")}</h2>
                 <p className="mt-1 text-sm text-slate-600">{t("Candidate receipts are review-only and do not replace accounting / ERP truth.")}</p>
                 <div className="mt-4 space-y-3">
                   {(overview?.actual_cost_candidates || []).map((row) => (
@@ -545,7 +546,7 @@ export default function PmProjectBudgetAuthority() {
                       <div className="mt-2 text-xs text-slate-500">${Number(row.candidate_amount || 0).toFixed(2)} · {row.review_status}</div>
                     </div>
                   ))}
-                  {!loading && !(overview?.actual_cost_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No actual-cost candidates for this project yet.")}</div> : null}
+                  {!loading && !(overview?.actual_cost_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No receipts need review for this project yet.")}</div> : null}
                 </div>
               </div>
             </section>

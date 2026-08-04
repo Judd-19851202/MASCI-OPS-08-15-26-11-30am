@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useT } from "@/lib/i18n";
+import { operatorStatusLabel } from "@/lib/operatorLanguage";
 import {
   fetchAdminProjectControlsOverview,
   fetchProjectControlsEventContracts,
@@ -18,14 +19,14 @@ import {
 } from "@/lib/projectControlsApi";
 
 const TEXT_ES = {
-  "Project Controls Authority": "Autoridad de Controles del Proyecto",
-  "Govern enterprise work types, review unresolved mappings, and verify the event contracts behind governed project controls.": "Gobierne los tipos de trabajo empresariales, revise asignaciones sin resolver y verifique los contratos de eventos detrás de los controles del proyecto gobernados.",
+  "Project Controls Standards": "Estándares de Controles del Proyecto",
+  "Review company work types, unresolved links, and the data rules behind project controls.": "Revise los tipos de trabajo de la empresa, los vínculos sin resolver y las reglas de datos detrás de los controles del proyecto.",
   Refresh: "Actualizar",
-  "Run compatibility backfill": "Ejecutar vinculación de compatibilidad",
+  "Update existing records": "Actualizar registros existentes",
   "Add work type": "Agregar tipo de trabajo",
-  "Enterprise work types": "Tipos de trabajo empresariales",
-  "Review queue": "Cola de revisión",
-  "Event contracts": "Contratos de eventos",
+  "Company work types": "Tipos de trabajo de la empresa",
+  "Items needing review": "Elementos que necesitan revisión",
+  "Data rules": "Reglas de datos",
   Code: "Código",
   Name: "Nombre",
   Category: "Categoría",
@@ -67,7 +68,7 @@ export default function AdminGovernanceProjectControlsAuthority() {
       setReviewQueue(reviewData?.items || []);
       setEventContracts(eventData?.items || []);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not load governed project controls."));
+      toast.error(error?.response?.data?.detail || t("Could not load project controls standards."));
     } finally {
       setLoading(false);
     }
@@ -80,9 +81,9 @@ export default function AdminGovernanceProjectControlsAuthority() {
   const cards = useMemo(() => {
     const summary = overview?.summary || {};
     return [
-      { label: localize("Enterprise work types", t, lang), value: summary.enterprise_work_types || 0, icon: Layers3 },
-      { label: localize("Review queue", t, lang), value: summary.review_queue_open || 0, icon: ClipboardList },
-      { label: localize("Event contracts", t, lang), value: eventContracts.length || 0, icon: GitBranchPlus },
+      { label: localize("Company work types", t, lang), value: summary.enterprise_work_types || 0, icon: Layers3 },
+      { label: localize("Items needing review", t, lang), value: summary.review_queue_open || 0, icon: ClipboardList },
+      { label: localize("Data rules", t, lang), value: eventContracts.length || 0, icon: GitBranchPlus },
     ];
   }, [eventContracts.length, lang, overview, t]);
 
@@ -110,17 +111,17 @@ export default function AdminGovernanceProjectControlsAuthority() {
   const onBackfill = async () => {
     try {
       await runAdminProjectControlsBackfill();
-      toast.success(t("Compatibility backfill finished."));
+      toast.success(t("Update existing records finished."));
       await load();
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not run the compatibility backfill."));
+      toast.error(error?.response?.data?.detail || t("Could not update existing records."));
     }
   };
 
   return (
     <LegacyAdminModernShell
-      title={localize("Project Controls Authority", t, lang)}
-      subtitle={localize("Govern enterprise work types, review unresolved mappings, and verify the event contracts behind governed project controls.", t, lang)}
+      title={localize("Project Controls Standards", t, lang)}
+      subtitle={localize("Review company work types, unresolved links, and the data rules behind project controls.", t, lang)}
     >
       <div className="space-y-6" data-testid="admin-project-controls-authority-page">
         <div className="flex flex-wrap gap-3" data-testid="admin-project-controls-action-row">
@@ -128,7 +129,7 @@ export default function AdminGovernanceProjectControlsAuthority() {
             <RefreshCw className="mr-2 h-4 w-4" /> {localize("Refresh", t, lang)}
           </Button>
           <Button type="button" variant="outline" onClick={onBackfill} data-testid="admin-project-controls-backfill-button">
-            <GitBranchPlus className="mr-2 h-4 w-4" /> {localize("Run compatibility backfill", t, lang)}
+            <GitBranchPlus className="mr-2 h-4 w-4" /> {localize("Update existing records", t, lang)}
           </Button>
           <Button type="button" onClick={() => setDialogOpen(true)} data-testid="admin-project-controls-add-work-type-button">
             <Layers3 className="mr-2 h-4 w-4" /> {localize("Add work type", t, lang)}
@@ -156,8 +157,8 @@ export default function AdminGovernanceProjectControlsAuthority() {
           <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-controls-work-types-section">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-black text-slate-900">{localize("Enterprise work types", t, lang)}</h2>
-                <p className="mt-1 text-sm text-slate-600">{t("These remain admin-governed and are reused across projects.")}</p>
+                <h2 className="text-xl font-black text-slate-900">{localize("Company work types", t, lang)}</h2>
+                <p className="mt-1 text-sm text-slate-600">{t("These stay admin-managed and are reused across projects.")}</p>
               </div>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700" data-testid="admin-project-controls-work-type-count">{workTypes.length}</span>
             </div>
@@ -181,7 +182,7 @@ export default function AdminGovernanceProjectControlsAuthority() {
                       </TableCell>
                       <TableCell>{row.category || "—"}</TableCell>
                       <TableCell>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{row.status}</span>
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{operatorStatusLabel(row.status, t)}</span>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -196,7 +197,7 @@ export default function AdminGovernanceProjectControlsAuthority() {
           <div className="space-y-6">
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-controls-review-section">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-slate-900">{localize("Review queue", t, lang)}</h2>
+                <h2 className="text-xl font-black text-slate-900">{localize("Items needing review", t, lang)}</h2>
                 <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900" data-testid="admin-project-controls-review-count">{reviewQueue.length}</span>
               </div>
               <div className="mt-4 space-y-3">
@@ -204,19 +205,19 @@ export default function AdminGovernanceProjectControlsAuthority() {
                   <div key={row.review_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-controls-review-item-${row.review_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.title}</div>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">{row.status}</span>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">{operatorStatusLabel(row.status, t)}</span>
                     </div>
                     <p className="mt-2 text-sm text-slate-600">{row.reason}</p>
                     <div className="mt-2 text-xs text-slate-500">{localize("Source", t, lang)}: {row.source_collection || "—"}</div>
                   </div>
                 ))}
-                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">{t("No open review items right now.")}</div> : null}
+                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">{t("No items need review right now.")}</div> : null}
               </div>
             </section>
 
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-controls-events-section">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-slate-900">{localize("Event contracts", t, lang)}</h2>
+                <h2 className="text-xl font-black text-slate-900">{localize("Data rules", t, lang)}</h2>
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">{eventContracts.length}</span>
               </div>
               <div className="mt-4 space-y-3">

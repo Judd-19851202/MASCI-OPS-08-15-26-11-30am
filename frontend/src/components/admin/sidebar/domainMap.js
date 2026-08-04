@@ -26,7 +26,7 @@ export const DOMAINS_V2 = [
     stripe: "#dc2626", // red-600
     icon: Activity,
     routes: [
-      { to: "/admin",                   label: "Overview",            desc: "KPIs, search, snapshot",                     icon: Activity, end: true },
+      { to: "/admin",                   label: "Overview",            desc: "KPIs, search, current portfolio view",      icon: Activity, end: true },
       { to: "/admin/command-center",    label: "Command Center",      desc: "Executive single-glass · cross-portal.",     icon: Activity },
       { to: "/admin/jobs",              label: "Jobs & Field",        desc: "Job master · posters · banners",             icon: Building2 },
       { to: "/admin/cost-registry",     label: "Cost Registry",       desc: "Universal cost codes · units · targets",     icon: Building2 },
@@ -88,10 +88,10 @@ export const DOMAINS_V2 = [
       { to: "/admin/incidents",             label: "Incidents",            desc: "Safety incidents · admin review.",      icon: AlertTriangle },
       { to: "/admin/inspections",           label: "Site Inspections",     desc: "Job-site safety inspections.",          icon: ClipboardCheck },
       { to: "/admin/governance",            label: "Governance Health",    desc: "Cross-portal contradictions · score",   icon: Shield },
-      { to: "/admin/governance/project-controls", label: "Project Controls Authority", desc: "Work types · review queue · event contracts", icon: ListChecks },
-      { to: "/admin/governance/project-controls/schedule", label: "Schedule Authority", desc: "Imports · work packages · governed exports", icon: ListChecks },
-      { to: "/admin/governance/project-controls/budget", label: "Budget Authority", desc: "Imports · trust lines · versions", icon: ListChecks },
-      { to: "/admin/governance/project-controls/operational-intelligence", label: "Operational Intelligence", desc: "Governed metric engine · lineage · backfill health", icon: ListChecks },
+      { to: "/admin/governance/project-controls", label: "Project Controls Standards", desc: "Work types · items needing review · data rules", icon: ListChecks },
+      { to: "/admin/governance/project-controls/schedule", label: "Project Schedule Review", desc: "Imports · work packages · exports", icon: ListChecks },
+      { to: "/admin/governance/project-controls/budget", label: "Project Budget Review", desc: "Imports · financial rules · versions", icon: ListChecks },
+      { to: "/admin/governance/project-controls/operational-intelligence", label: "Operations Dashboard Review", desc: "Project performance · evidence links · update status", icon: ListChecks },
       { to: "/admin/project-identity",      label: "Project Identity Governance", desc: "Detect drift · project numbers/names.", icon: Shield },
       { to: "/admin/operational-language",  label: "Operational Language", desc: "Shared glossary · EN + ES",             icon: BookOpen },
     ],

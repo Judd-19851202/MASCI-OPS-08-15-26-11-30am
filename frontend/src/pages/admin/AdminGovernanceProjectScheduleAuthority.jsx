@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/lib/i18n";
+import { operatorStatusLabel } from "@/lib/operatorLanguage";
 import {
   downloadAdminScheduleExport,
   fetchAdminProjectScheduleActivities,
@@ -129,7 +130,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
         setActualsOverview(actualsData || (overviewData || {}).schedule_actuals || null);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not load governed schedule governance."));
+      toast.error(error?.response?.data?.detail || t("Could not load project schedule review."));
     } finally {
       setLoading(false);
     }
@@ -153,10 +154,10 @@ export default function AdminGovernanceProjectScheduleAuthority() {
     setWorking(true);
     try {
       await runAdminProjectScheduleBackfill();
-      toast.success(t("Schedule backfill queued."));
+      toast.success(t("Schedule update existing records queued."));
       await load(projectNumber);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not run the schedule backfill."));
+      toast.error(error?.response?.data?.detail || t("Could not update existing schedule records."));
     } finally {
       setWorking(false);
     }
@@ -176,13 +177,13 @@ export default function AdminGovernanceProjectScheduleAuthority() {
   const cards = useMemo(() => summaryCards(overview), [overview]);
 
   return (
-    <LegacyAdminModernShell title={t("Project Schedule Authority")} subtitle={t("Govern schedule imports, work-package readiness, and additive C4 oversight without duplicating project, budget, or Daily Report truth.")}>
+    <LegacyAdminModernShell title={t("Project Schedule Review")} subtitle={t("Review schedule imports, work-package readiness, and active planning records without changing project, budget, or Daily Report truth.")}>
       <div className="space-y-6" data-testid="admin-project-schedule-authority-page">
         <div className="flex flex-wrap gap-3" data-testid="admin-project-schedule-actions-row">
           <Input value={projectNumberInput} onChange={(event) => setProjectNumberInput(event.target.value)} placeholder={t("Project number filter (optional)")} className="max-w-sm" data-testid="admin-project-schedule-project-filter-input" />
           <Button type="button" variant="outline" onClick={applyProjectFilter} data-testid="admin-project-schedule-apply-filter-button">{t("Apply filter")}</Button>
           <Button type="button" variant="outline" onClick={() => load(projectNumber)} data-testid="admin-project-schedule-refresh-button"><RefreshCw className="mr-2 h-4 w-4" /> {t("Refresh")}</Button>
-          <Button type="button" variant="outline" onClick={onBackfill} disabled={working} data-testid="admin-project-schedule-backfill-button"><GitBranchPlus className="mr-2 h-4 w-4" /> {working ? t("Working…") : t("Run compatibility backfill")}</Button>
+          <Button type="button" variant="outline" onClick={onBackfill} disabled={working} data-testid="admin-project-schedule-backfill-button"><GitBranchPlus className="mr-2 h-4 w-4" /> {working ? t("Working…") : t("Update existing records")}</Button>
           <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" value={exportKind} onChange={(event) => setExportKind(event.target.value)} data-testid="admin-project-schedule-export-kind-select">
             {EXPORT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
           </select>
@@ -190,17 +191,29 @@ export default function AdminGovernanceProjectScheduleAuthority() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="admin-project-schedule-summary-grid">
-          {cards.map(([label, value]) => (
-            <div key={label} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid={`admin-project-schedule-summary-${label}`}>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
+          {cards.map(([key, value]) => {
+            const label = key === "schedule-versions"
+              ? t("Versions")
+              : key === "schedule-activities"
+                ? t("Activities")
+                : key === "work-packages"
+                  ? t("Work packages")
+                  : key === "review-queue-open"
+                    ? t("Items needing review")
+                    : key === "schedule-actual-candidates"
+                      ? t("Proposed updates")
+                      : t("Approved updates");
+            return (
+            <div key={key} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid={`admin-project-schedule-summary-${key}`}>
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
               <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
             </div>
-          ))}
+          );})}
         </div>
 
         <Alert data-testid="admin-project-schedule-guardrail-alert">
           <ShieldCheck className="h-4 w-4" />
-          <AlertTitle>{t("Planning trust lines")}</AlertTitle>
+          <AlertTitle>{t("Planning rules")}</AlertTitle>
           <AlertDescription>
             {t("The schedule remains planning truth only. Budget, commitments, actual cost, forecast, revenue, billing, and collections stay separate. Constraints remain governed operational records, not free-form notes.")}
           </AlertDescription>
@@ -208,9 +221,9 @@ export default function AdminGovernanceProjectScheduleAuthority() {
 
         <Tabs defaultValue="review" className="space-y-4" data-testid="admin-project-schedule-tabs">
           <TabsList data-testid="admin-project-schedule-tabs-list">
-            <TabsTrigger value="review" data-testid="admin-project-schedule-review-tab">{t("Review queue")}</TabsTrigger>
+            <TabsTrigger value="review" data-testid="admin-project-schedule-review-tab">{t("Items needing review")}</TabsTrigger>
             <TabsTrigger value="versions" data-testid="admin-project-schedule-versions-tab">{t("Versions")}</TabsTrigger>
-            <TabsTrigger value="actuals" data-testid="admin-project-schedule-actuals-tab">{t("C5 actuals")}</TabsTrigger>
+            <TabsTrigger value="actuals" data-testid="admin-project-schedule-actuals-tab">{t("Progress updates")}</TabsTrigger>
             <TabsTrigger value="imports" data-testid="admin-project-schedule-imports-tab">{t("Imports")}</TabsTrigger>
           </TabsList>
 
@@ -218,7 +231,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-review-queue-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Governed review queue")}</h2>
+                  <h2 className="text-xl font-black text-slate-900">{t("Items needing review")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{t("Unresolved schedule mappings, legacy compatibility items, and review-only distribution requests stay visible here.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="admin-project-schedule-review-count-badge">{reviewQueue.length}</Badge>
@@ -228,13 +241,13 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                   <div key={row.review_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-review-item-${row.review_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.title}</div>
-                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{row.reason}</div>
                     <div className="mt-2 text-xs text-slate-500">{t("Project")}: {row.project_number || "—"} · {t("Source")}: {row.source_kind || row.source_record_id}</div>
                   </div>
                 ))}
-                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="admin-project-schedule-review-empty-state">{t("No governed schedule review items are open right now.")}</div> : null}
+                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="admin-project-schedule-review-empty-state">{t("No schedule items need review right now.")}</div> : null}
               </div>
             </section>
           </TabsContent>
@@ -264,12 +277,12 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                     <div key={row.candidate_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-actual-candidate-${row.candidate_id}`}>
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-semibold text-slate-900">{row.source_report_number || row.source_report_id}</div>
-                        <Badge variant={row.review_status === "approved" ? "default" : "outline"}>{row.review_status}</Badge>
+                        <Badge variant={row.review_status === "approved" ? "default" : "outline"}>{operatorStatusLabel(row.review_status, t)}</Badge>
                       </div>
-                      <div className="mt-2 text-xs text-slate-500">{row.report_date} · {row.activity_resolution?.resolved_activity_id || t("Needs PM review")}</div>
+                        <div className="mt-2 text-xs text-slate-500">{row.report_date} · {row.activity_resolution?.resolved_activity_id || t("Needs PM decision")}</div>
                     </div>
                   ))}
-                  {!loading && (actualsOverview?.candidates || []).length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No C5 actual candidate evidence found yet.")}</div> : null}
+                  {!loading && (actualsOverview?.candidates || []).length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No progress-update evidence found yet.")}</div> : null}
                 </div>
               </div>
 
@@ -280,12 +293,12 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                     <div key={row.plan_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-daily-plan-${row.plan_id}`}>
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-semibold text-slate-900">{row.work_date}</div>
-                        <Badge variant={row.status === "published" ? "default" : "outline"}>{row.status}</Badge>
+                        <Badge variant={row.status === "published" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                       </div>
                       <div className="mt-2 text-xs text-slate-500">{(row.items || []).length} {t("items")}</div>
                     </div>
                   ))}
-                  {!loading && (actualsOverview?.daily_work_plans || []).length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No governed daily work plans published yet.")}</div> : null}
+                  {!loading && (actualsOverview?.daily_work_plans || []).length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No daily work plans have been published yet.")}</div> : null}
                 </div>
               </div>
             </section>
@@ -303,7 +316,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                         <div className="font-semibold text-slate-900">{row.version_name}</div>
                         <div className="mt-1 text-xs text-slate-500">{row.project_number} · {row.version_kind}</div>
                       </div>
-                      <Badge variant={row.status === "active" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "active" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{row.counts?.activity_count || 0} {t("activities")} · {row.counts?.work_package_count || 0} {t("work packages")}</div>
                   </div>
@@ -335,7 +348,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                         <div className="mt-1 text-xs text-slate-500">{row.activity_count || 0} {t("activities")} · {Number(row.planned_hours || 0).toFixed(1)} {t("hours")}</div>
                       </div>
                     ))}
-                    {!loading && workPackages.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No governed work packages found.")}</div> : null}
+                    {!loading && workPackages.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No work packages found.")}</div> : null}
                   </div>
                 </div>
               </section>
@@ -346,7 +359,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-imports-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Recent staged imports")}</h2>
+                  <h2 className="text-xl font-black text-slate-900">{t("Recent import reviews")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{t("Use these records to verify source preservation, warnings, and PM approval readiness.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="admin-project-schedule-imports-count-badge">{imports.length}</Badge>
@@ -356,7 +369,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                   <div key={row.import_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-import-card-${row.import_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.filename}</div>
-                      <Badge variant={row.status === "activated" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "activated" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-xs text-slate-500">{row.source_kind} · {row.target_version_kind} · {row.total_rows} {t("rows")}</div>
                   </div>
@@ -371,7 +384,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                 <p className="mt-1 text-sm text-slate-600">{t("This evidence is advisory only; PM approval remains the activation gate.")}</p>
                 <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="admin-project-schedule-import-evidence-card">
                   <div className="font-semibold text-slate-900">{importDetail.session?.filename}</div>
-                  <div className="mt-2 text-sm text-slate-600">{t("Status")}: {importDetail.session?.status} · {t("Rows")}: {importDetail.count}</div>
+                  <div className="mt-2 text-sm text-slate-600">{t("Status")}: {operatorStatusLabel(importDetail.session?.status, t)} · {t("Rows")}: {importDetail.count}</div>
                   {(importDetail.session?.parser_warnings || []).length ? <div className="mt-3 text-xs text-amber-700">{(importDetail.session.parser_warnings || []).join(" • ")}</div> : null}
                 </div>
               </section>

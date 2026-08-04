@@ -26,9 +26,9 @@ export const DOMAINS_V2 = [
     routes: [
       { to: "/pm",                   label: "Overview",          desc: "Today's signal across your projects.",         icon: Briefcase, end: true },
       { to: "/pm/command-center",    label: "Command Center",    desc: "Live operations · jobs · timeline · risk.",    icon: Radar },
-      { to: "/pm/project-controls/schedule", label: "Schedule Authority", desc: "Imports · work packages · governed lookahead.", icon: CalendarClock },
+      { to: "/pm/project-controls/schedule", label: "Project Schedule", desc: "Imports · work packages · lookahead plans.", icon: CalendarClock },
       { to: "/pm/project-controls",  label: "Project Controls",  desc: "Pay items · mappings · lookaheads · archive.", icon: ClipboardCheck },
-      { to: "/pm/operational-intelligence", label: "Operational Intelligence", desc: "Governed metrics · Work Block lineage · explainable recommendations.", icon: Activity },
+      { to: "/pm/operational-intelligence", label: "Project Performance", desc: "Current project view · work blocks · next actions.", icon: Activity },
       { to: "/pm/jobs",              label: "Jobs",              desc: "Jobs assigned to you (read-only).",            icon: Building2 },
       { to: "/pm/holds",             label: "Holds",             desc: "Open holds across your projects.",             icon: PauseCircle },
       { to: "/pm/due-today",         label: "Due Today",         desc: "Items due today across your projects.",        icon: CalendarClock },
@@ -47,7 +47,7 @@ export const DOMAINS_V2 = [
     stripe: "#2563eb", // blue-600
     icon: ClipboardCheck,
     routes: [
-      { to: "/pm/project-controls/budget", label: "Budget Authority", desc: "Imports · approvals · governed budget versions.", icon: ClipboardCheck },
+      { to: "/pm/project-controls/budget", label: "Project Budget", desc: "Imports · approvals · budget versions.", icon: ClipboardCheck },
       { to: "/po-requests",       label: "PO Requests",       desc: "Pending approvals · receipts · spend.",        icon: ClipboardCheck },
       { to: "/project-health",    label: "Project Health",    desc: "Operational friction by job.",                 icon: Activity },
       { to: "/asset-transfers",   label: "Asset Transfers",   desc: "Equipment movement and lifecycle.",            icon: Truck },

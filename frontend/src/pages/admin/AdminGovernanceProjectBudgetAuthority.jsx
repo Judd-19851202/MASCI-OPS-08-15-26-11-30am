@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/lib/i18n";
+import { operatorStatusLabel } from "@/lib/operatorLanguage";
 import {
   downloadAdminBudgetComparison,
   downloadAdminBudgetExport,
@@ -103,7 +104,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
         setImportDetail(null);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not load governed budget governance."));
+      toast.error(error?.response?.data?.detail || t("Could not load project budget review."));
     } finally {
       setLoading(false);
     }
@@ -127,10 +128,10 @@ export default function AdminGovernanceProjectBudgetAuthority() {
     setWorking(true);
     try {
       await runAdminProjectBudgetBackfill();
-      toast.success(t("Budget backfill completed."));
+      toast.success(t("Budget update existing records completed."));
       await load(projectNumber);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not run the budget backfill."));
+      toast.error(error?.response?.data?.detail || t("Could not update existing budget records."));
     } finally {
       setWorking(false);
     }
@@ -163,8 +164,8 @@ export default function AdminGovernanceProjectBudgetAuthority() {
 
   return (
     <LegacyAdminModernShell
-      title={t("Project Budget Authority")}
-      subtitle={t("Govern budget imports, review unresolved trust lines, and verify additive C3 financial foundations without duplicating accounting truth.")}
+      title={t("Project Budget Review")}
+      subtitle={t("Review budget imports, open financial questions, and active versions without changing accounting truth.")}
     >
       <div className="space-y-6" data-testid="admin-project-budget-authority-page">
         <div className="flex flex-wrap gap-3" data-testid="admin-project-budget-actions-row">
@@ -174,7 +175,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
             <RefreshCw className="mr-2 h-4 w-4" /> {t("Refresh")}
           </Button>
           <Button type="button" variant="outline" onClick={onBackfill} disabled={working} data-testid="admin-project-budget-backfill-button">
-            <GitBranchPlus className="mr-2 h-4 w-4" /> {working ? t("Working…") : t("Run compatibility backfill")}
+            <GitBranchPlus className="mr-2 h-4 w-4" /> {working ? t("Working…") : t("Update existing records")}
           </Button>
           <Button type="button" variant="outline" onClick={onExportBudget} disabled={!projectNumber || !activeVersion} data-testid="admin-project-budget-export-button">
             <Download className="mr-2 h-4 w-4" /> {t("Export budget")}
@@ -182,22 +183,30 @@ export default function AdminGovernanceProjectBudgetAuthority() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-4" data-testid="admin-project-budget-summary-grid">
-          {cards.map(([label, value, Icon]) => (
-            <div key={label} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid={`admin-project-budget-summary-${label}`}>
+          {cards.map(([key, value, Icon]) => {
+            const label = key === "budget-versions"
+              ? t("Budget versions")
+              : key === "budget-lines"
+                ? t("Active lines")
+                : key === "imports"
+                  ? t("Imports")
+                  : t("Items needing review");
+            return (
+            <div key={key} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid={`admin-project-budget-summary-${key}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
                   <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
                 </div>
                 <div className="rounded-full bg-red-50 p-3 text-red-700"><Icon className="h-5 w-5" /></div>
               </div>
             </div>
-          ))}
+          );})}
         </div>
 
         <Alert data-testid="admin-project-budget-guardrail-alert">
           <ShieldCheck className="h-4 w-4" />
-          <AlertTitle>{t("Financial trust lines")}</AlertTitle>
+          <AlertTitle>{t("Financial rules")}</AlertTitle>
           <AlertDescription>
             {t("Budget is planning truth here. Commitments stay linked to PO Requests, candidate receipts stay review-only, and accounting / ERP remains the actual-cost authority.")}
           </AlertDescription>
@@ -205,7 +214,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
 
         <Tabs defaultValue="review" className="space-y-4" data-testid="admin-project-budget-tabs">
           <TabsList data-testid="admin-project-budget-tabs-list">
-            <TabsTrigger value="review" data-testid="admin-project-budget-review-tab">{t("Review queue")}</TabsTrigger>
+            <TabsTrigger value="review" data-testid="admin-project-budget-review-tab">{t("Items needing review")}</TabsTrigger>
             <TabsTrigger value="versions" data-testid="admin-project-budget-versions-tab">{t("Versions")}</TabsTrigger>
             <TabsTrigger value="imports" data-testid="admin-project-budget-imports-tab">{t("Imports")}</TabsTrigger>
           </TabsList>
@@ -214,7 +223,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-budget-review-queue-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Governed review queue")}</h2>
+                  <h2 className="text-xl font-black text-slate-900">{t("Items needing review")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{t("Rows, commitments, and candidate actuals remain here until evidence is good enough for the operator to decide.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="admin-project-budget-review-count-badge">{reviewQueue.length}</Badge>
@@ -224,13 +233,13 @@ export default function AdminGovernanceProjectBudgetAuthority() {
                   <div key={row.review_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-budget-review-item-${row.review_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.title}</div>
-                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{row.reason}</div>
                     <div className="mt-2 text-xs text-slate-500">{t("Project")}: {row.project_number || "—"} · {t("Source")}: {row.source_kind || row.source_record_id}</div>
                   </div>
                 ))}
-                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="admin-project-budget-review-empty-state">{t("No governed budget review items are open right now.")}</div> : null}
+                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="admin-project-budget-review-empty-state">{t("No budget items need review right now.")}</div> : null}
               </div>
             </section>
           </TabsContent>
@@ -258,7 +267,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
                         <div className="font-semibold text-slate-900">{row.version_name}</div>
                         <div className="mt-1 text-xs text-slate-500">{row.project_number} · {row.stage}</div>
                       </div>
-                      <Badge variant={row.status === "active" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "active" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-sm text-slate-600">${Number(row.totals?.budget_amount || 0).toFixed(2)} {t("budget total")}</div>
                   </div>
@@ -302,7 +311,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-budget-imports-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Recent staged imports")}</h2>
+                  <h2 className="text-xl font-black text-slate-900">{t("Recent import reviews")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{t("Use these to verify source preservation, parser warnings, and PM approval readiness.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="admin-project-budget-imports-count-badge">{imports.length}</Badge>
@@ -312,7 +321,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
                   <div key={row.import_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-budget-import-card-${row.import_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.filename}</div>
-                      <Badge variant={row.status === "activated" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "activated" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-xs text-slate-500">{row.source_kind} · {row.target_version_stage} · {row.total_rows} {t("rows")}</div>
                   </div>
@@ -327,7 +336,7 @@ export default function AdminGovernanceProjectBudgetAuthority() {
                 <p className="mt-1 text-sm text-slate-600">{t("This evidence is advisory only; PM approval remains the activation gate.")}</p>
                 <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="admin-project-budget-import-evidence-card">
                   <div className="font-semibold text-slate-900">{importDetail.session?.filename}</div>
-                  <div className="mt-2 text-sm text-slate-600">{t("Status")}: {importDetail.session?.status} · {t("Rows")}: {importDetail.count}</div>
+                  <div className="mt-2 text-sm text-slate-600">{t("Status")}: {operatorStatusLabel(importDetail.session?.status, t)} · {t("Rows")}: {importDetail.count}</div>
                   {(importDetail.session?.parser_warnings || []).length ? <div className="mt-3 text-xs text-amber-700">{(importDetail.session.parser_warnings || []).join(" • ")}</div> : null}
                 </div>
               </section>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useT } from "@/lib/i18n";
+import { operatorConfidenceLabel, operatorStatusLabel } from "@/lib/operatorLanguage";
 import {
   archivePmProject,
   confirmPmCrew,
@@ -82,7 +83,7 @@ export default function PmProjectControlsAuthority() {
       setCrewIntel(crewData || { confirmed_crews: [], suggestions: [] });
       setLedgerRows(ledgerData?.items || []);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not load project controls authority."));
+      toast.error(error?.response?.data?.detail || t("Could not load project controls."));
     } finally {
       setLoading(false);
     }
@@ -123,7 +124,7 @@ export default function PmProjectControlsAuthority() {
     if (!projectNumber || !mappingForm.pay_item_id) return;
     try {
       await savePmProjectMapping(projectNumber, { ...mappingForm, status: "approved" });
-      toast.success(t("Mapping saved."));
+      toast.success(t("Work type link saved."));
       setMappingForm({ pay_item_id: "", primary_work_type_id: "", explanation: "" });
       await load(projectNumber);
     } catch (error) {
@@ -183,17 +184,17 @@ export default function PmProjectControlsAuthority() {
 
   return (
     <PmShell
-      title="Project Controls Authority"
+      title="Project Controls"
       section="jobs"
-      subtitle="Manage project pay items, governed mappings, lookaheads, lifecycle, and crew review within your assigned project scope."
+      subtitle="Set pay items, work type links, lookahead notes, job status, and crew decisions for this job."
     >
       <div className="space-y-6" data-testid="pm-project-controls-authority-page">
         <div className="rounded-[1.75rem] border border-white/30 bg-white/80 p-5 shadow-sm backdrop-blur" data-testid="pm-project-controls-header-card">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("Assigned project scope")}</div>
-              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Controls Authority")}</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Project pay items stay project-specific, enterprise work types stay admin-governed, and governed mappings connect the two without letting Daily Reports overwrite schedule truth.")}</p>
+              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Controls")}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Pay items stay job-specific, company work types stay admin-managed, and approved links connect the two without changing Daily Reports.")}</p>
             </div>
             <div className="flex gap-3">
               <Button type="button" variant="outline" onClick={() => load(projectNumber)} data-testid="pm-project-controls-refresh-button">
@@ -208,15 +209,15 @@ export default function PmProjectControlsAuthority() {
 
         <div className="grid gap-4 md:grid-cols-4" data-testid="pm-project-controls-summary-grid">
           {[
-            ["pay-items", counts.pay_items || 0, ClipboardList],
-            ["approved-mappings", counts.approved_mappings || 0, Save],
-            ["crew-suggestions", counts.crew_suggestions || 0, UsersRound],
-            ["work-ledger", counts.work_ledger_rows || 0, Archive],
-          ].map(([label, value, Icon]) => (
-            <div key={label} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-controls-summary-${label}`}>
+            ["pay-items", counts.pay_items || 0, ClipboardList, t("Pay items")],
+            ["approved-mappings", counts.approved_mappings || 0, Save, t("Approved links")],
+            ["crew-suggestions", counts.crew_suggestions || 0, UsersRound, t("Crew suggestions")],
+            ["work-ledger", counts.work_ledger_rows || 0, Archive, t("Work blocks")],
+          ].map(([key, value, Icon, label]) => (
+            <div key={key} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-controls-summary-${key}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
                   <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
                 </div>
                 <div className="rounded-full bg-cyan-50 p-3 text-cyan-700"><Icon className="h-5 w-5" /></div>
@@ -264,8 +265,8 @@ export default function PmProjectControlsAuthority() {
             </section>
 
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-controls-mappings-section">
-              <h2 className="text-xl font-black text-slate-900">{t("Governed mappings")}</h2>
-              <p className="mt-1 text-sm text-slate-600">{t("Select one project pay item and connect it to the right enterprise work type. AI never approves these silently.")}</p>
+              <h2 className="text-xl font-black text-slate-900">{t("Approved work type links")}</h2>
+              <p className="mt-1 text-sm text-slate-600">{t("Link each pay item to the right company work type. Nothing is approved automatically.")}</p>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={mappingForm.pay_item_id} onChange={(event) => setMappingForm((prev) => ({ ...prev, pay_item_id: event.target.value }))} data-testid="pm-project-controls-mapping-pay-item-select">
                   <option value="">{t("Choose pay item")}</option>
@@ -278,14 +279,14 @@ export default function PmProjectControlsAuthority() {
               </div>
               <Textarea className="mt-3" value={mappingForm.explanation} onChange={(event) => setMappingForm((prev) => ({ ...prev, explanation: event.target.value }))} placeholder={t("Why this mapping is correct for this project.")} data-testid="pm-project-controls-mapping-explanation-input" />
               <div className="mt-4 flex justify-end">
-                <Button type="button" onClick={onSaveMapping} disabled={!mappingForm.pay_item_id || !mappingForm.primary_work_type_id} data-testid="pm-project-controls-mapping-save-button">{t("Approve mapping")}</Button>
+                <Button type="button" onClick={onSaveMapping} disabled={!mappingForm.pay_item_id || !mappingForm.primary_work_type_id} data-testid="pm-project-controls-mapping-save-button">{t("Save link")}</Button>
               </div>
               <div className="mt-4 space-y-3">
                 {mappings.map((row) => (
                   <div key={row.mapping_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-controls-mapping-row-${row.mapping_id}`}>
                     <div className="font-semibold text-slate-900">{row.customer_pay_item_number || row.pay_item_id}</div>
                     <div className="mt-1 text-sm text-slate-600">{t("Primary work type")}: {workTypes.find((item) => item.work_type_id === row.primary_work_type_id)?.name || row.primary_work_type_id || t("Pending review")}</div>
-                    <div className="mt-2 text-xs text-slate-500">{t("Status")}: {row.status} · {t("Source")}: {row.source}</div>
+                    <div className="mt-2 text-xs text-slate-500">{t("Status")}: {operatorStatusLabel(row.status, t)} · {t("Source")}: {row.source}</div>
                   </div>
                 ))}
               </div>
@@ -297,7 +298,7 @@ export default function PmProjectControlsAuthority() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-black text-slate-900">{t("Two-week lookahead")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Field actuals may inform this view, but PM-published planning remains the schedule authority.")}</p>
+                  <p className="mt-1 text-sm text-slate-600">{t("Field progress can inform this view, but the PM-published plan remains the schedule source.")}</p>
                 </div>
                 <Button type="button" onClick={onSaveLookahead} disabled={!lookahead} data-testid="pm-project-controls-lookahead-save-button">{t("Save")}</Button>
               </div>
@@ -316,26 +317,26 @@ export default function PmProjectControlsAuthority() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-controls-lifecycle-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Lifecycle & archive")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Archive never deletes history. Every record remains searchable under the same permission model.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Job status & archive")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Archiving keeps history. Every record stays searchable under the same permissions.")}</p>
                 </div>
-                <Button type="button" variant="outline" onClick={onArchiveToggle} disabled={!lifecycle} data-testid="pm-project-controls-archive-toggle-button">{lifecycle?.archive_status ? t("Restore project") : t("Archive project")}</Button>
+                <Button type="button" variant="outline" onClick={onArchiveToggle} disabled={!lifecycle} data-testid="pm-project-controls-archive-toggle-button">{lifecycle?.archive_status ? t("Restore job") : t("Archive job")}</Button>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {(lifecycle?.allowed_states || []).map((state) => (
                   <Button key={state} type="button" variant={lifecycle?.current_state === state ? "default" : "outline"} size="sm" onClick={() => onLifecycle(state)} data-testid={`pm-project-controls-lifecycle-state-${state.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
-                    {state}
+                    {operatorStatusLabel(state, t)}
                   </Button>
                 ))}
               </div>
               <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700" data-testid="pm-project-controls-lifecycle-summary">
-                {t("Current state")}: <strong>{lifecycle?.current_state || "—"}</strong> · {t("Archive")}: <strong>{lifecycle?.archive_status ? t("Archived") : t("Active")}</strong>
+                {t("Current state")}: <strong>{operatorStatusLabel(lifecycle?.current_state, t)}</strong> · {t("Archive")}: <strong>{lifecycle?.archive_status ? t("Archived") : t("Active")}</strong>
               </div>
             </section>
 
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-controls-crew-section">
-              <h2 className="text-xl font-black text-slate-900">{t("Crew intelligence")}</h2>
-              <p className="mt-1 text-sm text-slate-600">{t("Observed crew patterns are suggestions only until a human confirms them.")}</p>
+              <h2 className="text-xl font-black text-slate-900">{t("Crew suggestions")}</h2>
+              <p className="mt-1 text-sm text-slate-600">{t("Crew patterns stay suggestions until a person confirms them.")}</p>
               <div className="mt-4 space-y-3">
                 {(crewIntel?.suggestions || []).slice(0, 5).map((row) => (
                   <div key={row.suggestion_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-controls-crew-suggestion-${row.suggestion_id}`}>
@@ -343,7 +344,7 @@ export default function PmProjectControlsAuthority() {
                       <div>
                         <div className="font-semibold text-slate-900">{row.leader || t("Crew leader suggestion")}</div>
                         <div className="mt-1 text-sm text-slate-600">{(row.members || []).join(", ")}</div>
-                        <div className="mt-2 text-xs text-slate-500">{t("Observed")}: {row.observation_count} · {t("Confidence")}: {row.confidence}</div>
+                        <div className="mt-2 text-xs text-slate-500">{t("Observed")}: {row.observation_count} · {t("Confidence")}: {operatorConfidenceLabel(row.confidence, t)}</div>
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button type="button" size="sm" onClick={() => onCrewAction(row, "accept")} data-testid={`pm-project-controls-crew-accept-${row.suggestion_id}`}>{t("Confirm")}</Button>
@@ -363,17 +364,17 @@ export default function PmProjectControlsAuthority() {
             </section>
 
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-controls-ledger-section">
-              <h2 className="text-xl font-black text-slate-900">{t("Recent governed work blocks")}</h2>
+              <h2 className="text-xl font-black text-slate-900">{t("Recent work blocks")}</h2>
               <p className="mt-1 text-sm text-slate-600">{t("This ledger stays additive: Daily Reports remain the source for field actuals.")}</p>
               <div className="mt-4 space-y-3">
                 {ledgerRows.slice(0, 6).map((row) => (
                   <div key={row.ledger_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-controls-ledger-row-${row.ledger_id}`}>
                     <div className="font-semibold text-slate-900">{row.title || t("Work block")}</div>
-                    <div className="mt-1 text-sm text-slate-600">{row.report_date || "—"} · {row.customer_pay_item_number || row.cost_code || t("No governed code yet")}</div>
+                    <div className="mt-1 text-sm text-slate-600">{row.report_date || "—"} · {row.customer_pay_item_number || row.cost_code || t("No linked cost code yet")}</div>
                     <div className="mt-2 text-xs text-slate-500">{t("Resources")}: {row.resource_counts?.labor || 0} {t("labor")}, {row.resource_counts?.equipment || 0} {t("equipment")}, {row.resource_counts?.materials || 0} {t("materials")}</div>
                   </div>
                 ))}
-                {!loading && ledgerRows.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">{t("No governed work blocks yet. Daily Reports will add them automatically when field work is entered.")}</div> : null}
+                {!loading && ledgerRows.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">{t("No work blocks yet. Daily Reports will add them automatically when field work is entered.")}</div> : null}
               </div>
             </section>
           </div>

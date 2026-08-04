@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useT } from "@/lib/i18n";
+import { operatorConfidenceLabel, operatorStatusLabel } from "@/lib/operatorLanguage";
 import {
   activatePmProjectScheduleImport,
   createPmProjectScheduleImport,
@@ -297,7 +298,7 @@ export default function PmProjectSchedule() {
         setRowDrafts({});
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not load the governed schedule workspace."));
+      toast.error(error?.response?.data?.detail || t("Could not load the project schedule."));
     } finally {
       setLoading(false);
     }
@@ -392,7 +393,7 @@ export default function PmProjectSchedule() {
         version_id: versionId,
         recipients: emailRecipients.split(",").map((item) => item.trim()).filter(Boolean),
       });
-      toast.success(t("Email export queued for governed review."));
+      toast.success(t("Email export queued for review."));
       await load(projectNumber, activeImportId);
     } catch (error) {
       toast.error(error?.response?.data?.detail || t("Could not queue the email export."));
@@ -472,14 +473,14 @@ export default function PmProjectSchedule() {
   const activeVersion = overview?.active_version || null;
 
   return (
-    <PmShell title={t("Project Schedule")} section="jobs" subtitle={t("Governed schedule imports, work packages, assignments, and lookahead overlays without breaking baseline truth.")}>
+    <PmShell title={t("Project Schedule")} section="jobs" subtitle={t("Review schedule imports, work packages, assignments, and lookahead plans without changing the baseline.")}>
       <div className="space-y-6" data-testid="pm-project-schedule-page">
         <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm backdrop-blur" data-testid="pm-project-schedule-header-card">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("Operational planning spine")}</div>
-              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Schedule Authority")}</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("The schedule stays connected to work packages, budget lines, pay items, enterprise work types, work blocks, daily reports, and actual production. Imports remain review-first and advisory only until a PM approves activation.")}</p>
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("Operational planning")}</div>
+              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Schedule")}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("The schedule stays connected to work packages, budget lines, pay items, work blocks, Daily Reports, and actual production. Imports stay in review until a PM approves activation.")}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button type="button" variant="outline" onClick={() => load(projectNumber, activeImportId)} data-testid="pm-project-schedule-refresh-button">
@@ -496,9 +497,9 @@ export default function PmProjectSchedule() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="pm-project-schedule-summary-grid">
-          {cards.map(([label, value]) => (
-            <div key={label} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-schedule-summary-${label}`}>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
+          {[["versions", cards[0]?.[1], t("Versions")], ["activities", cards[1]?.[1], t("Activities")], ["work-packages", cards[2]?.[1], t("Work packages")], ["review-queue-open", cards[3]?.[1], t("Items needing review")], ["schedule-actual-candidates", cards[4]?.[1], t("Proposed updates")], ["approved-schedule-actuals", cards[5]?.[1], t("Approved updates")]].map(([key, value, label]) => (
+            <div key={key} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-schedule-summary-${key}`}>
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
               <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
             </div>
           ))}
@@ -506,9 +507,9 @@ export default function PmProjectSchedule() {
 
         <Alert data-testid="pm-project-schedule-guardrail-alert">
           <ShieldCheck className="h-4 w-4" />
-          <AlertTitle>{t("Constitutional guardrails")}</AlertTitle>
+          <AlertTitle>{t("Planning rules")}</AlertTitle>
           <AlertDescription>
-            {t("CSV is the production-certified import lane in C4. P6, Microsoft Project, Excel, and PDF review-assisted lanes are architected but remain governed extension paths until they are runtime-tested. Daily Reports continue as actual-execution truth.")}
+            {t("CSV is the certified import lane today. P6, Microsoft Project, Excel, and PDF imports stay extension paths until runtime testing is complete. Daily Reports stay the field-execution source.")}
           </AlertDescription>
         </Alert>
 
@@ -526,8 +527,8 @@ export default function PmProjectSchedule() {
               <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
                 <div className="space-y-4">
                   <div>
-                    <h2 className="text-xl font-black text-slate-900">{t("Governed import")}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{t("Workflow: import → suggestions → PM review → PM edits → PM approval → activation. Nothing activates automatically.")}</p>
+                    <h2 className="text-xl font-black text-slate-900">{t("Import for review")}</h2>
+                    <p className="mt-1 text-sm text-slate-600">{t("Workflow: import → suggested matches → PM review → PM edits → PM approval → activation. Nothing activates automatically.")}</p>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
@@ -561,9 +562,9 @@ export default function PmProjectSchedule() {
                       <button key={row.import_id} type="button" className={`w-full rounded-2xl border p-3 text-left transition ${activeImportId === row.import_id ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`} onClick={async () => { setActiveImportId(row.import_id); const detail = await fetchPmProjectScheduleImportDetail(projectNumber, row.import_id); setImportDetail(detail); setRowDrafts(buildRowDrafts(detail?.rows || [])); }} data-testid={`pm-project-schedule-import-card-${row.import_id}`}>
                         <div className="flex items-center justify-between gap-3">
                           <div className="font-semibold text-slate-900">{row.filename}</div>
-                          <Badge variant={row.status === "activated" ? "default" : "secondary"}>{row.status}</Badge>
+                          <Badge variant={row.status === "activated" ? "default" : "secondary"}>{operatorStatusLabel(row.status, t)}</Badge>
                         </div>
-                        <div className="mt-2 text-xs text-slate-500">{row.source_kind} · {row.target_version_kind} · {row.total_rows} {t("rows")}</div>
+                        <div className="mt-2 text-xs text-slate-500">{operatorStatusLabel(row.source_kind, t)} · {operatorStatusLabel(row.target_version_kind, t)} · {row.total_rows} {t("rows")}</div>
                       </button>
                     ))}
                     {!loading && imports.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500" data-testid="pm-project-schedule-import-empty-state">{t("No staged schedule imports yet.")}</div> : null}
@@ -576,11 +577,11 @@ export default function PmProjectSchedule() {
               <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-import-detail-section">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-black text-slate-900">{t("Review staged rows")}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{t("Review unresolved links before the schedule can become active planning truth.")}</p>
+                    <h2 className="text-xl font-black text-slate-900">{t("Review imported activities")}</h2>
+                    <p className="mt-1 text-sm text-slate-600">{t("Review unresolved links before this becomes the active planning schedule.")}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge data-testid="pm-project-schedule-active-import-status">{importDetail?.session?.status || "review_required"}</Badge>
+                    <Badge data-testid="pm-project-schedule-active-import-status">{operatorStatusLabel(importDetail?.session?.status || "review_required", t)}</Badge>
                     <Button type="button" onClick={onActivateImport} disabled={working || !["approved_ready", "partially_reviewed"].includes(importDetail?.session?.status)} data-testid="pm-project-schedule-activate-import-button">{t("Activate schedule")}</Button>
                   </div>
                 </div>
@@ -600,8 +601,8 @@ export default function PmProjectSchedule() {
                             <div className="mt-1 font-semibold text-slate-900">{row.normalized?.activity_id || t("Unnumbered activity")} · {row.normalized?.activity_name || t("Needs activity review")}</div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="secondary" data-testid={`pm-project-schedule-row-status-${row.row_id}`}>{row.review_status}</Badge>
-                            <Badge variant={row.suggestion?.confidence === "high" ? "default" : "outline"}>{row.suggestion?.confidence || "review_required"}</Badge>
+                            <Badge variant="secondary" data-testid={`pm-project-schedule-row-status-${row.row_id}`}>{operatorStatusLabel(row.review_status, t)}</Badge>
+                            <Badge variant={row.suggestion?.confidence === "high" ? "default" : "outline"}>{operatorConfidenceLabel(row.suggestion?.confidence || "review_required", t)}</Badge>
                           </div>
                         </div>
                         <div className="mt-3 grid gap-3 lg:grid-cols-2">
@@ -661,10 +662,10 @@ export default function PmProjectSchedule() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-version-section">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Active governed schedule")}</h2>
+                  <h2 className="text-xl font-black text-slate-900">{t("Active schedule")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{t("Baseline stays preserved while lookahead overlays and assignment planning remain editable.")}</p>
                 </div>
-                {activeVersion ? <Badge data-testid="pm-project-schedule-active-version-badge">{activeVersion.version_kind || activeVersion.status}</Badge> : null}
+                {activeVersion ? <Badge data-testid="pm-project-schedule-active-version-badge">{operatorStatusLabel(activeVersion.version_kind || activeVersion.status, t)}</Badge> : null}
               </div>
               {activeVersion ? (
                 <div className="mt-4 grid gap-4 md:grid-cols-4" data-testid="pm-project-schedule-version-metrics-grid">
@@ -711,7 +712,7 @@ export default function PmProjectSchedule() {
                         <td className="px-3 py-3 text-slate-700">{row.forecast_start_date || "—"}<br /><span className="text-xs text-slate-500">{row.forecast_finish_date || "—"} · {row.forecast_status || "not_started"}{Number(row.slip_days || 0) > 0 ? ` · +${row.slip_days}d` : ""}</span></td>
                       </tr>
                     ))}
-                    {!loading && (actualsOverview?.forecast?.rows || []).length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={4}>{t("No forecast rows yet. Approve actuals to begin the C5 schedule status chain.")}</td></tr> : null}
+                    {!loading && (actualsOverview?.forecast?.rows || []).length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={4}>{t("No forecast rows yet. Approve progress updates to begin the forecast view.")}</td></tr> : null}
                   </tbody>
                 </table>
               </div>
@@ -720,7 +721,7 @@ export default function PmProjectSchedule() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-export-section">
               <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Governed exports")}</h2>
+                  <h2 className="text-xl font-black text-slate-900">{t("Exports")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{t("Prepare master schedule, lookahead, crew, equipment, material, and work-package plan exports without creating a parallel reporting truth.")}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -784,7 +785,7 @@ export default function PmProjectSchedule() {
                         <td className="px-3 py-3 text-slate-700">{Number(row.planned_hours || 0).toFixed(1)} {t("hours")}<br /><span className="text-xs text-slate-500">{Number(row.planned_production_quantity || 0).toFixed(1)} {t("planned qty")}</span></td>
                       </tr>
                     ))}
-                    {!loading && workPackages.length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={3}>{t("No governed work packages yet.")}</td></tr> : null}
+                    {!loading && workPackages.length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={3}>{t("No work packages yet.")}</td></tr> : null}
                   </tbody>
                 </table>
               </div>
@@ -795,8 +796,8 @@ export default function PmProjectSchedule() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-lookahead-editor-section">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Two-week lookahead overlay")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("This is a governed operational view of the master schedule. PM edits here do not destroy the baseline schedule version.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Two-week lookahead")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("This is the operating view of the master schedule. PM edits here do not change the baseline schedule version.")}</p>
                 </div>
                 <Button type="button" onClick={onSaveLookahead} disabled={!projectNumber || working} data-testid="pm-project-schedule-save-lookahead-button"><CalendarRange className="mr-2 h-4 w-4" /> {t("Save lookahead")}</Button>
               </div>
@@ -817,7 +818,7 @@ export default function PmProjectSchedule() {
               </div>
               <div className="mt-4 grid gap-3 xl:grid-cols-2">
                 <Textarea value={lookaheadDraft.tasks_text} onChange={(event) => setLookaheadDraft((prev) => ({ ...prev, tasks_text: event.target.value }))} placeholder={t("One planned lookahead task per line")} data-testid="pm-project-schedule-lookahead-tasks-input" />
-                <Textarea value={lookaheadDraft.constraints_text} onChange={(event) => setLookaheadDraft((prev) => ({ ...prev, constraints_text: event.target.value }))} placeholder={t("One governed constraint title per line")} data-testid="pm-project-schedule-lookahead-constraints-input" />
+                <Textarea value={lookaheadDraft.constraints_text} onChange={(event) => setLookaheadDraft((prev) => ({ ...prev, constraints_text: event.target.value }))} placeholder={t("One constraint per line")} data-testid="pm-project-schedule-lookahead-constraints-input" />
               </div>
             </section>
 
@@ -846,8 +847,8 @@ export default function PmProjectSchedule() {
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-review-queue-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("Governed review queue")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Ambiguity stays queued with rationale instead of becoming silent schedule truth.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Items needing review")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Unclear schedule links stay here with a reason instead of becoming silent schedule truth.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="pm-project-schedule-review-count-badge">{reviewQueue.length}</Badge>
               </div>
@@ -856,13 +857,13 @@ export default function PmProjectSchedule() {
                   <div key={row.review_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-schedule-review-item-${row.review_id}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-slate-900">{row.title}</div>
-                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{row.status}</Badge>
+                      <Badge variant={row.status === "resolved" ? "default" : "outline"}>{operatorStatusLabel(row.status, t)}</Badge>
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{row.reason}</div>
                     <div className="mt-2 text-xs text-slate-500">{t("Source")}: {row.source_kind || row.source_record_id}</div>
                   </div>
                 ))}
-                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-schedule-review-empty-state">{t("No governed schedule review items are open right now.")}</div> : null}
+                {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-schedule-review-empty-state">{t("No schedule items need review right now.")}</div> : null}
               </div>
             </section>
           </TabsContent>

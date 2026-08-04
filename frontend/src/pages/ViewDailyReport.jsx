@@ -35,6 +35,7 @@ import { useT } from "@/lib/i18n";
 import { DetailPageHero } from "@/components/detail/DetailPageHero";
 import { DataTable } from "@/design-system/DataTable";
 import EmptyState from "@/components/EmptyState";
+import { operatorStatusLabel } from "@/lib/operatorLanguage";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -792,7 +793,7 @@ export default function ViewDailyReport() {
 
         {(data.work_blocks?.length || 0) > 0 && (
           <div data-testid="dr-view-work-blocks">
-            <ReportSection number="09d" title={`${t("Governed Work Blocks")} (${data.work_blocks.length})`}>
+            <ReportSection number="09d" title={`${t("Work Blocks")} (${data.work_blocks.length})`}>
               <div className="space-y-4">
                 {(data.work_blocks || []).map((row, index) => (
                   <div key={row.work_block_id || index} className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4" data-testid={`dr-view-work-block-row-${index}`}>
@@ -800,12 +801,12 @@ export default function ViewDailyReport() {
                       <div>
                         <div className="font-semibold text-slate-900">{row.title || t("Work block")}</div>
                         <div className="mt-1 text-xs text-slate-500">
-                          {(row.customer_pay_item_number || row.pay_item_id || row.cost_code || t("No governed code yet"))}
+                          {(row.customer_pay_item_number || row.pay_item_id || row.cost_code || t("No linked cost code yet"))}
                           {row.schedule_activity_id ? ` · ${row.schedule_activity_id}` : ""}
                         </div>
                       </div>
                       <span className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700" data-testid={`dr-view-work-block-status-${index}`}>
-                        {row.schedule_actual_proposal_status || "proposed_only"}
+                        {operatorStatusLabel(row.schedule_actual_proposal_status || "proposed_only", t)}
                       </span>
                     </div>
                     <div className="mt-3 grid gap-3 sm:grid-cols-4 text-sm text-slate-700">
@@ -824,21 +825,21 @@ export default function ViewDailyReport() {
 
         {(data.schedule_actual_candidates?.length || 0) > 0 && (
           <div data-testid="dr-view-schedule-actual-candidates">
-            <ReportSection number="09e" title={`${t("Schedule Actual Review Chain")} (${data.schedule_actual_candidates.length})`}>
+            <ReportSection number="09e" title={`${t("Schedule Progress Review")} (${data.schedule_actual_candidates.length})`}>
               <div className="grid gap-3 md:grid-cols-3 mb-4">
-                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Candidates")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-count">{data.schedule_actual_candidate_summary?.count || data.schedule_actual_candidates.length}</div></div>
+                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Proposed updates")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-count">{data.schedule_actual_candidate_summary?.count || data.schedule_actual_candidates.length}</div></div>
                 <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Pending PM review")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-pending">{data.schedule_actual_candidate_summary?.pending || 0}</div></div>
-                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Approved actuals")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-approved">{data.schedule_actual_candidate_summary?.approved || 0}</div></div>
+                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Approved updates")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-approved">{data.schedule_actual_candidate_summary?.approved || 0}</div></div>
               </div>
               <div className="space-y-4">
                 {(data.schedule_actual_candidates || []).map((row, index) => (
                   <div key={row.candidate_id || index} className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4" data-testid={`dr-view-schedule-actual-row-${index}`}>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <div className="font-semibold text-slate-900">{row.activity_resolution?.resolved_activity_id || t("Needs PM review")}</div>
-                        <div className="mt-1 text-xs text-slate-500">{row.activity_resolution?.resolved_activity_name || t("No safe activity match yet")}</div>
+                        <div className="font-semibold text-slate-900">{row.activity_resolution?.resolved_activity_id || t("Needs PM decision")}</div>
+                        <div className="mt-1 text-xs text-slate-500">{row.activity_resolution?.resolved_activity_name || t("No reliable activity match yet")}</div>
                       </div>
-                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700" data-testid={`dr-view-schedule-actual-status-${index}`}>{row.review_status || "pending_review"}</span>
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700" data-testid={`dr-view-schedule-actual-status-${index}`}>{operatorStatusLabel(row.review_status || "pending_review", t)}</span>
                     </div>
                     <div className="mt-3 grid gap-3 sm:grid-cols-4 text-sm text-slate-700">
                       <div>{t("Installed")}: <span className="font-semibold text-slate-900">{row.actual_facts?.installed_quantity || 0}</span> {row.actual_facts?.unit || ""}</div>

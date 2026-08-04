@@ -19,10 +19,10 @@ export const ScheduleDailyWorkPlanPanel = ({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-900">{t("Daily work plan")}</h2>
-          <p className="mt-1 text-sm text-slate-600">{t("Derived from the current governed schedule and rolling lookahead. Publishing the day plan does not rewrite baseline or current version history.")}</p>
+          <p className="mt-1 text-sm text-slate-600">{t("Built from the approved schedule and rolling lookahead. Publishing today's plan does not change baseline or current schedule history.")}</p>
         </div>
         <Button type="button" onClick={onSavePlan} disabled={working} data-testid="pm-project-schedule-save-daily-plan-button">
-          <CalendarRange className="mr-2 h-4 w-4" /> {working ? t("Working…") : t("Save daily plan")}
+          <CalendarRange className="mr-2 h-4 w-4" /> {working ? t("Working…") : t("Save day plan")}
         </Button>
       </div>
 
@@ -45,7 +45,7 @@ export const ScheduleDailyWorkPlanPanel = ({
         </div>
       </div>
 
-      <Textarea className="mt-4" value={planDraft?.notes || ""} onChange={(event) => onPlanDraft("notes", event.target.value)} placeholder={t("What changed between the rolling lookahead and today’s field plan?")} data-testid="pm-project-schedule-daily-plan-notes-input" />
+      <Textarea className="mt-4" value={planDraft?.notes || ""} onChange={(event) => onPlanDraft("notes", event.target.value)} placeholder={t("What changed between the two-week lookahead and today's plan?")} data-testid="pm-project-schedule-daily-plan-notes-input" />
 
       <div className="mt-4 space-y-3">
         {items.map((item, index) => (
@@ -68,7 +68,7 @@ export const ScheduleDailyWorkPlanPanel = ({
             <Textarea className="mt-3" value={item.daily_goal_note || ""} onChange={(event) => onPlanItemChange(index, "daily_goal_note", event.target.value)} placeholder={t("Daily execution goal, sequence note, or handoff reminder")} data-testid={`pm-project-schedule-daily-plan-goal-${index}`} />
           </div>
         ))}
-        {items.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-schedule-daily-plan-empty-state">{t("No daily work plan items were derived yet for this date.")}</div> : null}
+        {items.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-schedule-daily-plan-empty-state">{t("No day-plan items are ready for this date yet.")}</div> : null}
       </div>
     </section>
   );

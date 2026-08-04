@@ -9,6 +9,7 @@ import {
   fetchPmOperationalIntelligenceSnapshot,
   overridePmOperationalIntelligenceRecommendation,
 } from "@/lib/projectControlsApi";
+import { useT } from "@/lib/i18n";
 
 function fileNameFromResponse(response, fallback) {
   const disposition = response?.headers?.["content-disposition"] || "";
@@ -29,6 +30,7 @@ function downloadResponseFile(response, fallback) {
 }
 
 export default function PmOperationalIntelligence() {
+  const { t } = useT();
   const [params, setParams] = useSearchParams();
   const [projectNumber, setProjectNumber] = React.useState(params.get("project_number") || "");
   const [snapshot, setSnapshot] = React.useState(null);
@@ -52,11 +54,11 @@ export default function PmOperationalIntelligence() {
       const data = await fetchPmOperationalIntelligenceSnapshot(pn, { forceRefresh });
       setSnapshot(data || null);
     } catch (err) {
-      setError(err?.response?.data?.detail || "Operational intelligence is unavailable right now.");
+      setError(err?.response?.data?.detail || t("Project performance is unavailable right now."));
     } finally {
       setLoading(false);
     }
-  }, [projectNumber]);
+  }, [projectNumber, t]);
 
   React.useEffect(() => {
     if (projectNumber) load(projectNumber);
@@ -76,9 +78,9 @@ export default function PmOperationalIntelligence() {
     try {
       const response = await downloadPmOperationalIntelligenceExport(projectNumber);
       downloadResponseFile(response, `${projectNumber}_governed_metrics.csv`);
-      toast.success("Governed metrics export downloaded.");
+      toast.success(t("Project performance export downloaded."));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not export governed metrics.");
+      toast.error(err?.response?.data?.detail || t("Could not export project performance."));
     }
   };
 
@@ -90,24 +92,24 @@ export default function PmOperationalIntelligence() {
         action: "override",
         note,
       });
-      toast.success("Operational override recorded.");
+      toast.success(t("Different field decision recorded."));
       await load(projectNumber, true);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not record the override.");
+      toast.error(err?.response?.data?.detail || t("Could not save the field decision."));
     } finally {
       setActionBusy(false);
     }
   };
 
   return (
-    <PmShell title="Operational Intelligence" section="operational-intelligence">
+    <PmShell title={t("Project Performance")} section="operational-intelligence">
       <OperationalIntelligenceSnapshotWorkspace
         snapshot={snapshot}
         loading={loading}
         error={error}
         actionBusy={actionBusy}
-        title="Operational Intelligence"
-        subtitle="One governed metric engine powers every production KPI, recommendation, export, and drill-down. Work Blocks remain the operational heart, and unresolved ambiguity is routed to governed review instead of guessed."
+        title={t("Project Performance")}
+        subtitle={t("See what changed, why it matters, what needs action next, and what evidence supports it for this job.")}
         projectSelector={<PmProjectSelector projectNumber={projectNumber} onChange={chooseProject} />}
         onRefresh={() => load(projectNumber, true)}
         onExport={handleExport}

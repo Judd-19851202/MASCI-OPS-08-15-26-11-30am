@@ -162,4 +162,60 @@ export function sanitizeOperatorError(value, fallback = "This information is una
   return safe;
 }
 
+const OPERATOR_STATUS_OVERRIDES = {
+  review_required: "Needs review",
+  needs_review: "Needs review",
+  approved_ready: "Ready to activate",
+  partially_reviewed: "Partially reviewed",
+  pending_review: "Pending PM review",
+  proposed_only: "Proposed only",
+  high: "High confidence",
+  medium: "Medium confidence",
+  low: "Low confidence",
+  high_confidence: "High confidence",
+  medium_confidence: "Medium confidence",
+  low_confidence: "Low confidence",
+  pending_manual_run: "Not started",
+  in_progress: "In progress",
+  not_started: "Not started",
+  completed: "Completed",
+  resolved: "Resolved",
+  approved: "Approved",
+  rejected: "Rejected",
+  deferred: "Deferred",
+  active: "Active",
+  archived: "Archived",
+  draft: "Draft",
+  published: "Published",
+  running: "Running",
+  failed: "Needs attention",
+  master_schedule: "Master schedule",
+  baseline_refresh: "Baseline refresh",
+  pending_revision: "Pending revision",
+  original_approved_budget: "Original approved budget",
+  current_approved_budget: "Current approved budget",
+  awarded_contract: "Awarded contract",
+  schedule_actuals_csv: "Schedule progress CSV",
+};
+
+function resolveOperatorLabel(value) {
+  const key = String(value || "").trim().toLowerCase();
+  if (!key) return "";
+  return OPERATOR_STATUS_OVERRIDES[key] || humanizeOperatorToken(key, "");
+}
+
+export function operatorLabel(value, t, fallback = "—") {
+  const resolved = resolveOperatorLabel(value);
+  if (!resolved) return fallback;
+  return typeof t === "function" ? t(resolved) : resolved;
+}
+
+export function operatorStatusLabel(value, t, fallback = "—") {
+  return operatorLabel(value, t, fallback);
+}
+
+export function operatorConfidenceLabel(value, t, fallback = "—") {
+  return operatorLabel(value, t, fallback);
+}
+
 export { BANNED_OPERATOR_TERMS };

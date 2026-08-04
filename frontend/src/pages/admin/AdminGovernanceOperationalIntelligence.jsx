@@ -11,6 +11,8 @@ import {
   overrideAdminOperationalIntelligenceRecommendation,
   runAdminOperationalIntelligenceBackfill,
 } from "@/lib/projectControlsApi";
+import { useT } from "@/lib/i18n";
+import { operatorStatusLabel } from "@/lib/operatorLanguage";
 
 function fileNameFromResponse(response, fallback) {
   const disposition = response?.headers?.["content-disposition"] || "";
@@ -31,6 +33,7 @@ function downloadResponseFile(response, fallback) {
 }
 
 export default function AdminGovernanceOperationalIntelligence() {
+  const { t } = useT();
   const [params, setParams] = useSearchParams();
   const [projectNumber, setProjectNumber] = React.useState(params.get("project_number") || "");
   const [overview, setOverview] = React.useState(null);
@@ -50,11 +53,11 @@ export default function AdminGovernanceOperationalIntelligence() {
       const data = await fetchAdminOperationalIntelligenceOverview(pn, { forceRefresh });
       setOverview(data || null);
     } catch (err) {
-      setError(err?.response?.data?.detail || "Operational intelligence governance is unavailable right now.");
+      setError(err?.response?.data?.detail || t("Operations dashboard review is unavailable right now."));
     } finally {
       setLoading(false);
     }
-  }, [projectNumber]);
+  }, [projectNumber, t]);
 
   React.useEffect(() => {
     load(projectNumber);
@@ -74,9 +77,9 @@ export default function AdminGovernanceOperationalIntelligence() {
     try {
       const response = await downloadAdminOperationalIntelligenceExport(projectNumber);
       downloadResponseFile(response, `${projectNumber}_governed_metrics.csv`);
-      toast.success("Governed metrics export downloaded.");
+      toast.success(t("Project performance export downloaded."));
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not export governed metrics.");
+      toast.error(err?.response?.data?.detail || t("Could not export project performance."));
     }
   };
 
@@ -88,10 +91,10 @@ export default function AdminGovernanceOperationalIntelligence() {
         action: "override",
         note,
       });
-      toast.success("Operational override recorded.");
+      toast.success(t("Different field decision recorded."));
       await load(projectNumber, true);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not record the override.");
+      toast.error(err?.response?.data?.detail || t("Could not save the field decision."));
     } finally {
       setActionBusy(false);
     }
@@ -101,10 +104,10 @@ export default function AdminGovernanceOperationalIntelligence() {
     setActionBusy(true);
     try {
       await runAdminOperationalIntelligenceBackfill(true);
-      toast.success("Operational intelligence backfill queued.");
+      toast.success(t("Update existing records queued."));
       await load(projectNumber, true);
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Could not run the operational intelligence backfill.");
+      toast.error(err?.response?.data?.detail || t("Could not queue update existing records."));
     } finally {
       setActionBusy(false);
     }
@@ -116,20 +119,20 @@ export default function AdminGovernanceOperationalIntelligence() {
 
   return (
     <LegacyAdminModernShell
-      title="Operational Intelligence Governance"
-      subtitle="Admin oversight for the governed metric engine, evidence lineage, review-queue pressure, and additive backfill health."
+      title={t("Operations Dashboard Review")}
+      subtitle={t("Admin review for project performance, evidence links, items needing review, and update status.")}
     >
       <div className="space-y-6" data-testid="admin-governance-operational-intelligence-page">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-governance-operational-intelligence-overview">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Governed Metric Engine</div>
-              <h1 className="mt-2 text-3xl font-black text-slate-900">Operational Intelligence Governance</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">Use this surface to refresh governed snapshots, monitor orphan-event pressure, and verify that every PM-facing metric still flows from one additive authority.</p>
+              <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">{t("Project performance")}</div>
+              <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Operations Dashboard Review")}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Use this page to refresh current project views, monitor unassigned records, and confirm that PM-facing metrics still come from one approved source path.")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" onClick={() => load(projectNumber, true)} data-testid="admin-governance-operational-intelligence-refresh-button">Refresh</Button>
-              <Button type="button" onClick={handleBackfill} disabled={actionBusy} data-testid="admin-governance-operational-intelligence-backfill-button">Run backfill</Button>
+              <Button type="button" variant="outline" onClick={() => load(projectNumber, true)} data-testid="admin-governance-operational-intelligence-refresh-button">{t("Refresh")}</Button>
+              <Button type="button" onClick={handleBackfill} disabled={actionBusy} data-testid="admin-governance-operational-intelligence-backfill-button">{t("Update existing records")}</Button>
             </div>
           </div>
           <div className="mt-4 max-w-sm" data-testid="admin-governance-operational-intelligence-selector">
@@ -137,10 +140,10 @@ export default function AdminGovernanceOperationalIntelligence() {
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-4" data-testid="admin-governance-operational-intelligence-summary-grid">
             {[
-              ["projects-with-snapshots", summary.projects_with_snapshots || 0, "Projects with snapshots"],
-              ["open-review-items", summary.open_review_items || 0, "Open review items"],
-              ["open-recommendations", summary.open_recommendations || 0, "Open recommendations"],
-              ["orphan-events", summary.orphan_events || 0, "Orphan events"],
+              ["projects-with-snapshots", summary.projects_with_snapshots || 0, t("Projects with current views")],
+              ["open-review-items", summary.open_review_items || 0, t("Items needing review")],
+              ["open-recommendations", summary.open_recommendations || 0, t("Recommended actions")],
+              ["orphan-events", summary.orphan_events || 0, t("Unassigned records")],
             ].map(([key, value, label]) => (
               <div key={key} className="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4" data-testid={`admin-governance-operational-intelligence-summary-${key}`}>
                 <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
@@ -149,7 +152,7 @@ export default function AdminGovernanceOperationalIntelligence() {
             ))}
           </div>
           <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600" data-testid="admin-governance-operational-intelligence-backfill-status">
-            Backfill status: {overview?.backfill?.status || "pending_manual_run"} · Projects processed {overview?.backfill?.projects_processed ?? 0} · Snapshots built {overview?.backfill?.snapshots_built ?? 0}
+            {t("Update existing records status")}: {operatorStatusLabel(overview?.backfill?.status || "pending_manual_run", t)} · {t("Projects processed")} {overview?.backfill?.projects_processed ?? 0} · {t("Current views built")} {overview?.backfill?.snapshots_built ?? 0}
           </div>
         </div>
 
@@ -159,8 +162,8 @@ export default function AdminGovernanceOperationalIntelligence() {
             loading={loading}
             error={error}
             actionBusy={actionBusy}
-            title={`Operational Intelligence · ${projectNumber}`}
-            subtitle="Admin governance view over the same governed snapshot consumed by PM operators. Review-lineage issues remain additive and explainable."
+            title={`${t("Operations Dashboard")} · ${projectNumber}`}
+            subtitle={t("Admin review over the same project-performance view used by PMs. Issues stay visible, explainable, and non-destructive.")}
             projectSelector={<PmProjectSelector projectNumber={projectNumber} onChange={chooseProject} />}
             onRefresh={() => load(projectNumber, true)}
             onExport={handleExport}
@@ -169,16 +172,16 @@ export default function AdminGovernanceOperationalIntelligence() {
           />
         ) : (
           <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-governance-operational-intelligence-latest-snapshots">
-            <h2 className="text-xl font-black text-slate-900">Latest governed snapshots</h2>
+            <h2 className="text-xl font-black text-slate-900">{t("Latest current project views")}</h2>
             <div className="mt-4 overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-[0.2em] text-slate-500">
                   <tr>
-                    <th className="px-4 py-3">Project</th>
-                    <th className="px-4 py-3 text-right">Approved events</th>
-                    <th className="px-4 py-3 text-right">Review items</th>
-                    <th className="px-4 py-3 text-right">Recommendations</th>
-                    <th className="px-4 py-3 text-right">Orphans</th>
+                    <th className="px-4 py-3">{t("Project")}</th>
+                    <th className="px-4 py-3 text-right">{t("Verified updates")}</th>
+                    <th className="px-4 py-3 text-right">{t("Items needing review")}</th>
+                    <th className="px-4 py-3 text-right">{t("Recommended actions")}</th>
+                    <th className="px-4 py-3 text-right">{t("Unassigned records")}</th>
                   </tr>
                 </thead>
                 <tbody>
