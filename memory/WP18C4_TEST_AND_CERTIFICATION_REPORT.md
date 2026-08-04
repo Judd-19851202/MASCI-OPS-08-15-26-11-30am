@@ -9,6 +9,12 @@
 - Report: `/app/test_reports/iteration_113.json`
 - Outcome: `backend 100%`, `frontend 100%`
 
+## Frontend contradiction correction
+- Follow-up report: `/app/test_reports/iteration_114.json`
+- Disposition: the earlier `18/19` extra frontend result was a **TEST DEFECT**, not a product defect.
+- Root cause: a tab-content visibility assertion was executed before activating the containing tab.
+- Final corrected frontend rerun result: `28/28 PASS (100%)`.
+
 ## Verified behaviors
 - PM schedule authority page load
 - CSV import staging UI and runtime lane
