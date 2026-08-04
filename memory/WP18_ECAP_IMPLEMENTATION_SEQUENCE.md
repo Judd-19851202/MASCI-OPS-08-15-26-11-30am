@@ -9,6 +9,8 @@ Date: 2026-08-03
 
 WP-18C must execute in dependency order, not visual preference order.
 
+Every package in the sequence below inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.
+
 ## Exact sequence
 
 1. **WP-18C1 — Enterprise Hierarchy Foundation**  
@@ -37,3 +39,5 @@ WP-18C must execute in dependency order, not visual preference order.
 Budget precedes EV.  
 Hierarchy and authority precede financial and reporting implementation.  
 Migration and certification close the sequence; they do not occur as an afterthought.
+
+No step is constitutionally complete unless it creates downstream value, reduces duplicate entry where applicable, and makes the platform measurably smarter than before the step began.

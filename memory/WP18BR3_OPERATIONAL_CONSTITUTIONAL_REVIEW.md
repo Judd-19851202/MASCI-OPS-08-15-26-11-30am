@@ -16,6 +16,10 @@ BR3 does not find a fragmented platform that needs to be reassembled from scratc
 2. executive/read-side overlap is higher than it should be
 3. finance authority is less mature than operations authority
 
+After C5, one more standing constitutional reading is explicit: the future platform must build operational intelligence and a digital twin, not merely add storage lanes.
+
+That rule is codified in the **WP-18 Operational Intelligence Constitution**.
+
 ## What already connects correctly
 
 ### Scheduling and planning
@@ -107,3 +111,5 @@ Evidence: `backend/routes/ods_intelligence.py:71-123,312-494`; `backend/routes/p
 
 The operational platform is already a real system, not a loose collection of modules.  
 The work ahead is constitutional tightening, not wholesale operational redesign.
+
+Every later package must therefore make the platform smarter, reduce duplicate entry, and increase executive visibility before it can receive GO.

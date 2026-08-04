@@ -6,6 +6,10 @@ Date: 2026-08-03
 
 Challenge the operator experience role by role and determine what helps, what slows each role down, what is unnecessary, and what is missing.
 
+This review now also inherits the standing constitutional rule that every later feature must reduce operator work and improve downstream intelligence rather than create more paperwork.
+
+That rule is codified in the **WP-18 Operational Intelligence Constitution**.
+
 ## Role review
 
 | Role | What helps | What slows them down | What is unnecessary | What is missing |
@@ -30,3 +34,5 @@ The least complete operator experience belongs to:
 2. accounting/finance, because finance authority is still incomplete
 
 That is an argument for **targeted architectural amendments**, not a broad UX or platform rebuild.
+
+It is also an argument that future packages must make operator capture lighter while making executive answers stronger.

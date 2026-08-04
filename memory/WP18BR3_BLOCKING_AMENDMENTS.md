@@ -61,6 +61,18 @@ Because the final BR3 gate is not `GO`, this document prioritizes the amendments
 
 **Impact if unresolved:** operational complexity will rise faster than portfolio scale.
 
+### BA-06 — Enforce operational intelligence as the standing package-completion standard
+
+**Why this now matters:** after C5, future work must not drift into data collection without downstream intelligence, automation, or executive value.
+
+**Evidence:**
+- `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`
+- `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
+
+This is the standing **WP-18 Operational Intelligence Constitution** amendment.
+
+**Impact if unresolved:** later packages could remain technically additive while still failing the real business purpose of the platform.
+
 ## BR3 sequencing principle
 
 The amendments above should be read as **bounded architectural decisions that preserve existing validated work**.

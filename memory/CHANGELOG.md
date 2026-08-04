@@ -1,3 +1,12 @@
+# 2026-08-04 — WP-18 Operational Intelligence Constitutional Amendment
+
+- Added the standing constitutional layer in `/app/memory/WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`.
+- Added the automatic inheritance and GO-gate rule in `/app/memory/WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`.
+- Added backward-compatibility / genuine-gap evidence for accepted C1–C5 work in `/app/memory/WP18_OPERATIONAL_INTELLIGENCE_BACKWARD_COMPATIBILITY_AND_GAP_REPORT.md`.
+- Added documentation-integrity criteria for the amendment in `/app/memory/WP18_OPERATIONAL_INTELLIGENCE_INTEGRITY_REPORT.md`.
+- Updated governing ECAP, BR3, ratification, sequence, PRD, and ROADMAP records so future WP-18, WP-19, WP-20, and later packages automatically inherit the WP-17 Product Constitution, WP-18 ECAP, and WP-18 Operational Intelligence Constitution unless explicitly superseded.
+- Updated completed C1–C5 closeout records to declare inheritance without reopening accepted implementations.
+
 # 2026-08-04 — WP-18C5 Schedule / Lookahead / Actuals Spine
 
 - Added additive C5 backend authority in `backend/services/project_schedule_actuals_spine.py` for schedule actual candidates, PM review approvals, forecast derivation, and daily work plans.

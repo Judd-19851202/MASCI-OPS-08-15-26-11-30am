@@ -9,6 +9,8 @@ Date: 2026-08-03
 
 WP-18C may add architectural clarity, but it may not increase operator complexity merely to satisfy an internal architecture preference.
 
+This is now reinforced by the standing Operational Intelligence Constitution: every future package must reduce operator burden where applicable and create downstream reuse or decision value.
+
 ## Experience rules by role family
 
 | Role family | Final rule |
@@ -33,6 +35,8 @@ Every workflow introduced in WP-18C must define:
 4. return path to the prior operator context
 
 No stranded screen or dead-end workflow is allowed.
+
+No workflow is constitutionally complete if it collects information without creating downstream operational or executive value.
 
 ## Operator language law
 

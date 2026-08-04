@@ -7,6 +7,10 @@ Date: 2026-08-03
 **Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
 **Proof label:** `DOCUMENTED_ONLY`
 
+Every work package in this map inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.
+
+No package in this map is complete if it only captures or stores data without creating downstream operational reuse, intelligence value, reduced operator burden where applicable, or increased executive visibility where applicable.
+
 ### WP-18C1 — Enterprise Hierarchy Foundation
 - objective: propagate the accepted hierarchy and inheritance model
 - preserved systems: governance registry, portals, permissions

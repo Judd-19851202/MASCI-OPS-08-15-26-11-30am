@@ -19,3 +19,7 @@
 ## Recommended next stance
 - Preserve C4 exactly as the planning spine for later authorized extensions.
 - Do not widen scope into C5+ until separately authorized.
+
+## Standing inheritance addendum
+- WP-18C4 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+- No redesign of C4 is required by that amendment; future work may only deepen downstream intelligence on top of the accepted planning spine.

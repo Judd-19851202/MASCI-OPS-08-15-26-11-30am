@@ -34,3 +34,11 @@ WP-18C is intentionally bounded.
 ## Future-phase law
 
 Any work outside the WP-18C boundary requires a later separately evidenced authorization.
+
+Every later authorized phase automatically inherits:
+
+- the WP-17 Product Constitution
+- the WP-18 ECAP
+- the WP-18 Operational Intelligence Constitution
+
+No later package may claim GO unless it proves intelligence gain, downstream value, trust-line preservation, and reduced operator burden relative to raw data capture alone.

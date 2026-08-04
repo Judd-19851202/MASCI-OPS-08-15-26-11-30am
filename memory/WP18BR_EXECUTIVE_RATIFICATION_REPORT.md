@@ -176,5 +176,8 @@ WP-18B is therefore **RATIFIED WITH AMENDMENTS**, not accepted unchanged. The co
 
 - the original `WP18B_*` audit set
 - plus the challenge findings and amendments in `WP18BR_*`
+- plus the standing `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`
+
+This standing layer is the **WP-18 Operational Intelligence Constitution**.
 
 No future implementation should begin unless it traces back to the amended constitutional owner model documented here.

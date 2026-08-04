@@ -41,6 +41,12 @@ WP-18C5 — Project Controls Schedule / Lookahead / Actuals Spine
 
 C5 was completed without starting C6, C7, C8, C9, or C10. No protected C1–C4 subsystem was rebuilt or weakened. No silent normalization, fake pass, or duplicate truth lane was introduced.
 
+## Standing inheritance addendum
+
+WP-18C5 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+
+No redesign of C5 is required by that amendment; later packages may only extend intelligence and downstream reuse on top of the accepted C5 spine.
+
 ## Authorization recommendation for C6
 
 **RECOMMENDATION: C6 NOT STARTED. AUTHORIZATION MAY BE CONSIDERED ONLY AFTER EXECUTIVE ACCEPTANCE OF THIS C5 GO CLOSEOUT.**

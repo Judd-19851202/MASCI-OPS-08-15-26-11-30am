@@ -33,6 +33,8 @@ That means the remaining work is **bounded amendment work**, not proof that the 
 
 Leadership can invest the next 12–24 months with confidence **if** the BR3 blocking amendments are accepted as governing architecture and the team preserves validated work by default.
 
+That implementation posture now also inherits the WP-18 Operational Intelligence Constitution as a mandatory enforcement layer.
+
 ## Constitutional rule for implementation authorization
 
 Any future implementation effort must treat the following as protected value:
@@ -53,6 +55,7 @@ Any future implementation effort must treat the following as protected value:
 - proceed only on the preserved architecture basis documented in BR3
 - do not broadly rebuild validated modules
 - solve the blocking amendments first or as the opening implementation architecture layer
+- require every later package to prove intelligence gain, downstream value, and reduced duplicate entry before GO
 
 ## Cross-reference
 

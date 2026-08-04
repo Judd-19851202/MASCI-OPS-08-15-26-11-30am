@@ -9,6 +9,10 @@ Date: 2026-08-03
 
 Production and quantity truth remains rooted in Daily Reports and approved downstream certification.
 
+Production capture is constitutionally justified only when it creates downstream operational intelligence, automation, or executive understanding.
+
+This requirement is carried by the **WP-18 Operational Intelligence Constitution**.
+
 ## Canonical terms
 
 | Term | Final meaning |
@@ -63,3 +67,5 @@ Productivity must always be explainable from:
 - confidence state
 
 No unexplained productivity number is allowed.
+
+No production-capture feature is complete until it creates downstream value beyond storing quantity rows.

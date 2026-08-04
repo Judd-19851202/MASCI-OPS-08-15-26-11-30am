@@ -52,3 +52,9 @@ Instead, untouched history was compatibility-stamped with zero-block summaries w
 **WP18C3 recommendation:** **GO TO START THE SEPARATE BUDGET HIERARCHY PACKAGE ONLY AFTER ACCEPTING THIS WP18C2 CLOSEOUT AS THE ACTIVE AUTHORITY FOUNDATION.**
 
 That recommendation is limited to beginning the next separately authorized package. WP18C3 was **not** implemented here.
+
+## Standing inheritance addendum
+
+WP-18C2 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+
+No redesign of C2 is required by that amendment; future work may only extend downstream intelligence and automatic work-block reuse where later authorized.

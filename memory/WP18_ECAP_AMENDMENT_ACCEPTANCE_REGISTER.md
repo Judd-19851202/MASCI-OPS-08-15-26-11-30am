@@ -22,13 +22,15 @@ This register converts every required BR3 amendment into one explicit executive 
 | A08 | AI authority boundary | `SOURCE_VERIFIED` + `DOCUMENTED_ONLY` | AI exists as assistive capability and must not silently become authority | define explicit allowed and forbidden AI actions | `PRESERVE_AND_GOVERN` | config, translation, briefing assist remain | AI authority boundary becomes explicit and auditable | low | high positive | AI, admin, exec, field, HR, safety | A02 | silent AI authority creep if skipped | AI authority constitution accepted | Yes | `ACCEPTED` |
 | A09 | P&L / PO trust boundary | `SOURCE_VERIFIED` | P&L snapshot and PO amounts are useful but not budget authority | preserve both as inputs and derived views only | `PRESERVE_AND_GOVERN` | current pages/endpoints and workflows | financial truth boundary is explicit | low | medium positive | finance, PM, procurement | A03 | accidental duplicate budget owner if skipped | source-of-truth map accepted with PO/P&L boundaries | Yes | `ACCEPTED` |
 | A10 | Legacy executive digest retirement | `SOURCE_VERIFIED` | legacy operational intelligence duplicates newer readers | retire after hierarchy acceptance | `RETIRE` | newer readers and upstream facts remain | old lane is marked deprecating/non-authoritative | low | medium positive | executive reporting | A02 | duplicated executive meaning if skipped | retirement register complete | No | `ACCEPTED` |
+| A11 | Operational Intelligence constitutional layer | `EXECUTIVE_DIRECTIVE` | future packages could still drift into storage/data-entry work without improving intelligence, reuse, or executive understanding | make the Operational Intelligence Constitution a standing constitutional layer inherited by all later packages | `PRESERVE_AND_GOVERN` | accepted C1–C5 foundations and ECAP remain intact | future packages must prove capture-once reuse, one owner per fact, intelligence gain, downstream value, and AI advisory-only behavior | low | very high positive | platform-wide | A01-A10 foundations preserved | later packages could stay additive yet still fail the platform purpose | constitution + inheritance standard accepted and GO gate updated | Yes | `ACCEPTED` |
 
 ## Register result
 
 **Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
 **Proof label:** `DOCUMENTED_ONLY`
 
-- blocking amendments accepted: `9`
+- amendment rows: `11`
+- accepted: `9`
 - accepted with conditions: `2` (`Budget Hierarchy`, `Earned Value` sequencing conditions)
 - unresolved blocking amendments: `0`
 

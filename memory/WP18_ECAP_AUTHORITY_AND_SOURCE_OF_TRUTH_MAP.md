@@ -10,6 +10,8 @@ Date: 2026-08-03
 1. Derived readers never become source-of-truth owners.
 2. Entry systems, approval systems, and executive reporting systems may differ, but their boundaries must be explicit.
 3. No financial concept may have duplicate authority.
+4. Every operational fact has one authoritative owner.
+5. Capture once, reuse everywhere, is the standing default.
 
 ## Source-of-truth map
 
@@ -42,3 +44,5 @@ Date: 2026-08-03
 
 WP-18C must implement only on top of this authority map.  
 Any contradiction during implementation is an executive stop condition.
+
+Any later package that duplicates an existing truth owner fails the Operational Intelligence Constitution.

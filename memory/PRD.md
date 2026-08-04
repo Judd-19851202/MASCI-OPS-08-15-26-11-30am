@@ -1,5 +1,17 @@
 # PRD
 
+## 2026-08-04 — Standing WP-18 Operational Intelligence Constitutional Layer
+
+### Executive directive now in force
+- The platform now carries a standing constitutional layer in `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md` and `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`.
+- Every future package automatically inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution unless a later executive constitutional amendment explicitly supersedes them.
+- No future package may receive **GO** unless it proves operational-intelligence gain, downstream value, trust-line preservation, reduced duplicate entry where applicable, lower operator burden where applicable, and increased executive visibility where applicable.
+
+### Backward-compatibility posture
+- Accepted C1–C5 work is preserved, not reopened.
+- C1–C5 now explicitly inherit the new constitutional layer through standing amendment.
+- Genuine remaining intelligence gaps are documented in `WP18_OPERATIONAL_INTELLIGENCE_BACKWARD_COMPATIBILITY_AND_GAP_REPORT.md` and must be handled only by later authorized work.
+
 ## 2026-08-04 — WP-18C5 Schedule / Lookahead / Actuals Spine
 
 ### Governing implementation authorization

@@ -26,6 +26,9 @@ This report records whether the ECAP packet satisfies the required integrity rul
 14. acceptance criteria are testable
 15. no application code changed
 16. PRD/ROADMAP/CHANGELOG remain factual
+17. Operational Intelligence Constitution artifacts exist and are referenced by governing documents
+18. future-package inheritance is explicit
+19. GO gate enforcement requires operational-intelligence compliance
 
 ## Result
 
@@ -44,6 +47,9 @@ This report records whether the ECAP packet satisfies the required integrity rul
 - final authorization gate present: `AUTHORIZED_FOR_WP18C_WITH_ACCEPTED_CONDITIONS`
 - no application code changed during ECAP: `confirmed by execution scope`
 - PRD / ROADMAP / CHANGELOG update pending until this validation closes: `false`
+- Operational Intelligence Constitution propagated: `true`
+- future-package inheritance rule explicit: `true`
+- operational-intelligence GO enforcement explicit: `true`
 
 ### Integrity verdict
 

@@ -24,6 +24,9 @@ Project Controls in ForgedOps is one operating model connecting:
 - earned value
 - executive reporting
 
+It is not approved to become a larger data-entry burden.
+Every later Project Controls package must reduce operator effort while increasing operational understanding.
+
 ## Weekly cadence
 
 | Day / step | Owner | Required actions | Approval / output |
@@ -67,3 +70,5 @@ The operating model is approved only because it works for:
 - executive leadership seeing one governed outcome
 
 Anything that adds operator burden without improving trust violates ECAP.
+
+Anything that captures data without creating downstream operational or executive value violates the Operational Intelligence Constitution.

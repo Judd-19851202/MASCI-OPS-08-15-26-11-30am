@@ -52,6 +52,12 @@ Completed:
 
 **WP-18C1 GO**
 
+## Standing inheritance addendum
+
+WP-18C1 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+
+No redesign of C1 is required by that amendment; future work may only deepen downstream intelligence where later authorization legitimately requires it.
+
 ## Authorization recommendation for WP-18C2
 
 **Authorized to begin WP-18C2** because the accepted hierarchy foundation, backfill, scope foundation, and preservation rules are now implemented and evidenced.

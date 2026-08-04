@@ -26,6 +26,8 @@ Reference set:
 - `WP18_ECAP_PROJECT_CONTROLS_OPERATING_MODEL.md`
 - `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`
 - `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
+- `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`
+- `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
 
 ### 3. Protected systems are explicitly identified
 
@@ -44,6 +46,8 @@ Authorization is conditioned on:
 2. Budget Hierarchy preceding Earned Value
 3. executive reporting refactor occurring without hidden truth-owner duplication
 4. additive migration and reconciliation discipline being preserved
+5. every package inheriting the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution
+6. no package closing GO without downstream value beyond raw data capture
 
 ## What would force a return to executive decision
 
@@ -58,3 +62,5 @@ Authorization is conditioned on:
 
 Proceed to WP-18C **only** through the ECAP contract.  
 No further generic pre-implementation review package is authorized unless a genuine contradiction or impossible requirement is evidenced.
+
+This same inheritance and GO-gate rule carries forward automatically into later packages unless a later executive constitutional amendment explicitly changes it.

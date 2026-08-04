@@ -54,3 +54,9 @@ Suggested C4 entry focus:
 ## Final note
 
 The C3 package is intentionally a financial-planning and governed-review foundation. It is future-ready for C4–C10 without requiring schema redesign, while avoiding premature implementation of those packages.
+
+## Standing inheritance addendum
+
+WP-18C3 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+
+No redesign of C3 is required by that amendment; future work may only deepen downstream cost intelligence and executive visibility where later authorized.

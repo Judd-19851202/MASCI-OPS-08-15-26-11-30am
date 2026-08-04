@@ -15,15 +15,17 @@ This is the final implementation contract that governs WP-18C.
 
 WP-18C may begin only after the following are accepted as authoritative:
 
-1. `WP18_ECAP_ENTERPRISE_HIERARCHY_CONSTITUTION.md`
-2. `WP18_ECAP_EXECUTIVE_REPORTING_HIERARCHY.md`
-3. `WP18_ECAP_BUDGET_HIERARCHY_CONSTITUTION.md`
-4. `WP18_ECAP_EARNED_VALUE_ENGINE_BLUEPRINT.md`
-5. `WP18_ECAP_AUTHORITY_AND_SOURCE_OF_TRUTH_MAP.md`
-6. `WP18_ECAP_PLATFORM_PRESERVATION_MAP.md`
-7. `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`
-8. `WP18_ECAP_WP18C_WORK_PACKAGE_MAP.md`
-9. `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
+1. `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`
+2. `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
+3. `WP18_ECAP_ENTERPRISE_HIERARCHY_CONSTITUTION.md`
+4. `WP18_ECAP_EXECUTIVE_REPORTING_HIERARCHY.md`
+5. `WP18_ECAP_BUDGET_HIERARCHY_CONSTITUTION.md`
+6. `WP18_ECAP_EARNED_VALUE_ENGINE_BLUEPRINT.md`
+7. `WP18_ECAP_AUTHORITY_AND_SOURCE_OF_TRUTH_MAP.md`
+8. `WP18_ECAP_PLATFORM_PRESERVATION_MAP.md`
+9. `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`
+10. `WP18_ECAP_WP18C_WORK_PACKAGE_MAP.md`
+11. `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
 
 ## During WP-18C
 
@@ -36,6 +38,9 @@ WP-18C must:
 - preserve protected systems by default
 - use additive migration and backward compatibility
 - stop on any ECAP stop condition
+- inherit the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution
+- reduce duplicate entry and operator workload where the package legitimately touches workflows
+- increase operational intelligence and downstream value instead of only collecting more data
 - close each package only with the evidence defined in the acceptance matrix
 
 ## Explicit WP-18C exclusions
@@ -70,6 +75,8 @@ WP-18C is complete only when every sub-package shows:
 10. PDF/email/report tests where applicable
 11. migration/backfill and rollback proof where applicable
 12. executive screenshot proof
+13. operational-intelligence compliance proof
+14. duplicate-entry reduction / downstream-value proof
 
 Authoritative test ledger: `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
 
@@ -79,6 +86,10 @@ Authoritative test ledger: `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
 **Proof label:** `DOCUMENTED_ONLY`
 
 Routine implementation choices that conform to ECAP do **not** require repeated executive review.
+
+Every future package must open with language equivalent to:
+
+> This work package inherits the WP-17 Product Constitution, the WP-18 Executive Constitutional Architecture Package (ECAP), and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.
 
 Implementation must stop only when it encounters:
 
@@ -94,3 +105,5 @@ Implementation must stop only when it encounters:
 ## Final contract result
 
 WP-18C is contractually authorized to begin **only** under the ECAP sequencing, scope, and evidence rules.
+
+Every later package after WP-18 inherits the same constitutional stack unless a later executive amendment explicitly supersedes it.

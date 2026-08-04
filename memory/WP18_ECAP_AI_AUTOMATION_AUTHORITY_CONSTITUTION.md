@@ -10,6 +10,10 @@ Date: 2026-08-03
 AI may assist authority.  
 AI may not silently become authority.
 
+This is the standing WP-18 expression of the constitutional rule: **AI advises — humans govern**.
+
+It is governed jointly by the WP-18 ECAP and the **WP-18 Operational Intelligence Constitution**.
+
 ## Allowed AI actions
 
 | Action | Allowed? | Conditions |
@@ -49,6 +53,8 @@ Every AI output must expose:
 - limitations
 - required human decision authority
 - auditability
+
+AI outputs that improve understanding but do not strengthen evidence, trust, or decision quality are constitutionally insufficient.
 
 ## Final constitutional result
 

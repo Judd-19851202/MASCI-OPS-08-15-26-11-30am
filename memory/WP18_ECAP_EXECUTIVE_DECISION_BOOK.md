@@ -4,6 +4,19 @@ Date: 2026-08-03
 Packet: WP-18 ECAP  
 Scope rule: documentation and implementation-contract work only. No application code, UI, API, database, permissions, configuration, runtime behavior, or integration changes were made.
 
+## Standing constitutional inheritance
+
+**Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
+**Proof label:** `EXECUTIVE_DIRECTIVE`
+
+All future implementation packages inherit:
+
+1. the WP-17 Product Constitution
+2. the WP-18 ECAP
+3. the WP-18 Operational Intelligence Constitution
+
+Compliance is mandatory.
+
 ## Executive answer
 
 **Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
@@ -182,6 +195,13 @@ Authoritative sources:
 
 Project Controls is defined as one operating model joining estimate, budget, cost codes, schedule, lookahead, Daily Reports, quantities, resources, commitments, forecast, earned value, and executive reporting.
 
+That operating model must also:
+
+- capture facts once and reuse them everywhere legitimate
+- preserve one authoritative owner per fact
+- build intelligence, not just storage
+- increase operator understanding and executive visibility with every later package
+
 ## What happens before WP-18C
 
 **Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
@@ -204,7 +224,7 @@ Before WP-18C begins, this ECAP packet must be the accepted contract for:
 **Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
 **Proof label:** `DOCUMENTED_ONLY`
 
-WP-18C executes only through the sub-packages defined in `WP18_ECAP_WP18C_WORK_PACKAGE_MAP.md`, in the sequence defined by `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`, under the stop conditions defined by this ECAP.
+WP-18C executes only through the sub-packages defined in `WP18_ECAP_WP18C_WORK_PACKAGE_MAP.md`, in the sequence defined by `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`, under the stop conditions defined by this ECAP and the Operational Intelligence Constitution.
 
 ## What is explicitly excluded from WP-18C
 

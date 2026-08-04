@@ -13,6 +13,10 @@ WP-18BR3 answers one question:
 This is not a review of WP-18BR2 alone.  
 `WP17_*`, `WP18A_*`, `WP18B_*`, `WP18BR_*`, `WP18BR2_*`, `PRD.md`, `ROADMAP.md`, `CHANGELOG.md`, and the actual platform architecture were treated as independent evidence.
 
+The standing constitutional charter now also includes the `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md` layer for all later implementation work.
+
+That layer is the **WP-18 Operational Intelligence Constitution**.
+
 ## Primary answer
 
 If rebuilt today, the platform should **not** be rebuilt from scratch.
@@ -199,6 +203,8 @@ BR3 answer:
 - scheduling, production, dispatch, equipment, safety, HR, shop, and PM flows already form one broad operational model
 - the weak spots are **resource federation clarity**, **constraint dual-lane clarity**, and **executive reporting overlap**
 - those are amendment problems, not rebuild problems
+
+That operational model must now also be judged by whether later packages increase intelligence, reuse facts automatically, reduce operator burden, and improve executive visibility.
 
 ## Executive operator answer
 

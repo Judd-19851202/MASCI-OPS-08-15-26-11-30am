@@ -1,3 +1,23 @@
+# 2026-08-04 — Standing Operational Intelligence constitutional roadmap state
+
+## Current top priority
+
+- **WP-17 + WP-18 ECAP + WP-18 Operational Intelligence Constitution now form the standing inheritance stack for all future packages.**
+- **No future package may receive GO without constitutional evaluation against that stack.**
+- **C1–C5 are preserved and inherited; later packages must deepen intelligence, reuse, and executive visibility rather than reopen accepted foundations.**
+
+## P0
+- require every future package to begin with the mandatory inheritance language defined in `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
+- require every future package to prove: capture once/reuse everywhere, one authoritative owner per fact, preserved trust lines, AI advisory only, and downstream value
+- prohibit future packages from becoming pure data-entry/storage work without explicit executive authorization
+
+## P1
+- carry the standing inheritance rule into all later WP-18 work and any later WP-19 / WP-20 package by default
+- use the constitutional gap report to guide later intelligence work without redesigning C1–C5
+
+## P2
+- no future package may bypass this constitutional layer unless a later executive constitutional amendment explicitly changes the rule
+
 # 2026-08-04 — WP-18C5 closeout roadmap state
 
 ## Current top priority
@@ -13,11 +33,12 @@
 - preserve material delivery versus installation / consumption separation and keep ambiguous outbound rows review-governed
 
 ## P1
-- if and only if separately authorized, prepare WP-18C6 against the completed C5 spine without redesigning C1–C5 trust lines
+- if and only if separately authorized, prepare WP-18C6 against the completed C5 spine without redesigning C1–C5 trust lines and under the mandatory WP-17 + ECAP + Operational Intelligence inheritance rule
 - keep C5 backfill additive and non-destructive if a later executive run is requested
 
 ## P2
 - no C6/C7/C8/C9/C10 analytics, forecasting, earned value, or executive-intelligence work may start from this closeout alone
+- every later package must make the platform smarter, reduce operator work, and increase executive visibility before it can close GO
 
 # 2026-08-04 — WP-18C4 closeout roadmap state
 
