@@ -740,3 +740,13 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P1
 - Re-issue the final WP18CY production proof only after the three external conditions above are satisfied.
+
+## 2026-08-04 — Pre-deployment audit blockers
+
+### P0
+- Reconcile preview/runtime identity so the exact current workspace bundle is what preview certifies.
+- Clear or disposition the representative regression failures/errors before any production deploy.
+- Obtain final live proof for Daily Report branded email/PDF, Atlas offender identity, restore-drill visibility, and deferred-module containment.
+
+### P1
+- After the blockers above are cleared, rerun the post-deploy smoke plan and then reopen the deploy gate.

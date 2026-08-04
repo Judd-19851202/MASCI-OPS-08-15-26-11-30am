@@ -688,3 +688,9 @@
 - Workspace/preview repairs completed and independently verified: Daily Report submit button wording, OPPC-aware Daily Report forensics parity, richer delivery metadata, and explicit downstream failure persistence.
 - Production backup posture is currently healthy again (`freshness_age_minutes≈29.46`, integrity `PASS`), but direct production restore-drill visibility remains external.
 - Final gate moved to **GO WITH REQUIRED EXTERNAL CONDITION** pending bounded production deployment, direct Atlas offender access, and direct production restore-drill evidence.
+
+## 2026-08-04 — Final pre-deployment bundle audit
+- Audited the full workspace delta against production baseline `bd9bdd2012c4f2e31b57d7390218b20c361c6dcc` / source hash `665ea6071d75dd046905a35dfe8dcea4` and generated the machine-readable deployment delta register.
+- Verified the bundle builds locally, but the exact current workspace is not what preview runtime is serving; preview/runtime attestation is behind workspace HEAD.
+- Representative regression totals remain red (`123 passed, 21 failed, 62 errors, 45 skipped`), and production certification still shows stale/untouched Release 1 workflows.
+- Save gate: **SAFE_TO_SAVE_WITH_DOCUMENTED_CONDITIONS**. Deploy gate: **NOT_SAFE_TO_DEPLOY**.
