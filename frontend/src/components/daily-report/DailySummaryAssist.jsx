@@ -837,7 +837,7 @@ export default function DailySummaryAssist({
           ? t("AI summary rejected. Write the final supervisor summary below, then approve it to unlock submit.")
           : accepted
             ? t("Summary locked for submission. If you change it, you must approve it again.")
-            : t("Submission is blocked until one approved executive summary exists.")}
+            : t("Submission is blocked until one approved Executive Summary exists.")}
       </div>
 
       <div
@@ -951,7 +951,7 @@ export default function DailySummaryAssist({
                   setEdited(e.target.value);
                 }}
                 className="min-h-[130px] bg-white text-sm leading-[1.65]"
-                placeholder={t("Write the final approved executive summary exactly as it should appear on the permanent record.")}
+                placeholder={t("Write the final approved Executive Summary exactly as it should appear on the permanent record.")}
               />
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button

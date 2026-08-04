@@ -203,7 +203,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     if (!pendingDraft) return true;
     const pendingProject = String(pendingDraft?.project_number || "").trim();
     return !pendingProject;
-  }, [fallbackDraftOffer, pendingDraft, pendingSavedAt]);
+  }, [fallbackDraftOffer, pendingDraft]);
 
   // Idempotency key: load once from IDB (survives reload) or mint fresh.
   useEffect(() => {
@@ -705,7 +705,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
       {
         key: "approved_summary",
         ok: !!(data.ai_accepted_summary || "").trim() && !!(data.ai_accepted_summary_meta?.accepted_at || "").trim(),
-        label: t("Approved executive summary"),
+        label: t("Approved Executive Summary"),
       },
       { key: "signature", ok: !!data.prepared_by_signature, label: t("Signature") },
     ];
@@ -765,7 +765,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     const completed = items.filter((i) => i.ok).length;
     const missing = items.filter((i) => !i.ok).map((i) => i.label);
     return { items, total: items.length, completed, missing };
-  }, [data, lang, photoMin, t]);
+  }, [data, photoMin, t]);
 
   const canSubmit = readiness.completed === readiness.total;
   const submitLabel = useMemo(() => t("Submit Daily Report"), [t]);

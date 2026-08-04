@@ -2517,7 +2517,7 @@ export function SectionSignoff({
             onClick={onSubmit}
             data-testid="dr-v3-submit-btn"
           >
-            {saving ? t("Submitting…") : (submitLabel || t("Submit Daily Report"))}
+            {saving ? t("Submitting Daily Report…") : (submitLabel || t("Submit Daily Report"))}
           </Button>
         ) : null}
       </div>

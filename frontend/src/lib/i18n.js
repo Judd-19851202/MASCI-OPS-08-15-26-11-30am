@@ -138,13 +138,13 @@ const ES = {
   "Capture a location first so we know where to check the forecast.":
     "Primero captura una ubicación para saber dónde consultar el pronóstico.",
   "Location source": "Fuente de ubicación",
-  "Approved executive summary": "Resumen ejecutivo aprobado",
+  "Approved Executive Summary": "Resumen Ejecutivo aprobado",
   "Weather coordinates match report location":
     "Las coordenadas del clima coinciden con la ubicación del reporte",
   "Approve manual summary to unlock submit":
     "Aprueba el resumen manual para habilitar el envío",
-  "Approve the executive summary to unlock submit":
-    "Aprueba el resumen ejecutivo para habilitar el envío",
+  "Approve the Executive Summary to unlock submit":
+    "Aprueba el Resumen Ejecutivo para habilitar el envío",
   "A Daily Report already exists for this project on this date":
     "Ya existe un Reporte Diario para este proyecto en esta fecha",
   "unknown author": "autor desconocido",
@@ -1908,7 +1908,7 @@ const ES = {
   "Reject AI & write manual": "Rechazar IA y escribir manual",
   "Clear draft summary": "Borrar borrador del resumen",
   "Supervisor manual summary": "Resumen manual del supervisor",
-  "Write the final approved executive summary exactly as it should appear on the permanent record.": "Escribe el resumen ejecutivo final aprobado exactamente como debe aparecer en el registro permanente.",
+  "Write the final approved Executive Summary exactly as it should appear on the permanent record.": "Escribe el Resumen Ejecutivo final aprobado exactamente como debe aparecer en el registro permanente.",
   "Draft saved": "Borrador guardado",
   "Save failed — storage full": "Error al guardar — almacenamiento lleno",
   "Save failed — storage disabled": "Error al guardar — almacenamiento desactivado",
@@ -5699,6 +5699,7 @@ const ES = {
   "Driver signature": "Firma del conductor",
   "Submit DVIR": "Enviar DVIR",
   "Submitting…": "Enviando…",
+  "Submitting Daily Report…": "Enviando Reporte Diario…",
   "Loading DVIR form…": "Cargando formulario DVIR…",
   "DVIR form unavailable": "Formulario DVIR no disponible",
   "Back to Field": "Volver a Campo",
@@ -8388,6 +8389,8 @@ const ES = {
   "Still needed:": "Aún falta:",
   "checking…": "verificando…",
   "Submitting…": "Enviando…",
+  "Submission is blocked until one approved Executive Summary exists.": "El envío está bloqueado hasta que exista un Resumen Ejecutivo aprobado.",
+  "Submitting Daily Report…": "Enviando Reporte Diario…",
   "Submit Daily Report": "Enviar Reporte Diario",
   "Sign with your finger, stylus, or mouse above the line.":
     "Firme con el dedo, lápiz óptico o el ratón sobre la línea.",

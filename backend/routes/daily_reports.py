@@ -1299,7 +1299,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 status_code=422,
                 detail={
                     "error": "approved_summary_metadata_required",
-                    "message": "Approved executive summary is missing the approval timestamp.",
+                    "message": "Approved Executive Summary is missing the approval timestamp.",
                 },
             )
         if _accepted_source not in {"ai", "edited", "fallback", "manual"}:
@@ -1307,7 +1307,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 status_code=422,
                 detail={
                     "error": "approved_summary_source_invalid",
-                    "message": "Approved executive summary is missing a valid source label.",
+                    "message": "Approved Executive Summary is missing a valid source label.",
                 },
             )
         _exc_activity = str(_p.get("excavation_activity_today") or "").strip().lower()
