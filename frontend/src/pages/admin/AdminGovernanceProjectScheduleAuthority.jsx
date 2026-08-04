@@ -215,7 +215,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
           <ShieldCheck className="h-4 w-4" />
           <AlertTitle>{t("Planning rules")}</AlertTitle>
           <AlertDescription>
-            {t("The schedule remains planning truth only. Budget, commitments, actual cost, forecast, revenue, billing, and collections stay separate. Constraints remain governed operational records, not free-form notes.")}
+            {t("The schedule remains planning truth only. Budget, commitments, actual cost, forecast, revenue, billing, and collections stay separate. Constraints remain operational records, not free-form notes.")}
           </AlertDescription>
         </Alert>
 
@@ -256,13 +256,13 @@ export default function AdminGovernanceProjectScheduleAuthority() {
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-actuals-summary-section">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900">{t("C5 actuals oversight")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Admin can inspect candidate volume, approved actuals, and daily work-plan publication without becoming the project authority gate.")}</p>
+                  <h2 className="text-xl font-black text-slate-900">{t("Progress update oversight")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Admin can inspect proposed updates, approved progress, and daily work-plan publication without becoming the project decision gate.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="admin-project-schedule-actuals-count-badge">{actualsOverview?.summary?.candidates || 0}</Badge>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Candidates")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.candidates || 0}</div></div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Proposed updates")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.candidates || 0}</div></div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Approved")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.approved || 0}</div></div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Review required")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.review_required || 0}</div></div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Daily plans")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.daily_work_plans || 0}</div></div>
@@ -271,7 +271,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
 
             <section className="grid gap-6 xl:grid-cols-2" data-testid="admin-project-schedule-actuals-detail-grid">
               <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-actuals-candidates-section">
-                <h3 className="text-lg font-black text-slate-900">{t("Recent candidate evidence")}</h3>
+                <h3 className="text-lg font-black text-slate-900">{t("Recent progress-update evidence")}</h3>
                 <div className="mt-4 space-y-3">
                   {(actualsOverview?.candidates || []).slice(0, 10).map((row) => (
                     <div key={row.candidate_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-actual-candidate-${row.candidate_id}`}>

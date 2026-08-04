@@ -691,3 +691,17 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 - **P0:** Preserve the documented constitutional owners and never-rebuild engines
 - **P1:** If later authorized, begin WP-18C from the approved sequence only
 - **P2:** No additional future work authorized beyond the documented sequence
+
+## 2026-08-04 — WP18CX remaining gate work
+
+### P0
+- Capture runtime language evidence for PDF, email, export-output, and AI-summary channels.
+- Run direct role walkthroughs for Safety, HR, Dispatch, Shop, Equipment, and Survey portals.
+- Capture explicit mobile and accessibility evidence needed to convert WP18CX from web-surface pass to final constitutional GO.
+
+### P1
+- Normalize the legacy `frontend/src/lib/i18n.js` duplicate-key debt in a dedicated safe-repair package.
+- Extend WP18CX wording certification to inherited legacy pages not modified in the audited C1–C6 web flow set.
+
+### P2
+- Keep WP18CX as the standing operator-experience inheritance gate for C7 and later work packages.

@@ -509,7 +509,7 @@ export default function PmProjectSchedule() {
           <ShieldCheck className="h-4 w-4" />
           <AlertTitle>{t("Planning rules")}</AlertTitle>
           <AlertDescription>
-            {t("CSV is the certified import lane today. P6, Microsoft Project, Excel, and PDF imports stay extension paths until runtime testing is complete. Daily Reports stay the field-execution source.")}
+            {t("CSV is the certified import lane today. P6, Microsoft Project, Excel, and PDF imports stay review paths until field validation is complete. Daily Reports stay the field-execution source.")}
           </AlertDescription>
         </Alert>
 
@@ -518,8 +518,8 @@ export default function PmProjectSchedule() {
             <TabsTrigger value="imports" data-testid="pm-project-schedule-imports-tab">{t("Imports")}</TabsTrigger>
             <TabsTrigger value="schedule" data-testid="pm-project-schedule-active-tab">{t("Active schedule")}</TabsTrigger>
             <TabsTrigger value="lookahead" data-testid="pm-project-schedule-lookahead-tab">{t("Lookahead")}</TabsTrigger>
-            <TabsTrigger value="actuals" data-testid="pm-project-schedule-actuals-tab">{t("Actuals review")}</TabsTrigger>
-            <TabsTrigger value="review" data-testid="pm-project-schedule-review-tab">{t("Review queue")}</TabsTrigger>
+            <TabsTrigger value="actuals" data-testid="pm-project-schedule-actuals-tab">{t("Progress updates")}</TabsTrigger>
+            <TabsTrigger value="review" data-testid="pm-project-schedule-review-tab">{t("Items needing review")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="imports" className="space-y-6" data-testid="pm-project-schedule-imports-panel">

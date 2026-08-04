@@ -223,7 +223,7 @@ export default function ExecutiveOverview() {
             <div className="wp17-kicker text-white/70">{t("Portal mission")}</div>
             <h2 className="mt-2 font-display text-xl font-black text-white">{t("Give leadership the shortest possible path to risk, not a second analytics maze.")}</h2>
             <p className="mt-2 max-w-3xl text-sm text-white/80">
-              {t("Executive views now participate in the same canonical shell while staying intentionally concise, role-appropriate, and operationally clear.")}
+              {t("Executive views now use the same shared work area while staying concise, role-appropriate, and operationally clear.")}
             </p>
           </div>
         </div>

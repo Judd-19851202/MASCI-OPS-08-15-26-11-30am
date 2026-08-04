@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useT } from "@/lib/i18n";
-import { operatorStatusLabel } from "@/lib/operatorLanguage";
+import { operatorStatusLabel, sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 import {
   fetchAdminProjectControlsOverview,
   fetchProjectControlsEventContracts,
@@ -204,10 +204,10 @@ export default function AdminGovernanceProjectControlsAuthority() {
                 {reviewQueue.slice(0, 8).map((row) => (
                   <div key={row.review_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-controls-review-item-${row.review_id}`}>
                     <div className="flex items-center justify-between gap-3">
-                      <div className="font-semibold text-slate-900">{row.title}</div>
+                      <div className="font-semibold text-slate-900">{sanitizeOperatorCopy(row.title, "Review item")}</div>
                       <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">{operatorStatusLabel(row.status, t)}</span>
                     </div>
-                    <p className="mt-2 text-sm text-slate-600">{row.reason}</p>
+                    <p className="mt-2 text-sm text-slate-600">{sanitizeOperatorCopy(row.reason, "Review the linked work-type item before moving forward.")}</p>
                     <div className="mt-2 text-xs text-slate-500">{localize("Source", t, lang)}: {row.source_collection || "—"}</div>
                   </div>
                 ))}

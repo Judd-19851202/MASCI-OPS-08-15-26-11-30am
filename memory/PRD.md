@@ -632,3 +632,15 @@
 - Preserve the governed metric engine, Work-Block-centered lineage, review-first ambiguity handling, and shared PM/admin governed snapshot contract exactly as implemented.
 - Do not introduce forecasting, Earned Value, executive portfolio intelligence, duplicate production KPI engines, or unguided AI conclusions without separate authorization.
 - If the sequence advances, future packages may extend this C6 governed metric engine into explicitly authorized C7 forecasting and later packages without redesigning the accepted C1–C6 spine.
+
+## 2026-08-04 — WP-18CX Operator Experience certification update
+- Established `WP18CX_EXECUTIVE_OPERATOR_LANGUAGE_DICTIONARY.md` as the permanent operator-language authority for future packages.
+- Refined audited PM/admin/executive web surfaces to construction-first wording using smallest-safe-repair only; no C1–C6 architectural changes were made.
+- Added WP18CX artifacts covering navigation, coaching, role certification, duplicate-entry review, decision quality, constitutional compliance, integrity, and GO/NO-GO status.
+- Runtime evidence captured:
+  - smoke screenshot confirmed frontend load
+  - targeted lint passed on touched UI files outside the legacy `frontend/src/lib/i18n.js` duplicate-key baseline
+  - `/app/test_reports/iteration_117.json` passed PM/admin/executive web-surface verification and EN/ES toggle checks
+- Current gate status:
+  - audited PM/admin/executive web surfaces: certified
+  - final WP18CX constitutional gate: **still blocked** pending runtime evidence for PDF/email/export/AI channels and direct walkthroughs for remaining role-specific portals

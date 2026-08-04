@@ -1,0 +1,20 @@
+artifact_or_surface,category,status,evidence,notes
+WP18CX_EXECUTIVE_OPERATOR_LANGUAGE_DICTIONARY.md,language_authority,pass,document_created,canonical language source established
+PM Project Controls,web_surface,pass,iteration_117 + targeted lint,construction-first wording verified
+PM Project Budget,web_surface,pass,iteration_117 + targeted lint,construction-first wording verified
+PM Project Schedule,web_surface,pass,iteration_117 + post-QA repair,developer-language cleanup completed
+PM Project Performance,web_surface,pass,iteration_117 + targeted lint,decision-support wording verified
+Admin Project Controls Standards,web_surface,pass,iteration_117 + post-QA repair,review-item copy sanitized
+Admin Project Budget Review,web_surface,pass,iteration_117 + targeted lint,review wording verified
+Admin Project Schedule Review,web_surface,pass,iteration_117 + post-QA repair,planning-rules wording repaired
+Admin Operations Dashboard Review,web_surface,pass,iteration_117,operator-safe wording verified
+Executive Operations Dashboard,web_surface,pass,iteration_117 + targeted lint,executive wording aligned
+Executive Overview mission panel,web_surface,pass,iteration_117 + post-QA repair,canonical-shell wording removed
+EN/ES touched web parity,language_consistency,pass,iteration_117,language toggle passed
+Mobile certification,mobile,partial,qa_overflow_check_only,needs dedicated runtime evidence
+Accessibility certification,accessibility,partial,qa_console_and_click_check_only,needs explicit accessibility walkthrough
+PDF output wording,channel_output,partial,source + entry-point evidence only,needs runtime document audit
+Email wording,channel_output,pending,source-only,needs runtime evidence
+AI summary wording,channel_output,partial,web recommendation evidence only,needs downstream channel audit
+Remaining role walkthroughs,role_experience,pending,documentary only,safety hr dispatch shop equipment survey still open
+WP18CX final gate,constitutional_release,no-go,go_no_go_report,blocked on remaining runtime evidence

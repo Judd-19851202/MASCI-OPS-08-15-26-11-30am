@@ -613,3 +613,9 @@
   - `WP18B_FINAL_EXECUTIVE_REPORT.md`
 - Recorded the constitutional conclusions for the 12 executive-requested Project Controls domains: `10` existing reusable/extendable/consolidatable domains and `2` evidence-backed `BUILD_NEW` domains only (`Budget Hierarchy`, `Earned Value`).
 - Completed documentation-only integrity validation: all 14 artifacts exist, cross-references resolve, disposition counts reconcile (`REUSE 1 / EXTEND 8 / CONSOLIDATE 1 / BUILD_NEW 2`), and no implementation work occurred.
+
+## 2026-08-04 — WP18CX web-surface certification pass / final gate hold
+
+- Added the WP18CX language authority document plus standards and reports for navigation, coaching, role certification, duplicate-entry reduction, decision quality, constitutional compliance, integrity, executive closeout, and GO/NO-GO status.
+- Updated audited PM/admin/executive web surfaces to construction-first wording (`Project Performance`, `Items needing review`, `Project Controls Standards`, `Operations Dashboard Review`, etc.) without altering C1–C6 architecture.
+- Verified touched UI with targeted lint, smoke-load proof, and `/app/test_reports/iteration_117.json`; final constitutional GO remains blocked pending channel-level runtime evidence for PDF/email/export/AI and remaining role walkthroughs.
