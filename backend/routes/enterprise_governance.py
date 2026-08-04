@@ -81,6 +81,25 @@ from services.project_budget_authority import (
     review_budget_import_row,
     run_project_budget_backfill,
 )
+from services.project_schedule_authority import (
+    EVENT_CONTRACTS as SCHEDULE_EVENT_CONTRACTS,
+    activate_schedule_import_session,
+    create_schedule_import_session,
+    ensure_project_schedule_foundation,
+    export_schedule_view,
+    get_admin_schedule_spine_overview,
+    get_schedule_import_detail,
+    get_schedule_spine_overview,
+    list_schedule_activities,
+    list_schedule_imports,
+    list_schedule_review_queue,
+    list_schedule_versions,
+    list_schedule_work_packages,
+    queue_schedule_email_export,
+    review_schedule_import_row,
+    run_schedule_backfill,
+    save_schedule_lookahead,
+)
 from pm_auth import is_valid_pm_user_token_async
 
 
@@ -269,6 +288,45 @@ class BudgetImportRowReviewBody(BaseModel):
     schedule_activity_name: str = ""
     line_kind: str = "direct_cost"
     review_note: str = ""
+
+
+class ScheduleImportRowReviewBody(BaseModel):
+    action: str = "approve"
+    activity_id: str = ""
+    activity_name: str = ""
+    phase_id: str = ""
+    work_package_id: str = ""
+    budget_line_id: str = ""
+    customer_pay_item_number: str = ""
+    enterprise_work_type_id: str = ""
+    project_cost_code: str = ""
+    planned_start_date: str = ""
+    planned_finish_date: str = ""
+    duration_days: int = 1
+    predecessor_activity_ids: List[str] = Field(default_factory=list)
+    calendar_name: str = "Default"
+    status: str = "not_started"
+    percent_complete: float = 0.0
+    owner: str = ""
+    priority: str = "normal"
+    notes: str = ""
+    execution_strategy: str = "self_perform"
+    planned_crew_ids: List[Dict[str, Any]] = Field(default_factory=list)
+    planned_employee_ids: List[Dict[str, Any]] = Field(default_factory=list)
+    planned_equipment_ids: List[Dict[str, Any]] = Field(default_factory=list)
+    planned_materials: List[Dict[str, Any]] = Field(default_factory=list)
+    planned_vendor_refs: List[Dict[str, Any]] = Field(default_factory=list)
+    planned_subcontractor_refs: List[Dict[str, Any]] = Field(default_factory=list)
+    planned_production_quantity: float = 0.0
+    planned_hours: float = 0.0
+    planned_constraints: List[Dict[str, Any]] = Field(default_factory=list)
+    review_note: str = ""
+
+
+class ScheduleEmailExportBody(BaseModel):
+    export_kind: str = "master_schedule_csv"
+    version_id: str = ""
+    recipients: List[str] = Field(default_factory=list)
 
 
 def _runtime_db(request: Optional[Request], db):
@@ -769,6 +827,85 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
             headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
         )
 
+    @api_router.get("/api/admin/governance/project-controls/schedule/overview")
+    async def governance_project_schedule_overview(request: Request, project_number: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_schedule_foundation(runtime_db)
+        if project_number:
+            return await get_schedule_spine_overview(runtime_db, project_number)
+        return await get_admin_schedule_spine_overview(runtime_db)
+
+    @api_router.post("/api/admin/governance/project-controls/schedule/backfill/run")
+    async def governance_project_schedule_backfill(request: Request, background_tasks: BackgroundTasks, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_schedule_foundation(runtime_db)
+        background_tasks.add_task(run_schedule_backfill, runtime_db, force=True)
+        return {"ok": True, "status": "queued", "message": "wp18c4 schedule backfill queued"}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/review-queue")
+    async def governance_project_schedule_review(request: Request, project_number: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_schedule_review_queue(runtime_db, project_number=project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/versions")
+    async def governance_project_schedule_versions(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_schedule_versions(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/versions/{version_id}/activities")
+    async def governance_project_schedule_activities(request: Request, version_id: str, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_schedule_activities(runtime_db, project_number, version_id=version_id)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/work-packages")
+    async def governance_project_schedule_work_packages(request: Request, project_number: str, version_id: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_schedule_work_packages(runtime_db, project_number, version_id=version_id)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/imports")
+    async def governance_project_schedule_imports(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        rows = await list_schedule_imports(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/imports/{import_id}")
+    async def governance_project_schedule_import_detail(request: Request, import_id: str, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        try:
+            return await get_schedule_import_detail(runtime_db, project_number, import_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/event-contracts")
+    async def governance_project_schedule_events(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        await ensure_project_schedule_foundation(runtime_db)
+        return {"count": len(SCHEDULE_EVENT_CONTRACTS), "items": SCHEDULE_EVENT_CONTRACTS}
+
+    @api_router.get("/api/admin/governance/project-controls/schedule/export")
+    async def governance_project_schedule_export(request: Request, project_number: str, version_id: str, export_kind: str = "master_schedule_csv", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        try:
+            payload = await export_schedule_view(runtime_db, project_number, version_id=version_id, export_kind=export_kind, actor=resolved)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        if payload["filename"].endswith(".xlsx"):
+            return StreamingResponse(
+                io.BytesIO(payload["content"]),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+            )
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
     @api_router.get("/api/pm/project-controls/overview")
     async def pm_project_controls_overview(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
@@ -1018,3 +1155,156 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
             media_type="text/csv",
             headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
         )
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/overview")
+    async def pm_project_schedule_overview(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_schedule_spine_overview(runtime_db, project_number)
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/versions")
+    async def pm_project_schedule_versions(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_schedule_versions(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/versions/{version_id}/activities")
+    async def pm_project_schedule_activities(request: Request, project_number: str, version_id: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_schedule_activities(runtime_db, project_number, version_id=version_id)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/work-packages")
+    async def pm_project_schedule_work_packages(request: Request, project_number: str, version_id: str = ""):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_schedule_work_packages(runtime_db, project_number, version_id=version_id)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/review-queue")
+    async def pm_project_schedule_review_queue(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_schedule_review_queue(runtime_db, project_number=project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/imports")
+    async def pm_project_schedule_imports(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_schedule_imports(runtime_db, project_number)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/imports/{import_id}")
+    async def pm_project_schedule_import_detail(request: Request, project_number: str, import_id: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        try:
+            return await get_schedule_import_detail(runtime_db, project_number, import_id)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/schedule/imports")
+    async def pm_project_schedule_create_import(
+        request: Request,
+        project_number: str,
+        file: UploadFile = File(...),
+        source_kind: str = Form("csv"),
+        target_version_kind: str = Form("master_schedule"),
+        version_name: str = Form(""),
+    ):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        data = await file.read()
+        try:
+            return await create_schedule_import_session(
+                runtime_db,
+                project_number,
+                filename=file.filename or "schedule-upload",
+                content_type=file.content_type or "application/octet-stream",
+                data=data,
+                source_kind=source_kind,
+                target_version_kind=target_version_kind,
+                version_name=version_name,
+                actor=actor,
+            )
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/schedule/imports/{import_id}/rows/{row_id}/review")
+    async def pm_project_schedule_review_row(request: Request, project_number: str, import_id: str, row_id: str, body: ScheduleImportRowReviewBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await review_schedule_import_row(runtime_db, project_number, import_id, row_id, body.model_dump(), actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "row": row}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/schedule/imports/{import_id}/activate")
+    async def pm_project_schedule_activate(request: Request, project_number: str, import_id: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            result = await activate_schedule_import_session(runtime_db, project_number, import_id, actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, **result}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/export")
+    async def pm_project_schedule_export(request: Request, project_number: str, version_id: str, export_kind: str = "master_schedule_csv"):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            payload = await export_schedule_view(runtime_db, project_number, version_id=version_id, export_kind=export_kind, actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        if payload["filename"].endswith(".xlsx"):
+            return StreamingResponse(
+                io.BytesIO(payload["content"]),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+            )
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/schedule/export/email")
+    async def pm_project_schedule_queue_email_export(request: Request, project_number: str, body: ScheduleEmailExportBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return {
+            "ok": True,
+            "distribution": await queue_schedule_email_export(
+                runtime_db,
+                project_number,
+                version_id=body.version_id,
+                export_kind=body.export_kind,
+                recipients=body.recipients,
+                actor=actor,
+            ),
+        }
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/lookahead")
+    async def pm_project_schedule_lookahead(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_lookahead(runtime_db, project_number)
+
+    @api_router.put("/api/pm/project-controls/projects/{project_number}/schedule/lookahead")
+    async def pm_project_schedule_save_lookahead(request: Request, project_number: str, body: LookaheadBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await save_schedule_lookahead(runtime_db, project_number, body.model_dump(), actor=actor)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "lookahead": row}

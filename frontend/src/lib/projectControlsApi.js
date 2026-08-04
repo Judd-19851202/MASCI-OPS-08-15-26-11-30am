@@ -230,3 +230,131 @@ export async function downloadPmBudgetComparison(projectNumber, leftVersionId, r
     responseType: "blob",
   });
 }
+
+export async function fetchAdminProjectScheduleOverview(projectNumber = "") {
+  const suffix = projectNumber ? `?project_number=${encodeURIComponent(projectNumber)}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/overview${suffix}`);
+  return data;
+}
+
+export async function runAdminProjectScheduleBackfill() {
+  const { data } = await api.post("/admin/governance/project-controls/schedule/backfill/run", {});
+  return data;
+}
+
+export async function fetchAdminProjectScheduleReviewQueue(projectNumber = "") {
+  const suffix = projectNumber ? `?project_number=${encodeURIComponent(projectNumber)}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/review-queue${suffix}`);
+  return data;
+}
+
+export async function fetchAdminProjectScheduleVersions(projectNumber) {
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/versions?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function fetchAdminProjectScheduleActivities(projectNumber, versionId) {
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/versions/${encodeURIComponent(versionId)}/activities?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function fetchAdminProjectScheduleWorkPackages(projectNumber, versionId = "") {
+  const suffix = versionId ? `&version_id=${encodeURIComponent(versionId)}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/work-packages?project_number=${encodeURIComponent(projectNumber)}${suffix}`);
+  return data;
+}
+
+export async function fetchAdminProjectScheduleImports(projectNumber) {
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/imports?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function fetchAdminProjectScheduleImportDetail(projectNumber, importId) {
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/imports/${encodeURIComponent(importId)}?project_number=${encodeURIComponent(projectNumber)}`);
+  return data;
+}
+
+export async function downloadAdminScheduleExport(projectNumber, versionId, exportKind = "master_schedule_csv") {
+  return api.get(`/admin/governance/project-controls/schedule/export?project_number=${encodeURIComponent(projectNumber)}&version_id=${encodeURIComponent(versionId)}&export_kind=${encodeURIComponent(exportKind)}`, {
+    responseType: "blob",
+  });
+}
+
+export async function fetchPmProjectScheduleOverview(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/overview`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleVersions(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/versions`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleActivities(projectNumber, versionId) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/versions/${encodeURIComponent(versionId)}/activities`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleWorkPackages(projectNumber, versionId = "") {
+  const suffix = versionId ? `?version_id=${encodeURIComponent(versionId)}` : "";
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/work-packages${suffix}`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleReviewQueue(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/review-queue`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleImports(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/imports`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleImportDetail(projectNumber, importId) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/imports/${encodeURIComponent(importId)}`);
+  return data;
+}
+
+export async function createPmProjectScheduleImport(projectNumber, payload) {
+  const formData = new FormData();
+  formData.append("file", payload.file);
+  formData.append("source_kind", payload.source_kind || "csv");
+  formData.append("target_version_kind", payload.target_version_kind || "master_schedule");
+  formData.append("version_name", payload.version_name || "");
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/imports`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
+export async function reviewPmProjectScheduleImportRow(projectNumber, importId, rowId, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/imports/${encodeURIComponent(importId)}/rows/${encodeURIComponent(rowId)}/review`, payload);
+  return data;
+}
+
+export async function activatePmProjectScheduleImport(projectNumber, importId) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/imports/${encodeURIComponent(importId)}/activate`, {});
+  return data;
+}
+
+export async function fetchPmProjectScheduleLookahead(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/lookahead`);
+  return data;
+}
+
+export async function savePmProjectScheduleLookahead(projectNumber, payload) {
+  const { data } = await api.put(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/lookahead`, payload);
+  return data;
+}
+
+export async function downloadPmScheduleExport(projectNumber, versionId, exportKind = "master_schedule_csv") {
+  return api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/export?version_id=${encodeURIComponent(versionId)}&export_kind=${encodeURIComponent(exportKind)}`, {
+    responseType: "blob",
+  });
+}
+
+export async function queuePmScheduleEmailExport(projectNumber, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/export/email`, payload);
+  return data;
+}

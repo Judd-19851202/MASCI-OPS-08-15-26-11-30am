@@ -36,9 +36,10 @@ async function fetchPmProjects() {
   } catch (_e) { return []; }
 }
 
-export default function PmProjectSelector({ value, onChange }) {
+export default function PmProjectSelector({ value, projectNumber, onChange }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const selectedValue = value ?? projectNumber ?? "";
 
   useEffect(() => {
     let live = true;
@@ -47,7 +48,7 @@ export default function PmProjectSelector({ value, onChange }) {
       // Deduplicate by project_number, preserve order
       const seen = new Set();
       const out = [];
-      const currentValue = value || "";
+      const currentValue = selectedValue || "";
       for (const r of rows) {
         if (!seen.has(r.project_number)) {
           seen.add(r.project_number);
@@ -61,7 +62,7 @@ export default function PmProjectSelector({ value, onChange }) {
       setLoading(false);
     });
     return () => { live = false; };
-  }, [value]);
+  }, [selectedValue]);
 
   return (
     <div className="flex items-center gap-2" data-testid="pm-project-selector-wrapper">
@@ -71,7 +72,7 @@ export default function PmProjectSelector({ value, onChange }) {
       <select
         id="pm-cc-project-select"
         data-testid="pm-project-selector"
-        value={value || ""}
+        value={selectedValue}
         onChange={(e) => onChange(e.target.value || null)}
         className="text-xs sm:text-sm border border-slate-300 rounded px-2 py-1 bg-white text-slate-900 focus:border-slate-500 focus:ring-1 focus:ring-slate-400 focus:outline-none max-w-xs"
       >

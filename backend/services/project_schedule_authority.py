@@ -190,7 +190,24 @@ def _coerce_list(value: Any) -> List[str]:
     seen = set()
     out = []
     for item in raw:
-        text = _clean(item)
+        if isinstance(item, dict):
+            text = _clean(
+                item.get("label")
+                or item.get("title")
+                or item.get("description")
+                or item.get("vendor_name")
+                or item.get("subcontractor_name")
+                or item.get("name")
+                or item.get("constraint_id")
+                or item.get("material_id")
+                or item.get("crew_id")
+                or item.get("employee_id")
+                or item.get("equipment_id")
+                or item.get("vendor_id")
+                or item.get("id")
+            )
+        else:
+            text = _clean(item)
         if not text:
             continue
         key = text.lower()
@@ -238,6 +255,32 @@ def _normalize_execution_strategy(value: Any) -> str:
 
 def _constraint_tokens(value: Any) -> List[Dict[str, Any]]:
     rows = []
+    if isinstance(value, list) and any(isinstance(item, dict) for item in value):
+        seen = set()
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            title = _clean(item.get("title") or item.get("label") or item.get("description") or item.get("constraint_id"))
+            if not title:
+                continue
+            dedupe_key = title.lower()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append(
+                {
+                    "constraint_id": _clean(item.get("constraint_id") or item.get("id")),
+                    "category": _status(
+                        item.get("category") or title.lower().replace("-", "_").replace(" ", "_"),
+                        allowed=CONSTRAINT_CATEGORIES,
+                        default="unknown",
+                    ),
+                    "title": title,
+                    "status": _clean(item.get("status") or "planned") or "planned",
+                    "notes": _clean(item.get("notes")),
+                }
+            )
+        return rows
     for token in _coerce_list(value):
         rows.append(
             {
@@ -252,18 +295,89 @@ def _constraint_tokens(value: Any) -> List[Dict[str, Any]]:
 
 
 def _normalize_resource_refs(value: Any, *, kind: str) -> List[Dict[str, Any]]:
+    rows = []
+    if isinstance(value, list) and any(isinstance(item, dict) for item in value):
+        seen = set()
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            row_id = _clean(item.get(f"{kind}_id") or item.get("id"))
+            label = _clean(item.get("label") or item.get("name") or item.get("description") or row_id)
+            if not label and not row_id:
+                continue
+            dedupe_key = (row_id or label).lower()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append({f"{kind}_id": row_id, "label": label or row_id})
+        return rows
     return [{f"{kind}_id": "", "label": token} for token in _coerce_list(value)]
 
 
 def _normalize_material_refs(value: Any) -> List[Dict[str, Any]]:
+    if isinstance(value, list) and any(isinstance(item, dict) for item in value):
+        rows = []
+        seen = set()
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            material_id = _clean(item.get("material_id") or item.get("id"))
+            description = _clean(item.get("description") or item.get("label") or material_id)
+            if not material_id and not description:
+                continue
+            dedupe_key = (material_id or description).lower()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append(
+                {
+                    "material_id": material_id,
+                    "description": description,
+                    "quantity": _safe_float(item.get("quantity")),
+                    "unit": _clean(item.get("unit")),
+                }
+            )
+        return rows
     return [{"material_id": "", "description": token, "quantity": 0.0, "unit": ""} for token in _coerce_list(value)]
 
 
 def _normalize_vendor_refs(value: Any) -> List[Dict[str, Any]]:
+    if isinstance(value, list) and any(isinstance(item, dict) for item in value):
+        rows = []
+        seen = set()
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            vendor_id = _clean(item.get("vendor_id") or item.get("id"))
+            vendor_name = _clean(item.get("vendor_name") or item.get("label") or item.get("name") or vendor_id)
+            if not vendor_id and not vendor_name:
+                continue
+            dedupe_key = (vendor_id or vendor_name).lower()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append({"vendor_id": vendor_id, "vendor_name": vendor_name})
+        return rows
     return [{"vendor_id": "", "vendor_name": token} for token in _coerce_list(value)]
 
 
 def _normalize_subcontractor_refs(value: Any) -> List[Dict[str, Any]]:
+    if isinstance(value, list) and any(isinstance(item, dict) for item in value):
+        rows = []
+        seen = set()
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            vendor_id = _clean(item.get("vendor_id") or item.get("id"))
+            subcontractor_name = _clean(item.get("subcontractor_name") or item.get("vendor_name") or item.get("label") or item.get("name") or vendor_id)
+            if not vendor_id and not subcontractor_name:
+                continue
+            dedupe_key = (vendor_id or subcontractor_name).lower()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append({"vendor_id": vendor_id, "subcontractor_name": subcontractor_name})
+        return rows
     return [{"vendor_id": "", "subcontractor_name": token} for token in _coerce_list(value)]
 
 
@@ -439,7 +553,7 @@ async def _ensure_indexes(db) -> None:
     await db[COLL_SCHEDULE_IMPORTS].create_index([("project_number", 1), ("import_id", 1)], unique=True)
     await db[COLL_SCHEDULE_IMPORT_ROWS].create_index([("import_id", 1), ("row_id", 1)], unique=True)
     await db[COLL_SCHEDULE_REVIEW].create_index("review_id", unique=True)
-    await db[COLL_WORK_PACKAGES].create_index([("project_number", 1), ("work_package_id", 1)], unique=True)
+    await db[COLL_WORK_PACKAGES].create_index([("project_number", 1), ("version_id", 1), ("work_package_id", 1)], unique=True)
     await db[COLL_SCHEDULE_DISTRIBUTION].create_index([("project_number", 1), ("created_at", -1)])
     await db[COLL_SCHEDULE_RUNS].create_index([("run_type", 1)], unique=True)
 
@@ -583,9 +697,12 @@ async def list_schedule_activities(db, project_number: str, *, version_id: str) 
     return [_sanitize(row) async for row in db[COLL_SCHEDULE_ACTIVITIES].find({"project_number": project_number, "version_id": version_id}, {"_id": 0}).sort([("phase_id", 1), ("work_package_id", 1), ("planned_start_date", 1), ("activity_id", 1)])]
 
 
-async def list_schedule_work_packages(db, project_number: str) -> List[Dict[str, Any]]:
+async def list_schedule_work_packages(db, project_number: str, *, version_id: str = "") -> List[Dict[str, Any]]:
     await ensure_project_schedule_foundation(db)
-    return [_sanitize(row) async for row in db[COLL_WORK_PACKAGES].find({"project_number": project_number}, {"_id": 0}).sort([("phase_id", 1), ("work_package_id", 1)])]
+    query: Dict[str, Any] = {"project_number": project_number}
+    if _clean(version_id):
+        query["version_id"] = _clean(version_id)
+    return [_sanitize(row) async for row in db[COLL_WORK_PACKAGES].find(query, {"_id": 0}).sort([("phase_id", 1), ("work_package_id", 1)])]
 
 
 async def list_schedule_imports(db, project_number: str) -> List[Dict[str, Any]]:
@@ -779,12 +896,12 @@ def _selected_payload_for_row(row: Dict[str, Any], payload: Dict[str, Any]) -> D
             "priority": _normalize_priority(payload.get("priority") or selected.get("priority") or normalized.get("priority") or "normal"),
             "notes": _clean(payload.get("notes") or selected.get("notes") or normalized.get("notes")),
             "execution_strategy": _normalize_execution_strategy(payload.get("execution_strategy") or selected.get("execution_strategy") or normalized.get("execution_strategy") or "self_perform"),
-            "planned_crew_ids": _normalize_resource_refs(payload.get("planned_crew") if payload.get("planned_crew") is not None else selected.get("planned_crew_ids", normalized.get("planned_crew_ids")), kind="crew"),
-            "planned_employee_ids": _normalize_resource_refs(payload.get("planned_employees") if payload.get("planned_employees") is not None else selected.get("planned_employee_ids", normalized.get("planned_employee_ids")), kind="employee"),
-            "planned_equipment_ids": _normalize_resource_refs(payload.get("planned_equipment") if payload.get("planned_equipment") is not None else selected.get("planned_equipment_ids", normalized.get("planned_equipment_ids")), kind="equipment"),
+            "planned_crew_ids": _normalize_resource_refs(payload.get("planned_crew_ids") if payload.get("planned_crew_ids") is not None else payload.get("planned_crew") if payload.get("planned_crew") is not None else selected.get("planned_crew_ids", normalized.get("planned_crew_ids")), kind="crew"),
+            "planned_employee_ids": _normalize_resource_refs(payload.get("planned_employee_ids") if payload.get("planned_employee_ids") is not None else payload.get("planned_employees") if payload.get("planned_employees") is not None else selected.get("planned_employee_ids", normalized.get("planned_employee_ids")), kind="employee"),
+            "planned_equipment_ids": _normalize_resource_refs(payload.get("planned_equipment_ids") if payload.get("planned_equipment_ids") is not None else payload.get("planned_equipment") if payload.get("planned_equipment") is not None else selected.get("planned_equipment_ids", normalized.get("planned_equipment_ids")), kind="equipment"),
             "planned_materials": _normalize_material_refs(payload.get("planned_materials") if payload.get("planned_materials") is not None else selected.get("planned_materials", normalized.get("planned_materials"))),
-            "planned_vendor_refs": _normalize_vendor_refs(payload.get("planned_vendors") if payload.get("planned_vendors") is not None else selected.get("planned_vendor_refs", normalized.get("planned_vendor_refs"))),
-            "planned_subcontractor_refs": _normalize_subcontractor_refs(payload.get("planned_subcontractors") if payload.get("planned_subcontractors") is not None else selected.get("planned_subcontractor_refs", normalized.get("planned_subcontractor_refs"))),
+            "planned_vendor_refs": _normalize_vendor_refs(payload.get("planned_vendor_refs") if payload.get("planned_vendor_refs") is not None else payload.get("planned_vendors") if payload.get("planned_vendors") is not None else selected.get("planned_vendor_refs", normalized.get("planned_vendor_refs"))),
+            "planned_subcontractor_refs": _normalize_subcontractor_refs(payload.get("planned_subcontractor_refs") if payload.get("planned_subcontractor_refs") is not None else payload.get("planned_subcontractors") if payload.get("planned_subcontractors") is not None else selected.get("planned_subcontractor_refs", normalized.get("planned_subcontractor_refs"))),
             "planned_production_quantity": _safe_float(payload.get("planned_production_quantity") if payload.get("planned_production_quantity") is not None else selected.get("planned_production_quantity", normalized.get("planned_production_quantity"))),
             "planned_hours": _safe_float(payload.get("planned_hours") if payload.get("planned_hours") is not None else selected.get("planned_hours", normalized.get("planned_hours"))),
             "planned_constraints": _constraint_tokens(payload.get("planned_constraints") if payload.get("planned_constraints") is not None else selected.get("planned_constraints", normalized.get("planned_constraints"))),
@@ -967,24 +1084,26 @@ def _activity_doc(project_number: str, version_id: str, selected: Dict[str, Any]
 def _assignment_projection(activity: Dict[str, Any]) -> Dict[str, Any]:
     planned = activity.get("planned_assignments") or {}
     notes = activity.get("notes") or ""
+    crew_rows = planned.get("planned_crew_ids") or []
+    planned_performer = activity.get("owner") or (crew_rows[0].get("label", "") if crew_rows else "")
     return normalize_job_assignment(
         {
             "code": activity.get("project_cost_code") or activity.get("activity_id"),
             "item_name": activity.get("activity_name") or activity.get("activity_id"),
             "unit": "LS",
-            "authorized_quantity": activity.get("planned_production_quantity") or 1,
-            "original_quantity": activity.get("planned_production_quantity") or 1,
-            "forecast_quantity": activity.get("planned_production_quantity") or 1,
+            "authorized_quantity": planned.get("planned_production_quantity") or 1,
+            "original_quantity": planned.get("planned_production_quantity") or 1,
+            "forecast_quantity": planned.get("planned_production_quantity") or 1,
             "cpm_activity_id": activity.get("activity_id"),
             "cpm_activity_name": activity.get("activity_name"),
             "schedule_phase": activity.get("phase_id"),
             "schedule_start_date": activity.get("planned_start_date"),
             "duration_days": activity.get("duration_days") or 1,
             "predecessor_codes": activity.get("predecessor_activity_ids") or [],
-            "planned_performer": activity.get("owner") or (planned.get("planned_crew_ids") or [{}])[0].get("label", "") if planned.get("planned_crew_ids") else activity.get("owner") or "",
+            "planned_performer": planned_performer,
             "planned_equipment_units": [row.get("label") for row in planned.get("planned_equipment_ids") or [] if _clean(row.get("label"))],
             "resource_demand": {
-                "labor_hours": activity.get("planned_hours") or 0,
+                "labor_hours": planned.get("planned_hours") or 0,
                 "required_materials": [row.get("description") for row in planned.get("planned_materials") or [] if _clean(row.get("description"))],
                 "required_subcontractors": [row.get("subcontractor_name") for row in planned.get("planned_subcontractor_refs") or [] if _clean(row.get("subcontractor_name"))],
                 "required_equipment_units": [row.get("label") for row in planned.get("planned_equipment_ids") or [] if _clean(row.get("label"))],
@@ -1147,7 +1266,7 @@ async def activate_schedule_import_session(db, project_number: str, import_id: s
     for (phase_id, work_package_id), activities in work_package_groups.items():
         doc = _work_package_doc(project_number, version["version_id"], phase_id, work_package_id, activities, actor=actor)
         work_package_docs.append(doc)
-        await db[COLL_WORK_PACKAGES].replace_one({"project_number": project_number, "work_package_id": work_package_id}, doc, upsert=True)
+        await db[COLL_WORK_PACKAGES].replace_one({"project_number": project_number, "version_id": version["version_id"], "work_package_id": work_package_id}, doc, upsert=True)
     assignments = [_assignment_projection(activity) for activity in activity_docs]
     await persist_project_assignments(db, project_number, assignments)
     await db.jobs_master.update_one(
@@ -1202,7 +1321,7 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
     versions = await list_schedule_versions(db, project_number)
     active_version = next((row for row in versions if row.get("status") == "active"), None)
     activities = await list_schedule_activities(db, project_number, version_id=active_version["version_id"]) if active_version else []
-    work_packages = await list_schedule_work_packages(db, project_number)
+    work_packages = await list_schedule_work_packages(db, project_number, version_id=active_version["version_id"] if active_version else "")
     imports = await list_schedule_imports(db, project_number)
     review_queue = await list_schedule_review_queue(db, project_number=project_number)
     budget_lines = await _list_budget_lines_for_project(db, project_number)
@@ -1320,35 +1439,205 @@ def _xlsx_payload(filename: str, header: List[str], rows: List[List[Any]]) -> Di
     return {"filename": filename, "content": output.getvalue()}
 
 
+def _assignment_export_rows(activities: List[Dict[str, Any]], *, assignment_key: str, id_key: str, label_key: str) -> List[List[Any]]:
+    rows: List[List[Any]] = []
+    for activity in activities:
+        planned = activity.get("planned_assignments") or {}
+        refs = planned.get(assignment_key) or []
+        for ref in refs:
+            rows.append(
+                [
+                    activity.get("work_package_id"),
+                    activity.get("activity_id"),
+                    activity.get("activity_name"),
+                    ref.get(id_key) or "",
+                    ref.get(label_key) or "",
+                    activity.get("planned_start_date"),
+                    activity.get("planned_finish_date"),
+                    planned.get("planned_hours") or 0,
+                    planned.get("planned_production_quantity") or 0,
+                    activity.get("status"),
+                    activity.get("priority"),
+                ]
+            )
+    return rows
+
+
+def _material_export_rows(activities: List[Dict[str, Any]]) -> List[List[Any]]:
+    rows: List[List[Any]] = []
+    for activity in activities:
+        planned = activity.get("planned_assignments") or {}
+        for ref in planned.get("planned_materials") or []:
+            rows.append(
+                [
+                    activity.get("work_package_id"),
+                    activity.get("activity_id"),
+                    activity.get("activity_name"),
+                    ref.get("material_id") or "",
+                    ref.get("description") or "",
+                    ref.get("quantity") or 0,
+                    ref.get("unit") or "",
+                    activity.get("planned_start_date"),
+                    activity.get("planned_finish_date"),
+                    activity.get("status"),
+                ]
+            )
+    return rows
+
+
+def _work_package_export_rows(activities: List[Dict[str, Any]]) -> List[List[Any]]:
+    grouped: Dict[Tuple[str, str], List[Dict[str, Any]]] = defaultdict(list)
+    for activity in activities:
+        grouped[(activity.get("phase_id") or "", activity.get("work_package_id") or activity.get("activity_id") or "UNASSIGNED")].append(activity)
+    rows: List[List[Any]] = []
+    for (phase_id, work_package_id), package_rows in grouped.items():
+        start_dates = sorted([row.get("planned_start_date") for row in package_rows if row.get("planned_start_date")])
+        finish_dates = sorted([row.get("planned_finish_date") for row in package_rows if row.get("planned_finish_date")])
+        planned_hours = sum(_safe_float((row.get("planned_assignments") or {}).get("planned_hours")) for row in package_rows)
+        planned_qty = sum(_safe_float((row.get("planned_assignments") or {}).get("planned_production_quantity")) for row in package_rows)
+        rows.append(
+            [
+                phase_id,
+                work_package_id,
+                len(package_rows),
+                " | ".join(sorted({row.get("activity_id") for row in package_rows if row.get("activity_id")})),
+                " | ".join(sorted({row.get("budget_line_id") for row in package_rows if row.get("budget_line_id")})),
+                " | ".join(sorted({row.get("customer_pay_item_number") for row in package_rows if row.get("customer_pay_item_number")})),
+                " | ".join(sorted({row.get("enterprise_work_type_id") for row in package_rows if row.get("enterprise_work_type_id")})),
+                " | ".join(sorted({row.get("project_cost_code") for row in package_rows if row.get("project_cost_code")})),
+                start_dates[0] if start_dates else "",
+                finish_dates[-1] if finish_dates else "",
+                planned_hours,
+                planned_qty,
+            ]
+        )
+    return rows
+
+
 async def export_schedule_view(db, project_number: str, *, version_id: str, export_kind: str, actor: Dict[str, Any]) -> Dict[str, Any]:
     activities = await list_schedule_activities(db, project_number, version_id=version_id)
     if not activities:
         raise LookupError("schedule_export_not_found")
     kind = _clean(export_kind).lower() or "master_schedule_csv"
-    if kind == "two_week_csv":
+    if kind in {"two_week_csv", "two_week_xlsx"}:
         rows_source = _two_week_window_rows(activities, days=14)
-    elif kind == "four_week_csv":
+        header = [
+            "activity_id",
+            "activity_name",
+            "phase_id",
+            "work_package_id",
+            "budget_line_id",
+            "customer_pay_item_number",
+            "enterprise_work_type_id",
+            "project_cost_code",
+            "planned_start_date",
+            "planned_finish_date",
+            "duration_days",
+            "owner",
+            "priority",
+            "status",
+            "percent_complete",
+        ]
+        rows = [[row.get(key) for key in header] for row in rows_source]
+    elif kind in {"four_week_csv", "four_week_xlsx"}:
         rows_source = _two_week_window_rows(activities, days=28)
+        header = [
+            "activity_id",
+            "activity_name",
+            "phase_id",
+            "work_package_id",
+            "budget_line_id",
+            "customer_pay_item_number",
+            "enterprise_work_type_id",
+            "project_cost_code",
+            "planned_start_date",
+            "planned_finish_date",
+            "duration_days",
+            "owner",
+            "priority",
+            "status",
+            "percent_complete",
+        ]
+        rows = [[row.get(key) for key in header] for row in rows_source]
+    elif kind in {"crew_plan_csv", "crew_plan_xlsx"}:
+        header = [
+            "work_package_id",
+            "activity_id",
+            "activity_name",
+            "crew_id",
+            "crew_label",
+            "planned_start_date",
+            "planned_finish_date",
+            "planned_hours",
+            "planned_production_quantity",
+            "status",
+            "priority",
+        ]
+        rows = _assignment_export_rows(activities, assignment_key="planned_crew_ids", id_key="crew_id", label_key="label")
+    elif kind in {"equipment_plan_csv", "equipment_plan_xlsx"}:
+        header = [
+            "work_package_id",
+            "activity_id",
+            "activity_name",
+            "equipment_id",
+            "equipment_label",
+            "planned_start_date",
+            "planned_finish_date",
+            "planned_hours",
+            "planned_production_quantity",
+            "status",
+            "priority",
+        ]
+        rows = _assignment_export_rows(activities, assignment_key="planned_equipment_ids", id_key="equipment_id", label_key="label")
+    elif kind in {"material_plan_csv", "material_plan_xlsx"}:
+        header = [
+            "work_package_id",
+            "activity_id",
+            "activity_name",
+            "material_id",
+            "description",
+            "quantity",
+            "unit",
+            "planned_start_date",
+            "planned_finish_date",
+            "status",
+        ]
+        rows = _material_export_rows(activities)
+    elif kind in {"work_package_plan_csv", "work_package_plan_xlsx"}:
+        header = [
+            "phase_id",
+            "work_package_id",
+            "activity_count",
+            "activity_ids",
+            "budget_line_ids",
+            "customer_pay_item_numbers",
+            "enterprise_work_type_ids",
+            "project_cost_codes",
+            "planned_start_date",
+            "planned_finish_date",
+            "planned_hours",
+            "planned_production_quantity",
+        ]
+        rows = _work_package_export_rows(activities)
     else:
-        rows_source = activities
-    header = [
-        "activity_id",
-        "activity_name",
-        "phase_id",
-        "work_package_id",
-        "budget_line_id",
-        "customer_pay_item_number",
-        "enterprise_work_type_id",
-        "project_cost_code",
-        "planned_start_date",
-        "planned_finish_date",
-        "duration_days",
-        "owner",
-        "priority",
-        "status",
-        "percent_complete",
-    ]
-    rows = [[row.get(key) for key in header] for row in rows_source]
+        header = [
+            "activity_id",
+            "activity_name",
+            "phase_id",
+            "work_package_id",
+            "budget_line_id",
+            "customer_pay_item_number",
+            "enterprise_work_type_id",
+            "project_cost_code",
+            "planned_start_date",
+            "planned_finish_date",
+            "duration_days",
+            "owner",
+            "priority",
+            "status",
+            "percent_complete",
+        ]
+        rows = [[row.get(key) for key in header] for row in activities]
     await record_schedule_distribution_event(db, project_number=project_number, actor=actor, export_kind=kind, version_id=version_id, metadata={"row_count": len(rows)})
     if kind.endswith("xlsx"):
         return _xlsx_payload(f"{project_number}_{kind}.xlsx", header, rows)
