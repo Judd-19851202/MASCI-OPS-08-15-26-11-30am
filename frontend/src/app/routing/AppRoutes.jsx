@@ -390,6 +390,7 @@ const PmProjectBudgetAuthority = React.lazy(() => import("@/pages/PmProjectBudge
 const AdminGovernanceProjectControlsAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectControlsAuthority"));
 const AdminGovernanceProjectBudgetAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectBudgetAuthority"));
 const AdminGovernanceProjectScheduleAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectScheduleAuthority"));
+const AdminGovernanceOperationalIntelligence = React.lazy(() => import("@/pages/admin/AdminGovernanceOperationalIntelligence"));
 // PM Command Center · Phase 4B · 2026-02-10
 // One operational command screen for the PM (resources · hauls ·
 // materials · shop · safety · timeline). Reads strictly from the
@@ -783,6 +784,7 @@ export function AppRoutes() {
             <Route path="/admin/governance/project-controls" element={A(<AdminGovernanceProjectControlsAuthority />)} />
             <Route path="/admin/governance/project-controls/budget" element={A(<AdminGovernanceProjectBudgetAuthority />)} />
             <Route path="/admin/governance/project-controls/schedule" element={A(<AdminGovernanceProjectScheduleAuthority />)} />
+            <Route path="/admin/governance/project-controls/operational-intelligence" element={A(<AdminGovernanceOperationalIntelligence />)} />
             <Route path="/admin/governance/identities" element={A(<AdminGovernanceIdentitiesPage />)} />
             <Route path="/admin/governance/roles" element={A(<AdminGovernanceRolesPage />)} />
             <Route path="/admin/governance/permissions" element={A(<AdminGovernancePermissionsPage />)} />

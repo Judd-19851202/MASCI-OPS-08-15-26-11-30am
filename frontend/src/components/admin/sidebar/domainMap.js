@@ -91,6 +91,7 @@ export const DOMAINS_V2 = [
       { to: "/admin/governance/project-controls", label: "Project Controls Authority", desc: "Work types · review queue · event contracts", icon: ListChecks },
       { to: "/admin/governance/project-controls/schedule", label: "Schedule Authority", desc: "Imports · work packages · governed exports", icon: ListChecks },
       { to: "/admin/governance/project-controls/budget", label: "Budget Authority", desc: "Imports · trust lines · versions", icon: ListChecks },
+      { to: "/admin/governance/project-controls/operational-intelligence", label: "Operational Intelligence", desc: "Governed metric engine · lineage · backfill health", icon: ListChecks },
       { to: "/admin/project-identity",      label: "Project Identity Governance", desc: "Detect drift · project numbers/names.", icon: Shield },
       { to: "/admin/operational-language",  label: "Operational Language", desc: "Shared glossary · EN + ES",             icon: BookOpen },
     ],

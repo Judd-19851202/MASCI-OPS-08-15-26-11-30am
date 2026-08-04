@@ -109,26 +109,60 @@ def _metric_card(
     drilldown_path: str,
     kind: str = "number",
 ) -> Dict[str, Any]:
+    sanitized_lineage = _sanitize(lineage or {})
+    work_block_ids = sorted(item for item in (sanitized_lineage.get("work_block_ids") or []) if _clean(item))
+    source_record_ids = sorted(
+        {
+            *_sanitize(sanitized_lineage.get("daily_report_ids") or []),
+            *_sanitize(sanitized_lineage.get("source_report_ids") or []),
+            *_sanitize(sanitized_lineage.get("budget_line_ids") or []),
+            *_sanitize(sanitized_lineage.get("schedule_activity_ids") or []),
+            *_sanitize(sanitized_lineage.get("rejected_candidate_ids") or []),
+        }
+    )
+    supporting_evidence = []
+    for report_id in _sanitize(sanitized_lineage.get("daily_report_ids") or [])[:20]:
+        if _clean(report_id):
+            supporting_evidence.append({"record_type": "daily_report", "record_id": report_id})
+    for activity_id in _sanitize(sanitized_lineage.get("schedule_activity_ids") or [])[:20]:
+        if _clean(activity_id):
+            supporting_evidence.append({"record_type": "schedule_activity", "record_id": activity_id})
+    for budget_line_id in _sanitize(sanitized_lineage.get("budget_line_ids") or [])[:20]:
+        if _clean(budget_line_id):
+            supporting_evidence.append({"record_type": "budget_line", "record_id": budget_line_id})
+    for candidate_id in _sanitize(sanitized_lineage.get("rejected_candidate_ids") or [])[:20]:
+        if _clean(candidate_id):
+            supporting_evidence.append({"record_type": "schedule_actual_candidate", "record_id": candidate_id})
     return {
         "metric_id": metric_id,
         "label": label,
         "definition": definition,
         "formula": formula,
         "owner": owner,
+        "version": CALCULATION_VERSION,
         "kind": kind,
         "value": None if value is None else round(float(value), 4),
         "unit_label": unit_label,
         "confidence": confidence,
+        "calculation_timestamp": freshness_at,
         "freshness": {
             "last_updated_at": freshness_at,
             "status": "fresh" if freshness_at else "review_required",
             "calculation_version": CALCULATION_VERSION,
         },
         "limitations": limitations,
+        "source_records": source_record_ids,
+        "work_block_lineage": work_block_ids,
+        "supporting_evidence": supporting_evidence,
+        "audit_trail": {
+            "authority_collection": COLL_OP_INTEL_SNAPSHOTS,
+            "audit_resource_type": "operational_intelligence_snapshot",
+            "calculation_version": CALCULATION_VERSION,
+        },
         "lineage": {
             "calculation_version": CALCULATION_VERSION,
             "generated_at": freshness_at,
-            **_sanitize(lineage or {}),
+            **sanitized_lineage,
         },
         "drilldown_path": drilldown_path,
     }
@@ -1151,6 +1185,19 @@ async def run_operational_intelligence_backfill(db, *, force: bool = False) -> D
     if last_run and not force:
         return _sanitize(last_run)
 
+    run_id = f"wp18c6-backfill:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    running_report = {
+        "run_type": "wp18c6_backfill",
+        "run_id": run_id,
+        "started_at": _utcnow(),
+        "force": force,
+        "projects_processed": 0,
+        "snapshots_built": 0,
+        "status": "running",
+        "mode": "additive_only",
+    }
+    await db[COLL_OP_INTEL_RUNS].replace_one({"run_type": "wp18c6_backfill"}, running_report, upsert=True)
+
     jobs = [
         _sanitize(row)
         async for row in db.jobs_master.find({"project_number": {"$ne": ""}}, {"_id": 0, "project_number": 1}).sort("project_number", 1)
@@ -1167,9 +1214,21 @@ async def run_operational_intelligence_backfill(db, *, force: bool = False) -> D
             built += 1
         except Exception:
             continue
+        if processed % 10 == 0:
+            await db[COLL_OP_INTEL_RUNS].replace_one(
+                {"run_type": "wp18c6_backfill"},
+                {
+                    **running_report,
+                    "projects_processed": processed,
+                    "snapshots_built": built,
+                    "updated_at": _utcnow(),
+                },
+                upsert=True,
+            )
     report = {
         "run_type": "wp18c6_backfill",
-        "run_id": f"wp18c6-backfill:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
+        "run_id": run_id,
+        "started_at": running_report["started_at"],
         "ran_at": _utcnow(),
         "force": force,
         "projects_processed": processed,

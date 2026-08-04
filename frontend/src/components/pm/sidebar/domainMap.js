@@ -28,7 +28,7 @@ export const DOMAINS_V2 = [
       { to: "/pm/command-center",    label: "Command Center",    desc: "Live operations · jobs · timeline · risk.",    icon: Radar },
       { to: "/pm/project-controls/schedule", label: "Schedule Authority", desc: "Imports · work packages · governed lookahead.", icon: CalendarClock },
       { to: "/pm/project-controls",  label: "Project Controls",  desc: "Pay items · mappings · lookaheads · archive.", icon: ClipboardCheck },
-      { to: "/pm/operational-intelligence", label: "Operational Intelligence", desc: "Three horizons · trusted project signals · attention.", icon: Activity },
+      { to: "/pm/operational-intelligence", label: "Operational Intelligence", desc: "Governed metrics · Work Block lineage · explainable recommendations.", icon: Activity },
       { to: "/pm/jobs",              label: "Jobs",              desc: "Jobs assigned to you (read-only).",            icon: Building2 },
       { to: "/pm/holds",             label: "Holds",             desc: "Open holds across your projects.",             icon: PauseCircle },
       { to: "/pm/due-today",         label: "Due Today",         desc: "Items due today across your projects.",        icon: CalendarClock },

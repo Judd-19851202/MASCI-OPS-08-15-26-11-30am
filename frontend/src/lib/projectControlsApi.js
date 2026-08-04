@@ -118,9 +118,58 @@ export async function fetchPmProjectWorkLedger(projectNumber, limit = 100) {
   return data;
 }
 
+export async function fetchPmOperationalIntelligenceSnapshot(projectNumber, { forceRefresh = false } = {}) {
+  const suffix = forceRefresh ? "?force_refresh=true" : "";
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/operational-intelligence${suffix}`);
+  return data;
+}
+
+export async function downloadPmOperationalIntelligenceExport(projectNumber) {
+  return api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/operational-intelligence/export`, {
+    responseType: "blob",
+  });
+}
+
+export async function overridePmOperationalIntelligenceRecommendation(projectNumber, recommendationId, payload) {
+  const { data } = await api.post(
+    `/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/operational-intelligence/recommendations/${encodeURIComponent(recommendationId)}/override`,
+    payload,
+  );
+  return data;
+}
+
 export async function fetchAdminProjectBudgetOverview(projectNumber = "") {
   const suffix = projectNumber ? `?project_number=${encodeURIComponent(projectNumber)}` : "";
   const { data } = await api.get(`/admin/governance/project-controls/budget/overview${suffix}`);
+  return data;
+}
+
+export async function fetchAdminOperationalIntelligenceOverview(projectNumber = "", { forceRefresh = false } = {}) {
+  const params = new URLSearchParams();
+  if (projectNumber) params.set("project_number", projectNumber);
+  if (forceRefresh) params.set("force_refresh", "true");
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/operational-intelligence/overview${suffix}`);
+  return data;
+}
+
+export async function runAdminOperationalIntelligenceBackfill(force = false) {
+  const suffix = force ? "?force=true" : "";
+  const { data } = await api.post(`/admin/governance/project-controls/operational-intelligence/backfill/run${suffix}`, {});
+  return data;
+}
+
+export async function downloadAdminOperationalIntelligenceExport(projectNumber) {
+  return api.get(`/admin/governance/project-controls/operational-intelligence/projects/${encodeURIComponent(projectNumber)}/export`, {
+    responseType: "blob",
+  });
+}
+
+export async function overrideAdminOperationalIntelligenceRecommendation(projectNumber, recommendationId, payload) {
+  const { data } = await api.post(
+    `/admin/governance/project-controls/operational-intelligence/projects/${encodeURIComponent(projectNumber)}/recommendations/${encodeURIComponent(recommendationId)}/override`,
+    payload,
+  );
   return data;
 }
 

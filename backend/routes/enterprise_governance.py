@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
+import threading
 from typing import Any, Dict, List, Optional
 
 import io
@@ -8,6 +11,7 @@ import io
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 from fastapi.responses import StreamingResponse
+from motor.motor_asyncio import AsyncIOMotorClient
 from lib.enterprise_governance import governance_project_scope, resolve_actor_from_request
 
 from services.enterprise_governance import (
@@ -119,6 +123,39 @@ from pm_auth import is_valid_pm_user_token_async
 
 
 logger = logging.getLogger(__name__)
+
+
+def _backend_env_value(key: str) -> Optional[str]:
+    value = os.environ.get(key)
+    if value:
+        return value
+    try:
+        with open("/app/backend/.env", "r", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith(f"{key}="):
+                    parsed = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    return parsed or None
+    except FileNotFoundError:
+        return None
+    return None
+
+
+def _launch_wp18c6_backfill(force: bool, *, db_name: str) -> None:
+    mongo_url = _backend_env_value("MONGO_URL")
+
+    def _runner() -> None:
+        async def _run() -> None:
+            client = AsyncIOMotorClient(mongo_url)
+            try:
+                await run_operational_intelligence_backfill(client[db_name], force=force)
+            except Exception:
+                logger.exception("wp18c6 operational intelligence backfill task failed")
+            finally:
+                client.close()
+
+        asyncio.run(_run())
+
+    threading.Thread(target=_runner, name="wp18c6-backfill", daemon=True).start()
 
 
 class GovernanceEvaluationBody(BaseModel):
@@ -866,6 +903,43 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
             headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
         )
 
+    @api_router.get("/api/admin/governance/project-controls/operational-intelligence/overview")
+    async def governance_project_operational_intelligence_overview(request: Request, project_number: str = "", force_refresh: bool = False, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        if project_number and force_refresh:
+            snapshot = await get_project_operational_intelligence_snapshot(runtime_db, project_number, actor=resolved, force_refresh=True)
+            payload = await get_admin_operational_intelligence_overview(runtime_db, project_number=project_number, actor=resolved)
+            payload["snapshot"] = snapshot
+            return payload
+        return await get_admin_operational_intelligence_overview(runtime_db, project_number=project_number, actor=resolved)
+
+    @api_router.post("/api/admin/governance/project-controls/operational-intelligence/backfill/run")
+    async def governance_project_operational_intelligence_backfill(request: Request, force: bool = False, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        if runtime_db is None:
+            raise HTTPException(500, "database_unavailable")
+        _launch_wp18c6_backfill(bool(force), db_name=runtime_db.name)
+        return {"ok": True, "status": "queued", "message": "wp18c6 operational intelligence backfill queued", "force": bool(force)}
+
+    @api_router.get("/api/admin/governance/project-controls/operational-intelligence/projects/{project_number}/export")
+    async def governance_project_operational_intelligence_export(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        payload = await export_operational_intelligence_snapshot(runtime_db, project_number, actor=resolved)
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
+    @api_router.post("/api/admin/governance/project-controls/operational-intelligence/projects/{project_number}/recommendations/{recommendation_id}/override")
+    async def governance_project_operational_intelligence_override(request: Request, project_number: str, recommendation_id: str, body: OperationalRecommendationOverrideBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, actor)
+        row = await override_operational_recommendation(runtime_db, project_number, recommendation_id, body.model_dump(), actor=resolved)
+        return {"ok": True, "override": row}
+
     @api_router.get("/api/admin/governance/project-controls/schedule/overview")
     async def governance_project_schedule_overview(request: Request, project_number: str = "", actor=Depends(require_admin)):
         runtime_db = _runtime_db(request, db)
@@ -1077,6 +1151,30 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         await _require_project_scope(runtime_db, request, project_number)
         rows = await list_project_work_ledger(runtime_db, project_number, limit=limit)
         return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/operational-intelligence")
+    async def pm_project_operational_intelligence_snapshot(request: Request, project_number: str, force_refresh: bool = False):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_operational_intelligence_snapshot(runtime_db, project_number, actor=actor, force_refresh=force_refresh)
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/operational-intelligence/export")
+    async def pm_project_operational_intelligence_export(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        payload = await export_operational_intelligence_snapshot(runtime_db, project_number, actor=actor)
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/operational-intelligence/recommendations/{recommendation_id}/override")
+    async def pm_project_operational_intelligence_override(request: Request, project_number: str, recommendation_id: str, body: OperationalRecommendationOverrideBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        row = await override_operational_recommendation(runtime_db, project_number, recommendation_id, body.model_dump(), actor=actor)
+        return {"ok": True, "override": row}
 
     @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/overview")
     async def pm_project_budget_overview(request: Request, project_number: str):
