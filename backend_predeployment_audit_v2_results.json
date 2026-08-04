@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-08-04T17:03:17.079820Z",
+  "scope": "Pre-deployment backend audit - READ-ONLY",
+  "tests": [
+    {
+      "name": "Preview identity surfaces - drift detection",
+      "status": "WARNING",
+      "details": "Drift detected: frontend_backend_release_match is false - release attestation drift detected",
+      "severity": "medium",
+      "is_blocker": false
+    },
+    {
+      "name": "Preview identity surfaces - workspace consistency",
+      "status": "PASS",
+      "details": "Preview workspace identity: commit=9100d45f4f74, source_hash=76e924e2ba41, app_env=preview",
+      "severity": "info",
+      "is_blocker": false
+    },
+    {
+      "name": "Production commit verification",
+      "status": "PASS",
+      "details": "Commit matches expected: bd9bdd2012c4f2e31b57d7390218b20c361c6dcc",
+      "severity": "info",
+      "is_blocker": false
+    },
+    {
+      "name": "Production source hash verification",
+      "status": "PASS",
+      "details": "Source hash matches expected: 665ea6071d75dd046905a35dfe8dcea4",
+      "severity": "info",
+      "is_blocker": false
+    },
+    {
+      "name": "Production admin authentication",
+      "status": "PASS",
+      "details": "Successfully authenticated. Dual tokens obtained (session: 43 chars, admin: 101 chars)",
+      "severity": "info",
+      "is_blocker": false
+    },
+    {
+      "name": "Production backup health",
+      "status": "PASS",
+      "details": "Backup integrity PASS. Last backup: MASCI_complete_backup_2026-08-04_160401Z.zip",
+      "severity": "info",
+      "is_blocker": false
+    },
+    {
+      "name": "Production certification route reachability",
+      "status": "PASS",
+      "details": "Deployment readiness route reachable with dual admin tokens. Decision: pass",
+      "severity": "info",
+      "is_blocker": false
+    },
+    {
+      "name": "Preview auth flow (rate limited)",
+      "status": "SKIP",
+      "details": "Rate limited (429). Auth flow structure cannot be verified at this time.",
+      "severity": "info",
+      "is_blocker": false
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 6,
+    "failed": 0,
+    "warnings": 1,
+    "skipped": 1
+  },
+  "deploy_blockers": []
+}
