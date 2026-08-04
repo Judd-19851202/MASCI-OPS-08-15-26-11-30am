@@ -707,6 +707,7 @@ export function AppRoutes() {
             <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />
             <Route path="/admin/executive-overview" element={A(<ExecutiveOverview />)} />
             <Route path="/admin/executive-intelligence" element={A(<ExecutiveIntelligence />)} />
+            <Route path="/admin/executive-oi" element={<Navigate to="/admin/executive-operational-intelligence" replace />} />
             {/* Track 13.22 · Phase D · Material Movement Ledger · Admin Data-Quality + CSV. */}
             <Route path="/admin/material-ledger-quality" element={A(<AdminMaterialLedgerQuality />)} />
             <Route path="/admin/people" element={A(<AdminPeople />)} />
@@ -777,6 +778,8 @@ export function AppRoutes() {
             <Route path="/admin/operational-inventory" element={A(<AdminOperationalInventory />)} />
             {/* Phase 2 P1 · Operational Intelligence Notifications — role-aware in-platform digest */}
             <Route path="/notifications" element={<NotificationsDigest />} />
+            <Route path="/admin/notifications" element={<Navigate to="/notifications" replace />} />
+            <Route path="/admin/notifications/digest" element={<Navigate to="/notifications" replace />} />
             {/* Phase 2 · Compliance Gap Detector + Governance Health (admin-strict) */}
             <Route path="/admin/governance" element={A(<AdminGovernanceOperatingSystem />)} />
             <Route path="/admin/governance/overview" element={A(<AdminGovernanceOperatingSystem />)} />
