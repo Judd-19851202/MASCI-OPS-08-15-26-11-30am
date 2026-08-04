@@ -1,3 +1,25 @@
+# 2026-08-04 — WP-18C6 closeout roadmap state
+
+## Current top priority
+
+- **WP-18C6 is complete and closed GO.**
+- **The governed metric engine, Work-Block-centered lineage, review-first ambiguity handling, PM/admin operational intelligence surfaces, and non-blocking backfill queue must now be preserved as the basis for later packages.**
+- **C7+ remains blocked until separately authorized.**
+
+## P0
+- preserve the single Governed Metric Engine as the only production-metric authority for PM/admin snapshots, exports, recommendations, and downstream C6 consumers
+- preserve Work Blocks as the operational heart and keep unresolved facts in governed review queues instead of guessing or silently normalizing
+- preserve the no-duplicate-truth boundaries across Daily Reports, schedule actuals, budget lines, crews, equipment, materials, vendors, subcontractors, and constraints
+- preserve the non-blocking backfill queue pattern; do not move full-project backfill work onto the normal request path
+
+## P1
+- if and only if separately authorized, prepare WP-18C7 from the accepted C6 governed metric engine without bypassing C1–C6 trust lines
+- deepen explainable recommendation quality, resource intelligence history, and operational evidence coverage only through the centralized governed snapshot contract
+
+## P2
+- no forecasting, Earned Value, executive portfolio intelligence, or later-package analytics may begin from this closeout alone
+- no alternate production KPI engines, duplicate dashboards, or unguided AI conclusions may be introduced outside the governed C6 authority
+
 # 2026-08-04 — Standing Operational Intelligence constitutional roadmap state
 
 ## Current top priority

@@ -1,3 +1,12 @@
+# 2026-08-04 — WP-18C6 Operational Intelligence / Production Intelligence Engine
+
+- Verified the two inherited C6 implementation patches first, preserved the accepted C1–C5 seams, and extended the platform with a single governed operational-metric authority in `backend/services/project_operational_intelligence.py`.
+- Extended `backend/routes/enterprise_governance.py` with PM/admin C6 snapshot, export, override, overview, and non-blocking backfill queue routes under the existing project-controls governance surface.
+- Replaced the PM `/pm/operational-intelligence` experience with a governed C6 workspace and added the admin governance route `/admin/governance/project-controls/operational-intelligence`, both powered by the same centralized snapshot payload and full `data-testid` coverage.
+- Added focused backend tests: `test_wp18c6_operational_intelligence_foundation.py`, `test_wp18c6_operational_intelligence_api.py`; specialist QA also added `test_wp18c6_operational_intelligence_e2e.py`.
+- Verification passed: focused backend tests `4/4`, screenshot smoke passed, testing report `/app/test_reports/iteration_116.json` passed overall (`backend 100%`, `frontend 100%`), backend specialist verification passed, and direct browser evidence confirmed PM token persistence plus governed snapshot rendering.
+- Final WP-18C6 closeout result: **GO**. Recommendation for C7: **do not begin forecasting until expressly authorized; extend only from the governed metric engine and preserved C1–C6 trust lines.**
+
 # 2026-08-04 — WP-18 Operational Intelligence Constitutional Amendment
 
 - Added the standing constitutional layer in `/app/memory/WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`.

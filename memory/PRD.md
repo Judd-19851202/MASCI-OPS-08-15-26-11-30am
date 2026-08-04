@@ -595,3 +595,40 @@
 - Preserve the new C4 schedule/work-package authority, review-first import governance, version history, and export surfaces exactly as implemented.
 - Do not introduce forecasting, Earned Value, productivity engines, executive portfolio rollups, accounting duplication, or later WP-18C packages into this C4 foundation without separate authorization.
 - If the sequence advances, future packages may extend this foundation into downstream production/quantity intelligence and later forecasting/Earned Value layers without redesigning the C4 spine.
+
+## 2026-08-04 — WP-18C6 Operational Intelligence / Production Intelligence Engine
+- WP-18C6 is now implemented as an additive operational-intelligence package, preserving accepted WP-18C1 through WP-18C5 foundations and enforcing one calculation authority: **Governed Metric Engine**.
+- New backend authority/service: `backend/services/project_operational_intelligence.py`.
+- New PM/admin governance surfaces:
+  - `/pm/operational-intelligence?project_number=<project>`
+  - `/admin/governance/project-controls/operational-intelligence?project_number=<project>`
+- New additive governed capabilities now manage:
+  - centralized project operational snapshots
+  - governed metric cards with full authority contracts
+  - Work-Block-centered lineage across Daily Reports, schedule actuals, budget lines, activities, and resource evidence
+  - explainable recommendations with explicit manual override evidence
+  - governed CSV export
+  - non-blocking additive backfill queue with observable run status
+- Every governed metric now exposes the required C6 contract fields:
+  `definition → formula → owner → source_records → work_block_lineage → confidence → freshness → version → audit_trail → calculation_timestamp → supporting_evidence → drilldown_path`.
+- C6 preserves the derive-before-ask rule as implemented:
+  - no manual reporting-only entry was added (`manual_reporting_entries_added = 0` on the certified runtime project)
+  - unresolved ambiguity remains review-governed instead of silently normalized
+  - Daily Reports remain fact truth and do not become direct schedule/cost/performance authority without governed review
+- Runtime certification evidence on `ZZ-RUNTIME-CERT-2026` verified:
+  - `5` approved governed events
+  - `5` open governed review items
+  - governed recommendations present and override-capable
+  - `0` orphan events
+  - centralized consumers recorded in the snapshot contract: PM page, admin governed page, PM export, admin export
+- Testing/certification evidence:
+  - focused backend tests `4 passed`
+  - PM screenshot smoke passed on `/pm/operational-intelligence?project_number=ZZ-RUNTIME-CERT-2026`
+  - specialist QA report `/app/test_reports/iteration_116.json` passed overall (`backend 100%`, `frontend 100%`)
+  - backend specialist verification passed for all C6 endpoints with no `500/502` in the validated flow
+  - direct browser verification confirmed PM login token persistence and governed page load after a contradictory frontend-agent false positive
+
+## Updated next authorized work after WP-18C6
+- Preserve the governed metric engine, Work-Block-centered lineage, review-first ambiguity handling, and shared PM/admin governed snapshot contract exactly as implemented.
+- Do not introduce forecasting, Earned Value, executive portfolio intelligence, duplicate production KPI engines, or unguided AI conclusions without separate authorization.
+- If the sequence advances, future packages may extend this C6 governed metric engine into explicitly authorized C7 forecasting and later packages without redesigning the accepted C1–C6 spine.
