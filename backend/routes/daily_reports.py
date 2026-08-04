@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 import tempfile
 import uuid
@@ -41,6 +42,9 @@ from services.cost_codes.foundation import (
 )
 from services.project_controls_authority import sync_crew_observation_for_report, sync_work_blocks_for_report
 from lib.notification_delivery import STATUS_PENDING, delivery_contract
+
+
+logger = logging.getLogger(__name__)
 
 
 # ── Phase V.2 · Wave-1A · Structured production + constraints ────────
@@ -1751,8 +1755,41 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                             "notification_last_updated_at": doc.get("notification_last_updated_at"),
                         }}
                     )
-            except Exception:
-                pass
+            except Exception as exc:  # noqa: BLE001
+                failure_reason = f"operations_control_plane_exception:{type(exc).__name__}"
+                logger.exception(
+                    "[daily_reports] operations control plane failed for report id=%s doc_id=%s project_number=%s",
+                    doc.get("id"),
+                    doc.get("doc_id"),
+                    doc.get("project_number"),
+                )
+                doc["operations_control_plane"] = {
+                    "enabled": True,
+                    "workflow_id": "oppc.daily_report_to_oppc",
+                    "error_state": "failed_action_required",
+                    "error_code": failure_reason,
+                    "error_type": type(exc).__name__,
+                    "error_message": str(exc)[:240],
+                    "last_processed_at": datetime.now(timezone.utc).isoformat(),
+                }
+                doc["notification_state"] = "failed_action_required"
+                doc["notification_failure_reason"] = failure_reason
+                doc["notification_last_updated_at"] = datetime.now(timezone.utc).isoformat()
+                report_dict.update({
+                    "operations_control_plane": doc.get("operations_control_plane"),
+                    "notification_state": doc.get("notification_state"),
+                    "notification_failure_reason": doc.get("notification_failure_reason"),
+                    "notification_last_updated_at": doc.get("notification_last_updated_at"),
+                })
+                await db.daily_reports.update_one(
+                    {"id": doc.get("id")},
+                    {"$set": {
+                        "operations_control_plane": doc.get("operations_control_plane"),
+                        "notification_state": doc.get("notification_state"),
+                        "notification_failure_reason": doc.get("notification_failure_reason"),
+                        "notification_last_updated_at": doc.get("notification_last_updated_at"),
+                    }}
+                )
             if _should_schedule_daily_report_email(doc):
                 schedule_auto_email("daily-report", doc)
 

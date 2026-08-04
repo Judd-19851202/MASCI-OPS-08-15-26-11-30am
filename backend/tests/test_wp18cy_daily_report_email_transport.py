@@ -59,11 +59,15 @@ def test_deliver_notification_safe_capture_preserves_to_cc_bcc(monkeypatch):
     )
 
     assert out["notification_state"] == STATUS_CAPTURED_PREVIEW
+    assert out["attachment_count"] == 1
+    assert out["attachment_filenames"] == ["daily.pdf"]
     capture = db.notification_capture_v1.docs[0]
     assert capture["to"] == ["pm@example.com"]
     assert capture["cc"] == ["copm@example.com"]
     assert capture["bcc"] == ["audit@example.com"]
     assert capture["attachments"][0]["filename"] == "daily.pdf"
+    assert capture["attachment_count"] == 1
+    assert capture["attachment_filenames"] == ["daily.pdf"]
 
 
 def test_control_plane_daily_report_email_uses_canonical_subject_body_and_attachment(monkeypatch):

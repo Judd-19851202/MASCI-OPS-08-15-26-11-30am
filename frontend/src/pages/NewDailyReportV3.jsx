@@ -878,16 +878,27 @@ export default function NewDailyReportV3({ publicMode = false }) {
         await commitDraft();
         if (!publicMode && payload.project_number) rememberLastProject(String(payload.project_number));
         const notificationState = String(saved?.notification_state || "").toLowerCase();
+        const reportRef = saved?.report_number || saved?.doc_id || saved?.id || "";
+        const savedLabel = reportRef ? t("Daily report {{reportRef}} saved.", { reportRef }) : t("Daily report submitted.");
         if (notificationState === "captured_preview") {
-          toast.success(t("Daily report submitted · email safely captured in Preview."), {
+          toast.success(t("{{savedLabel}} Email safely captured in Preview.", { savedLabel }), {
             id: "daily-report-preview-capture-toast",
           });
+        } else if (notificationState === "provider_accepted") {
+          toast.success(t("{{savedLabel}} Project team email accepted.", { savedLabel }), {
+            id: "daily-report-provider-accepted-toast",
+          });
+        } else if (notificationState === "failed_action_required" || notificationState === "permanent_failure") {
+          toast.success(t("{{savedLabel}} Delivery needs office follow-up, but the report is preserved.", { savedLabel }), {
+            id: "daily-report-follow-up-toast",
+            duration: 8000,
+          });
         } else if (notificationState && notificationState !== "provider_accepted") {
-          toast.success(t("Daily report submitted · notification recorded separately."), {
+          toast.success(t("{{savedLabel}} Delivery is being tracked separately.", { savedLabel }), {
             id: "daily-report-notification-recorded-toast",
           });
         } else {
-          toast.success(t("Daily report submitted."));
+          toast.success(savedLabel);
         }
         if (publicMode) {
           navigate("/thank-you", {
@@ -896,10 +907,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
               projectName: payload.project_name || payload.project_number || "",
               returnTo: "/daily/submit",
               recordId: saved?.report_number || saved?.doc_id || saved?.id || "",
-              submissionState: "delivered",
+              submissionState: notificationState === "provider_accepted" ? "delivered" : "saved",
               notificationState,
               notificationDeliveryMode: saved?.notification_delivery_mode || "",
               notificationCaptureAvailable: !!saved?.notification_capture_available,
+              notificationFailureReason: saved?.notification_failure_reason || "",
             },
           });
         }

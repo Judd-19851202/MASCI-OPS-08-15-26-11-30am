@@ -52,6 +52,11 @@ ROOT_CAUSE_CODES = {
     "unknown",
 }
 
+OPPC_DAILY_REPORT_WORKFLOWS = [
+    "oppc-daily-report-proof-chain",
+    "oppc.daily_report_to_oppc",
+]
+
 EXPECTED_STAGES_DAILY_REPORT = [
     "record_created", "routing_resolved", "recipients_built",
     "notification_queued", "provider_accepted", "audit_written", "completed",
@@ -127,6 +132,7 @@ def _classify(
     expected: List[str],
     spine_stage_index: Dict[str, Dict[str, Any]],
     audit_rows: List[Dict[str, Any]],
+    oppc_email_rows: List[Dict[str, Any]],
     dead_letter_configured: bool,
     routed_via_dead_letter: bool = False,
 ) -> str:
@@ -139,7 +145,15 @@ def _classify(
     provider = spine_stage_index.get("provider_accepted") or {}
     audit_sent = any((r.get("status") or "").lower() == "sent" for r in audit_rows)
     audit_captured_preview = any((r.get("status") or "").lower() == "captured_preview" for r in audit_rows)
+    oppc_provider_accepted = any(bool(r.get("provider_accepted")) for r in oppc_email_rows)
+    oppc_captured_preview = any(str(r.get("notification_state") or "").lower() == "captured_preview" for r in oppc_email_rows)
     delivery_captured_preview = spine_stage_index.get("delivery_captured_preview") or {}
+    if oppc_provider_accepted and recipients and not routed_via_dead_letter:
+        return "ok_delivered"
+
+    if oppc_captured_preview and recipients and not routed_via_dead_letter:
+        return "ok_captured_preview"
+
     if (
         completed.get("status") == "ok"
         and provider.get("status") == "ok"
@@ -499,7 +513,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
             #     record's lifecycle.
             spine_events: List[Dict[str, Any]] = []
             spine_query = {
-                "workflow": "daily-report",
+                "workflow": {"$in": ["daily-report", *OPPC_DAILY_REPORT_WORKFLOWS]},
                 "record_id": {
                     "$in": [str(dr_id), str(dr_doc_id)],
                 },
@@ -515,7 +529,42 @@ def make_router(db, require_admin_dep) -> APIRouter:
             spine_stage_index: Dict[str, Dict[str, Any]] = {}
             for ev in spine_events:
                 spine_stage_index[ev["stage"]] = ev
-            # 6 · email_routing_audit_v2 — find audit rows from the
+            # 6 · operations-control email truth.
+            oppc_communications: List[Dict[str, Any]] = []
+            oppc_email_rows: List[Dict[str, Any]] = []
+            async for comm in db.operations_control_plane_communications.find(
+                {
+                    "workflow_id": "oppc.daily_report_to_oppc",
+                    "record_id": {"$in": [str(dr_id), str(dr_doc_id)]},
+                },
+                {
+                    "_id": 0,
+                    "id": 1,
+                    "status": 1,
+                    "title": 1,
+                    "message": 1,
+                    "template_id": 1,
+                    "email_recipients": 1,
+                    "transport_results": 1,
+                    "created_at": 1,
+                    "correlation_id": 1,
+                },
+            ).sort("created_at", 1):
+                oppc_communications.append(comm)
+                for transport in (comm.get("transport_results") or []):
+                    if str(transport.get("channel") or "").lower() != "email":
+                        continue
+                    oppc_email_rows.append({
+                        "communication_id": comm.get("id"),
+                        "status": comm.get("status"),
+                        "title": comm.get("title"),
+                        "message": comm.get("message"),
+                        "template_id": comm.get("template_id"),
+                        "created_at": comm.get("created_at"),
+                        **transport,
+                    })
+
+            # 7 · email_routing_audit_v2 — find audit rows from the
             #     dispatcher for this DR. The dispatcher writes
             #     calling_module="auto_email_dispatch:daily-report" so
             #     scope the query tightly to avoid noise; cross-check
@@ -552,6 +601,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
             preview_capture_mode = (
                 (spine_stage_index.get("delivery_captured_preview") or {}).get("status") == "ok"
                 or any((row.get("status") or "").lower() == "captured_preview" for row in audit_rows)
+                or any((row.get("notification_state") or "").lower() == "captured_preview" for row in oppc_email_rows)
             )
             expected_stage_contract = (
                 EXPECTED_STAGES_DAILY_REPORT_PREVIEW_CAPTURE
@@ -563,7 +613,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 if s not in spine_stage_index
             ]
 
-            # 7 · classify the failure point.
+            # 8 · classify the failure point.
             root_cause = _classify(
                 assignments=assignments_raw,
                 pm_assignment=pm_assignment,
@@ -574,6 +624,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 expected=EXPECTED_STAGES_DAILY_REPORT,
                 spine_stage_index=spine_stage_index,
                 audit_rows=audit_rows,
+                oppc_email_rows=oppc_email_rows,
                 dead_letter_configured=dead_letter_configured,
                 routed_via_dead_letter=routed_via_dead_letter,
             )
@@ -581,6 +632,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
             # Pick a single failure_point string for the dashboard.
             failure_point = (
                 "delivered" if root_cause == "ok_delivered"
+                else "captured_preview" if root_cause == "ok_captured_preview"
                 else (missing_stages[0] if missing_stages else "resolver")
             )
 
@@ -673,11 +725,11 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 counters["reports_with_pm_email_resolved"] += 1
             if copm_emails_resolved:
                 counters["reports_with_copm_email_resolved"] += 1
-            if (spine_stage_index.get("recipients_built") or {}).get("status") == "ok":
+            if (spine_stage_index.get("recipients_built") or {}).get("status") == "ok" or oppc_email_rows:
                 counters["reports_with_recipients_built"] += 1
-            if (spine_stage_index.get("notification_queued") or {}).get("status") == "ok":
+            if (spine_stage_index.get("notification_queued") or {}).get("status") == "ok" or oppc_email_rows:
                 counters["reports_with_send_attempt"] += 1
-            if (spine_stage_index.get("provider_accepted") or {}).get("status") == "ok":
+            if (spine_stage_index.get("provider_accepted") or {}).get("status") == "ok" or any(bool(r.get("provider_accepted")) for r in oppc_email_rows):
                 counters["reports_with_provider_accept"] += 1
             if root_cause == "dead_letter_unconfigured":
                 counters["reports_unconfigured"] += 1
@@ -744,14 +796,14 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 "email_attempted": bool(
                     (spine_stage_index.get("notification_queued") or {}).get("status")
                     in {"ok", "failed"}
-                ),
+                ) or bool(oppc_email_rows),
                 "provider_accepted": (
                     (spine_stage_index.get("provider_accepted") or {}).get("status")
                     == "ok"
-                ),
+                ) or any(bool(r.get("provider_accepted")) for r in oppc_email_rows),
                 "resend_message_id_present": any(
                     ar.get("resend_message_id") for ar in audit_rows
-                ),
+                ) or any(bool(r.get("provider_message_id")) for r in oppc_email_rows),
                 "email_routing_audit": [
                     {
                         "ts": a.get("ts"),
@@ -765,6 +817,8 @@ def make_router(db, require_admin_dep) -> APIRouter:
                     }
                     for a in audit_rows
                 ],
+                "oppc_email_delivery": oppc_email_rows,
+                "oppc_communications": oppc_communications,
                 "trust_spine_stages": [
                     {
                         "ts": ev.get("ts"),

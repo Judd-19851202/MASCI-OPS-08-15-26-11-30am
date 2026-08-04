@@ -152,6 +152,12 @@ def _capture_document(*, workflow: str, correlation_id: str, record_id: str, rec
         "subject": subject,
         "html": html,
         "attachments": attachments or [],
+        "attachment_count": len(attachments or []),
+        "attachment_filenames": [
+            str((row or {}).get("filename") or "").strip()
+            for row in (attachments or [])
+            if str((row or {}).get("filename") or "").strip()
+        ],
         "metadata": metadata or {},
     }
     payload["payload_hash"] = hashlib.md5(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
@@ -270,6 +276,15 @@ async def deliver_notification(
             "captured_at": capture.get("ts"),
             "provider_validation_status": contract.get("provider_validation_status"),
             "ts": now_iso,
+            "to": to_list,
+            "cc": cc_list,
+            "bcc": bcc_list,
+            "attachment_count": len(attachments or []),
+            "attachment_filenames": [
+                str((row or {}).get("filename") or "").strip()
+                for row in (attachments or [])
+                if str((row or {}).get("filename") or "").strip()
+            ],
         }
 
     if contract["blocking"]:
@@ -360,6 +375,15 @@ async def deliver_notification(
             "certification_override": bool(active_override),
             "certification_override_id": (active_override or {}).get("id"),
             "ts": now_iso,
+            "to": to_list,
+            "cc": cc_list,
+            "bcc": bcc_list,
+            "attachment_count": len(attachments or []),
+            "attachment_filenames": [
+                str((row or {}).get("filename") or "").strip()
+                for row in (attachments or [])
+                if str((row or {}).get("filename") or "").strip()
+            ],
         }
     finally:
         if send_claim_token is not None:
