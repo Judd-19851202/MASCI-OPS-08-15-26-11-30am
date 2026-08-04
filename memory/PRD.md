@@ -648,8 +648,25 @@
   - `/app/test_reports/iteration_119.json` verified PM schedule regression removal, Daily Report PDF trigger, email dialog wording, Payroll Variance runtime flow, mobile spot checks, and accessibility spot checks
   - `/app/test_reports/iteration_120.json` verified the alias repairs for `/admin/executive-oi`, `/admin/notifications`, and `/admin/notifications/digest`
   - added final gate artifacts: `WP18CX_ROLE_CERTIFICATION_MATRIX.md`, `WP18CX_RUNTIME_COMMUNICATION_CERTIFICATION.md`, `WP18CX_OPERATOR_LANGUAGE_REGRESSION_REPORT.md`, `WP18CX_DECISION_SUPPORT_CERTIFICATION.md`, `WP18CX_MOBILE_FIELD_CERTIFICATION.md`, `WP18CX_ACCESSIBILITY_CERTIFICATION.md`, and `WP18CX_EXECUTIVE_FINAL_GO_GATE.md`
+- WP18CX.5 final constitutional closeout:
+  - `/app/test_reports/iteration_121.json` recommended `GO WITH DEFERRED MODULES` for Release 1.0 scope
+  - added final Release 1.0 artifacts: `WP18CX5_PRODUCTION_SCOPE.md`, `WP18CX5_RELEASE1_RUNTIME_CERTIFICATION.md`, `WP18CX5_PRODUCTION_MODULE_MATRIX.csv`, `WP18CX5_AI_RUNTIME_REPORT.md`, `WP18CX5_PDF_RUNTIME_REPORT.md`, `WP18CX5_EMAIL_RUNTIME_REPORT.md`, `WP18CX5_EXPORT_RUNTIME_REPORT.md`, `WP18CX5_ROLE_CERTIFICATION.md`, `WP18CX5_FINAL_BLOCKER_REGISTER.md`, `WP18CX5_EXECUTIVE_CLOSEOUT.md`, `WP18CX5_EXECUTIVE_GO_GATE.md`
 - Current gate status:
   - audited PM/admin/executive web surfaces: certified
   - expanded role web surfaces (Safety / Dispatch / Shop / HR / Equipment / Field Leadership / Notifications): certified
   - Payroll runtime: certified
-  - final WP18CX constitutional gate: **NO-GO** pending Survey runtime availability, direct seeded AI-output evidence, full named PDF/export/report family runtime evidence, and broader accessibility/mobile/device evidence
+  - final WP18CX constitutional closeout: **GO WITH DEFERRED MODULES**
+  - Release 1.0 ships only the runtime-certified included scope documented in `WP18CX5_PRODUCTION_SCOPE.md`
+  - Deferred modules are excluded from Release 1.0 and require future standalone certification gates before activation
+
+## Permanent closeout rule — 2026-08-04
+- WP18CX is permanently closed.
+- C1–C6 are operator-certified for the Release 1.0 included scope.
+- Existing certified surfaces are not to be re-audited unless a future work package materially changes them.
+- Future operator-facing work must inherit:
+  - WP-17 Product Constitution
+  - WP-18 ECAP
+  - Operational Intelligence Constitution
+  - Operational Decision Engine Constitution
+  - Executive Operator Experience Constitution
+- The next authorized package is `WP18CY — MongoDB Performance & Production Readiness Certification`.

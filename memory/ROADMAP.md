@@ -692,18 +692,18 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 - **P1:** If later authorized, begin WP-18C from the approved sequence only
 - **P2:** No additional future work authorized beyond the documented sequence
 
-## 2026-08-04 — WP18CX remaining gate work
+## 2026-08-04 — Post-WP18CX closeout roadmap
 
 ### P0
-- Provide or enable a Survey runtime route/credential/workflow so certification can occur.
-- Capture direct seeded AI-output runtime evidence.
-- Capture runtime evidence for the remaining named PDF/export/report families required by the final WP18CX gate.
-- Capture explicit accessibility evidence and broaden mobile/device runtime evidence needed to convert WP18CX from web-surface pass to final constitutional GO.
+- Begin `WP18CY — MongoDB Performance & Production Readiness Certification`.
 
 ### P1
-- Normalize the legacy `frontend/src/lib/i18n.js` duplicate-key debt in a dedicated safe-repair package.
-- Extend WP18CX wording certification to inherited legacy pages not modified in the audited C1–C6 web flow set.
-- If leadership requires persona-isolated proof, capture separate runtime sessions for President / COO / VP Operations / Area Manager / Project Executive.
+- Activate deferred modules only after their future certification gates are completed:
+  - Survey module runtime certification
+  - Executive briefing PDF runtime certification
+  - PM Project Performance export runtime certification
+  - PM Schedule email-review runtime certification
+  - Daily Report AI summary runtime certification
 
 ### P2
-- Keep WP18CX as the standing operator-experience inheritance gate for C7 and later work packages.
+- Future C7 work may start only after WP18CY and only while inheriting the locked WP17 / ECAP / Operational Intelligence / Operational Decision Engine / Executive Operator Experience constitutions.

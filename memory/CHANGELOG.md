@@ -631,3 +631,9 @@
 - Verified final runtime gates with `/app/test_reports/iteration_119.json` and `/app/test_reports/iteration_120.json`, including PM schedule regression removal, Daily Report PDF trigger, Daily Report email dialog wording, Payroll Variance runtime flow, mobile/accessibility spot checks, and alias-route repairs for executive OI and notifications.
 - Added final gate artifacts: `WP18CX_ROLE_CERTIFICATION_MATRIX.md`, `WP18CX_RUNTIME_COMMUNICATION_CERTIFICATION.md`, `WP18CX_OPERATOR_LANGUAGE_REGRESSION_REPORT.md`, `WP18CX_DECISION_SUPPORT_CERTIFICATION.md`, `WP18CX_MOBILE_FIELD_CERTIFICATION.md`, `WP18CX_ACCESSIBILITY_CERTIFICATION.md`, and `WP18CX_EXECUTIVE_FINAL_GO_GATE.md`.
 - Final constitutional result remains **NO-GO** because Survey runtime coverage is unavailable, AI runtime output evidence is partial, full named PDF/export/report-family runtime evidence is incomplete, and broader accessibility/mobile/device proof is still outstanding.
+
+## 2026-08-04 — WP18CX.5 final production scope certification & permanent closeout
+
+- Added final Release 1.0 scope and closeout artifacts: `WP18CX5_PRODUCTION_SCOPE.md`, `WP18CX5_RELEASE1_RUNTIME_CERTIFICATION.md`, `WP18CX5_PRODUCTION_MODULE_MATRIX.csv`, `WP18CX5_AI_RUNTIME_REPORT.md`, `WP18CX5_PDF_RUNTIME_REPORT.md`, `WP18CX5_EMAIL_RUNTIME_REPORT.md`, `WP18CX5_EXPORT_RUNTIME_REPORT.md`, `WP18CX5_ROLE_CERTIFICATION.md`, `WP18CX5_FINAL_BLOCKER_REGISTER.md`, `WP18CX5_EXECUTIVE_CLOSEOUT.md`, `WP18CX5_EXECUTIVE_GO_GATE.md`.
+- Accepted `/app/test_reports/iteration_121.json` as the final Release 1.0 runtime qualification report, resulting in **GO WITH DEFERRED MODULES**.
+- Permanently closed WP18CX, locked the Executive Operator Experience Constitution as an inheritance layer, and moved the next authorized package to `WP18CY — MongoDB Performance & Production Readiness Certification`.

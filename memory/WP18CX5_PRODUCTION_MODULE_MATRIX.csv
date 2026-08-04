@@ -1,0 +1,30 @@
+module_or_family,release_1_0_status,runtime_status,evidence,notes,future_certification_path
+Executive Overview,INCLUDED,PASS,iteration_117|iteration_119|iteration_121,shared executive leadership surface,n/a
+Executive Operations Dashboard,INCLUDED,PASS,iteration_117|iteration_121,shared executive leadership surface,n/a
+Notifications Digest,INCLUDED,PASS,iteration_118|iteration_120|iteration_121,operator-language runtime verified,n/a
+Admin Project Controls Standards,INCLUDED,PASS,iteration_117|iteration_121,construction-first governance surface,n/a
+Admin Project Budget Review,INCLUDED,PASS,iteration_117|iteration_121,construction-first governance surface,n/a
+Admin Project Schedule Review,INCLUDED,PASS,iteration_117|iteration_121,construction-first governance surface,n/a
+Admin Operations Dashboard Review,INCLUDED,PASS,iteration_117|iteration_121,construction-first governance surface,n/a
+PM Project Controls,INCLUDED,PASS,iteration_117|iteration_121,construction-first runtime verified,n/a
+PM Project Budget,INCLUDED,PASS,iteration_117|iteration_121,construction-first runtime verified,n/a
+PM Project Schedule,INCLUDED,PASS,iteration_117|iteration_119|iteration_120|iteration_121,construction-first runtime verified,n/a
+PM Project Performance,INCLUDED,PASS,iteration_117|iteration_119|iteration_121,decision-support runtime verified,n/a
+Daily Job Report review/detail,INCLUDED,PASS,iteration_119|iteration_121,detail review surface runtime verified,n/a
+Daily Job Report Print/PDF,INCLUDED,PASS,iteration_119|iteration_121,runtime print/pdf trigger verified,n/a
+Daily Job Report email flow,INCLUDED,PASS,iteration_119|iteration_121,runtime email flow accepted by testing report,n/a
+Safety Hub V2,INCLUDED,PASS,iteration_118|iteration_121,construction-first runtime verified,n/a
+Dispatch Hub V2,INCLUDED,PASS,iteration_118|iteration_121,construction-first runtime verified,n/a
+Shop Hub V2,INCLUDED,PASS,iteration_118|iteration_121,construction-first runtime verified,n/a
+Equipment Dashboard,INCLUDED,PASS,iteration_118|iteration_121,construction-first runtime verified,n/a
+HR Hub V2,INCLUDED,PASS,iteration_118|iteration_121,construction-first runtime verified,n/a
+Payroll Variance,INCLUDED,PASS,iteration_119|iteration_121,construction payroll runtime verified,n/a
+Payroll Variance CSV export,INCLUDED,PASS,iteration_121,export runtime verified,n/a
+PM Budget export,INCLUDED,PASS,iteration_121,export runtime verified,n/a
+PM Schedule export,INCLUDED,PASS,iteration_121,export runtime verified,n/a
+Field Leadership Portal Dashboard,INCLUDED,PASS,iteration_118|iteration_121,field-facing runtime verified,n/a
+Executive Monday Briefing PDF,DEFERRED,PARTIAL,iteration_121,button visible but briefing not yet generated,briefing_pdf_runtime_certification
+PM Project Performance CSV export,DEFERRED,PARTIAL,iteration_121,button disabled until project selected,pm_project_performance_export_runtime_certification
+PM Schedule email review action,DEFERRED,NOT_TESTED,iteration_121,no direct runtime proof captured,pm_schedule_email_review_certification
+Daily Report dedicated AI summary,DEFERRED,NOT_VISIBLE,iteration_119|iteration_121,no seeded runtime AI summary content visible,daily_report_ai_summary_runtime_certification
+Survey Portal / Workflow,DEFERRED,NOT_PRESENT,iteration_119|iteration_121,no runtime route/login/workflow exists,survey_module_runtime_certification
