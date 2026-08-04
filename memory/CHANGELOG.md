@@ -1,3 +1,15 @@
+# 2026-08-04 — WP-18C4 Project Schedule Authority, Work Package Spine & Governed Import/Activation
+
+- Verified the two inherited C4 groundwork patches first, repaired evidence-backed issues only, and added focused regression tests for structured planned assignments and assignment projection behavior.
+- Added additive backend schedule authority in `backend/services/project_schedule_authority.py` for schedule versions, staged imports, row review, activation, work packages, export/distribution audit, and non-blocking compatibility backfill.
+- Extended `backend/routes/enterprise_governance.py` with admin and PM schedule endpoints under the accepted project-controls governance surface.
+- Added new PM/admin UI routes `/pm/project-controls/schedule` (plus `/pm/project-schedule` alias) and `/admin/governance/project-controls/schedule`, with sidebar discoverability and full `data-testid` coverage.
+- Implemented governed schedule export readiness for `master_schedule_csv`, `two_week_csv`, `four_week_csv`, `crew_plan_csv`, `equipment_plan_csv`, `material_plan_csv`, and `work_package_plan_csv`.
+- Preserved planning truth boundaries: schedule/work-package planning is separate from budget, commitments, actual cost, forecast, revenue, billing, collections, and Daily Report actuals.
+- Added C4 closeout artifacts under `/app/memory/`: `WP18C4_PROJECT_SCHEDULE_AUTHORITY.md`, `WP18C4_IMPORT_AND_ACTIVATION_EVIDENCE.md`, `WP18C4_TEST_AND_CERTIFICATION_REPORT.md`, `WP18C4_WP17_INHERITANCE_CERTIFICATION.md`, and `WP18C4_EXECUTIVE_CLOSEOUT.md`.
+- Verification passed: focused backend tests `4 passed, 2 skipped`; PM smoke screenshot passed; specialist testing report `/app/test_reports/iteration_113.json` passed overall (`backend 100%`, `frontend 100%`).
+- Final WP-18C4 closeout result: **GO**.
+
 # 2026-08-03 — WP-18C3 Budget Hierarchy, Project Pay-Item Financial Foundation & Governed Import/Export
 
 - Added additive backend authority in `backend/services/project_budget_authority.py` for governed budget versions, budget lines, import staging, row review, activation, exports, distribution audit, and bounded backfill.

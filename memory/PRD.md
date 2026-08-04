@@ -512,3 +512,44 @@
 - Preserve the new C3 trust lines and versioned budget authority exactly as implemented.
 - If the executive sequence advances, WP-18C4 should connect schedule/work-package truth to the budget foundation without introducing Earned Value or full forecasting.
 - Continue keeping ambiguous financial/source data in governed review queues instead of guessing.
+
+## 2026-08-04 — WP-18C4 Project Schedule Authority, Work Package Spine & Governed Planning Workspace
+- WP-18C4 is now implemented as an additive schedule/work-package authority package, preserving accepted WP-18C1, WP-18C2, and WP-18C3 foundations.
+- New backend authority/service: `backend/services/project_schedule_authority.py`.
+- New PM/admin governance surfaces: `/pm/project-controls/schedule` (plus legacy-safe alias `/pm/project-schedule`) and `/admin/governance/project-controls/schedule`.
+- New additive schedule collections and governed runtime surfaces now manage:
+  - versioned schedule imports and rows
+  - reviewed/approved schedule activities
+  - versioned work packages
+  - schedule review queue
+  - distribution/export audit
+  - bounded compatibility backfill runs
+- C4 preserves the governed operational chain as implemented in runtime relationships and route contracts:
+  `Project → Phase → Work Package → Schedule Activity → Budget Line → Customer Pay Item → Enterprise Work Type → Operational Work Block → Daily Report → Actual Production`.
+- CSV is now the runtime-certified import lane for C4. Extension-ready architectural lanes exist for `Primavera P6`, `Microsoft Project`, `Excel`, and `PDF review-assisted` imports without claiming runtime certification for those formats.
+- The governed import workflow is now enforced as:
+  `Import → advisory mapping suggestions → PM review → PM edits → PM approval → activation`.
+- Planned-vs-actual separation is preserved:
+  - schedule activities now carry planned assignments for crews, employees, equipment, materials, vendors, subcontractors, production quantity, hours, and structured constraints
+  - Daily Reports remain actual field-execution truth and were not duplicated
+- Export readiness is now implemented for:
+  - Master Schedule
+  - Two-Week Lookahead
+  - Four-Week Lookahead
+  - Crew Plans
+  - Equipment Plans
+  - Material Plans
+  - Work Package Plans
+- Lookahead remains a governed overlay view of the schedule baseline and is saved without overwriting baseline schedule versions.
+- Testing/certification evidence:
+  - backend focused tests: `4 passed`, `2 skipped (admin session-auth API path not used for runtime certification)`
+  - PM screenshot smoke passed on `/pm/project-controls/schedule?project_number=ZZ-RUNTIME-CERT-2026`
+  - specialist QA report `/app/test_reports/iteration_113.json` passed overall (`backend 100%`, `frontend 100%`)
+  - responsive verification passed at `390`, `430`, `768`, `1024`, and `1440`
+  - EN/ES toggle verification passed
+  - PM scope denial regression passed using `ZZ-FOR-UNASSIGN-01`
+
+## Updated next authorized work after WP-18C4
+- Preserve the new C4 schedule/work-package authority, review-first import governance, version history, and export surfaces exactly as implemented.
+- Do not introduce forecasting, Earned Value, productivity engines, executive portfolio rollups, accounting duplication, or later WP-18C packages into this C4 foundation without separate authorization.
+- If the sequence advances, future packages may extend this foundation into downstream production/quantity intelligence and later forecasting/Earned Value layers without redesigning the C4 spine.

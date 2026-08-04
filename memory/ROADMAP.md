@@ -1,3 +1,24 @@
+# 2026-08-04 — WP-18C4 closeout roadmap state
+
+## Current top priority
+
+- **WP-18C4 is complete and closed GO.**
+- **The schedule/work-package planning spine, governed CSV import lane, review queue, versioning, and export surfaces must now be preserved as the basis for later packages.**
+- **C5+ capabilities remain out of scope unless separately authorized.**
+
+## P0
+- preserve the governed chain from project → phase → work package → schedule activity → budget line → pay item → work type → work block → Daily Report → actual production
+- preserve CSV as the runtime-certified import lane and keep all other schedule import formats architected-but-not-certified until separately tested
+- preserve the no-silent-import / no-silent-approval / no-silent-activation workflow exactly as implemented
+- preserve baseline version history and keep lookahead as an overlay rather than a duplicate schedule
+
+## P1
+- extend future authorized packages from the C4 planning spine without redesigning C1/C2/C3/C4 trust lines
+- deepen later downstream production/quantity intelligence only when separately authorized and evidence-backed
+
+## P2
+- no forecasting engine, Earned Value engine, productivity analytics, executive portfolio intelligence, or accounting-ledger duplication before their separately authorized packages
+
 # 2026-08-03 — WP-18C3 closeout roadmap state
 
 ## Current top priority
