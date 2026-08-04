@@ -108,6 +108,13 @@ from services.project_schedule_actuals_spine import (
     review_schedule_actual_candidate,
     save_daily_work_plan,
 )
+from services.project_operational_intelligence import (
+    export_operational_intelligence_snapshot,
+    get_admin_operational_intelligence_overview,
+    get_project_operational_intelligence_snapshot,
+    override_operational_recommendation,
+    run_operational_intelligence_backfill,
+)
 from pm_auth import is_valid_pm_user_token_async
 
 
@@ -194,6 +201,11 @@ class HierarchyBindingBody(BaseModel):
 
 class GovernanceActionBody(BaseModel):
     reason: str = ""
+
+
+class OperationalRecommendationOverrideBody(BaseModel):
+    action: str = "override"
+    note: str = ""
 
 
 class WorkTypeBody(BaseModel):
