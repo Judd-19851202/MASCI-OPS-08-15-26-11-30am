@@ -768,11 +768,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [data, lang, photoMin, t]);
 
   const canSubmit = readiness.completed === readiness.total;
-  const submitLabel = useMemo(() => {
-    if ((data.ai_accepted_summary || "").trim()) return t("Submit Daily Report");
-    if (summaryGate.manualNeeded) return t("Approve manual summary to unlock submit");
-    return t("Approve the executive summary to unlock submit");
-  }, [data.ai_accepted_summary, lang, summaryGate.manualNeeded, t]);
+  const submitLabel = useMemo(() => t("Submit Daily Report"), [t]);
 
   // ── Submit — same contract as V1, offline-safe via enqueueUpload ──
   const onSubmit = useCallback(async () => {
