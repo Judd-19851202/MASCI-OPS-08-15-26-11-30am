@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import PmShell from "@/components/PmShell";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
+import { ScheduleActualsWorkspace } from "@/components/pm/schedule/ScheduleActualsWorkspace";
+import { ScheduleDailyWorkPlanPanel } from "@/components/pm/schedule/ScheduleDailyWorkPlanPanel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import {
   createPmProjectScheduleImport,
   downloadPmScheduleExport,
   fetchPmProjectScheduleActivities,
+  fetchPmProjectScheduleActualsOverview,
   fetchPmProjectScheduleImportDetail,
   fetchPmProjectScheduleImports,
   fetchPmProjectScheduleLookahead,
@@ -24,7 +27,9 @@ import {
   fetchPmProjectScheduleVersions,
   fetchPmProjectScheduleWorkPackages,
   queuePmScheduleEmailExport,
+  reviewPmProjectScheduleActualCandidate,
   reviewPmProjectScheduleImportRow,
+  savePmProjectScheduleDailyWorkPlan,
   savePmProjectScheduleLookahead,
 } from "@/lib/projectControlsApi";
 
@@ -44,11 +49,14 @@ const VERSION_OPTIONS = [
 
 const EXPORT_OPTIONS = [
   ["master_schedule_csv", "Master schedule CSV"],
+  ["forecast_schedule_csv", "Forecast schedule CSV"],
   ["two_week_csv", "Two-week lookahead CSV"],
   ["four_week_csv", "Four-week lookahead CSV"],
+  ["daily_work_plan_csv", "Daily work plan CSV"],
   ["crew_plan_csv", "Crew plan CSV"],
   ["equipment_plan_csv", "Equipment plan CSV"],
   ["material_plan_csv", "Material plan CSV"],
+  ["schedule_actuals_csv", "Schedule actuals CSV"],
   ["work_package_plan_csv", "Work-package plan CSV"],
 ];
 
@@ -89,7 +97,49 @@ function summaryCards(overview) {
     ["activities", counts.activities || 0],
     ["work-packages", counts.work_packages || 0],
     ["review-queue-open", counts.review_queue_open || 0],
+    ["schedule-actual-candidates", counts.schedule_actual_candidates || 0],
+    ["approved-schedule-actuals", counts.approved_schedule_actuals || 0],
   ];
+}
+
+function todayText() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function buildActualCandidateDrafts(rows) {
+  return Object.fromEntries((rows || []).map((row) => [row.candidate_id, {
+    activity_id: row?.approved_actual?.activity_id || row?.activity_resolution?.resolved_activity_id || "",
+    activity_name: row?.approved_actual?.activity_name || row?.activity_resolution?.resolved_activity_name || "",
+    actual_start_date: row?.approved_actual?.actual_start_date || row?.report_date || "",
+    actual_finish_date: row?.approved_actual?.actual_finish_date || "",
+    approved_percent_complete: row?.approved_actual?.approved_percent_complete ?? 0,
+    approved_installed_quantity: row?.approved_actual?.approved_installed_quantity ?? row?.actual_facts?.installed_quantity ?? 0,
+    schedule_progress_status: row?.approved_actual?.schedule_progress_status || "in_progress",
+    review_note: row?.review_note || "",
+  }]));
+}
+
+function buildDailyPlanDraft(plan) {
+  return {
+    work_date: plan?.work_date || todayText(),
+    status: plan?.status || "draft",
+    notes: plan?.notes || "",
+    items: (plan?.items || []).map((row) => ({ ...row })),
+  };
+}
+
+function buildCandidatePayload(candidate, draft, action) {
+  return {
+    action,
+    activity_id: draft?.activity_id || candidate?.activity_resolution?.resolved_activity_id || "",
+    activity_name: draft?.activity_name || candidate?.activity_resolution?.resolved_activity_name || "",
+    actual_start_date: draft?.actual_start_date || candidate?.report_date || "",
+    actual_finish_date: draft?.actual_finish_date || "",
+    approved_percent_complete: Number(draft?.approved_percent_complete || 0),
+    approved_installed_quantity: Number(draft?.approved_installed_quantity || 0),
+    schedule_progress_status: draft?.schedule_progress_status || "in_progress",
+    review_note: draft?.review_note || "",
+  };
 }
 
 function joinNamedRefs(rows, key) {
@@ -192,22 +242,27 @@ export default function PmProjectSchedule() {
   const [rowDrafts, setRowDrafts] = useState({});
   const [exportKind, setExportKind] = useState("master_schedule_csv");
   const [emailRecipients, setEmailRecipients] = useState("");
+  const [actualsOverview, setActualsOverview] = useState(null);
+  const [candidateDrafts, setCandidateDrafts] = useState({});
+  const [dailyPlanDraft, setDailyPlanDraft] = useState(buildDailyPlanDraft(null));
+  const [dailyPlanDate, setDailyPlanDate] = useState(todayText());
 
   useEffect(() => {
     const next = params.get("project_number") || "";
     setProjectNumber(next);
   }, [params]);
 
-  const load = async (pn = projectNumber, pinnedImportId = "") => {
+  const load = async (pn = projectNumber, pinnedImportId = "", requestedPlanDate = dailyPlanDate) => {
     if (!pn) return;
     setLoading(true);
     try {
-      const [overviewData, versionData, importData, reviewData, lookaheadData] = await Promise.all([
+      const [overviewData, versionData, importData, reviewData, lookaheadData, actualsData] = await Promise.all([
         fetchPmProjectScheduleOverview(pn),
         fetchPmProjectScheduleVersions(pn),
         fetchPmProjectScheduleImports(pn),
         fetchPmProjectScheduleReviewQueue(pn),
         fetchPmProjectScheduleLookahead(pn).catch(() => null),
+        fetchPmProjectScheduleActualsOverview(pn, requestedPlanDate).catch(() => null),
       ]);
       setOverview(overviewData || null);
       setVersions(versionData?.items || []);
@@ -215,6 +270,10 @@ export default function PmProjectSchedule() {
       setReviewQueue(reviewData?.items || []);
       setLookahead(lookaheadData || null);
       setLookaheadDraft(buildLookaheadDraft(lookaheadData));
+      setActualsOverview(actualsData || null);
+      setCandidateDrafts(buildActualCandidateDrafts(actualsData?.candidates || []));
+      setDailyPlanDraft(buildDailyPlanDraft(actualsData?.daily_work_plan || { work_date: requestedPlanDate }));
+      setDailyPlanDate(actualsData?.daily_work_plan?.work_date || requestedPlanDate || todayText());
       const activeVersionId = overviewData?.active_version?.version_id || versionData?.items?.find((item) => item.status === "active")?.version_id || "";
       if (activeVersionId) {
         const [activityData, workPackageData] = await Promise.all([
@@ -246,6 +305,14 @@ export default function PmProjectSchedule() {
 
   useEffect(() => {
     if (projectNumber) load(projectNumber);
+  }, [projectNumber]);
+
+  useEffect(() => {
+    if (!projectNumber) {
+      setActualsOverview(null);
+      setCandidateDrafts({});
+      setDailyPlanDraft(buildDailyPlanDraft(null));
+    }
   }, [projectNumber]);
 
   const setProject = (pn) => {
@@ -352,6 +419,54 @@ export default function PmProjectSchedule() {
     }
   };
 
+  const onCandidateDraft = (candidateId, key, value) => {
+    setCandidateDrafts((prev) => ({ ...prev, [candidateId]: { ...(prev[candidateId] || {}), [key]: value } }));
+  };
+
+  const onCandidateAction = async (candidateId, action) => {
+    if (!projectNumber) return;
+    const candidate = (actualsOverview?.candidates || []).find((row) => row.candidate_id === candidateId);
+    setWorking(true);
+    try {
+      await reviewPmProjectScheduleActualCandidate(projectNumber, candidateId, buildCandidatePayload(candidate, candidateDrafts[candidateId], action));
+      toast.success(action === "approve" ? t("Schedule actual approved.") : action === "reject" ? t("Schedule actual rejected.") : action === "defer" ? t("Schedule actual deferred.") : t("Schedule actual returned to governed review."));
+      await load(projectNumber, activeImportId, dailyPlanDate);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || t("Could not update the schedule actual candidate."));
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const onPlanDraft = (key, value) => {
+    setDailyPlanDraft((prev) => ({ ...prev, [key]: value }));
+    if (key === "work_date") {
+      setDailyPlanDate(value || todayText());
+      if ((value || "").length === 10 && projectNumber) load(projectNumber, activeImportId, value);
+    }
+  };
+
+  const onPlanItemChange = (index, key, value) => {
+    setDailyPlanDraft((prev) => ({
+      ...prev,
+      items: (prev.items || []).map((row, rowIndex) => rowIndex === index ? { ...row, [key]: key === "planned_quantity" || key === "planned_hours" ? Number(value || 0) : value } : row),
+    }));
+  };
+
+  const onSaveDailyPlan = async () => {
+    if (!projectNumber) return;
+    setWorking(true);
+    try {
+      await savePmProjectScheduleDailyWorkPlan(projectNumber, dailyPlanDraft);
+      toast.success(t("Daily work plan saved."));
+      await load(projectNumber, activeImportId, dailyPlanDraft.work_date || dailyPlanDate);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || t("Could not save the daily work plan."));
+    } finally {
+      setWorking(false);
+    }
+  };
+
   const cards = useMemo(() => summaryCards(overview), [overview]);
   const importRows = importDetail?.rows || [];
   const activeVersion = overview?.active_version || null;
@@ -380,7 +495,7 @@ export default function PmProjectSchedule() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4" data-testid="pm-project-schedule-summary-grid">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="pm-project-schedule-summary-grid">
           {cards.map(([label, value]) => (
             <div key={label} className="rounded-[1.5rem] border border-white/30 bg-white/85 p-4 shadow-sm" data-testid={`pm-project-schedule-summary-${label}`}>
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
@@ -402,6 +517,7 @@ export default function PmProjectSchedule() {
             <TabsTrigger value="imports" data-testid="pm-project-schedule-imports-tab">{t("Imports")}</TabsTrigger>
             <TabsTrigger value="schedule" data-testid="pm-project-schedule-active-tab">{t("Active schedule")}</TabsTrigger>
             <TabsTrigger value="lookahead" data-testid="pm-project-schedule-lookahead-tab">{t("Lookahead")}</TabsTrigger>
+            <TabsTrigger value="actuals" data-testid="pm-project-schedule-actuals-tab">{t("Actuals review")}</TabsTrigger>
             <TabsTrigger value="review" data-testid="pm-project-schedule-review-tab">{t("Review queue")}</TabsTrigger>
           </TabsList>
 
@@ -560,6 +676,47 @@ export default function PmProjectSchedule() {
               ) : <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-schedule-no-active-version">{t("No active schedule version yet. Stage and approve an import first.")}</div>}
             </section>
 
+            <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-forecast-section">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900">{t("Baseline · current · forecast")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Baseline preserves the original commitment. Current preserves the approved working plan. Forecast is a separate, clearly labeled view derived only from PM-approved actuals and remaining duration.")}</p>
+                </div>
+                <Badge data-testid="pm-project-schedule-forecast-count-badge">{actualsOverview?.forecast?.summary?.rows || 0}</Badge>
+              </div>
+              <div className="mt-4 grid gap-4 lg:grid-cols-3" data-testid="pm-project-schedule-contract-grid">
+                {Object.entries(actualsOverview?.baseline_current_forecast_contract || {}).map(([key, value]) => (
+                  <div key={key} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-schedule-contract-${key}`}>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{t(key.replace(/_/g, " "))}</div>
+                    <div className="mt-2 text-sm text-slate-700">{t(value)}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full text-left text-sm" data-testid="pm-project-schedule-forecast-table">
+                  <thead className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <tr>
+                      <th className="px-3 py-2">{t("Activity")}</th>
+                      <th className="px-3 py-2">{t("Baseline")}</th>
+                      <th className="px-3 py-2">{t("Current")}</th>
+                      <th className="px-3 py-2">{t("Forecast")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(actualsOverview?.forecast?.rows || []).slice(0, 12).map((row) => (
+                      <tr key={row.activity_id} className="border-t border-slate-200" data-testid={`pm-project-schedule-forecast-row-${row.activity_id}`}>
+                        <td className="px-3 py-3"><div className="font-semibold text-slate-900">{row.activity_id}</div><div className="text-xs text-slate-500">{row.activity_name}</div></td>
+                        <td className="px-3 py-3 text-slate-700">{row.baseline_start_date || "—"}<br /><span className="text-xs text-slate-500">{row.baseline_finish_date || "—"}</span></td>
+                        <td className="px-3 py-3 text-slate-700">{row.current_start_date || "—"}<br /><span className="text-xs text-slate-500">{row.current_finish_date || "—"}</span></td>
+                        <td className="px-3 py-3 text-slate-700">{row.forecast_start_date || "—"}<br /><span className="text-xs text-slate-500">{row.forecast_finish_date || "—"} · {row.forecast_status || "not_started"}{Number(row.slip_days || 0) > 0 ? ` · +${row.slip_days}d` : ""}</span></td>
+                      </tr>
+                    ))}
+                    {!loading && (actualsOverview?.forecast?.rows || []).length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={4}>{t("No forecast rows yet. Approve actuals to begin the C5 schedule status chain.")}</td></tr> : null}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-export-section">
               <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div>
@@ -663,6 +820,26 @@ export default function PmProjectSchedule() {
                 <Textarea value={lookaheadDraft.constraints_text} onChange={(event) => setLookaheadDraft((prev) => ({ ...prev, constraints_text: event.target.value }))} placeholder={t("One governed constraint title per line")} data-testid="pm-project-schedule-lookahead-constraints-input" />
               </div>
             </section>
+
+            <ScheduleDailyWorkPlanPanel
+              t={t}
+              planDraft={dailyPlanDraft}
+              onPlanDraft={onPlanDraft}
+              onPlanItemChange={onPlanItemChange}
+              onSavePlan={onSaveDailyPlan}
+              working={working}
+            />
+          </TabsContent>
+
+          <TabsContent value="actuals" className="space-y-6" data-testid="pm-project-schedule-actuals-panel">
+            <ScheduleActualsWorkspace
+              t={t}
+              candidates={actualsOverview?.candidates || []}
+              candidateDrafts={candidateDrafts}
+              onCandidateDraft={onCandidateDraft}
+              onCandidateAction={onCandidateAction}
+              working={working}
+            />
           </TabsContent>
 
           <TabsContent value="review" className="space-y-6" data-testid="pm-project-schedule-review-panel">

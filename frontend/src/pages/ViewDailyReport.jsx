@@ -822,6 +822,37 @@ export default function ViewDailyReport() {
           </div>
         )}
 
+        {(data.schedule_actual_candidates?.length || 0) > 0 && (
+          <div data-testid="dr-view-schedule-actual-candidates">
+            <ReportSection number="09e" title={`${t("Schedule Actual Review Chain")} (${data.schedule_actual_candidates.length})`}>
+              <div className="grid gap-3 md:grid-cols-3 mb-4">
+                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Candidates")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-count">{data.schedule_actual_candidate_summary?.count || data.schedule_actual_candidates.length}</div></div>
+                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Pending PM review")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-pending">{data.schedule_actual_candidate_summary?.pending || 0}</div></div>
+                <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Approved actuals")}</div><div className="mt-2 text-2xl font-black text-slate-900" data-testid="dr-view-schedule-actual-approved">{data.schedule_actual_candidate_summary?.approved || 0}</div></div>
+              </div>
+              <div className="space-y-4">
+                {(data.schedule_actual_candidates || []).map((row, index) => (
+                  <div key={row.candidate_id || index} className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4" data-testid={`dr-view-schedule-actual-row-${index}`}>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="font-semibold text-slate-900">{row.activity_resolution?.resolved_activity_id || t("Needs PM review")}</div>
+                        <div className="mt-1 text-xs text-slate-500">{row.activity_resolution?.resolved_activity_name || t("No safe activity match yet")}</div>
+                      </div>
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700" data-testid={`dr-view-schedule-actual-status-${index}`}>{row.review_status || "pending_review"}</span>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-4 text-sm text-slate-700">
+                      <div>{t("Installed")}: <span className="font-semibold text-slate-900">{row.actual_facts?.installed_quantity || 0}</span> {row.actual_facts?.unit || ""}</div>
+                      <div>{t("Delivered material rows")}: <span className="font-semibold text-slate-900">{(row.material_flow?.delivered || []).length}</span></div>
+                      <div>{t("Installed material rows")}: <span className="font-semibold text-slate-900">{(row.material_flow?.installed || []).length}</span></div>
+                      <div>{t("Outbound review rows")}: <span className="font-semibold text-slate-900">{(row.material_flow?.outbound_unclassified || []).length}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ReportSection>
+          </div>
+        )}
+
         {/* E-1 · MM-001B · Material Movement visibility tile.
             Read-only · derived from dispatch_assignments + DR rows.
             Doctrine: MM_001A_A_EXTERNAL_MATERIAL_MOVEMENT_GAP_AUDIT.md */}

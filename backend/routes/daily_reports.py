@@ -684,6 +684,8 @@ class DailyReportCreate(BaseModel):
     certification_delivery_override_requested: bool = False
     certification_authorized_recipient: Optional[str] = None
     certification_override_ttl_minutes: Optional[int] = None
+    schedule_actual_candidates: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    schedule_actual_candidate_summary: Optional[Dict[str, Any]] = None
 
 
 class DailyReport(DailyReportCreate):
@@ -1527,6 +1529,24 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 await sync_crew_observation_for_report(db, doc)
             except Exception:  # noqa: BLE001
                 pass
+            try:
+                from services.project_schedule_actuals_spine import sync_schedule_actual_candidates_for_report  # noqa: PLC0415
+
+                schedule_actuals = await sync_schedule_actual_candidates_for_report(
+                    db,
+                    doc,
+                    actor={"email": doc.get("prepared_by") or "field", "role": "daily_report_submit"},
+                )
+                report_dict["schedule_actual_candidates"] = schedule_actuals.get("items") or []
+                report_dict["schedule_actual_candidate_summary"] = {
+                    "count": int(schedule_actuals.get("count") or 0),
+                    "pending": int(schedule_actuals.get("pending") or 0),
+                    "approved": int(schedule_actuals.get("approved") or 0),
+                    "version_id": schedule_actuals.get("version_id") or "",
+                }
+            except Exception:  # noqa: BLE001
+                report_dict.setdefault("schedule_actual_candidates", [])
+                report_dict.setdefault("schedule_actual_candidate_summary", {"count": 0, "pending": 0, "approved": 0, "version_id": ""})
             progress_snapshot = await recompute_project_progress(db, doc.get("project_number") or "")
             if progress_snapshot:
                 doc["job_cost_code_progress"] = progress_snapshot
@@ -2227,6 +2247,19 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         is_global_scope = (await governance_project_scope_filter(db, actor, base_filter={})) == {}
         if bool(doc.get("hidden_from_operations")) and not is_global_scope:
             raise HTTPException(status_code=404, detail="Daily report not found")
+        try:
+            from services.project_schedule_actuals_spine import list_schedule_actual_candidates_for_report  # noqa: PLC0415
+
+            schedule_actual_candidates = await list_schedule_actual_candidates_for_report(db, report_id)
+            doc["schedule_actual_candidates"] = schedule_actual_candidates
+            doc["schedule_actual_candidate_summary"] = {
+                "count": len(schedule_actual_candidates),
+                "pending": sum(1 for row in schedule_actual_candidates if row.get("review_status") in {"pending_review", "review_required", "deferred"}),
+                "approved": sum(1 for row in schedule_actual_candidates if row.get("review_status") == "approved"),
+            }
+        except Exception:  # noqa: BLE001
+            doc.setdefault("schedule_actual_candidates", [])
+            doc.setdefault("schedule_actual_candidate_summary", {"count": 0, "pending": 0, "approved": 0})
         return _sanitize_daily_report_for_actor(doc, actor)
 
     @api_router.delete("/daily-reports/{report_id}")

@@ -100,6 +100,14 @@ from services.project_schedule_authority import (
     run_schedule_backfill,
     save_schedule_lookahead,
 )
+from services.project_schedule_actuals_spine import (
+    get_admin_schedule_actuals_overview,
+    get_daily_work_plan,
+    get_schedule_actuals_overview,
+    list_schedule_actual_candidates,
+    review_schedule_actual_candidate,
+    save_daily_work_plan,
+)
 from pm_auth import is_valid_pm_user_token_async
 
 
@@ -327,6 +335,25 @@ class ScheduleEmailExportBody(BaseModel):
     export_kind: str = "master_schedule_csv"
     version_id: str = ""
     recipients: List[str] = Field(default_factory=list)
+
+
+class ScheduleActualCandidateReviewBody(BaseModel):
+    action: str = "approve"
+    activity_id: str = ""
+    activity_name: str = ""
+    actual_start_date: str = ""
+    actual_finish_date: str = ""
+    approved_percent_complete: float = 0.0
+    approved_installed_quantity: float = 0.0
+    schedule_progress_status: str = "in_progress"
+    review_note: str = ""
+
+
+class DailyWorkPlanBody(BaseModel):
+    work_date: str = ""
+    status: str = "draft"
+    notes: str = ""
+    items: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 def _runtime_db(request: Optional[Request], db):
@@ -906,6 +933,11 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
             headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
         )
 
+    @api_router.get("/api/admin/governance/project-controls/schedule/actuals/overview")
+    async def governance_project_schedule_actuals_overview(request: Request, project_number: str = "", actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        return await get_admin_schedule_actuals_overview(runtime_db, project_number=project_number)
+
     @api_router.get("/api/pm/project-controls/overview")
     async def pm_project_controls_overview(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
@@ -1308,3 +1340,44 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
         return {"ok": True, "lookahead": row}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/actuals/overview")
+    async def pm_project_schedule_actuals_overview(request: Request, project_number: str, work_date: str = ""):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_schedule_actuals_overview(runtime_db, project_number, work_date=work_date)
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/actuals/candidates")
+    async def pm_project_schedule_actual_candidates(request: Request, project_number: str, status: str = ""):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        rows = await list_schedule_actual_candidates(runtime_db, project_number, status=status)
+        return {"count": len(rows), "items": rows}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/schedule/actuals/candidates/{candidate_id}/review")
+    async def pm_project_schedule_actual_candidate_review(request: Request, project_number: str, candidate_id: str, body: ScheduleActualCandidateReviewBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await review_schedule_actual_candidate(runtime_db, project_number, candidate_id, body.model_dump(), actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "candidate": row}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/schedule/daily-work-plan")
+    async def pm_project_schedule_daily_work_plan(request: Request, project_number: str, work_date: str = ""):
+        runtime_db = _runtime_db(request, db)
+        await _require_project_scope(runtime_db, request, project_number)
+        return await get_daily_work_plan(runtime_db, project_number, work_date=work_date)
+
+    @api_router.put("/api/pm/project-controls/projects/{project_number}/schedule/daily-work-plan")
+    async def pm_project_schedule_save_daily_work_plan(request: Request, project_number: str, body: DailyWorkPlanBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await save_daily_work_plan(runtime_db, project_number, body.model_dump(), actor=actor)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "daily_work_plan": row}

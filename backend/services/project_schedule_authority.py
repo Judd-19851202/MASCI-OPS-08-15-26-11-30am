@@ -1137,12 +1137,16 @@ def _work_package_doc(project_number: str, version_id: str, phase_id: str, work_
     cost_codes = sorted({row.get("project_cost_code") for row in activities if _clean(row.get("project_cost_code"))})
     customer_items = sorted({row.get("customer_pay_item_number") for row in activities if _clean(row.get("customer_pay_item_number"))})
     work_types = sorted({row.get("enterprise_work_type_id") for row in activities if _clean(row.get("enterprise_work_type_id"))})
+    start_dates = sorted([row.get("planned_start_date") for row in activities if _clean(row.get("planned_start_date"))])
+    finish_dates = sorted([row.get("planned_finish_date") for row in activities if _clean(row.get("planned_finish_date"))])
     crew_refs = [ref for row in activities for ref in (row.get("planned_assignments", {}).get("planned_crew_ids") or [])]
     equipment_refs = [ref for row in activities for ref in (row.get("planned_assignments", {}).get("planned_equipment_ids") or [])]
     material_refs = [ref for row in activities for ref in (row.get("planned_assignments", {}).get("planned_materials") or [])]
     vendor_refs = [ref for row in activities for ref in (row.get("planned_assignments", {}).get("planned_vendor_refs") or [])]
     subcontractor_refs = [ref for row in activities for ref in (row.get("planned_assignments", {}).get("planned_subcontractor_refs") or [])]
     constraint_refs = [ref for row in activities for ref in (row.get("planned_assignments", {}).get("planned_constraints") or [])]
+    planned_hours = round(sum(_safe_float((row.get("planned_assignments") or {}).get("planned_hours")) for row in activities), 4)
+    planned_production_quantity = round(sum(_safe_float((row.get("planned_assignments") or {}).get("planned_production_quantity")) for row in activities), 4)
     return {
         "work_package_id": work_package_id,
         "project_number": project_number,
@@ -1150,11 +1154,16 @@ def _work_package_doc(project_number: str, version_id: str, phase_id: str, work_
         "phase_id": phase_id,
         "title": work_package_id,
         "status": "active",
+        "activity_count": len(activities),
         "activity_ids": [row.get("activity_id") for row in activities],
         "budget_line_ids": budget_line_ids,
         "cost_codes": cost_codes,
         "customer_pay_item_numbers": customer_items,
         "enterprise_work_type_ids": work_types,
+        "planned_start_date": start_dates[0] if start_dates else "",
+        "planned_finish_date": finish_dates[-1] if finish_dates else "",
+        "planned_hours": planned_hours,
+        "planned_production_quantity": planned_production_quantity,
         "planned_assignments": {
             "crew": _sanitize(crew_refs),
             "equipment": _sanitize(equipment_refs),
@@ -1317,6 +1326,8 @@ def _two_week_window_rows(activities: List[Dict[str, Any]], *, days: int) -> Lis
 
 async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]:
     await ensure_project_schedule_foundation(db)
+    from services.project_schedule_actuals_spine import get_schedule_actuals_overview  # noqa: PLC0415
+
     job = await _load_job(db, project_number)
     versions = await list_schedule_versions(db, project_number)
     active_version = next((row for row in versions if row.get("status") == "active"), None)
@@ -1329,10 +1340,13 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
     if active_version and activities:
         lookahead = await _seed_lookahead_from_activities(db, project_number, activities, actor={"email": "system", "role": "system"})
     work_ledger_rows = [_sanitize(row) async for row in db.project_controls_work_ledger.find({"project_number": project_number}, {"_id": 0}).sort([("report_date", -1)]).limit(50)]
+    actuals_overview = await get_schedule_actuals_overview(db, project_number)
     actual_chain = {
         "work_block_links": sum(1 for row in work_ledger_rows if _clean(row.get("schedule_activity_id"))),
         "daily_report_rows": len({row.get("source_report_id") for row in work_ledger_rows if row.get("source_report_id")}),
         "production_rows": sum(1 for row in work_ledger_rows if _to_float(row.get("installed_quantity"), 0.0) > 0),
+        "candidate_rows": (actuals_overview.get("counts") or {}).get("candidates") or 0,
+        "approved_actuals": (actuals_overview.get("counts") or {}).get("approved") or 0,
     }
     return {
         "project": {"project_number": project_number, "project_name": job.get("project_name") or job.get("name") or project_number},
@@ -1356,6 +1370,9 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
             "review_queue_open": sum(1 for row in review_queue if row.get("status") != "resolved"),
             "budget_lines": len(budget_lines),
             "actual_work_blocks": actual_chain["work_block_links"],
+            "schedule_actual_candidates": (actuals_overview.get("counts") or {}).get("candidates") or 0,
+            "approved_schedule_actuals": (actuals_overview.get("counts") or {}).get("approved") or 0,
+            "daily_work_plans": 1 if (actuals_overview.get("daily_work_plan") or {}).get("plan_id") else 0,
         },
         "active_version": active_version,
         "versions": versions[:8],
@@ -1365,9 +1382,11 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
         "review_queue": review_queue[:20],
         "budget_lines": budget_lines[:50],
         "lookahead": lookahead,
+        "daily_work_plan": actuals_overview.get("daily_work_plan") or {},
         "lookahead_2w": _two_week_window_rows(activities, days=14),
         "lookahead_4w": _two_week_window_rows(activities, days=28),
         "actual_chain": actual_chain,
+        "schedule_actuals": actuals_overview,
         "event_contracts": EVENT_CONTRACTS,
         "backfill": _sanitize(await db[COLL_SCHEDULE_RUNS].find_one({"run_type": "wp18c4_backfill"}, {"_id": 0}) or {"run_type": "wp18c4_backfill", "status": "pending_manual_run"}),
     }
@@ -1375,11 +1394,14 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
 
 async def get_admin_schedule_spine_overview(db, project_number: str = "") -> Dict[str, Any]:
     await ensure_project_schedule_foundation(db)
+    from services.project_schedule_actuals_spine import get_admin_schedule_actuals_overview  # noqa: PLC0415
+
     query = {"project_number": project_number} if project_number else {}
     versions = [_sanitize(row) async for row in db[COLL_SCHEDULE_VERSIONS].find(query, {"_id": 0}).sort([("activated_at", -1)]).limit(100)]
     imports = [_sanitize(row) async for row in db[COLL_SCHEDULE_IMPORTS].find(query, {"_id": 0}).sort([("imported_at", -1)]).limit(100)]
     reviews = await list_schedule_review_queue(db, project_number=project_number)
     work_packages = [_sanitize(row) async for row in db[COLL_WORK_PACKAGES].find(query, {"_id": 0}).sort([("updated_at", -1)]).limit(100)]
+    actuals = await get_admin_schedule_actuals_overview(db, project_number=project_number)
     return {
         "summary": {
             "projects_with_versions": len({row.get("project_number") for row in versions if row.get("project_number")}),
@@ -1388,11 +1410,15 @@ async def get_admin_schedule_spine_overview(db, project_number: str = "") -> Dic
             "work_packages": await db[COLL_WORK_PACKAGES].count_documents(query),
             "imports": await db[COLL_SCHEDULE_IMPORTS].count_documents(query),
             "review_queue_open": sum(1 for row in reviews if row.get("status") != "resolved"),
+            "schedule_actual_candidates": (actuals.get("summary") or {}).get("candidates") or 0,
+            "approved_schedule_actuals": (actuals.get("summary") or {}).get("approved") or 0,
+            "daily_work_plans": (actuals.get("summary") or {}).get("daily_work_plans") or 0,
         },
         "versions": versions,
         "imports": imports,
         "work_packages": work_packages,
         "review_queue": reviews[:100],
+        "schedule_actuals": actuals,
         "backfill": _sanitize(await db[COLL_SCHEDULE_RUNS].find_one({"run_type": "wp18c4_backfill"}, {"_id": 0}) or {"run_type": "wp18c4_backfill", "status": "pending_manual_run"}),
         "event_contracts": EVENT_CONTRACTS,
     }
@@ -1619,6 +1645,82 @@ async def export_schedule_view(db, project_number: str, *, version_id: str, expo
             "planned_production_quantity",
         ]
         rows = _work_package_export_rows(activities)
+    elif kind in {"forecast_schedule_csv", "forecast_schedule_xlsx"}:
+        from services.project_schedule_actuals_spine import build_schedule_forecast_view  # noqa: PLC0415
+
+        forecast = await build_schedule_forecast_view(db, project_number, version_id=version_id)
+        header = [
+            "activity_id",
+            "activity_name",
+            "work_package_id",
+            "project_cost_code",
+            "baseline_start_date",
+            "baseline_finish_date",
+            "current_start_date",
+            "current_finish_date",
+            "forecast_start_date",
+            "forecast_finish_date",
+            "forecast_status",
+            "approved_percent_complete",
+            "slip_days",
+        ]
+        rows = [[row.get(key) for key in header] for row in (forecast.get("rows") or [])]
+    elif kind in {"schedule_actuals_csv", "schedule_actuals_xlsx"}:
+        from services.project_schedule_actuals_spine import list_schedule_actual_candidates  # noqa: PLC0415
+
+        candidates = await list_schedule_actual_candidates(db, project_number)
+        header = [
+            "candidate_id",
+            "source_report_number",
+            "report_date",
+            "work_block_id",
+            "resolved_activity_id",
+            "resolved_activity_name",
+            "review_status",
+            "installed_quantity",
+            "unit",
+            "approved_percent_complete",
+            "approved_installed_quantity",
+            "approved_activity_id",
+            "schedule_progress_status",
+        ]
+        rows = [
+            [
+                row.get("candidate_id"),
+                row.get("source_report_number"),
+                row.get("report_date"),
+                row.get("work_block_id"),
+                (row.get("activity_resolution") or {}).get("resolved_activity_id"),
+                (row.get("activity_resolution") or {}).get("resolved_activity_name"),
+                row.get("review_status"),
+                (row.get("actual_facts") or {}).get("installed_quantity"),
+                (row.get("actual_facts") or {}).get("unit"),
+                (row.get("approved_actual") or {}).get("approved_percent_complete"),
+                (row.get("approved_actual") or {}).get("approved_installed_quantity"),
+                (row.get("approved_actual") or {}).get("activity_id"),
+                (row.get("approved_actual") or {}).get("schedule_progress_status"),
+            ]
+            for row in candidates
+        ]
+    elif kind in {"daily_work_plan_csv", "daily_work_plan_xlsx"}:
+        from services.project_schedule_actuals_spine import get_daily_work_plan  # noqa: PLC0415
+
+        plan = await get_daily_work_plan(db, project_number)
+        header = [
+            "plan_item_id",
+            "activity_id",
+            "activity_name",
+            "work_package_id",
+            "budget_line_id",
+            "customer_pay_item_number",
+            "project_cost_code",
+            "planned_quantity",
+            "planned_hours",
+            "actual_status",
+            "approved_percent_complete",
+            "daily_goal_note",
+        ]
+        rows = [[row.get(key) for key in header] for row in (plan.get("items") or [])]
     else:
         header = [
             "activity_id",
@@ -1673,6 +1775,8 @@ async def queue_schedule_email_export(db, project_number: str, *, version_id: st
 
 async def run_schedule_backfill(db, *, force: bool = False) -> Dict[str, Any]:
     await ensure_project_schedule_foundation(db)
+    from services.project_schedule_actuals_spine import run_schedule_actuals_backfill  # noqa: PLC0415
+
     last_run = await db[COLL_SCHEDULE_RUNS].find_one({"run_type": "wp18c4_backfill"}, {"_id": 0})
     if last_run and not force:
         return _sanitize(last_run)
@@ -1703,6 +1807,7 @@ async def run_schedule_backfill(db, *, force: bool = False) -> Dict[str, Any]:
                 },
             )
             foundation_reviews += 1
+    actual_backfill = await run_schedule_actuals_backfill(db, force=force)
     report = {
         "run_type": "wp18c4_backfill",
         "run_id": f"wp18c4-backfill:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
@@ -1710,6 +1815,7 @@ async def run_schedule_backfill(db, *, force: bool = False) -> Dict[str, Any]:
         "force": force,
         "foundation_reviews_opened": foundation_reviews,
         "legacy_assignment_rows_observed": assignments_seen,
+        "c5_actuals_backfill": actual_backfill,
         "status": "completed",
     }
     await db[COLL_SCHEDULE_RUNS].replace_one({"run_type": "wp18c4_backfill"}, report, upsert=True)

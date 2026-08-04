@@ -12,6 +12,7 @@ import { useT } from "@/lib/i18n";
 import {
   downloadAdminScheduleExport,
   fetchAdminProjectScheduleActivities,
+  fetchAdminProjectScheduleActualsOverview,
   fetchAdminProjectScheduleImportDetail,
   fetchAdminProjectScheduleImports,
   fetchAdminProjectScheduleOverview,
@@ -23,11 +24,14 @@ import {
 
 const EXPORT_OPTIONS = [
   ["master_schedule_csv", "Master schedule CSV"],
+  ["forecast_schedule_csv", "Forecast schedule CSV"],
   ["two_week_csv", "Two-week lookahead CSV"],
   ["four_week_csv", "Four-week lookahead CSV"],
+  ["daily_work_plan_csv", "Daily work plan CSV"],
   ["crew_plan_csv", "Crew plan CSV"],
   ["equipment_plan_csv", "Equipment plan CSV"],
   ["material_plan_csv", "Material plan CSV"],
+  ["schedule_actuals_csv", "Schedule actuals CSV"],
   ["work_package_plan_csv", "Work-package plan CSV"],
 ];
 
@@ -38,6 +42,8 @@ function summaryCards(overview) {
     ["schedule-activities", summary.schedule_activities || 0],
     ["work-packages", summary.work_packages || 0],
     ["review-queue-open", summary.review_queue_open || 0],
+    ["schedule-actual-candidates", summary.schedule_actual_candidates || 0],
+    ["approved-schedule-actuals", summary.approved_schedule_actuals || 0],
   ];
 }
 
@@ -74,6 +80,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
   const [importDetail, setImportDetail] = useState(null);
   const [reviewQueue, setReviewQueue] = useState([]);
   const [exportKind, setExportKind] = useState("master_schedule_csv");
+  const [actualsOverview, setActualsOverview] = useState(null);
 
   const load = async (pn = projectNumber) => {
     setLoading(true);
@@ -84,6 +91,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
       ]);
       setOverview(overviewData || null);
       setReviewQueue(reviewData?.items || []);
+      setActualsOverview((overviewData || {}).schedule_actuals || null);
       if (pn) {
         const [versionData, importData] = await Promise.all([
           fetchAdminProjectScheduleVersions(pn),
@@ -109,12 +117,16 @@ export default function AdminGovernanceProjectScheduleAuthority() {
         } else {
           setImportDetail(null);
         }
+        const actualsData = await fetchAdminProjectScheduleActualsOverview(pn).catch(() => null);
+        setActualsOverview(actualsData || (overviewData || {}).schedule_actuals || null);
       } else {
         setVersions([]);
         setActivities([]);
         setWorkPackages([]);
         setImports([]);
         setImportDetail(null);
+        const actualsData = await fetchAdminProjectScheduleActualsOverview("").catch(() => null);
+        setActualsOverview(actualsData || (overviewData || {}).schedule_actuals || null);
       }
     } catch (error) {
       toast.error(error?.response?.data?.detail || t("Could not load governed schedule governance."));
@@ -177,7 +189,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
           <Button type="button" variant="outline" onClick={onExport} disabled={!projectNumber || !versions.find((item) => item.status === "active")} data-testid="admin-project-schedule-export-button"><Download className="mr-2 h-4 w-4" /> {t("Export schedule")}</Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4" data-testid="admin-project-schedule-summary-grid">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="admin-project-schedule-summary-grid">
           {cards.map(([label, value]) => (
             <div key={label} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid={`admin-project-schedule-summary-${label}`}>
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t(String(label).replace(/-/g, " "))}</div>
@@ -198,6 +210,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
           <TabsList data-testid="admin-project-schedule-tabs-list">
             <TabsTrigger value="review" data-testid="admin-project-schedule-review-tab">{t("Review queue")}</TabsTrigger>
             <TabsTrigger value="versions" data-testid="admin-project-schedule-versions-tab">{t("Versions")}</TabsTrigger>
+            <TabsTrigger value="actuals" data-testid="admin-project-schedule-actuals-tab">{t("C5 actuals")}</TabsTrigger>
             <TabsTrigger value="imports" data-testid="admin-project-schedule-imports-tab">{t("Imports")}</TabsTrigger>
           </TabsList>
 
@@ -222,6 +235,58 @@ export default function AdminGovernanceProjectScheduleAuthority() {
                   </div>
                 ))}
                 {!loading && reviewQueue.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="admin-project-schedule-review-empty-state">{t("No governed schedule review items are open right now.")}</div> : null}
+              </div>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="actuals" className="space-y-6" data-testid="admin-project-schedule-actuals-panel">
+            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-actuals-summary-section">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900">{t("C5 actuals oversight")}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{t("Admin can inspect candidate volume, approved actuals, and daily work-plan publication without becoming the project authority gate.")}</p>
+                </div>
+                <Badge variant="secondary" data-testid="admin-project-schedule-actuals-count-badge">{actualsOverview?.summary?.candidates || 0}</Badge>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Candidates")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.candidates || 0}</div></div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Approved")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.approved || 0}</div></div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Review required")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.review_required || 0}</div></div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">{t("Daily plans")}</div><div className="mt-2 text-2xl font-black text-slate-900">{actualsOverview?.summary?.daily_work_plans || 0}</div></div>
+              </div>
+            </section>
+
+            <section className="grid gap-6 xl:grid-cols-2" data-testid="admin-project-schedule-actuals-detail-grid">
+              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-actuals-candidates-section">
+                <h3 className="text-lg font-black text-slate-900">{t("Recent candidate evidence")}</h3>
+                <div className="mt-4 space-y-3">
+                  {(actualsOverview?.candidates || []).slice(0, 10).map((row) => (
+                    <div key={row.candidate_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-actual-candidate-${row.candidate_id}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="font-semibold text-slate-900">{row.source_report_number || row.source_report_id}</div>
+                        <Badge variant={row.review_status === "approved" ? "default" : "outline"}>{row.review_status}</Badge>
+                      </div>
+                      <div className="mt-2 text-xs text-slate-500">{row.report_date} · {row.activity_resolution?.resolved_activity_id || t("Needs PM review")}</div>
+                    </div>
+                  ))}
+                  {!loading && (actualsOverview?.candidates || []).length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No C5 actual candidate evidence found yet.")}</div> : null}
+                </div>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-actuals-plans-section">
+                <h3 className="text-lg font-black text-slate-900">{t("Published daily work plans")}</h3>
+                <div className="mt-4 space-y-3">
+                  {(actualsOverview?.daily_work_plans || []).slice(0, 10).map((row) => (
+                    <div key={row.plan_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-daily-plan-${row.plan_id}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="font-semibold text-slate-900">{row.work_date}</div>
+                        <Badge variant={row.status === "published" ? "default" : "outline"}>{row.status}</Badge>
+                      </div>
+                      <div className="mt-2 text-xs text-slate-500">{(row.items || []).length} {t("items")}</div>
+                    </div>
+                  ))}
+                  {!loading && (actualsOverview?.daily_work_plans || []).length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No governed daily work plans published yet.")}</div> : null}
+                </div>
               </div>
             </section>
           </TabsContent>

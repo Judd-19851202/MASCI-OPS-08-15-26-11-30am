@@ -280,6 +280,12 @@ export async function downloadAdminScheduleExport(projectNumber, versionId, expo
   });
 }
 
+export async function fetchAdminProjectScheduleActualsOverview(projectNumber = "") {
+  const suffix = projectNumber ? `?project_number=${encodeURIComponent(projectNumber)}` : "";
+  const { data } = await api.get(`/admin/governance/project-controls/schedule/actuals/overview${suffix}`);
+  return data;
+}
+
 export async function fetchPmProjectScheduleOverview(projectNumber) {
   const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/overview`);
   return data;
@@ -345,6 +351,34 @@ export async function fetchPmProjectScheduleLookahead(projectNumber) {
 
 export async function savePmProjectScheduleLookahead(projectNumber, payload) {
   const { data } = await api.put(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/lookahead`, payload);
+  return data;
+}
+
+export async function fetchPmProjectScheduleActualsOverview(projectNumber, workDate = "") {
+  const suffix = workDate ? `?work_date=${encodeURIComponent(workDate)}` : "";
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/actuals/overview${suffix}`);
+  return data;
+}
+
+export async function fetchPmProjectScheduleActualCandidates(projectNumber, status = "") {
+  const suffix = status ? `?status=${encodeURIComponent(status)}` : "";
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/actuals/candidates${suffix}`);
+  return data;
+}
+
+export async function reviewPmProjectScheduleActualCandidate(projectNumber, candidateId, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/actuals/candidates/${encodeURIComponent(candidateId)}/review`, payload);
+  return data;
+}
+
+export async function fetchPmProjectScheduleDailyWorkPlan(projectNumber, workDate = "") {
+  const suffix = workDate ? `?work_date=${encodeURIComponent(workDate)}` : "";
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/daily-work-plan${suffix}`);
+  return data;
+}
+
+export async function savePmProjectScheduleDailyWorkPlan(projectNumber, payload) {
+  const { data } = await api.put(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/daily-work-plan`, payload);
   return data;
 }
 
