@@ -20,8 +20,11 @@ Notifications Digest,web_surface,pass,iteration_118,notification coaching langua
 EN/ES touched web parity,language_consistency,pass,iteration_117,language toggle passed
 Mobile certification,mobile,partial,iteration_118 spot checks,safety and hr responsive checks passed but broader coverage still needed
 Accessibility certification,accessibility,partial,qa_console_and_click_check_only,needs explicit accessibility walkthrough
-PDF output wording,channel_output,partial,source + entry-point evidence only,needs runtime document audit
-Email wording,channel_output,partial,source + visible dialog copy,needs runtime open/send evidence
-AI summary wording,channel_output,partial,source + sanitization integration,needs direct runtime output evidence
-Remaining role walkthroughs,role_experience,partial,iteration_118 runtime coverage,survey and payroll still open
+PDF output wording,channel_output,partial,iteration_119 daily-report trigger pass,remaining named PDF/export families still open
+Email wording,channel_output,partial,iteration_119 dialog/runtime open pass,provider-delivery proof and full family coverage still open
+AI summary wording,channel_output,partial,iteration_119 runtime sections present,direct seeded AI output evidence still open
+Payroll Variance,role_surface,pass,iteration_119,construction payroll wording verified at runtime
+Survey role workflow,role_surface,blocked,iteration_119,no dedicated survey route or credential found
+Remaining role walkthroughs,role_experience,partial,iteration_119 runtime coverage,survey missing and executive-family sessions not fully isolated
+Alias routes executive-oi and notifications,frontend_routing,pass,iteration_120,historical/admin-guess paths no longer 404
 WP18CX final gate,constitutional_release,no-go,go_no_go_report,blocked on remaining runtime evidence

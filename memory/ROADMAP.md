@@ -695,13 +695,15 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 ## 2026-08-04 — WP18CX remaining gate work
 
 ### P0
-- Capture runtime language evidence for PDF body output, email send flow, and direct AI-summary channels.
-- Run direct role walkthroughs for Survey and Payroll portals.
-- Capture explicit accessibility evidence and broaden mobile runtime evidence needed to convert WP18CX from web-surface pass to final constitutional GO.
+- Provide or enable a Survey runtime route/credential/workflow so certification can occur.
+- Capture direct seeded AI-output runtime evidence.
+- Capture runtime evidence for the remaining named PDF/export/report families required by the final WP18CX gate.
+- Capture explicit accessibility evidence and broaden mobile/device runtime evidence needed to convert WP18CX from web-surface pass to final constitutional GO.
 
 ### P1
 - Normalize the legacy `frontend/src/lib/i18n.js` duplicate-key debt in a dedicated safe-repair package.
 - Extend WP18CX wording certification to inherited legacy pages not modified in the audited C1–C6 web flow set.
+- If leadership requires persona-isolated proof, capture separate runtime sessions for President / COO / VP Operations / Area Manager / Project Executive.
 
 ### P2
 - Keep WP18CX as the standing operator-experience inheritance gate for C7 and later work packages.

@@ -625,3 +625,9 @@
 - Extended operator-language refinements to Safety Hub V2, Dispatch Hub V2, Shop Hub V2, HR Hub V2, Field Leadership Portal Dashboard, Equipment Dashboard, Notifications Digest, AI summary presentation sanitization, and email-report wording.
 - Added `WP18CX_EXECUTIVE_OPERATOR_EXPERIENCE_REGRESSION_CHECKLIST.md` as the permanent inheritance checklist for future packages.
 - Verified expanded role surfaces with `/app/test_reports/iteration_118.json` (`frontend 100%`); final constitutional GO remains blocked only on PDF body runtime proof, email send-flow runtime proof, direct AI-summary runtime proof, Survey/Payroll walkthroughs, and deeper accessibility/mobile evidence.
+
+## 2026-08-04 — WP18CX.3 final runtime gate evidence
+
+- Verified final runtime gates with `/app/test_reports/iteration_119.json` and `/app/test_reports/iteration_120.json`, including PM schedule regression removal, Daily Report PDF trigger, Daily Report email dialog wording, Payroll Variance runtime flow, mobile/accessibility spot checks, and alias-route repairs for executive OI and notifications.
+- Added final gate artifacts: `WP18CX_ROLE_CERTIFICATION_MATRIX.md`, `WP18CX_RUNTIME_COMMUNICATION_CERTIFICATION.md`, `WP18CX_OPERATOR_LANGUAGE_REGRESSION_REPORT.md`, `WP18CX_DECISION_SUPPORT_CERTIFICATION.md`, `WP18CX_MOBILE_FIELD_CERTIFICATION.md`, `WP18CX_ACCESSIBILITY_CERTIFICATION.md`, and `WP18CX_EXECUTIVE_FINAL_GO_GATE.md`.
+- Final constitutional result remains **NO-GO** because Survey runtime coverage is unavailable, AI runtime output evidence is partial, full named PDF/export/report-family runtime evidence is incomplete, and broader accessibility/mobile/device proof is still outstanding.

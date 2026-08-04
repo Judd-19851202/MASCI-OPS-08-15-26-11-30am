@@ -644,7 +644,12 @@
 - WP18CX.2 expansion:
   - `/app/test_reports/iteration_118.json` passed Safety, Dispatch, Shop, HR, Field Leadership, Equipment, Notifications, PM, and Admin runtime checks
   - created `WP18CX_EXECUTIVE_OPERATOR_EXPERIENCE_REGRESSION_CHECKLIST.md` as the permanent inheritance gate checklist
+- WP18CX.3 final runtime gate:
+  - `/app/test_reports/iteration_119.json` verified PM schedule regression removal, Daily Report PDF trigger, email dialog wording, Payroll Variance runtime flow, mobile spot checks, and accessibility spot checks
+  - `/app/test_reports/iteration_120.json` verified the alias repairs for `/admin/executive-oi`, `/admin/notifications`, and `/admin/notifications/digest`
+  - added final gate artifacts: `WP18CX_ROLE_CERTIFICATION_MATRIX.md`, `WP18CX_RUNTIME_COMMUNICATION_CERTIFICATION.md`, `WP18CX_OPERATOR_LANGUAGE_REGRESSION_REPORT.md`, `WP18CX_DECISION_SUPPORT_CERTIFICATION.md`, `WP18CX_MOBILE_FIELD_CERTIFICATION.md`, `WP18CX_ACCESSIBILITY_CERTIFICATION.md`, and `WP18CX_EXECUTIVE_FINAL_GO_GATE.md`
 - Current gate status:
   - audited PM/admin/executive web surfaces: certified
   - expanded role web surfaces (Safety / Dispatch / Shop / HR / Equipment / Field Leadership / Notifications): certified
-  - final WP18CX constitutional gate: **still blocked** pending runtime evidence for PDF body output, email send flow, direct AI-summary output, Survey/Payroll walkthroughs, and deeper accessibility/mobile evidence
+  - Payroll runtime: certified
+  - final WP18CX constitutional gate: **NO-GO** pending Survey runtime availability, direct seeded AI-output evidence, full named PDF/export/report family runtime evidence, and broader accessibility/mobile/device evidence
