@@ -18208,6 +18208,9 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             correlation_id=_spine_cid,
             record_id=str(record.get("id") or record.get("doc_id") or ""),
             recipients=recipients,
+            to_recipients=list(dist.get("to") or recipients),
+            cc_recipients=list(dist.get("cc") or []),
+            bcc_recipients=list(dist.get("bcc") or []),
             subject=subject,
             html=html,
             reply_to=(await _resolve_reply_to_email(db)) or "",
@@ -19977,6 +19980,24 @@ async def _create_safety_indexes():
         # cuts to ~status-cardinality keys.
         await db.integration_sync_logs.create_index(
             [("integration", 1), ("status", 1), ("started_at", -1)]
+        )
+        # WP18CY · backup health and restore-drill certification reads.
+        # Evidence (preview bounded explain, 2026-08-04):
+        #   backup_health.find_one({ok: true}).sort(ts desc) -> COLLSCAN 200 / 5 returned
+        #   drill_runs.find_one({state: "done"}).sort(started_at desc) -> COLLSCAN 99 / 5 returned
+        # These reads power recovery dashboards and health certification.
+        # Small write footprint; append-heavy collections only.
+        await db.backup_health.create_index(
+            [("mode", 1), ("ts", -1)],
+            name="backup_health_mode_ts_desc",
+        )
+        await db.backup_health.create_index(
+            [("ok", 1), ("ts", -1)],
+            name="backup_health_ok_ts_desc",
+        )
+        await db.drill_runs.create_index(
+            [("state", 1), ("started_at", -1)],
+            name="drill_runs_state_started_desc",
         )
 
         await db.incidents.create_index("created_at")

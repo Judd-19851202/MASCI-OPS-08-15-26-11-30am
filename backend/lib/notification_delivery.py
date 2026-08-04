@@ -137,7 +137,7 @@ def delivery_contract(env: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     }
 
 
-def _capture_document(*, workflow: str, correlation_id: str, record_id: str, recipients: List[str], subject: str, html: str, attachments: Optional[List[Dict[str, Any]]], metadata: Optional[Dict[str, Any]], contract: Dict[str, Any]) -> Dict[str, Any]:
+def _capture_document(*, workflow: str, correlation_id: str, record_id: str, recipients: List[str], to_recipients: Optional[List[str]], cc_recipients: Optional[List[str]], bcc_recipients: Optional[List[str]], subject: str, html: str, attachments: Optional[List[Dict[str, Any]]], metadata: Optional[Dict[str, Any]], contract: Dict[str, Any]) -> Dict[str, Any]:
     payload = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "workflow": workflow,
@@ -146,6 +146,9 @@ def _capture_document(*, workflow: str, correlation_id: str, record_id: str, rec
         "environment": contract.get("environment"),
         "delivery_mode": contract.get("delivery_mode"),
         "recipients": list(recipients),
+        "to": list(to_recipients or []),
+        "cc": list(cc_recipients or []),
+        "bcc": list(bcc_recipients or []),
         "subject": subject,
         "html": html,
         "attachments": attachments or [],
@@ -162,6 +165,9 @@ async def deliver_notification(
     correlation_id: str,
     record_id: str,
     recipients: Iterable[str],
+    to_recipients: Optional[Iterable[str]] = None,
+    cc_recipients: Optional[Iterable[str]] = None,
+    bcc_recipients: Optional[Iterable[str]] = None,
     subject: str,
     html: str,
     reply_to: Optional[str] = None,
@@ -178,6 +184,16 @@ async def deliver_notification(
 
     source = env or os.environ
     recipient_list = [str(x).strip() for x in recipients if str(x).strip()]
+    to_list = [str(x).strip() for x in (to_recipients or []) if str(x).strip()]
+    cc_list = [str(x).strip() for x in (cc_recipients or []) if str(x).strip()]
+    bcc_list = [str(x).strip() for x in (bcc_recipients or []) if str(x).strip()]
+    if to_list or cc_list or bcc_list:
+        recipient_list = []
+        for raw in [*to_list, *cc_list, *bcc_list]:
+            if raw not in recipient_list:
+                recipient_list.append(raw)
+    elif recipient_list:
+        to_list = list(recipient_list)
     contract = delivery_contract(source)
     sender = await _resolve_sender_email(db)
     resolved_reply = reply_to or await _resolve_reply_to_email(db) or sender
@@ -229,6 +245,9 @@ async def deliver_notification(
             correlation_id=correlation_id,
             record_id=record_id,
             recipients=recipient_list,
+            to_recipients=to_list,
+            cc_recipients=cc_list,
+            bcc_recipients=bcc_list,
             subject=subject,
             html=html,
             attachments=attachments,
@@ -272,11 +291,15 @@ async def deliver_notification(
     resend.api_key = _normalized_key(source.get("RESEND_API_KEY"))
     params = {
         "from": sender,
-        "to": recipient_list,
+        "to": to_list or recipient_list,
         "subject": subject,
         "html": html,
         "reply_to": resolved_reply,
     }
+    if cc_list:
+        params["cc"] = cc_list
+    if bcc_list:
+        params["bcc"] = bcc_list
     if attachments:
         params["attachments"] = attachments
     send_claim_token = None

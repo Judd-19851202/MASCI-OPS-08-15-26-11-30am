@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import base64
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
@@ -19,7 +21,6 @@ from lib.trust_spine import (
     emit_workflow_stage,
 )
 from pm_routing import recipients_for_record_async
-from routes.tasks_notifications import notification_service
 from services.operations_control.registry import (
     build_operations_control_plane_registry,
     get_registered_communication_intent,
@@ -28,9 +29,6 @@ from services.operations_control.registry import (
     get_registered_template,
     get_registered_transport,
     get_registered_workflow,
-)
-from services.operations_control.case_management import (
-    maybe_auto_create_case_from_control_plane_event,
 )
 
 COLLECTION_EVENTS = "operations_control_plane_events"
@@ -432,6 +430,8 @@ async def _materialize_in_app_notification(
     rendered: Dict[str, str],
     recipient_roles: List[str],
 ) -> List[str]:
+    from routes.tasks_notifications import notification_service  # noqa: PLC0415
+
     created_ids: List[str] = []
     severity = _severity_to_title(event_doc.get("severity") or "info")
     for role in recipient_roles:
@@ -464,8 +464,17 @@ async def _deliver_email_transport(
     event_doc: Dict[str, Any],
     communication: Dict[str, Any],
     rendered: Dict[str, str],
-    recipients: List[str],
+    recipients: Dict[str, Any],
+    record: Dict[str, Any],
 ) -> Dict[str, Any]:
+    template = get_registered_template(_clean(communication.get("template_id")))
+    channel_family = _clean(template.get("channel_family")).lower()
+    to_list = list(recipients.get("to") or recipients.get("all") or [])
+    cc_list = list(recipients.get("cc") or [])
+    bcc_list = list(recipients.get("bcc") or [])
+    all_recipients = list(recipients.get("all") or to_list or cc_list or bcc_list)
+
+    subject = rendered.get("title") or "Operational communication"
     html = (
         "<div style='font-family:Arial,sans-serif;line-height:1.5;color:#0f172a;'>"
         f"<h2 style='margin:0 0 12px 0;font-size:18px;'>{rendered.get('title')}</h2>"
@@ -473,19 +482,46 @@ async def _deliver_email_transport(
         f"<p style='margin:0;font-size:12px;color:#475569;'>{rendered.get('email_note')}</p>"
         "</div>"
     )
+    attachments = None
+
+    if channel_family == "daily_report":
+        from lib.email_dispatch import _filename_for  # noqa: PLC0415
+        from pdf_render import build_email_subject, render_email_html, render_record_pdf  # noqa: PLC0415
+
+        pm_name = _clean((communication.get("resolution") or {}).get("pm_name"))
+        project_number = _clean(record.get("project_number")) or "—"
+        note = (
+            f"Auto-routed to {pm_name} based on project number {project_number}."
+            if pm_name
+            else f"Auto-routed using project number {project_number}."
+        )
+        pdf_bytes = await asyncio.to_thread(render_record_pdf, "daily-report", record)
+        attachments = [{
+            "filename": _filename_for("daily-report", record),
+            "content": base64.b64encode(pdf_bytes).decode(),
+        }]
+        subject = build_email_subject("daily-report", record)
+        html = render_email_html("daily-report", record, note)
+
     return await deliver_notification(
         db=db,
         workflow=workflow.get("trust_workflow") or workflow.get("id") or "operations-control-plane",
         correlation_id=communication.get("correlation_id") or attach_correlation(communication),
         record_id=communication.get("record_id") or communication.get("id") or "",
-        recipients=recipients,
-        subject=rendered.get("title") or "Operational communication",
+        recipients=all_recipients,
+        to_recipients=to_list,
+        cc_recipients=cc_list,
+        bcc_recipients=bcc_list,
+        subject=subject,
         html=html,
+        attachments=attachments,
         metadata={
             "event_id": event_doc.get("id"),
             "event_type_id": event_doc.get("event_type_id"),
             "communication_id": communication.get("id"),
             "workflow_id": communication.get("workflow_id"),
+            "project_number": record.get("project_number") or "",
+            "kind": "daily-report" if channel_family == "daily_report" else "operations-control-plane",
         },
     )
 
@@ -588,6 +624,10 @@ async def emit_operational_event(
     case_result = None
     if _clean(event_id) == "oppc.daily_report.submitted":
         try:
+            from services.operations_control.case_management import (  # noqa: PLC0415
+                maybe_auto_create_case_from_control_plane_event,
+            )
+
             case_result = await maybe_auto_create_case_from_control_plane_event(
                 db,
                 event_doc=event_doc,
@@ -755,7 +795,8 @@ async def create_communication_from_event(
                 event_doc=event_doc,
                 communication=communication,
                 rendered=rendered,
-                recipients=list(recipients.get("all") or []),
+                recipients=recipients,
+                record=record,
             )
             transport_result.update(delivery)
             capture_row = {
