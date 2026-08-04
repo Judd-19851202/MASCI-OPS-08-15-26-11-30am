@@ -676,3 +676,9 @@
 - Preserved To/CC/BCC routing truth through `deliver_notification` and the canonical auto-email dispatcher; independent testing verified branded Daily Report capture, one PDF attachment, and no leaked internal OPPC language.
 - Added evidence-backed recovery-query indexes for `backup_health` and `drill_runs`; bounded preview explains improved from COLLSCAN (`200/5`, `99/5`) to IXSCAN (`5/5`, `5/5`).
 - WP18CY remains **NO-GO** because direct production proof is unavailable and preview backup freshness was still outside the 60-minute contract at capture time.
+
+## 2026-08-04 — WP18CY.2 production closeout update
+- Direct production admin/runtime access was obtained at `https://mascidocs.com`; live production identity was verified as commit `bd9bdd2012c4f2e31b57d7390218b20c361c6dcc` / source hash `665ea6071d75dd046905a35dfe8dcea4`.
+- Controlled production Daily Report `DR-2026-00449` proved the save path works, but production forensics showed the recipient-email chain never advanced beyond `record_created`; production still lacks direct proof of the Daily Report repair.
+- Current production complete-r2 backups are healthy again (`freshness_age_minutes≈29.46`, integrity `PASS`), so the active backup-cadence blocker is cleared in production.
+- WP18CY remains **NO-GO** because the Daily Report production repair is not yet deployed/proven, Release 1 email-family certification is incomplete, the exact production Atlas ~6200:1 offender is still not directly identified, and direct production restore-drill proof is unavailable.

@@ -1,0 +1,17 @@
+email_family,status,production_evidence,exact_basis_or_blocker
+Daily Report,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Controlled production submit DR-2026-00449 + forensics,Production release does not yet carry the repaired Daily Report transport; report saves but canonical email stages never advance
+inspection,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Production certification engine,Workflow marked stale in production certification window
+meeting,PRODUCTION_CERTIFIED,Production certification engine,Workflow marked verified in production certification window
+JHA/JHP,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Production certification engine,Workflow marked stale in production certification window
+incident,PRODUCTION_CERTIFIED,Production certification engine,Workflow marked verified in production certification window
+equipment inspection,PRODUCTION_CERTIFIED,Production certification engine,Workflow marked verified in production certification window
+DVIR,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Production certification engine,Workflow marked stale in production certification window
+corrective action,DEFERRED_OUTSIDE_RELEASE_1,Release certification scope,Not present in current Release 1 production certification required workflow set
+PO/approval,DEFERRED_OUTSIDE_RELEASE_1,Release certification scope,Not present in current Release 1 production certification required workflow set
+safety alert,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Email routing audit only,Route resolution evidence exists but no family-specific production provider/delivery proof was obtained in this pass
+dispatch notification,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Production certification engine,Workflow `dispatch-assignment` is stale in production certification window
+shop/work-order notification,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Production certification engine,Workflow `shop-defect` is stale in production certification window
+HR/onboarding/reset,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Production certification engine + source audit,Workflow `hr-request` is stale and onboarding/reset emails did not receive runtime production certification in this pass
+health alert,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Email routing audit only,Recent route-resolution evidence exists but no provider acceptance/delivery proof was obtained in this pass
+backup alert,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Email routing audit only,Backup runtime is healthy but backup-alert family did not receive controlled production delivery proof in this pass
+authentication/MFA/reset,BLOCKED_EXACT_PRODUCTION_DEPENDENCY,Source audit only,No runtime production certification path or delivery proof obtained in this pass

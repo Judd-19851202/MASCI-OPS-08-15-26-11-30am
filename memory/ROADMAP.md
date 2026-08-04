@@ -720,3 +720,13 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P2
 - Keep WP-18C7 blocked until WP18CY reaches GO.
+
+## 2026-08-04 — WP18CY.2 production blockers still open
+
+### P0
+- Deploy the already-proven Daily Report transport repair to the live production release and re-run controlled production certification.
+- Obtain direct Atlas Query Insights / profiler evidence for the production ~6200:1 targeting offender and apply only evidence-backed repair.
+- Obtain direct production restore-drill visibility/evidence and finish Release 1 production email-family certification.
+
+### P1
+- Re-run the WP18CY production gate only after the three remaining evidence gaps above are closed.
