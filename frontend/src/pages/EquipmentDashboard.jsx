@@ -142,7 +142,7 @@ export default function EquipmentDashboard() {
         <SectionHeading
           index="01"
           title={t("Pre-Op trends and inspections")}
-          subtitle={t("Monitor current condition, open issues, and the latest inspection records without switching visual systems.")}
+          subtitle={t("See current condition, open issues, and the latest inspection records in one equipment view.")}
           testId="equipment-dashboard-heading"
         />
 
@@ -162,7 +162,7 @@ export default function EquipmentDashboard() {
             {!isPmContext && <EquipmentTrendsPanel />}
             {isPmContext && (
               <p className="text-sm text-slate-600">
-                PM read-only view. Use the inspections list below to open any pre-op record for a project you manage.
+                PM review view. Use the inspection list below to open any pre-op record for a job you manage.
               </p>
             )}
           </div>

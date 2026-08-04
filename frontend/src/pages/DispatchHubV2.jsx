@@ -31,6 +31,7 @@ import {
 } from "../design-system";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -101,12 +102,13 @@ function useDispatchSignals() {
 }
 
 function SectionHeader({ kicker, title, caption, action }) {
+  const { t } = useT();
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{kicker}</div>
-        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{title}</h2>
-        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{caption}</p>}
+        <div style={{ fontSize: "var(--kicker-size)", letterSpacing: "var(--kicker-tracking)", fontWeight: "var(--kicker-weight)", textTransform: "uppercase", color: "var(--ink-faint)" }}>{t(kicker)}</div>
+        <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{t(title)}</h2>
+        {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{t(caption)}</p>}
       </div>
       {action}
     </div>
@@ -114,6 +116,7 @@ function SectionHeader({ kicker, title, caption, action }) {
 }
 
 function RealLink({ to, testid, children, intent = "default" }) {
+  const { t } = useT();
   const tone = intent === "primary"
     ? { bg: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "var(--brand-primary)" }
     : { bg: "var(--paper-card)", color: "var(--ink-strong)", border: "var(--border-bold)" };
@@ -122,28 +125,29 @@ function RealLink({ to, testid, children, intent = "default" }) {
       display: "inline-block", padding: "6px 12px", background: tone.bg, color: tone.color,
       border: `1px solid ${tone.border}`, borderRadius: "var(--radius-card)",
       fontSize: 12, fontWeight: 600, textDecoration: "none",
-    }}>{children}</Link>
+    }}>{typeof children === "string" ? t(children) : children}</Link>
   );
 }
 
 function QueueCard({ to, testid, title, why, source, value, loaded }) {
+  const { t } = useT();
   const isAttention = loaded && typeof value === "number" && value > 0;
   return (
     <Link to={to} data-testid={testid} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <Card
-        title={title}
-        description={why}
+        title={t(title)}
+        description={t(why)}
         metric={loaded ? (value === null ? "—" : value) : "…"}
         variant={isAttention ? "warning" : "default"}
         status={
-          !loaded ? <StatusChip statusKey="draft" compact label="Loading" />
+          !loaded ? <StatusChip statusKey="draft" compact label={t("Loading")} />
           : value === null ? <StatusChip statusKey="offline_feed" compact />
           : isAttention ? <StatusChip statusKey="pending_verification" compact />
           : <StatusChip statusKey="verified" compact />
         }
       >
         <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-          {source}
+          {t(source)}
         </p>
       </Card>
     </Link>
@@ -151,6 +155,7 @@ function QueueCard({ to, testid, title, why, source, value, loaded }) {
 }
 
 export default function DispatchHubV2() {
+  const { t } = useT();
   const s = useDispatchSignals();
   const allZero = s.loaded && [
     s.drivers_unacked, s.active_hauls, s.waiting_plant, s.waiting_dump,
@@ -162,17 +167,17 @@ export default function DispatchHubV2() {
     <div data-testid="dispatch-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Transportation Operations"
-        pageTitle="What requires the dispatcher's attention right now?"
-        subtitle="Every queue is a live count — open it to see what Dispatch needs to act on today. The Map command surface is one click away."
+        portalRole={t("Dispatch Operations")}
+        pageTitle={t("What needs dispatch attention right now?")}
+        subtitle={t("Every queue below shows live work. Open a card to see what Dispatch should act on next.")}
         primaryActions={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RealLink to="/dispatch-portal/command" testid="dispatch-hub-v2-action-cc" intent="primary">Open Command Map</RealLink>
+            <RealLink to="/dispatch-portal/command" testid="dispatch-hub-v2-action-cc" intent="primary">Open Dispatch Map</RealLink>
           </div>
         }
         lastActivity={
           <span data-testid="dispatch-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
+            {s.loaded ? t("Refreshed {time}").replace("{time}", formatPlatformTimeOnly(s.refreshedAt)) : t("Loading live signals…")}
           </span>
         }
       >
@@ -181,7 +186,7 @@ export default function DispatchHubV2() {
           <SectionHeader
             kicker="01 · Driver & Haul Queues · live"
             title="Open dispatch work"
-            caption="Counts pulled from /api/dispatch/command/summary in real time. Click a card to open the real dispatch workflow."
+            caption="These live counts show what Dispatch needs to move, reroute, or recover right now."
           />
           <div
             data-testid="dispatch-hub-v2-queue-grid-drivers"
@@ -190,16 +195,16 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/board?focus_filter=unacked"
               testid="dispatch-hub-v2-queue-unacked"
-              title="Drivers Un-Acknowledged"
-              why="Assignment-only drivers without a recorded shift acknowledgement"
-              source="Live count · driver acknowledgements pending"
+              title="Drivers not checked in"
+              why="Assigned drivers still need to confirm their shift"
+              source="Live count · shift check-ins still pending"
               value={s.drivers_unacked}
               loaded={s.loaded}
             />
             <QueueCard
               to="/dispatch-portal/board?focus_filter=active"
               testid="dispatch-hub-v2-queue-active-hauls"
-              title="Active Hauls"
+              title="Active haul runs"
               why="Hauls currently in cycle across all jobs"
               source="Live count · hauls currently moving"
               value={s.active_hauls}
@@ -208,27 +213,27 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/board?focus_filter=waiting_plant"
               testid="dispatch-hub-v2-queue-waiting-plant"
-              title="Waiting on Plant"
-              why="Drivers stalled at plant — escalate or re-route"
-              source="Live count · trucks idle at plant"
+              title="Waiting at plant"
+              why="Trucks are losing time at the plant and may need a reroute or production call"
+              source="Live count · trucks idle at the plant"
               value={s.waiting_plant}
               loaded={s.loaded}
             />
             <QueueCard
               to="/dispatch-portal/board?focus_filter=waiting_dump"
               testid="dispatch-hub-v2-queue-waiting-dump"
-              title="Waiting on Dump"
-              why="Drivers stalled at dump site — escalate or re-route"
-              source="Live count · drivers stalled at dump site"
+              title="Waiting at dump"
+              why="Trucks are losing time at the dump site and may need a reroute or access fix"
+              source="Live count · trucks waiting at the dump site"
               value={s.waiting_dump}
               loaded={s.loaded}
             />
             <QueueCard
               to="/dispatch-portal/board?focus_filter=breakdown"
               testid="dispatch-hub-v2-queue-breakdowns"
-              title="Breakdown Impacts"
-              why="Active breakdowns blocking the haul plan"
-              source="Live count · assignments held by breakdown"
+              title="Breakdowns affecting hauling"
+              why="Breakdowns are blocking the current haul plan"
+              source="Live count · assignments held up by breakdowns"
               value={s.breakdown_impacts}
               loaded={s.loaded}
             />
@@ -239,8 +244,8 @@ export default function DispatchHubV2() {
         <section data-testid="dispatch-hub-v2-section-fleet" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="02 · Fleet & Shop · live"
-            title="Equipment + shop signals"
-            caption="Cross-portal read from the same Command Center summary. Hold sources preserve their original workflow."
+            title="Equipment and shop signals"
+            caption="See what equipment or shop issues could slow down the dispatch plan."
           />
           <div
             data-testid="dispatch-hub-v2-queue-grid-fleet"
@@ -249,8 +254,8 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/fleet?focus_filter=oos"
               testid="dispatch-hub-v2-queue-fleet-oos"
-              title="Fleet · Out of Service"
-              why="Units in 'oos' status across the fleet"
+              title="Fleet out of service"
+              why="Units are unavailable and cannot take work"
               source="Live count · units out of service"
               value={s.fleet_oos}
               loaded={s.loaded}
@@ -258,7 +263,7 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/fleet?focus_filter=in_shop"
               testid="dispatch-hub-v2-queue-fleet-in-shop"
-              title="Fleet · In Shop"
+              title="Fleet in shop"
               why="Units physically routed to the shop"
               source="Live count · units currently in the shop"
               value={s.in_shop}
@@ -267,8 +272,8 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/fleet?focus_filter=defects"
               testid="dispatch-hub-v2-queue-shop-defects"
-              title="Open Shop Defects"
-              why="Defects active across the fleet (Pre-Op + fleet_defects)"
+              title="Open shop issues"
+              why="Open equipment issues still need shop action"
               source="Live count · open shop defects"
               value={s.shop_defects_open}
               loaded={s.loaded}
@@ -280,8 +285,8 @@ export default function DispatchHubV2() {
         <section data-testid="dispatch-hub-v2-section-safety" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="03 · Safety · cross-portal read"
-            title="Safety attention items"
-            caption="Read-only from the Safety engine — Dispatch sees these to coordinate, never to mutate."
+            title="Safety items Dispatch should watch"
+            caption="These safety issues can affect dispatch decisions, routing, or daily coordination."
           />
           <div
             data-testid="dispatch-hub-v2-queue-grid-safety"
@@ -290,7 +295,7 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/command"
               testid="dispatch-hub-v2-queue-incidents-open"
-              title="Open Incidents"
+              title="Open safety incidents"
               why="Incidents not yet closed by the Safety team"
               source="Live count · open safety incidents"
               value={s.incidents_open}
@@ -299,8 +304,8 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/command"
               testid="dispatch-hub-v2-queue-capas-open"
-              title="Open CAPAs"
-              why="Corrective actions still open across the fleet"
+              title="Open corrective actions"
+              why="Corrective actions still open across the fleet or hauling plan"
               source="Live count · open corrective actions"
               value={s.capas_open}
               loaded={s.loaded}
@@ -308,9 +313,9 @@ export default function DispatchHubV2() {
             <QueueCard
               to="/dispatch-portal/driver-qualification"
               testid="dispatch-hub-v2-queue-driver-qual"
-              title="Driver Qualification"
-              why="Approved-driver / CDL readiness dashboard (real Driver Qualification engine)"
-              source="Live read · DOT and CDL readiness queue"
+              title="Driver readiness"
+              why="See CDL and driver-readiness status before assigning work"
+              source="Live read · driver-readiness queue"
               value={null}
               loaded={true}
             />
@@ -321,7 +326,7 @@ export default function DispatchHubV2() {
           <EmptyState
             testId="dispatch-hub-v2-all-clear"
             title="Dispatch is all clear."
-            explanation="No queue currently shows attention items. The live Command Center map remains the source of truth for in-the-moment ops."
+            explanation="No queue is asking for action right now. Keep using the Dispatch Map for live job movement."
             severity="good"
           />
         )}

@@ -24,6 +24,7 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 const TOKEN_KEYS = [
   // Order = preference. Operational tokens come first (their digests are
@@ -113,12 +114,12 @@ function SectionCard({ section }) {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-slate-900 text-sm truncate max-w-full">
-                    {it.entity_name || t("(unnamed)")}
+                    {sanitizeOperatorCopy(it.entity_name, t("(unnamed)"))}
                   </span>
                   <span className="font-mono text-[10px] text-slate-500">{it.rule_id}</span>
                 </div>
                 <div className="text-xs text-slate-600 mt-0.5 line-clamp-2 leading-snug">
-                  {it.description}
+                  {sanitizeOperatorCopy(it.description, t("Review this item in the linked workflow."))}
                 </div>
               </div>
               {it.last_detected_at ? (
@@ -207,23 +208,23 @@ export default function NotificationsDigest() {
           icon={BellRing}
           accent="amber"
           title={t("How notifications work")}
-          summary={t("Role-scoped · severity-aware · sourced from the live detection engine · in-platform first, email follows.")}
+          summary={t("Role-based priorities, sorted by urgency, shown here first so your team can act before email follow-up arrives.")}
           sections={[
             {
               label: t("What this is"),
-              body: t("Your daily operational priorities. Generated from the live compliance findings + lifecycle state — no hand-curated lists, no spam. Each item points at a workflow you can resolve right now."),
+              body: t("Your daily priorities. Each item points to work your team can resolve right now."),
             },
             {
               label: t("How items are chosen"),
-              body: t("Every section maps to a detector rule from Governance Health. If a rule has zero open findings for you, it doesn't appear here. Items disappear automatically once the underlying condition is fixed or acknowledged."),
+              body: t("Items appear only when there is open work for your role. Once the issue is fixed or acknowledged, it drops out automatically."),
             },
             {
               label: t("What to do"),
-              body: t("Open the View link on any section to act inside the relevant portal. Acknowledge or resolve from Compliance Findings; advance CAPAs from Safety Corrective Actions. Every action is audit-trailed."),
+              body: t("Open the View link on any section, take action in the linked work area, and close the item at the source."),
             },
             {
               label: t("Why this matters"),
-              body: t("Operational risk surfaces here before it becomes a meeting, a citation, or an injury. Treating this digest as the start of every day is the cheapest insurance the platform offers."),
+              body: t("This catches issues before they become production delays, compliance problems, or injuries."),
             },
           ]}
         />

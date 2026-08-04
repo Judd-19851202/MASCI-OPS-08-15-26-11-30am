@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { formatPlatformTime } from "@/lib/platformTime";
 import { Sparkles, Info, AlertTriangle, X, ListChecks, ShieldOff } from "lucide-react";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -120,7 +121,7 @@ export default function DispatchDecisionChip({
     return (
       <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800"
            data-testid="dispatch-decision-chip-error">
-        Recommendation unavailable. Assignment can continue through standard eligibility gate.
+        Recommendation unavailable. You can keep assigning with the normal dispatch checks.
       </div>
     );
   }
@@ -130,7 +131,7 @@ export default function DispatchDecisionChip({
            data-testid="dispatch-decision-chip-empty">
         <div className="flex items-center gap-2">
           <Info className="h-3.5 w-3.5 text-slate-400" />
-          No eligible recommendation available.
+          No ready recommendation is available right now.
         </div>
       </div>
     );
@@ -138,8 +139,8 @@ export default function DispatchDecisionChip({
 
   const watchCount = (recommended.watch || []).length;
   const headline = watchCount > 0
-    ? "Recommended with Watch Items"
-    : "Recommended Assignment";
+    ? "Recommended with watchouts"
+    : "Recommended assignment";
 
   return (
     <>
@@ -227,11 +228,11 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
         <header className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-start justify-between">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
-              Recommendation Detail
+              Dispatch recommendation details
             </div>
-            <div className="text-lg font-black text-slate-900 mt-1">Why this recommendation?</div>
+            <div className="text-lg font-black text-slate-900 mt-1">Why this assignment is recommended</div>
             <div className="text-xs text-slate-500 mt-0.5">
-              Generated {formatPlatformTime(data.generated_at)} · v{data.schema_version}
+              Built {formatPlatformTime(data.generated_at)}
             </div>
           </div>
           <button type="button" onClick={onClose}
@@ -245,7 +246,7 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
           {/* Recommended triple */}
           <div className="rounded border border-emerald-300 bg-emerald-50 p-3">
             <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold text-emerald-900">Recommended</div>
+              <div className="font-semibold text-emerald-900">Recommended assignment</div>
               <GradeChip score={rec.score} grade={rec.grade} />
             </div>
             <Row label="Carrier" value={rec.carrier?.legal_name} testid="dispatch-why-carrier" />
@@ -255,19 +256,19 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
               <div className="font-medium text-emerald-800 mb-0.5">Why</div>
               <ul className="space-y-0.5">
                 {(rec.why || []).map((w, i) => (
-                  <li key={i} data-testid={`dispatch-why-${i}`}>• {w}</li>
+                  <li key={i} data-testid={`dispatch-why-${i}`}>• {sanitizeOperatorCopy(w, w)}</li>
                 ))}
                 {(rec.why || []).length === 0 && (
-                  <li className="text-slate-500">Highest composite score among eligible candidates.</li>
+                  <li className="text-slate-500">Best fit among the ready driver, truck, and carrier options.</li>
                 )}
               </ul>
             </div>
             {rec.watch?.length > 0 && (
               <div className="mt-2">
-                <div className="font-medium text-amber-800 mb-0.5">Watch</div>
+                <div className="font-medium text-amber-800 mb-0.5">Watchouts</div>
                 <ul className="space-y-0.5">
                   {rec.watch.map((w, i) => (
-                    <li key={i} data-testid={`dispatch-watch-${i}`}>• {w}</li>
+                    <li key={i} data-testid={`dispatch-watch-${i}`}>• {sanitizeOperatorCopy(w, w)}</li>
                   ))}
                 </ul>
               </div>
@@ -279,7 +280,7 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
                 data-testid="dispatch-decision-select-recommended"
                 className="inline-flex items-center gap-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-medium"
               >
-                Use this recommendation
+                Use this assignment
               </button>
               <button
                 type="button"
@@ -294,21 +295,21 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
 
           {/* Alternatives */}
           <AlternativesSection
-            title="Alternative drivers"
+            title="Other driver options"
             items={alt.drivers}
             type="drivers"
             onSelect={onSelectAlternative}
             testid="dispatch-decision-alt-drivers"
           />
           <AlternativesSection
-            title="Alternative trucks"
+            title="Other truck options"
             items={alt.trucks}
             type="trucks"
             onSelect={onSelectAlternative}
             testid="dispatch-decision-alt-trucks"
           />
           <AlternativesSection
-            title="Alternative carriers"
+            title="Other carrier options"
             items={alt.carriers}
             type="carriers"
             onSelect={onSelectAlternative}
@@ -319,7 +320,7 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
           <section className="rounded border border-slate-200 bg-white p-3"
                    data-testid="dispatch-decision-excluded">
             <div className="font-semibold text-slate-800 mb-2 inline-flex items-center gap-1">
-              <ShieldOff className="h-4 w-4 text-rose-600" /> Excluded options
+              <ShieldOff className="h-4 w-4 text-rose-600" /> Options held out
             </div>
             {["drivers", "trucks", "carriers"].map((k) => (
               <div key={k} className="mb-2 last:mb-0">
@@ -339,7 +340,7 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
                         </div>
                         {it.reasons?.length > 0 && (
                           <div className="text-[10px] text-slate-500 mt-0.5">
-                            {it.reasons.slice(0, 3).map((r) => r.label).join(" · ")}
+                            {it.reasons.slice(0, 3).map((r) => sanitizeOperatorCopy(r.label, r.label)).join(" · ")}
                           </div>
                         )}
                       </li>
@@ -351,7 +352,7 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
           </section>
 
           <div className="text-[10px] text-slate-400">
-            Recommendations are read-only. Final assignment still passes the standard dispatch eligibility gate.
+            These recommendations are read-only. Final assignment still passes the normal dispatch checks.
           </div>
         </section>
       </aside>
@@ -366,7 +367,7 @@ function AlternativesSection({ title, items, type, onSelect, testid }) {
         <ListChecks className="h-4 w-4 text-slate-500" /> {title}
       </div>
       {(items || []).length === 0 ? (
-        <div className="text-[11px] text-slate-400">No alternatives available.</div>
+        <div className="text-[11px] text-slate-400">No other ready options are available.</div>
       ) : (
         <ul className="space-y-1">
           {(items || []).slice(0, 5).map((it, i) => {
@@ -385,18 +386,18 @@ function AlternativesSection({ title, items, type, onSelect, testid }) {
                       className="text-[10px] rounded border border-slate-200 px-2 py-0.5 text-slate-700 hover:bg-slate-50"
                       data-testid={`${testid}-select-${i}`}
                     >
-                      Select
+                      Use option
                     </button>
                   </div>
                 </div>
                 {it.why?.length > 0 && (
                   <div className="text-[10px] text-slate-500 mt-0.5">
-                    {it.why.slice(0, 3).join(" · ")}
+                    {it.why.slice(0, 3).map((item) => sanitizeOperatorCopy(item, item)).join(" · ")}
                   </div>
                 )}
                 {it.watch?.length > 0 && (
                   <div className="text-[10px] text-amber-700 mt-0.5">
-                    Watch: {it.watch.slice(0, 2).join(" · ")}
+                    Watchouts: {it.watch.slice(0, 2).map((item) => sanitizeOperatorCopy(item, item)).join(" · ")}
                   </div>
                 )}
               </li>

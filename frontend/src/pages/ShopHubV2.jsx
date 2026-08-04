@@ -222,8 +222,8 @@ function ShopRecoveryMap() {
     <section data-testid="shop-recovery-map-section" style={{ marginBottom: 28 }}>
       <SectionHeader
         kicker="09 · Recovery Map · secondary"
-        title="Recovery Map"
-        caption="Shop-visible units needing maintenance or inspection attention. Live location from current operations-map feed."
+        title="Recovery map"
+        caption="See where shop-owned units need maintenance or inspection attention right now."
       />
 
       <div
@@ -255,7 +255,7 @@ function ShopRecoveryMap() {
           ) : error ? (
             <div data-testid="shop-recovery-map-error"
               style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#fda4af", fontSize: 13, padding: 16, textAlign: "center" }}>
-              Map feed unavailable · {String(error)}
+              Unit location feed unavailable · {String(error)}
             </div>
           ) : (
             <MapCanvas
@@ -300,7 +300,7 @@ function ShopRecoveryMap() {
             <EmptyState
               testId="shop-recovery-map-empty"
               title="No Shop attention on the map."
-              explanation="No units currently carry a Shop-owned attention reason (maintenance or inspection) in the operations-map snapshot."
+              explanation="No units currently need shop attention for maintenance or inspection on the map."
               severity="good"
             />
           ) : (
@@ -323,7 +323,7 @@ function ShopRecoveryMap() {
         borderRadius: "var(--radius-card)",
         color: "var(--ink-soft)", fontSize: 11, lineHeight: 1.5,
       }}>
-        Live position feed from Motive. MaintainX and FleetWatcher are not active providers for this map.
+        Live truck and unit positions are coming from Motive for this map.
       </div>
     </section>
   );
@@ -718,7 +718,7 @@ export default function ShopHubV2() {
         <OiAttentionStrip
           portal="shop"
           productIds={["shop_intelligence"]}
-          title="Shop Intelligence · attention now"
+          title="Shop focus right now"
           testId="shop-hub-v2-oi-strip"
         />
 
@@ -739,26 +739,26 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-attention" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="01 · Attention required"
-            title="What needs the shop's attention right now"
-            caption="Live shop counts. Click any tile to open the underlying queue."
+            title="What needs shop attention right now"
+            caption="Live shop counts. Open any tile to see the work queue behind it."
           />
           <div data-testid="shop-hub-v2-attention-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             <PriorityMetric to="/shop/fleet?focus_filter=oos" testid="shop-hub-v2-queue-oos-units"
-                     label="Out-of-Service units"
-                     description="Units flagged OOS in the equipment master."
+                     label="Out-of-service units"
+                     description="Units are down and unavailable for work."
                      value={s.oos_units} loaded={s.loaded} accent="red" />
             <PriorityMetric to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-queue-defects-open"
                      label="Open defects"
-                     description="Active defects across the fleet (pre-op + DVIR + fuel/lube)."
+                     description="Open issues reported from pre-op checks, DVIRs, or fuel and lube visits."
                      value={s.defects_open} loaded={s.loaded} accent="red" />
             <PriorityMetric to="/shop/fleet?focus_filter=defect_open_units" testid="shop-hub-v2-queue-defect-open-units"
-                     label="Units carrying defects"
-                     description="Distinct units with at least one open defect."
+                     label="Units with open issues"
+                     description="Distinct units carrying at least one open issue."
                      value={s.defect_open_units} loaded={s.loaded} accent="amber" />
             <PriorityMetric to="/shop/equipment" testid="shop-hub-v2-queue-waiting-parts"
                      label="Waiting on parts"
-                     description="Recovery blocked pending parts arrival."
+                     description="Repairs are waiting on parts to arrive."
                      value={s.waiting_on_parts} loaded={s.loaded} accent="amber" />
           </div>
         </section>
@@ -767,21 +767,21 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-active-work" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="02 · Active work"
-            title="Defects in flight"
-            caption="Assign · accept · start · complete · review. Repair complete still requires RTS verification."
+            title="Repair work in motion"
+            caption="Assign, accept, start, complete, and review. Repair complete still needs return-to-service verification."
           />
           <div data-testid="shop-hub-v2-active-work-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             <HubCard to="/shop/manager/queue" testid="shop-hub-v2-aw-manager-queue"
-                     title="Manager Queue" body="Six buckets · assign · reassign · review." />
+                     title="Manager queue" body="Assign, reassign, and review the shop work list." />
             <HubCard to="/shop/me" testid="shop-hub-v2-aw-my-assignments"
-                     title="My Assignments" body="Mechanic-only queue — accept · start · complete with parts." />
+                     title="My assignments" body="Mechanic work list for accept, start, and complete actions." />
             <HubCard to="/shop/fleet?focus_filter=defects_acked" testid="shop-hub-v2-aw-acknowledged"
-                     title="Acknowledged · not yet repaired"
-                     body="Defects accepted by shop but repair not yet complete."
+                     title="Accepted but not repaired"
+                     body="Issues accepted by the shop but not yet completed."
                      metric={num(s.defects_acked)} status={tone(s.defects_acked)} />
             <HubCard to="/shop/equipment" testid="shop-hub-v2-aw-active-recovery"
-                     title="Active recovery work" body="Units currently in active repair or maintenance."
+                     title="Active repair work" body="Units currently in repair or maintenance."
                      metric={num(s.active_recovery)} status={tone(s.active_recovery)} />
           </div>
         </section>
@@ -790,8 +790,8 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-mechanic-workload" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="03 · Mechanic workload"
-            title="Who's loaded right now"
-            caption="Per-mechanic open · accepted · in progress · waiting parts. Click any row to open the manager queue."
+            title="Who is loaded right now"
+            caption="See open, accepted, in-progress, and waiting-on-parts work by mechanic."
           />
           <MechanicWorkloadCard />
         </section>
@@ -800,8 +800,8 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-pm" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="04 · Preventive maintenance"
-            title="PM due · overdue · in flight"
-            caption="PM completion does NOT return units to service. Dispatch retains RTS authority."
+            title="PM due, overdue, and in progress"
+            caption="Finishing PM work does not return a unit to service by itself. Dispatch still clears RTS."
           />
           <PmEngineCard />
           <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -828,7 +828,7 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-parts" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="05 · Parts and waiting"
-            title="What's blocked on parts"
+            title="What is blocked on parts"
             caption="Total parts on order, units waiting, expected today, and overdue items."
           />
           <PartsOnOrderCard />
@@ -839,23 +839,23 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-fuel-service" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="06 · Fuel and service"
-            title="Fuel · fluids · service-truck accountability"
-            caption="Submit visits · review records · close service-truck days · acknowledge variance."
+            title="Fuel, fluids, and service-truck accountability"
+            caption="Submit visits, review records, close service-truck days, and review any variance."
           />
           <div data-testid="shop-hub-v2-fuel-service-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             <HubCard to="/shop/fuel-lube/new" testid="shop-hub-v2-action-fuel-lube-new"
-                     title="New Fuel / Lube Visit"
-                     body="One job · many equipment lines. Issues create shop defects automatically." />
+                     title="New fuel and lube visit"
+                     body="One job, many equipment lines. Reported issues create shop defects automatically." />
             <HubCard to="/shop/fuel-lube" testid="shop-hub-v2-action-fuel-lube-records"
-                     title="Fuel / Lube Records"
-                     body="Submitted visits archive · filter by date · project · truck · tech · unit · issue." />
+                     title="Fuel and lube records"
+                     body="Submitted visit records filtered by date, job, truck, tech, unit, or issue." />
             <HubCard to="/shop/service-truck-reconciliation/new" testid="shop-hub-v2-action-strr-new"
-                     title="Service Truck — Start / Close Day"
-                     body="Log start-of-day quantities · close day to compute variance from real fuel/lube visits." />
+                     title="Service truck start and close day"
+                     body="Log start-of-day quantities and close the day against actual fuel and lube visits." />
             <HubCard to="/shop/service-truck-reconciliation" testid="shop-hub-v2-action-strr-records"
-                     title="Reconciliation Records"
-                     body="Truck-day variance archive · within expected range · needs review · significant variance." />
+                     title="Reconciliation records"
+                     body="Truck-day variance history showing clear, review, and high-variance days." />
           </div>
         </section>
 
@@ -865,8 +865,8 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-unit-intel" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="07 · Unit intelligence"
-            title="Find a unit · open its full story"
-            caption="One unit · one timeline. Pre-Ops · DVIRs · defects · repairs · parts · fuel · RTS."
+            title="Find a unit and open its full story"
+            caption="One unit, one timeline: pre-ops, DVIRs, issues, repairs, parts, fuel, and return to service."
           />
           <div data-testid="shop-hub-v2-unit-intel-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
@@ -874,8 +874,8 @@ export default function ShopHubV2() {
                      title="Unit History"
                      body="Type a unit number to load its complete operational story." />
             <HubCard to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-unit-defect-history"
-                     title="Defect / Inspection History"
-                     body="Full defect feed across the fleet." />
+                     title="Issue and inspection history"
+                     body="Full issue feed across the fleet." />
             <div data-testid="shop-hub-v2-unit-search-inline-slot" style={{
               padding: "var(--pad-card)", background: "var(--paper-card)",
               border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)",
@@ -892,24 +892,24 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-records" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="08 · Records"
-            title="Archive · records · history"
-            caption="Pre-Ops · Truck DVIRs · Fuel/Lube · Reconciliations. Honest empty states · no fake exports."
+            title="Archive, records, and history"
+            caption="Pre-ops, truck DVIRs, fuel and lube, and reconciliation history in one place."
           />
           <div data-testid="shop-hub-v2-records-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             <HubCard to="/shop/equipment" testid="shop-hub-v2-record-preops"
                      title="Equipment Pre-Ops" body="Pre-operation inspection list." />
             <HubCard to="/shop/fleet" testid="shop-hub-v2-record-dvirs"
-                     title="Truck DVIRs · Fleet Visibility" body="Per-unit DVIR and defect state." />
+                     title="Truck DVIRs and fleet view" body="Per-unit DVIR and issue status." />
             <HubCard to="/shop/fleet?focus_filter=defects" testid="shop-hub-v2-record-defects"
-                     title="Defect / Inspection History" body="Full defect feed across the fleet." />
+                     title="Issue and inspection history" body="Full issue feed across the fleet." />
             <HubCard to="/shop/fuel-lube" testid="shop-hub-v2-record-fuel-lube"
-                     title="Fuel / Lube Visit Records" body="Submitted visits archive." />
+                     title="Fuel and lube visit records" body="Submitted visit history." />
             <HubCard to="/shop/service-truck-reconciliation" testid="shop-hub-v2-record-strr"
                      title="Reconciliation Records" body="Truck-day variance archive." />
             <HubCard to="/shop/fleet?focus_filter=rts_pending" testid="shop-hub-v2-record-rts-7d"
-                     title="Returned to Service · last 7 days"
-                     body="Units verified safe-to-use and released in the last week."
+                     title="Returned to service · last 7 days"
+                     body="Units verified safe to use and released in the last week."
                      metric={num(s.returned_to_service_7d)} status={tone(s.returned_to_service_7d)} />
           </div>
         </section>
@@ -926,7 +926,7 @@ export default function ShopHubV2() {
         <section data-testid="shop-hub-v2-section-asset-records" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="09 · Asset Administrator · Historical Records"
-            title="Upload · classify · approve"
+            title="Upload, sort, and approve"
             caption="PPE, tools, phones/tablets/iPads, survey equipment, laser units, replacements. Manual only — no OCR."
           />
           <div data-testid="shop-hub-v2-asset-records-grid"
@@ -936,7 +936,7 @@ export default function ShopHubV2() {
                      body="Upload a signed acknowledgement, PPE / tool issue slip, or replacement doc." />
             <HubCard to="/hr/historical-records/queue" testid="shop-hub-v2-asset-queue"
                      title="Asset Records Queue"
-                     body="Approve, reject, or reassign staged Asset-lane records." />
+                     body="Approve, reject, or reassign staged asset records." />
             <HubCard to="/hr/historical-records/batches" testid="shop-hub-v2-asset-batches"
                      title="Bulk Historical Intake"
                      body="Many files · one session · one lane · single classify pass." />
@@ -958,7 +958,7 @@ export default function ShopHubV2() {
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)",
           borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
         }}>
-          <strong style={{ color: "var(--ink-strong)" }}>Repair complete still requires RTS verification.</strong>{" "}
+          <strong style={{ color: "var(--ink-strong)" }}>Repair complete still requires return-to-service verification.</strong>{" "}
           Shop completes repairs and parts capture; Dispatch verifies and clears units back to service. Legacy hub remains at /shop/hub_legacy if needed.
         </div>
       </PortalShell>

@@ -234,7 +234,7 @@ export default function FieldLeadershipPortalDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-xs text-slate-600 mb-3">
-              {t("You have access to the same field workflows you use on a daily basis. Field Leadership identity does NOT include HR administration, payroll, system settings, or platform configuration.")}
+              {t("Use the same field workflows you already use every day. This role stays focused on field work and does not include HR, payroll, or system administration.")}
             </p>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {[

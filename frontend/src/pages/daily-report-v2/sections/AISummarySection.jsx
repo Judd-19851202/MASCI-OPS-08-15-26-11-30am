@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusChip } from "../_ui";
 import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 /**
  * DR-ROI-001F-FINAL-REPAIR · Daily Operational Summary.
@@ -33,6 +34,10 @@ export default function AISummarySection({ ai, approvals }) {
   const { t, lang } = useDrV2Lang();
   const outputs = ai?.result?.outputs || {};
   const suggested = React.useMemo(() => pickPrimaryNarrative(outputs), [outputs]);
+  const safeSuggested = React.useMemo(
+    () => sanitizeOperatorCopy(suggested, suggested || ""),
+    [suggested]
+  );
   const loading = ai?.loading;
   const error = ai?.error;
 
@@ -42,15 +47,15 @@ export default function AISummarySection({ ai, approvals }) {
   // Reset the editor text whenever a fresh suggestion arrives (and the
   // supervisor is not already editing).
   React.useEffect(() => {
-    if (!editing && suggested) setText(suggested);
-  }, [suggested, editing]);
+    if (!editing && safeSuggested) setText(safeSuggested);
+  }, [safeSuggested, editing]);
 
   const accepted =
     approvals?.audit?.last_action === "accept" ||
     approvals?.audit?.last_action === "edit";
 
   async function onAccept() {
-    await approvals?.submit("accept", { final_narrative: text || suggested });
+    await approvals?.submit("accept", { final_narrative: text || safeSuggested });
   }
   async function onSaveEdit() {
     await approvals?.submit("edit", { edited_narrative: text });
@@ -87,7 +92,7 @@ export default function AISummarySection({ ai, approvals }) {
         </div>
       ) : null}
 
-      {!suggested && !loading ? (
+      {!safeSuggested && !loading ? (
         <div
           className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600"
           data-testid="dr-v2-ai-empty"
@@ -113,7 +118,7 @@ export default function AISummarySection({ ai, approvals }) {
               {t("s09.loading")}
             </span>
           ) : (
-            text || suggested
+            text || safeSuggested
           )}
         </div>
       )}
@@ -123,7 +128,7 @@ export default function AISummarySection({ ai, approvals }) {
           type="button"
           className="h-11 px-4 bg-red-700 hover:bg-red-600 text-white font-bold uppercase tracking-wide"
           onClick={editing ? onSaveEdit : onAccept}
-          disabled={loading || (!suggested && !text)}
+          disabled={loading || (!safeSuggested && !text)}
           data-testid="dr-v2-ai-accept"
         >
           {editing ? t("s09.save") : t("s09.accept")}
@@ -134,7 +139,7 @@ export default function AISummarySection({ ai, approvals }) {
             variant="outline"
             className="h-11 border-2 border-slate-300 uppercase tracking-wide font-semibold"
             onClick={() => setEditing(true)}
-            disabled={loading || !suggested}
+            disabled={loading || !safeSuggested}
             data-testid="dr-v2-ai-edit"
           >
             {t("s09.edit")}
@@ -145,7 +150,7 @@ export default function AISummarySection({ ai, approvals }) {
             variant="outline"
             className="h-11 border-2 border-slate-300 uppercase tracking-wide font-semibold"
             onClick={() => {
-              setText(suggested);
+              setText(safeSuggested);
               setEditing(false);
             }}
             data-testid="dr-v2-ai-cancel-edit"

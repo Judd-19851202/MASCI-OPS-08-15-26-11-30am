@@ -205,7 +205,7 @@ export default function SafetyHubV2() {
         <OiAttentionStrip
           portal="safety"
           productIds={["safety_morning_digest"]}
-          title="Safety Intelligence · attention now"
+          title="Safety focus right now"
           testId="safety-hub-v2-oi-strip"
         />
 
@@ -228,16 +228,16 @@ export default function SafetyHubV2() {
         <section data-testid="safety-hub-v2-section-capas" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="01 · Corrective Actions · live"
-            title="Open and overdue CAPAs"
-            caption="Counts pulled live. Click a card to open the real Safety CAPA workflow."
+            title="Open and overdue corrective actions"
+            caption="These live counts show what Safety needs to close, verify, or push today."
           />
           <div data-testid="safety-hub-v2-queue-grid-capas"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             <QueueCard
               to="/safety-portal/corrective-actions?focus_filter=open"
               testid="safety-hub-v2-queue-capas-open"
-              title="Open CAPAs"
-              why="Corrective actions in Open / In Progress / Pending Review"
+              title="Open corrective actions"
+              why="Corrective actions are still open, in progress, or waiting for review"
               source="Live count · open or in-progress"
               value={s.capas_open}
               loaded={s.loaded}
@@ -245,8 +245,8 @@ export default function SafetyHubV2() {
             <QueueCard
               to="/safety-portal/corrective-actions?focus_filter=overdue"
               testid="safety-hub-v2-queue-capas-overdue"
-              title="Overdue CAPAs"
-              why="Open CAPAs with due_date in the past — operational truth from real timestamps"
+              title="Overdue corrective actions"
+              why="Corrective actions are past due and need immediate follow-up"
               source="Live count · past due date"
               value={s.capas_overdue}
               loaded={s.loaded}
@@ -258,16 +258,16 @@ export default function SafetyHubV2() {
         <section data-testid="safety-hub-v2-section-compliance" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="02 · Compliance · live"
-            title="Expiration & inspection signals"
-            caption="Real dates from real engines. No fabricated urgency."
+            title="Expirations and inspections"
+            caption="These dates show what has expired, what is overdue, and what needs to be scheduled next."
           />
           <div data-testid="safety-hub-v2-queue-grid-compliance"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             <QueueCard
               to="/safety-portal/fire-extinguishers?focus_filter=overdue"
               testid="safety-hub-v2-queue-fire-ext-overdue"
-              title="Fire Extinguishers · Overdue"
-              why="Units past next_due_date for inspection"
+              title="Fire extinguishers overdue"
+              why="These units are past their next required inspection date"
               source="Live count · past inspection date"
               value={s.fire_ext_overdue}
               loaded={s.loaded}
@@ -275,8 +275,8 @@ export default function SafetyHubV2() {
             <QueueCard
               to="/safety-portal/training?focus_filter=expired"
               testid="safety-hub-v2-queue-training-expired"
-              title="Training · Expired"
-              why="Records past expiration_date — recertification needed"
+              title="Training expired"
+              why="These records are expired and need recertification"
               source="Live count · past expiration"
               value={s.training_expired}
               loaded={s.loaded}
@@ -284,8 +284,8 @@ export default function SafetyHubV2() {
             <QueueCard
               to="/safety-portal/training?focus_filter=expiring_30d"
               testid="safety-hub-v2-queue-training-expiring"
-              title="Training · Expiring in 30d"
-              why="Records expiring inside 30 days — schedule recert"
+              title="Training expiring in 30 days"
+              why="These records expire soon and should be scheduled now"
               source="Live count · expiring inside 30 days"
               value={s.training_expiring_30d}
               loaded={s.loaded}
@@ -297,15 +297,15 @@ export default function SafetyHubV2() {
         <section data-testid="safety-hub-v2-section-incidents" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="03 · Incidents · recent activity"
-            title="Last 7 days · documented incidents"
-            caption="Cross-portal read into the real incidents engine."
+            title="Incidents reported in the last 7 days"
+            caption="Use these counts to decide where Safety follow-up is needed first."
           />
           <div data-testid="safety-hub-v2-queue-grid-incidents"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             <QueueCard
               to="/safety-portal/incidents"
               testid="safety-hub-v2-queue-incidents-7d"
-              title="Incidents · last 7 days"
+              title="Incidents in the last 7 days"
               why="Documented incidents reported in the past week"
               source="Live count · documented this week"
               value={s.incidents_last_7d}
@@ -314,16 +314,16 @@ export default function SafetyHubV2() {
             <QueueCard
               to="/safety/trench-safety"
               testid="safety-hub-v2-queue-trench-safety"
-              title="Trench Safety · active assets"
-              why="Benchmark module — daily inspections · permits · CP signoffs"
-              source="Live engine · same source /trench-safety uses"
+              title="Active trench-safety assets"
+              why="Track daily inspections, permits, and competent-person signoffs"
+              source="Live count · trench-safety records"
               value={s.trench_active_assets}
               loaded={s.trench_loaded}
             />
             <QueueCard
               to="/safety-portal/documents"
               testid="safety-hub-v2-queue-documents"
-              title="Safety Documents on file"
+              title="Safety documents on file"
               why="Reference docs — JHAs · SDS · regulatory posters"
               source="Live count · safety document library"
               value={s.safety_documents_total}
@@ -342,8 +342,8 @@ export default function SafetyHubV2() {
         <section data-testid="safety-hub-v2-section-field-records" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="04 · Field records · plans on file"
-            title="Toolbox talks · site inspections · JHA plans"
-            caption="Browse the Safety record set directly inside the Safety portal."
+            title="Toolbox talks, site inspections, and JHA plans"
+            caption="Open the records Safety teams use every day without digging through menus."
           />
           <div data-testid="safety-hub-v2-queue-grid-field-records"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
@@ -370,7 +370,7 @@ export default function SafetyHubV2() {
             <QueueCard
               to="/safety-portal/jha-plans"
               testid="safety-hub-v2-queue-jha-plans"
-              title="JHA / JHP Plans"
+              title="JHA plans"
               why="Job hazard analyses · crew sign-offs · revisions"
               source="Live count · JHA plans on file"
               value={null}
@@ -384,7 +384,7 @@ export default function SafetyHubV2() {
           <EmptyState
             testId="safety-hub-v2-all-clear"
             title="Safety is all clear."
-            explanation="No CAPAs open, no overdue inspections, no expired training, and no incidents in the last 7 days."
+            explanation="No corrective actions are open, no inspections are overdue, no training is expired, and no incidents were logged in the last 7 days."
             severity="good"
           />
         )}

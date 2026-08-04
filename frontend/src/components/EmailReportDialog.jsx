@@ -137,10 +137,10 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
         <DialogHeader>
           <DialogTitle className="font-display text-2xl flex items-center gap-2">
             <Mail className="w-5 h-5 text-red-700" />
-            {t("Email this Report")}
+            {t("Send this report")}
           </DialogTitle>
           <DialogDescription>
-            {t("Generates a polished PDF and emails it. Recipients are remembered for next time.")}
+            {t("Build a PDF, email it to the right people, and remember this list for next time.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -180,7 +180,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
                 className="h-9 border-2 border-slate-300 text-slate-700 font-mono text-xs uppercase tracking-[0.2em] font-bold"
                 data-testid="email-add-recipient"
               >
-                {t("+ Add Recipient")}
+                {t("+ Add email")}
               </Button>
             </div>
           </div>
@@ -204,7 +204,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder={t("Any context for the recipients (will appear above the PDF link)")}
+              placeholder={t("Add any job context or action request for the people receiving this report")}
               className="min-h-[90px] text-base border-2 border-slate-300 mt-1"
               data-testid="email-note"
             />
@@ -232,7 +232,7 @@ export function EmailReportDialog({ open, onOpenChange, kind, record }) {
               </>
             ) : (
               <>
-                <Mail className="w-4 h-4 mr-2" /> {t("Send PDF")}
+                <Mail className="w-4 h-4 mr-2" /> {t("Send report PDF")}
               </>
             )}
           </Button>

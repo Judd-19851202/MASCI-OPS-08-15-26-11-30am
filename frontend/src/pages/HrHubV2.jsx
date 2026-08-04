@@ -265,7 +265,7 @@ export default function HrHubV2() {
         <OiAttentionStrip
           portal="hr"
           productIds={["hr_intelligence", "training_intelligence"]}
-          title="HR Intelligence · attention now"
+          title="Workforce attention right now"
           testId="hr-hub-v2-oi-strip"
         />
 
@@ -363,7 +363,7 @@ export default function HrHubV2() {
         <Section
           kicker="01 · Action queues · live"
           title="Open HR work"
-          caption="Counts are queue sizes pulled live. Clicking a card opens the real HR workflow — no mock data, no synthesized values."
+          caption="These live queues show who needs approval, follow-up, or record cleanup right now."
           testId="hr-hub-v2-section-queues"
         >
           <div
@@ -377,7 +377,7 @@ export default function HrHubV2() {
             <QueueCard
               to="/hr/employee-requests"
               testid="hr-hub-v2-queue-employee-requests"
-              title="Employee Requests · pending"
+              title="Pending employee requests"
               why="New-hire and termination submissions awaiting HR approval"
               source="Live count · refreshes every visit"
               value={s.pending_requests}
@@ -387,7 +387,7 @@ export default function HrHubV2() {
             <QueueCard
               to="/hr/time-off"
               testid="hr-hub-v2-queue-time-off"
-              title="Time-Off Requests · pending"
+              title="Pending time-off requests"
               why="Vacation / sick approvals awaiting HR"
               source="Live count · refreshes every visit"
               value={s.time_off_pending}
@@ -397,7 +397,7 @@ export default function HrHubV2() {
             <QueueCard
               to="/document-expirations"
               testid="hr-hub-v2-queue-training-due"
-              title="Training / Certs Due"
+              title="Training and licenses due soon"
               why="Credentials expiring in the next 60 days"
               source="Live count · 30-day and 60-day buckets"
               value={s.training_exp_soon}
@@ -407,7 +407,7 @@ export default function HrHubV2() {
             <QueueCard
               to="/document-expirations?bucket=expired"
               testid="hr-hub-v2-queue-docs-expired"
-              title="Documents Expired"
+              title="Expired documents"
               why="Past expiry — must be addressed now"
               source="Live count · past expiry"
               value={s.docs_expired}
@@ -422,7 +422,7 @@ export default function HrHubV2() {
         <Section
           kicker="02 · Workforce-readiness reads"
           title="Field signals HR watches"
-          caption="HR reads (never writes) these surfaces. Counts source from the live HR-scoped APIs the classic hub already uses."
+          caption="These field signals help HR know where people, records, or follow-up may need attention."
           testId="hr-hub-v2-section-reads"
         >
           <div
@@ -446,7 +446,7 @@ export default function HrHubV2() {
             <QueueCard
               to="/hr/incidents"
               testid="hr-hub-v2-read-incidents"
-              title="Recent Incidents · HR view"
+              title="Recent incidents for HR follow-up"
               why="HR follow-up tracking on safety events"
               source="Live read · last 10 incidents"
               value={s.incidents_recent}
@@ -456,7 +456,7 @@ export default function HrHubV2() {
             <QueueCard
               to="/hr/field-leadership"
               testid="hr-hub-v2-read-fl"
-              title="Field-Leadership Records · recent"
+              title="Recent field-leadership records"
               why="HR has read access to FL submissions for personnel review"
               source="Live read · last 10 records"
               value={s.field_leadership_recent}
@@ -469,8 +469,8 @@ export default function HrHubV2() {
         {/* Section 3 — Permanent HR destinations (always-on, no count). */}
         <Section
           kicker="03 · HR destinations"
-          title="Always-on HR surfaces"
-          caption="These are the live HR routes. Each is a real surface — not a tile, not a placeholder."
+          title="Always-on HR work areas"
+          caption="These are the live HR pages your team uses every day."
           testId="hr-hub-v2-section-destinations"
         >
           <div
@@ -482,31 +482,31 @@ export default function HrHubV2() {
             }}
           >
             <Link to="/hr/employees" data-testid="hr-hub-v2-dest-employees" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Employees" description="Roster · search · profile · timeline · accountability brief" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Employees" description="Roster, search, profiles, timeline, and accountability view" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/training-records" data-testid="hr-hub-v2-dest-training" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Training Records" description="Per-employee training history · upload + assignment" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Training Records" description="Per-employee training history, uploads, and assignments" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/driver-qualification" data-testid="hr-hub-v2-dest-driver-qual" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Driver Qualification" description="CDL · medical card · DOT compliance dashboard" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Driver Qualification" description="CDL, medical card, and DOT readiness" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/payroll-variance" data-testid="hr-hub-v2-dest-payroll" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Payroll Variance" description="Man-hour reconciliation before payroll lock" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Payroll Variance" description="Man-hour review before payroll closes" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/time-verification" data-testid="hr-hub-v2-dest-time-verify" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Time Verification" description="Submitted-time vs ELD reconciliation" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Time Verification" description="Submitted time compared with ELD records" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/field-leadership-users" data-testid="hr-hub-v2-dest-fl-users" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Field-Leadership Users" description="Manage FL portal access (shared admin/HR panel)" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Field-Leadership Users" description="Manage field-leadership access" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/employee-accountability" data-testid="hr-hub-v2-dest-accountability" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Employee Accountability" description="Search by employee · coaching, training, equipment, safety brief" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Employee Accountability" description="Search by employee for coaching, training, equipment, and safety history" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/historical-records/intake" data-testid="hr-hub-v2-dest-historical-intake" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Historical Records Intake" description="Upload legacy files · classify · route to Review Queue" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Historical Records Intake" description="Upload older files, sort them, and send them to review" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/hr/historical-records/queue" data-testid="hr-hub-v2-dest-historical-queue" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="Historical Records Queue" description="Approve, reject, reassign staged records across lanes" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="Historical Records Queue" description="Approve, reject, or reassign reviewed records" status={<StatusChip statusKey="verified" compact />} />
             </Link>
           </div>
         </Section>
