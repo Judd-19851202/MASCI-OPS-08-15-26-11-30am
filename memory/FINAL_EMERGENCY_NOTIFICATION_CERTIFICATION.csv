@@ -1,0 +1,16 @@
+family,status,evidence,exact_basis
+Daily Report,CERTIFIED,Testing agent iteration 125 + preview parity,Exact preview bundle passes UI/title-case/forensics certification; live production deploy still pending
+inspection,BLOCKED_EXTERNAL_PROVIDER,Production certification evidence stale,Not re-certified on exact current bundle before deploy
+meeting,CERTIFIED,Existing production certification evidence,No new blocker found in this pass
+JHA_JHP,BLOCKED_EXTERNAL_PROVIDER,Production certification evidence stale,Not re-certified on exact current bundle before deploy
+incident,CERTIFIED,Existing production certification evidence,No new blocker found in this pass
+equipment_inspection,CERTIFIED,Existing production certification evidence,No new blocker found in this pass
+DVIR,BLOCKED_EXTERNAL_PROVIDER,Production certification evidence stale,Not re-certified on exact current bundle before deploy
+safety_alert,BLOCKED_EXTERNAL_PROVIDER,No exact-bundle live provider certification,Requires controlled live certification after deploy
+dispatch_assignment,BLOCKED_EXTERNAL_PROVIDER,Production certification evidence stale,Requires controlled live certification after deploy
+shop_work_order,BLOCKED_EXTERNAL_PROVIDER,Production certification evidence stale,Requires controlled live certification after deploy
+HR_onboarding_reset,BLOCKED_EXTERNAL_PROVIDER,No exact-bundle live provider certification,Requires controlled live certification after deploy
+health_alert,BLOCKED_EXTERNAL_PROVIDER,No exact-bundle live provider certification,Requires controlled live certification after deploy
+backup_alert,BLOCKED_EXTERNAL_PROVIDER,No exact-bundle live provider certification,Requires controlled live certification after deploy
+authentication_MFA_password_reset,BLOCKED_EXTERNAL_PROVIDER,No exact-bundle live provider certification,Requires controlled live certification after deploy
+approval_PO,DEFERRED_AND_HIDDEN,Deferred scope,Not part of active certified release set

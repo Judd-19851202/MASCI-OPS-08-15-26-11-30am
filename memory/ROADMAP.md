@@ -750,3 +750,14 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P1
 - After the blockers above are cleared, rerun the post-deploy smoke plan and then reopen the deploy gate.
+
+## 2026-08-04 — Final emergency deployment blockers
+
+### P0
+- Clear or formally retire/disposition the broad red active regression suites so the active gate is green.
+- Obtain direct production restore-drill visibility or drill proof.
+- Obtain direct Atlas Query Insights / profiler evidence for the live targeting alert and apply any proven repair.
+- Prove deferred-module containment for the full accumulated bundle.
+
+### P1
+- Only after the four blockers above are closed should the deploy gate be reopened.

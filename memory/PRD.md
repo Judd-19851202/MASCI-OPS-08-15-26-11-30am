@@ -694,3 +694,9 @@
 - Verified the bundle builds locally, but the exact current workspace is not what preview runtime is serving; preview/runtime attestation is behind workspace HEAD.
 - Representative regression totals remain red (`123 passed, 21 failed, 62 errors, 45 skipped`), and production certification still shows stale/untouched Release 1 workflows.
 - Save gate: **SAFE_TO_SAVE_WITH_DOCUMENTED_CONDITIONS**. Deploy gate: **NOT_SAFE_TO_DEPLOY**.
+
+## 2026-08-04 — Final emergency exact-bundle certification pass
+- Repaired exact preview/workspace parity so preview now serves commit `1df9927fd18e44eb612e7cc0e0aafe25999bc6fe` and source hash `1256beccc6cd355aa581ca81054c442f`, matching the current workspace bundle.
+- Repaired Daily Report operator-facing naming and submit feedback: formal `Executive Summary` title-case, `Submit Daily Report`, and `Submitting Daily Report…` are now verified in the exact preview bundle.
+- Repaired Daily Report forensics parity so OPPC-controlled reports classify correctly instead of appearing as silent failures.
+- Exact-bundle WP18CY verification now passes (`9/9` backend tests + testing-agent frontend verification), but the full accumulated release bundle remains **NOT_READY_FOR_DEPLOYMENT** because the broad active suite is still red, deferred-module containment is incomplete, direct restore proof is unavailable, and the exact production Atlas offender remains unproven.

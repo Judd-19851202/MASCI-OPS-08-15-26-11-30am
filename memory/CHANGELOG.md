@@ -665,3 +665,11 @@
 - Generated `FINAL_RELEASE_FULL_DELTA_REGISTER.csv` and the final save/deploy audit package in `/app/memory/`.
 - Confirmed the bundle builds locally, but preview runtime is not on the exact current workspace revision and the representative regression suite remains red.
 - Final audit decision: **SAFE_TO_SAVE_WITH_DOCUMENTED_CONDITIONS** and **NOT_SAFE_TO_DEPLOY**.
+
+## 2026-08-04 — Final emergency exact-bundle pass
+
+- Fixed exact preview/workspace parity for the current workspace bundle.
+- Fixed Daily Report formal title-case to `Executive Summary` on operator-facing approval/readiness surfaces and changed the loading state to `Submitting Daily Report…`.
+- Fixed Daily Report forensics parity so OPPC-controlled reports classify correctly in preview.
+- Verified the exact-bundle WP18CY gate with testing agent iteration `125`.
+- Final emergency gate remains **NOT_READY_FOR_DEPLOYMENT** because broad active suites are still red and external production restore/Atlas proof gaps remain.

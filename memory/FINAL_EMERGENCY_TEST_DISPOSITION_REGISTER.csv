@@ -1,0 +1,9 @@
+scope,status,count,classification,exact_note
+WP18CY_exact_bundle_active_tests,PASS,9,active_product_gate,Testing agent iteration 125 verified preview parity + Daily Report fixes + 9/9 backend tests pass
+Broad_local_pytest_active,FAIL,206,active_gate_red,Aggregate local pytest totals remain 123 passed / 21 failed / 62 errors / 45 skipped
+Legacy_admin_login_tests,RED,2,obsolete_retire_candidate,Tests still expect retired /api/admin/login behavior
+Single_token_admin_tests,RED,12,incorrect_auth_assumption,Tests expect one-token admin access instead of current dual-token contract
+Repeated_auth_burst_tests,SKIP_OR_ERROR,29,flaky_or_env_sensitive,Large groups trip preview auth rate limits (429) during repeated login bursts
+Preview_backup_restore_tests,RED,4,environment_contract_gap,Tests expect direct preview restore visibility or backup-health semantics that do not match current preview contract
+WP18C2_C3_preview_api_tests,ERROR,16,missing_test_environment_or_auth_contract,Current fixtures/base-url/auth assumptions do not match exact current preview runtime
+Notification_cert_tests,SKIPPED,10,external_or_rate_limited,Skipped due authentication throttle rather than product-path execution

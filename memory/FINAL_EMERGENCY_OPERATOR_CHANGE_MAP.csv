@@ -1,0 +1,9 @@
+domain,current_production_behavior,post_deploy_workspace_behavior,user_visible_change,database_impact,permission_impact,certification_evidence,deferred_or_hidden,rollback_concern
+Daily Reports,Production save works but live certification bundle not deployed,Exact preview bundle improves submit clarity + title-case + forensics parity,Operators see clearer Submit experience and Executive Summary naming,Daily Report writes + notification status writes,None beyond existing role scope,Testing agent 125 + 9 passing WP18CY tests,No,Medium
+Email/PDF,Production path not directly proven for exact bundle,Workspace canonical transport repair present,Potential branded email/PDF improvement after deploy,Notification and capture writes,None,WP18CY targeted tests + preview capture,No,High
+Notifications,Legacy and OPPC truth previously drifted,Workspace forensics reconciles both paths,Admin truth becomes less misleading,Read-only forensics plus notification metadata,None,Testing agent 125,No,Medium
+Backups,Production currently healthy,No new backup feature change in this pass,No operator-facing change intended,Index/read-path only,None,Production runtime checks,No,Medium
+Operational Intelligence,Existing bundle carries prior changes,No new OI change in this pass,None in this pass,Potential heavy reads,Existing permissions unchanged,None new,Possibly deferred,High
+Budget,Existing bundle carries prior changes,No new budget change in this pass,None in this pass,Potential authority reads/writes,Existing PM/Admin scope,None new,No,High
+Schedule,Existing bundle carries prior changes,No new schedule change in this pass,None in this pass,Potential authority reads/writes,Existing PM/Admin scope,None new,No,High
+Auth,Current dual-token contract active,No new auth product change in this pass,None user-facing beyond exact-bundle parity,Session/token reads,w/ existing roles,Backend audit and prior runtime checks,No,High
