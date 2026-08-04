@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-08-04T10:27:23.124547Z",
+  "tests": [
+    {
+      "name": "PM Login",
+      "passed": true,
+      "details": "Successfully authenticated as PM. Token length: 101"
+    },
+    {
+      "name": "Admin Multi-Login",
+      "passed": true,
+      "details": "Successfully authenticated as Admin. Session token length: 43, Admin token length: 101"
+    },
+    {
+      "name": "PM Operational Intelligence Snapshot",
+      "passed": true,
+      "details": "Returned 200 OK. Response keys: ['snapshot_id', 'project_number', 'project_name', 'operator_surface_label', 'engine_label', 'metric_engine_authority', 'calculation_version', 'generated_at', 'generated_by', 'cache_ttl_minutes']. Found 2/4 expected keys."
+    },
+    {
+      "name": "PM Operational Intelligence Export",
+      "passed": true,
+      "details": "Returned 200 OK. Content-Type: text/csv; charset=utf-8. Is CSV: True. Response length: 1883 chars."
+    },
+    {
+      "name": "PM Recommendation Override",
+      "passed": false,
+      "details": "Exception: HTTPSConnectionPool(host='masci-audit-hub.preview.emergentagent.com', port=443): Read timed out. (read timeout=15)"
+    },
+    {
+      "name": "Admin Operational Intelligence Overview",
+      "passed": true,
+      "details": "Returned 200 OK. Response keys: ['summary', 'snapshot', 'backfill']. Found 3/3 expected keys."
+    },
+    {
+      "name": "Admin Operational Intelligence Backfill",
+      "passed": true,
+      "details": "Returned 200. Backfill status: queued. Response: {\"ok\": true, \"status\": \"queued\", \"message\": \"wp18c6 operational intelligence backfill queued\", \"force\": true}"
+    },
+    {
+      "name": "Admin Backfill Status in Overview",
+      "passed": true,
+      "details": "Backfill status object present in overview. Status: running. Backfill keys: ['run_type', 'run_id', 'started_at', 'force', 'projects_processed', 'snapshots_built', 'status', 'mode']"
+    },
+    {
+      "name": "Admin Operational Intelligence Export",
+      "passed": true,
+      "details": "Returned 200 OK. Content-Type: text/csv; charset=utf-8. Is CSV: True. Response length: 1889 chars."
+    },
+    {
+      "name": "No 500/502 Errors",
+      "passed": true,
+      "details": "No C6 endpoint returned 500/502 under the tested flow"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 9,
+    "failed": 1
+  }
+}
