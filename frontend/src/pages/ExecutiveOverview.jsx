@@ -155,7 +155,7 @@ export default function ExecutiveOverview() {
         portalName="MASCI"
         portalRole={t("Admin")}
         pageTitle={t("Executive Overview")}
-        subtitle={t("Read-only · attention surface for executives")}
+          subtitle={t("Read-only · leadership focus for executives")}
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <div className="p-8 text-slate-600" data-testid="executive-overview-loading">
@@ -170,7 +170,7 @@ export default function ExecutiveOverview() {
         portalName="MASCI"
         portalRole={t("Admin")}
         pageTitle={t("Executive Overview")}
-        subtitle={t("Read-only · attention surface for executives")}
+          subtitle={t("Read-only · leadership focus for executives")}
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <div className="p-8 text-red-700" data-testid="executive-overview-error">
@@ -190,7 +190,7 @@ export default function ExecutiveOverview() {
       portalName="MASCI"
       portalRole={t("Admin")}
       pageTitle={t("Executive Overview")}
-      subtitle={`${t("Read-only")} · v${data.foundation_version} · ${t("attention surface")}`}
+      subtitle={`${t("Read-only")} · v${data.foundation_version} · ${t("leadership focus")}`}
       primaryActions={
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <Link
@@ -390,7 +390,7 @@ export default function ExecutiveOverview() {
 
         <Tile
           testid="tile-activity"
-          title="Activity Snapshot (Today)"
+          title="Today's activity"
           count={
             (tiles.activity?.daily_reports_today || 0) +
             (tiles.activity?.safety_meetings_today || 0) +
@@ -413,7 +413,7 @@ export default function ExecutiveOverview() {
 
       {/* TRACEABILITY FOOTER */}
       <div className="mt-8 text-[10px] font-mono uppercase tracking-wider text-slate-400 text-center">
-        {t("Read-only · No new collections · No background jobs · No AI · Data from existing certified records only.")}
+        {t("Read-only · Built from existing certified records only.")}
       </div>
       </div>
     </PortalShell>

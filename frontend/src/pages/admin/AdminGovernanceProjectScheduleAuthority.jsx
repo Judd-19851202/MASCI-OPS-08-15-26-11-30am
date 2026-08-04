@@ -170,7 +170,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
       const response = await downloadAdminScheduleExport(projectNumber, versionId, exportKind);
       downloadResponseFile(response, `${projectNumber}-${exportKind}.csv`);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || t("Could not export the governed schedule."));
+      toast.error(error?.response?.data?.detail || t("Could not export the schedule."));
     }
   };
 
@@ -307,7 +307,7 @@ export default function AdminGovernanceProjectScheduleAuthority() {
           <TabsContent value="versions" className="space-y-6" data-testid="admin-project-schedule-versions-panel">
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm" data-testid="admin-project-schedule-versions-section">
               <h2 className="text-xl font-black text-slate-900">{t("Schedule versions")}</h2>
-              <p className="mt-1 text-sm text-slate-600">{t("Use a project filter to inspect additive versions, activities, and work-package coverage without losing the baseline lineage.")}</p>
+              <p className="mt-1 text-sm text-slate-600">{t("Use a project filter to inspect versions, activities, and work-package coverage without losing baseline history.")}</p>
               <div className="mt-4 grid gap-3">
                 {versions.map((row) => (
                   <div key={row.version_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`admin-project-schedule-version-card-${row.version_id}`}>

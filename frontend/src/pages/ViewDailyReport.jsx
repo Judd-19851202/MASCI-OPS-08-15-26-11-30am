@@ -267,7 +267,7 @@ export default function ViewDailyReport() {
   const notificationMessage = notificationState === "captured_preview"
     ? t("Preview capture recorded. No live email was sent.")
     : notificationState === "provider_accepted"
-      ? t("Provider accepted the notification for delivery.")
+      ? t("Delivery service accepted the notification.")
       : notificationState === "configuration_blocked"
         ? t("Notification delivery is configuration-blocked and requires follow-up.")
         : notificationState === "retryable_failure"

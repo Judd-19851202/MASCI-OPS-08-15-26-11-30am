@@ -236,13 +236,13 @@ export function OperationalIntelligenceSnapshotWorkspace({
           </div>
 
           <section className="rounded-[1.75rem] border border-slate-200 bg-slate-950 p-5 text-slate-50 shadow-sm" data-testid={`${dataTestId}-authority-footer`}>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-200">{t("How this page is built")}</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-200">{t("What this page is based on")}</div>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               <div data-testid={`${dataTestId}-authority-operators`}>{t("You are seeing")}: <strong>{t("Project Performance")}</strong></div>
               <div data-testid={`${dataTestId}-authority-engine`}>{t("Built from")}: <strong>{t("Daily Reports, Work Blocks, approved progress updates, budget lines, and schedule activities")}</strong></div>
               <div data-testid={`${dataTestId}-authority-metrics`}>{t("Update existing records")}: <strong>{operatorStatusLabel(snapshot.backfill?.status || "pending_manual_run", t)}</strong></div>
             </div>
-            <div className="mt-3 text-xs text-slate-300">{t("Connected views")}: {(summary.centralized_consumers || []).map((item) => operatorLabel(item, t)).join(", ") || "—"}</div>
+            <div className="mt-3 text-xs text-slate-300">{t("Also used in")}: {(summary.centralized_consumers || []).map((item) => operatorLabel(item, t)).join(", ") || "—"}</div>
           </section>
         </>
       ) : null}

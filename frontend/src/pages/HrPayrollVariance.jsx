@@ -217,7 +217,7 @@ export default function HrPayrollVariance() {
           </div>
         </div>
         <div className="mb-2">
-          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Exact CSV Payload")}</Label>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold">{t("Exact payroll rows")}</Label>
         </div>
         <Textarea
           value={csvText}
@@ -229,7 +229,7 @@ export default function HrPayrollVariance() {
         />
         <div className="mt-4 pt-4 border-t border-purple-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-xs text-slate-500 max-w-2xl">
-            {t("Accepted columns: Employee Name (required), Regular Hours OR Total Hours (required), Overtime Hours, Employee ID, Week Ending. Comma, tab, or pipe-delimited.")}
+            {t("Accepted columns: Employee Name, Regular Hours or Total Hours, Overtime Hours, Employee ID, and Week Ending. Use the export exactly as it comes out of Exact.")}
           </p>
           <div className="flex gap-2 sm:ml-auto shrink-0">
             <Button variant="ghost" onClick={() => setCsvText("")} disabled={busy || !csvText} className="h-10">{t("Clear")}</Button>

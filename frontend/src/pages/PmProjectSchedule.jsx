@@ -364,7 +364,7 @@ export default function PmProjectSchedule() {
     setWorking(true);
     try {
       await activatePmProjectScheduleImport(projectNumber, activeImportId);
-      toast.success(t("Governed schedule version activated."));
+      toast.success(t("Schedule version activated."));
       await load(projectNumber, activeImportId);
     } catch (error) {
       toast.error(error?.response?.data?.detail || t("Could not activate the schedule version."));
@@ -430,7 +430,7 @@ export default function PmProjectSchedule() {
     setWorking(true);
     try {
       await reviewPmProjectScheduleActualCandidate(projectNumber, candidateId, buildCandidatePayload(candidate, candidateDrafts[candidateId], action));
-      toast.success(action === "approve" ? t("Schedule actual approved.") : action === "reject" ? t("Schedule actual rejected.") : action === "defer" ? t("Schedule actual deferred.") : t("Schedule actual returned to governed review."));
+      toast.success(action === "approve" ? t("Progress update approved.") : action === "reject" ? t("Progress update rejected.") : action === "defer" ? t("Progress update deferred.") : t("Progress update returned for review."));
       await load(projectNumber, activeImportId, dailyPlanDate);
     } catch (error) {
       toast.error(error?.response?.data?.detail || t("Could not update the schedule actual candidate."));

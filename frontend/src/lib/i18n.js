@@ -8836,6 +8836,22 @@ const ES = {
   "No day-plan items are ready for this date yet.": "Todavía no hay elementos del plan del día listos para esta fecha.",
   "Schedule Progress Review": "Revisión de avance del cronograma",
   "Work Blocks": "Bloques de Trabajo",
+  "Schedule version activated.": "La versión del cronograma fue activada.",
+  "Progress update approved.": "La actualización de avance fue aprobada.",
+  "Progress update rejected.": "La actualización de avance fue rechazada.",
+  "Progress update deferred.": "La actualización de avance fue diferida.",
+  "Progress update returned for review.": "La actualización de avance volvió a revisión.",
+  "Could not export the schedule.": "No se pudo exportar el cronograma.",
+  "leadership focus": "enfoque de liderazgo",
+  "Read-only · leadership focus for executives": "Solo lectura · enfoque de liderazgo para ejecutivos",
+  "Today's activity": "Actividad de hoy",
+  "Read-only · Built from existing certified records only.": "Solo lectura · construido solo a partir de registros certificados existentes.",
+  "What this page is based on": "En qué se basa esta página",
+  "Also used in": "También se usa en",
+  "Use a project filter to inspect versions, activities, and work-package coverage without losing baseline history.": "Use un filtro de proyecto para revisar versiones, actividades y cobertura de paquetes de trabajo sin perder el historial base.",
+  "Exact payroll rows": "Filas de nómina de Exact",
+  "Accepted columns: Employee Name, Regular Hours or Total Hours, Overtime Hours, Employee ID, and Week Ending. Use the export exactly as it comes out of Exact.": "Columnas aceptadas: Nombre del empleado, Horas regulares o Horas totales, Horas extra, ID del empleado y Fin de semana. Use la exportación exactamente como sale de Exact.",
+  "Delivery service accepted the notification.": "El servicio de entrega aceptó la notificación.",
 };
 
 const DICTS = { es: ES, en: {} };
