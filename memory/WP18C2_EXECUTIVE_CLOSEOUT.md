@@ -55,6 +55,6 @@ That recommendation is limited to beginning the next separately authorized packa
 
 ## Standing inheritance addendum
 
-WP-18C2 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+WP-18C2 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution.
 
 No redesign of C2 is required by that amendment; future work may only extend downstream intelligence and automatic work-block reuse where later authorized.

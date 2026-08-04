@@ -11,7 +11,7 @@ Date: 2026-08-04
 
 Every future implementation package should begin with language equivalent to:
 
-> **This work package inherits the WP-17 Product Constitution, the WP-18 Executive Constitutional Architecture Package (ECAP), and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.**
+> **This work package inherits the WP-17 Product Constitution, the WP-18 Executive Constitutional Architecture Package (ECAP), the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution. Compliance is mandatory.**
 
 ## Scope of automatic inheritance
 
@@ -33,6 +33,7 @@ Every future package must explicitly state:
 5. which authoritative truth owners it consumes without duplicating
 6. how AI remains advisory only
 7. what downstream value proves package completeness
+8. what measurable improvement proves decision-engine value
 
 ## GO gate rule
 
@@ -41,6 +42,7 @@ No future implementation, audit, redesign, enhancement, or certification may rec
 - the WP-17 Product Constitution
 - the WP-18 ECAP
 - the WP-18 Operational Intelligence Constitution
+- the WP-18 Operational Decision Engine Constitution
 
 ## Backward-compatibility rule
 
@@ -50,5 +52,6 @@ They are to be:
 
 - preserved
 - declared inheritors of the new constitutional layer
+- declared inheritors of the new decision-engine layer
 - checked for genuine constitutional gaps
 - enhanced only where later packages legitimately need that work

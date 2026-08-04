@@ -25,6 +25,7 @@ Date: 2026-08-03
 12. no unresolved blocking contradiction remains
 13. no application code was changed during ECAP
 14. the Operational Intelligence Constitution is accepted as a standing constitutional layer for all future packages
+15. the Operational Decision Engine Constitution is accepted as a standing constitutional layer for all future packages
 
 ## Conditions carried into WP-18C
 
@@ -33,6 +34,7 @@ Date: 2026-08-03
 - stop if financial truth cannot reconcile or if a protected subsystem rebuild is proposed
 - budget must precede EV in implementation
 - every package must inherit WP-17 + ECAP + the WP-18 Operational Intelligence Constitution
+- every package must inherit WP-17 + ECAP + the WP-18 Operational Intelligence Constitution + the WP-18 Operational Decision Engine Constitution
 - no package may receive GO unless it proves downstream operational or executive value beyond raw data storage
 
 ## Final instruction

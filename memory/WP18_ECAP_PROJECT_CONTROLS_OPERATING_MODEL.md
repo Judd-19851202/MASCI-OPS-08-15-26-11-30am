@@ -26,6 +26,9 @@ Project Controls in ForgedOps is one operating model connecting:
 
 It is not approved to become a larger data-entry burden.
 Every later Project Controls package must reduce operator effort while increasing operational understanding.
+Work Blocks and governed metrics should progressively become the digital heart and governed metric engine for later control decisions.
+
+This requirement is carried by the **WP-18 Operational Decision Engine Constitution**.
 
 ## Weekly cadence
 

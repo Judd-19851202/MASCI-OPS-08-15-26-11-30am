@@ -9,7 +9,7 @@ Date: 2026-08-03
 
 WP-18C must execute in dependency order, not visual preference order.
 
-Every package in the sequence below inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.
+Every package in the sequence below inherits the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution. Compliance is mandatory.
 
 ## Exact sequence
 
@@ -24,7 +24,7 @@ Every package in the sequence below inherits the WP-17 Product Constitution, the
 5. **WP-18C5 — Schedule / Lookahead / Actuals Spine**  
    govern Daily Report → progress → schedule / quantity / constraint flow
 6. **WP-18C6 — Production and Quantity Intelligence**  
-   accepted quantity, productivity, cost-per-unit, production trust
+   understand production by deriving governed Work-Block-based production metrics, standing metric-engine rules, and crew/equipment/material/subcontractor intelligence
 7. **WP-18C7 — Forecasting and Commitments**  
    ETC / EAC / commitments / forecast rollups
 8. **WP-18C8 — Earned Value Engine**  

@@ -180,4 +180,6 @@ WP-18B is therefore **RATIFIED WITH AMENDMENTS**, not accepted unchanged. The co
 
 This standing layer is the **WP-18 Operational Intelligence Constitution**.
 
+The standing charter is now also complemented by the **WP-18 Operational Decision Engine Constitution**.
+
 No future implementation should begin unless it traces back to the amended constitutional owner model documented here.

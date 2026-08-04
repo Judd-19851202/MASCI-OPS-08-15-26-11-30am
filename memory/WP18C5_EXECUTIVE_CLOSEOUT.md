@@ -43,7 +43,7 @@ C5 was completed without starting C6, C7, C8, C9, or C10. No protected C1–C4 s
 
 ## Standing inheritance addendum
 
-WP-18C5 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+WP-18C5 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution.
 
 No redesign of C5 is required by that amendment; later packages may only extend intelligence and downstream reuse on top of the accepted C5 spine.
 

@@ -12,6 +12,9 @@ Date: 2026-08-03
 3. No financial concept may have duplicate authority.
 4. Every operational fact has one authoritative owner.
 5. Capture once, reuse everywhere, is the standing default.
+6. Every governed metric must resolve to one owner, one calculation, one definition, one validation path, and one audit trail.
+
+These metric rules are carried by the **WP-18 Operational Decision Engine Constitution**.
 
 ## Source-of-truth map
 

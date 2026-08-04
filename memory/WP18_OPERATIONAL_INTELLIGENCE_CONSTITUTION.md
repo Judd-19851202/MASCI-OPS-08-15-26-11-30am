@@ -24,6 +24,9 @@ Unless a later executive constitutional amendment explicitly supersedes it, the 
 1. the **WP-17 Product Constitution**
 2. the **WP-18 Executive Constitutional Architecture Package (ECAP)**
 3. the **WP-18 Operational Intelligence Constitution**
+4. the **WP-18 Operational Decision Engine Constitution**
+
+This constitution is now complemented by the **WP-18 Operational Decision Engine Constitution**, which carries the governed decision-pipeline, metric-engine, explanation-engine, and continuous-improvement requirements.
 
 ## Executive purpose
 

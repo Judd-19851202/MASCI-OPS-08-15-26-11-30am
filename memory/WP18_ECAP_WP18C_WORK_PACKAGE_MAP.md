@@ -7,7 +7,7 @@ Date: 2026-08-03
 **Decision label:** `APPROVED_CONSTITUTIONAL_DECISION`  
 **Proof label:** `DOCUMENTED_ONLY`
 
-Every work package in this map inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.
+Every work package in this map inherits the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution. Compliance is mandatory.
 
 No package in this map is complete if it only captures or stores data without creating downstream operational reuse, intelligence value, reduced operator burden where applicable, or increased executive visibility where applicable.
 
@@ -43,7 +43,7 @@ No package in this map is complete if it only captures or stores data without cr
 - rollback: restore prior progress synchronization path
 
 ### WP-18C6 — Production and Quantity Intelligence
-- objective: accepted quantity, productivity, cost-per-unit, approved production truth
+- objective: understand production by deriving Work-Block-centered governed metrics, a single metric engine, and crew/equipment/material/subcontractor intelligence
 - preserved systems: Daily Reports, QA/QC, PM shell
 - exclusions: no duplicate production system
 - rollback: disable accepted-quantity layer and derived readers

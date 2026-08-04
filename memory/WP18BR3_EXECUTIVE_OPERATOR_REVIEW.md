@@ -10,6 +10,8 @@ This review now also inherits the standing constitutional rule that every later 
 
 That rule is codified in the **WP-18 Operational Intelligence Constitution**.
 
+It is now complemented by the **WP-18 Operational Decision Engine Constitution**, including the rule that later packages must improve measurable operator and manager decisions rather than simply add more fields.
+
 ## Role review
 
 | Role | What helps | What slows them down | What is unnecessary | What is missing |

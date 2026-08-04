@@ -14,6 +14,7 @@ All future implementation packages inherit:
 1. the WP-17 Product Constitution
 2. the WP-18 ECAP
 3. the WP-18 Operational Intelligence Constitution
+4. the WP-18 Operational Decision Engine Constitution
 
 Compliance is mandatory.
 
@@ -201,6 +202,7 @@ That operating model must also:
 - preserve one authoritative owner per fact
 - build intelligence, not just storage
 - increase operator understanding and executive visibility with every later package
+- move facts through the governed decision pipeline until they produce measurable outcomes and future improvement value
 
 ## What happens before WP-18C
 

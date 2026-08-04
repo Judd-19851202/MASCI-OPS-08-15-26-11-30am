@@ -40,5 +40,6 @@ Every later authorized phase automatically inherits:
 - the WP-17 Product Constitution
 - the WP-18 ECAP
 - the WP-18 Operational Intelligence Constitution
+- the WP-18 Operational Decision Engine Constitution
 
 No later package may claim GO unless it proves intelligence gain, downstream value, trust-line preservation, and reduced operator burden relative to raw data capture alone.

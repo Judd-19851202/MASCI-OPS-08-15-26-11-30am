@@ -14,6 +14,8 @@ This is the standing WP-18 expression of the constitutional rule: **AI advises â
 
 It is governed jointly by the WP-18 ECAP and the **WP-18 Operational Intelligence Constitution**.
 
+It is also constrained by the **WP-18 Operational Decision Engine Constitution**, including the rule that the platform learns from evidence but never promotes AI guesses into permanent conclusions without human authority.
+
 ## Allowed AI actions
 
 | Action | Allowed? | Conditions |

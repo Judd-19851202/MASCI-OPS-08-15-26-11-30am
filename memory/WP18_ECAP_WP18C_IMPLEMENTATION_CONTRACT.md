@@ -16,16 +16,17 @@ This is the final implementation contract that governs WP-18C.
 WP-18C may begin only after the following are accepted as authoritative:
 
 1. `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`
-2. `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
-3. `WP18_ECAP_ENTERPRISE_HIERARCHY_CONSTITUTION.md`
-4. `WP18_ECAP_EXECUTIVE_REPORTING_HIERARCHY.md`
-5. `WP18_ECAP_BUDGET_HIERARCHY_CONSTITUTION.md`
-6. `WP18_ECAP_EARNED_VALUE_ENGINE_BLUEPRINT.md`
-7. `WP18_ECAP_AUTHORITY_AND_SOURCE_OF_TRUTH_MAP.md`
-8. `WP18_ECAP_PLATFORM_PRESERVATION_MAP.md`
-9. `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`
-10. `WP18_ECAP_WP18C_WORK_PACKAGE_MAP.md`
-11. `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
+2. `WP18_OPERATIONAL_DECISION_ENGINE_CONSTITUTION.md`
+3. `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
+4. `WP18_ECAP_ENTERPRISE_HIERARCHY_CONSTITUTION.md`
+5. `WP18_ECAP_EXECUTIVE_REPORTING_HIERARCHY.md`
+6. `WP18_ECAP_BUDGET_HIERARCHY_CONSTITUTION.md`
+7. `WP18_ECAP_EARNED_VALUE_ENGINE_BLUEPRINT.md`
+8. `WP18_ECAP_AUTHORITY_AND_SOURCE_OF_TRUTH_MAP.md`
+9. `WP18_ECAP_PLATFORM_PRESERVATION_MAP.md`
+10. `WP18_ECAP_IMPLEMENTATION_SEQUENCE.md`
+11. `WP18_ECAP_WP18C_WORK_PACKAGE_MAP.md`
+12. `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
 
 ## During WP-18C
 
@@ -38,9 +39,10 @@ WP-18C must:
 - preserve protected systems by default
 - use additive migration and backward compatibility
 - stop on any ECAP stop condition
-- inherit the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution
+- inherit the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution
 - reduce duplicate entry and operator workload where the package legitimately touches workflows
 - increase operational intelligence and downstream value instead of only collecting more data
+- follow the governed decision pipeline from capture through learning/improvement where the package legitimately touches that flow
 - close each package only with the evidence defined in the acceptance matrix
 
 ## Explicit WP-18C exclusions
@@ -77,6 +79,8 @@ WP-18C is complete only when every sub-package shows:
 12. executive screenshot proof
 13. operational-intelligence compliance proof
 14. duplicate-entry reduction / downstream-value proof
+15. operational-decision-engine compliance proof
+16. measurable-improvement proof
 
 Authoritative test ledger: `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
 
@@ -89,7 +93,7 @@ Routine implementation choices that conform to ECAP do **not** require repeated 
 
 Every future package must open with language equivalent to:
 
-> This work package inherits the WP-17 Product Constitution, the WP-18 Executive Constitutional Architecture Package (ECAP), and the WP-18 Operational Intelligence Constitution. Compliance is mandatory.
+> This work package inherits the WP-17 Product Constitution, the WP-18 Executive Constitutional Architecture Package (ECAP), the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution. Compliance is mandatory.
 
 Implementation must stop only when it encounters:
 

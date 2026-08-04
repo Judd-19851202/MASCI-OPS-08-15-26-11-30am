@@ -57,6 +57,6 @@ The C3 package is intentionally a financial-planning and governed-review foundat
 
 ## Standing inheritance addendum
 
-WP-18C3 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+WP-18C3 is preserved as accepted work and now also inherits the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution.
 
 No redesign of C3 is required by that amendment; future work may only deepen downstream cost intelligence and executive visibility where later authorized.

@@ -28,6 +28,7 @@ Reference set:
 - `WP18_ECAP_ACCEPTANCE_AND_CERTIFICATION_MATRIX.csv`
 - `WP18_OPERATIONAL_INTELLIGENCE_CONSTITUTION.md`
 - `WP18_OPERATIONAL_INTELLIGENCE_INHERITANCE_STANDARD.md`
+- `WP18_OPERATIONAL_DECISION_ENGINE_CONSTITUTION.md`
 
 ### 3. Protected systems are explicitly identified
 
@@ -46,8 +47,9 @@ Authorization is conditioned on:
 2. Budget Hierarchy preceding Earned Value
 3. executive reporting refactor occurring without hidden truth-owner duplication
 4. additive migration and reconciliation discipline being preserved
-5. every package inheriting the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution
+5. every package inheriting the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution
 6. no package closing GO without downstream value beyond raw data capture
+7. no package closing GO without measurable decision-engine improvement evidence
 
 ## What would force a return to executive decision
 

@@ -73,6 +73,18 @@ This is the standing **WP-18 Operational Intelligence Constitution** amendment.
 
 **Impact if unresolved:** later packages could remain technically additive while still failing the real business purpose of the platform.
 
+### BA-07 — Enforce the platform as a governed decision engine
+
+**Why this now matters:** later packages could still add data, screens, and KPIs without moving facts through a full governed decision lifecycle or establishing singular metric truth.
+
+**Evidence:**
+- `WP18_OPERATIONAL_DECISION_ENGINE_CONSTITUTION.md`
+- `WP18_OPERATIONAL_DECISION_ENGINE_BACKWARD_COMPATIBILITY_AND_GAP_REPORT.md`
+
+This is the standing **WP-18 Operational Decision Engine Constitution** amendment.
+
+**Impact if unresolved:** the platform could appear richer while still failing to improve measurable decisions, future recommendations, or governed metric trust.
+
 ## BR3 sequencing principle
 
 The amendments above should be read as **bounded architectural decisions that preserve existing validated work**.

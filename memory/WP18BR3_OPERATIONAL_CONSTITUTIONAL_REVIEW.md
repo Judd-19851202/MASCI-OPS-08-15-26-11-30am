@@ -20,6 +20,8 @@ After C5, one more standing constitutional reading is explicit: the future platf
 
 That rule is codified in the **WP-18 Operational Intelligence Constitution**.
 
+It is now complemented by the **WP-18 Operational Decision Engine Constitution**, which requires later packages to convert connected operations into governed decision flow, measurable outcomes, and learning feedback.
+
 ## What already connects correctly
 
 ### Scheduling and planning
@@ -113,3 +115,5 @@ The operational platform is already a real system, not a loose collection of mod
 The work ahead is constitutional tightening, not wholesale operational redesign.
 
 Every later package must therefore make the platform smarter, reduce duplicate entry, and increase executive visibility before it can receive GO.
+
+Every later package must also improve decision quality, explanation quality, or measurable operational outcomes before it can receive GO.

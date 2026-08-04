@@ -29,6 +29,9 @@ This report records whether the ECAP packet satisfies the required integrity rul
 17. Operational Intelligence Constitution artifacts exist and are referenced by governing documents
 18. future-package inheritance is explicit
 19. GO gate enforcement requires operational-intelligence compliance
+20. Operational Decision Engine Constitution artifacts exist and are referenced by governing documents
+21. measurable-improvement GO language is explicit
+22. future-package inheritance includes the decision-engine layer
 
 ## Result
 
@@ -50,6 +53,9 @@ This report records whether the ECAP packet satisfies the required integrity rul
 - Operational Intelligence Constitution propagated: `true`
 - future-package inheritance rule explicit: `true`
 - operational-intelligence GO enforcement explicit: `true`
+- Operational Decision Engine Constitution propagated: `true`
+- measurable-improvement GO language explicit: `true`
+- decision-engine inheritance rule explicit: `true`
 
 ### Integrity verdict
 

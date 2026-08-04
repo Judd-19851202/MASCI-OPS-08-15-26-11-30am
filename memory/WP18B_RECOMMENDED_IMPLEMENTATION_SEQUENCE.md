@@ -4,7 +4,7 @@ Date: 2026-08-03
 Purpose: Define the exact lowest-risk sequence for WP-18C and beyond while maximizing reuse and minimizing technical debt.  
 Rule: Sequence follows the constitutional order **Reuse → Extend → Repair → Connect → Consolidate → Build New**. `Build New` appears only where repository evidence proved no reusable owner/engine exists.
 
-Standing inheritance rule: every future package must also comply with the WP-17 Product Constitution, the WP-18 ECAP, and the WP-18 Operational Intelligence Constitution.
+Standing inheritance rule: every future package must also comply with the WP-17 Product Constitution, the WP-18 ECAP, the WP-18 Operational Intelligence Constitution, and the WP-18 Operational Decision Engine Constitution.
 
 ## Executive sequencing answer
 
@@ -83,6 +83,7 @@ The lowest-risk path is to harden what already exists before authorizing any net
 3. Do **not** introduce budget or earned value before the reused foundations are constitutionally locked.
 4. Do **not** deprecate legacy read models until consolidated hierarchy is proven and validated against the existing evidence pack.
 5. Do **not** treat raw data capture as sufficient completion; every later package must add downstream operational or executive value.
+6. Do **not** treat disconnected KPI calculation as sufficient completion; later packages must converge on governed metric-engine behavior.
 
 ## Lowest-risk implementation summary
 

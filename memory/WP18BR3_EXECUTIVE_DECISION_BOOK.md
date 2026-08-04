@@ -17,6 +17,8 @@ The standing constitutional charter now also includes the `WP18_OPERATIONAL_INTE
 
 That layer is the **WP-18 Operational Intelligence Constitution**.
 
+The standing constitutional charter also includes the **WP-18 Operational Decision Engine Constitution**.
+
 ## Primary answer
 
 If rebuilt today, the platform should **not** be rebuilt from scratch.
@@ -205,6 +207,8 @@ BR3 answer:
 - those are amendment problems, not rebuild problems
 
 That operational model must now also be judged by whether later packages increase intelligence, reuse facts automatically, reduce operator burden, and improve executive visibility.
+
+It must also be judged by whether later packages improve governed decisions, explanation quality, measurable outcomes, and future recommendation quality.
 
 ## Executive operator answer
 

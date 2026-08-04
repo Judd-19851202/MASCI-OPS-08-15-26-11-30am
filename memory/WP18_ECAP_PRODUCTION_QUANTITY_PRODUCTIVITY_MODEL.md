@@ -13,6 +13,8 @@ Production capture is constitutionally justified only when it creates downstream
 
 This requirement is carried by the **WP-18 Operational Intelligence Constitution**.
 
+It is also carried by the **WP-18 Operational Decision Engine Constitution**, which requires one governed metric engine rather than competing productivity or production calculations.
+
 ## Canonical terms
 
 | Term | Final meaning |

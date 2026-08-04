@@ -7,6 +7,14 @@
 - Updated governing ECAP, BR3, ratification, sequence, PRD, and ROADMAP records so future WP-18, WP-19, WP-20, and later packages automatically inherit the WP-17 Product Constitution, WP-18 ECAP, and WP-18 Operational Intelligence Constitution unless explicitly superseded.
 - Updated completed C1–C5 closeout records to declare inheritance without reopening accepted implementations.
 
+# 2026-08-04 — WP-18 Operational Decision Engine Constitutional Amendment
+
+- Added the standing constitutional layer in `/app/memory/WP18_OPERATIONAL_DECISION_ENGINE_CONSTITUTION.md`.
+- Added backward-compatibility / genuine-gap evidence in `/app/memory/WP18_OPERATIONAL_DECISION_ENGINE_BACKWARD_COMPATIBILITY_AND_GAP_REPORT.md`.
+- Added documentation-integrity criteria in `/app/memory/WP18_OPERATIONAL_DECISION_ENGINE_INTEGRITY_REPORT.md`.
+- Updated inheritance language, ECAP/BR3/ratification/go-governance artifacts, acceptance criteria, work-package map, PRD, ROADMAP, and C1–C5 closeouts so future packages must also remain Operational Decision Engine compliant.
+- Codified the executive recommendation that a future authorized C6 should focus on understanding production through Work-Block-centered governed metrics and a single governed metric engine.
+
 # 2026-08-04 — WP-18C5 Schedule / Lookahead / Actuals Spine
 
 - Added additive C5 backend authority in `backend/services/project_schedule_actuals_spine.py` for schedule actual candidates, PM review approvals, forecast derivation, and daily work plans.

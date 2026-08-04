@@ -35,6 +35,8 @@ Leadership can invest the next 12–24 months with confidence **if** the BR3 blo
 
 That implementation posture now also inherits the WP-18 Operational Intelligence Constitution as a mandatory enforcement layer.
 
+It now also inherits the **WP-18 Operational Decision Engine Constitution** as a mandatory enforcement layer.
+
 ## Constitutional rule for implementation authorization
 
 Any future implementation effort must treat the following as protected value:
@@ -56,6 +58,7 @@ Any future implementation effort must treat the following as protected value:
 - do not broadly rebuild validated modules
 - solve the blocking amendments first or as the opening implementation architecture layer
 - require every later package to prove intelligence gain, downstream value, and reduced duplicate entry before GO
+- require every later package to prove measurable decision-engine value before GO
 
 ## Cross-reference
 
