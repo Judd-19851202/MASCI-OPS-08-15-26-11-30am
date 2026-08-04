@@ -682,3 +682,9 @@
 - Controlled production Daily Report `DR-2026-00449` proved the save path works, but production forensics showed the recipient-email chain never advanced beyond `record_created`; production still lacks direct proof of the Daily Report repair.
 - Current production complete-r2 backups are healthy again (`freshness_age_minutes≈29.46`, integrity `PASS`), so the active backup-cadence blocker is cleared in production.
 - WP18CY remains **NO-GO** because the Daily Report production repair is not yet deployed/proven, Release 1 email-family certification is incomplete, the exact production Atlas ~6200:1 offender is still not directly identified, and direct production restore-drill proof is unavailable.
+
+## 2026-08-04 — WP18CY.3 final stabilization update
+- Production behavior-change root cause was refined: no undeclared new deploy was proven; the visible production defect was a latent OPPC-vs-legacy Daily Report notification truth mismatch plus degraded release attestation.
+- Workspace/preview repairs completed and independently verified: Daily Report submit button wording, OPPC-aware Daily Report forensics parity, richer delivery metadata, and explicit downstream failure persistence.
+- Production backup posture is currently healthy again (`freshness_age_minutes≈29.46`, integrity `PASS`), but direct production restore-drill visibility remains external.
+- Final gate moved to **GO WITH REQUIRED EXTERNAL CONDITION** pending bounded production deployment, direct Atlas offender access, and direct production restore-drill evidence.

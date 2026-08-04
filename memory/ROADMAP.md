@@ -730,3 +730,13 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P1
 - Re-run the WP18CY production gate only after the three remaining evidence gaps above are closed.
+
+## 2026-08-04 — WP18CY.3 final external conditions
+
+### P0 external conditions
+- Deploy the bounded Daily Report/notification/forensics stabilization patch set to live production.
+- Obtain direct Atlas Query Insights / profiler evidence for the production `~6200:1` alert window.
+- Obtain direct production restore-drill evidence.
+
+### P1
+- Re-issue the final WP18CY production proof only after the three external conditions above are satisfied.

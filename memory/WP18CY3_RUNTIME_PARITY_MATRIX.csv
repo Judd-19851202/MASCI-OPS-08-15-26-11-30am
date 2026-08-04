@@ -1,0 +1,10 @@
+component,workspace,preview,production_web_api,production_worker,production_scheduler,exact_revision_or_hash,configuration_fingerprint,drift
+Daily Report submit UI,Patched button wording and success-state copy,Verified by testing agent,Not deployed,Not applicable,Not applicable,workspace HEAD vs prod source hash 665ea6071d75,frontend artifact identity unavailable,YES
+Daily Report route/controller,Patched downstream OPPC exception persistence,Preview runtime updated,Production still on commit bd9bdd2012c4f2e31b57d7390218b20c361c6dcc,Same release family,Same release family,prod source hash 665ea6071d75,env fp 5f193979cbd0,YES
+OPPC Daily Report transport,Canonical branded Daily Report HTML/PDF packaging repair present,Preview verified,Not proven live in production,Not proven live in production,Not applicable,workspace differs from prod commit bd9bdd...,same provider contract but older code live,YES
+notification_delivery metadata,Patched to return to/cc/bcc + attachment metadata,Preview verified,Not deployed,Not deployed,Not applicable,workspace HEAD,delivery mode provider live in prod / safe capture in preview,YES
+daily-report forensics,Patched to reconcile OPPC and legacy truth,Preview verified,Production still legacy/misleading,Not applicable,Not applicable,workspace HEAD vs prod source hash 665ea6071d75,admin route parity drift,YES
+email provider adapter,Same Resend adapter family,SAFE_CAPTURE,PROVIDER_LIVE,PROVIDER_LIVE,Not applicable,configured,provider configured true,MODE_DIFF_ONLY
+backup cadence/index hardening,Workspace indexes added,Preview verified,Production cadence currently healthy,Production jobs completing,Scheduler active,prod runtime identity d6fbef41695c,backup freshness ~29.46m,NO_CRITICAL_DRIFT
+restore-drill visibility,No new route added,Preview drill previously visible,Production route visibility still insufficient,Unknown,Unknown,not exposed,not exposed,YES
+Atlas forensic access,None,Preview bounded explain only,Direct Query Insights/profiler unavailable,Unknown,Unknown,external admin surface missing,n/a,YES

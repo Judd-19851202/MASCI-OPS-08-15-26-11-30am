@@ -1,0 +1,6 @@
+collection,workspace_preview_state,production_state,parity_result,basis
+backup_health,Has hardened recovery indexes,Production direct index inventory not fully exposed via app routes,BLOCKED_EXTERNAL_DEPENDENCY,No full production index dump surfaced
+drill_runs,Has hardened recovery indexes,Production direct index inventory not fully exposed via app routes,BLOCKED_EXTERNAL_DEPENDENCY,No full production index dump surfaced
+daily_reports,Preview query path healthy,Production direct index dump not surfaced,BLOCKED_EXTERNAL_DEPENDENCY,No full production index dump surfaced
+operations_control_plane_communications,Preview/live route evidence exists,Production direct index dump not surfaced,BLOCKED_EXTERNAL_DEPENDENCY,No full production index dump surfaced
+trust_spine_events,Preview/live route evidence exists,Production direct index dump not surfaced,BLOCKED_EXTERNAL_DEPENDENCY,No full production index dump surfaced

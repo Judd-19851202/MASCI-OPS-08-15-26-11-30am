@@ -1,0 +1,7 @@
+issue_id,severity,scope,status,exact_disposition
+CY3-DR-UX-001,high,Release1 Daily Report,REPAIRED_WORKSPACE_VERIFIED,Submit button wording fixed and verified by testing agent in preview
+CY3-DR-FORENSICS-002,high,Release1 Daily Report,REPAIRED_WORKSPACE_VERIFIED,Daily Report forensics now reconciles OPPC and legacy truth in workspace/preview
+CY3-DR-TRANSPORT-003,high,Release1 Daily Report,BLOCKED_EXTERNAL_DEPENDENCY,Canonical branded Daily Report + PDF transport repair exists in workspace but is not deployed/proven in production
+CY3-NOTIFY-004,high,Release1 notifications,BLOCKED_EXTERNAL_DEPENDENCY,Several production families remain unproven because live certification/deploy access is incomplete
+CY3-BACKUP-005,medium,Release1 backup,PRODUCTION_HEALTHY_EXTERNAL_VISIBILITY_BLOCK,Fresh backup and integrity proof exist; direct restore-drill visibility still blocked
+CY3-ATLAS-006,high,Release1 MongoDB,BLOCKED_EXTERNAL_DEPENDENCY,Exact production ~6200:1 offender still lacks direct Atlas forensic evidence

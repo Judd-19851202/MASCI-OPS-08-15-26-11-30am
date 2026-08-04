@@ -1,0 +1,17 @@
+family,status,evidence,basis
+daily_report,BLOCKED_EXTERNAL_DEPENDENCY,Production save + OPPC communication + preview repaired chain,Production deployment of canonical branded transport repair not yet performed through accessible release path
+inspection,BLOCKED_EXTERNAL_DEPENDENCY,Production certification engine,Workflow stale/unproven in live provider evidence during this pass
+meeting,PRODUCTION_CERTIFIED,Production certification engine,Verified live
+JHA_JHP,BLOCKED_EXTERNAL_DEPENDENCY,Production certification engine,Workflow stale/unproven in live provider evidence during this pass
+incident,PRODUCTION_CERTIFIED,Production certification engine,Verified live
+equipment_inspection,PRODUCTION_CERTIFIED,Production certification engine,Verified live
+DVIR,BLOCKED_EXTERNAL_DEPENDENCY,Production certification engine,Workflow stale/unproven in live provider evidence during this pass
+safety_alert,BLOCKED_EXTERNAL_DEPENDENCY,Route evidence only,No direct live provider acceptance proof captured in this pass
+dispatch_assignment,BLOCKED_EXTERNAL_DEPENDENCY,Production certification engine,Workflow stale/unproven in live provider evidence during this pass
+shop_defect_work_order,BLOCKED_EXTERNAL_DEPENDENCY,Production certification engine,Workflow stale/unproven in live provider evidence during this pass
+HR_onboarding_reset,BLOCKED_EXTERNAL_DEPENDENCY,Production certification engine + source review,No direct live provider acceptance proof captured in this pass
+health_alert,BLOCKED_EXTERNAL_DEPENDENCY,Route evidence only,No direct live provider acceptance proof captured in this pass
+backup_alert,BLOCKED_EXTERNAL_DEPENDENCY,Backup runtime healthy but alert-family delivery not directly exercised,Needs controlled certification trigger or provider evidence
+authentication_MFA_password_reset,BLOCKED_EXTERNAL_DEPENDENCY,Source review only,No direct live provider acceptance proof captured in this pass
+corrective_action,DEFERRED_OUTSIDE_RELEASE_1,Scope ledger,Deferred
+approval_PO,DEFERRED_OUTSIDE_RELEASE_1,Scope ledger,Deferred
