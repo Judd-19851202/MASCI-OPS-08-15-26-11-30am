@@ -38,6 +38,7 @@ export function useCmdkTouchGuard(open) {
   const touchRef = useRef({ x: 0, y: 0, active: false, targetId: null });
   const scrolledRef = useRef(false);
   const listRef = useRef(null);
+  const suppressSelectRef = useRef(false);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -56,6 +57,7 @@ export function useCmdkTouchGuard(open) {
   const commitHandlersFor = (commit, testid) => ({
     onPointerDown(e) {
       if (!e.pointerType || e.pointerType === "mouse") return;
+      suppressSelectRef.current = true;
       touchRef.current = {
         x: e.clientX,
         y: e.clientY,
@@ -68,12 +70,19 @@ export function useCmdkTouchGuard(open) {
       const s = touchRef.current;
       touchRef.current = { x: 0, y: 0, active: false, targetId: null };
       if (!s.active) return;
-      if (!e.pointerType || e.pointerType === "mouse") return;
-      if (s.targetId !== testid) return;
+      if (!e.pointerType || e.pointerType === "mouse") {
+        suppressSelectRef.current = false;
+        return;
+      }
+      if (s.targetId !== testid) {
+        setTimeout(() => { suppressSelectRef.current = false; }, 0);
+        return;
+      }
       // If the list scrolled between down and up, the user was
       // scrolling not tapping — do not commit.
       if (scrolledRef.current) {
         scrolledRef.current = false;
+        setTimeout(() => { suppressSelectRef.current = false; }, 0);
         return;
       }
       // Secondary guard: reject large positional deltas even
@@ -81,18 +90,26 @@ export function useCmdkTouchGuard(open) {
       const dx = e.clientX - s.x;
       const dy = e.clientY - s.y;
       if (dx * dx + dy * dy > TOUCH_MOVE_CANCEL_PX * TOUCH_MOVE_CANCEL_PX) {
+        setTimeout(() => { suppressSelectRef.current = false; }, 0);
         return;
       }
       e.preventDefault();
       commit();
+      setTimeout(() => { suppressSelectRef.current = false; }, 0);
     },
     onPointerCancel() {
       touchRef.current = { x: 0, y: 0, active: false, targetId: null };
       scrolledRef.current = false;
+      suppressSelectRef.current = false;
     },
   });
 
-  return { commitHandlersFor };
+  const guardedOnSelect = (commit) => () => {
+    if (suppressSelectRef.current) return;
+    commit();
+  };
+
+  return { commitHandlersFor, guardedOnSelect };
 }
 
 export default useCmdkTouchGuard;

@@ -85,7 +85,7 @@ export function UnitCombo({
   const [open, setOpen] = React.useState(false);
   const ph = placeholder != null ? placeholder : t("Unit");
   const selected = DEFAULT_MATERIAL_UNITS.find((u) => u.code === selectedCode) || null;
-  const { commitHandlersFor } = useCmdkTouchGuard(open);
+  const { commitHandlersFor, guardedOnSelect } = useCmdkTouchGuard(open);
 
   const resolveMatch = (raw) => {
     const needle = (raw || "").trim().toLowerCase();
@@ -143,7 +143,7 @@ export function UnitCombo({
                     <CommandItem
                       key={u.code}
                       value={`${u.code} ${u.label} ${synonyms}`}
-                      onSelect={() => selectUnit(u)}
+                      onSelect={guardedOnSelect(() => selectUnit(u))}
                       {...commitHandlersFor(() => selectUnit(u), `${testId}-${u.code}`)}
                       className="py-2"
                       data-testid={`${testId}-option-${u.code.toLowerCase()}`}

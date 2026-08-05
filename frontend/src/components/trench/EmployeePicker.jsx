@@ -61,7 +61,7 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Selectâ
     : `${t("MASCI Roster")} Â· ${filtered.length}`;
 
   // TRACK 24.9 Phase B Â· Shared cmdk touch-vs-scroll guard.
-  const { commitHandlersFor } = useCmdkTouchGuard(open);
+  const { commitHandlersFor, guardedOnSelect } = useCmdkTouchGuard(open);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -104,7 +104,7 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Selectâ
                 <CommandItem
                   key={e.id}
                   value={`${e.name} ${e.employee_id || ""} ${e.role || ""} ${e.trade || ""} ${e.crew || ""}`}
-                  onSelect={commit}
+                  onSelect={guardedOnSelect(commit)}
                   className="py-2 cursor-pointer"
                   data-testid={testid}
                   {...commitHandlersFor(commit, testid)}

@@ -138,7 +138,10 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   // TRACK 15.27A · P1-1 — searchable employee picker state
   const [userPickerOpen, setUserPickerOpen] = useState(false);
   // TRACK 24.9 Phase B · shared cmdk touch-vs-scroll guard.
-  const { commitHandlersFor: userPickerHandlers } = useCmdkTouchGuard(userPickerOpen);
+  const {
+    commitHandlersFor: userPickerHandlers,
+    guardedOnSelect: guardedUserPickerSelect,
+  } = useCmdkTouchGuard(userPickerOpen);
   // TRACK 15.27A · P0-2 — actionable 403 message when a PM opens a
   // project they are not assigned to as PM/Co-PM.
   const [accessErr, setAccessErr] = useState(null);
@@ -617,7 +620,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                                 key={u.id}
                                 value={value}
                                 data-testid={testid}
-                                onSelect={commit}
+                                onSelect={guardedUserPickerSelect(commit)}
                                 {...userPickerHandlers(commit, testid)}
                               >
                                 <Check className={`mr-2 h-4 w-4 ${newUserId === u.id ? "opacity-100" : "opacity-0"}`} />

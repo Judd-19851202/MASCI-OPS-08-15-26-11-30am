@@ -96,7 +96,7 @@ export function JobPicker({
   // TRACK 24.9 Phase B · Shared cmdk touch-guard hook. See
   // `/app/frontend/src/lib/useCmdkTouchGuard.js` for the full
   // scroll-vs-tap disambiguation logic.
-  const { commitHandlersFor } = useCmdkTouchGuard(open);
+  const { commitHandlersFor, guardedOnSelect } = useCmdkTouchGuard(open);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -123,7 +123,7 @@ export function JobPicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="wp17-picker-panel w-[var(--radix-popover-trigger-width)] max-w-none p-0"
+        className="wp17-picker-panel w-[var(--radix-popover-trigger-width)] max-w-none overflow-hidden p-0 touch-pan-y"
         align="start"
         data-testid="job-picker-content"
       >
@@ -138,7 +138,7 @@ export function JobPicker({
             className="h-12 border-b border-slate-200 bg-transparent text-base text-slate-900 placeholder:text-slate-400"
             data-testid="job-picker-search"
           />
-          <CommandList className="max-h-[55vh] p-1.5">
+          <CommandList className="max-h-[62vh] overscroll-contain p-1.5 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
             <CommandEmpty className="wp17-picker-empty">
               {allowCustom
                 ? t("No job matches that search.")
@@ -149,10 +149,10 @@ export function JobPicker({
             <CommandGroup heading={t("Custom")} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-slate-500">
               <CommandItem
                 value="custom job free form not in list"
-                onSelect={() => {
+                onSelect={guardedOnSelect(() => {
                   onSelect(null);
                   setOpen(false);
-                }}
+                })}
                 {...commitHandlersFor(
                   () => { onSelect(null); setOpen(false); },
                   "job-picker-custom",
@@ -183,10 +183,10 @@ export function JobPicker({
                 <CommandItem
                   key={j.id || `${j.project_number || "job"}-${jIdx}`}
                   value={`${j.project_number} ${j.project_name} ${j.location || ""} ${j.project_manager || ""} ${j.client || ""}`}
-                  onSelect={() => {
+                  onSelect={guardedOnSelect(() => {
                     onSelect(j);
                     setOpen(false);
-                  }}
+                  })}
                   {...commitHandlersFor(
                     () => { onSelect(j); setOpen(false); },
                     `job-picker-item-${j.project_number}`,

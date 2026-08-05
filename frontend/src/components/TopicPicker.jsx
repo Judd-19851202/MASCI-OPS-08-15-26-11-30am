@@ -84,7 +84,7 @@ export function TopicPicker({
   const [domainFilter, setDomainFilter] = useState(null); // null = all
   const { t, lang } = useT();
   // TRACK 24.9 Phase B · shared cmdk touch-vs-scroll guard.
-  const { commitHandlersFor } = useCmdkTouchGuard(open);
+  const { commitHandlersFor, guardedOnSelect } = useCmdkTouchGuard(open);
 
   // Helper: returns the topic title in the active language.
   const titleFor = useCallback((topic) => {
@@ -229,7 +229,7 @@ export function TopicPicker({
                 return (
               <CommandItem
                 value="custom topic write your own free form"
-                onSelect={commit}
+                onSelect={guardedOnSelect(commit)}
                 className="py-3 cursor-pointer"
                 data-testid="topic-picker-custom"
                 {...commitHandlersFor(commit, "topic-picker-custom")}
@@ -267,7 +267,7 @@ export function TopicPicker({
                       key={topic.key}
                       // include EN + ES titles + category so search matches either language
                       value={`${topic.title} ${displayTitle} ${topic.category} ${topic.key}`}
-                      onSelect={commit}
+                      onSelect={guardedOnSelect(commit)}
                       className="py-2.5 cursor-pointer"
                       data-testid={testid}
                       {...commitHandlersFor(commit, testid)}

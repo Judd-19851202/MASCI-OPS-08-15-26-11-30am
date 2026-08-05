@@ -910,7 +910,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
             data-testid={`dr-v3-sub-row-${i}`}
             className="rounded-xl border border-slate-200 p-3"
           >
-            <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1.05fr)_minmax(0,1.05fr)_auto]">
               <SupplierCombo
                 value={s.company || ""}
                 onChange={(v) => {
@@ -920,6 +920,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 }}
                 placeholder={t("Pick a subcontractor / vendor — or type")}
                 data-testid={`dr-v3-sub-company-${i}`}
+                className="md:col-span-2 xl:col-span-1"
               />
               <input
                 type="text"
@@ -930,7 +931,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   next[i] = { ...s, trade: ev.target.value };
                   patch({ subcontractors: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-sub-trade-${i}`}
               />
               <input
@@ -942,12 +943,12 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   next[i] = { ...s, foreman: ev.target.value };
                   patch({ subcontractors: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-sub-foreman-${i}`}
               />
               <button
                 type="button"
-                className={rowBtn}
+                className={rowBtn + " justify-self-end xl:self-start"}
                 onClick={() =>
                   patch({
                     subcontractors: subs.filter((_, j) => j !== i),
