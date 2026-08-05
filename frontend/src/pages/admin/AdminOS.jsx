@@ -782,8 +782,8 @@ export default function AdminOS() {
               </span>
             </div>
           </div>
-          <div className="md:ml-auto wp17-metric-grid text-sm">
-            <div data-testid="admin-os-count-healthy">
+          <div className="w-full xl:w-auto xl:ml-auto flex flex-wrap xl:flex-nowrap items-stretch gap-3 text-sm" data-testid="admin-os-kpi-row">
+            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-healthy">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
                 {t("Healthy")}
@@ -793,7 +793,7 @@ export default function AdminOS() {
                 </div>
               </div>
             </div>
-            <div data-testid="admin-os-count-warning">
+            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-warning">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
                 {t("Attention")}
@@ -803,7 +803,7 @@ export default function AdminOS() {
                 </div>
               </div>
             </div>
-            <div data-testid="admin-os-count-critical">
+            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-critical">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
                 {t("Critical")}
@@ -813,7 +813,7 @@ export default function AdminOS() {
                 </div>
               </div>
             </div>
-            <div data-testid="admin-os-count-wiring">
+            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-wiring">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
                 {t("Awaiting signal")}
@@ -823,7 +823,7 @@ export default function AdminOS() {
                 </div>
               </div>
             </div>
-            <div>
+            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]">
               <div className="wp17-metric-card">
                 <div className="wp17-metric-card__label">
                 {t("Total domains")}

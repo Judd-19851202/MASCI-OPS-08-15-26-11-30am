@@ -1002,8 +1002,6 @@ def register_daily_summary_routes(
         status_code=202,
     )
     async def draft_summary(body: SummaryDraftBody, request: Request, background_tasks: BackgroundTasks):
-        if is_release_deferred("daily_report_dedicated_ai_summary"):
-            raise_release_deferred_404("daily_report_dedicated_ai_summary")
         """Compose a preview summary from the current (unsaved)
         report payload. Uses live AI synthesis with deterministic
         fallback only on provider failure.

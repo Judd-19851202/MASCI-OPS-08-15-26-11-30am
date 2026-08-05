@@ -10,7 +10,6 @@ Deferred surfaces:
 - Monday Briefing PDF (enterprise): GET /api/oppc/enterprise/monday-briefing/pdf
 - Internal certification preview: POST /api/admin/operations-control/certifications/preview-daily-report
 - Internal certification run: POST /api/admin/operations-control/certifications/run
-- Daily report AI summary draft: POST /api/daily-reports/summary/draft
 """
 import os
 from pathlib import Path
@@ -191,24 +190,14 @@ class TestReleaseDeferredContainment:
         assert detail.get("surface") == "internal_certification_route", f"Expected internal_certification_route surface, got: {detail}"
         print(f"PASS: Internal certification run returns 404 with release_deferred_surface: {detail}")
     
-    def test_daily_report_summary_draft_deferred(self):
-        """Daily report AI summary draft should return 404 with release_deferred_surface."""
-        session = requests.Session()
-        session.headers.update({"Content-Type": "application/json"})
-        
-        resp = session.post(
-            f"{BASE_URL}/api/daily-reports/summary/draft",
-            json={"payload": {"project_number": PROJECT_NUMBER}}
+    def test_daily_report_summary_draft_active(self):
+        """Daily report AI summary draft must not be contained behind a deferred 404 gate."""
+        src = Path("/app/backend/routes/daily_summary.py").read_text(encoding="utf-8")
+        assert '"/daily-reports/summary/draft"' in src, "Expected daily summary draft route to exist"
+        assert 'is_release_deferred("daily_report_dedicated_ai_summary")' not in src, (
+            "Daily report AI summary draft must remain active — deferred 404 gate still present"
         )
-        
-        assert resp.status_code == 404, f"Expected 404, got {resp.status_code}: {resp.text}"
-        
-        data = resp.json()
-        detail = data.get("detail", {})
-        
-        assert detail.get("code") == "release_deferred_surface", f"Expected release_deferred_surface code, got: {detail}"
-        assert detail.get("surface") == "daily_report_dedicated_ai_summary", f"Expected daily_report_dedicated_ai_summary surface, got: {detail}"
-        print(f"PASS: Daily report summary draft returns 404 with release_deferred_surface: {detail}")
+        print("PASS: Daily report summary draft route remains active in source")
 
 
 class TestReleaseIdentityDataTruth:

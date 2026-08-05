@@ -804,7 +804,7 @@ export default function DailySummaryAssist({
     <div data-testid={testId} className={`elite-glass-panel rounded-[1.2rem] border border-white/60 p-4 ${status === "building" ? "elite-processing-glow" : ""}`}>
       <div className="mb-2 flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-slate-600" aria-hidden="true" />
-        <h3 className="text-sm font-semibold text-slate-800">{t("Draft Summary")}</h3>
+        <h3 className="text-sm font-semibold text-slate-800">{t("AI Shift Story Draft")}</h3>
         {status === "building" && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500" data-testid={`${testId}-status`}>
             <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
@@ -829,15 +829,15 @@ export default function DailySummaryAssist({
       </div>
 
       <p className="mb-3 text-xs text-slate-500">
-        {t("Grounded in the fields you've entered. Before submit, you must accept the AI summary, regenerate and then accept it, or reject it and approve a manual summary.")}
+        {t("Grounded in the full shift record you entered — photos, weather, crew, production, blockers, and notes. Before submit, accept the AI shift story, regenerate and accept it, or reject AI and approve a manual version.")}
       </p>
 
       <div className="mb-3 rounded-lg border border-white/60 bg-white/60 p-3 text-xs text-slate-700 backdrop-blur-sm" data-testid={`${testId}-gate-note`}>
         {decision === "manual_required"
-          ? t("AI summary rejected. Write the final supervisor summary below, then approve it to unlock submit.")
+          ? t("AI shift story rejected. Write the final supervisor story below, then approve it to unlock submit.")
           : accepted
             ? t("Summary locked for submission. If you change it, you must approve it again.")
-            : t("Submission is blocked until one approved Executive Summary exists.")}
+            : t("Submission is blocked until one approved shift story exists.")}
       </div>
 
       <div
@@ -937,7 +937,7 @@ export default function DailySummaryAssist({
           {(decision === "manual_required" || decision === "manual_accepted") && (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3" data-testid={`${testId}-manual-block`}>
               <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900">
-                <PencilLine className="h-4 w-4" />{t("Supervisor manual summary")}
+                <PencilLine className="h-4 w-4" />{t("Supervisor manual shift story")}
               </div>
               <Textarea
                 data-testid={`${testId}-manual-textarea`}
@@ -951,7 +951,7 @@ export default function DailySummaryAssist({
                   setEdited(e.target.value);
                 }}
                 className="min-h-[130px] bg-white text-sm leading-[1.65]"
-                placeholder={t("Write the final approved Executive Summary exactly as it should appear on the permanent record.")}
+                placeholder={t("Write the final approved shift story exactly as it should appear on the permanent record.")}
               />
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
@@ -963,7 +963,7 @@ export default function DailySummaryAssist({
                   data-testid={`${testId}-manual-accept`}
                 >
                   <Check className="mr-1 h-3 w-3" />
-                  {accepted && decision === "manual_accepted" ? t("Manual summary accepted") : t("Approve manual summary")}
+                  {accepted && decision === "manual_accepted" ? t("Manual shift story accepted") : t("Approve manual shift story")}
                 </Button>
               </div>
             </div>

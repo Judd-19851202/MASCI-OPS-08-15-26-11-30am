@@ -66,7 +66,6 @@ import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
 import { useRememberedFormValue } from "@/lib/useRememberedFilter";
 import { classifyApiError } from "@/lib/errorClassification";
 import { publishSessionStatus } from "@/lib/sessionStatusBus";
-import { isReleaseDeferred } from "@/lib/releaseScope";
 
 const GEO_TIMEOUT_MS = 12000;
 const GEO_MAX_AGE_MS = 30000;
@@ -141,7 +140,6 @@ function formatDailyReportNumberPreview(nextNumber) {
 export default function NewDailyReportV3({ publicMode = false }) {
   const navigate = useNavigate();
   const { t, lang } = useT();
-  const summaryAssistDeferred = isReleaseDeferred("dailyReportDedicatedAiSummary");
   const [lastProject, rememberLastProject] = useRememberedFormValue(
     "NewDailyReport.last_project_number",
     "",
@@ -707,7 +705,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
       {
         key: "approved_summary",
         ok: !!(data.ai_accepted_summary || "").trim() && !!(data.ai_accepted_summary_meta?.accepted_at || "").trim(),
-        label: t("Approved Executive Summary"),
+        label: t("Approved Shift Story"),
       },
       { key: "signature", ok: !!data.prepared_by_signature, label: t("Signature") },
     ];
@@ -995,7 +993,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     <FormShell
       kicker={t("MASCI · Daily Job Report")}
       title={t("Today's report")}
-      subtitle={summaryAssistDeferred ? t("Nine short steps. Dropdowns first. Write and approve your supervisor summary before submit. Save state, scope, and next action stay visible the whole time.") : t("Nine short steps. Dropdowns first. AI drafts your summary. Save state, scope, and next action stay visible the whole time.")}
+      subtitle={t("Nine short steps. Dropdowns first. AI drafts the story of this shift from your field evidence. Save state, scope, and next action stay visible the whole time.")}
       backLink={!publicMode ? "/" : null}
       draftSlot={(
         <div className="flex items-center gap-2" data-testid="dr-v3-draft-pill-slot">
@@ -1245,13 +1243,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
           <SectionTomorrow data={data} patch={patch} />
           <SectionAiSummary
             data={data}
+            reportId={reportId}
+            formKey={scopedFormKey}
+            photoUploadState={{ ...photoBatchState, warmHint: photoWarmHint }}
             onStateChange={setSummaryGate}
-            onDraftChange={(summary) =>
-              patch({
-                ai_accepted_summary: summary,
-                ai_accepted_summary_meta: null,
-              })
-            }
+            onPhotoIntelChange={setPhotoIntelStatusState}
             onAccepted={(payload) =>
               patch({
                 ai_accepted_summary: payload?.summary || "",
