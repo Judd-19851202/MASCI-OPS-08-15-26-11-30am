@@ -178,7 +178,10 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     post_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group == "post-readiness"]
     deferred_startup_steps = [s for s in LIFECYCLE_STEPS if s.group == "deferred-startup"]
     startup_handlers = list(getattr(app.router, "on_startup", []) or [])
-    fast_startup = (os.environ.get("APP_ENV") or "").strip().lower() == "production"
+    fast_startup = (
+        (os.environ.get("APP_ENV") or "").strip().lower() == "production"
+        or (os.environ.get("DEPLOY_FAST_STARTUP") or "").strip().lower() in {"1", "true", "yes"}
+    )
     deferred_startup_handlers = []
 
     if fast_startup:
