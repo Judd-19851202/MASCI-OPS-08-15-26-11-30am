@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter131 daily report mobile dropdown usability repair
+
+- Repaired touch-driven cmdk picker behavior so Daily Report job selection can scroll on tablet/mobile without accidental row commits or a stuck-feeling list.
+- Increased supplier/subcontractor control size and widened the Daily Report Subcontractors & Vendors row so the vendor area is easier to read and use on narrower screens.
+- Verification passed in preview: frontend specialist QA confirmed the Current Job picker scrolls/selects correctly and the Subcontractors & Vendors controls are larger at desktop + tablet sizes; `/app/test_reports/iteration_130.json` also passed (`frontend 100%`).
+
 ## 2026-08-05 — iter130 master-data dropdown population repair
 
 - Repaired shared employee lookup behavior so anonymous/public forms use the safe public roster path instead of falling into empty protected-roster reads.

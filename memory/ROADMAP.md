@@ -1,3 +1,21 @@
+# 2026-08-05 — Daily Report usability follow-up state
+
+## Current top priority
+
+- **Preview fix is complete for the production-reported Daily Report job-picker scroll issue and the subcontractor/vendor sizing issue.**
+- **Next operator step: confirm the newly deployed production build now allows scrolling inside the Current Job dropdown and presents a larger vendor area on the live Daily Report form.**
+
+## P0
+- validate the live production Daily Report on a real crew tablet/phone after redeploy, especially Current Job scrolling and vendor picker readability
+- preserve the shared cmdk touch guard behavior so future picker changes do not reintroduce accidental-touch selection during scroll
+
+## P1
+- extend touch-scroll regression coverage to other cmdk-based pickers that share `useCmdkTouchGuard`
+- add additional narrow-width smoke checks for shared field forms that rely on `SupplierCombo` and `JobPicker`
+
+## P2
+- evaluate whether other dense Daily Report sections should adopt the same larger touch-target treatment for field devices
+
 # 2026-08-05 — Master-data dropdown roadmap state
 
 ## Current top priority

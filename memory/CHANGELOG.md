@@ -1,3 +1,10 @@
+# 2026-08-05 — Daily Report job-picker scroll + vendor sizing repair
+
+- Fixed shared cmdk touch handling so the Daily Report Current Job picker can scroll on touch devices instead of feeling stationary or auto-selecting while the user drags.
+- Added touch-friendly scroll behavior to shared command lists, guarded touch-triggered `onSelect` handling in cmdk pickers, and preserved normal item selection after scrolling.
+- Enlarged `SupplierCombo` controls/items and widened the Daily Report Subcontractors & Vendors row for better tablet/mobile readability.
+- Verification passed: frontend specialist QA passed all targeted checks, and `/app/test_reports/iteration_130.json` passed with `frontend 100%`.
+
 # 2026-08-05 — Master-data dropdown population repair
 
 - Fixed shared employee lookup routing so anonymous/public forms read from the safe public employee roster instead of surfacing empty dropdowns.
