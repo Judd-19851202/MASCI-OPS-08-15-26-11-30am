@@ -370,11 +370,12 @@ export default function HrEmployeeAccountabilityTimeline() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {filtered.map((e) => {
+                          {filtered.map((e, index) => {
                             const Icon = CATEGORY_ICONS[e.category] || Activity;
+                            const rowKey = `${e.id || e.kind || "event"}-${e.ts || ""}-${e.source || ""}-${e.source_id || ""}-${index}`;
                             return (
                               <tr
-                                key={e.id}
+                                key={rowKey}
                                 className={e.archived ? "opacity-60" : ""}
                                 data-testid={`acct-row-${e.kind}`}
                               >
@@ -413,11 +414,12 @@ export default function HrEmployeeAccountabilityTimeline() {
 
                     {/* Mobile card layout */}
                     <div className="sm:hidden space-y-2" data-testid="acct-cards-mobile">
-                      {filtered.map((e) => {
+                      {filtered.map((e, index) => {
                         const Icon = CATEGORY_ICONS[e.category] || Activity;
+                        const rowKey = `${e.id || e.kind || "event"}-${e.ts || ""}-${e.source || ""}-${e.source_id || ""}-${index}`;
                         return (
                           <div
-                            key={e.id}
+                            key={rowKey}
                             className={`bg-white border border-slate-200 rounded-md p-3 ${e.archived ? "opacity-60" : ""}`}
                             data-testid={`acct-card-${e.kind}`}
                           >

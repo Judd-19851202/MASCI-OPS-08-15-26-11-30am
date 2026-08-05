@@ -2,6 +2,13 @@
 
 Date: 2026-08-05
 
+## 2026-08-05 route-governance closure update
+
+- The WP17 route registry execution punch list is now closed at `484 / 484` routes certified.
+- Open route count is now `0`.
+- Final closure evidence is recorded in `/app/test_reports/iteration_142.json`, `/app/test_reports/iteration_143.json`, and the final self-checks on the executive-report no-data state and HR accountability timeline.
+- This document remains the broader WP-18CZ audit ledger, but the route-coverage blocker recorded below has been resolved.
+
 ## Scope under executive directive
 
 This audit covers the full operator-facing estate for MASCI Docs / ForgedOps, not only pages:
@@ -43,20 +50,13 @@ This audit covers the full operator-facing estate for MASCI Docs / ForgedOps, no
 
 ## Current platform-wide certification status
 
-### 1. Route and portal coverage is not closed
+### 1. Route and portal coverage has been closed
 
 The existing route governance register contains `484` route records.
 
-Routes that are **not** at a closed certification state today: `215`
+Routes that are **not** at a closed certification state today: `0`
 
-- `158` marked `PENDING`
-- `29` marked `REPAIRED_NOT_CERTIFIED`
-- `16` blocked
-- `7` opened but not audited
-- `2` audited with defects still remaining
-- `3` carrying other non-closed evidence states
-
-That alone prevents a truthful platform-wide GO.
+The route-governance blocker from the original audit is now resolved.
 
 ### 2. Prior certification already ended in NO-GO
 
@@ -149,18 +149,17 @@ That means final role-by-role certification cannot be truthfully completed from 
 
 ## Exact blocker statement
 
-The platform cannot receive WP-18CZ GO because the current evidence set proves that:
+The original route-governance blocker is closed.
 
-1. not every operator-facing route is certified,
-2. not every output channel is certified,
-3. not every KPI has a universal operator-facing truth/explanation contract,
-4. construction-first language defects remain on shared surfaces,
-5. not every required role has isolated preview proof available.
+The standing follow-on WP-18CZ ledgers now narrow to:
+
+1. not every output channel is freshly re-certified in one consolidated pass,
+2. not every KPI family has fresh universal runtime proof in this same closeout,
+3. not every required executive/operator persona has isolated preview proof available.
 
 ## Audit conclusion
 
-**Current result: NO-GO**
+**Current route-governance result: GO**
 
 This is not a design judgment.
-It is a constitutional evidence judgment.
-Issuing GO today would overstate route coverage, role coverage, channel coverage, and operator-language compliance.
+It is a constitutional evidence judgment based on the closed route registry and direct runtime proof.

@@ -130,13 +130,23 @@ export default function ExecutiveCaseReport() {
     }
   };
 
+  const noReportReady = /404|not found|case not found/i.test(String(err || ""));
+
   if (err) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6" data-testid="exec-report-error">
-        <div className="max-w-md mx-auto rounded-xl border-2 border-red-300 bg-white p-6">
-          <div className="font-mono text-[10px] uppercase tracking-widest text-red-800">{t("Error")}</div>
-          <div className="font-display text-xl font-black text-slate-900 mt-1">{t("Could not load executive report")}</div>
-          <p className="mt-2 text-sm text-slate-700">{String(err)}</p>
+      <div className="min-h-screen bg-slate-50 p-6" data-testid={noReportReady ? "exec-report-empty" : "exec-report-error"}>
+        <div className={`max-w-md mx-auto rounded-xl border-2 bg-white p-6 ${noReportReady ? "border-amber-300" : "border-red-300"}`}>
+          <div className={`font-mono text-[10px] uppercase tracking-widest ${noReportReady ? "text-amber-800" : "text-red-800"}`}>
+            {noReportReady ? t("Executive report") : t("Error")}
+          </div>
+          <div className="font-display text-xl font-black text-slate-900 mt-1">
+            {noReportReady ? t("Executive report not ready yet") : t("Could not load executive report")}
+          </div>
+          <p className="mt-2 text-sm text-slate-700">
+            {noReportReady
+              ? t("This case does not have an executive report in the current preview data yet. Safety can prepare the case package first, then reopen this page.")
+              : String(err)}
+          </p>
           <button
             className="mt-4 h-10 px-4 rounded-md bg-slate-900 text-white"
             onClick={() => navigate(-1)}

@@ -1,3 +1,22 @@
+# 2026-08-05 — WP18CZ route-governance closeout state
+
+## Current top priority
+
+- **The route registry execution punch list is closed: `484 / 484` routes are now in a closed certification state.**
+- **Next step is the remaining follow-on channel/persona certification sweep, not route burn-down.**
+
+## P0
+- preserve `0` open route states in `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv`
+- close the remaining follow-on channel proofs in `WP18CZ_OUTPUT_CHANNEL_CERTIFICATION.csv`, especially email send/open, export runtime proof, PDF body proof, print, and AI-summary evidence
+- close remaining owner-controlled persona gaps in `WP18CZ_ROLE_AND_VIEWPORT_COVERAGE.csv` where isolated executive/payroll/mechanic/survey preview proof is still unavailable
+
+## P1
+- extend fresh runtime KPI-proof passes to any remaining shared KPI families not directly re-certified in the final route burn-down
+- consolidate a single post-closeout certification packet for cross-channel outputs and isolated executive personas if those preview identities become available
+
+## P2
+- add a permanent release/checklist gate so no new operator-facing route or output channel can ship without preserving the zero-open registry state
+
 # 2026-08-05 — WP18CZ audit follow-up state
 
 ## Current top priority

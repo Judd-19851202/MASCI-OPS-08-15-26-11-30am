@@ -1,5 +1,13 @@
 # PRD
 
+## 2026-08-05 — WP18CZ route-governance punch list closed
+
+- Burned the official execution punch list in `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv` down to `0` open route states (`484 / 484` closed).
+- Repaired remaining operator-language defects on training, transportation, admin asset/history, HR driver/accountability/thread, and executive-report surfaces while closing the final route families.
+- Runtime proof was captured through `/app/test_reports/iteration_142.json`, `/app/test_reports/iteration_143.json`, and final self-checks for the executive-report no-data state and HR accountability timeline.
+- Updated WP18CZ route-governance artifacts and created `/app/memory/WP18CZ_FINAL_EXECUTIVE_GO_PACKET.md`.
+- Standing follow-on certification work remains for cross-channel PDF/export/email/AI proof and isolated executive/payroll/mechanic/survey persona evidence.
+
 ## 2026-08-05 — WP18CZ platform-wide operator experience and KPI truth certification audit
 
 - Added the WP18CZ evidence package in `/app/memory/`:

@@ -2,6 +2,12 @@
 
 Date: 2026-08-05
 
+## 2026-08-05 route-closure amendment
+
+- The WP17 route registry is now a zero-open execution ledger.
+- Future work must preserve `0` open route certification states unless a later authorized package explicitly opens a new route and closes it in the same certification cycle.
+- No future package may regress a route family from closed back to pending, blocked, repaired-not-recertified, or equivalent open language.
+
 ## Constitutional status
 
 **Decision label:** `APPROVED_PENDING_FINAL_GO`  
