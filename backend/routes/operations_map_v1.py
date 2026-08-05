@@ -640,6 +640,7 @@ def register_operations_map_v1_routes(
             "geofences": geofences,
             "geofence_count": len(geofences),
             "project_rollups": project_rollups_top,
+            "project_rollups_all": ranked,
             "project_rollups_overflow": project_rollups_overflow,
             "project_rollups_total": len(rollups),
         }

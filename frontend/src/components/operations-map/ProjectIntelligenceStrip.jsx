@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 
 /* Project Intelligence Strip — ranked operational areas.
  *
@@ -59,8 +59,10 @@ function ConfidenceBadge({ level }) {
   );
 }
 
-export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, total = 0 }) {
-  const visible = rollups || [];
+export default function ProjectIntelligenceStrip({ rollups = [], allRollups = [], overflow = 0, total = 0 }) {
+  const [showAll, setShowAll] = useState(false);
+  const all = useMemo(() => (Array.isArray(allRollups) && allRollups.length > 0 ? allRollups : rollups || []), [allRollups, rollups]);
+  const visible = showAll ? all : (rollups || []);
 
   const subtitle =
     visible.length === 0
@@ -184,13 +186,19 @@ export default function ProjectIntelligenceStrip({ rollups = [], overflow = 0, t
         })}
 
         {overflow > 0 && (
-          <div className="ops-map-project-overflow"
-               data-testid="ops-map-projects-overflow">
-            <span className="ops-map-project-overflow-num">+{overflow}</span>
+          <button
+            type="button"
+            className="ops-map-project-overflow"
+            data-testid="ops-map-projects-overflow"
+            onClick={() => setShowAll((v) => !v)}
+            aria-expanded={showAll}
+            title={showAll ? "Show top areas only" : `Show all ${all.length} areas`}
+          >
+            <span className="ops-map-project-overflow-num">{showAll ? "Top 5" : `+${overflow}`}</span>
             <span className="ops-map-project-overflow-lbl">
-              more {overflow === 1 ? "area" : "areas"}
+              {showAll ? "show fewer" : `more ${overflow === 1 ? "area" : "areas"}`}
             </span>
-          </div>
+          </button>
         )}
       </div>
     </section>

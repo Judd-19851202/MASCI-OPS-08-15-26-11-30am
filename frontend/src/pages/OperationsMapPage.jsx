@@ -40,6 +40,7 @@ export default function OperationsMapPage() {
         <MapOperationsBanner summary={data?.operational_summary} counts={data?.counts} />
         <ProjectIntelligenceStrip
           rollups={data?.project_rollups || []}
+          allRollups={data?.project_rollups_all || data?.project_rollups || []}
           overflow={data?.project_rollups_overflow || 0}
           total={data?.project_rollups_total || 0}
         />
