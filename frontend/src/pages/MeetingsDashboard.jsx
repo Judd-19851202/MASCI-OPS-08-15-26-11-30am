@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { formatOperatorJobLabel, sanitizeOperatorReference } from "@/lib/operatorLanguage";
 
 export default function MeetingsDashboard() {
-  const t = useT();
+  const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [jobsMaster, setJobsMaster] = useState({}); // PROJECT-IDENTITY-004 canonical map
