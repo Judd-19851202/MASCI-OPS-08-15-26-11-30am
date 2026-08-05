@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter134 daily report tablet row rebalance
+
+- Rebalanced Daily Report V3 tablet/mobile row grids so MASCI Crew time inputs no longer collapse into cramped four-column strips, and related Equipment / Subcontractor / Production / Visitor rows reflow more cleanly.
+- Preserved the prior touch-picker fixes while moving dense multi-field rows to 2-column tablet layouts and 1-column mobile layouts where needed.
+- Verification passed in preview: targeted frontend QA confirmed the cramped crew-time issue is resolved, and `/app/test_reports/iteration_132.json` passed (`frontend 100%`) with no horizontal overflow and working job/vendor dropdown regressions.
+
 ## 2026-08-05 — iter133 legacy form touch-target sweep + picker QA expansion
 
 - Extended the touch-target sweep beyond Daily Report into representative legacy field forms and shared picker families, including Meeting Submit, Incident Report, Equipment Submit, Fleet DVIR, Shift Start, SearchableSelect, and AsyncSearchableSelect.

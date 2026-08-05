@@ -1,3 +1,21 @@
+# 2026-08-05 — Daily Report tablet rebalance follow-up state
+
+## Current top priority
+
+- **Preview fix is complete for the production-reported Daily Report tablet row crowding issue.**
+- **Next operator step: redeploy and confirm the live Daily Report no longer shows crammed MASCI Crew time fields on tablet/mobile.**
+
+## P0
+- validate the live Daily Report on the exact crew tablet/phone viewport that exposed the cramped time-row issue
+- preserve the new 2-column tablet / 1-column mobile reflow rules for dense Daily Report rows
+
+## P1
+- continue spot-checking other high-density field rows on live production after redeploy to catch any route-specific viewport oddities
+- expand automated viewport-specific browser checks for Daily Report portrait tablet layouts
+
+## P2
+- evaluate whether some dense field rows should switch to card-stacked micro layouts on smaller tablets for even clearer separation
+
 # 2026-08-05 — Legacy form sweep follow-up state
 
 ## Current top priority

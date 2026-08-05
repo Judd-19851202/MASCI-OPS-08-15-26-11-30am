@@ -1,3 +1,9 @@
+# 2026-08-05 — Daily Report tablet row rebalance
+
+- Fixed the Daily Report V3 tablet/mobile row layout so MASCI Crew time inputs (Start / Stop / Lunch / Hours) no longer bunch together into unusable narrow fields.
+- Rebalanced adjacent dense grids for Equipment, Subcontractors & Vendors, Production, and Visitors so they reflow cleanly on tablet/mobile without horizontal overflow.
+- Verification passed: targeted frontend QA confirmed the row issue was resolved, and `/app/test_reports/iteration_132.json` passed with `frontend 100%`.
+
 # 2026-08-05 — Legacy form touch-target sweep + picker QA expansion
 
 - Extended the touch-target sweep beyond Daily Report into Meeting Submit, Incident Report, Equipment Submit, Fleet DVIR, and Shift Start.
