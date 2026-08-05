@@ -51,8 +51,10 @@ SAFETY GUARDRAILS:
 """
 from __future__ import annotations
 
+import asyncio
 import inspect
 import logging
+import os
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, List
@@ -60,6 +62,14 @@ from typing import Any, AsyncIterator, Callable, List
 from lib.runtime_identity import is_read_only_validation_active_bundle
 
 logger = logging.getLogger(__name__)
+
+
+_PRODUCTION_FAST_STARTUP_CRITICAL_NAMES = {
+    "_bootstrap_runtime_db",
+    "_db_isolation_failsafe",
+    "_assert_no_duplicate_routes",
+    "_tune_asyncio_thread_pool",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -166,6 +176,30 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     pre_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group not in {"readiness", "post-readiness"}]
     readiness_steps     = [s for s in LIFECYCLE_STEPS if s.group == "readiness"]
     post_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group == "post-readiness"]
+    deferred_startup_steps = [s for s in LIFECYCLE_STEPS if s.group == "deferred-startup"]
+    startup_handlers = list(getattr(app.router, "on_startup", []) or [])
+    fast_startup = (os.environ.get("APP_ENV") or "").strip().lower() == "production"
+    deferred_startup_handlers = []
+
+    if fast_startup:
+        immediate_steps = []
+        deferred_steps_from_pre = []
+        for step in pre_readiness_steps:
+            if step.group == "runtime-config" or step.name in _PRODUCTION_FAST_STARTUP_CRITICAL_NAMES:
+                immediate_steps.append(step)
+            else:
+                deferred_steps_from_pre.append(step)
+        pre_readiness_steps = immediate_steps
+        deferred_startup_steps = deferred_steps_from_pre + deferred_startup_steps
+        deferred_startup_handlers = startup_handlers
+        startup_handlers = []
+        logger.info(
+            "[track-22.1n] production fast-startup active: immediate_steps=%d deferred_steps=%d deferred_legacy_handlers=%d",
+            len(pre_readiness_steps),
+            len(deferred_startup_steps),
+            len(deferred_startup_handlers),
+        )
+
     logger.info(
         "[track-22.1e] lifespan.startup: executing %d LIFECYCLE_STEPS (non-readiness)",
         len(pre_readiness_steps),
@@ -193,7 +227,6 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     logger.info("[track-22.1e] lifespan.startup: LIFECYCLE_STEPS (non-readiness) complete")
 
     # ---- STARTUP: remaining on_startup handlers ------------------------
-    startup_handlers = list(getattr(app.router, "on_startup", []) or [])
     logger.info("[track-22.1d] lifespan.startup: executing %d handlers", len(startup_handlers))
     if is_read_only_validation_active_bundle(getattr(app.state, "runtime_identity_bundle", None)):
         setattr(app.state, "read_only_validation_startup_write_suppressed", True)
@@ -246,9 +279,75 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
             raise
     logger.info("[track-22.1m] lifespan.startup: post-readiness phase complete")
 
+    # ---- STARTUP: deferred-startup steps (scheduled, non-blocking) ---------
+    logger.info(
+        "[track-22.1n] lifespan.startup: scheduling %d deferred-startup LIFECYCLE_STEPS",
+        len(deferred_startup_steps),
+    )
+    deferred_tasks = []
+    setattr(app.state, "deferred_startup_tasks", deferred_tasks)
+
+    async def _run_deferred_step(step: LifecycleStep, index: int) -> None:
+        if step.group != "runtime-config" and is_read_only_validation_active_bundle(
+            getattr(app.state, "runtime_identity_bundle", None)
+        ):
+            setattr(app.state, "read_only_validation_startup_write_suppressed", True)
+            logger.warning(
+                "[runtime-identity] read-only validation active — skipping deferred lifecycle step %s.%s (group=%s)",
+                step.source_module,
+                step.name,
+                step.group,
+            )
+            return
+        try:
+            await _run_callable(step.fn)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception(
+                "[track-22.1n] deferred-startup LIFECYCLE_STEP #%d %s.%s raised — swallowed after readiness",
+                index,
+                step.source_module,
+                step.name,
+            )
+
+    async def _run_deferred_handler(fn: Callable, index: int) -> None:
+        name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+        try:
+            await _run_callable(fn)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception(
+                "[track-22.1n] deferred legacy startup handler #%d %s raised — swallowed after readiness",
+                index,
+                name,
+            )
+
+    for i, step in enumerate(deferred_startup_steps):
+        deferred_tasks.append(asyncio.create_task(_run_deferred_step(step, i), name=f"deferred-startup:{step.qualname()}"))
+    for i, fn in enumerate(deferred_startup_handlers):
+        name = getattr(fn, "__qualname__", getattr(fn, "__name__", f"handler-{i}"))
+        deferred_tasks.append(asyncio.create_task(_run_deferred_handler(fn, i), name=f"deferred-startup-handler:{name}"))
+    logger.info("[track-22.1n] lifespan.startup: deferred-startup phase scheduled")
+
     try:
         yield
     finally:
+        deferred_tasks = list(getattr(app.state, "deferred_startup_tasks", []) or [])
+        for task in deferred_tasks:
+            if task is not None and not task.done():
+                task.cancel()
+        for task in deferred_tasks:
+            if task is None:
+                continue
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+            except Exception:
+                logger.exception("[track-22.1n] deferred-startup task raised during shutdown wait")
+
         # ---- SHUTDOWN PHASE 4a: SHUTDOWN_STEPS registry (Track 22.1K) ------
         # Runs BEFORE legacy on_shutdown so migrated handlers get a chance to
         # gracefully cancel background tasks before the Mongo client is closed

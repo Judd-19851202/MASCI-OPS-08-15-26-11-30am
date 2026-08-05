@@ -17613,7 +17613,7 @@ register_transportation_phase2_routes(
 )
 
 
-@register_lifecycle_step("misc-bootstrap")
+@register_lifecycle_step("deferred-startup")
 async def _track_16_05_bootstrap_on_startup():
     try:
         from lib.transport_phase2 import bootstrap_track_16_05
@@ -17642,7 +17642,7 @@ register_transportation_orientation_routes(
 )
 
 
-@register_lifecycle_step("misc-bootstrap")
+@register_lifecycle_step("deferred-startup")
 async def _track_16_08_bootstrap_on_startup():
     try:
         await bootstrap_track_16_08(db)
@@ -17672,7 +17672,7 @@ register_track_16_09_routes(
 )
 
 
-@register_lifecycle_step("misc-bootstrap")
+@register_lifecycle_step("deferred-startup")
 async def _track_16_09_bootstrap_on_startup():
     try:
         await bootstrap_track_16_09(db)
@@ -17769,7 +17769,7 @@ register_track_18_00_phase_d_routes(
 _transport_automation_task: Optional[asyncio.Task] = None
 
 
-@register_lifecycle_step("misc-bootstrap")
+@register_lifecycle_step("deferred-startup")
 async def _track_16_10_bootstrap_on_startup():
     global _transport_automation_task
     try:
@@ -19911,7 +19911,7 @@ _phase4_router = build_phase4_router(db, get_current_user)
 app.include_router(_phase4_router)
 
 
-@register_lifecycle_step("seed")
+@register_lifecycle_step("deferred-startup")
 async def _seed_phase1():
     try:
         await seed_initial_users(db)
@@ -20061,7 +20061,7 @@ async def _create_safety_indexes():
         logging.getLogger(__name__).warning(f"[safety-indexes] failed: {e}")
 
 
-@register_lifecycle_step("backup-scheduler")
+@register_lifecycle_step("deferred-startup")
 async def _start_backup_scheduler():
     """Kick off the nightly full-backup scheduler as an asyncio task,
     plus a supervisor task that resurrects the scheduler if it ever dies.
@@ -20490,7 +20490,7 @@ async def _track_22_3_dr_v2_alias_telemetry(request, call_next):
 # Guarantees required system records exist so a fresh deploy reaches
 # operational state without any manual seed command.
 # ─────────────────────────────────────────────────────────────────────
-@register_lifecycle_step("misc-bootstrap")
+@register_lifecycle_step("deferred-startup")
 async def _track_15_93_run_system_bootstrap():
     try:
         from lib.system_bootstrap import run_system_bootstrap  # noqa: PLC0415
