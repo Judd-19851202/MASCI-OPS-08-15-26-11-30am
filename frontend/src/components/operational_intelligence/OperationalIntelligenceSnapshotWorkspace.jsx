@@ -40,6 +40,7 @@ export function OperationalIntelligenceSnapshotWorkspace({
   const timelineRows = snapshot?.timeline_metrics || [];
   const resources = snapshot?.resource_productivity || {};
   const currentRows = resources?.[resourceKind] || [];
+  const exportEnabled = typeof onExport === "function";
 
   const startOverride = (recommendation) => {
     setOverrideTarget(recommendation);
@@ -68,9 +69,15 @@ export function OperationalIntelligenceSnapshotWorkspace({
               <Button type="button" variant="outline" onClick={onRefresh} data-testid={`${dataTestId}-refresh-button`}>
                 <RefreshCw className="mr-2 h-4 w-4" /> {t("Refresh")}
               </Button>
-              <Button type="button" onClick={onExport} disabled={!snapshot} data-testid={`${dataTestId}-export-button`}>
-                <Download className="mr-2 h-4 w-4" /> {t("Export CSV")}
-              </Button>
+              {exportEnabled ? (
+                <Button type="button" onClick={onExport} disabled={!snapshot} data-testid={`${dataTestId}-export-button`}>
+                  <Download className="mr-2 h-4 w-4" /> {t("Export CSV")}
+                </Button>
+              ) : (
+                <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid={`${dataTestId}-export-deferred`}>
+                  {t("CSV export is deferred in this release.")}
+                </div>
+              )}
             </div>
           </div>
         </div>

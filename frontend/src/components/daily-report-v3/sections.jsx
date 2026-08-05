@@ -2,7 +2,7 @@
 //
 // Each section is a small, focused presentational component that
 // composes existing shared primitives (EmployeeCombo, EquipmentCombo,
-// PhotoUpload, DailySummaryAssist). Same payload keys as V1.
+// PhotoUpload). Same payload keys as V1.
 import React, { useMemo, useRef, useState } from "react";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
@@ -10,7 +10,6 @@ import { SupplierCombo } from "@/components/SupplierCombo";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import AttachmentUpload from "@/components/AttachmentUpload";
 import { SignaturePad } from "@/components/SignaturePad";
-import DailySummaryAssist from "@/components/daily-report/DailySummaryAssist";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
@@ -2436,33 +2435,58 @@ export function SectionTomorrow({ data, patch }) {
   );
 }
 
-// ── Section 08 · Operational Summary Assist (single AI card) ────
-// TRACK 24.12 · Workstream A · Fix: `DailySummaryAssist` fires
-// `onAccept(text, meta)` — the previous `onAccepted` prop name was
-// a silent no-op, so the human-accepted summary never reached the
-// DR payload. The wrapper below now forwards the raw `(text, meta)`
-// tuple to the parent as `{summary, meta}` (V3 shell's shape).
-export function SectionAiSummary({ data, reportId, formKey, photoUploadState, onAccepted, onStateChange, onPhotoIntelChange }) {
+// ── Section 08 · Supervisor summary (manual release lane) ────────
+export function SectionAiSummary({ data, onAccepted, onDraftChange, onStateChange }) {
   const { t } = useT();
+  const summaryText = String(data?.ai_accepted_summary || "");
+  const acceptedAt = String(data?.ai_accepted_summary_meta?.accepted_at || "").trim();
+
+  React.useEffect(() => {
+    onStateChange?.({
+      canSubmit: summaryText.trim().length > 0,
+      manualNeeded: !acceptedAt,
+    });
+  }, [acceptedAt, onStateChange, summaryText]);
+
   return (
     <SectionShell
-      step={t("Step 8 · Draft your report summary")}
-      title={t("Operational Summary Assist")}
-      testId="dr-v3-section-ai-summary"
+      step={t("Step 8 · Final supervisor summary")}
+      title={t("Approved Daily Summary")}
+      testId="dr-v3-section-approved-summary"
     >
-      <p className="mb-3 text-xs text-slate-500">
-        {t("AI drafts a summary from what you entered. You stay the source of truth — accept it, regenerate and accept it, or reject it and approve a manual version. This is what your PM will see.")}
+      <p className="mb-3 text-xs text-slate-500" data-testid="dr-v3-manual-summary-help">
+        {t("Write the final summary exactly as the PM should read it, then approve it before submit.")}
       </p>
-      <DailySummaryAssist
-        reportId={reportId}
-        reportNumber={data.report_number}
-        formKey={formKey}
-        photoUploadState={photoUploadState}
-        data={data}
-        onStateChange={onStateChange}
-        onPhotoIntelChange={onPhotoIntelChange}
-        onAccept={(text, meta) => onAccepted?.({ summary: text, meta })}
+      <Textarea
+        rows={6}
+        value={summaryText}
+        onChange={(event) => onDraftChange?.(event.target.value)}
+        placeholder={t("Summarize what was completed, what changed, and what the PM needs to know next.")}
+        data-testid="dr-v3-manual-summary-input"
       />
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <div className={`rounded-full px-3 py-2 text-xs font-semibold ${acceptedAt ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900"}`} data-testid="dr-v3-manual-summary-status">
+          {acceptedAt ? t("Approved for submit") : t("Approval required before submit")}
+        </div>
+        <Button
+          type="button"
+          onClick={() => onAccepted?.({
+            summary: summaryText,
+            meta: {
+              accepted_at: new Date().toISOString(),
+              source: "manual",
+              language: "en",
+              canonical_english: summaryText,
+              photo_observations: Array.isArray(data?.photo_observations) ? data.photo_observations : [],
+              photo_intelligence_status: data?.photo_intelligence_status || "",
+            },
+          })}
+          disabled={!summaryText.trim()}
+          data-testid="dr-v3-manual-summary-approve-button"
+        >
+          {t("Approve summary")}
+        </Button>
+      </div>
     </SectionShell>
   );
 }

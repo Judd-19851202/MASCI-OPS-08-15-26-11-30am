@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from lib.enterprise_governance import governance_project_scope, resolve_actor_from_request
+from lib.release_scope import is_release_deferred, raise_release_deferred_404
 
 from services.enterprise_governance import (
     approve_request,
@@ -1160,6 +1161,8 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
 
     @api_router.get("/api/pm/project-controls/projects/{project_number}/operational-intelligence/export")
     async def pm_project_operational_intelligence_export(request: Request, project_number: str):
+        if is_release_deferred("pm_project_performance_csv_export"):
+            raise_release_deferred_404("pm_project_performance_csv_export")
         runtime_db = _runtime_db(request, db)
         actor = await _require_project_scope(runtime_db, request, project_number)
         payload = await export_operational_intelligence_snapshot(runtime_db, project_number, actor=actor)
@@ -1421,6 +1424,8 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
 
     @api_router.post("/api/pm/project-controls/projects/{project_number}/schedule/export/email")
     async def pm_project_schedule_queue_email_export(request: Request, project_number: str, body: ScheduleEmailExportBody):
+        if is_release_deferred("pm_schedule_email_review"):
+            raise_release_deferred_404("pm_schedule_email_review")
         runtime_db = _runtime_db(request, db)
         actor = await _require_project_scope(runtime_db, request, project_number)
         return {

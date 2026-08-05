@@ -55,6 +55,7 @@ from services.operations_control.case_management import (
 )
 from services.operations_control.registry import operations_control_plane_registry_summary
 from lib.enterprise_governance import require_governed_action
+from lib.release_scope import is_release_deferred, raise_release_deferred_404
 
 
 class CaseTransitionBody(BaseModel):
@@ -386,12 +387,16 @@ def register_operations_control_routes(
 
     @api_router.post("/admin/operations-control/certifications/preview-daily-report")
     async def control_plane_create_preview_case_certification(actor=Depends(require_admin)):
+        if is_release_deferred("internal_certification_route"):
+            raise_release_deferred_404("internal_certification_route")
         await ensure_case_management_indexes(db)
         actor_dict = await _actor_dict(actor)
         return await create_preview_case_certification_record(db, actor=actor_dict)
 
     @api_router.post("/admin/operations-control/certifications/run")
     async def control_plane_run_certification(request: Request, actor=Depends(require_admin)):
+        if is_release_deferred("internal_certification_route"):
+            raise_release_deferred_404("internal_certification_route")
         await ensure_case_management_indexes(db)
         actor_dict = await _actor_dict(actor)
         await require_governed_action(

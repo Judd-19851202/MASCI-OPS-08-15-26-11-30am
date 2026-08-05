@@ -38,6 +38,7 @@ from lib.async_jobs import (
     fail_async_job,
     mark_async_job_processing,
 )
+from lib.release_scope import is_release_deferred, raise_release_deferred_404
 from services.dr_ai import build_evidence_bundle, get_ai_provider
 from services.dr_ai.agents import AGENTS, AGENT_RESPONSE_SCHEMA
 
@@ -1001,6 +1002,8 @@ def register_daily_summary_routes(
         status_code=202,
     )
     async def draft_summary(body: SummaryDraftBody, request: Request, background_tasks: BackgroundTasks):
+        if is_release_deferred("daily_report_dedicated_ai_summary"):
+            raise_release_deferred_404("daily_report_dedicated_ai_summary")
         """Compose a preview summary from the current (unsaved)
         report payload. Uses live AI synthesis with deterministic
         fallback only on provider failure.

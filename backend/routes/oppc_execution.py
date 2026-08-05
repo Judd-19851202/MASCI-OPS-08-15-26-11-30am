@@ -37,6 +37,7 @@ from services.cost_codes.oppc_intelligence import (
     upsert_variance_review,
 )
 from lib.enterprise_governance import require_governed_action
+from lib.release_scope import is_release_deferred, raise_release_deferred_404
 
 
 class MondayReviewStartBody(BaseModel):
@@ -314,6 +315,8 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         week_ending: Optional[str] = None,
         actor=Depends(require_any_portal_token),
     ) -> Response:
+        if is_release_deferred("executive_monday_briefing_pdf"):
+            raise_release_deferred_404("executive_monday_briefing_pdf")
         await _ensure_project_access(db, project_number, actor)
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(week_ending or "")
@@ -871,6 +874,8 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         week_ending: Optional[str] = None,
         actor=Depends(require_any_portal_token),
     ) -> Response:
+        if is_release_deferred("executive_monday_briefing_pdf"):
+            raise_release_deferred_404("executive_monday_briefing_pdf")
         await require_governed_action(
             db,
             actor=actor,

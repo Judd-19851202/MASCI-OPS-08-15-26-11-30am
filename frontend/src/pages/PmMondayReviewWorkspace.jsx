@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { sanitizeOperatorError } from "@/lib/operatorLanguage";
+import { isReleaseDeferred } from "@/lib/releaseScope";
 
 function portalConfig(extra = {}) {
   return { ...extra, headers: buildScopedPortalAuthHeaders(["admin", "pm"], extra.headers || {}) };
@@ -123,6 +124,7 @@ function ActivityReviewCard({ activity, causes, controllability, draft, onChange
 }
 
 export default function PmMondayReviewWorkspace() {
+  const briefingPdfDeferred = isReleaseDeferred("executiveMondayBriefingPdf");
   const [params, setParams] = useSearchParams();
   const [projectNumber, setProjectNumber] = useState(params.get("project_number") || "");
   const [weekEnding, setWeekEnding] = useState(params.get("week_ending") || "");
@@ -328,6 +330,7 @@ export default function PmMondayReviewWorkspace() {
   };
 
   const openBriefingPdf = () => {
+    if (briefingPdfDeferred) return;
     if (!projectNumber) return;
     const query = weekEnding ? `?week_ending=${encodeURIComponent(weekEnding)}` : "";
     window.open(`/api/oppc/projects/${encodeURIComponent(projectNumber)}/monday-briefing/pdf${query}`, "_blank", "noopener,noreferrer");
@@ -378,7 +381,7 @@ export default function PmMondayReviewWorkspace() {
                 <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
                 <Button variant="outline" onClick={() => runBriefingAction("approve", "Briefing approved.")} data-testid="pm-monday-briefing-approve"><ShieldCheck className="mr-2 h-4 w-4" />Approve</Button>
                 <Button variant="outline" onClick={() => runBriefingAction("freeze", "Briefing frozen.")} data-testid="pm-monday-briefing-freeze"><Lock className="mr-2 h-4 w-4" />Freeze</Button>
-                <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>
+                {briefingPdfDeferred ? <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="pm-monday-briefing-pdf-deferred">PDF export is deferred in this release.</div> : <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>}
               </div>
             </div>
           </div>
@@ -417,7 +420,7 @@ export default function PmMondayReviewWorkspace() {
                     <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
                     <Button variant="outline" onClick={() => runBriefingAction("approve", "Briefing approved.")} data-testid="pm-monday-briefing-approve"><ShieldCheck className="mr-2 h-4 w-4" />Approve</Button>
                     <Button variant="outline" onClick={() => runBriefingAction("freeze", "Briefing frozen.")} data-testid="pm-monday-briefing-freeze"><Lock className="mr-2 h-4 w-4" />Freeze</Button>
-                    <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>
+                    {briefingPdfDeferred ? <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="pm-monday-briefing-pdf-deferred">PDF export is deferred in this release.</div> : <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>}
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-3 text-sm">

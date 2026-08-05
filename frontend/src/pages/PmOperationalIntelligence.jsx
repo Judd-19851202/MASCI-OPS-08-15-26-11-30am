@@ -10,6 +10,7 @@ import {
   overridePmOperationalIntelligenceRecommendation,
 } from "@/lib/projectControlsApi";
 import { useT } from "@/lib/i18n";
+import { isReleaseDeferred } from "@/lib/releaseScope";
 
 function fileNameFromResponse(response, fallback) {
   const disposition = response?.headers?.["content-disposition"] || "";
@@ -37,6 +38,7 @@ export default function PmOperationalIntelligence() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [actionBusy, setActionBusy] = React.useState(false);
+  const exportDeferred = isReleaseDeferred("pmProjectPerformanceCsvExport");
 
   React.useEffect(() => {
     const next = params.get("project_number") || "";
@@ -74,6 +76,7 @@ export default function PmOperationalIntelligence() {
   };
 
   const handleExport = async () => {
+    if (exportDeferred) return;
     if (!projectNumber) return;
     try {
       const response = await downloadPmOperationalIntelligenceExport(projectNumber);
@@ -112,7 +115,7 @@ export default function PmOperationalIntelligence() {
         subtitle={t("See what changed, why it matters, what needs action next, and what evidence supports it for this job.")}
         projectSelector={<PmProjectSelector projectNumber={projectNumber} onChange={chooseProject} />}
         onRefresh={() => load(projectNumber, true)}
-        onExport={handleExport}
+        onExport={exportDeferred ? null : handleExport}
         onOverride={handleOverride}
         dataTestId="pm-operational-intelligence"
       />

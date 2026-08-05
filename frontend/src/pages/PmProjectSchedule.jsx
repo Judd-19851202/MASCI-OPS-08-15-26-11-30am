@@ -33,6 +33,7 @@ import {
   savePmProjectScheduleDailyWorkPlan,
   savePmProjectScheduleLookahead,
 } from "@/lib/projectControlsApi";
+import { isReleaseDeferred } from "@/lib/releaseScope";
 
 const SOURCE_OPTIONS = [
   ["csv", "CSV (field validated)"],
@@ -225,6 +226,7 @@ function renderSourceValues(sourceValues) {
 
 export default function PmProjectSchedule() {
   const { t } = useT();
+  const scheduleEmailReviewDeferred = isReleaseDeferred("pmScheduleEmailReview");
   const [params, setParams] = useSearchParams();
   const [projectNumber, setProjectNumber] = useState(params.get("project_number") || "");
   const [loading, setLoading] = useState(false);
@@ -385,6 +387,7 @@ export default function PmProjectSchedule() {
   };
 
   const onQueueEmail = async () => {
+    if (scheduleEmailReviewDeferred) return;
     const versionId = overview?.active_version?.version_id;
     if (!projectNumber || !versionId || !emailRecipients.trim()) return;
     try {
@@ -731,10 +734,16 @@ export default function PmProjectSchedule() {
                   <Button type="button" variant="outline" onClick={onExport} disabled={!activeVersion} data-testid="pm-project-schedule-download-export-button"><Download className="mr-2 h-4 w-4" /> {t("Download")}</Button>
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto]">
-                <Input value={emailRecipients} onChange={(event) => setEmailRecipients(event.target.value)} placeholder={t("Email recipients, comma separated") } data-testid="pm-project-schedule-email-recipients-input" />
-                <Button type="button" variant="outline" onClick={onQueueEmail} disabled={!activeVersion || !emailRecipients.trim()} data-testid="pm-project-schedule-email-export-button"><Send className="mr-2 h-4 w-4" /> {t("Queue email review")}</Button>
-              </div>
+              {scheduleEmailReviewDeferred ? (
+                <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" data-testid="pm-project-schedule-email-review-deferred">
+                  {t("Email review is deferred in this release. Download exports instead.")}
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto]">
+                  <Input value={emailRecipients} onChange={(event) => setEmailRecipients(event.target.value)} placeholder={t("Email recipients, comma separated") } data-testid="pm-project-schedule-email-recipients-input" />
+                  <Button type="button" variant="outline" onClick={onQueueEmail} disabled={!activeVersion || !emailRecipients.trim()} data-testid="pm-project-schedule-email-export-button"><Send className="mr-2 h-4 w-4" /> {t("Queue email review")}</Button>
+                </div>
+              )}
             </section>
 
             <section className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-schedule-activities-section">
