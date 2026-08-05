@@ -418,6 +418,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-crew-add"
             onClick={() =>
               patch({
@@ -688,6 +689,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-eq-add"
             onClick={() =>
               patch({
@@ -886,6 +888,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-sub-add"
             onClick={() =>
               patch({
@@ -1218,6 +1221,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-prod-add"
             onClick={() =>
               patch({
@@ -1448,6 +1452,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-mat-add"
             onClick={() =>
               patch({
@@ -1611,6 +1616,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-out-add"
             onClick={() =>
               patch({
@@ -2267,6 +2273,7 @@ export function SectionImpactSafety({ data, patch }) {
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 px-4"
             data-testid="dr-v3-visitor-add"
             onClick={() =>
               patch({
