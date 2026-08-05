@@ -434,6 +434,7 @@ def build_service_truck_reconciliation_router(
     async def list_reconciliations(
         date_from: Optional[str] = Query(None, alias="from"),
         date_to: Optional[str] = Query(None, alias="to"),
+        doc_id: Optional[str] = None,
         service_truck_unit: Optional[str] = None,
         tech_id: Optional[str] = None,
         variance_status: Optional[str] = None,
@@ -455,6 +456,8 @@ def build_service_truck_reconciliation_router(
             raise HTTPException(422, f"range must be ≤{_MAX_RANGE_DAYS} days and to ≥ from")
 
         q: Dict[str, Any] = {"date": {"$gte": date_from, "$lte": date_to}}
+        if doc_id:
+            q["doc_id"] = doc_id.strip().upper()
         if service_truck_unit:
             q["service_truck_unit"] = _ci_regex(service_truck_unit)
         if tech_id:

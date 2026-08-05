@@ -9,6 +9,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertTriangle, Workflow } from "lucide-react";
 import { createConstraint } from "@/lib/operationalApi";
 import { getConstraintCapabilities } from "@/lib/constraintCapabilities";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import FormShell from "@/components/FormShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +34,7 @@ export default function NewConstraint() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const caps = React.useMemo(() => getConstraintCapabilities(), []);
-  const [busy, setBusy] = React.useState(false);
-  const [err, setErr] = React.useState("");
-  const [form, setForm] = React.useState({
+  const blankForm = React.useMemo(() => ({
     project_id: params.get("project_id") || "",
     title: "",
     discipline: "utilities",
@@ -43,7 +43,35 @@ export default function NewConstraint() {
     owner: "",
     operational_impact: "",
     notes: "",
-  });
+  }), [params]);
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState("");
+  const [form, setForm] = React.useState(blankForm);
+  const [submitted, setSubmitted] = React.useState(null);
+
+  const resetForm = React.useCallback(() => {
+    setForm({ ...blankForm });
+    setBusy(false);
+    setErr("");
+    setSubmitted(null);
+  }, [blankForm]);
+
+  const confirmation = React.useMemo(() => {
+    if (!submitted) return null;
+    return buildSubmissionConfirmation({
+      workflowKey: "operational-constraint",
+      documentNumber: submitted.doc_id || submitted.id || "",
+      submittedAt: submitted.created_at,
+      submittedBy: submitted.created_by,
+      project: submitted.project_id,
+      expectedProcessingStatus: submitted.status === "resolved"
+        ? "Filed and resolved"
+        : "Filed and open for project follow-up",
+      startAnother: { label: "Start Another", onClick: resetForm },
+      openRecord: { label: "Open Submitted Record", to: `/constraints/${encodeURIComponent(submitted.id)}` },
+      returnToPortal: { label: "Return to Portal", to: "/constraints" },
+    });
+  }, [resetForm, submitted]);
 
   if (!caps["constraint.create"]) {
     return (
@@ -93,12 +121,17 @@ export default function NewConstraint() {
         operational_impact: form.operational_impact.trim(),
         notes: form.notes.trim(),
       });
-      navigate(`/constraints/${c.id}`);
+      setSubmitted(c);
+      setBusy(false);
     } catch (e2) {
       setErr(e2.message || "Could not file constraint");
       setBusy(false);
     }
   };
+
+  if (confirmation) {
+    return <SubmissionConfirmation confirmation={confirmation} />;
+  }
 
   return (
     <FormShell

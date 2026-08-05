@@ -105,6 +105,7 @@ export default function ServiceTruckReconciliationDetail() {
           <>
             <Card data-testid="strr-detail-header">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, fontSize: 12 }}>
+                <div>Reconciliation #: <strong>{doc.doc_id || doc.id || "—"}</strong></div>
                 <div>Date: <strong>{doc.date}</strong></div>
                 <div>Truck: <strong>{doc.service_truck_unit}</strong></div>
                 <div>Tech: <strong>{sanitizeOperatorReference(doc.tech_name, "Tech record")}</strong>{doc.tech_id ? ` (${doc.tech_id})` : ""}</div>

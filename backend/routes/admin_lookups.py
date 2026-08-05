@@ -44,6 +44,8 @@ _COLLECTION_ROUTES: dict = {
     "incidents": "/admin/incidents/{id}",
     "safety_equipment_issuances": "/admin/safety/issuance/{id}",
     "safety_equipment_trainings": "/admin/safety/training/{id}",
+    "operational_constraints": "/constraints/{id}",
+    "asset_transfers": "/asset-transfers?id={id}",
     # JHAs use a focus query (not path) — the admin dashboard auto-opens.
     "jhas": "/admin/jha-plans?focus={id}",
 }

@@ -44,6 +44,7 @@ export default function FuelLubeVisitRecords() {
   const { t } = useT();
   const [preset, setPreset] = useState("30");
   const [filters, setFilters] = useState({
+    doc_id: "",
     project_number: "", fuel_lube_truck_unit: "", fuel_lube_tech_id: "",
     unit_number: "", has_issue: "", fuel_type: "",
   });
@@ -99,6 +100,7 @@ export default function FuelLubeVisitRecords() {
         </div>
 
         <div data-testid="fuel-lube-records-filters-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 6, marginBottom: 12 }}>
+          <input data-testid="fuel-lube-records-filter-doc-id" placeholder="Visit #" value={filters.doc_id} onChange={(e) => setFilters({ ...filters, doc_id: e.target.value.toUpperCase() })} style={{ padding: 5, fontSize: 12 }} />
           <input data-testid="fuel-lube-records-filter-project" placeholder="Project #" value={filters.project_number} onChange={(e) => setFilters({ ...filters, project_number: e.target.value })} style={{ padding: 5, fontSize: 12 }} />
           <input data-testid="fuel-lube-records-filter-truck" placeholder="Fuel/Lube truck" value={filters.fuel_lube_truck_unit} onChange={(e) => setFilters({ ...filters, fuel_lube_truck_unit: e.target.value })} style={{ padding: 5, fontSize: 12 }} />
           <input data-testid="fuel-lube-records-filter-tech" placeholder="Tech employee id" value={filters.fuel_lube_tech_id} onChange={(e) => setFilters({ ...filters, fuel_lube_tech_id: e.target.value })} style={{ padding: 5, fontSize: 12 }} />
@@ -149,6 +151,7 @@ export default function FuelLubeVisitRecords() {
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700 }}>
+                          <span className="font-mono" style={{ marginRight: 8 }}>{v.doc_id || v.id}</span>
                           {v.visit_date} · Project <strong>{v.project_number || "—"}</strong>{v.project_name ? ` (${v.project_name})` : ""}
                           {(v.issues_found_count || 0) > 0 && (
                             <span data-testid={`fuel-lube-records-issue-flag-${v.id}`} style={{ marginLeft: 8, padding: "1px 6px", fontSize: 10, background: "#fae2e0", color: "#a33", borderRadius: 3, fontWeight: 700 }}>

@@ -145,6 +145,8 @@ export default function ConstraintDetail() {
           <SeverityPill severity={doc.severity} dataTestId="constraint-severity" />
         </div>
         <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          {doc.doc_id ? <span data-testid="constraint-doc-id" className="font-mono text-slate-700">{doc.doc_id}</span> : null}
+          {doc.doc_id ? <span>·</span> : null}
           <span data-testid="constraint-project_id">{doc.project_id}</span>
           <span>·</span>
           <span>{doc.discipline}</span>

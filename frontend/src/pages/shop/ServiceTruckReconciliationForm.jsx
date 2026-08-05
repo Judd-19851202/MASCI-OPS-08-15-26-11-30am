@@ -7,6 +7,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import ShopSelector from "@/components/shop/ShopSelector";
@@ -86,6 +88,49 @@ export default function ServiceTruckReconciliationForm() {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
+  function resetForm() {
+    setMode("start");
+    setDate(today);
+    setTruck("");
+    setTechId("");
+    setTechName("");
+    setReconciliationId("");
+    setStartQ(emptyQ());
+    setEndQ(emptyQ());
+    setNotes("");
+    setSubmitting(false);
+    setError("");
+    setResult(null);
+  }
+
+  const confirmation = result ? buildSubmissionConfirmation({
+    workflowKey: "service-truck-reconciliation",
+    title: result.kind === "start"
+      ? "Start of Day Logged Successfully"
+      : "Service Truck Reconciliation Closed Successfully",
+    description: result.kind === "start"
+      ? "This service truck record is on file and ready for end-of-day closeout."
+      : "This end-of-day reconciliation is on file with the computed variance result.",
+    documentNumber: result.body.doc_id || result.body.id || "",
+    submittedAt: new Date().toISOString(),
+    submittedBy: techName || undefined,
+    project: truck || undefined,
+    whatHappensNext: result.kind === "start"
+      ? ["Return at end of day to close the record and compute variance from submitted fuel/lube visits."]
+      : ["Shop can review the linked visits and any variance notes from this same record."],
+    followUpRequired: result.kind === "start"
+      ? "Close this reconciliation at the end of day to complete the variance review."
+      : (result.body.status === "needs_review"
+        ? "A shop manager should add review notes before the day is fully cleared."
+        : "No further action is required unless the shop team requests follow-up."),
+    expectedProcessingStatus: result.kind === "start"
+      ? "Filed and waiting for end-of-day closeout"
+      : (result.body.status === "needs_review" ? "Filed and waiting for manager review" : "Filed and closed"),
+    startAnother: { label: "Start Another", onClick: resetForm },
+    returnToPortal: { label: "Return to Portal", to: "/shop" },
+    openRecord: { label: "Open Submitted Record", to: `/shop/service-truck-reconciliation/${encodeURIComponent(result.body.id)}` },
+  }) : null;
+
   function setProductQty(setter, key, v) { setter((prev) => ({ ...prev, [key]: v })); }
   const setStart = (key, v) => setProductQty(setStartQ, key, v);
   const setEnd   = (key, v) => setProductQty(setEndQ, key, v);
@@ -135,6 +180,10 @@ export default function ServiceTruckReconciliationForm() {
       setResult({ kind: "close", body: data });
     } catch (err) { setError(err.message || "Failed to close day."); }
     setSubmitting(false);
+  }
+
+  if (confirmation) {
+    return <SubmissionConfirmation confirmation={confirmation} />;
   }
 
   return (

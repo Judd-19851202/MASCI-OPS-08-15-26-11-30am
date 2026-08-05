@@ -64,6 +64,7 @@ export default function FuelLubeVisitDetail() {
           <>
             <Card data-testid="fuel-lube-detail-header">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, fontSize: 12 }}>
+                <div>Visit #: <strong>{visit.doc_id || visit.id || "—"}</strong></div>
                 <div>Date: <strong>{visit.visit_date}</strong></div>
                 <div>Project: <strong>{sanitizeOperatorProjectNumber(visit.project_number, "Operations support") || "—"}</strong>{visit.project_name ? ` · ${sanitizeOperatorReference(visit.project_name, "Operations support work")}` : ""}</div>
                 <div>Truck: <strong>{visit.fuel_lube_truck_unit || "—"}</strong></div>

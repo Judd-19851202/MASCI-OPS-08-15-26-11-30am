@@ -94,6 +94,11 @@ REGISTRY: List[Tuple[str, PrefixResolver, str]] = [
     ("field_leadership_records",    _field_leadership_prefix, "occurred_at"),
     ("safety_equipment_issuances",  "SEI", "created_at"),
     ("safety_equipment_trainings",  "SET", "created_at"),
+    ("fuel_lube_visits",            "FLV", "visit_date"),
+    ("service_truck_reconciliations","STRR","date"),
+    ("operational_constraints",     "CON", "created_at"),
+    ("asset_transfers",             "ATR", "created_at"),
+    ("jha_acknowledgements",        "JAA", "acknowledged_at"),
 ]
 
 

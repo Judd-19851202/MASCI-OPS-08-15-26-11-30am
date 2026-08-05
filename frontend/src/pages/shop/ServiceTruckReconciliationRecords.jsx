@@ -52,6 +52,7 @@ function fmt(n) { return (n == null ? "—" : Number(n).toFixed(1)); }
 export default function ServiceTruckReconciliationRecords() {
   const [preset, setPreset] = useState("30");
   const [filters, setFilters] = useState({
+    doc_id: "",
     service_truck_unit: "", tech_id: "", variance_status: "", status: "",
   });
   const [data, setData] = useState(null);
@@ -108,6 +109,8 @@ export default function ServiceTruckReconciliationRecords() {
         </div>
 
         <div data-testid="strr-list-filters-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 6, marginBottom: 12 }}>
+          <input data-testid="strr-list-filter-doc-id" placeholder="Reconciliation #" value={filters.doc_id}
+                 onChange={(e) => setFilters({ ...filters, doc_id: e.target.value.toUpperCase() })} style={{ padding: 5, fontSize: 12 }} />
           <input data-testid="strr-list-filter-truck" placeholder="Service truck unit" value={filters.service_truck_unit}
                  onChange={(e) => setFilters({ ...filters, service_truck_unit: e.target.value })} style={{ padding: 5, fontSize: 12 }} />
           <input data-testid="strr-list-filter-tech" placeholder="Tech employee id" value={filters.tech_id}
@@ -165,6 +168,7 @@ export default function ServiceTruckReconciliationRecords() {
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700 }}>
+                          <span className="font-mono" style={{ marginRight: 8 }}>{row.doc_id || row.id}</span>
                           {row.date} · Truck <strong>{row.service_truck_unit}</strong>
                           <span style={{ marginLeft: 8 }}><StatusChip status={row.variance_status} /></span>
                           <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 3, background: "#eee", color: "#222", fontSize: 10, fontWeight: 700 }}>

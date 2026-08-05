@@ -103,6 +103,7 @@ class ChronologyEvent(BaseModel):
 class ConstraintOut(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str
+    doc_id: str = ""
     project_id: str
     title: str
     discipline: str
@@ -180,6 +181,7 @@ def _compute_age_days(created_at: str, now: Optional[datetime] = None) -> int:
 def _to_out(doc: Dict[str, Any]) -> ConstraintOut:
     return ConstraintOut(
         id=doc["id"],
+        doc_id=doc.get("doc_id", "") or "",
         project_id=doc["project_id"],
         title=doc.get("title", ""),
         discipline=doc.get("discipline", "other"),
@@ -216,6 +218,7 @@ def _validate_enums(
 
 async def ensure_operational_constraints_indexes(db) -> None:
     await db.operational_constraints.create_index("id", unique=True)
+    await db.operational_constraints.create_index("doc_id", unique=True, sparse=True)
     await db.operational_constraints.create_index(
         [("project_id", 1), ("status", 1), ("created_at", -1)]
     )
@@ -295,6 +298,8 @@ def build_operational_constraints_router(
             "updated_at": now_iso,
             "resolved_at": None,
         }
+        from doc_ids import ensure_doc_id  # noqa: PLC0415
+        await ensure_doc_id(db, doc, "CON", when=now_iso)
         await db.operational_constraints.insert_one(doc)
         doc.pop("_id", None)
         return _to_out(doc)
@@ -303,6 +308,7 @@ def build_operational_constraints_router(
     async def list_constraints(
         request: Request,
         project_id: Optional[str] = Query(default=None),
+        doc_id: Optional[str] = Query(default=None),
         status: Optional[str] = Query(default=None),
         severity: Optional[str] = Query(default=None),
         discipline: Optional[str] = Query(default=None),
@@ -318,6 +324,8 @@ def build_operational_constraints_router(
         q: Dict[str, Any] = {}
         if project_id:
             q["project_id"] = project_id
+        if doc_id:
+            q["doc_id"] = doc_id.strip().upper()
         if status:
             if status not in STATUSES:
                 raise HTTPException(422, f"Invalid status filter: {status}")

@@ -33,6 +33,7 @@ export default function Constraints() {
   const [err, setErr] = React.useState("");
 
   const project_id = params.get("project_id") || "";
+  const doc_id = params.get("doc_id") || "";
   const status = params.get("status") || "";
   const discipline = params.get("discipline") || "";
 
@@ -41,6 +42,7 @@ export default function Constraints() {
     setRows(null);
     setErr("");
     listConstraints({
+      ...(doc_id ? { doc_id } : {}),
       ...(project_id ? { project_id } : {}),
       ...(status ? { status } : {}),
       ...(discipline ? { discipline } : {}),
@@ -48,7 +50,7 @@ export default function Constraints() {
       .then((d) => { if (live) setRows(Array.isArray(d) ? d : []); })
       .catch((e) => { if (live) setErr(e.message || "Could not load"); });
     return () => { live = false; };
-  }, [project_id, status, discipline]);
+  }, [doc_id, project_id, status, discipline]);
 
   const setParam = (k, v) => {
     const next = new URLSearchParams(params);
@@ -101,8 +103,18 @@ export default function Constraints() {
 
       <section
         data-testid="constraints-filters"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-4"
+        className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-4 mb-4"
       >
+        <label className="text-xs text-slate-600">
+          Constraint #
+          <input
+            data-testid="filter-doc-id"
+            value={doc_id}
+            onChange={(e) => setParam("doc_id", e.target.value.trim().toUpperCase())}
+            placeholder="CON-2026-00001"
+            className="mt-1 block w-full text-sm border border-slate-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-400"
+          />
+        </label>
         <label className="text-xs text-slate-600">
           Project
           <input
@@ -175,6 +187,8 @@ export default function Constraints() {
                     <SeverityPill severity={c.severity} />
                   </div>
                   <div className="text-xs text-slate-500 mt-0.5 flex items-baseline gap-2 flex-wrap">
+                    {c.doc_id ? <span className="font-mono text-slate-700">{c.doc_id}</span> : null}
+                    {c.doc_id ? <span>·</span> : null}
                     <span>{c.project_id}</span>
                     <span>·</span>
                     <span>{c.discipline}</span>

@@ -14,6 +14,8 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import ShopSelector from "@/components/shop/ShopSelector";
@@ -178,7 +180,7 @@ export default function FuelLubeVisitForm() {
   const { t } = useT();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
-  const [visit, setVisit] = useState({
+  const blankVisit = {
     visit_date: today,
     project_number: "",
     project_name: "",
@@ -189,11 +191,35 @@ export default function FuelLubeVisitForm() {
     departure_time: "",
     location_source: "manual",
     submitted_by: "",
+  };
+  const [visit, setVisit] = useState({
+    ...blankVisit,
   });
   const [lines, setLines] = useState([{ ...EMPTY_LINE }]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+
+  const resetForm = () => {
+    setVisit({ ...blankVisit });
+    setLines([{ ...EMPTY_LINE }]);
+    setError("");
+    setResult(null);
+    setSubmitting(false);
+  };
+
+  const confirmation = result ? buildSubmissionConfirmation({
+    workflowKey: "fuel-lube-visit",
+    documentNumber: result.doc_id || result.id || "",
+    submittedAt: result.submitted_at,
+    submittedBy: result.submitted_by,
+    project: result.project_name
+      ? `${result.project_number} · ${result.project_name}`
+      : result.project_number,
+    startAnother: { label: "Start Another", onClick: resetForm },
+    returnToPortal: { label: "Return to Portal", to: "/shop" },
+    openRecord: { label: "Open Submitted Record", to: `/shop/fuel-lube/${encodeURIComponent(result.id)}` },
+  }) : null;
 
   const totals = useMemo(() => {
     const sum = (k) => lines.reduce((s, l) => s + (parseFloat(l[k]) || 0), 0);
@@ -241,6 +267,10 @@ export default function FuelLubeVisitForm() {
     }
     setSubmitting(false);
   };
+
+  if (confirmation) {
+    return <SubmissionConfirmation confirmation={confirmation} />;
+  }
 
   return (
     <div data-testid="fuel-lube-visit-form-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>

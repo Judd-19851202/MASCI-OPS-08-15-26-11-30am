@@ -17,6 +17,7 @@
 //   POST   /api/asset-transfers/{id}/close
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Truck, RefreshCw, Loader2, Plus, X, ChevronRight,
   CheckCircle2, XCircle, Send, Inbox, Ban, Archive, Eraser,
@@ -24,6 +25,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import { PortalShell } from "@/design-system";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { api } from "@/lib/api";
@@ -68,17 +71,42 @@ const NEXT_ACTIONS = {
 };
 
 export default function AssetTransfers() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [docIdFilter, setDocIdFilter] = useState(searchParams.get("doc_id") || "");
+  const [submittedTransfer, setSubmittedTransfer] = useState(null);
+
+  const openTransfer = useCallback((id) => {
+    setSelectedId(id);
+    const next = new URLSearchParams(searchParams);
+    next.set("id", id);
+    setSearchParams(next);
+  }, [searchParams, setSearchParams]);
+
+  const closeTransfer = useCallback(() => {
+    setSelectedId(null);
+    const next = new URLSearchParams(searchParams);
+    next.delete("id");
+    setSearchParams(next);
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const focusId = searchParams.get("id");
+    if (focusId) setSelectedId(focusId);
+  }, [searchParams]);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const params = status !== "All" ? { status } : {};
+      const params = {
+        ...(status !== "All" ? { status } : {}),
+        ...(docIdFilter.trim() ? { doc_id: docIdFilter.trim().toUpperCase() } : {}),
+      };
       const r = await api.get("/asset-transfers", { params });
       setData(r.data);
     } catch (e) {
@@ -86,9 +114,32 @@ export default function AssetTransfers() {
     } finally {
       setLoading(false);
     }
-  }, [status]);
+  }, [docIdFilter, status]);
 
   useEffect(() => { load(); }, [load]);
+
+  const confirmation = useMemo(() => {
+    if (!submittedTransfer) return null;
+    return buildSubmissionConfirmation({
+      workflowKey: "asset-transfer",
+      documentNumber: submittedTransfer.doc_id || submittedTransfer.id || "",
+      submittedAt: submittedTransfer.created_at,
+      submittedBy: submittedTransfer.requested_by,
+      project: submittedTransfer.to_project_number || submittedTransfer.from_project_number || "",
+      note: submittedTransfer.equipment_label
+        ? `Equipment: ${submittedTransfer.equipment_label}`
+        : "",
+      startAnother: {
+        label: "Start Another",
+        onClick: () => {
+          setSubmittedTransfer(null);
+          setShowCreate(true);
+        },
+      },
+      returnToPortal: { label: "Return to Transfers", onClick: () => setSubmittedTransfer(null) },
+      openRecord: { label: "Open Submitted Record", to: `/asset-transfers?id=${encodeURIComponent(submittedTransfer.id)}` },
+    });
+  }, [submittedTransfer]);
 
   const summary = useMemo(() => {
     const s = { total: 0 };
@@ -98,6 +149,10 @@ export default function AssetTransfers() {
     }
     return s;
   }, [data]);
+
+  if (confirmation) {
+    return <SubmissionConfirmation confirmation={confirmation} />;
+  }
 
   return (
     <PortalShell
@@ -139,6 +194,26 @@ export default function AssetTransfers() {
         ))}
       </div>
 
+      <div className="mb-4 flex items-center gap-2 flex-wrap">
+        <Input
+          value={docIdFilter}
+          onChange={(e) => setDocIdFilter(e.target.value.toUpperCase())}
+          placeholder="Search transfer #"
+          className="max-w-xs"
+          data-testid="asset-transfers-doc-id-filter"
+        />
+        {docIdFilter ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDocIdFilter("")}
+            data-testid="asset-transfers-doc-id-clear"
+          >
+            Clear
+          </Button>
+        ) : null}
+      </div>
+
       {error && (
         <div className="border-2 border-rose-300 bg-rose-50 text-rose-800 p-3 rounded-md font-mono text-xs mb-3" data-testid="asset-transfers-error">
           {String(error)}
@@ -175,7 +250,7 @@ export default function AssetTransfers() {
                 {data.items.map((row) => (
                   <tr
                     key={row.id}
-                    onClick={() => setSelectedId(row.id)}
+                    onClick={() => openTransfer(row.id)}
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                     data-testid={`asset-transfer-row-${row.id}`}
                   >
@@ -197,6 +272,7 @@ export default function AssetTransfers() {
                           </span>
                         )}
                       </div>
+                      <div className="text-[10px] font-mono text-slate-500">{row.doc_id || row.id}</div>
                       <div className="text-[11px] text-slate-500 truncate max-w-[200px]">{row.equipment_label}</div>
                     </td>
                     <td className="p-2 align-middle text-[11px]">
@@ -224,14 +300,18 @@ export default function AssetTransfers() {
       {showCreate && (
         <CreateTransferDialog
           onClose={() => setShowCreate(false)}
-          onCreated={() => { setShowCreate(false); load(); }}
+          onCreated={(created) => {
+            setShowCreate(false);
+            setSubmittedTransfer(created);
+            load();
+          }}
         />
       )}
 
       {selectedId && (
         <TransferDetailDrawer
           id={selectedId}
-          onClose={() => setSelectedId(null)}
+          onClose={closeTransfer}
           onAfterAction={() => load()}
         />
       )}
@@ -260,7 +340,13 @@ function CreateTransferDialog({ onClose, onCreated }) {
         to_location_label: toLocation.trim() || undefined,
         reason: reason.trim() || undefined,
       });
-      onCreated();
+      const { data } = await api.post("/asset-transfers", {
+        equipment_id: equipmentId.trim(),
+        to_project_number: toProject.trim(),
+        to_location_label: toLocation.trim() || undefined,
+        reason: reason.trim() || undefined,
+      });
+      onCreated(data);
     } catch (e) {
       setErr(e?.response?.data?.detail || e.message);
     } finally {
@@ -393,6 +479,9 @@ function TransferDetailDrawer({ id, onClose, onAfterAction }) {
         )}
         {doc && (
           <div className="p-3 space-y-3 text-xs">
+            <div>
+              <KV k="Transfer #" v={doc.doc_id || doc.id} />
+            </div>
             <div>
               <span className={`inline-block px-2 py-0.5 rounded-full border-2 text-[10px] font-mono uppercase tracking-wider font-bold ${STATUS_TINT[doc.status]}`}>
                 {doc.status}

@@ -127,6 +127,7 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
 
     async def _ensure_indexes():
         await db.asset_transfers.create_index("id", unique=True)
+        await db.asset_transfers.create_index("doc_id", unique=True, sparse=True)
         await db.asset_transfers.create_index("status")
         await db.asset_transfers.create_index("equipment_id")
         await db.asset_transfers.create_index("from_project_number")
@@ -321,6 +322,7 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
     async def list_transfers(
         actor: Dict[str, Any] = Depends(require_any_portal_token),
         status: Optional[str] = Query(default=None),
+        doc_id: Optional[str] = Query(default=None),
         equipment_id: Optional[str] = Query(default=None),
         project_number: Optional[str] = Query(default=None),
         audience: Optional[str] = Query(
@@ -339,6 +341,8 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
         q: Dict[str, Any] = {}
         if status:
             q["status"] = status
+        if doc_id:
+            q["doc_id"] = doc_id.strip().upper()
         if equipment_id:
             q["equipment_id"] = equipment_id
         if project_number:
@@ -440,6 +444,8 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
             "updated_at": now,
             "audit": [],
         }
+        from doc_ids import ensure_doc_id  # noqa: PLC0415
+        await ensure_doc_id(db, doc, "ATR", when=now)
         # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
         # Anchor on the originating (from) project. Cross-job moves
         # preserve the roster at the moment of request.

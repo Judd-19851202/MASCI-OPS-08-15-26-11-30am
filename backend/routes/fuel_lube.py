@@ -310,6 +310,7 @@ def build_fuel_lube_router(
     async def list_visits(
         date_from: Optional[str] = Query(None, alias="from"),
         date_to: Optional[str] = Query(None, alias="to"),
+        doc_id: Optional[str] = None,
         project_number: Optional[str] = None,
         fuel_lube_truck_unit: Optional[str] = None,
         fuel_lube_tech_id: Optional[str] = None,
@@ -334,6 +335,8 @@ def build_fuel_lube_router(
             raise HTTPException(422, f"range must be ≤{_MAX_RANGE_DAYS} days and to ≥ from")
 
         q: Dict[str, Any] = {"visit_date": {"$gte": date_from, "$lte": date_to}}
+        if doc_id:
+            q["doc_id"] = doc_id.strip().upper()
         if project_number:
             q["project_number"] = project_number
         if fuel_lube_truck_unit:

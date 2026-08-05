@@ -12,6 +12,8 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
 import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import {
@@ -281,30 +283,38 @@ function ActiveModule({ invite, token, mod, onBack }) {
 
 // ────────────────────────────────────────────────────────────────────
 function Step3Submit({ invite, token }) {
-  const [submitted, setSubmitted] = useState(false);
+  const [receipt, setReceipt] = useState(null);
   const [err, setErr] = useState(null);
   const [signature, setSignature] = useState("");
   const submit = async () => {
     try {
-      await api.post(`/transportation/invite/${token}/submit`, {
+      const { data } = await api.post(`/transportation/invite/${token}/submit`, {
         printed_name: signature,
         acknowledged_at: new Date().toISOString(),
         user_agent: navigator.userAgent,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
-      setSubmitted(true);
+      setReceipt({ ...data, submitted_at: new Date().toISOString() });
     } catch (e) {
       setErr(e.response?.data?.detail || e.message || "Submit failed");
     }
   };
-  if (submitted) {
+  if (receipt) {
+    const confirmation = buildSubmissionConfirmation({
+      workflowKey: "transport-carrier-invite",
+      documentNumber: receipt.doc_id || receipt.invite_id || "",
+      submittedAt: receipt.submitted_at,
+      submittedBy: signature,
+      project: invite.carrier_legal_name || "Transportation carrier",
+      followUpRequired: "No further action is required unless MASCI Transportation requests corrections.",
+      returnToPortal: { label: "Return to MASCI", to: "/" },
+      contextItems: [
+        invite.contact_name ? { label: "Carrier Contact", value: invite.contact_name, testId: "submission-confirmation-carrier-contact" } : null,
+      ].filter(Boolean),
+    });
     return (
-      <section className="wp17-panel border-emerald-200 p-6 text-center" data-testid="step-3-submitted">
-        <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-600" />
-        <h2 className="text-2xl font-semibold mt-3">Submission received</h2>
-        <p className="text-sm text-slate-600 mt-1">
-          The MASCI Transportation Compliance Center has been notified. You&apos;ll receive an email confirmation when your packet is approved.
-        </p>
+      <section className="wp17-panel border-emerald-200 p-6" data-testid="step-3-submitted">
+        <SubmissionConfirmation confirmation={confirmation} embedded />
       </section>
     );
   }
