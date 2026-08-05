@@ -1,5 +1,14 @@
 # PRD
 
+## 2026-08-05 — iter128 deployment startup stabilization
+
+- Production deploy failure analysis traced the blocker to backend startup latency before uvicorn bound port `8001`, causing nginx `/health` probe `connect() failed (111: Connection refused)` during deployment.
+- Added a production/deploy fast-startup path in `lib/lifespan_bootstrap.py` so only runtime DB bootstrap, DB isolation failsafe, duplicate-route assertion, and thread-pool tuning block readiness; nonessential seed/index/scheduler/bootstrap work now defers until after readiness.
+- Reclassified heavy startup tasks (Track 16 bootstrap steps, phase-1 seed, backup scheduler, system bootstrap) into deferred startup.
+- Fixed deferred trench backfill to capture the concrete runtime DB and run through the tracked background-task helper instead of raw `asyncio.create_task`.
+- Fixed singleton scheduler lock handling to capture the concrete runtime DB target safely and stop the repeated `Database accessed before runtime initialization` warnings and the later `MotorCollection object is not callable` regression.
+- Backend verification after the final restart passed: `/api/health`, `/api/version`, `/api/platform/data-truth`, `/api/ready`, and PM schedule endpoint all returned `200`; no fresh singleton-scheduler or Motive runtime errors remained after restart.
+
 ## 2026-08-05 — iter127 final deploy-package closeout
 
 - Preview verified ✅ — deferred containment, runtime identity parity, restore proof, and the authoritative deploy suite were re-verified on the current workspace/preview bundle.

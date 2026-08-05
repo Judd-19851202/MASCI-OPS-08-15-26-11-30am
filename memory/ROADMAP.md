@@ -1,3 +1,20 @@
+# 2026-08-05 — Deployment startup stabilization roadmap state
+
+## Current top priority
+
+- **Redeploy and confirm production health probes succeed with the new fast-startup path.**
+- **Preserve the new rule that deploy readiness must never block on nonessential boot maintenance.**
+
+## P0
+- confirm the next production deploy no longer fails early `/health` probe connection checks
+- preserve concrete-runtime-DB capture in background boot tasks and singleton schedulers so proxy teardown cannot reintroduce startup/shutdown noise
+
+## P1
+- continue tuning non-blocking runtime latency, especially PM schedule/operational intelligence paths, without reintroducing startup blocking work
+
+## P2
+- keep any additional boot maintenance additive and deferred unless it is strictly required for readiness
+
 # 2026-08-04 — WP-18C6 closeout roadmap state
 
 ## Current top priority

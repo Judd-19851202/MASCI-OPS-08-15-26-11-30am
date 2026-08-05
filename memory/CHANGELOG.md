@@ -1,3 +1,12 @@
+# 2026-08-05 — Deployment startup stabilization
+
+- Fixed the production deploy blocker where health probes could hit nginx before uvicorn finished boot-time maintenance.
+- Added a production/deploy fast-startup path in `backend/lib/lifespan_bootstrap.py` so only runtime DB bootstrap, DB isolation, duplicate-route assertion, and thread-pool tuning block readiness.
+- Deferred heavy boot work behind readiness, including Track 16 transport bootstrap, phase-1 seeding, backup scheduler startup, and system bootstrap.
+- Fixed the trench startup backfill and singleton scheduler lock path to capture concrete runtime DB targets instead of the lazy runtime DB proxy.
+- Fixed the singleton-scheduler follow-up Motive regression (`MotorCollection object is not callable`).
+- Backend verification passed after restart: `/api/health`, `/api/version`, `/api/platform/data-truth`, `/api/ready`, and PM schedule endpoint all returned `200`, with no fresh singleton-scheduler or Motive errors.
+
 # 2026-08-04 — WP-18C6 Operational Intelligence / Production Intelligence Engine
 
 - Verified the two inherited C6 implementation patches first, preserved the accepted C1–C5 seams, and extended the platform with a single governed operational-metric authority in `backend/services/project_operational_intelligence.py`.
