@@ -1,5 +1,10 @@
 # PRD
 
+## 2026-08-05 — iter129 PM sign-in button color correction
+
+- Corrected the Project Management sign-in button styling after user review: the button now uses a navy background with white `SIGN IN` text to match the other portal sign-in screens.
+- Verified in preview with focused frontend QA: `pm-login-submit` remains present, readable, and visually aligned with the rest of the portal family.
+
 ## 2026-08-05 — iter128 deployment startup stabilization
 
 - Production deploy failure analysis traced the blocker to backend startup latency before uvicorn bound port `8001`, causing nginx `/health` probe `connect() failed (111: Connection refused)` during deployment.

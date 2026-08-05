@@ -1,3 +1,8 @@
+# 2026-08-05 — PM sign-in button color correction
+
+- Fixed the Project Management sign-in button colors after review: navy button background, white text, matching the other portal sign-in screens.
+- Verified with focused frontend QA that `pm-login-submit` is readable and unchanged functionally.
+
 # 2026-08-05 — Deployment startup stabilization
 
 - Fixed the production deploy blocker where health probes could hit nginx before uvicorn finished boot-time maintenance.
