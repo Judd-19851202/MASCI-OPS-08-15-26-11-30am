@@ -326,9 +326,8 @@ export default function PmLogin() {
             </div>
             <Button
               type="submit"
-              variant="outline"
               disabled={submitting}
-              className="w-full h-12 !bg-white !text-[#163b74] hover:!bg-slate-100 font-black uppercase tracking-[0.14em] text-sm border-2 !border-white/90 shadow-[0_18px_40px_rgba(7,18,38,0.18)] disabled:!bg-white/90 disabled:!text-[#163b74] disabled:opacity-100"
+              className="w-full h-12 !bg-[#163b74] hover:!bg-[#102d57] !text-white font-black uppercase tracking-[0.14em] text-sm border-b-2 !border-[#0b2347] shadow-[0_18px_40px_rgba(7,18,38,0.18)] disabled:!bg-[#163b74]/85 disabled:!text-white disabled:opacity-100"
               data-testid="pm-login-submit"
             >
               {submitting ? (
