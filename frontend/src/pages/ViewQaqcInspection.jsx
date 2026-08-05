@@ -13,6 +13,7 @@ import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { formatDateLong } from "@/lib/utils";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { QaqcLifecyclePanel } from "@/components/QaqcLifecyclePanel";
+import { enablePrintIsolation, printReport } from "@/lib/printReport";
 
 const KIND_LABEL = {
   concrete_form: "Concrete Form Inspection",
@@ -120,6 +121,8 @@ export default function ViewQaqcInspection() {
     };
   }, [id]);
 
+  useEffect(() => enablePrintIsolation("report-detail"), []);
+
   async function onDelete() {
     if (!window.confirm(t("Delete this QA/QC inspection?"))) return;
     try {
@@ -174,7 +177,8 @@ export default function ViewQaqcInspection() {
   const content = (
     <div className="min-h-screen bg-slate-50 print:bg-white">
       <div className="caution-stripe no-print" />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page" data-print-region>
+        <div data-print-hide>
         <DetailPageHero
           backHref={listUrl}
           backLabel={isAdminRoute ? t("Admin · QA / QC") : t("QA / QC")}
@@ -184,7 +188,7 @@ export default function ViewQaqcInspection() {
           actions={heroChips}
           toolbar={(
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={() => window.print()} variant="outline" className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm" data-testid="print-btn">
+              <Button onClick={() => printReport()} variant="outline" className="h-11 px-4 border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-sm" data-testid="print-btn">
                 <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
               </Button>
               {isAdmin() ? (
@@ -196,8 +200,9 @@ export default function ViewQaqcInspection() {
           )}
           testId="view-qaqc-hero"
         />
+        </div>
 
-        <section className="wp17-panel p-4 print:hidden" data-testid="view-qaqc-lifecycle-panel">
+        <section className="wp17-panel p-4 print:hidden" data-testid="view-qaqc-lifecycle-panel" data-print-hide>
           <QaqcLifecyclePanel inspectionId={data.id} />
         </section>
 

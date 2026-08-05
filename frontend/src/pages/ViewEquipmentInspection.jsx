@@ -8,7 +8,7 @@ import BackLink from "@/components/BackLink";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/utils";
-import { printReport, maybeAutoPrint } from "@/lib/printReport";
+import { printReport, maybeAutoPrint, enablePrintIsolation } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
@@ -86,6 +86,8 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
     if (!loading && data) maybeAutoPrint();
   }, [loading, data]);
 
+  useEffect(() => enablePrintIsolation("report-detail"), []);
+
   const onDelete = async () => {
     if (!window.confirm(t("Permanently delete this equipment inspection?"))) return;
     try {
@@ -136,11 +138,13 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
 
   const content = (
     <div className="min-h-screen bg-slate-50 print:bg-white pb-32 print:pb-0">
-      <PrintWatermark />
+      <div data-print-hide>
+        <PrintWatermark />
+      </div>
       <div className="caution-stripe print:hidden" />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 print:py-0 space-y-5">
-        <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 print:py-0 space-y-5" data-print-region>
+        <div className="print:hidden flex flex-wrap items-center justify-between gap-3" data-print-hide>
           <BackLink
             to={backHref}
             label={isShopContext ? t("Shop Operations") : t("Equipment Pre-Op")}
@@ -302,14 +306,16 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
                       <StatusPill status={res?.status} />
                     </div>
                     {isFail && (
-                      <ShopSignoffCard
-                        inspectionId={data.id || id}
-                        section={sectionTitle}
-                        item={item}
-                        severity={sev}
-                        existing={existing}
-                        onChange={(entry) => updateSignoff(sectionTitle, item, entry)}
-                      />
+                      <div data-print-hide>
+                        <ShopSignoffCard
+                          inspectionId={data.id || id}
+                          section={sectionTitle}
+                          item={item}
+                          severity={sev}
+                          existing={existing}
+                          onChange={(entry) => updateSignoff(sectionTitle, item, entry)}
+                        />
+                      </div>
                     )}
                   </div>
                 );
