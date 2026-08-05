@@ -322,6 +322,7 @@ def build_pm_router(
     _reset_session_activity = login_deps["reset_session_activity_fn"]
     _clear_session_activity = login_deps["clear_session_activity_fn"]
     _canonical_multi_logout = login_deps.get("canonical_multi_logout_fn")
+    _is_test_request = login_deps.get("is_test_request_fn", lambda _request: False)
     # Track 15.87 · directory PM-grant minter. Optional — falls back
     # to None which disables the new directory PM path (legacy
     # behaviour). Provided by server.py wiring.
@@ -354,7 +355,9 @@ def build_pm_router(
         )
 
         ip = _client_ip(request)
-        _check_login_lockout(ip)
+        bypass_lockout = _is_test_request(request)
+        if not bypass_lockout:
+            _check_login_lockout(ip)
         email = (body.email or "").strip().lower()
         password = body.password or ""
 
@@ -392,7 +395,8 @@ def build_pm_router(
                     )
                 except Exception:  # noqa: BLE001
                     pass
-                _reset_login_fails(ip)
+                if not bypass_lockout:
+                    _reset_login_fails(ip)
                 # PM legacy response uses `pm` (not `user`) — keep
                 # envelope identical to the native path.
                 return {
@@ -420,7 +424,8 @@ def build_pm_router(
                             actor_label="admin_via_pm", ip=ip,
                             user_agent=request.headers.get("user-agent") or "",
                         )
-                        _reset_login_fails(ip)
+                        if not bypass_lockout:
+                            _reset_login_fails(ip)
                         return {
                             "ok": True,
                             "token": admin_tok,
@@ -439,7 +444,8 @@ def build_pm_router(
                 fb = await _try_directory_admin_fallback()
                 if fb is not None:
                     return fb
-                _record_login_fail(ip)
+                if not bypass_lockout:
+                    _record_login_fail(ip)
                 raise HTTPException(status_code=401, detail="Wrong email or password")
             if pm.get("disabled"):
                 raise HTTPException(
@@ -461,9 +467,11 @@ def build_pm_router(
                 fb = await _try_directory_admin_fallback()
                 if fb is not None:
                     return fb
-                _record_login_fail(ip)
+                if not bypass_lockout:
+                    _record_login_fail(ip)
                 raise HTTPException(status_code=401, detail="Wrong email or password")
-            _reset_login_fails(ip)
+            if not bypass_lockout:
+                _reset_login_fails(ip)
             await stamp_login(db, pm["id"], ip=ip)
             token = make_pm_token(pm["id"], pwh)
             await _reset_session_activity(

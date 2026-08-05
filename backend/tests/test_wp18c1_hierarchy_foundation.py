@@ -9,20 +9,7 @@ import pytest
 import requests
 
 
-def _resolve_base_url():
-    from_env = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip().rstrip("/")
-    if from_env:
-        return from_env
-    env_path = Path("/app/frontend/.env")
-    if env_path.exists():
-        for line in env_path.read_text().splitlines():
-            if line.startswith("REACT_APP_BACKEND_URL="):
-                return line.split("=", 1)[1].strip().strip('"').rstrip("/")
-    return ""
-
-
 BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
-PREVIEW_BASE_URL = _resolve_base_url()
 
 # Test credentials from test_credentials.md
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -35,21 +22,23 @@ class TestWP18C1HierarchyFoundation:
     @pytest.fixture(scope="class")
     def auth_token(self):
         """Get admin + directory authentication tokens via multi-login"""
-        for api_base in (BASE_URL, PREVIEW_BASE_URL):
-            response = requests.post(
-                f"{api_base}/api/auth/multi-login",
-                json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
-                headers={"X-Device-Id": f"wp18c1-{uuid.uuid4().hex[:8]}"},
-                timeout=60,
-            )
-            if response.status_code == 200:
-                data = response.json()
-                portal_tokens = data.get("portal_tokens", {})
-                admin_token = portal_tokens.get("admin")
-                directory_token = data.get("session_token")
-                if admin_token and directory_token:
-                    return {"admin": admin_token, "directory": directory_token}
-        pytest.skip(f"Authentication failed across local/preview surfaces: {response.status_code} - {response.text}")
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={
+                "X-Device-Id": f"wp18c1-{uuid.uuid4().hex[:8]}",
+                "X-Test-Rate-Limit-Bypass": "1",
+            },
+            timeout=60,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            portal_tokens = data.get("portal_tokens", {})
+            admin_token = portal_tokens.get("admin")
+            directory_token = data.get("session_token")
+            if admin_token and directory_token:
+                return {"admin": admin_token, "directory": directory_token}
+        pytest.skip(f"Authentication failed on local backend: {response.status_code} - {response.text}")
 
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
@@ -534,30 +523,72 @@ class TestWP18C1HierarchyFoundation:
         assert "run_id" in data or "run_at" in data, "Missing run info in response"
         print(f"✓ Backfill run completed")
 
-    def test_backfill_latest(self, auth_headers):
+    def test_backfill_latest(self):
         """Test getting latest backfill report"""
+        # Fresh auth to avoid session timeout after backfill run
+        login_response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": f"wp18c1-backfill-{uuid.uuid4().hex[:8]}", "X-Test-Rate-Limit-Bypass": "1"},
+            timeout=60,
+        )
+        if login_response.status_code != 200:
+            pytest.skip(f"Fresh auth failed: {login_response.status_code}")
+        data = login_response.json()
+        fresh_headers = {
+            "X-Admin-Token": data.get("portal_tokens", {}).get("admin"),
+            "X-Directory-Token": data.get("session_token"),
+        }
         response = requests.get(
             f"{BASE_URL}/api/admin/governance/hierarchy/backfill/latest",
-            headers=auth_headers
+            headers=fresh_headers
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         print("✓ Latest backfill report retrieved")
 
     # ==================== REGRESSION: EXISTING GOVERNANCE ====================
-    def test_existing_governance_overview_still_works(self, auth_headers):
+    def test_existing_governance_overview_still_works(self):
         """Regression: Existing governance overview should still work"""
+        # Fresh auth to avoid session timeout after long test run
+        login_response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": f"wp18c1-regression-{uuid.uuid4().hex[:8]}", "X-Test-Rate-Limit-Bypass": "1"},
+            timeout=60,
+        )
+        if login_response.status_code != 200:
+            pytest.skip(f"Fresh auth failed: {login_response.status_code}")
+        data = login_response.json()
+        fresh_headers = {
+            "X-Admin-Token": data.get("portal_tokens", {}).get("admin"),
+            "X-Directory-Token": data.get("session_token"),
+        }
         response = requests.get(
             f"{BASE_URL}/api/admin/governance/overview",
-            headers=auth_headers
+            headers=fresh_headers
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         print("✓ Existing governance overview still works")
 
-    def test_existing_organization_endpoint_still_works(self, auth_headers):
+    def test_existing_organization_endpoint_still_works(self):
         """Regression: Existing organization endpoint should still work"""
+        # Fresh auth to avoid session timeout after long test run
+        login_response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": f"wp18c1-org-{uuid.uuid4().hex[:8]}", "X-Test-Rate-Limit-Bypass": "1"},
+            timeout=60,
+        )
+        if login_response.status_code != 200:
+            pytest.skip(f"Fresh auth failed: {login_response.status_code}")
+        data = login_response.json()
+        fresh_headers = {
+            "X-Admin-Token": data.get("portal_tokens", {}).get("admin"),
+            "X-Directory-Token": data.get("session_token"),
+        }
         response = requests.get(
             f"{BASE_URL}/api/admin/governance/organization",
-            headers=auth_headers
+            headers=fresh_headers
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         

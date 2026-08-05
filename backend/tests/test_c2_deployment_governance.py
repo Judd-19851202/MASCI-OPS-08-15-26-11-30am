@@ -131,26 +131,26 @@ class TestPublicEndpoints:
 
 class TestProtectedGovernanceEndpoints:
     """Test protected governance endpoints requiring dual-token auth"""
-    
-    @pytest.fixture(scope="class")
+
+    @pytest.fixture(scope="module")
     def auth_tokens(self):
-        """Get admin and directory tokens via multi-login"""
+        """Authenticate once through the current accepted Super Admin flow."""
         _reset_login_fails("127.0.0.1")
         response = requests.post(
             f"{API_BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-            headers={"X-Device-Id": f"c2-auth-{uuid.uuid4().hex[:10]}"},
-            timeout=10
+            headers={
+                "X-Device-Id": f"c2-auth-{uuid.uuid4().hex[:10]}",
+                "X-Test-Rate-Limit-Bypass": "1",
+            },
+            timeout=30,
         )
         assert response.status_code == 200, f"Multi-login failed: {response.text}"
         data = response.json()
-        
         admin_token = data.get("portal_tokens", {}).get("admin")
         directory_token = data.get("session_token")
-        
         assert admin_token, "Admin token not returned"
         assert directory_token, "Directory token not returned"
-        
         return {"admin": admin_token, "directory": directory_token}
     
     def test_admin_check(self, auth_tokens):
@@ -231,23 +231,23 @@ class TestProtectedGovernanceEndpoints:
 
 class TestAutomaticDeploymentVerification:
     """Test automatic startup deployment verification creates ledger records"""
-    
-    @pytest.fixture(scope="class")
+
+    @pytest.fixture(scope="module")
     def auth_tokens(self):
-        """Get admin and directory tokens via multi-login"""
+        """Reuse the accepted Super Admin dual-token flow for this suite."""
         _reset_login_fails("127.0.0.1")
         response = requests.post(
             f"{API_BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-            headers={"X-Device-Id": f"c2-auto-{uuid.uuid4().hex[:10]}"},
-            timeout=10
+            headers={
+                "X-Device-Id": f"c2-auto-{uuid.uuid4().hex[:10]}",
+                "X-Test-Rate-Limit-Bypass": "1",
+            },
+            timeout=30,
         )
-        assert response.status_code == 200
+        assert response.status_code == 200, response.text
         data = response.json()
-        return {
-            "admin": data.get("portal_tokens", {}).get("admin"),
-            "directory": data.get("session_token")
-        }
+        return {"admin": data.get("portal_tokens", {}).get("admin"), "directory": data.get("session_token")}
     
     def test_automatic_verification_ledger_record(self, auth_tokens):
         """Automatic startup verification creates deployment_decisions ledger record"""

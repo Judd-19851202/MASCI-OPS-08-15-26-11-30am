@@ -23,9 +23,7 @@ import requests
 import uuid
 from pathlib import Path
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
-if not BASE_URL:
-    BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
+BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 
 # Test credentials from test_credentials.md
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -38,7 +36,10 @@ def admin_headers():
     response = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-        headers={"X-Device-Id": f"iter58-auth-{uuid.uuid4().hex[:10]}"},
+        headers={
+            "X-Device-Id": f"iter58-auth-{uuid.uuid4().hex[:10]}",
+            "X-Test-Rate-Limit-Bypass": "1",
+        },
         timeout=60,
     )
     assert response.status_code == 200, f"Multi-login failed: {response.text}"

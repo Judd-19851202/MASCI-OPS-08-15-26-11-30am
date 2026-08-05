@@ -20,7 +20,7 @@ def _load_base_url() -> str:
     return ""
 
 
-BASE_URL = _load_base_url()
+BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 PM_EMAIL = "cert.pm@example.com"
 PM_PASSWORD = "CertProof2026!"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -37,6 +37,7 @@ class TestWP18C5ScheduleActualsAPIs:
         response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": "wp18c5-admin", "X-Test-Rate-Limit-Bypass": "1"},
             timeout=30,
         )
         if response.status_code != 200:
@@ -58,6 +59,7 @@ class TestWP18C5ScheduleActualsAPIs:
         response = session.post(
             f"{BASE_URL}/api/pm/login",
             json={"email": PM_EMAIL, "password": PM_PASSWORD},
+            headers={"X-Device-Id": "wp18c5-pm", "X-Test-Rate-Limit-Bypass": "1"},
             timeout=30,
         )
         if response.status_code != 200:
