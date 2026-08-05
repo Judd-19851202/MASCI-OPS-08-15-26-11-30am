@@ -277,8 +277,8 @@ async def run_with_singleton_lock(
             f"scheduler disabled on this worker (preview / non-prod)"
         )
         return
-    target_getter = getattr(db, "get_target", None)
-    runtime_db = target_getter() if callable(target_getter) else db
+    target_getter = getattr(type(db), "get_target", None)
+    runtime_db = target_getter(db) if callable(target_getter) else db
     if runtime_db is None:
         logger.warning(
             f"[singleton-lock:{lock_name}] runtime DB unavailable at scheduler bootstrap — skipping"
