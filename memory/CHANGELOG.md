@@ -1,3 +1,10 @@
+# 2026-08-05 — Transport map truth/visibility hardening
+
+- Completed live-production RCA for the blank transport map: production was returning real GPS asset data, but the page hit a client-side runtime failure and painted no vehicles.
+- Added a self-healing fallback marker path to the transport map so visible assets still render even if the clustered source/layer path fails in production.
+- Added explicit KPI/status meaning text, clearer Motive mixed-state wording, and made the `+N more areas` Project Intelligence overflow card a real toggle backed by `project_rollups_all` from the backend snapshot.
+- Verification passed: `/app/test_reports/iteration_138.json` passed (`frontend 100%`) for the preview transport map hardening, and `src/components/operations-map/__tests__/ProjectIntelligenceStrip.test.jsx` passed for the overflow toggle.
+
 # 2026-08-05 — Platform large-tablet viewport sweep
 
 - Completed a 1366x1024-style large-tablet sweep across accessible field forms and confirmed no other route showed the same early desktop-grid crowding that Daily Report had.

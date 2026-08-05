@@ -1,5 +1,12 @@
 # PRD
 
+## 2026-08-05 — iter140 transport map truth/visibility hardening
+
+- Investigated LIVE production transport-map truthfulness. Confirmed the production backend was returning real fleet data (real GPS-bearing assets and real KPI counts), so the blank live map was **not** a missing-data problem.
+- Root-cause finding: production dispatch map was hitting a client-side runtime failure (`a is not defined`) while the map page still showed KPI cards; this left the live map blank even though the snapshot payload contained in-bounds GPS assets.
+- Hardened the preview transport map with a self-healing fallback marker path in `MapCanvas.jsx`, explicit KPI/status meanings, clearer mixed-state Motive posture wording, and a real `+N more areas` toggle backed by the full ranked area list from the snapshot API.
+- Verification passed in preview: `/app/test_reports/iteration_138.json` confirmed visible vehicles/clusters plus truthful KPI meaning surfaces, and `ProjectIntelligenceStrip.test.jsx` now verifies the overflow toggle reveals/collapses hidden areas.
+
 ## 2026-08-05 — iter139 platform large-tablet viewport sweep
 
 - Completed a broader large-tablet landscape sweep (~1366x1024) across the highest-traffic and lower-traffic field forms, looking specifically for layouts that jump too early into cramped desktop grids.

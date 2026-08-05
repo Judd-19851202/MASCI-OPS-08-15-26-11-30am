@@ -1,3 +1,21 @@
+# 2026-08-05 — Transport map production follow-up state
+
+## Current top priority
+
+- **Preview transport-map hardening is complete for the production-reported blank fleet map / noisy KPI issue.**
+- **Next operator step: redeploy and re-check the live transportation map plus Project Intelligence overflow toggle on production.**
+
+## P0
+- validate live production transport map after redeploy: vehicles/clusters must appear, KPI meaning copy must read clearly, and the `+N more areas` card must expand/collapse
+- re-check the live Motive posture ribbon wording against real connectivity / operational mixed states
+
+## P1
+- keep adding defensive rendering fallbacks anywhere live telemetry surfaces can fail visually while data still exists underneath
+- keep expanding truth-language on KPI surfaces so colors are self-explanatory instead of operator guesswork
+
+## P2
+- consider a shared telemetry-health diagnostic panel for live operational pages so data truth, render health, and provider connectivity are all visible together
+
 # 2026-08-05 — Platform large-tablet viewport sweep state
 
 ## Current top priority
