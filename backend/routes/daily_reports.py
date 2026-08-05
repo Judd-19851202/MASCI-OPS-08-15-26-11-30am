@@ -1329,6 +1329,215 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
         key = idem_key_from_request(request)
 
+        async def _run_post_submit_pipeline(doc_snapshot: Dict[str, Any], payload_snapshot: Dict[str, Any], fl_token: str) -> None:
+            post_updates: Dict[str, Any] = {}
+            working_doc = dict(doc_snapshot)
+
+            try:
+                await sync_crew_observation_for_report(db, working_doc)
+            except Exception:  # noqa: BLE001
+                pass
+
+            try:
+                from services.project_schedule_actuals_spine import sync_schedule_actual_candidates_for_report  # noqa: PLC0415
+
+                schedule_actuals = await sync_schedule_actual_candidates_for_report(
+                    db,
+                    working_doc,
+                    actor={"email": working_doc.get("prepared_by") or "field", "role": "daily_report_submit"},
+                )
+                post_updates["schedule_actual_candidates"] = schedule_actuals.get("items") or []
+                post_updates["schedule_actual_candidate_summary"] = {
+                    "count": int(schedule_actuals.get("count") or 0),
+                    "pending": int(schedule_actuals.get("pending") or 0),
+                    "approved": int(schedule_actuals.get("approved") or 0),
+                    "version_id": schedule_actuals.get("version_id") or "",
+                }
+            except Exception:  # noqa: BLE001
+                post_updates.setdefault("schedule_actual_candidates", [])
+                post_updates.setdefault(
+                    "schedule_actual_candidate_summary",
+                    {"count": 0, "pending": 0, "approved": 0, "version_id": ""},
+                )
+
+            try:
+                progress_snapshot = await recompute_project_progress(db, working_doc.get("project_number") or "")
+                if progress_snapshot:
+                    post_updates["job_cost_code_progress"] = progress_snapshot
+            except Exception:  # noqa: BLE001
+                pass
+
+            try:
+                from services.ods_spine import ingest_dr_v1_report  # noqa: PLC0415
+
+                await ingest_dr_v1_report(
+                    db,
+                    working_doc,
+                    actor=working_doc.get("prepared_by") or "supervisor",
+                    trigger="event",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
+            try:
+                from routes.job_photos import index_record_photos
+
+                await index_record_photos(db, "daily_report", working_doc)
+            except Exception:  # noqa: BLE001
+                pass
+
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+
+                await emit_record_created(
+                    db,
+                    workflow="daily-report",
+                    record=working_doc,
+                    module="routes/daily_reports.py",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
+            try:
+                from lib.trust_spine import emit_record_created, emit_workflow_stage  # noqa: PLC0415
+
+                for actual_row in (working_doc.get("cost_code_quantities") or []):
+                    code = str(actual_row.get("cost_code") or actual_row.get("code") or "").strip()
+                    if not code:
+                        continue
+                    actual_record = {
+                        "id": f"{working_doc.get('project_number') or ''}:{working_doc.get('doc_id') or working_doc.get('id') or ''}:{code}",
+                        "doc_id": f"{working_doc.get('project_number') or ''}:{working_doc.get('doc_id') or working_doc.get('id') or ''}:{code}",
+                        "project_number": working_doc.get("project_number") or "",
+                    }
+                    await emit_record_created(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        record=actual_record,
+                        module="routes/daily_reports.py:cost_code_quantities",
+                        event_name="daily_actual_recorded",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="validation_complete",
+                        record=actual_record,
+                        module="routes/daily_reports.py:cost_code_quantities",
+                        event_name="quantity_updated",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="audit_written",
+                        record=actual_record,
+                        module="routes/daily_reports.py:masci_crews",
+                        event_name="labor_actual_updated",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="dashboard_updated",
+                        record=actual_record,
+                        module="routes/daily_reports.py:equipment",
+                        event_name="equipment_actual_updated",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="oppc-daily-actuals",
+                        stage="completed",
+                        record=actual_record,
+                        module="routes/daily_reports.py",
+                        event_name="completed",
+                    )
+            except Exception:  # noqa: BLE001
+                pass
+
+            try:
+                control_plane_result = await ingest_daily_report_submission(
+                    db,
+                    report=working_doc,
+                    actor_label=str(payload_snapshot.get("prepared_by") or working_doc.get("prepared_by") or "field").strip() or "field",
+                )
+                post_updates["operations_control_plane"] = {
+                    "enabled": True,
+                    "workflow_id": "oppc.daily_report_to_oppc",
+                    "event_ids": [control_plane_result.get("event", {}).get("id")],
+                    "communication_ids": [
+                        row.get("id") for row in (control_plane_result.get("communications") or []) if row.get("id")
+                    ],
+                    "registry_event_id": "oppc.daily_report.submitted",
+                    "registry_version": "operations-control-plane-v1",
+                    "last_processed_at": datetime.now(timezone.utc).isoformat(),
+                    "case_id": ((control_plane_result.get("case_result") or {}).get("case") or {}).get("id") or "",
+                    "case_number": ((control_plane_result.get("case_result") or {}).get("case") or {}).get("case_number") or "",
+                    "case_event_id": ((control_plane_result.get("case_result") or {}).get("case_event") or {}).get("id") or "",
+                    "case_communication_ids": [
+                        row.get("id")
+                        for row in (((control_plane_result.get("case_result") or {}).get("case_communications") or []))
+                        if row.get("id")
+                    ],
+                    "case_policy_decision": (control_plane_result.get("case_result") or {}).get("decision") or {},
+                }
+                post_updates["email_dispatch_suppressed"] = True
+                if control_plane_result.get("communications"):
+                    first_comm = (control_plane_result.get("communications") or [])[0]
+                    first_transport = (first_comm.get("transport_results") or [{}])[-1]
+                    post_updates["notification_state"] = first_transport.get("notification_state") or first_comm.get("status") or working_doc.get("notification_state")
+                    post_updates["notification_delivery_mode"] = first_transport.get("delivery_mode") or working_doc.get("notification_delivery_mode")
+                    post_updates["notification_provider_accepted"] = bool(first_transport.get("provider_accepted"))
+                    post_updates["notification_provider_called"] = bool(first_transport.get("provider_called"))
+                    post_updates["notification_failure_reason"] = first_transport.get("failure_reason")
+                    post_updates["notification_capture_id"] = first_transport.get("capture_id") or working_doc.get("notification_capture_id")
+                    post_updates["notification_last_updated_at"] = first_transport.get("ts") or working_doc.get("notification_last_updated_at")
+            except Exception as exc:  # noqa: BLE001
+                failure_reason = f"operations_control_plane_exception:{type(exc).__name__}"
+                logger.exception(
+                    "[daily_reports] operations control plane failed for report id=%s doc_id=%s project_number=%s",
+                    working_doc.get("id"),
+                    working_doc.get("doc_id"),
+                    working_doc.get("project_number"),
+                )
+                post_updates["operations_control_plane"] = {
+                    "enabled": True,
+                    "workflow_id": "oppc.daily_report_to_oppc",
+                    "error_state": "failed_action_required",
+                    "error_code": failure_reason,
+                    "error_type": type(exc).__name__,
+                    "error_message": str(exc)[:240],
+                    "last_processed_at": datetime.now(timezone.utc).isoformat(),
+                }
+                post_updates["notification_state"] = "failed_action_required"
+                post_updates["notification_failure_reason"] = failure_reason
+                post_updates["notification_last_updated_at"] = datetime.now(timezone.utc).isoformat()
+
+            merged_doc = {**working_doc, **post_updates}
+            if _should_schedule_daily_report_email(merged_doc):
+                try:
+                    schedule_auto_email("daily-report", merged_doc)
+                except Exception:  # noqa: BLE001
+                    pass
+
+            try:
+                from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
+
+                await resolve_identity(
+                    db,
+                    workflow="daily_report",
+                    record_id=working_doc.get("id") or "",
+                    record_doc_id=working_doc.get("doc_id") or "",
+                    project_number=working_doc.get("project_number") or "",
+                    submitter_employee_id=str(payload_snapshot.get("submitter_employee_id") or "").strip(),
+                    submitter_email_at_submit=str(payload_snapshot.get("submitter_email_at_submit") or "").strip(),
+                    submitter_consent_at=payload_snapshot.get("submitter_consent_at"),
+                    submitter_name_fallback=str(payload_snapshot.get("prepared_by") or "").strip(),
+                    fl_token=fl_token,
+                )
+            except Exception:  # pragma: no cover — best-effort audit
+                pass
+
+            if post_updates:
+                await db.daily_reports.update_one({"id": working_doc.get("id")}, {"$set": post_updates})
+
         async def _do_create():
             # ── TRACK 26.02 · P0 recovery · unit + constraint normalize ──
             # Normalize every production/constraint row BEFORE the
@@ -1517,6 +1726,11 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             doc["notification_provider_validation_status"] = _notification_contract.get("provider_validation_status")
             doc["notification_capture_available"] = bool(_notification_contract.get("capture_required"))
             report_dict = dict(doc)
+            report_dict.setdefault("schedule_actual_candidates", [])
+            report_dict.setdefault(
+                "schedule_actual_candidate_summary",
+                {"count": 0, "pending": 0, "approved": 0, "version_id": ""},
+            )
             # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
             # Freeze the active project roster at submit time so future
             # roster changes never rewrite historical truth on this record.
@@ -1556,18 +1770,6 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 doc["job_cost_code_progress"] = progress_snapshot
                 report_dict["job_cost_code_progress"] = progress_snapshot
             doc.pop("_id", None)
-            # DR-CUTOVER-001 · Wire V1 submission into the ODS spine so
-            # PM/Admin Operational Intelligence dashboards see REAL
-            # production data (not just QA V2 drafts). Best-effort:
-            # never block a submit on ODS emission.
-            try:
-                from services.ods_spine import ingest_dr_v1_report  # noqa: PLC0415
-                await ingest_dr_v1_report(
-                    db, doc, actor=doc.get("prepared_by") or "supervisor",
-                    trigger="event",
-                )
-            except Exception:  # noqa: BLE001
-                pass
             # ── TRACK 22.9B · Photo Intelligence first-pass (async) ──
             # Schedule a background task that runs the vision analyzer
             # over every attached photo. Never blocks the submit
@@ -1623,197 +1825,12 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     )
             except Exception:
                 pass  # never block a submit on linkage
-            # Mirror photos into the Job Photos library (Phase 1 read-only).
-            try:
-                from routes.job_photos import index_record_photos
-                await index_record_photos(db, "daily_report", doc)
-            except Exception:
-                pass  # never block a submit on indexing
-            # TRACK 15.76 · Trust Spine — open the record's lifecycle.
-            # The correlation_id is attached to ``doc`` so the universal
-            # email dispatcher and audit writer reuse it across stages.
-            try:
-                from lib.trust_spine import emit_record_created  # noqa: PLC0415
-                await emit_record_created(
-                    db, workflow="daily-report", record=doc,
-                    module="routes/daily_reports.py",
-                )
-            except Exception:  # noqa: BLE001
-                pass
-            try:
-                from lib.trust_spine import emit_record_created, emit_workflow_stage  # noqa: PLC0415
-
-                for actual_row in (doc.get("cost_code_quantities") or []):
-                    code = str(actual_row.get("cost_code") or actual_row.get("code") or "").strip()
-                    if not code:
-                        continue
-                    actual_record = {
-                        "id": f"{doc.get('project_number') or ''}:{doc.get('doc_id') or doc.get('id') or ''}:{code}",
-                        "doc_id": f"{doc.get('project_number') or ''}:{doc.get('doc_id') or doc.get('id') or ''}:{code}",
-                        "project_number": doc.get("project_number") or "",
-                    }
-                    await emit_record_created(
-                        db,
-                        workflow="oppc-daily-actuals",
-                        record=actual_record,
-                        module="routes/daily_reports.py:cost_code_quantities",
-                        event_name="daily_actual_recorded",
-                    )
-                    await emit_workflow_stage(
-                        db,
-                        workflow="oppc-daily-actuals",
-                        stage="validation_complete",
-                        record=actual_record,
-                        module="routes/daily_reports.py:cost_code_quantities",
-                        event_name="quantity_updated",
-                    )
-                    await emit_workflow_stage(
-                        db,
-                        workflow="oppc-daily-actuals",
-                        stage="audit_written",
-                        record=actual_record,
-                        module="routes/daily_reports.py:masci_crews",
-                        event_name="labor_actual_updated",
-                    )
-                    await emit_workflow_stage(
-                        db,
-                        workflow="oppc-daily-actuals",
-                        stage="dashboard_updated",
-                        record=actual_record,
-                        module="routes/daily_reports.py:equipment",
-                        event_name="equipment_actual_updated",
-                    )
-                    await emit_workflow_stage(
-                        db,
-                        workflow="oppc-daily-actuals",
-                        stage="completed",
-                        record=actual_record,
-                        module="routes/daily_reports.py",
-                        event_name="completed",
-                    )
-            except Exception:  # noqa: BLE001
-                pass
-            try:
-                control_plane_result = await ingest_daily_report_submission(
-                    db,
-                    report=doc,
-                    actor_label=str(payload.prepared_by or doc.get("prepared_by") or "field").strip() or "field",
-                )
-                doc["operations_control_plane"] = {
-                    "enabled": True,
-                    "workflow_id": "oppc.daily_report_to_oppc",
-                    "event_ids": [
-                        control_plane_result.get("event", {}).get("id")
-                    ],
-                    "communication_ids": [
-                        row.get("id") for row in (control_plane_result.get("communications") or []) if row.get("id")
-                    ],
-                    "registry_event_id": "oppc.daily_report.submitted",
-                    "registry_version": "operations-control-plane-v1",
-                    "last_processed_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
-                    "case_id": ((control_plane_result.get("case_result") or {}).get("case") or {}).get("id") or "",
-                    "case_number": ((control_plane_result.get("case_result") or {}).get("case") or {}).get("case_number") or "",
-                    "case_event_id": ((control_plane_result.get("case_result") or {}).get("case_event") or {}).get("id") or "",
-                    "case_communication_ids": [
-                        row.get("id") for row in (((control_plane_result.get("case_result") or {}).get("case_communications") or [])) if row.get("id")
-                    ],
-                    "case_policy_decision": (control_plane_result.get("case_result") or {}).get("decision") or {},
-                }
-                doc["email_dispatch_suppressed"] = True
-                if control_plane_result.get("communications"):
-                    first_comm = (control_plane_result.get("communications") or [])[0]
-                    first_transport = (first_comm.get("transport_results") or [{}])[-1]
-                    doc["notification_state"] = first_transport.get("notification_state") or first_comm.get("status") or doc.get("notification_state")
-                    doc["notification_delivery_mode"] = first_transport.get("delivery_mode") or doc.get("notification_delivery_mode")
-                    doc["notification_provider_accepted"] = bool(first_transport.get("provider_accepted"))
-                    doc["notification_provider_called"] = bool(first_transport.get("provider_called"))
-                    doc["notification_failure_reason"] = first_transport.get("failure_reason")
-                    doc["notification_capture_id"] = first_transport.get("capture_id") or doc.get("notification_capture_id")
-                    doc["notification_last_updated_at"] = first_transport.get("ts") or doc.get("notification_last_updated_at")
-                    report_dict.update({
-                        "operations_control_plane": doc.get("operations_control_plane"),
-                        "email_dispatch_suppressed": True,
-                        "notification_state": doc.get("notification_state"),
-                        "notification_delivery_mode": doc.get("notification_delivery_mode"),
-                        "notification_provider_accepted": doc.get("notification_provider_accepted"),
-                        "notification_provider_called": doc.get("notification_provider_called"),
-                        "notification_failure_reason": doc.get("notification_failure_reason"),
-                        "notification_capture_id": doc.get("notification_capture_id"),
-                        "notification_last_updated_at": doc.get("notification_last_updated_at"),
-                    })
-                    await db.daily_reports.update_one(
-                        {"id": doc.get("id")},
-                        {"$set": {
-                            "operations_control_plane": doc.get("operations_control_plane"),
-                            "email_dispatch_suppressed": True,
-                            "notification_state": doc.get("notification_state"),
-                            "notification_delivery_mode": doc.get("notification_delivery_mode"),
-                            "notification_provider_accepted": doc.get("notification_provider_accepted"),
-                            "notification_provider_called": doc.get("notification_provider_called"),
-                            "notification_failure_reason": doc.get("notification_failure_reason"),
-                            "notification_capture_id": doc.get("notification_capture_id"),
-                            "notification_last_updated_at": doc.get("notification_last_updated_at"),
-                        }}
-                    )
-            except Exception as exc:  # noqa: BLE001
-                failure_reason = f"operations_control_plane_exception:{type(exc).__name__}"
-                logger.exception(
-                    "[daily_reports] operations control plane failed for report id=%s doc_id=%s project_number=%s",
-                    doc.get("id"),
-                    doc.get("doc_id"),
-                    doc.get("project_number"),
-                )
-                doc["operations_control_plane"] = {
-                    "enabled": True,
-                    "workflow_id": "oppc.daily_report_to_oppc",
-                    "error_state": "failed_action_required",
-                    "error_code": failure_reason,
-                    "error_type": type(exc).__name__,
-                    "error_message": str(exc)[:240],
-                    "last_processed_at": datetime.now(timezone.utc).isoformat(),
-                }
-                doc["notification_state"] = "failed_action_required"
-                doc["notification_failure_reason"] = failure_reason
-                doc["notification_last_updated_at"] = datetime.now(timezone.utc).isoformat()
-                report_dict.update({
-                    "operations_control_plane": doc.get("operations_control_plane"),
-                    "notification_state": doc.get("notification_state"),
-                    "notification_failure_reason": doc.get("notification_failure_reason"),
-                    "notification_last_updated_at": doc.get("notification_last_updated_at"),
-                })
-                await db.daily_reports.update_one(
-                    {"id": doc.get("id")},
-                    {"$set": {
-                        "operations_control_plane": doc.get("operations_control_plane"),
-                        "notification_state": doc.get("notification_state"),
-                        "notification_failure_reason": doc.get("notification_failure_reason"),
-                        "notification_last_updated_at": doc.get("notification_last_updated_at"),
-                    }}
-                )
-            if _should_schedule_daily_report_email(doc):
-                schedule_auto_email("daily-report", doc)
-
-            # iter452.5 Tier 1 · Field Submitter Identity binding.
-            # iter452.5.1 (P0) · FL token from header drives tier-1
-            # resolution; orphan corner closed by tier-5 dead-letter.
-            try:
-                from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
-                p = payload.model_dump()
-                fl_token = (request.headers.get("X-FL-Token") or "").strip()
-                await resolve_identity(
-                    db,
-                    workflow="daily_report",
-                    record_id=doc.get("id") or "",
-                    record_doc_id=doc.get("doc_id") or "",
-                    project_number=doc.get("project_number") or "",
-                    submitter_employee_id=str(p.get("submitter_employee_id") or "").strip(),
-                    submitter_email_at_submit=str(p.get("submitter_email_at_submit") or "").strip(),
-                    submitter_consent_at=p.get("submitter_consent_at"),
-                    submitter_name_fallback=str(p.get("prepared_by") or "").strip(),
-                    fl_token=fl_token,
-                )
-            except Exception:  # pragma: no cover — best-effort audit
-                pass
+            background_tasks.add_task(
+                _run_post_submit_pipeline,
+                dict(doc),
+                payload_dict,
+                (request.headers.get("X-FL-Token") or "").strip(),
+            )
 
             return DailyReport(**report_dict)
 
