@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import csv
 import hashlib
 import io
@@ -111,6 +112,10 @@ EVENT_CONTRACTS = [
         "operator_visible_consequence": "Lookahead changes remain a governed view and do not overwrite the baseline schedule.",
     },
 ]
+
+
+_FOUNDATION_READY_DBS: set[str] = set()
+_FOUNDATION_READY_LOCK = asyncio.Lock()
 
 COLUMN_ALIASES = {
     "activity_id": ["activity id", "activity code", "task id", "id", "wbs activity"],
@@ -548,18 +553,27 @@ def _parse_import_file(filename: str, data: bytes, *, source_kind: str) -> Tuple
 async def _ensure_indexes(db) -> None:
     await db[COLL_SCHEDULE_VERSIONS].create_index([("project_number", 1), ("version_id", 1)], unique=True)
     await db[COLL_SCHEDULE_VERSIONS].create_index([("project_number", 1), ("status", 1), ("activated_at", -1)])
+    await db[COLL_SCHEDULE_VERSIONS].create_index([("project_number", 1), ("activated_at", -1)])
     await db[COLL_SCHEDULE_ACTIVITIES].create_index([("project_number", 1), ("version_id", 1), ("activity_id", 1)], unique=True)
     await db[COLL_SCHEDULE_ACTIVITIES].create_index([("project_number", 1), ("work_package_id", 1), ("status", 1)])
+    await db[COLL_SCHEDULE_ACTIVITIES].create_index([("project_number", 1), ("version_id", 1), ("phase_id", 1), ("work_package_id", 1), ("planned_start_date", 1), ("activity_id", 1)])
     await db[COLL_SCHEDULE_IMPORTS].create_index([("project_number", 1), ("import_id", 1)], unique=True)
+    await db[COLL_SCHEDULE_IMPORTS].create_index([("project_number", 1), ("imported_at", -1)])
     await db[COLL_SCHEDULE_IMPORT_ROWS].create_index([("import_id", 1), ("row_id", 1)], unique=True)
     await db[COLL_SCHEDULE_REVIEW].create_index("review_id", unique=True)
+    await db[COLL_SCHEDULE_REVIEW].create_index([("project_number", 1), ("priority", -1), ("updated_at", -1)])
     await db[COLL_WORK_PACKAGES].create_index([("project_number", 1), ("version_id", 1), ("work_package_id", 1)], unique=True)
     await db[COLL_SCHEDULE_DISTRIBUTION].create_index([("project_number", 1), ("created_at", -1)])
     await db[COLL_SCHEDULE_RUNS].create_index([("run_type", 1)], unique=True)
 
 
 async def ensure_project_schedule_foundation(db) -> Dict[str, Any]:
-    await _ensure_indexes(db)
+    db_key = str(getattr(db, "name", "")) or COLL_SCHEDULE_VERSIONS
+    if db_key not in _FOUNDATION_READY_DBS:
+        async with _FOUNDATION_READY_LOCK:
+            if db_key not in _FOUNDATION_READY_DBS:
+                await _ensure_indexes(db)
+                _FOUNDATION_READY_DBS.add(db_key)
     await ensure_project_controls_foundation(db)
     last_run = await db[COLL_SCHEDULE_RUNS].find_one({"run_type": "wp18c4_backfill"}, {"_id": 0})
     return {
@@ -1326,27 +1340,53 @@ def _two_week_window_rows(activities: List[Dict[str, Any]], *, days: int) -> Lis
 
 async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]:
     await ensure_project_schedule_foundation(db)
-    from services.project_schedule_actuals_spine import get_schedule_actuals_overview  # noqa: PLC0415
+    from services.project_schedule_actuals_spine import (  # noqa: PLC0415
+        COLL_DAILY_WORK_PLANS,
+        COLL_SCHEDULE_ACTUAL_CANDIDATES,
+    )
 
-    job = await _load_job(db, project_number)
-    versions = await list_schedule_versions(db, project_number)
+    job, versions, imports, review_queue, budget_lines, lookahead = await asyncio.gather(
+        _load_job(db, project_number),
+        list_schedule_versions(db, project_number),
+        list_schedule_imports(db, project_number),
+        list_schedule_review_queue(db, project_number=project_number),
+        _list_budget_lines_for_project(db, project_number),
+        get_project_lookahead(db, project_number),
+    )
     active_version = next((row for row in versions if row.get("status") == "active"), None)
-    activities = await list_schedule_activities(db, project_number, version_id=active_version["version_id"]) if active_version else []
-    work_packages = await list_schedule_work_packages(db, project_number, version_id=active_version["version_id"] if active_version else "")
-    imports = await list_schedule_imports(db, project_number)
-    review_queue = await list_schedule_review_queue(db, project_number=project_number)
-    budget_lines = await _list_budget_lines_for_project(db, project_number)
-    lookahead = await get_project_lookahead(db, project_number)
+    activities_task = list_schedule_activities(db, project_number, version_id=active_version["version_id"]) if active_version else asyncio.sleep(0, result=[])
+    work_packages_task = list_schedule_work_packages(db, project_number, version_id=active_version["version_id"] if active_version else "")
+    work_ledger_task = db.project_controls_work_ledger.find({"project_number": project_number}, {"_id": 0}).sort([("report_date", -1)]).limit(50).to_list(length=50)
+    actual_candidate_count_task = db[COLL_SCHEDULE_ACTUAL_CANDIDATES].count_documents({"project_number": project_number})
+    approved_actual_count_task = db[COLL_SCHEDULE_ACTUAL_CANDIDATES].count_documents({"project_number": project_number, "review_status": "approved"})
+    daily_plan_count_task = db[COLL_DAILY_WORK_PLANS].count_documents({"project_number": project_number})
+    activities, work_packages, work_ledger_rows, actual_candidate_count, approved_actual_count, daily_plan_count = await asyncio.gather(
+        activities_task,
+        work_packages_task,
+        work_ledger_task,
+        actual_candidate_count_task,
+        approved_actual_count_task,
+        daily_plan_count_task,
+    )
     if active_version and activities:
         lookahead = await _seed_lookahead_from_activities(db, project_number, activities, actor={"email": "system", "role": "system"})
-    work_ledger_rows = [_sanitize(row) async for row in db.project_controls_work_ledger.find({"project_number": project_number}, {"_id": 0}).sort([("report_date", -1)]).limit(50)]
-    actuals_overview = await get_schedule_actuals_overview(db, project_number)
+    work_ledger_rows = [_sanitize(row) for row in work_ledger_rows]
+    actuals_summary = {
+        "summary": {
+            "candidates": int(actual_candidate_count or 0),
+            "approved": int(approved_actual_count or 0),
+            "review_required": max(int(actual_candidate_count or 0) - int(approved_actual_count or 0), 0),
+            "daily_work_plans": int(daily_plan_count or 0),
+        },
+        "candidates": [],
+        "daily_work_plans": [],
+    }
     actual_chain = {
         "work_block_links": sum(1 for row in work_ledger_rows if _clean(row.get("schedule_activity_id"))),
         "daily_report_rows": len({row.get("source_report_id") for row in work_ledger_rows if row.get("source_report_id")}),
         "production_rows": sum(1 for row in work_ledger_rows if _to_float(row.get("installed_quantity"), 0.0) > 0),
-        "candidate_rows": (actuals_overview.get("counts") or {}).get("candidates") or 0,
-        "approved_actuals": (actuals_overview.get("counts") or {}).get("approved") or 0,
+        "candidate_rows": int(actual_candidate_count or 0),
+        "approved_actuals": int(approved_actual_count or 0),
     }
     return {
         "project": {"project_number": project_number, "project_name": job.get("project_name") or job.get("name") or project_number},
@@ -1370,9 +1410,9 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
             "review_queue_open": sum(1 for row in review_queue if row.get("status") != "resolved"),
             "budget_lines": len(budget_lines),
             "actual_work_blocks": actual_chain["work_block_links"],
-            "schedule_actual_candidates": (actuals_overview.get("counts") or {}).get("candidates") or 0,
-            "approved_schedule_actuals": (actuals_overview.get("counts") or {}).get("approved") or 0,
-            "daily_work_plans": 1 if (actuals_overview.get("daily_work_plan") or {}).get("plan_id") else 0,
+            "schedule_actual_candidates": int(actual_candidate_count or 0),
+            "approved_schedule_actuals": int(approved_actual_count or 0),
+            "daily_work_plans": int(daily_plan_count or 0),
         },
         "active_version": active_version,
         "versions": versions[:8],
@@ -1382,11 +1422,11 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
         "review_queue": review_queue[:20],
         "budget_lines": budget_lines[:50],
         "lookahead": lookahead,
-        "daily_work_plan": actuals_overview.get("daily_work_plan") or {},
+        "daily_work_plan": {},
         "lookahead_2w": _two_week_window_rows(activities, days=14),
         "lookahead_4w": _two_week_window_rows(activities, days=28),
         "actual_chain": actual_chain,
-        "schedule_actuals": actuals_overview,
+        "schedule_actuals": actuals_summary,
         "event_contracts": EVENT_CONTRACTS,
         "backfill": _sanitize(await db[COLL_SCHEDULE_RUNS].find_one({"run_type": "wp18c4_backfill"}, {"_id": 0}) or {"run_type": "wp18c4_backfill", "status": "pending_manual_run"}),
     }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections import defaultdict
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
@@ -34,6 +35,10 @@ PLAN_STATUSES = ["draft", "published", "archived"]
 SCHEDULE_PROGRESS_STATUSES = ["not_started", "in_progress", "completed"]
 
 
+_ACTUALS_FOUNDATION_READY_DBS: set[str] = set()
+_ACTUALS_FOUNDATION_READY_LOCK = asyncio.Lock()
+
+
 def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -66,6 +71,7 @@ def _hours_from_row(row: Dict[str, Any]) -> float:
 async def _ensure_indexes(db) -> None:
     await db[COLL_SCHEDULE_ACTUAL_CANDIDATES].create_index([("project_number", 1), ("candidate_id", 1)], unique=True)
     await db[COLL_SCHEDULE_ACTUAL_CANDIDATES].create_index([("project_number", 1), ("review_status", 1), ("report_date", -1)])
+    await db[COLL_SCHEDULE_ACTUAL_CANDIDATES].create_index([("project_number", 1), ("report_date", -1), ("source_report_id", -1)])
     await db[COLL_SCHEDULE_ACTUAL_CANDIDATES].create_index([("source_report_id", 1), ("work_block_id", 1), ("version_id", 1)], unique=True)
     await db[COLL_SCHEDULE_ACTUAL_CANDIDATES].create_index([("project_number", 1), ("activity_resolution.resolved_activity_id", 1), ("review_status", 1)])
     await db[COLL_DAILY_WORK_PLANS].create_index([("project_number", 1), ("work_date", 1)], unique=True)
@@ -74,7 +80,12 @@ async def _ensure_indexes(db) -> None:
 
 async def ensure_schedule_actuals_foundation(db) -> Dict[str, Any]:
     await ensure_project_schedule_foundation(db)
-    await _ensure_indexes(db)
+    db_key = str(getattr(db, "name", "")) or COLL_SCHEDULE_ACTUAL_CANDIDATES
+    if db_key not in _ACTUALS_FOUNDATION_READY_DBS:
+        async with _ACTUALS_FOUNDATION_READY_LOCK:
+            if db_key not in _ACTUALS_FOUNDATION_READY_DBS:
+                await _ensure_indexes(db)
+                _ACTUALS_FOUNDATION_READY_DBS.add(db_key)
     latest = await db[COLL_SCHEDULE_ACTUAL_RUNS].find_one({"run_type": "wp18c5_actuals_backfill"}, {"_id": 0})
     return {
         "ok": True,
