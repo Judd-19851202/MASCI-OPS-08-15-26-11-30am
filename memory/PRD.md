@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter137 shared detail-print sweep + meetings runtime fix
+
+- Completed the shared detail-report print sweep across all current `View*` pages that use the portal shell pattern: Daily Report, Meeting, Site Inspection, Incident, QA/QC Inspection, and Equipment Inspection now all use print isolation.
+- Fixed the QA-discovered admin meetings runtime regression (`t is not a function`) so `JobFolderList` expand/collapse works again on `/admin/meetings`.
+- Verification passed in preview: `/app/test_reports/iteration_136.json` confirmed print isolation coverage across all 6 shared detail pages, and frontend QA confirmed the admin meetings page runtime fix (`4/4` checks passed).
+
 ## 2026-08-05 — iter136 daily report print isolation + submit fast-path repair
 
 - Fixed Daily Report browser-print / Print-to-PDF isolation so admin/PM shell chrome (sidebar, shell background, hero/actions, lifecycle controls, watermark) is hidden and only the report document prints.

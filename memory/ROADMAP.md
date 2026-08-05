@@ -1,3 +1,21 @@
+# 2026-08-05 — Shared detail-print sweep follow-up state
+
+## Current top priority
+
+- **Preview sweep is complete for the shared detail-report print pages across the current View* family.**
+- **Next operator step: redeploy and spot-check live print/PDF output from Daily Reports plus the other highest-traffic detail pages.**
+
+## P0
+- validate live print/PDF output after redeploy on Daily Reports, Meetings, Incidents, Equipment Inspections, QA/QC, and Site Inspections
+- validate that `/admin/meetings` remains stable with folder expand/collapse on production after redeploy
+
+## P1
+- continue expanding runtime/browser coverage to any additional record viewers outside the current View* family
+- keep an eye out for any other shell-based pages that need print isolation but do not currently expose print actions
+
+## P2
+- factor the print-isolation pattern into a reusable report-view shell helper if more detail pages are added later
+
 # 2026-08-05 — Daily Report print + submit follow-up state
 
 ## Current top priority

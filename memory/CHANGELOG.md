@@ -1,3 +1,9 @@
+# 2026-08-05 — Shared detail-print sweep + admin meetings runtime fix
+
+- Extended the print isolation pattern across all current shell-based detail pages: ViewDailyReport, ViewMeeting, ViewInspection, ViewIncident, ViewQaqcInspection, and ViewEquipmentInspection.
+- Fixed the unrelated QA-found admin meetings runtime bug by correcting `useT()` usage in `MeetingsDashboard`, restoring `JobFolderList` expand/collapse behavior.
+- Verification passed: `/app/test_reports/iteration_136.json` confirmed print isolation coverage, and targeted frontend QA passed `4/4` on `/admin/meetings` after the runtime fix.
+
 # 2026-08-05 — Daily Report print isolation + submit fast-path repair
 
 - Fixed Daily Report print/PDF output so only the report document prints, not the admin/PM portal shell.
