@@ -95,7 +95,7 @@ function updateOtherUnitDescription(row, raw) {
 }
 
 function numericFieldClass() {
-  return "w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm";
+  return "w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]";
 }
 
 function buildWorkBlockPreview(data) {
@@ -299,7 +299,7 @@ export function SectionShell({ step, title, testId, right = null, children }) {
 }
 
 const rowBtn =
-  "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100";
+  "inline-flex min-h-12 items-center gap-1 rounded-[0.95rem] px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100";
 
 // ── Section 02 · Crew + Equipment ─────────────────────────────────
 export function SectionCrewEquipment({ data, patch, costCodes }) {
@@ -492,7 +492,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     }
                     value={c.trade || ""}
                     onChange={(e) => updateCrew(i, { trade: e.target.value, trade_snapshot: e.target.value, trade_autofilled: false })}
-                    className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-crew-trade-${i}`}
                   />
                   {c.trade && c.trade_autofilled && (
@@ -534,7 +534,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     type="time"
                     value={c.start_time || ""}
                     onChange={(e) => updateCrew(i, { start_time: e.target.value })}
-                    className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-crew-start-${i}`}
                   />
                 </label>
@@ -544,7 +544,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     type="time"
                     value={c.stop_time || ""}
                     onChange={(e) => updateCrew(i, { stop_time: e.target.value })}
-                    className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-crew-stop-${i}`}
                   />
                 </label>
@@ -564,7 +564,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                         }),
                       })
                     }
-                    className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-crew-lunch-${i}`}
                   />
                 </label>
@@ -583,7 +583,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                       };
                       patch({ masci_crews: next });
                     }}
-                    className="rounded-md border border-slate-300 bg-slate-50 px-2 py-2 text-sm font-medium"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-[0.95rem] font-medium"
                     data-testid={`dr-v3-crew-hours-${i}`}
                   />
                 </label>
@@ -750,7 +750,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     };
                     patch({ equipment: next });
                   }}
-                  className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-eq-hours-${i}`}
                 />
               </label>
@@ -772,7 +772,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     };
                     patch({ equipment: next });
                   }}
-                  className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-eq-idle-${i}`}
                 />
               </label>
@@ -784,7 +784,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     (Number(e.hours_used) || 0) + (Number(e.idle_hours) || 0)
                   ).toFixed(2)}
                   readOnly
-                  className="rounded-md border border-slate-200 bg-slate-50 px-2 py-2 text-sm font-medium text-slate-700"
+                  className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[0.95rem] font-medium text-slate-700"
                   data-testid={`dr-v3-eq-total-${i}`}
                 />
               </label>
@@ -798,7 +798,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 next[i] = { ...e, notes: ev.target.value };
                 patch({ equipment: next });
               }}
-              className="mt-2 w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+              className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
               data-testid={`dr-v3-eq-notes-${i}`}
             />
             {hasCodes && (
@@ -979,7 +979,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     };
                     patch({ subcontractors: next });
                   }}
-                  className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-sub-count-${i}`}
                 />
               </label>
@@ -998,7 +998,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     };
                     patch({ subcontractors: next });
                   }}
-                  className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-sub-hours-${i}`}
                 />
               </label>
@@ -1011,7 +1011,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   next[i] = { ...s, work_performed: ev.target.value };
                   patch({ subcontractors: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-sub-work-${i}`}
               />
             </div>
@@ -1285,7 +1285,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                   next[i] = { ...p, description: e.target.value };
                   patch({ production: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-prod-desc-${i}`}
               />
               <label className="flex flex-col gap-1">
@@ -1341,7 +1341,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                   next[i] = { ...p, station_from: e.target.value };
                   patch({ production: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-prod-sta-from-${i}`}
               />
               <input
@@ -1353,7 +1353,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                   next[i] = { ...p, station_to: e.target.value };
                   patch({ production: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-prod-sta-to-${i}`}
               />
               <label className="flex flex-col gap-1">
@@ -1375,7 +1375,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                   next[i] = { ...p, percent_complete: v };
                   patch({ production: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-prod-percent-${i}`}
               />
               </label>
@@ -1392,7 +1392,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                     next[i] = updateOtherUnitDescription(p, e.target.value);
                     patch({ production: next });
                   }}
-                  className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-prod-other-unit-${i}`}
                 />
               </label>
@@ -1406,7 +1406,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                 next[i] = { ...p, notes: e.target.value };
                 patch({ production: next });
               }}
-              className="mt-2 w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+              className="mt-2 w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
               data-testid={`dr-v3-prod-notes-${i}`}
             />
             {hasCodes && (
@@ -1473,7 +1473,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...m, description: e.target.value };
                   patch({ materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-mat-desc-${i}`}
               />
               <label className="flex flex-col gap-1">
@@ -1528,7 +1528,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                     next[i] = updateOtherUnitDescription(m, e.target.value);
                     patch({ materials: next });
                   }}
-                  className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-mat-other-unit-${i}`}
                 />
               </label>
@@ -1571,7 +1571,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...m, ticket_number: e.target.value };
                   patch({ materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-mat-ticket-${i}`}
               />
               <div className="min-w-0">
@@ -1636,7 +1636,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...o, material: e.target.value };
                   patch({ outbound_materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-out-mat-${i}`}
               />
               <label className="flex flex-col gap-1">
@@ -1691,7 +1691,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                     next[i] = updateOtherUnitDescription(o, e.target.value);
                     patch({ outbound_materials: next });
                   }}
-                  className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                   data-testid={`dr-v3-out-other-unit-${i}`}
                 />
               </label>
@@ -1734,7 +1734,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...o, destination: e.target.value };
                   patch({ outbound_materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-out-dest-${i}`}
               />
               <input
@@ -1746,7 +1746,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...o, ticket_number: e.target.value };
                   patch({ outbound_materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-out-ticket-${i}`}
               />
             </div>
@@ -2090,7 +2090,7 @@ export function SectionImpactSafety({ data, patch }) {
                       onChange={(e) =>
                         patch({ safety_contact_person: e.target.value })
                       }
-                      className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                      className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                       data-testid="dr-v3-safety-contact-person"
                     />
                   </label>
@@ -2103,7 +2103,7 @@ export function SectionImpactSafety({ data, patch }) {
                       onChange={(e) =>
                         patch({ safety_contact_time: e.target.value })
                       }
-                      className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                      className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                       data-testid="dr-v3-safety-contact-time"
                     />
                   </label>
@@ -2187,7 +2187,7 @@ export function SectionImpactSafety({ data, patch }) {
                       onChange={(e) =>
                         patch({ incident_report_time: e.target.value })
                       }
-                      className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                      className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                       data-testid="dr-v3-incident-report-time"
                     />
                   </label>
@@ -2199,7 +2199,7 @@ export function SectionImpactSafety({ data, patch }) {
                       onChange={(e) =>
                         patch({ incident_report_reference: e.target.value })
                       }
-                      className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                      className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                       data-testid="dr-v3-incident-report-reference"
                     />
                   </label>
@@ -2299,7 +2299,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, name: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-visitor-name-${i}`}
                   />
                   <input
@@ -2311,7 +2311,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, company: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-visitor-company-${i}`}
                   />
                   <button
@@ -2335,7 +2335,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, time_in: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-visitor-tin-${i}`}
                     aria-label={t("Time in")}
                   />
@@ -2347,7 +2347,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, time_out: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-visitor-tout-${i}`}
                     aria-label={t("Time out")}
                   />
@@ -2360,7 +2360,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, purpose: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
                     data-testid={`dr-v3-visitor-purpose-${i}`}
                   />
                 </div>

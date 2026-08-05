@@ -112,7 +112,7 @@ export function UnitCombo({
           aria-expanded={open}
           variant="outline"
           className={cn(
-            "h-10 w-full justify-between border-slate-300 bg-white px-3 text-left text-sm font-normal hover:bg-white",
+            "h-12 w-full justify-between rounded-xl border-slate-300 bg-white px-3 text-left text-[0.95rem] font-normal hover:bg-white",
             !displayValue && "text-slate-400",
             className,
           )}
@@ -130,7 +130,7 @@ export function UnitCombo({
         <Command filter={(itemValue, search) => (itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}>
           <CommandInput
             placeholder={t("Search unit code or name...")}
-            className="h-11 text-sm"
+            className="h-12 text-[0.95rem]"
             data-testid={`${testId}-search`}
           />
           <CommandList className="max-h-[50vh]">
