@@ -18,6 +18,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { listOdrs, logObservation, pdfUrl } from "@/lib/odrApi";
 import OdrTrustBanner from "@/components/odr/OdrTrustBanner";
+import OdrPageShell from "@/components/odr/OdrPageShell";
 
 export default function OdrPmPanel() {
   const [data, setData] = React.useState({ items: [], fll: "", verb: "" });
@@ -57,12 +58,12 @@ export default function OdrPmPanel() {
   }, [data]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6" data-testid="pm-odr-panel">
+    <OdrPageShell portalRole="Project Management" pageTitle="Project daily work records" subtitle="Review submitted daily work records, open delays, extra work, and safety follow-up.">
+      <div className="max-w-5xl mx-auto px-0 py-6" data-testid="pm-odr-panel">
         <header className="mb-4">
-          <h1 className="text-2xl font-semibold text-slate-800">PM · ODR Consumption</h1>
+          <h1 className="text-2xl font-semibold text-slate-800">Project daily work records</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Read-only consumer lens · {data.fll || "—"} / {data.verb || "—"}
+            Project view only · {data.fll || "—"} / {data.verb || "—"}
           </p>
         </header>
 
@@ -78,12 +79,12 @@ export default function OdrPmPanel() {
 
         <section className="mt-6 bg-white border border-slate-200 rounded-lg" data-testid="pm-odr-list">
           <div className="px-4 py-3 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500">
-            Recent Submitted Records
+            Recent submitted records
           </div>
           {loading && <Empty label="Loading…" />}
           {!loading && err && <Empty label={err} />}
           {!loading && !err && (data.items || []).length === 0 && (
-            <Empty label="No submitted ODRs in scope. Quiet day." />
+            <Empty label="No submitted daily work records in scope. Quiet day." />
           )}
           <ul className="divide-y divide-slate-100">
             {(data.items || []).slice(0, 50).map(o => (
@@ -134,7 +135,7 @@ export default function OdrPmPanel() {
           </ul>
         </section>
       </div>
-    </div>
+    </OdrPageShell>
   );
 }
 

@@ -199,7 +199,7 @@ export default function TrainingHub() {
                   </>
                 ) : (
                   <p className="text-slate-500 text-sm mt-3 leading-relaxed italic">
-                    {t("Internal track — covers back-office workflows. Sign in as")}{" "}
+                    {t("This track is for office teams. Sign in as")}{" "}
                     <strong className="not-italic text-slate-700">
                       {loginLabelFor(track.audience, lang)}
                     </strong>{" "}
@@ -231,7 +231,7 @@ export default function TrainingHub() {
                 {t("PDF training packets")}
               </h3>
               <p className="text-slate-300 text-sm mt-1 leading-relaxed max-w-2xl">
-                {t("Field Crew is public — share with insurance partners or new-hire onboarding. Internal Shop, PM, and Admin packets are managed in the Admin Console.")}
+                {t("The Field Crew packet is public for onboarding and outside partners. Shop, PM, and admin packets stay behind the matching sign-in.")}
               </p>
             </div>
           </div>

@@ -2,8 +2,7 @@
 // Route: /shop/fuel-lube/:visitId (RequireShop). Backend: GET /api/shop/fuel-lube/visits/{id}.
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
@@ -12,11 +11,10 @@ import { formatOperatorJobLabel, sanitizeOperatorProjectNumber, sanitizeOperator
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken(); const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "shop", "dispatch", "safety"]),
+  };
 }
 function fmt(n) { return (n == null ? "—" : Number(n).toFixed(1)); }
 
@@ -46,7 +44,7 @@ export default function FuelLubeVisitDetail() {
       <PortalShell
         portalName="MASCI" portalRole="Shop Portal · Fuel/Lube Visit"
         pageTitle={`Visit ${visitId}`}
-        subtitle="Submitted Fuel/Lube Visit Record · totals · per-equipment lines · issues · defect linkage."
+        subtitle="Submitted visit totals, each serviced unit, issues found, and linked shop follow-up."
         primaryActions={
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <BackToShopLink testId="fuel-lube-detail-back-to-shop" />
@@ -57,7 +55,7 @@ export default function FuelLubeVisitDetail() {
       >
         {error && (
           <div data-testid="fuel-lube-detail-error" style={{ background: "#fae2e0", padding: 12, borderRadius: 4, color: "#a33", fontSize: 12, marginBottom: 12 }}>
-            Fuel/lube visit unavailable. No data invented. · {error}
+            Fuel and lube visit unavailable right now. · {error}
           </div>
         )}
         {!visit && !error && (<div data-testid="fuel-lube-detail-loading" style={{ fontSize: 12, color: "#666" }}>Loading…</div>)}
@@ -151,7 +149,7 @@ export default function FuelLubeVisitDetail() {
             <div data-testid="fuel-lube-detail-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
               background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
               Each service entry is saved to the unit&apos;s history. Issues flow to the shop defect queue.
-              Print uses the browser&apos;s native dialog. PDF / email / CSV exports are not enabled here.
+              Print uses the browser&apos;s print window. Email and file downloads are not available on this page yet.
             </div>
           </>
         )}

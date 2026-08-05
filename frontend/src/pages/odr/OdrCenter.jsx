@@ -23,16 +23,17 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { listOdrs, logObservation } from "@/lib/odrApi";
 import OdrTrustBanner from "@/components/odr/OdrTrustBanner";
+import OdrPageShell from "@/components/odr/OdrPageShell";
 import { useT } from "@/lib/i18n";
 
 const TABS = [
   { key: "needs", label: "Needs Attention", description: "Drafts and returned records waiting on you." },
   { key: "submitted", label: "Recently Submitted", description: "What the field reported recently." },
-  { key: "amended", label: "Recently Amended", description: "Records changed after submission." },
+  { key: "amended", label: "Recently Updated", description: "Records changed after submission." },
   { key: "review", label: "Ready for Review", description: "Submitted records awaiting your approval." },
-  { key: "constraints", label: "Constraint-Linked", description: "ODRs tied to active constraints." },
-  { key: "chronology", label: "Chronology", description: "Recent events across your scope." },
-  { key: "readiness", label: "Readiness Signals", description: "Records with open hard stops or missing required items." },
+  { key: "constraints", label: "Open Blockers", description: "Daily work records tied to active blockers." },
+  { key: "chronology", label: "Recent Activity", description: "Recent events across your scope." },
+  { key: "readiness", label: "Missing Required Items", description: "Records with open hard stops or missing required items." },
 ];
 
 export default function OdrCenter() {
@@ -58,39 +59,43 @@ export default function OdrCenter() {
   }, [tab]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6" data-testid="fl-odr-center">
+    <OdrPageShell
+      portalRole={t("Field Leadership")}
+      pageTitle={t("Daily work records")}
+      subtitle={t("See what needs attention, what was submitted, and what is ready for review.")}
+    >
+      <div className="max-w-6xl mx-auto px-0 py-6" data-testid="fl-odr-center">
         <header className="mb-4">
-          <h1 className="text-2xl font-semibold text-slate-800">{t("Field Leadership · ODR Center")}</h1>
+          <h1 className="text-2xl font-semibold text-slate-800">{t("Daily work records")}</h1>
           <p className="text-xs text-slate-500 mt-1">
-            {data.fll || t("scope loading")} · {data.verb || "—"} {t("verb")}
+            {data.fll || t("scope loading")} · {data.verb || t("activity loading")}
           </p>
         </header>
 
         <OdrTrustBanner />
 
         <nav className="mt-4 flex flex-wrap gap-2" data-testid="fl-odr-tabs">
-          {TABS.map(t => (
+          {TABS.map((tabDef) => (
             <button
-              key={t.key}
-              data-testid={`fl-odr-tab-${t.key}`}
+              key={tabDef.key}
+              data-testid={`fl-odr-tab-${tabDef.key}`}
               onClick={() => {
-                setTab(t.key);
+                setTab(tabDef.key);
                 logObservation({
                   surface: "fl_center",
-                  kind: t.key === "chronology" ? "chronology_opened"
-                    : t.key === "readiness" ? "readiness_signal_clicked"
+                  kind: tabDef.key === "chronology" ? "chronology_opened"
+                    : tabDef.key === "readiness" ? "readiness_signal_clicked"
                     : "fl_inbox_opened",
-                  context: { tab: t.key },
+                  context: { tab: tabDef.key },
                 });
               }}
               className={`text-xs px-3 py-2 rounded-full border ${
-                tab === t.key
+                tab === tabDef.key
                   ? "bg-slate-800 text-white border-slate-800"
                   : "bg-white text-slate-700 border-slate-300 hover:border-slate-400"
               }`}
             >
-              {t(t.label)}
+              {t(tabDef.label)}
             </button>
           ))}
         </nav>
@@ -146,7 +151,7 @@ export default function OdrCenter() {
           </ul>
         </section>
       </div>
-    </div>
+    </OdrPageShell>
   );
 }
 

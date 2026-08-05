@@ -190,9 +190,9 @@ function RecentActivityCard({ prefix, canLoadAudit = true }) {
     ? t("Loading…")
     : !canLoadAudit
       ? t("Audit timeline is available in Admin oversight. Dispatch users stay focused on live operations here.")
-    : count === 0
+      : count === 0
       ? t("No transportation activity in the last 24 hours.")
-      : t("{count} most-recent events across drivers, trucks, carriers, dispatch, automation, cleanup, and HR sync.").replace("{count}", count);
+      : t("{count} latest updates across drivers, trucks, carriers, dispatch, cleanup, and crew records.").replace("{count}", count);
   return (
     <McCard
       testid="mc-card-recent"
@@ -346,7 +346,7 @@ export default function MissionControl() {
           primaryLabel="eligible trucks"
           secondaryKpi={snap.upcoming_expirations_30d || 0}
           secondaryLabel="docs expiring 30d"
-          summary={t("Truck eligibility + inspection state, composed from existing fleet engines.")}
+          summary={t("How many trucks can haul right now, based on inspections and readiness records.")}
           actionLabel="Open Fleet"
           actionHref={`${prefix}/trucks`}
           drillHref={`${prefix}/inspections`}
@@ -362,7 +362,7 @@ export default function MissionControl() {
           primaryLabel="eligible drivers"
           secondaryKpi={snap.pending_reviews || 0}
           secondaryLabel="pending reviews"
-          summary={t("Driver eligibility composed from HR lifecycle + Transportation compliance.")}
+          summary={t("How many drivers are cleared to haul right now, based on driver files and transportation records.")}
           actionLabel="Open Drivers"
           actionHref={`${prefix}/drivers`}
           drillHref={`${prefix}/intelligence`}
@@ -378,7 +378,7 @@ export default function MissionControl() {
           primaryLabel="eligible carriers"
           secondaryKpi={snap.documents_awaiting_review || 0}
           secondaryLabel="docs awaiting review"
-          summary={t("Carrier eligibility + packet state from the Compliance Center.")}
+          summary={t("How many carriers are ready to work, based on packet and document status.")}
           actionLabel="Open Carriers"
           actionHref={`${prefix}/carriers`}
           drillHref={`${prefix}/compliance`}
@@ -394,7 +394,7 @@ export default function MissionControl() {
           primaryLabel="blocked dispatches"
           secondaryKpi={(data.dispatch_readiness?.score ?? 0).toString().split(".")[0] + "%"}
           secondaryLabel="readiness"
-          summary={t("Dispatch never embedded — link only. Dispatch remains the operational system of record.")}
+          summary={t("Open dispatch to work the live board. This card stays focused on today’s readiness.")}
           actionLabel="Open Dispatch"
           actionHref={`${prefix}/dispatch`}
           drillHref={`${prefix}/live-operations`}
@@ -432,7 +432,7 @@ export default function MissionControl() {
           primaryLabel="open action items"
           secondaryKpi={data.cleanup?.total_signals || 0}
           secondaryLabel="materialized cleanup items"
-          summary={t("Surfaced from the existing Cleanup Companion + Automation action queue. No new ranking engine.")}
+          summary={t("Open items that need follow-up so the team can keep trucks, drivers, and carriers moving.")}
           actionLabel="Open Cleanup"
           actionHref={`${prefix}/intelligence/cleanup`}
           drillHref={`${prefix}/command-queue`}
@@ -456,7 +456,7 @@ export default function MissionControl() {
 
       <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
         <div>
-          {t("Source · composed from Tracks 16.06 / 16.07 / 16.10 / 16.11A / 16.15 / 16.15A / 16.16")}
+          {t("Based on current fleet, driver, carrier, dispatch, and document records")}
         </div>
         <button
           type="button"

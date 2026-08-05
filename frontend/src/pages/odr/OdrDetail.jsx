@@ -7,6 +7,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { getOdr, getVersionChain, pdfUrl, logObservation } from "@/lib/odrApi";
 import OdrTrustBanner from "@/components/odr/OdrTrustBanner";
+import OdrPageShell from "@/components/odr/OdrPageShell";
 
 export default function OdrDetail() {
   const { id } = useParams();
@@ -22,15 +23,15 @@ export default function OdrDetail() {
     return () => { live = false; };
   }, [id]);
 
-  if (err) return <div className="p-6 text-rose-700" data-testid="odr-detail-error">{err}</div>;
-  if (!odr) return <div className="p-6 text-slate-500" data-testid="odr-detail-loading">Loading…</div>;
+  if (err) return <OdrPageShell portalRole="Operations Platform" pageTitle="Daily work record" subtitle="Open the record details and the latest update trail."><div className="p-6 text-rose-700" data-testid="odr-detail-error">{err}</div></OdrPageShell>;
+  if (!odr) return <OdrPageShell portalRole="Operations Platform" pageTitle="Daily work record" subtitle="Open the record details and the latest update trail."><div className="p-6 text-slate-500" data-testid="odr-detail-loading">Loading…</div></OdrPageShell>;
 
   const proj = odr.project || {};
   const crew = odr.crew_profile || {};
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6" data-testid="odr-detail-page">
+    <OdrPageShell portalRole="Operations Platform" pageTitle="Daily work record" subtitle="See the record details, production, delays, and updates after submission.">
+      <div className="max-w-3xl mx-auto px-0 py-6" data-testid="odr-detail-page">
         <header className="mb-3">
           <div className="text-xs text-slate-500">{odr.doc_id} · {odr.status}</div>
           <h1 className="text-xl font-semibold text-slate-800">
@@ -91,10 +92,10 @@ export default function OdrDetail() {
 
         <section className="mt-3 bg-white border border-slate-200 rounded-lg p-4" data-testid="odr-detail-amendments">
           <h2 className="text-xs uppercase tracking-wider text-slate-500 mb-2">
-            Amendments ({chain?.amendment_count ?? 0})
+            Updates after submission ({chain?.amendment_count ?? 0})
           </h2>
           {!chain || (chain.amendments || []).length === 0
-            ? <Empty label="No amendments." />
+            ? <Empty label="No updates after submission." />
             : (chain.amendments || []).map(a => (
               <div key={a.amendment_id} className="text-xs text-slate-600 border-l-2 border-slate-200 pl-3 py-1">
                 <div className="font-medium text-slate-700">{a.field_path}</div>
@@ -104,7 +105,7 @@ export default function OdrDetail() {
             ))}
         </section>
       </div>
-    </div>
+    </OdrPageShell>
   );
 }
 

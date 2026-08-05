@@ -17,8 +17,7 @@
 //   /app/memory/TRACK_13_28_PHASE_2_SHOP_WORKFORCE_UI_PARTS_CAPTURE.md
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter + local calendar date.
@@ -28,12 +27,10 @@ import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "shop", "dispatch", "safety"]),
+  };
 }
 
 async function api(path) {
@@ -198,11 +195,11 @@ function EventCard({ ev }) {
           </div>
           <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
             {ev.actor_name && (<span>by <strong>{sanitizeOperatorReference(ev.actor_name, "Crew record")}</strong>{ev.actor_role ? ` (${ev.actor_role})` : ""} · </span>)}
-            source <code style={{ fontSize: 10, background: "#eef0f3", padding: "1px 4px", borderRadius: 3 }}>{sanitizeOperatorReference(ev.source_system, "system")}</code>
+            reported from <code style={{ fontSize: 10, background: "#eef0f3", padding: "1px 4px", borderRadius: 3 }}>{sanitizeOperatorReference(ev.source_system, "operations record")}</code>
           </div>
           {(ev.status_before || ev.status_after) && (
             <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
-              status: <strong>{ev.status_before || "—"}</strong> → <strong>{ev.status_after || "—"}</strong>
+              work status: <strong>{ev.status_before || "—"}</strong> → <strong>{ev.status_after || "—"}</strong>
               {(ev.availability_before || ev.availability_after) && (
                 <> · availability: <strong>{ev.availability_before || "—"}</strong> → <strong>{ev.availability_after || "—"}</strong></>
               )}
@@ -376,7 +373,7 @@ export default function UnitHistoryTimeline() {
         {/* ── Error ─────────────────────────────────────────────── */}
         {error && (
           <div data-testid="unit-history-error" style={{ background: "#fae2e0", padding: 12, borderRadius: 4, color: "#a33", fontSize: 12, marginBottom: 16 }}>
-            Unit history feed unavailable. No data invented. · {error}
+            Unit history is unavailable right now. · {error}
           </div>
         )}
 
@@ -431,8 +428,8 @@ export default function UnitHistoryTimeline() {
           marginTop: 24, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4,
         }}>
-          Single source of truth · Asset Service Event Backbone. One unit · one history.
-          Repair Complete ≠ Returned-To-Service — Dispatch retains the final RTS step.
+              This unit history brings inspections, issues, repairs, fuel and lube visits, and return-to-service steps into one running timeline.
+              Repair complete does not mean returned to service until dispatch confirms the final step.
         </div>
       </PortalShell>
     </div>

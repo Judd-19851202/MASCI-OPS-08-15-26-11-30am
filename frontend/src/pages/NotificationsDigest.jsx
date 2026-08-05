@@ -16,6 +16,7 @@ import {
   AlertTriangle, Activity, CheckCircle2, Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PortalShell } from "@/design-system";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
@@ -161,17 +162,25 @@ export default function NotificationsDigest() {
 
   if (!target) {
     return (
-      <div className="min-h-screen bg-slate-50 px-4 sm:px-6 py-8 max-w-3xl mx-auto" data-testid="notifications-digest">
-        <div className="bg-white border-2 border-dashed border-slate-200 rounded-md p-8 text-center">
-          <Bell className="w-12 h-12 mx-auto text-slate-300" />
-          <h2 className="font-display text-xl font-black text-slate-900 mt-3">
-            {t("Sign in to see today's intelligence")}
-          </h2>
-          <p className="text-sm text-slate-600 mt-1">
-            {t("Each portal has a role-scoped digest. Sign into Safety or Admin to view yours.")}
-          </p>
+      <PortalShell
+        portalRole={t("Operations Platform")}
+        pageTitle={t("Priority updates")}
+        subtitle={t("Sign in to your work area to see the items that need attention first.")}
+        showNotifications={false}
+        showSignOut={false}
+      >
+        <div className="mx-auto max-w-4xl px-0 py-6" data-testid="notifications-digest">
+          <div className="wp17-panel border-2 border-dashed border-slate-200 p-8 text-center">
+            <Bell className="mx-auto h-12 w-12 text-slate-300" />
+            <h2 className="mt-3 font-display text-xl font-black text-slate-900">
+              {t("Sign in to see today's priorities")}
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {t("Each work area shows its own priority list. Sign in to your work area to view it.")}
+            </p>
+          </div>
         </div>
-      </div>
+      </PortalShell>
     );
   }
 
@@ -179,20 +188,25 @@ export default function NotificationsDigest() {
   const sections = digest?.sections || [];
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="notifications-digest">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+    <PortalShell
+      portalRole={t("Operations Platform")}
+      pageTitle={t("Priority updates")}
+      subtitle={t("See what needs attention first, why it matters, and where to act next.")}
+      showNotifications={false}
+    >
+      <div className="mx-auto max-w-4xl px-0 py-6 sm:py-8 space-y-5" data-testid="notifications-digest">
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold flex items-center gap-1">
-              <BellRing className="w-3 h-3" /> {t("Today's intelligence")} · {target.role}
+              <BellRing className="w-3 h-3" /> {t("Today's priorities")} · {target.role}
             </div>
             <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
-              {t("Operational digest")}
+              {t("Work updates")}
             </h1>
             {digest?.generated_at ? (
               <div className="text-xs font-mono text-slate-500 mt-1">
-                {t("Generated")} {formatLocalDateTime(digest.generated_at)}
+                {t("Updated")} {formatLocalDateTime(digest.generated_at)}
               </div>
             ) : null}
           </div>
@@ -331,13 +345,13 @@ export default function NotificationsDigest() {
 
         {/* Sections */}
         {sections.length === 0 && !loading ? (
-          <div className="bg-white border-2 border-dashed border-emerald-200 rounded-md p-10 text-center" data-testid="notif-empty">
+          <div className="wp17-panel border-2 border-dashed border-emerald-200 p-10 text-center" data-testid="notif-empty">
             <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-600 mb-3" />
             <div className="font-display text-lg font-black text-slate-900">
               {t("No operational signal today.")}
             </div>
             <div className="text-sm text-slate-600 mt-1">
-              {t("Every monitored rule is clean for your role. Detection runs continuously — this surface refreshes the moment something changes.")}
+              {t("Everything being watched for your role is clear right now. This page updates as soon as something changes.")}
             </div>
           </div>
         ) : null}
@@ -346,6 +360,6 @@ export default function NotificationsDigest() {
           {sections.map((s) => <SectionCard key={s.key} section={s} />)}
         </div>
       </div>
-    </div>
+    </PortalShell>
   );
 }

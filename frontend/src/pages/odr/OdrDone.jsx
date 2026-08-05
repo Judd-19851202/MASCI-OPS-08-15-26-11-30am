@@ -5,6 +5,7 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { getOdr } from "@/lib/odrApi";
+import OdrPageShell from "@/components/odr/OdrPageShell";
 
 export default function OdrDone() {
   const { id } = useParams();
@@ -17,15 +18,15 @@ export default function OdrDone() {
   }, [id]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-md mx-auto px-4 py-12 text-center" data-testid="odr-done-page">
+    <OdrPageShell portalRole="Field Leadership" pageTitle="Daily work record sent" subtitle="Your report is in and ready for the next review step.">
+      <div className="max-w-md mx-auto px-0 py-12 text-center" data-testid="odr-done-page">
         <div className="text-5xl">✓</div>
-        <h1 className="text-xl font-semibold text-slate-800 mt-3">Submitted</h1>
+        <h1 className="text-xl font-semibold text-slate-800 mt-3">Daily work record sent</h1>
         {odr ? (
           <>
             <p className="text-sm text-slate-500 mt-2">{odr.doc_id}</p>
             <p className="text-xs text-slate-500 mt-1">
-              Submitted at {odr.submitted_at} · 24-hour edit window open
+              Sent at {odr.submitted_at} · 24-hour edit window open
             </p>
           </>
         ) : err ? (
@@ -39,17 +40,17 @@ export default function OdrDone() {
             data-testid="odr-done-view"
             className="block w-full py-3 rounded-lg bg-slate-800 text-white"
           >
-            View record
+            Open record
           </Link>
           <Link
             to="/odr/new"
             data-testid="odr-done-next"
             className="block w-full py-3 rounded-lg border border-slate-300 text-slate-700"
           >
-            Log another
+            Start another
           </Link>
         </div>
       </div>
-    </div>
+    </OdrPageShell>
   );
 }

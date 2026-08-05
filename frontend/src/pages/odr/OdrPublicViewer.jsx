@@ -15,8 +15,9 @@
 //     → render facts + photos + production + conditions + signature + attachments
 
 import React from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { MasciLogo } from "@/components/MasciLogo";
 
 const RAW_BACKEND = process.env.REACT_APP_BACKEND_URL || "";
 const API = `${RAW_BACKEND.replace(/\/$/, "")}/api`;
@@ -63,7 +64,7 @@ export default function OdrPublicViewer() {
     <Shell>
       <header className="border-b border-slate-200 pb-4 mb-4" data-testid="public-odr-header">
         <div className="text-[11px] uppercase tracking-widest text-slate-500">
-          Operational Daily Record · Official Record
+          Daily work record · Official project record
         </div>
         <h1 className="text-2xl font-semibold text-slate-900 mt-1">
           {data.doc_id}
@@ -74,7 +75,7 @@ export default function OdrPublicViewer() {
         <div className="text-xs text-slate-500 mt-1">
           Report Date: <strong>{proj.report_date}</strong>
           {" · "}
-          Status: <strong className="capitalize">{data.status}</strong>
+          Record status: <strong className="capitalize">{data.status}</strong>
         </div>
       </header>
 
@@ -136,7 +137,7 @@ export default function OdrPublicViewer() {
           v={((data.signature || {}).foreman_acknowledgement || {}).acknowledged ? "Yes" : "No"}
         />
         <KV
-          k="Acknowledged At UTC"
+          k="Acknowledged time"
           v={((data.signature || {}).foreman_acknowledgement || {}).acknowledged_at_utc || "—"}
         />
         <KV
@@ -146,9 +147,8 @@ export default function OdrPublicViewer() {
       </Section>
 
       <footer className="text-[10px] text-slate-400 border-t border-slate-200 pt-3 mt-6">
-        Official Record · {data.doc_id} · Operational continuity tracked.
-        Document integrity is anchored at the platform — independent verification
-        available on request.
+        Official project record · {data.doc_id}. Request confirmation from the project
+        team if you need a formal validation copy.
       </footer>
     </Shell>
   );
@@ -156,9 +156,25 @@ export default function OdrPublicViewer() {
 
 function Shell({ children }) {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 print:py-0" data-testid="public-odr-viewer">
-        {children}
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(14,116,144,0.08),_transparent_42%),linear-gradient(180deg,#f8fafc_0%,#ffffff_100%)]">
+      <div className="print:hidden border-b border-slate-200 bg-slate-950 text-white">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-4 sm:px-8">
+          <div className="flex items-center gap-3">
+            <MasciLogo variant="mark" size="md" homeLink="/" />
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-slate-300">MASCI Operations Platform</div>
+              <div className="text-sm font-semibold text-white">Official project record</div>
+            </div>
+          </div>
+          <Link to="/" className="text-xs font-semibold uppercase tracking-wide text-slate-300 hover:text-white">
+            Back to home
+          </Link>
+        </div>
+      </div>
+      <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 print:py-0" data-testid="public-odr-viewer">
+        <div className="rounded-[1.75rem] border border-slate-200 bg-white px-5 py-6 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)] sm:px-8">
+          {children}
+        </div>
       </div>
     </div>
   );

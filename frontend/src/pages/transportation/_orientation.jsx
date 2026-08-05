@@ -36,7 +36,7 @@ export function OrientationCenter() {
     <div data-testid="tx-orientation-center" className="space-y-4">
       <PageHeader
         title="Orientation Center"
-        subtitle="MASCI Transportation onboarding · video engine · quiz engine · certificates"
+        subtitle="Driver onboarding, lesson videos, quizzes, and completion cards"
         testid="tx-orientation-header"
       />
       <SubTabs />
@@ -59,7 +59,7 @@ const SUB_TABS_ALL = [
   { to: "certificates", label: "Certificates", testid: "tx-orient-tab-certificates", dispatch: true },
   // TRACK 18.12C · Email Pilot is admin-only CMS — hidden from dispatch
   // (VISIBLE = USABLE).
-  { to: "emails", label: "Email Pilot", testid: "tx-orient-tab-emails", dispatch: false },
+  { to: "emails", label: "Email routes", testid: "tx-orient-tab-emails", dispatch: false },
 ];
 
 function SubTabs() {
@@ -127,12 +127,12 @@ function OrientationDashboard() {
   return (
     <div data-testid="tx-orient-dashboard" className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Tile testid="tx-orient-kpi-completion" icon={ShieldCheck} label="Completion %" value={`${data.completion_pct}%`} sub={`${data.drivers_orientation_current}/${data.drivers_total} drivers current`} />
-        <Tile testid="tx-orient-kpi-awaiting" icon={AlertTriangle} label="Awaiting Orientation" value={data.drivers_orientation_missing} sub="Drivers without all required modules" />
+        <Tile testid="tx-orient-kpi-completion" icon={ShieldCheck} label="Current completion" value={`${data.completion_pct}%`} sub={`${data.drivers_orientation_current}/${data.drivers_total} drivers current`} />
+        <Tile testid="tx-orient-kpi-awaiting" icon={AlertTriangle} label="Still waiting" value={data.drivers_orientation_missing} sub="Drivers missing required lessons" />
         <Tile testid="tx-orient-kpi-expired" icon={AlertTriangle} label="Expired" value={data.drivers_orientation_expired} sub="Annual refresher overdue" />
         <Tile testid="tx-orient-kpi-expiring" icon={AlertTriangle} label="Expiring Soon" value={data.drivers_expiring_soon} sub="Within 30 days" />
-        <Tile testid="tx-orient-kpi-certs-30" icon={BadgeCheck} label="Certs · 30 d" value={data.certificates_30d} />
-        <Tile testid="tx-orient-kpi-certs-90" icon={BadgeCheck} label="Certs · 90 d" value={data.certificates_90d} />
+        <Tile testid="tx-orient-kpi-certs-30" icon={BadgeCheck} label="Cards issued · 30 days" value={data.certificates_30d} />
+        <Tile testid="tx-orient-kpi-certs-90" icon={BadgeCheck} label="Cards issued · 90 days" value={data.certificates_90d} />
         <Tile testid="tx-orient-kpi-modules" icon={FileVideo} label="Modules" value={`${data.modules_active}`} sub={`${data.modules_required} required`} />
         <Tile testid="tx-orient-kpi-avg-quiz" icon={ListChecks} label="Avg Quiz Score" value={`${data.average_quiz_score}%`} />
       </div>
@@ -166,7 +166,7 @@ function ModuleManager() {
   if (err) return <EmptyState title="Modules unavailable" hint={err} testid="tx-orient-modules-err" />;
   return (
     <div data-testid="tx-orient-modules" className="space-y-2">
-      <div className="text-sm text-slate-600">{items.length} module(s) · placeholders ready for Sky AI video drop-in.</div>
+      <div className="text-sm text-slate-600">{items.length} lesson module(s) ready for video upload.</div>
       <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -175,8 +175,8 @@ function ModuleManager() {
               <th className="text-left px-3 py-2">Title</th>
               <th className="text-left px-3 py-2">Category</th>
               <th className="text-left px-3 py-2">Required</th>
-              <th className="text-left px-3 py-2">Runtime</th>
-              <th className="text-left px-3 py-2">Languages Published</th>
+              <th className="text-left px-3 py-2">Video length</th>
+              <th className="text-left px-3 py-2">Languages ready</th>
               <th className="text-left px-3 py-2"></th>
             </tr>
           </thead>
@@ -260,18 +260,18 @@ function ModuleDetail() {
     <div data-testid="tx-orient-module-detail" className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-xs text-slate-500">Module · {mod.category}</div>
+          <div className="text-xs text-slate-500">Lesson module · {mod.category}</div>
           <h3 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-amber-700" /> {mod.title}
           </h3>
-          <div className="text-xs text-slate-500 mt-0.5">{mod.key} · v{mod.version} · passing {mod.passing_score}% · max attempts {mod.max_attempts}</div>
+          <div className="text-xs text-slate-500 mt-0.5">{mod.key} · version {mod.version} · passing score {mod.passing_score}% · max attempts {mod.max_attempts}</div>
         </div>
-        <NavLink data-testid="tx-orient-module-back" to="/admin/transportation/orientation/modules" className="text-amber-700 hover:underline text-sm">← All modules</NavLink>
+        <NavLink data-testid="tx-orient-module-back" to="/admin/transportation/orientation/modules" className="text-amber-700 hover:underline text-sm">← All lesson modules</NavLink>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white">
         <div className="px-3 py-2 border-b border-slate-200 text-sm font-medium flex items-center gap-2">
-          <FileVideo className="h-4 w-4 text-amber-700" /> Video Placeholders (Sky AI drop-in)
+          <FileVideo className="h-4 w-4 text-amber-700" /> Lesson video slots
         </div>
         <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
           {(mod.placeholders || []).map((ph) => (
@@ -325,9 +325,9 @@ function PlaceholderCard({ language, placeholder, onSave }) {
         <span className="font-medium">{LANGUAGES.find(l => l.code === language)?.label || language}</span>
         <Chip value={status} testid={`tx-orient-ph-status-${language}`} />
       </div>
-      <label className="block text-xs text-slate-500 mt-2">Sky Asset ID</label>
+      <label className="block text-xs text-slate-500 mt-2">Video file ID</label>
       <input data-testid={`tx-orient-ph-asset-${language}`} type="text" value={asset} onChange={(e) => setAsset(e.target.value)} className="w-full border border-slate-300 rounded px-2 py-1 text-sm font-mono" placeholder="sky_abc123…" />
-      <label className="block text-xs text-slate-500 mt-2">Runtime (s)</label>
+      <label className="block text-xs text-slate-500 mt-2">Video length (s)</label>
       <input data-testid={`tx-orient-ph-runtime-${language}`} type="number" value={runtime} onChange={(e) => setRuntime(parseInt(e.target.value, 10) || 0)} className="w-full border border-slate-300 rounded px-2 py-1 text-sm" />
       <button data-testid={`tx-orient-ph-save-${language}`} onClick={() => onSave(language, { sky_asset_id: asset || null, runtime_seconds: runtime })} className="mt-2 inline-flex items-center gap-1 bg-amber-700 text-white text-xs px-3 py-1 rounded hover:bg-amber-800">
         Save
@@ -449,8 +449,8 @@ function CertificatesView() {
             <th className="text-left px-3 py-2">Module</th>
             <th className="text-left px-3 py-2">Score</th>
             <th className="text-left px-3 py-2">Completed</th>
-            <th className="text-left px-3 py-2">Audit Hash</th>
-            <th className="text-left px-3 py-2">QR Verify</th>
+            <th className="text-left px-3 py-2">Verification code</th>
+            <th className="text-left px-3 py-2">QR check</th>
           </tr>
         </thead>
         <tbody>
@@ -464,7 +464,7 @@ function CertificatesView() {
               <td className="px-3 py-2 font-mono text-xs text-slate-500" title={c.audit_hash}>{(c.audit_hash || "").slice(0, 12)}…</td>
               <td className="px-3 py-2 text-xs">
                 <a data-testid={`tx-orient-verify-${c.id}`} className="text-amber-700 hover:underline inline-flex items-center gap-1" href={`/transport-verify/${c.certificate_number}`} target="_blank" rel="noreferrer">
-                  <Hash className="h-3 w-3" /> Verify
+                  <Hash className="h-3 w-3" /> Check
                 </a>
               </td>
             </tr>
@@ -519,18 +519,18 @@ function EmailRoutesPanel() {
   return (
     <div data-testid="tx-emails-panel" className="space-y-3">
       <div className="text-sm text-slate-600">
-        4 pilot routes are eligible for live SMTP send. Every other route stays in audit-only mode until a future track approves expansion.
+        Four email routes can send live messages right now. Every other route stays in review mode until approval is complete.
       </div>
       <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="text-left px-3 py-2">Route key</th>
+              <th className="text-left px-3 py-2">Notice type</th>
               <th className="text-left px-3 py-2">Label</th>
-              <th className="text-left px-3 py-2">Pilot</th>
+              <th className="text-left px-3 py-2">Live-ready</th>
               <th className="text-left px-3 py-2">Status</th>
               <th className="text-left px-3 py-2">Recipients</th>
-              <th className="text-left px-3 py-2">Last audit</th>
+              <th className="text-left px-3 py-2">Last check</th>
               <th className="text-left px-3 py-2"></th>
             </tr>
           </thead>
@@ -566,10 +566,10 @@ function EmailRoutesPanel() {
                         onClick={() => toggle(row.route_key, row.enabled)}
                         className={`text-xs px-2 py-1 rounded font-medium ${row.enabled ? "bg-emerald-700 text-white hover:bg-emerald-800" : "bg-slate-200 text-slate-800 hover:bg-slate-300"} disabled:opacity-50`}
                       >
-                        {row.enabled ? "Live · click to pause" : "Audit only · enable"}
+                        {row.enabled ? "Live · pause" : "Review only · enable"}
                       </button>
                     ) : (
-                      <span className="text-[10px] text-slate-400">requires future track approval</span>
+                      <span className="text-[10px] text-slate-400">awaiting approval</span>
                     )}
                   </td>
                 </tr>

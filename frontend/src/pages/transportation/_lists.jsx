@@ -118,7 +118,7 @@ export function CarriersList() {
     <div data-testid="tx-carriers-list" className="space-y-4">
       <PageHeader
         title="Carriers"
-        subtitle="Leased haulers, owner-operators, suppliers, and MASCI-internal carriers."
+        subtitle="Leased haulers, owner-operators, suppliers, and MASCI company carriers."
         right={
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={load} data-testid="carriers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
@@ -337,7 +337,7 @@ export function TrucksList() {
     <div data-testid="tx-trucks-list" className="space-y-4">
       <PageHeader
         title="Fleet"
-        subtitle="Transportation view of the MASCI fleet · one asset, one source of truth."
+        subtitle="Transportation view of the MASCI fleet. Each asset shows one current record."
         right={
           <div className="flex items-center gap-2">
             <Button
@@ -558,7 +558,7 @@ function FleetBulkAdoptionModal({ onClose, onCompleted }) {
           <div>
             <h2 className="text-lg font-semibold">Transportation Fleet Adoption</h2>
             <p className="text-xs text-slate-500">
-              Preview before execution · equipment records will NOT be duplicated.
+              Review this list before you add assets into Transportation.
             </p>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-800" data-testid="tx-fleet-bulk-close">✕</button>
@@ -576,11 +576,10 @@ function FleetBulkAdoptionModal({ onClose, onCompleted }) {
             <Row2 k="Already adopted" v={result.skipped_already_adopted} />
             <Row2 k="Retired (skipped)" v={result.skipped_retired} />
             <Row2 k="Errors" v={result.errors} />
-            <Row2 k="Elapsed (ms)" v={result.elapsed_ms} />
-            <Row2 k="Batch ID" v={<span className="font-mono text-xs">{result.batch_id}</span>} />
+            <Row2 k="Time used (ms)" v={result.elapsed_ms} />
+            <Row2 k="Run ID" v={<span className="font-mono text-xs">{result.batch_id}</span>} />
             <p className="text-xs text-slate-500 pt-2">
-              If you need to undo this batch, an administrator can rollback via{" "}
-              <code className="text-xs">POST /admin/transportation/fleet/adoption-bulk/&#123;batch_id&#125;/rollback</code>
+              If this run needs to be reversed, ask an administrator to undo it from the Transportation tools.
             </p>
             <div className="flex justify-end gap-2 pt-3">
               <Button onClick={onCompleted} data-testid="tx-fleet-bulk-done">Done</Button>
@@ -593,21 +592,20 @@ function FleetBulkAdoptionModal({ onClose, onCompleted }) {
               <Tile label="Would adopt" value={preview.summary.would_adopt} accent="emerald" testid="tx-fleet-bulk-would-adopt" />
               <Tile label="Skipped (retired/inactive)" value={preview.summary.skipped_retired + preview.summary.skipped_inactive} />
               <Tile label="Conflicts" value={preview.summary.conflicts} accent={preview.summary.conflicts ? "rose" : null} />
-              <Tile label="Missing equipment ID" value={preview.summary.missing_equipment_id} />
-              <Tile label="Needs operator classification" value={preview.summary.unknown_classification} accent={preview.summary.unknown_classification ? "amber" : null} />
+              <Tile label="Missing equipment number" value={preview.summary.missing_equipment_id} />
+              <Tile label="Needs Transportation class" value={preview.summary.unknown_classification} accent={preview.summary.unknown_classification ? "amber" : null} />
             </div>
             <div className="text-xs text-slate-500">
               Categories in scope: {(preview.categories_in_scope || []).join(" · ")}
             </div>
             <div className="rounded bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">
-              This operation is completely safe. Equipment records will NOT be
-              duplicated. Transportation overlays will simply be created where
-              missing. The operation is idempotent — running it again will
-              produce zero new overlays.
+              This review adds Transportation details to existing equipment
+              records. It does not create duplicate assets. If you run it
+              again, already-added assets will be skipped.
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={onClose} data-testid="tx-fleet-bulk-cancel">Cancel</Button>
-              <Button variant="outline" onClick={loadPreview} data-testid="tx-fleet-bulk-preview-again">Preview Again</Button>
+              <Button variant="outline" onClick={loadPreview} data-testid="tx-fleet-bulk-preview-again">Refresh preview</Button>
               <Button onClick={execute} disabled={executing || preview.summary.would_adopt === 0} data-testid="tx-fleet-bulk-execute">
                 {executing ? "Adopting…" : `Adopt ${preview.summary.would_adopt} assets`}
               </Button>
@@ -721,7 +719,7 @@ function FleetOverlayEditModal({ row, onClose, onSaved }) {
               Asset {row.unit_number || row.asset_id} · {row.label || row.make_model}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Enterprise asset fields (VIN · make · model · year · purchase data) are managed by the MASCI Equipment platform.
+              Core asset details like VIN, make, model, year, and purchase data are managed in Equipment.
             </p>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-800" data-testid="tx-fleet-edit-close">✕</button>
@@ -1156,8 +1154,7 @@ export function DriverWorkspace() {
       {data.hr_projection && (
         <Card title="HR lifecycle projection" testid="driver-hr-lifecycle-panel">
           <div className="text-xs text-slate-500 mb-2" data-testid="driver-hr-lifecycle-disclaimer">
-            Read-only snapshot. HR is the source of truth — manage all
-            lifecycle changes in HR.
+            View-only snapshot. Make employment changes in HR.
           </div>
           <Row
             label="Transport projection"
@@ -1253,10 +1250,10 @@ function DriverIntelligenceCard({ driverId }) {
   const overallCls = palette[snap.overall?.grade] || "bg-slate-100 text-slate-700 border-slate-300";
 
   return (
-    <Card title="Operations Intelligence" testid="driver-ws-intelligence">
+    <Card title="Driver readiness summary" testid="driver-ws-intelligence">
       <div className="flex items-center justify-between mb-3">
         <div className="text-[11px] uppercase tracking-wider text-slate-500">
-          Overall · explainable score
+          Overall readiness
         </div>
         <span
           data-testid="driver-ws-intelligence-overall-chip"
@@ -1299,7 +1296,7 @@ function DriverIntelligenceCard({ driverId }) {
         </div>
       )}
       <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-3">
-        Schema {snap.schema_version} · Computed {(snap.computed_at || "").slice(0, 19).replace("T", " ")}
+        Updated {(snap.computed_at || "").slice(0, 19).replace("T", " ")}
       </div>
     </Card>
   );

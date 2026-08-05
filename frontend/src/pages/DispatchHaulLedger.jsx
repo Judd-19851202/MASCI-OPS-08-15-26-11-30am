@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { useT } from "@/lib/i18n";
+import { PortalShell } from "@/design-system";
+import { Button } from "@/components/ui/button";
+import DispatchSideNavV2 from "@/components/dispatch/sidebar/DispatchSideNavV2";
 // TRACK 18.00 · Phase F · Transportation Operations unified branding.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
@@ -149,9 +152,17 @@ export default function DispatchHaulLedger() {
   const sourceBreakdown = body.source_breakdown || {};
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <PortalShell
+      portalName="MASCI"
+      portalRole={t("Dispatch Operations")}
+      pageTitle={t("Haul ledger")}
+      subtitle={t("See company-wide material movement, loads, trucks, and supporting tickets in one table view.")}
+      sideNav={<DispatchSideNavV2 />}
+      showNotifications={false}
+    >
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
       <TransportationOpsTopBar />
-      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center gap-3">
+      <header className="rounded-[1.5rem] border border-slate-200 bg-white px-4 sm:px-6 py-4 flex items-center gap-3 shadow-sm">
         <Link
           to="/dispatch-portal"
           data-testid="dispatch-haul-ledger-back"
@@ -166,23 +177,24 @@ export default function DispatchHaulLedger() {
             {t("Haul Ledger")}
           </h1>
           <p className="text-[11px] text-slate-500">
-            {t("Company-wide material movement, loads, trucks, and scale-ticket proof. Companion view — the live map remains primary at")} <Link to="/dispatch-portal" className="underline">/dispatch-portal</Link>.
+            {t("Company-wide material movement, loads, trucks, and scale-ticket proof. Use this table view when you need the full record list beside the live dispatch map.")}
           </p>
         </div>
-        <button
+        <Button
           onClick={() => setReqId((x) => x + 1)}
           data-testid="dispatch-haul-ledger-refresh"
-          className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 border border-slate-200 rounded px-2 py-1"
+          variant="outline"
+          className="ml-auto"
         >
           <RefreshCcw className="w-3 h-3" aria-hidden="true" /> {t("Refresh")}
-        </button>
+        </Button>
       </header>
 
-      <main className="px-4 sm:px-6 py-4 max-w-7xl mx-auto">
+      <main>
         {/* Filters */}
         <section
           data-testid="dispatch-haul-ledger-filters"
-          className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-4"
+          className="bg-white border border-slate-200 rounded-[1.5rem] p-3 sm:p-4 mb-4 shadow-sm"
         >
           <div className="flex flex-wrap gap-3 items-end">
             <Field label={t("From")} testId="dispatch-haul-ledger-from">
@@ -247,16 +259,16 @@ export default function DispatchHaulLedger() {
                 <option value="needs_review">{t("needs_review")}</option>
               </select>
             </Field>
-            <button
+            <Button
               onClick={() => setReqId((x) => x + 1)}
               data-testid="dispatch-haul-ledger-apply"
-              className="inline-flex items-center gap-1 text-xs bg-cyan-700 text-white rounded px-3 py-1.5 hover:bg-cyan-800"
+              size="sm"
             >
               <Search className="w-3 h-3" aria-hidden="true" /> {t("Apply")}
-            </button>
+            </Button>
           </div>
           <p className="text-[10px] text-slate-500 font-mono mt-2">
-            {t("Source:")} <code>/api/dispatch/haul-ledger</code> · {t("derived view across haul_cycles · dispatch_assignments · operational_attachments · daily_reports. Max 90-day window. No fabricated quantities.")}
+            {t("Built from haul logs, dispatch assignments, ticket attachments, and daily records. Limited to the last 90 days. No made-up quantities.")}
           </p>
         </section>
 
@@ -431,7 +443,8 @@ export default function DispatchHaulLedger() {
           </p>
         </footer>
       </main>
-    </div>
+      </div>
+    </PortalShell>
   );
 }
 

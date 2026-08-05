@@ -23,6 +23,7 @@ import {
   resolveGuidance, logObservation, getCrewReadiness,
 } from "@/lib/odrApi";
 import OdrTrustBanner from "@/components/odr/OdrTrustBanner";
+import OdrPageShell from "@/components/odr/OdrPageShell";
 
 const CREW_TYPES = [
   { value: "pipe", en: "Pipe", es: "Tubería" },
@@ -297,12 +298,12 @@ export default function OdrNew() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-md mx-auto px-4 py-5 sm:max-w-2xl" data-testid="odr-new-page">
+    <OdrPageShell portalRole="Field Leadership" pageTitle="Daily work record" subtitle="Capture the day clearly, one step at a time, before you send it for review.">
+      <div className="max-w-md mx-auto px-0 py-5 sm:max-w-2xl" data-testid="odr-new-page">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="text-xl font-semibold text-slate-800">
-              {lang === "es" ? "Reporte Diario Operativo" : "Operational Daily Record"}
+              {lang === "es" ? "Registro diario de trabajo" : "Daily work record"}
             </h1>
             <p className="text-[11px] text-slate-500 mt-0.5">
               {lang === "es" ? "Paso" : "Step"} {step + 1} / {STEPS.length} · {L(STEPS[step], lang)}
@@ -617,7 +618,7 @@ export default function OdrNew() {
           </p>
         )}
       </div>
-    </div>
+    </OdrPageShell>
   );
 }
 

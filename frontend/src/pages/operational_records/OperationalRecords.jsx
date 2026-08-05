@@ -16,14 +16,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { listOperationalRecords } from "@/lib/odrApi";
 import { useT } from "@/lib/i18n";
+import { PortalShell } from "@/design-system";
+import { Button } from "@/components/ui/button";
 import ArchiveBadge, {
   ArchiveExplainerCard,
 } from "@/components/odr/ArchiveBadge";
 
 const KIND_FILTERS = [
   { value: "", label: "All records" },
-  { value: "odr", label: "ODR only" },
-  { value: "legacy_daily_report", label: "Archive only" },
+  { value: "odr", label: "Current daily work records" },
+  { value: "legacy_daily_report", label: "Archived daily reports" },
 ];
 
 export default function OperationalRecords() {
@@ -68,17 +70,22 @@ export default function OperationalRecords() {
   }, [items, search]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-6xl px-4 py-6">
+    <PortalShell
+      portalRole={t("Operations Platform")}
+      pageTitle={t("Operational records")}
+      subtitle={t("Find current and archived project records in one place without switching between work areas.")}
+      showNotifications={false}
+    >
+      <div className="mx-auto max-w-6xl px-0 py-6">
         <header className="mb-6">
           <div className="text-xs uppercase tracking-wider text-slate-500">
-            {t("MASCI Operational Records")}
+            {t("Operations Platform")} · {t("Project records")}
           </div>
           <h1 className="text-2xl font-semibold text-slate-900 mt-1">
             {t("Operational Records")}
           </h1>
           <p className="mt-1 text-sm text-slate-600 max-w-2xl">
-            {t("Every project record across MASCI Ops in one place. New entries are filed as Operational Daily Records (ODR). Historical Daily Reports remain available, byte-identical to the day they were signed.")}
+            {t("Every project record in one place. Current daily work records and archived daily reports stay searchable together so teams can find the exact record they need.")}
           </p>
         </header>
 
@@ -114,15 +121,15 @@ export default function OperationalRecords() {
               </option>
             ))}
           </select>
-          <button
+          <Button
             data-testid="op-records-refresh"
             onClick={refresh}
-            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+            variant="outline"
           >
             {t("Refresh")}
-          </button>
+          </Button>
           <div className="ml-auto text-xs text-slate-500" data-testid="op-records-counts">
-            {counts.total} {t("record(s)")} · {counts.odr} ODR · {counts.legacy_daily_report} {t("archived")}
+            {counts.total} {t("records")} · {counts.odr} {t("current")} · {counts.legacy_daily_report} {t("archived")}
           </div>
         </div>
 
@@ -199,6 +206,6 @@ export default function OperationalRecords() {
           </ul>
         )}
       </div>
-    </div>
+    </PortalShell>
   );
 }

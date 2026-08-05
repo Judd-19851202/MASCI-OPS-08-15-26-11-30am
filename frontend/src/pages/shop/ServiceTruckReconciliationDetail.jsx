@@ -4,8 +4,7 @@
 //           POST /api/shop/service-truck-reconciliation/{id}/review
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import { formatEmployeeIdentity } from "@/lib/identity";
@@ -15,11 +14,10 @@ import { sanitizeOperatorProjectNumber, sanitizeOperatorReference } from "@/lib/
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken(); const s = getShopToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (s) h["X-Shop-Token"] = s;
-  return h;
+  return {
+    "Content-Type": "application/json",
+    ...buildScopedPortalAuthHeaders(["admin", "shop", "dispatch", "safety"]),
+  };
 }
 function StatusChip({ status }) {
   const map = {
@@ -86,7 +84,7 @@ export default function ServiceTruckReconciliationDetail() {
       <PortalShell
         portalName="MASCI" portalRole="Shop Portal · Service Truck Reconciliation"
         pageTitle={`Reconciliation ${recId}`}
-        subtitle="Start · dispensed · expected · actual · variance · linked Fuel/Lube Visits."
+        subtitle="Starting product, dispensed product, end-of-day check, and linked fuel/lube visits."
         primaryActions={
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <BackToShopLink testId="strr-detail-back-to-shop" />
@@ -98,7 +96,7 @@ export default function ServiceTruckReconciliationDetail() {
       >
         {error && (
           <div data-testid="strr-detail-error" style={{ background: "#fae2e0", padding: 12, borderRadius: 4, color: "#a33", fontSize: 12, marginBottom: 12 }}>
-            Service truck reconciliation unavailable. No data invented. · {error}
+            Service truck reconciliation unavailable right now. · {error}
           </div>
         )}
         {!doc && !error && (<div data-testid="strr-detail-loading" style={{ fontSize: 12, color: "#666" }}>Loading…</div>)}
@@ -204,7 +202,7 @@ export default function ServiceTruckReconciliationDetail() {
 
             <div data-testid="strr-detail-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
                   background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
-              Dispensed totals come from submitted Fuel/Lube Visits. Review notes are operational context only — never disciplinary. PDF / email / CSV exports are not enabled here; Print uses the browser&apos;s native dialog.
+              Dispensed totals come from submitted fuel and lube visits. Review notes are operational context only. Email and file downloads are not available on this page yet, and print uses the browser&apos;s print window.
             </div>
           </>
         )}
