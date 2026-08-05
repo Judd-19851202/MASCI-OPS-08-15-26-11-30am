@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, CircleSlash, CheckCircle2, Clock, Boxes, Activity, RefreshCcw, ExternalLink } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { TelemetryStaleNote, TelemetryTruthNote } from "@/components/telemetry/TelemetryTruthNote";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -49,18 +50,41 @@ export default function DispatchLiveSnapshot({ className = "" }) {
   const [snap, setSnap] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
+  const [staleMessage, setStaleMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setStaleMessage("");
     fetch(`${API}/operations-map/snapshot`, { headers: _authHeaders() })
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (!cancelled) { setSnap(data); setLoading(false); } })
-      .catch(() => { if (!cancelled) setLoading(false); });
+      .then((data) => {
+        if (!cancelled) {
+          if (data) setSnap(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoading(false);
+          if (snap) {
+            setStaleMessage(t("Live refresh failed. Dispatch is showing the last good fleet snapshot instead of a blank widget."));
+          }
+        }
+      });
     return () => { cancelled = true; };
-  }, [tick]);
+  }, [tick, snap, t]);
 
-  const tiles = snap?.operational_summary || [];
+  const tiles = (snap?.operational_summary && snap.operational_summary.length > 0)
+    ? snap.operational_summary
+    : (snap?.counts ? [
+      { id: "attention", label: t("Attention Required"), value: snap.counts.red || 0, tone: "rose" },
+      { id: "offline", label: t("No Recent Position"), value: snap.counts.gray || 0, tone: "slate" },
+      { id: "working", label: t("Working"), value: snap.counts.green || 0, tone: "emerald" },
+      { id: "idle", label: t("Idle"), value: snap.counts.amber || 0, tone: "amber" },
+      { id: "assigned", label: t("Assets Assigned"), value: snap.counts.assigned || 0, tone: "slate" },
+      { id: "total", label: t("Total Assets"), value: snap.counts.total || 0, tone: "slate" },
+    ] : []);
   const feed = snap?.feed_status || {};
   const asOf = snap?.last_updated_at || snap?.as_of || null;
   const asOfDisplay = asOf ? formatPlatformTimeOnly(asOf) : "—";
@@ -156,6 +180,23 @@ export default function DispatchLiveSnapshot({ className = "" }) {
           <ExternalLink className="w-4 h-4 mr-2" />
           {t("Open Operational Board")}
         </Link>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        <TelemetryStaleNote
+          testId="dispatch-live-snapshot-stale"
+          text={staleMessage}
+        />
+        <TelemetryTruthNote
+          testId="dispatch-live-snapshot-truth-note"
+          title={t("Fleet status meaning")}
+          items={[
+            { label: t("Working"), text: t("GPS updated within about 5 minutes — actively moving or confirmed live.") },
+            { label: t("Idle"), text: t("GPS updated within about 60 minutes — connected, but not actively moving.") },
+            { label: t("Attention Required"), text: t("Recent position exists, but the asset needs action such as maintenance, inspection, assignment, or stale-position review.") },
+            { label: t("No Recent Position"), text: t("No recent usable GPS position — older than about 24 hours, missing GPS, or not mapped.") },
+          ]}
+        />
       </div>
     </section>
   );

@@ -29,6 +29,7 @@ import {
 import { txGet, useTxPathPrefix } from "./_shared";
 import { useTransportationReadiness } from "@/components/operations_transportation_integration";
 import { useT } from "@/lib/i18n";
+import { TelemetryTruthNote } from "@/components/telemetry/TelemetryTruthNote";
 
 const BAND_PALETTE = {
   green:   "bg-emerald-100 text-emerald-800 border-emerald-300",
@@ -319,6 +320,15 @@ export default function MissionControl() {
   return (
     <div data-testid="mc-mission-control" className="space-y-4">
       <MissionBrief overall={overall} riskCount={riskCount} />
+      <TelemetryTruthNote
+        testId="mc-traffic-light-truth-note"
+        title={t("Traffic-light meaning")}
+        items={[
+          { label: t("GREEN"), text: t("No blocking Transportation issues right now.") },
+          { label: t("YELLOW"), text: t("Watch items exist, but Transportation is still operating.") },
+          { label: t("RED"), text: t("Blocking or action-required Transportation issues need immediate attention.") },
+        ]}
+      />
 
       {/* TRACK 18.12 · Workspace Actions strip — consistent
           role-aware navigation into every operational workspace. */}

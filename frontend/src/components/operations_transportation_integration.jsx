@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { buildPortalAuthHeaders } from "@/lib/authHeaders";
+import { TelemetryStaleNote, TelemetryTruthNote } from "@/components/telemetry/TelemetryTruthNote";
 
 const ENDPOINT = "/operations/transportation/readiness";
 const TX_HREF = "/admin/transportation";
@@ -81,16 +82,17 @@ const SEV_PALETTE = {
  */
 export function useTransportationReadiness() {
   const [state, setState] = useState({
-    data: null, error: null, loading: true,
+    data: null, error: null, loading: true, stale: false,
   });
 
   const load = useCallback(async () => {
     try {
       const data = await _fetchReadiness();
-      setState({ data, error: null, loading: false });
+      setState({ data, error: null, loading: false, stale: false });
     } catch (e) {
       const msg = e?.response?.data?.detail || e.message || "load failed";
-      setState({ data: null, error: msg, loading: false });
+      const fallback = _readinessCache.data || null;
+      setState({ data: fallback, error: msg, loading: false, stale: Boolean(fallback) });
     }
   }, []);
 
@@ -126,7 +128,7 @@ function BandChip({ band, testid }) {
  *    Operator-first: one glance answers "is Transportation ready?".
  * ────────────────────────────────────────────────────────────── */
 export function TransportationReadinessCard() {
-  const { data, error, loading, reload } = useTransportationReadiness();
+  const { data, error, loading, reload, stale } = useTransportationReadiness();
 
   if (loading && !data) {
     return (
@@ -213,6 +215,21 @@ export function TransportationReadinessCard() {
 
       <div className="mt-3 text-[10px] uppercase tracking-wide text-slate-400">
         Source · Transportation engines · Tracks 16.06 / 16.10 / 16.11A / 16.12 / 16.15
+      </div>
+      <div className="mt-3 space-y-2">
+        <TelemetryStaleNote
+          testId="ops-tx-readiness-stale"
+          text={stale ? "Live refresh failed. Showing the last good Transportation readiness snapshot instead of an empty card." : ""}
+        />
+        <TelemetryTruthNote
+          testId="ops-tx-readiness-truth-note"
+          title="Transportation band meaning"
+          items={[
+            { label: "GREEN", text: "Transportation has no blocking dispatch issues right now." },
+            { label: "YELLOW", text: "Transportation has watch items such as pending review, cleanup work, or expiring requirements." },
+            { label: "RED", text: "Transportation has blocking or action-required issues that can stop dispatch or readiness." },
+          ]}
+        />
       </div>
     </section>
   );
@@ -302,7 +319,7 @@ export function TransportationRiskBanner() {
  *    Compact widget for OperationsCenterCommand + PmCommandCenter.
  * ────────────────────────────────────────────────────────────── */
 export function OperationsTransportationHealthWidget() {
-  const { data, loading, error } = useTransportationReadiness();
+  const { data, loading, error, stale } = useTransportationReadiness();
 
   if (loading && !data) {
     return (
@@ -361,6 +378,22 @@ export function OperationsTransportationHealthWidget() {
         <Tile testid="ops-tx-health-tile-cleanup" label="Action Items"
               value={snap.open_action_items || 0} icon={Activity}
               tone={(snap.open_action_items || 0) > 0 ? "amber" : null} />
+      </div>
+      <div className="mt-3 space-y-2">
+        <TelemetryStaleNote
+          testId="ops-tx-health-widget-stale"
+          text={stale ? "Live refresh failed. This widget is holding the last good Transportation health snapshot." : ""}
+        />
+        <TelemetryTruthNote
+          testId="ops-tx-health-widget-truth-note"
+          title="Transportation health meaning"
+          items={[
+            { label: "Blocked Dispatch", text: "Loads currently blocked by Transportation readiness rules." },
+            { label: "Pending Reviews", text: "Documents, inspections, or approvals still waiting on review." },
+            { label: "Expiring 30d", text: "Requirements approaching expiration inside the next 30 days." },
+            { label: "Action Items", text: "Cleanup or workflow tasks that still need Transportation attention." },
+          ]}
+        />
       </div>
     </section>
   );
