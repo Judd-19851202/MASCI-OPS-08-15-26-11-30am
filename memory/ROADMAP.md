@@ -1,3 +1,22 @@
+# 2026-08-05 — Master-data dropdown roadmap state
+
+## Current top priority
+
+- **Preview repair is complete for the reported empty master-data dropdown issue.**
+- **Next operator step: redeploy the verified preview build to production and confirm the live crew-facing forms now show employees, jobs, equipment, and suppliers correctly.**
+
+## P0
+- redeploy the current preview fix to production and confirm the live dropdown population issue is cleared on real crew routes
+- preserve the new rule that anonymous/public employee pickers must use the safe public roster path instead of protected HR-only reads
+- preserve the supplier anti-poison-cache behavior so one empty read cannot leave users stuck with blank vendor dropdowns for a whole session
+
+## P1
+- extend explicit regression coverage to any additional master-data dropdown families discovered later outside employees/jobs/equipment/suppliers
+- add more route-level smoke checks for representative public and portal-specific forms that depend on shared lookup controls
+
+## P2
+- add lightweight observability/alerts for unexpected empty lookup payloads so dropdown failures surface before crews report them
+
 # 2026-08-05 — Deployment startup stabilization roadmap state
 
 ## Current top priority

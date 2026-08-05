@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter130 master-data dropdown population repair
+
+- Repaired shared employee lookup behavior so anonymous/public forms use the safe public roster path instead of falling into empty protected-roster reads.
+- Repaired roster auth scoping for `/api/hr/employee-roster` so protected portal contexts can scope the canonical request correctly, and fixed supplier lookup caching so an empty supplier response does not become a sticky session-wide empty dropdown.
+- Verification passed in preview: targeted frontend tests (`portalAuthScoping.test.js`, `dailyReportReliabilityIncident.test.js`) passed `13/13`; testing report `/app/test_reports/iteration_129.json` passed (`backend 100%`, `frontend 100%`); frontend specialist verification confirmed populated dropdowns on `/meetings/submit`, `/incidents/report`, and `/daily/submit`.
+
 ## 2026-08-05 — iter129 PM sign-in button color correction
 
 - Corrected the Project Management sign-in button styling after user review: the button now uses a navy background with white `SIGN IN` text to match the other portal sign-in screens.

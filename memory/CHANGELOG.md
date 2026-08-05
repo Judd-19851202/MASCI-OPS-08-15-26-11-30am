@@ -1,3 +1,10 @@
+# 2026-08-05 — Master-data dropdown population repair
+
+- Fixed shared employee lookup routing so anonymous/public forms read from the safe public employee roster instead of surfacing empty dropdowns.
+- Fixed canonical employee-roster auth scoping for protected portal contexts and fixed supplier lookup caching so empty supplier responses do not become sticky-empty session state.
+- Added/updated focused regression coverage in `frontend/src/lib/__tests__/dailyReportReliabilityIncident.test.js`, `frontend/src/lib/__tests__/portalAuthScoping.test.js`, and `backend/tests/test_dropdown_master_data.py`.
+- Verification passed: targeted frontend tests `13/13`, testing agent report `/app/test_reports/iteration_129.json` passed overall, and frontend specialist verification confirmed populated employee/job/equipment/supplier dropdowns on `/meetings/submit`, `/incidents/report`, and `/daily/submit`.
+
 # 2026-08-05 — PM sign-in button color correction
 
 - Fixed the Project Management sign-in button colors after review: navy button background, white text, matching the other portal sign-in screens.
