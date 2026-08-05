@@ -277,13 +277,20 @@ async def run_with_singleton_lock(
             f"scheduler disabled on this worker (preview / non-prod)"
         )
         return
+    target_getter = getattr(db, "get_target", None)
+    runtime_db = target_getter() if callable(target_getter) else db
+    if runtime_db is None:
+        logger.warning(
+            f"[singleton-lock:{lock_name}] runtime DB unavailable at scheduler bootstrap — skipping"
+        )
+        return
     owner_id = _generate_owner_id()
     logger.info(
         f"[singleton-lock:{lock_name}] starting under owner_id={owner_id}"
     )
     while True:
         try:
-            acquired = await _try_acquire_lock(db, lock_name, owner_id)
+            acquired = await _try_acquire_lock(runtime_db, lock_name, owner_id)
             if not acquired:
                 # Lost the race · another worker holds the lock · sleep and
                 # re-check. If the holder dies, its TTL will expire and we'll
@@ -301,9 +308,9 @@ async def run_with_singleton_lock(
             # Wrap the scheduler in a task so the heartbeat can cancel
             # it when the lock is lost. The previous pattern awaited
             # scheduler_fn directly, leaving no handle for cancellation.
-            sched_task = asyncio.create_task(scheduler_fn(db, *fn_args, **fn_kwargs))
+            sched_task = asyncio.create_task(scheduler_fn(runtime_db, *fn_args, **fn_kwargs))
             hb_task = asyncio.create_task(
-                _heartbeat_loop(db, lock_name, owner_id, sched_task)
+                _heartbeat_loop(runtime_db, lock_name, owner_id, sched_task)
             )
             try:
                 await sched_task
@@ -348,7 +355,7 @@ async def run_with_singleton_lock(
                         await sched_task
                     except (asyncio.CancelledError, Exception):
                         pass
-                await _release_lock(db, lock_name, owner_id)
+                await _release_lock(runtime_db, lock_name, owner_id)
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001
