@@ -1,3 +1,9 @@
+# 2026-08-05 — Daily Report mini-card separation pass
+
+- Converted the densest Daily Report tablet/mobile rows into visually separated mini-cards without changing data entry workflow.
+- Applied mini-card styling to MASCI Crew time, Equipment run/idle/total, Subcontractor headcount/hours/work, and Production station/percent rows.
+- Verification passed: focused frontend QA passed all checks, and `/app/test_reports/iteration_133.json` passed with `frontend 100%`.
+
 # 2026-08-05 — Daily Report tablet row rebalance
 
 - Fixed the Daily Report V3 tablet/mobile row layout so MASCI Crew time inputs (Start / Stop / Lunch / Hours) no longer bunch together into unusable narrow fields.

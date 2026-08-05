@@ -1,3 +1,21 @@
+# 2026-08-05 — Daily Report mini-card follow-up state
+
+## Current top priority
+
+- **Preview mini-card separation is complete for the production-reported dense Daily Report tablet rows.**
+- **Next operator step: redeploy and confirm the live Daily Report now reads as clearly separated mini-cards on the crew tablet/mobile viewport.**
+
+## P0
+- validate the live Daily Report on the exact portrait-tablet/mobile device that showed blended time fields and confirm the new mini-card separation feels right
+- preserve the new mini-card treatment in future Daily Report row edits
+
+## P1
+- consider extending the same mini-card treatment to any additional dense field rows that still feel visually blended after live validation
+- expand portrait-tablet browser checks to assert mini-card spacing/separation explicitly
+
+## P2
+- explore whether the same mini-card pattern should become a reusable field-layout primitive across the broader field-form system
+
 # 2026-08-05 — Daily Report tablet rebalance follow-up state
 
 ## Current top priority

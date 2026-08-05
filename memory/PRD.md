@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter135 daily report mini-card separation pass
+
+- Converted the densest Daily Report small-tablet rows into clearer stacked mini-cards without changing the underlying workflow: MASCI Crew time, Equipment run/idle/total, Subcontractor headcount/hours/work, and Production station/percent rows.
+- Added subtle bordered card separation (`rounded-xl`, soft border, soft background, padding) to make adjacent fields read as distinct units on portrait tablets/mobile.
+- Verification passed in preview: focused frontend QA passed `6/6`, and `/app/test_reports/iteration_133.json` passed (`frontend 100%`) with editable inputs, no overflow, and working job-picker regression checks.
+
 ## 2026-08-05 — iter134 daily report tablet row rebalance
 
 - Rebalanced Daily Report V3 tablet/mobile row grids so MASCI Crew time inputs no longer collapse into cramped four-column strips, and related Equipment / Subcontractor / Production / Visitor rows reflow more cleanly.
