@@ -32,7 +32,7 @@ function DriverCard({ driver, testId }) {
         <div data-testid={`${testId}-threshold`}><span className="font-semibold text-slate-800">Threshold:</span> {driver.threshold_crossed}</div>
         <div data-testid={`${testId}-owner`}><span className="font-semibold text-slate-800">Owner:</span> {driver.responsible_owner}</div>
         <div data-testid={`${testId}-impact`}><span className="font-semibold text-slate-800">Production impact:</span> {driver.production_impact}</div>
-        <div data-testid={`${testId}-cert-impact`}><span className="font-semibold text-slate-800">Affects certification:</span> {driver.affects_wp15_constitutional_certification ? "Yes" : "No"}</div>
+        <div data-testid={`${testId}-cert-impact`}><span className="font-semibold text-slate-800">Affects approval:</span> {driver.affects_wp15_constitutional_certification ? "Yes" : "No"}</div>
       </div>
     </div>
   );
@@ -110,7 +110,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
                 {t(data?.module?.label || "Enterprise Governance")}
               </h1>
               <p className="text-sm sm:text-base text-slate-700 leading-relaxed" data-testid="operational-health-authority-statement">
-                {t(data?.module?.authority_statement || "This dashboard is a read-only consumer of canonical evidence. Unknown is shown whenever evidence is missing or stale.")}
+                {t(data?.module?.authority_statement || "This page reads the current approved records. Unknown appears when supporting evidence is missing or out of date.")}
               </p>
             </div>
             <div className="grid min-w-[220px] grid-cols-2 gap-3" data-testid="operational-health-counts">
@@ -155,9 +155,9 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
             <div className="text-[11px] uppercase tracking-[0.24em] text-emerald-700">{t("Constitutional Certification")}</div>
             <div className="mt-2 text-3xl font-black text-emerald-950" data-testid="operational-health-certification-state">{data?.constitutional_certification?.state || "—"}</div>
             <div className="mt-3 grid gap-2 text-sm text-emerald-900">
-              <div data-testid="operational-health-certification-certified-at"><span className="font-semibold">Certified:</span> {data?.constitutional_certification?.certified_at ? formatPlatformTime(data.constitutional_certification.certified_at) : "—"}</div>
+              <div data-testid="operational-health-certification-certified-at"><span className="font-semibold">Approved:</span> {data?.constitutional_certification?.certified_at ? formatPlatformTime(data.constitutional_certification.certified_at) : "—"}</div>
               <div data-testid="operational-health-certification-commit"><span className="font-semibold">Commit:</span> {data?.constitutional_certification?.commit_sha || "—"}</div>
-              <div data-testid="operational-health-certification-evidence"><span className="font-semibold">Evidence package:</span> {data?.constitutional_certification?.evidence_package || "—"}</div>
+              <div data-testid="operational-health-certification-evidence"><span className="font-semibold">Evidence record:</span> {data?.constitutional_certification?.evidence_package || "—"}</div>
               <div data-testid="operational-health-certification-reasoning">{data?.constitutional_certification?.reasoning || "—"}</div>
             </div>
           </div>
@@ -225,7 +225,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("Filter by KPI, evidence source, producer, or root cause…")}
+              placeholder={t("Filter by measure, evidence source, owner, or root cause…")}
               className="w-full max-w-xl rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
               data-testid="operational-health-search"
             />
@@ -247,12 +247,12 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
 
         {loading && !data ? (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600" data-testid="operational-health-loading-banner">
-            {t("Loading enterprise governance evidence…")}
+            {t("Loading standards evidence…")}
           </div>
         ) : null}
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-status-engine">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Status engine verification</div>
+          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Status rules check</div>
           <div className="mt-2 text-sm text-slate-700" data-testid="operational-health-status-engine-policy">
             {data?.status_engine?.unknown_policy}
           </div>
@@ -271,7 +271,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
         </section>
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-golden-path">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Golden Path monitoring</div>
+          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Key workflow monitoring</div>
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-sm" data-testid="operational-health-golden-path-table">
               <thead>
@@ -302,7 +302,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-exemptions">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Known exemptions</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Known special cases</div>
             <TrustStatusPill status={data?.known_exemptions?.verified ? "green" : "unknown"} testid="operational-health-exemptions-status" />
           </div>
           <div className="mt-2 text-sm text-slate-700" data-testid="operational-health-exemptions-summary">
@@ -334,7 +334,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
 
         <section className="grid gap-4 lg:grid-cols-2" data-testid="operational-health-history-row">
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-trends">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Historical KPI transitions</div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Historical measure changes</div>
             <div className="mt-4 space-y-3">
               {Object.entries(data?.historical_kpi_trends || {}).slice(0, 8).map(([cardId, items]) => (
                 <div key={cardId} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`operational-health-trend-${cardId}`}>
@@ -371,7 +371,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500 font-mono">{section.label}</div>
                   <TrustStatusPill status={section.status || worstStatus(section.cards || [])} testid={`operational-health-section-${section.id}-status`} />
-                  <div className="text-[11px] text-slate-400">{filteredCards.length}/{(section.cards || []).length} KPI(s)</div>
+                  <div className="text-[11px] text-slate-400">{filteredCards.length}/{(section.cards || []).length} measure(s)</div>
                 </div>
                 {filteredCards.length ? (
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -381,7 +381,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-slate-500" data-testid={`operational-health-section-${section.id}-empty`}>
-                    {t("No KPI cards match the current filter.")}
+                    {t("No measure cards match the current filter.")}
                   </div>
                 )}
               </section>

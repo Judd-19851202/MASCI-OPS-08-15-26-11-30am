@@ -96,10 +96,10 @@ export const SAFETY_DOMAINS_V2 = [
     stripe: "#475569", // slate-600
     icon: ShieldAlert,
     routes: [
-      { to: "/safety-portal/audits",  label: "Reviews & Inspections", desc: "Job-site safety inspection review.",      icon: ShieldAlert },
+      { to: "/safety-portal/audits",  label: "Reviews & Inspections", desc: "Job-site safety inspection follow-up.",      icon: ShieldAlert },
       { to: "/odr/center",            label: "Operational Daily Records", desc: "Field-day events · readiness signals.", icon: NotebookPen },
       { to: "/safety-portal/library", label: "Topic Library",        desc: "Filter and pack safety topics for prep.", icon: BookOpen },
-      { to: "/safety-portal/fleet",   label: "Trucking · Fleet",     desc: "Defects, driver notes, severity context.", icon: Truck },
+      { to: "/safety-portal/fleet",   label: "Trucking · Fleet",     desc: "Equipment issues, driver notes, and follow-up context.", icon: Truck },
       { to: "/guidance?from=safety",  label: "Training Center",      desc: "How-to guides and troubleshooting.",     icon: GraduationCap },
     ],
   },

@@ -718,6 +718,7 @@ export function AppRoutes() {
             <Route path="/admin/jobs/:projectNumber/team" element={A(<AdminJobTeam />)} />
             {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE */}
             <Route path="/admin/project-staffing" element={A(<AdminProjectStaffing />)} />
+            <Route path="/admin/project-health" element={A(<ProjectHealth />)} />
             {/* M-3 · Geocode Foundation · Motive Geofence Reconciliation */}
             <Route path="/admin/geofence-reconciliation" element={A(<AdminGeofenceReconciliation />)} />
             {/* M-2 · Event Router · Operations dashboard (visibility only) */}
@@ -909,7 +910,9 @@ export function AppRoutes() {
             <Route path="/pm/job/:projectNumber/team" element={P(<PmJobTeam />)} />
             {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE */}
             <Route path="/pm/project-staffing"  element={P(<PmProjectStaffing />)} />
+            <Route path="/pm/project-health"  element={P(<ProjectHealth />)} />
             <Route path="/pm/project-schedule"  element={P(<PmProjectSchedule />)} />
+            <Route path="/pm/schedule"  element={<Navigate to="/pm/project-schedule" replace />} />
             <Route path="/pm/project-controls/schedule"  element={P(<PmProjectSchedule />)} />
             <Route path="/pm/monday-review"  element={P(<PmMondayReviewWorkspace />)} />
             <Route path="/pm/project-controls"  element={P(<PmProjectControlsAuthority />)} />
@@ -1016,6 +1019,7 @@ export function AppRoutes() {
             <Route path="/shop/manager/queue" element={S(<ShopManagerQueue />)} />
             <Route path="/shop/me" element={S(<ShopMyAssignments />)} />
             {/* Track 13.27 — Unit History Timeline (consumes Asset Service Event Backbone). */}
+            <Route path="/shop/units" element={<Navigate to="/shop/units/history" replace />} />
             <Route path="/shop/units/history" element={S(<UnitHistoryLanding />)} />
             <Route path="/shop/units/:unitNumber/history" element={S(<UnitHistoryTimeline />)} />
             {/* Track 13.29 — Fuel / Lube Visit Record (one job · many equipment lines). */}

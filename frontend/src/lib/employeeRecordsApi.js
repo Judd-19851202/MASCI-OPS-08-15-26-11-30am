@@ -6,20 +6,12 @@
 //
 // Zero drift: pure fetch wrapper — no state, no side effects beyond
 // network calls.
-import { getHrToken } from "@/lib/hrAuth";
-import { getSafetyToken } from "@/lib/safetyAuth";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getShopToken } from "@/lib/shopAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api/employee-records`;
 
 export function authHeaders() {
-  const h = {};
-  const hr = getHrToken();     if (hr) h["X-HR-Token"] = hr;
-  const sf = getSafetyToken(); if (sf) h["X-Safety-Token"] = sf;
-  const sh = getShopToken();   if (sh) h["X-Shop-Token"] = sh;
-  const ad = getAdminToken();  if (ad) h["X-Admin-Token"] = ad;
-  return h;
+  return buildScopedPortalAuthHeaders(["admin", "hr", "shop", "safety"]);
 }
 
 async function _json(res) {

@@ -195,7 +195,7 @@ export default function ExecutiveIntelligence() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">Production Confidence Score</div>
-                <div className="font-display text-lg font-black text-slate-900">Explainable, canonical, and executive-ready</div>
+                <div className="font-display text-lg font-black text-slate-900">Backed by current project records and ready for action</div>
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2" data-testid="exec-intel-confidence-average">Avg {data.confidence?.summary?.average_score ?? 0}</div>
@@ -217,13 +217,13 @@ export default function ExecutiveIntelligence() {
                   <div className="mt-2 text-xs text-slate-600">{(row.production_confidence?.explainability || []).slice(0, 2).join(" • ")}</div>
                   <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-500">
                     <span className="rounded-full border border-slate-200 bg-white px-2 py-1">Band: {String(row.production_confidence?.band || "critical").replaceAll("_", " ")}</span>
-                    <span className="rounded-full border border-slate-200 bg-white px-2 py-1">Snapshots: {row.governance?.snapshot_count || 0}</span>
+                    <span className="rounded-full border border-slate-200 bg-white px-2 py-1">Updates: {row.governance?.snapshot_count || 0}</span>
                   </div>
                 </div>
               ))}
               {!(data.confidence?.projects || []).length ? (
                 <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-                  Confidence rows are waiting on preview auth, but the executive module remains mounted safely.
+                  Project confidence rows are not available right now, but this leadership view remains available.
                 </div>
               ) : null}
             </div>
