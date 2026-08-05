@@ -1,0 +1,96 @@
+{
+  "passed": [
+    {
+      "test": "GET /api/ready",
+      "details": "Status: 200"
+    },
+    {
+      "test": "GET /api/health",
+      "details": "Status: 200, Response: {\"ok\": true, \"service\": \"masci-hub\", \"ts\": \"2026-08-05T22:16:00.308056+00:00\", \"runtime_identity\": {"
+    },
+    {
+      "test": "Admin Login",
+      "details": "Successfully authenticated"
+    },
+    {
+      "test": "GET /api/incident-cases/71477b5c-13fe-4f25-9ba0-d156bf47912c/executive-intelligence",
+      "details": "Graceful 404 response (no executive case package exists) - this is expected behavior"
+    },
+    {
+      "test": "GET /api/admin/transportation/trucks",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/admin/transportation/persons",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/admin/transportation/carriers",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/admin/transportation/fleet/equipment",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/admin/transportation/automation/health",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/dispatch/transportation/eligible-drivers",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/dispatch/transportation/eligible-trucks",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "HR Login",
+      "details": "Successfully authenticated"
+    },
+    {
+      "test": "GET /api/hr/employees/c9d7ebc3-a292-4d7a-8765-0ce2739c6029/accountability/timeline",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "GET /api/hr/employees/c9d7ebc3-a292-4d7a-8765-0ce2739c6029/accountability/brief.pdf",
+      "details": "Status: 200, Content-Type: application/pdf"
+    },
+    {
+      "test": "GET /api/hr/employee-accountability",
+      "details": "Status: 200, Type: dict"
+    },
+    {
+      "test": "Safety Login",
+      "details": "Successfully authenticated"
+    },
+    {
+      "test": "GET /api/incident-cases/bddd1b95-b55a-4646-aa7d-9b156a2c21e3",
+      "details": "Status: 200, Keys: ['id', 'case_number', 'tenant_id', 'state', 'created_at']"
+    }
+  ],
+  "failed": [],
+  "warnings": [
+    {
+      "test": "GET /api/admin/assets/100adffe-cb69-4d70-b61f-3f51a6f87d85",
+      "message": "Asset not found (404) - may be expected if test data doesn't exist"
+    },
+    {
+      "test": "GET /api/admin/assets/100adffe-cb69-4d70-b61f-3f51a6f87d85/history",
+      "message": "Asset history not found (404) - may be expected if test data doesn't exist"
+    },
+    {
+      "test": "GET /api/incident-cases/00f1f93d-f76f-4224-8ebb-75fca4dd7be1",
+      "message": "Incident case not found (404) - may be expected if test data doesn't exist"
+    },
+    {
+      "test": "GET /api/admin/meetings/bddd1b95-b55a-4646-aa7d-9b156a2c21e3",
+      "message": "Meeting not found (404) - may be expected if test data doesn't exist"
+    },
+    {
+      "test": "GET /api/admin/meetings/00f1f93d-f76f-4224-8ebb-75fca4dd7be1",
+      "message": "Meeting not found (404) - may be expected if test data doesn't exist"
+    }
+  ],
+  "success": true
+}
