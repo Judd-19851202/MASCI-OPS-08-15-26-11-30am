@@ -301,6 +301,9 @@ export function SectionShell({ step, title, testId, right = null, children }) {
 const rowBtn =
   "inline-flex min-h-12 items-center gap-1 rounded-[0.95rem] px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100";
 
+const miniFieldCard =
+  "rounded-xl border border-slate-200 bg-slate-50/70 p-2.5";
+
 // ── Section 02 · Crew + Equipment ─────────────────────────────────
 export function SectionCrewEquipment({ data, patch, costCodes }) {
   const { t } = useT();
@@ -529,7 +532,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
 
               {/* Time row */}
               <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
-                <label className="flex flex-col text-xs text-slate-600">
+                <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                   <span className="mb-0.5">{t("Start")}</span>
                   <input
                     type="time"
@@ -539,7 +542,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     data-testid={`dr-v3-crew-start-${i}`}
                   />
                 </label>
-                <label className="flex flex-col text-xs text-slate-600">
+                <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                   <span className="mb-0.5">{t("Stop")}</span>
                   <input
                     type="time"
@@ -549,7 +552,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     data-testid={`dr-v3-crew-stop-${i}`}
                   />
                 </label>
-                <label className="flex flex-col text-xs text-slate-600">
+                <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                   <span className="mb-0.5">{t("Lunch (min)")}</span>
                   <input
                     type="number"
@@ -569,7 +572,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     data-testid={`dr-v3-crew-lunch-${i}`}
                   />
                 </label>
-                <label className="flex flex-col text-xs text-slate-600">
+                <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                   <span className="mb-0.5">{t("Hours (auto)")}</span>
                   <input
                     type="number"
@@ -734,7 +737,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               </button>
             </div>
             <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <label className="flex flex-col text-xs text-slate-600">
+              <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Run hours")}</span>
                 <input
                   type="number"
@@ -756,7 +759,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   data-testid={`dr-v3-eq-hours-${i}`}
                 />
               </label>
-              <label className="flex flex-col text-xs text-slate-600">
+              <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Idle hours")}</span>
                 <input
                   type="number"
@@ -778,7 +781,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   data-testid={`dr-v3-eq-idle-${i}`}
                 />
               </label>
-              <label className="flex flex-col text-xs text-slate-600">
+              <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Total (run + idle)")}</span>
                 <input
                   type="text"
@@ -964,7 +967,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               </button>
             </div>
             <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
-              <label className="flex flex-col text-xs text-slate-600">
+              <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Headcount")}</span>
                 <input
                   type="number"
@@ -986,7 +989,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   data-testid={`dr-v3-sub-count-${i}`}
                 />
               </label>
-              <label className="flex flex-col text-xs text-slate-600">
+              <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Hours")}</span>
                 <input
                   type="number"
@@ -1005,18 +1008,21 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   data-testid={`dr-v3-sub-hours-${i}`}
                 />
               </label>
-              <input
-                type="text"
-                placeholder={t("Work performed / notes")}
-                value={s.work_performed || ""}
-                onChange={(ev) => {
-                  const next = subs.slice();
-                  next[i] = { ...s, work_performed: ev.target.value };
-                  patch({ subcontractors: next });
-                }}
-                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem] md:col-span-2 xl:col-span-1"
-                data-testid={`dr-v3-sub-work-${i}`}
-              />
+              <div className={`${miniFieldCard} md:col-span-2 xl:col-span-1`}>
+                <div className="mb-0.5 text-xs text-slate-600">{t("Work performed / notes")}</div>
+                <input
+                  type="text"
+                  placeholder={t("Work performed / notes")}
+                  value={s.work_performed || ""}
+                  onChange={(ev) => {
+                    const next = subs.slice();
+                    next[i] = { ...s, work_performed: ev.target.value };
+                    patch({ subcontractors: next });
+                  }}
+                  className="w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-[0.95rem]"
+                  data-testid={`dr-v3-sub-work-${i}`}
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -1336,31 +1342,37 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                 for linear heavy-civil work (road, pipeline, MOT). Feeds
                 PM linear-progress KPIs and downstream schedule linkage. */}
             <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <input
-                type="text"
-                placeholder={t("Sta from (e.g. 12+00)")}
-                value={p.station_from || ""}
-                onChange={(e) => {
-                  const next = prod.slice();
-                  next[i] = { ...p, station_from: e.target.value };
-                  patch({ production: next });
-                }}
-                className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
-                data-testid={`dr-v3-prod-sta-from-${i}`}
-              />
-              <input
-                type="text"
-                placeholder={t("Sta to (e.g. 15+50)")}
-                value={p.station_to || ""}
-                onChange={(e) => {
-                  const next = prod.slice();
-                  next[i] = { ...p, station_to: e.target.value };
-                  patch({ production: next });
-                }}
-                className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
-                data-testid={`dr-v3-prod-sta-to-${i}`}
-              />
-              <label className="flex flex-col gap-1 md:col-span-2 xl:col-span-1">
+              <div className={miniFieldCard}>
+                <div className="mb-0.5 text-xs font-medium text-slate-600">{t("Sta from")}</div>
+                <input
+                  type="text"
+                  placeholder={t("Sta from (e.g. 12+00)")}
+                  value={p.station_from || ""}
+                  onChange={(e) => {
+                    const next = prod.slice();
+                    next[i] = { ...p, station_from: e.target.value };
+                    patch({ production: next });
+                  }}
+                  className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[0.95rem]"
+                  data-testid={`dr-v3-prod-sta-from-${i}`}
+                />
+              </div>
+              <div className={miniFieldCard}>
+                <div className="mb-0.5 text-xs font-medium text-slate-600">{t("Sta to")}</div>
+                <input
+                  type="text"
+                  placeholder={t("Sta to (e.g. 15+50)")}
+                  value={p.station_to || ""}
+                  onChange={(e) => {
+                    const next = prod.slice();
+                    next[i] = { ...p, station_to: e.target.value };
+                    patch({ production: next });
+                  }}
+                  className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[0.95rem]"
+                  data-testid={`dr-v3-prod-sta-to-${i}`}
+                />
+              </div>
+              <label className={`${miniFieldCard} flex flex-col gap-1 md:col-span-2 xl:col-span-1`}>
                 <span className="text-xs font-medium text-slate-600">{t("Percent Complete")}</span>
               <input
                 type="number"
