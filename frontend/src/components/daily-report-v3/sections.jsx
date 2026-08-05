@@ -531,7 +531,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               </div>
 
               {/* Time row */}
-              <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
                 <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                   <span className="mb-0.5">{t("Start")}</span>
                   <input
@@ -736,7 +736,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">
               <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Run hours")}</span>
                 <input
@@ -916,7 +916,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
             data-testid={`dr-v3-sub-row-${i}`}
             className="rounded-xl border border-slate-200 p-3"
           >
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1.05fr)_minmax(0,1.05fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1.05fr)_minmax(0,1.05fr)_auto]">
               <SupplierCombo
                 value={s.company || ""}
                 onChange={(v) => {
@@ -926,7 +926,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 }}
                 placeholder={t("Pick a subcontractor / vendor — or type")}
                 data-testid={`dr-v3-sub-company-${i}`}
-                className="md:col-span-2 xl:col-span-1"
+                className="md:col-span-2 2xl:col-span-1"
               />
               <input
                 type="text"
@@ -954,7 +954,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               />
               <button
                 type="button"
-                className={rowBtn + " justify-self-end xl:self-start"}
+                className={rowBtn + " justify-self-end 2xl:self-start"}
                 onClick={() =>
                   patch({
                     subcontractors: subs.filter((_, j) => j !== i),
@@ -966,7 +966,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
               <label className={`${miniFieldCard} flex flex-col text-xs text-slate-600`}>
                 <span className="mb-0.5">{t("Headcount")}</span>
                 <input
@@ -1008,7 +1008,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   data-testid={`dr-v3-sub-hours-${i}`}
                 />
               </label>
-              <div className={`${miniFieldCard} md:col-span-2 xl:col-span-1`}>
+              <div className={`${miniFieldCard} md:col-span-2 2xl:col-span-1`}>
                 <div className="mb-0.5 text-xs text-slate-600">{t("Work performed / notes")}</div>
                 <input
                   type="text"
@@ -1285,7 +1285,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
             data-testid={`dr-v3-prod-row-${i}`}
             className="rounded-xl border border-slate-200 p-3"
           >
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder={t("What was installed / performed")}
@@ -1341,7 +1341,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
             {/* TRACK 23.4B · Station from/to + percent complete — critical
                 for linear heavy-civil work (road, pipeline, MOT). Feeds
                 PM linear-progress KPIs and downstream schedule linkage. */}
-            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">
               <div className={miniFieldCard}>
                 <div className="mb-0.5 text-xs font-medium text-slate-600">{t("Sta from")}</div>
                 <input
@@ -1372,7 +1372,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                   data-testid={`dr-v3-prod-sta-to-${i}`}
                 />
               </div>
-              <label className={`${miniFieldCard} flex flex-col gap-1 md:col-span-2 xl:col-span-1`}>
+              <label className={`${miniFieldCard} flex flex-col gap-1 md:col-span-2 2xl:col-span-1`}>
                 <span className="text-xs font-medium text-slate-600">{t("Percent Complete")}</span>
               <input
                 type="number"
@@ -1480,7 +1480,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
         {mats.map((m, i) => (
           <div key={i} data-testid={`dr-v3-mat-row-${i}`} className="rounded-xl border border-slate-200 p-3">
             {/* Row 1 · Material · Qty · Unit · Delete */}
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder={t("Material")}
@@ -1644,7 +1644,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
         {outs.map((o, i) => (
           <div key={i} data-testid={`dr-v3-out-row-${i}`} className="rounded-xl border border-slate-200 p-3">
             {/* Row 1 · Material · Qty · Unit · Delete */}
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder={t("Material")}
@@ -2345,7 +2345,7 @@ export function SectionImpactSafety({ data, patch }) {
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
+                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
                   <input
                     type="time"
                     value={v.time_in || ""}
@@ -2379,7 +2379,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, purpose: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem] md:col-span-2 xl:col-span-1"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem] md:col-span-2 2xl:col-span-1"
                     data-testid={`dr-v3-visitor-purpose-${i}`}
                   />
                 </div>
