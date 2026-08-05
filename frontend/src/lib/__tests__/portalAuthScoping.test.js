@@ -81,4 +81,10 @@ describe("portal auth scoping", () => {
   test("field memory recent inherits the active portal token", () => {
     expect(inferPortalsForApiPath("/api/field-memory/recent?limit=3", "dispatch")).toEqual(["dispatch"]);
   });
+
+  test("employee roster inherits the active non-hr portal token", () => {
+    expect(inferPortalsForApiPath("/api/hr/employee-roster", "pm")).toEqual(["pm"]);
+    expect(inferPortalsForApiPath("/api/hr/employee-roster", "dispatch")).toEqual(["dispatch"]);
+    expect(inferPortalsForApiPath("/api/hr/employee-roster/public", "pm")).toEqual([]);
+  });
 });

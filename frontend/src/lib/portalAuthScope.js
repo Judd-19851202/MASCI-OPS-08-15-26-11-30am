@@ -126,6 +126,18 @@ export function inferPortalsForApiPath(pathname = "", activePortal = null) {
   if (!path) return [];
   const routePath = (path.startsWith("/api/") ? path.slice(4) : path).split("?")[0].split("#")[0];
 
+  // Canonical employee roster is a cross-platform lookup surface. The
+  // backend accepts ANY valid portal token for `/api/hr/employee-roster`
+  // so PM / Safety / Shop / Dispatch / FL forms can resolve employees
+  // without borrowing the HR token slot. The public projection stays
+  // anonymous by contract.
+  if (routePath === "/hr/employee-roster/public" || routePath.startsWith("/hr/employee-roster/public/")) {
+    return [];
+  }
+  if (routePath === "/hr/employee-roster" || routePath.startsWith("/hr/employee-roster/")) {
+    return activePortal ? [activePortal] : ["hr"];
+  }
+
   if (routePath.startsWith("/admin/") || routePath === "/admin") {
     if (activePortal === "dispatch" && (routePath === "/admin/transportation" || routePath.startsWith("/admin/transportation/"))) {
       return ["dispatch"];

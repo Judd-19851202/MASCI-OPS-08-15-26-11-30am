@@ -36,8 +36,10 @@ async function loadList() {
     .get("/suppliers", { timeout: 30000, skipSessionStatus: true })
     .then((r) => {
       if (Array.isArray(r?.data?.items)) {
-        _cache = r.data;
-        return _cache;
+        if (r.data.items.length > 0) {
+          _cache = r.data;
+        }
+        return r.data;
       }
       // Non-array response → don't poison the cache. Return empty for THIS
       // call but leave _cache null so the next mount tries again.

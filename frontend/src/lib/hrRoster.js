@@ -25,6 +25,7 @@
 //     guarantees this. Pickers never see private HR data.
 
 import { api } from "@/lib/api";
+import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 
 const HR_ROSTER_EVENT = "hr:roster-changed";
 const ENDPOINT = "/hr/employee-roster";
@@ -71,6 +72,12 @@ export async function fetchHrRoster(opts = {}) {
   if (role) params.role = role;
   if (department) params.department = department;
   if (q) params.q = q;
+  const anonymousSafeRead =
+    !includeInactive &&
+    !role &&
+    !department &&
+    !hasAnyPortalAuthToken();
+  const usePublicEndpoint = publicFallback || anonymousSafeRead;
   // De-dup ONLY when the same parameter shape is requested. The
   // overwhelmingly common call from pickers is the no-arg form,
   // which all share the same in-flight promise.
@@ -78,12 +85,15 @@ export async function fetchHrRoster(opts = {}) {
   if (_inflight && _inflight.key === key) {
     return _inflight.promise;
   }
-  const endpoint = publicFallback ? `${ENDPOINT}/public` : ENDPOINT;
+  const endpoint = usePublicEndpoint ? `${ENDPOINT}/public` : ENDPOINT;
+  const requestParams = usePublicEndpoint
+    ? (q ? { q } : {})
+    : params;
   const promise = api
     .get(endpoint, {
-      params,
+      params: requestParams,
       timeout: 30000,
-      skipSessionStatus: publicFallback,
+      skipSessionStatus: usePublicEndpoint,
     })
     .then((r) => {
       const items = Array.isArray(r?.data?.items) ? r.data.items : [];
@@ -99,7 +109,14 @@ export async function fetchHrRoster(opts = {}) {
       // test). Any other error → return last known good snapshot
       // so pickers never poison an existing render.
       const status = err?.response?.status;
-      if (status === 401 && publicFallback && endpoint === ENDPOINT) {
+      if (
+        status === 401 &&
+        endpoint === ENDPOINT &&
+        !includeInactive &&
+        !role &&
+        !department &&
+        (publicFallback || !hasAnyPortalAuthToken())
+      ) {
         try {
           const pub = await api.get(`${ENDPOINT}/public`, {
             params: (q ? { q } : {}),

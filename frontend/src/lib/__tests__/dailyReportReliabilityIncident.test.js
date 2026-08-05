@@ -15,11 +15,18 @@ jest.mock("@/lib/api", () => ({
   },
 }), { virtual: true });
 
+jest.mock("@/lib/authHeaders", () => ({
+  hasAnyPortalAuthToken: jest.fn(() => false),
+}), { virtual: true });
+
 const { api } = jest.requireMock("@/lib/api");
+const { hasAnyPortalAuthToken } = jest.requireMock("@/lib/authHeaders");
 
 beforeEach(() => {
   _testReset();
   api.get.mockReset();
+  hasAnyPortalAuthToken.mockReset();
+  hasAnyPortalAuthToken.mockReturnValue(false);
 });
 
 describe("Daily Report reliability incident regressions", () => {
@@ -42,7 +49,26 @@ describe("Daily Report reliability incident regressions", () => {
     expect(items[0].name).toBe("Field User");
   });
 
+  test("anonymous employee lookups auto-use the public roster endpoint", async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        items: [{ id: "emp-2", name: "Anonymous Crew", employee_id: "2002", trade: "Laborer" }],
+      },
+    });
+
+    const items = await fetchHrRoster();
+
+    expect(api.get).toHaveBeenCalledTimes(1);
+    expect(api.get).toHaveBeenNthCalledWith(1, "/hr/employee-roster/public", {
+      params: {},
+      timeout: 30000,
+      skipSessionStatus: true,
+    });
+    expect(items[0].name).toBe("Anonymous Crew");
+  });
+
   test("401 without public fallback returns last known snapshot instead of escalating form state", async () => {
+    hasAnyPortalAuthToken.mockReturnValue(true);
     api.get.mockResolvedValueOnce({
       data: {
         items: [{ id: "emp-1", name: "Cached User", employee_id: "1001" }],
