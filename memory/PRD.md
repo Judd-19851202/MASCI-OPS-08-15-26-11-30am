@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter138 large-tablet breakpoint hardening for Daily Report
+
+- Hardened Daily Report dense-row breakpoints so large tablets (for example 12.9" iPad landscape widths around 1366px) stay on the 2-column tablet layout instead of jumping too early into the cramped desktop multi-column grid.
+- Shifted the dense-row desktop breakpoint from `xl` to `2xl` for MASCI Crew time, Equipment metrics, Subcontractor metrics, Production, and Visitor rows.
+- Verification passed in preview at large-tablet width: frontend QA confirmed the MASCI Crew time row now stays 2-column at `1366x1024`, with no horizontal overflow and working job/vendor picker regressions.
+
 ## 2026-08-05 — iter137 shared detail-print sweep + meetings runtime fix
 
 - Completed the shared detail-report print sweep across all current `View*` pages that use the portal shell pattern: Daily Report, Meeting, Site Inspection, Incident, QA/QC Inspection, and Equipment Inspection now all use print isolation.

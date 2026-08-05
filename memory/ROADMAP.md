@@ -1,3 +1,21 @@
+# 2026-08-05 — Large-tablet breakpoint follow-up state
+
+## Current top priority
+
+- **Preview hardening is complete for the production-reported large-tablet Daily Report crowding issue.**
+- **Next operator step: redeploy and re-check the exact large-tablet production viewport that previously showed blended crew time fields.**
+
+## P0
+- validate the live Daily Report again on the same large-tablet device/browser after redeploy
+- preserve the new `2xl` breakpoint rule for dense Daily Report rows
+
+## P1
+- keep capturing viewport-specific evidence on the largest field tablets in use so we match real hardware, not just generic tablet widths
+- extend the same breakpoint-hardening review to any other field forms that still jump to desktop grids too early
+
+## P2
+- consider device-profile presets in QA so the biggest iPad-style landscape widths are always part of regression coverage
+
 # 2026-08-05 — Shared detail-print sweep follow-up state
 
 ## Current top priority

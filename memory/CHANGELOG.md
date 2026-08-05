@@ -1,3 +1,9 @@
+# 2026-08-05 — Daily Report large-tablet breakpoint hardening
+
+- Shifted dense Daily Report row breakpoints from `xl` to `2xl` so large tablets keep the readable 2-column tablet layout instead of switching too early to cramped desktop grids.
+- Applied the breakpoint hardening to MASCI Crew time, Equipment metrics, Subcontractor metrics, Production rows, and Visitor rows.
+- Verification passed: frontend QA confirmed the MASCI Crew time row stays 2-column at `1366x1024`, with no horizontal overflow and no job/vendor picker regression.
+
 # 2026-08-05 — Shared detail-print sweep + admin meetings runtime fix
 
 - Extended the print isolation pattern across all current shell-based detail pages: ViewDailyReport, ViewMeeting, ViewInspection, ViewIncident, ViewQaqcInspection, and ViewEquipmentInspection.
