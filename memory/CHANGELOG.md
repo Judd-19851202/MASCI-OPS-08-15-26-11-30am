@@ -1,5 +1,13 @@
 # 2026-08-05 — WP18CZ route-governance punch list closeout
 
+# 2026-08-05 — Platform-wide submission filing confirmation standard
+
+- Added the permanent shared `SubmissionConfirmation` component and centralized workflow rule map for operator-facing filing confirmations.
+- Standardized submission confirmations across the active form/report/request families and removed visible calm-summary / software-style outcome wording.
+- Added governed filed-number support for fleet submissions, PO requests, safety returns, trench excavations, and public trench asset reports where the submit path previously lacked a human-readable tracking number.
+- Verification passed: `/app/test_reports/iteration_144.json` confirmed shared confirmation coverage, governed near-miss numbering, responsive layouts, and the required data-testid set.
+
+# 2026-08-05 — WP18CZ route-governance punch list closeout
 - Closed the official route execution punch list: `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv` now stands at `484 / 484` routes in a closed certification state and `0` open route states.
 - Captured final runtime proof in `/app/test_reports/iteration_142.json`, `/app/test_reports/iteration_143.json`, and final self-checks for the executive-report no-data state and HR accountability timeline.
 - Repaired final visible operator-language defects on training, transportation, admin asset/history, HR accountability/thread/driver, and executive-report surfaces.

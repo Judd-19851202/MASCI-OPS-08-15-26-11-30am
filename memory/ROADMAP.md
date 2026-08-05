@@ -1,5 +1,26 @@
 # 2026-08-05 — WP18CZ route-governance closeout state
 
+# 2026-08-05 — Submission filing standard follow-up state
+
+## Current top priority
+
+- **The platform-wide submission filing confirmation standard is now implemented in preview through the shared confirmation component.**
+- **Next operator step is live redeploy validation plus follow-on certification outside this submission sweep.**
+
+## P0
+- validate the live post-redeploy experience on the highest-traffic submission families (Daily Report, DVIR, Incident/Near Miss, Safety Forms, PO Request, ODR, and trench/public forms)
+- preserve governed human-readable document numbering on every new or modified submit workflow
+- preserve the shared confirmation contract so no new form ships with one-off submit-success UI or missing routing / next-step fields
+
+## P1
+- extend confirmation spot checks into any lower-traffic or role-gated submit flows not exercised during the preview certification batch
+- confirm downstream print/PDF/email surfaces also show the same governed document numbers where applicable
+
+## P2
+- add a standing release/checklist gate so new submission workflows cannot ship without the shared confirmation component and truthful routing copy
+
+# 2026-08-05 — WP18CZ route-governance closeout state
+
 ## Current top priority
 
 - **The route registry execution punch list is closed: `484 / 484` routes are now in a closed certification state.**

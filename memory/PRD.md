@@ -1,5 +1,13 @@
 # PRD
 
+## 2026-08-05 — Platform-wide submission filing confirmation standard
+
+- Implemented a single shared `SubmissionConfirmation` experience plus governed workflow copy in `frontend/src/components/submission/SubmissionConfirmation.jsx` and `frontend/src/lib/submissionConfirmation.js`.
+- Rewired the platform submission families to the shared filing standard: Daily Report, Equipment Pre-Op, Safety Inspection, Safety Meeting, Incident, Near Miss, Fleet DVIR, Safety Issuance, Safety Training, Safety Return, QA/QC, ODR, Field Leadership, Time-Off, PO Request, Excavation, and Public Trench Asset Report.
+- Added/extended governed tracking-number support where the preview code path lacked a human-readable filed number at submit time: fleet inspections (`doc_id`), PO requests (`request_number`), safety returns (`return_number` / `doc_id`), trench excavations (`doc_id`), and public trench asset reports (`doc_id`).
+- Removed visible calm-summary / software-style confirmation wording from the standardized confirmation screens and replaced it with operator-first filed language covering routing, next steps, follow-up, and processing status.
+- Verification passed in preview: `/app/test_reports/iteration_144.json` reported `frontend 100%` and `backend 100%`, confirmed governed near-miss case numbers, confirmed responsive confirmation layouts, and verified the shared confirmation data-testid contract.
+
 ## 2026-08-05 — WP18CZ route-governance punch list closed
 
 - Burned the official execution punch list in `/app/memory/WP17_ROUTE_GOVERNANCE_REGISTRY.csv` down to `0` open route states (`484 / 484` closed).
