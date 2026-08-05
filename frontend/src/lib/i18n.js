@@ -1,3 +1,5 @@
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
+
 // Lightweight bilingual support for the MASCI Safety Hub.
 // English is the canonical language — all submitted data is stored in English.
 // Spanish is a read/fill aid for Spanish-speaking crew members on forms.
@@ -8912,7 +8914,7 @@ function _brandSubst(s) {
 export function tStr(key) {
   if (!key) return key;
   const raw = _current === "en" ? key : (DICTS[_current][key] || key);
-  return _brandSubst(raw);
+  return sanitizeOperatorCopy(_brandSubst(raw), _brandSubst(raw));
 }
 
 /**

@@ -71,11 +71,11 @@ export function OperationalIntelligenceSnapshotWorkspace({
               </Button>
               {exportEnabled ? (
                 <Button type="button" onClick={onExport} disabled={!snapshot} data-testid={`${dataTestId}-export-button`}>
-                  <Download className="mr-2 h-4 w-4" /> {t("Export CSV")}
+                  <Download className="mr-2 h-4 w-4" /> {t("Download CSV")}
                 </Button>
               ) : (
                 <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid={`${dataTestId}-export-deferred`}>
-                  {t("CSV export is deferred in this release.")}
+                  {t("CSV download is not available on this page yet.")}
                 </div>
               )}
             </div>
@@ -112,7 +112,7 @@ export function OperationalIntelligenceSnapshotWorkspace({
           <section className="space-y-4" data-testid={`${dataTestId}-metrics-section`}>
             <div className="flex items-center gap-3 text-sm text-slate-600">
               <ShieldCheck className="h-4 w-4 text-cyan-700" />
-              {t("Every KPI below is built from Work Blocks, approved progress updates, budget lines, and schedule activities.")}
+              {t("Every number below comes from field updates, approved progress, budget lines, and schedule activities.")}
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
               {(snapshot.metric_cards || []).map((metric) => (
@@ -137,7 +137,7 @@ export function OperationalIntelligenceSnapshotWorkspace({
                     <div className="mt-3 grid gap-2 text-xs text-slate-600 md:grid-cols-2">
                       <div>{t("Budget lines")}: {(row.budget_line_ids || []).slice(0, 4).join(", ") || "—"}</div>
                       <div>{t("Schedule activities")}: {(row.schedule_activity_ids || []).slice(0, 4).join(", ") || "—"}</div>
-                      <div>{t("Work Blocks")}: {(row.work_block_ids || []).slice(0, 4).join(", ") || "—"}</div>
+                      <div>{t("Field updates")}: {(row.work_block_ids || []).slice(0, 4).join(", ") || "—"}</div>
                       <div>{t("Reports")}: {(row.source_report_ids || []).slice(0, 4).join(", ") || "—"}</div>
                     </div>
                   </div>
@@ -204,7 +204,7 @@ export function OperationalIntelligenceSnapshotWorkspace({
                         <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700">{operatorStatusLabel(row.status, t)}</span>
                         {row.status === "open" && onOverride ? (
                           <Button type="button" size="sm" variant="outline" onClick={() => startOverride(row)} data-testid={`${dataTestId}-override-${row.recommendation_id}`}>
-                            {t("Record different decision")}
+                            {t("Save a different decision")}
                           </Button>
                         ) : null}
                       </div>
@@ -217,7 +217,7 @@ export function OperationalIntelligenceSnapshotWorkspace({
                       <div>{t("Confidence")}: {operatorConfidenceLabel(row.confidence, t)}</div>
                       <div className="sm:col-span-2">{t("Evidence")}: {Object.entries(row.evidence || {}).map(([key, value]) => `${operatorLabel(key, t, key)}: ${value}`).join(" · ") || "—"}</div>
                     </div>
-                    {row.override ? <div className="mt-3 text-xs text-cyan-700">{t("Different field decision")}: {row.override.actor} · {row.override.note}</div> : null}
+                    {row.override ? <div className="mt-3 text-xs text-cyan-700">{t("Saved local decision")}: {row.override.actor} · {row.override.note}</div> : null}
                   </div>
                 ))}
                 {!snapshot.recommendations?.length ? <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-500">{t("No recommended actions are open right now.")}</div> : null}
@@ -246,8 +246,8 @@ export function OperationalIntelligenceSnapshotWorkspace({
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-200">{t("What this page is based on")}</div>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               <div data-testid={`${dataTestId}-authority-operators`}>{t("You are seeing")}: <strong>{t("Project Performance")}</strong></div>
-              <div data-testid={`${dataTestId}-authority-engine`}>{t("Built from")}: <strong>{t("Daily Reports, Work Blocks, approved progress updates, budget lines, and schedule activities")}</strong></div>
-              <div data-testid={`${dataTestId}-authority-metrics`}>{t("Update existing records")}: <strong>{operatorStatusLabel(snapshot.backfill?.status || "pending_manual_run", t)}</strong></div>
+              <div data-testid={`${dataTestId}-authority-engine`}>{t("Built from")}: <strong>{t("Daily Reports, field updates, approved progress updates, budget lines, and schedule activities")}</strong></div>
+              <div data-testid={`${dataTestId}-authority-metrics`}>{t("Record refresh")}: <strong>{operatorStatusLabel(snapshot.backfill?.status || "pending_manual_run", t)}</strong></div>
             </div>
             <div className="mt-3 text-xs text-slate-300">{t("Also used in")}: {(summary.centralized_consumers || []).map((item) => operatorLabel(item, t)).join(", ") || "—"}</div>
           </section>
@@ -257,7 +257,7 @@ export function OperationalIntelligenceSnapshotWorkspace({
       <Dialog open={!!overrideTarget} onOpenChange={(open) => !open && setOverrideTarget(null)}>
         <DialogContent data-testid={`${dataTestId}-override-dialog`}>
           <DialogHeader>
-            <DialogTitle>{t("Record different field decision")}</DialogTitle>
+            <DialogTitle>{t("Save a different decision")}</DialogTitle>
             <DialogDescription>
               {t("This keeps the original recommendation, saves your decision, and preserves the evidence trail.")}
             </DialogDescription>

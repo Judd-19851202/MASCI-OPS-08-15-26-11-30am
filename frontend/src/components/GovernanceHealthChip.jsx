@@ -77,19 +77,19 @@ export default function GovernanceHealthChip({ portal }) {
   let label;
   let trailing;
   if (state === "drift") {
-    label = "governance drift";
+    label = "work area changed";
     trailing = absLoudness;
   } else if (dir === "improving" && delta !== null) {
-    label = "governance improving";
-    trailing = `${delta > 0 ? "+" : ""}${delta} drift${sinceSuffix} · ${absLoudness}`;
+    label = "work area improving";
+    trailing = `${delta > 0 ? "+" : ""}${delta} change${sinceSuffix} · ${absLoudness}`;
   } else if (dir === "drifting" && delta !== null) {
-    label = "governance drifting";
-    trailing = `+${Math.abs(delta)} drift${sinceSuffix} · ${absLoudness}`;
+    label = "work area drifting";
+    trailing = `+${Math.abs(delta)} change${sinceSuffix} · ${absLoudness}`;
   } else if (state === "monitor") {
-    label = "governance monitor";
+    label = "watch this work area";
     trailing = absLoudness;
   } else {
-    label = "governance stable";
+    label = "work area steady";
     trailing = absLoudness;
   }
 

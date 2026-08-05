@@ -736,7 +736,7 @@ export default function PmProjectSchedule() {
               </div>
               {scheduleEmailReviewDeferred ? (
                 <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" data-testid="pm-project-schedule-email-review-deferred">
-                  {t("Email review is deferred in this release. Download exports instead.")}
+                  {t("Email review is not available on this page yet. Download the export instead.")}
                 </div>
               ) : (
                 <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto]">

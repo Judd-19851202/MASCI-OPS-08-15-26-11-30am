@@ -13,6 +13,7 @@ import { useBranding } from "@/lib/BrandingProvider";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
 import { useT } from "@/lib/i18n";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 function resolveShellTheme(explicitTheme) {
   if (explicitTheme) return explicitTheme;
@@ -186,9 +187,9 @@ export function PortalShell({
   const notificationAccent = "slate";
   const portalSwitcherVariant = "light";
   const isWp17 = experienceLevel === "wp17c";
-  const localizedPortalRole = typeof portalRole === "string" ? t(portalRole) : portalRole;
-  const localizedPageTitle = typeof pageTitle === "string" ? t(pageTitle) : pageTitle;
-  const localizedSubtitle = typeof subtitle === "string" ? t(subtitle) : subtitle;
+  const localizedPortalRole = typeof portalRole === "string" ? sanitizeOperatorCopy(t(portalRole), t(portalRole)) : portalRole;
+  const localizedPageTitle = typeof pageTitle === "string" ? sanitizeOperatorCopy(t(pageTitle), t(pageTitle)) : pageTitle;
+  const localizedSubtitle = typeof subtitle === "string" ? sanitizeOperatorCopy(t(subtitle), t(subtitle)) : subtitle;
   const resolvedExperienceTone = resolveExperienceTone(experienceTone, localizedPortalRole, theme);
   const shouldShowHomeShortcut = false;
   const shouldShowBackShortcut = showBack && backHref;

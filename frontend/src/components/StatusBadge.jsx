@@ -15,6 +15,7 @@
 // Sizes: "sm" (compact mobile / dense lists) | "md" (default) | "lg".
 import React from "react";
 import { tintFor, labelFor } from "@/lib/statusBadges";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 const SIZE_CLASSES = {
   sm: "px-1.5 py-0.5 text-[10px]",
@@ -33,7 +34,7 @@ export function StatusBadge({
   if (!value) return null;
   const tint = tintFor(kind, value);
   const sz = SIZE_CLASSES[size] || SIZE_CLASSES.md;
-  const displayed = useCanonicalLabel ? labelFor(kind, value) : value;
+  const displayed = sanitizeOperatorCopy(useCanonicalLabel ? labelFor(kind, value) : value, value);
   return (
     <span
       className={`inline-flex items-center gap-1 rounded font-mono uppercase tracking-wider font-bold border ${tint} ${sz} ${className}`}

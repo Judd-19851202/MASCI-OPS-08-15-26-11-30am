@@ -219,7 +219,7 @@ export default function ProjectHealth() {
             <div className="text-2xl font-bold leading-none mt-1">
               {data.rows?.length ? `${Math.round(data.rows.reduce((sum, row) => sum + Number(row.production_confidence?.score || 0), 0) / data.rows.length)}` : "0"}
             </div>
-            <div className="text-[11px] mt-1 text-slate-500">Deterministic · canonical</div>
+              <div className="text-[11px] mt-1 text-slate-500">Based on current project records</div>
           </div>
         </div>
       )}

@@ -381,7 +381,7 @@ export default function PmMondayReviewWorkspace() {
                 <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
                 <Button variant="outline" onClick={() => runBriefingAction("approve", "Briefing approved.")} data-testid="pm-monday-briefing-approve"><ShieldCheck className="mr-2 h-4 w-4" />Approve</Button>
                 <Button variant="outline" onClick={() => runBriefingAction("freeze", "Briefing frozen.")} data-testid="pm-monday-briefing-freeze"><Lock className="mr-2 h-4 w-4" />Freeze</Button>
-                {briefingPdfDeferred ? <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="pm-monday-briefing-pdf-deferred">PDF export is deferred in this release.</div> : <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>}
+                {briefingPdfDeferred ? <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="pm-monday-briefing-pdf-deferred">PDF is not available on this page yet.</div> : <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>}
               </div>
             </div>
           </div>
@@ -420,7 +420,7 @@ export default function PmMondayReviewWorkspace() {
                     <Button variant="outline" onClick={() => runBriefingAction("generate", "Briefing generated.")} data-testid="pm-monday-briefing-generate">Generate</Button>
                     <Button variant="outline" onClick={() => runBriefingAction("approve", "Briefing approved.")} data-testid="pm-monday-briefing-approve"><ShieldCheck className="mr-2 h-4 w-4" />Approve</Button>
                     <Button variant="outline" onClick={() => runBriefingAction("freeze", "Briefing frozen.")} data-testid="pm-monday-briefing-freeze"><Lock className="mr-2 h-4 w-4" />Freeze</Button>
-                    {briefingPdfDeferred ? <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="pm-monday-briefing-pdf-deferred">PDF export is deferred in this release.</div> : <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>}
+                    {briefingPdfDeferred ? <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="pm-monday-briefing-pdf-deferred">PDF is not available on this page yet.</div> : <Button onClick={openBriefingPdf} data-testid="pm-monday-briefing-pdf">Open PDF</Button>}
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-3 text-sm">

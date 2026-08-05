@@ -84,7 +84,7 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
           <span>Company Safety Posture</span>
           <InlineKpiHelp metadata={snap?.kpi_metadata?.page} fallbackLabel="Company Safety Posture" testId="safety-kpis-title-help" />
         </h2>
-        <span className="text-xs text-slate-500">One spine. Same numbers PM sees, safety-first framing.</span>
+        <span className="text-xs text-slate-500">Built from the same field records used across the project team, with a safety-first view.</span>
         <div className="ml-auto flex flex-wrap gap-1" role="tablist" aria-label="Window">
           {WINDOWS.map((w) => (
             <button

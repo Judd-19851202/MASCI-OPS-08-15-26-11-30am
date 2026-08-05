@@ -15,6 +15,7 @@ import React from "react";
 import {
   Users, Wrench, Truck, Package, Clock, ShieldAlert, Sparkles, Calendar,
 } from "lucide-react";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const WINDOWS = [
@@ -53,9 +54,9 @@ export default function PmOperationalKPIs({ projectNumber }) {
     >
       <header className="flex flex-wrap items-baseline gap-3">
         <h2 className="font-display text-lg font-black text-slate-900" data-testid="pm-operational-kpis-title">
-          Operational KPIs
+          Project Performance
         </h2>
-        <span className="text-xs text-slate-500">Labor · Equipment · Materials · Production · Delays · Safety · Intelligence — no cost data.</span>
+        <span className="text-xs text-slate-500">Labor · Equipment · Materials · Production · Delays · Safety · Photo findings — budget details stay on the budget page.</span>
         <div className="ml-auto flex flex-wrap gap-1" role="tablist" aria-label="Window">
           {WINDOWS.map((w) => (
             <button
@@ -74,8 +75,8 @@ export default function PmOperationalKPIs({ projectNumber }) {
         </div>
       </header>
 
-      {loading && <div className="mt-3 text-sm text-slate-500" data-testid="pm-operational-kpis-loading">Loading operational rollups…</div>}
-      {err && <div className="mt-3 text-sm text-rose-700" data-testid="pm-operational-kpis-error">Unable to load KPIs ({err})</div>}
+      {loading && <div className="mt-3 text-sm text-slate-500" data-testid="pm-operational-kpis-loading">Loading project totals…</div>}
+      {err && <div className="mt-3 text-sm text-rose-700" data-testid="pm-operational-kpis-error">Unable to load project measures ({err})</div>}
       {!loading && !err && data && (
         <>
           <p className="mt-2 text-[11px] font-mono uppercase tracking-widest text-slate-500" data-testid="pm-operational-kpis-range">
@@ -194,7 +195,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               flagCritical={data.safety.escalation_gap_count > 0 ? `${data.safety.escalation_gap_count} escalation gap` : null}
             />
             <KpiCard
-              title="Photo Intelligence"
+              title="Photo Findings"
               icon={Sparkles}
               testid="pm-kpi-photos"
               value={data.intelligence.photo_observation_count}
@@ -284,18 +285,18 @@ function LatestSummaryCard({ latest, count }) {
     >
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-slate-500" aria-hidden />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Latest Accepted Summary</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Latest Approved Shift Story</span>
       </div>
       <div className="mt-1 flex items-baseline gap-1.5">
         <span className="font-display text-2xl font-black text-slate-900">{count}</span>
-        <span className="text-xs text-slate-500">accepted</span>
+        <span className="text-xs text-slate-500">approved</span>
       </div>
       {empty ? (
-        <p className="mt-1 text-[11px] text-slate-400">No AI summary accepted in this window.</p>
+        <p className="mt-1 text-[11px] text-slate-400">No approved shift story in this window.</p>
       ) : (
         <div className="mt-1 text-[11px] text-slate-600">
-          <div>{latest.date} · {latest.audience || "operational"}</div>
-          <div className="text-slate-400 text-[10px]">{latest.agent || "—"} · {latest.chars || 0} chars</div>
+          <div>{latest.date} · {latest.audience || "project team"}</div>
+          <div className="text-slate-400 text-[10px]">Supervisor-ready daily summary</div>
         </div>
       )}
     </div>
@@ -318,9 +319,9 @@ function SchedulingReadinessStrip({ readiness }) {
     <div className="mt-5 rounded-md border border-dashed border-slate-300 bg-slate-50/60 p-3" data-testid="pm-kpi-scheduling-readiness">
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4 text-slate-500" aria-hidden />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Scheduling Readiness · future consumers</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Planning Readiness · next-week planning</span>
       </div>
-      <p className="mt-1 text-[11px] text-slate-500">{readiness.notes}</p>
+      <p className="mt-1 text-[11px] text-slate-500">{sanitizeOperatorCopy(readiness.notes, "Planning follow-up may still be needed.")}</p>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {rows.map(([label, ok]) => (
           <span
@@ -332,7 +333,7 @@ function SchedulingReadinessStrip({ readiness }) {
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${ok ? "bg-emerald-500" : "bg-slate-300"}`} />
-            {label}{ok ? " · live" : " · future"}
+            {label}{ok ? " · ready" : " · needs follow-up"}
           </span>
         ))}
       </div>

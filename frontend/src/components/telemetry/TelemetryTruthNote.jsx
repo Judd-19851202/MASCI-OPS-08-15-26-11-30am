@@ -24,7 +24,7 @@ export function TelemetryStaleNote({ text, testId = "telemetry-stale-note" }) {
       className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-900"
       data-testid={testId}
     >
-      <strong>Showing last good snapshot.</strong> {text}
+        <strong>Showing the last verified update.</strong> {text}
     </div>
   );
 }

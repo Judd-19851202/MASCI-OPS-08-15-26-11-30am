@@ -18,18 +18,21 @@
 
 import React from "react";
 import { Info } from "lucide-react";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 
 export function HelpTip({ label, body, testId, side = "top" }) {
+  const safeLabel = sanitizeOperatorCopy(label, label);
+  const safeBody = sanitizeOperatorCopy(body, body);
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
           className="inline-flex items-center justify-center w-4 h-4 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-          aria-label={label || "Help"}
+          aria-label={safeLabel || "Help"}
           data-testid={testId || "help-tip"}
         >
           <Info className="w-3.5 h-3.5" />
@@ -40,11 +43,11 @@ export function HelpTip({ label, body, testId, side = "top" }) {
         align="start"
         className="max-w-xs p-3 text-xs"
       >
-        {label && (
-          <div className="font-bold text-slate-900 mb-1 leading-snug">{label}</div>
+        {safeLabel && (
+          <div className="font-bold text-slate-900 mb-1 leading-snug">{safeLabel}</div>
         )}
-        {body && (
-          <div className="text-slate-700 leading-relaxed">{body}</div>
+        {safeBody && (
+          <div className="text-slate-700 leading-relaxed">{safeBody}</div>
         )}
       </PopoverContent>
     </Popover>

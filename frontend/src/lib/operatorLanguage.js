@@ -26,9 +26,24 @@ const BANNED_OPERATOR_TERMS = [
   "internal",
   "code name",
   "cert",
+  "telemetry",
+  "snapshot",
+  "kpi",
+  "rollup",
+  "spine",
+  "deterministic",
+  "read-only",
+  "gateway",
+  "provider",
+  "configuration",
+  "forensic",
+  "cockpit",
 ];
 
 const OPERATOR_TERM_REPLACEMENTS = [
+  [/\bdeterministic\s*[·-]\s*canonical\b/gi, "Based on current records"],
+  [/\bdeferred in this release\b/gi, "not available on this page yet"],
+  [/\bread-?only\b/gi, "view only"],
   [/\bcanonicalize\b/gi, "standardize"],
   [/\bcanonical_owner\b/gi, "primary owner"],
   [/\bcanonical_archive_lineage\b/gi, "primary archive lineage"],
@@ -41,6 +56,15 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\bcert\b/gi, ""],
   [/\bcertification\b/gi, "readiness"],
   [/\bcanonical\b/gi, "platform"],
+  [/\btelemetry\b/gi, "live updates"],
+  [/\bsnapshot\b/gi, "update"],
+  [/\bkpis\b/gi, "key job measures"],
+  [/\bkpi\b/gi, "key job measure"],
+  [/\brollups\b/gi, "totals"],
+  [/\brollup\b/gi, "total"],
+  [/\bspine\b/gi, "shared record"],
+  [/\bdeterministic\b/gi, "rules-based"],
+  [/\bgovernance\b/gi, "standards"],
   [/\bbackend\b/gi, "platform"],
   [/\bfrontend\b/gi, "platform"],
   [/\bmutation\b/gi, "update"],
@@ -73,9 +97,15 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\brole_template\b/gi, "access template"],
   [/\bmongo\b/gi, "data service"],
   [/\bdb\b/gi, "data"],
+  [/\bgateway\b/gi, "service"],
+  [/\bprovider\b/gi, "service"],
+  [/\bconfiguration\b/gi, "settings"],
+  [/\bforensic\b/gi, "detailed"],
+  [/\bcockpit\b/gi, "work area"],
+  [/\bsingle-glass\b/gi, "shared"],
 ];
 
-const INTERNAL_CODE_PATTERN = /\b(?:wp\d+[a-z0-9-]*|oppc|devhub|preview|fixture|qa|uat|r2|ocr)\b/i;
+const INTERNAL_CODE_PATTERN = /\b(?:wp\d+[a-z0-9-]*|oppc|devhub|preview|fixture|qa|uat|r2|ocr|telemetry|snapshot|kpi|rollup|spine|forensic|cockpit)\b/i;
 
 function collapseWhitespace(value) {
   return String(value || "")

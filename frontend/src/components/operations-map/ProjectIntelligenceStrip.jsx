@@ -66,7 +66,7 @@ export default function ProjectIntelligenceStrip({ rollups = [], allRollups = []
 
   const subtitle =
     visible.length === 0
-      ? "Waiting for telemetry"
+      ? "Waiting for live fleet updates"
       : total <= 1
         ? "Top area"
         : "Top areas needing attention";
@@ -74,7 +74,7 @@ export default function ProjectIntelligenceStrip({ rollups = [], allRollups = []
   return (
     <section className="ops-map-projects" data-testid="ops-map-projects-strip">
       <div className="ops-map-projects-header">
-        <span className="ops-map-projects-title">Project Intelligence</span>
+        <span className="ops-map-projects-title">Project Attention</span>
         <span className="ops-map-projects-meta" data-testid="ops-map-projects-meta">
           {subtitle}
         </span>
@@ -83,7 +83,7 @@ export default function ProjectIntelligenceStrip({ rollups = [], allRollups = []
       <div className="ops-map-projects-rail">
         {visible.length === 0 && (
           <div data-testid="ops-map-projects-empty" className="ops-map-projects-empty">
-            No active areas yet · waiting for telemetry
+            No active areas yet · waiting for live fleet updates
           </div>
         )}
 
@@ -124,7 +124,7 @@ export default function ProjectIntelligenceStrip({ rollups = [], allRollups = []
               <div className="ops-map-project-card-breakdown">
                 {isUnassigned && attention === 0 && offline === r.total ? (
                   <span className="kw kw-attn" data-testid={`ops-map-project-card-${i}-cleanup`}>
-                    Needs Cleanup
+                    Needs Assignment
                   </span>
                 ) : (
                   <>
