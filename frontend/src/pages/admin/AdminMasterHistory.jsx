@@ -37,7 +37,7 @@ export default function AdminMasterHistory({ kind }) {
     : (master?.name || [master?.first_name, master?.last_name].filter(Boolean).join(" ") || master?.employee_id || id);
 
   const kicker = kind === "equipment"
-    ? "ADMIN · ASSET HISTORY"
+    ? "ADMIN · EQUIPMENT HISTORY"
     : "ADMIN · EMPLOYEE HISTORY";
 
   const backTo = kind === "equipment" ? "/admin/equipment" : "/admin/people";
@@ -97,7 +97,7 @@ export default function AdminMasterHistory({ kind }) {
                 : <User className="w-8 h-8 text-slate-400 mt-1" />}
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-bold">
-                  {kind === "equipment" ? "Equipment Master" : "Employee Master"}
+                  {kind === "equipment" ? "Equipment Record" : "Employee Record"}
                 </div>
                 <h2 className="font-display text-3xl font-black text-slate-900 leading-tight mt-1 break-words">{masterTitle}</h2>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600 mt-2">

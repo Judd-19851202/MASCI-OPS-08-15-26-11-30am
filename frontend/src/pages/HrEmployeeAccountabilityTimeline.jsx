@@ -176,8 +176,8 @@ export default function HrEmployeeAccountabilityTimeline() {
     <PortalShell
       portalName="MASCI"
       portalRole="HR Portal · Accountability"
-      pageTitle={t("Accountability Timeline")}
-      subtitle={t("Aggregated read-only view of an employee's training, PPE, incidents, and lifecycle history.")}
+      pageTitle={t("Employee Accountability Timeline")}
+      subtitle={t("One employee, every training, PPE, incident, driver qualification, and HR record in one timeline.")}
       sideNav={<HrSideNavV2 />}
       primaryActions={
         <div className="flex items-center gap-2" data-testid="acct-header-actions">
@@ -188,7 +188,7 @@ export default function HrEmployeeAccountabilityTimeline() {
             data-testid="acct-open-thread-link"
             className="inline-flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-widest border-2 border-slate-300 hover:border-slate-900 text-slate-900 rounded"
           >
-            Universal Thread
+            Unified view
           </Link>
           <Button
             variant="outline" size="sm" onClick={load} disabled={loading}
@@ -216,10 +216,10 @@ export default function HrEmployeeAccountabilityTimeline() {
           icon={History}
           accent="indigo"
           title={t("How this timeline works")}
-          summary={t("One employee · every operational record from every portal · read-only.")}
+          summary={t("One employee, every operational record from every portal, in one read-only timeline.")}
           sections={[
-            { label: t("Why this matters"), body: t("If a CAPA, training, PPE, incident, or CDL/medical event touches this person, it shows up here. This is how the platform builds trust in the roster.") },
-            { label: t("Source of truth"), body: t("Corrections happen in the original portal — this view aggregates, it doesn't edit. The role pill on each row shows where the record was written.") },
+            { label: t("Why this matters"), body: t("If a CAPA, training, PPE, incident, or CDL/medical event touches this person, it shows up here so the team can act early.") },
+            { label: t("Where updates happen"), body: t("Make corrections in the team that owns the record. This page combines the history, but it does not change the original record.") },
           ]}
         />
 
@@ -452,7 +452,7 @@ export default function HrEmployeeAccountabilityTimeline() {
 
             <div className="text-[11px] text-slate-500 font-mono flex items-center gap-2 pt-2 border-t border-slate-200" data-testid="acct-footer">
               <FileText className="w-3 h-3" />
-              {t("Aggregated view · source records remain authoritative · generated")}{" "}
+              {t("Combined timeline · updates stay in the owning team record · prepared")}{" "}
               {formatUtcForAudit(data?.generated_at)}
             </div>
           </>

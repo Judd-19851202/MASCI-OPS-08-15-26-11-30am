@@ -452,7 +452,7 @@ export default function ExecutiveCaseReport() {
         )}
 
         <p className="text-[11px] text-slate-500 font-mono uppercase tracking-widest" data-testid="exec-report-model-version">
-          {t("Model")} · v{model.model_version} · {t("Generated")} {_fmt(model.generated_at)}
+            {t("Prepared")} · {_fmt(model.generated_at)}
         </p>
       </main>
     </div>

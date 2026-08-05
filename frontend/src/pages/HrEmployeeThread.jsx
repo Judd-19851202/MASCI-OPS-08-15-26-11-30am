@@ -284,9 +284,9 @@ export default function HrEmployeeThread() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="HR Portal · Employee Thread"
+      portalRole="HR Portal · Employee"
       pageTitle={data?.employee?.name || "Employee"}
-      subtitle={t("Universal Operational Thread · sourced from the certified Accountability endpoint.")}
+      subtitle={t("One employee, one connected work record.")}
       sideNav={<HrSideNavV2 />}
       primaryActions={
         <div className="flex items-center gap-2" data-testid="hr-employee-thread-actions">
@@ -295,7 +295,7 @@ export default function HrEmployeeThread() {
             data-testid="hr-employee-thread-classic-link"
             className="inline-flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-widest border-2 border-slate-300 hover:border-slate-900 text-slate-900 rounded"
           >
-            Classic view
+            Timeline view
           </Link>
           <Button
             size="sm"
@@ -331,7 +331,7 @@ export default function HrEmployeeThread() {
           attention={{ items: attentionItems }}
           guidanceProduct={product}
           timelineEvents={timelineEvents}
-          timelineTitle={t("Accountability timeline · read-only")}
+          timelineTitle={t("Accountability timeline")}
           relationships={relationships}
           oiProduct={product}
           actionQueue={actionQueue}

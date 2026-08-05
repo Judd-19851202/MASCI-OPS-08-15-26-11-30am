@@ -38,7 +38,7 @@ export function CommandQueueCenter() {
     <div data-testid="tx-command-queue-center" className="space-y-4">
       <PageHeader
         title="Command Queue"
-        subtitle="Proactive transportation operating system · daily automation"
+        subtitle="Transportation follow-up, checks, and reminders for the day"
         testid="tx-cq-header"
       />
       <nav className="flex flex-wrap gap-1 border-b border-slate-200 pb-2 mb-4" data-testid="tx-cq-subtabs">
@@ -354,7 +354,7 @@ function ComplianceForecast() {
   ];
   return (
     <div data-testid="tx-cq-forecast" className="space-y-4">
-      <div className="text-sm text-slate-600">Next {data.horizon_days} days. Reads live data; nothing is persisted by this view.</div>
+      <div className="text-sm text-slate-600">Next {data.horizon_days} days. This view looks ahead using today’s live records.</div>
       {sections.map((s) => {
         const rows = data.data[s.key] || [];
         const Icon = s.icon;

@@ -13,13 +13,13 @@ import { usePageTitle } from "@/lib/usePageTitle";
 export default function HrDriverProfile() {
   const { driverKey } = useParams();
   const nav = useNavigate();
-  usePageTitle("Driver Command Profile · HR · MASCI");
+  usePageTitle("Driver Profile · HR · MASCI");
   return (
     <PortalShell
       portalName="MASCI"
       portalRole="HR Portal · Driver"
-      pageTitle="Driver Command Profile"
-      subtitle="Identity · qualification · readiness"
+      pageTitle="Driver Profile"
+      subtitle="Identity, qualification, and readiness"
       sideNav={<HrSideNavV2 />}
       primaryActions={
         <Button
@@ -28,7 +28,7 @@ export default function HrDriverProfile() {
           onClick={() => nav("/hr/motive-drivers")}
           data-testid="hr-driver-profile-cleanup"
         >
-          Motive Driver Cleanup
+          Driver record cleanup
         </Button>
       }
     >

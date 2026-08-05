@@ -71,7 +71,7 @@ export function IntelligenceCenter() {
     <div data-testid="tx-intel-center" className="space-y-4">
       <PageHeader
         title="Operations Intelligence"
-        subtitle="One engine · explainable scoring · deterministic forecasts"
+        subtitle="Transportation outlook, best next moves, and follow-up work"
         right={<ShieldCheck className="h-5 w-5 text-emerald-700" />}
       />
       <div className="flex items-center gap-1 border-b border-slate-200">
@@ -184,8 +184,7 @@ function ExecutiveDashboard() {
       </section>
 
       <div className="text-[10px] uppercase tracking-wide text-slate-400 flex items-center gap-3">
-        <span>Schema {data.schema_version}</span>
-        <span>· Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")}</span>
+        <span>Prepared {(data.generated_at || "").slice(0, 19).replace("T", " ")}</span>
         <button onClick={load} className="ml-auto inline-flex items-center gap-1 text-blue-600 hover:underline" data-testid="tx-intel-exec-refresh">
           <RefreshCw className="h-3.5 w-3.5" /> Refresh
         </button>
@@ -297,7 +296,7 @@ function RecommendationsPanel() {
                 : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
             data-testid={`tx-intel-recs-scope-${s}`}
           >
-            {s}
+            {{ triple: "Best overall", driver: "Driver", carrier: "Carrier", truck: "Truck" }[s] || s}
           </button>
         ))}
       </div>
@@ -436,7 +435,7 @@ function PredictionsPanel() {
       </section>
 
       <div className="text-[10px] uppercase tracking-wide text-slate-400">
-        Schema {data.schema_version} · Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")}
+        Prepared {(data.generated_at || "").slice(0, 19).replace("T", " ")}
       </div>
     </div>
   );
@@ -532,7 +531,7 @@ function LearningLoopPanel() {
       </div>
 
       <div className="text-[10px] uppercase tracking-wide text-slate-400 -mt-1" data-testid="tx-intel-learning-disclaimer">
-        Team-level operational learning · no individual scorekeeping
+        Team-level learning only · no individual scorekeeping
       </div>
 
       {empty && (
@@ -622,7 +621,7 @@ function LearningLoopPanel() {
       </section>
 
       <div className="text-[10px] uppercase tracking-wide text-slate-400">
-        Schema {data.schema_version} · Window {data.range?.days} days · Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")}
+        Prepared {(data.generated_at || "").slice(0, 19).replace("T", " ")} · Window {data.range?.days} days
       </div>
       {(data.notes || []).length > 0 && (
         <ul className="text-[10px] text-slate-500 list-disc pl-4" data-testid="tx-intel-learning-notes">
@@ -758,7 +757,7 @@ function CleanupCompanionPanel() {
   return (
     <div data-testid="tx-intel-cleanup" className="space-y-4">
       <div className="text-[10px] uppercase tracking-wide text-slate-400" data-testid="tx-intel-cleanup-disclaimer">
-        Source-counted action lists · no new scoring · {signals.note}
+        Action lists built from current records · {signals.note}
       </div>
 
       {list.length === 0 ? (
@@ -850,7 +849,7 @@ function CleanupCompanionPanel() {
       )}
 
       <div className="text-[10px] uppercase tracking-wide text-slate-400">
-        Schema {signals.schema_version} · Generated {(signals.generated_at || "").slice(0, 19).replace("T", " ")}
+        Prepared {(signals.generated_at || "").slice(0, 19).replace("T", " ")}
       </div>
     </div>
   );

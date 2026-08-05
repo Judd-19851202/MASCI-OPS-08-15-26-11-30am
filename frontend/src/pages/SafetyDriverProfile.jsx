@@ -11,13 +11,13 @@ import { usePageTitle } from "@/lib/usePageTitle";
 
 export default function SafetyDriverProfile() {
   const { driverKey } = useParams();
-  usePageTitle("Driver Command Profile · Safety · MASCI");
+  usePageTitle("Driver Profile · Safety · MASCI");
   return (
     <PortalShell
       portalName="MASCI"
       portalRole="Safety Portal · Driver"
-      pageTitle="Driver Command Profile"
-      subtitle="Identity · safety · training · equipment"
+      pageTitle="Driver Profile"
+      subtitle="Identity, safety, training, and equipment"
       sideNav={<SafetySideNavV2 />}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6" data-testid="safety-driver-profile-page">

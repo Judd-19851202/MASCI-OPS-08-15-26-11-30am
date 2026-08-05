@@ -80,7 +80,7 @@ export default function AssetProfile() {
             </div>
             <div className="flex-1 min-w-0">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-                Unified asset profile
+                Equipment profile
               </span>
               <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight" data-testid="asset-profile-name">
                 {overview.unit_number || "—"} <span className="text-slate-500 font-normal">— {overview.name || "(unnamed)"}</span>
@@ -272,7 +272,7 @@ function MotiveLiveTab({ live, mapping, operator }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">Motive · Live Telematics</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">Motive · Live Location</span>
             <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-[0.15em] font-bold ${cls}`} data-testid="ap-motive-stale-badge">
               {STALE_LABEL[sb] || STALE_LABEL.offline} · {sinceLabel}
             </span>
@@ -771,7 +771,7 @@ function AdminSection({ assetId }) {
       </div>
 
       {/* Canonical Taxonomy */}
-      <AdminCard title="Canonical Taxonomy" subtitle="Single source of truth · spine v1.0.0">
+      <AdminCard title="Equipment Class" subtitle="Company equipment record">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <SelectOrField
             label="Asset Class"
@@ -807,12 +807,12 @@ function AdminSection({ assetId }) {
               className="rounded border-slate-300"
               data-testid="ap-admin-verified-checkbox"
             />
-            <span>Mark canonical taxonomy as <strong>verified</strong> (source: manual)</span>
+            <span>Mark this equipment class as <strong>verified</strong>.</span>
           </label>
         )}
         {behavior && (
           <div className="mt-3 pt-3 border-t border-slate-100" data-testid="ap-admin-behavior">
-            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5">Inherited behavior</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-1.5">Included operating rules</div>
             <div className="flex flex-wrap gap-1.5">
               {Object.entries(behavior)
                 .filter(([, v]) => v === true)
@@ -1001,7 +1001,7 @@ function AdminSection({ assetId }) {
       </AdminCard>
 
       <div className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.18em]">
-        Source: equipment_master · spine v{asset.asset_category_version || "1.0.0"} · one asset · one record
+        Based on the company equipment record for this unit
       </div>
     </div>
   );
