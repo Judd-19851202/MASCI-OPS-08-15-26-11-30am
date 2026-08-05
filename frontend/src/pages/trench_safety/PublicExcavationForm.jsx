@@ -35,6 +35,8 @@ import { computeExcavationCompliance } from "@/lib/excavationCompliance";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 
 const WORK_TYPES = ["Utility Work", "Storm Drain", "Sanitary Sewer", "Water Main", "Electrical / Communication", "Roadway Excavation", "Structure / Box Culvert", "Drainage", "Other"];
 const SOILS = ["Type A", "Type B", "Type C", "Stable Rock", "Unknown / Needs Review"];
@@ -823,6 +825,27 @@ function SuccessScreen({ done, setDone, t }) {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [reinspectResult, setReinspectResult] = useState(null);
+  const confirmation = buildSubmissionConfirmation({
+    workflowKey: "excavation",
+    documentNumber: done.doc_id || done.id || "",
+    submittedAt: done.created_at || new Date().toISOString(),
+    submittedBy: done.submitted_by || done.foreman_name || done.supervisor_name || "",
+    project: done.project_name || done.project_number || "",
+    followUpRequired: done.flags?.length > 0
+      ? "A competent person must follow up on the flagged items shown below."
+      : "No further action is required from you at this time.",
+    note: done.daily_report_links?.length > 0
+      ? `Linked Daily Report(s): ${done.daily_report_links.map((l) => l.report_number || l.daily_report_id).join(", ")}`
+      : "",
+    startAnother: {
+      label: "Start Another",
+      onClick: () => {
+        setDone(null);
+        window.scrollTo({ top: 0 });
+      },
+    },
+    returnToPortal: { label: "Return to Portal", to: "/trench-safety" },
+  });
 
   async function triggerReinspect() {
     setSubmitting(true);
@@ -860,32 +883,20 @@ function SuccessScreen({ done, setDone, t }) {
       footerText={t("MASCI Operations Platform · Excavation submission workflow")}
     >
       <div className="space-y-4">
-        <div className="bg-white border-2 border-emerald-300 rounded-md p-4" data-testid="excavation-success">
-          <div className="font-mono text-2xl font-black text-slate-900" data-testid="public-excavation-success-id">{done.id}</div>
-          <div className="mt-1 text-sm text-slate-700">{t("Status")}: <b className="text-cyan-900">{t(done.status)}</b></div>
-          {done.daily_report_links?.length > 0 && (
-            <div className="mt-2 text-xs text-slate-700" data-testid="excavation-success-dr-links">
-              <span className="font-bold uppercase tracking-[0.08em] mr-1">{t("Linked Daily Report(s):")}</span>
-              {done.daily_report_links.map((l) => l.report_number || l.daily_report_id).join(", ")}
-            </div>
-          )}
-          {done.flags?.length > 0 && (
-            <div className="mt-3">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold">{t("Coaching Flags")}</div>
-              <ul className="mt-1 space-y-1">
-                {done.flags.map((fl, i) => (
-                  <li key={i} className="text-xs text-amber-900 flex gap-2" data-testid={`exc-flag-${fl.code}`}>
-                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                    <span><b>{t(fl.level)}</b> — {t(fl.message)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <div className="mt-4 text-xs text-slate-600 leading-relaxed">
-            {t("Safety has been notified. A competent person will follow up on any coaching flag above. The job site is not changed by this submission — keep working safely.")}
+        <SubmissionConfirmation confirmation={confirmation} embedded />
+        {done.flags?.length > 0 && (
+          <div className="bg-white border-2 border-amber-300 rounded-md p-4" data-testid="excavation-success-flags">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800 font-bold">{t("Coaching Flags")}</div>
+            <ul className="mt-2 space-y-1">
+              {done.flags.map((fl, i) => (
+                <li key={i} className="text-xs text-amber-900 flex gap-2" data-testid={`exc-flag-${fl.code}`}>
+                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span><b>{t(fl.level)}</b> — {t(fl.message)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        )}
 
         {/* FV-7.3 · Foreman reinspection trigger — no Safety approval needed */}
         <div className="mt-4 bg-white border-2 border-amber-300 rounded-md p-4" data-testid="exc-success-reinspect">
@@ -937,16 +948,6 @@ function SuccessScreen({ done, setDone, t }) {
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <Link to="/trench-safety" className="inline-flex items-center gap-1 text-cyan-800 underline text-xs font-bold uppercase tracking-[0.12em]" data-testid="public-excavation-back-link">
-            {t("Back to Trench Safety")} <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-          <button type="button" onClick={() => { setDone(null); window.scrollTo({ top: 0 }); }}
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-[0.12em] text-xs px-4 py-2 rounded"
-            data-testid="public-excavation-new-record">
-            {t("Submit Another Record")}
-          </button>
-        </div>
       </div>
     </OperationalPageFrame>
   );

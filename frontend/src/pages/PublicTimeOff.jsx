@@ -23,6 +23,8 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -163,20 +165,17 @@ export default function PublicTimeOff() {
   }
 
   if (submitted) {
-    return (
-      <PublicShell t={t}>
-        <Card className="p-8 text-center border-emerald-300 bg-emerald-50">
-          <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-700 mb-3" />
-          <h1 className="font-display text-2xl font-black">{t("Submitted!")}</h1>
-          <p className="text-slate-700 mt-2">
-            {t("HR has been notified. You'll get an email when your request is reviewed.")}
-          </p>
-          {submitted.doc_id && (
-            <p className="font-mono text-sm text-slate-500 mt-3">{t("Reference:")} {submitted.doc_id}</p>
-          )}
-        </Card>
-      </PublicShell>
-    );
+    const confirmation = buildSubmissionConfirmation({
+      workflowKey: "time-off",
+      documentNumber: submitted.doc_id || submitted.id || "",
+      submittedAt: submitted.created_at || new Date().toISOString(),
+      submittedBy: formatEmployeeIdentity(meta) || meta.employee_name || "",
+      contextItems: [{ label: "Employee", value: formatEmployeeIdentity(meta) || meta.employee_name || "" }],
+      note: "A new HR-issued link is required to file another time-off request from this screen.",
+      startAnother: { label: "Start Another", to: "/" },
+      returnToPortal: { label: "Return to Portal", to: "/" },
+    });
+    return <SubmissionConfirmation confirmation={confirmation} />;
   }
 
   return (

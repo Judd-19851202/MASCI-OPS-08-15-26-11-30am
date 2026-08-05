@@ -615,6 +615,18 @@ def build_router(
                 # D5.4 · structured canonical section capture (additive)
                 "inspection_sections": payload.inspection_sections,
             }
+            from doc_ids import ensure_doc_id
+            prefix_map = {
+                "dvir": "DVIR",
+                "weekly_lead": "WLI",
+                "weekly_emergency": "WEI",
+            }
+            await ensure_doc_id(
+                db,
+                insp_doc,
+                prefix_map.get(payload.kind, "FLI"),
+                when=insp_doc.get("inspection_date") or insp_doc.get("created_at"),
+            )
             await db.equipment_inspections.insert_one(insp_doc)
 
             # ── Track 13.31B-D5.1 · Smart DVIR canonical write stamp ──
@@ -799,6 +811,7 @@ def build_router(
             return {
                 "ok": True,
                 "inspection_id": inspection_id,
+                "doc_id": insp_doc.get("doc_id") or "",
                 "kind": payload.kind,
                 "out_of_service": any_oos,
                 "defect_count": len(all_defects),

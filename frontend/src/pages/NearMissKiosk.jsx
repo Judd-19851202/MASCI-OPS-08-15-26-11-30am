@@ -18,6 +18,8 @@ import { AlertTriangle, Check, Camera, Wifi, WifiOff, ShieldAlert } from "lucide
 import { OperationalPageFrame } from "@/components/public/OperationalPageFrame";
 import { OperationalOutcomeFrame } from "@/components/public/OperationalOutcomeFrame";
 import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 
 function EmergencyAlert() {
   const { t } = useT();
@@ -188,88 +190,43 @@ export default function NearMissKiosk() {
 
   // ── Success screens ────────────────────────────────────────────────
   if (result?.status === "submitted") {
-    return (
-      <OperationalOutcomeFrame
-        testId="near-miss-success"
-        accent="emerald"
-        familyLabel={t("Safety Operations")}
-        familyMeta={t("Public near-miss workflow")}
-        backTo="/"
-        backLabel={t("Back to Hub")}
-        heroIcon={Check}
-        kicker={t("Near miss · Submitted")}
-        title={t("Safety has your report.")}
-        description={t("The near miss is on file and routed to Safety for review. If the team needs more detail, they will follow up from the case record.")}
-        heroMeta={<OperationalStatusBadge tone="emerald" testId="near-miss-success-badge">{t("Delivered")}</OperationalStatusBadge>}
-        footerText={t("MASCI Operations Platform · Near-miss continuity")}
-      >
-        <div className="max-w-md mx-auto w-full bg-white rounded-2xl border-2 border-emerald-300 p-6 space-y-4 shadow-lg">
-          <div className="rounded-full bg-emerald-100 w-14 h-14 flex items-center justify-center" aria-hidden>
-            <Check className="w-8 h-8 text-emerald-700" />
-          </div>
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-800">{t("Report submitted")}</div>
-            <h2 className="mt-1 font-display text-2xl font-black text-slate-900">
-              {t("Thank you. Safety has received your report.")}
-            </h2>
-          </div>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3" data-testid="near-miss-case-number">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-800">{t("Case number")}</div>
-            <div className="font-mono text-lg font-black text-emerald-900">{result.case_number || result.case_id}</div>
-          </div>
-          {result.duplicate && (
-            <div className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700" data-testid="near-miss-duplicate">
-              {t("We noticed this report was already submitted. We're keeping just one copy.")}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => { setResult(null); setForm({ what_almost_happened: "", location_label: "", immediate_danger: false, submitter_name: "", submitter_contact: "", submitter_company: "", photo: null, gps: null }); }}
-            className="w-full h-12 rounded-md bg-emerald-700 text-white font-bold hover:bg-emerald-800"
-            data-testid="near-miss-submit-another"
-          >{t("Submit another report")}</button>
-        </div>
-      </OperationalOutcomeFrame>
-    );
+    const confirmation = buildSubmissionConfirmation({
+      workflowKey: "near-miss",
+      documentNumber: result.case_number || result.case_id || "",
+      submittedAt: new Date().toISOString(),
+      submittedBy: form.submitter_name || "",
+      note: result.duplicate ? "We noticed this report was already submitted. The system kept one filed copy only." : "",
+      startAnother: {
+        label: "Start Another",
+        onClick: () => {
+          setResult(null);
+          setForm({ what_almost_happened: "", location_label: "", immediate_danger: false, submitter_name: "", submitter_contact: "", submitter_company: "", photo: null, gps: null });
+        },
+      },
+      returnToPortal: { label: "Return to Portal", to: "/" },
+    });
+    return <SubmissionConfirmation confirmation={confirmation} />;
   }
   if (result?.status === "queued") {
-    return (
-      <OperationalOutcomeFrame
-        testId="near-miss-queued"
-        accent="amber"
-        familyLabel={t("Safety Operations")}
-        familyMeta={t("Public near-miss workflow")}
-        backTo="/"
-        backLabel={t("Back to Hub")}
-        heroIcon={WifiOff}
-        kicker={t("Near miss · Queued")}
-        title={t("Saved locally and waiting for connection.")}
-        description={t("The report is stored on this device and will retry automatically when internet service returns.")}
-        heroMeta={<OperationalStatusBadge tone="amber" testId="near-miss-queued-badge">{t("Queued for retry")}</OperationalStatusBadge>}
-        footerText={t("MASCI Operations Platform · Near-miss offline continuity")}
-      >
-        <div className="max-w-md mx-auto w-full bg-white rounded-2xl border-2 border-amber-400 p-6 space-y-4 shadow-lg">
-          <div className="rounded-full bg-amber-100 w-14 h-14 flex items-center justify-center" aria-hidden>
-            <WifiOff className="w-7 h-7 text-amber-800" />
-          </div>
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-800">{t("Saved and queued")}</div>
-            <h2 className="mt-1 font-display text-2xl font-black text-slate-900">
-              {t("This will submit when connection returns.")}
-            </h2>
-          </div>
-          <p className="text-sm text-slate-800">
-            {t("Your report is saved on this device. Do not close this tab if possible — we will submit it automatically when the internet returns.")}
-          </p>
-          <button
-            type="button"
-            onClick={() => { setResult(null); }}
-            className="w-full h-12 rounded-md bg-amber-700 text-white font-bold hover:bg-amber-800"
-            data-testid="near-miss-queued-ok"
-          >{t("OK")}</button>
-        </div>
-      </OperationalOutcomeFrame>
-    );
+    const confirmation = buildSubmissionConfirmation({
+      workflowKey: "near-miss",
+      submittedAt: new Date().toISOString(),
+      submittedBy: form.submitter_name || "",
+      queued: true,
+      successStatus: "Saved on this device",
+      description: "This report is stored on this device and will retry automatically when internet service returns.",
+      followUpRequired: "Keep this device online so the report can send automatically.",
+      expectedProcessingStatus: "Waiting for connection before routing to Safety",
+      startAnother: {
+        label: "Start Another",
+        onClick: () => {
+          setResult(null);
+          setForm({ what_almost_happened: "", location_label: "", immediate_danger: false, submitter_name: "", submitter_contact: "", submitter_company: "", photo: null, gps: null });
+        },
+      },
+      returnToPortal: { label: "Return to Portal", to: "/" },
+    });
+    return <SubmissionConfirmation confirmation={confirmation} />;
   }
 
   return (

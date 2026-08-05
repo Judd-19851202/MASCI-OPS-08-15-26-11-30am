@@ -701,7 +701,20 @@ export default function FieldLeadershipFormPage() {
         });
         await commit();
         idempotencyKeyRef.current = null;
-        navigate("/leadership");
+        navigate("/thank-you", {
+          state: {
+            workflowKey: "field-leadership",
+            recordKind: kind,
+            project: finalPayload.project_name || finalPayload.project_number || "",
+            submittedAt: new Date().toISOString(),
+            submittedBy: finalPayload.supervisor_name || finalPayload.employee_name || "",
+            contextItems: [{ label: "Employee", value: finalPayload.employee_name || "" }],
+            queued: true,
+            successStatus: "Saved on this device",
+            returnTo: "/leadership",
+            startAnotherTo: `/leadership/${kind}/new`,
+          },
+        });
         return;
       }
       const r = { data: up.data };
@@ -715,7 +728,20 @@ export default function FieldLeadershipFormPage() {
           await persistBilingualSidecar("field_leadership", r.data?.id || "", finalPayload);
         } catch { /* sidecar best-effort */ }
       }
-      navigate(`/leadership/records/${r.data.id}`);
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "field-leadership",
+          recordKind: kind,
+          project: finalPayload.project_name || finalPayload.project_number || "",
+          documentNumber: r.data?.record?.doc_id || r.data?.doc_id || r.data?.id || "",
+          submittedAt: r.data?.record?.created_at || new Date().toISOString(),
+          submittedBy: finalPayload.supervisor_name || finalPayload.employee_name || "",
+          contextItems: [{ label: "Employee", value: finalPayload.employee_name || "" }],
+          openRecordTo: r.data?.id ? `/leadership/records/${r.data.id}` : undefined,
+          returnTo: "/leadership",
+          startAnotherTo: `/leadership/${kind}/new`,
+        },
+      });
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Submit failed"));
     } finally {

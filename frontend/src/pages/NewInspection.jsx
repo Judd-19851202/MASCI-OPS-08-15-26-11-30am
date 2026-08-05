@@ -234,18 +234,19 @@ export default function NewInspection({ publicMode = false }) {
             description: t("This inspection is on this device and will upload automatically."),
             duration: 6000,
           });
-          if (publicMode || !isAdmin()) {
-            navigate("/thank-you", {
-              state: {
-                projectName: payload.project_name,
-                formType: "Inspection",
-                queued: true,
-              },
-              replace: true,
-            });
-          } else {
-            navigate(`/audits`);
-          }
+          navigate("/thank-you", {
+            state: {
+              workflowKey: "safety-inspection",
+              project: payload.project_name,
+              submittedAt: new Date().toISOString(),
+              submittedBy: payload.inspector_name || "",
+              queued: true,
+              successStatus: "Saved on this device",
+              returnTo: "/audits",
+              startAnotherTo: "/inspections/submit",
+            },
+            replace: true,
+          });
           return;
         }
         throw netErr;
@@ -253,19 +254,25 @@ export default function NewInspection({ publicMode = false }) {
       // iter434 · Phase 31 · clear the draft on confirmed submission.
       await commit();
       toast.success(t("Inspection filed · graded · visible under Audits & Inspections"));
-      if (publicMode || !isAdmin()) {
-        navigate("/thank-you", {
-          state: {
-            projectName: payload.project_name,
-            grade,
-            formType: "Inspection",
-            recordId: res.data?.inspection_number || res.data?.id || "",
-          },
-          replace: true,
-        });
-      } else {
-        navigate(`/inspect/${res.data.id}`);
-      }
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "safety-inspection",
+          project: payload.project_name,
+          documentNumber: res.data?.doc_id || res.data?.inspection_number || res.data?.id || "",
+          submittedAt: res.data?.created_at || new Date().toISOString(),
+          submittedBy: payload.inspector_name || "",
+          whatHappensNext: grade < 100
+            ? [
+                "Safety can review the inspection and any noted hazards.",
+                "Project leadership can see the submitted inspection for the job.",
+              ]
+            : undefined,
+          openRecordTo: !publicMode && isAdmin() && res.data?.id ? `/inspect/${res.data.id}` : undefined,
+          returnTo: "/audits",
+          startAnotherTo: "/inspections/submit",
+        },
+        replace: true,
+      });
     } catch (e) {
       console.error(e);
       toast.error(formatApiError(e, "Could not save inspection"), { duration: 7000 });

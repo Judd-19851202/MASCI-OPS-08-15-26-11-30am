@@ -188,11 +188,19 @@ export default function NewSafetyEquipmentIssuance() {
         await persistBilingualSidecar("safety_form", res.data.id, payload);
       }
       toast.success(t("Issuance filed · PDF emailed to Safety · visible in Safety Forms Records"));
-      if (fromRecords) {
-        navigate("/safety-portal/forms-records");
-      } else {
-        navigate(`/safety/forms/equipment-issuance/${res.data.id}`);
-      }
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "safety-issuance",
+          project: data.project_name || data.project_number || "",
+          documentNumber: res.data?.doc_id || res.data?.id || "",
+          submittedAt: new Date().toISOString(),
+          submittedBy: data.issued_by || "",
+          contextItems: [{ label: "Employee", value: data.employee_name || "" }],
+          openRecordTo: res.data?.id ? `/safety/forms/equipment-issuance/${res.data.id}` : undefined,
+          returnTo: "/safety-portal/forms-records",
+          startAnotherTo: "/safety/forms/equipment-issuance/new",
+        },
+      });
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not submit"));
     } finally {

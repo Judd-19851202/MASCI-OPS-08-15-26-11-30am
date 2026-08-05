@@ -31,6 +31,8 @@ import IncidentFieldDoctrineBanner from "@/components/incident/IncidentFieldDoct
 import { clearDraft, currentDraftId, ensureActiveDraftId, loadDraft, saveDraft } from "@/lib/incidentDraft";
 import { createCase, patchFieldBlock, transitionCase, addEvidence, fetchDirectoryMe, fetchProjectContext, fetchWeather } from "@/lib/incidentReportApi";
 import { DraftResumeBanner } from "@/components/DraftResumeBanner";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import { JobPicker } from "@/components/JobPicker";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
@@ -1167,44 +1169,23 @@ function ReviewCard({ draft, steps, missing, onEditStep, autoMap }) {
 }
 
 // ── Success screen ───────────────────────────────────────────────────
-function SuccessScreen({ caseNumber, caseId, onDone }) {
-  const { t } = useT();
-  return (
-    <div className="min-h-screen bg-emerald-50 flex flex-col items-center justify-center p-6" data-testid="incident-report-success">
-      <div className="max-w-md w-full bg-white rounded-2xl border-2 border-emerald-300 p-6 space-y-4 shadow-lg">
-        <div className="rounded-full bg-emerald-100 w-14 h-14 flex items-center justify-center">
-          <Check className="w-8 h-8 text-emerald-700" />
-        </div>
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-800">
-            {t("Report submitted")}
-          </div>
-          <h2 className="mt-1 font-display text-2xl font-black tracking-tight text-slate-900">
-            {t("Safety has received your report.")}
-          </h2>
-        </div>
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3" data-testid="incident-report-case-number">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-800">
-            {t("Case number")}
-          </div>
-          <div className="font-mono text-lg font-black text-emerald-900">{caseNumber || caseId}</div>
-        </div>
-        <ul className="space-y-2 text-sm text-slate-800">
-          <li>{t("Your field observations are locked and cannot be changed.")}</li>
-          <li>{t("Safety will begin intake and reach out if they need anything.")}</li>
-          <li>{t("You can close this page — nothing else is required from you right now.")}</li>
-        </ul>
-        <button
-          type="button"
-          onClick={onDone}
-          className="w-full h-12 rounded-md bg-emerald-700 text-white font-bold hover:bg-emerald-800"
-          data-testid="incident-report-done"
-        >
-          {t("Done")}
-        </button>
-      </div>
-    </div>
-  );
+function SuccessScreen({ caseNumber, caseId, submittedBy, project, onDone }) {
+  const confirmation = buildSubmissionConfirmation({
+    workflowKey: "incident",
+    documentNumber: caseNumber || caseId,
+    submittedAt: new Date().toISOString(),
+    submittedBy,
+    project,
+    whatHappensNext: [
+      "Safety begins intake, review, and follow-up from the case record.",
+      "Project leadership receives project visibility on the submitted incident.",
+    ],
+    followUpRequired: "No further action is required from you at this time.",
+    expectedProcessingStatus: "Filed and under Safety intake review",
+    returnToPortal: { label: "Return to Portal", onClick: onDone },
+    startAnother: { label: "Start Another", to: "/incidents/report" },
+  });
+  return <SubmissionConfirmation confirmation={confirmation} />;
 }
 
 // ── Main page ────────────────────────────────────────────────────────
@@ -1519,6 +1500,8 @@ export default function IncidentReport() {
       <SuccessScreen
         caseNumber={submitState.caseNumber}
         caseId={submitState.caseId}
+        submittedBy={draft.reported_by || ""}
+        project={draft.project_name || draft.project_number || ""}
         onDone={() => navigate("/", { replace: true })}
       />
     );

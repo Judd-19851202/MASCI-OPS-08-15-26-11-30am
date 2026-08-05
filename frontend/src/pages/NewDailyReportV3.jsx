@@ -896,23 +896,26 @@ export default function NewDailyReportV3({ publicMode = false }) {
         } else {
           toast.success(savedLabel);
         }
-        if (publicMode) {
-          navigate("/thank-you", {
-            state: {
-              formType: "Daily Report",
-              projectName: payload.project_name || payload.project_number || "",
-              returnTo: "/daily/submit",
-              recordId: saved?.report_number || saved?.doc_id || saved?.id || "",
-              submissionState: notificationState === "provider_accepted" ? "delivered" : "saved",
-              notificationState,
-              notificationDeliveryMode: saved?.notification_delivery_mode || "",
-              notificationCaptureAvailable: !!saved?.notification_capture_available,
-              notificationFailureReason: saved?.notification_failure_reason || "",
-            },
-          });
-        }
-        else if (saved?.id) navigate(`/daily/${saved.id}`);
-        else navigate("/admin/daily");
+        navigate("/thank-you", {
+          state: {
+            workflowKey: "daily-report",
+            project: payload.project_name || payload.project_number || "",
+            documentNumber: reportRef,
+            submittedAt: saved?.created_at || new Date().toISOString(),
+            submittedBy: payload.prepared_by || payload.superintendent || "",
+            expectedProcessingStatus:
+              notificationState === "failed_action_required" || notificationState === "permanent_failure"
+                ? "Filed — office follow-up is needed on delivery"
+                : "Filed and ready for review",
+            followUpRequired:
+              notificationState === "failed_action_required" || notificationState === "permanent_failure"
+                ? "Office follow-up is needed on delivery for this report."
+                : undefined,
+            openRecordTo: !publicMode && saved?.id ? `/daily/${saved.id}` : undefined,
+            returnTo: publicMode ? "/daily/submit" : "/daily",
+            startAnotherTo: "/daily/submit",
+          },
+        });
       } else {
         // Offline: hand to the shared queue. The queue re-tries with
         // the same Idempotency-Key so a mid-flight reconnect never
@@ -934,19 +937,18 @@ export default function NewDailyReportV3({ publicMode = false }) {
         emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "offline.queued" });
         if (!publicMode && payload.project_number) rememberLastProject(String(payload.project_number));
         toast(t("Offline — saved on this device and will send when connection returns."));
-        if (publicMode) {
-          navigate("/thank-you", {
-            state: {
-              formType: "Daily Report",
-              projectName: payload.project_name || payload.project_number || "",
-              returnTo: "/daily/submit",
-              submissionState: "queued",
-              notificationDeliveryMode: payload?.notification_delivery_mode || "",
-            },
-          });
-        } else {
-          navigate("/admin/daily");
-        }
+        navigate("/thank-you", {
+          state: {
+            workflowKey: "daily-report",
+            project: payload.project_name || payload.project_number || "",
+            submittedAt: new Date().toISOString(),
+            submittedBy: payload.prepared_by || payload.superintendent || "",
+            queued: true,
+            successStatus: "Saved on this device",
+            returnTo: publicMode ? "/daily/submit" : "/daily",
+            startAnotherTo: "/daily/submit",
+          },
+        });
       }
     } catch (err) {
       const classified = classifyApiError(err);

@@ -159,7 +159,7 @@ export default function ReturnEquipment() {
         payload = await translateUserInput(payload, "es");
       }
       payload = { ...payload, submit_language: submitLang || "en" };
-      await api.post(`/safety-forms/equipment-issuances/${id}/return`, payload);
+      const res = await api.post(`/safety-forms/equipment-issuances/${id}/return`, payload);
       // TRACK 14.0-S1 — Preserve original Spanish in the bilingual sidecar
       // (keyed by the parent equipment-issuance id since the return event
       // is logically a child of that record).
@@ -168,7 +168,19 @@ export default function ReturnEquipment() {
         await persistBilingualSidecar("safety_form", `${id}:return`, payload);
       }
       toast.success(t("Check-in saved — PDF emailed to Safety"));
-      navigate(`/safety/forms/equipment-issuance/${id}`);
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "safety-return",
+          project: issuance?.project_name || issuance?.project_number || "",
+          documentNumber: res?.data?.return_number || res?.data?.doc_id || id,
+          submittedAt: new Date().toISOString(),
+          submittedBy: data.received_by || "",
+          contextItems: [{ label: "Employee", value: issuance?.employee_name || "" }],
+          openRecordTo: `/safety/forms/equipment-issuance/${id}`,
+          returnTo: "/safety-portal/forms-records",
+          startAnotherTo: "/safety/forms/equipment-issuance/new",
+        },
+      });
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not submit"));
     } finally {

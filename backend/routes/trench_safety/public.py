@@ -136,6 +136,8 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             "ip": ip,
             "user_agent": request.headers.get("user-agent", ""),
         }
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "TSR", when=doc.get("received_at"))
         # Persist as an Open repair so Shop sees it in their queue.
         # Status Open (not 'In Progress') because Shop hasn't reviewed yet.
         # Asset is NOT auto-moved to Repair — that would let an
@@ -173,10 +175,11 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             from routes.trench_safety.notifications import notify_damage_report  # noqa: PLC0415
             report_for_notif = {
                 "id": doc["id"],
+                "doc_id": doc.get("doc_id") or "",
                 "kind": payload.kind,
                 "description": payload.description,
             }
             await notify_damage_report(db, asset, report_for_notif)
         except Exception:  # noqa: BLE001
             pass
-        return {"ok": True, "received_at": doc["received_at"], "kind": payload.kind}
+        return {"ok": True, "received_at": doc["received_at"], "kind": payload.kind, "doc_id": doc.get("doc_id") or ""}

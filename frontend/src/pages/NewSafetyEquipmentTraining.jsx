@@ -124,11 +124,19 @@ export default function NewSafetyEquipmentTraining() {
         await persistBilingualSidecar("safety_form", res.data.id, payload);
       }
       toast.success(t("Training filed · PDF emailed to Safety · visible in Safety Forms Records"));
-      if (fromRecords) {
-        navigate("/safety-portal/forms-records");
-      } else {
-        navigate(`/safety/forms/equipment-training/${res.data.id}`);
-      }
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "safety-training",
+          project: data.project_name || data.project_number || "",
+          documentNumber: res.data?.doc_id || res.data?.id || "",
+          submittedAt: new Date().toISOString(),
+          submittedBy: data.instructor_name || "",
+          contextItems: [{ label: "Employee", value: data.employee_name || "" }],
+          openRecordTo: res.data?.id ? `/safety/forms/equipment-training/${res.data.id}` : undefined,
+          returnTo: "/safety-portal/forms-records",
+          startAnotherTo: "/safety/forms/equipment-training/new",
+        },
+      });
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not submit"));
     } finally {

@@ -167,6 +167,32 @@ async def _next_po_number(db) -> str:
     return f"MASCI-PO-{yy}-{mm}-{seq:03d}"
 
 
+async def _next_po_request_number(db) -> str:
+    now = datetime.now(timezone.utc)
+    yy = now.strftime("%y")
+    mm = now.strftime("%m")
+    key = f"po_request_seq_{yy}{mm}"
+    doc = await db.system_counters.find_one_and_update(
+        {"_id": key},
+        {"$inc": {"value": 1}},
+        upsert=True,
+        return_document=True,
+    ) if hasattr(db.system_counters, "find_one_and_update") else None
+    if doc is None:
+        existing = await db.system_counters.find_one({"_id": key})
+        if not existing:
+            existing = {"_id": key, "value": 0}
+            await db.system_counters.insert_one(existing)
+        existing["value"] += 1
+        await db.system_counters.update_one(
+            {"_id": key}, {"$set": {"value": existing["value"]}}
+        )
+        seq = existing["value"]
+    else:
+        seq = doc.get("value", 1)
+    return f"POREQ-{yy}-{mm}-{seq:03d}"
+
+
 def _strip(d: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     if not d:
         return d
@@ -311,6 +337,10 @@ async def ensure_po_requests_indexes(db) -> None:
         await db.po_requests.create_index(
             "po_number", unique=True,
             partialFilterExpression={"po_number": {"$type": "string"}},
+        )
+        await db.po_requests.create_index(
+            "request_number", unique=True,
+            partialFilterExpression={"request_number": {"$type": "string"}},
         )
         await db.po_requests.create_index("status")
         await db.po_requests.create_index("project_number")
@@ -587,6 +617,7 @@ def build_po_requests_router(
         now = datetime.now(timezone.utc)
         po = {
             "id": str(uuid.uuid4()),
+            "request_number": await _next_po_request_number(db),
             "po_number": None,                # assigned on approval
             "po_number_source": None,
             "project_number": body.project_number,

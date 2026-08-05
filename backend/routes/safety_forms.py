@@ -1253,6 +1253,9 @@ def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_adm
         cb = compute_chargeback(ret["items"])
         ret["chargeback"] = cb
         ret["created_at"] = datetime.now(timezone.utc).isoformat()
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, ret, "SER", when=ret.get("check_in_date") or ret.get("created_at"))
+        ret["return_number"] = ret.get("doc_id")
 
         await db.safety_equipment_issuances.update_one(
             {"id": rec_id},
@@ -1289,7 +1292,13 @@ def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_adm
             })
         except Exception:
             pass
-        return {"ok": True, "id": rec_id, "chargeback": cb}
+        return {
+            "ok": True,
+            "id": rec_id,
+            "chargeback": cb,
+            "doc_id": ret.get("doc_id") or "",
+            "return_number": ret.get("return_number") or "",
+        }
 
     @router.get("/equipment-issuances/{rec_id}/return/pdf")
     async def return_pdf(rec_id: str, _: bool = Depends(_require_safety_or_admin)):

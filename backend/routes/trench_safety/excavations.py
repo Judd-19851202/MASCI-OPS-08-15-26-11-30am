@@ -633,6 +633,13 @@ def register_excavation_routes(
                 rec["team_snapshot"] = _snap
         except Exception:  # noqa: BLE001
             pass
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(
+            db,
+            rec,
+            "EXC",
+            when=rec.get("date_of_work") or rec.get("created_at"),
+        )
         await db.trench_excavations.insert_one(rec)
         rec.pop("_id", None)
         # Reverse-link: stamp excavation_id into the Daily Report doc(s) (Correction 1)
@@ -663,7 +670,7 @@ def register_excavation_routes(
             await emit_notification(
                 db,
                 kind="trench_excavation_submitted",
-                title=f"Excavation submitted · {ex_id}",
+                title=f"Excavation submitted · {rec.get('doc_id') or ex_id}",
                 body=f"{body.project_name or 'Project'} · {body.foreman_name or body.supervisor_name or 'Foreman'} · {rec['status']}",
                 linked_equipment_id=ex_id,
                 actor_email=body.submitted_by or "public",

@@ -202,7 +202,19 @@ export default function NewQaqcInspection() {
         } catch { /* sidecar best-effort */ }
       }
       toast.success(t("Submitted. Routing to assigned PM…"));
-      navigate(`/qaqc/${res.data.id}`);
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "qaqc",
+          project: payload.project_name || payload.project_number || "",
+          documentNumber: res.data?.doc_id || res.data?.id || "",
+          submittedAt: new Date().toISOString(),
+          submittedBy: payload.inspector_name || "",
+          routedTo: ["Assigned Project Manager", "Safety Department"],
+          openRecordTo: res.data?.id ? `/qaqc/${res.data.id}` : undefined,
+          returnTo: "/qaqc",
+          startAnotherTo: slug ? `/qaqc/${slug}/new` : "/qaqc",
+        },
+      });
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not submit. Try again."));
     } finally {

@@ -450,6 +450,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             replace: true,
             state: {
               result,
+              documentNumber: result.doc_id || result.inspection_id,
               truckUnit,
               defectCount: result.defect_count,
               outOfService: result.out_of_service,

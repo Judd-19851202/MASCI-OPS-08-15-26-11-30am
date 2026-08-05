@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { OperationalStatusBadge } from "@/components/public/OperationalStatusBadge";
 import { useT } from "@/lib/i18n";
+import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -64,7 +66,7 @@ function PublicReportModalInner({ onClose, defaultAssetId, lockAssetId }) {
         contact: contact.trim() || null,
       });
       if (r.data?.ok) {
-        setDone(true);
+        setDone(r.data);
       } else {
         setErr(t("Could not submit. Try again."));
       }
@@ -103,22 +105,31 @@ function PublicReportModalInner({ onClose, defaultAssetId, lockAssetId }) {
         </div>
 
         {done ? (
-          <div className="p-6 text-center" data-testid="public-report-success">
-            <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-            <div className="font-display text-xl font-black text-slate-900 mt-3">{t("Report Received")}</div>
-            <div className="text-sm text-slate-600 mt-2">
-              {t("Safety has been notified. The asset has NOT been moved or changed — Shop and Safety will review and take it from here.")}
-            </div>
-            <div className="mt-4 flex justify-center">
-              <OperationalStatusBadge tone="amber" testId="public-report-success-badge">{t("Asset unchanged until review")}</OperationalStatusBadge>
-            </div>
-            <Button
-              onClick={onClose}
-              data-testid="public-report-done"
-              className="mt-5 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-[0.12em] text-xs px-4"
-            >
-              {t("Close")}
-            </Button>
+          <div className="p-5" data-testid="public-report-success">
+            <SubmissionConfirmation
+              embedded
+              confirmation={buildSubmissionConfirmation({
+                workflowKey: "trench-report",
+                documentNumber: done.doc_id || "",
+                submittedAt: done.received_at || new Date().toISOString(),
+                submittedBy: name.trim() || "Anonymous",
+                contextItems: [{ label: "Asset", value: assetId.trim().toUpperCase() }],
+                followUpRequired: "No further action is required from you at this time.",
+                expectedProcessingStatus: "Filed and open for Shop and Safety review",
+                note: "The asset stays unchanged until Shop reviews this report.",
+                startAnother: {
+                  label: "Start Another",
+                  onClick: () => {
+                    setDone(false);
+                    setDescription("");
+                    setName("");
+                    setContact("");
+                    setErr("");
+                  },
+                },
+                returnToPortal: { label: "Return to Portal", onClick: onClose },
+              })}
+            />
           </div>
         ) : (
           <form onSubmit={submit} className="p-5 space-y-4">

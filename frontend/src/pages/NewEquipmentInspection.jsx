@@ -611,19 +611,33 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           ? `Submitted — ${payload.fail_count} FAIL flagged. Tag out the unit.`
           : "Submitted"
       );
-      if (publicMode || !isAdmin()) {
-        navigate("/thank-you", {
-          state: {
-            projectName: payload.project_name,
-            formType: "Equipment Pre-Op Inspection",
-            returnTo: "/equipment/submit",
-            recordId: res.data?.inspection_number || res.data?.id || "",
-          },
-          replace: true,
-        });
-      } else {
-        navigate(`/equipment/${res.data.id}`);
-      }
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "equipment-preop",
+          project: payload.project_name,
+          documentNumber: res.data?.doc_id || res.data?.inspection_number || res.data?.id || "",
+          submittedAt: res.data?.created_at || new Date().toISOString(),
+          submittedBy: payload.operator_name || "",
+          contextItems: [
+            { label: "Equipment", value: payload.equipment_unit || payload.equipment_make || "" },
+          ],
+          routedTo: payload.fail_count > 0 ? ["Equipment Records", "Shop", "Dispatch"] : ["Equipment Records"],
+          whatHappensNext: payload.fail_count > 0
+            ? [
+                "Shop reviews the failed items and Dispatch can see the unit status.",
+                "Keep the unit out of service until it is cleared if the failed items make the unit unsafe to run.",
+              ]
+            : ["This inspection stays on file with the unit history for the next crew and office review."],
+          followUpRequired: payload.fail_count > 0
+            ? "Tag out the unit and notify supervision if the failed items make the unit unsafe to run."
+            : undefined,
+          expectedProcessingStatus: payload.fail_count > 0 ? "Filed and under shop review" : "Filed in equipment records",
+          openRecordTo: !publicMode && isAdmin() && res.data?.id ? `/equipment/${res.data.id}` : undefined,
+          returnTo: "/equipment",
+          startAnotherTo: "/equipment/submit",
+        },
+        replace: true,
+      });
     } catch (e) {
       console.error(e);
       toast.error(formatApiError(e, "Could not save inspection"), { duration: 7000 });

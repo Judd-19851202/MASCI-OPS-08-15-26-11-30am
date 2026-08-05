@@ -419,6 +419,7 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
 
 function AddDialog({ open, setOpen, onSaved }) {
   const { t } = useT();
+  const navigate = useNavigate();
   const empty = {
     project_number: "", project_name: "", vendor: "", vendor_id: "", description: "",
     estimated_amount: "", category: "Materials", urgency: "Normal",
@@ -437,9 +438,21 @@ function AddDialog({ open, setOpen, onSaved }) {
       estimated_amount: parseFloat(form.estimated_amount) || 0 };
     try {
       const r = await submitPo(payload);
-      toast.success(`${t("PO requested")} — ${r.id.slice(0, 8)}`);
+      toast.success(`${t("PO requested")} — ${r.request_number || r.id.slice(0, 8)}`);
       onSaved();
       setForm(empty);
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "po-request",
+          project: form.project_name || form.project_number || "",
+          documentNumber: r.request_number || r.po_number || r.id || "",
+          submittedAt: r.created_at || new Date().toISOString(),
+          submittedBy: r.requested_by_name || "",
+          openRecordTo: r.id ? `/po-requests?id=${r.id}` : undefined,
+          returnTo: "/po-requests",
+          startAnotherTo: "/po-requests",
+        },
+      });
     } catch (e2) { toast.error(friendlyError(e2, t("Could not request PO"))); }
   };
   return (

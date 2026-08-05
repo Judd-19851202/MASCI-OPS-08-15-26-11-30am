@@ -362,19 +362,19 @@ export default function NewMeeting({ publicMode = false }) {
           );
         } catch { /* sidecar best-effort */ }
       }
-      if (publicMode || !isAdmin()) {
-        navigate("/thank-you", {
-          state: {
-            projectName: payload.project_name,
-            formType: "Site Safety Meeting",
-            returnTo: "/meetings/submit",
-            recordId: res.data?.meeting_number || res.data?.id || "",
-          },
-          replace: true,
-        });
-      } else {
-        navigate(`/meetings/${res.data.id}`);
-      }
+      navigate("/thank-you", {
+        state: {
+          workflowKey: "meeting",
+          project: payload.project_name,
+          documentNumber: res.data?.doc_id || res.data?.meeting_number || res.data?.id || "",
+          submittedAt: res.data?.created_at || new Date().toISOString(),
+          submittedBy: payload.conducted_by || "",
+          openRecordTo: !publicMode && isAdmin() && res.data?.id ? `/meetings/${res.data.id}` : undefined,
+          returnTo: "/meetings",
+          startAnotherTo: "/meetings/submit",
+        },
+        replace: true,
+      });
     } catch (e) {
       console.error(e);
       toast.error(formatApiError(e, t("Could not save meeting")), { duration: 7000 });
