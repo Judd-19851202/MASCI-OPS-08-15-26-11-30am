@@ -1,3 +1,23 @@
+# 2026-08-05 — WP18CZ audit follow-up state
+
+## Current top priority
+
+- **WP18CZ documentation is complete for this pass, but the platform remains NO-GO.**
+- **Next step is not redesign — it is closure of the exact route, role, language, and channel gaps documented in the WP18CZ package.**
+
+## P0
+- close the `215` non-closed route certification states documented in `WP18CZ_EXECUTIVE_GO_NO_GO.md`
+- provide isolated preview identities or equivalent fixture proof for the missing required roles, especially Survey and the executive-family personas
+- close PDF, email, export, AI-summary, mobile, tablet, phone, and print evidence gaps documented in `WP18CZ_OUTPUT_CHANNEL_CERTIFICATION.csv`
+- remove the shared visible operator-language defects documented in `WP18CZ_OPERATOR_LANGUAGE_REGISTER.csv`
+
+## P1
+- extend the strongest existing truth contract (`GovernedMetricCard` + shared KPI metadata help) to any KPI surfaces still missing definition, source, formula, freshness, threshold, owner, and recommended action
+- standardize decision-support language so every status color explains itself in operator terms
+
+## P2
+- add a permanent release/checklist gate so no new operator-facing surface can ship without passing the WP18CZ inheritance standard
+
 # 2026-08-05 — Telemetry hardening follow-up state
 
 ## Current top priority

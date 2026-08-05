@@ -1,5 +1,20 @@
 # PRD
 
+## 2026-08-05 — WP18CZ platform-wide operator experience and KPI truth certification audit
+
+- Added the WP18CZ evidence package in `/app/memory/`:
+  - `WP18CZ_PLATFORM_WIDE_OPERATOR_EXPERIENCE_KPI_TRUTH_AUDIT.md`
+  - `WP18CZ_EXECUTIVE_GO_NO_GO.md`
+  - `WP18CZ_CONSTITUTION_INHERITANCE_STANDARD.md`
+  - `WP18CZ_PORTAL_CERTIFICATION_MATRIX.csv`
+  - `WP18CZ_ROLE_AND_VIEWPORT_COVERAGE.csv`
+  - `WP18CZ_OUTPUT_CHANNEL_CERTIFICATION.csv`
+  - `WP18CZ_KPI_TRUTH_REGISTER.csv`
+  - `WP18CZ_OPERATOR_LANGUAGE_REGISTER.csv`
+  - `WP18CZ_DECISION_SUPPORT_REGISTER.csv`
+- Final WP18CZ result for this pass is **NO-GO** based on evidence, not opinion: `215` route records remain outside a closed certification state, output-channel proof is incomplete, isolated role proof is incomplete, and shared operator-language defects remain on visible surfaces.
+- No application code, UI flows, backend logic, database structure, or integrations were changed in this package; this pass is documentation, evidence, and constitutional certification only.
+
 ## 2026-08-05 — iter141 telemetry truth-language + fallback sweep
 
 - Expanded the transport/live-telemetry hardening beyond the dispatch map into the broader telemetry surfaces: Dispatch Hub live snapshot, Dispatch Live Map, Transportation Mission Control, and shared Transportation readiness/health widgets.

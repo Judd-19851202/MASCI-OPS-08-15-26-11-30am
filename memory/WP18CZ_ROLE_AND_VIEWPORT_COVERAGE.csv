@@ -1,0 +1,23 @@
+coverage_type,name,current_evidence,status,blocking_gap,owner_control_required
+role,Administrator,"Preview credential present; administration family heavily audited in prior work",PARTIAL,"Administration still has blocked routes, open audits, and defect-carrying surfaces.",NO
+role,Project Manager,"Preview credential present; PM family mostly certified",PARTIAL,"Blocked PM-adjacent record proof and platform-wide channel closure still open.",NO
+role,Safety,"Preview credential present; safety family has many repaired-but-not-recertified routes",PARTIAL,"Route closure and final output-channel proof remain open.",NO
+role,Dispatcher,"Preview credential present; dispatch/transport mission-control evidence exists",PARTIAL,"Transportation family still has repaired-not-recertified surfaces.",NO
+role,Shop Manager,"Preview credential present; shop family mostly certified",PARTIAL,"Blocked detail-record evidence remains.",NO
+role,Mechanic,"No isolated preview credential documented",NOT_PROVED,"Distinct mechanic session evidence is not available in current preview credentials.",YES
+role,HR,"Preview credential present; HR family mostly certified",PARTIAL,"Payroll-isolated proof is not closed.",NO
+role,Payroll,"No isolated preview credential documented",NOT_PROVED,"Payroll-specific persona proof is missing from current preview access set.",YES
+role,Field Leadership,"Preview credential present; field-leadership family mostly certified",PARTIAL,"Platform-wide channel closure still open.",NO
+role,Foreman,"No isolated preview credential documented; field leadership is only a partial proxy",PARTIAL,"Role is not independently proven as its own session.",YES
+role,Field Employee,"Public/shared field routes exist, but field-operations family remains pending",NOT_PROVED,"Current field-operations route family is not closed.",NO
+role,Survey,"No dedicated preview credential or dedicated runtime route proof documented",NOT_PROVED,"Survey remained an explicit blocker in the prior final gate.",YES
+role,President,"No isolated preview credential documented",NOT_PROVED,"Executive directive requires isolated proof that is not available in the current preview access set.",YES
+role,COO,"No isolated preview credential documented",NOT_PROVED,"Executive directive requires isolated proof that is not available in the current preview access set.",YES
+role,VP Operations,"No isolated preview credential documented",NOT_PROVED,"Executive directive requires isolated proof that is not available in the current preview access set.",YES
+role,Area Manager,"No isolated preview credential documented",NOT_PROVED,"Executive directive requires isolated proof that is not available in the current preview access set.",YES
+role,Project Executive,"No isolated preview credential documented",NOT_PROVED,"Executive directive requires isolated proof that is not available in the current preview access set.",YES
+viewport,Desktop,"Broad prior route evidence exists",PARTIAL,"Not every operator-facing surface is closed in the route registry.",NO
+viewport,Laptop,"Broad prior route evidence exists",PARTIAL,"Not every operator-facing surface is closed in the route registry.",NO
+viewport,Tablet,"Selected field forms and selected dashboards were verified in preview",PARTIAL,"No platform-wide tablet matrix is closed at WP-18CZ standard.",NO
+viewport,Phone,"Selected field/public workflows were verified in preview",PARTIAL,"No platform-wide phone matrix is closed at WP-18CZ standard.",NO
+viewport,Print,"Daily Report and several shared detail pages were improved and preview-verified",PARTIAL,"Cross-family print/PDF body proof remains incomplete.",NO

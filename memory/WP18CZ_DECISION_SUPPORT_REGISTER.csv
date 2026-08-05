@@ -1,0 +1,12 @@
+surface,what_happened,why_state,what_changed,evidence_shown,next_action,owner_shown,operational_impact,certification_state,notes
+Executive Overview verdict bar,YES,YES,PARTIAL,PARTIAL,PARTIAL,NO,PARTIAL,PARTIAL,"Reasons are emitted, but next action, owner, and business impact are not always explicit."
+Project Health summary and table,YES,PARTIAL,NO,YES,YES,NO,PARTIAL,PARTIAL,"Strong drill-down links exist, but color meaning and confidence copy are not yet fully operator-friendly."
+Dispatch Live Snapshot,YES,YES,PARTIAL,PARTIAL,YES,NO,PARTIAL,PARTIAL,"Status meaning is good; change-over-time and owner/action depth remain limited."
+Project Intelligence Strip,YES,YES,PARTIAL,PARTIAL,YES,YES,PARTIAL,PARTIAL,"One of the better decision-support surfaces because it includes next action and owner."
+Governed Metric Card,YES,YES,PARTIAL,YES,PARTIAL,YES,PARTIAL,STRONG,"Best reusable truth contract in the current product; still not a complete business-impact explainer by itself."
+Operational Intelligence workspace,YES,YES,PARTIAL,YES,YES,YES,PARTIAL,STRONG,"Recommendations and review queue create real decision support, but some copy still leaks internal process language."
+HR KPI strip,YES,PARTIAL,NO,PARTIAL,YES,NO,PARTIAL,PARTIAL,"Counts are useful but most cards still need stronger why/impact framing."
+Safety company posture,YES,PARTIAL,NO,PARTIAL,YES,NO,PARTIAL,PARTIAL,"Totals and ranking help, but color/band meaning and action ownership are not always explicit enough."
+PM operational strip,YES,PARTIAL,PARTIAL,PARTIAL,PARTIAL,NO,PARTIAL,PARTIAL,"Useful production view, but still reads more like a KPI panel than a role-guidance surface."
+AI summary surfaces,YES,NO,PARTIAL,PARTIAL,PARTIAL,NO,PARTIAL,PARTIAL,"Narrative exists, but direct confidence/source/owner/action framing is incomplete."
+Governance Health Chip,PARTIAL,NO,NO,NO,NO,NO,NO,FAIL,"Visible state exists but is not role-readable enough for operators to act on."

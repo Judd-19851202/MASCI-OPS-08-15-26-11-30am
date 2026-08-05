@@ -1,0 +1,11 @@
+family,total_routes,certified_routes,alias_routes,pending_routes,repaired_not_recertified,opened_not_audited,audited_defects_remain,blocked_routes,primary_roles,go_gate_status,notes
+Administration,147,106,17,8,0,7,2,7,"Administrator, executive reviewer",NO-GO,"Largest family by route count; still contains blocked detail routes, open audits, and defect-carrying transportation/photos surfaces."
+Shared Operational Home and Public Entry,137,12,12,113,0,0,0,0,"Public, shared, unauthenticated, cross-portal users",NO-GO,"Biggest unresolved exposure area; most shared/public entry surfaces are still pending route-level closeout."
+Safety Operations,54,4,2,28,20,0,0,0,"Safety operator, public safety user",NO-GO,"Large number of repairs exist, but many surfaces were not fully re-certified after those fixes."
+Project Management,47,42,1,0,0,0,0,4,"Project Manager",NO-GO,"Core PM routes are largely strong, but blocked record-detail evidence prevents full closure."
+Human Resources,32,31,0,0,0,0,0,1,"HR, payroll-adjacent reviewers",NO-GO,"Family is almost closed, but final role isolation for payroll is not proven."
+Shop Operations,26,22,0,0,0,0,0,4,"Shop manager, mechanic",NO-GO,"Route family is mostly certified, but record-proof blockers remain and mechanic role isolation is not closed."
+Transportation Operations,18,3,0,6,9,0,0,0,"Dispatcher, carrier, transportation operations",NO-GO,"Mission-control family still carries multiple repaired-but-not-recertified states and unresolved route coverage."
+Field Leadership,12,11,1,0,0,0,0,0,"Field leadership, foreman",CONDITIONALLY_READY,"Route family is mostly closed, but final WP-18CZ role/device proof still depends on platform-wide closure."
+Training, Guidance, and Coaching,8,7,1,0,0,0,0,0,"Training and guidance users",CONDITIONALLY_READY,"Route family is mostly closed, but still inherits platform-wide channel and role blockers."
+Field Operations,3,0,0,3,0,0,0,0,"Field operator, field employee",NO-GO,"Small family, but none of the registered routes are closed at WP-18CZ standard."
