@@ -1,3 +1,21 @@
+# 2026-08-05 — Telemetry hardening follow-up state
+
+## Current top priority
+
+- **Preview telemetry hardening is complete across the main transport/live-signal surfaces that were producing operator noise.**
+- **Next operator step: redeploy and re-check the live dispatch/transportation telemetry pages on production.**
+
+## P0
+- validate live production after redeploy on Dispatch Hub, Dispatch Live Map, Transportation Mission Control, and the shared Transportation health widgets
+- confirm the production transport map now shows vehicles, truth notes read clearly, and the `+N more areas` toggle works live
+
+## P1
+- continue expanding the same truth-language/stale-fallback pattern to any remaining KPI-heavy dashboards outside the transport family
+- keep identifying telemetry pages where a last-good-snapshot fallback is safer than a blank/error-only state
+
+## P2
+- consider a shared telemetry-design standard so new dashboards must ship with truth labels and stale-data behavior by default
+
 # 2026-08-05 — Transport map production follow-up state
 
 ## Current top priority

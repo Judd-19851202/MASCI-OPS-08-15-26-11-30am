@@ -1,3 +1,10 @@
+# 2026-08-05 — Telemetry truth-language + fallback sweep
+
+- Added reusable `TelemetryTruthNote` / `TelemetryStaleNote` primitives and spread them across Dispatch Hub, Dispatch Live Map, Transportation Mission Control, and shared Transportation readiness/health widgets.
+- Added stale-data fallback behavior to shared Transportation readiness fetches so live telemetry cards can keep the last good snapshot instead of going blank on refresh failure.
+- Added backend support for the Project Intelligence overflow toggle via `project_rollups_all`, so `+N more areas` now reveals/collapses the full ranked area list.
+- Verification passed: `/app/test_reports/iteration_139.json` passed with `frontend 100%`, and `ProjectIntelligenceStrip.test.jsx` passed for the overflow toggle interaction.
+
 # 2026-08-05 — Transport map truth/visibility hardening
 
 - Completed live-production RCA for the blank transport map: production was returning real GPS asset data, but the page hit a client-side runtime failure and painted no vehicles.

@@ -1,5 +1,12 @@
 # PRD
 
+## 2026-08-05 — iter141 telemetry truth-language + fallback sweep
+
+- Expanded the transport/live-telemetry hardening beyond the dispatch map into the broader telemetry surfaces: Dispatch Hub live snapshot, Dispatch Live Map, Transportation Mission Control, and shared Transportation readiness/health widgets.
+- Added reusable truth-language and stale-data primitives (`TelemetryTruthNote`, `TelemetryStaleNote`) so KPI colors and status bands explain themselves in plain English instead of reading like operator noise.
+- Added a real backend-backed overflow toggle for Project Intelligence areas (`project_rollups_all`) and defensive stale-data behavior for shared Transportation readiness fetches so widgets can hold the last good snapshot instead of collapsing to empty.
+- Verification passed in preview: `/app/test_reports/iteration_139.json` passed (`frontend 100%`) across all 5 requested telemetry features, including the `+N more areas` toggle and the no-crash regression check.
+
 ## 2026-08-05 — iter140 transport map truth/visibility hardening
 
 - Investigated LIVE production transport-map truthfulness. Confirmed the production backend was returning real fleet data (real GPS-bearing assets and real KPI counts), so the blank live map was **not** a missing-data problem.
