@@ -1,3 +1,21 @@
+# 2026-08-05 — Platform large-tablet viewport sweep state
+
+## Current top priority
+
+- **Accessible field-form tablet sweeps are complete in preview.**
+- **Next operator step: redeploy and do final role-based live spot checks on any preview-gated forms (safety forms, constraints) plus the already-fixed high-traffic routes.**
+
+## P0
+- validate live large-tablet layouts after redeploy on the role-gated safety and constraint forms with the correct production roles
+- re-check the already-fixed high-traffic routes on the actual field tablets in use
+
+## P1
+- keep extending device-profile QA to any newly introduced field forms before they reach crews
+- gather exact device/browser fingerprints from field crews when a viewport complaint appears so breakpoint tuning matches real hardware faster
+
+## P2
+- formalize a reusable tablet-first field-form layout guideline for future forms
+
 # 2026-08-05 — Large-tablet breakpoint follow-up state
 
 ## Current top priority

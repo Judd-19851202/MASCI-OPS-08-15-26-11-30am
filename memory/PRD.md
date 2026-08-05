@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter139 platform large-tablet viewport sweep
+
+- Completed a broader large-tablet landscape sweep (~1366x1024) across the highest-traffic and lower-traffic field forms, looking specifically for layouts that jump too early into cramped desktop grids.
+- Accessible field forms passed without new layout fixes required beyond the Daily Report hardening: Daily Report, Meeting Submit, Equipment Submit, Fleet DVIR, Shift Start, ODR, Trench/Public Excavation, and a QA/QC concrete-form route all maintained readable tablet layouts.
+- Safety inspection / safety equipment forms and the constraint-submit form remain role-gated in preview, so only their access/login surfaces were verified here; those full-role routes should still be spot-checked on live with the proper role permissions after redeploy.
+
 ## 2026-08-05 — iter138 large-tablet breakpoint hardening for Daily Report
 
 - Hardened Daily Report dense-row breakpoints so large tablets (for example 12.9" iPad landscape widths around 1366px) stay on the 2-column tablet layout instead of jumping too early into the cramped desktop multi-column grid.

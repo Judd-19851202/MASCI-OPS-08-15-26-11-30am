@@ -1,3 +1,9 @@
+# 2026-08-05 — Platform large-tablet viewport sweep
+
+- Completed a 1366x1024-style large-tablet sweep across accessible field forms and confirmed no other route showed the same early desktop-grid crowding that Daily Report had.
+- Verified PASS on accessible forms including Daily Report, Meeting Submit, Equipment Submit, Fleet DVIR, Shift Start, ODR, Public Excavation, and a QA/QC concrete-form route.
+- Documented preview limitations: safety forms and constraint submit remain role-gated, so their full content still needs live role-based spot checks after redeploy.
+
 # 2026-08-05 — Daily Report large-tablet breakpoint hardening
 
 - Shifted dense Daily Report row breakpoints from `xl` to `2xl` so large tablets keep the readable 2-column tablet layout instead of switching too early to cramped desktop grids.
