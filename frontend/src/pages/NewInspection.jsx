@@ -382,7 +382,7 @@ export default function NewInspection({ publicMode = false }) {
                   size="sm"
                   onClick={useGps}
                   disabled={locating}
-                  className="h-9 px-3 border-2 border-slate-300 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-xs"
+                  className="min-h-11 px-3 border-2 border-slate-300 hover:border-red-500 hover:text-red-700 font-bold uppercase tracking-wide text-xs"
                   data-testid="use-gps-btn"
                 >
                   {locating ? (

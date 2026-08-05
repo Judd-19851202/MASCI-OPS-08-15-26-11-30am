@@ -204,7 +204,7 @@ function PersonnelListField({ value, onChange, testId, ctx }) {
       <button
         type="button"
         onClick={add}
-        className="h-10 px-3 rounded-md border-2 border-dashed border-slate-300 text-slate-700 hover:border-slate-500 w-full"
+        className="min-h-11 px-3 rounded-md border-2 border-dashed border-slate-300 text-slate-700 hover:border-slate-500 w-full"
         data-testid={`${testId}-add`}
       >
         + {t("Add person")}
@@ -493,7 +493,7 @@ function PhotoField({ value, onChange, testId }) {
               <button
                 type="button"
                 onClick={() => setPreviewId(null)}
-                className="h-9 px-3 rounded-md bg-white text-slate-900 text-sm font-semibold"
+                className="min-h-11 px-3 rounded-md bg-white text-slate-900 text-sm font-semibold"
                 data-testid={`${testId}-preview-close`}
                 aria-label={t("Close preview")}
               >
@@ -708,7 +708,7 @@ function WeatherAutoField({ value, weatherAuto, onChange, onRefetch, testId }) {
         type="button"
         onClick={doRefetch}
         disabled={busy || !onRefetch}
-        className="h-9 px-3 rounded-md border border-slate-300 text-slate-700 text-xs font-mono uppercase tracking-[0.14em] hover:border-slate-600 disabled:opacity-60"
+        className="min-h-11 px-3 rounded-md border border-slate-300 text-slate-700 text-xs font-mono uppercase tracking-[0.14em] hover:border-slate-600 disabled:opacity-60"
         data-testid={`${testId}-refetch`}
       >
         {busy ? t("Fetching…") : t("Refresh weather")}

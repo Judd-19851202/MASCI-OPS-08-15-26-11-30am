@@ -144,7 +144,7 @@ export function SearchableSelect({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder={t(searchPlaceholder)}
-                className="wp17-focus-ring wp17-control w-full h-10 rounded-[0.9rem] border border-[color:var(--border-bold)] bg-white pl-8 pr-8 text-sm text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-faint)]"
+                className="wp17-focus-ring wp17-control w-full h-11 rounded-[0.9rem] border border-[color:var(--border-bold)] bg-white pl-8 pr-8 text-[0.95rem] text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-faint)]"
                 data-testid={testId ? `${testId}-search` : undefined}
               />
               {query && (
@@ -159,7 +159,7 @@ export function SearchableSelect({
               )}
             </div>
           </div>
-          <ul className="max-h-64 overflow-y-auto p-1.5" role="listbox">
+          <ul className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y p-1.5" role="listbox" style={{ WebkitOverflowScrolling: "touch" }}>
             {filtered.length === 0 && (
               <li className="wp17-picker-empty italic">{t("No matches")}</li>
             )}
@@ -176,7 +176,7 @@ export function SearchableSelect({
                     e.preventDefault();
                     choose(opt.value);
                   }}
-                  className={`wp17-picker-option text-sm cursor-pointer ${selected ? "font-semibold" : ""}`}
+                  className={`wp17-picker-option cursor-pointer text-[0.95rem] ${selected ? "font-semibold" : ""}`}
                   data-active={active ? "true" : "false"}
                   data-selected={selected ? "true" : "false"}
                   data-testid={testId ? `${testId}-option-${opt.value}` : undefined}

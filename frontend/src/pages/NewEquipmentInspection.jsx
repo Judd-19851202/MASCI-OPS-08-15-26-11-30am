@@ -1060,7 +1060,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                       value={unitSearch}
                       onChange={(e) => setUnitSearch(e.target.value)}
                       placeholder={t("Search saved units…")}
-                      className="h-9 pl-9 text-sm border-slate-300"
+                      className="h-11 pl-9 text-[0.95rem] border-slate-300"
                       data-testid="input-unit-search"
                     />
                   </div>
@@ -1283,7 +1283,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                           </div>
                         ) : (
                           <label
-                            className={`inline-flex items-center gap-2 h-10 px-3 rounded border-2 cursor-pointer text-sm font-bold ${
+                            className={`inline-flex min-h-11 items-center gap-2 px-3 rounded border-2 cursor-pointer text-sm font-bold ${
                               photoMissing
                                 ? "border-red-700 bg-red-100 text-red-700"
                                 : "border-slate-300 bg-white text-slate-700 hover:border-red-700"

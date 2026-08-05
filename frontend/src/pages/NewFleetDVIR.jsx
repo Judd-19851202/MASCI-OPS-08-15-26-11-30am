@@ -780,7 +780,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             <Button
               type="button"
               variant="outline"
-              className="border-amber-600 text-amber-700 hover:bg-amber-50 h-10"
+              className="min-h-11 border-amber-600 text-amber-700 hover:bg-amber-50"
               onClick={addTrailer}
               data-testid="dvir-add-trailer"
             >

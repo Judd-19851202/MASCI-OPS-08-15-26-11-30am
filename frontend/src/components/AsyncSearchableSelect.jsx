@@ -157,7 +157,8 @@ export function AsyncSearchableSelect({
           {open ? (
             <div
               data-testid={`${testId}-panel`}
-              className="wp17-picker-panel mt-2 max-h-60 overflow-y-auto p-1.5"
+              className="wp17-picker-panel mt-2 max-h-60 overflow-y-auto overscroll-contain touch-pan-y p-1.5"
+              style={{ WebkitOverflowScrolling: "touch" }}
             >
               {loading ? (
                 <div className="wp17-picker-empty" data-testid={`${testId}-loading`}>
@@ -195,7 +196,7 @@ export function AsyncSearchableSelect({
                   type="button"
                   onClick={addTemp}
                   data-testid={`${testId}-add-temp`}
-                  className="mt-1 flex w-full items-center gap-2 rounded-[0.95rem] border border-amber-200 bg-amber-50 px-3 py-2 text-left text-sm text-amber-900 transition-colors hover:bg-amber-100"
+                  className="mt-1 flex w-full min-h-11 items-center gap-2 rounded-[0.95rem] border border-amber-200 bg-amber-50 px-3 py-2 text-left text-[0.95rem] text-amber-900 transition-colors hover:bg-amber-100"
                 >
                   <span className="font-mono text-[10px] uppercase tracking-[0.18em]">
                     {tempPrefix || t("Add temporary:")}
