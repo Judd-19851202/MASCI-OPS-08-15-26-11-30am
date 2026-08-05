@@ -1,3 +1,10 @@
+# 2026-08-05 — Daily Report print isolation + submit fast-path repair
+
+- Fixed Daily Report print/PDF output so only the report document prints, not the admin/PM portal shell.
+- Added browser-print equipment columns for Run Hrs, Idle / Not In Use Hrs, and Total Hrs so print/PDF output matches the form fields.
+- Moved heavy Daily Report post-submit work into a background pipeline so submit returns reliably instead of stalling on synchronous downstream processing.
+- Verification passed: `/app/test_reports/iteration_134.json` confirmed print-field parity, and `/app/test_reports/iteration_135.json` confirmed ~6 second submit latency with `backend 100%` / `frontend 100%`.
+
 # 2026-08-05 — Daily Report mini-card separation pass
 
 - Converted the densest Daily Report tablet/mobile rows into visually separated mini-cards without changing data entry workflow.

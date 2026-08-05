@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter136 daily report print isolation + submit fast-path repair
+
+- Fixed Daily Report browser-print / Print-to-PDF isolation so admin/PM shell chrome (sidebar, shell background, hero/actions, lifecycle controls, watermark) is hidden and only the report document prints.
+- Restored browser-print field parity for Daily Report equipment rows by adding Run Hrs, Idle / Not In Use Hrs, and Total Hrs to the ViewDailyReport print surface.
+- Repaired Daily Report submit reliability by offloading the heavy post-submit pipeline to FastAPI background tasks; preview verification now shows successful POST `/api/daily-reports` responses in ~6 seconds on both internal and external preview endpoints, with real records created and no gateway-style failures observed during testing.
+
 ## 2026-08-05 — iter135 daily report mini-card separation pass
 
 - Converted the densest Daily Report small-tablet rows into clearer stacked mini-cards without changing the underlying workflow: MASCI Crew time, Equipment run/idle/total, Subcontractor headcount/hours/work, and Production station/percent rows.

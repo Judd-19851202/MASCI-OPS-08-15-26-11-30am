@@ -1,3 +1,21 @@
+# 2026-08-05 — Daily Report print + submit follow-up state
+
+## Current top priority
+
+- **Preview fixes are complete for the production-reported Daily Report print-shell bug, missing equipment print columns, and slow/error-prone submit path.**
+- **Next operator step: redeploy and validate the live Daily Report print/PDF flow plus a real field submission on production.**
+
+## P0
+- validate the live production Daily Report print output from both admin and PM after redeploy
+- validate one or two real production Daily Report submissions after redeploy to confirm the outage-style messages are gone
+
+## P1
+- continue broad print-path spot checks on the other detail-report pages that share the same print isolation pattern
+- keep a latency watch on Daily Report submit so any future synchronous regression gets caught early
+
+## P2
+- consider a small post-submit status indicator in the UI that explicitly says downstream PDF/email processing continues in the background after save
+
 # 2026-08-05 — Daily Report mini-card follow-up state
 
 ## Current top priority
