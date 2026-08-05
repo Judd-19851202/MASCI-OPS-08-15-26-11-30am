@@ -18,7 +18,7 @@ import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
-import { printReport, maybeAutoPrint } from "@/lib/printReport";
+import { printReport, maybeAutoPrint, enablePrintIsolation } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
@@ -149,6 +149,8 @@ export default function ViewInspection() {
     if (!loading && data) maybeAutoPrint();
   }, [loading, data]);
 
+  useEffect(() => enablePrintIsolation("report-detail"), []);
+
   const handleDelete = async () => {
     if (!window.confirm(t("Delete this inspection? This cannot be undone."))) return;
     try {
@@ -202,9 +204,12 @@ export default function ViewInspection() {
 
   const content = (
     <div className="min-h-screen bg-slate-50">
-      <PrintWatermark />
+      <div data-print-hide>
+        <PrintWatermark />
+      </div>
       <div className="caution-stripe no-print" />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page" data-print-region>
+        <div data-print-hide>
         <DetailPageHero
           backHref={ret.path}
           backLabel={ret.label}
@@ -244,6 +249,7 @@ export default function ViewInspection() {
           )}
           testId="view-inspection-hero"
         />
+        </div>
         {/* Print header */}
         <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
@@ -290,7 +296,9 @@ export default function ViewInspection() {
         <GradeBanner grade={grade} />
 
         {/* iter453 · OC-004 lifecycle panel (no-print) */}
-        <SiteInspectionLifecyclePanel inspectionId={data.id} />
+        <div data-print-hide>
+          <SiteInspectionLifecyclePanel inspectionId={data.id} />
+        </div>
 
         <ReportSection number="01" title={t("Project / Inspection Information")}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">

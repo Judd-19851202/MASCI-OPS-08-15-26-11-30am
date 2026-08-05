@@ -265,6 +265,30 @@ input, textarea, select {
         max-width: 100% !important;
         page-break-inside: avoid;
     }
+
+    body[data-print-isolation="report-detail"] * {
+        visibility: hidden !important;
+    }
+    body[data-print-isolation="report-detail"] [data-print-region],
+    body[data-print-isolation="report-detail"] [data-print-region] * {
+        visibility: visible !important;
+    }
+    body[data-print-isolation="report-detail"] [data-print-region] {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0.35in 0.35in 0 0.35in !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+    }
+    body[data-print-isolation="report-detail"] [data-print-hide] {
+        display: none !important;
+    }
+    body[data-print-isolation="report-detail"] [data-print-only] {
+        display: block !important;
+    }
 }
 
 /* Hide print-only blocks on screen */

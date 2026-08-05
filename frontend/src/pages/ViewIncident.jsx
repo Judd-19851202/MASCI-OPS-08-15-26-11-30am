@@ -13,7 +13,7 @@ import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
-import { printReport, maybeAutoPrint } from "@/lib/printReport";
+import { printReport, maybeAutoPrint, enablePrintIsolation } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
@@ -213,6 +213,8 @@ export default function ViewIncident() {
     if (!loading && data) maybeAutoPrint();
   }, [loading, data]);
 
+  useEffect(() => enablePrintIsolation("report-detail"), []);
+
   const handleDelete = async () => {
     if (!window.confirm(t("Delete this incident report? This cannot be undone.")))
       return;
@@ -279,10 +281,13 @@ export default function ViewIncident() {
 
   const content = (
     <div className="min-h-screen bg-slate-50">
-      <PrintWatermark />
+      <div data-print-hide>
+        <PrintWatermark />
+      </div>
       <div className="caution-stripe no-print" />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
-        <DetailPageHero
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page" data-print-region>
+        <div data-print-hide>
+          <DetailPageHero
           backHref={ret.path}
           backLabel={t(ret.label)}
           kicker={t("Field Operations · Incident Review")}
@@ -319,9 +324,10 @@ export default function ViewIncident() {
           toolbar={pathname.startsWith("/safety-portal") ? <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-600">{t("Safety Portal")}</span> : null}
           testId="view-incident-hero"
         />
+        </div>
         {/* iter365 · operational coaching uniformity — short, field-direct.
             Hidden on print so the official report PDF stays clean. */}
-        <div className="print:hidden">
+        <div className="print:hidden" data-print-hide>
           <LifecycleGuide
             id="incident-detail"
             icon={AlertOctagon}
@@ -340,10 +346,12 @@ export default function ViewIncident() {
             CORRECTIVE_ACTION_REQUIRED → PENDING_CLOSURE → CLOSED), role-gated
             action buttons, closure attestation modal, reopen-with-reason
             modal, and the audit-trail history drawer. Hidden on print. */}
-        <IncidentLifecyclePanel
-          incidentId={data.id}
-          oshaRecordable={data.osha_recordable === "Yes"}
-        />
+        <div data-print-hide>
+          <IncidentLifecyclePanel
+            incidentId={data.id}
+            oshaRecordable={data.osha_recordable === "Yes"}
+          />
+        </div>
 
         {/* Phase 5D · P1 — Tier-2 follow-up awareness banner.
             Quiet operational status derived live from severity + linked
@@ -352,6 +360,7 @@ export default function ViewIncident() {
           <div
             className={`print:hidden border-2 ${followUpTone.wrap} rounded-md px-4 py-3 flex items-start gap-3`}
             data-testid={`followup-status-${followUpStatus.kind}`}
+            data-print-hide
           >
             <FollowUpIcon className={`w-5 h-5 shrink-0 mt-0.5 ${followUpTone.icon}`} aria-hidden />
             <div className="flex-1 min-w-0">

@@ -66,3 +66,22 @@ export function maybeAutoPrint() {
     /* noop */
   }
 }
+
+/**
+ * Detail/report pages render inside admin / PM shells on-screen, but when the
+ * user prints we must isolate ONLY the report region and hide the portal chrome
+ * (sidebar, search bar, sticky shell header, decorative background, etc.).
+ * Returns a cleanup function suitable for useEffect.
+ */
+export function enablePrintIsolation(scope = "report-detail") {
+  if (typeof document === "undefined") return () => {};
+  const prev = document.body.getAttribute("data-print-isolation");
+  document.body.setAttribute("data-print-isolation", scope);
+  return () => {
+    if (prev == null) {
+      document.body.removeAttribute("data-print-isolation");
+    } else {
+      document.body.setAttribute("data-print-isolation", prev);
+    }
+  };
+}

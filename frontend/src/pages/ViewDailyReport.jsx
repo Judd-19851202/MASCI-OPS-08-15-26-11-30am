@@ -20,7 +20,7 @@ import { formatDateLong } from "@/lib/utils";
 import { getCompanyInfo } from "@/lib/companyInfo";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
-import { printReport, maybeAutoPrint } from "@/lib/printReport";
+import { printReport, maybeAutoPrint, enablePrintIsolation } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
@@ -220,6 +220,8 @@ export default function ViewDailyReport() {
     if (!loading && data) maybeAutoPrint();
   }, [loading, data]);
 
+  useEffect(() => enablePrintIsolation("report-detail"), []);
+
   const handleDelete = async () => {
     if (!window.confirm(t("Delete this daily report? This cannot be undone.")))
       return;
@@ -278,9 +280,11 @@ export default function ViewDailyReport() {
 
   const content = (
     <div className="min-h-screen bg-slate-50">
-      <PrintWatermark />
+      <div data-print-hide>
+        <PrintWatermark />
+      </div>
       <div className="caution-stripe no-print" />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page" data-print-region>
         {/* Track 15.12A · breadcrumb only when arriving from the PM
             Command Center photo lightbox, so the user can see the
             navigation source they came from. */}
@@ -305,70 +309,72 @@ export default function ViewDailyReport() {
             <span className="text-slate-700 font-bold">{t("Daily Report")}</span>
           </nav>
         )}
-        <DetailPageHero
-          backHref={backHref}
-          backLabel={backLabel}
-          kicker={isHrReadOnly ? t("Human Resources · Daily Report Review") : t("Field Operations · Daily Report Review")}
-          title={t("Daily Job Report")}
-          description={t("Review field activity, delivery status, and attachments before printing, emailing, or moving the report downstream.")}
-          actions={isHrReadOnly ? null : (
-            <>
-              <EditProjectDialog
-                kind="daily-reports"
-                recordId={data.id}
-                current={data}
-                onSaved={(rec) => rec && setData(rec)}
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                data-testid="delete-btn"
-                aria-label="Delete daily report"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setEmailOpen(true)}
-                size="sm"
-                data-testid="email-btn"
-              >
-                <Mail className="w-4 h-4 mr-1" /> {t("Email")}
-              </Button>
-              <Button
-                onClick={printReport}
-                size="sm"
-                data-testid="print-btn"
-              >
-                <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
-              </Button>
-            </>
-          )}
-          chips={
-            <>
-              <RefKicker recordId={data.report_number || data.id} testId="view-daily-ref" />
-              {data.doc_id ? (
-                <span className="wp17-status-badge wp17-tone--red" data-testid="record-doc-id-badge">
-                  <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
-                  {data.doc_id}
+        <div data-print-hide>
+          <DetailPageHero
+            backHref={backHref}
+            backLabel={backLabel}
+            kicker={isHrReadOnly ? t("Human Resources · Daily Report Review") : t("Field Operations · Daily Report Review")}
+            title={t("Daily Job Report")}
+            description={t("Review field activity, delivery status, and attachments before printing, emailing, or moving the report downstream.")}
+            actions={isHrReadOnly ? null : (
+              <>
+                <EditProjectDialog
+                  kind="daily-reports"
+                  recordId={data.id}
+                  current={data}
+                  onSaved={(rec) => rec && setData(rec)}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleDelete}
+                  data-testid="delete-btn"
+                  aria-label="Delete daily report"
+                  title="Delete"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setEmailOpen(true)}
+                  size="sm"
+                  data-testid="email-btn"
+                >
+                  <Mail className="w-4 h-4 mr-1" /> {t("Email")}
+                </Button>
+                <Button
+                  onClick={printReport}
+                  size="sm"
+                  data-testid="print-btn"
+                >
+                  <Printer className="w-4 h-4 mr-1" /> {t("Print / PDF")}
+                </Button>
+              </>
+            )}
+            chips={
+              <>
+                <RefKicker recordId={data.report_number || data.id} testId="view-daily-ref" />
+                {data.doc_id ? (
+                  <span className="wp17-status-badge wp17-tone--red" data-testid="record-doc-id-badge">
+                    <span className="text-[9px] uppercase tracking-[0.22em] text-red-700">{t("Doc ID")}</span>
+                    {data.doc_id}
+                  </span>
+                ) : null}
+                <span className="wp17-status-badge wp17-tone--slate">
+                  {t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}
+                  {data.report_number ? ` · #${data.report_number}` : ""}
                 </span>
-              ) : null}
-              <span className="wp17-status-badge wp17-tone--slate">
-                {t("Report ID")} · {data.id?.slice(0, 8).toUpperCase()}
-                {data.report_number ? ` · #${data.report_number}` : ""}
-              </span>
-              {data.submit_language === "es" ? <SubmitLangBadge lang={data.submit_language} /> : null}
-            </>
-          }
-          toolbar={isHrReadOnly ? (
-            <div className="wp17-status-badge wp17-tone--slate" data-testid="hr-readonly-badge">
-              {t("Read-only · HR")}
-            </div>
-          ) : null}
-          testId="view-daily-hero"
-        />
+                {data.submit_language === "es" ? <SubmitLangBadge lang={data.submit_language} /> : null}
+              </>
+            }
+            toolbar={isHrReadOnly ? (
+              <div className="wp17-status-badge wp17-tone--slate" data-testid="hr-readonly-badge">
+                {t("Read-only · HR")}
+              </div>
+            ) : null}
+            testId="view-daily-hero"
+          />
+        </div>
         <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo
@@ -404,7 +410,7 @@ export default function ViewDailyReport() {
         {/* OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review.
             Operator directive: OPEN → PENDING_REVIEW → REVIEWED → CLOSED
             with kickback PENDING_REVIEW → OPEN and audited REOPEN. */}
-        {!isHrReadOnly && <DailyReportLifecyclePanel reportId={data.id} />}
+        {!isHrReadOnly && <div data-print-hide><DailyReportLifecyclePanel reportId={data.id} /></div>}
 
         <ReportSection number="01" title={t("Report Information")}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">

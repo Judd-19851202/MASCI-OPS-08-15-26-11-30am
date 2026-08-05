@@ -16,7 +16,7 @@ import { getCompanyInfo } from "@/lib/companyInfo";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { formatCoords } from "@/lib/geolocation";
 import { MapThumbnail } from "@/components/MapThumbnail";
-import { printReport, maybeAutoPrint } from "@/lib/printReport";
+import { printReport, maybeAutoPrint, enablePrintIsolation } from "@/lib/printReport";
 import { PrintWatermark } from "@/components/PrintWatermark";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { PhotoZipDownload } from "@/components/PhotoZipDownload";
@@ -112,6 +112,8 @@ export default function ViewMeeting() {
     if (!loading && data) maybeAutoPrint();
   }, [loading, data]);
 
+  useEffect(() => enablePrintIsolation("report-detail"), []);
+
   const handleDelete = async () => {
     if (!window.confirm(t("Delete this meeting? This cannot be undone."))) return;
     try {
@@ -149,9 +151,12 @@ export default function ViewMeeting() {
 
   const content = (
     <div className="min-h-screen bg-slate-50">
-      <PrintWatermark />
+      <div data-print-hide>
+        <PrintWatermark />
+      </div>
       <div className="caution-stripe no-print" />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 print-page" data-print-region>
+        <div data-print-hide>
         <DetailPageHero
           backHref={ret.path}
           backLabel={ret.label}
@@ -191,6 +196,7 @@ export default function ViewMeeting() {
           )}
           testId="view-meeting-hero"
         />
+        </div>
         <div className="hidden print:flex items-start justify-between border-b-4 border-red-700 pb-4 gap-4">
           <div className="flex-1">
             <MasciLogo variant="mark" size="2xl" className="hidden sm:block max-w-[420px]" onLight homeLink={hubHome} />
