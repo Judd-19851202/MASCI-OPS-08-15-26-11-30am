@@ -13,6 +13,13 @@ const STATUS_TILES = [
   { id: "gray",  label: "No Recent Position", tone: "slate"   },
 ];
 
+const STATUS_MEANING = {
+  green: "GPS updated within about 5 minutes — actively moving or confirmed live.",
+  amber: "GPS updated within about 60 minutes — connected, but not actively moving.",
+  red: "Recent position exists, but the asset needs action (maintenance, inspection, assignment, or stale-position review).",
+  gray: "No recent usable position — older than about 24 hours, missing GPS, or not mapped.",
+};
+
 function toggle(list, value) {
   return list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
 }
@@ -59,6 +66,16 @@ export default function MapFilterRail({ filters, setTypes, setStatus, setDriver,
           <span>{s.label}</span>
         </label>
       ))}
+      <div
+        className="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-700"
+        data-testid="ops-map-status-legend"
+      >
+        {STATUS_TILES.map((s) => (
+          <div key={`${s.id}-meaning`} className="mb-1 last:mb-0">
+            <strong>{s.label}:</strong> {STATUS_MEANING[s.id]}
+          </div>
+        ))}
+      </div>
 
       {/* PRIMARY · Operator (driver) */}
       <h4>Operator</h4>

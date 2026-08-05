@@ -85,6 +85,9 @@ const RIBBON_TONE = {
 
 function messageFor(payload) {
   const overall = payload?.overall || "DEFAULT";
+  if (overall === "LIVE_VERIFIED" && payload?.connectivity_status === "UNREACHABLE") {
+    return "Recent Motive position data is still being received, but the direct Motive connectivity probe is failing right now. Fresh updates may degrade if that persists.";
+  }
   switch (overall) {
     case "LIVE_VERIFIED":
       return "Motive is live and delivering recent position data.";

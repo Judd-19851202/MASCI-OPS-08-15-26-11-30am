@@ -54,6 +54,13 @@ const DEFAULT_CENTER = [-81.0, 28.9]; // East-central Florida (MASCI service are
 const DEFAULT_ZOOM = 8;
 const ALL_BANDS = ["green", "amber", "red", "gray"];
 
+const FALLBACK_MARKER_TONE = {
+  green: { ring: "#10b981", fill: "#064e3b", text: "#d1fae5" },
+  amber: { ring: "#f59e0b", fill: "#78350f", text: "#fef3c7" },
+  red: { ring: "#e11d48", fill: "#4c0519", text: "#ffe4e6" },
+  gray: { ring: "#94a3b8", fill: "#334155", text: "#e2e8f0" },
+};
+
 export default function MapCanvas({ snapshot, filters, onSelect }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -66,8 +73,54 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
   // the rendered feature set hasn't actually changed (Track 15.63 #3).
   const lastAssetsSigRef = useRef("");
   const lastGeofencesSigRef = useRef("");
+  const fallbackMarkersRef = useRef([]);
+  const renderProbeRef = useRef(null);
 
   const [ready, setReady] = useState(false);
+
+  const clearFallbackMarkers = () => {
+    fallbackMarkersRef.current.forEach((marker) => {
+      try { marker.remove(); } catch { /* ignore */ }
+    });
+    fallbackMarkersRef.current = [];
+  };
+
+  const renderFallbackMarkers = (map, features) => {
+    clearFallbackMarkers();
+    features.slice(0, 200).forEach((feature) => {
+      const tone = FALLBACK_MARKER_TONE[feature.properties.band] || FALLBACK_MARKER_TONE.gray;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "ops-map-fallback-marker";
+      button.dataset.testid = `ops-map-fallback-${feature.properties.unit_number || "asset"}`;
+      button.title = `${feature.properties.unit_number || "Asset"} · ${feature.properties.band || "unknown"}`;
+      button.style.width = "18px";
+      button.style.height = "18px";
+      button.style.borderRadius = "999px";
+      button.style.border = `3px solid ${tone.ring}`;
+      button.style.background = tone.fill;
+      button.style.boxShadow = "0 0 0 1px rgba(15,23,42,0.65), 0 3px 10px rgba(15,23,42,0.28)";
+      button.style.cursor = "pointer";
+      button.style.padding = "0";
+      button.style.display = "grid";
+      button.style.placeItems = "center";
+      button.setAttribute("aria-label", button.title);
+      const centerDot = document.createElement("span");
+      centerDot.style.width = "4px";
+      centerDot.style.height = "4px";
+      centerDot.style.borderRadius = "999px";
+      centerDot.style.background = tone.text;
+      button.appendChild(centerDot);
+      button.addEventListener("click", () => {
+        const cb = onSelectRef.current;
+        if (feature.properties.unit_number && typeof cb === "function") cb(feature.properties.unit_number);
+      });
+      const marker = new maplibregl.Marker({ element: button, anchor: "center" })
+        .setLngLat(feature.geometry.coordinates)
+        .addTo(map);
+      fallbackMarkersRef.current.push(marker);
+    });
+  };
 
   // ---------------------------------------------------------------------
   // Map instance — created ONCE per mount. No prop-driven re-creation.
@@ -288,6 +341,11 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
     });
 
     return () => {
+      if (renderProbeRef.current) {
+        clearTimeout(renderProbeRef.current);
+        renderProbeRef.current = null;
+      }
+      clearFallbackMarkers();
       try {
         if (typeof window !== "undefined") {
           if (Array.isArray(window.__MASCI_MAP_REFS__)) {
@@ -350,6 +408,41 @@ export default function MapCanvas({ snapshot, filters, onSelect }) {
       map.getSource("assets")?.setData({ type: "FeatureCollection", features });
       lastAssetsSigRef.current = assetsSig;
     }
+
+    if (renderProbeRef.current) {
+      clearTimeout(renderProbeRef.current);
+      renderProbeRef.current = null;
+    }
+    renderProbeRef.current = window.setTimeout(() => {
+      if (!mapRef.current) return;
+      const activeMap = mapRef.current;
+      const countRendered = () => {
+        try {
+          return activeMap.queryRenderedFeatures(undefined, {
+            layers: ["asset-clusters", "asset-marker"],
+          }).length;
+        } catch {
+          return 0;
+        }
+      };
+      const firstPass = countRendered();
+      if (features.length > 0 && firstPass === 0) {
+        try { activeMap.resize(); } catch { /* ignore */ }
+        try { activeMap.getSource("assets")?.setData({ type: "FeatureCollection", features }); } catch { /* ignore */ }
+        try { activeMap.triggerRepaint(); } catch { /* ignore */ }
+        window.setTimeout(() => {
+          if (!mapRef.current) return;
+          const secondPass = countRendered();
+          if (features.length > 0 && secondPass === 0) {
+            renderFallbackMarkers(activeMap, features);
+          } else {
+            clearFallbackMarkers();
+          }
+        }, 350);
+      } else {
+        clearFallbackMarkers();
+      }
+    }, 150);
 
     const gfFeatures = (snapshot.geofences || []).map((g) => ({
       type: "Feature",

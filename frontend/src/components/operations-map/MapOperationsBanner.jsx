@@ -8,11 +8,11 @@ import React from "react";
 const MICROCOPY = {
   total:     "All tracked equipment",
   assigned:  "In known projects or areas",
-  connected: "Sending position data",
-  working:   "Moving or active now",
-  idle:      "Connected, not moving",
-  attention: "Needs review",
-  offline:   "Not recently reporting",
+  connected: "Recent GPS live now",
+  working:   "GPS updated within ~5 min",
+  idle:      "GPS updated within ~60 min",
+  attention: "Recent GPS, but needs action",
+  offline:   "No recent GPS within ~24h",
 };
 
 const FALLBACK = [
