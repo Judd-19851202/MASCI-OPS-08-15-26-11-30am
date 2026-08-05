@@ -293,9 +293,10 @@ def build_service_truck_reconciliation_router(
                 }},
             )
             doc_id = existing["id"]
+            display_id = existing.get("doc_id") or existing["id"]
         else:
             doc_id = f"strr-{uuid.uuid4().hex[:12]}"
-            await db.service_truck_reconciliations.insert_one({
+            new_doc = {
                 "id": doc_id,
                 "date": payload.date,
                 "service_truck_unit": truck,
@@ -317,9 +318,13 @@ def build_service_truck_reconciliation_router(
                 "created_at": now,
                 "updated_at": now,
                 "source_system": SERVICE_TRUCK_RECONCILIATION_SOURCE,
-            })
+            }
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, new_doc, "STRR", when=new_doc.get("date") or new_doc.get("created_at"))
+            display_id = new_doc.get("doc_id") or doc_id
+            await db.service_truck_reconciliations.insert_one(new_doc)
 
-        return {"ok": True, "id": doc_id, "status": "start_logged"}
+        return {"ok": True, "id": doc_id, "doc_id": display_id, "status": "start_logged"}
 
     # ── POST /close ─────────────────────────────────────────────────
     @router.post("/close")
@@ -390,7 +395,7 @@ def build_service_truck_reconciliation_router(
         updated = await db.service_truck_reconciliations.find_one(
             {"id": doc["id"]}, {"_id": 0},
         )
-        return {"ok": True, "id": doc["id"], "status": next_status,
+        return {"ok": True, "id": doc["id"], "doc_id": (updated or {}).get("doc_id") or doc["id"], "status": next_status,
                 "variance_status": variance_status,
                 "reconciliation": updated}
 

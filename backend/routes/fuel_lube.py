@@ -277,6 +277,13 @@ def build_fuel_lube_router(
             "submitted_by": payload.submitted_by or payload.fuel_lube_tech_name,
             "source_system": FUEL_LUBE_VISIT_SOURCE,
         }
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(
+            db,
+            visit_doc,
+            "FLV",
+            when=visit_doc.get("visit_date") or visit_doc.get("submitted_at"),
+        )
         # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
         try:
             from lib.team_routing import snapshot_team  # noqa: PLC0415
@@ -287,7 +294,17 @@ def build_fuel_lube_router(
             pass
         await db.fuel_lube_visits.insert_one(visit_doc)
 
-        return {"ok": True, "id": visit_id, "totals": totals, "defect_ids": defect_ids}
+        return {
+            "ok": True,
+            "id": visit_id,
+            "doc_id": visit_doc.get("doc_id") or "",
+            "totals": totals,
+            "defect_ids": defect_ids,
+            "submitted_at": visit_doc.get("submitted_at") or "",
+            "submitted_by": visit_doc.get("submitted_by") or "",
+            "project_number": visit_doc.get("project_number") or "",
+            "project_name": visit_doc.get("project_name") or "",
+        }
 
     @router.get("/visits")
     async def list_visits(

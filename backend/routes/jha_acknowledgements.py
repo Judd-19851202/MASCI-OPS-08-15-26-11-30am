@@ -214,6 +214,8 @@ def register_jha_acknowledgement_routes(
             "ip": meta["ip"],
             "user_agent": meta["user_agent"],
         }
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, doc, "JAA", when=doc.get("acknowledged_at"))
 
         # Idempotent on (jha_file_id, employee_id) — re-acknowledging
         # the same version replaces the prior signature. The replaced

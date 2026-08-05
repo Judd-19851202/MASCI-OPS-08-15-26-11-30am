@@ -1212,10 +1212,13 @@ def register_transportation_orientation_routes(
         if inv.get("status") not in ("opened", "active"):
             raise HTTPException(410, f"Invite {inv['status']}")
         now_iso = _now()
+        inv_copy = _project(inv)
+        from doc_ids import ensure_doc_id
+        await ensure_doc_id(db, inv_copy, "TCI", when=now_iso)
         await db.transport_invites.update_one(
             {"_id": inv["_id"]},
             {"$set": {"submitted_at": now_iso, "status": "submitted",
-                      "submission_payload": body or {}}})
+                      "submission_payload": body or {}, "doc_id": inv_copy.get("doc_id") or ""}})
         await _audit(db, kind="transport_invite_submit",
                      entity_type="invite", entity_id=inv["id"],
                      actor={"email": "external_carrier"},
@@ -1224,7 +1227,7 @@ def register_transportation_orientation_routes(
                      summary=f"External carrier submitted invite {inv['id']}",
                      audience=["admin"],
                      meta={"invite_id": inv["id"], "carrier_id": inv["carrier_id"]})
-        return {"ok": True, "invite_id": inv["id"], "status": "submitted"}
+        return {"ok": True, "invite_id": inv["id"], "doc_id": inv_copy.get("doc_id") or "", "status": "submitted"}
 
     # ============================ DASHBOARD WIDGETS ============================
     @router.get("/admin/transportation/orientation/dashboard")
