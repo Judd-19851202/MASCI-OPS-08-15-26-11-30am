@@ -15209,12 +15209,26 @@ async def _track_23_10_c_trench_backfill_bootstrap():
     Safe to re-run — natural-key `supersede_facts` collapses duplicates
     to at most 1 current per row.
     """
+    runtime_db = db.get_target()
+    if runtime_db is None:
+        logger.warning("[track-23-10-c-backfill] runtime DB unavailable — skipping startup backfill")
+        return
+
     async def _run_bg():
         try:
-            await _run_trench_backfill(db, boot_mode=True)
+            await _run_trench_backfill(runtime_db, boot_mode=True)
         except Exception as exc:                                 # noqa: BLE001
             logger.warning(f"[track-23-10-c-backfill] {exc}")
-    asyncio.create_task(_run_bg())
+
+    register_background_task(
+        app,
+        name="track_23_10_c_trench_backfill",
+        coro=_run_bg(),
+        category="data-backfill",
+        critical=False,
+        long_running=True,
+        timeout_seconds=900,
+    )
 
 
 # ─── TRACK 23.10-D · Safety Portal Trench KPI Lift ──────────────────
