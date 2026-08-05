@@ -123,7 +123,7 @@ function bR2Bucket(recovery, integrations) {
   if (bucketStatus === "RED" || (alert && gb >= alert)) {
     status = "red";
     summary = `Bucket ${gb} GB · past ${alert} GB alert · retention overdue.`;
-    action = "Schedule R2 retention runner (Track 27.06).";
+    action = "Schedule the R2 retention runner.";
   } else if (bucketStatus === "YELLOW" || (warn && gb >= warn)) {
     status = "yellow";
     summary = `Bucket ${gb} GB · past ${warn} GB warn.`;
@@ -893,7 +893,7 @@ export default function AdminStorageRecovery() {
         >
           <div className="mb-2 flex items-center gap-2">
             <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
-              Storage Trust Gaps (Track 27.04 / 27.05 audit backlog)
+              Storage trust gaps and recovery follow-ups
             </div>
           </div>
           <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white">

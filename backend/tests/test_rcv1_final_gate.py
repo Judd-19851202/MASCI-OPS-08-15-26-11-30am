@@ -38,6 +38,8 @@ SHOP_PASSWORD = "CertProof2026!"
 HR_EMAIL = "cert.hr@example.com"
 HR_PASSWORD = "CertProof2026!"
 FL_PASSWORD = "MASCIGC"
+FL_EMAIL = "cert.foreman@example.com"
+FL_PORTAL_PASSWORD = "CertProof2026!"
 
 # Canonical test records from the review request
 CANONICAL_DR_ID = "17010cbf-e5b6-4929-84e6-71430efbff90"
@@ -54,6 +56,7 @@ def admin_auth():
     resp = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+        headers={"X-Device-Id": "rcv1-admin-auth"},
         timeout=30
     )
     assert resp.status_code == 200, f"Admin login failed: {resp.text}"
@@ -76,6 +79,7 @@ def pm_auth():
     resp = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": PM_EMAIL, "password": PM_PASSWORD, "portal": "pm"},
+        headers={"X-Device-Id": "rcv1-pm-auth"},
         timeout=30
     )
     assert resp.status_code == 200, f"PM login failed: {resp.text}"
@@ -98,6 +102,7 @@ def safety_auth():
     resp = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": SAFETY_EMAIL, "password": SAFETY_PASSWORD, "portal": "safety"},
+        headers={"X-Device-Id": "rcv1-safety-auth"},
         timeout=30
     )
     assert resp.status_code == 200, f"Safety login failed: {resp.text}"
@@ -116,15 +121,30 @@ def safety_tokens(safety_auth):
 
 @pytest.fixture(scope="module")
 def fl_token():
-    """Get Field Leadership token"""
+    """Get Field Leadership portal token."""
     resp = requests.post(
-        f"{BASE_URL}/api/field-leadership/login",
-        json={"password": FL_PASSWORD},
+        f"{BASE_URL}/api/field-leadership/portal/login",
+        json={"email": FL_EMAIL, "password": FL_PORTAL_PASSWORD},
         timeout=30
     )
     assert resp.status_code == 200, f"FL login failed: {resp.text}"
     data = resp.json()
     return data.get("token")
+
+
+@pytest.fixture(scope="module")
+def canonical_daily_report_id(admin_auth):
+    admin_token = admin_auth["portal_tokens"].get("admin", "")
+    session_token = admin_auth.get("session_token", "")
+    resp = requests.get(
+        f"{BASE_URL}/api/daily-reports?limit=1",
+        headers={"X-Admin-Token": admin_token, "X-Directory-Token": session_token},
+        timeout=30,
+    )
+    assert resp.status_code == 200, f"Daily report list failed: {resp.text}"
+    rows = resp.json()
+    assert isinstance(rows, list) and rows, "No daily reports available for regression checks"
+    return rows[0]["id"]
 
 
 # ============================================================
@@ -175,6 +195,7 @@ class TestAuthentication:
         resp = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": "rcv1-admin-check"},
             timeout=30
         )
         assert resp.status_code == 200
@@ -189,6 +210,7 @@ class TestAuthentication:
         resp = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": PM_EMAIL, "password": PM_PASSWORD, "portal": "pm"},
+            headers={"X-Device-Id": "rcv1-pm-check"},
             timeout=30
         )
         assert resp.status_code == 200
@@ -201,6 +223,7 @@ class TestAuthentication:
         resp = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": SAFETY_EMAIL, "password": SAFETY_PASSWORD, "portal": "safety"},
+            headers={"X-Device-Id": "rcv1-safety-check"},
             timeout=30
         )
         assert resp.status_code == 200
@@ -213,6 +236,7 @@ class TestAuthentication:
         resp = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": DISPATCH_EMAIL, "password": DISPATCH_PASSWORD, "portal": "dispatch"},
+            headers={"X-Device-Id": "rcv1-dispatch-check"},
             timeout=30
         )
         assert resp.status_code == 200
@@ -225,6 +249,7 @@ class TestAuthentication:
         resp = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": SHOP_EMAIL, "password": SHOP_PASSWORD, "portal": "shop"},
+            headers={"X-Device-Id": "rcv1-shop-check"},
             timeout=30
         )
         assert resp.status_code == 200
@@ -237,6 +262,7 @@ class TestAuthentication:
         resp = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": HR_EMAIL, "password": HR_PASSWORD, "portal": "hr"},
+            headers={"X-Device-Id": "rcv1-hr-check"},
             timeout=30
         )
         assert resp.status_code == 200
@@ -245,23 +271,23 @@ class TestAuthentication:
         assert "hr" in data.get("portal_tokens", {})
 
     def test_field_leadership_login(self):
-        """Field Leadership shared-password login works"""
+        """Field Leadership portal login works"""
         resp = requests.post(
-            f"{BASE_URL}/api/field-leadership/login",
-            json={"password": FL_PASSWORD},
+            f"{BASE_URL}/api/field-leadership/portal/login",
+            json={"email": FL_EMAIL, "password": FL_PORTAL_PASSWORD},
             timeout=30
         )
         assert resp.status_code == 200
         data = resp.json()
         assert "token" in data
-        assert data.get("expires_in_s") > 0
+        assert data.get("kind") == "fl"
 
     def test_field_leadership_x_fl_token_alias(self):
-        """Field Leadership accepts X-Leadership-Token header (X-FL-Token has session issue)"""
+        """Field Leadership legacy check endpoint is retired after portal convergence."""
         # First get a token
         login_resp = requests.post(
-            f"{BASE_URL}/api/field-leadership/login",
-            json={"password": FL_PASSWORD},
+            f"{BASE_URL}/api/field-leadership/portal/login",
+            json={"email": FL_EMAIL, "password": FL_PORTAL_PASSWORD},
             timeout=30
         )
         token = login_resp.json().get("token")
@@ -272,9 +298,9 @@ class TestAuthentication:
             headers={"X-Leadership-Token": token},
             timeout=30
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 410
         data = resp.json()
-        assert data.get("ok") is True
+        assert "retired" in (data.get("detail") or "").lower()
 
 
 # ============================================================
@@ -610,11 +636,11 @@ class TestFleetDVIRWorkflow:
 
     def test_shop_fleet_defects(self, admin_auth):
         """Shop fleet defects endpoint works"""
-        admin_token = admin_auth["portal_tokens"].get("admin", "")
+        shop_token = admin_auth["portal_tokens"].get("shop", "")
         session_token = admin_auth.get("session_token", "")
         resp = requests.get(
             f"{BASE_URL}/api/shop/fleet/defects",
-            headers={"X-Admin-Token": admin_token, "X-Directory-Token": session_token},
+            headers={"X-Shop-Token": shop_token, "X-Directory-Token": session_token},
             timeout=30
         )
         assert resp.status_code == 200
@@ -664,22 +690,22 @@ class TestRegressionLatestFixes:
             "Release identity mismatch - frontend_backend_release_match should be true"
 
     def test_field_leadership_x_fl_token_alias_regression(self, fl_token):
-        """X-Leadership-Token works (X-FL-Token has session_activity registration issue)"""
+        """Legacy shared-secret Field Leadership check remains retired after portal convergence."""
         resp = requests.get(
             f"{BASE_URL}/api/field-leadership/check",
             headers={"X-Leadership-Token": fl_token},
             timeout=30
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 410
         data = resp.json()
-        assert data.get("ok") is True
+        assert "retired" in (data.get("detail") or "").lower()
 
-    def test_ai_evidence_bundle_fields(self, admin_auth):
+    def test_ai_evidence_bundle_fields(self, admin_auth, canonical_daily_report_id):
         """AI evidence bundle includes widened fields (regression)"""
         admin_token = admin_auth["portal_tokens"].get("admin", "")
         session_token = admin_auth.get("session_token", "")
         resp = requests.get(
-            f"{BASE_URL}/api/daily-reports/{CANONICAL_DR_ID}",
+            f"{BASE_URL}/api/daily-reports/{canonical_daily_report_id}",
             headers={"X-Admin-Token": admin_token, "X-Directory-Token": session_token},
             timeout=30
         )
@@ -700,12 +726,12 @@ class TestRegressionLatestFixes:
 class TestStorageIntegrity:
     """Storage integrity verification"""
 
-    def test_daily_report_no_duplicate_ownership(self, admin_auth):
+    def test_daily_report_no_duplicate_ownership(self, admin_auth, canonical_daily_report_id):
         """Canonical DR has single ownership (no duplicates)"""
         admin_token = admin_auth["portal_tokens"].get("admin", "")
         session_token = admin_auth.get("session_token", "")
         resp = requests.get(
-            f"{BASE_URL}/api/daily-reports/{CANONICAL_DR_ID}",
+            f"{BASE_URL}/api/daily-reports/{canonical_daily_report_id}",
             headers={"X-Admin-Token": admin_token, "X-Directory-Token": session_token},
             timeout=30
         )
@@ -713,7 +739,7 @@ class TestStorageIntegrity:
         data = resp.json()
         # Verify single record returned, not array
         assert isinstance(data, dict), "Expected single record, not array"
-        assert data.get("id") == CANONICAL_DR_ID
+        assert data.get("id") == canonical_daily_report_id
 
 
 if __name__ == "__main__":

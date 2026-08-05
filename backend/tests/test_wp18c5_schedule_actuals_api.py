@@ -45,7 +45,7 @@ class TestWP18C5ScheduleActualsAPIs:
         session.headers.update(
             {
                 "X-Admin-Token": ((data.get("portal_tokens") or {}).get("admin") or data.get("admin_token") or data.get("token")),
-                "X-Directory-Token": data.get("directory_token") or "",
+                "X-Directory-Token": data.get("session_token") or data.get("directory_token") or "",
             }
         )
         return session
@@ -230,7 +230,7 @@ class TestWP18C5ScheduleActualsAPIs:
         assert candidate, actuals_data
         assert candidate.get("activity_resolution", {}).get("resolved_activity_id") == activity_id
 
-        approve_response = pm_session.post(
+        approve_response = admin_session.post(
             f"{BASE_URL}/api/pm/project-controls/projects/{TEST_PROJECT}/schedule/actuals/candidates/{candidate['candidate_id']}/review",
             json={
                 "action": "approve",

@@ -9,6 +9,7 @@ Tests PM and Admin C6 endpoints for operational intelligence:
 """
 import os
 import time
+import uuid
 from pathlib import Path
 
 import pytest
@@ -36,6 +37,26 @@ ADMIN_PASSWORD = "Maddix123!"
 TEST_PROJECT = "ZZ-RUNTIME-CERT-2026"
 
 
+def _request_with_retry(method: str, url: str, **kwargs):
+    attempts = int(kwargs.pop("attempts", 4))
+    backoff_seconds = float(kwargs.pop("backoff_seconds", 2.0))
+    last_response = None
+    for attempt in range(1, attempts + 1):
+        try:
+            response = requests.request(method, url, **kwargs)
+        except requests.RequestException:
+            if attempt < attempts:
+                time.sleep(backoff_seconds * attempt)
+                continue
+            raise
+        last_response = response
+        if response.status_code not in {502, 503, 504}:
+            return response
+        if attempt < attempts:
+            time.sleep(backoff_seconds * attempt)
+    return last_response
+
+
 class TestWP18C6AuthRegression:
     """Regression tests for auth/session flow on C6 routes"""
 
@@ -43,9 +64,11 @@ class TestWP18C6AuthRegression:
         """PM login via /api/pm/login returns a valid token"""
         if not BASE_URL:
             pytest.skip("REACT_APP_BACKEND_URL not configured")
-        response = requests.post(
+        response = _request_with_retry(
+            "POST",
             f"{BASE_URL}/api/pm/login",
             json={"email": PM_EMAIL, "password": PM_PASSWORD},
+            headers={"X-Device-Id": f"wp18c6-pm-auth-{uuid.uuid4().hex[:8]}"},
             timeout=30,
         )
         assert response.status_code == 200, f"PM login failed: {response.text}"
@@ -58,9 +81,11 @@ class TestWP18C6AuthRegression:
         """Admin login via /api/auth/multi-login returns session_token for X-Directory-Token"""
         if not BASE_URL:
             pytest.skip("REACT_APP_BACKEND_URL not configured")
-        response = requests.post(
+        response = _request_with_retry(
+            "POST",
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": f"wp18c6-admin-auth-{uuid.uuid4().hex[:8]}"},
             timeout=30,
         )
         assert response.status_code == 200, f"Admin login failed: {response.text}"
@@ -78,9 +103,11 @@ class TestWP18C6PMOperationalIntelligence:
     def pm_headers(self):
         if not BASE_URL:
             pytest.skip("REACT_APP_BACKEND_URL not configured")
-        response = requests.post(
+        response = _request_with_retry(
+            "POST",
             f"{BASE_URL}/api/pm/login",
             json={"email": PM_EMAIL, "password": PM_PASSWORD},
+            headers={"X-Device-Id": f"wp18c6-pm-headers-{uuid.uuid4().hex[:8]}"},
             timeout=30,
         )
         if response.status_code != 200:
@@ -217,9 +244,11 @@ class TestWP18C6AdminOperationalIntelligence:
     def admin_headers(self):
         if not BASE_URL:
             pytest.skip("REACT_APP_BACKEND_URL not configured")
-        response = requests.post(
+        response = _request_with_retry(
+            "POST",
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": f"wp18c6-admin-headers-{uuid.uuid4().hex[:8]}"},
             timeout=30,
         )
         if response.status_code != 200:

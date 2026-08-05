@@ -7118,6 +7118,21 @@ BACKUP_SENSITIVE_FIELD_REDACTION = {
 # operation. Reversible by deletion of the three lines below.
 BACKUP_EXPLICIT_EXCLUSIONS = backup_explicit_exclusions()
 BACKUP_EXCLUSION_DETAILS: Dict[str, Dict[str, str]] = backup_exclusion_details()
+BACKUP_TRANSIENT_NAMESPACE_PREFIXES = (
+    "ops8_drill_",
+    "restore_drill_",
+    "preview_restore_",
+    "ops8_restore_",
+)
+
+
+def _backup_transient_collection_rule(name: str) -> Optional[Dict[str, str]]:
+    if any(str(name or "").startswith(prefix) for prefix in BACKUP_TRANSIENT_NAMESPACE_PREFIXES):
+        return {
+            "reason": "transient restore namespace collections must be excluded from authoritative runtime backups",
+            "owner": "bcss_restore_drill_evidence",
+        }
+    return None
 
 BACKUP_MANIFEST_VERSION = "27.11c-1"
 BACKUP_VERIFIER_VERSION = "27.11c-1"
@@ -7579,7 +7594,8 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
         captured_collections: List[str] = list(EXPORTABLE_KINDS.values())
         for coll_name in sorted(all_collections):
             await asyncio.sleep(0)  # keep event loop alive
-            if coll_name in EXCLUDE_FROM_AUTO_BACKUP or coll_name.startswith("system."):
+            transient_rule = _backup_transient_collection_rule(coll_name)
+            if coll_name in EXCLUDE_FROM_AUTO_BACKUP or coll_name.startswith("system.") or transient_rule is not None:
                 continue
             try:
                 projection = SENSITIVE_FIELD_REDACTION.get(coll_name, {"_id": 0})
@@ -9067,7 +9083,8 @@ def _build_complete_archive_on_disk(
     failed_photos = 0
     disk_files_count = 0
     disk_files_bytes = 0
-    seen_keys: set = set()  # dedupe — same photo referenced from 2 docs
+    seen_archive_members: set = set()  # dedupe — same asset referenced from multiple docs
+    failed_inline_refs: set = set()  # skip repeated missing/invalid asset refs within one archive run
     missing_photo_buckets: set = set()
 
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
@@ -9087,10 +9104,16 @@ def _build_complete_archive_on_disk(
         sync_db = sync_client[db_name]
         all_collections = sorted(sync_db.list_collection_names())
         for coll_name in all_collections:
+            transient_rule = _backup_transient_collection_rule(coll_name)
             if coll_name.startswith("system."):
                 excluded_logged.append(coll_name)
                 excluded_collections.append(coll_name)
                 exclusion_reasons[coll_name] = dict(BACKUP_EXCLUSION_DETAILS["system.*"])
+                continue
+            if transient_rule is not None:
+                excluded_logged.append(coll_name)
+                excluded_collections.append(coll_name)
+                exclusion_reasons[coll_name] = transient_rule
                 continue
             if coll_name in BACKUP_EXPLICIT_EXCLUSIONS:
                 excluded_logged.append(coll_name)
@@ -9123,7 +9146,12 @@ def _build_complete_archive_on_disk(
                 # Skip Mongo system collections + module-level explicit
                 # exclusions (kept in BACKUP_EXPLICIT_EXCLUSIONS for audit
                 # visibility — see R2_BACKUP_CONTINUITY_AUDIT.md §9).
-                if coll_name == "usage_events" or coll_name in BACKUP_EXPLICIT_EXCLUSIONS or coll_name.startswith("system."):
+                if (
+                    coll_name == "usage_events"
+                    or coll_name in BACKUP_EXPLICIT_EXCLUSIONS
+                    or coll_name.startswith("system.")
+                    or _backup_transient_collection_rule(coll_name) is not None
+                ):
                     continue
 
                 # Friendly "kind" for the in-zip folder — matches Pipeline A
@@ -9160,20 +9188,29 @@ def _build_complete_archive_on_disk(
                         kind_count += 1
                         # Walk this doc for photo:// refs to inline later
                         for ref in _iter_photo_refs(doc):
+                            if not isinstance(ref, str):
+                                continue
+                            if ref in failed_inline_refs:
+                                continue
                             key = None
                             raw = None
                             archive_member = None
-                            if isinstance(ref, str) and ref.startswith("photo://") and is_storage_ref(ref):
+                            if ref.startswith("photo://") and is_storage_ref(ref):
                                 try:
                                     bucket = ref.split("/", 3)[2]
                                     if bucket in missing_photo_buckets:
+                                        failed_inline_refs.add(ref)
                                         continue
                                     key = ref.split("/", 3)[3]
                                     archive_member = f"photos/{key}"
+                                    if archive_member in seen_archive_members:
+                                        continue
                                     raw = read_photo_bytes_sync(ref)
                                 except (IndexError, AttributeError):
+                                    failed_inline_refs.add(ref)
                                     continue
                                 except Exception as e:  # noqa: BLE001
+                                    failed_inline_refs.add(ref)
                                     if "NoSuchBucket" in str(e) or "specified bucket does not exist" in str(e).lower():
                                         try:
                                             missing_photo_buckets.add(ref.split("/", 3)[2])
@@ -9182,20 +9219,21 @@ def _build_complete_archive_on_disk(
                                     logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
                                     failed_photos += 1
                                     continue
-                            elif isinstance(ref, str) and ref.startswith("doc://") and _sds is not None:
+                            elif ref.startswith("doc://") and _sds is not None:
                                 try:
                                     _bucket, key = _sds._parse_ref(ref)  # noqa: SLF001
                                     archive_member = f"documents/{key}"
+                                    if archive_member in seen_archive_members:
+                                        continue
                                     raw = asyncio.run(_sds.read_doc_bytes(ref))
                                 except Exception as e:  # noqa: BLE001
+                                    failed_inline_refs.add(ref)
                                     logger.warning(f"[complete-archive] document inline failed for {ref[:80]}: {e}")
                                     failed_photos += 1
                                     continue
                             else:
                                 continue
-                            if key in seen_keys:
-                                continue
-                            seen_keys.add(key)
+                            seen_archive_members.add(str(archive_member))
                             zf.writestr(str(archive_member), raw)
                             inlined_photos += 1
                             inlined_photo_bytes += len(raw)
@@ -10992,7 +11030,10 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     files = _list_stored_backups()
     last = files[0] if files else None
     live = sorted(await db.list_collection_names())
-    live = [c for c in live if not c.startswith("system.")]
+    live = [
+        c for c in live
+        if not c.startswith("system.") and _backup_transient_collection_rule(c) is None
+    ]
     env_identity = {
         "app_env": _canonical_app_env(),
         "db_name": _canonical_db_name(),
@@ -11389,7 +11430,10 @@ async def _run_backup_integrity_job(job_id: str, actor_email: str = "admin"):
         files = _list_stored_backups()
         last = files[0] if files else None
         live = sorted(await db.list_collection_names())
-        live = [c for c in live if not c.startswith("system.")]
+        live = [
+            c for c in live
+            if not c.startswith("system.") and _backup_transient_collection_rule(c) is None
+        ]
         env_identity = {"app_env": _canonical_app_env(), "db_name": _canonical_db_name()}
         latest_row = await db.backup_health.find_one(
             {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},

@@ -54,7 +54,7 @@ function _email_audit_freshness(probes) {
 function _email_deadletter(probes) {
   const p = probes.email;
   if (!p?.ok) return { status: "unknown", summary: "Dead-letter / delivery-forensics endpoint not wired.", evidence: null,
-    recommended_action: "Track 27.10 will expose /api/admin/email-routing/dead-letters." };
+    recommended_action: "Add a dedicated dead-letter review surface for email routing." };
   const b = p.body || {};
   const errors24 = Number(b.audit_counters?.errors_last_24h || 0);
   const status = errors24 > 0 ? "yellow" : "unknown";
@@ -62,7 +62,7 @@ function _email_deadletter(probes) {
     ? `${errors24} email audit errors in last 24h — investigate.`
     : "No dedicated dead-letter endpoint — audit-counter proxy only.";
   return { status, summary,
-    recommended_action: errors24 > 0 ? "Open Communications → Email Routing." : "Wire a dedicated dead-letter surface (Track 27.10).",
+    recommended_action: errors24 > 0 ? "Open Communications → Email Routing." : "Add a dedicated dead-letter review surface.",
     checked_at: b.ts, evidence: { audit_counters: b.audit_counters } };
 }
 

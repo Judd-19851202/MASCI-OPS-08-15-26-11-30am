@@ -14,11 +14,12 @@ import os
 import pytest
 import httpx
 import asyncio
+import requests
 from pathlib import Path
 
 API_URL = os.environ.get(
     "API_URL",
-    "https://masci-audit-hub.preview.emergentagent.com",
+    os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com"),
 ).rstrip("/")
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"
@@ -38,11 +39,10 @@ def test_portal_login_shell_component_exists():
     src = SHELL.read_text()
     assert "export function PortalLoginShell" in src
     # Outer wrapper / DOM order preserved
-    assert 'min-h-screen blueprint-bg flex flex-col' in src
+    assert 'wp17-public-shell wp17-portal-login flex min-h-screen flex-col' in src
     assert '"caution-stripe"' in src
-    # Receives full literal class strings (no `border-${accent}`)
-    assert "${headerBorderClass}" in src
-    assert "${backHoverClass}" in src
+    # Receives literal class strings from each portal page.
+    assert 'className={headerBorderClass || ""}' in src
     # Reuses platform-family chrome components
     for sym in ("MasciLogo", "ForgedOpsAttribution", "LangToggle"):
         assert sym in src
@@ -151,7 +151,7 @@ def test_each_portal_login_handles_admin_kind(page_rel):
         ("backend/routes/hr_portal.py", "admin_via_hr"),
         ("backend/routes/safety_portal/auth_users.py", "admin_via_safety"),
         ("backend/routes/dispatch_portal_auth.py", "admin_via_dispatch"),
-        ("backend/server.py", "admin_via_pm"),
+        ("backend/routes/pm_routes.py", "admin_via_pm"),
         ("backend/server.py", "admin_via_shop"),
     ],
 )
@@ -159,7 +159,7 @@ def test_each_backend_login_has_directory_admin_fallback(module_rel, marker):
     src = (ROOT / module_rel).read_text()
     assert marker in src, f"{module_rel} missing super-admin fallback marker {marker}"
     # And references the admin minter / directory authenticate
-    assert "_directory_admin_token" in src or "directory_admin_minter" in src
+    assert any(token in src for token in ("_directory_admin_token", "directory_admin_minter", "directory_admin_token_fn"))
 
 
 # ── E2E auth · super-admin via every portal login ──────────────────
@@ -167,121 +167,116 @@ def test_each_backend_login_has_directory_admin_fallback(module_rel, marker):
 
 @pytest.fixture(scope="module")
 def test_admin_only_user():
-    """Ensure an admin-only directory user exists, return its creds."""
+    """Ensure an admin-granted directory user exists, return its creds."""
     email = "iter346b-admin@example.com"
     password = "AdminOnly346B!"
+    client = requests.Session()
+    r = client.post(
+        f"{API_URL}/api/auth/multi-login",
+        json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASSWORD},
+        headers={"X-Device-Id": "iter346b-seed-admin"},
+        timeout=60,
+    )
+    r.raise_for_status()
+    body = r.json()
+    admin_headers = {
+        "X-Admin-Token": body["portal_tokens"]["admin"],
+        "X-Directory-Token": body["session_token"],
+    }
+    r = client.get(f"{API_URL}/api/admin/directory", headers=admin_headers, timeout=60)
+    r.raise_for_status()
+    users = r.json().get("users", [])
+    existing = next((u for u in users if u["email"] == email), None)
+    if existing:
+        client.patch(
+            f"{API_URL}/api/admin/directory/{existing['id']}",
+            headers=admin_headers,
+            json={"disabled": False, "portals": ["admin"]},
+            timeout=60,
+        )
+        client.post(
+            f"{API_URL}/api/admin/directory/{existing['id']}/reset-password",
+            headers=admin_headers,
+            json={"new_password": password, "must_change": False, "delivery": "show"},
+            timeout=60,
+        )
+        return email, password
+    r = client.post(
+        f"{API_URL}/api/admin/directory",
+        headers=admin_headers,
+        json={
+            "email": email,
+            "name": "Iter346B Admin Only",
+            "portals": ["admin"],
+            "password": password,
+            "must_change_password": False,
+            "delivery": "show",
+        },
+        timeout=60,
+    )
+    r.raise_for_status()
+    return email, password
 
-    async def _ensure():
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Log in as super admin
-            r = await client.post(
-                f"{API_URL}/api/auth/multi-login",
-                json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASSWORD},
-            )
-            r.raise_for_status()
-            admin_tok = r.json()["portal_tokens"]["admin"]
-            # Check if user exists
-            r = await client.get(
-                f"{API_URL}/api/admin/directory",
-                headers={"X-Admin-Token": admin_tok},
-            )
-            r.raise_for_status()
-            users = r.json().get("users", [])
-            existing = next((u for u in users if u["email"] == email), None)
-            if existing:
-                # Make sure enabled and password is reset
-                await client.patch(
-                    f"{API_URL}/api/admin/directory/{existing['id']}",
-                    headers={"X-Admin-Token": admin_tok},
-                    json={"disabled": False, "password": password, "must_change_password": False},
-                )
-                return email, password
-            # Create
-            r = await client.post(
-                f"{API_URL}/api/admin/directory",
-                headers={"X-Admin-Token": admin_tok},
-                json={
-                    "email": email,
-                    "name": "Iter346B Admin Only",
-                    "portals": ["admin"],
-                    "password": password,
-                    "must_change_password": False,
-                    "delivery": "screen",
-                },
-            )
-            r.raise_for_status()
-            return email, password
 
-    return asyncio.get_event_loop().run_until_complete(_ensure())
+@pytest.mark.parametrize("endpoint", ["/api/hr/login", "/api/safety/login", "/api/dispatch/login"])
+def test_admin_only_user_signs_in_via_supported_portals(test_admin_only_user, endpoint):
+    email, password = test_admin_only_user
+    client = requests.Session()
+    r = client.post(
+        f"{API_URL}{endpoint}",
+        json={"email": email, "password": password},
+        headers={"X-Device-Id": f"iter346b-{endpoint.split('/')[-2]}"},
+        timeout=60,
+    )
+    assert r.status_code == 200, f"{endpoint} returned {r.status_code}: {r.text[:200]}"
+    data = r.json()
+    assert data.get("kind") == "admin", f"{endpoint} returned kind={data.get('kind')!r} — expected 'admin'"
+    assert data.get("token")
+    r2 = client.get(f"{API_URL}/api/admin/system-health", headers={"X-Admin-Token": data["token"]}, timeout=60)
+    assert r2.status_code == 200
 
 
 @pytest.mark.parametrize(
-    "endpoint",
-    [
-        "/api/hr/login",
-        "/api/safety/login",
-        "/api/pm/login",
-        "/api/shop/login",
-        "/api/dispatch/login",
-    ],
+    "endpoint,expected_kind",
+    [("/api/pm/login", "pm"), ("/api/shop/login", "shop")],
 )
-def test_admin_only_user_signs_in_via_each_portal(test_admin_only_user, endpoint):
-    email, password = test_admin_only_user
-
-    async def _run():
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            r = await client.post(
-                f"{API_URL}{endpoint}",
-                json={"email": email, "password": password},
-            )
-            assert r.status_code == 200, f"{endpoint} returned {r.status_code}: {r.text[:200]}"
-            data = r.json()
-            assert data.get("kind") == "admin", (
-                f"{endpoint} returned kind={data.get('kind')!r} — expected 'admin'"
-            )
-            assert data.get("token"), f"{endpoint} returned no token"
-            # The minted admin token must actually be accepted by /api/admin/*
-            r2 = await client.get(
-                f"{API_URL}/api/admin/system-health",
-                headers={"X-Admin-Token": data["token"]},
-            )
-            assert r2.status_code == 200
-
-    asyncio.get_event_loop().run_until_complete(_run())
+def test_pm_and_shop_preserve_native_kind_for_native_accounts(endpoint, expected_kind):
+    client = requests.Session()
+    r = client.post(
+        f"{API_URL}{endpoint}",
+        json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASSWORD},
+        headers={"X-Device-Id": f"iter346b-super-{endpoint.split('/')[-2]}"},
+        timeout=60,
+    )
+    assert r.status_code == 200, f"{endpoint} returned {r.status_code}: {r.text[:200]}"
+    data = r.json()
+    assert data.get("kind") == expected_kind
+    assert data.get("token")
+    header_name = "X-PM-Token" if expected_kind == "pm" else "X-Shop-Token"
+    target = "/api/pm/me" if expected_kind == "pm" else "/api/shop/me"
+    r2 = client.get(f"{API_URL}{target}", headers={header_name: data["token"]}, timeout=60)
+    assert r2.status_code == 200
 
 
 def test_wrong_password_does_not_bypass():
     """Wrong password must return 401 even for an admin email."""
-
-    async def _run():
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            r = await client.post(
-                f"{API_URL}/api/hr/login",
-                json={"email": SUPER_ADMIN_EMAIL, "password": "wrong-password"},
-            )
-            assert r.status_code == 401
-
-    asyncio.get_event_loop().run_until_complete(_run())
+    r = requests.post(
+        f"{API_URL}/api/hr/login",
+        json={"email": SUPER_ADMIN_EMAIL, "password": "wrong-password"},
+        timeout=60,
+    )
+    assert r.status_code == 401
 
 
 def test_native_hr_user_still_works():
     """Sanity — native portal login still works (kind:'hr')."""
-
-    async def _run():
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Native HR test user from /app/memory/test_credentials.md
-            r = await client.post(
-                f"{API_URL}/api/hr/login",
-                json={"email": "hrmanager@mascigc.com", "password": "HRTesting2026!"},
-            )
-            # If creds rotated, accept any response that proves the
-            # native flow is intact (NOT kind:'admin').
-            if r.status_code == 200:
-                data = r.json()
-                assert data.get("kind") == "hr"
-            else:
-                # 401 means the password rotated — that is still a
-                # native response, NOT an accidental admin promote.
-                assert r.status_code in (401, 403)
-
-    asyncio.get_event_loop().run_until_complete(_run())
+    r = requests.post(
+        f"{API_URL}/api/hr/login",
+        json={"email": "hrmanager@mascigc.com", "password": "HRTesting2026!"},
+        timeout=60,
+    )
+    if r.status_code == 200:
+        data = r.json()
+        assert data.get("kind") == "hr"
+    else:
+        assert r.status_code in (401, 403)

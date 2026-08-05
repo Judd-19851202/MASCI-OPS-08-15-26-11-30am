@@ -3,10 +3,11 @@ WP-18C3 Project Budget Authority API Tests
 Tests the budget hierarchy, import workflow, and governed activation endpoints.
 """
 import os
+import uuid
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 
 # Test credentials from test_credentials.md
 PM_EMAIL = "cert.pm@example.com"
@@ -25,17 +26,17 @@ class TestWP18C3BudgetAPIs:
         session = requests.Session()
         session.headers.update({"Content-Type": "application/json"})
         
-        # Admin login
-        response = session.post(f"{BASE_URL}/api/admin/login", json={
+        # Canonical multi-login admin session
+        response = session.post(f"{BASE_URL}/api/auth/multi-login", json={
             "email": ADMIN_EMAIL,
             "password": ADMIN_PASSWORD
-        })
+        }, headers={"X-Device-Id": f"wp18c3-admin-{uuid.uuid4().hex[:8]}"})
         if response.status_code != 200:
             pytest.skip(f"Admin login failed: {response.status_code}")
         
         data = response.json()
-        admin_token = data.get("admin_token") or data.get("token")
-        directory_token = data.get("directory_token") or ""
+        admin_token = (data.get("portal_tokens") or {}).get("admin") or data.get("admin_token") or data.get("token")
+        directory_token = data.get("session_token") or data.get("directory_token") or ""
         
         session.headers.update({
             "X-Admin-Token": admin_token,
@@ -49,18 +50,18 @@ class TestWP18C3BudgetAPIs:
         session = requests.Session()
         session.headers.update({"Content-Type": "application/json"})
         
-        # PM login
-        response = session.post(f"{BASE_URL}/api/pm/login", json={
+        response = session.post(f"{BASE_URL}/api/auth/multi-login", json={
             "email": PM_EMAIL,
             "password": PM_PASSWORD
-        })
+        }, headers={"X-Device-Id": f"wp18c3-pm-{uuid.uuid4().hex[:8]}"})
         if response.status_code != 200:
             pytest.skip(f"PM login failed: {response.status_code}")
         
         data = response.json()
-        pm_token = data.get("token") or data.get("pm_token")
+        pm_token = (data.get("portal_tokens") or {}).get("pm") or data.get("token") or data.get("pm_token")
+        directory_token = data.get("session_token") or ""
         
-        session.headers.update({"X-PM-Token": pm_token})
+        session.headers.update({"X-PM-Token": pm_token, "X-Directory-Token": directory_token})
         return session
 
     # ==================== Admin Budget Endpoints ====================

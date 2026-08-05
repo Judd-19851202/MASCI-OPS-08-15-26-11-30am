@@ -18,8 +18,10 @@ import time
 import uuid
 import requests
 import pytest
+from lib.rate_limiting import _reset_login_fails
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com").rstrip("/")
+LOCAL_BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 
@@ -51,18 +53,23 @@ def portal_tokens():
     """Multi-login → returns dict of {portal_name: token} for all 7 portals."""
     r = requests.post(f"{BASE_URL}/api/auth/multi-login",
                       json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+                      headers={"X-Device-Id": f"track241-auth-{uuid.uuid4().hex[:10]}"},
                       timeout=30)
     assert r.status_code == 200, f"multi-login failed: {r.status_code} {r.text[:200]}"
     body = r.json()
     tokens = body.get("portal_tokens") or {}
     # sanity: at least admin token should exist
     assert tokens.get("admin"), f"no admin token minted: {body}"
+    tokens["directory_session"] = body.get("session_token")
     return tokens
 
 
 @pytest.fixture(scope="module")
 def any_admin_header(portal_tokens):
-    return {"X-Admin-Token": portal_tokens["admin"]}
+    return {
+        "X-Admin-Token": portal_tokens["admin"],
+        "X-Directory-Token": portal_tokens["directory_session"],
+    }
 
 
 # =========================================================
@@ -91,7 +98,8 @@ class TestP0_1_EmployeeRoster:
         tok = portal_tokens.get(key) or portal_tokens.get("fl") if key == "field_leadership" else portal_tokens.get(key)
         if not tok:
             pytest.skip(f"multi-login did not mint token for portal={key}")
-        r = requests.get(self.URL, headers={header_name: tok}, timeout=45)
+        headers = {header_name: tok, "X-Directory-Token": portal_tokens["directory_session"]}
+        r = requests.get(self.URL, headers=headers, timeout=45)
         assert r.status_code == 200, f"{header_name}: expected 200 got {r.status_code} — {r.text[:200]}"
         body = r.json()
         assert "items" in body and "count" in body, f"shape drift: keys={list(body.keys())}"
@@ -137,7 +145,8 @@ class TestP0_2_CompetentPersons:
                 "pm": "X-PM-Token", "safety": "X-Safety-Token", "hr": "X-HR-Token",
                 "shop": "X-Shop-Token", "dispatch": "X-Dispatch-Token",
             }[portal]
-            r = requests.get(self.URL, headers={hdr_name: tok}, timeout=45)
+            headers = {hdr_name: tok, "X-Directory-Token": portal_tokens["directory_session"]}
+            r = requests.get(self.URL, headers=headers, timeout=45)
             assert r.status_code == 200, f"{portal} portal token rejected: {r.status_code}"
 
 
@@ -189,9 +198,13 @@ class TestP1_B_BruteForceLockout:
           the environment provides an override. We use a rotating email
           to prove that lockout is IP-keyed (not email-keyed).
     """
-    URL = f"{BASE_URL}/api/auth/multi-login"
+    URL = "http://127.0.0.1:8001/api/auth/multi-login"
 
-    @pytest.mark.order(after="TestP0_2_CompetentPersons")
+    @pytest.fixture(scope="class", autouse=True)
+    def _clear_lockout_after_class(self):
+        yield
+        _reset_login_fails("127.0.0.1")
+
     def test_ip_keyed_lockout(self):
         seen_429 = False
         for i in range(14):
@@ -199,6 +212,7 @@ class TestP1_B_BruteForceLockout:
             email = f"nonexistent{i}-{uuid.uuid4().hex[:6]}@example.com"
             r = requests.post(self.URL,
                               json={"email": email, "password": f"WrongPass{i}!"},
+                              headers={"X-Device-Id": "track241-lockout"},
                               timeout=45)
             if r.status_code == 429:
                 seen_429 = True
@@ -211,8 +225,10 @@ class TestP1_B_BruteForceLockout:
         # After lockout above, even a wrong-pw attempt for the real admin email must be blocked
         r = requests.post(self.URL,
                           json={"email": ADMIN_EMAIL, "password": "TotallyWrong!"},
+                          headers={"X-Device-Id": "track241-lockout"},
                           timeout=45)
         assert r.status_code == 429, f"IP not locked for admin email either: {r.status_code} — {r.text[:150]}"
+        _reset_login_fails("127.0.0.1")
 
 
 # =========================================================
@@ -229,8 +245,8 @@ class TestP1_D_RegexInjection:
     def test_hr_records_search_regex_safe(self, any_admin_header, payload):
         # Try a few likely search endpoints; skip on 404
         candidates = [
-            f"{BASE_URL}/api/hr/records?q={requests.utils.quote(payload)}",
-            f"{BASE_URL}/api/hr/employee-roster?q={requests.utils.quote(payload)}",
+            f"{LOCAL_BASE_URL}/api/hr/records?q={requests.utils.quote(payload)}",
+            f"{LOCAL_BASE_URL}/api/hr/employee-roster?q={requests.utils.quote(payload)}",
         ]
         tried_ok = False
         for url in candidates:

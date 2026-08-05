@@ -15,6 +15,7 @@ Verifies:
 import os
 import pytest
 import requests
+import uuid
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
@@ -29,37 +30,39 @@ class TestBackupHealthConsistency:
     """Backup health consistency verification across all admin endpoints."""
     
     @pytest.fixture(scope="class")
-    def admin_token(self):
-        """Get admin token via multi-login."""
+    def admin_headers(self):
+        """Get admin headers via multi-login."""
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+            headers={"X-Device-Id": f"iter57-auth-{uuid.uuid4().hex[:10]}"},
             timeout=30
         )
         assert response.status_code == 200, f"Multi-login failed: {response.status_code} - {response.text}"
         data = response.json()
-        token = (data.get("portal_tokens") or {}).get("admin") or data.get("session_token")
-        assert token, f"No admin token in response: {data.keys()}"
-        return token
+        admin = (data.get("portal_tokens") or {}).get("admin")
+        directory = data.get("session_token")
+        assert admin and directory, f"Missing admin/session token in response: {data.keys()}"
+        return {"X-Admin-Token": admin, "X-Directory-Token": directory}
     
     # ─────────────────────────────────────────────────────────────────────
     # Test 1: /api/admin/recovery/snapshot - backup_age_target_minutes alignment
     # ─────────────────────────────────────────────────────────────────────
     
-    def test_01_recovery_snapshot_returns_200(self, admin_token):
+    def test_01_recovery_snapshot_returns_200(self, admin_headers):
         """Recovery snapshot endpoint should return 200."""
         response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         assert response.status_code == 200, f"Recovery snapshot failed: {response.status_code}"
     
-    def test_02_recovery_snapshot_backup_age_target_equals_rpo_target(self, admin_token):
+    def test_02_recovery_snapshot_backup_age_target_equals_rpo_target(self, admin_headers):
         """CRITICAL: backup_age_target_minutes must equal rpo.target_min (60), not 24h posture (1440)."""
         response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -80,11 +83,11 @@ class TestBackupHealthConsistency:
             f"Expected backup_age_target_minutes=60 (RPO target), got {backup_age_target}"
         )
     
-    def test_03_recovery_snapshot_no_false_scheduler_unhealthy_when_scheduler_alive(self, admin_token):
+    def test_03_recovery_snapshot_no_false_scheduler_unhealthy_when_scheduler_alive(self, admin_headers):
         """When scheduler is alive/healthy, no scheduler_unhealthy blocker should appear."""
         response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -104,11 +107,11 @@ class TestBackupHealthConsistency:
                 f"Blocker codes: {blocker_codes}"
             )
     
-    def test_04_recovery_snapshot_warnings_include_real_blocker_codes(self, admin_token):
+    def test_04_recovery_snapshot_warnings_include_real_blocker_codes(self, admin_headers):
         """Warning text should include real blocker codes, not false scheduler_unhealthy."""
         response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -132,20 +135,20 @@ class TestBackupHealthConsistency:
     # Test 2: /api/admin/occ/health - recovery_snapshot card consistency
     # ─────────────────────────────────────────────────────────────────────
     
-    def test_05_occ_health_returns_200(self, admin_token):
+    def test_05_occ_health_returns_200(self, admin_headers):
         """OCC health endpoint should return 200."""
         response = requests.get(
             f"{BASE_URL}/api/admin/occ/health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         assert response.status_code == 200, f"OCC health failed: {response.status_code}"
     
-    def test_06_occ_health_recovery_snapshot_card_uses_60m_target(self, admin_token):
+    def test_06_occ_health_recovery_snapshot_card_uses_60m_target(self, admin_headers):
         """OCC health recovery_snapshot card should use 60m target, not 24h."""
         response = requests.get(
             f"{BASE_URL}/api/admin/occ/health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -170,11 +173,11 @@ class TestBackupHealthConsistency:
             f"should be 60 (RPO target), not 1440 (24h posture)."
         )
     
-    def test_07_occ_health_recovery_snapshot_card_reason_code_semantics(self, admin_token):
+    def test_07_occ_health_recovery_snapshot_card_reason_code_semantics(self, admin_headers):
         """OCC health recovery_snapshot card should have correct reason_code/action semantics."""
         response = requests.get(
             f"{BASE_URL}/api/admin/occ/health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -209,11 +212,11 @@ class TestBackupHealthConsistency:
                 f"Bucket-related reason_code ({reason_code}) should have R2/Lifecycle action, got: {action}"
             )
     
-    def test_08_occ_health_recovery_snapshot_summary_uses_60m_target(self, admin_token):
+    def test_08_occ_health_recovery_snapshot_summary_uses_60m_target(self, admin_headers):
         """OCC health recovery_snapshot card summary should reference 60m target."""
         response = requests.get(
             f"{BASE_URL}/api/admin/occ/health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -243,20 +246,20 @@ class TestBackupHealthConsistency:
     # Test 3: /api/admin/system-health - backup freshness truth
     # ─────────────────────────────────────────────────────────────────────
     
-    def test_09_system_health_returns_200(self, admin_token):
+    def test_09_system_health_returns_200(self, admin_headers):
         """System health endpoint should return 200."""
         response = requests.get(
             f"{BASE_URL}/api/admin/system-health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         assert response.status_code == 200, f"System health failed: {response.status_code}"
     
-    def test_10_system_health_backup_freshness_uses_60m_target(self, admin_token):
+    def test_10_system_health_backup_freshness_uses_60m_target(self, admin_headers):
         """System health backup freshness should use 60m RPO target."""
         response = requests.get(
             f"{BASE_URL}/api/admin/system-health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -277,20 +280,20 @@ class TestBackupHealthConsistency:
     # Test 4: /api/admin/backups-scheduler-state - scheduler truth
     # ─────────────────────────────────────────────────────────────────────
     
-    def test_11_backups_scheduler_state_returns_200(self, admin_token):
+    def test_11_backups_scheduler_state_returns_200(self, admin_headers):
         """Backups scheduler state endpoint should return 200."""
         response = requests.get(
             f"{BASE_URL}/api/admin/backups-scheduler-state",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         assert response.status_code == 200, f"Backups scheduler state failed: {response.status_code}"
     
-    def test_12_backups_scheduler_state_no_false_scheduler_unhealthy(self, admin_token):
+    def test_12_backups_scheduler_state_no_false_scheduler_unhealthy(self, admin_headers):
         """When scheduler is alive/healthy, no scheduler_unhealthy blocker should appear."""
         response = requests.get(
             f"{BASE_URL}/api/admin/backups-scheduler-state",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -313,12 +316,12 @@ class TestBackupHealthConsistency:
     # Test 5: Cross-endpoint consistency verification
     # ─────────────────────────────────────────────────────────────────────
     
-    def test_13_cross_endpoint_backup_age_target_consistency(self, admin_token):
+    def test_13_cross_endpoint_backup_age_target_consistency(self, admin_headers):
         """All endpoints should use the same 60m RPO target for backup freshness."""
         # Get recovery snapshot
         recovery_response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         recovery_data = recovery_response.json()
@@ -326,7 +329,7 @@ class TestBackupHealthConsistency:
         # Get OCC health
         occ_response = requests.get(
             f"{BASE_URL}/api/admin/occ/health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         occ_data = occ_response.json()
@@ -354,12 +357,12 @@ class TestBackupHealthConsistency:
             f"recovery_rpo_target={recovery_rpo_target}, occ_target={occ_target}"
         )
     
-    def test_14_cross_endpoint_scheduler_truth_consistency(self, admin_token):
+    def test_14_cross_endpoint_scheduler_truth_consistency(self, admin_headers):
         """All endpoints should report consistent scheduler alive/is_healthy values."""
         # Get recovery snapshot
         recovery_response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         recovery_data = recovery_response.json()
@@ -367,7 +370,7 @@ class TestBackupHealthConsistency:
         # Get backups scheduler state
         scheduler_response = requests.get(
             f"{BASE_URL}/api/admin/backups-scheduler-state",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         scheduler_data = scheduler_response.json()
@@ -389,12 +392,12 @@ class TestBackupHealthConsistency:
             f"Inconsistent scheduler is_healthy: recovery={recovery_healthy}, state={state_healthy}"
         )
     
-    def test_15_cross_endpoint_blocker_codes_consistency(self, admin_token):
+    def test_15_cross_endpoint_blocker_codes_consistency(self, admin_headers):
         """All endpoints should report consistent activation blocker codes."""
         # Get recovery snapshot
         recovery_response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         recovery_data = recovery_response.json()
@@ -402,7 +405,7 @@ class TestBackupHealthConsistency:
         # Get backups scheduler state
         scheduler_response = requests.get(
             f"{BASE_URL}/api/admin/backups-scheduler-state",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         scheduler_data = scheduler_response.json()
@@ -423,11 +426,11 @@ class TestBackupHealthConsistency:
     # Test 6: Additional contradiction detection
     # ─────────────────────────────────────────────────────────────────────
     
-    def test_16_no_contradictory_backup_truth_in_recovery_snapshot(self, admin_token):
+    def test_16_no_contradictory_backup_truth_in_recovery_snapshot(self, admin_headers):
         """Recovery snapshot should not have contradictory backup truth."""
         response = requests.get(
             f"{BASE_URL}/api/admin/recovery/snapshot",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -452,11 +455,11 @@ class TestBackupHealthConsistency:
             # Note: In preview, backups may be stale, so we just log the values
             print(f"Backup truth: age={backup_age}, target={target}, rpo_status={rpo_status}, expected={expected_rpo}")
     
-    def test_17_no_contradictory_alerting_in_occ_health(self, admin_token):
+    def test_17_no_contradictory_alerting_in_occ_health(self, admin_headers):
         """OCC health should not have contradictory alerting."""
         response = requests.get(
             f"{BASE_URL}/api/admin/occ/health",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()
@@ -491,11 +494,11 @@ class TestBackupHealthConsistency:
                     f"healthy reason_code should have VERIFIED status, got {status}"
                 )
     
-    def test_18_environment_not_production_is_expected_blocker_in_preview(self, admin_token):
+    def test_18_environment_not_production_is_expected_blocker_in_preview(self, admin_headers):
         """In preview, environment_not_production should be the expected blocker."""
         response = requests.get(
             f"{BASE_URL}/api/admin/backups-scheduler-state",
-            headers={"X-Admin-Token": admin_token},
+            headers=admin_headers,
             timeout=30
         )
         data = response.json()

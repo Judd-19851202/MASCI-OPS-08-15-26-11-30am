@@ -285,18 +285,43 @@ def is_backup_job_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime
 
 
 async def mark_stale_backup_jobs(db: Any, *, stale_before_iso: str) -> int:
+    now = backup_now()
+    try:
+        stale_before_dt = datetime.fromisoformat(str(stale_before_iso).replace("Z", "+00:00"))
+        if stale_before_dt.tzinfo is None:
+            stale_before_dt = stale_before_dt.replace(tzinfo=timezone.utc)
+    except Exception:
+        stale_before_dt = now - timedelta(minutes=90)
+
+    active_rows = await get_active_backup_jobs(db)
+    stale_ids = []
+    for row in active_rows:
+        heartbeat = row.get("heartbeat_at") or row.get("updated_at") or row.get("created_at")
+        try:
+            heartbeat_dt = datetime.fromisoformat(str(heartbeat).replace("Z", "+00:00")) if heartbeat else None
+        except Exception:
+            heartbeat_dt = None
+        if heartbeat_dt and heartbeat_dt.tzinfo is None:
+            heartbeat_dt = heartbeat_dt.replace(tzinfo=timezone.utc)
+        if is_backup_job_stale(row, now=now) or (heartbeat_dt and heartbeat_dt < stale_before_dt):
+            stale_ids.append(str(row.get("job_id") or ""))
+
+    stale_ids = [job_id for job_id in stale_ids if job_id]
+    if not stale_ids:
+        return 0
+
     result = await db[BACKUP_JOBS_COLLECTION].update_many(
         {
+            "job_id": {"$in": stale_ids},
             "state": {"$in": ["queued", "running"]},
-            "heartbeat_at": {"$lt": stale_before_iso},
         },
         {
             "$set": {
                 "state": "stale",
-                "updated_at": backup_now().isoformat(),
+                "updated_at": now.isoformat(),
                 "failure_reason": "stale_job_recovered",
                 "ownership_revoked": True,
-                "ownership_revoked_at": backup_now().isoformat(),
+                "ownership_revoked_at": now.isoformat(),
                 "owner_token": None,
             }
         },

@@ -1215,6 +1215,41 @@ def _sync_finish_guard(db, guard: dict, *, state: str, outcome: str, reason: str
     )
 
 
+def _terminalize_stale_slot_holder(db, *, guard_slot: str, requested_env: str) -> None:
+    occupant = _safe_find_one(db, "backup_jobs", {"slot_key": guard_slot})
+    if not occupant:
+        return
+    state = str(occupant.get("state") or "").strip().lower()
+    if state in {"queued", "running"}:
+        return
+
+    now = datetime.now(timezone.utc).isoformat()
+    slot_suffix = state if state in {"failed", "completed", "aborted", "cancelled", "released", "done", "ok"} else "aborted"
+    updates = {
+        "updated_at": now,
+        "heartbeat_at": now,
+        "slot_key": restore_certification_terminal_slot(requested_env, occupant["job_id"], slot_suffix),
+    }
+    if state in {"stale", "stale_recovered"}:
+        updates.update(
+            {
+                "state": "aborted",
+                "outcome": "aborted",
+                "completed_at": now,
+                "failure_reason": "stale_restore_certification_guard_slot_reclaimed",
+                "ownership_revoked": True,
+                "ownership_revoked_at": now,
+            }
+        )
+        _terminalize_stale_guard_drill(
+            db,
+            occupant,
+            reason="ABORTED_STALE_RESTORE_CERTIFICATION_GUARD_SLOT_RECLAIMED",
+        )
+
+    db.backup_jobs.update_one({"job_id": occupant["job_id"]}, {"$set": updates})
+
+
 def _terminalize_stale_guard_drill(db, active: Dict[str, Any], *, reason: str) -> None:
     drill_id = str((active.get("metadata") or {}).get("owner_drill_id") or "").strip()
     if not drill_id:
@@ -1286,6 +1321,7 @@ def main() -> int:
     requested_env = (env.get("APP_ENV") or "preview").strip().lower()
     lease_minutes = restore_certification_lease_minutes(env)
     guard_slot = restore_certification_guard_slot(requested_env)
+    _terminalize_stale_slot_holder(live_db, guard_slot=guard_slot, requested_env=requested_env)
     active = live_db.backup_jobs.find_one(
         {"kind": BACKUP_JOB_KIND_RESTORE_DRILL, "slot_key": guard_slot, "state": {"$in": ["queued", "running"]}},
         {"_id": 0},

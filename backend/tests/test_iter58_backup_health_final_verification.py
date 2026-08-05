@@ -20,6 +20,7 @@ Expected behavior in preview:
 import os
 import pytest
 import requests
+import uuid
 from pathlib import Path
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
@@ -37,6 +38,7 @@ def admin_headers():
     response = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+        headers={"X-Device-Id": f"iter58-auth-{uuid.uuid4().hex[:10]}"},
         timeout=60,
     )
     assert response.status_code == 200, f"Multi-login failed: {response.text}"
@@ -116,8 +118,13 @@ class TestStaticCodeVerification:
         )
         
         # backup_age_target_minutes should use rpo_target
-        assert '"backup_age_target_minutes": rpo_target' in src or "'backup_age_target_minutes': rpo_target" in src, (
-            "recovery_dashboard.py must use rpo_target for backup_age_target_minutes"
+        assert (
+            '"backup_age_target_minutes": effective_backup_age_target_minutes' in src
+            or "'backup_age_target_minutes': effective_backup_age_target_minutes" in src
+            or '"backup_age_target_minutes": rpo_target' in src
+            or "'backup_age_target_minutes': rpo_target" in src
+        ), (
+            "recovery_dashboard.py must use the effective RPO-derived target for backup_age_target_minutes"
         )
         
         print("[STATIC] recovery_dashboard RPO target verification PASSED")

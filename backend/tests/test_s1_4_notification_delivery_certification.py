@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
     BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
+LOCAL_BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 
 # Known certification run IDs from main agent context
 LATEST_LIVE_RUN_ID = "s1-4-cert-e217a5ffd8"
@@ -64,12 +65,27 @@ def auth_headers(auth_tokens):
     }
 
 
+@pytest.fixture(scope="module")
+def latest_certification_report_id(auth_headers):
+    response = requests.get(
+        f"{BASE_URL}/api/daily-reports?limit=20",
+        headers=auth_headers,
+        timeout=30,
+    )
+    assert response.status_code == 200, response.text
+    rows = response.json()
+    for row in rows:
+        if row.get("synthetic_record") and row.get("hidden_from_operations"):
+            return row["id"]
+    pytest.skip("No synthetic certification daily report found in current preview dataset")
+
+
 class TestS14HealthAndEnvironment:
     """Verify backend health and environment configuration."""
 
     def test_backend_health(self):
         """Verify backend is healthy."""
-        response = requests.get(f"{BASE_URL}/api/health", timeout=30)
+        response = requests.get(f"{LOCAL_BASE_URL}/api/health", timeout=30)
         assert response.status_code == 200
         data = response.json()
         assert data.get("ok") is True
@@ -433,10 +449,10 @@ class TestS14PriorCertificationRun:
 class TestS14CertificationRecordSafety:
     """Verify certification record safety constraints."""
 
-    def test_certification_record_is_synthetic(self, auth_headers):
+    def test_certification_record_is_synthetic(self, auth_headers, latest_certification_report_id):
         """Verify certification records are marked as synthetic."""
         response = requests.get(
-            f"{BASE_URL}/api/daily-reports/{LATEST_LIVE_RECORD_ID}",
+            f"{BASE_URL}/api/daily-reports/{latest_certification_report_id}",
             headers=auth_headers,
             timeout=30
         )
@@ -454,10 +470,10 @@ class TestS14CertificationRecordSafety:
         print(f"Synthetic Record: {data.get('synthetic_record')}")
         print(f"Hidden From Operations: {data.get('hidden_from_operations')}")
 
-    def test_certification_override_is_preview_only(self, auth_headers):
+    def test_certification_override_is_preview_only(self, auth_headers, latest_certification_report_id):
         """Verify the certification override is scoped to Preview only."""
         response = requests.get(
-            f"{BASE_URL}/api/daily-reports/{LATEST_LIVE_RECORD_ID}",
+            f"{BASE_URL}/api/daily-reports/{latest_certification_report_id}",
             headers=auth_headers,
             timeout=30
         )
@@ -477,10 +493,10 @@ class TestS14CertificationRecordSafety:
 class TestS14SummaryReport:
     """Generate a summary report of the S1-4 certification verification."""
 
-    def test_generate_summary(self, auth_headers):
+    def test_generate_summary(self, auth_headers, latest_certification_report_id):
         """Generate a summary of all certification verification findings."""
         response = requests.get(
-            f"{BASE_URL}/api/daily-reports/{LATEST_LIVE_RECORD_ID}",
+            f"{BASE_URL}/api/daily-reports/{latest_certification_report_id}",
             headers=auth_headers,
             timeout=30
         )

@@ -3,6 +3,7 @@ WP-18C1 Enterprise Hierarchy Foundation - Backend API Tests
 Tests the new hierarchy endpoints under /api/admin/governance/hierarchy/*
 """
 import os
+import uuid
 from pathlib import Path
 import pytest
 import requests
@@ -20,7 +21,8 @@ def _resolve_base_url():
     return ""
 
 
-BASE_URL = _resolve_base_url()
+BASE_URL = os.environ.get("LOCAL_BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
+PREVIEW_BASE_URL = _resolve_base_url()
 
 # Test credentials from test_credentials.md
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -33,20 +35,21 @@ class TestWP18C1HierarchyFoundation:
     @pytest.fixture(scope="class")
     def auth_token(self):
         """Get admin + directory authentication tokens via multi-login"""
-        response = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
-        )
-        if response.status_code == 200:
-            data = response.json()
-            # Get the admin portal token from portal_tokens
-            portal_tokens = data.get("portal_tokens", {})
-            admin_token = portal_tokens.get("admin")
-            directory_token = data.get("session_token")
-            if admin_token and directory_token:
-                return {"admin": admin_token, "directory": directory_token}
-            pytest.skip("Missing admin or directory token in response")
-        pytest.skip(f"Authentication failed: {response.status_code} - {response.text}")
+        for api_base in (BASE_URL, PREVIEW_BASE_URL):
+            response = requests.post(
+                f"{api_base}/api/auth/multi-login",
+                json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+                headers={"X-Device-Id": f"wp18c1-{uuid.uuid4().hex[:8]}"},
+                timeout=60,
+            )
+            if response.status_code == 200:
+                data = response.json()
+                portal_tokens = data.get("portal_tokens", {})
+                admin_token = portal_tokens.get("admin")
+                directory_token = data.get("session_token")
+                if admin_token and directory_token:
+                    return {"admin": admin_token, "directory": directory_token}
+        pytest.skip(f"Authentication failed across local/preview surfaces: {response.status_code} - {response.text}")
 
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):

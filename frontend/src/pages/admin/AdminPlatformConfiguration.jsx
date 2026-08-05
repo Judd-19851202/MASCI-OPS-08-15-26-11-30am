@@ -131,7 +131,7 @@ const manifest = {
       description: "Notification schedule + audience.", never_touches: "Read-only until you save." },
   ],
   trust_gaps: [
-    { id: "gap-cfg-feature-flags", title: "Feature-flag admin surface",
+    { id: "gap-cfg-feature-flags", title: "Configuration controls",
       severity: "P1", owner: "platform-config", target_track: "27.12", risk: "medium",
       current_status: "Flags exist in code (masci.admin.nav.v3 etc) but no admin UI to toggle.", blocks_production: false },
     { id: "gap-cfg-tenant-settings", title: "Tenant settings admin (business hours · timezone default)",

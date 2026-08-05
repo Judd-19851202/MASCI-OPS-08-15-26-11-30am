@@ -522,11 +522,7 @@ def build_recovery_dashboard_router(
         hourly_flag = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
 
         hourly_activation = await _build_hourly_activation_state(db, runtime_state=backup_runtime)
-        effective_backup_age_target_minutes = (
-            int(rpo_target)
-            if hourly_activation.get("hourly_cadence_enabled")
-            else int(posture_target)
-        )
+        effective_backup_age_target_minutes = int(rpo_target)
 
         # --- compute overall pill ---
         pill = _compute_pill(
