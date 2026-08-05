@@ -528,7 +528,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               </div>
 
               {/* Time row */}
-              <div className="mt-2 grid gap-2 sm:grid-cols-4">
+              <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
                 <label className="flex flex-col text-xs text-slate-600">
                   <span className="mb-0.5">{t("Start")}</span>
                   <input
@@ -733,7 +733,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <label className="flex flex-col text-xs text-slate-600">
                 <span className="mb-0.5">{t("Run hours")}</span>
                 <input
@@ -963,7 +963,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_3fr]">
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
               <label className="flex flex-col text-xs text-slate-600">
                 <span className="mb-0.5">{t("Headcount")}</span>
                 <input
@@ -1014,7 +1014,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   next[i] = { ...s, work_performed: ev.target.value };
                   patch({ subcontractors: next });
                 }}
-                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem] md:col-span-2 xl:col-span-1"
                 data-testid={`dr-v3-sub-work-${i}`}
               />
             </div>
@@ -1279,7 +1279,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
             data-testid={`dr-v3-prod-row-${i}`}
             className="rounded-xl border border-slate-200 p-3"
           >
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder={t("What was installed / performed")}
@@ -1335,7 +1335,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
             {/* TRACK 23.4B · Station from/to + percent complete — critical
                 for linear heavy-civil work (road, pipeline, MOT). Feeds
                 PM linear-progress KPIs and downstream schedule linkage. */}
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <input
                 type="text"
                 placeholder={t("Sta from (e.g. 12+00)")}
@@ -1360,7 +1360,7 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                 className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-[0.95rem]"
                 data-testid={`dr-v3-prod-sta-to-${i}`}
               />
-              <label className="flex flex-col gap-1">
+              <label className="flex flex-col gap-1 md:col-span-2 xl:col-span-1">
                 <span className="text-xs font-medium text-slate-600">{t("Percent Complete")}</span>
               <input
                 type="number"
@@ -1468,7 +1468,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
         {mats.map((m, i) => (
           <div key={i} data-testid={`dr-v3-mat-row-${i}`} className="rounded-xl border border-slate-200 p-3">
             {/* Row 1 · Material · Qty · Unit · Delete */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder={t("Material")}
@@ -1632,7 +1632,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
         {outs.map((o, i) => (
           <div key={i} data-testid={`dr-v3-out-row-${i}`} className="rounded-xl border border-slate-200 p-3">
             {/* Row 1 · Material · Qty · Unit · Delete */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder={t("Material")}
@@ -2333,7 +2333,7 @@ export function SectionImpactSafety({ data, patch }) {
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
+                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
                   <input
                     type="time"
                     value={v.time_in || ""}
@@ -2367,7 +2367,7 @@ export function SectionImpactSafety({ data, patch }) {
                       next[i] = { ...v, purpose: e.target.value };
                       patch({ visitors: next });
                     }}
-                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem]"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-3 py-2.5 text-[0.95rem] md:col-span-2 xl:col-span-1"
                     data-testid={`dr-v3-visitor-purpose-${i}`}
                   />
                 </div>
