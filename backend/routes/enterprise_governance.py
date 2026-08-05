@@ -14,6 +14,7 @@ from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from lib.enterprise_governance import governance_project_scope, resolve_actor_from_request
 from lib.release_scope import is_release_deferred, raise_release_deferred_404
+from lib.database_authority import build_runtime_database_authority, create_async_runtime_client
 
 from services.enterprise_governance import (
     approve_request,
@@ -141,14 +142,16 @@ def _backend_env_value(key: str) -> Optional[str]:
     return None
 
 
-def _launch_wp18c6_backfill(force: bool, *, db_name: str) -> None:
-    mongo_url = _backend_env_value("MONGO_URL")
+def _launch_wp18c6_backfill(force: bool, *, runtime_identity_bundle: Optional[Dict[str, Any]]) -> None:
+    if runtime_identity_bundle is None:
+        raise RuntimeError("runtime_identity_bundle_missing")
 
     def _runner() -> None:
         async def _run() -> None:
-            client = AsyncIOMotorClient(mongo_url)
+            plan = build_runtime_database_authority(runtime_identity_bundle=runtime_identity_bundle, env=os.environ, lifecycle_owner="enterprise_governance.wp18c6_backfill")
+            client, helper_db = create_async_runtime_client(plan, client_factory=AsyncIOMotorClient)
             try:
-                await run_operational_intelligence_backfill(client[db_name], force=force)
+                await run_operational_intelligence_backfill(helper_db, force=force)
             except Exception:
                 logger.exception("wp18c6 operational intelligence backfill task failed")
             finally:
@@ -920,7 +923,9 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         runtime_db = _runtime_db(request, db)
         if runtime_db is None:
             raise HTTPException(500, "database_unavailable")
-        _launch_wp18c6_backfill(bool(force), db_name=runtime_db.name)
+        runtime_identity_bundle = getattr(getattr(request, "app", None), "state", None)
+        runtime_identity_bundle = getattr(runtime_identity_bundle, "runtime_identity_bundle", None)
+        _launch_wp18c6_backfill(bool(force), runtime_identity_bundle=runtime_identity_bundle)
         return {"ok": True, "status": "queued", "message": "wp18c6 operational intelligence backfill queued", "force": bool(force)}
 
     @api_router.get("/api/admin/governance/project-controls/operational-intelligence/projects/{project_number}/export")

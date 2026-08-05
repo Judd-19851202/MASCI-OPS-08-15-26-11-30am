@@ -1,19 +1,10 @@
 # Final Emergency Backup / Restore Proof
 
-## Fresh backup result
-- Production complete-R2 cadence remains healthy.
-- Latest observed fresh artifact during this pass: `MASCI_complete_backup_2026-08-04_160401Z.zip`
-- Freshness observed within contract (~`50.54 min` at audit close)
-- Integrity status: `PASS`
+Status: **SUPERSEDED**
 
-## Restore result
-- Direct production restore-drill visibility is still not exposed through accessible admin routes.
-- Therefore fresh backup is proven, but restore proof is **not directly re-proven in this pass**.
+Use:
 
-## Historical stale jobs
-- Historical stale rows remain forensic history.
-- Current blocking stale-job count remains `0`.
+- `/app/memory/FINAL_DEPLOY_PRODUCTION_RESTORE_DRILL.md`
+- `/app/memory/OPS8_DRILL_ae94d9a8ff5f_REPORT.md`
 
-## Gate effect
-- Backup freshness: **PASS**
-- Restore proof: **BLOCKED_EXTERNAL_PROVIDER / OPERATIONS VISIBILITY**
+for the current restore truth.

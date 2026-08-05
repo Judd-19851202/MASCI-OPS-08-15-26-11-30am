@@ -1,5 +1,15 @@
 # PRD
 
+## 2026-08-05 — iter127 final deploy-package closeout
+
+- Preview verified ✅ — deferred containment, runtime identity parity, restore proof, and the authoritative deploy suite were re-verified on the current workspace/preview bundle.
+- Active deploy authority is now `125 passed, 4 skipped, 0 failed, 0 errors`, with every current skip individually reconciled in `FINAL_DEPLOY_ACTIVE_TEST_RECONCILIATION.csv`.
+- The full `FINAL_DEPLOY_*` package was created and stale `FINAL_EMERGENCY_*` records were superseded so they no longer contradict current release truth.
+
+### 🔴 STANDING OPERATOR ACTIONS
+- Obtain the one remaining external-owner artifact: direct production Atlas Query Insights / Profiler / Performance Advisor evidence for the historical alert window.
+- After Save and Deploy, run the prepared checklist in `FINAL_DEPLOY_POST_DEPLOY_CERTIFICATION.md`.
+
 ## 2026-08-04 — Standing WP-18 Operational Intelligence Constitutional Layer
 
 ### Executive directive now in force
@@ -700,3 +710,11 @@
 - Repaired Daily Report operator-facing naming and submit feedback: formal `Executive Summary` title-case, `Submit Daily Report`, and `Submitting Daily Report…` are now verified in the exact preview bundle.
 - Repaired Daily Report forensics parity so OPPC-controlled reports classify correctly instead of appearing as silent failures.
 - Exact-bundle WP18CY verification now passes (`9/9` backend tests + testing-agent frontend verification), but the full accumulated release bundle remains **NOT_READY_FOR_DEPLOYMENT** because the broad active suite is still red, deferred-module containment is incomplete, direct restore proof is unavailable, and the exact production Atlas offender remains unproven.
+
+## 2026-08-05 — Final deploy-package closeout
+- Contained the deferred release-adjacent surfaces at both UI and API boundaries: Monday Briefing PDF, PM CSV export, PM schedule email-review, Daily Report dedicated AI-summary lane, and internal certification routes.
+- Replaced the old Daily Report AI summary section with a manual approved-summary lane and verified current runtime identity parity (`/api/version` + `/api/platform/data-truth`).
+- Refreshed the active deploy authority with a fresh exact suite: `125 passed, 4 skipped, 0 failed, 0 errors`; every current skip was individually reconciled in `FINAL_DEPLOY_ACTIVE_TEST_RECONCILIATION.csv`.
+- Added the complete `FINAL_DEPLOY_*` package, superseded stale `FINAL_EMERGENCY_*` records, and closed backup/restore proof with the exact archive + OPS8 isolated restore drill evidence.
+- Atlas final status remains one exact external-owner dependency only: direct production Atlas Query Insights / Profiler / Performance Advisor access for historical offender attribution.
+- Current executive disposition: **PHYSICALLY_BLOCKED_BY_ONE_EXTERNAL_OWNER_DEPENDENCY**.

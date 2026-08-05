@@ -1,0 +1,5 @@
+collection,query_shape,indexes_present,observed_result,evidence,disposition
+backup_health,"find({ok:true}).sort(ts desc).limit(5)","_id_; backup_health_mode_ts_desc; backup_health_ok_ts_desc","5 returned / 5 docs examined / 5 keys examined / ratio 1.0:1","Mongo explain captured on 2026-08-05 via preview runtime DB.",PASS
+backup_health,"find({mode:'complete'}).sort(ts desc).limit(5)","_id_; backup_health_mode_ts_desc; backup_health_ok_ts_desc","0 returned / 0 docs examined / 0 keys examined","Mongo explain captured on 2026-08-05 via preview runtime DB.",PASS
+drill_runs,"find({state:'done'}).sort(started_at desc).limit(5)","_id_; drill_runs_state_started_desc","5 returned / 5 docs examined / 5 keys examined / ratio 1.0:1","Mongo explain captured on 2026-08-05 via preview runtime DB.",PASS
+production_atlas_direct_parity,"historical alert-window offender","Preview-side index parity and bounded explains are clean, but direct production Query Insights/Profiler access is unavailable in this fork","See FINAL_DEPLOY_ATLAS_ROOT_CAUSE_AND_REPAIR.md","External-owner direct production telemetry still required for exact offender attribution.",EXTERNAL_OWNER_DEPENDENCY

@@ -673,3 +673,12 @@
 - Fixed Daily Report forensics parity so OPPC-controlled reports classify correctly in preview.
 - Verified the exact-bundle WP18CY gate with testing agent iteration `125`.
 - Final emergency gate remains **NOT_READY_FOR_DEPLOYMENT** because broad active suites are still red and external production restore/Atlas proof gaps remain.
+
+## 2026-08-05 — Final deploy package closeout
+
+- Added release-scope containment helpers and hid the deferred Monday Briefing PDF, PM CSV export, PM schedule email-review, Daily Report AI-draft lane, and internal certification routes.
+- Replaced the Daily Report AI summary UI with a manual approved-summary lane and verified runtime identity parity after re-stamping frontend release metadata.
+- Fixed the enterprise-governance backfill helper to use the canonical database-authority client path and refreshed backend requirements so clean import/build checks pass.
+- Added the full `FINAL_DEPLOY_*` package plus `FINAL_DEPLOY_NOTIFICATION_FAMILY_CERTIFICATION.csv`, and superseded stale `FINAL_EMERGENCY_*` records that contradicted current release truth.
+- Refreshed the authoritative deploy suite to `125 passed, 4 skipped, 1 warning, 0 failed, 0 errors`; skip ledger lives in `FINAL_DEPLOY_ACTIVE_TEST_RECONCILIATION.csv`.
+- Final executive state is no longer blocked by application code defects; the only remaining blocker is the exact external-owner Atlas telemetry dependency documented in `FINAL_DEPLOY_ATLAS_ROOT_CAUSE_AND_REPAIR.md` and `FINAL_DEPLOY_EXECUTIVE_GATE.md`.

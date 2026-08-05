@@ -13,10 +13,27 @@ Deferred surfaces:
 - Daily report AI summary draft: POST /api/daily-reports/summary/draft
 """
 import os
+from pathlib import Path
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+
+def _resolve_base_url() -> str:
+    explicit = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    local = (os.environ.get("LOCAL_BACKEND_URL") or "").strip().rstrip("/")
+    if local:
+        return local
+    env_file = Path("/app/frontend/.env")
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            if line.startswith("REACT_APP_BACKEND_URL="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'").rstrip("/")
+    return "http://127.0.0.1:8001"
+
+
+BASE_URL = _resolve_base_url()
 PROJECT_NUMBER = "ZZ-RUNTIME-CERT-2026"
 
 # Test credentials

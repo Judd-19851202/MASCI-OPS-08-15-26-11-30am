@@ -761,3 +761,15 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P1
 - Only after the four blockers above are closed should the deploy gate be reopened.
+
+## 2026-08-05 — Final deploy package status
+
+### P0
+- Obtain the one remaining external-owner artifact: direct production Atlas Query Insights / Profiler / Performance Advisor evidence for the historical offender window.
+
+### P1
+- After the Atlas owner provides that artifact, rerun the executive deploy gate and flip `FINAL_DEPLOY_EXECUTIVE_GATE.md` from blocked to safe.
+- After Save and Deploy, execute the prepared user-run checklist in `FINAL_DEPLOY_POST_DEPLOY_CERTIFICATION.md`.
+
+### P2
+- Keep deferred notification families and deferred module lanes outside Release 1 until separately certified.
