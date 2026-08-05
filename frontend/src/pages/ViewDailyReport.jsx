@@ -704,14 +704,27 @@ export default function ViewDailyReport() {
 
         <ReportSection number="07" title={`${t("Equipment")} (${data.equipment?.length || 0})`}>
           <Table
-            headers={[t("Description"), t("Hrs"), t("Delivered"), t("Removed"), t("Notes")]}
-            rows={(data.equipment || []).map((r) => [
-              r.description,
-              r.hours_used,
-              fmt12h(r.time_delivered),
-              fmt12h(r.time_removed),
-              r.notes,
-            ])}
+            headers={[t("Description"), t("Run Hrs"), t("Idle / Not In Use Hrs"), t("Total Hrs"), t("Delivered"), t("Removed"), t("Notes")]}
+            rows={(data.equipment || []).map((r) => {
+              const runHours = r.hours_used ?? r.run_time ?? r.run_hours ?? "";
+              const idleHours = r.idle_hours ?? r.idle_time ?? r.idle ?? "";
+              const totalHours =
+                runHours !== "" || idleHours !== ""
+                  ? ((parseFloat(runHours) || 0) + (parseFloat(idleHours) || 0))
+                      .toFixed(2)
+                      .replace(/\.00$/, "")
+                  : "";
+
+              return [
+                r.description,
+                runHours,
+                idleHours,
+                totalHours,
+                fmt12h(r.time_delivered),
+                fmt12h(r.time_removed),
+                r.notes,
+              ];
+            })}
             emptyText={t("No equipment logged.")}
           />
         </ReportSection>
