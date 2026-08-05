@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter132 platform touch-picker sweep + daily report density pass
+
+- Extended the shared cmdk touch-scroll protection across the platform’s shared picker surfaces by wiring guarded touch selection into every `useCmdkTouchGuard` consumer and enabling touch-friendly command-list scrolling.
+- Completed a Daily Report V3 density pass: larger row controls, larger unit pickers, widened vendor/subcontractor rows, larger visitor/equipment/production/material/outbound inputs, and 44px add buttons across all major sections.
+- Verification passed in preview: broad Daily Report frontend QA confirmed major dense rows are touch-friendly and functional, and the final add-button polish passed `7/7` buttons at 44px on desktop and mobile.
+
 ## 2026-08-05 — iter131 daily report mobile dropdown usability repair
 
 - Repaired touch-driven cmdk picker behavior so Daily Report job selection can scroll on tablet/mobile without accidental row commits or a stuck-feeling list.

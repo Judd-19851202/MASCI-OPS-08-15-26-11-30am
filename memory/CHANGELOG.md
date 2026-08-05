@@ -1,3 +1,10 @@
+# 2026-08-05 — Platform touch-picker sweep + Daily Report density pass
+
+- Extended the shared touch-scroll guard pattern to every current `useCmdkTouchGuard` consumer so touch scrolling and tap selection behave consistently across shared cmdk picker flows.
+- Enlarged Daily Report V3’s dense field rows and controls (crew, equipment, subcontractors/vendors, production, materials, outbound, visitors, unit pickers, row actions) without changing underlying workflows.
+- Raised all Daily Report add buttons to 44px touch targets and verified no layout overflow on desktop/mobile.
+- Verification passed via frontend QA: shared picker scroll/select behavior remained intact, dense rows stayed functional, and all seven add buttons passed touch-target checks.
+
 # 2026-08-05 — Daily Report job-picker scroll + vendor sizing repair
 
 - Fixed shared cmdk touch handling so the Daily Report Current Job picker can scroll on touch devices instead of feeling stationary or auto-selecting while the user drags.

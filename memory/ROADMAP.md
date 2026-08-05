@@ -1,3 +1,21 @@
+# 2026-08-05 — Touch-picker and Daily Report density follow-up state
+
+## Current top priority
+
+- **Preview sweep is complete for the shared touch-picker behavior and the dense Daily Report row sizing pass.**
+- **Next operator step: confirm the live production build feels correct on real crew devices after redeploy, especially long picker scrolls and dense row usability.**
+
+## P0
+- validate the live production experience on the highest-traffic field forms after redeploy, not just Daily Report, so any remaining route-specific touch issue is caught immediately
+- preserve the shared guarded-touch-selection behavior in future cmdk picker edits
+
+## P1
+- extend the same touch-target review to any remaining non-Daily Report field forms that still use compact legacy inputs
+- add more automated browser checks for touch scrolling in shared picker families
+
+## P2
+- consider a dedicated full-screen mobile picker presentation for the longest master-data lists
+
 # 2026-08-05 — Daily Report usability follow-up state
 
 ## Current top priority
