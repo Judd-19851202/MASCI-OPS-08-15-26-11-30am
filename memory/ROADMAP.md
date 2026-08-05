@@ -1,3 +1,21 @@
+# 2026-08-05 — Legacy form sweep follow-up state
+
+## Current top priority
+
+- **Preview sweep is complete for representative legacy non-Daily-Report field forms and shared picker families.**
+- **Next operator step: redeploy and spot-check the live high-traffic field forms on real devices to confirm the broader touch-target sweep feels right in production.**
+
+## P0
+- validate the live production experience after redeploy on the major public/mobile routes: meetings, incidents, equipment submit, fleet DVIR, shift start, and daily report
+- preserve shared touch-scroll behavior in `JobPicker`, `TopicPicker`, `UnitCombo`, `SearchableSelect`, and `AsyncSearchableSelect`
+
+## P1
+- continue the same touch-target sweep into any remaining lower-traffic legacy forms not covered in this representative pass
+- expand automated browser regression coverage for more exact mobile/touch interactions across shared picker families
+
+## P2
+- evaluate whether the longest legacy pickers should also get a dedicated full-screen mobile presentation
+
 # 2026-08-05 — Touch-picker and Daily Report density follow-up state
 
 ## Current top priority

@@ -1,5 +1,11 @@
 # PRD
 
+## 2026-08-05 — iter133 legacy form touch-target sweep + picker QA expansion
+
+- Extended the touch-target sweep beyond Daily Report into representative legacy field forms and shared picker families, including Meeting Submit, Incident Report, Equipment Submit, Fleet DVIR, Shift Start, SearchableSelect, and AsyncSearchableSelect.
+- Lifted remaining compact legacy controls to touch-friendly sizes and added touch-scroll polish to non-cmdk searchable panels so long lists behave consistently on field devices.
+- Verification passed in preview: broader frontend sweep confirmed proper touch targets and functioning shared pickers across the representative routes, and `/app/test_reports/iteration_131.json` passed with `frontend 100%`.
+
 ## 2026-08-05 — iter132 platform touch-picker sweep + daily report density pass
 
 - Extended the shared cmdk touch-scroll protection across the platform’s shared picker surfaces by wiring guarded touch selection into every `useCmdkTouchGuard` consumer and enabling touch-friendly command-list scrolling.

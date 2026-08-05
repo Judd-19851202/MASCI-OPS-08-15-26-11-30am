@@ -1,3 +1,9 @@
+# 2026-08-05 — Legacy form touch-target sweep + picker QA expansion
+
+- Extended the touch-target sweep beyond Daily Report into Meeting Submit, Incident Report, Equipment Submit, Fleet DVIR, and Shift Start.
+- Added touch-scroll polish to `SearchableSelect` and `AsyncSearchableSelect`, and lifted remaining compact legacy controls such as GPS, add-person, add-photo, add-trailer, and attendee-remove actions.
+- Verification passed: broader frontend QA and `/app/test_reports/iteration_131.json` both confirmed 44px+ touch targets and working shared picker behavior across the representative non-Daily-Report routes.
+
 # 2026-08-05 — Platform touch-picker sweep + Daily Report density pass
 
 - Extended the shared touch-scroll guard pattern to every current `useCmdkTouchGuard` consumer so touch scrolling and tap selection behave consistently across shared cmdk picker flows.
