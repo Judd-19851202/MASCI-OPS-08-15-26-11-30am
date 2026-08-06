@@ -114,6 +114,16 @@
         "rationale": "Enterprise-governance failures now emit remediation guidance so deployment readiness no longer misclassifies preview trust-spine failures as silent failures."
       },
       {
+        "path": "backend/routes/admin_deployment_readiness.py",
+        "mission_ref": "PDC-01B Deployment readiness truth surface",
+        "rationale": "Deployment readiness now exposes the same governed performance-budget contract used by the executive recovery dashboard without relying on admin-strict tokens."
+      },
+      {
+        "path": "backend/lib/performance_budget_contract.py",
+        "mission_ref": "PDC-01B Shared performance-budget truth",
+        "rationale": "The performance-budget contract was factored into a shared governed helper so multiple admin surfaces reuse the same release-control truth instead of duplicating CSV parsing logic."
+      },
+      {
         "path": "backend/tests/test_ai_gateway.py",
         "mission_ref": "PDC-01B AI fallback certification stability",
         "rationale": "AI gateway tests now use isolated event loops so fallback evidence remains stable under current pytest runtime behavior."

@@ -118,7 +118,6 @@ function summarizeWorstStatus(statuses) {
 export default function AdminRecovery() {
   const [snap, setSnap] = useState(null);
   const [backupTrust, setBackupTrust] = useState(null);
-  const [runtimeHealth, setRuntimeHealth] = useState(null);
   const [deploymentReadiness, setDeploymentReadiness] = useState(null);
   const [platformStatus, setPlatformStatus] = useState(null);
   const [clusterCapacity, setClusterCapacity] = useState(null);
@@ -156,21 +155,19 @@ export default function AdminRecovery() {
 
   const load = useCallback(async () => {
     try {
-      const [r, trust, runtime, deploy, platform, capacity, capacityHistory, scheduler, system, perf] = await Promise.all([
+      const [r, trust, deploy, platform, capacity, capacityHistory, scheduler, system, perf] = await Promise.all([
         api.get("/admin/recovery/snapshot", { skipSessionStatus: true, timeout: 120000 }),
         api.get("/admin/backup-trust-score", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
-        api.get("/admin-strict/diag/runtime-health", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
         api.get("/admin/deployment-readiness", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
         api.get("/admin/platform/status", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
         api.get("/cluster/capacity", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
         api.get("/cluster/capacity/history?days=30", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
         api.get("/admin/scheduler-runs?limit=25", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
         api.get("/admin/system-health", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
-        api.get("/admin-strict/diag/performance-budget-contract", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin/deployment-readiness/performance-budget-contract", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
       ]);
       setSnap(r.data);
       setBackupTrust(trust?.data || null);
-      setRuntimeHealth(runtime?.data || null);
       setDeploymentReadiness(deploy?.data || null);
       setPlatformStatus(platform?.data || null);
       setClusterCapacity(capacity?.data || null);
@@ -193,11 +190,10 @@ export default function AdminRecovery() {
   }, [load]);
 
   const reliabilityCards = useMemo(() => {
-    const runtimeStatus = runtimeHealth
+    const runtimeStatus = systemHealth || platformStatus
       ? summarizeWorstStatus([
-          runtimeHealth?.readiness?.ok ? "GREEN" : "RED",
-          runtimeHealth?.mongo_ok ? "GREEN" : "RED",
-          normalizeStatus(runtimeHealth?.full_health?.state),
+          normalizeStatus(systemHealth?.overall),
+          platformStatus?.readiness?.ready_flag ? "GREEN" : "AMBER",
         ])
       : "AMBER";
     const schedulerStatus = summarizeWorstStatus([
@@ -228,14 +224,14 @@ export default function AdminRecovery() {
         id: "runtime",
         title: "Platform availability",
         status: runtimeStatus,
-        why: runtimeHealth
-          ? `Readiness is ${runtimeHealth?.readiness?.state || "unknown"} and Mongo is ${runtimeHealth?.mongo_ok ? "reachable" : "unreachable"}.`
+        why: systemHealth
+          ? `System Health is reporting ${String(systemHealth?.overall || "unknown").toUpperCase()} and platform ready flag is ${String(platformStatus?.readiness?.ready_flag ?? false)}.`
           : "Runtime evidence is still loading.",
-        evidence: runtimeHealth
-          ? `event loop ${runtimeHealth?.event_loop_lag_ms ?? "—"} ms · restart count ${runtimeHealth?.restart_count ?? 0} · readiness reason ${runtimeHealth?.readiness?.reason || "unknown"}`
-          : "Awaiting runtime-health endpoint.",
-        confidence: runtimeHealth ? "HIGH" : "MEDIUM",
-        action: runtimeHealth?.readiness?.ok ? "Continue monitoring runtime-health and health probes." : "Hold release and restore runtime readiness before deploy.",
+        evidence: systemHealth
+          ? `system cards ${systemHealth?.cards?.length ?? "—"} · platform alerts ${platformStatus?.alerts?.length ?? 0} · ready flag ${String(platformStatus?.readiness?.ready_flag ?? false)}`
+          : "Awaiting platform-status and system-health endpoints.",
+        confidence: systemHealth && platformStatus ? "HIGH" : "MEDIUM",
+        action: platformStatus?.readiness?.ready_flag ? "Continue monitoring public health and platform status." : "Hold release until the platform ready flag returns true.",
       },
       {
         id: "scheduler",
@@ -293,7 +289,7 @@ export default function AdminRecovery() {
         action: providerStatus === "GREEN" ? "Keep operator messaging aligned with safe degraded modes." : "Use /admin/system-health to inspect the failing operator-facing dependency before release.",
       },
     ];
-  }, [runtimeHealth, snap, schedulerRuns, deploymentReadiness, performanceBudget, clusterCapacity, clusterCapacityHistory, backupTrust, systemHealth, platformStatus]);
+  }, [snap, schedulerRuns, deploymentReadiness, performanceBudget, clusterCapacity, clusterCapacityHistory, backupTrust, systemHealth, platformStatus]);
 
   const recommendedActions = useMemo(() => {
     const actions = [];

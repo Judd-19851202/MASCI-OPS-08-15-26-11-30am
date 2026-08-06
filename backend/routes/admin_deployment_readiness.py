@@ -39,6 +39,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends
 
 from lib.email_audit_status import normalized_allowed_email_audit_statuses
+from lib.performance_budget_contract import read_performance_budget_contract
 from lib.trust_score_v2 import compute_categorized_score
 from lib.master_data_trust import collect_findings
 from lib.notification_delivery import delivery_contract, DELIVERY_MODE_PROVIDER_LIVE, DELIVERY_MODE_SAFE_CAPTURE
@@ -421,6 +422,10 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         )
         payload["compatibility"] = compatibility
         return payload
+
+    @router.get("/performance-budget-contract", response_model=Dict[str, Any])
+    async def performance_budget_contract(_admin: Any = Depends(require_admin_only_dep)) -> Dict[str, Any]:
+        return read_performance_budget_contract(Path("/app"))
 
     return router
 
