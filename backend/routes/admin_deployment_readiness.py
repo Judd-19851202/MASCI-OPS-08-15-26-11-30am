@@ -423,7 +423,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         payload["compatibility"] = compatibility
         return payload
 
-    @router.get("/performance-budget-contract", response_model=Dict[str, Any])
+    @router.get("/api/admin/deployment-readiness/performance-budget-contract", response_model=Dict[str, Any])
     async def performance_budget_contract(_admin: Any = Depends(require_admin_only_dep)) -> Dict[str, Any]:
         return read_performance_budget_contract(Path("/app"))
 
