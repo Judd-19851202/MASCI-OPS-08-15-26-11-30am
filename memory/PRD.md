@@ -1,5 +1,40 @@
 # PRD
 
+## 2026-08-06 — WP18DA performance & resilience certification
+
+- Package result: **GO — READY TO SAVE & DEPLOY**.
+- Key code hardening in this pass:
+  - `frontend/scripts/stamp-build-version.js` idempotent writes
+  - `frontend/craco.config.js` dev eslint off, filesystem cache on, visual edits gated
+  - `backend/lib/singleton_scheduler.py` runtime DB proxy fix
+  - `backend/routes/job_photos.py` warm-failure cooldown + index
+  - `backend/routes/safety_forms.py` startup index ensure helpers
+  - `backend/routes/field_leadership.py` startup index ensure helpers
+  - `backend/server.py` runtime index bootstrap + fast public probe paths
+- Evidence classes completed:
+  - source/workspace: route inventory, build timing, explain plans, deployment scan
+  - preview runtime: navigation timing, public API timing, warm restart behavior, PDF/export timing
+  - deployed production runtime: navigation timing, public API timing, shell drift comparison
+- New WP18DA artifacts added under `/app/memory/`:
+  - `WP18DA_PERFORMANCE_BASELINE.md`
+  - `WP18DA_PERFORMANCE_IMPROVEMENTS.md`
+  - `WP18DA_MONGODB_REPORT.md`
+  - `WP18DA_API_REPORT.md`
+  - `WP18DA_FRONTEND_REPORT.md`
+  - `WP18DA_WORKER_SCHEDULER_QUEUE_REPORT.md`
+  - `WP18DA_OBSERVABILITY_REPORT.md`
+  - `WP18DA_PERFORMANCE_BUDGET_REGISTER.csv`
+  - `WP18DA_REGRESSION_EVIDENCE.md`
+  - `WP18DA_DEPLOYMENT_READINESS_REPORT.md`
+  - `WP18DA_EXECUTIVE_CLOSEOUT.md`
+- Final measured outcomes:
+  - preview home `domContentLoaded 915-926ms`
+  - production home `domContentLoaded 1071ms`
+  - preview public APIs `49ms / 51ms / 141ms`
+  - production public APIs `85ms / 90ms / 132ms`
+  - targeted Mongo scans repaired from `COLLSCAN` to index-backed `docs=1/keys=1` and `docs=4/keys=4`
+  - live preview PDF `2248ms`, live CSV export `2022ms`, build duration `50.53s`
+
 ## 2026-08-06 — WP18CZ.1 shared submission runtime hardening
 
 ## 2026-08-06 — WP18CZ.2 final submission workflow runtime burn-down

@@ -1,3 +1,9 @@
+# 2026-08-06 — WP18DA performance & resilience certification
+
+- Hardened frontend runtime performance by making build-stamp writes idempotent, disabling live dev eslint, enabling webpack filesystem cache, and gating visual edits behind `ENABLE_VISUAL_EDITS=true`.
+- Hardened backend resilience by fixing singleton scheduler stale-Mongo handling, adding public probe fast paths, backing off repeated job-photo warm failures, and ensuring evidence-backed startup indexes for Safety Forms and Field Leadership queries.
+- Verified query-plan improvement from COLLSCAN to indexed execution for the targeted Safety Forms / Field Leadership paths, and captured final deployment readiness as **PASS** with WP18DA closed at **GO — READY TO SAVE & DEPLOY**.
+
 # 2026-08-06 — WP18CZ.1 shared submission runtime hardening
 
 ## 2026-08-06 — WP18CZ.2 final submission workflow runtime burn-down

@@ -1,0 +1,17 @@
+budget_key,scope,target,measured,status,evidence
+frontend_home_domcontentloaded_preview,preview_home_route,<=1200ms,915ms,PASS,auto_frontend_testing_agent 2026-08-06
+frontend_home_loadevent_preview,preview_home_route,<=1500ms,1302ms,PASS,auto_frontend_testing_agent 2026-08-06
+frontend_home_domcontentloaded_production,production_home_route,<=1500ms,1071ms,PASS,mcp_screenshot_tool production nav perf
+api_health_preview,preview_public_api,<=250ms,49ms,PASS,mcp_screenshot_tool preview full warm api latencies
+api_version_preview,preview_public_api,<=250ms,51ms,PASS,mcp_screenshot_tool preview full warm api latencies
+api_public_grouped_preview,preview_public_api,<=250ms,141ms,PASS,mcp_screenshot_tool preview full warm api latencies
+api_health_production,production_public_api,<=250ms,85ms,PASS,mcp_screenshot_tool production api latencies
+api_version_production,production_public_api,<=250ms,90ms,PASS,mcp_screenshot_tool production api latencies
+api_public_grouped_production,production_public_api,<=250ms,132ms,PASS,mcp_screenshot_tool production api latencies
+mongo_safety_issuances_query,workspace_query_shape,no_collscan_and_docs_examined<=5,docs=1/keys=1,PASS,wp18da_query_explain_snapshot_after.json
+mongo_safety_trainings_query,workspace_query_shape,no_collscan_and_docs_examined<=5,docs=1/keys=1,PASS,wp18da_query_explain_snapshot_after.json
+mongo_field_leadership_query,workspace_query_shape,no_collscan_and_docs_examined<=10,docs=4/keys=4,PASS,wp18da_query_explain_snapshot_after.json
+pdf_field_leadership_preview,preview_output_channel,<=3000ms,2248ms,PASS,mcp_screenshot_tool live field leadership pdf check
+csv_export_po_preview,preview_output_channel,<=2500ms,2022ms,PASS,mcp_screenshot_tool preview pdf/export checks
+build_duration_workspace,workspace_build,<=60s,50.53s,PASS,yarn build evidence 2026-08-06
+backend_restart_warmup_preview,preview_runtime_restart,<=35s,~30s,PASS,mcp_screenshot_tool preview post-warmup checks
