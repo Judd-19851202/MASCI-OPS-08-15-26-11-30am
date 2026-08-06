@@ -1,0 +1,48 @@
+{
+  "test_run_timestamp": "2026-08-06T19:42:57.332896Z",
+  "base_url": "https://masci-audit-hub.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "test": "Admin Authentication",
+      "status": "PASS",
+      "details": "Successfully authenticated. Session token length: 43, Admin token length: 101",
+      "timestamp": "2026-08-06T19:42:58.129193Z"
+    },
+    {
+      "test": "Recovery Snapshot - Fresh Backup Evidence",
+      "status": "PASS",
+      "details": "Fresh backup evidence found. Last backup: {'filename': 'MASCI_complete_backup_2026-08-06_185118Z.zip', 'size_mb': 2808.21, 'records': 0, 'ok': True, 'ts': '2026-08-06T19:04:24.760324+00:00', 'inlined_photos': 0, 'source': 'canonical_archive_lineage', 'authoritative_time_source': 'COMPLETED_ARCHIVE_TIME', 'lineage_confidence': 'HIGH', 'integrity_status': 'PASS', 'completeness_status': 'COMPLETE', 'availability_status': 'AVAILABLE'}, Age: 38.44 minutes (0.6 hours)",
+      "timestamp": "2026-08-06T19:42:59.165370Z"
+    },
+    {
+      "test": "Backup Trust Score - Green Status",
+      "status": "PASS",
+      "details": "Trust score is GREEN: 90 (band: None)",
+      "timestamp": "2026-08-06T19:42:59.926692Z"
+    },
+    {
+      "test": "Deployment Readiness - Pass",
+      "status": "PASS",
+      "details": "Deployment readiness: PASS. Blocking gates: 0",
+      "timestamp": "2026-08-06T19:43:03.702794Z"
+    },
+    {
+      "test": "Performance Budget Contract - Pass",
+      "status": "PASS",
+      "details": "Performance budget contract accessible. Data: ['ok', 'path', 'exists', 'required_budget_keys', 'row_count', 'pass_count', 'missing_keys', 'failing_rows', 'summary']",
+      "timestamp": "2026-08-06T19:43:03.998490Z"
+    },
+    {
+      "test": "Scheduler Runs - Accessible",
+      "status": "PASS",
+      "details": "Scheduler runs accessible. Response keys: ['items', 'total', 'dedup_total', 'failed_total']",
+      "timestamp": "2026-08-06T19:43:04.428157Z"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "warnings": 0
+  }
+}
