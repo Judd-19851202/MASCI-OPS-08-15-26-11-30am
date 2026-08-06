@@ -2,6 +2,8 @@ import React from "react";
 import { useT } from "@/lib/i18n";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
 
+const FORM_SHELL_FOOTER_HEIGHT_VAR = "--masci-form-shell-footer-height";
+
 function normalizeFormPortalLabel(kicker, fallback) {
   const cleaned = String(kicker || "")
     .replace(/^MASCI\s*[·-]\s*/i, "")
@@ -49,8 +51,37 @@ export function FormShell({
   widthClass = "max-w-3xl",
 }) {
   const { t } = useT();
+  const stickyFooterRef = React.useRef(null);
   const headerPortalLabel = normalizeFormPortalLabel(kicker, t("Operations Workspace"));
   const resolvedBackLink = backLink === "/" ? null : backLink;
+
+  React.useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const root = document.documentElement;
+    const node = stickyFooterRef.current;
+    if (!stickyFooter || !node) {
+      root.style.removeProperty(FORM_SHELL_FOOTER_HEIGHT_VAR);
+      return undefined;
+    }
+
+    const syncFooterHeight = () => {
+      const height = Math.ceil(node.getBoundingClientRect().height || 0);
+      root.style.setProperty(FORM_SHELL_FOOTER_HEIGHT_VAR, `${height}px`);
+    };
+
+    syncFooterHeight();
+    const observer = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(syncFooterHeight)
+      : null;
+    observer?.observe(node);
+    window.addEventListener("resize", syncFooterHeight);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", syncFooterHeight);
+      root.style.removeProperty(FORM_SHELL_FOOTER_HEIGHT_VAR);
+    };
+  }, [stickyFooter]);
   const utilityCard = subtitle || progressSlot || draftSlot || headerRightSlot ? (
     <div className="wp17-panel p-4 sm:p-5" data-testid={`${containerTestId}-utility-card`}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -80,6 +111,9 @@ export function FormShell({
   return (
     <div
       className="min-h-screen wp17-public-shell wp17-grid-bg pb-32"
+      style={stickyFooter ? {
+        paddingBottom: "calc(var(--masci-form-shell-footer-height, 0px) + max(1rem, env(safe-area-inset-bottom)))",
+      } : undefined}
       data-testid={containerTestId}
     >
       <div className="caution-stripe" />
@@ -105,10 +139,14 @@ export function FormShell({
       {/* STICKY FOOTER */}
       {stickyFooter && (
         <div
+          ref={stickyFooterRef}
           className="fixed bottom-0 inset-x-0 z-30 max-w-full overflow-x-hidden border-t border-slate-200 bg-[rgba(246,248,252,0.94)] shadow-[0_-14px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl wp17-shell-footer"
           data-testid={`${containerTestId}-sticky-footer`}
         >
-          <div className={`${widthClass} mx-auto px-4 sm:px-6 py-3`}>
+          <div
+            className={`${widthClass} mx-auto px-4 sm:px-6 pt-3`}
+            style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+          >
             {stickyFooter}
           </div>
         </div>

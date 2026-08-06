@@ -163,7 +163,14 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 include_manifest_reads=False,
             )
             rpo_target_minutes = float(os.environ.get("BACKUP_RPO_TARGET_MINUTES", "60") or "60")
-            freshness = consumer_freshness_status(lineage, threshold_minutes=rpo_target_minutes, warning_minutes=rpo_target_minutes)
+            backup_alert_threshold_minutes = float(
+                os.environ.get("BACKUP_HEALTH_ALERT_THRESHOLD_MINUTES", "75") or "75"
+            )
+            freshness = consumer_freshness_status(
+                lineage,
+                threshold_minutes=max(rpo_target_minutes, backup_alert_threshold_minutes),
+                warning_minutes=rpo_target_minutes,
+            )
             hrs = lineage.get("freshness_age_hours")
             status = "VERIFIED" if freshness.get("status") == "CURRENT" else "DEGRADED" if freshness.get("status") == "AGING" else "MISMATCH"
             authoritative_artifact = lineage.get("authoritative_artifact") or {}
@@ -173,7 +180,12 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                     "key": "backup",
                     "label": "Last backup",
                     "status": status,
-                    "detail": f"Canonical recoverable point {hrs:.1f}h ago ({mins:.0f}m vs target ≤ {rpo_target_minutes:.0f}m) · {(authoritative_artifact.get('filename') or 'archive')} · {lineage.get('authoritative_time_source') or 'UNKNOWN'}",
+                    "detail": (
+                        f"Canonical recoverable point {hrs:.1f}h ago "
+                        f"({mins:.0f}m vs target ≤ {rpo_target_minutes:.0f}m; alert > {backup_alert_threshold_minutes:.0f}m) · "
+                        f"{(authoritative_artifact.get('filename') or 'archive')} · "
+                        f"{lineage.get('authoritative_time_source') or 'UNKNOWN'}"
+                    ),
                 })
             else:
                 degradation = ", ".join((lineage.get("degradation_reasons") or [])[:2]) or "authoritative_recovery_point_unknown"

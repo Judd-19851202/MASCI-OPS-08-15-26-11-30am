@@ -27,7 +27,9 @@ from .weather import fetch_current_weather
 from .fleet_crosslink import list_incidents_by_unit
 
 
-def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
+def register_report_routes(api_router: APIRouter, db, *, require_actor, require_field_actor=None) -> None:
+
+    field_actor_dep = require_field_actor or require_actor
 
     @api_router.get("/incident-reports/types")
     async def list_types(actor=Depends(require_actor)):
@@ -111,7 +113,7 @@ def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
     async def weather_lookup(
         lat: float = Query(..., ge=-90, le=90),
         lng: float = Query(..., ge=-180, le=180),
-        actor=Depends(require_actor),
+        actor=Depends(field_actor_dep),
     ):
         try:
             return await fetch_current_weather(lat, lng)
@@ -126,7 +128,7 @@ def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
     @api_router.get("/incident-intelligence/project-context/{project_number}")
     async def project_context(
         project_number: str,
-        actor=Depends(require_actor),
+        actor=Depends(field_actor_dep),
     ):
         """Read the canonical `jobs_master` row + last-known super
         for a project so the incident form can auto-fill without asking

@@ -29,6 +29,7 @@ import { useT } from "@/lib/i18n";
 import { formatPlatformTime, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const LAST_SYNC_KEY = "masci.last_successful_sync.v1";
+const FLOATING_BOTTOM_OFFSET = "calc(var(--masci-form-shell-footer-height, 0px) + max(0.75rem, env(safe-area-inset-bottom)) + 0.5rem)";
 
 function _readLastSync() {
   try {
@@ -362,8 +363,9 @@ export default function QueueStatusPill() {
         disabled={state === "synced"}
         aria-label={v.label}
         data-testid={`queue-status-pill-${state}`}
+        style={{ bottom: FLOATING_BOTTOM_OFFSET }}
         className={
-          "fixed z-40 bottom-3 right-3 sm:bottom-4 sm:right-4 " +
+          "fixed z-40 right-3 sm:right-4 " +
           "flex items-center gap-2 px-3 py-2 rounded-full border-2 shadow-md " +
           "font-mono text-xs uppercase tracking-wider font-bold " +
           "transition-colors " +

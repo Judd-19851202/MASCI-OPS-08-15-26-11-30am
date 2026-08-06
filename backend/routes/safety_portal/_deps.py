@@ -188,6 +188,62 @@ def make_require_safety_admin_or_pm(
     return _require_safety_admin_or_pm
 
 
+def make_require_safety_admin_pm_or_field(
+    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
+    is_valid_pm_token: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
+) -> Callable[..., Awaitable[object]]:
+    """Incident field-report gate.
+
+    Accepts the same Safety/Admin/PM actors as the review gate, plus a
+    legitimate Field Leadership token for governed field submission
+    surfaces. Field actors are normalized to ``role="field"`` so the
+    incident engine's capability matrix remains the single source of truth.
+    """
+
+    async def _require_safety_admin_pm_or_field(
+        request: Request,
+        x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+        x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+        x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+        x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
+    ):
+        if x_safety_token:
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                enforce_password_change_required(request, u)
+                return {**u, "_actor_kind": "safety_user", "_actor": "safety"}
+        if x_admin_token:
+            if is_valid_admin_token and is_valid_admin_token(x_admin_token):
+                return {"role": "admin", "_actor": "admin", "_actor_kind": "admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"role": "admin", "_actor": "admin", "_actor_kind": "admin"}
+        if x_pm_token:
+            if "." in x_pm_token:
+                from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
+                pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+                if pm_doc:
+                    enforce_password_change_required(request, pm_doc)
+                    return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm"}
+            elif is_valid_pm_token and is_valid_pm_token(x_pm_token):
+                return {"role": "pm", "_actor": "pm", "_actor_kind": "pm"}
+        if x_fl_token:
+            from field_leadership_users import is_valid_fl_user_token_async  # noqa: PLC0415
+            fl_user = await is_valid_fl_user_token_async(db, x_fl_token)
+            if fl_user:
+                enforce_password_change_required(request, fl_user)
+                return {
+                    **fl_user,
+                    "role": "field",
+                    "_actor": "field",
+                    "_actor_kind": "field_user",
+                    "source_portal": "field_leadership",
+                }
+        raise HTTPException(401, "Safety, Admin, PM, or Field Leadership login required")
+
+    return _require_safety_admin_pm_or_field
+
+
 def make_require_safety_or_hr_or_admin(
     db,
     is_valid_admin_token: Optional[Callable[[str], bool]] = None,

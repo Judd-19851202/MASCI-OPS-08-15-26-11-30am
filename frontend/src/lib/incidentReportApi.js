@@ -1,63 +1,52 @@
 // Track 19.16 · Phase B1 · Incident Intelligence Engine — HTTP adapter.
 // Thin wrapper around the Phase A `/api/incident-cases/*` endpoints. All
-// calls include cross-portal auth headers (Safety / Admin / PM) via the
+// calls include the governed incident-report auth contract via the
 // shared helper.
 
-import axios from "axios";
+import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-// Pull whichever portal token is present. Order mirrors the backend
-// `make_require_safety_admin_or_pm` gate.
 function _authHeaders() {
-  return buildScopedPortalAuthHeaders(["safety", "admin", "pm"]);
-}
-
-function _client() {
-  return axios.create({
-    baseURL: API,
-    headers: { "Content-Type": "application/json", ..._authHeaders() },
-    timeout: 30000,
-  });
+  return buildScopedPortalAuthHeaders(["safety", "admin", "pm", "field_leadership"]);
 }
 
 export async function fetchVocabulary() {
-  const c = _client();
-  const { data } = await c.get("/incident-cases/vocabulary");
+  const { data } = await api.get("/incident-cases/vocabulary", { headers: _authHeaders() });
   return data;
 }
 
 export async function createCase(fieldBlock) {
-  const c = _client();
-  const { data } = await c.post("/incident-cases", { field_block: fieldBlock });
+  const { data } = await api.post(
+    "/incident-cases",
+    { field_block: fieldBlock },
+    { headers: _authHeaders() },
+  );
   return data;
 }
 
 export async function patchFieldBlock(caseId, patch) {
-  const c = _client();
-  const { data } = await c.patch(
+  const { data } = await api.patch(
     `/incident-cases/${caseId}/field-block`,
     { patch },
+    { headers: _authHeaders() },
   );
   return data;
 }
 
 export async function transitionCase(caseId, toState, reason = "") {
-  const c = _client();
-  const { data } = await c.post(
+  const { data } = await api.post(
     `/incident-cases/${caseId}/transitions`,
     { to_state: toState, reason },
+    { headers: _authHeaders() },
   );
   return data;
 }
 
 export async function addEvidence(caseId, payload) {
-  const c = _client();
-  const { data } = await c.post(
+  const { data } = await api.post(
     `/incident-cases/${caseId}/evidence`,
     payload,
+    { headers: _authHeaders() },
   );
   return data;
 }
@@ -71,12 +60,7 @@ export async function fetchDirectoryMe() {
   try {
     const headers = buildScopedPortalAuthHeaders(["directory"]);
     if (!headers["X-Directory-Token"]) return null;
-    const c = axios.create({
-      baseURL: API,
-      headers: { "Content-Type": "application/json", ...headers },
-      timeout: 6000,
-    });
-    const { data } = await c.get("/auth/me-directory");
+    const { data } = await api.get("/auth/me-directory", { headers, skipSessionStatus: true });
     return data?.user || null;
   } catch {
     return null;
@@ -87,9 +71,9 @@ export async function fetchDirectoryMe() {
 export async function fetchProjectContext(projectNumber) {
   if (!projectNumber) return null;
   try {
-    const c = _client();
-    const { data } = await c.get(
+    const { data } = await api.get(
       `/incident-intelligence/project-context/${encodeURIComponent(projectNumber)}`,
+      { headers: _authHeaders() },
     );
     return data || null;
   } catch {
@@ -102,9 +86,9 @@ export async function fetchProjectContext(projectNumber) {
 export async function fetchWeather(lat, lng) {
   if (typeof lat !== "number" || typeof lng !== "number") return null;
   try {
-    const c = _client();
-    const { data } = await c.get(
+    const { data } = await api.get(
       `/incident-intelligence/weather?lat=${lat}&lng=${lng}`,
+      { headers: _authHeaders() },
     );
     return data || null;
   } catch {
