@@ -1,0 +1,47 @@
+{
+  "test_run_timestamp": "2026-08-06T22:25:28.587708Z",
+  "tests": [
+    {
+      "name": "Admin Authentication",
+      "status": "PASS",
+      "details": "Successfully authenticated. Session token length: 43, Admin token length: 101",
+      "timestamp": "2026-08-06T22:25:29.338319Z"
+    },
+    {
+      "name": "Recovery Snapshot",
+      "status": "PASS",
+      "details": "GREEN - Fresh backup found. Age: 64.49 minutes, Integrity: PASS, Completeness: COMPLETE, Availability: AVAILABLE",
+      "timestamp": "2026-08-06T22:25:31.951001Z"
+    },
+    {
+      "name": "Backup Trust Score",
+      "status": "PASS",
+      "details": "GREEN - Trust score: 90, Band: unknown",
+      "timestamp": "2026-08-06T22:25:32.890521Z"
+    },
+    {
+      "name": "Deployment Readiness",
+      "status": "PASS",
+      "details": "PASS - Decision: pass, Blocking gates: 0",
+      "timestamp": "2026-08-06T22:25:37.127518Z"
+    },
+    {
+      "name": "Performance Budget Contract",
+      "status": "PASS",
+      "details": "PASS - OK: True, Exists: True, Failing rows: 0",
+      "timestamp": "2026-08-06T22:25:37.424871Z"
+    },
+    {
+      "name": "Release Gate",
+      "status": "PASS",
+      "details": "PASSING - State: ready, Mongo: True, Event Loop: True, Startup: True",
+      "timestamp": "2026-08-06T22:25:37.561705Z"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "transport_errors": 0
+  }
+}
