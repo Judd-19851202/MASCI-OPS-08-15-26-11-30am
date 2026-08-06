@@ -33,6 +33,24 @@ from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 logger = logging.getLogger(__name__)
 
 
+async def ensure_field_leadership_indexes(db) -> None:
+    try:
+        await db.field_leadership_records.create_index(
+            [("kind", 1), ("created_at", -1)],
+            name="ix_fl_kind_created_at",
+        )
+        await db.field_leadership_records.create_index(
+            [("project_number", 1), ("created_at", -1)],
+            name="ix_fl_project_number_created_at",
+        )
+        await db.field_leadership_records.create_index(
+            [("employee_name", 1), ("created_at", -1)],
+            name="ix_fl_employee_name_created_at",
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[field-leadership] index ensure failed: {exc}")
+
+
 def _time_off_stats_kpi_metadata() -> Dict[str, Any]:
     return {
         "kpi_name": "HR Time-Off Queue",

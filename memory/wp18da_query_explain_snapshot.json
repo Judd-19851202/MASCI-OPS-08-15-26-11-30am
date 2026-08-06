@@ -1,0 +1,229 @@
+{
+  "job_hazard_files_public_grouped": {
+    "collection": "job_hazard_files",
+    "nReturned": 2,
+    "executionTimeMillis": 3,
+    "totalDocsExamined": 2,
+    "totalKeysExamined": 2,
+    "winningPlanStage": "LIMIT",
+    "winningPlan": {
+      "isCached": false,
+      "stage": "LIMIT",
+      "limitAmount": 25,
+      "inputStage": {
+        "stage": "FETCH",
+        "inputStage": {
+          "stage": "IXSCAN",
+          "keyPattern": {
+            "project_number": 1,
+            "uploaded_at": 1
+          },
+          "indexName": "project_number_1_uploaded_at_1",
+          "isMultiKey": false,
+          "multiKeyPaths": {
+            "project_number": [],
+            "uploaded_at": []
+          },
+          "isUnique": false,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "backward",
+          "indexBounds": {
+            "project_number": [
+              "[\"25-12\", \"25-12\"]"
+            ],
+            "uploaded_at": [
+              "[MaxKey, MinKey]"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "po_requests_vendor_filter": {
+    "collection": "po_requests",
+    "nReturned": 1,
+    "executionTimeMillis": 9,
+    "totalDocsExamined": 1,
+    "totalKeysExamined": 1,
+    "winningPlanStage": "SORT",
+    "winningPlan": {
+      "isCached": false,
+      "stage": "SORT",
+      "sortPattern": {
+        "created_at": -1
+      },
+      "memLimit": 104857600,
+      "limitAmount": 25,
+      "type": "simple",
+      "inputStage": {
+        "stage": "FETCH",
+        "inputStage": {
+          "stage": "IXSCAN",
+          "keyPattern": {
+            "vendor": 1
+          },
+          "indexName": "vendor_1",
+          "isMultiKey": false,
+          "multiKeyPaths": {
+            "vendor": []
+          },
+          "isUnique": false,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "vendor": [
+              "[\"WP18CZ2 Vendor\", \"WP18CZ2 Vendor\"]"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "safety_issuances_employee_filter": {
+    "collection": "safety_equipment_issuances",
+    "nReturned": 1,
+    "executionTimeMillis": 0,
+    "totalDocsExamined": 50,
+    "totalKeysExamined": 0,
+    "winningPlanStage": "SORT",
+    "winningPlan": {
+      "isCached": false,
+      "stage": "SORT",
+      "sortPattern": {
+        "issued_date": -1
+      },
+      "memLimit": 104857600,
+      "limitAmount": 25,
+      "type": "simple",
+      "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+          "employee_email": {
+            "$eq": "wp18cz2-safety@masci.local"
+          }
+        },
+        "direction": "forward"
+      }
+    }
+  },
+  "safety_trainings_employee_filter": {
+    "collection": "safety_equipment_trainings",
+    "nReturned": 1,
+    "executionTimeMillis": 0,
+    "totalDocsExamined": 40,
+    "totalKeysExamined": 0,
+    "winningPlanStage": "SORT",
+    "winningPlan": {
+      "isCached": false,
+      "stage": "SORT",
+      "sortPattern": {
+        "training_date": -1
+      },
+      "memLimit": 104857600,
+      "limitAmount": 25,
+      "type": "simple",
+      "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+          "employee_email": {
+            "$eq": "wp18cz2-safety@masci.local"
+          }
+        },
+        "direction": "forward"
+      }
+    }
+  },
+  "field_leadership_project_filter": {
+    "collection": "field_leadership_records",
+    "nReturned": 4,
+    "executionTimeMillis": 1,
+    "totalDocsExamined": 444,
+    "totalKeysExamined": 0,
+    "winningPlanStage": "SORT",
+    "winningPlan": {
+      "isCached": false,
+      "stage": "SORT",
+      "sortPattern": {
+        "created_at": -1
+      },
+      "memLimit": 104857600,
+      "limitAmount": 25,
+      "type": "simple",
+      "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+          "project_number": {
+            "$regex": "^WP18CZ2-PJ-"
+          }
+        },
+        "direction": "forward"
+      }
+    }
+  },
+  "job_photos_warm_failure_filter": {
+    "collection": "job_photos",
+    "nReturned": 25,
+    "executionTimeMillis": 3,
+    "totalDocsExamined": 25,
+    "totalKeysExamined": 25,
+    "winningPlanStage": "SUBPLAN",
+    "winningPlan": {
+      "isCached": false,
+      "stage": "SUBPLAN",
+      "inputStage": {
+        "stage": "LIMIT",
+        "limitAmount": 25,
+        "inputStage": {
+          "stage": "FETCH",
+          "filter": {
+            "$or": [
+              {
+                "thumb_warm_last_failed_at": {
+                  "$not": {
+                    "$exists": true
+                  }
+                }
+              },
+              {
+                "thumb_warm_last_failed_at": {
+                  "$eq": null
+                }
+              },
+              {
+                "thumb_warm_last_failed_at": {
+                  "$lt": "9999"
+                }
+              }
+            ]
+          },
+          "inputStage": {
+            "stage": "IXSCAN",
+            "keyPattern": {
+              "thumb_warm_last_failed_at": 1
+            },
+            "indexName": "ix_job_photos_thumb_warm_last_failed_at",
+            "isMultiKey": false,
+            "multiKeyPaths": {
+              "thumb_warm_last_failed_at": []
+            },
+            "isUnique": false,
+            "isSparse": false,
+            "isPartial": false,
+            "indexVersion": 2,
+            "direction": "forward",
+            "indexBounds": {
+              "thumb_warm_last_failed_at": [
+                "[null, null]",
+                "[\"\", \"9999\")"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

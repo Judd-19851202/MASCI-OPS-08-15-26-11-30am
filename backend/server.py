@@ -589,6 +589,15 @@ async def _bootstrap_runtime_db() -> None:
         raise
 
 
+@register_lifecycle_step("runtime-indexes", name="_ensure_wp18da_runtime_indexes")
+async def _ensure_wp18da_runtime_indexes() -> None:
+    runtime_db = db.get_target()
+    if runtime_db is None:
+        raise RuntimeConfigError("Runtime database unavailable for index bootstrap")
+    await ensure_safety_forms_indexes(runtime_db)
+    await _ensure_field_leadership_indexes(runtime_db)
+
+
 # ------------------------- Admin auth -------------------------
 # Simple shared-password gate. The "token" returned to the client is a
 # deterministic HMAC(password, server-secret) so the password itself never
@@ -14133,7 +14142,7 @@ _date_audit_router = build_date_audit_router(db, require_admin_strict)
 app.include_router(_date_audit_router)
 
 # ------------------------- Safety Forms (Equipment Issuance + Training) -------------------------
-from routes.safety_forms import build_safety_forms_router  # noqa: E402
+from routes.safety_forms import build_safety_forms_router, ensure_safety_forms_indexes  # noqa: E402
 
 _safety_forms_router = build_safety_forms_router(
     db, _is_valid_admin_token, _is_valid_directory_admin_token_async,
@@ -14204,7 +14213,7 @@ _attach_job_photos_routes(app, db, require_admin, _job_photos_send_email)
 # ============================================================
 # Field Leadership routes — supervisor docs (write-ups, coaching, etc.)
 # ============================================================
-from routes.field_leadership import attach_routes as _attach_field_leadership_routes, seed_equipment_defaults as _seed_field_leadership_equipment  # noqa: E402
+from routes.field_leadership import attach_routes as _attach_field_leadership_routes, seed_equipment_defaults as _seed_field_leadership_equipment, ensure_field_leadership_indexes as _ensure_field_leadership_indexes  # noqa: E402
 from field_leadership_pdf import render_field_leadership_pdf as _render_field_leadership_pdf  # noqa: E402
 
 

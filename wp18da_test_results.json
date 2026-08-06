@@ -1,0 +1,95 @@
+{
+  "test_suite": "WP-18DA Backend/Resilience Verification",
+  "timestamp": "2026-08-06T09:35:49.178192+00:00",
+  "tests": [
+    {
+      "name": "1.1 /api/health endpoint",
+      "status": "PASS",
+      "details": "Status: unknown, Ready: False",
+      "timestamp": "2026-08-06T09:35:49.373881+00:00",
+      "latency_ms": 195.37
+    },
+    {
+      "name": "1.2 /api/version endpoint",
+      "status": "PASS",
+      "details": "Version: unknown, Source: 0ebe2592",
+      "timestamp": "2026-08-06T09:35:49.506681+00:00",
+      "latency_ms": 132.69
+    },
+    {
+      "name": "1.3 /api/job-hazard-files/public/grouped",
+      "status": "PASS",
+      "details": "Groups: 1",
+      "timestamp": "2026-08-06T09:35:49.648510+00:00",
+      "latency_ms": 141.75
+    },
+    {
+      "name": "2. Scheduler reliability",
+      "status": "PASS",
+      "details": "Singleton scheduler working correctly. Lock acquisitions: 24, Heartbeat failures: 0. No MongoClient close errors in current runtime.",
+      "timestamp": "2026-08-06T09:35:49.658531+00:00"
+    },
+    {
+      "name": "3.1 Safety issuances index",
+      "status": "PASS",
+      "details": "Index: ix_safety_issuances_employee_email_issued_date, Docs: 1, Keys: 1",
+      "timestamp": "2026-08-06T09:35:49.658659+00:00"
+    },
+    {
+      "name": "3.2 Safety trainings index",
+      "status": "PASS",
+      "details": "Index: ix_safety_trainings_employee_email_training_date, Docs: 1, Keys: 1",
+      "timestamp": "2026-08-06T09:35:49.658672+00:00"
+    },
+    {
+      "name": "3.3 Field leadership index",
+      "status": "PASS",
+      "details": "Index: ix_fl_project_number_created_at, Docs: 4, Keys: 4",
+      "timestamp": "2026-08-06T09:35:49.658679+00:00"
+    },
+    {
+      "name": "4. Latency: Health check",
+      "status": "PASS",
+      "details": "Endpoint: /health",
+      "timestamp": "2026-08-06T09:35:49.762315+00:00",
+      "latency_ms": 103.62
+    },
+    {
+      "name": "4. Latency: Version info",
+      "status": "PASS",
+      "details": "Endpoint: /version",
+      "timestamp": "2026-08-06T09:35:49.868032+00:00",
+      "latency_ms": 105.66
+    },
+    {
+      "name": "4. Latency: Public data",
+      "status": "WARNING",
+      "details": "Endpoint: /job-hazard-files/public/grouped",
+      "timestamp": "2026-08-06T09:35:50.074548+00:00",
+      "latency_ms": 206.48
+    },
+    {
+      "name": "5.1 PDF endpoint",
+      "status": "WARNING",
+      "details": "PDF endpoints require authentication - cannot test without credentials",
+      "timestamp": "2026-08-06T09:35:50.174835+00:00"
+    },
+    {
+      "name": "5.2 Export endpoint",
+      "status": "WARNING",
+      "details": "Export endpoints require authentication - cannot test without credentials",
+      "timestamp": "2026-08-06T09:35:50.280235+00:00"
+    },
+    {
+      "name": "6. Deployment readiness",
+      "status": "PASS",
+      "details": "No deployment blockers detected",
+      "timestamp": "2026-08-06T09:35:50.505638+00:00"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "warnings": 3
+  }
+}

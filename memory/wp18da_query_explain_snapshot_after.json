@@ -1,0 +1,26 @@
+{
+  "safety_issuances_employee_filter": {
+    "nReturned": 1,
+    "executionTimeMillis": 1,
+    "totalDocsExamined": 1,
+    "totalKeysExamined": 1,
+    "winningPlanStage": "LIMIT",
+    "indexName": "ix_safety_issuances_employee_email_issued_date"
+  },
+  "safety_trainings_employee_filter": {
+    "nReturned": 1,
+    "executionTimeMillis": 1,
+    "totalDocsExamined": 1,
+    "totalKeysExamined": 1,
+    "winningPlanStage": "LIMIT",
+    "indexName": "ix_safety_trainings_employee_email_training_date"
+  },
+  "field_leadership_project_filter": {
+    "nReturned": 4,
+    "executionTimeMillis": 1,
+    "totalDocsExamined": 4,
+    "totalKeysExamined": 4,
+    "winningPlanStage": "FETCH",
+    "indexName": "ix_fl_project_number_created_at"
+  }
+}

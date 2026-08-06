@@ -85,6 +85,28 @@ except Exception:  # noqa: BLE001
 logger = logging.getLogger("safety_forms")
 
 
+async def ensure_safety_forms_indexes(db) -> None:
+    try:
+        await db.safety_equipment_issuances.create_index(
+            [("employee_email", 1), ("issued_date", -1)],
+            name="ix_safety_issuances_employee_email_issued_date",
+        )
+        await db.safety_equipment_issuances.create_index(
+            [("project_number", 1), ("issued_date", -1)],
+            name="ix_safety_issuances_project_number_issued_date",
+        )
+        await db.safety_equipment_trainings.create_index(
+            [("employee_email", 1), ("training_date", -1)],
+            name="ix_safety_trainings_employee_email_training_date",
+        )
+        await db.safety_equipment_trainings.create_index(
+            [("project_number", 1), ("training_date", -1)],
+            name="ix_safety_trainings_project_number_training_date",
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[safety-forms] index ensure failed: {exc}")
+
+
 # ─────────────────────────────────────────────────────────────────────
 # Auth helpers
 # ─────────────────────────────────────────────────────────────────────

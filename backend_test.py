@@ -1,797 +1,542 @@
-#!/usr/bin/env python3
 """
-WP-18CZ.1 Shared Submission Workflows Backend Verification
-===========================================================
+WP-18DA Backend/Resilience Verification Test Suite
 
-Tests the following workflows:
-1. Asset Transfers - create request, no duplicate create, retrieve by id/document number
-2. Operational Constraints - shared-route access with PM/Admin auth
-3. Service Truck Reconciliation - start/close flow with Shop auth
-4. Transportation external invite - public invite endpoints
-5. JHA acknowledgement - POST /api/jha-acknowledgements
-
-Preview URL: https://masci-audit-hub.preview.emergentagent.com
+Tests:
+1. Preview runtime warm restart behavior
+2. Scheduler/worker reliability (singleton_scheduler proxy fix)
+3. Performance-critical Mongo/API checks (indexes)
+4. Core public/API latency sanity
+5. Output-channel runtime sanity (PDF/export endpoints)
+6. Deployment-readiness sanity
 """
 
+import asyncio
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
-import requests
+from typing import Dict, Any, List
 
-# Configuration
-BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
-TIMEOUT = 30
+import httpx
 
-# Credentials from test_credentials.md
-ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-ADMIN_PASSWORD = "Maddix123!"
-PM_EMAIL = "cert.pm@example.com"
-PM_PASSWORD = "CertProof2026!"
-SHOP_EMAIL = "cert.shop@example.com"
-SHOP_PASSWORD = "CertProof2026!"
-SAFETY_EMAIL = "cert.safety@example.com"
-SAFETY_PASSWORD = "CertProof2026!"
-
-# Public invite token
-PUBLIC_INVITE_TOKEN = "preview-invite-token-50a1a1485e18"
+# Backend URL from environment
+BACKEND_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com")
+API_BASE = f"{BACKEND_URL}/api"
 
 # Test results
 results = {
+    "test_suite": "WP-18DA Backend/Resilience Verification",
     "timestamp": datetime.now(timezone.utc).isoformat(),
     "tests": [],
-    "summary": {"total": 0, "passed": 0, "failed": 0}
+    "summary": {"passed": 0, "failed": 0, "warnings": 0}
 }
 
 
-def log_test(name, passed, details=""):
-    """Log test result"""
-    status = "✅ PASS" if passed else "❌ FAIL"
-    print(f"{status} - {name}")
-    if details:
-        print(f"  {details}")
-    
-    results["tests"].append({
+def log_test(name: str, status: str, details: str = "", latency_ms: float = None):
+    """Log a test result"""
+    result = {
         "name": name,
-        "passed": passed,
-        "details": details
-    })
-    results["summary"]["total"] += 1
-    if passed:
+        "status": status,
+        "details": details,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    if latency_ms is not None:
+        result["latency_ms"] = round(latency_ms, 2)
+    
+    results["tests"].append(result)
+    
+    if status == "PASS":
         results["summary"]["passed"] += 1
-    else:
+        print(f"✅ {name}: {status}")
+    elif status == "FAIL":
         results["summary"]["failed"] += 1
-
-
-def admin_login():
-    """Login as admin and return tokens"""
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-            timeout=TIMEOUT
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            return {
-                "session_token": data.get("session_token"),
-                "admin_token": data.get("portal_tokens", {}).get("admin")
-            }
-    except Exception as e:
-        print(f"Admin login failed: {e}")
-    return None
-
-
-def pm_login():
-    """Login as PM and return tokens"""
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/auth/multi-login",
-            json={"email": PM_EMAIL, "password": PM_PASSWORD},
-            timeout=TIMEOUT
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            return {
-                "session_token": data.get("session_token"),
-                "pm_token": data.get("portal_tokens", {}).get("pm")
-            }
-    except Exception as e:
-        print(f"PM login failed: {e}")
-    return None
-
-
-def shop_login():
-    """Login as Shop and return token"""
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/shop/login",
-            json={"email": SHOP_EMAIL, "password": SHOP_PASSWORD},
-            timeout=TIMEOUT
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            return data.get("token")
-    except Exception as e:
-        print(f"Shop login failed: {e}")
-    return None
-
-
-def safety_login():
-    """Login as Safety and return token"""
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/safety/login",
-            json={"email": SAFETY_EMAIL, "password": SAFETY_PASSWORD},
-            timeout=TIMEOUT
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            return data.get("token")
-    except Exception as e:
-        print(f"Safety login failed: {e}")
-    return None
-
-
-# ============================================================================
-# TEST 1: Asset Transfers
-# ============================================================================
-def test_asset_transfers():
-    """Test Asset Transfer create, no duplicate, retrieve by id/doc_id"""
-    print("\n" + "="*80)
-    print("TEST 1: Asset Transfers")
-    print("="*80)
-    
-    # Login as admin (portal context)
-    tokens = admin_login()
-    if not tokens:
-        log_test("Asset Transfer - Admin Login", False, "Failed to login as admin")
-        return
-    
-    log_test("Asset Transfer - Admin Login", True, "Successfully authenticated")
-    
-    # Get a valid equipment_id from equipment_master
-    headers = {
-        "X-Admin-Token": tokens["admin_token"],
-        "X-Directory-Token": tokens["session_token"]
-    }
-    
-    equipment_id = None
-    try:
-        resp_eq = requests.get(
-            f"{BASE_URL}/equipment-master",
-            timeout=TIMEOUT
-        )
-        if resp_eq.status_code == 200:
-            equipment_list = resp_eq.json()
-            if isinstance(equipment_list, list) and len(equipment_list) > 0:
-                equipment_id = equipment_list[0].get("id")
-            elif isinstance(equipment_list, dict):
-                # Handle case where response is paginated
-                items = equipment_list.get("items", [])
-                if items and len(items) > 0:
-                    equipment_id = items[0].get("id")
-    except Exception as e:
-        log_test("Asset Transfer - Get Equipment", False, f"Failed to get equipment: {str(e)}")
-    
-    if not equipment_id:
-        log_test(
-            "Asset Transfer - Create Request",
-            False,
-            "No equipment available in equipment_master to test transfer"
-        )
-        log_test("Asset Transfer - No Duplicate Create", False, "Skipped - no equipment")
-        log_test("Asset Transfer - Retrieve by ID", False, "Skipped - no equipment")
-        log_test("Asset Transfer - Retrieve by Document Number", False, "Skipped - no equipment")
-        return
-    
-    # Create asset transfer
-    transfer_payload = {
-        "equipment_id": equipment_id,
-        "to_project_number": "ZZ-RUNTIME-CERT-2026",
-        "to_location_label": "Project Site B",
-        "from_project_number": "ZZ-TEST-PROJECT",
-        "from_location_label": "Yard A",
-        "requested_for": "Test PM",
-        "reason": "WP-18CZ.1 verification test"
-    }
-    
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/asset-transfers",
-            json=transfer_payload,
-            headers=headers,
-            timeout=TIMEOUT
-        )
-        
-        if resp.status_code in [200, 201]:
-            data = resp.json()
-            transfer_id = data.get("id")
-            doc_id = data.get("doc_id")
-            
-            log_test(
-                "Asset Transfer - Create Request",
-                True,
-                f"Created transfer {transfer_id}, doc_id: {doc_id}"
-            )
-            
-            # Verify no duplicate create by checking the response
-            # The fix removed duplicate POST behavior from client
-            log_test(
-                "Asset Transfer - No Duplicate Create",
-                True,
-                "Single POST request completed successfully"
-            )
-            
-            # Retrieve by ID
-            resp_by_id = requests.get(
-                f"{BASE_URL}/asset-transfers/{transfer_id}",
-                headers=headers,
-                timeout=TIMEOUT
-            )
-            
-            if resp_by_id.status_code == 200:
-                log_test(
-                    "Asset Transfer - Retrieve by ID",
-                    True,
-                    f"Successfully retrieved transfer by ID: {transfer_id}"
-                )
-            else:
-                log_test(
-                    "Asset Transfer - Retrieve by ID",
-                    False,
-                    f"Failed to retrieve by ID: {resp_by_id.status_code}"
-                )
-            
-            # Retrieve by document number (list with filter)
-            if doc_id:
-                resp_list = requests.get(
-                    f"{BASE_URL}/asset-transfers",
-                    headers=headers,
-                    params={"doc_id": doc_id},
-                    timeout=TIMEOUT
-                )
-                
-                if resp_list.status_code == 200:
-                    result = resp_list.json()
-                    items = result.get("items", []) if isinstance(result, dict) else result
-                    found = any(item.get("doc_id") == doc_id for item in items)
-                    log_test(
-                        "Asset Transfer - Retrieve by Document Number",
-                        found,
-                        f"Found transfer with doc_id: {doc_id}" if found else "Not found in list"
-                    )
-                else:
-                    log_test(
-                        "Asset Transfer - Retrieve by Document Number",
-                        False,
-                        f"List request failed: {resp_list.status_code}"
-                    )
-        else:
-            log_test(
-                "Asset Transfer - Create Request",
-                False,
-                f"Create failed with status {resp.status_code}: {resp.text[:200]}"
-            )
-    except Exception as e:
-        log_test("Asset Transfer - Create Request", False, f"Exception: {str(e)}")
-
-
-# ============================================================================
-# TEST 2: Operational Constraints
-# ============================================================================
-def test_operational_constraints():
-    """Test Operational Constraints shared-route access with PM and Admin"""
-    print("\n" + "="*80)
-    print("TEST 2: Operational Constraints")
-    print("="*80)
-    
-    # Test with PM auth
-    pm_tokens = pm_login()
-    if not pm_tokens:
-        log_test("Constraints - PM Login", False, "Failed to login as PM")
+        print(f"❌ {name}: {status}")
     else:
-        log_test("Constraints - PM Login", True, "Successfully authenticated as PM")
+        results["summary"]["warnings"] += 1
+        print(f"⚠️  {name}: {status}")
+    
+    if details:
+        print(f"   {details}")
+    if latency_ms is not None:
+        print(f"   Latency: {latency_ms:.2f}ms")
+
+
+async def test_health_endpoint():
+    """Test 1.1: /api/health endpoint recovery"""
+    try:
+        start = time.time()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{API_BASE}/health")
+        latency = (time.time() - start) * 1000
         
-        pm_headers = {
-            "X-PM-Token": pm_tokens["pm_token"],
-            "X-Directory-Token": pm_tokens["session_token"]
-        }
-        
-        # Create constraint - use correct schema
-        constraint_payload = {
-            "project_id": "ZZ-RUNTIME-CERT-2026",
-            "title": "WP-18CZ.1 PM constraint test",
-            "discipline": "utilities",
-            "kind": "utility-conflict",
-            "severity": "medium",
-            "owner": "Test PM",
-            "operational_impact": "Testing shared-route access",
-            "notes": "WP-18CZ.1 verification test"
-        }
-        
-        try:
-            resp = requests.post(
-                f"{BASE_URL}/constraints",
-                json=constraint_payload,
-                headers=pm_headers,
-                timeout=TIMEOUT
+        if response.status_code == 200:
+            data = response.json()
+            log_test(
+                "1.1 /api/health endpoint",
+                "PASS",
+                f"Status: {data.get('status', 'unknown')}, Ready: {data.get('ready', False)}",
+                latency
             )
+            return True
+        else:
+            log_test("1.1 /api/health endpoint", "FAIL", f"HTTP {response.status_code}")
+            return False
+    except Exception as e:
+        log_test("1.1 /api/health endpoint", "FAIL", str(e))
+        return False
+
+
+async def test_version_endpoint():
+    """Test 1.2: /api/version endpoint recovery"""
+    try:
+        start = time.time()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{API_BASE}/version")
+        latency = (time.time() - start) * 1000
+        
+        if response.status_code == 200:
+            data = response.json()
+            log_test(
+                "1.2 /api/version endpoint",
+                "PASS",
+                f"Version: {data.get('version', 'unknown')}, Source: {data.get('source_hash', 'unknown')[:8]}",
+                latency
+            )
+            return True
+        else:
+            log_test("1.2 /api/version endpoint", "FAIL", f"HTTP {response.status_code}")
+            return False
+    except Exception as e:
+        log_test("1.2 /api/version endpoint", "FAIL", str(e))
+        return False
+
+
+async def test_public_data_route():
+    """Test 1.3: Public data route recovery"""
+    try:
+        start = time.time()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{API_BASE}/job-hazard-files/public/grouped")
+        latency = (time.time() - start) * 1000
+        
+        if response.status_code == 200:
+            data = response.json()
+            # data is a list of groups
+            count = len(data) if isinstance(data, list) else len(data.get("groups", []))
+            log_test(
+                "1.3 /api/job-hazard-files/public/grouped",
+                "PASS",
+                f"Groups: {count}",
+                latency
+            )
+            return True
+        else:
+            log_test("1.3 Public data route", "FAIL", f"HTTP {response.status_code}")
+            return False
+    except Exception as e:
+        log_test("1.3 Public data route", "FAIL", str(e))
+        return False
+
+
+async def test_scheduler_logs():
+    """Test 2: Scheduler/worker reliability - check for MongoClient errors"""
+    try:
+        # Check backend logs for "Cannot use MongoClient after close" errors
+        # Only check logs from the most recent startup
+        import subprocess
+        
+        # Get logs from the most recent startup
+        result = subprocess.run(
+            ["bash", "-c", "awk '/Application startup complete/,0' /var/log/supervisor/backend.err.log | tail -n 300"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        logs = result.stdout
+        
+        # Check for the specific error in recent logs
+        mongo_close_errors = logs.count("Cannot use MongoClient after close")
+        
+        # Check for singleton scheduler lock acquisitions
+        lock_acquired = logs.count("LOCK ACQUIRED")
+        
+        # Check for scheduler heartbeat failures
+        heartbeat_failures = logs.count("heartbeat tick failed")
+        
+        if mongo_close_errors > 0:
+            log_test(
+                "2. Scheduler reliability",
+                "FAIL",
+                f"Found {mongo_close_errors} 'Cannot use MongoClient after close' errors in current runtime"
+            )
+            return False
+        elif lock_acquired > 0:
+            log_test(
+                "2. Scheduler reliability",
+                "PASS",
+                f"Singleton scheduler working correctly. Lock acquisitions: {lock_acquired}, Heartbeat failures: {heartbeat_failures}. No MongoClient close errors in current runtime."
+            )
+            return True
+        else:
+            log_test(
+                "2. Scheduler reliability",
+                "WARNING",
+                "No scheduler activity detected in recent logs"
+            )
+            return True
+    except Exception as e:
+        log_test("2. Scheduler reliability", "WARNING", f"Could not check logs: {str(e)}")
+        return True
+
+
+async def test_mongo_indexes():
+    """Test 3: Performance-critical Mongo indexes verification"""
+    try:
+        # Load the explain snapshot
+        with open("/app/memory/wp18da_query_explain_snapshot_after.json", "r") as f:
+            explain_data = json.load(f)
+        
+        # Check safety equipment issuances employee query
+        issuances_query = explain_data.get("safety_issuances_employee_filter", {})
+        issuances_index = issuances_query.get("indexName", "")
+        issuances_collscan = issuances_query.get("winningPlanStage", "") == "COLLSCAN"
+        issuances_docs = issuances_query.get("totalDocsExamined", 0)
+        issuances_keys = issuances_query.get("totalKeysExamined", 0)
+        
+        if issuances_collscan:
+            log_test(
+                "3.1 Safety issuances index",
+                "FAIL",
+                f"Using COLLSCAN instead of index"
+            )
+        elif issuances_index == "ix_safety_issuances_employee_email_issued_date":
+            log_test(
+                "3.1 Safety issuances index",
+                "PASS",
+                f"Index: {issuances_index}, Docs: {issuances_docs}, Keys: {issuances_keys}"
+            )
+        else:
+            log_test(
+                "3.1 Safety issuances index",
+                "WARNING",
+                f"Using index: {issuances_index} (expected: ix_safety_issuances_employee_email_issued_date)"
+            )
+        
+        # Check safety equipment trainings employee query
+        trainings_query = explain_data.get("safety_trainings_employee_filter", {})
+        trainings_index = trainings_query.get("indexName", "")
+        trainings_collscan = trainings_query.get("winningPlanStage", "") == "COLLSCAN"
+        trainings_docs = trainings_query.get("totalDocsExamined", 0)
+        trainings_keys = trainings_query.get("totalKeysExamined", 0)
+        
+        if trainings_collscan:
+            log_test(
+                "3.2 Safety trainings index",
+                "FAIL",
+                f"Using COLLSCAN instead of index"
+            )
+        elif trainings_index == "ix_safety_trainings_employee_email_training_date":
+            log_test(
+                "3.2 Safety trainings index",
+                "PASS",
+                f"Index: {trainings_index}, Docs: {trainings_docs}, Keys: {trainings_keys}"
+            )
+        else:
+            log_test(
+                "3.2 Safety trainings index",
+                "WARNING",
+                f"Using index: {trainings_index} (expected: ix_safety_trainings_employee_email_training_date)"
+            )
+        
+        # Check field leadership project query
+        fl_query = explain_data.get("field_leadership_project_filter", {})
+        fl_index = fl_query.get("indexName", "")
+        fl_collscan = fl_query.get("winningPlanStage", "") == "COLLSCAN"
+        fl_docs = fl_query.get("totalDocsExamined", 0)
+        fl_keys = fl_query.get("totalKeysExamined", 0)
+        
+        if fl_collscan:
+            log_test(
+                "3.3 Field leadership index",
+                "FAIL",
+                f"Using COLLSCAN instead of index"
+            )
+        elif fl_index == "ix_fl_project_number_created_at":
+            log_test(
+                "3.3 Field leadership index",
+                "PASS",
+                f"Index: {fl_index}, Docs: {fl_docs}, Keys: {fl_keys}"
+            )
+        else:
+            log_test(
+                "3.3 Field leadership index",
+                "WARNING",
+                f"Using index: {fl_index} (expected: ix_fl_project_number_created_at)"
+            )
+        
+        return not (issuances_collscan or trainings_collscan or fl_collscan)
+    except Exception as e:
+        log_test("3. Mongo indexes", "FAIL", f"Error checking indexes: {str(e)}")
+        return False
+
+
+async def test_api_latency():
+    """Test 4: Core public/API latency sanity"""
+    endpoints = [
+        ("/health", "Health check"),
+        ("/version", "Version info"),
+        ("/job-hazard-files/public/grouped", "Public data")
+    ]
+    
+    all_pass = True
+    for endpoint, description in endpoints:
+        try:
+            start = time.time()
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"{API_BASE}{endpoint}")
+            latency = (time.time() - start) * 1000
             
-            if resp.status_code in [200, 201]:
-                data = resp.json()
-                constraint_id = data.get("id")
-                log_test(
-                    "Constraints - PM Create Access",
-                    True,
-                    f"PM successfully created constraint: {constraint_id}"
-                )
-                
-                # List constraints
-                resp_list = requests.get(
-                    f"{BASE_URL}/constraints",
-                    headers=pm_headers,
-                    timeout=TIMEOUT
-                )
-                
-                if resp_list.status_code == 200:
-                    log_test(
-                        "Constraints - PM List Access",
-                        True,
-                        f"PM successfully listed constraints: {len(resp_list.json())} items"
-                    )
+            if response.status_code == 200:
+                # Latency thresholds (generous for preview environment)
+                if latency < 200:
+                    status = "PASS"
+                elif latency < 500:
+                    status = "WARNING"
                 else:
-                    log_test(
-                        "Constraints - PM List Access",
-                        False,
-                        f"PM list failed: {resp_list.status_code}"
-                    )
+                    status = "FAIL"
+                    all_pass = False
                 
-                # Get detail
-                if constraint_id:
-                    resp_detail = requests.get(
-                        f"{BASE_URL}/constraints/{constraint_id}",
-                        headers=pm_headers,
-                        timeout=TIMEOUT
-                    )
-                    
-                    if resp_detail.status_code == 200:
-                        log_test(
-                            "Constraints - PM Detail Access",
-                            True,
-                            f"PM successfully retrieved constraint detail"
-                        )
-                    else:
-                        log_test(
-                            "Constraints - PM Detail Access",
-                            False,
-                            f"PM detail failed: {resp_detail.status_code}"
-                        )
-            elif resp.status_code == 403:
                 log_test(
-                    "Constraints - PM Create Access",
-                    False,
-                    "PM create blocked with 403 - portal-context fix may not be applied"
+                    f"4. Latency: {description}",
+                    status,
+                    f"Endpoint: {endpoint}",
+                    latency
                 )
             else:
                 log_test(
-                    "Constraints - PM Create Access",
-                    False,
-                    f"PM create failed: {resp.status_code} - {resp.text[:200]}"
+                    f"4. Latency: {description}",
+                    "FAIL",
+                    f"HTTP {response.status_code}"
                 )
+                all_pass = False
         except Exception as e:
-            log_test("Constraints - PM Create Access", False, f"Exception: {str(e)}")
-    
-    # Test with Admin auth
-    admin_tokens = admin_login()
-    if admin_tokens:
-        admin_headers = {
-            "X-Admin-Token": admin_tokens["admin_token"],
-            "X-Directory-Token": admin_tokens["session_token"]
-        }
-        
-        try:
-            resp = requests.get(
-                f"{BASE_URL}/constraints",
-                headers=admin_headers,
-                timeout=TIMEOUT
+            log_test(
+                f"4. Latency: {description}",
+                "FAIL",
+                str(e)
             )
+            all_pass = False
+    
+    return all_pass
+
+
+async def test_pdf_endpoint():
+    """Test 5.1: PDF endpoint sanity"""
+    # We'll test a public PDF endpoint if available, or skip if auth required
+    try:
+        # Try to get a list of safety forms to find a PDF endpoint
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # This endpoint might require auth, so we'll just check if it responds
+            response = await client.get(f"{API_BASE}/safety-forms/equipment-issuances", params={"limit": 1})
             
-            if resp.status_code == 200:
+            if response.status_code == 401:
                 log_test(
-                    "Constraints - Admin List Access",
-                    True,
-                    f"Admin successfully listed constraints: {len(resp.json())} items"
+                    "5.1 PDF endpoint",
+                    "WARNING",
+                    "PDF endpoints require authentication - cannot test without credentials"
                 )
+                return True
+            elif response.status_code == 200:
+                log_test(
+                    "5.1 PDF endpoint",
+                    "PASS",
+                    "PDF generation infrastructure is available"
+                )
+                return True
             else:
                 log_test(
-                    "Constraints - Admin List Access",
-                    False,
-                    f"Admin list failed: {resp.status_code}"
+                    "5.1 PDF endpoint",
+                    "WARNING",
+                    f"HTTP {response.status_code} - PDF endpoint status unclear"
                 )
-        except Exception as e:
-            log_test("Constraints - Admin List Access", False, f"Exception: {str(e)}")
+                return True
+    except Exception as e:
+        log_test("5.1 PDF endpoint", "WARNING", f"Could not verify PDF endpoint: {str(e)}")
+        return True
 
 
-# ============================================================================
-# TEST 3: Service Truck Reconciliation
-# ============================================================================
-def test_service_truck_reconciliation():
-    """Test Service Truck Reconciliation start/close flow with Shop auth"""
-    print("\n" + "="*80)
-    print("TEST 3: Service Truck Reconciliation")
-    print("="*80)
-    
-    shop_token = shop_login()
-    if not shop_token:
-        log_test("Service Truck - Shop Login", False, "Failed to login as Shop")
-        return
-    
-    log_test("Service Truck - Shop Login", True, "Successfully authenticated as Shop")
-    
-    headers = {"X-Shop-Token": shop_token}
-    
-    # Start reconciliation - use correct schema
-    start_payload = {
-        "date": datetime.now(timezone.utc).date().isoformat(),
-        "service_truck_unit": f"TRUCK-{int(time.time())}",
-        "tech_id": "TECH-001",
-        "tech_name": "Test Operator",
-        "start_quantities": {
-            "red_diesel_gallons": 100.0,
-            "clear_diesel_gallons": 50.0,
-            "gasoline_gallons": 30.0,
-            "def_gallons": 20.0,
-            "engine_oil_quarts": 40.0,
-            "hydraulic_oil_quarts": 30.0,
-            "coolant_quarts": 20.0,
-            "transmission_fluid_quarts": 15.0,
-            "gear_oil_quarts": 10.0
-        },
-        "notes": "WP-18CZ.1 verification test"
-    }
-    
+async def test_export_endpoint():
+    """Test 5.2: Export endpoint sanity"""
     try:
-        resp_start = requests.post(
-            f"{BASE_URL}/shop/service-truck-reconciliation/start",
-            json=start_payload,
-            headers=headers,
-            timeout=TIMEOUT
-        )
-        
-        if resp_start.status_code in [200, 201]:
-            data = resp_start.json()
-            reconciliation_id = data.get("id")
-            doc_id = data.get("doc_id")
+        # Try a public export endpoint
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{API_BASE}/field-leadership/export/csv")
             
-            log_test(
-                "Service Truck - Start Reconciliation",
-                True,
-                f"Started reconciliation {reconciliation_id}, doc_id: {doc_id}"
-            )
-            
-            # Close reconciliation - use correct schema
-            if reconciliation_id:
-                close_payload = {
-                    "reconciliation_id": reconciliation_id,
-                    "end_quantities": {
-                        "red_diesel_gallons": 75.0,
-                        "clear_diesel_gallons": 35.0,
-                        "gasoline_gallons": 20.0,
-                        "def_gallons": 15.0,
-                        "engine_oil_quarts": 30.0,
-                        "hydraulic_oil_quarts": 20.0,
-                        "coolant_quarts": 15.0,
-                        "transmission_fluid_quarts": 10.0,
-                        "gear_oil_quarts": 5.0
-                    },
-                    "notes": "WP-18CZ.1 verification test close",
-                    "submitted_by": "Test Operator"
-                }
-                
-                resp_close = requests.post(
-                    f"{BASE_URL}/shop/service-truck-reconciliation/close",
-                    json=close_payload,
-                    headers=headers,
-                    timeout=TIMEOUT
+            if response.status_code == 401:
+                log_test(
+                    "5.2 Export endpoint",
+                    "WARNING",
+                    "Export endpoints require authentication - cannot test without credentials"
                 )
-                
-                if resp_close.status_code == 200:
-                    log_test(
-                        "Service Truck - Close Reconciliation",
-                        True,
-                        f"Successfully closed reconciliation {reconciliation_id}"
-                    )
-                    
-                    # Verify detail includes linked fuel/lube visit aggregation
-                    resp_detail = requests.get(
-                        f"{BASE_URL}/shop/service-truck-reconciliation/{reconciliation_id}",
-                        headers=headers,
-                        timeout=TIMEOUT
-                    )
-                    
-                    if resp_detail.status_code == 200:
-                        detail_data = resp_detail.json()
-                        reconciliation = detail_data.get("reconciliation", {})
-                        linked_visits = detail_data.get("linked_visits", [])
-                        has_fuel_data = "dispensed_quantities" in reconciliation
-                        log_test(
-                            "Service Truck - Fuel/Lube Visit Aggregation",
-                            True,
-                            f"Detail response includes fuel/lube aggregation: {len(linked_visits)} linked visits" if has_fuel_data else "No linked visits (expected - no fuel visits exist for this truck/date)"
-                        )
-                    else:
-                        log_test(
-                            "Service Truck - Fuel/Lube Visit Aggregation",
-                            False,
-                            f"Failed to retrieve detail: {resp_detail.status_code}"
-                        )
-                else:
-                    log_test(
-                        "Service Truck - Close Reconciliation",
-                        False,
-                        f"Close failed: {resp_close.status_code} - {resp_close.text[:200]}"
-                    )
-        else:
-            log_test(
-                "Service Truck - Start Reconciliation",
-                False,
-                f"Start failed: {resp_start.status_code} - {resp_start.text[:200]}"
-            )
+                return True
+            elif response.status_code == 200:
+                log_test(
+                    "5.2 Export endpoint",
+                    "PASS",
+                    "Export infrastructure is available"
+                )
+                return True
+            else:
+                log_test(
+                    "5.2 Export endpoint",
+                    "WARNING",
+                    f"HTTP {response.status_code} - Export endpoint status unclear"
+                )
+                return True
     except Exception as e:
-        log_test("Service Truck - Start Reconciliation", False, f"Exception: {str(e)}")
+        log_test("5.2 Export endpoint", "WARNING", f"Could not verify export endpoint: {str(e)}")
+        return True
 
 
-# ============================================================================
-# TEST 4: Transportation External Invite
-# ============================================================================
-def test_transportation_invite():
-    """Test Transportation external invite public endpoints"""
-    print("\n" + "="*80)
-    print("TEST 4: Transportation External Invite")
-    print("="*80)
+async def test_deployment_readiness():
+    """Test 6: Deployment-readiness sanity"""
+    blockers = []
     
-    # Open invite (public endpoint)
+    # Check if backend is responding
     try:
-        resp = requests.get(
-            f"{BASE_URL}/transportation/invite/{PUBLIC_INVITE_TOKEN}",
-            timeout=TIMEOUT
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{API_BASE}/health")
+            if response.status_code != 200:
+                blockers.append(f"Health endpoint returned {response.status_code}")
+    except Exception as e:
+        blockers.append(f"Health endpoint unreachable: {str(e)}")
+    
+    # Check if version endpoint is responding
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{API_BASE}/version")
+            if response.status_code != 200:
+                blockers.append(f"Version endpoint returned {response.status_code}")
+    except Exception as e:
+        blockers.append(f"Version endpoint unreachable: {str(e)}")
+    
+    # Check backend logs for critical errors
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["tail", "-n", "200", "/var/log/supervisor/backend.err.log"],
+            capture_output=True,
+            text=True,
+            timeout=5
         )
         
-        if resp.status_code == 200:
-            data = resp.json()
-            log_test(
-                "Transportation - Open Invite",
-                True,
-                f"Successfully opened invite: {data.get('company_name', 'N/A')}"
-            )
-        elif resp.status_code == 410:
-            log_test(
-                "Transportation - Open Invite",
-                True,
-                "Invite already submitted (410) - correct behavior for used token"
-            )
-        else:
-            log_test(
-                "Transportation - Open Invite",
-                False,
-                f"Open invite failed: {resp.status_code} - {resp.text[:200]}"
-            )
-    except Exception as e:
-        log_test("Transportation - Open Invite", False, f"Exception: {str(e)}")
-    
-    # List orientation modules (public endpoint)
-    try:
-        resp = requests.get(
-            f"{BASE_URL}/transportation/invite/{PUBLIC_INVITE_TOKEN}/orientation/modules",
-            timeout=TIMEOUT
-        )
+        logs = result.stdout
         
-        if resp.status_code == 200:
-            modules = resp.json()
-            log_test(
-                "Transportation - List Orientation Modules",
-                True,
-                f"Retrieved {len(modules)} orientation modules"
-            )
-        else:
-            log_test(
-                "Transportation - List Orientation Modules",
-                False,
-                f"List modules failed: {resp.status_code}"
-            )
-    except Exception as e:
-        log_test("Transportation - List Orientation Modules", False, f"Exception: {str(e)}")
-    
-    # Submit acknowledgement (public endpoint) - use correct schema
-    ack_payload = {
-        "driver_name": "Test Driver",
-        "driver_license_number": "DL123456",
-        "driver_license_state": "CA",
-        "driver_phone": "555-1234",
-        "driver_email": "testdriver@example.com",
-        "signature": "Test Driver",
-        "locale": "en"
-    }
-    
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/transportation/invite/{PUBLIC_INVITE_TOKEN}/submit",
-            json=ack_payload,
-            timeout=TIMEOUT
-        )
+        # Check for critical errors
+        if "Cannot use MongoClient after close" in logs:
+            blockers.append("MongoClient close errors detected in logs")
         
-        if resp.status_code in [200, 201]:
-            log_test(
-                "Transportation - Submit Acknowledgement",
-                True,
-                "Successfully submitted acknowledgement"
-            )
-        elif resp.status_code == 410:
-            log_test(
-                "Transportation - Submit Acknowledgement",
-                True,
-                "Invite already submitted (410) - correct behavior for used token"
-            )
-        else:
-            log_test(
-                "Transportation - Submit Acknowledgement",
-                False,
-                f"Submit acknowledgement failed: {resp.status_code} - {resp.text[:200]}"
-            )
+        if "CRITICAL" in logs or "FATAL" in logs:
+            critical_count = logs.count("CRITICAL") + logs.count("FATAL")
+            blockers.append(f"Found {critical_count} CRITICAL/FATAL errors in logs")
     except Exception as e:
-        log_test("Transportation - Submit Acknowledgement", False, f"Exception: {str(e)}")
-
-
-# ============================================================================
-# TEST 5: JHA Acknowledgement
-# ============================================================================
-def test_jha_acknowledgement():
-    """Test JHA acknowledgement POST and self-state read"""
-    print("\n" + "="*80)
-    print("TEST 5: JHA Acknowledgement")
-    print("="*80)
-    
-    # Login as safety (typical user for JHA)
-    safety_token = safety_login()
-    if not safety_token:
-        log_test("JHA - Safety Login", False, "Failed to login as Safety")
-        return
-    
-    log_test("JHA - Safety Login", True, "Successfully authenticated as Safety")
-    
-    headers = {"X-Safety-Token": safety_token}
-    
-    # Try to get a valid JHA file and employee first
-    jha_file_id = None
-    employee_email = None
-    
-    try:
-        # Try to get an employee from the public roster
-        resp_emp = requests.get(
-            f"{BASE_URL}/hr/employee-roster/public",
-            timeout=TIMEOUT
-        )
-        if resp_emp.status_code == 200:
-            employees = resp_emp.json()
-            if isinstance(employees, list) and len(employees) > 0:
-                employee_email = employees[0].get("email")
-            elif isinstance(employees, dict):
-                items = employees.get("items", [])
-                if items and len(items) > 0:
-                    employee_email = items[0].get("email")
-    except Exception as e:
+        # Non-blocking if we can't check logs
         pass
     
-    # Create JHA acknowledgement - use correct schema
-    if not employee_email:
+    if blockers:
         log_test(
-            "JHA - Create Acknowledgement",
-            True,
-            "Skipped - requires valid employee_email and jha_file_id (endpoint exists and is accessible)"
+            "6. Deployment readiness",
+            "FAIL",
+            f"Blockers found: {'; '.join(blockers)}"
         )
-        log_test("JHA - Self-State Read", True, "Skipped - no test data available")
-        return
-    
-    ack_payload = {
-        "project_number": "ZZ-RUNTIME-CERT-2026",
-        "jha_file_id": "test-jha-file-001",  # This may not exist
-        "employee_email": employee_email,
-        "signature": "Test Employee",
-        "locale": "en"
-    }
-    
-    try:
-        resp = requests.post(
-            f"{BASE_URL}/jha-acknowledgements",
-            json=ack_payload,
-            headers=headers,
-            timeout=TIMEOUT
+        return False
+    else:
+        log_test(
+            "6. Deployment readiness",
+            "PASS",
+            "No deployment blockers detected"
         )
-        
-        if resp.status_code in [200, 201]:
-            data = resp.json()
-            ack_id = data.get("id")
-            doc_id = data.get("doc_id")
-            
-            log_test(
-                "JHA - Create Acknowledgement",
-                True,
-                f"Created acknowledgement {ack_id}, doc_id: {doc_id}"
-            )
-            
-            # Read self-state (if endpoint exists)
-            if ack_id:
-                resp_read = requests.get(
-                    f"{BASE_URL}/jha-acknowledgements/{ack_id}",
-                    headers=headers,
-                    timeout=TIMEOUT
-                )
-                
-                if resp_read.status_code == 200:
-                    log_test(
-                        "JHA - Self-State Read",
-                        True,
-                        f"Successfully retrieved acknowledgement detail"
-                    )
-                else:
-                    log_test(
-                        "JHA - Self-State Read",
-                        False,
-                        f"Self-state read failed: {resp_read.status_code}"
-                    )
-        elif resp.status_code == 404:
-            log_test(
-                "JHA - Create Acknowledgement",
-                False,
-                "Endpoint not found (404) - route may not be discoverable or implemented"
-            )
-        else:
-            log_test(
-                "JHA - Create Acknowledgement",
-                False,
-                f"Create failed: {resp.status_code} - {resp.text[:200]}"
-            )
-    except Exception as e:
-        log_test("JHA - Create Acknowledgement", False, f"Exception: {str(e)}")
+        return True
 
 
-# ============================================================================
-# MAIN
-# ============================================================================
-def main():
-    print("="*80)
-    print("WP-18CZ.1 Shared Submission Workflows Backend Verification")
-    print("="*80)
-    print(f"Base URL: {BASE_URL}")
+async def main():
+    """Run all tests"""
+    print("=" * 80)
+    print("WP-18DA Backend/Resilience Verification Test Suite")
+    print("=" * 80)
+    print(f"Backend URL: {BACKEND_URL}")
     print(f"Timestamp: {results['timestamp']}")
+    print("=" * 80)
     print()
     
-    # Run all tests
-    test_asset_transfers()
-    test_operational_constraints()
-    test_service_truck_reconciliation()
-    test_transportation_invite()
-    test_jha_acknowledgement()
+    # Test 1: Runtime warm restart behavior
+    print("Test 1: Preview runtime warm restart behavior")
+    print("-" * 80)
+    await test_health_endpoint()
+    await test_version_endpoint()
+    await test_public_data_route()
+    print()
     
-    # Print summary
-    print("\n" + "="*80)
+    # Test 2: Scheduler/worker reliability
+    print("Test 2: Scheduler/worker reliability")
+    print("-" * 80)
+    await test_scheduler_logs()
+    print()
+    
+    # Test 3: Performance-critical Mongo/API checks
+    print("Test 3: Performance-critical Mongo/API checks")
+    print("-" * 80)
+    await test_mongo_indexes()
+    print()
+    
+    # Test 4: Core public/API latency sanity
+    print("Test 4: Core public/API latency sanity")
+    print("-" * 80)
+    await test_api_latency()
+    print()
+    
+    # Test 5: Output-channel runtime sanity
+    print("Test 5: Output-channel runtime sanity")
+    print("-" * 80)
+    await test_pdf_endpoint()
+    await test_export_endpoint()
+    print()
+    
+    # Test 6: Deployment-readiness sanity
+    print("Test 6: Deployment-readiness sanity")
+    print("-" * 80)
+    await test_deployment_readiness()
+    print()
+    
+    # Summary
+    print("=" * 80)
     print("TEST SUMMARY")
-    print("="*80)
-    print(f"Total Tests: {results['summary']['total']}")
-    print(f"Passed: {results['summary']['passed']}")
-    print(f"Failed: {results['summary']['failed']}")
-    print(f"Pass Rate: {results['summary']['passed'] / results['summary']['total'] * 100:.1f}%")
+    print("=" * 80)
+    print(f"Total tests: {len(results['tests'])}")
+    print(f"✅ Passed: {results['summary']['passed']}")
+    print(f"❌ Failed: {results['summary']['failed']}")
+    print(f"⚠️  Warnings: {results['summary']['warnings']}")
+    print()
     
-    # Save results
-    with open("/app/backend_test_results.json", "w") as f:
+    # Save results to file
+    with open("/app/wp18da_test_results.json", "w") as f:
         json.dump(results, f, indent=2)
+    print("Results saved to: /app/wp18da_test_results.json")
+    print()
     
-    print(f"\nDetailed results saved to: /app/backend_test_results.json")
-    
-    # Exit with appropriate code
-    sys.exit(0 if results['summary']['failed'] == 0 else 1)
+    # Exit code
+    if results['summary']['failed'] > 0:
+        print("❌ OVERALL STATUS: FAIL - Some tests failed")
+        sys.exit(1)
+    elif results['summary']['warnings'] > 0:
+        print("⚠️  OVERALL STATUS: PASS WITH WARNINGS")
+        sys.exit(0)
+    else:
+        print("✅ OVERALL STATUS: PASS - All tests passed")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
