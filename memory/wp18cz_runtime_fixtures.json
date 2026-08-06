@@ -1,0 +1,31 @@
+{
+  "jha_upload_status": 200,
+  "jha_upload": {
+    "id": "c841c43f-34bd-43d3-96ca-b972d07b05fb",
+    "scope": "jha",
+    "project_number": "25-12",
+    "filename": "wp18cz2-preview-jha.pdf",
+    "content_type": "application/pdf",
+    "file_size": 695,
+    "storage": "inline",
+    "notes": "WP-18CZ.2 preview runtime fixture",
+    "uploaded_by": "WP18CZ.2 Runtime",
+    "uploaded_at": "2026-08-06T01:06:41.587951+00:00"
+  },
+  "transport_invite_status_code": 200,
+  "transport_invite": {
+    "id": "4534fdfc45f34070bb958f26ad6637a6",
+    "tenant": "masci",
+    "carrier_id": "1b0ef4e870254bc2b965efadab8d4bbc",
+    "token_hash": "2d9ccc05c7ab0e31ddc73ac39eb4322a66196d438302f915d75f347a999f7391",
+    "contact_email": "preview.transport+wp18cz2@masci.local",
+    "contact_name": "WP18CZ Preview Carrier",
+    "status": "active",
+    "created_at": "2026-08-06T01:06:41.900871+00:00",
+    "expires_at": "2026-08-13T01:06:41.900871+00:00",
+    "created_by": "admin",
+    "opened_at": null,
+    "submitted_at": null,
+    "token": "UIPAaZvngRP7Lxjg6uNK-UA7mVjQeV1OUSdsGJHqb8M"
+  }
+}

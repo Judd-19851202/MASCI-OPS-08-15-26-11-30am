@@ -192,11 +192,22 @@ def register_jha_acknowledgement_routes(
         emp = await _resolve_employee(db, payload)
         jha = await _resolve_jha_file(db, payload.project_number, payload.jha_file_id)
 
-        meta = _request_meta(request)
-        ack_id = str(uuid.uuid4())
         emp_id = str(emp.get("id") or "")
         emp_name = str(emp.get("name") or "").strip() or "Unknown"
         emp_email = str(emp.get("email") or "").strip().lower()
+        existing = await db[JHA_ACK_COLLECTION].find_one(
+            {"jha_file_id": str(jha.get("id") or "").strip(), "employee_id": emp_id},
+            projection={"_id": 0},
+        )
+        if existing:
+            return {
+                "ok": True,
+                "duplicate_prevented": True,
+                "acknowledgement": existing,
+            }
+
+        meta = _request_meta(request)
+        ack_id = str(uuid.uuid4())
         now = _now_iso()
 
         doc = {
@@ -217,15 +228,8 @@ def register_jha_acknowledgement_routes(
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, doc, "JAA", when=doc.get("acknowledged_at"))
 
-        # Idempotent on (jha_file_id, employee_id) — re-acknowledging
-        # the same version replaces the prior signature. The replaced
-        # row is preserved via the audit stream (workflow_state_events).
         try:
-            await db[JHA_ACK_COLLECTION].replace_one(
-                {"jha_file_id": doc["jha_file_id"], "employee_id": emp_id},
-                doc,
-                upsert=True,
-            )
+            await db[JHA_ACK_COLLECTION].insert_one(doc.copy())
         except Exception as e:  # noqa: BLE001
             logger.error(f"jha_acknowledgements upsert failed: {e}")
             raise HTTPException(status_code=500, detail={"code": "ack_persistence_failed"})
@@ -257,6 +261,22 @@ def register_jha_acknowledgement_routes(
         )
 
         return {"ok": True, "acknowledgement": doc}
+
+    @api_router.get("/jha-acknowledgements/by-doc/{doc_id}")
+    async def jha_ack_by_doc_id(
+        doc_id: str,
+        _: Any = Depends(require_admin_dep),
+    ) -> Dict[str, Any]:
+        clean = (doc_id or "").strip().upper()
+        if not clean:
+            raise HTTPException(status_code=422, detail="doc_id required")
+        ack = await db[JHA_ACK_COLLECTION].find_one(
+            {"doc_id": clean},
+            projection={"_id": 0},
+        )
+        if not ack:
+            raise HTTPException(status_code=404, detail="Acknowledgement not found")
+        return {"item": ack}
 
     @api_router.get("/jha-acknowledgements/me")
     async def my_acknowledgements(

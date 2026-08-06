@@ -161,6 +161,8 @@ function ConfirmationBody({ confirmation }) {
         <ActionButton action={confirmation.startAnother} testId="submission-confirmation-start-another" />
         <ActionButton action={confirmation.returnToPortal} variant="outline" testId="submission-confirmation-return-to-portal" />
         <ActionButton action={confirmation.openRecord} variant="outline" testId="submission-confirmation-open-record" />
+        <ActionButton action={confirmation.viewFiledCopy} variant="outline" testId="submission-confirmation-view-filed-copy" />
+        <ActionButton action={confirmation.printFiledCopy} variant="outline" testId="submission-confirmation-print-filed-copy" />
       </div>
     </div>
   );

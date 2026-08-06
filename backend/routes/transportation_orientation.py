@@ -1170,6 +1170,66 @@ def register_transportation_orientation_routes(
         # Token returned ONCE to the admin — never persisted in plaintext.
         return {**_project(doc), "token": token}
 
+    @router.get("/admin/transportation/invites")
+    async def list_invites(
+        status: Optional[str] = Query(None),
+        doc_id: Optional[str] = Query(None),
+        q: Optional[str] = Query(None),
+        limit: int = Query(50, ge=1, le=200),
+        _: Any = Depends(require_admin_dep),
+    ):
+        query: Dict[str, Any] = {"tenant": TENANT}
+        if status:
+            query["status"] = status
+        if doc_id:
+            query["doc_id"] = (doc_id or "").strip().upper()
+        if q:
+            rx = {"$regex": q.strip(), "$options": "i"}
+            query["$or"] = [
+                {"contact_name": rx},
+                {"contact_email": rx},
+                {"carrier_name": rx},
+                {"doc_id": rx},
+            ]
+        cur = db.transport_invites.find(query, {"_id": 0}).sort("created_at", -1).limit(limit)
+        items = []
+        for inv in await cur.to_list(limit):
+            carrier = await db.carriers.find_one({"id": inv.get("carrier_id"), "tenant": TENANT})
+            items.append({
+                "id": inv.get("id"),
+                "doc_id": inv.get("doc_id") or "",
+                "carrier_id": inv.get("carrier_id") or "",
+                "carrier_name": (carrier or {}).get("legal_name") or "",
+                "contact_name": inv.get("contact_name") or "",
+                "contact_email": inv.get("contact_email") or "",
+                "status": inv.get("status") or "",
+                "created_at": inv.get("created_at") or "",
+                "opened_at": inv.get("opened_at") or "",
+                "submitted_at": inv.get("submitted_at") or "",
+                "expires_at": inv.get("expires_at") or "",
+            })
+        return {"count": len(items), "items": items}
+
+    @router.get("/admin/transportation/invites/{invite_id}")
+    async def get_invite_detail(invite_id: str, _: Any = Depends(require_admin_dep)):
+        inv = await db.transport_invites.find_one({"id": invite_id, "tenant": TENANT}, {"_id": 0})
+        if not inv:
+            raise HTTPException(404, "Invite not found")
+        carrier = await db.carriers.find_one({"id": inv.get("carrier_id"), "tenant": TENANT}, {"_id": 0})
+        audit_cur = db.audit_events.find(
+            {"entity_type": "invite", "entity_id": invite_id},
+            {"_id": 0},
+        ).sort("at", -1).limit(50)
+        audit = []
+        for row in await audit_cur.to_list(50):
+            audit.append({
+                "kind": row.get("kind") or "",
+                "at": row.get("at") or "",
+                "actor": row.get("actor") or {},
+                "meta": row.get("meta") or {},
+            })
+        return {"item": {**inv, "carrier_name": (carrier or {}).get("legal_name") or ""}, "audit": audit}
+
     @router.get("/transportation/invite/{token}")
     async def invite_open(token: str, request: Request):
         """PUBLIC endpoint — carrier opens the invite link from email."""

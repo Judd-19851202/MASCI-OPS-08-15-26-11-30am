@@ -304,6 +304,7 @@ export default function JhaPlansHub() {
                             projectNumber={job.project_number}
                             fileId={f.id}
                             filename={f.filename}
+                            fileUrl={fileHref(f.id)}
                             acked={ackedFileIds.has(f.id)}
                             defaultEmail={ackEmail}
                             onAcknowledged={(_ack, email) => {

@@ -26,11 +26,14 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useT, getLang } from "@/lib/i18n";
+import { SubmissionConfirmation } from "@/components/submission/SubmissionConfirmation";
+import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 
 export function JhaAcknowledgeButton({
   projectNumber,
   fileId,
   filename,
+  fileUrl,
   acked,
   defaultEmail,
   onAcknowledged,
@@ -40,6 +43,15 @@ export function JhaAcknowledgeButton({
   const [email, setEmail] = useState(defaultEmail || "");
   const [signature, setSignature] = useState("");
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState(null);
+
+  if (receipt) {
+    return (
+      <div className="w-full" data-testid={`jha-ack-confirmation-${fileId}`}>
+        <SubmissionConfirmation embedded confirmation={receipt} />
+      </div>
+    );
+  }
 
   if (acked) {
     return (
@@ -76,6 +88,36 @@ export function JhaAcknowledgeButton({
       toast.success(t("Acknowledgement recorded."));
       setOpen(false);
       setSignature("");
+      const ack = r.data?.acknowledgement || {};
+      setReceipt(buildSubmissionConfirmation({
+        workflowKey: "jha-acknowledgement",
+        documentNumber: ack.doc_id || "",
+        submittedAt: ack.acknowledged_at || new Date().toISOString(),
+        submittedBy: ack.employee_name || cleanSig,
+        project: projectNumber,
+        successStatus: r.data?.duplicate_prevented ? "Already Acknowledged" : "Acknowledgement Filed",
+        followUpRequired: r.data?.duplicate_prevented
+          ? "This plan was already acknowledged by this employee. The original filed acknowledgement remains active."
+          : "No further action is required unless your supervisor asks for a corrected acknowledgement.",
+        whatHappensNext: r.data?.duplicate_prevented
+          ? [
+              "The existing acknowledgement remains the official record for this employee and plan revision.",
+              "Project leadership can verify the filed acknowledgement in the compliance history.",
+            ]
+          : undefined,
+        contextItems: [
+          { label: "Hazard Plan", value: filename, testId: "submission-confirmation-jha-file" },
+          { label: "Employee Email", value: ack.employee_email || cleanEmail, testId: "submission-confirmation-employee-email" },
+        ],
+        viewFiledCopy: fileUrl ? {
+          label: "View Filed Copy",
+          onClick: () => window.open(fileUrl, "_blank", "noopener,noreferrer"),
+        } : null,
+        printFiledCopy: fileUrl ? {
+          label: "Print Filed Copy",
+          onClick: () => window.open(fileUrl, "_blank", "noopener,noreferrer"),
+        } : null,
+      }));
       try {
         window.localStorage.setItem("masci.jha.email", cleanEmail);
       } catch {

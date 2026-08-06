@@ -205,6 +205,11 @@ function Step2Orientation({ invite, token, onNext }) {
   const [modules, setModules] = useState([]);
   const [active, setActive] = useState(null);
   const [err, setErr] = useState(null);
+  const [reviewed, setReviewed] = useState({});
+
+  const requiredModules = modules.filter((mod) => mod.required);
+  const reviewedRequired = requiredModules.filter((mod) => reviewed[mod.key]).length;
+  const canContinue = requiredModules.length === 0 || reviewedRequired === requiredModules.length;
 
   useEffect(() => {
     api.get(`/transportation/invite/${token}/orientation/modules`)
@@ -219,12 +224,15 @@ function Step2Orientation({ invite, token, onNext }) {
       <h2 className="text-xl font-semibold flex items-center gap-2">
         <GraduationCap className="h-5 w-5 text-amber-700" /> MASCI Hauler Orientation
       </h2>
-      <p className="text-sm text-slate-600 mt-2">
-        {modules.length} modules cover every operational expectation. Each driver completes them on their own device. Videos cannot be skipped or fast-forwarded.
+      <p className="text-sm text-slate-600 mt-2" data-testid="carrier-invite-orientation-note">
+        Review the required orientation topics below before submitting the carrier packet. Transportation keeps the filed packet and follows up if anything is missing.
       </p>
 
       {active ? (
-        <ActiveModule invite={invite} token={token} mod={active} onBack={() => setActive(null)} />
+        <ActiveModule invite={invite} token={token} mod={active} onBack={() => {
+          setReviewed((cur) => ({ ...cur, [active.key]: true }));
+          setActive(null);
+        }} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
           {modules.map((m) => (
@@ -240,17 +248,22 @@ function Step2Orientation({ invite, token, onNext }) {
               <div className="text-xs text-slate-500 mt-1">
                 {m.category} · {m.required ? "Required" : "Optional"} · {(m.languages || []).join(" · ")}
               </div>
+              <div className="text-[11px] text-slate-500 mt-1">{reviewed[m.key] ? "Reviewed" : "Open to review"}</div>
             </button>
           ))}
         </div>
       )}
 
+      <div className="mt-4 text-xs text-slate-500" data-testid="carrier-invite-review-progress">
+        Required topics reviewed: {reviewedRequired}/{requiredModules.length}
+      </div>
       <button
         data-testid="step-2-continue"
         onClick={onNext}
+        disabled={!canContinue}
         className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-700 hover:bg-amber-800 text-white font-medium px-4 py-2"
       >
-        I&apos;ve completed the orientation modules
+        Continue to packet submission
         <ChevronRight className="h-4 w-4" />
       </button>
     </section>
@@ -258,17 +271,13 @@ function Step2Orientation({ invite, token, onNext }) {
 }
 
 function ActiveModule({ invite, token, mod, onBack }) {
-  // For demo + smoke purposes we don't have per-driver IDs yet — the
-  // real carrier portal flow creates drivers in step 1's expansion. We
-  // present a per-module preview so the operator and the testing
-  // subagent can both observe the no-skip player behaviour live.
   return (
     <div className="wp17-panel mt-3 p-3" data-testid="carrier-portal-active-module">
       <button data-testid="carrier-portal-back" onClick={onBack} className="text-amber-700 text-xs hover:underline mb-2">← All modules</button>
       <div className="font-medium">{mod.title}</div>
       <div className="text-xs text-slate-500 mb-2">{mod.category}</div>
       <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mb-2">
-        Real driver-level orientation runs after the carrier confirms drivers in their packet. This preview renders the no-skip video player exactly as the driver will see it on their device.
+        Review this topic, then return to the packet to continue. MASCI Transportation keeps the filed packet and follows up if more carrier information is needed.
       </div>
       <MasciVideoPlayer
         token={token}
@@ -308,6 +317,7 @@ function Step3Submit({ invite, token }) {
       project: invite.carrier_legal_name || "Transportation carrier",
       followUpRequired: "No further action is required unless MASCI Transportation requests corrections.",
       returnToPortal: { label: "Return to MASCI", to: "/" },
+      description: "Transportation has the carrier packet and will review the filed documents before any follow-up action.",
       contextItems: [
         invite.contact_name ? { label: "Carrier Contact", value: invite.contact_name, testId: "submission-confirmation-carrier-contact" } : null,
       ].filter(Boolean),
@@ -322,7 +332,7 @@ function Step3Submit({ invite, token }) {
     <section className="wp17-panel p-5" data-testid="step-3-submit">
       <h2 className="text-xl font-semibold flex items-center gap-2"><BadgeCheck className="h-5 w-5 text-amber-700" /> Acknowledgement</h2>
       <p className="text-sm text-slate-600 mt-2">
-        By typing your printed name below you confirm that every driver on this carrier has watched, understood, and accepted the orientation expectations and that all uploaded documents are accurate.
+        By typing your printed name below you confirm that this carrier contact reviewed the MASCI orientation requirements, submitted the carrier packet, and believes the attached carrier information is accurate.
       </p>
       <label className="block text-xs text-slate-500 mt-4">Printed name</label>
       <Input
