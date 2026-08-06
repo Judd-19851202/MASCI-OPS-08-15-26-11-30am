@@ -201,12 +201,30 @@ export const BUILD_WORKSPACE_DIRTY = ${payload.workspace_dirty};
 `;
 };
 
-const writeIdentityArtifacts = (dirtyFlag) => {
-  fs.writeFileSync(OUT_FILE, buildModuleContent(dirtyFlag), "utf8");
-  fs.writeFileSync(PUBLIC_IDENTITY_FILE, `${JSON.stringify(buildIdentityPayload(dirtyFlag), null, 2)}\n`, "utf8");
+const writeIfChanged = (filePath, nextContent) => {
+  let current = null;
+  try {
+    current = fs.readFileSync(filePath, "utf8");
+  } catch {
+    current = null;
+  }
+  if (current === nextContent) {
+    return false;
+  }
+  fs.writeFileSync(filePath, nextContent, "utf8");
+  return true;
 };
 
-writeIdentityArtifacts(workspaceDirty);
+const writeIdentityArtifacts = (dirtyFlag) => {
+  const payload = buildIdentityPayload(dirtyFlag);
+  const moduleContent = buildModuleContent(dirtyFlag);
+  const identityJson = `${JSON.stringify(payload, null, 2)}\n`;
+  return {
+    moduleWritten: writeIfChanged(OUT_FILE, moduleContent),
+    publicIdentityWritten: writeIfChanged(PUBLIC_IDENTITY_FILE, identityJson),
+  };
+};
+
 try {
   workspaceDirty = Boolean(
     execSync("git status --short", {
@@ -219,7 +237,7 @@ try {
 } catch {
   void 0;
 }
-writeIdentityArtifacts(workspaceDirty);
+const writeResult = writeIdentityArtifacts(workspaceDirty);
 const VERIFY_RELEASE_IDENTITY = path.join(REPO_ROOT, "backend", "scripts", "verify_release_identity.py");
 const pythonVerifierAvailable = (() => {
   try {
@@ -253,4 +271,7 @@ if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE) && pytho
   process.stderr.write("[stamp-build-version] release identity verifier or scope file missing\n");
   process.exit(1);
 }
-process.stdout.write(`[stamp-build-version] wrote ${version} -> ${OUT_FILE}\n`);
+process.stdout.write(
+  `[stamp-build-version] ${version} -> ${OUT_FILE} ` +
+  `(module_written=${writeResult.moduleWritten}, public_identity_written=${writeResult.publicIdentityWritten})\n`
+);

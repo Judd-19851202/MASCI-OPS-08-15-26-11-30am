@@ -36,6 +36,7 @@ if (config.enableHealthCheck) {
 
 let webpackConfig = {
   eslint: {
+    enable: !isDevServer,
     configure: {
       extends: ["plugin:react-hooks/recommended"],
       rules: {
@@ -67,6 +68,13 @@ let webpackConfig = {
       '@': path.resolve(__dirname, 'src'),
     },
     configure: (webpackConfig) => {
+      webpackConfig.cache = {
+        type: "filesystem",
+        cacheDirectory: path.join(__dirname, ".cache", "webpack"),
+        buildDependencies: {
+          config: [__filename, path.join(__dirname, "scripts", "stamp-build-version.js")],
+        },
+      };
 
       // Add ignored patterns to reduce watched directories
         webpackConfig.watchOptions = {
@@ -114,8 +122,12 @@ webpackConfig.devServer = (devServerConfig) => {
 // Wrap with visual edits (automatically adds babel plugin, dev server, and overlay in dev mode)
 if (isDevServer) {
   try {
-    const { withVisualEdits } = require("@emergentbase/visual-edits/craco");
-    webpackConfig = withVisualEdits(webpackConfig);
+    if ((process.env.ENABLE_VISUAL_EDITS || "").trim().toLowerCase() === "true") {
+      const { withVisualEdits } = require("@emergentbase/visual-edits/craco");
+      webpackConfig = withVisualEdits(webpackConfig);
+    } else {
+      console.warn("[visual-edits] disabled for this runtime; set ENABLE_VISUAL_EDITS=true to re-enable.");
+    }
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND' && err.message.includes('@emergentbase/visual-edits/craco')) {
       console.warn(

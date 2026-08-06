@@ -383,6 +383,8 @@ from lib.runtime_reliability import (  # noqa: E402
     cancel_registered_background_tasks,
     configure_runtime,
     observe_request_result,
+    public_liveness_headers,
+    public_readiness_payload,
     register_background_task,
     set_readiness,
     set_startup_complete,
@@ -20496,6 +20498,47 @@ async def _track_22_3_dr_v2_alias_telemetry(request, call_next):
         except Exception:  # noqa: BLE001
             pass
     return response
+
+
+@app.middleware("http")
+async def _iter18da_fast_probe_paths(request, call_next):
+    path = request.url.path or ""
+    method = (request.method or "").upper()
+    if method == "GET" and path in {"/api/health", "/api/healthz", "/api/ready"}:
+        from fastapi.responses import JSONResponse  # noqa: PLC0415
+
+        headers = public_liveness_headers(request.app)
+        if path == "/api/ready":
+            payload = public_readiness_payload(request.app)
+            status_code = 200 if payload.get("ok") else 503
+        elif path == "/api/healthz":
+            payload = {"ok": True}
+            status_code = 200
+        else:
+            runtime_identity = _runtime_identity_safe_payload()
+            payload = {
+                "ok": True,
+                "service": "masci-hub",
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "runtime_identity": {
+                    "status": runtime_identity.get("status", "UNVERIFIABLE"),
+                    "valid": runtime_identity.get("valid", False),
+                    "mismatch_category": runtime_identity.get("mismatch_category"),
+                },
+            }
+            status_code = 200
+        response = JSONResponse(status_code=status_code, content=payload)
+        for key, value in headers.items():
+            if value:
+                response.headers[key] = value
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+        if (os.environ.get("APP_ENV") or "").strip().lower() == "production":
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return response
+    return await call_next(request)
 
 
 # ─────────────────────────────────────────────────────────────────────

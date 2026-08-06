@@ -1,0 +1,142 @@
+{
+  "_id": "incident-a9fba38b69264a92b439e30b419a5fbc",
+  "id": "incident-a9fba38b69264a92b439e30b419a5fbc",
+  "captured_at": "2026-08-06T09:07:01.868511+00:00",
+  "captured_dt": "2026-08-06 09:07:01.868514+00:00",
+  "trigger": "consecutive_internal_request_failures",
+  "details": {
+    "path": "/api/branding/current",
+    "status_code": "500",
+    "consecutive": "3"
+  },
+  "release": {
+    "source_hash": "fb0d4b5ac5f5747f078e02f19ef73663",
+    "commit": "64b47121afdcc7ff4a02abad5aaa0c393bce9062",
+    "app_env": "preview",
+    "db_name": "masci_safety_preview",
+    "instance_fingerprint": "bec33f97c79bc9eb2ae854753b4d95a1",
+    "reload_enabled": true,
+    "server_command": "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload"
+  },
+  "instance_fingerprint": "bec33f97c79bc9eb2ae854753b4d95a1",
+  "process": {
+    "pid": 3792,
+    "uptime_s": 4,
+    "restart_count": 0,
+    "thread_count": 9,
+    "active_asyncio_tasks": 16
+  },
+  "health": {
+    "liveness": {
+      "ok": true,
+      "state": "alive"
+    },
+    "readiness": {
+      "ok": false,
+      "state": "not_ready",
+      "reason": "startup_incomplete"
+    },
+    "full_health": {
+      "ok": false,
+      "state": "unavailable",
+      "reason_codes": [
+        "startup_not_ready",
+        "mongo_unreachable"
+      ]
+    },
+    "event_loop_lag_ms": 0.0,
+    "mongo_latency_ms": null,
+    "mongo_ok": false,
+    "resources": {},
+    "background_tasks": [],
+    "release": {
+      "source_hash": "fb0d4b5ac5f5747f078e02f19ef73663",
+      "commit": "64b47121afdcc7ff4a02abad5aaa0c393bce9062",
+      "app_env": "preview",
+      "db_name": "masci_safety_preview",
+      "instance_fingerprint": "bec33f97c79bc9eb2ae854753b4d95a1",
+      "reload_enabled": true,
+      "server_command": "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload"
+    },
+    "restart_count": 0,
+    "last_successful_health_at": null,
+    "last_successful_db_at": null,
+    "safe_self_healing": {
+      "last_resource_relief_at": null,
+      "resource_relief_actions": [],
+      "cooldown_active": false
+    }
+  },
+  "event_loop_lag_ms": 0.0,
+  "mongo": {
+    "ok": false,
+    "latency_ms": null,
+    "last_success_at": null
+  },
+  "resources": {
+    "cpu_percent": 0.0,
+    "rss_mb": 247.4,
+    "disk_percent": 95.2,
+    "fd_count": 7,
+    "fd_limit": 1048576,
+    "thread_count": 9,
+    "active_asyncio_tasks": 16
+  },
+  "scheduler_tasks": [],
+  "backup_state": {
+    "alive": false,
+    "armed_at": null,
+    "last_tick_ts": null,
+    "in_progress": false,
+    "last_attempt_started_at": null,
+    "last_attempt_outcome": null,
+    "resurrect_count": 0,
+    "last_resurrect_ts": null,
+    "r2_hourly_requested": false,
+    "r2_hourly_effective": false,
+    "r2_hourly_locked_off": true,
+    "hourly_cadence_enabled": false,
+    "activation_blockers": [],
+    "activation_status": "DISABLED BY CONFIGURATION",
+    "activation_environment": "unknown",
+    "last_activation_evaluated_at": null,
+    "next_eligible_hourly_slot": null,
+    "backup_runtime": {
+      "stale_marked": 0,
+      "active_jobs": [],
+      "overlap": {
+        "backup_active": false,
+        "restore_active": false,
+        "active_backups": [],
+        "active_restores": [],
+        "overlap_blocked": false
+      },
+      "recent_complete_jobs": []
+    },
+    "boot_step": null,
+    "boot_step_ts": null,
+    "boot_exception": null
+  },
+  "recent_errors": [
+    {
+      "at": "2026-08-06T09:07:01.857656+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-06T09:07:01.862704+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-06T09:07:01.868156+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    }
+  ],
+  "backend_log_excerpt": "ort_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:00:46,448 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:00:46,448 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:01:46,502 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:01:46,503 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:01:46,503 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:01:46,503 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:01:46,503 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:01:46,503 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:02:46,555 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:02:46,555 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:02:46,555 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:02:46,555 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:02:46,555 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:02:46,555 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:03:46,615 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:03:46,615 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:03:46,615 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:03:46,615 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:03:46,615 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:03:46,616 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:04:46,668 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:04:46,668 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:04:46,668 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:04:46,668 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:04:46,669 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:04:46,669 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:05:46,726 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:05:46,726 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:05:46,726 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:05:46,727 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:05:46,727 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:05:46,727 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:06:46,784 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:06:46,784 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:06:46,784 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] update probe failed: Cannot use MongoClient after close\n2026-08-06 09:06:46,784 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_automation] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:06:46,784 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] insert probe failed: Cannot use MongoClient after close\n2026-08-06 09:06:46,784 - lib.singleton_scheduler - WARNING - [singleton-lock:transport_command_digest] insert probe failed: Cannot use MongoClient after close\n",
+  "storage": "file_fallback"
+}

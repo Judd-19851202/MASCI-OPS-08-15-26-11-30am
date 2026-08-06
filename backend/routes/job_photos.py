@@ -346,6 +346,8 @@ async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
     """
     warmed = 0
     failed = 0
+    skipped_recent_failures = 0
+    retry_after = (datetime.now(timezone.utc) - timedelta(hours=6)).isoformat()
 
     # Walk the index in a bounded batch. Over-fetch a bit since most rows
     # will already be warm, but hard-cap so a single tick never scans the
@@ -353,7 +355,22 @@ async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
     candidates: List[Dict[str, Any]] = []
     scan_cap = max(batch_limit * 5, 100)
     async for meta in db.job_photos.find(
-        {}, {"_id": 0, "id": 1, "source": 1, "source_id": 1, "photo_index": 1}
+        {
+            "$or": [
+                {"thumb_warm_last_failed_at": {"$exists": False}},
+                {"thumb_warm_last_failed_at": None},
+                {"thumb_warm_last_failed_at": {"$lt": retry_after}},
+            ]
+        },
+        {
+            "_id": 0,
+            "id": 1,
+            "source": 1,
+            "source_id": 1,
+            "photo_index": 1,
+            "thumb_warm_fail_count": 1,
+            "thumb_warm_last_failed_at": 1,
+        }
     ).limit(scan_cap):
         candidates.append(meta)
 
@@ -381,12 +398,20 @@ async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
             continue
         if warmed + failed >= batch_limit:
             break
+        last_failed_at = str(meta.get("thumb_warm_last_failed_at") or "").strip()
+        if last_failed_at and last_failed_at >= retry_after:
+            skipped_recent_failures += 1
+            continue
         try:
             url = await _load_photo(
                 db, meta["source"], meta["source_id"], meta["photo_index"]
             )
             decoded = await _load_photo_bytes(url) if url else None
             if not decoded:
+                await db.job_photos.update_one(
+                    {"id": meta["id"]},
+                    {"$set": {"thumb_warm_last_failed_at": datetime.now(timezone.utc).isoformat()}, "$inc": {"thumb_warm_fail_count": 1}},
+                )
                 failed += 1
                 continue
             raw, _ext = decoded
@@ -395,13 +420,25 @@ async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
             for fmt_key, payload_bytes in rendered.items():
                 await _write_thumb_cache(db, meta["id"], fmt_key, payload_bytes)
             if rendered:
+                await db.job_photos.update_one(
+                    {"id": meta["id"]},
+                    {"$unset": {"thumb_warm_last_failed_at": ""}, "$set": {"thumb_warm_fail_count": 0}},
+                )
                 warmed += 1
             else:
+                await db.job_photos.update_one(
+                    {"id": meta["id"]},
+                    {"$set": {"thumb_warm_last_failed_at": datetime.now(timezone.utc).isoformat()}, "$inc": {"thumb_warm_fail_count": 1}},
+                )
                 failed += 1
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[job-photos] auto-warm failed for {meta['id']}: {e}")
+            await db.job_photos.update_one(
+                {"id": meta["id"]},
+                {"$set": {"thumb_warm_last_failed_at": datetime.now(timezone.utc).isoformat()}, "$inc": {"thumb_warm_fail_count": 1}},
+            )
             failed += 1
-    return {"warmed": warmed, "failed": failed}
+    return {"warmed": warmed, "failed": failed, "skipped_recent_failures": skipped_recent_failures}
 
 
 async def background_indexer_loop(db) -> None:
@@ -435,10 +472,11 @@ async def background_indexer_loop(db) -> None:
                     await asyncio.sleep(0)
             # Auto-warm any thumbs that haven't been rendered yet.
             warm_result = await _warm_missing_thumbs(db, batch_limit=200)
-            if warm_result["warmed"] or warm_result["failed"]:
+            if warm_result["warmed"] or warm_result["failed"] or warm_result.get("skipped_recent_failures"):
                 logger.info(
                     f"[job-photos] auto-warm tick: {warm_result['warmed']} warmed, "
-                    f"{warm_result['failed']} failed"
+                    f"{warm_result['failed']} failed, "
+                    f"{warm_result.get('skipped_recent_failures', 0)} skipped-recent-failures"
                 )
             # Auto-vacuum: when R2 storage is configured, sweep any
             # base64 photos still in MongoDB out to R2 in small batches.
@@ -532,6 +570,10 @@ async def _ensure_thumb_cache_indexes(db) -> None:
         await db.job_photo_thumb_cache.create_index(
             [("fmt", 1), ("photo_id", 1)],
             name="fmt_1_photo_id_1",
+        )
+        await db.job_photos.create_index(
+            [("thumb_warm_last_failed_at", 1)],
+            name="ix_job_photos_thumb_warm_last_failed_at",
         )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[job-photos] thumb cache index create failed: {e}")
