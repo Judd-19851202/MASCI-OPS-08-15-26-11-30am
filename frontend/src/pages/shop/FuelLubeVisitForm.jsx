@@ -55,7 +55,7 @@ function Num({ value, onChange, testid, step = "1", placeholder = "0", style = {
 }
 
 function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
-  const setField = (field) => (value) => onPatch(idx, { ...line, [field]: value });
+  const setField = (field) => (value) => onPatch(idx, { [field]: value });
   const isCriticalIssue = line.issue_found && ["Out of Service Recommended", "Critical"].includes(line.issue_severity);
   return (
     <Card data-testid={`fuel-lube-line-${idx}`}>
@@ -82,7 +82,7 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
           />
         </label>
         <label style={{ fontSize: 11 }}>Equipment name (auto-fills)
-          <input value={line.equipment_name} onChange={(e) => setField("equipment_name")(e.target.value)} style={{ padding: 5, fontSize: 12, width: "100%" }} placeholder="CAT 336" />
+          <input data-testid={`fuel-lube-line-equipment-name-${idx}`} value={line.equipment_name} onChange={(e) => setField("equipment_name")(e.target.value)} style={{ padding: 5, fontSize: 12, width: "100%" }} placeholder="CAT 336" />
         </label>
         <label style={{ fontSize: 11 }}>Meter hours
           <Num value={line.meter_hours} onChange={setField("meter_hours")} step="0.1" testid={`fuel-lube-line-meter-${idx}`} />
@@ -101,7 +101,7 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
           <Num value={line.clear_diesel_gallons} onChange={setField("clear_diesel_gallons")} step="0.1" testid={`fuel-lube-line-clear-diesel-${idx}`} />
         </label>
         <label style={{ fontSize: 11 }}>Gasoline
-          <Num value={line.gasoline_gallons} onChange={setField("gasoline_gallons")} step="0.1" />
+          <Num value={line.gasoline_gallons} onChange={setField("gasoline_gallons")} step="0.1" testid={`fuel-lube-line-gasoline-${idx}`} />
         </label>
         <label style={{ fontSize: 11 }}>DEF
           <Num value={line.def_gallons} onChange={setField("def_gallons")} step="0.1" testid={`fuel-lube-line-def-${idx}`} />
@@ -111,19 +111,19 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
       <div style={{ fontSize: 11, fontWeight: 700, color: "#666", marginTop: 8 }}>Fluids (quarts)</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 6 }}>
         <label style={{ fontSize: 11 }}>Engine oil
-          <Num value={line.engine_oil_quarts} onChange={setField("engine_oil_quarts")} step="0.1" />
+          <Num value={line.engine_oil_quarts} onChange={setField("engine_oil_quarts")} step="0.1" testid={`fuel-lube-line-engine-oil-${idx}`} />
         </label>
         <label style={{ fontSize: 11 }}>Hyd oil
-          <Num value={line.hydraulic_oil_quarts} onChange={setField("hydraulic_oil_quarts")} step="0.1" />
+          <Num value={line.hydraulic_oil_quarts} onChange={setField("hydraulic_oil_quarts")} step="0.1" testid={`fuel-lube-line-hyd-oil-${idx}`} />
         </label>
         <label style={{ fontSize: 11 }}>Coolant
-          <Num value={line.coolant_quarts} onChange={setField("coolant_quarts")} step="0.1" />
+          <Num value={line.coolant_quarts} onChange={setField("coolant_quarts")} step="0.1" testid={`fuel-lube-line-coolant-${idx}`} />
         </label>
         <label style={{ fontSize: 11 }}>Trans fluid
-          <Num value={line.transmission_fluid_quarts} onChange={setField("transmission_fluid_quarts")} step="0.1" />
+          <Num value={line.transmission_fluid_quarts} onChange={setField("transmission_fluid_quarts")} step="0.1" testid={`fuel-lube-line-trans-fluid-${idx}`} />
         </label>
         <label style={{ fontSize: 11 }}>Gear oil
-          <Num value={line.gear_oil_quarts} onChange={setField("gear_oil_quarts")} step="0.1" />
+          <Num value={line.gear_oil_quarts} onChange={setField("gear_oil_quarts")} step="0.1" testid={`fuel-lube-line-gear-oil-${idx}`} />
         </label>
       </div>
 
@@ -134,6 +134,7 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
         </label>
         {!line.greased && (
           <input
+            data-testid={`fuel-lube-line-not-greased-reason-${idx}`}
             placeholder="Reason not greased (e.g. fittings stripped)"
             value={line.not_greased_reason}
             onChange={(e) => setField("not_greased_reason")(e.target.value)}
@@ -143,7 +144,7 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
       </div>
 
       <label style={{ fontSize: 11, display: "block", marginTop: 8 }}>Line notes
-        <input value={line.line_notes} onChange={(e) => setField("line_notes")(e.target.value)} style={{ padding: 5, fontSize: 12, width: "100%" }} placeholder="Optional — observed leaks, anything noteworthy…" />
+        <input data-testid={`fuel-lube-line-notes-${idx}`} value={line.line_notes} onChange={(e) => setField("line_notes")(e.target.value)} style={{ padding: 5, fontSize: 12, width: "100%" }} placeholder="Optional — observed leaks, anything noteworthy…" />
       </label>
 
       <div style={{ marginTop: 10, padding: 8, background: line.issue_found ? "#fdf3f0" : "#f4f6f8", borderRadius: 4 }}>
@@ -239,7 +240,7 @@ export default function FuelLubeVisitForm() {
     };
   }, [lines]);
 
-  const onPatch = (idx, patch) => setLines((cur) => cur.map((l, i) => (i === idx ? patch : l)));
+  const onPatch = (idx, patch) => setLines((cur) => cur.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
   const onAdd = () => setLines((cur) => [...cur, { ...EMPTY_LINE }]);
   const onRemove = (idx) => setLines((cur) => cur.filter((_, i) => i !== idx));
 
@@ -327,16 +328,16 @@ export default function FuelLubeVisitForm() {
                 <input data-testid="fuel-lube-visit-form-tech-name" value={visit.fuel_lube_tech_name} onChange={(e) => setVisit({ ...visit, fuel_lube_tech_name: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} required />
               </label>
               <label style={{ fontSize: 11 }}>Tech employee id
-                <input value={visit.fuel_lube_tech_id} onChange={(e) => setVisit({ ...visit, fuel_lube_tech_id: e.target.value })} placeholder="Optional" style={{ padding: 6, fontSize: 12, width: "100%" }} />
+                <input data-testid="fuel-lube-visit-form-tech-id" value={visit.fuel_lube_tech_id} onChange={(e) => setVisit({ ...visit, fuel_lube_tech_id: e.target.value })} placeholder="Optional" style={{ padding: 6, fontSize: 12, width: "100%" }} />
               </label>
               <label style={{ fontSize: 11 }}>Arrival time
-                <input type="time" value={visit.arrival_time} onChange={(e) => setVisit({ ...visit, arrival_time: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} />
+                <input data-testid="fuel-lube-visit-form-arrival-time" type="time" value={visit.arrival_time} onChange={(e) => setVisit({ ...visit, arrival_time: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} />
               </label>
               <label style={{ fontSize: 11 }}>Departure time
-                <input type="time" value={visit.departure_time} onChange={(e) => setVisit({ ...visit, departure_time: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} />
+                <input data-testid="fuel-lube-visit-form-departure-time" type="time" value={visit.departure_time} onChange={(e) => setVisit({ ...visit, departure_time: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }} />
               </label>
               <label style={{ fontSize: 11 }}>Location source
-                <select value={visit.location_source} onChange={(e) => setVisit({ ...visit, location_source: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }}>
+                <select data-testid="fuel-lube-visit-form-location-source" value={visit.location_source} onChange={(e) => setVisit({ ...visit, location_source: e.target.value })} style={{ padding: 6, fontSize: 12, width: "100%" }}>
                   <option value="manual">Manual</option>
                   <option value="motive">Motive geofence</option>
                   <option value="geofence">Custom geofence</option>
@@ -360,16 +361,16 @@ export default function FuelLubeVisitForm() {
             <div data-testid="fuel-lube-visit-form-totals-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, fontSize: 11 }}>
               <div data-testid="fuel-lube-totals-red-diesel">Red diesel · {totals.red_diesel.toFixed(1)} gal</div>
               <div data-testid="fuel-lube-totals-clear-diesel">Clear diesel · {totals.clear_diesel.toFixed(1)} gal</div>
-              <div>Gasoline · {totals.gasoline.toFixed(1)} gal</div>
+              <div data-testid="fuel-lube-totals-gasoline">Gasoline · {totals.gasoline.toFixed(1)} gal</div>
               <div data-testid="fuel-lube-totals-def">DEF · {totals.def.toFixed(1)} gal</div>
-              <div>Engine oil · {totals.engine_oil.toFixed(1)} qt</div>
-              <div>Hyd oil · {totals.hyd_oil.toFixed(1)} qt</div>
-              <div>Coolant · {totals.coolant.toFixed(1)} qt</div>
-              <div>Trans fluid · {totals.trans.toFixed(1)} qt</div>
-              <div>Gear oil · {totals.gear.toFixed(1)} qt</div>
-              <div>Units serviced · {totals.units}</div>
-              <div>Greased · {totals.greased}</div>
-              <div style={{ color: totals.issues > 0 ? "#a33" : "#666", fontWeight: 700 }}>Issues found · {totals.issues}</div>
+              <div data-testid="fuel-lube-totals-engine-oil">Engine oil · {totals.engine_oil.toFixed(1)} qt</div>
+              <div data-testid="fuel-lube-totals-hyd-oil">Hyd oil · {totals.hyd_oil.toFixed(1)} qt</div>
+              <div data-testid="fuel-lube-totals-coolant">Coolant · {totals.coolant.toFixed(1)} qt</div>
+              <div data-testid="fuel-lube-totals-trans-fluid">Trans fluid · {totals.trans.toFixed(1)} qt</div>
+              <div data-testid="fuel-lube-totals-gear-oil">Gear oil · {totals.gear.toFixed(1)} qt</div>
+              <div data-testid="fuel-lube-totals-units">Units serviced · {totals.units}</div>
+              <div data-testid="fuel-lube-totals-greased">Greased · {totals.greased}</div>
+              <div data-testid="fuel-lube-totals-issues" style={{ color: totals.issues > 0 ? "#a33" : "#666", fontWeight: 700 }}>Issues found · {totals.issues}</div>
             </div>
           </Card>
 
