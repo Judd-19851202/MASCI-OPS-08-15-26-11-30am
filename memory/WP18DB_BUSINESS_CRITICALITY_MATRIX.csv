@@ -1,0 +1,11 @@
+domain,criticality,business_reason,operator_impact_if_unavailable,recovery_mode,classification
+Governed record writes,Tier-0,Filed operational records must not corrupt or duplicate,Work cannot be safely filed,Fail closed with truthful messaging,COMPLETE
+Recovery / backup / restore,Tier-0,Executive continuity depends on recoverability,Release must stop,Use canonical archive + restore drill evidence,COMPLETE
+Authentication,Tier-0,Privileged/admin actions require verified identity,Privileged workflows blocked,Fail closed,COMPLETE
+Scheduler leadership,Tier-0,Timed resilience and archival jobs depend on single leader,Background protection degrades,Heartbeat + lock takeover,COMPLETE
+Notification delivery,Tier-1,Email and async notices are important but must not block Tier-0 filing,Delayed notice only,Graceful degradation with capture/fallback,COMPLETE
+PDF generation,Tier-1,Artifacts helpful but not allowed to block filing,Generated copies may lag,Non-blocking fallback,COMPLETE
+AI narratives,Tier-2,Assistive only,No effect on governed filing,Return fallback envelope,COMPLETE
+Exports and reports,Tier-1,Operators need exports but should not lose governed data,Delayed reporting,Retry / regenerate later,COMPLETE
+Storage photos/documents,Tier-1,Media should remain recoverable without corrupting records,Photo availability may degrade,Metadata truth preserved,COMPLETE
+Production public health,Tier-1,Executive public availability proof only,Reduced confidence,Read-only verification only,EXTERNAL OWNER DEPENDENCY

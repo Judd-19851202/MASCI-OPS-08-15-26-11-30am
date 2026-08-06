@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import shutil
@@ -9,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +27,7 @@ from lib.release_gate_governance import (  # noqa: E402
     compute_release_gate_manifest_hash,
     load_release_gate_manifest,
     one_body_contract_failures,
+    evaluate_workspace_state_source_authority,
     validate_release_gate_manifest,
     validate_workflows,
 )
@@ -184,7 +187,97 @@ def _backup_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
     missing = [field for field in required if field not in (manifest.get("backup_dr_prerequisites") or {})]
     if missing:
         errors.append("backup prerequisites missing required checks: " + ", ".join(missing))
-    return {"returncode": 0 if not errors else 1, "errors": errors}
+    runtime = _backup_runtime_freshness()
+    if runtime.get("error"):
+        errors.append(runtime["error"])
+    else:
+        if not runtime.get("latest_backup_ts"):
+            errors.append("no successful complete-r2 backup found in canonical runtime history")
+        elif runtime.get("backup_age_minutes") is None or runtime.get("backup_age_minutes") > runtime.get("backup_age_target_minutes", 60):
+            errors.append(
+                "latest successful complete-r2 backup is stale "
+                f"({runtime.get('backup_age_minutes')} min vs target <= {runtime.get('backup_age_target_minutes', 60)} min)"
+            )
+        if not runtime.get("latest_restore_drill_ts"):
+            errors.append("no successful restore drill found in canonical runtime history")
+        elif runtime.get("restore_drill_age_hours") is None or runtime.get("restore_drill_age_hours") > runtime.get("restore_drill_age_target_hours", 24):
+            errors.append(
+                "latest successful restore drill is stale "
+                f"({runtime.get('restore_drill_age_hours')} h vs target <= {runtime.get('restore_drill_age_target_hours', 24)} h)"
+            )
+    return {"returncode": 0 if not errors else 1, "errors": errors, "runtime": runtime}
+
+
+def _backup_runtime_freshness() -> dict[str, Any]:
+    try:
+        from pymongo import MongoClient  # noqa: PLC0415
+    except Exception as exc:  # pragma: no cover
+        return {"error": f"pymongo unavailable: {type(exc).__name__}"}
+
+    env_path = REPO_ROOT / "backend" / ".env"
+    env = {}
+    try:
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            env[key.strip()] = value.strip().strip('"').strip("'")
+    except OSError as exc:
+        return {"error": f"backend env unreadable: {type(exc).__name__}"}
+
+    mongo_url = env.get("MONGO_URL")
+    db_name = env.get("DB_NAME")
+    if not mongo_url or not db_name:
+        return {"error": "MONGO_URL or DB_NAME missing from backend env"}
+
+    def _parse_ts(value: Any):
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        try:
+            text = str(value)
+            if text.endswith("Z"):
+                text = text[:-1] + "+00:00"
+            return datetime.fromisoformat(text)
+        except Exception:
+            return None
+
+    now = datetime.now(timezone.utc)
+    backup_age_target = int(os.environ.get("BACKUP_RPO_TARGET_MINUTES", env.get("BACKUP_RPO_TARGET_MINUTES") or "60") or "60")
+    restore_age_target = int(os.environ.get("RESTORE_DRILL_MAX_AGE_HOURS", env.get("RESTORE_DRILL_MAX_AGE_HOURS") or "24") or "24")
+    client = MongoClient(mongo_url, serverSelectionTimeoutMS=5000)
+    try:
+        db = client[db_name]
+        latest_backup = db.backup_health.find_one(
+            {"mode": "complete-r2", "ok": True},
+            {"_id": 0, "ts": 1, "filename": 1},
+            sort=[("ts", -1)],
+        )
+        latest_drill = db.drill_runs.find_one(
+            {"state": "done", "outcome": "OK"},
+            {"_id": 0, "finished_at": 1, "started_at": 1, "archive_filename": 1, "duration_minutes": 1},
+            sort=[("started_at", -1)],
+        )
+    except Exception as exc:  # pragma: no cover
+        return {"error": f"backup runtime query failed: {type(exc).__name__}"}
+    finally:
+        client.close()
+
+    backup_dt = _parse_ts((latest_backup or {}).get("ts"))
+    drill_dt = _parse_ts((latest_drill or {}).get("finished_at") or (latest_drill or {}).get("started_at"))
+    return {
+        "latest_backup_ts": (latest_backup or {}).get("ts"),
+        "latest_backup_filename": (latest_backup or {}).get("filename"),
+        "backup_age_minutes": round((now - backup_dt).total_seconds() / 60.0, 2) if backup_dt else None,
+        "backup_age_target_minutes": backup_age_target,
+        "latest_restore_drill_ts": (latest_drill or {}).get("finished_at") or (latest_drill or {}).get("started_at"),
+        "latest_restore_archive_filename": (latest_drill or {}).get("archive_filename"),
+        "latest_restore_duration_minutes": (latest_drill or {}).get("duration_minutes"),
+        "restore_drill_age_hours": round((now - drill_dt).total_seconds() / 3600.0, 2) if drill_dt else None,
+        "restore_drill_age_target_hours": restore_age_target,
+    }
 
 
 def _performance_baseline_gate(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -197,6 +290,7 @@ def _performance_baseline_gate(manifest: dict[str, Any]) -> dict[str, Any]:
         "atlas_evidence_register": perf.get("atlas_evidence_register"),
         "index_query_recommendation_register": perf.get("index_query_recommendation_register"),
         "safe_self_healing_contract": perf.get("safe_self_healing_contract"),
+        "performance_budget_register": perf.get("performance_budget_register"),
     }
     for key, rel in required_paths.items():
         if not rel:
@@ -211,11 +305,50 @@ def _performance_baseline_gate(manifest: dict[str, Any]) -> dict[str, Any]:
                 payloads[key] = json.loads(path.read_text(encoding="utf-8"))
             except Exception as exc:
                 errors.append(f"invalid json in {rel}: {type(exc).__name__}")
+        elif path.suffix == ".csv":
+            try:
+                with path.open(encoding="utf-8", newline="") as handle:
+                    payloads[key] = list(csv.DictReader(handle))
+            except Exception as exc:
+                errors.append(f"invalid csv in {rel}: {type(exc).__name__}")
     baseline = payloads.get("machine_readable_baseline") or {}
     for field in ["checkpoint", "captured_at", "backend", "frontend", "scheduler", "workspace_resources"]:
         if field not in baseline:
             errors.append(f"performance baseline missing {field}")
-    return {"returncode": 0 if not errors else 1, "errors": errors, "baseline": baseline}
+    budget_rows = payloads.get("performance_budget_register") or []
+    if not budget_rows:
+        errors.append("performance budget register missing rows")
+    else:
+        required_budget_keys = list(perf.get("required_budget_keys") or [])
+        seen_budget_keys = {str((row or {}).get("budget_key") or "").strip() for row in budget_rows}
+        missing_budget_keys = [key for key in required_budget_keys if key not in seen_budget_keys]
+        if missing_budget_keys:
+            errors.append("performance budget register missing keys: " + ", ".join(missing_budget_keys))
+        failing_rows = []
+        for row in budget_rows:
+            budget_key = str((row or {}).get("budget_key") or "").strip()
+            status = str((row or {}).get("status") or "").strip().upper()
+            if not budget_key:
+                errors.append("performance budget row missing budget_key")
+                continue
+            if status != "PASS":
+                failing_rows.append({
+                    "budget_key": budget_key,
+                    "status": status or "MISSING",
+                    "measured": (row or {}).get("measured"),
+                    "target": (row or {}).get("target"),
+                })
+        if failing_rows:
+            errors.append(
+                "performance budget register contains non-pass rows: "
+                + ", ".join(f"{row['budget_key']}={row['status']}" for row in failing_rows)
+            )
+    return {
+        "returncode": 0 if not errors else 1,
+        "errors": errors,
+        "baseline": baseline,
+        "budget_rows": budget_rows,
+    }
 
 
 def _migration_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -258,13 +391,16 @@ def _source_authority_gate(manifest: dict[str, Any], target: str) -> dict[str, A
     head = env_head if env_mode and env_head else (snapshot.get("head") or "")
     dirty = env_dirty if env_mode else bool(snapshot.get("dirty"))
     governed = set((manifest.get("governed_branches") or {}).get(target) or [])
-    if not branch:
-        errors.append("git branch unavailable")
-    elif branch not in governed:
+    pre_save = evaluate_pre_save_candidate(snapshot, manifest)
+    detached_workspace_state = evaluate_workspace_state_source_authority(snapshot, manifest, target=target)
+    detached_pre_save_candidate = bool(not branch and head and pre_save.get("passed"))
+    if branch:
+        if branch not in governed:
+            errors.append(f"branch {branch} is not governed for {target}")
+    elif not detached_workspace_state.get("passed") and not detached_pre_save_candidate:
         errors.append(f"branch {branch} is not governed for {target}")
     if not head:
         errors.append("git HEAD unavailable")
-    pre_save = evaluate_pre_save_candidate(snapshot, manifest)
     if dirty and not pre_save.get("passed"):
         errors.extend(pre_save.get("errors") or [])
         if not any("dirty workspace" in err for err in errors):
@@ -278,6 +414,11 @@ def _source_authority_gate(manifest: dict[str, Any], target: str) -> dict[str, A
     snapshot["evaluated_branch"] = branch
     snapshot["evaluated_head"] = head
     snapshot["evaluated_dirty"] = dirty
+    snapshot["detached_workspace_state_authority"] = detached_workspace_state
+    snapshot["detached_pre_save_candidate_authority"] = {
+        "passed": detached_pre_save_candidate,
+        "classification": "DETACHED_PRE_SAVE_CANDIDATE" if detached_pre_save_candidate else "NOT_APPLICABLE",
+    }
     return {
         "returncode": 0 if not errors else 1,
         "snapshot": snapshot,

@@ -1115,6 +1115,7 @@ async def record_governance_decision(
     await db[COLLECTION_DECISIONS].insert_one(dict(row))
     await _write_audit(db, kind="decision", payload=row)
     governance_ref = {"id": row["id"], "doc_id": row["id"], "project_number": _clean(resource.get("project_number")), "_trust_cid": correlation_id}
+    remediation_hint = _governance_remediation_hint(denial_code=denial_code, resource=resource)
     await emit_record_created(
         db,
         workflow="enterprise-governance",
@@ -1149,8 +1150,28 @@ async def record_governance_decision(
         status="ok" if decision == "allow" else "failed",
         event_name=f"governance.decision.{decision}",
         failure_reason=reason if decision != "allow" else None,
+        remediation=remediation_hint if decision != "allow" else None,
     )
     return row
+
+
+def _governance_remediation_hint(*, denial_code: str, resource: Dict[str, Any]) -> Optional[str]:
+    project_number = _clean((resource or {}).get("project_number"))
+    if denial_code == "project_scope_denied":
+        if project_number:
+            return f"Assign {project_number} inside the actor's governed project scope or use a system administrator role for cross-boundary action."
+        return "Assign the project inside the actor's governed project scope or use a system administrator role for cross-boundary action."
+    if denial_code == "missing_permission":
+        return "Grant the missing permission through the governed identity role matrix before retrying this action."
+    if denial_code == "approval_required":
+        return "Complete the required approval flow, then retry the action after approval is recorded."
+    if denial_code == "identity_disabled":
+        return "Re-enable the identity in the governed directory before retrying the privileged action."
+    if denial_code == "password_rotation_required":
+        return "Complete password rotation in the governed directory before retrying the privileged action."
+    if denial_code == "separation_of_duties":
+        return "Use a different authorized actor or adjust the governed separation-of-duties assignment before retrying."
+    return None
 
 
 async def evaluate_governance_action(

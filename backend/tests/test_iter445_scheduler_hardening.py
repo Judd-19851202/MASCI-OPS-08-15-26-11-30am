@@ -28,7 +28,7 @@ from lib.scheduler_runs import (  # noqa: E402
     ensure_scheduler_runs_indexes,
     SCHEDULER_RUNS_COLLECTION,
 )
-from lib.singleton_scheduler import _heartbeat_loop  # noqa: E402
+from lib.singleton_scheduler import _heartbeat_loop, run_with_singleton_lock  # noqa: E402
 
 
 def _read_mongo_url():
@@ -43,10 +43,22 @@ def _read_mongo_url():
     return os.environ.get("MONGO_URL") or "mongodb://localhost:27017"
 
 
+def _read_db_name():
+    path = "/app/backend/.env"
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("DB_NAME="):
+                    return line.split("=", 1)[1].strip().strip('"')
+    except Exception:
+        pass
+    return os.environ.get("DB_NAME") or "masci_safety"
+
+
 async def _setup_db():
     from motor.motor_asyncio import AsyncIOMotorClient
     client = AsyncIOMotorClient(_read_mongo_url())
-    db_name = os.environ.get("DB_NAME") or "masci_safety"
+    db_name = _read_db_name()
     db = client.get_database(db_name)
     await ensure_scheduler_runs_indexes(db)
     await db[SCHEDULER_RUNS_COLLECTION].delete_many({})
@@ -227,4 +239,47 @@ def test_heartbeat_cancels_scheduler_on_lock_loss():
                         pass
         finally:
             client.close()
+    _run(go())
+
+
+def test_cancelled_scheduler_exits_when_runtime_db_is_gone():
+    async def go():
+        class DeadRuntimeProxy:
+            def __init__(self):
+                self.target = self
+
+            def get_target(self):
+                return self.target
+
+            async def delete_one(self, *args, **kwargs):
+                return None
+
+        proxy = DeadRuntimeProxy()
+
+        import lib.singleton_scheduler as ss
+
+        original_acquire = ss._try_acquire_lock
+        original_heartbeat = ss._heartbeat_loop
+
+        async def fake_acquire(*args, **kwargs):
+            return True
+
+        async def fake_heartbeat(*args, **kwargs):
+            return None
+
+        async def cancelled_scheduler(*args, **kwargs):
+            proxy.target = None
+            raise asyncio.CancelledError
+
+        ss._try_acquire_lock = fake_acquire
+        ss._heartbeat_loop = fake_heartbeat
+        try:
+            await asyncio.wait_for(
+                    run_with_singleton_lock(proxy, "backup_scheduler", cancelled_scheduler),
+                timeout=1.0,
+            )
+        finally:
+            ss._try_acquire_lock = original_acquire
+            ss._heartbeat_loop = original_heartbeat
+
     _run(go())

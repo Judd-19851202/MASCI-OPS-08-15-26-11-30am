@@ -1,0 +1,15 @@
+service_id,service_name,tier,canonical_truth,preview_evidence,production_read_only_evidence,classification
+svc_api,FastAPI backend,Tier-0,/api/health and runtime identity,2026-08-06 local health 200 + preview health 200,mascidocs.com/api/health 200,COMPLETE
+svc_frontend,React operator frontend,Tier-1,preview shell + governed routes,preview smoke screenshot 2026-08-06,mascidocs.com public route load,COMPLETE
+svc_mongo,Mongo governed records,Tier-0,health/full + restore drill parity,health/full mongo=true + restore drill 18f83aaa665a PASS,No direct console proof,EXTERNAL OWNER DEPENDENCY
+svc_backup,Complete R2 backup,Tier-0,canonical archive lineage + backup_health,fresh preview archives 2026-08-06,No destructive production proof,COMPLETE
+svc_restore,Namespace-isolated restore,Tier-0,drill_runs + OPS8 report,OPS8_DRILL_18f83aaa665a PASS,No production restore executed,COMPLETE
+svc_scheduler,Singleton scheduler,Tier-0,scheduler_locks + scheduler state,admin recovery snapshot + restart recovery 44.715s,N/A,COMPLETE
+svc_background,Background jobs / workflow durability,Tier-1,scheduler_runs + workflow-specific idempotency,notification/pdf/AI/storage regression suites,N/A,COMPLETE
+svc_storage,Cloudflare R2 object storage,Tier-1,archive lineage + storage invariants,storage invariants suite PASS,No provider console proof,COMPLETE
+svc_auth,Directory/admin auth,Tier-0,strict token-only fail-closed routes,admin strict regression PASS,public production auth not exercised,COMPLETE
+svc_notifications,Email / notification delivery,Tier-1,notification delivery certification suite,S1.4 suite PASS,No live vendor send exercised,COMPLETE
+svc_pdf,PDF rendering,Tier-1,pdf non-blocking contract,pdf non-blocking suite PASS,N/A,COMPLETE
+svc_ai,AI gateway,Tier-2,AI gateway fallback envelope,AI gateway suite PASS,N/A,COMPLETE
+svc_exports,CSV / compliance exports,Tier-1,export suite,compliance exports suite PASS,N/A,COMPLETE
+svc_capacity,Capacity telemetry,Tier-1,cluster capacity routes,capacity + history endpoints 200,N/A,COMPLETE

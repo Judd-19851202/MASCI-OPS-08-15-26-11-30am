@@ -1,6 +1,26 @@
 # PRD
 
+## 2026-08-06 — iter149 WP-18DB resilience certification in progress
+
+- Preview verified ✅
+- Active WP-18DB root-cause repairs completed in this pass:
+  - freed 2.3 GB by removing only safe cache/build artifacts after `/app` hit 100% usage and degraded runtime reliability
+  - hardened detached Emergent workspace PRE_SAVE_CANDIDATE source authority inside the permanent release gate
+  - wired `memory/WP18DA_PERFORMANCE_BUDGET_REGISTER.csv` into the permanent release gate so non-PASS budget rows now block certification
+  - restored backup activation helper compatibility after a hot-reload signature mismatch caused admin recovery surfaces to return `500`
+- Current preview evidence:
+  - release identity verifier: PASS
+  - release gate performance-budget contract: PASS
+  - backup scheduler state: alive / healthy
+  - recovery posture: still RED because the authoritative preview complete archive is stale and must be refreshed before closeout
+
+### 🔴 STANDING OPERATOR ACTIONS
+- Keep production evidence separate from preview evidence; use only non-destructive read-only production verification during WP-18DB.
+- Do not close WP-18DB until fresh backup integrity, isolated restore proof, controlled failure evidence, and final release-gate proof are captured.
+
 ## 2026-08-06 — WP18DA performance & resilience certification
+
+- Preview verified ✅
 
 - Package result: **GO — READY TO SAVE & DEPLOY**.
 - Key code hardening in this pass:
@@ -34,6 +54,10 @@
   - production public APIs `85ms / 90ms / 132ms`
   - targeted Mongo scans repaired from `COLLSCAN` to index-backed `docs=1/keys=1` and `docs=4/keys=4`
   - live preview PDF `2248ms`, live CSV export `2022ms`, build duration `50.53s`
+
+### 🔴 STANDING OPERATOR ACTIONS
+- Preview evidence is complete for WP18DA, but production deployment/user confirmation remains outside this workspace and must stay explicitly separated.
+- Any later package using production read-only evidence must preserve Preview ≠ Production labeling in closeout artifacts.
 
 ## 2026-08-06 — WP18CZ.1 shared submission runtime hardening
 

@@ -333,6 +333,12 @@ async def run_with_singleton_lock(
                 # can poll again and re-acquire if the situation reverses.
                 if hb_task.done():
                     # heartbeat exited (lock-loss) → don't propagate; fall through
+                    post_cancel_db = target_getter(db) if callable(target_getter) else db
+                    if post_cancel_db is None:
+                        logger.info(
+                            f"[singleton-lock:{lock_name}] runtime DB unavailable after cancellation — exiting scheduler loop"
+                        )
+                        return
                     pass
                 else:
                     raise

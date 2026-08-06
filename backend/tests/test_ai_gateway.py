@@ -12,6 +12,14 @@ os.environ.setdefault("SCHEDULER_ENABLED", "false")
 os.environ.setdefault("AI_GATEWAY_ENABLED", "true")
 
 
+def _run_async(coro):
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
+
+
 def test_env_snapshot_returns_no_key_values():
     from services.ai_gateway.env import env_snapshot
     snap = env_snapshot()
@@ -66,7 +74,7 @@ def test_gateway_disabled_returns_fallback_envelope():
                 response_schema={"type": "object"},
                 session_id="t",
             )
-        env = asyncio.get_event_loop().run_until_complete(_run())
+        env = _run_async(_run())
         assert env.ai_available is False
         assert env.fallback_reason == "gateway_disabled"
         assert env.task == "operational_narrative"
@@ -95,7 +103,7 @@ def test_gateway_missing_key_returns_fallback():
                 response_schema={"type": "object"},
                 session_id="t",
             )
-        env = asyncio.get_event_loop().run_until_complete(_run())
+        env = _run_async(_run())
         assert env.ai_available is False
         assert env.fallback_reason in {"missing_provider_key", "adapter_not_registered"}
     finally:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import fnmatch
 import json
 import re
 import subprocess
@@ -242,25 +243,34 @@ def evaluate_pre_save_candidate(snapshot: dict[str, Any], manifest: dict[str, An
     policy = manifest.get("pre_save_candidate_policy") or {}
     tracked_entries = policy.get("allowed_dirty_entries") or []
     tracked_by_path: dict[str, dict[str, Any]] = {}
+    tracked_patterns: list[dict[str, Any]] = []
     inventory_errors: list[str] = []
     for entry in tracked_entries:
         path = str((entry or {}).get("path") or "").strip()
+        path_pattern = str((entry or {}).get("path_pattern") or "").strip()
         mission = str((entry or {}).get("mission_ref") or "").strip()
         rationale = str((entry or {}).get("rationale") or "").strip()
-        if not path:
-            inventory_errors.append("pre_save_candidate_policy contains an entry with no path")
-            continue
-        if path in tracked_by_path:
-            inventory_errors.append(f"pre_save_candidate_policy duplicates path {path}")
+        if not path and not path_pattern:
+            inventory_errors.append("pre_save_candidate_policy contains an entry with no path or path_pattern")
             continue
         if not mission or not rationale:
-            inventory_errors.append(f"pre_save_candidate_policy entry {path} is missing mission_ref or rationale")
+            inventory_errors.append(f"pre_save_candidate_policy entry {(path or path_pattern)} is missing mission_ref or rationale")
             continue
-        tracked_by_path[path] = {
-            "path": path,
-            "mission_ref": mission,
-            "rationale": rationale,
-        }
+        if path:
+            if path in tracked_by_path:
+                inventory_errors.append(f"pre_save_candidate_policy duplicates path {path}")
+                continue
+            tracked_by_path[path] = {
+                "path": path,
+                "mission_ref": mission,
+                "rationale": rationale,
+            }
+        else:
+            tracked_patterns.append({
+                "path_pattern": path_pattern,
+                "mission_ref": mission,
+                "rationale": rationale,
+            })
 
     parsed_files = [parse_git_status_line(line) for line in (snapshot.get("status_lines") or [])]
     unknown_files: list[dict[str, Any]] = []
@@ -273,6 +283,17 @@ def evaluate_pre_save_candidate(snapshot: dict[str, Any], manifest: dict[str, An
             unknown_files.append(item)
             continue
         governed = tracked_by_path.get(path)
+        if governed is None:
+            for entry in tracked_patterns:
+                pattern = str(entry.get("path_pattern") or "")
+                if pattern and fnmatch.fnmatch(path, pattern):
+                    governed = {
+                        "path": path,
+                        "path_pattern": pattern,
+                        "mission_ref": entry.get("mission_ref"),
+                        "rationale": entry.get("rationale"),
+                    }
+                    break
         if not governed:
             unknown_files.append(item)
             continue
@@ -305,6 +326,56 @@ def evaluate_pre_save_candidate(snapshot: dict[str, Any], manifest: dict[str, An
         "dirty_inventory": matched_files,
         "unknown_dirty_files": unknown_files,
         "errors": errors,
+    }
+
+
+def evaluate_workspace_state_source_authority(
+    snapshot: dict[str, Any],
+    manifest: dict[str, Any],
+    *,
+    target: str,
+) -> dict[str, Any]:
+    deployment = manifest.get("deployment_source_authority") or {}
+    workspace_source_key = f"{target}_source"
+    workspace_state = str(deployment.get(workspace_source_key) or "").strip() == "workspace_state"
+    head = str(snapshot.get("head") or "").strip()
+    branch = str(snapshot.get("branch") or "").strip()
+    dirty = bool(snapshot.get("dirty"))
+    emergent_identity = snapshot.get("emergent_workspace_identity") or {}
+    has_emergent_identity = isinstance(emergent_identity, dict) and bool(emergent_identity)
+    detached_clean_sha = workspace_state and not branch and bool(head) and not dirty
+    deployable_clean_sha_required = bool((manifest.get("pre_save_candidate_policy") or {}).get("deployed_source_must_be_clean_sha"))
+    passed = detached_clean_sha and has_emergent_identity and deployable_clean_sha_required
+    reason = None
+    if not passed:
+        if not workspace_state:
+            reason = f"{workspace_source_key}_not_workspace_state"
+        elif branch:
+            reason = "branch_present_standard_governance_applies"
+        elif not head:
+            reason = "git_head_unavailable"
+        elif dirty:
+            reason = "workspace_dirty"
+        elif not has_emergent_identity:
+            reason = "emergent_workspace_identity_missing"
+        elif not deployable_clean_sha_required:
+            reason = "clean_sha_requirement_not_enabled"
+        else:
+            reason = "detached_workspace_state_unproven"
+    return {
+        "passed": passed,
+        "classification": "DETACHED_WORKSPACE_STATE_CLEAN_SHA" if passed else "NOT_APPLICABLE",
+        "reason": reason,
+        "details": {
+            "target": target,
+            "workspace_source_key": workspace_source_key,
+            "workspace_state": workspace_state,
+            "head": head or None,
+            "branch": branch or None,
+            "dirty": dirty,
+            "has_emergent_workspace_identity": has_emergent_identity,
+            "deployable_clean_sha_required": deployable_clean_sha_required,
+        },
     }
 
 

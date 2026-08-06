@@ -1,0 +1,11 @@
+control_id,scope,target_type,target_value,actual_value,evidence_time,evidence_source,status,notes
+RPO_BACKUP_PREVIEW,Preview complete archive freshness,RPO,<=60 min,44.72 min at 2026-08-06 14:39 archive / stale again later,2026-08-06,complete-r2 archive lineage,PASS_AT_CAPTURE,Must be refreshed again at final closeout
+RTO_API_RESTART_LOCAL,Backend health after controlled restart,RTO,<=60 s,49.266 s,2026-08-06,mcp_execute_bash supervisor restart timing,PASS,Measured against local backend health + preview version
+RTO_SCHEDULER_RECOVERY,Canonical scheduler alive after restart,RTO,<=60 s,44.715 s,2026-08-06,mcp_execute_bash restart timing,PASS,Measured via recovery snapshot scheduler alive
+RTO_RESTORE_DRILL,Namespace-isolated restore drill,RTO,<=15 min,11.485 min,2026-08-06,OPS8_DRILL_18f83aaa665a_REPORT.md,PASS,Latest repaired archive drill
+SLO_LOCAL_HEALTH_LATENCY,Local /api/health steady-state,P95,<=10 ms,6.38 ms,2026-08-06,60 req / concurrency 6 local load probe,PASS,0 errors
+SLO_LOCAL_HEALTH_SOAK,Local /api/health 60s soak,P95,<=5 ms,2.29 ms,2026-08-06,120 requests over 60.26s,PASS,0 errors
+SLO_RUNTIME_HEALTH_LOCAL,Local runtime-health diagnostic,P95,<=1000 ms,160.8 ms,2026-08-06,local admin diagnostic probe,PASS,Ingress path can be slower than local truth
+SLO_RECOVERY_SNAPSHOT_LOCAL,Local recovery snapshot diagnostic,P95,<=2500 ms,1597.44 ms,2026-08-06,local admin diagnostic probe,PASS,Snapshot composes multiple evidence sources
+SLO_PERF_BUDGET_CONTRACT,Performance-budget contract route,P95,<=1000 ms,344 ms,2026-08-06,admin diagnostic probe,PASS,16/16 budget rows passing
+SLO_PROD_PUBLIC_HEALTH,Production public health probe,P95,<=1000 ms,469 ms,2026-08-06,mascidocs.com/api/health,PASS,Read-only production evidence

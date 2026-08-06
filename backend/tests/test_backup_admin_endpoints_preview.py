@@ -10,13 +10,48 @@ Tests:
 """
 
 import os
+import time
+import uuid
 import pytest
 import requests
 from typing import Dict, Any, Optional
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+
+def _read_preview_base_url() -> str:
+    base_url = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip().rstrip("/")
+    if base_url:
+        return base_url
+    for env_path in ("/app/frontend/.env", "/app/.env"):
+        try:
+            with open(env_path, encoding="utf-8") as handle:
+                for line in handle:
+                    if line.startswith("REACT_APP_BACKEND_URL="):
+                        return line.split("=", 1)[1].strip().strip('"').rstrip("/")
+        except OSError:
+            continue
+    return ""
+
+
+BASE_URL = _read_preview_base_url()
 PREVIEW_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 PREVIEW_ADMIN_PASSWORD = "Maddix123!"
+
+
+def _request_with_retry(method: str, url: str, *, attempts: int = 3, timeout: int = 60, **kwargs):
+    last_error = None
+    for attempt in range(1, attempts + 1):
+        try:
+            response = requests.request(method, url, timeout=timeout, **kwargs)
+            if response.status_code in {502, 503, 504, 520} and attempt < attempts:
+                time.sleep(min(3 * attempt, 8))
+                continue
+            return response
+        except requests.RequestException as exc:
+            last_error = exc
+            if attempt == attempts:
+                raise
+            time.sleep(min(2 * attempt, 5))
+    raise last_error  # pragma: no cover
 
 
 class TestBackupAdminEndpointsPreview:
@@ -25,12 +60,19 @@ class TestBackupAdminEndpointsPreview:
     @pytest.fixture(scope="class")
     def admin_tokens(self) -> Dict[str, str]:
         """Authenticate as super admin and get portal tokens."""
+        assert BASE_URL.startswith("http"), f"Invalid preview base URL: {BASE_URL!r}"
         login_url = f"{BASE_URL}/api/auth/multi-login"
         payload = {
             "email": PREVIEW_ADMIN_EMAIL,
             "password": PREVIEW_ADMIN_PASSWORD,
         }
-        response = requests.post(login_url, json=payload, timeout=60)
+        response = _request_with_retry(
+            "POST",
+            login_url,
+            json=payload,
+            timeout=90,
+            headers={"X-Device-Id": f"pytest-preview-{uuid.uuid4().hex[:12]}"},
+        )
         assert response.status_code == 200, f"Login failed: {response.status_code} - {response.text}"
         data = response.json()
         
@@ -72,7 +114,7 @@ class TestBackupAdminEndpointsPreview:
 
     def test_01_backend_health_check(self):
         """Regression safety: Backend is responsive."""
-        response = requests.get(f"{BASE_URL}/api/health", timeout=60)
+        response = _request_with_retry("GET", f"{BASE_URL}/api/health", timeout=60)
         assert response.status_code == 200, f"Health check failed: {response.status_code}"
         print(f"Backend health check passed: {response.json()}")
 

@@ -1,0 +1,7 @@
+provider_or_dependency,criticality,failure_mode,graceful_behavior,evidence,classification
+Cloudflare R2,Tier-1,missing object or archive lookup issue,archive build continues and logs bounded warning,complete archive warnings + storage invariants suite,COMPLETE
+Email / notification transport,Tier-1,transport unavailable or capture mode,workflow remains auditable and non-blocking,test_s1_4_notification_delivery_certification.py PASS,COMPLETE
+PDF rendering,Tier-1,render failure,governed filing path remains non-blocking,test_iter331_pdf_non_blocking.py PASS,COMPLETE
+AI gateway,Tier-2,missing key or provider unavailable,returns fallback envelope,test_ai_gateway.py PASS,COMPLETE
+Production public health endpoints,Tier-1,public route latency or timeout,read-only proof retried without destructive action,mascidocs.com public probes,EXTERNAL OWNER DEPENDENCY
+Mongo / Atlas,Tier-0,topology or election behavior,local runtime remains healthy; live provider failover not executed,health/full + restore drill evidence,EXTERNAL OWNER DEPENDENCY

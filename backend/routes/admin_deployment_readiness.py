@@ -175,6 +175,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 for phrase in (
                     "no pm resolved", "no recipient",
                     "dead-letter unconfigured",
+                    "outside the actor governance boundary",
                 )
             )
             entry = {

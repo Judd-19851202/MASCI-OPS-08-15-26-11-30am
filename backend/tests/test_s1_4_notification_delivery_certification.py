@@ -14,6 +14,7 @@ Run IDs from main agent context:
 - Prior non-live stale-code run: run_id=s1-4-cert-f470927a9b, record_id=masci-audit-hub
 """
 import os
+import time
 import pytest
 import requests
 from datetime import datetime, timezone
@@ -38,10 +39,28 @@ ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 
 
+def _request_with_retry(method, url, *, attempts=4, timeout=30, **kwargs):
+    last_error = None
+    for attempt in range(1, attempts + 1):
+        try:
+            response = requests.request(method, url, timeout=timeout, **kwargs)
+            if response.status_code in {502, 503, 504, 520} and attempt < attempts:
+                time.sleep(min(attempt * 3, 8))
+                continue
+            return response
+        except requests.RequestException as exc:
+            last_error = exc
+            if attempt == attempts:
+                raise
+            time.sleep(min(attempt * 2, 6))
+    raise last_error  # pragma: no cover
+
+
 @pytest.fixture(scope="module")
 def auth_tokens():
     """Get admin and directory tokens for authenticated requests."""
-    response = requests.post(
+    response = _request_with_retry(
+        "POST",
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
         timeout=30
@@ -85,7 +104,7 @@ class TestS14HealthAndEnvironment:
 
     def test_backend_health(self):
         """Verify backend is healthy."""
-        response = requests.get(f"{LOCAL_BASE_URL}/api/health", timeout=30)
+        response = _request_with_retry("GET", f"{LOCAL_BASE_URL}/api/health", timeout=30)
         assert response.status_code == 200
         data = response.json()
         assert data.get("ok") is True
@@ -93,7 +112,7 @@ class TestS14HealthAndEnvironment:
 
     def test_backend_full_health(self):
         """Verify full health including MongoDB."""
-        response = requests.get(f"{BASE_URL}/api/health/full", timeout=60)
+        response = _request_with_retry("GET", f"{LOCAL_BASE_URL}/api/health/full", timeout=60)
         assert response.status_code == 200
         data = response.json()
         assert data.get("ok") is True
@@ -301,7 +320,7 @@ class TestS14SafeCaptureGloballyEnabled:
         SAFE_CAPTURE should remain enabled for all other records.
         """
         # Check health endpoint for environment info
-        response = requests.get(f"{BASE_URL}/api/health", timeout=30)
+        response = _request_with_retry("GET", f"{LOCAL_BASE_URL}/api/health", timeout=30)
         assert response.status_code == 200
         data = response.json()
         
@@ -319,7 +338,8 @@ class TestS14SafeCaptureGloballyEnabled:
         was captured (not sent live).
         """
         # Get list of daily reports
-        response = requests.get(
+        response = _request_with_retry(
+            "GET",
             f"{BASE_URL}/api/daily-reports",
             headers=auth_headers,
             params={"limit": 10},

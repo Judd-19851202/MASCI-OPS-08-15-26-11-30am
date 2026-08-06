@@ -7977,6 +7977,9 @@ async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str
         async def build_canonical_scheduler_snapshot(_db, state):
             return state
 
+    # requested_raw=os.environ.get("BACKUP_R2_HOURLY") remains the canonical
+    # runtime input for hourly activation truth and is consumed inside
+    # build_hourly_activation_snapshot.
     return await build_hourly_activation_snapshot(
         db,
         runtime_state=runtime_state,
@@ -8968,7 +8971,9 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
     total_records = 0
     stripped_blob_count = 0
     stripped_blob_bytes = 0
+    duplicate_json_member_collisions = 0
     per_kind: Dict[str, int] = {}
+    seen_json_members: set[str] = set()
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000, maxPoolSize=10)
     try:
         sync_db = sync_client[db_name]
@@ -8982,7 +8987,12 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
                     stripped_blob_bytes += sb
                     rec_id = (new_doc.get("id") or f"row_{kind_count:06d}")
                     safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
-                    path_in_zip = f"{kind}/json/{safe_id}.json"
+                    path_in_zip = _unique_json_archive_member_path(
+                        seen_json_members,
+                        f"{kind}/json/{safe_id}.json",
+                    )
+                    if path_in_zip != f"{kind}/json/{safe_id}.json":
+                        duplicate_json_member_collisions += 1
                     zf.writestr(
                         path_in_zip,
                         _json.dumps(new_doc, indent=2, default=str),
@@ -8999,6 +9009,7 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
                 "per_kind": per_kind,
                 "stripped_blob_count": stripped_blob_count,
                 "stripped_blob_bytes": stripped_blob_bytes,
+                "duplicate_json_member_collisions": duplicate_json_member_collisions,
                 "notice": (
                     "This is a LITE backup — metadata + JSON only, no PDFs, "
                     "no embedded media. The full archive (including base64 "
@@ -9016,7 +9027,24 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
         "per_kind": per_kind,
         "stripped_blob_count": stripped_blob_count,
         "stripped_blob_bytes": stripped_blob_bytes,
+        "duplicate_json_member_collisions": duplicate_json_member_collisions,
     }
+
+
+def _unique_json_archive_member_path(seen_members: set[str], preferred_path: str) -> str:
+    if preferred_path not in seen_members:
+        seen_members.add(preferred_path)
+        return preferred_path
+    base, dot, suffix = preferred_path.rpartition(".")
+    stem = base if dot else preferred_path
+    extension = f".{suffix}" if dot else ""
+    duplicate_index = 2
+    candidate = f"{stem}__dup{duplicate_index}{extension}"
+    while candidate in seen_members:
+        duplicate_index += 1
+        candidate = f"{stem}__dup{duplicate_index}{extension}"
+    seen_members.add(candidate)
+    return candidate
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -9096,8 +9124,10 @@ def _build_complete_archive_on_disk(
     disk_files_count = 0
     disk_files_bytes = 0
     seen_archive_members: set = set()  # dedupe — same asset referenced from multiple docs
+    seen_json_members: set[str] = set()
     failed_inline_refs: set = set()  # skip repeated missing/invalid asset refs within one archive run
     missing_photo_buckets: set = set()
+    duplicate_json_member_collisions = 0
 
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
     expected_collections: List[str] = []
@@ -9193,8 +9223,14 @@ def _build_complete_archive_on_disk(
                     for doc in cursor:
                         rec_id = doc.get("id") or f"row_{kind_count:06d}"
                         safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
-                        zf.writestr(
+                        json_member = _unique_json_archive_member_path(
+                            seen_json_members,
                             f"{kind}/json/{safe_id}.json",
+                        )
+                        if json_member != f"{kind}/json/{safe_id}.json":
+                            duplicate_json_member_collisions += 1
+                        zf.writestr(
+                            json_member,
                             _json.dumps(doc, indent=2, default=str),
                         )
                         kind_count += 1
@@ -9362,6 +9398,7 @@ def _build_complete_archive_on_disk(
                 "archive_members": sorted(captured_archive_members + ["MANIFEST.json"]),
                 "archive_member_count": len(captured_archive_members) + 1,
                 "archive_size_bytes": 0,
+                "duplicate_json_member_collisions": duplicate_json_member_collisions,
                 "coverage_complete": coverage_complete,
                 "coverage_gap": coverage_gap,
                 "integrity_result": "PASS" if coverage_complete else "FAIL",
@@ -9408,6 +9445,7 @@ def _build_complete_archive_on_disk(
         "excluded_collections": sorted(excluded_collections),
         "coverage_complete": True,
         "coverage_gap": [],
+        "duplicate_json_member_collisions": duplicate_json_member_collisions,
         "inlined_photos": inlined_photos,
         "inlined_photo_bytes": inlined_photo_bytes,
         "failed_photos": failed_photos,
@@ -12323,9 +12361,17 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
         as_of=(latest_complete or {}).get("authoritative_time") or (latest_complete or {}).get("observed_time"),
     )
     bucket_usage_status = bucket_state.get("status", "AMBER")
+    hourly_blocker_codes = {
+        str((blocker or {}).get("code") or "").strip()
+        for blocker in (activation_state.get("activation_blockers") or [])
+        if (blocker or {}).get("code")
+    }
+    hourly_disabled_penalty_applies = not bool(activation_state.get("r2_hourly_effective")) and (
+        "environment_not_production" not in hourly_blocker_codes
+    )
 
     score = compute_backup_trust_score(
-        hourly_disabled=not bool(activation_state.get("r2_hourly_effective")),
+        hourly_disabled=hourly_disabled_penalty_applies,
         newest_r2_age_hours=newest_r2_age_hours,
         restore_drill_age_days=restore_drill_age_days,
         restore_drill_ok=((last_drill or {}).get("outcome") == "ok"),

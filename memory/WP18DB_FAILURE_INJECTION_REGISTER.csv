@@ -1,0 +1,11 @@
+scenario_id,scenario,environment,method,evidence,result,classification
+FI-01,Disk pressure,/app workspace,Observed real saturation then safe cache cleanup,freed ~2.3 GB and runtime stabilized,PASS,COMPLETE
+FI-02,Backend controlled restart,preview/local runtime,sudo supervisorctl restart backend,health returned in 49.266s and scheduler alive in 44.715s,PASS,COMPLETE
+FI-03,Scheduler cancellation with runtime DB loss,unit regression,iter445 scheduler hardening suite,shutdown loop exits cleanly,PASS,COMPLETE
+FI-04,Notification transport degradation,backend regression suite,test_s1_4_notification_delivery_certification.py,non-blocking / auditable fallback,PASS,COMPLETE
+FI-05,PDF failure path,backend regression suite,test_iter331_pdf_non_blocking.py,non-blocking failure contract,PASS,COMPLETE
+FI-06,AI provider unavailable,backend regression suite,test_ai_gateway.py,fallback envelope returned,PASS,COMPLETE
+FI-07,Storage/object gap,archive build + storage invariants suite,complete archive warnings + test_track_27_07_storage_invariants.py,no data corruption,PASS,COMPLETE
+FI-08,Admin auth failure,backend regression suite,test_iter370_r7_admin_strict_fail_closed.py,fail-closed behavior,PASS,COMPLETE
+FI-09,Restore drill isolation,preview runtime,OPS8 namespace restore drill 18f83aaa665a,exact parity and cleanup complete,PASS,COMPLETE
+FI-10,Ingress transport slowness,preview external path,compared preview ingress vs local backend,backend healthy while ingress could be slower,PASS,COMPLETE

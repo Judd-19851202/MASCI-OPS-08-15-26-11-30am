@@ -12,6 +12,7 @@ from lib.release_gate_governance import (
     collect_git_snapshot,
     compute_dependency_manifest_hash,
     evaluate_pre_save_candidate,
+    evaluate_workspace_state_source_authority,
     compute_migration_manifest_hash,
     compute_release_gate_manifest_hash,
     load_release_gate_manifest,
@@ -158,6 +159,56 @@ def test_pre_save_candidate_policy_is_governed_and_specific():
             "rationale": "The project record is updated to reference the new canonical auth continuity artifact and the exact blocker-remediation scope.",
         },
         {
+            "path_pattern": "memory/OPS8_DRILL_*_REPORT.md",
+            "mission_ref": "PDC-01B Restore certification evidence",
+            "rationale": "Namespace-isolated restore drill closeout reports are governed preview evidence artifacts and must not invalidate PRE_SAVE_CANDIDATE authority while the resilience package is still in progress.",
+        },
+        {
+            "path_pattern": "memory/WP18DB_*",
+            "mission_ref": "PDC-01B WP-18DB resilience certification artifacts",
+            "rationale": "WP-18DB evidence artifacts are governed in-package certification outputs and must remain eligible PRE_SAVE_CANDIDATE dirty entries until package closeout is finalized.",
+        },
+        {
+            "path": "backend/routes/admin_runtime_reliability.py",
+            "mission_ref": "PDC-01B Executive reliability contract",
+            "rationale": "The governed runtime diagnostics surface now exposes the enforced performance-budget contract for WP-18DB executive reliability evidence.",
+        },
+        {
+            "path": "backend/lib/singleton_scheduler.py",
+            "mission_ref": "PDC-01B Scheduler shutdown resilience",
+            "rationale": "The singleton scheduler now exits cleanly when runtime DB availability disappears during shutdown, preventing false post-shutdown retry loops from contaminating reliability evidence.",
+        },
+        {
+            "path": "backend/tests/test_iter445_scheduler_hardening.py",
+            "mission_ref": "PDC-01B Scheduler shutdown resilience",
+            "rationale": "Scheduler regressions now prove shutdown cancellation exits cleanly once runtime DB access is gone.",
+        },
+        {
+            "path": "backend/tests/test_backup_admin_endpoints_preview.py",
+            "mission_ref": "PDC-01B Preview admin evidence stability",
+            "rationale": "The preview admin endpoint suite now retries transient ingress failures so governed runtime evidence is measured against the actual backend instead of cold-path transport noise.",
+        },
+        {
+            "path": "backend/services/enterprise_governance.py",
+            "mission_ref": "PDC-01B Governance remediation truth",
+            "rationale": "Enterprise-governance failures now emit remediation guidance so deployment readiness no longer misclassifies preview trust-spine failures as silent failures.",
+        },
+        {
+            "path": "backend/tests/test_ai_gateway.py",
+            "mission_ref": "PDC-01B AI fallback certification stability",
+            "rationale": "AI gateway tests now use isolated event loops so fallback evidence remains stable under current pytest runtime behavior.",
+        },
+        {
+            "path": "backend/tests/test_iter370_r7_admin_strict_fail_closed.py",
+            "mission_ref": "PDC-01B Admin strict auth certification stability",
+            "rationale": "Admin strict fail-closed regression now validates the current multi-login token path and skips only on transport noise instead of reporting false app failures.",
+        },
+        {
+            "path": "frontend/src/pages/admin/AdminRecovery.jsx",
+            "mission_ref": "PDC-01B Executive reliability dashboard extension",
+            "rationale": "The existing governed recovery dashboard was extended to show platform reliability, capacity, deployment readiness, and performance-budget evidence without creating a duplicate executive dashboard.",
+        },
+        {
             "path": "backend/server.py",
             "mission_ref": "PDC-01B Build and backup evidence",
             "rationale": "The complete archive export path was hardened to derive database authority truth in verification contexts without weakening runtime database authority protections.",
@@ -270,6 +321,7 @@ def test_performance_contract_fields_present():
     for field in [
         "authority_route",
         "machine_readable_baseline",
+        "performance_budget_register",
         "query_inventory",
         "atlas_evidence_register",
         "index_query_recommendation_register",
@@ -278,6 +330,57 @@ def test_performance_contract_fields_present():
     ]:
         assert field in perf
     assert perf["regression_thresholds"]["api_health_max_seconds"] == 1.0
+    assert "api_health_preview" in perf["required_budget_keys"]
+
+
+def test_workspace_state_source_authority_allows_clean_detached_emergent_candidate():
+    manifest = load_release_gate_manifest(REPO_ROOT)
+    result = evaluate_workspace_state_source_authority(
+        {
+            "branch": "",
+            "head": "43ef229fe68a0bbc62dc96f7bf68f1a1697b4ff1",
+            "dirty": False,
+            "emergent_workspace_identity": {"job_id": "preview-job"},
+        },
+        manifest,
+        target="preview",
+    )
+    assert result["passed"] is True
+    assert result["classification"] == "DETACHED_WORKSPACE_STATE_CLEAN_SHA"
+
+
+def test_workspace_state_source_authority_rejects_dirty_detached_candidate():
+    manifest = load_release_gate_manifest(REPO_ROOT)
+    result = evaluate_workspace_state_source_authority(
+        {
+            "branch": "",
+            "head": "43ef229fe68a0bbc62dc96f7bf68f1a1697b4ff1",
+            "dirty": True,
+            "emergent_workspace_identity": {"job_id": "preview-job"},
+        },
+        manifest,
+        target="preview",
+    )
+    assert result["passed"] is False
+    assert result["reason"] == "workspace_dirty"
+
+
+def test_pre_save_candidate_can_authorize_detached_workspace_state():
+    manifest = load_release_gate_manifest(REPO_ROOT)
+    snapshot = {
+        "branch": "",
+        "head": "43ef229fe68a0bbc62dc96f7bf68f1a1697b4ff1",
+        "dirty": True,
+        "emergent_workspace_identity": {"job_id": "preview-job"},
+        "status_lines": [
+            "M backend/lib/release_gate_governance.py",
+            " M backend/tests/test_checkpoint_d5_d6_release_gate.py",
+            " M docs/governance/release_gate_manifest.json",
+            " M scripts/release_gate.py",
+        ],
+    }
+    result = evaluate_pre_save_candidate(snapshot, manifest)
+    assert result["passed"] is True
 
 
 def test_failure_injection_contract_cases_present():

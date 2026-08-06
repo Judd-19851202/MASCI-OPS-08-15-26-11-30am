@@ -6,7 +6,7 @@
 //
 // All data sourced from /api/admin/recovery/snapshot (cached server-side
 // for 15s).
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
@@ -102,9 +102,30 @@ function Sparkline({ data, width = 600, height = 80 }) {
   );
 }
 
+function normalizeStatus(value) {
+  const raw = String(value || "").trim().toUpperCase();
+  if (["RED", "FAIL", "FAILED", "CRITICAL", "ERROR", "BLOCKED"].includes(raw)) return "RED";
+  if (["AMBER", "WARN", "WARNING", "DEGRADED", "YELLOW", "MISMATCH", "UNAVAILABLE", "UNKNOWN"].includes(raw)) return "AMBER";
+  return "GREEN";
+}
+
+function summarizeWorstStatus(statuses) {
+  if (statuses.some((status) => status === "RED")) return "RED";
+  if (statuses.some((status) => status === "AMBER")) return "AMBER";
+  return "GREEN";
+}
+
 export default function AdminRecovery() {
   const [snap, setSnap] = useState(null);
   const [backupTrust, setBackupTrust] = useState(null);
+  const [runtimeHealth, setRuntimeHealth] = useState(null);
+  const [deploymentReadiness, setDeploymentReadiness] = useState(null);
+  const [platformStatus, setPlatformStatus] = useState(null);
+  const [clusterCapacity, setClusterCapacity] = useState(null);
+  const [clusterCapacityHistory, setClusterCapacityHistory] = useState(null);
+  const [schedulerRuns, setSchedulerRuns] = useState(null);
+  const [systemHealth, setSystemHealth] = useState(null);
+  const [performanceBudget, setPerformanceBudget] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
   const otsSurface = snap?.ots_truth?.truth_surface || {
@@ -135,12 +156,28 @@ export default function AdminRecovery() {
 
   const load = useCallback(async () => {
     try {
-      const [r, trust] = await Promise.all([
+      const [r, trust, runtime, deploy, platform, capacity, capacityHistory, scheduler, system, perf] = await Promise.all([
         api.get("/admin/recovery/snapshot", { skipSessionStatus: true, timeout: 120000 }),
         api.get("/admin/backup-trust-score", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin-strict/diag/runtime-health", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin/deployment-readiness", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin/platform/status", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/cluster/capacity", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/cluster/capacity/history?days=30", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin/scheduler-runs?limit=25", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin/system-health", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
+        api.get("/admin-strict/diag/performance-budget-contract", { skipSessionStatus: true, timeout: 120000 }).catch(() => null),
       ]);
       setSnap(r.data);
       setBackupTrust(trust?.data || null);
+      setRuntimeHealth(runtime?.data || null);
+      setDeploymentReadiness(deploy?.data || null);
+      setPlatformStatus(platform?.data || null);
+      setClusterCapacity(capacity?.data || null);
+      setClusterCapacityHistory(capacityHistory?.data || null);
+      setSchedulerRuns(scheduler?.data || null);
+      setSystemHealth(system?.data || null);
+      setPerformanceBudget(perf?.data || null);
       setErr(null);
     } catch (e) {
       setErr(sanitizeOperatorError(e?.response?.data?.detail || e?.message || e, "Recovery snapshot is unavailable right now."));
@@ -154,6 +191,132 @@ export default function AdminRecovery() {
     const t = setInterval(load, POLL_MS);
     return () => clearInterval(t);
   }, [load]);
+
+  const reliabilityCards = useMemo(() => {
+    const runtimeStatus = runtimeHealth
+      ? summarizeWorstStatus([
+          runtimeHealth?.readiness?.ok ? "GREEN" : "RED",
+          runtimeHealth?.mongo_ok ? "GREEN" : "RED",
+          normalizeStatus(runtimeHealth?.full_health?.state),
+        ])
+      : "AMBER";
+    const schedulerStatus = summarizeWorstStatus([
+      snap?.scheduler?.alive ? "GREEN" : "RED",
+      (schedulerRuns?.failed_total || 0) > 0 ? "AMBER" : "GREEN",
+    ]);
+    const releaseStatus = summarizeWorstStatus([
+      deploymentReadiness?.decision === "pass" ? "GREEN" : deploymentReadiness ? "RED" : "AMBER",
+      performanceBudget?.ok ? "GREEN" : performanceBudget ? "RED" : "AMBER",
+    ]);
+    const capacityStatus = summarizeWorstStatus([
+      normalizeStatus(clusterCapacity?.severity),
+      clusterCapacityHistory?.predictive?.capacity_risk_level === "critical"
+        ? "RED"
+        : clusterCapacityHistory?.predictive?.capacity_risk_level === "watch"
+        ? "AMBER"
+        : "GREEN",
+    ]);
+    const providerStatus = normalizeStatus(systemHealth?.overall || "unknown");
+    const backupStatus = summarizeWorstStatus([
+      normalizeStatus(snap?.pill),
+      backupTrust?.score_band === "red" ? "RED" : backupTrust?.score_band === "amber" ? "AMBER" : "GREEN",
+      snap?.last_drill?.status === "GREEN" ? "GREEN" : "AMBER",
+    ]);
+
+    return [
+      {
+        id: "runtime",
+        title: "Platform availability",
+        status: runtimeStatus,
+        why: runtimeHealth
+          ? `Readiness is ${runtimeHealth?.readiness?.state || "unknown"} and Mongo is ${runtimeHealth?.mongo_ok ? "reachable" : "unreachable"}.`
+          : "Runtime evidence is still loading.",
+        evidence: runtimeHealth
+          ? `event loop ${runtimeHealth?.event_loop_lag_ms ?? "—"} ms · restart count ${runtimeHealth?.restart_count ?? 0} · readiness reason ${runtimeHealth?.readiness?.reason || "unknown"}`
+          : "Awaiting runtime-health endpoint.",
+        confidence: runtimeHealth ? "HIGH" : "MEDIUM",
+        action: runtimeHealth?.readiness?.ok ? "Continue monitoring runtime-health and health probes." : "Hold release and restore runtime readiness before deploy.",
+      },
+      {
+        id: "scheduler",
+        title: "Scheduler and background durability",
+        status: schedulerStatus,
+        why: snap?.scheduler?.alive
+          ? "Canonical scheduler heartbeat is present."
+          : "Scheduler heartbeat is missing or stale.",
+        evidence: `failed runs ${schedulerRuns?.failed_total ?? "—"} · dedup prevented ${schedulerRuns?.dedup_total ?? "—"} · last tick ${fmtTs(snap?.scheduler?.evidence_ts)}`,
+        confidence: schedulerRuns && snap?.scheduler ? "HIGH" : "MEDIUM",
+        action: snap?.scheduler?.alive ? "Review /admin/scheduler-runs for any failed slots before release." : "Repair scheduler heartbeat before release.",
+      },
+      {
+        id: "release",
+        title: "Release and performance gate",
+        status: releaseStatus,
+        why: deploymentReadiness
+          ? `Deployment readiness is ${deploymentReadiness?.decision || "unknown"}.`
+          : "Deployment readiness evidence is still loading.",
+        evidence: `blocking gates ${deploymentReadiness?.blocking_gates?.length ?? "—"} · budget rows ${performanceBudget?.row_count ?? "—"} · missing budget keys ${performanceBudget?.missing_keys?.length ?? "—"}`,
+        confidence: deploymentReadiness && performanceBudget ? "HIGH" : "MEDIUM",
+        action: releaseStatus === "GREEN" ? "Release gate is aligned with current budget evidence." : "Clear blocking gates or failing budget rows before release.",
+      },
+      {
+        id: "capacity",
+        title: "Database and storage headroom",
+        status: capacityStatus,
+        why: clusterCapacity
+          ? `Current storage posture is ${clusterCapacity?.severity || "unknown"}.`
+          : "Capacity evidence is still loading.",
+        evidence: `used ${clusterCapacity?.storage_used_pct ?? "—"}% · days to quota ${clusterCapacityHistory?.days_to_quota ?? "—"} · slope ${clusterCapacityHistory?.slope_mb_per_day ?? "—"} MB/day`,
+        confidence: clusterCapacity && clusterCapacityHistory ? "HIGH" : "MEDIUM",
+        action: capacityStatus === "GREEN" ? "Capacity runway is currently acceptable." : "Review /api/cluster/capacity/history and storage growth before release.",
+      },
+      {
+        id: "backup-restore",
+        title: "Backup and restore readiness",
+        status: backupStatus,
+        why: snap?.last_drill?.status === "GREEN"
+          ? "Latest isolated restore drill is green against the latest complete archive."
+          : "Latest drill or backup trust still needs attention.",
+        evidence: `recovery pill ${snap?.pill || "—"} · trust score ${backupTrust?.trust_score ?? "—"} · backup age ${fmtAge(snap?.backup_age_minutes)} · last drill ${fmtTs(snap?.last_drill?.finished_at)}`,
+        confidence: snap && backupTrust ? "HIGH" : "MEDIUM",
+        action: backupStatus === "GREEN" ? "Maintain fresh archive cadence and drill recency." : "Resolve amber/red recovery drivers before release.",
+      },
+      {
+        id: "provider",
+        title: "Operator-facing provider resilience",
+        status: providerStatus,
+        why: systemHealth
+          ? `System Health is reporting ${String(systemHealth?.overall || "unknown").toUpperCase()} for operator-visible dependencies.`
+          : "Provider/system-health evidence is still loading.",
+        evidence: `system cards ${systemHealth?.cards?.length ?? "—"} · platform status ready ${platformStatus?.readiness?.ready_flag ?? "—"}`,
+        confidence: systemHealth && platformStatus ? "MEDIUM" : "LOW",
+        action: providerStatus === "GREEN" ? "Keep operator messaging aligned with safe degraded modes." : "Use /admin/system-health to inspect the failing operator-facing dependency before release.",
+      },
+    ];
+  }, [runtimeHealth, snap, schedulerRuns, deploymentReadiness, performanceBudget, clusterCapacity, clusterCapacityHistory, backupTrust, systemHealth, platformStatus]);
+
+  const recommendedActions = useMemo(() => {
+    const actions = [];
+    if (reliabilityCards.some((card) => card.status === "RED")) {
+      actions.push("Do not release until every red reliability card returns to green or a governed external-owner dependency is documented.");
+    }
+    if (snap?.pill !== "GREEN") {
+      actions.push(`Recovery posture is ${snap?.pill || "unknown"}; keep archive freshness and restore recency under active review.`);
+    }
+    if ((schedulerRuns?.failed_total || 0) > 0) {
+      actions.push("Review failed scheduler slots in /admin/scheduler-runs and confirm no recurring job remains unhealthy.");
+    }
+    if ((deploymentReadiness?.blocking_gates || []).length > 0) {
+      actions.push("Deployment readiness still has blocking gates; clear each blocker before Save & Deploy.");
+    }
+    if (performanceBudget && !performanceBudget.ok) {
+      actions.push("Performance budget contract is blocking release; all required budget rows must pass.");
+    }
+    if (!actions.length) {
+      actions.push("All loaded executive reliability signals are currently in release-ready posture. Continue the final regression pass before deployment.");
+    }
+    return actions;
+  }, [reliabilityCards, snap, schedulerRuns, deploymentReadiness, performanceBudget]);
 
   return (
     <LegacyAdminModernShell
@@ -199,6 +362,57 @@ export default function AdminRecovery() {
           />
           <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
             Recovery subject=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.truth_subject, "Recovery posture")}</span> · current signal=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.permitted_claim, "UNKNOWN")}</span> · confidence=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.evidence_confidence, "UNKNOWN")}</span> · does not by itself confirm live recovery readiness.
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4" data-testid="reliability-executive-panel">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Executive reliability view</div>
+                <h2 className="text-lg font-semibold text-slate-900" data-testid="reliability-executive-title">Platform reliability, recovery, and release readiness</h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Reuses the governed recovery, runtime, deployment, capacity, scheduler, and system-health surfaces.
+                </p>
+              </div>
+              <div className="text-xs text-slate-500" data-testid="reliability-executive-sources">
+                Sources: recovery snapshot · runtime health · deployment readiness · cluster capacity · scheduler runs · system health
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-testid="reliability-executive-cards">
+              {reliabilityCards.map((card) => (
+                <Card key={card.id} title={card.title} status={card.status} testid={`reliability-card-${card.id}`}>
+                  <div className="space-y-2 text-sm">
+                    <div data-testid={`reliability-card-${card.id}-why`}>
+                      <span className="font-semibold text-slate-900">Why:</span> {card.why}
+                    </div>
+                    <div className="text-slate-600" data-testid={`reliability-card-${card.id}-evidence`}>
+                      <span className="font-semibold text-slate-900">Evidence:</span> {card.evidence}
+                    </div>
+                    <div className="text-slate-600" data-testid={`reliability-card-${card.id}-confidence`}>
+                      <span className="font-semibold text-slate-900">Confidence:</span> {card.confidence}
+                    </div>
+                    <div className="text-slate-600" data-testid={`reliability-card-${card.id}-action`}>
+                      <span className="font-semibold text-slate-900">Recommended action:</span> {card.action}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+              <Card title="Immediate actions" status={reliabilityCards.some((card) => card.status === "RED") ? "RED" : "AMBER"} testid="reliability-immediate-actions">
+                <ul className="space-y-2 text-sm" data-testid="reliability-immediate-actions-list">
+                  {recommendedActions.map((action, index) => (
+                    <li key={`${action}-${index}`} className="leading-relaxed">• {action}</li>
+                  ))}
+                </ul>
+              </Card>
+              <Card title="Release evidence" status={summarizeWorstStatus(reliabilityCards.map((card) => card.status))} testid="reliability-release-evidence">
+                <div className="space-y-1 text-sm" data-testid="reliability-release-evidence-list">
+                  <div>Deployment readiness: <span className="font-semibold">{deploymentReadiness?.decision || "loading"}</span></div>
+                  <div>Performance budget contract: <span className="font-semibold">{performanceBudget?.ok ? "pass" : performanceBudget ? "fail" : "loading"}</span></div>
+                  <div>Capacity runway: <span className="font-semibold">{clusterCapacityHistory?.days_to_quota == null ? "—" : `${clusterCapacityHistory.days_to_quota} day(s)`}</span></div>
+                  <div>Platform status ready flag: <span className="font-semibold">{String(platformStatus?.readiness?.ready_flag ?? "loading")}</span></div>
+                </div>
+              </Card>
+            </div>
           </div>
           {snap ? (
             <>

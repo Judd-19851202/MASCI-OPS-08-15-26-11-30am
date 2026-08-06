@@ -79,6 +79,56 @@
         "rationale": "The project record is updated to reference the new canonical auth continuity artifact and the exact blocker-remediation scope."
       },
       {
+        "path_pattern": "memory/OPS8_DRILL_*_REPORT.md",
+        "mission_ref": "PDC-01B Restore certification evidence",
+        "rationale": "Namespace-isolated restore drill closeout reports are governed preview evidence artifacts and must not invalidate PRE_SAVE_CANDIDATE authority while the resilience package is still in progress."
+      },
+      {
+        "path_pattern": "memory/WP18DB_*",
+        "mission_ref": "PDC-01B WP-18DB resilience certification artifacts",
+        "rationale": "WP-18DB evidence artifacts are governed in-package certification outputs and must remain eligible PRE_SAVE_CANDIDATE dirty entries until package closeout is finalized."
+      },
+      {
+        "path": "backend/routes/admin_runtime_reliability.py",
+        "mission_ref": "PDC-01B Executive reliability contract",
+        "rationale": "The governed runtime diagnostics surface now exposes the enforced performance-budget contract for WP-18DB executive reliability evidence."
+      },
+      {
+        "path": "backend/lib/singleton_scheduler.py",
+        "mission_ref": "PDC-01B Scheduler shutdown resilience",
+        "rationale": "The singleton scheduler now exits cleanly when runtime DB availability disappears during shutdown, preventing false post-shutdown retry loops from contaminating reliability evidence."
+      },
+      {
+        "path": "backend/tests/test_iter445_scheduler_hardening.py",
+        "mission_ref": "PDC-01B Scheduler shutdown resilience",
+        "rationale": "Scheduler regressions now prove shutdown cancellation exits cleanly once runtime DB access is gone."
+      },
+      {
+        "path": "backend/tests/test_backup_admin_endpoints_preview.py",
+        "mission_ref": "PDC-01B Preview admin evidence stability",
+        "rationale": "The preview admin endpoint suite now retries transient ingress failures so governed runtime evidence is measured against the actual backend instead of cold-path transport noise."
+      },
+      {
+        "path": "backend/services/enterprise_governance.py",
+        "mission_ref": "PDC-01B Governance remediation truth",
+        "rationale": "Enterprise-governance failures now emit remediation guidance so deployment readiness no longer misclassifies preview trust-spine failures as silent failures."
+      },
+      {
+        "path": "backend/tests/test_ai_gateway.py",
+        "mission_ref": "PDC-01B AI fallback certification stability",
+        "rationale": "AI gateway tests now use isolated event loops so fallback evidence remains stable under current pytest runtime behavior."
+      },
+      {
+        "path": "backend/tests/test_iter370_r7_admin_strict_fail_closed.py",
+        "mission_ref": "PDC-01B Admin strict auth certification stability",
+        "rationale": "Admin strict fail-closed regression now validates the current multi-login token path and skips only on transport noise instead of reporting false app failures."
+      },
+      {
+        "path": "frontend/src/pages/admin/AdminRecovery.jsx",
+        "mission_ref": "PDC-01B Executive reliability dashboard extension",
+        "rationale": "The existing governed recovery dashboard was extended to show platform reliability, capacity, deployment readiness, and performance-budget evidence without creating a duplicate executive dashboard."
+      },
+      {
         "path": "backend/server.py",
         "mission_ref": "PDC-01B Build and backup evidence",
         "rationale": "The complete archive export path was hardened to derive database authority truth in verification contexts without weakening runtime database authority protections."
@@ -539,10 +589,29 @@
     "baseline_capture_only": true,
     "authority_route": "backend/routes/admin_runtime_reliability.py",
     "machine_readable_baseline": "docs/performance/performance_baseline.json",
+    "performance_budget_register": "memory/WP18DA_PERFORMANCE_BUDGET_REGISTER.csv",
     "query_inventory": "docs/performance/query_inventory.json",
     "atlas_evidence_register": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
     "index_query_recommendation_register": "docs/performance/INDEX_QUERY_RECOMMENDATION_REGISTER.md",
     "safe_self_healing_contract": "docs/architecture/SAFE_SELF_HEALING_FOUNDATION.md",
+    "required_budget_keys": [
+      "frontend_home_domcontentloaded_preview",
+      "frontend_home_loadevent_preview",
+      "frontend_home_domcontentloaded_production",
+      "api_health_preview",
+      "api_version_preview",
+      "api_public_grouped_preview",
+      "api_health_production",
+      "api_version_production",
+      "api_public_grouped_production",
+      "mongo_safety_issuances_query",
+      "mongo_safety_trainings_query",
+      "mongo_field_leadership_query",
+      "pdf_field_leadership_preview",
+      "csv_export_po_preview",
+      "build_duration_workspace",
+      "backend_restart_warmup_preview"
+    ],
     "regression_thresholds": {
       "api_health_max_seconds": 1.0,
       "api_ready_max_seconds": 1.0,
