@@ -3,7 +3,7 @@
 ## Gate result
 
 - Target: `preview`
-- Decision: `PASS`
+- Final decision in the closeout window: `PASS`
 - Failed gates: `none`
 
 ## Permanent gate changes completed in WP-18DB
@@ -32,4 +32,4 @@ The release gate is currently green even though preview backup trust remains `AM
 
 ## Conclusion
 
-The preview reliability release gate is now permanently stricter than it was at the start of WP-18DB and is currently passing against the active workspace evidence set.
+The preview reliability release gate is now permanently stricter than it was at the start of WP-18DB and passed in the final closeout evidence window.

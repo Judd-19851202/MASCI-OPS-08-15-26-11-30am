@@ -10,8 +10,8 @@
 
 ## Preview deployment gate status
 
-- Current preview release-gate decision: `pass`
-- Current failed gates: `none`
+- Final preview release-gate decision: `pass`
+- Final failed gates: `none`
 - The release gate now enforces:
   - detached Emergent workspace source authority handling for preview pre-save certification
   - WP-18DA performance budget CSV presence and PASS-only budget rows
@@ -34,4 +34,4 @@
 
 ## Conclusion
 
-Preview deployment and rollback certification is currently supported by a passing release gate, prior deployment readiness scan, and clean production public read-only reachability. Production save/deploy execution remains outside this workspace and is not claimed here.
+Preview deployment and rollback certification is supported by a passing final release gate, passing deployment readiness, and clean production public read-only reachability. Production save/deploy execution remains outside this workspace and is not claimed here.

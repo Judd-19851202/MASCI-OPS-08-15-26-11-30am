@@ -1,3 +1,10 @@
+# 2026-08-06 — WP18DB final state
+
+- **WP-18DB is COMPLETE, CERTIFIED, and DEPLOYABLE.**
+- Final gate: **GO — READY TO SAVE & DEPLOY**
+- Existing governed `/admin/recovery` dashboard was extended for executive reliability. No duplicate dashboard was created.
+- `WP-18DC` remains blocked until a future explicit executive authorization.
+
 # 2026-08-06 — WP18DA final state
 
 - **WP-18DA is COMPLETE, CERTIFIED, and DEPLOYABLE.**

@@ -1,5 +1,28 @@
 # PRD
 
+## 2026-08-06 — iter150 WP-18DB closeout
+
+- Preview verified ✅
+
+- Result: **GO — READY TO SAVE & DEPLOY**.
+- Final evidence window captured:
+  - fresh complete preview archive `MASCI_complete_backup_2026-08-06_210529Z.zip`
+  - latest passing isolated restore drill `18f83aaa665a`
+  - release gate `PASS`
+  - deployment readiness `PASS`
+  - performance-budget contract `PASS`
+  - recovery snapshot `GREEN`
+  - backup trust score `90 / green`
+  - controlled restart recovery measured (`health 49.266s`, `scheduler 44.715s`)
+  - frontend executive recovery dashboard retest `PASS`
+  - backend resilience endpoint retest `PASS`
+- Existing governed `/admin/recovery` dashboard was extended for executive reliability; no duplicate dashboard created.
+- WP-18DC remains blocked until a future explicit authorization after this package closeout.
+
+### 🔴 STANDING OPERATOR ACTIONS
+- Production Save & Deploy remains a user-controlled action outside this workspace.
+- Production-destructive failover / provider-console topology forcing remains outside current authorized workspace access.
+
 ## 2026-08-06 — iter149 WP-18DB resilience certification in progress
 
 - Preview verified ✅

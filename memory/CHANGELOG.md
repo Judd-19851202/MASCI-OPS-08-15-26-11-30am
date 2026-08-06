@@ -1,3 +1,9 @@
+# 2026-08-06 — WP18DB final closeout
+
+- Completed WP-18DB with a fresh complete preview archive (`MASCI_complete_backup_2026-08-06_210529Z.zip`), green recovery posture, green backup trust score (`90`), passing restore drill evidence, passing deployment readiness, and a passing final release gate.
+- Extended the existing governed `/admin/recovery` dashboard with executive reliability cards covering runtime health, scheduler durability, release/performance gate, capacity/headroom, backup/restore readiness, and provider resilience.
+- Repaired scheduler shutdown-loop behavior, preview trust-score penalty handling, deployment-readiness silent-failure remediation, complete-archive JSON collision handling, and admin-safe performance-budget contract routing.
+
 # 2026-08-06 — WP18DA performance & resilience certification
 
 - Hardened frontend runtime performance by making build-stamp writes idempotent, disabling live dev eslint, enabling webpack filesystem cache, and gating visual edits behind `ENABLE_VISUAL_EDITS=true`.

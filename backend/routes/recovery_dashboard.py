@@ -212,7 +212,7 @@ def _compute_pill(
     """Pure function. Same inputs → same output. Unit-testable.
 
     RED if  : last backup_health row is ok=false OR no backup in 2x target window OR bucket RED.
-    AMBER if: backup_age > target OR any failure in last 7d OR bucket AMBER.
+    AMBER if: backup_age > target OR bucket AMBER.
     GREEN   : everything is fine.
     """
     if last_backup_ok is False:
@@ -225,8 +225,6 @@ def _compute_pill(
     if backup_age_minutes > 2 * backup_age_target_minutes:
         return "RED"
     if backup_age_minutes > backup_age_target_minutes:
-        return "AMBER"
-    if failures_7d > 0:
         return "AMBER"
     if bucket_usage_status == "AMBER":
         return "AMBER"
@@ -591,6 +589,12 @@ def build_recovery_dashboard_router(
                 "kind": "backup-restore-overlap",
                 "severity": "amber",
                 "message": "Backup and restore overlap detected or blocked by runtime guard",
+            })
+        if failures_7d:
+            warnings.append({
+                "kind": "historical-backup-failures",
+                "severity": "info",
+                "message": f"{len(failures_7d)} backup failure event(s) recorded in the last 7 days; current archive posture is evaluated separately.",
             })
         if (os.environ.get("PHOTO_COVERAGE_GAP_OPEN", "false") or "false").lower() in ("1", "true", "yes"):
             warnings.append({

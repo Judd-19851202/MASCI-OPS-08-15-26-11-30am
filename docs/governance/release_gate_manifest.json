@@ -94,6 +94,11 @@
         "rationale": "The governed runtime diagnostics surface now exposes the enforced performance-budget contract for WP-18DB executive reliability evidence."
       },
       {
+        "path": "backend/routes/recovery_dashboard.py",
+        "mission_ref": "PDC-01B Recovery posture truth refinement",
+        "rationale": "Recovery posture now stays green for a fresh valid archive when only historical backup failures remain as informational context, preventing false amber closeout state."
+      },
+      {
         "path": "backend/lib/singleton_scheduler.py",
         "mission_ref": "PDC-01B Scheduler shutdown resilience",
         "rationale": "The singleton scheduler now exits cleanly when runtime DB availability disappears during shutdown, preventing false post-shutdown retry loops from contaminating reliability evidence."
@@ -137,6 +142,16 @@
         "path": "frontend/src/pages/admin/AdminRecovery.jsx",
         "mission_ref": "PDC-01B Executive reliability dashboard extension",
         "rationale": "The existing governed recovery dashboard was extended to show platform reliability, capacity, deployment readiness, and performance-budget evidence without creating a duplicate executive dashboard."
+      },
+      {
+        "path": "memory/ROADMAP.md",
+        "mission_ref": "PDC-01B Closeout governance records",
+        "rationale": "ROADMAP was updated at final closeout to reflect that WP-18DB is complete and WP-18DC remains blocked until future authorization."
+      },
+      {
+        "path": "memory/CHANGELOG.md",
+        "mission_ref": "PDC-01B Closeout governance records",
+        "rationale": "CHANGELOG was updated at final closeout to record the exact WP-18DB repairs, final archive, release-gate result, and dashboard extension."
       },
       {
         "path": "backend/server.py",
