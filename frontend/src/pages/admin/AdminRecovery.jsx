@@ -7,6 +7,7 @@
 // All data sourced from /api/admin/recovery/snapshot (cached server-side
 // for 15s).
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Activity } from "lucide-react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
@@ -38,26 +39,46 @@ function fmtTs(ts) {
 }
 
 function Card({ title, status, children, testid }) {
-  const ring =
+  const tone =
     status === "GREEN"
-      ? "ring-emerald-200"
+      ? "border-emerald-300 bg-emerald-50/70"
       : status === "AMBER"
-      ? "ring-amber-200"
+      ? "border-amber-300 bg-amber-50/80"
       : status === "RED"
-      ? "ring-rose-200"
-      : "ring-slate-200";
+      ? "border-rose-300 bg-rose-50/80"
+      : "border-slate-200 bg-white";
+  const chip =
+    status === "GREEN"
+      ? "bg-emerald-700 text-white"
+      : status === "AMBER"
+      ? "bg-amber-600 text-white"
+      : status === "RED"
+      ? "bg-rose-700 text-white"
+      : "bg-slate-200 text-slate-700";
   return (
     <div
-      className={`rounded-lg bg-white p-4 ring-1 ${ring} shadow-sm`}
+      className={`rounded-xl border-2 p-4 shadow-sm ${tone}`}
       data-testid={testid}
     >
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-        {title}
+      <div className="mb-2 flex items-center gap-2">
+        <div className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-slate-500">
+          {title}
+        </div>
+        <span className={`ml-auto rounded-full px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.18em] ${chip}`}>
+          {status || "INFO"}
+        </span>
       </div>
       {children}
     </div>
   );
 }
+
+const GRID_BACKGROUND = {
+  backgroundImage:
+    "linear-gradient(rgba(15,23,42,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.045) 1px, transparent 1px), radial-gradient(circle at top right, rgba(15,118,110,0.12), transparent 32%), radial-gradient(circle at bottom left, rgba(30,64,175,0.08), transparent 28%)",
+  backgroundSize: "24px 24px, 24px 24px, auto, auto",
+  backgroundPosition: "0 0, 0 0, 100% 0, 0 100%",
+};
 
 function Sparkline({ data, width = 600, height = 80 }) {
   if (!data || data.length === 0) {
@@ -231,7 +252,7 @@ export default function AdminRecovery() {
           ? `system cards ${systemHealth?.cards?.length ?? "—"} · platform alerts ${platformStatus?.alerts?.length ?? 0} · ready flag ${String(platformStatus?.readiness?.ready_flag ?? false)}`
           : "Awaiting platform-status and system-health endpoints.",
         confidence: systemHealth && platformStatus ? "HIGH" : "MEDIUM",
-        action: platformStatus?.readiness?.ready_flag ? "Continue monitoring public health and platform status." : "Hold release until the platform ready flag returns true.",
+        action: platformStatus?.readiness?.ready_flag ? "Keep public health and platform status under watch." : "Hold release until the platform ready flag returns true.",
       },
       {
         id: "scheduler",
@@ -242,7 +263,7 @@ export default function AdminRecovery() {
           : "Scheduler heartbeat is missing or stale.",
         evidence: `failed runs ${schedulerRuns?.failed_total ?? "—"} · dedup prevented ${schedulerRuns?.dedup_total ?? "—"} · last tick ${fmtTs(snap?.scheduler?.evidence_ts)}`,
         confidence: schedulerRuns && snap?.scheduler ? "HIGH" : "MEDIUM",
-        action: snap?.scheduler?.alive ? "Review /admin/scheduler-runs for any failed slots before release." : "Repair scheduler heartbeat before release.",
+        action: snap?.scheduler?.alive ? "Review scheduler runs for any failed slots before release." : "Repair scheduler heartbeat before release.",
       },
       {
         id: "release",
@@ -253,7 +274,7 @@ export default function AdminRecovery() {
           : "Deployment readiness evidence is still loading.",
         evidence: `blocking gates ${deploymentReadiness?.blocking_gates?.length ?? "—"} · budget rows ${performanceBudget?.row_count ?? "—"} · missing budget keys ${performanceBudget?.missing_keys?.length ?? "—"}`,
         confidence: deploymentReadiness && performanceBudget ? "HIGH" : "MEDIUM",
-        action: releaseStatus === "GREEN" ? "Release gate is aligned with current budget evidence." : "Clear blocking gates or failing budget rows before release.",
+        action: releaseStatus === "GREEN" ? "Release guard is aligned with current budget evidence." : "Clear blocking gates or failing budget rows before release.",
       },
       {
         id: "capacity",
@@ -264,7 +285,7 @@ export default function AdminRecovery() {
           : "Capacity evidence is still loading.",
         evidence: `used ${clusterCapacity?.storage_used_pct ?? "—"}% · days to quota ${clusterCapacityHistory?.days_to_quota ?? "—"} · slope ${clusterCapacityHistory?.slope_mb_per_day ?? "—"} MB/day`,
         confidence: clusterCapacity && clusterCapacityHistory ? "HIGH" : "MEDIUM",
-        action: capacityStatus === "GREEN" ? "Capacity runway is currently acceptable." : "Review /api/cluster/capacity/history and storage growth before release.",
+        action: capacityStatus === "GREEN" ? "Capacity runway is currently acceptable." : "Review storage growth and capacity runway before release.",
       },
       {
         id: "backup-restore",
@@ -275,7 +296,7 @@ export default function AdminRecovery() {
           : "Latest drill or backup trust still needs attention.",
         evidence: `recovery pill ${snap?.pill || "—"} · trust score ${backupTrust?.trust_score ?? "—"} · backup age ${fmtAge(snap?.backup_age_minutes)} · last drill ${fmtTs(snap?.last_drill?.finished_at)}`,
         confidence: snap && backupTrust ? "HIGH" : "MEDIUM",
-        action: backupStatus === "GREEN" ? "Maintain fresh archive cadence and drill recency." : "Resolve amber/red recovery drivers before release.",
+        action: backupStatus === "GREEN" ? "Maintain fresh archive cadence and drill recency." : "Resolve recovery drivers before release.",
       },
       {
         id: "provider",
@@ -286,7 +307,7 @@ export default function AdminRecovery() {
           : "Provider/system-health evidence is still loading.",
         evidence: `system cards ${systemHealth?.cards?.length ?? "—"} · platform status ready ${platformStatus?.readiness?.ready_flag ?? "—"}`,
         confidence: systemHealth && platformStatus ? "MEDIUM" : "LOW",
-        action: providerStatus === "GREEN" ? "Keep operator messaging aligned with safe degraded modes." : "Use /admin/system-health to inspect the failing operator-facing dependency before release.",
+        action: providerStatus === "GREEN" ? "Keep operator messaging aligned with safe degraded modes." : "Use System Health to inspect the failing operator-facing dependency before release.",
       },
     ];
   }, [snap, schedulerRuns, deploymentReadiness, performanceBudget, clusterCapacity, clusterCapacityHistory, backupTrust, systemHealth, platformStatus]);
@@ -300,7 +321,7 @@ export default function AdminRecovery() {
       actions.push(`Recovery posture is ${snap?.pill || "unknown"}; keep archive freshness and restore recency under active review.`);
     }
     if ((schedulerRuns?.failed_total || 0) > 0) {
-      actions.push("Review failed scheduler slots in /admin/scheduler-runs and confirm no recurring job remains unhealthy.");
+      actions.push("Review failed scheduler slots and confirm no recurring job remains unhealthy.");
     }
     if ((deploymentReadiness?.blocking_gates || []).length > 0) {
       actions.push("Deployment readiness still has blocking gates; clear each blocker before Save & Deploy.");
@@ -317,22 +338,40 @@ export default function AdminRecovery() {
   return (
     <LegacyAdminModernShell
       title="Recovery Posture"
-      subtitle="Read-only recovery dashboard · polls every 30s."
+      subtitle="Read-only recovery posture with governed release and continuity signals."
       breadcrumb={[
         { label: "Storage & Recovery", to: "/admin/storage-recovery" },
         { label: "Recovery Posture" },
       ]}
       testidPrefix="admin-recovery"
     >
-      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
-        <p className="text-sm text-slate-600 leading-relaxed">
-          Read-only recovery dashboard. Polls every 30s. For actions
-          (trigger backup · run drill · restore from archive), open{" "}
-          <a className="underline" href="/admin/operations-control">
-            Operations Control
-          </a>
-          .
-        </p>
+      <div className="mb-5 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm sm:p-5" style={GRID_BACKGROUND} data-testid="admin-recovery-governed-surface">
+        <div className="rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+                <Activity className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500">Storage & Recovery</div>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950" data-testid="admin-recovery-page-heading">Recovery posture and release readiness</h1>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
+                  Read-only posture board for archive freshness, restore proof, scheduler durability, release guard, and capacity runway. To run a backup, drill, or archive restore, open <a className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4" href="/admin/operations-control">Operations Control</a>.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[320px]" data-testid="admin-recovery-hero-chips">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                <div className="font-mono uppercase tracking-[0.16em] text-slate-500">Update rhythm</div>
+                <div className="mt-1 font-semibold text-slate-900">Polls every 30 seconds</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                <div className="font-mono uppercase tracking-[0.16em] text-slate-500">Action model</div>
+                <div className="mt-1 font-semibold text-slate-900">Read-only posture board</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       {loading && (
         <div className="text-sm text-slate-500" data-testid="recovery-loading">
@@ -357,19 +396,19 @@ export default function AdminRecovery() {
             testidPrefix="recovery-ots-truth-panel"
           />
           <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
-            Recovery subject=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.truth_subject, "Recovery posture")}</span> · current signal=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.permitted_claim, "UNKNOWN")}</span> · confidence=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.evidence_confidence, "UNKNOWN")}</span> · does not by itself confirm live recovery readiness.
+            Recovery subject=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.truth_subject, "Recovery posture")}</span> · current signal=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.permitted_claim, "UNKNOWN")}</span> · confidence=<span className="font-semibold">{sanitizeOperatorReference(snap?.ots_truth?.evidence_confidence, "UNKNOWN")}</span> · this panel summarizes governed evidence and does not replace live recovery action controls.
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4" data-testid="reliability-executive-panel">
+          <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm" data-testid="reliability-executive-panel">
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Executive reliability view</div>
-                <h2 className="text-lg font-semibold text-slate-900" data-testid="reliability-executive-title">Platform reliability, recovery, and release readiness</h2>
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-slate-500">Operations readiness board</div>
+                <h2 className="text-lg font-black tracking-tight text-slate-950" data-testid="reliability-executive-title">Platform reliability, recovery, and release readiness</h2>
                 <p className="text-sm text-slate-600 mt-1">
-                  Reuses the governed recovery, runtime, deployment, capacity, scheduler, and system-health surfaces.
+                  Uses the governed recovery, deployment, capacity, scheduler, and system-health surfaces already in the platform.
                 </p>
               </div>
-              <div className="text-xs text-slate-500" data-testid="reliability-executive-sources">
-                Sources: recovery snapshot · runtime health · deployment readiness · cluster capacity · scheduler runs · system health
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500" data-testid="reliability-executive-sources">
+                Sources: recovery snapshot · deployment readiness · cluster capacity · scheduler runs · system health
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-testid="reliability-executive-cards">
@@ -377,7 +416,7 @@ export default function AdminRecovery() {
                 <Card key={card.id} title={card.title} status={card.status} testid={`reliability-card-${card.id}`}>
                   <div className="space-y-2 text-sm">
                     <div data-testid={`reliability-card-${card.id}-why`}>
-                      <span className="font-semibold text-slate-900">Why:</span> {card.why}
+                      <span className="font-semibold text-slate-900">Current signal:</span> {card.why}
                     </div>
                     <div className="text-slate-600" data-testid={`reliability-card-${card.id}-evidence`}>
                       <span className="font-semibold text-slate-900">Evidence:</span> {card.evidence}
@@ -386,14 +425,14 @@ export default function AdminRecovery() {
                       <span className="font-semibold text-slate-900">Confidence:</span> {card.confidence}
                     </div>
                     <div className="text-slate-600" data-testid={`reliability-card-${card.id}-action`}>
-                      <span className="font-semibold text-slate-900">Recommended action:</span> {card.action}
+                      <span className="font-semibold text-slate-900">Next move:</span> {card.action}
                     </div>
                   </div>
                 </Card>
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
-              <Card title="Immediate actions" status={reliabilityCards.some((card) => card.status === "RED") ? "RED" : "AMBER"} testid="reliability-immediate-actions">
+              <Card title="Immediate actions" status={reliabilityCards.some((card) => card.status === "RED") ? "RED" : summarizeWorstStatus(reliabilityCards.map((card) => card.status))} testid="reliability-immediate-actions">
                 <ul className="space-y-2 text-sm" data-testid="reliability-immediate-actions-list">
                   {recommendedActions.map((action, index) => (
                     <li key={`${action}-${index}`} className="leading-relaxed">• {action}</li>
