@@ -1,0 +1,27 @@
+{
+  "public_time_off": {
+    "token": "2b489eb065a04bd9887b6eb29db1c1a21522c9f790984611",
+    "loaded_employee": "WP18CZ2 Public Employee",
+    "doc_id": "TOR-2026-00047",
+    "reuse_status": 410
+  },
+  "po_request": {
+    "id": "096063e6-f26e-4bf3-a554-5173db4cca06",
+    "po_number": null,
+    "status": "Submitted",
+    "list_count": 1,
+    "export_type": "text/csv; charset=utf-8"
+  },
+  "safety_issuance_return": {
+    "issuance_doc_id": "SEI-2026-00051",
+    "return_doc_id": "SER-2026-00001",
+    "list_count": 1,
+    "issuance_pdf": "application/pdf",
+    "return_pdf": "application/pdf"
+  },
+  "safety_training": {
+    "doc_id": "SET-2026-00041",
+    "list_count": 1,
+    "pdf": "application/pdf"
+  }
+}

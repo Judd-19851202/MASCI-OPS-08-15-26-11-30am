@@ -1,0 +1,67 @@
+{
+  "public_grouped_status": 200,
+  "first_status": 200,
+  "first_body": {
+    "ok": true,
+    "duplicate_prevented": true,
+    "acknowledgement": {
+      "id": "d6d034b7-d4e3-47bd-aa9f-6df1d66a4ba0",
+      "project_number": "25-12",
+      "jha_file_id": "c841c43f-34bd-43d3-96ca-b972d07b05fb",
+      "jha_filename": "wp18cz2-preview-jha.pdf",
+      "jha_uploaded_at": "2026-08-06T01:06:41.587951+00:00",
+      "employee_id": "track1540-a9d07136-ed72-424a-820e-273edbb17f58",
+      "employee_name": "Track 15.40 TestEmployee",
+      "employee_email": "track1540@mascicert.local",
+      "signature": "Test Employee Track 1540",
+      "locale": "en",
+      "acknowledged_at": "2026-08-06T01:13:05.352211+00:00",
+      "ip": "104.198.214.223",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.0 Safari/537.36",
+      "doc_id": "JAA-2026-00002"
+    }
+  },
+  "second_status": 200,
+  "second_body": {
+    "ok": true,
+    "duplicate_prevented": true,
+    "acknowledgement": {
+      "id": "d6d034b7-d4e3-47bd-aa9f-6df1d66a4ba0",
+      "project_number": "25-12",
+      "jha_file_id": "c841c43f-34bd-43d3-96ca-b972d07b05fb",
+      "jha_filename": "wp18cz2-preview-jha.pdf",
+      "jha_uploaded_at": "2026-08-06T01:06:41.587951+00:00",
+      "employee_id": "track1540-a9d07136-ed72-424a-820e-273edbb17f58",
+      "employee_name": "Track 15.40 TestEmployee",
+      "employee_email": "track1540@mascicert.local",
+      "signature": "Test Employee Track 1540",
+      "locale": "en",
+      "acknowledged_at": "2026-08-06T01:13:05.352211+00:00",
+      "ip": "104.198.214.223",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.0 Safari/537.36",
+      "doc_id": "JAA-2026-00002"
+    }
+  },
+  "doc_id": "JAA-2026-00002",
+  "lookup_status": 200,
+  "lookup_body": {
+    "item": {
+      "id": "d6d034b7-d4e3-47bd-aa9f-6df1d66a4ba0",
+      "project_number": "25-12",
+      "jha_file_id": "c841c43f-34bd-43d3-96ca-b972d07b05fb",
+      "jha_filename": "wp18cz2-preview-jha.pdf",
+      "jha_uploaded_at": "2026-08-06T01:06:41.587951+00:00",
+      "employee_id": "track1540-a9d07136-ed72-424a-820e-273edbb17f58",
+      "employee_name": "Track 15.40 TestEmployee",
+      "employee_email": "track1540@mascicert.local",
+      "signature": "Test Employee Track 1540",
+      "locale": "en",
+      "acknowledged_at": "2026-08-06T01:13:05.352211+00:00",
+      "ip": "104.198.214.223",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.0 Safari/537.36",
+      "doc_id": "JAA-2026-00002"
+    }
+  },
+  "project_status": 200,
+  "project_count": 0
+}

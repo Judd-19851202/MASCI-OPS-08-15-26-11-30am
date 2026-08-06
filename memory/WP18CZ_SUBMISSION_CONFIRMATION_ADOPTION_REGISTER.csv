@@ -1,23 +1,24 @@
-workflow_key,workflow_label,workflow_config_key,confirmation_contract_state,governed_number_visible,open_record_link_visible,routing_copy_visible,evidence
-near_miss_public,Near Miss Public Submission,near-miss,RUNTIME_VERIFIED,yes,yes,yes,/app/test_reports/iteration_144.json
-fuel_lube_visit,Shop Fuel and Lube Visit,fuel-lube-visit,RUNTIME_VERIFIED,yes,yes,yes,auto_frontend_testing_agent 2026-08-06
-asset_transfers,Asset Transfers,asset-transfer,SOURCE_AND_PARTIAL_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + auto_frontend_testing_agent 2026-08-06
-operational_constraints,Operational Constraints,operational-constraint,SOURCE_AND_PARTIAL_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + /app/backend_test_results.json
-service_truck_reconciliation,Service Truck Reconciliation,service-truck-reconciliation,SOURCE_AND_BACKEND_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + /app/backend_test_results.json
-transport_carrier_invite_public,Transportation External Carrier Invite,transport-carrier-invite,SOURCE_AND_PARTIAL_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + /app/backend_test_results.json
-daily_report,Daily Report,daily-report,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-equipment_preop,Equipment Pre-Op,equipment-preop,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-safety_inspection,Safety Inspection,safety-inspection,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-meeting_submit,Meeting Submission,meeting,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-incident_report,Incident Report,incident,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-dvir_submit,DVIR,dvir,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-safety_issuance,Safety Equipment Issuance,safety-issuance,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-safety_training,Safety Equipment Training,safety-training,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-safety_return,Safety Equipment Return,safety-return,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-qaqc_submit,QAQC Submission,qaqc,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-odr_submit,ODR Submission,odr,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-field_leadership,Field Leadership,field-leadership,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-time_off_request,Time Off Request,time-off,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-po_request,PO Request,po-request,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-excavation_public,Public Excavation Submission,excavation,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
-trench_report_public,Public Trench Report,trench-report,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+workflow_key,workflow_config_key,final_status,evidence,notes
+near_miss_public,near-miss,RUNTIME_CERTIFIED,/app/test_reports/iteration_144.json,Shared confirmation runtime-proved
+fuel_lube_visit,fuel-lube-visit,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Shared confirmation runtime-proved after repair
+asset_transfers,asset-transfer,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Shared confirmation runtime-proved after repair
+operational_constraints,operational-constraint,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Shared confirmation runtime-proved after repair
+service_truck_reconciliation,service-truck-reconciliation,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Shared confirmation runtime-proved after repair
+transport_carrier_invite_public,transport-carrier-invite,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Shared confirmation runtime-proved after repair
+jha_acknowledgement,jha-acknowledgement,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,JHA now uses shared confirmation pattern
+daily_report,daily-report,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+equipment_preop,equipment-preop,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+safety_inspection,safety-inspection,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+meeting_submit,meeting,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+incident_report,incident,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+dvir_submit,dvir,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+safety_issuance,safety-issuance,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Confirmed by live issuance flow
+safety_training,safety-training,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Confirmed by live training flow
+safety_return,safety-return,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Confirmed by live return flow
+qaqc_submit,qaqc,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+odr_submit,odr,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+field_leadership,field-leadership,RUNTIME_CERTIFIED,/app/memory/wp18cz2_field_leadership_results.json,Confirmed by live FL write-up flow
+time_off_request,time-off,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Confirmed by live public time-off submission
+po_request,po-request,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Confirmed by live PO request flow
+excavation_public,excavation,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass
+trench_report_public,trench-report,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Confirmed in remaining inventory runtime pass

@@ -1,0 +1,14 @@
+{
+  "po_request": {
+    "task_found": true,
+    "hr_notification_found": true
+  },
+  "transport_invite": {
+    "list_count": 50,
+    "audit_count": 1,
+    "status": "opened"
+  },
+  "jha_ack": {
+    "lookup_ok": "doc_id stored in testing_agent/browser proof; no local fixture doc_id file present"
+  }
+}

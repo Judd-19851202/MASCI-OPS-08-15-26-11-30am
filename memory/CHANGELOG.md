@@ -1,5 +1,11 @@
 # 2026-08-06 — WP18CZ.1 shared submission runtime hardening
 
+## 2026-08-06 — WP18CZ.2 final submission workflow runtime burn-down
+
+- Closed the remaining named runtime blockers: JHA acknowledgement, Transportation invite with a fresh unused token, Asset Transfers, Operational Constraints, and Service Truck Reconciliation now all hold final runtime-certified states.
+- Added live proof artifacts for JHA duplicate-safe acknowledgement (`wp18cz2_jha_results.json`), fresh Transportation invite submit/reuse/invalid/admin-detail (`wp18cz2_transport_submit_results.json`), Field Leadership + supervisor time-off (`wp18cz2_field_leadership_results.json`), and public time-off / PO / safety issuance / safety return / safety training (`wp18cz2_remaining_runtime_results.json`).
+- Reconciled all ten WP18CZ submission evidence artifacts to final closure-only statuses and promoted the closeout from **NO-GO** to **GO**.
+
 - Repaired the active preview submission blockers from `/app/test_reports/iteration_145.json`: fixed Fuel/Lube selector binding + mouse selection, removed duplicate Asset Transfer create POST, hardened shared Asset Transfer auth headers, and restored shared-route PM/Admin access for Constraints.
 - Added `10` new WP18CZ.1 evidence artifacts under `/app/memory/`, including the workflow inventory, document-number register, routing truth register, status consistency register, role/device register, output-channel register, final test report, and executive closeout.
 - Verification passed for the repaired flows: Fuel/Lube browser submission confirmation now shows governed document number `FLV-2026-00179`; `/app/backend_test_results.json` passed `20 / 20` for Asset Transfers, Constraints, Service Truck Reconciliation, Transportation invite endpoints, and JHA endpoint reachability.

@@ -1,15 +1,24 @@
-workflow_key,collection_or_authority,doc_number_authority,doc_id_prefix,runtime_status,runtime_example,lookup_or_trace_path,notes
-fuel_lube_visit,fuel_lube_visits,/app/backend/doc_ids.py,FLV,RUNTIME_VERIFIED,FLV-2026-00179,/shop/fuel-lube/:id and /api/shop/fuel-lube/visits/{id},Runtime confirmation proved in browser on 2026-08-06
-service_truck_reconciliation,service_truck_reconciliations,/app/backend/doc_ids.py,STRR,BACKEND_RUNTIME_VERIFIED,STRR-2026-00213,/shop/service-truck-reconciliation/:id and /api/shop/service-truck-reconciliation/{id},Start and close flow proved via backend testing
-operational_constraints,operational_constraints,/app/backend/doc_ids.py,CON,BACKEND_RUNTIME_VERIFIED,CON-2026-runtime-created,/constraints/:id and /api/constraints/{id},PM create plus list/detail proved; fresh browser confirmation still pending
-asset_transfers,asset_transfers,/app/backend/doc_ids.py,ATR,BACKEND_RUNTIME_VERIFIED,ATR-2026-00149,/asset-transfers and /api/asset-transfers?doc_id=ATR-2026-00149,Single create plus retrieval by id and document number proved
-jha_acknowledgement,jha_acknowledgements,/app/backend/doc_ids.py,JAA,AUTHORITY_PRESENT_NO_FIXTURE,N/A,/api/jha-acknowledgements and self-state endpoint,Runtime fixture not available in this pass
-daily_report,daily_reports,/app/backend/doc_ids.py,DR,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-meeting_submit,meetings,/app/backend/doc_ids.py,MTG,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-incident_report,incidents,/app/backend/doc_ids.py,INC,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-equipment_preop,equipment_inspections,/app/backend/doc_ids.py,PRE,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-safety_inspection,inspections,/app/backend/doc_ids.py,INSP,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-qaqc_submit,qaqc_inspections,/app/backend/doc_ids.py,QC,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-safety_issuance,safety_equipment_issuances,/app/backend/doc_ids.py,SEI,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-safety_training,safety_equipment_trainings,/app/backend/doc_ids.py,SET,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
-field_leadership,field_leadership_records,/app/backend/doc_ids.py,FL-resolver,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Resolver mints kind-specific prefixes; not re-certified end-to-end in this pass
+workflow_key,doc_id_prefix,final_status,evidence,traceability_result
+near_miss_public,governed_near_miss_case,RUNTIME_CERTIFIED,/app/test_reports/iteration_144.json,Confirmation number remained stable through filed record proof
+fuel_lube_visit,FLV,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Confirmation/detail/list stayed consistent
+service_truck_reconciliation,STRR,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Confirmation/detail/list stayed consistent
+operational_constraints,CON,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Confirmation/detail/list stayed consistent
+asset_transfers,ATR,RUNTIME_REPAIRED_AND_CERTIFIED,/app/test_reports/iteration_146.json,Confirmation/detail/list/search stayed consistent
+transport_carrier_invite_public,TCI,RUNTIME_REPAIRED_AND_CERTIFIED,/app/memory/wp18cz2_transport_submit_results.json,Confirmation and admin detail stayed consistent
+jha_acknowledgement,JAA,RUNTIME_REPAIRED_AND_CERTIFIED,/app/memory/wp18cz2_jha_results.json,Duplicate-safe acknowledgement preserved same number
+daily_report,DR,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+equipment_preop,PRE,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+safety_inspection,INSP,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+meeting_submit,MTG,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+incident_report,INC,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+dvir_submit,DVIR,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+safety_issuance,SEI,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Issuance number persisted into detail/PDF
+safety_training,SET,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Training number persisted into detail/PDF
+safety_return,SER,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Return number persisted into PDF linkage
+qaqc_submit,QC,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+odr_submit,ODR,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+field_leadership,FLW,RUNTIME_CERTIFIED,/app/memory/wp18cz2_field_leadership_results.json,Write-up number persisted into detail/PDF
+time_off_request,TOR,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json + /app/memory/wp18cz2_field_leadership_results.json,Supervisor and public time-off numbers stayed consistent
+po_request,PO,RUNTIME_CERTIFIED,/app/memory/wp18cz2_remaining_runtime_results.json,Detail/list/export used same PO family identifier
+excavation_public,EXC,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed
+trench_report_public,TRN,RUNTIME_CERTIFIED,/app/test_reports/iteration_147.json,Runtime certification closed

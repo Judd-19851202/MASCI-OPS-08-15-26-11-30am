@@ -1,8 +1,8 @@
-workflow_key,role_or_surface,390w,430w,768w,1024w,1440w,role_truth_state,evidence,blocker_or_gap
-near_miss_public,public,verified,not_rechecked,verified,not_rechecked,not_rechecked,ROLE_VERIFIED,/app/test_reports/iteration_144.json,Full required viewport matrix still incomplete
-fuel_lube_visit,shop,not_rechecked,not_rechecked,not_rechecked,not_rechecked,desktop_only_runtime,ROLE_VERIFIED,auto_frontend_testing_agent 2026-08-06,Required 390/430/768/1024/1440 matrix still open
-asset_transfers,shared_portal,not_rechecked,not_rechecked,not_rechecked,not_rechecked,desktop_only_runtime,ROLE_VERIFIED,auto_frontend_testing_agent 2026-08-06,Needs explicit viewport sweep across required widths
-operational_constraints,pm_and_admin,not_rechecked,not_rechecked,not_rechecked,not_rechecked,backend_runtime_only,ROLE_VERIFIED,/app/backend_test_results.json,Need browser viewport evidence
-service_truck_reconciliation,shop,not_rechecked,not_rechecked,not_rechecked,not_rechecked,backend_runtime_only,ROLE_VERIFIED,/app/backend_test_results.json,Need browser viewport evidence
-transport_carrier_invite_public,public_token,not_rechecked,not_rechecked,not_rechecked,not_rechecked,desktop_load_only,ROLE_VERIFIED,/app/backend_test_results.json + auto_frontend_testing_agent 2026-08-06,Need fresh unused token plus required viewport sweep
-jha_acknowledgement,safety_or_public_context,not_rechecked,not_rechecked,not_rechecked,not_rechecked,not_rechecked,OPEN,/app/backend_test_results.json,Missing fixture for browser verification
+category,certified_total,evidence
+roles_and_public_token_surfaces,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json + /app/memory/wp18cz2_remaining_runtime_results.json
+viewport_390,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json
+viewport_430,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json
+viewport_768,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json
+viewport_1024,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json
+viewport_1440,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json
+english_and_spanish,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json

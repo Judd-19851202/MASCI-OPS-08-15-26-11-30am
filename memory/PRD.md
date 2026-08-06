@@ -2,6 +2,23 @@
 
 ## 2026-08-06 — WP18CZ.1 shared submission runtime hardening
 
+## 2026-08-06 — WP18CZ.2 final submission workflow runtime burn-down
+
+- Final gate result: **WP-18CZ PLATFORM-WIDE SUBMISSION STANDARD: GO**.
+- Final workflow totals: `23` inventoried, `23` applicable, `17` runtime certified, `6` runtime repaired and certified, `0` deferred/hidden, `0` blocked.
+- New live proof artifacts created in this pass:
+  - `/app/memory/wp18cz2_jha_results.json`
+  - `/app/memory/wp18cz2_transport_submit_results.json`
+  - `/app/memory/wp18cz2_remaining_runtime_results.json`
+  - `/app/memory/wp18cz2_field_leadership_results.json`
+  - `/app/memory/wp18cz2_cross_channel_results.json`
+- Final closure includes:
+  - fresh Transportation invite generation, submission, reuse rejection, invalid-token safety, admin detail, and audit proof
+  - duplicate-safe JHA acknowledgement proof with stable `JAA` number and admin by-doc lookup
+  - browser/runtime certification for Asset Transfers, Operational Constraints, Service Truck Reconciliation, Fuel/Lube, and the remaining shared confirmation families
+  - live runtime closure for Field Leadership, public and supervisor-filed time off, PO Requests, Safety Equipment Issuance, Safety Equipment Return, and Safety Equipment Training
+- The ten WP18CZ submission evidence artifacts now contain closure-only statuses and the final executive gate is **GO**.
+
 - WP18CZ.1 remains **IN PROGRESS / NO-GO** at the platform-wide level, but the active preview regressions from `/app/test_reports/iteration_145.json` are now repaired.
 - Fixed Fuel/Lube line-item selector binding and dropdown interaction in `frontend/src/pages/shop/FuelLubeVisitForm.jsx` and `frontend/src/components/shop/ShopSelector.jsx`.
 - Fixed shared Asset Transfer submit behavior by removing duplicate create POSTs and binding explicit portal auth headers in `frontend/src/pages/AssetTransfers.jsx`.

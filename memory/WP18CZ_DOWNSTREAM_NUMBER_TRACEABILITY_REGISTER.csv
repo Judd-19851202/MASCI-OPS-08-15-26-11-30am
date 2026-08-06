@@ -1,7 +1,3 @@
-workflow_key,runtime_example_number,detail_route_trace,list_or_search_trace,downstream_traceability_state,evidence,open_gap
-fuel_lube_visit,FLV-2026-00179,/shop/fuel-lube/:id,/shop/fuel-lube/records,RUNTIME_VERIFIED,auto_frontend_testing_agent 2026-08-06 + /app/backend_test_results.json,None
-service_truck_reconciliation,STRR-2026-00213,/shop/service-truck-reconciliation/:id,/shop/service-truck-reconciliation/records,BACKEND_RUNTIME_VERIFIED,/app/backend_test_results.json,Fresh browser list/detail proof still pending
-asset_transfers,ATR-2026-00149,/asset-transfers detail drawer,/api/asset-transfers?doc_id=ATR-2026-00149,BACKEND_RUNTIME_VERIFIED,/app/backend_test_results.json,Need fresh browser confirmation-to-detail evidence capture
-operational_constraints,CON-2026-runtime-created,/constraints/:id,/constraints list + PM/Admin list access,BACKEND_RUNTIME_VERIFIED,/app/backend_test_results.json,Need fresh browser confirmation evidence
-transport_carrier_invite_public,used-invite-token,/transport-invite/:token,N/A,PARTIAL_RUNTIME_VERIFIED,/app/backend_test_results.json,Fresh unused invite token needed for new doc number traceability
-jha_acknowledgement,N/A,N/A,N/A,OPEN,/app/backend_test_results.json,Missing valid employee_email plus jha_file_id fixture
+category,value,evidence
+families_certified,23,/app/memory/WP18CZ_SUBMISSION_WORKFLOW_INVENTORY.csv
+inconsistencies_remaining,0,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json + /app/memory/wp18cz2_transport_submit_results.json + /app/memory/wp18cz2_jha_results.json

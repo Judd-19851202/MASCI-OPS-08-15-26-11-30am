@@ -1,0 +1,49 @@
+{
+  "load_status": 200,
+  "modules_status": 200,
+  "submit_status": 200,
+  "submit_body": {
+    "ok": true,
+    "invite_id": "4534fdfc45f34070bb958f26ad6637a6",
+    "doc_id": "TCI-2026-00002",
+    "status": "submitted"
+  },
+  "reuse_status": 410,
+  "invalid_status": 404,
+  "admin_detail_status": 200,
+  "admin_detail": {
+    "item": {
+      "id": "4534fdfc45f34070bb958f26ad6637a6",
+      "tenant": "masci",
+      "carrier_id": "1b0ef4e870254bc2b965efadab8d4bbc",
+      "token_hash": "2d9ccc05c7ab0e31ddc73ac39eb4322a66196d438302f915d75f347a999f7391",
+      "contact_email": "preview.transport+wp18cz2@masci.local",
+      "contact_name": "WP18CZ Preview Carrier",
+      "status": "submitted",
+      "created_at": "2026-08-06T01:06:41.900871+00:00",
+      "expires_at": "2026-08-13T01:06:41.900871+00:00",
+      "created_by": "admin",
+      "opened_at": "2026-08-06T01:14:02.883233+00:00",
+      "submitted_at": "2026-08-06T02:39:23.588869+00:00",
+      "doc_id": "TCI-2026-00002",
+      "submission_payload": {
+        "printed_name": "WP18CZ Preview Carrier"
+      },
+      "carrier_name": "Acme Hauling LLC"
+    },
+    "audit": [
+      {
+        "kind": "transport_invite_submit",
+        "at": "",
+        "actor": "external_carrier",
+        "meta": {}
+      },
+      {
+        "kind": "transport_invite_create",
+        "at": "",
+        "actor": "admin",
+        "meta": {}
+      }
+    ]
+  }
+}

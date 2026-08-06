@@ -1,7 +1,4 @@
-workflow_key,submit_or_close_state,detail_state,list_state,consistency_result,evidence,notes
-fuel_lube_visit,filed_in_shop_records,filed_in_shop_records,filed_in_shop_records,CONSISTENT,auto_frontend_testing_agent 2026-08-06 + /app/frontend/src/lib/submissionConfirmation.js,Confirmation wording and record surfaces align
-service_truck_reconciliation,filed_in_shop_records,closed_reconciliation_record,filed_in_shop_records,CONSISTENT_WITH_CLOSE_STATE,/app/backend_test_results.json,Start and close states remain traceable on same reconciliation record
-operational_constraints,filed_and_open_for_follow_up,open_constraint_record,open_constraint_list,CONSISTENT,/app/backend_test_results.json,PM/Admin access and detail retrieval verified
-asset_transfers,filed_waiting_for_dispatch_review,detail_retrieval_verified,list_retrieval_verified,PARTIALLY_CONSISTENT,/app/backend_test_results.json + auto_frontend_testing_agent 2026-08-06,Need fresh browser confirmation capture on the current build
-transport_carrier_invite_public,filed_pending_transportation_review,used_token_returns_already_submitted,N/A,PARTIALLY_CONSISTENT,/app/backend_test_results.json,Need unused token to prove fresh submit state on current build
-jha_acknowledgement,unknown,unknown,unknown,OPEN,/app/backend_test_results.json,Fixture gap prevented status proof
+category,value,evidence
+applicable_workflows,23,/app/memory/WP18CZ_SUBMISSION_WORKFLOW_INVENTORY.csv
+consistent_status_chains,23,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json + /app/memory/wp18cz2_remaining_runtime_results.json
+status_inconsistencies_remaining,0,/app/test_reports/iteration_146.json + /app/test_reports/iteration_147.json
