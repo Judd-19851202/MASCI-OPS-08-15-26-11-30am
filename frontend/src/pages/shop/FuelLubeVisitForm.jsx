@@ -75,8 +75,10 @@ function EquipmentLineRow({ line, idx, onPatch, onRemove }) {
             testIdPrefix={`fuel-lube-line-unit-${idx}`}
             value={line.unit_number}
             onChange={(row) => {
-              onPatch(idx, "unit_number", row?.unit_number || "");
-              if (row?.equipment_name) onPatch(idx, "equipment_name", row.equipment_name);
+              onPatch(idx, {
+                unit_number: row?.unit_number || "",
+                equipment_name: row?.equipment_name || line.equipment_name,
+              });
             }}
             required
           />
