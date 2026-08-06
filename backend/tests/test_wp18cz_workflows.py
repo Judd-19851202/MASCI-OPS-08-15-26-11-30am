@@ -9,6 +9,25 @@ import requests
 from datetime import datetime
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://masci-audit-hub.preview.emergentagent.com')
+REQUEST_TIMEOUT = 60
+
+_SESSION_REQUEST = requests.Session.request
+_API_REQUEST = requests.api.request
+
+
+def _timed_session_request(self, method, url, **kwargs):
+    kwargs.setdefault('timeout', REQUEST_TIMEOUT)
+    return _SESSION_REQUEST(self, method, url, **kwargs)
+
+
+def _timed_api_request(method, url, **kwargs):
+    kwargs.setdefault('timeout', REQUEST_TIMEOUT)
+    return _API_REQUEST(method, url, **kwargs)
+
+
+requests.Session.request = _timed_session_request
+requests.api.request = _timed_api_request
+requests.request = _timed_api_request
 
 # Test credentials
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
@@ -25,44 +44,46 @@ JHA_FIXTURE_EMPLOYEE_EMAIL = "track1540@mascicert.local"
 TRANSPORT_INVITE_TOKEN = "UIPAaZvngRP7Lxjg6uNK-UA7mVjQeV1OUSdsGJHqb8M"
 
 
+def _multi_login_session(email, password):
+    session = requests.Session()
+    session.headers.update({"Content-Type": "application/json"})
+    response = session.post(f"{BASE_URL}/api/auth/multi-login", json={
+        "email": email,
+        "password": password,
+        "portal": "admin",
+    }, timeout=60)
+    response.raise_for_status()
+    data = response.json()
+    if data.get("session_token"):
+        session.headers.update({"X-Directory-Token": data["session_token"]})
+    portal_tokens = data.get("portal_tokens") or {}
+    header_map = {
+        "admin": "X-Admin-Token",
+        "pm": "X-PM-Token",
+        "shop": "X-Shop-Token",
+        "dispatch": "X-Dispatch-Token",
+        "safety": "X-Safety-Token",
+        "hr": "X-HR-Token",
+        "field_leadership": "X-FL-Token",
+        "fl": "X-FL-Token",
+    }
+    for key, value in portal_tokens.items():
+        header = header_map.get(key)
+        if header and value:
+            session.headers.update({header: value})
+    return session
+
+
 @pytest.fixture(scope="module")
 def admin_session():
     """Get admin session with auth token"""
-    session = requests.Session()
-    session.headers.update({"Content-Type": "application/json"})
-    
-    # Login as admin
-    response = session.post(f"{BASE_URL}/api/auth/login", json={
-        "email": ADMIN_EMAIL,
-        "password": ADMIN_PASSWORD
-    })
-    if response.status_code == 200:
-        data = response.json()
-        token = data.get("token") or data.get("access_token")
-        if token:
-            session.headers.update({"Authorization": f"Bearer {token}"})
-        # Also try X-Admin-Token
-        if data.get("admin_token"):
-            session.headers.update({"X-Admin-Token": data["admin_token"]})
-    return session
+    return _multi_login_session(ADMIN_EMAIL, ADMIN_PASSWORD)
 
 
 @pytest.fixture(scope="module")
 def pm_session():
     """Get PM session with auth token"""
-    session = requests.Session()
-    session.headers.update({"Content-Type": "application/json"})
-    
-    response = session.post(f"{BASE_URL}/api/auth/login", json={
-        "email": PM_EMAIL,
-        "password": PM_PASSWORD
-    })
-    if response.status_code == 200:
-        data = response.json()
-        token = data.get("token") or data.get("access_token")
-        if token:
-            session.headers.update({"Authorization": f"Bearer {token}"})
-    return session
+    return _multi_login_session(PM_EMAIL, PM_PASSWORD)
 
 
 class TestJHAAcknowledgement:
