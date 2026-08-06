@@ -1,0 +1,15 @@
+workflow_key,collection_or_authority,doc_number_authority,doc_id_prefix,runtime_status,runtime_example,lookup_or_trace_path,notes
+fuel_lube_visit,fuel_lube_visits,/app/backend/doc_ids.py,FLV,RUNTIME_VERIFIED,FLV-2026-00179,/shop/fuel-lube/:id and /api/shop/fuel-lube/visits/{id},Runtime confirmation proved in browser on 2026-08-06
+service_truck_reconciliation,service_truck_reconciliations,/app/backend/doc_ids.py,STRR,BACKEND_RUNTIME_VERIFIED,STRR-2026-00213,/shop/service-truck-reconciliation/:id and /api/shop/service-truck-reconciliation/{id},Start and close flow proved via backend testing
+operational_constraints,operational_constraints,/app/backend/doc_ids.py,CON,BACKEND_RUNTIME_VERIFIED,CON-2026-runtime-created,/constraints/:id and /api/constraints/{id},PM create plus list/detail proved; fresh browser confirmation still pending
+asset_transfers,asset_transfers,/app/backend/doc_ids.py,ATR,BACKEND_RUNTIME_VERIFIED,ATR-2026-00149,/asset-transfers and /api/asset-transfers?doc_id=ATR-2026-00149,Single create plus retrieval by id and document number proved
+jha_acknowledgement,jha_acknowledgements,/app/backend/doc_ids.py,JAA,AUTHORITY_PRESENT_NO_FIXTURE,N/A,/api/jha-acknowledgements and self-state endpoint,Runtime fixture not available in this pass
+daily_report,daily_reports,/app/backend/doc_ids.py,DR,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+meeting_submit,meetings,/app/backend/doc_ids.py,MTG,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+incident_report,incidents,/app/backend/doc_ids.py,INC,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+equipment_preop,equipment_inspections,/app/backend/doc_ids.py,PRE,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+safety_inspection,inspections,/app/backend/doc_ids.py,INSP,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+qaqc_submit,qaqc_inspections,/app/backend/doc_ids.py,QC,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+safety_issuance,safety_equipment_issuances,/app/backend/doc_ids.py,SEI,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+safety_training,safety_equipment_trainings,/app/backend/doc_ids.py,SET,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Not re-certified end-to-end in this pass
+field_leadership,field_leadership_records,/app/backend/doc_ids.py,FL-resolver,AUTHORITY_PRESENT_NOT_RETESTED,N/A,Shared confirmation contract only,Resolver mints kind-specific prefixes; not re-certified end-to-end in this pass

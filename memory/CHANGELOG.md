@@ -1,3 +1,10 @@
+# 2026-08-06 — WP18CZ.1 shared submission runtime hardening
+
+- Repaired the active preview submission blockers from `/app/test_reports/iteration_145.json`: fixed Fuel/Lube selector binding + mouse selection, removed duplicate Asset Transfer create POST, hardened shared Asset Transfer auth headers, and restored shared-route PM/Admin access for Constraints.
+- Added `10` new WP18CZ.1 evidence artifacts under `/app/memory/`, including the workflow inventory, document-number register, routing truth register, status consistency register, role/device register, output-channel register, final test report, and executive closeout.
+- Verification passed for the repaired flows: Fuel/Lube browser submission confirmation now shows governed document number `FLV-2026-00179`; `/app/backend_test_results.json` passed `20 / 20` for Asset Transfers, Constraints, Service Truck Reconciliation, Transportation invite endpoints, and JHA endpoint reachability.
+- Final state of this pass: **NO-GO** for platform-wide WP18CZ.1 final certification because JHA fixtures, a fresh unused transport invite token, fresh browser proof for partially closed workflows, full `390/430/768/1024/1440` viewport coverage, and full output-channel proof remain open.
+
 # 2026-08-05 — WP18CZ route-governance punch list closeout
 
 # 2026-08-05 — Platform-wide submission filing confirmation standard

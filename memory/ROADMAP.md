@@ -1,3 +1,24 @@
+# 2026-08-06 — WP18CZ.1 submission closeout follow-up state
+
+## Current top priority
+
+- **Active preview submission regressions are fixed and the shared submission evidence set is expanded, but the platform-wide WP18CZ.1 result remains NO-GO.**
+- **Next step is closing the exact open workflow, fixture, viewport, and output-channel gaps in the new WP18CZ.1 registers — not broad refactoring.**
+
+## P0
+- close JHA acknowledgement runtime proof with a valid `employee_email` + `jha_file_id` fixture
+- obtain a fresh unused transportation invite token and re-prove the full public carrier-packet confirmation path on the current build
+- capture fresh browser confirmation/detail/list proof for Asset Transfers, Operational Constraints, and Service Truck Reconciliation
+- complete the explicit viewport matrix at `390 / 430 / 768 / 1024 / 1440` for the newly targeted workflows
+- close print/PDF/email/export/notification truth in `WP18CZ_SUBMISSION_OUTPUT_CHANNEL_CERTIFICATION.csv`
+
+## P1
+- rerun workflow-by-workflow runtime truth for the confirmation-adoption families inherited from `/app/test_reports/iteration_144.json` until they can be upgraded from contract-only to runtime-certified
+- consolidate the current WP18CZ route, role, viewport, and output evidence into a single final executive packet once the remaining open rows are closed
+
+## P2
+- add a standing release gate so no governed submission family can ship without confirmation, document number, detail/list/search proof, viewport evidence, and truthful output-channel certification
+
 # 2026-08-05 — WP18CZ route-governance closeout state
 
 # 2026-08-05 — Submission filing standard follow-up state

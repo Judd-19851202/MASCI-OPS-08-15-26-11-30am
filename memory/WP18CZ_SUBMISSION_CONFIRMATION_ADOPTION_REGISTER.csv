@@ -1,0 +1,23 @@
+workflow_key,workflow_label,workflow_config_key,confirmation_contract_state,governed_number_visible,open_record_link_visible,routing_copy_visible,evidence
+near_miss_public,Near Miss Public Submission,near-miss,RUNTIME_VERIFIED,yes,yes,yes,/app/test_reports/iteration_144.json
+fuel_lube_visit,Shop Fuel and Lube Visit,fuel-lube-visit,RUNTIME_VERIFIED,yes,yes,yes,auto_frontend_testing_agent 2026-08-06
+asset_transfers,Asset Transfers,asset-transfer,SOURCE_AND_PARTIAL_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + auto_frontend_testing_agent 2026-08-06
+operational_constraints,Operational Constraints,operational-constraint,SOURCE_AND_PARTIAL_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + /app/backend_test_results.json
+service_truck_reconciliation,Service Truck Reconciliation,service-truck-reconciliation,SOURCE_AND_BACKEND_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + /app/backend_test_results.json
+transport_carrier_invite_public,Transportation External Carrier Invite,transport-carrier-invite,SOURCE_AND_PARTIAL_RUNTIME,yes,yes,yes,/app/frontend/src/lib/submissionConfirmation.js + /app/backend_test_results.json
+daily_report,Daily Report,daily-report,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+equipment_preop,Equipment Pre-Op,equipment-preop,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+safety_inspection,Safety Inspection,safety-inspection,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+meeting_submit,Meeting Submission,meeting,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+incident_report,Incident Report,incident,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+dvir_submit,DVIR,dvir,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+safety_issuance,Safety Equipment Issuance,safety-issuance,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+safety_training,Safety Equipment Training,safety-training,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+safety_return,Safety Equipment Return,safety-return,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+qaqc_submit,QAQC Submission,qaqc,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+odr_submit,ODR Submission,odr,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+field_leadership,Field Leadership,field-leadership,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+time_off_request,Time Off Request,time-off,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+po_request,PO Request,po-request,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+excavation_public,Public Excavation Submission,excavation,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json
+trench_report_public,Public Trench Report,trench-report,SOURCE_AND_RUNTIME_CONTRACT_ONLY,yes,yes,yes,/app/test_reports/iteration_144.json

@@ -1,5 +1,22 @@
 # PRD
 
+## 2026-08-06 — WP18CZ.1 shared submission runtime hardening
+
+- WP18CZ.1 remains **IN PROGRESS / NO-GO** at the platform-wide level, but the active preview regressions from `/app/test_reports/iteration_145.json` are now repaired.
+- Fixed Fuel/Lube line-item selector binding and dropdown interaction in `frontend/src/pages/shop/FuelLubeVisitForm.jsx` and `frontend/src/components/shop/ShopSelector.jsx`.
+- Fixed shared Asset Transfer submit behavior by removing duplicate create POSTs and binding explicit portal auth headers in `frontend/src/pages/AssetTransfers.jsx`.
+- Fixed shared Constraint-route access by seeding portal context for direct PM/Admin entry in `frontend/src/lib/constraintCapabilities.js`, `frontend/src/pages/NewConstraint.jsx`, `frontend/src/pages/Constraints.jsx`, and `frontend/src/pages/ConstraintDetail.jsx`.
+- Added `10` WP18CZ.1 evidence artifacts under `/app/memory/`: workflow inventory, confirmation adoption register, governed document-number register, routing truth register, traceability register, filed-status consistency register, submission output-channel register, submission role/device register, final test report, and executive closeout.
+- Verified runtime evidence in this pass:
+  - Fuel/Lube browser submission confirmation displayed governed number `FLV-2026-00179`.
+  - `/app/backend_test_results.json` passed `20 / 20` checks across Asset Transfers, Operational Constraints, Service Truck Reconciliation, Transportation invite endpoints, and JHA endpoint reachability.
+  - Existing shared confirmation and Near Miss proof remain evidenced in `/app/test_reports/iteration_144.json`.
+- Open blockers still preventing a final GO:
+  - JHA acknowledgement still lacks a valid runtime fixture (`employee_email` + `jha_file_id`).
+  - Transportation public invite needs a fresh unused token for a new submission proof on the current build.
+  - Asset Transfers, Operational Constraints, and Service Truck Reconciliation still need fresh browser confirmation/detail/list evidence to move from partial to full runtime certification.
+  - The explicit `390 / 430 / 768 / 1024 / 1440` viewport matrix and the print/PDF/email/export/notification truth set remain incomplete.
+
 ## 2026-08-05 — Platform-wide submission filing confirmation standard
 
 - Implemented a single shared `SubmissionConfirmation` experience plus governed workflow copy in `frontend/src/components/submission/SubmissionConfirmation.jsx` and `frontend/src/lib/submissionConfirmation.js`.
