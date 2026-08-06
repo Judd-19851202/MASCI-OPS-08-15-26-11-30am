@@ -49,6 +49,10 @@ export {
   buildDailyReportInstanceScope,
   buildDailyReportScopedFormKey,
   buildDailyReportTelemetryContext,
+  getActiveDailyReportDraftSession,
+  ensureActiveDailyReportDraftSession,
+  clearActiveDailyReportDraftSession,
+  buildDailyReportSessionScope,
 } from "./dailyReportScope";
 export { default as OfflineIndicator } from "./OfflineIndicator";
 export { default as DraftStatusPill } from "./DraftStatusPill";

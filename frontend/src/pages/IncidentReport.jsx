@@ -13,8 +13,8 @@
 //   1. Field selects an incident type card.
 //   2. Progressive-disclosure walk through 7 shared + 1 branch step.
 //   3. Draft snapshots to localStorage on every keystroke.
-//   4. Submit: POST /api/incident-cases → PATCH field_block → POST transitions
-//      to FIELD_SUBMITTED → emits case.field_submitted event server-side.
+//   4. Submit: POST /api/public/incident-cases → server reuses the Incident
+//      engine and returns a canonical filed case without requiring login.
 //   5. Success screen shows Case ID + expectations. Draft cleared.
 //
 // Zero legacy mutation. Mounts at /incidents/report (new route).
@@ -29,7 +29,7 @@ import { PresenceGate } from "@/components/PresenceGate";
 import { INCIDENT_FLOWS, INCIDENT_TYPE_ORDER, hasValue, requiredFieldsForStep, stepsFor } from "@/lib/incidentReportSchema";
 import IncidentFieldDoctrineBanner from "@/components/incident/IncidentFieldDoctrineBanner";
 import { clearDraft, currentDraftId, ensureActiveDraftId, loadDraft, saveDraft } from "@/lib/incidentDraft";
-import { createCase, patchFieldBlock, transitionCase, addEvidence, fetchDirectoryMe, fetchProjectContext, fetchWeather } from "@/lib/incidentReportApi";
+import { submitPublicIncident, fetchDirectoryMe, fetchProjectContext, fetchWeather } from "@/lib/incidentReportApi";
 import { DraftResumeBanner } from "@/components/DraftResumeBanner";
 import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
 import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
@@ -1421,6 +1421,8 @@ export default function IncidentReport() {
         .map((s) => s.trim())
         .filter(Boolean),
       observed_conditions: draft.observed_conditions || "",
+      witnesses: Array.isArray(draft.witnesses) ? draft.witnesses : [],
+      witness_attempted_contact_note: draft.witness_attempted_contact_note || "",
       // Type-specific fields are stored under `extra_<type>` inside the block
       // (Pydantic `extra="allow"` on FieldBlock lets them through as-is).
       ...typeSpecificPayload(draft),
@@ -1432,39 +1434,36 @@ export default function IncidentReport() {
     setSubmitState((s) => ({ ...s, error: "" }));
     try {
       const fb = buildFieldBlock();
-      const created = await createCase(fb);
-      // Attach photos as evidence.
       const photos = Array.isArray(draft.photos) ? draft.photos : [];
-      for (const p of photos) {
-        try {
-          await addEvidence(created.id, {
-            evidence_type: "photo",
-            label: p.name || "photo",
-            metadata: {
-              size: p.size, mime: p.mime,
-              captured_at: p.captured_at, gps: p.gps,
-            },
-          });
-        } catch { /* photo failure is non-fatal for submit */ }
-      }
-      // Attach witnesses as evidence rows (typed witness_statement).
       const witnesses = Array.isArray(draft.witnesses) ? draft.witnesses : [];
-      for (const w of witnesses) {
-        try {
-          await addEvidence(created.id, {
-            evidence_type: "witness_statement",
-            label: w.name || "witness",
-            description: w.statement || "",
-            metadata: { kind: w.kind, contact: w.contact },
-          });
-        } catch { /* non-fatal */ }
-      }
-      // Transition to FIELD_SUBMITTED — Field Block becomes immutable.
-      const submitted = await transitionCase(created.id, "FIELD_SUBMITTED");
+      const evidenceItems = [
+        ...photos.map((p) => ({
+          evidence_type: "photo",
+          label: p.name || "photo",
+          data_url: p.data_url || "",
+          metadata: {
+            size: p.size,
+            mime: p.mime,
+            captured_at: p.captured_at,
+            gps: p.gps,
+          },
+        })),
+        ...witnesses.map((w) => ({
+          evidence_type: "witness_statement",
+          label: w.name || "witness",
+          description: w.statement || "",
+          metadata: { kind: w.kind, contact: w.contact },
+        })),
+      ];
+      const submitted = await submitPublicIncident({
+        fieldBlock: fb,
+        evidenceItems,
+        idempotencyKey: `incident-report:${draftIdRef.current}`,
+      });
       setSubmitState({
         error: "",
-        caseNumber: submitted.case_number || created.case_number || "",
-        caseId: created.id,
+        caseNumber: submitted.case_number || submitted.case?.case_number || "",
+        caseId: submitted.case_id || submitted.case?.id || "",
       });
       clearDraft(draftIdRef.current);
       setPhase("done");
@@ -1656,6 +1655,8 @@ function typeSpecificPayload(draft) {
     "citizen_name", "citizen_contact", "complaint_category", "resolution_attempt",
     // shared immediate status
     "everyone_safe", "ems_needed", "ems_on_scene", "hazard_controlled",
+    // public-form continuity
+    "witnesses", "witness_attempted_contact_note",
   ];
   const out = {};
   for (const k of keys) {

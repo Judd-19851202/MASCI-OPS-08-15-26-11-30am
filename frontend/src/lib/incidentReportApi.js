@@ -1,7 +1,8 @@
 // Track 19.16 · Phase B1 · Incident Intelligence Engine — HTTP adapter.
-// Thin wrapper around the Phase A `/api/incident-cases/*` endpoints. All
-// calls include the governed incident-report auth contract via the
-// shared helper.
+// Thin wrapper around incident-report APIs.
+// `/incidents/report` is a public safety/field tile form, so final submit
+// goes through the no-login public endpoint. Designated portal routes can
+// still use the authenticated `/api/incident-cases/*` surface.
 
 import { api } from "@/lib/api";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
@@ -12,6 +13,15 @@ function _authHeaders() {
 
 export async function fetchVocabulary() {
   const { data } = await api.get("/incident-cases/vocabulary", { headers: _authHeaders() });
+  return data;
+}
+
+export async function submitPublicIncident({ fieldBlock, evidenceItems = [], idempotencyKey = "" }) {
+  const { data } = await api.post("/public/incident-cases", {
+    field_block: fieldBlock,
+    evidence_items: evidenceItems,
+    idempotency_key: idempotencyKey,
+  });
   return data;
 }
 
@@ -73,7 +83,6 @@ export async function fetchProjectContext(projectNumber) {
   try {
     const { data } = await api.get(
       `/incident-intelligence/project-context/${encodeURIComponent(projectNumber)}`,
-      { headers: _authHeaders() },
     );
     return data || null;
   } catch {
@@ -88,7 +97,6 @@ export async function fetchWeather(lat, lng) {
   try {
     const { data } = await api.get(
       `/incident-intelligence/weather?lat=${lat}&lng=${lng}`,
-      { headers: _authHeaders() },
     );
     return data || null;
   } catch {
@@ -98,6 +106,7 @@ export async function fetchWeather(lat, lng) {
 
 export default {
   fetchVocabulary,
+  submitPublicIncident,
   createCase,
   patchFieldBlock,
   transitionCase,

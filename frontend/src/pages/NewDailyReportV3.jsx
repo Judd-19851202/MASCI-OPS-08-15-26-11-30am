@@ -36,6 +36,9 @@ import {
   DAILY_REPORT_FORM_BASE,
   buildDailyReportInstanceScope,
   buildDailyReportScopedFormKey,
+  getActiveDailyReportDraftSession,
+  ensureActiveDailyReportDraftSession,
+  clearActiveDailyReportDraftSession,
 } from "@/lib/resiliency";
 import DraftScopeChip from "@/lib/resiliency/DraftScopeChip";
 import { getDeviceId } from "@/lib/resiliency/deviceId";
@@ -137,6 +140,22 @@ function formatDailyReportNumberPreview(nextNumber) {
   return `Report #${String(nextNumber).trim()}`;
 }
 
+function hasMeaningfulDailyDraft(data = {}) {
+  const defaults = buildDailyReportDefaults();
+  const keys = [
+    "project_number", "project_name", "location", "prepared_by", "superintendent",
+    "general_notes", "weather_summary", "schedule_delays_notes", "incident_notes",
+    "ai_accepted_summary", "prepared_by_signature", "superintendent_signature",
+  ];
+  if (keys.some((key) => String(data?.[key] || "") !== String(defaults?.[key] || ""))) return true;
+  const listKeys = [
+    "masci_crews", "subcontractors", "visitors", "equipment", "materials",
+    "activities", "production", "constraints", "cost_code_quantities", "work_blocks",
+    "photos", "attachments", "linked_excavation_ids",
+  ];
+  return listKeys.some((key) => Array.isArray(data?.[key]) && data[key].length > 0);
+}
+
 export default function NewDailyReportV3({ publicMode = false }) {
   const navigate = useNavigate();
   const { t, lang } = useT();
@@ -148,6 +167,8 @@ export default function NewDailyReportV3({ publicMode = false }) {
     const defaults = buildDailyReportDefaults();
     if (!publicMode && lastProject && !defaults.project_number) defaults.project_number = lastProject;
     if (!defaults.report_instance) defaults.report_instance = "primary";
+    const activeDraftSession = getActiveDailyReportDraftSession();
+    if (activeDraftSession) defaults.draft_session_id = activeDraftSession;
     return defaults;
   });
   const [reportId, setReportId] = useState("");
@@ -178,6 +199,8 @@ export default function NewDailyReportV3({ publicMode = false }) {
   });
   const [photoWarmHint, setPhotoWarmHint] = useState(null);
   const [photoIntelStatusState, setPhotoIntelStatusState] = useState(null);
+  const draftDefaultsRef = useRef(buildDailyReportDefaults());
+  const autoRestoredDraftRef = useRef(false);
   const idempotencyKeyRef = useRef(null);
   const submitRetryRef = useRef(() => {});
   const deviceId = getDeviceScopedActorId();
@@ -222,6 +245,19 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [scopedFormKey]);
 
   useEffect(() => {
+    if ((data.draft_session_id || "").trim()) return;
+    const activeDraftSession = getActiveDailyReportDraftSession();
+    if (activeDraftSession) {
+      setData((prev) => (prev.draft_session_id ? prev : { ...prev, draft_session_id: activeDraftSession }));
+      return;
+    }
+    const merged = { ...draftDefaultsRef.current, ...data };
+    if (!hasMeaningfulDailyDraft(merged)) return;
+    const sessionId = ensureActiveDailyReportDraftSession();
+    setData((prev) => (prev.draft_session_id ? prev : { ...prev, draft_session_id: sessionId }));
+  }, [data]);
+
+  useEffect(() => {
     if (!draftLoaded) return undefined;
     if (pendingDraft) {
       setArchivedDraft(null);
@@ -233,12 +269,38 @@ export default function NewDailyReportV3({ publicMode = false }) {
       try {
         const arc = await recoverArchivedDraft(getDeviceScopedActorId(), scopedFormKey);
         if (!cancelled && arc?.form) setArchivedDraft(arc);
+        if (!cancelled && !arc?.form && !pendingDraft) {
+          const midnightRescue = await findDraftEntriesForBase(getDeviceScopedActorId(), DAILY_REPORT_FORM_BASE, {
+            excludeFormKey: scopedFormKey,
+            limit: 1,
+            filter: ({ savedAt, form }) => {
+              if (!savedAt || Date.now() - savedAt > 18 * 60 * 60 * 1000) return false;
+              const sameProject = String(form?.project_number || "").trim() === String(data.project_number || "").trim();
+              const sameOperator = String(form?.prepared_by || "").trim() === String(data.prepared_by || "").trim();
+              return sameProject || sameOperator || !String(data.project_number || data.prepared_by || "").trim();
+            },
+          });
+          if (midnightRescue?.[0]?.form) setFallbackDraftOffer(midnightRescue[0]);
+        }
       } catch {
         // ignore
       }
     })();
     return () => { cancelled = true; };
-  }, [draftLoaded, pendingDraft, scopedFormKey]);
+  }, [draftLoaded, pendingDraft, scopedFormKey, data.project_number, data.prepared_by]);
+
+  useEffect(() => {
+    if (!pendingDraft || autoRestoredDraftRef.current) return;
+    const activeSession = String(data.draft_session_id || getActiveDailyReportDraftSession() || "").trim();
+    const pendingSession = String(pendingDraft.draft_session_id || "").trim();
+    if (!activeSession || !pendingSession || activeSession !== pendingSession) return;
+    autoRestoredDraftRef.current = true;
+    const restored = restoreDraft();
+    if (restored) {
+      setData((prev) => ({ ...prev, ...restored, draft_session_id: activeSession }));
+      setFallbackDraftOffer(null);
+    }
+  }, [pendingDraft, restoreDraft, data.draft_session_id]);
 
   useEffect(() => {
     if (!draftLoaded || pendingDraft) return undefined;
@@ -872,6 +934,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         });
         try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
         await commitDraft();
+        clearActiveDailyReportDraftSession(data.draft_session_id || "");
         if (!publicMode && payload.project_number) rememberLastProject(String(payload.project_number));
         const notificationState = String(saved?.notification_state || "").toLowerCase();
         const reportRef = saved?.report_number || saved?.doc_id || saved?.id || "";
@@ -932,6 +995,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           if (res?.ok) {
             try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
             await commitDraft();
+            clearActiveDailyReportDraftSession(data.draft_session_id || "");
           }
         });
         emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "offline.queued" });

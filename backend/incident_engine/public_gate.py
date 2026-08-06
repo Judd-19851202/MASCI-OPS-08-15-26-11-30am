@@ -26,7 +26,7 @@ Anonymity model:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -57,6 +57,31 @@ class NearMissPublicSubmission(BaseModel):
     language: str = "en"
 
 
+class PublicIncidentEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    evidence_type: str = "photo"
+    label: str = ""
+    description: str = ""
+    data_url: str = ""
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class PublicIncidentSubmission(BaseModel):
+    """Body accepted by the public Incident Report form.
+
+    This route powers the safety/field tile form where login is optional.
+    Designated portal workflows can still use the authenticated
+    ``/api/incident-cases/*`` surface.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    field_block: Dict[str, Any]
+    evidence_items: List[PublicIncidentEvidence] = Field(default_factory=list)
+    idempotency_key: str = ""
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -75,6 +100,12 @@ def _actor_for_public_submission(sub: NearMissPublicSubmission) -> Dict[str, Any
 
 def _submitter_kind(sub: NearMissPublicSubmission) -> str:
     if not sub.submitter_name.strip() and not sub.submitter_contact.strip():
+        return "anonymous"
+    return "self_identified"
+
+
+def _submitter_kind_from_field_block(field_block: Dict[str, Any]) -> str:
+    if not str(field_block.get("reporter_name") or "").strip():
         return "anonymous"
     return "self_identified"
 
@@ -217,6 +248,108 @@ async def submit_public_near_miss(
     }
 
 
+async def submit_public_incident(
+    db,
+    submission: PublicIncidentSubmission,
+) -> Dict[str, Any]:
+    """Create a public incident case from the Incident Report form."""
+    prev = await _find_previous_submission(db, submission.idempotency_key)
+    if prev:
+        existing = await case_service.get_case(db, prev["case_id"])
+        if existing:
+            return {
+                "case": existing,
+                "case_number": existing.get("case_number") or "",
+                "case_id": existing["id"],
+                "submitter_kind": prev.get("submitter_kind", "anonymous"),
+                "duplicate": True,
+                "skipped_evidence": [],
+            }
+
+    field_block = dict(submission.field_block or {})
+    incident_type = str(field_block.get("incident_type") or "").strip().lower()
+    if incident_type not in INCIDENT_TYPE_CODES:
+        raise HTTPException(422, detail={"code": "invalid_incident_type", "detail": incident_type or "missing"})
+
+    kind = _submitter_kind_from_field_block(field_block)
+    reporter_name = str(field_block.get("reporter_name") or "").strip() or "Anonymous"
+    actor = {
+        "role": "field",
+        "name": reporter_name,
+        "_source": "public_incident_report",
+    }
+
+    field_block = {
+        **field_block,
+        "reporter_name": reporter_name,
+        "reporter_role": str(field_block.get("reporter_role") or "public").strip() or "public",
+        "public_gate_source": "public_incident_report",
+        "submitter_kind": str(field_block.get("submitter_kind") or kind).strip() or kind,
+        "submitter_language": str(field_block.get("submitter_language") or "en").strip() or "en",
+    }
+
+    created = await case_service.create_case(db, actor=actor, field_block=field_block)
+
+    await emit_event(
+        db,
+        case_id=created["id"],
+        event_type="case.created",
+        actor=actor,
+        payload={
+            "public_form": True,
+            "public_gate": "incident_report",
+            "submitter_kind": kind,
+        },
+    )
+
+    skipped_evidence: List[Dict[str, str]] = []
+    for item in submission.evidence_items:
+        metadata = dict(item.metadata or {})
+        if item.data_url:
+            metadata.setdefault("data_url", item.data_url)
+        metadata["public_gate"] = True
+        try:
+            await add_evidence(
+                db,
+                case_id=created["id"],
+                evidence_type=item.evidence_type,
+                actor=actor,
+                label=item.label,
+                description=item.description,
+                metadata=metadata,
+            )
+        except Exception as exc:  # noqa: BLE001
+            skipped_evidence.append({
+                "evidence_type": item.evidence_type,
+                "reason": str(exc),
+            })
+
+    submitted = await case_service.transition_case(
+        db,
+        case_id=created["id"],
+        to_state="FIELD_SUBMITTED",
+        actor=actor,
+    )
+
+    if submission.idempotency_key.strip():
+        await _record_submission(
+            db,
+            idempotency_key=submission.idempotency_key.strip(),
+            case_id=submitted["id"],
+            case_number=submitted.get("case_number", ""),
+            submitter_kind=kind,
+        )
+
+    return {
+        "case": submitted,
+        "case_number": submitted.get("case_number", ""),
+        "case_id": submitted["id"],
+        "submitter_kind": kind,
+        "duplicate": False,
+        "skipped_evidence": skipped_evidence,
+    }
+
+
 def register_public_routes(api_router: APIRouter, db) -> None:
     """Attach public no-auth routes.
 
@@ -244,10 +377,29 @@ def register_public_routes(api_router: APIRouter, db) -> None:
         except Exception as e:  # pragma: no cover — defensive
             raise HTTPException(500, detail={"code": "internal_error", "detail": str(e)})
 
+    @api_router.post("/public/incident-cases")
+    async def public_incident_route(
+        request: Request,
+        body: PublicIncidentSubmission = Body(...),
+    ) -> Dict[str, Any]:
+        header_key = request.headers.get("X-Idempotency-Key") or ""
+        if header_key and not body.idempotency_key:
+            body = body.model_copy(update={"idempotency_key": header_key})
+        try:
+            return await submit_public_incident(db, body)
+        except HTTPException:
+            raise
+        except ValueError as e:
+            raise HTTPException(422, detail={"code": "invalid", "detail": str(e)})
+        except Exception as e:  # pragma: no cover — defensive
+            raise HTTPException(500, detail={"code": "internal_error", "detail": str(e)})
+
 
 __all__ = [
     "NearMissPublicSubmission",
+    "PublicIncidentSubmission",
     "submit_public_near_miss",
+    "submit_public_incident",
     "register_public_routes",
     "COLLECTION_PUBLIC_SUBS",
 ]
