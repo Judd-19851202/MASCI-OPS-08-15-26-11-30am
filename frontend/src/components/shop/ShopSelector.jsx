@@ -206,6 +206,10 @@ export default function ShopSelector({
               <button key={pk} type="button"
                       data-testid={`${testIdPrefix}-${kind}-row-${pk}`}
                       onMouseEnter={() => setHighlightedIndex(index)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pick(row);
+                      }}
                       onClick={() => pick(row)}
                       style={{ width: "100%", textAlign: "left",
                                padding: "8px 10px", background: highlighted ? "#eef2ff" : "transparent",
