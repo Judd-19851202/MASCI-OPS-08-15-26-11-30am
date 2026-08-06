@@ -9,7 +9,7 @@
 import React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { listConstraints } from "@/lib/operationalApi";
-import { getConstraintCapabilities } from "@/lib/constraintCapabilities";
+import { ensureConstraintPortalContext, getConstraintCapabilities } from "@/lib/constraintCapabilities";
 import { formatLocalShort } from "@/lib/dateUtils";
 import SeverityPill from "@/components/operational/SeverityPill";
 
@@ -28,7 +28,11 @@ function _ageLabel(days) {
 export default function Constraints() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const caps = React.useMemo(() => getConstraintCapabilities(), []);
+  const [portalReady] = React.useState(() => {
+    ensureConstraintPortalContext();
+    return true;
+  });
+  const caps = React.useMemo(() => getConstraintCapabilities(), [portalReady]);
   const [rows, setRows] = React.useState(null);
   const [err, setErr] = React.useState("");
 

@@ -26,7 +26,7 @@ import { isAdmin } from "@/lib/adminAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 import { isSafety as isSafetyAuthed } from "@/lib/safetyAuth";
 import { isFl } from "@/lib/flAuth";
-import { getPortalContext } from "@/lib/portalContext";
+import { getPortalContext, setPortalContext } from "@/lib/portalContext";
 
 const CAPS = [
   "constraint.view",
@@ -113,6 +113,32 @@ export function getConstraintCapabilities() {
     caps["constraint.view"] = true;
   }
   return caps;
+}
+
+export function ensureConstraintPortalContext() {
+  const ctx = getPortalContext();
+  if (ctx && ctx !== "unknown" && ctx !== "public") return ctx;
+  if (isAdmin()) {
+    setPortalContext("admin");
+    return "admin";
+  }
+  if (isPm()) {
+    setPortalContext("pm");
+    return "pm";
+  }
+  if (isSafetyAuthed()) {
+    setPortalContext("safety");
+    return "safety";
+  }
+  if (typeof isFl === "function" && isFl()) {
+    setPortalContext("field-leadership");
+    return "field-leadership";
+  }
+  if (isHr()) {
+    setPortalContext("hr");
+    return "hr";
+  }
+  return ctx;
 }
 
 // Test seam.

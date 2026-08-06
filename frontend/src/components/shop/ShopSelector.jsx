@@ -72,6 +72,7 @@ export default function ShopSelector({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [manualMode, setManualMode] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const wrapRef = useRef(null);
 
   // Load items on first focus to avoid hub-load fanout.
@@ -104,10 +105,47 @@ export default function ShopSelector({
     return items.filter((r) => cfg.matches(r, query)).slice(0, 25);
   }, [items, query, cfg]);
 
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [query, open]);
+
   function pick(row) {
     onChange?.(row || null);
     setQuery("");
     setOpen(false);
+    setHighlightedIndex(0);
+  }
+
+  function onKeyDown(e) {
+    if (manualMode) return;
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!open) {
+        ensureLoaded();
+        setOpen(true);
+        return;
+      }
+      setHighlightedIndex((cur) => Math.min(cur + 1, Math.max(filtered.length - 1, 0)));
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        ensureLoaded();
+        setOpen(true);
+        return;
+      }
+      setHighlightedIndex((cur) => Math.max(cur - 1, 0));
+      return;
+    }
+    if (e.key === "Enter" && open && filtered.length > 0) {
+      e.preventDefault();
+      pick(filtered[Math.min(highlightedIndex, filtered.length - 1)]);
+    }
   }
 
   return (
@@ -137,6 +175,7 @@ export default function ShopSelector({
                placeholder={cfg.placeholder}
                onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
                onFocus={() => { ensureLoaded(); setOpen(true); }}
+               onKeyDown={onKeyDown}
                style={{ width: "100%", padding: 6, fontSize: 12 }} />
       )}
       {open && !manualMode && (
@@ -160,14 +199,16 @@ export default function ShopSelector({
               {cfg.emptyMsg}
             </div>
           )}
-          {loaded && !error && filtered.map((row) => {
+          {loaded && !error && filtered.map((row, index) => {
             const pk = row[cfg.primaryKey];
+            const highlighted = index === highlightedIndex;
             return (
               <button key={pk} type="button"
                       data-testid={`${testIdPrefix}-${kind}-row-${pk}`}
+                      onMouseEnter={() => setHighlightedIndex(index)}
                       onClick={() => pick(row)}
                       style={{ width: "100%", textAlign: "left",
-                               padding: "8px 10px", background: "transparent",
+                               padding: "8px 10px", background: highlighted ? "#eef2ff" : "transparent",
                                border: "none", borderBottom: "1px solid #e5e7eb",
                                cursor: "pointer", display: "block" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-strong)" }}>

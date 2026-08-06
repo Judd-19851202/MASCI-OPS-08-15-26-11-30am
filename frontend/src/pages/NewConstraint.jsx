@@ -8,7 +8,7 @@ import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertTriangle, Workflow } from "lucide-react";
 import { createConstraint } from "@/lib/operationalApi";
-import { getConstraintCapabilities } from "@/lib/constraintCapabilities";
+import { ensureConstraintPortalContext, getConstraintCapabilities } from "@/lib/constraintCapabilities";
 import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
 import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import FormShell from "@/components/FormShell";
@@ -33,7 +33,11 @@ const SEVERITIES = ["low", "medium", "high"];
 export default function NewConstraint() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const caps = React.useMemo(() => getConstraintCapabilities(), []);
+  const [portalReady] = React.useState(() => {
+    ensureConstraintPortalContext();
+    return true;
+  });
+  const caps = React.useMemo(() => getConstraintCapabilities(), [portalReady]);
   const blankForm = React.useMemo(() => ({
     project_id: params.get("project_id") || "",
     title: "",

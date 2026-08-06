@@ -30,7 +30,12 @@ import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
 import { PortalShell } from "@/design-system";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { api } from "@/lib/api";
+import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { tintFor } from "@/lib/statusBadges";
+
+function assetTransferHeaders() {
+  return buildPortalAuthHeaders({ "Content-Type": "application/json" });
+}
 
 const STATUS_FILTERS = [
   "All", "Requested", "Approved", "In Transit",
@@ -107,7 +112,7 @@ export default function AssetTransfers() {
         ...(status !== "All" ? { status } : {}),
         ...(docIdFilter.trim() ? { doc_id: docIdFilter.trim().toUpperCase() } : {}),
       };
-      const r = await api.get("/asset-transfers", { params });
+      const r = await api.get("/asset-transfers", { params, headers: assetTransferHeaders() });
       setData(r.data);
     } catch (e) {
       setError(e?.response?.data?.detail || e.message);
@@ -334,17 +339,13 @@ function CreateTransferDialog({ onClose, onCreated }) {
   const submit = async () => {
     setSubmitting(true); setErr(null);
     try {
-      await api.post("/asset-transfers", {
-        equipment_id: equipmentId.trim(),
-        to_project_number: toProject.trim(),
-        to_location_label: toLocation.trim() || undefined,
-        reason: reason.trim() || undefined,
-      });
       const { data } = await api.post("/asset-transfers", {
         equipment_id: equipmentId.trim(),
         to_project_number: toProject.trim(),
         to_location_label: toLocation.trim() || undefined,
         reason: reason.trim() || undefined,
+      }, {
+        headers: assetTransferHeaders(),
       });
       onCreated(data);
     } catch (e) {
@@ -404,13 +405,13 @@ function CreateTransferDialog({ onClose, onCreated }) {
             />
           </div>
           {err && (
-            <div className="border-2 border-rose-300 bg-rose-50 text-rose-800 p-2 rounded font-mono text-xs">
+            <div className="border-2 border-rose-300 bg-rose-50 text-rose-800 p-2 rounded font-mono text-xs" data-testid="asset-transfer-create-error">
               {String(err)}
             </div>
           )}
         </div>
         <div className="p-3 border-t-2 border-slate-200 flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" size="sm" onClick={onClose} data-testid="asset-transfer-create-cancel">Cancel</Button>
           <Button onClick={submit} size="sm" disabled={!canSubmit} data-testid="asset-transfer-create-submit">
             {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
             Submit Request
@@ -433,7 +434,7 @@ function TransferDetailDrawer({ id, onClose, onAfterAction }) {
   const load = useCallback(async () => {
     setLoading(true); setErr(null);
     try {
-      const r = await api.get(`/asset-transfers/${id}`);
+      const r = await api.get(`/asset-transfers/${id}`, { headers: assetTransferHeaders() });
       setDoc(r.data);
     } catch (e) {
       setErr(e?.response?.data?.detail || e.message);
@@ -447,7 +448,7 @@ function TransferDetailDrawer({ id, onClose, onAfterAction }) {
   const doAction = async (action, payload = {}) => {
     setActionInFlight(action); setErr(null);
     try {
-      await api.post(`/asset-transfers/${id}/${action}`, payload);
+      await api.post(`/asset-transfers/${id}/${action}`, payload, { headers: assetTransferHeaders() });
       await load();
       onAfterAction?.();
     } catch (e) {

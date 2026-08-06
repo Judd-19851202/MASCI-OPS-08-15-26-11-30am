@@ -10,7 +10,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   getConstraint, resolveConstraint, appendChronology, getTimeline,
 } from "@/lib/operationalApi";
-import { getConstraintCapabilities } from "@/lib/constraintCapabilities";
+import { ensureConstraintPortalContext, getConstraintCapabilities } from "@/lib/constraintCapabilities";
 import { formatLocalShort } from "@/lib/dateUtils";
 import SeverityPill from "@/components/operational/SeverityPill";
 import ChronologyPanel from "@/components/operational/ChronologyPanel";
@@ -18,7 +18,11 @@ import ChronologyPanel from "@/components/operational/ChronologyPanel";
 export default function ConstraintDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const caps = React.useMemo(() => getConstraintCapabilities(), []);
+  const [portalReady] = React.useState(() => {
+    ensureConstraintPortalContext();
+    return true;
+  });
+  const caps = React.useMemo(() => getConstraintCapabilities(), [portalReady]);
   const [doc, setDoc] = React.useState(null);
   const [timeline, setTimeline] = React.useState([]);
   const [err, setErr] = React.useState("");
