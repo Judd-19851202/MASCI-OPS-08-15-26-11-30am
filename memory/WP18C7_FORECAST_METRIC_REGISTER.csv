@@ -1,0 +1,9 @@
+metric_id,family,definition,formula,authority,status_notes
+schedule_likely_finish,schedule,Likely project completion date from governed schedule engine,latest forecast finish date across schedule snapshot tasks,cost_codes.schedule_engine,Returns insufficient_evidence when no governed assignments exist
+schedule_committed_finish,schedule,Committed finish preserved from schedule snapshot,committed_finish_date from schedule snapshot,cost_codes.schedule_engine,Read-only authority
+production_next_week,production,Next 7-day production quantity by unit,production_velocity * 7,project_operational_intelligence,Confidence band widens when reporting density is sparse
+production_required_pace,production,Required weekly pace to hit likely finish,remaining_quantity / days_to_likely_finish * 7,project_operational_intelligence + schedule forecast,Returns 0 for complete units
+resource_next_week_capacity,resources,Likely next-week support/capacity by resource family,productivity * observed hours,project_operational_intelligence,Returns insufficient_evidence when productivity is missing
+cost_projected_remaining,cost,Projected remaining cost floor,remaining_quantity * budget_cost_per_unit,project_operational_intelligence,Does not claim accounting replacement truth
+commitment_at_risk_count,commitments,Count of commitments at risk or near due date,lifecycle derivation over manual + PO commitments,project_forecast_commitments + project_budget_authority,No automatic commitment generation from forecasts
+constraint_open_count,constraints,Count of active constraints affecting forecast pressure,count(status != closed),operational_constraints,Weather excluded when no governed weather source exists

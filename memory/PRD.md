@@ -1,5 +1,17 @@
 # PRD
 
+## 2026-08-07 — WP-18C7 Forecasting & Commitments closeout
+
+- Preview verified ✅
+- Result: **WP-18C7 — GO — READY TO SAVE & DEPLOY**.
+- Delivered one governed Forecasting & Commitments authority in `backend/services/project_forecasting_commitments.py` with PM/Admin/Field Leadership surfaces wired to the same truth.
+- Added PM commitment lifecycle create/update, forecast snapshot versioning, confidence/explainability, constraint pressure, and work-block lineage visibility without starting C8/C9/C10.
+- Added the C7 evidence pack under `/app/memory/WP18C7_*`, plus activation register, live backend/frontend verification, and passing deployment readiness.
+- Runtime proof:
+  - `/app/test_reports/iteration_155.json`
+  - `/app/wp18c7_backend_test_results.json`
+  - `/app/backend/tests/test_wp18c7_forecasting_commitments.py`
+
 ## 2026-08-07 — WP-18 roadmap authority lock
 
 - The authoritative roadmap is now locked by `/app/memory/WP18_MASTER_EXECUTION_ROADMAP.md` and `/app/memory/WP18_ROADMAP_RECONCILIATION_REPORT.md`.
