@@ -390,6 +390,7 @@ const PmProjectControlsAuthority = React.lazy(() => import("@/pages/PmProjectCon
 const PmProjectBudgetAuthority = React.lazy(() => import("@/pages/PmProjectBudgetAuthority"));
 const PmForecastingCommitments = React.lazy(() => import("@/pages/PmForecastingCommitments"));
 const PmEarnedValueEngine = React.lazy(() => import("@/pages/PmEarnedValueEngine"));
+const PmPortfolioIntelligence = React.lazy(() => import("@/pages/PmPortfolioIntelligence"));
 const AdminForecastingCommitments = React.lazy(() => import("@/pages/AdminForecastingCommitments"));
 const AdminEarnedValueEngine = React.lazy(() => import("@/pages/AdminEarnedValueEngine"));
 const AdminGovernanceProjectControlsAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectControlsAuthority"));
@@ -951,6 +952,7 @@ export function AppRoutes() {
                 Backed by /api/pm/command-center/* (Phase 4A). One
                 page · seven tabs · iPad-friendly. */}
             <Route path="/pm/command-center" element={P(<PmCommandCenter />)} />
+            <Route path="/pm/portfolio-intelligence" element={P(<PmPortfolioIntelligence />)} />
             {/* Operations Center · Phase 4C · 2026-02-10.
                 Cross-company command board · 9 layers · Specialty
                 Asset normalization · backed by /api/operations-center/

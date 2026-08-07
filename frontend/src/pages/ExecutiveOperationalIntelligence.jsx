@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import {
   fetchAdminDashboard, fetchExecutiveHealth, fetchAdminAttention,
@@ -142,6 +143,9 @@ export default function ExecutiveOperationalIntelligence() {
               <p className="text-sm text-slate-700 leading-relaxed">
                 {t("Use this page to understand what landed in the selected period, which projects need leadership attention, and whether the enterprise briefing is ready for distribution.")}
               </p>
+              <div className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900" data-testid="exec-intel-portfolio-link-callout">
+                {t("For governed portfolio cost, schedule, commitments, and earned-value drill-back, use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Intelligence")}</Link>.
+              </div>
             </div>
             <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />
           </div>

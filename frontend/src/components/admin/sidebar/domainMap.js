@@ -91,6 +91,7 @@ export const DOMAINS_V2 = [
       { to: "/admin/governance/project-controls", label: "Project Controls Standards", desc: "Work types · items needing review · data rules", icon: ListChecks },
       { to: "/admin/governance/project-controls/schedule", label: "Project Schedule Review", desc: "Imports · work packages · exports", icon: ListChecks },
       { to: "/admin/governance/project-controls/budget", label: "Project Budget Review", desc: "Imports · financial rules · versions", icon: ListChecks },
+      { to: "/admin/executive-overview", label: "Portfolio Intelligence", desc: "Cross-project cost · schedule · commitments · drill-back", icon: ChartBar },
       { to: "/admin/governance/project-controls/forecasting", label: "Forecasting & Commitments", desc: "Read-only executive forecast authority · versioning · risk", icon: ChartBar },
       { to: "/admin/governance/project-controls/earned-value", label: "Earned Value", desc: "Budget · progress · cost · outlook", icon: ChartBar },
       { to: "/admin/governance/project-controls/operational-intelligence", label: "Operations Dashboard Review", desc: "Project performance · evidence links · update status", icon: ListChecks },

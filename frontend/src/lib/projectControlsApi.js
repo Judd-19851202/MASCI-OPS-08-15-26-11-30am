@@ -129,6 +129,23 @@ export async function fetchPmProjectForecastingWorkspace(projectNumber) {
   return data;
 }
 
+export async function fetchPmPortfolioIntelligence({ forceRefresh = false } = {}) {
+  const suffix = forceRefresh ? "?force_refresh=true" : "";
+  const { data } = await api.get(`/pm/project-controls/portfolio-intelligence${suffix}`);
+  return data;
+}
+
+export async function refreshPmPortfolioIntelligence() {
+  const { data } = await api.post("/pm/project-controls/portfolio-intelligence/refresh", {});
+  return data;
+}
+
+export async function downloadPmPortfolioIntelligenceExport() {
+  return api.get("/pm/project-controls/portfolio-intelligence/export", {
+    responseType: "blob",
+  });
+}
+
 export async function createPmProjectForecastSnapshot(projectNumber, note = "") {
   const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/snapshots`, { note });
   return data;
@@ -192,6 +209,28 @@ export async function fetchAdminOperationalIntelligenceOverview(projectNumber = 
 
 export async function fetchAdminProjectForecastingWorkspace(projectNumber) {
   const { data } = await api.get(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/workspace`);
+  return data;
+}
+
+export async function fetchAdminPortfolioIntelligence({ forceRefresh = false } = {}) {
+  const suffix = forceRefresh ? "?force_refresh=true" : "";
+  const { data } = await api.get(`/admin/governance/project-controls/portfolio-intelligence${suffix}`);
+  return data;
+}
+
+export async function refreshAdminPortfolioIntelligence() {
+  const { data } = await api.post("/admin/governance/project-controls/portfolio-intelligence/refresh", {});
+  return data;
+}
+
+export async function downloadAdminPortfolioIntelligenceExport() {
+  return api.get("/admin/governance/project-controls/portfolio-intelligence/export", {
+    responseType: "blob",
+  });
+}
+
+export async function fetchProjectHealthSnapshot() {
+  const { data } = await api.get("/project-health");
   return data;
 }
 

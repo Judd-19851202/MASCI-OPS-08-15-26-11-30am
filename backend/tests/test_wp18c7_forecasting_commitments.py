@@ -15,8 +15,20 @@ Test Coverage:
 import os
 import pytest
 import requests
+from dotenv import dotenv_values
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+
+def _base_url():
+    env_value = (os.environ.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
+    if env_value and ".preview.emergentagent.com" not in env_value:
+        return env_value
+    file_value = str((dotenv_values("/app/frontend/.env").get("REACT_APP_BACKEND_URL") or "")).rstrip("/")
+    if file_value:
+        return file_value
+    return "http://127.0.0.1:8001"
+
+
+BASE_URL = _base_url()
 
 # Test credentials from test_credentials.md
 PM_EMAIL = "pm.scope.forensic@example.com"
@@ -253,8 +265,9 @@ class TestAdminForecastingWorkspace:
             pytest.skip(f"Admin multi-login failed: {response.status_code} - {response.text}")
         
         data = response.json()
-        directory_token = data.get("directory_token") or data.get("token")
-        admin_token = data.get("admin_token") or data.get("token")
+        portal_tokens = data.get("portal_tokens") or {}
+        directory_token = data.get("session_token") or data.get("directory_token") or data.get("token")
+        admin_token = portal_tokens.get("admin") or data.get("admin_token") or data.get("token")
         
         if not directory_token:
             pytest.skip("No directory_token in multi-login response")

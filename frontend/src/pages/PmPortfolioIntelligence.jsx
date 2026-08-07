@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
+import { PortalShell } from "@/design-system";
+import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { PortfolioIntelligenceWorkspace } from "@/components/project_controls/PortfolioIntelligenceWorkspace";
 import {
-  downloadAdminPortfolioIntelligenceExport,
-  fetchAdminPortfolioIntelligence,
+  downloadPmPortfolioIntelligenceExport,
+  fetchPmPortfolioIntelligence,
   fetchProjectHealthSnapshot,
-  refreshAdminPortfolioIntelligence,
+  refreshPmPortfolioIntelligence,
 } from "@/lib/projectControlsApi";
+import { usePageTitle } from "@/lib/usePageTitle";
 
 
 function fileNameFromResponse(response, fallback) {
@@ -29,7 +31,8 @@ function downloadResponseFile(response, fallback) {
   window.URL.revokeObjectURL(url);
 }
 
-export default function ExecutiveOverview() {
+export default function PmPortfolioIntelligence() {
+  usePageTitle("PM Portfolio Intelligence · MASCI");
   const [workspace, setWorkspace] = useState(null);
   const [projectHealth, setProjectHealth] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +42,7 @@ export default function ExecutiveOverview() {
     setLoading(true);
     try {
       const [portfolio, health] = await Promise.all([
-        fetchAdminPortfolioIntelligence({ forceRefresh }),
+        fetchPmPortfolioIntelligence({ forceRefresh }),
         fetchProjectHealthSnapshot(),
       ]);
       setWorkspace(portfolio || null);
@@ -59,7 +62,7 @@ export default function ExecutiveOverview() {
     setWorking(true);
     try {
       const [portfolio, health] = await Promise.all([
-        refreshAdminPortfolioIntelligence(),
+        refreshPmPortfolioIntelligence(),
         fetchProjectHealthSnapshot(),
       ]);
       setWorkspace(portfolio || null);
@@ -75,8 +78,8 @@ export default function ExecutiveOverview() {
   const exportCsv = async () => {
     setWorking(true);
     try {
-      const response = await downloadAdminPortfolioIntelligenceExport();
-      downloadResponseFile(response, "executive-portfolio-intelligence.csv");
+      const response = await downloadPmPortfolioIntelligenceExport();
+      downloadResponseFile(response, "pm-portfolio-intelligence.csv");
       toast.success("Portfolio CSV downloaded.");
     } catch (error) {
       toast.error(error?.response?.data?.detail || "Could not export portfolio intelligence.");
@@ -86,31 +89,31 @@ export default function ExecutiveOverview() {
   };
 
   return (
-    <AdminRouteShell
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Project Management"
       pageTitle="Portfolio Intelligence"
-      subtitle="Cross-project cost, schedule, commitments, and truthful drill-back"
-      crumbs={[{ label: "Executive Oversight" }, { label: "Portfolio Intelligence" }]}
+      subtitle="Cross-project visibility for cost, commitments, and schedule truth in your scope"
+      sideNav={<PmSideNavV2 />}
       primaryActions={(
-        <div className="flex flex-wrap gap-2">
-          <Link to="/admin/command-center" className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="executive-overview-command-center-link">
-            Operations Command Center
-          </Link>
-          <Link to="/admin/executive-operational-intelligence" className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="executive-overview-operational-link">
-            Executive Operations Dashboard
+        <div className="flex items-center gap-3">
+          <Link to="/pm/command-center" className="text-xs font-mono uppercase tracking-widest text-slate-600 hover:text-slate-900" data-testid="pm-portfolio-command-center-link">
+            PM Command Center
           </Link>
         </div>
       )}
-      testId="executive-overview-page"
     >
-      <PortfolioIntelligenceWorkspace
-        mode="executive"
-        workspace={workspace}
-        projectHealth={projectHealth}
-        loading={loading}
-        working={working}
-        onRefresh={refresh}
-        onExport={exportCsv}
-      />
-    </AdminRouteShell>
+      <div className="max-w-7xl px-4 py-6 sm:px-6" data-testid="pm-portfolio-page">
+        <PortfolioIntelligenceWorkspace
+          mode="pm"
+          workspace={workspace}
+          projectHealth={projectHealth}
+          loading={loading}
+          working={working}
+          onRefresh={refresh}
+          onExport={exportCsv}
+        />
+      </div>
+    </PortalShell>
   );
 }

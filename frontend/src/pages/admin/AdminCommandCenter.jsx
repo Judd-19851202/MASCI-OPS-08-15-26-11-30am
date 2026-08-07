@@ -231,6 +231,13 @@ export default function AdminCommandCenter() {
       )}
       {snap && (
         <div className="space-y-4" data-testid="cc-snapshot">
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900" data-testid="cc-portfolio-link-callout">
+            Cross-project cost, schedule, commitments, and C7/C8 drill-back now live in{` `}
+            <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="cc-portfolio-link">
+              Portfolio Intelligence
+            </Link>
+            . Keep this Command Center for live operational triage and owner accountability.
+          </div>
           {/* PULSE STRIP — 5-sec view */}
           <div
             className="rounded-lg bg-slate-900 text-white p-4 flex items-center justify-between"

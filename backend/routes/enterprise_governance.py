@@ -132,6 +132,11 @@ from services.project_earned_value_engine import (
     export_project_earned_value_snapshot,
     get_project_earned_value_snapshot,
 )
+from services.portfolio_intelligence import (
+    export_portfolio_intelligence_snapshot,
+    get_portfolio_intelligence_snapshot,
+    refresh_portfolio_intelligence_snapshot,
+)
 from pm_auth import is_valid_pm_user_token_async
 
 
@@ -1109,6 +1114,29 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
             headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
         )
 
+    @api_router.get("/api/admin/governance/project-controls/portfolio-intelligence")
+    async def governance_portfolio_intelligence(request: Request, force_refresh: bool = False, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        return await get_portfolio_intelligence_snapshot(runtime_db, actor=resolved, audience="executive", force_refresh=force_refresh)
+
+    @api_router.post("/api/admin/governance/project-controls/portfolio-intelligence/refresh")
+    async def governance_portfolio_intelligence_refresh(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        return await refresh_portfolio_intelligence_snapshot(runtime_db, actor=resolved, audience="executive")
+
+    @api_router.get("/api/admin/governance/project-controls/portfolio-intelligence/export")
+    async def governance_portfolio_intelligence_export(request: Request, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        payload = await export_portfolio_intelligence_snapshot(runtime_db, actor=resolved, audience="executive")
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
     @api_router.get("/api/pm/project-controls/overview")
     async def pm_project_controls_overview(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
@@ -1266,6 +1294,29 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         runtime_db = _runtime_db(request, db)
         actor = await _require_project_scope(runtime_db, request, project_number)
         payload = await export_project_earned_value_snapshot(runtime_db, project_number, actor=actor, audience="pm")
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
+    @api_router.get("/api/pm/project-controls/portfolio-intelligence")
+    async def pm_portfolio_intelligence(request: Request, force_refresh: bool = False):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_pm_or_admin_actor(runtime_db, request)
+        return await get_portfolio_intelligence_snapshot(runtime_db, actor=actor, audience="pm", force_refresh=force_refresh)
+
+    @api_router.post("/api/pm/project-controls/portfolio-intelligence/refresh")
+    async def pm_portfolio_intelligence_refresh(request: Request):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_pm_or_admin_actor(runtime_db, request)
+        return await refresh_portfolio_intelligence_snapshot(runtime_db, actor=actor, audience="pm")
+
+    @api_router.get("/api/pm/project-controls/portfolio-intelligence/export")
+    async def pm_portfolio_intelligence_export(request: Request):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_pm_or_admin_actor(runtime_db, request)
+        payload = await export_portfolio_intelligence_snapshot(runtime_db, actor=actor, audience="pm")
         return StreamingResponse(
             io.StringIO(payload["content"]),
             media_type="text/csv",
