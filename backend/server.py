@@ -418,6 +418,7 @@ from lib.scheduler_runs import (  # noqa: E402
     ensure_scheduler_runs_indexes as _ensure_scheduler_runs_indexes,
 )
 from lib.backup_runtime import (  # noqa: E402
+    BACKUP_ACTIVE_STALE_MINUTES,
     BACKUP_JOB_KIND_COMPLETE_R2,
     BACKUP_JOB_KIND_RESTORE_IMPORT,
     BackupJobOwnershipLost,
@@ -7945,7 +7946,7 @@ async def _latest_complete_backup_hint(db) -> Dict[str, Any]:
 
 
 async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
-    stale_before = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
+    stale_before = (datetime.now(timezone.utc) - timedelta(minutes=BACKUP_ACTIVE_STALE_MINUTES)).isoformat()
     try:
         stale_marked = await mark_stale_backup_jobs(db, stale_before_iso=stale_before)
     except Exception as e:  # noqa: BLE001

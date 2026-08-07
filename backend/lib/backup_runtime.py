@@ -14,6 +14,7 @@ BACKUP_JOB_TTL_DAYS = 120
 BACKUP_JOB_KIND_COMPLETE_R2 = "complete-r2"
 BACKUP_JOB_KIND_RESTORE_DRILL = "restore-drill"
 BACKUP_JOB_KIND_RESTORE_IMPORT = "restore-import"
+BACKUP_ACTIVE_STALE_MINUTES = 30
 RESTORE_CERT_OPERATION_CLASS = "restore-certification"
 RESTORE_CERT_DEFAULT_LEASE_MINUTES = 45
 
@@ -256,7 +257,7 @@ async def list_stale_backup_jobs(db: Any, *, limit: int = 20) -> list[Dict[str, 
     return [row async for row in cursor]
 
 
-def is_backup_job_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime] = None, stale_after_minutes: int = 90) -> bool:
+def is_backup_job_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime] = None, stale_after_minutes: int = BACKUP_ACTIVE_STALE_MINUTES) -> bool:
     if not row:
         return False
     if str(row.get("state") or "").lower() not in {"queued", "running"}:
@@ -281,7 +282,7 @@ def is_backup_job_stale(row: Optional[Dict[str, Any]], *, now: Optional[datetime
         return True
     if heartbeat_dt.tzinfo is None:
         heartbeat_dt = heartbeat_dt.replace(tzinfo=timezone.utc)
-    return (current - heartbeat_dt) > timedelta(minutes=max(int(stale_after_minutes or 90), 15))
+    return (current - heartbeat_dt) > timedelta(minutes=max(int(stale_after_minutes or BACKUP_ACTIVE_STALE_MINUTES), 15))
 
 
 async def mark_stale_backup_jobs(db: Any, *, stale_before_iso: str) -> int:
@@ -291,7 +292,7 @@ async def mark_stale_backup_jobs(db: Any, *, stale_before_iso: str) -> int:
         if stale_before_dt.tzinfo is None:
             stale_before_dt = stale_before_dt.replace(tzinfo=timezone.utc)
     except Exception:
-        stale_before_dt = now - timedelta(minutes=90)
+        stale_before_dt = now - timedelta(minutes=BACKUP_ACTIVE_STALE_MINUTES)
 
     active_rows = await get_active_backup_jobs(db)
     stale_ids = []
