@@ -1,5 +1,18 @@
 # PRD
 
+## 2026-08-07 — WP18 Operator Comprehension remediation verified
+
+- Current verified result: operator-language remediation for the active WP18 comprehension sweep is **PASS** at the gate level (`/app/scripts/operator_language_gate.py` → `0` operator-facing banned findings; `362` technical/admin exceptions).
+- Verified repairs include Shop service-truck daily-check wording, PM fallback wording, shared portfolio / earned-value plain-language wording, Spanish updates for the newly changed operator strings, and backend daily-report metadata using `source="approved"`.
+- Verification evidence: `/app/test_reports/iteration_1.json`, `/app/test_result.md`, `/app/wp18_operator_language_validation_report.md`, `/app/memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv`.
+- Important status correction: this remediation does **not** re-certify WP-18C9 as GO or deployable. C9 remains **NO-GO / not yet fully re-certified** until broader runtime, role, responsive, accessibility, and release-readiness evidence is explicitly re-established.
+
+### Next action items
+
+- P1: complete broader runtime evidence for remaining high-risk operator surfaces, especially full Safety route coverage, role-scoped checks, and representative EN/ES validation beyond the remediated strings.
+- P1: preserve the hard gate and exception discipline so new user-facing copy cannot reintroduce banned internal language.
+- P2: only after the broader certification evidence is complete, reconcile older historical GO/deployable claims elsewhere in memory to the current verified state.
+
 ## 2026-08-07 — WP-18C9 Complete
 
 - Result: **WP-18C9 — GO — READY TO SAVE & DEPLOY**.

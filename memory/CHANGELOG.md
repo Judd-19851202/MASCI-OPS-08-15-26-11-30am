@@ -1,3 +1,9 @@
+# 2026-08-07 — WP18 Operator Comprehension remediation
+
+- Repaired remaining operator-facing wording leaks across Shop, PM, Safety, shared project-controls, and related fallback strings so users see plain language instead of internal terms like reconciliation, truth, snapshot, supporting records, operations support, and EV.
+- Updated `backend/routes/dr_v2_pdf.py` operator-facing metadata from `canonical` to `approved`, and tightened `/app/scripts/operator_language_gate.py` so nested technical helper files under `frontend/src/lib/` are classified as technical/admin exceptions instead of false operator-facing failures.
+- Verified with focused frontend retest, backend validation, and formal QA: `/app/test_reports/iteration_1.json`, `/app/test_result.md`, `/app/wp18_operator_language_validation_report.md`; gate now reports `0` operator-facing banned findings.
+
 # 2026-08-07 — WP-18C9
 
 - Added backend portfolio intelligence service + PM/Admin routes for scoped portfolio rollups, refresh, and CSV export.

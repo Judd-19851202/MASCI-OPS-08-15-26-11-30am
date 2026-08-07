@@ -1,3 +1,27 @@
+# 2026-08-07 — WP18 Operator Comprehension current status
+
+- **Operator-language remediation is VERIFIED, but WP-18C9 is not re-certified.**
+- Verified now: operator-language gate PASS (`0` FAIL rows), targeted Shop/PM wording retests PASS, backend metadata PASS, Spanish spot-check PASS.
+- Not yet re-established by this pass: full C9 runtime / responsive / accessibility / role-scope / release-readiness certification across every affected surface.
+
+## Current top priority
+
+- Rebuild the broader C9 evidence pack from the now-clean operator-language baseline instead of treating the gate pass alone as final certification.
+
+## P0
+
+- preserve zero operator-facing banned findings in `/app/memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv`
+- keep backend/user-facing metadata on approved plain-language terms only
+
+## P1
+
+- complete representative runtime coverage for Safety, PM, Shop, Executive, and shared operator surfaces at required widths and roles
+- extend EN/ES verification beyond the remediated strings where operator-facing wording changed historically
+
+## P2
+
+- reconcile older historical GO / deployable claims once the broader certification evidence is complete
+
 # 2026-08-07 — WP-18C9 final state
 
 ## 2026-08-07 — WP-18C9 Portfolio Intelligence
