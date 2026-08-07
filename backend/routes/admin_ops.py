@@ -23,6 +23,7 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status
+from lib.backup_runtime import classify_backup_overlap, get_active_backup_jobs
 from lib.ots_truth import OBSERVED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.runtime_identity import runtime_identity_public_payload
 
@@ -171,11 +172,19 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 threshold_minutes=max(rpo_target_minutes, backup_alert_threshold_minutes),
                 warning_minutes=rpo_target_minutes,
             )
+            overlap = {"blocking_backups": []}
+            try:
+                overlap = classify_backup_overlap(await get_active_backup_jobs(db))
+            except Exception:
+                overlap = {"blocking_backups": []}
+            fresh_complete_backup_running = bool(overlap.get("blocking_backups"))
             hrs = lineage.get("freshness_age_hours")
             status = "VERIFIED" if freshness.get("status") == "CURRENT" else "DEGRADED" if freshness.get("status") == "AGING" else "MISMATCH"
             authoritative_artifact = lineage.get("authoritative_artifact") or {}
             if hrs is not None:
                 mins = float(lineage.get("freshness_age_minutes") or (hrs * 60.0))
+                if fresh_complete_backup_running and mins > rpo_target_minutes:
+                    status = "DEGRADED"
                 cards.append({
                     "key": "backup",
                     "label": "Last backup",
@@ -184,6 +193,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                         f"Canonical recoverable point {hrs:.1f}h ago "
                         f"({mins:.0f}m vs target ≤ {rpo_target_minutes:.0f}m; alert > {backup_alert_threshold_minutes:.0f}m) · "
                         f"{(authoritative_artifact.get('filename') or 'archive')} · "
+                        f"{'fresh complete backup running · ' if fresh_complete_backup_running and mins > rpo_target_minutes else ''}"
                         f"{lineage.get('authoritative_time_source') or 'UNKNOWN'}"
                     ),
                 })

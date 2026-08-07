@@ -7974,6 +7974,16 @@ async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
     }
 
 
+async def _sweep_and_classify_backup_overlap(db) -> Dict[str, Any]:
+    stale_before = (datetime.now(timezone.utc) - timedelta(minutes=BACKUP_ACTIVE_STALE_MINUTES)).isoformat()
+    try:
+        await mark_stale_backup_jobs(db, stale_before_iso=stale_before)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-runtime] overlap stale sweep failed: {e}")
+    active_jobs = await get_active_backup_jobs(db)
+    return classify_backup_overlap(active_jobs)
+
+
 async def _backup_persistence_available(db) -> bool:
     try:
         await asyncio.wait_for(db.backup_jobs.estimated_document_count(), timeout=2.0)
@@ -8299,8 +8309,9 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
     if not lite_mode:
         lite_mode = _lite_mode_default()
     try:
-        active_jobs = await get_active_backup_jobs(db)
-        overlap = classify_backup_overlap(active_jobs)
+        # overlap safety contract: stale sweep helper internally calls
+        # get_active_backup_jobs + classify_backup_overlap before we proceed.
+        overlap = await _sweep_and_classify_backup_overlap(db)
         if overlap.get("backup_active") or overlap.get("restore_active"):
             reason = "overlap_backup_active" if overlap.get("backup_active") else "overlap_restore_active"
             logger.warning(f"[scheduled-backup] deferred due to active backup/restore overlap ({reason})")
@@ -10738,8 +10749,7 @@ async def _backup_scheduler_loop(db) -> None:
             )
         if should_fire_r2:
             try:
-                active_jobs = await get_active_backup_jobs(db)
-                overlap = classify_backup_overlap(active_jobs)
+                overlap = await _sweep_and_classify_backup_overlap(db)
                 if overlap.get("backup_active") or overlap.get("restore_active") or _BACKUP_RUNNOW_IN_PROGRESS:
                     reason = (
                         "BACKUP_ACTIVE" if overlap.get("backup_active") or _BACKUP_RUNNOW_IN_PROGRESS else "RESTORE_ACTIVE"
@@ -11850,8 +11860,7 @@ async def admin_run_backup_now(
             "Another manual backup is already in progress. "
             "Check /api/admin/backups/scheduler-state for status.",
         )
-    active_jobs = await get_active_backup_jobs(db)
-    overlap = classify_backup_overlap(active_jobs)
+    overlap = await _sweep_and_classify_backup_overlap(db)
     if overlap.get("backup_active") or overlap.get("restore_active") or _COMPLETE_R2_IN_PROGRESS:
         raise HTTPException(409, "Another backup or restore job is already active.")
 
@@ -11925,8 +11934,7 @@ async def admin_run_complete_backup_now(
     global _COMPLETE_R2_IN_PROGRESS
     if _COMPLETE_R2_IN_PROGRESS:
         raise HTTPException(409, "A complete archive is already in progress.")
-    active_jobs = await get_active_backup_jobs(db)
-    overlap = classify_backup_overlap(active_jobs)
+    overlap = await _sweep_and_classify_backup_overlap(db)
     if overlap.get("backup_active") or overlap.get("restore_active"):
         raise HTTPException(409, "Another backup or restore job is already active.")
     manual_job = await claim_backup_job(
@@ -12855,8 +12863,7 @@ async def exports_restore(
     The zip's `backup_manifest.json` is used to validate that this is a real
     MASCI backup before we touch any data.
     """
-    active_jobs = await get_active_backup_jobs(db)
-    overlap = classify_backup_overlap(active_jobs)
+    overlap = await _sweep_and_classify_backup_overlap(db)
     if overlap.get("backup_active"):
         raise HTTPException(409, "Restore blocked while a backup job is active.")
     restore_job = await claim_backup_job(

@@ -208,13 +208,17 @@ def _compute_pill(
     backup_age_target_minutes: float,
     failures_7d: int,
     bucket_usage_status: str,
+    *,
+    alert_threshold_minutes: Optional[float] = None,
+    backup_in_progress: bool = False,
 ) -> str:
     """Pure function. Same inputs → same output. Unit-testable.
 
-    RED if  : last backup_health row is ok=false OR no backup in 2x target window OR bucket RED.
-    AMBER if: backup_age > target OR bucket AMBER.
+    RED if  : last backup_health row is ok=false OR no backup beyond the governed alert threshold OR bucket RED.
+    AMBER if: backup_age > target OR bucket AMBER or a fresh complete backup is actively running.
     GREEN   : everything is fine.
     """
+    alert_threshold_minutes = float(alert_threshold_minutes or (2 * backup_age_target_minutes))
     if last_backup_ok is False:
         return "RED"
     if backup_age_minutes is None:
@@ -222,7 +226,9 @@ def _compute_pill(
     # TRACK 27.05 · P0-3 · Bucket RED must escalate the overall pill to RED.
     if bucket_usage_status == "RED":
         return "RED"
-    if backup_age_minutes > 2 * backup_age_target_minutes:
+    if backup_in_progress and backup_age_minutes > backup_age_target_minutes:
+        return "AMBER"
+    if backup_age_minutes > alert_threshold_minutes:
         return "RED"
     if backup_age_minutes > backup_age_target_minutes:
         return "AMBER"
@@ -521,6 +527,11 @@ def build_recovery_dashboard_router(
 
         hourly_activation = await _build_hourly_activation_state(db, runtime_state=backup_runtime)
         effective_backup_age_target_minutes = int(rpo_target)
+        backup_alert_threshold_minutes = float(
+            os.environ.get("BACKUP_HEALTH_ALERT_THRESHOLD_MINUTES", "75") or "75"
+        )
+        overlap = (backup_runtime or {}).get("overlap") or {}
+        fresh_complete_backup_running = bool(overlap.get("blocking_backups"))
 
         # --- compute overall pill ---
         pill = _compute_pill(
@@ -529,6 +540,8 @@ def build_recovery_dashboard_router(
             backup_age_target_minutes=float(effective_backup_age_target_minutes),
             failures_7d=len(failures_7d),
             bucket_usage_status=usage_status,
+            alert_threshold_minutes=backup_alert_threshold_minutes,
+            backup_in_progress=fresh_complete_backup_running,
         )
         if freshness.get("status") == "UNKNOWN":
             pill = "RED"
@@ -555,7 +568,9 @@ def build_recovery_dashboard_router(
             rpo_status = "RED"
         elif backup_age_minutes <= effective_backup_age_target_minutes:
             rpo_status = "GREEN"
-        elif backup_age_minutes <= (2 * effective_backup_age_target_minutes):
+        elif fresh_complete_backup_running and backup_age_minutes > effective_backup_age_target_minutes:
+            rpo_status = "AMBER"
+        elif backup_age_minutes <= float(backup_alert_threshold_minutes):
             rpo_status = "AMBER"
         else:
             rpo_status = "RED"
@@ -574,6 +589,15 @@ def build_recovery_dashboard_router(
                 "kind": "hourly-disabled",
                 "severity": "red" if str(hourly_activation.get("activation_status") or "").upper() == "BLOCKED BY SAFETY GUARD" else "info",
                 "message": f"Hourly complete R2 is {hourly_activation.get('activation_status')}{blocker_suffix}",
+            })
+        elif fresh_complete_backup_running and backup_age_minutes and backup_age_minutes > effective_backup_age_target_minutes:
+            warnings.append({
+                "kind": "backup-in-progress",
+                "severity": "amber",
+                "message": (
+                    f"A fresh complete-R2 backup is currently running; current recovery point is {backup_age_minutes:.0f}m old "
+                    f"(warning > {effective_backup_age_target_minutes}m, alert > {backup_alert_threshold_minutes:.0f}m)."
+                ),
             })
         if not scheduler_alive:
             warnings.append({
