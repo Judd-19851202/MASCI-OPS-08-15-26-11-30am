@@ -63,6 +63,7 @@ from field_leadership_users import (
     verify_password,
 )
 from hr_users import is_valid_hr_user_token_async
+from services.project_forecasting_commitments import get_project_forecasting_workspace
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +164,20 @@ def build_field_leadership_portal_router(
                 enforce_password_change_required(request, user)
                 return {**user, "_actor_kind": "hr_user"}
         raise HTTPException(401, "Admin or HR login required")
+
+    async def require_rostered_project(actor: Dict[str, Any], project_number: str) -> None:
+        uid = actor.get("id") or actor.get("user_id")
+        email = (actor.get("email") or "").lower()
+        q: Dict[str, Any] = {"project_number": project_number, "active": True, "$or": []}
+        if uid:
+            q["$or"].append({"user_id": uid})
+        if email:
+            q["$or"].append({"email": email})
+        if not q["$or"]:
+            raise HTTPException(403, "Project roster scope required")
+        row = await db.project_team_assignments.find_one(q, {"_id": 0, "project_number": 1})
+        if not row:
+            raise HTTPException(403, "Project roster scope required")
 
     # ─────────────────────────────────────────────────────────────────
     # AUTH endpoints (mirror HR exactly)
@@ -757,6 +772,34 @@ def build_field_leadership_portal_router(
             "count": len(items),
             "window_days": days,
             "viewer_role": "field_leadership",
+        }
+
+    @router.get("/field-leadership/portal/projects/{project_number}/forecasting")
+    async def fl_project_forecasting(project_number: str, actor=Depends(require_fl_user)):
+        await require_rostered_project(actor, project_number)
+        workspace = await get_project_forecasting_workspace(db, project_number, actor=actor, audience="field")
+        return {
+            "ok": True,
+            "project_number": project_number,
+            "workspace": {
+                "project": workspace.get("project"),
+                "generated_at": workspace.get("generated_at"),
+                "field_summary": workspace.get("field_summary") or {},
+                "production": workspace.get("production") or {},
+                "commitments": {
+                    "status": (workspace.get("commitments") or {}).get("status"),
+                    "lifecycle_counts": (workspace.get("commitments") or {}).get("lifecycle_counts") or {},
+                    "at_risk_items": (workspace.get("commitments") or {}).get("at_risk_items") or [],
+                },
+                "schedule": {
+                    "summary": ((workspace.get("schedule") or {}).get("summary") or {}),
+                    "confidence": (workspace.get("schedule") or {}).get("confidence"),
+                    "confidence_window": (workspace.get("schedule") or {}).get("confidence_window") or {},
+                },
+                "drivers": (workspace.get("drivers") or [])[:8],
+                "constraints": workspace.get("constraints") or {},
+                "confidence": workspace.get("confidence") or {},
+            },
         }
 
     # ─────────────────────────────────────────────────────────────────

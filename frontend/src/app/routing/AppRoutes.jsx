@@ -285,6 +285,7 @@ const PmWorkOrders  = React.lazy(() => import("@/pages/shop/PmWorkOrders"));
 import HrChangePassword from "@/pages/HrChangePassword";
 import FieldLeadershipPortalLogin from "@/pages/FieldLeadershipPortalLogin";
 import FieldLeadershipPortalDashboard from "@/pages/FieldLeadershipPortalDashboard";
+import FieldLeadershipForecasting from "@/pages/FieldLeadershipForecasting";
 import FieldLeadershipDriverQualification from "@/pages/FieldLeadershipDriverQualification";
 import FieldLeadershipPortalChangePassword from "@/pages/FieldLeadershipPortalChangePassword";
 import { RequireFl } from "@/components/RequireFl";
@@ -387,6 +388,8 @@ const PmProjectSchedule = React.lazy(() => import("@/pages/PmProjectSchedule"));
 const PmMondayReviewWorkspace = React.lazy(() => import("@/pages/PmMondayReviewWorkspace"));
 const PmProjectControlsAuthority = React.lazy(() => import("@/pages/PmProjectControlsAuthority"));
 const PmProjectBudgetAuthority = React.lazy(() => import("@/pages/PmProjectBudgetAuthority"));
+const PmForecastingCommitments = React.lazy(() => import("@/pages/PmForecastingCommitments"));
+const AdminForecastingCommitments = React.lazy(() => import("@/pages/AdminForecastingCommitments"));
 const AdminGovernanceProjectControlsAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectControlsAuthority"));
 const AdminGovernanceProjectBudgetAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectBudgetAuthority"));
 const AdminGovernanceProjectScheduleAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectScheduleAuthority"));
@@ -706,6 +709,7 @@ export function AppRoutes() {
             {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
             <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />
             <Route path="/admin/executive-overview" element={A(<ExecutiveOverview />)} />
+            <Route path="/admin/governance/project-controls/forecasting" element={A(<AdminForecastingCommitments />)} />
             <Route path="/admin/executive-intelligence" element={A(<ExecutiveIntelligence />)} />
             <Route path="/admin/executive-oi" element={<Navigate to="/admin/executive-operational-intelligence" replace />} />
             {/* Track 13.22 · Phase D · Material Movement Ledger · Admin Data-Quality + CSV. */}
@@ -917,6 +921,7 @@ export function AppRoutes() {
             <Route path="/pm/monday-review"  element={P(<PmMondayReviewWorkspace />)} />
             <Route path="/pm/project-controls"  element={P(<PmProjectControlsAuthority />)} />
             <Route path="/pm/project-controls/budget"  element={P(<PmProjectBudgetAuthority />)} />
+            <Route path="/pm/project-controls/forecasting"  element={P(<PmForecastingCommitments />)} />
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal
@@ -1109,6 +1114,7 @@ export function AppRoutes() {
             <Route path="/field-leadership/portal/change-password" element={FL(<FieldLeadershipPortalChangePassword />)} />
             <Route path="/field-leadership/portal/dashboard" element={FL(<FieldLeadershipPortalDashboard />)} />
             <Route path="/field-leadership/portal" element={FL(<FieldLeadershipPortalDashboard />)} />
+            <Route path="/field-leadership/portal/forecasting" element={FL(<FieldLeadershipForecasting />)} />
             {/* iter353b · FL read-only Driver Readiness view */}
             <Route path="/field-leadership/portal/driver-qualification" element={FL(<FieldLeadershipDriverQualification />)} />
 

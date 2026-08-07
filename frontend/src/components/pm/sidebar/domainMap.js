@@ -28,6 +28,7 @@ export const DOMAINS_V2 = [
       { to: "/pm/command-center",    label: "Command Center",    desc: "Live operations · jobs · timeline · risk.",    icon: Radar },
       { to: "/pm/project-controls/schedule", label: "Project Schedule", desc: "Imports · work packages · lookahead plans.", icon: CalendarClock },
       { to: "/pm/project-controls",  label: "Project Controls",  desc: "Pay items · mappings · lookaheads · archive.", icon: ClipboardCheck },
+      { to: "/pm/project-controls/forecasting", label: "Forecasting & Commitments", desc: "Likely finish · pace · commitments · risk.", icon: Radar },
       { to: "/pm/operational-intelligence", label: "Project Performance", desc: "Current project view · work blocks · next actions.", icon: Activity },
       { to: "/pm/jobs",              label: "Jobs",              desc: "Jobs assigned to you (read-only).",            icon: Building2 },
       { to: "/pm/holds",             label: "Holds",             desc: "Open holds across your projects.",             icon: PauseCircle },

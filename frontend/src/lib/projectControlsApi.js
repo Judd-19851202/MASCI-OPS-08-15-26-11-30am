@@ -124,6 +124,26 @@ export async function fetchPmOperationalIntelligenceSnapshot(projectNumber, { fo
   return data;
 }
 
+export async function fetchPmProjectForecastingWorkspace(projectNumber) {
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/workspace`);
+  return data;
+}
+
+export async function createPmProjectForecastSnapshot(projectNumber, note = "") {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/snapshots`, { note });
+  return data;
+}
+
+export async function createPmProjectForecastCommitment(projectNumber, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/commitments`, payload);
+  return data;
+}
+
+export async function updatePmProjectForecastCommitment(projectNumber, commitmentId, payload) {
+  const { data } = await api.patch(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/commitments/${encodeURIComponent(commitmentId)}`, payload);
+  return data;
+}
+
 export async function downloadPmOperationalIntelligenceExport(projectNumber) {
   return api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/operational-intelligence/export`, {
     responseType: "blob",
@@ -150,6 +170,16 @@ export async function fetchAdminOperationalIntelligenceOverview(projectNumber = 
   if (forceRefresh) params.set("force_refresh", "true");
   const suffix = params.toString() ? `?${params.toString()}` : "";
   const { data } = await api.get(`/admin/governance/project-controls/operational-intelligence/overview${suffix}`);
+  return data;
+}
+
+export async function fetchAdminProjectForecastingWorkspace(projectNumber) {
+  const { data } = await api.get(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/workspace`);
+  return data;
+}
+
+export async function createAdminProjectForecastSnapshot(projectNumber, note = "") {
+  const { data } = await api.post(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/snapshots`, { note });
   return data;
 }
 
@@ -439,5 +469,10 @@ export async function downloadPmScheduleExport(projectNumber, versionId, exportK
 
 export async function queuePmScheduleEmailExport(projectNumber, payload) {
   const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/schedule/export/email`, payload);
+  return data;
+}
+
+export async function fetchFieldLeadershipProjectForecasting(projectNumber) {
+  const { data } = await api.get(`/field-leadership/portal/projects/${encodeURIComponent(projectNumber)}/forecasting`);
   return data;
 }

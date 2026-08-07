@@ -121,6 +121,11 @@ from services.project_operational_intelligence import (
     override_operational_recommendation,
     run_operational_intelligence_backfill,
 )
+from services.project_forecasting_commitments import (
+    create_project_forecast_commitment,
+    get_project_forecasting_workspace,
+    update_project_forecast_commitment,
+)
 from pm_auth import is_valid_pm_user_token_async
 
 
@@ -407,6 +412,28 @@ class DailyWorkPlanBody(BaseModel):
     status: str = "draft"
     notes: str = ""
     items: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class ForecastWorkspaceNoteBody(BaseModel):
+    note: str = ""
+
+
+class ForecastCommitmentBody(BaseModel):
+    family: str = "milestone_quantity"
+    status: str = "proposed"
+    title: str = Field(..., min_length=2, max_length=180)
+    description: str = ""
+    due_date: str = ""
+    linked_unit: str = ""
+    linked_activity_id: str = ""
+    linked_work_package_id: str = ""
+    target_quantity: float = 0.0
+    target_hours: float = 0.0
+    target_amount: float = 0.0
+    target_count: float = 0.0
+    confidence: str = "medium"
+    evidence_note: str = ""
+    note: str = ""
 
 
 def _runtime_db(request: Optional[Request], db):
@@ -1030,6 +1057,18 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         runtime_db = _runtime_db(request, db)
         return await get_admin_schedule_actuals_overview(runtime_db, project_number=project_number)
 
+    @api_router.get("/api/admin/governance/project-controls/projects/{project_number}/forecasting/workspace")
+    async def governance_project_forecasting_workspace(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        return await get_project_forecasting_workspace(runtime_db, project_number, actor=resolved, audience="executive")
+
+    @api_router.post("/api/admin/governance/project-controls/projects/{project_number}/forecasting/snapshots")
+    async def governance_project_forecasting_snapshot(request: Request, project_number: str, body: ForecastWorkspaceNoteBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        return await get_project_forecasting_workspace(runtime_db, project_number, actor=resolved, audience="executive", note=body.note)
+
     @api_router.get("/api/pm/project-controls/overview")
     async def pm_project_controls_overview(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
@@ -1157,6 +1196,35 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         await _require_project_scope(runtime_db, request, project_number)
         rows = await list_project_work_ledger(runtime_db, project_number, limit=limit)
         return {"count": len(rows), "items": rows}
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/forecasting/workspace")
+    async def pm_project_forecasting_workspace(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_forecasting_workspace(runtime_db, project_number, actor=actor, audience="pm")
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/forecasting/snapshots")
+    async def pm_project_forecasting_snapshot(request: Request, project_number: str, body: ForecastWorkspaceNoteBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_forecasting_workspace(runtime_db, project_number, actor=actor, audience="pm", note=body.note)
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/forecasting/commitments")
+    async def pm_project_forecasting_commitment_create(request: Request, project_number: str, body: ForecastCommitmentBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        row = await create_project_forecast_commitment(runtime_db, project_number, body.model_dump(), actor=actor)
+        return {"ok": True, "commitment": row}
+
+    @api_router.patch("/api/pm/project-controls/projects/{project_number}/forecasting/commitments/{commitment_id}")
+    async def pm_project_forecasting_commitment_update(request: Request, project_number: str, commitment_id: str, body: ForecastCommitmentBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await update_project_forecast_commitment(runtime_db, project_number, commitment_id, body.model_dump(), actor=actor)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        return {"ok": True, "commitment": row}
 
     @api_router.get("/api/pm/project-controls/projects/{project_number}/operational-intelligence")
     async def pm_project_operational_intelligence_snapshot(request: Request, project_number: str, force_refresh: bool = False):
