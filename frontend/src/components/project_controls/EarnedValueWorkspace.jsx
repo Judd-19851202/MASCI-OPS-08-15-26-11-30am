@@ -98,12 +98,23 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
   const metrics = workspace?.metric_cards || [];
   const isPm = mode === "pm";
   const budgetReviewPath = isPm ? `/pm/project-controls/budget?project_number=${encodeURIComponent(projectNumber || "")}` : `/admin/governance/project-controls/budget?project_number=${encodeURIComponent(projectNumber || "")}`;
+  const sourceLabels = {
+    bac_authority: t("Budget approved for this job"),
+    pv_authority: t("Baseline schedule timing"),
+    ev_authority: t("Approved installed quantity or approved physical progress"),
+    ac_authority: t("Linked receipts and recognized cost"),
+    quantity_authority: t("Approved field production"),
+    forecast_authority: t("Current remaining-cost outlook"),
+    metric_governance: t("Shared project-controls definitions"),
+    work_block_authority: t("Field work records"),
+    ai_role: t("No AI-generated truth"),
+  };
 
   const heroCards = useMemo(() => ([
-    { icon: Wallet, label: "BAC", value: fmtMoney(summary.bac), note: t("Approved current budget at this grain."), status: summary.confidence || "blocked", testId: "earned-value-summary-bac" },
-    { icon: TrendingUp, label: "EV", value: fmtMoney(summary.ev), note: t("Value earned from approved quantity or approved physical progress."), status: metrics.find((row) => row.label === "EV")?.status || "blocked", testId: "earned-value-summary-ev" },
-    { icon: TrendingDown, label: "AC", value: fmtMoney(summary.ac), note: t("Recognized actual cost from governed linkage."), status: metrics.find((row) => row.label === "AC")?.status || "blocked", testId: "earned-value-summary-ac" },
-    { icon: ShieldCheck, label: "EAC", value: fmtMoney(summary.eac), note: t("Recognized cost plus governed remaining-work forecast."), status: metrics.find((row) => row.label === "EAC")?.status || "blocked", testId: "earned-value-summary-eac" },
+    { icon: Wallet, label: "BAC", value: fmtMoney(summary.bac), note: t("Budget currently approved for this job."), status: summary.confidence || "blocked", testId: "earned-value-summary-bac" },
+    { icon: TrendingUp, label: "EV", value: fmtMoney(summary.ev), note: t("Budget value of the work the team has earned so far."), status: metrics.find((row) => row.label === "EV")?.status || "blocked", testId: "earned-value-summary-ev" },
+    { icon: TrendingDown, label: "AC", value: fmtMoney(summary.ac), note: t("Cost recognized so far from linked receipts and cost records."), status: metrics.find((row) => row.label === "AC")?.status || "blocked", testId: "earned-value-summary-ac" },
+    { icon: ShieldCheck, label: "EAC", value: fmtMoney(summary.eac), note: t("Where total cost is trending if the current outlook holds."), status: metrics.find((row) => row.label === "EAC")?.status || "blocked", testId: "earned-value-summary-eac" },
   ]), [metrics, summary.ac, summary.bac, summary.confidence, summary.eac, summary.ev, t]);
 
   return (
@@ -111,25 +122,25 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(14,116,144,0.14),_transparent_38%),linear-gradient(135deg,#f8fafc_0%,#ffffff_58%,#ecfeff_100%)] p-6 shadow-sm sm:p-8" data-testid="earned-value-hero-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">WP-18C8 · Earned Value Engine</div>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{t("Governed earned value without black-box math")}</h1>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">WP-18C8 · {t("Earned Value")}</div>
+            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{t("Budget, progress, and cost in one project view")}</h1>
             <p className="mt-4 max-w-2xl text-sm text-slate-600 sm:text-base" data-testid="earned-value-hero-description">
-              {t("BAC, PV, EV, AC, CPI, SPI, ETC, EAC, and TCPI now come from one explainable engine tied to budget, schedule, approved quantity, actual cost, and C7 forecast authority.")}
+              {t("See what the job should have earned by now, what it has actually earned, what it has cost, what is driving the result, and where to look next.")}
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[340px]">
             <div data-testid="earned-value-project-selector-wrap">{selector}</div>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={onRefresh} disabled={!projectNumber || loading || working} data-testid="earned-value-refresh-button"><RefreshCw className="mr-2 h-4 w-4" /> {t("Refresh")}</Button>
-              <Button variant="outline" onClick={() => onCaptureSnapshot?.(snapshotNote)} disabled={!projectNumber || loading || working} data-testid="earned-value-capture-snapshot-button"><GitBranch className="mr-2 h-4 w-4" /> {t("Capture version")}</Button>
+              <Button variant="outline" onClick={() => onCaptureSnapshot?.(snapshotNote)} disabled={!projectNumber || loading || working} data-testid="earned-value-capture-snapshot-button"><GitBranch className="mr-2 h-4 w-4" /> {t("Save snapshot")}</Button>
               <Button variant="outline" onClick={onExport} disabled={!projectNumber || loading || working} data-testid="earned-value-export-button"><Download className="mr-2 h-4 w-4" /> {t("Export CSV")}</Button>
             </div>
-            <Input placeholder={t("Version note (optional)")} value={snapshotNote} onChange={(event) => setSnapshotNote(event.target.value)} data-testid="earned-value-snapshot-note-input" />
+            <Input placeholder={t("Snapshot note (optional)")} value={snapshotNote} onChange={(event) => setSnapshotNote(event.target.value)} data-testid="earned-value-snapshot-note-input" />
           </div>
         </div>
       </div>
 
-      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-loading-state">{t("Loading governed earned value…")}</CardContent></Card> : null}
+      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-loading-state">{t("Loading earned value for this job…")}</CardContent></Card> : null}
       {!loading && !projectNumber ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-empty-project-state">{t("Choose a project to open the C8 earned-value workspace.")}</CardContent></Card> : null}
 
       {!loading && projectNumber && workspace ? (
@@ -153,23 +164,23 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
           <Tabs defaultValue="overview" className="space-y-5" data-testid="earned-value-tabs-root">
             <TabsList className="flex w-full flex-wrap justify-start gap-2 rounded-2xl bg-slate-100 p-1" data-testid="earned-value-tabs-list">
               <TabsTrigger value="overview" data-testid="earned-value-overview-tab-trigger">{t("Overview")}</TabsTrigger>
-              <TabsTrigger value="lineage" data-testid="earned-value-lineage-tab-trigger">{t("Lineage")}</TabsTrigger>
-              <TabsTrigger value="governance" data-testid="earned-value-governance-tab-trigger">{t("Governance")}</TabsTrigger>
+              <TabsTrigger value="lineage" data-testid="earned-value-lineage-tab-trigger">{t("Source detail")}</TabsTrigger>
+              <TabsTrigger value="governance" data-testid="earned-value-governance-tab-trigger">{t("Review & history")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-5" data-testid="earned-value-overview-tab-panel">
               <TableCard
-                title={t("Metric truth register")}
+                title={t("What each measure means")}
                 rows={metrics}
                 testId="earned-value-metric-table"
-                emptyLabel={t("No governed earned-value metrics are available yet.")}
+                emptyLabel={t("No earned-value measures are available yet.")}
                 columns={[
                   { key: "label", label: t("Metric") },
                   { key: "display_value", label: t("Value") },
-                  { key: "confidence", label: t("Confidence"), render: (row) => <Badge className={`border ${tone(row.confidence)}`}>{String(row.confidence || "blocked").replaceAll("_", " ")}</Badge> },
+                  { key: "confidence", label: t("Data confidence"), render: (row) => <Badge className={`border ${tone(row.confidence)}`}>{String(row.confidence || "blocked").replaceAll("_", " ")}</Badge> },
                   { key: "status", label: t("Status"), render: (row) => <Badge className={`border ${tone(row.status)}`}>{row.status}</Badge> },
                   { key: "formula", label: t("Formula") },
-                  { key: "drilldown_path", label: t("Drill-down"), render: (row) => <span className="text-xs text-teal-700">{row.drilldown_path || "—"}</span> },
+                  { key: "drilldown_path", label: t("Where to check"), render: (row) => <span className="text-xs text-teal-700">{row.drilldown_path || "—"}</span> },
                 ]}
               />
 
@@ -188,7 +199,7 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
                 />
                 <Card className="border-slate-200 shadow-sm" data-testid="earned-value-readiness-card">
                   <CardHeader>
-                    <CardTitle className="text-lg text-slate-900">{t("Truth readiness")}</CardTitle>
+                    <CardTitle className="text-lg text-slate-900">{t("Data readiness")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm text-slate-700">
                     {Object.entries(workspace?.readiness || {}).map(([key, value]) => (
@@ -198,9 +209,9 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
                       </div>
                     ))}
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600" data-testid="earned-value-readiness-note">
-                      {t("Missing or incomplete evidence never turns green. Use the linked budget review lane to finish commitment and actual-cost linkage when confidence is partial.")}
+                      {t("Missing or incomplete evidence never turns green. If confidence is partial, finish the budget review items before trusting the result.")}
                     </div>
-                    <Link to={budgetReviewPath} className="text-sm font-semibold text-teal-700 underline-offset-4 hover:underline" data-testid="earned-value-budget-review-link">{t("Open budget review lane")}</Link>
+                    <Link to={budgetReviewPath} className="text-sm font-semibold text-teal-700 underline-offset-4 hover:underline" data-testid="earned-value-budget-review-link">{t("Open budget review")}</Link>
                   </CardContent>
                 </Card>
               </div>
@@ -208,10 +219,10 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
 
             <TabsContent value="lineage" className="space-y-5" data-testid="earned-value-lineage-tab-panel">
               <TableCard
-                title={t("Budget-line earned value")}
+                title={t("Cost code and pay item detail")}
                 rows={lines}
                 testId="earned-value-line-table"
-                emptyLabel={t("No budget-line EV rows are available yet.")}
+                emptyLabel={t("No earned-value detail rows are available yet.")}
                 columns={[
                   { key: "label", label: t("Budget line") },
                   { key: "method", label: t("Method") },
@@ -227,14 +238,14 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
               />
 
               <TableCard
-                title={t("Line limitations")}
+                title={t("Why a measure is blocked or partial")}
                 rows={lines.map((row) => ({ id: row.budget_line_id, label: row.label, limitations: (row.limitations || []).join(" "), source_records: (row.source_records || []).join(", ") || "—" }))}
                 testId="earned-value-limitations-table"
                 emptyLabel={t("No EV limitations were published.")}
                 columns={[
                   { key: "label", label: t("Budget line") },
                   { key: "limitations", label: t("Why confidence changed") },
-                  { key: "source_records", label: t("Evidence") },
+                  { key: "source_records", label: t("Source IDs") },
                 ]}
               />
             </TabsContent>
@@ -242,10 +253,10 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
             <TabsContent value="governance" className="space-y-5" data-testid="earned-value-governance-tab-panel">
               <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
                 <TableCard
-                  title={t("Recent C8 versions")}
+                  title={t("Recent snapshots")}
                   rows={versionRows}
                   testId="earned-value-version-table"
-                  emptyLabel={t("No earned-value versions have been captured yet.")}
+                  emptyLabel={t("No snapshots have been saved yet.")}
                   columns={[
                     { key: "version_number", label: t("Version") },
                     { key: "generated_at", label: t("Generated") },
@@ -255,13 +266,13 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
                 />
                 <Card className="border-slate-200 shadow-sm" data-testid="earned-value-authority-card">
                   <CardHeader>
-                    <CardTitle className="text-lg text-slate-900">{t("Authority boundaries")}</CardTitle>
+                    <CardTitle className="text-lg text-slate-900">{t("Where these numbers come from")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm text-slate-700">
                     {Object.entries(workspace?.authority_boundaries || {}).map(([key, value]) => (
                       <div key={key} className="flex items-center justify-between gap-3" data-testid={`earned-value-authority-${key}`}>
-                        <span className="font-medium text-slate-900">{key.replaceAll("_", " ")}</span>
-                        <span className="text-right text-xs text-slate-500">{value || "—"}</span>
+                        <span className="font-medium text-slate-900">{sourceLabels[key] || key.replaceAll("_", " ")}</span>
+                        <span className="text-right text-xs text-slate-500">{sourceLabels[key] ? t("Shared project record") : (value || "—")}</span>
                       </div>
                     ))}
                   </CardContent>
@@ -270,10 +281,10 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
 
               <div className="grid gap-5 xl:grid-cols-2">
                 <TableCard
-                  title={t("Open actual-cost linkage")}
+                  title={t("Actual-cost items still under review")}
                   rows={blockedActuals}
                   testId="earned-value-blocked-actuals-table"
-                  emptyLabel={t("No actual-cost candidates are blocking C8 right now.")}
+                  emptyLabel={t("No actual-cost items are holding this view back right now.")}
                   columns={[
                     { key: "vendor", label: t("Vendor") },
                     { key: "candidate_amount", label: t("Amount"), render: (row) => fmtMoney(row.candidate_amount) },
@@ -282,10 +293,10 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
                   ]}
                 />
                 <TableCard
-                  title={t("Open commitment linkage")}
+                  title={t("Commitments still under review")}
                   rows={blockedCommitments}
                   testId="earned-value-blocked-commitments-table"
-                  emptyLabel={t("No commitment candidates are blocking C8 right now.")}
+                  emptyLabel={t("No commitment items are holding this view back right now.")}
                   columns={[
                     { key: "vendor", label: t("Vendor") },
                     { key: "commitment_amount", label: t("Amount"), render: (row) => fmtMoney(row.commitment_amount) },

@@ -233,8 +233,8 @@ export default function ExecutiveOverview() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">WP-18C8</div>
-            <div className="mt-1 text-lg font-semibold text-slate-900">{t("Earned Value Engine")}</div>
-            <div className="mt-1 text-sm text-slate-600">{t("Open the governed C8 workspace for BAC, PV, EV, AC, CPI, SPI, EAC, and traceable blocked-confidence reasons.")}</div>
+            <div className="mt-1 text-lg font-semibold text-slate-900">{t("Earned Value")}</div>
+            <div className="mt-1 text-sm text-slate-600">{t("Open the C8 job view for budget, earned progress, cost, forecast impact, and any data still waiting on review.")}</div>
           </div>
           <Link to="/admin/governance/project-controls/earned-value" className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="executive-earned-value-launch-link">
             {t("Open C8 workspace")} →

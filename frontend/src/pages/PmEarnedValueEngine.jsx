@@ -103,7 +103,7 @@ export default function PmEarnedValueEngine() {
   };
 
   return (
-    <PmShell title="Earned Value Engine" subtitle="C8 governed earned-value authority" data-testid="pm-earned-value-page">
+    <PmShell title="Earned Value" subtitle="Budget, progress, cost, and outlook for this job" data-testid="pm-earned-value-page">
       <EarnedValueWorkspace
         mode="pm"
         projectNumber={projectNumber}

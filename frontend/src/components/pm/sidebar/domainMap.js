@@ -49,7 +49,7 @@ export const DOMAINS_V2 = [
     icon: ClipboardCheck,
     routes: [
       { to: "/pm/project-controls/budget", label: "Project Budget", desc: "Imports · approvals · budget versions.", icon: ClipboardCheck },
-      { to: "/pm/project-controls/earned-value", label: "Earned Value Engine", desc: "BAC · PV · EV · AC · CPI · SPI.", icon: Radar },
+      { to: "/pm/project-controls/earned-value", label: "Earned Value", desc: "Budget · progress · cost · outlook.", icon: Radar },
       { to: "/po-requests",       label: "PO Requests",       desc: "Pending approvals · receipts · spend.",        icon: ClipboardCheck },
       { to: "/project-health",    label: "Project Health",    desc: "Operational friction by job.",                 icon: Activity },
       { to: "/asset-transfers",   label: "Asset Transfers",   desc: "Equipment movement and lifecycle.",            icon: Truck },

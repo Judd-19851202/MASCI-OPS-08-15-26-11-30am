@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import csv
 import hashlib
 import io
+import json
+import time
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
@@ -11,11 +14,11 @@ from lib.wp17a_kpi_governance import normalize_metadata_model
 from services.project_budget_authority import (
     COLL_BUDGET_ACTUALS,
     COLL_BUDGET_COMMITMENTS,
+    COLL_BUDGET_LINES,
+    COLL_BUDGET_VERSIONS,
+    _sync_actual_cost_candidates_for_project,
+    _sync_commitment_candidates_for_project,
     ensure_project_budget_foundation,
-    get_project_budget_overview,
-    list_project_budget_lines,
-    review_budget_actual_cost_candidate,
-    review_budget_commitment_candidate,
 )
 from services.project_controls_authority import (
     _actor_label,
@@ -25,21 +28,23 @@ from services.project_controls_authority import (
     _to_float,
     _write_audit,
     ensure_project_controls_foundation,
-    list_project_work_ledger,
 )
-from services.project_forecasting_commitments import get_project_forecasting_workspace
-from services.project_operational_intelligence import get_project_operational_intelligence_snapshot
-from services.project_schedule_actuals_spine import list_schedule_actual_candidates
+from services.project_forecasting_commitments import COLL_FORECAST_SNAPSHOTS
+from services.project_operational_intelligence import COLL_OP_INTEL_SNAPSHOTS
+from services.project_schedule_actuals_spine import COLL_SCHEDULE_ACTUAL_CANDIDATES
 from services.project_schedule_authority import (
+    COLL_SCHEDULE_ACTIVITIES,
+    COLL_SCHEDULE_VERSIONS,
+    COLL_WORK_PACKAGES,
     ensure_project_schedule_foundation,
-    list_schedule_activities,
-    list_schedule_versions,
-    list_schedule_work_packages,
 )
 
 
 COLL_EV_SNAPSHOTS = "project_earned_value_snapshots"
 COLL_EV_VERSIONS = "project_earned_value_versions"
+
+_FOUNDATION_READY_DBS: set[str] = set()
+_FOUNDATION_READY_LOCK = asyncio.Lock()
 
 
 def _utcnow() -> datetime:
@@ -166,15 +171,22 @@ def _metric_metadata(
 
 
 async def ensure_project_earned_value_foundation(db) -> None:
-    await ensure_project_controls_foundation(db)
-    await ensure_project_budget_foundation(db)
-    await ensure_project_schedule_foundation(db)
-    await db[COLL_EV_SNAPSHOTS].delete_many({"project_number": None})
-    await db[COLL_EV_SNAPSHOTS].delete_many({"project_number": {"$exists": False}})
-    await db[COLL_EV_SNAPSHOTS].create_index([("project_number", 1)], unique=True)
-    await db[COLL_EV_SNAPSHOTS].create_index([("generated_at", -1)])
-    await db[COLL_EV_VERSIONS].create_index([("project_number", 1), ("version_number", -1)], unique=True)
-    await db[COLL_EV_VERSIONS].create_index([("project_number", 1), ("fingerprint", 1)])
+    database_name = getattr(db, "name", "default")
+    if database_name in _FOUNDATION_READY_DBS:
+        return
+    async with _FOUNDATION_READY_LOCK:
+        if database_name in _FOUNDATION_READY_DBS:
+            return
+        await ensure_project_controls_foundation(db)
+        await ensure_project_budget_foundation(db)
+        await ensure_project_schedule_foundation(db)
+        await db[COLL_EV_SNAPSHOTS].delete_many({"project_number": None})
+        await db[COLL_EV_SNAPSHOTS].delete_many({"project_number": {"$exists": False}})
+        await db[COLL_EV_SNAPSHOTS].create_index([("project_number", 1)], unique=True)
+        await db[COLL_EV_SNAPSHOTS].create_index([("generated_at", -1)])
+        await db[COLL_EV_VERSIONS].create_index([("project_number", 1), ("version_number", -1)], unique=True)
+        await db[COLL_EV_VERSIONS].create_index([("project_number", 1), ("fingerprint", 1)])
+        _FOUNDATION_READY_DBS.add(database_name)
 
 
 def _line_label(line: Dict[str, Any]) -> str:
@@ -252,31 +264,111 @@ def _project_confidence(lines: List[Dict[str, Any]], unresolved_actuals: int, un
 
 
 async def _load_upstream_payloads(db, project_number: str, *, actor: Optional[Dict[str, Any]], audience: str) -> Dict[str, Any]:
-    job, budget_payload, schedule_versions, forecasting_workspace, op_intel, actual_candidates, work_ledger = await __import__("asyncio").gather(
-        _load_job(db, project_number),
-        get_project_budget_overview(db, project_number),
-        list_schedule_versions(db, project_number),
-        get_project_forecasting_workspace(db, project_number, actor=actor, audience=audience),
-        get_project_operational_intelligence_snapshot(db, project_number, actor=actor, force_refresh=False),
-        list_schedule_actual_candidates(db, project_number),
-        list_project_work_ledger(db, project_number, limit=500),
+    timings: Dict[str, float] = {}
+
+    async def timed(label: str, awaitable):
+        started = time.perf_counter()
+        result = await awaitable
+        timings[label] = round((time.perf_counter() - started) * 1000, 2)
+        return result
+
+    async def load_latest_forecast_snapshot() -> Dict[str, Any]:
+        row = await db[COLL_FORECAST_SNAPSHOTS].find_one({"project_number": project_number}, {"_id": 0}, sort=[("version_number", -1)])
+        if not row:
+            return {}
+        snapshot = _sanitize(row.get("snapshot") or {})
+        snapshot["versioning"] = {
+            "current_version_id": row.get("version_id"),
+            "version_number": row.get("version_number"),
+            "generated_at": row.get("generated_at"),
+            "change_detection": row.get("change_detection") or {},
+        }
+        return snapshot
+
+    async def load_latest_op_intel_snapshot() -> Dict[str, Any]:
+        return _sanitize(await db[COLL_OP_INTEL_SNAPSHOTS].find_one({"project_number": project_number}, {"_id": 0}) or {})
+
+    async def load_budget_payload() -> Dict[str, Any]:
+        await _sync_commitment_candidates_for_project(db, project_number)
+        await _sync_actual_cost_candidates_for_project(db, project_number)
+        active_version = _sanitize(
+            await db[COLL_BUDGET_VERSIONS].find_one(
+                {"project_number": project_number, "status": "active"},
+                {"_id": 0},
+                sort=[("activated_at", -1), ("created_at", -1)],
+            ) or {}
+        )
+        commitment_candidates = [
+            _sanitize(row)
+            async for row in db[COLL_BUDGET_COMMITMENTS].find({"project_number": project_number}, {"_id": 0}).sort([("updated_at", -1), ("created_at", -1)]).limit(50)
+        ]
+        actual_cost_candidates = [
+            _sanitize(row)
+            async for row in db[COLL_BUDGET_ACTUALS].find({"project_number": project_number}, {"_id": 0}).sort([("updated_at", -1), ("created_at", -1)]).limit(50)
+        ]
+        return {
+            "active_version": active_version,
+            "commitment_candidates": commitment_candidates,
+            "actual_cost_candidates": actual_cost_candidates,
+        }
+
+    async def load_schedule_versions() -> List[Dict[str, Any]]:
+        return [
+            _sanitize(row)
+            async for row in db[COLL_SCHEDULE_VERSIONS].find({"project_number": project_number}, {"_id": 0}).sort([("activated_at", -1), ("created_at", -1)]).limit(20)
+        ]
+
+    async def load_schedule_activities(version_id: str) -> List[Dict[str, Any]]:
+        return [
+            _sanitize(row)
+            async for row in db[COLL_SCHEDULE_ACTIVITIES].find({"project_number": project_number, "version_id": version_id}, {"_id": 0}).sort([("sort_order", 1), ("activity_id", 1)]).limit(2000)
+        ]
+
+    async def load_work_packages(version_id: str) -> List[Dict[str, Any]]:
+        return [
+            _sanitize(row)
+            async for row in db[COLL_WORK_PACKAGES].find({"project_number": project_number, "version_id": version_id}, {"_id": 0}).sort([("work_package_name", 1), ("work_package_id", 1)]).limit(500)
+        ]
+
+    async def load_actual_candidates() -> List[Dict[str, Any]]:
+        return [
+            _sanitize(row)
+            async for row in db[COLL_SCHEDULE_ACTUAL_CANDIDATES].find({"project_number": project_number}, {"_id": 0}).sort([("created_at", -1)]).limit(500)
+        ]
+
+    job, budget_payload, schedule_versions, forecasting_workspace, op_intel, actual_candidates = await asyncio.gather(
+        timed("job_ms", _load_job(db, project_number)),
+        timed("budget_overview_ms", load_budget_payload()),
+        timed("schedule_versions_ms", load_schedule_versions()),
+        timed("forecast_snapshot_ms", load_latest_forecast_snapshot()),
+        timed("op_intel_snapshot_ms", load_latest_op_intel_snapshot()),
+        timed("actual_candidates_ms", load_actual_candidates()),
     )
     active_budget = budget_payload.get("active_version") or {}
     budget_lines = []
     if active_budget.get("version_id"):
-        budget_lines = await list_project_budget_lines(db, project_number, version_id=active_budget["version_id"])
+        async def load_budget_lines() -> List[Dict[str, Any]]:
+            return [
+                _sanitize(row)
+                async for row in db[COLL_BUDGET_LINES].find(
+                    {"project_number": project_number, "version_id": active_budget["version_id"]},
+                    {"_id": 0},
+                ).sort([("sort_order", 1), ("budget_line_id", 1)]).limit(2000)
+            ]
+
+        budget_lines = await timed("budget_lines_ms", load_budget_lines())
     active_schedule = next((row for row in schedule_versions if row.get("status") == "active"), None)
     activities = []
     work_packages = []
     baseline_activities = []
     if active_schedule and active_schedule.get("version_id"):
-        activities, work_packages = await __import__("asyncio").gather(
-            list_schedule_activities(db, project_number, version_id=active_schedule["version_id"]),
-            list_schedule_work_packages(db, project_number, version_id=active_schedule["version_id"]),
+        activities, work_packages = await asyncio.gather(
+            timed("active_activities_ms", load_schedule_activities(active_schedule["version_id"])),
+            timed("work_packages_ms", load_work_packages(active_schedule["version_id"])),
         )
         baseline_version_id = active_schedule.get("baseline_version_id")
         if baseline_version_id:
-            baseline_activities = await list_schedule_activities(db, project_number, version_id=baseline_version_id)
+            baseline_activities = await timed("baseline_activities_ms", load_schedule_activities(baseline_version_id))
     return {
         "job": job,
         "budget": budget_payload,
@@ -289,7 +381,8 @@ async def _load_upstream_payloads(db, project_number: str, *, actor: Optional[Di
         "forecast": forecasting_workspace,
         "op_intel": op_intel,
         "actual_candidates": actual_candidates,
-        "work_ledger": work_ledger,
+        "work_ledger": [],
+        "timings_ms": timings,
     }
 
 
@@ -470,12 +563,7 @@ def _metric_card(
         "formula": formula,
         "owner": owner,
         "source_records": source_records,
-        "work_block_lineage": source_records,
         "freshness": freshness,
-        "version": metadata.get("validation_status") or "VALIDATED",
-        "audit_trail": ["project_earned_value_versions", "project_earned_value_snapshots"],
-        "calculation_timestamp": _now_iso(),
-        "supporting_evidence": evidence,
         "drilldown_path": drilldown_path,
         "rgy_rule": {
             "green": "Metric is on or ahead of plan and confidence is not blocked.",
@@ -485,7 +573,7 @@ def _metric_card(
         },
         "insufficient_data_behavior": "Shows blocked or review-required instead of auto-green when baseline, quantity, or actual-cost evidence is incomplete.",
         "notes": notes,
-        "metadata": metadata,
+        "source_of_truth": metadata.get("source_of_truth") or evidence,
     }
 
 
@@ -656,14 +744,17 @@ def _metric_source_records(lines: List[Dict[str, Any]]) -> List[str]:
 
 
 async def _build_snapshot(db, project_number: str, *, actor: Optional[Dict[str, Any]], audience: str) -> Dict[str, Any]:
+    build_started = time.perf_counter()
     payloads = await _load_upstream_payloads(db, project_number, actor=actor, audience=audience)
     blocked = _blocked_review_summary(payloads["budget"])
     status_date = _resolve_status_date(payloads)
+    stale_sources = (_utcnow().date() - status_date).days > 3
     line_activities = _activities_by_line(payloads.get("activities") or [])
     baseline_by_line = _activities_by_line(payloads.get("baseline_activities") or [])
     quantity_by_line = _actual_quantity_by_line(payloads.get("budget_lines") or [], payloads.get("activities") or [], payloads.get("actual_candidates") or [])
     work_ledger_by_line = _work_ledger_by_line(payloads.get("budget_lines") or [], payloads.get("work_ledger") or [])
     forecast_cost_units = _remaining_cost_by_unit(payloads.get("forecast") or {})
+    line_eval_started = time.perf_counter()
 
     unit_remaining_totals: Dict[str, float] = {}
     for line in payloads.get("budget_lines") or []:
@@ -741,6 +832,9 @@ async def _build_snapshot(db, project_number: str, *, actor: Optional[Dict[str, 
             unresolved_actuals=blocked.get("open_actual_cost_count", 0),
             has_schedule_link=has_schedule_link,
         )
+        if stale_sources:
+            limitations.append("Source updates are stale for this job, so the reading is held below full confidence until new field or cost updates arrive.")
+            confidence = _min_confidence(confidence, "review_required")
         ledger_lane = work_ledger_by_line.get(line_id) or {"source_rows": [], "daily_report_ids": set(), "work_block_ids": set()}
         source_records = sorted(
             set((quantity_row.get("daily_report_ids") or set()))
@@ -789,31 +883,54 @@ async def _build_snapshot(db, project_number: str, *, actor: Optional[Dict[str, 
             }
         )
 
+    line_eval_ms = round((time.perf_counter() - line_eval_started) * 1000, 2)
+
     totals = _summarize_project_metrics(lines, payloads.get("forecast") or {}, blocked)
+    if stale_sources:
+        totals["confidence"] = _min_confidence(totals.get("confidence") or "high", "review_required")
     source_records = _metric_source_records(lines)
+    readiness = {
+        "budget": "ready" if payloads.get("budget_lines") else "blocked",
+        "schedule": "ready" if payloads.get("activities") else "blocked",
+        "quantity": "ready" if any(line.get("approved_quantity", 0) > 0 for line in lines) else ("partial" if payloads.get("activities") else "blocked"),
+        "actual_cost": "ready" if payloads.get("budget_lines") and blocked.get("open_actual_cost_count", 0) == 0 and any(_to_float(line.get("ac"), 0.0) > 0 for line in lines) else ("partial" if payloads.get("budget_lines") and blocked.get("open_actual_cost_count", 0) > 0 else "blocked"),
+        "forecast": "ready" if (((payloads.get("forecast") or {}).get("cost") or {}).get("summary") or {}).get("projected_remaining_cost") is not None else "blocked",
+        "freshness": "stale" if stale_sources else "current",
+    }
+    overall_inputs = [value for key, value in readiness.items() if key != "freshness"]
+    overall = "ready" if all(value == "ready" for value in overall_inputs) and not stale_sources else "partial" if any(value == "ready" for value in overall_inputs) else "blocked"
+    readiness["overall"] = overall
+    eac_value = totals.get("eac")
+    bac_value = totals.get("bac") or 0.0
+    eac_status = "blocked"
+    if totals.get("confidence") == "high" and eac_value is not None and bac_value > 0:
+        if eac_value <= bac_value:
+            eac_status = "green"
+        elif ((eac_value - bac_value) / bac_value) <= 0.05:
+            eac_status = "amber"
+        else:
+            eac_status = "red"
+    tcpi_status = "blocked"
+    if totals.get("confidence") == "high" and totals.get("tcpi") is not None:
+        if totals["tcpi"] <= 1:
+            tcpi_status = "green"
+        elif totals["tcpi"] <= 1.05:
+            tcpi_status = "amber"
+        else:
+            tcpi_status = "red"
     metric_cards = [
-        _metric_card(metric_id="c8-bac", label="BAC", value=totals.get("bac"), unit="currency", confidence=totals["confidence"], formula="Approved current budget at the selected project grain.", description="Budget at completion from the active governed budget version.", source_records=source_records, owner="project_budget_authority", status="green", notes=["BAC stays tied to the active approved budget version."], drilldown_path=f"/pm/project-controls/budget?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_budget_versions", "project_budget_lines"]),
+        _metric_card(metric_id="c8-bac", label="BAC", value=totals.get("bac"), unit="currency", confidence=totals["confidence"], formula="Approved current budget at the selected project grain.", description="Budget at completion from the active governed budget version.", source_records=source_records, owner="project_budget_authority", status="green" if readiness.get("budget") == "ready" and totals.get("confidence") == "high" else "blocked", notes=["BAC stays tied to the active approved budget version."], drilldown_path=f"/pm/project-controls/budget?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_budget_versions", "project_budget_lines"]),
         _metric_card(metric_id="c8-pv", label="PV", value=totals.get("pv"), unit="currency", confidence=totals["confidence"], formula="Time-phased approved budget planned to be earned by the C8 status date using the preserved baseline schedule.", description="Planned value from baseline schedule timing and active BAC.", source_records=source_records, owner="project_schedule_authority", status=_status_badge(totals.get("spi"), metric_key="spi", confidence=totals["confidence"]), notes=["PV blocks instead of guessing when baseline timing is missing."], drilldown_path=f"/pm/project-controls/schedule?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_schedule_versions", "project_schedule_activities"]),
         _metric_card(metric_id="c8-ev", label="EV", value=totals.get("ev"), unit="currency", confidence=totals["confidence"], formula="Approved earned quantity × budget unit value; fallback to approved physical percent × BAC only when quantity is unavailable.", description="Earned value from quantity-first governed rules.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge(totals.get("sv"), metric_key="sv", confidence=totals["confidence"]), notes=["Quantity-based EV is primary; schedule-based EV is documented when used."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_schedule_actual_candidates", "project_controls_work_ledger", "project_budget_lines"]),
-        _metric_card(metric_id="c8-ac", label="AC", value=totals.get("ac"), unit="currency", confidence=totals["confidence"], formula="Recognized actual cost from governed receipt/accounting linkage at the same project grain and cutoff.", description="Actual cost recognized through budget actual-cost linkage.", source_records=source_records, owner="project_budget_authority", status="blocked" if blocked.get("open_actual_cost_count") else "green", notes=[f"{blocked.get('open_actual_cost_count', 0)} open actual-cost candidates keep AC partial until linked."], drilldown_path=f"/pm/project-controls/budget?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=[COLL_BUDGET_ACTUALS, "project_budget_lines"]),
+        _metric_card(metric_id="c8-ac", label="AC", value=totals.get("ac"), unit="currency", confidence=totals["confidence"], formula="Recognized actual cost from governed receipt/accounting linkage at the same project grain and cutoff.", description="Actual cost recognized through budget actual-cost linkage.", source_records=source_records, owner="project_budget_authority", status="blocked" if blocked.get("open_actual_cost_count") or readiness.get("actual_cost") == "blocked" or totals.get("confidence") != "high" else "green", notes=[f"{blocked.get('open_actual_cost_count', 0)} open actual-cost candidates keep AC partial until linked."], drilldown_path=f"/pm/project-controls/budget?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=[COLL_BUDGET_ACTUALS, "project_budget_lines"]),
         _metric_card(metric_id="c8-cv", label="CV", value=totals.get("cv"), unit="currency", confidence=totals["confidence"], formula="EV - AC", description="Cost variance between value earned and recognized actual cost.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge(totals.get("cv"), metric_key="cv", confidence=totals["confidence"]), notes=["Negative CV means cost is outrunning earned value."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_budget_lines", COLL_BUDGET_ACTUALS]),
         _metric_card(metric_id="c8-sv", label="SV", value=totals.get("sv"), unit="currency", confidence=totals["confidence"], formula="EV - PV", description="Schedule variance between earned value and planned value.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge(totals.get("sv"), metric_key="sv", confidence=totals["confidence"]), notes=["Negative SV means planned value is ahead of earned progress."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_schedule_activities", "project_budget_lines"]),
         _metric_card(metric_id="c8-cpi", label="CPI", value=totals.get("cpi"), unit="ratio", confidence=totals["confidence"], formula="EV / AC", description="Cost performance index for governed earned value.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge(totals.get("cpi"), metric_key="cpi", confidence=totals["confidence"]), notes=["CPI blocks or goes partial when actual-cost evidence is incomplete."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_earned_value_engine", COLL_BUDGET_ACTUALS]),
         _metric_card(metric_id="c8-spi", label="SPI", value=totals.get("spi"), unit="ratio", confidence=totals["confidence"], formula="EV / PV", description="Schedule performance index for governed earned value.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge(totals.get("spi"), metric_key="spi", confidence=totals["confidence"]), notes=["SPI blocks when baseline timing is missing."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_schedule_versions", "project_earned_value_engine"]),
         _metric_card(metric_id="c8-etc", label="ETC", value=totals.get("etc"), unit="currency", confidence=totals["confidence"], formula="Approved remaining-work forecast from C7, allocated by governed unit-lineage and adjusted by recognized cost coverage.", description="Estimate to complete from C7 remaining-work forecast.", source_records=source_records, owner="project_forecasting_commitments", status=_status_badge(totals.get("etc"), metric_key="etc", confidence=totals["confidence"]), notes=["ETC is inherited from C7 remaining-work forecast rather than re-forecasted in C8."], drilldown_path=f"/pm/project-controls/forecasting?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_forecasting_commitments", "project_budget_lines"]),
-        _metric_card(metric_id="c8-eac", label="EAC", value=totals.get("eac"), unit="currency", confidence=totals["confidence"], formula="max(AC + ETC, commitment floor + ETC)", description="Estimate at completion using recognized AC plus C7 remaining-work forecast while preserving approved commitment floor.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge((totals.get("eac") or 0.0) - (totals.get("bac") or 0.0), metric_key="eac", confidence=totals["confidence"]), notes=["EAC stays tied to C7 remaining-work forecast and governed budget/commitment truth."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_forecasting_commitments", COLL_BUDGET_COMMITMENTS, COLL_BUDGET_ACTUALS]),
-        _metric_card(metric_id="c8-tcpi", label="TCPI", value=totals.get("tcpi"), unit="ratio", confidence=totals["confidence"], formula="(BAC - EV) / (BAC - AC)", description="To-complete performance index against active BAC where denominators remain valid.", source_records=source_records, owner="project_earned_value_engine", status=_status_badge(totals.get("tcpi"), metric_key="cpi", confidence=totals["confidence"]), notes=["TCPI is blocked when BAC or AC leaves no valid denominator."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_budget_lines", "project_earned_value_engine"]),
+        _metric_card(metric_id="c8-eac", label="EAC", value=totals.get("eac"), unit="currency", confidence=totals["confidence"], formula="max(AC + ETC, commitment floor + ETC)", description="Estimate at completion using recognized AC plus C7 remaining-work forecast while preserving approved commitment floor.", source_records=source_records, owner="project_earned_value_engine", status=eac_status, notes=["EAC stays tied to C7 remaining-work forecast and governed budget/commitment truth."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_forecasting_commitments", COLL_BUDGET_COMMITMENTS, COLL_BUDGET_ACTUALS]),
+        _metric_card(metric_id="c8-tcpi", label="TCPI", value=totals.get("tcpi"), unit="ratio", confidence=totals["confidence"], formula="(BAC - EV) / (BAC - AC)", description="To-complete performance index against active BAC where denominators remain valid.", source_records=source_records, owner="project_earned_value_engine", status=tcpi_status, notes=["TCPI is blocked when BAC or AC leaves no valid denominator."], drilldown_path=f"/pm/project-controls/earned-value?project_number={project_number}", freshness=f"Status date {status_date.isoformat()}", evidence=["project_budget_lines", "project_earned_value_engine"]),
     ]
-
-    readiness = {
-        "budget": "ready" if payloads.get("budget_lines") else "blocked",
-        "schedule": "ready" if payloads.get("activities") else "blocked",
-        "quantity": "ready" if any(line.get("approved_quantity", 0) > 0 for line in lines) else "partial",
-        "actual_cost": "ready" if blocked.get("open_actual_cost_count", 0) == 0 else "partial",
-        "forecast": "ready" if (((payloads.get("forecast") or {}).get("cost") or {}).get("summary") or {}).get("projected_remaining_cost") is not None else "blocked",
-    }
-    overall = "ready" if all(value == "ready" for value in readiness.values()) else "partial" if any(value == "ready" for value in readiness.values()) else "blocked"
-    readiness["overall"] = overall
 
     snapshot = {
         "project_number": project_number,
@@ -865,7 +982,18 @@ async def _build_snapshot(db, project_number: str, *, actor: Optional[Dict[str, 
             "actual_candidate_count": len(payloads.get("actual_candidates") or []),
         },
     }
-    return _sanitize(snapshot)
+    serialization_started = time.perf_counter()
+    sanitized = _sanitize(snapshot)
+    payload_bytes = len(json.dumps(sanitized).encode("utf-8"))
+    serialization_ms = round((time.perf_counter() - serialization_started) * 1000, 2)
+    sanitized["performance_profile"] = {
+        "upstream_ms": payloads.get("timings_ms") or {},
+        "line_evaluation_ms": line_eval_ms,
+        "serialization_ms": serialization_ms,
+        "backend_total_ms": round((time.perf_counter() - build_started) * 1000, 2),
+        "payload_bytes": payload_bytes,
+    }
+    return sanitized
 
 
 def _diff_versions(previous: Optional[Dict[str, Any]], current: Dict[str, Any]) -> Dict[str, Any]:
@@ -921,7 +1049,14 @@ async def _persist_version(db, project_number: str, snapshot: Dict[str, Any], *,
         actor,
         "project_earned_value",
         row["version_id"],
-        row,
+        {
+            "version_id": row["version_id"],
+            "project_number": project_number,
+            "version_number": row["version_number"],
+            "generated_at": row["generated_at"],
+            "note": row["note"],
+            "change_detection": row["change_detection"],
+        },
         before=latest,
         metadata={"note": _clean(note)},
     )
@@ -951,35 +1086,72 @@ async def get_project_earned_value_snapshot(
     note: str = "",
     force_refresh: bool = False,
 ) -> Dict[str, Any]:
+    request_started = time.perf_counter()
     await ensure_project_earned_value_foundation(db)
+    cache_lookup_started = time.perf_counter()
     existing = await db[COLL_EV_SNAPSHOTS].find_one({"project_number": project_number}, {"_id": 0})
+    cache_lookup_ms = round((time.perf_counter() - cache_lookup_started) * 1000, 2)
     if existing and not force_refresh:
         generated_at = _parse_datetime(existing.get("generated_at"))
         if generated_at and generated_at >= _utcnow() - timedelta(minutes=5):
             existing["audience"] = audience
             existing["cache_status"] = "reused"
+            existing["performance_profile"] = {
+                **(existing.get("performance_profile") or {}),
+                "cache_lookup_ms": cache_lookup_ms,
+                "backend_calculation_ms": 0.0,
+                "request_total_ms": round((time.perf_counter() - request_started) * 1000, 2),
+                "mongo_ms": cache_lookup_ms,
+            }
             return _sanitize(existing)
     snapshot = await _build_snapshot(db, project_number, actor=actor, audience=audience)
     snapshot["cache_status"] = "rebuilt"
+    version_started = time.perf_counter()
     snapshot["versioning"] = await _persist_version(db, project_number, snapshot, actor=actor, note=note)
+    versioning_ms = round((time.perf_counter() - version_started) * 1000, 2)
+    snapshot_write_started = time.perf_counter()
     await db[COLL_EV_SNAPSHOTS].replace_one({"project_number": project_number}, snapshot, upsert=True)
+    snapshot_write_ms = round((time.perf_counter() - snapshot_write_started) * 1000, 2)
+    snapshot["performance_profile"] = {
+        **(snapshot.get("performance_profile") or {}),
+        "cache_lookup_ms": cache_lookup_ms,
+        "versioning_ms": versioning_ms,
+        "snapshot_write_ms": snapshot_write_ms,
+        "backend_calculation_ms": (snapshot.get("performance_profile") or {}).get("backend_total_ms"),
+        "mongo_ms": round(sum((snapshot.get("performance_profile") or {}).get("upstream_ms", {}).values()) + cache_lookup_ms + snapshot_write_ms, 2),
+        "request_total_ms": round((time.perf_counter() - request_started) * 1000, 2),
+    }
     await _write_audit(
         db,
         "earned_value_snapshot_refreshed",
         actor,
         "project_earned_value",
         project_number,
-        snapshot,
+        {
+            "project_number": project_number,
+            "generated_at": snapshot.get("generated_at"),
+            "summary": snapshot.get("summary"),
+            "readiness": snapshot.get("readiness"),
+            "current_version_id": (snapshot.get("versioning") or {}).get("current_version_id"),
+        },
         metadata={"force_refresh": force_refresh, "audience": audience},
     )
     return _sanitize(snapshot)
 
 
 async def export_project_earned_value_snapshot(db, project_number: str, *, actor: Dict[str, Any], audience: str = "pm") -> Dict[str, Any]:
-    snapshot = await get_project_earned_value_snapshot(db, project_number, actor=actor, audience=audience, force_refresh=True)
+    export_started = time.perf_counter()
+    snapshot = await get_project_earned_value_snapshot(db, project_number, actor=actor, audience=audience, force_refresh=False)
     rows = _export_rows(snapshot)
     await _write_audit(db, "earned_value_exported", actor, "project_earned_value_export", project_number, {"row_count": len(rows), "export_kind": "earned_value_csv"})
-    return _csv_payload(f"{project_number}_earned_value.csv", rows)
+    payload = _csv_payload(f"{project_number}_earned_value.csv", rows)
+    payload["performance_profile"] = {
+        "snapshot_backend_ms": ((snapshot.get("performance_profile") or {}).get("backend_total_ms")),
+        "serialization_ms": round((time.perf_counter() - export_started) * 1000, 2),
+        "payload_bytes": len(payload["content"].encode("utf-8")),
+        "rows": len(rows),
+    }
+    return payload
 
 
 __all__ = [
@@ -988,6 +1160,4 @@ __all__ = [
     "ensure_project_earned_value_foundation",
     "export_project_earned_value_snapshot",
     "get_project_earned_value_snapshot",
-    "review_budget_actual_cost_candidate",
-    "review_budget_commitment_candidate",
 ]

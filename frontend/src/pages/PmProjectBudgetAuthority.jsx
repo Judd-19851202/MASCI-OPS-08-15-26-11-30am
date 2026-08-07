@@ -643,7 +643,7 @@ export default function PmProjectBudgetAuthority() {
             <section className="grid gap-6 xl:grid-cols-2" data-testid="pm-project-budget-trustline-grid">
               <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-commitment-candidates-section">
                 <h2 className="text-xl font-black text-slate-900">{t("PO links needing review")}</h2>
-                <p className="mt-1 text-sm text-slate-600">{t("PO Requests remain commitment truth. C8 now requires each approved amount to land on governed budget lines before EV can trust commitment coverage.")}</p>
+                <p className="mt-1 text-sm text-slate-600">{t("Each approved PO amount needs to land on the right budget line before committed cost can be trusted here.")}</p>
                 <div className="mt-4 space-y-3">
                   {(overview?.commitment_candidates || []).map((row) => (
                     <TrustLinkEditor key={`${row.candidate_id}:${row.review_status}:${row.reviewed_at || ""}`} candidate={row} kind="commitment" lineOptions={lineOptions} onSubmit={(candidateId, payload) => onReviewTrustCandidate("commitment", candidateId, payload)} working={working} />
@@ -654,7 +654,7 @@ export default function PmProjectBudgetAuthority() {
 
               <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-actual-cost-candidates-section">
                 <h2 className="text-xl font-black text-slate-900">{t("Receipts needing review")}</h2>
-                <p className="mt-1 text-sm text-slate-600">{t("Candidate receipts stay review-only and do not replace accounting / ERP truth, but C8 can now allocate them to governed budget lines for recognized AC coverage.")}</p>
+                <p className="mt-1 text-sm text-slate-600">{t("Each receipt amount needs to be tied to the right budget line before actual cost is ready here. Receipt review supports cost tracking but does not replace accounting.")}</p>
                 <div className="mt-4 space-y-3">
                   {(overview?.actual_cost_candidates || []).map((row) => (
                     <TrustLinkEditor key={`${row.candidate_id}:${row.review_status}:${row.reviewed_at || ""}`} candidate={row} kind="actual-cost" lineOptions={lineOptions} onSubmit={(candidateId, payload) => onReviewTrustCandidate("actual", candidateId, payload)} working={working} />

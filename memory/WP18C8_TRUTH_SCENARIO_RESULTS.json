@@ -1,0 +1,569 @@
+[
+  {
+    "project_number": "ZZ-C8-FAVORABLE-BOTH",
+    "scenario": "Favorable cost and schedule performance",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "ready"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 600.0,
+      "ac": 500.0,
+      "cv": 100.0,
+      "sv": 44.44,
+      "cpi": 1.2,
+      "spi": 1.08,
+      "etc": 300.0,
+      "eac": 800.0,
+      "tcpi": 0.8,
+      "confidence": "high"
+    },
+    "statuses": {
+      "BAC": "green",
+      "PV": "green",
+      "EV": "green",
+      "AC": "green",
+      "CV": "green",
+      "SV": "green",
+      "CPI": "green",
+      "SPI": "green",
+      "ETC": "amber",
+      "EAC": "green",
+      "TCPI": "red"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 1.2 and SPI is 1.08 with high confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": []
+    }
+  },
+  {
+    "project_number": "ZZ-C8-COST-RED",
+    "scenario": "Unfavorable cost performance",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "ready"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 600.0,
+      "ac": 700.0,
+      "cv": -100.0,
+      "sv": 44.44,
+      "cpi": 0.8571,
+      "spi": 1.08,
+      "etc": 300.0,
+      "eac": 1000.0,
+      "tcpi": 1.3333,
+      "confidence": "high"
+    },
+    "statuses": {
+      "BAC": "green",
+      "PV": "green",
+      "EV": "green",
+      "AC": "green",
+      "CV": "red",
+      "SV": "green",
+      "CPI": "red",
+      "SPI": "green",
+      "ETC": "amber",
+      "EAC": "green",
+      "TCPI": "green"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 1 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 0.857 and SPI is 1.08 with high confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": []
+    }
+  },
+  {
+    "project_number": "ZZ-C8-SCHEDULE-RED",
+    "scenario": "Unfavorable schedule performance",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "ready"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 400.0,
+      "ac": 350.0,
+      "cv": 50.0,
+      "sv": -155.56,
+      "cpi": 1.1429,
+      "spi": 0.72,
+      "etc": 500.0,
+      "eac": 850.0,
+      "tcpi": 0.9231,
+      "confidence": "high"
+    },
+    "statuses": {
+      "BAC": "green",
+      "PV": "red",
+      "EV": "red",
+      "AC": "green",
+      "CV": "green",
+      "SV": "red",
+      "CPI": "green",
+      "SPI": "red",
+      "ETC": "amber",
+      "EAC": "green",
+      "TCPI": "red"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [],
+    "decision_brief": {
+      "what_happened": "1 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 1.143 and SPI is 0.72 with high confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": []
+    }
+  },
+  {
+    "project_number": "ZZ-C8-BOTH-RED",
+    "scenario": "Both cost and schedule unfavorable",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "ready"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 400.0,
+      "ac": 550.0,
+      "cv": -150.0,
+      "sv": -155.56,
+      "cpi": 0.7273,
+      "spi": 0.72,
+      "etc": 500.0,
+      "eac": 1050.0,
+      "tcpi": 1.3333,
+      "confidence": "high"
+    },
+    "statuses": {
+      "BAC": "green",
+      "PV": "red",
+      "EV": "red",
+      "AC": "green",
+      "CV": "red",
+      "SV": "red",
+      "CPI": "red",
+      "SPI": "red",
+      "ETC": "amber",
+      "EAC": "amber",
+      "TCPI": "green"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [],
+    "decision_brief": {
+      "what_happened": "1 budget lines are behind planned earned value and 1 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 0.727 and SPI is 0.72 with high confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": []
+    }
+  },
+  {
+    "project_number": "ZZ-C8-ACTUAL-PARTIAL",
+    "scenario": "Incomplete actual-cost evidence",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "partial",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "partial"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 600.0,
+      "ac": 0.0,
+      "cv": 600.0,
+      "sv": 44.44,
+      "cpi": null,
+      "spi": 1.08,
+      "etc": 300.0,
+      "eac": 900.0,
+      "tcpi": 0.4,
+      "confidence": "partial"
+    },
+    "statuses": {
+      "BAC": "blocked",
+      "PV": "green",
+      "EV": "green",
+      "AC": "blocked",
+      "CV": "green",
+      "SV": "green",
+      "CPI": "blocked",
+      "SPI": "green",
+      "ETC": "amber",
+      "EAC": "green",
+      "TCPI": "red"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [
+      "Receipt-based actual-cost linkage remains open somewhere in the project, so CPI/EAC confidence may be partial."
+    ],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is blocked and SPI is 1.08 with partial confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "1 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": [
+        {
+          "title": "Complete evidence for PI-1 \u00b7 CC-100 \u00b7 Incomplete actual-cost evidence",
+          "owner": "PM / Project Controls",
+          "due_date": "Next review cycle",
+          "reason": "Receipt-based actual-cost linkage remains open somewhere in the project, so CPI/EAC confidence may be partial.",
+          "evidence": [
+            "ACT-1",
+            "ZZ-C8-ACTUAL-PARTIAL:report-1",
+            "ZZ-C8-ACTUAL-PARTIAL:sched-actual-1"
+          ]
+        },
+        {
+          "title": "Link open receipt-based actual costs",
+          "owner": "PM / Project Controls",
+          "due_date": "Before trusting CPI / TCPI as complete",
+          "reason": "1 actual-cost candidates still need governed line allocation.",
+          "evidence": [
+            "project_budget_actual_cost_candidates"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project_number": "ZZ-C8-PROGRESS-PARTIAL",
+    "scenario": "Incomplete progress evidence",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "partial",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "partial"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 0.0,
+      "ac": 300.0,
+      "cv": -300.0,
+      "sv": -555.56,
+      "cpi": 0.0,
+      "spi": 0.0,
+      "etc": 700.0,
+      "eac": 1000.0,
+      "tcpi": 1.4286,
+      "confidence": "review_required"
+    },
+    "statuses": {
+      "BAC": "blocked",
+      "PV": "blocked",
+      "EV": "blocked",
+      "AC": "blocked",
+      "CV": "blocked",
+      "SV": "blocked",
+      "CPI": "blocked",
+      "SPI": "blocked",
+      "ETC": "blocked",
+      "EAC": "blocked",
+      "TCPI": "blocked"
+    },
+    "line_method": "blocked",
+    "line_limitations": [
+      "No approved quantity or approved physical percent is linked yet, so EV stays blocked."
+    ],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 0.0 and SPI is 0.0 with review_required confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": [
+        {
+          "title": "Complete evidence for PI-1 \u00b7 CC-100 \u00b7 Incomplete progress evidence",
+          "owner": "PM / Project Controls",
+          "due_date": "Next review cycle",
+          "reason": "No approved quantity or approved physical percent is linked yet, so EV stays blocked.",
+          "evidence": []
+        }
+      ]
+    }
+  },
+  {
+    "project_number": "ZZ-C8-STALE",
+    "scenario": "Stale source data",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "stale",
+      "overall": "partial"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 0.0,
+      "ev": 600.0,
+      "ac": 500.0,
+      "cv": 100.0,
+      "sv": 600.0,
+      "cpi": 1.2,
+      "spi": null,
+      "etc": 300.0,
+      "eac": 800.0,
+      "tcpi": 0.8,
+      "confidence": "review_required"
+    },
+    "statuses": {
+      "BAC": "blocked",
+      "PV": "blocked",
+      "EV": "blocked",
+      "AC": "blocked",
+      "CV": "blocked",
+      "SV": "blocked",
+      "CPI": "blocked",
+      "SPI": "blocked",
+      "ETC": "blocked",
+      "EAC": "blocked",
+      "TCPI": "blocked"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [
+      "Source updates are stale for this job, so the reading is held below full confidence until new field or cost updates arrive."
+    ],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 1.2 and SPI is blocked with review_required confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": [
+        {
+          "title": "Complete evidence for PI-1 \u00b7 CC-100 \u00b7 Stale source data",
+          "owner": "PM / Project Controls",
+          "due_date": "Next review cycle",
+          "reason": "Source updates are stale for this job, so the reading is held below full confidence until new field or cost updates arrive.",
+          "evidence": [
+            "ACT-1",
+            "ZZ-C8-STALE:report-1",
+            "ZZ-C8-STALE:sched-actual-1"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project_number": "ZZ-C8-INVALID-DENOMINATOR",
+    "scenario": "Zero / invalid denominator",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "partial",
+      "actual_cost": "blocked",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "partial"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 0.0,
+      "ev": 0.0,
+      "ac": 0.0,
+      "cv": 0.0,
+      "sv": 0.0,
+      "cpi": null,
+      "spi": null,
+      "etc": 900.0,
+      "eac": 900.0,
+      "tcpi": 1.0,
+      "confidence": "review_required"
+    },
+    "statuses": {
+      "BAC": "blocked",
+      "PV": "blocked",
+      "EV": "blocked",
+      "AC": "blocked",
+      "CV": "blocked",
+      "SV": "blocked",
+      "CPI": "blocked",
+      "SPI": "blocked",
+      "ETC": "blocked",
+      "EAC": "blocked",
+      "TCPI": "blocked"
+    },
+    "line_method": "blocked",
+    "line_limitations": [
+      "No approved quantity or approved physical percent is linked yet, so EV stays blocked."
+    ],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is blocked and SPI is blocked with review_required confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": [
+        {
+          "title": "Complete evidence for PI-1 \u00b7 CC-100 \u00b7 Zero or invalid denominator",
+          "owner": "PM / Project Controls",
+          "due_date": "Next review cycle",
+          "reason": "No approved quantity or approved physical percent is linked yet, so EV stays blocked.",
+          "evidence": []
+        }
+      ]
+    }
+  },
+  {
+    "project_number": "ZZ-C8-INSUFFICIENT",
+    "scenario": "Insufficient evidence",
+    "readiness": {
+      "budget": "blocked",
+      "schedule": "blocked",
+      "quantity": "blocked",
+      "actual_cost": "blocked",
+      "forecast": "blocked",
+      "freshness": "current",
+      "overall": "blocked"
+    },
+    "summary": {
+      "bac": 0,
+      "pv": 0,
+      "ev": 0,
+      "ac": 0,
+      "cv": 0,
+      "sv": 0,
+      "cpi": null,
+      "spi": null,
+      "etc": null,
+      "eac": null,
+      "tcpi": null,
+      "confidence": "blocked"
+    },
+    "statuses": {
+      "BAC": "blocked",
+      "PV": "blocked",
+      "EV": "blocked",
+      "AC": "blocked",
+      "CV": "blocked",
+      "SV": "blocked",
+      "CPI": "blocked",
+      "SPI": "blocked",
+      "ETC": "blocked",
+      "EAC": "blocked",
+      "TCPI": "blocked"
+    },
+    "line_method": null,
+    "line_limitations": null,
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is blocked and SPI is blocked with blocked confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": []
+    }
+  },
+  {
+    "project_number": "ZZ-C8-COMPLETE-WITH-COMMITMENTS",
+    "scenario": "Completed work package/project with open commitments affecting outlook",
+    "readiness": {
+      "budget": "ready",
+      "schedule": "ready",
+      "quantity": "ready",
+      "actual_cost": "ready",
+      "forecast": "ready",
+      "freshness": "current",
+      "overall": "ready"
+    },
+    "summary": {
+      "bac": 1000.0,
+      "pv": 555.56,
+      "ev": 1000.0,
+      "ac": 850.0,
+      "cv": 150.0,
+      "sv": 444.44,
+      "cpi": 1.1765,
+      "spi": 1.8,
+      "etc": null,
+      "eac": 1100.0,
+      "tcpi": null,
+      "confidence": "high"
+    },
+    "statuses": {
+      "BAC": "green",
+      "PV": "green",
+      "EV": "green",
+      "AC": "green",
+      "CV": "green",
+      "SV": "green",
+      "CPI": "green",
+      "SPI": "green",
+      "ETC": "blocked",
+      "EAC": "amber",
+      "TCPI": "blocked"
+    },
+    "line_method": "quantity_based",
+    "line_limitations": [],
+    "decision_brief": {
+      "what_happened": "0 budget lines are behind planned earned value and 0 are burning cost faster than value earned.",
+      "where_we_are_now": "Project CPI is 1.177 and SPI is 1.8 with high confidence.",
+      "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
+      "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+      "what_is_at_risk": "0 actual-cost candidates and 0 commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
+      "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+      "required_actions": []
+    }
+  }
+]

@@ -103,7 +103,7 @@ export default function AdminEarnedValueEngine() {
   };
 
   return (
-    <AdminRouteShell pageTitle="Earned Value Engine" subtitle="Executive read-only governed C8 view" crumbs={[{ label: "Governance" }, { label: "Earned Value Engine" }]} testId="admin-earned-value-page">
+    <AdminRouteShell pageTitle="Earned Value" subtitle="Executive project cost and progress view" crumbs={[{ label: "Project Controls" }, { label: "Earned Value" }]} testId="admin-earned-value-page">
       <EarnedValueWorkspace
         mode="executive"
         projectNumber={projectNumber}
