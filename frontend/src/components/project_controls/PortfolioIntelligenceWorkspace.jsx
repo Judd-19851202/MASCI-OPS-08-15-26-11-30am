@@ -80,6 +80,18 @@ function displayProjectLabel(row) {
   return formatOperatorJobLabel(row?.project_number, row?.project_name);
 }
 
+function hasEvidence(summary) {
+  return String(summary?.status || "").trim().toLowerCase() === "ready";
+}
+
+function summaryValue(summary, value, unavailableLabel) {
+  return hasEvidence(summary) ? value : unavailableLabel;
+}
+
+function summaryBadge(summary, preferred, fallback = "insufficient_evidence") {
+  return hasEvidence(summary) ? preferred : fallback;
+}
+
 function decisionRuleLabel(rule) {
   const trigger = String(rule?.trigger || "");
   if (trigger.includes("Likely finish")) return "Late finish risk";
@@ -260,33 +272,41 @@ export const PortfolioIntelligenceWorkspace = ({
     {
       icon: TrendingDown,
       label: t("Cost performance"),
-      value: buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).shortValue,
-      note: `${t("Coverage")}: ${fmtWhole(financial?.coverage?.comparable_projects)} / ${fmtWhole(financial?.coverage?.total_projects)} · ${buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).technicalLabel} ${buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).technicalValue}`,
-      badge: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence",
+      value: summaryValue(financial, buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).shortValue, t("Need more records")),
+      note: hasEvidence(financial)
+        ? `${t("Coverage")}: ${fmtWhole(financial?.coverage?.comparable_projects)} / ${fmtWhole(financial?.coverage?.total_projects)} · ${buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).technicalLabel} ${buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).technicalValue}`
+        : t("Comparable cost records are not ready yet, so this page will not show a fake green score."),
+      badge: summaryBadge(financial, financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence"),
       testId: "portfolio-summary-cost-performance",
     },
     {
       icon: CalendarClock,
       label: t("Schedule risk"),
-      value: fmtWhole(schedule.projects_past_commitment),
-      note: `${fmtWhole(schedule.projects_with_slip)} ${t("projects have a forecast slip")}`,
-      badge: (schedule.projects_past_commitment || 0) > 0 ? "red" : (schedule.projects_with_slip || 0) > 0 ? "amber" : "green",
+      value: summaryValue(schedule, fmtWhole(schedule.projects_past_commitment), t("Need more records")),
+      note: hasEvidence(schedule)
+        ? `${fmtWhole(schedule.projects_with_slip)} ${t("projects have a forecast slip")}`
+        : t("Committed-vs-likely finish evidence is not ready yet."),
+      badge: summaryBadge(schedule, (schedule.projects_past_commitment || 0) > 0 ? "red" : (schedule.projects_with_slip || 0) > 0 ? "amber" : "green"),
       testId: "portfolio-summary-schedule-risk",
     },
     {
       icon: Waypoints,
       label: t("Commitments"),
-      value: fmtWhole(commitments.at_risk),
-      note: `${fmtWhole(commitments.missed)} ${t("already missed")}`,
-      badge: (commitments.missed || 0) > 0 ? "red" : (commitments.at_risk || 0) > 0 ? "amber" : "green",
+      value: summaryValue(commitments, fmtWhole(commitments.at_risk), t("Need more records")),
+      note: hasEvidence(commitments)
+        ? `${fmtWhole(commitments.missed)} ${t("already missed")}`
+        : t("Commitment evidence is not ready yet."),
+      badge: summaryBadge(commitments, (commitments.missed || 0) > 0 ? "red" : (commitments.at_risk || 0) > 0 ? "amber" : "green"),
       testId: "portfolio-summary-commitments",
     },
     {
       icon: ShieldCheck,
       label: t("Constraints"),
-      value: fmtWhole(constraints.open_count),
-      note: `${fmtWhole(constraints.projects_with_open_constraints)} ${t("projects have open constraints")}`,
-      badge: (constraints.open_count || 0) >= 3 ? "red" : (constraints.open_count || 0) > 0 ? "amber" : "green",
+      value: summaryValue(constraints, fmtWhole(constraints.open_count), t("Need more records")),
+      note: hasEvidence(constraints)
+        ? `${fmtWhole(constraints.projects_with_open_constraints)} ${t("projects have open constraints")}`
+        : t("Constraint evidence is not ready yet."),
+      badge: summaryBadge(constraints, (constraints.open_count || 0) >= 3 ? "red" : (constraints.open_count || 0) > 0 ? "amber" : "green"),
       testId: "portfolio-summary-constraints",
     },
     {
@@ -297,7 +317,7 @@ export const PortfolioIntelligenceWorkspace = ({
       badge: (freshness.stale || 0) > 0 ? "red" : (freshness.watch || 0) > 0 || (freshness.missing || 0) > 0 ? "amber" : "green",
       testId: "portfolio-summary-freshness",
     },
-  ]), [commitments.at_risk, commitments.missed, constraints.open_count, constraints.projects_with_open_constraints, counts.amber, counts.insufficient_evidence, counts.red, counts.total, financial?.coverage?.comparable_projects, financial?.coverage?.total_projects, financial.cpi, freshness.fresh, freshness.missing, freshness.overall, freshness.stale, freshness.watch, lang, schedule.projects_past_commitment, schedule.projects_with_slip, t]);
+  ]), [commitments, constraints, counts.amber, counts.insufficient_evidence, counts.red, counts.total, financial, freshness.fresh, freshness.missing, freshness.overall, freshness.stale, freshness.watch, lang, schedule, t]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 pb-10" data-testid={`portfolio-intelligence-workspace-${mode}`}>
@@ -333,6 +353,15 @@ export const PortfolioIntelligenceWorkspace = ({
       </div>
 
       {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="portfolio-intelligence-loading-state">{t("Loading the latest portfolio view…")}</CardContent></Card> : null}
+
+      {!loading && workspace?.cache_status === "stale_last_good" ? (
+        <Card className="border-amber-200 bg-amber-50 shadow-sm" data-testid="portfolio-cache-status-banner">
+          <CardContent className="p-4 text-sm text-amber-900">
+            <div className="font-semibold">{t("Showing the last good portfolio update")}</div>
+            <div className="mt-1">{t("The newest refresh did not finish, so this page is holding the last good view instead of inventing a new result. Review record age before making a decision.")}</div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {!loading && workspace ? (
         <>

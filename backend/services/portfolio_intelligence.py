@@ -578,9 +578,17 @@ def _financial_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
 def _schedule_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     slipped = [row for row in rows if _to_float((row.get("schedule") or {}).get("days_from_commitment")) and _to_float((row.get("schedule") or {}).get("days_from_commitment")) > 0]
     red = [row for row in rows if (row.get("schedule") or {}).get("days_from_commitment") is not None and (row.get("schedule") or {}).get("days_from_commitment") > 7]
+    comparable_projects = sum(
+        1 for row in rows
+        if (row.get("schedule") or {}).get("status") not in {None, "", "insufficient_evidence"}
+        or (row.get("schedule") or {}).get("days_from_commitment") is not None
+        or (row.get("schedule") or {}).get("likely_finish_date")
+        or (row.get("schedule") or {}).get("committed_finish_date")
+    )
     return {
         "projects_with_slip": len(slipped),
         "projects_past_commitment": len(red),
+        "comparable_projects": comparable_projects,
         "worst_projects": [
             {
                 "project_number": row.get("project_number"),
@@ -591,37 +599,52 @@ def _schedule_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             }
             for row in sorted(slipped, key=lambda item: (item.get("schedule") or {}).get("days_from_commitment") or 0, reverse=True)[:8]
         ],
-        "status": "ready" if rows else "insufficient_evidence",
+        "status": "ready" if comparable_projects else "insufficient_evidence",
     }
 
 
 def _commitment_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     commitment_exposure = _summed((row.get("cost_forecast") or {}).get("commitment_exposure") for row in rows)
     projected_remaining = _summed((row.get("cost_forecast") or {}).get("projected_remaining_cost") for row in rows)
+    comparable_projects = sum(
+        1 for row in rows
+        if (row.get("commitments") or {}).get("status") not in {None, "", "insufficient_evidence"}
+    )
     return {
         "at_risk": sum(int((row.get("commitments") or {}).get("at_risk") or 0) for row in rows),
         "missed": sum(int((row.get("commitments") or {}).get("missed") or 0) for row in rows),
         "met": sum(int((row.get("commitments") or {}).get("met") or 0) for row in rows),
         "commitment_exposure": commitment_exposure,
         "projected_remaining_cost": projected_remaining,
-        "status": "ready" if rows else "insufficient_evidence",
+        "comparable_projects": comparable_projects,
+        "status": "ready" if comparable_projects else "insufficient_evidence",
     }
 
 
 def _constraint_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    comparable_projects = sum(
+        1 for row in rows
+        if (row.get("constraints") or {}).get("status") not in {None, "", "insufficient_evidence"}
+    )
     return {
         "open_count": sum(int((row.get("constraints") or {}).get("open_count") or 0) for row in rows),
         "projects_with_open_constraints": sum(1 for row in rows if int((row.get("constraints") or {}).get("open_count") or 0) > 0),
-        "status": "ready" if rows else "insufficient_evidence",
+        "comparable_projects": comparable_projects,
+        "status": "ready" if comparable_projects else "insufficient_evidence",
     }
 
 
 def _resource_pressure_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     total = sum(int((row.get("resource_pressure") or {}).get("shortage_count") or 0) for row in rows)
+    comparable_projects = sum(
+        1 for row in rows
+        if (row.get("resource_pressure") or {}).get("status") not in {None, "", "insufficient_evidence"}
+    )
     return {
         "shortage_count": total,
         "projects_under_pressure": sum(1 for row in rows if int((row.get("resource_pressure") or {}).get("shortage_count") or 0) > 0),
-        "status": "ready" if rows else "insufficient_evidence",
+        "comparable_projects": comparable_projects,
+        "status": "ready" if comparable_projects else "insufficient_evidence",
     }
 
 
@@ -646,12 +669,14 @@ def _production_rollup(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         bucket["required_weekly_total"] = round(bucket["required_weekly_total"], 2)
         bucket["dominant_confidence"] = counts.most_common(1)[0][0] if counts else "review_required"
         buckets.append(bucket)
+    ready_projects = sum(1 for row in rows if (row.get("production") or {}).get("status") == "ready")
     return {
-        "ready_projects": sum(1 for row in rows if (row.get("production") or {}).get("status") == "ready"),
+        "ready_projects": ready_projects,
         "review_required_projects": sum(1 for row in rows if (row.get("production") or {}).get("status") != "ready"),
         "unit_buckets": sorted(buckets, key=lambda item: (item.get("project_count", 0), item.get("unit", "")), reverse=True)[:8],
         "math_note": "Production quantities are rolled up only inside the same unit bucket. Unlike units are never combined into one headline number.",
-        "status": "ready" if rows else "insufficient_evidence",
+        "comparable_projects": ready_projects,
+        "status": "ready" if ready_projects else "insufficient_evidence",
     }
 
 

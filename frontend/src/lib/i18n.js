@@ -8873,6 +8873,13 @@ const ES = {
   "Could not load employee update.": "No se pudo cargar la actualización del empleado.",
   "Loading employee update…": "Cargando actualización del empleado…",
   "Track project details, blockers, due dates, and field coordination in one place.": "Sigue los detalles del proyecto, bloqueos, fechas límite y coordinación de campo en un solo lugar.",
+  "Need more records": "Se necesitan más registros",
+  "Comparable cost records are not ready yet, so this page will not show a fake green score.": "Los registros comparables de costo aún no están listos, así que esta página no mostrará una señal verde falsa.",
+  "Committed-vs-likely finish evidence is not ready yet.": "La evidencia de fecha comprometida vs fecha probable aún no está lista.",
+  "Commitment evidence is not ready yet.": "La evidencia de compromisos aún no está lista.",
+  "Constraint evidence is not ready yet.": "La evidencia de restricciones aún no está lista.",
+  "Showing the last good portfolio update": "Mostrando la última actualización válida del portafolio",
+  "The newest refresh did not finish, so this page is holding the last good view instead of inventing a new result. Review record age before making a decision.": "La actualización más reciente no terminó, así que esta página conserva la última vista válida en lugar de inventar un resultado nuevo. Revisa la antigüedad de los registros antes de tomar una decisión.",
   "Projects still missing source detail": "Proyectos que aún necesitan detalle de origen",
   "Project support": "Apoyo del proyecto",
 };
