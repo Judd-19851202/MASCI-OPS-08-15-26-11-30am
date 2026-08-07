@@ -1,0 +1,6 @@
+role,route_or_surface,scope,financial_visibility,drill_back,expected_result,status
+Admin,/admin/executive-overview,All governed active projects,Yes,Yes,43 projects visible; export allowed,PASS
+Executive,/admin/executive-overview,All governed active projects through admin/executive access,Yes,Yes,Same governed portfolio view,PASS
+PM,/pm/portfolio-intelligence,Only assigned projects,Only assigned-project financials,Yes,Exactly ZZ-FOR-ASSIGN-01 and ZZ-FOR-ASSIGN-02 visible,PASS
+Unauthenticated,/admin/executive-overview,None,None,None,Denied or redirected,PASS
+Unauthenticated,/pm/portfolio-intelligence,None,None,None,Denied or redirected,PASS

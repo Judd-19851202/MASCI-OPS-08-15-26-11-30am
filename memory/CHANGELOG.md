@@ -1,3 +1,11 @@
+# 2026-08-07 — WP-18C9
+
+- Added backend portfolio intelligence service + PM/Admin routes for scoped portfolio rollups, refresh, and CSV export.
+- Replaced `/admin/executive-overview` with the canonical portfolio intelligence experience and added `/pm/portfolio-intelligence`.
+- Reconciled discoverability from Executive Operations and Admin Command Center without creating a second executive dashboard.
+- Added operator-language hard-fail scanning, integrated it into the automated release gate, repaired C9 and affected shared-surface operator copy, and generated `WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv` with `0` operator-facing findings.
+- Verified final state with direct runtime certification, `testing_agent` PASS (`iteration_159.json`), targeted C7/C8/C9 regression PASS, release gate PASS, and deployment readiness PASS.
+
 # 2026-08-07 — WP-18C8 Final Executive Hardening
 
 - Reopened C8 for final proof only, repaired the PM Budget Review performance outlier by caching repeated foundation/index setup in `backend/services/project_controls_authority.py` and `backend/services/project_budget_authority.py`, and remeasured the live runtime to a final PASS.

@@ -1,0 +1,6 @@
+rule_id,operator_label,trigger,severity,recommended_action,status
+PI-RULE-001,Late finish risk,Likely finish is more than 7 days later than the committed finish,RED,Escalate recovery in the forecast view now,PASS
+PI-RULE-002,Cost pressure,Project CPI is below 0.90,RED,Review cost drivers and final-cost outlook before margin loss deepens,PASS
+PI-RULE-003,Commitment pressure,One or more commitments are at risk but not yet missed,AMBER,Confirm owner dates and intervention plan,PASS
+PI-RULE-004,Constraint pressure,Active constraints are still affecting the forecast,AMBER,Clear the lead constraint owners before expecting pace recovery,PASS
+PI-RULE-005,Missing or older records,Required project updates are older or missing,INSUFFICIENT_EVIDENCE,Refresh the supporting records before treating the project as healthy,PASS

@@ -1,0 +1,11 @@
+metric_id,operator_label,portfolio_formula_or_rule,upstream_truth,comparability_rule,2026-08-07_result,status
+PI-001,Projects needing attention,Count projects with priority_band=red,Portfolio decision rules over forecast/EV/constraints/commitments/freshness,Count only,4,PASS
+PI-002,Projects to watch,Count projects with priority_band=amber,Portfolio decision rules over forecast/EV/constraints/commitments/freshness,Count only,1,PASS
+PI-003,Projects with insufficient evidence,Count projects with priority_band=insufficient_evidence,Project performance + forecast + EV freshness and completeness,Count only,33,PASS
+PI-004,Portfolio CPI,Sum(EV)/Sum(AC),Project EV snapshots,Derived only from aggregate totals,0.000,PASS
+PI-005,Portfolio SPI,Sum(EV)/Sum(PV),Project EV snapshots,Derived only from aggregate totals,0.000,PASS
+PI-006,Projects past commitment,Count projects where likely finish exceeds committed finish,Project forecast schedule,Count only,0,PASS
+PI-007,Commitments at risk,Sum commitment lifecycle at_risk counts,Project forecast commitments,Count only,0,PASS
+PI-008,Open constraints,Sum constraint open_count,Project forecast constraints,Count only,0,PASS
+PI-009,Production outlook by unit,Roll up quantities only by matching unit bucket,Project performance + forecast production,No mixed-unit aggregation,Rendered as same-unit buckets,PASS
+PI-010,Fresh project updates,Count projects with freshness.overall=fresh,C6/C7/C8 project updates,Count only,10,PASS

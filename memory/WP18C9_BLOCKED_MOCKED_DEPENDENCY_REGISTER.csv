@@ -1,0 +1,8 @@
+item_id,route_or_surface,classification,description,disposition,evidence,status
+C9-001,/admin/executive-overview,BLOCKED_BY_C9,No canonical portfolio intelligence surface existed over C6/C7/C8,Repaired by new portfolio intelligence service and upgraded executive overview,Runtime UI + API certification 2026-08-07,RESOLVED
+C9-002,/pm/portfolio-intelligence,BLOCKED_BY_C9,No scoped PM portfolio view existed,Repaired by scoped PM portfolio page and PM API,PM runtime certification 2026-08-07,RESOLVED
+C9-003,portfolio export,BLOCKED_BY_C9,No governed cross-project CSV output existed,Repaired by admin and PM export endpoints,CSV endpoint checks + testing agent PASS,RESOLVED
+C9-004,operator-language release gate,BLOCKED_BY_C9,Operator-facing surfaces could still leak internal package language,Repaired by operator-language scanner + UI copy sweep,Release gate PASS + zero findings register,RESOLVED
+C9-005,release identity,OBSOLETE_DEBT,Generated release identity was stale after C9 edits,Repaired by build-version restamp,verify_release_identity PASS 2026-08-07,RESOLVED
+C9-006,React duplicate key warning,OBSOLETE_DEBT,Change list rows reused non-unique keys,Repaired in shared portfolio table renderer,Browser console clean after patch,RESOLVED
+C9-007,external AI narrative,LEGITIMATE_EXTERNAL_MOCK,AI explanation layer was not required for canonical C9 and remains non-blocking,Kept out of C9 scope by design,C9 truth delivered without AI,NOT_APPLICABLE

@@ -234,6 +234,11 @@ def test_pre_save_candidate_policy_is_governed_and_specific():
             "rationale": "CHANGELOG was updated at final closeout to record the exact WP-18DB repairs, final archive, release-gate result, and dashboard extension.",
         },
         {
+            "path_pattern": "memory/WP18C9_*",
+            "mission_ref": "WP18C9 Closeout evidence pack",
+            "rationale": "WP-18C9 portfolio intelligence closeout artifacts are governed certification outputs and must remain eligible PRE_SAVE_CANDIDATE dirty entries until final closeout is saved.",
+        },
+        {
             "path": "backend/server.py",
             "mission_ref": "PDC-01B Build and backup evidence",
             "rationale": "The complete archive export path was hardened to derive database authority truth in verification contexts without weakening runtime database authority protections.",

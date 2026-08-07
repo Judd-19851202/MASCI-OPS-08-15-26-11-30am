@@ -1,0 +1,8 @@
+channel,role,coverage,result,evidence
+Admin screen,/admin/executive-overview,Portfolio rollups + project drill-back,PASS,Direct runtime certification 2026-08-07
+PM screen,/pm/portfolio-intelligence,Scoped portfolio view,PASS,Direct runtime certification 2026-08-07
+Admin CSV export,/api/admin/governance/project-controls/portfolio-intelligence/export,Portfolio project export,PASS,Backend tests + direct endpoint check
+PM CSV export,/api/pm/project-controls/portfolio-intelligence/export,Scoped project export,PASS,Backend tests + direct endpoint check
+Admin JSON API,/api/admin/governance/project-controls/portfolio-intelligence,Canonical machine-readable delivery,PASS,Direct endpoint check
+PM JSON API,/api/pm/project-controls/portfolio-intelligence,Scoped machine-readable delivery,PASS,Direct endpoint check
+AI-generated operator narrative,Not required for canonical C9,No blocking dependency or mocked operator output,PASS,Scope decision in C9 authority report

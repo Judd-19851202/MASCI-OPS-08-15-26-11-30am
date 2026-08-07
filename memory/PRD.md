@@ -1,5 +1,15 @@
 # PRD
 
+## 2026-08-07 — WP-18C9 Complete
+
+- Result: **WP-18C9 — GO — READY TO SAVE & DEPLOY**.
+- Delivered the canonical executive portfolio intelligence layer at `/admin/executive-overview` and the scoped PM portfolio view at `/pm/portfolio-intelligence`.
+- Reused approved project performance, forecast, commitment, Earned Value, and governance-scope truth; no duplicate forecast or EV engine was introduced.
+- Added governed refresh + CSV export flows, deterministic portfolio attention rules, direct project drill-back, and a bounded scope cache in `portfolio_intelligence_snapshots`.
+- Added the permanent operator-language hard-fail scanner (`scripts/operator_language_gate.py`), integrated it into `scripts/release_gate.py`, and reduced operator-facing banned-language findings to `0`.
+- Final evidence: `testing_agent` PASS (`/app/test_reports/iteration_159.json`), targeted C7/C8/C9 regression PASS (`27 passed`), direct EN/ES responsive certification PASS, release gate PASS, deployment readiness PASS.
+- Freeze state: C7 frozen, C8 frozen, C9 frozen, C10 not authorized.
+
 ## 2026-08-07 — WP-18C8 Earned Value Engine closeout
 
 - Preview verified ✅
