@@ -12,6 +12,8 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CSV_PATH = REPO_ROOT / "memory" / "WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv"
+EXCEPTION_CSV_PATH = REPO_ROOT / "memory" / "WP18_OPERATOR_LANGUAGE_EXCEPTION_REGISTER.csv"
+INVENTORY_CSV_PATH = REPO_ROOT / "memory" / "WP18_OPERATOR_COMPREHENSION_INVENTORY.csv"
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,28 @@ BANNED_PATTERNS = [
     BannedPattern("read model", re.compile(r"read model", re.IGNORECASE), "portfolio view"),
     BannedPattern("source lineage", re.compile(r"source lineage", re.IGNORECASE), "supporting records"),
     BannedPattern("source hash", re.compile(r"source_hash|source hash", re.IGNORECASE), "release fingerprint"),
+    BannedPattern("BAC", re.compile(r"\bBAC\b", re.IGNORECASE), "approved budget"),
+    BannedPattern("PV", re.compile(r"\bPV\b", re.IGNORECASE), "planned work value"),
+    BannedPattern("EV", re.compile(r"\bEV\b", re.IGNORECASE), "value of work completed"),
+    BannedPattern("AC", re.compile(r"\bAC\b", re.IGNORECASE), "actual cost to date"),
+    BannedPattern("CV", re.compile(r"\bCV\b", re.IGNORECASE), "cost difference"),
+    BannedPattern("SV", re.compile(r"\bSV\b", re.IGNORECASE), "schedule difference"),
+    BannedPattern("CPI", re.compile(r"\bCPI\b", re.IGNORECASE), "cost performance"),
+    BannedPattern("SPI", re.compile(r"\bSPI\b", re.IGNORECASE), "schedule performance"),
+    BannedPattern("ETC", re.compile(r"\bETC\b(?!\.)", re.IGNORECASE), "estimated cost to finish"),
+    BannedPattern("EAC", re.compile(r"\bEAC\b", re.IGNORECASE), "current forecast at completion"),
+    BannedPattern("TCPI", re.compile(r"\bTCPI\b", re.IGNORECASE), "required cost efficiency to hit target"),
+    BannedPattern("supporting records", re.compile(r"supporting records", re.IGNORECASE), "where these numbers came from"),
+    BannedPattern("current financial truth", re.compile(r"current financial truth", re.IGNORECASE), "current cost and schedule picture"),
+    BannedPattern("operations support", re.compile(r"operations support", re.IGNORECASE), "project support"),
+    BannedPattern("project work", re.compile(r"\bproject work\b", re.IGNORECASE), "project details"),
+    BannedPattern("canonical", re.compile(r"\bcanonical\b", re.IGNORECASE), "approved"),
+    BannedPattern("governance", re.compile(r"\bgovernance\b", re.IGNORECASE), "oversight"),
+    BannedPattern("lineage", re.compile(r"\blineage\b", re.IGNORECASE), "record history"),
+    BannedPattern("snapshot", re.compile(r"\bsnapshot\b", re.IGNORECASE), "saved update"),
+    BannedPattern("truth", re.compile(r"\btruth\b", re.IGNORECASE), "approved record"),
+    BannedPattern("reconciliation", re.compile(r"\breconciliation\b", re.IGNORECASE), "review"),
+    BannedPattern("release identity", re.compile(r"release identity", re.IGNORECASE), "release record"),
     BannedPattern("runtime", re.compile(r"\bruntime\b", re.IGNORECASE), "current view"),
     BannedPattern("schema", re.compile(r"\bschema\b", re.IGNORECASE), "form layout"),
     BannedPattern("payload", re.compile(r"\bpayload\b", re.IGNORECASE), "submitted details"),
@@ -105,6 +129,8 @@ OPERATOR_SURFACE_HINTS = {
     "frontend/src/pages/ExecutiveOverview.jsx": ("/admin/executive-overview", "Admin / Executive"),
     "frontend/src/pages/PmPortfolioIntelligence.jsx": ("/pm/portfolio-intelligence", "PM"),
     "frontend/src/pages/ExecutiveOperationalIntelligence.jsx": ("/admin/executive-operational-intelligence", "Admin / Executive"),
+    "frontend/src/components/project_controls/EarnedValueWorkspace.jsx": ("Earned Value shared workspace", "Executive / PM / Admin"),
+    "frontend/src/components/project_controls/ForecastingCommitmentsWorkspace.jsx": ("Forecasting & Commitments shared workspace", "Executive / PM / Admin / Field"),
     "frontend/src/pages/admin/AdminCommandCenter.jsx": ("/admin/command-center", "Admin"),
 }
 
@@ -123,6 +149,8 @@ def _matches_any(relative_path: str, patterns: Iterable[str]) -> bool:
 def _classification(relative_path: str) -> str:
     if relative_path in OPERATOR_SURFACE_HINTS:
         return "OPERATOR_FACING"
+    if Path(relative_path).stem.startswith("Admin") and relative_path.startswith("frontend/src/pages/"):
+        return "TECHNICAL_ADMIN_EXCEPTION"
     if relative_path.startswith("frontend/src/pages/admin/"):
         return "TECHNICAL_ADMIN_EXCEPTION"
     if relative_path.startswith("frontend/src/components/admin/"):
@@ -262,12 +290,22 @@ def run_scan() -> dict[str, object]:
         writer = csv.DictWriter(handle, fieldnames=["route/surface", "role", "visible text", "banned term", "classification", "replacement", "runtime proof", "status"])
         writer.writeheader()
         writer.writerows(findings)
+    with EXCEPTION_CSV_PATH.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["route/surface", "role", "visible text", "banned term", "classification", "replacement", "runtime proof", "status"])
+        writer.writeheader()
+        writer.writerows(technical_exemptions)
+    with INVENTORY_CSV_PATH.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["route/surface", "role", "visible text", "banned term", "classification", "replacement", "runtime proof", "status"])
+        writer.writeheader()
+        writer.writerows(findings)
     return {
         "returncode": 0 if not operator_failures else 1,
         "scanned_files": len(unique_files),
         "operator_facing_banned_findings": len(operator_failures),
         "technical_admin_exceptions": len(technical_exemptions),
         "csv_path": str(CSV_PATH),
+        "exception_csv_path": str(EXCEPTION_CSV_PATH),
+        "inventory_csv_path": str(INVENTORY_CSV_PATH),
         "operator_failures": operator_failures[:50],
     }
 

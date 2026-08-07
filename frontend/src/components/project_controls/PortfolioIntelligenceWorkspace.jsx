@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/lib/i18n";
@@ -17,6 +18,12 @@ import {
   sanitizeOperatorProjectName,
   sanitizeOperatorProjectNumber,
 } from "@/lib/operatorLanguage";
+import {
+  buildFinancialRows,
+  buildMetricPresentation,
+  operatorBandLabel,
+  operatorSourceLabel,
+} from "@/lib/projectControlsPresentation";
 
 
 const BAND_TONE = {
@@ -66,7 +73,7 @@ function displayProjectNumber(row) {
 }
 
 function displayProjectName(row) {
-  return sanitizeOperatorProjectName(row?.project_name, "Project work");
+  return sanitizeOperatorProjectName(row?.project_name, "Project details not available");
 }
 
 function displayProjectLabel(row) {
@@ -139,6 +146,8 @@ function TableCard({ title, rows, columns, testId, emptyLabel = "No governed row
 
 function ProjectCard({ row, healthRow, index, onOpenDetail }) {
   const healthStatus = healthRow?.status;
+  const costPresentation = buildMetricPresentation("cpi", row.financial?.cpi, { confidence: row.freshness?.overall, status: row.priority_band });
+  const schedulePresentation = buildMetricPresentation("spi", row.financial?.spi, { confidence: row.freshness?.overall, status: row.priority_band });
   return (
     <Card className="border-slate-200 shadow-sm" data-testid={`portfolio-project-card-${index}`}>
       <CardContent className="space-y-4 p-5">
@@ -148,23 +157,25 @@ function ProjectCard({ row, healthRow, index, onOpenDetail }) {
             <h3 className="mt-1 text-lg font-semibold text-slate-950" data-testid={`portfolio-project-name-${index}`}>{displayProjectName(row)}</h3>
             <div className="mt-2 flex flex-wrap gap-2">
               <Badge className={`border ${tone(row.priority_band)}`} data-testid={`portfolio-project-priority-${index}`}>{row.priority_label}</Badge>
-              {healthStatus ? <Badge className={`border ${HEALTH_TONE[healthStatus] || tone("amber")}`} data-testid={`portfolio-project-health-${index}`}>Project Health · {healthStatus}</Badge> : null}
-              <Badge className={`border ${tone(row.freshness?.overall)}`} data-testid={`portfolio-project-freshness-${index}`}>Evidence · {String(row.freshness?.overall || "missing").replaceAll("_", " ")}</Badge>
+              {healthStatus ? <Badge className={`border ${HEALTH_TONE[healthStatus] || tone("amber")}`} data-testid={`portfolio-project-health-${index}`}>Job health · {operatorBandLabel(healthStatus)}</Badge> : null}
+              <Badge className={`border ${tone(row.freshness?.overall)}`} data-testid={`portfolio-project-freshness-${index}`}>Record age · {operatorBandLabel(row.freshness?.overall || "missing")}</Badge>
             </div>
           </div>
           <Button variant="outline" onClick={() => onOpenDetail(row)} data-testid={`portfolio-project-detail-button-${index}`}>
-            View detail <ArrowRight className="ml-2 h-4 w-4" />
+            Open review <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`portfolio-project-cpi-${index}`}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">CPI</div>
-            <div className="mt-1 text-xl font-semibold text-slate-950">{fmtRatio(row.financial?.cpi)}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Cost performance</div>
+            <div className="mt-1 text-base font-semibold text-slate-950">{costPresentation.shortValue}</div>
+            <div className="mt-2 text-xs text-slate-500">{costPresentation.technicalLabel}: {costPresentation.technicalValue}</div>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`portfolio-project-spi-${index}`}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">SPI</div>
-            <div className="mt-1 text-xl font-semibold text-slate-950">{fmtRatio(row.financial?.spi)}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Schedule performance</div>
+            <div className="mt-1 text-base font-semibold text-slate-950">{schedulePresentation.shortValue}</div>
+            <div className="mt-2 text-xs text-slate-500">{schedulePresentation.technicalLabel}: {schedulePresentation.technicalValue}</div>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`portfolio-project-finish-${index}`}>
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Likely finish</div>
@@ -185,8 +196,8 @@ function ProjectCard({ row, healthRow, index, onOpenDetail }) {
 
         <div className="flex flex-wrap gap-2">
           <Link to={row.drilldowns?.forecasting || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-forecast-link-${index}`}>Open forecast</Link>
-          <Link to={row.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-earned-value-link-${index}`}>Open Earned Value</Link>
-          <Link to={row.drilldowns?.project_performance || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-performance-link-${index}`}>Project performance</Link>
+          <Link to={row.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-earned-value-link-${index}`}>Open cost &amp; earned value</Link>
+          <Link to={row.drilldowns?.project_performance || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-performance-link-${index}`}>Open project performance</Link>
         </div>
       </CardContent>
     </Card>
@@ -202,7 +213,7 @@ export const PortfolioIntelligenceWorkspace = ({
   onRefresh,
   onExport,
 }) => {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedProject, setSelectedProject] = useState(null);
@@ -230,6 +241,13 @@ export const PortfolioIntelligenceWorkspace = ({
     });
   }, [filter, rows, search]);
 
+  const financialRows = useMemo(() => buildFinancialRows(financial, lang).map((row) => ({
+    ...row,
+    coverageText: row.metricKey === "cpi" || row.metricKey === "spi"
+      ? `${fmtWhole(financial?.coverage?.comparable_projects)} comparable project(s)`
+      : `${fmtWhole(financial?.coverage?.[`${row.metricKey}_projects`])} / ${fmtWhole(financial?.coverage?.total_projects)}`,
+  })), [financial, lang]);
+
   const heroCards = useMemo(() => ([
     {
       icon: AlertTriangle,
@@ -242,8 +260,8 @@ export const PortfolioIntelligenceWorkspace = ({
     {
       icon: TrendingDown,
       label: t("Cost performance"),
-      value: `CPI ${fmtRatio(financial.cpi)}`,
-      note: `${t("Coverage")}: ${fmtWhole(financial?.coverage?.comparable_projects)} / ${fmtWhole(financial?.coverage?.total_projects)}`,
+      value: buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).shortValue,
+      note: `${t("Coverage")}: ${fmtWhole(financial?.coverage?.comparable_projects)} / ${fmtWhole(financial?.coverage?.total_projects)} · ${buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).technicalLabel} ${buildMetricPresentation("cpi", financial.cpi, { confidence: freshness.overall, status: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence" }, lang).technicalValue}`,
       badge: financial.cpi != null && financial.cpi < 0.9 ? "red" : financial.cpi != null && financial.cpi < 1 ? "amber" : financial.cpi != null ? "green" : "insufficient_evidence",
       testId: "portfolio-summary-cost-performance",
     },
@@ -279,7 +297,7 @@ export const PortfolioIntelligenceWorkspace = ({
       badge: (freshness.stale || 0) > 0 ? "red" : (freshness.watch || 0) > 0 || (freshness.missing || 0) > 0 ? "amber" : "green",
       testId: "portfolio-summary-freshness",
     },
-  ]), [commitments.at_risk, commitments.missed, constraints.open_count, constraints.projects_with_open_constraints, counts.amber, counts.insufficient_evidence, counts.red, counts.total, financial?.coverage?.comparable_projects, financial?.coverage?.total_projects, financial.cpi, freshness.fresh, freshness.missing, freshness.stale, freshness.watch, schedule.projects_past_commitment, schedule.projects_with_slip, t]);
+  ]), [commitments.at_risk, commitments.missed, constraints.open_count, constraints.projects_with_open_constraints, counts.amber, counts.insufficient_evidence, counts.red, counts.total, financial?.coverage?.comparable_projects, financial?.coverage?.total_projects, financial.cpi, freshness.fresh, freshness.missing, freshness.overall, freshness.stale, freshness.watch, lang, schedule.projects_past_commitment, schedule.projects_with_slip, t]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 pb-10" data-testid={`portfolio-intelligence-workspace-${mode}`}>
@@ -289,7 +307,7 @@ export const PortfolioIntelligenceWorkspace = ({
             <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">{t("Portfolio Intelligence")}</div>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{mode === "pm" ? t("Cross-project visibility for your assigned work") : t("One executive reporting hierarchy for the real portfolio")}</h1>
             <p className="mt-4 max-w-2xl text-sm text-slate-600 sm:text-base" data-testid="portfolio-intelligence-hero-description">
-              {t("This view uses the same approved project cost, schedule, production, forecast, commitment, and Earned Value records already shown inside each project.")}
+              {t("This view uses the same approved project cost, schedule, production, forecast, commitment, and cost-performance records already shown inside each project.")}
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[340px]">
@@ -304,11 +322,11 @@ export const PortfolioIntelligenceWorkspace = ({
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={onRefresh} disabled={loading || working} data-testid="portfolio-intelligence-refresh-button"><RefreshCw className="mr-2 h-4 w-4" /> {working ? t("Refreshing…") : t("Refresh evidence")}</Button>
+              <Button variant="outline" onClick={onRefresh} disabled={loading || working} data-testid="portfolio-intelligence-refresh-button"><RefreshCw className="mr-2 h-4 w-4" /> {working ? t("Refreshing…") : t("Refresh records")}</Button>
               <Button variant="outline" onClick={onExport} disabled={loading || working} data-testid="portfolio-intelligence-export-button"><Download className="mr-2 h-4 w-4" /> {t("Export CSV")}</Button>
             </div>
             <div className="rounded-2xl border border-white/60 bg-white/80 p-3 text-xs text-slate-600" data-testid="portfolio-intelligence-hero-note">
-              {t("Every project keeps a direct path back to the supporting records behind its cost, schedule, commitments, and production outlook.")}
+              {t("Every project keeps a direct path back to the records behind its cost, schedule, commitments, and production outlook.")}
             </div>
           </div>
         </div>
@@ -330,21 +348,35 @@ export const PortfolioIntelligenceWorkspace = ({
             <TabsContent value="overview" className="space-y-5" data-testid="portfolio-intelligence-overview-panel">
               <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
                 <TableCard
-                  title={t("Portfolio financial truth")}
-                  rows={[
-                    { metric: "BAC", value: fmtMoney(financial.bac), coverage: `${fmtWhole(financial?.coverage?.bac_projects)} / ${fmtWhole(financial?.coverage?.total_projects)}` },
-                    { metric: "PV", value: fmtMoney(financial.pv), coverage: `${fmtWhole(financial?.coverage?.pv_projects)} / ${fmtWhole(financial?.coverage?.total_projects)}` },
-                    { metric: "EV", value: fmtMoney(financial.ev), coverage: `${fmtWhole(financial?.coverage?.ev_projects)} / ${fmtWhole(financial?.coverage?.total_projects)}` },
-                    { metric: "AC", value: fmtMoney(financial.ac), coverage: `${fmtWhole(financial?.coverage?.ac_projects)} / ${fmtWhole(financial?.coverage?.total_projects)}` },
-                    { metric: "EAC", value: fmtMoney(financial.eac), coverage: `${fmtWhole(financial?.coverage?.eac_projects)} / ${fmtWhole(financial?.coverage?.total_projects)}` },
-                    { metric: "Portfolio CPI", value: fmtRatio(financial.cpi), coverage: `${fmtWhole(financial?.coverage?.comparable_projects)} comparable` },
-                    { metric: "Portfolio SPI", value: fmtRatio(financial.spi), coverage: `${fmtWhole(financial?.coverage?.comparable_projects)} comparable` },
-                  ]}
+                  title={t("Portfolio cost and schedule picture")}
+                  rows={financialRows}
                   testId="portfolio-financial-table"
                   columns={[
-                    { key: "metric", label: t("Metric") },
-                    { key: "value", label: t("Value") },
-                    { key: "coverage", label: t("Coverage") },
+                    {
+                      key: "metric",
+                      label: t("Measure"),
+                      render: (row, index) => (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-900">{row.presentation.primaryLabel}</span>
+                            <HelpTip label={row.presentation.technicalLabel} body={row.presentation.explanation} testId={`portfolio-financial-help-${index}`} />
+                          </div>
+                          <div className="text-xs text-slate-500">{row.presentation.technicalLabel}</div>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "value",
+                      label: t("Current reading"),
+                      render: (row) => (
+                        <div className="space-y-1">
+                          <div className="font-medium text-slate-900">{row.presentation.primaryValue}</div>
+                          {row.presentation.technicalValue !== row.presentation.primaryValue ? <div className="text-xs text-slate-500">{row.presentation.technicalValue}</div> : null}
+                        </div>
+                      ),
+                    },
+                    { key: "meaning", label: t("What it means"), render: (row) => row.presentation.explanation },
+                    { key: "coverage", label: t("Coverage"), render: (row) => row.coverageText },
                   ]}
                 />
                 <Card className="border-slate-200 shadow-sm" data-testid="portfolio-comparability-card">
@@ -437,7 +469,7 @@ export const PortfolioIntelligenceWorkspace = ({
                   testId="portfolio-decision-rule-table"
                   columns={[
                     { key: "rule_id", label: t("Priority signal"), render: (row) => decisionRuleLabel(row) },
-                    { key: "band", label: t("Band"), render: (row) => <Badge className={`border ${tone(row.band)}`}>{row.band}</Badge> },
+                    { key: "band", label: t("Band"), render: (row) => <Badge className={`border ${tone(row.band)}`}>{operatorBandLabel(row.band, lang)}</Badge> },
                     { key: "trigger", label: t("Trigger") },
                     { key: "recommended_action", label: t("Action") },
                   ]}
@@ -451,9 +483,9 @@ export const PortfolioIntelligenceWorkspace = ({
                     {[
                       ["Project performance", t("Production, work progress, and current field signals")],
                       ["Forecast and commitments", t("Likely finish, commitment dates, and forecast cost outlook")],
-                      ["Earned Value", t("Portfolio cost and schedule performance rollups")],
+                      ["Cost and earned value", t("Portfolio cost and schedule performance rollups")],
                       ["Project access", t("Only the projects you are allowed to see are included here")],
-                      ["AI summary", t("Not used for the numbers shown on this page")],
+                      ["Advisory summaries", t("Not used for the numbers shown on this page")],
                     ].map(([label, detail], index) => (
                       <div key={`${label}-${index}`} className="flex items-start justify-between gap-3" data-testid={`portfolio-authority-source-${index}`}>
                         <span className="font-medium text-slate-900">{label}</span>
@@ -487,7 +519,7 @@ export const PortfolioIntelligenceWorkspace = ({
                   rows={workspace.refresh_errors}
                   testId="portfolio-refresh-error-table"
                   columns={[
-                    { key: "project_number", label: t("Project"), render: (row) => sanitizeOperatorProjectNumber(row.project_number, "Project record") },
+                  { key: "project_number", label: t("Project"), render: (row) => sanitizeOperatorProjectNumber(row.project_number, "Project number not available") },
                     { key: "source", label: t("Area"), render: (row) => ({ c6: "Project performance", c7: "Forecast", c8: "Earned Value" }[row.source] || "Project records") },
                     { key: "error", label: t("Issue"), render: (row) => sanitizeOperatorCopy(row.error, "This project could not update right now.") },
                   ]}
@@ -499,7 +531,7 @@ export const PortfolioIntelligenceWorkspace = ({
       ) : null}
 
       <Dialog open={Boolean(selectedProject)} onOpenChange={(open) => !open && setSelectedProject(null)}>
-        <DialogContent data-testid="portfolio-project-detail-dialog">
+                <DialogContent data-testid="portfolio-project-detail-dialog">
           {selectedProject ? (
             <>
               <DialogHeader>
@@ -513,28 +545,45 @@ export const PortfolioIntelligenceWorkspace = ({
                   <CardContent className="text-sm text-slate-700">{sanitizeOperatorCopy(selectedProject.recommended_action, selectedProject.recommended_action)}</CardContent>
                 </Card>
                 <Card className="border-slate-200 shadow-sm" data-testid="portfolio-project-detail-lineage-card">
-                  <CardHeader><CardTitle className="text-base text-slate-950">{t("Supporting records")}</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="text-base text-slate-950">{t("Where these numbers came from")}</CardTitle></CardHeader>
                   <CardContent className="space-y-2 text-sm text-slate-700">
-                    <div data-testid="portfolio-project-lineage-c6">Project performance updated · {fmtDate((selectedProject.source_lineage || {}).c6_generated_at)}</div>
-                    <div data-testid="portfolio-project-lineage-c7">Forecast updated · {fmtDate((selectedProject.source_lineage || {}).c7_generated_at)}</div>
-                    <div data-testid="portfolio-project-lineage-c8">Earned Value updated · {fmtDate((selectedProject.source_lineage || {}).c8_generated_at)}</div>
+                    <div data-testid="portfolio-project-lineage-c6">{operatorSourceLabel("c6", lang)} · {fmtDate((selectedProject.source_lineage || {}).c6_generated_at)}</div>
+                    <div data-testid="portfolio-project-lineage-c7">{operatorSourceLabel("c7", lang)} · {fmtDate((selectedProject.source_lineage || {}).c7_generated_at)}</div>
+                    <div data-testid="portfolio-project-lineage-c8">{operatorSourceLabel("c8", lang)} · {fmtDate((selectedProject.source_lineage || {}).c8_generated_at)}</div>
                   </CardContent>
                 </Card>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <TableCard
-                  title={t("Current financial truth")}
-                  rows={[
-                    { id: "bac", label: "BAC", value: fmtMoney(selectedProject.financial?.bac) },
-                    { id: "ev", label: "EV", value: fmtMoney(selectedProject.financial?.ev) },
-                    { id: "ac", label: "AC", value: fmtMoney(selectedProject.financial?.ac) },
-                    { id: "cpi", label: "CPI", value: fmtRatio(selectedProject.financial?.cpi) },
-                    { id: "spi", label: "SPI", value: fmtRatio(selectedProject.financial?.spi) },
-                    { id: "eac", label: "EAC", value: fmtMoney(selectedProject.financial?.eac) },
-                  ]}
+                  title={t("Current cost and schedule picture")}
+                  rows={buildFinancialRows(selectedProject.financial, lang)}
                   testId="portfolio-project-detail-financial-table"
-                  columns={[{ key: "label", label: t("Metric") }, { key: "value", label: t("Value") }]}
+                  columns={[
+                    {
+                      key: "label",
+                      label: t("Measure"),
+                      render: (row, index) => (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-900">{row.presentation.primaryLabel}</span>
+                            <HelpTip label={row.presentation.technicalLabel} body={row.presentation.explanation} testId={`portfolio-project-detail-financial-help-${index}`} />
+                          </div>
+                          <div className="text-xs text-slate-500">{row.presentation.technicalLabel}</div>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "value",
+                      label: t("Current reading"),
+                      render: (row) => (
+                        <div className="space-y-1">
+                          <div className="font-medium text-slate-900">{row.presentation.primaryValue}</div>
+                          {row.presentation.technicalValue !== row.presentation.primaryValue ? <div className="text-xs text-slate-500">{row.presentation.technicalValue}</div> : null}
+                        </div>
+                      ),
+                    },
+                  ]}
                 />
                 <TableCard
                   title={t("Current operational pressure")}
@@ -551,8 +600,8 @@ export const PortfolioIntelligenceWorkspace = ({
 
               <div className="flex flex-wrap gap-2" data-testid="portfolio-project-detail-links">
                 <Link to={selectedProject.drilldowns?.forecasting || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-forecast-link">Open forecast</Link>
-                <Link to={selectedProject.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-earned-value-link">Open Earned Value</Link>
-                <Link to={selectedProject.drilldowns?.project_performance || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-performance-link">Project performance</Link>
+                <Link to={selectedProject.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-earned-value-link">Open cost &amp; earned value</Link>
+                <Link to={selectedProject.drilldowns?.project_performance || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-performance-link">Open project performance</Link>
                 {selectedProject.drilldowns?.project_pnl ? <Link to={selectedProject.drilldowns.project_pnl} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-pnl-link">Project P&amp;L</Link> : null}
               </div>
             </>

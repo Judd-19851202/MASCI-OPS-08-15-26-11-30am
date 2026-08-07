@@ -635,13 +635,30 @@ def _project_story(lines: List[Dict[str, Any]], totals: Dict[str, Any], blocked:
     delayed = [line for line in lines if (line.get("spi") or 1.0) < 0.95]
     over_cost = [line for line in lines if (line.get("cpi") or 1.0) < 0.95]
     confidence = totals.get("confidence") or "review_required"
+    cost_line = "Cost performance cannot be trusted yet because the current cost picture is incomplete."
+    if cpi is not None and cpi > 0:
+        spent_per_dollar = 1 / cpi
+        if cpi < 1:
+            cost_line = f"Cost is running about {(spent_per_dollar - 1) * 100:.0f}% higher than the value of work completed."
+        elif cpi > 1:
+            cost_line = f"Cost is running about {(1 - spent_per_dollar) * 100:.0f}% lower than the value of work completed."
+        else:
+            cost_line = "Cost is currently running on plan."
+    schedule_line = "Schedule performance cannot be trusted yet because the current progress picture is incomplete."
+    if spi is not None:
+        if spi < 1:
+            schedule_line = f"Schedule progress is about {(1 - spi) * 100:.0f}% behind plan."
+        elif spi > 1:
+            schedule_line = f"Schedule progress is about {(spi - 1) * 100:.0f}% ahead of plan."
+        else:
+            schedule_line = "Schedule progress is currently on plan."
     return {
-        "what_happened": f"{len(delayed)} budget lines are behind planned earned value and {len(over_cost)} are burning cost faster than value earned.",
-        "where_we_are_now": f"Project CPI is {round(cpi, 3) if cpi is not None else 'blocked'} and SPI is {round(spi, 3) if spi is not None else 'blocked'} with {confidence} confidence.",
-        "what_changed": "C8 now ties budget, schedule, quantity, actual cost, and C7 remaining-work forecast into one governed EV read.",
-        "why": "Variances come from approved quantity/progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
-        "what_is_at_risk": f"{blocked.get('open_actual_cost_count', 0)} actual-cost candidates and {blocked.get('open_commitment_count', 0)} commitment candidates can keep CPI, EAC, and TCPI in a partial-confidence state.",
-        "if_nothing_changes": "Schedule and cost signals will stay partially blocked or continue trending red instead of resolving into a trustworthy earned-value posture.",
+        "what_happened": f"{len(delayed)} budget lines are behind planned progress and {len(over_cost)} are spending faster than the completed work supports.",
+        "where_we_are_now": f"{cost_line} {schedule_line} Current confidence is {confidence.replace('_', ' ')}.",
+        "what_changed": "This view brings together budget, schedule, quantity, actual cost, and remaining-work outlook in one approved cost-and-progress reading.",
+        "why": "Variances come from approved quantity or progress not yet matching the time-phased budget and from incomplete or late actual-cost linkage when present.",
+        "what_is_at_risk": f"{blocked.get('open_actual_cost_count', 0)} actual-cost review item(s) and {blocked.get('open_commitment_count', 0)} commitment review item(s) can keep the cost outlook in a partial-confidence state.",
+        "if_nothing_changes": "Cost and schedule signals will stay partially blocked or continue trending red instead of resolving into a dependable cost-and-progress picture.",
         "required_actions": [action for line in lines[:2] for action in _action_register(line, blocked)][:6],
     }
 
@@ -706,31 +723,31 @@ def _export_rows(snapshot: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def _csv_payload(filename: str, rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     stream = io.StringIO()
-    headers = [
-        "budget_line_id",
-        "label",
-        "method",
-        "confidence",
-        "bac",
-        "pv",
-        "ev",
-        "ac",
-        "cv",
-        "sv",
-        "cpi",
-        "spi",
-        "etc",
-        "eac",
-        "tcpi",
-        "planned_percent",
-        "earned_percent",
-        "approved_quantity",
-        "budget_quantity",
-    ]
-    writer = csv.DictWriter(stream, fieldnames=headers)
+    header_map = {
+        "budget_line_id": "Budget line id",
+        "label": "Budget line",
+        "method": "How progress is measured",
+        "confidence": "Confidence",
+        "bac": "Approved budget",
+        "pv": "Planned work value",
+        "ev": "Value of work completed",
+        "ac": "Actual cost to date",
+        "cv": "Cost difference vs completed work",
+        "sv": "Schedule difference vs plan",
+        "cpi": "Cost performance index (CPI)",
+        "spi": "Schedule performance index (SPI)",
+        "etc": "Estimated cost to finish",
+        "eac": "Current forecast at completion",
+        "tcpi": "Required cost efficiency to hit target",
+        "planned_percent": "Planned progress",
+        "earned_percent": "Completed progress",
+        "approved_quantity": "Approved quantity",
+        "budget_quantity": "Budget quantity",
+    }
+    writer = csv.DictWriter(stream, fieldnames=list(header_map.values()))
     writer.writeheader()
     for row in rows:
-        writer.writerow({key: row.get(key, "") for key in headers})
+        writer.writerow({heading: row.get(key, "") for key, heading in header_map.items()})
     return {"filename": filename, "content": stream.getvalue()}
 
 

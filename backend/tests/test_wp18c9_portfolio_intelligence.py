@@ -129,7 +129,7 @@ class TestPortfolioIntelligenceApi:
         assert export.status_code == 200, export.text
         assert "text/csv" in export.headers.get("content-type", "")
         assert "attachment" in export.headers.get("content-disposition", "")
-        assert "project_number,project_name,priority_band" in export.text.splitlines()[0]
+        assert "Project number,Project name,Attention level" in export.text.splitlines()[0]
 
     def test_pm_portfolio_scope_is_restricted(self, pm_token):
         response = requests.get(

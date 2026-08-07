@@ -328,14 +328,37 @@ def _project_attention(
     resource_pressure: Dict[str, Any],
     freshness: Dict[str, Any],
 ) -> Tuple[str, List[Dict[str, str]], str, str]:
+    def _cost_message(value: Any) -> str:
+        if value is None:
+            return "Cost performance cannot be trusted yet because the current cost picture is incomplete."
+        numeric = float(value)
+        if numeric <= 0:
+            return "Cost performance cannot be trusted yet because the current cost picture is incomplete."
+        spent_per_dollar = 1 / numeric
+        if numeric < 1:
+            return f"Cost is running about {(spent_per_dollar - 1) * 100:.0f}% higher than the value of work completed."
+        if numeric > 1:
+            return f"Cost is running about {(1 - spent_per_dollar) * 100:.0f}% lower than the value of work completed."
+        return "Cost is currently running on plan."
+
+    def _schedule_message(value: Any) -> str:
+        if value is None:
+            return "Schedule performance cannot be trusted yet because the current progress picture is incomplete."
+        numeric = float(value)
+        if numeric < 1:
+            return f"Schedule progress is about {(1 - numeric) * 100:.0f}% behind plan."
+        if numeric > 1:
+            return f"Schedule progress is about {(numeric - 1) * 100:.0f}% ahead of plan."
+        return "Schedule progress is currently on plan."
+
     reasons: List[Dict[str, str]] = []
 
     if freshness.get("overall") in {"missing", "stale"}:
         reasons.append({
             "rule_id": "C9-FRESH-001",
             "band": "insufficient_evidence",
-            "message": "One or more upstream C6/C7/C8 snapshots are stale or missing for this project.",
-            "action": "Refresh the project evidence and verify the latest field, forecast, and earned-value records before using it for a portfolio decision.",
+            "message": "One or more project record updates are old or missing for this job.",
+            "action": "Refresh the project records and verify the latest field, forecast, and cost-progress updates before using this job for a portfolio decision.",
         })
     if schedule.get("days_from_commitment") is not None and schedule.get("days_from_commitment", 0) > 7:
         reasons.append({
@@ -355,28 +378,28 @@ def _project_attention(
         reasons.append({
             "rule_id": "C9-COST-RED-001",
             "band": "red",
-            "message": f"Cost performance is below threshold with CPI {financial['cpi']:.3f}.",
-            "action": "Open earned value and budget trust lines to confirm cost leakage, blocked actuals, and the revised final-cost outlook.",
+            "message": _cost_message(financial.get("cpi")),
+            "action": "Open cost and earned value to confirm where cost is outrunning completed work and whether any actual-cost records are still missing.",
         })
     elif financial.get("cpi") is not None and financial["cpi"] < 1:
         reasons.append({
             "rule_id": "C9-COST-AMBER-001",
             "band": "amber",
-            "message": f"Cost performance is under plan with CPI {financial['cpi']:.3f}.",
+            "message": _cost_message(financial.get("cpi")),
             "action": "Review drivers before the project drifts farther below plan.",
         })
     if financial.get("spi") is not None and financial["spi"] < 0.9:
         reasons.append({
             "rule_id": "C9-EV-RED-001",
             "band": "red",
-            "message": f"Schedule performance is below threshold with SPI {financial['spi']:.3f}.",
-            "action": "Use the earned-value and forecast drill-backs together to confirm whether the project is behind plan or blocked by incomplete source evidence.",
+            "message": _schedule_message(financial.get("spi")),
+            "action": "Use cost and earned value together with the forecast view to confirm whether the project is behind plan or waiting on missing project records.",
         })
     elif financial.get("spi") is not None and financial["spi"] < 1:
         reasons.append({
             "rule_id": "C9-EV-AMBER-001",
             "band": "amber",
-            "message": f"Schedule performance is under plan with SPI {financial['spi']:.3f}.",
+            "message": _schedule_message(financial.get("spi")),
             "action": "Review the project pace against the current plan and confirm whether recovery is already visible in the next-week outlook.",
         })
     if commitments.get("missed", 0) > 0:
@@ -418,7 +441,7 @@ def _project_attention(
         reasons.append({
             "rule_id": "C9-TRUST-AMBER-001",
             "band": "amber",
-            "message": "The earned-value picture still depends on budget trust-line review items.",
+            "message": "The cost picture still depends on open budget review items.",
             "action": "Finish the open budget review items before treating the cost picture as fully settled.",
         })
     if production.get("status") != "ready" and not any(item["band"] == "red" for item in reasons):
@@ -426,7 +449,7 @@ def _project_attention(
             "rule_id": "C9-PROD-EVIDENCE-001",
             "band": "insufficient_evidence",
             "message": "Production evidence is incomplete, so output pace is not decision-ready.",
-            "action": "Use the project performance drill-back to confirm field production lineage before committing to a portfolio-level narrative.",
+            "action": "Use project performance to confirm field production records before committing to a portfolio-level narrative.",
         })
 
     band_rank = {"red": 0, "amber": 1, "insufficient_evidence": 2, "green": 3}
@@ -1073,31 +1096,32 @@ async def export_portfolio_intelligence_snapshot(db, *, actor: Optional[Dict[str
             }
         )
     output = io.StringIO()
-    fieldnames = list(rows[0].keys()) if rows else [
-        "project_number",
-        "project_name",
-        "priority_band",
-        "freshness",
-        "cpi",
-        "spi",
-        "bac",
-        "ev",
-        "ac",
-        "eac",
-        "likely_finish_date",
-        "committed_finish_date",
-        "days_from_commitment",
-        "at_risk_commitments",
-        "missed_commitments",
-        "open_constraints",
-        "recommended_action",
-        "why_it_matters",
-        "forecast_drilldown",
-        "earned_value_drilldown",
-    ]
-    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    field_map = {
+        "project_number": "Project number",
+        "project_name": "Project name",
+        "priority_band": "Attention level",
+        "freshness": "Record age",
+        "cpi": "Cost performance index (CPI)",
+        "spi": "Schedule performance index (SPI)",
+        "bac": "Approved budget",
+        "ev": "Value of work completed",
+        "ac": "Actual cost to date",
+        "eac": "Current forecast at completion",
+        "likely_finish_date": "Likely finish date",
+        "committed_finish_date": "Committed finish date",
+        "days_from_commitment": "Days from commitment",
+        "at_risk_commitments": "Commitments at risk",
+        "missed_commitments": "Missed commitments",
+        "open_constraints": "Open constraints",
+        "recommended_action": "Recommended action",
+        "why_it_matters": "What is happening",
+        "forecast_drilldown": "Forecast drill-back",
+        "earned_value_drilldown": "Cost and earned value drill-back",
+    }
+    writer = csv.DictWriter(output, fieldnames=list(field_map.values()))
     writer.writeheader()
-    writer.writerows(rows)
+    for row in rows:
+        writer.writerow({heading: row.get(key, "") for key, heading in field_map.items()})
     return {
         "filename": f"{audience}_portfolio_intelligence.csv",
         "content": output.getvalue(),

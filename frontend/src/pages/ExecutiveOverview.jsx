@@ -88,7 +88,7 @@ export default function ExecutiveOverview() {
   return (
     <AdminRouteShell
       pageTitle="Portfolio Intelligence"
-      subtitle="Cross-project cost, schedule, commitments, and truthful drill-back"
+      subtitle="Cross-project cost, schedule, commitments, and clear drill-back"
       crumbs={[{ label: "Executive Oversight" }, { label: "Portfolio Intelligence" }]}
       primaryActions={(
         <div className="flex flex-wrap gap-2">

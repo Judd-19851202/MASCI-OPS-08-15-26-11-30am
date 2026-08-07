@@ -145,7 +145,7 @@ export default function ExecutiveOperationalIntelligence() {
                 {t("Use this page to understand what landed in the selected period, which projects need leadership attention, and whether the enterprise briefing is ready for distribution.")}
               </p>
               <div className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900" data-testid="exec-intel-portfolio-link-callout">
-                {t("For approved portfolio cost, schedule, commitments, and Earned Value drill-back, use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Intelligence")}</Link>.
+                {t("For approved portfolio cost, schedule, commitments, and cost-performance drill-back, use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Intelligence")}</Link>.
               </div>
             </div>
             <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />

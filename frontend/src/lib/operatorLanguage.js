@@ -205,23 +205,23 @@ export function humanizeOperatorToken(value, fallback = "Operations record") {
   return titleCase(tokens.join(" "));
 }
 
-export function sanitizeOperatorProjectNumber(value, fallback = "Operations support") {
+export function sanitizeOperatorProjectNumber(value, fallback = "Project number not available") {
   const raw = String(value || "").trim();
   if (!raw || containsOperatorUnsafeLanguage(raw)) return fallback;
   return raw;
 }
 
-export function sanitizeOperatorProjectName(value, fallback = "Operations support work") {
+export function sanitizeOperatorProjectName(value, fallback = "Project name not available") {
   const raw = sanitizeOperatorCopy(value, "");
   if (!raw || containsOperatorUnsafeLanguage(value)) return fallback;
   return raw;
 }
 
 export function formatOperatorJobLabel(projectNumber, projectName) {
-  const safeNumber = sanitizeOperatorProjectNumber(projectNumber, "Operations support");
-  const safeName = sanitizeOperatorProjectName(projectName, "Operations support work");
-  if (!safeNumber && !safeName) return "Operations support work";
-  if (safeNumber === "Operations support" && safeName === "Operations support work") return safeNumber;
+  const safeNumber = sanitizeOperatorProjectNumber(projectNumber, "Project number not available");
+  const safeName = sanitizeOperatorProjectName(projectName, "Project name not available");
+  if (!safeNumber && !safeName) return "Project details not available";
+  if (safeNumber === "Project number not available" && safeName === "Project name not available") return "Project details not available";
   if (!safeNumber) return safeName;
   if (!safeName || safeNumber === safeName) return safeNumber;
   if (safeName.startsWith(safeNumber)) return safeName;
