@@ -1,0 +1,108 @@
+{
+  "project_context": {
+    "name": "MASCI OPS - WP-18C9",
+    "description": "Executive / PM Information Architecture & Comprehension Rebuild. Elite heavy-civil operations platform built for construction executives and project managers.",
+    "theme": "light",
+    "archetype": "SWISS & HIGH-CONTRAST (Authority, Clarity, Truth)"
+  },
+  "typography": {
+    "headings_family": "'Chivo', sans-serif",
+    "body_family": "'IBM Plex Sans', sans-serif",
+    "monospace_family": "'IBM Plex Mono', monospace",
+    "rules": [
+      "NO INTER or generic sans for headings. Use Chivo for industrial, sturdy authority.",
+      "Headings > 32px MUST use tracking-tight or tracking-tighter.",
+      "Overlines and Labels MUST be uppercase, text-xs, tracking-[0.2em].",
+      "Data metrics (CPI, SPI, percentages, project numbers) MUST use IBM Plex Mono for tabular lining.",
+      "Hierarchy gap rule: Jump between heading and subheading max 2 tailwind steps."
+    ],
+    "import_url": "@import url('https://fonts.googleapis.com/css2?family=Chivo:wght@300;400;700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');"
+  },
+  "colors": {
+    "base": {
+      "background": "#FAFAFA",
+      "surface": "#FFFFFF",
+      "border": "#E5E5E5",
+      "text_primary": "#111827",
+      "text_secondary": "#4B5563"
+    },
+    "governed_status": {
+      "critical": "#DC2626",
+      "needs_attention": "#C2410C",
+      "watch_closely": "#D97706",
+      "on_track": "#15803D",
+      "needs_information": "#64748B"
+    },
+    "rules": [
+      "Color is function only. 95% of UI should be structural grayscale.",
+      "Status colors MUST meet 4.5:1 contrast ratio against their backgrounds.",
+      "NEVER use pure black or pure gray. Tint neutrals slightly (e.g., Slate).",
+      "NO teal green or teal blue (#1B93A4) for dashboards."
+    ]
+  },
+  "visual_enhancers": {
+    "surfaces": "GRID BORDERS (The Technical Look). Expose the skeleton. Container uses border-collapse style layout. 1px solid borders, no soft or muddy shadows.",
+    "corners": "Sharp edges or max 4px border-radius. Cardless, rectangular, dense styles.",
+    "hover_states": "Crisp -translate-y-[1px] with shadow-sm and border darkening. ALWAYS explicitly set text color on hover."
+  },
+  "grids_and_layouts": {
+    "strategy": "MODE B: High Density Grid. grid-cols-1 md:grid-cols-3 lg:grid-cols-4. Tight gap-4 or gap-6.",
+    "spacing": "Generous internal padding (p-6 or p-8) for cards with borders. Compact vertical rhythm for data rows.",
+    "alignment": "Left-align all data, labels, and paragraphs. Only center specific empty states. Do not center-everything."
+  },
+  "wp_18c9_strict_requirements": {
+    "primary_design_standard_order": [
+      "1. WHAT NEEDS ATTENTION?",
+      "2. HOW SERIOUS IS IT?",
+      "3. WHY?",
+      "4. WHAT CHANGED?",
+      "5. WHAT SHOULD HAPPEN NEXT?",
+      "6. WHERE CAN I OPEN THE UNDERLYING PROJECT/RECORD?"
+    ],
+    "governed_project_conditions": [
+      "CRITICAL",
+      "NEEDS ATTENTION",
+      "WATCH CLOSELY",
+      "ON TRACK",
+      "NEEDS CURRENT INFORMATION"
+    ],
+    "card_hierarchy": {
+      "header": "PROJECT NUMBER — PROJECT NAME (e.g., PRJ-942 — South River Bridge)",
+      "primary_condition": "ONE Governed Project Condition (No contradictory badges).",
+      "why_explanation": "Operational meaning (e.g., 'Cost performance is approximately 37% worse than plan...').",
+      "secondary_metrics": ["Cost Performance", "Schedule Performance", "Forecast Completion", "Commitments at Risk"],
+      "actions": ["Recommended Action", "Open Project"]
+    },
+    "language_and_copy": [
+      "BANNED: 'plain English', 'This view uses the same approved...', 'drill-back', 'reporting hierarchy', 'evidence'.",
+      "BANNED: Generic fallback identity like 'Project work'. If missing, use 'Project name unavailable' + Number.",
+      "PORTFOLIO TITLES: Exec = 'Portfolio Performance', PM = 'Your Project Portfolio'.",
+      "FILTERS: All, Critical, Needs Attention, Watch Closely, On Track, Needs Information."
+    ]
+  },
+  "components": {
+    "cards": "Flat background, 1px subtle border. High contrast header. NO generic 'Vercel-look' shadows.",
+    "badges": "Solid fill or high-contrast outline. Only ONE status badge per project card.",
+    "navigation": "Solid background, never transparent. Distinct separation from content.",
+    "tables": "Dense, crisp lines, clear numerical alignments. Use Monospace for values."
+  },
+  "instructions_to_main_agent": [
+    "You are building an elite heavy-civil operations platform. It must look rugged, technical, and precise.",
+    "Follow the WP-18C9 strict requirements exactly. Do NOT put 'On Track' and 'Needs Attention' on the same card. ONE governed status per card.",
+    "Remove any text that explains how the software works. Just show the operational data. The software architecture is never the story.",
+    "For metrics, show the operational meaning FIRST (e.g., '37% worse than plan'), then the index (CPI: 0.727) as secondary. Do not require operators to interpret SPI/CPI.",
+    "Implement a robust 'Portfolio Performance' landing page that immediately answers the Five-Second Executive Test.",
+    "Reconcile Executive surfaces logically: Executive Overview (high-level), Operations Command Center (immediate incidents), Portfolio Performance (cross-project intelligence).",
+    "Use Shadcn UI components but heavily customize them to remove the default look. Make them flatter, sharper, more industrial.",
+    "Ensure all interactive elements and key informational elements have `data-testid` attributes (e.g., data-testid='filter-critical')."
+  ],
+  "universal_guidelines": [
+    "DO NOT use transparent backgrounds for dropdowns, overlays, or headers.",
+    "DO NOT use universal 'transition: all'. Apply transitions to specific properties only.",
+    "DO NOT center-align the app container (.App { text-align: center; } is strictly banned).",
+    "Ensure focus states have higher contrast.",
+    "Prioritize optical alignment over geometrical alignment.",
+    "Use sonner for toasts. Customize scrollbars to have no gutter.",
+    "Never use generic AI emojis (🤖🧠💭💡🔮🎯) for icons. Use lucide-react."
+  ]
+}
