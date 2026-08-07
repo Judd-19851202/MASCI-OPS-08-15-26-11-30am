@@ -1,3 +1,13 @@
+# 2026-08-07 — WP-18C8 Earned Value Engine
+
+- Added canonical backend authority in `backend/services/project_earned_value_engine.py` for governed C8 snapshots, metric truth, versions, and CSV export.
+- Extended `backend/routes/enterprise_governance.py` with PM/Admin earned-value routes plus PM budget trust-line review endpoints for commitment and actual-cost linkage.
+- Extended `backend/services/project_budget_authority.py` so commitment/actual-cost candidate sync stays live on overview reads, preserves approved linkage, and keeps approved commitments visible through receipt lifecycle states.
+- Added new PM/Admin UI routes `/pm/project-controls/earned-value` and `/admin/governance/project-controls/earned-value`, plus shared workspace UI in `frontend/src/components/project_controls/EarnedValueWorkspace.jsx`, navigation discoverability, and Executive Overview launch access.
+- Added the smallest safe first-load repair so PM/Admin C8 pages auto-load without manual refresh.
+- Added automated/regression evidence: `backend/tests/test_wp18c8_earned_value_engine.py`, `testing_agent` report `/app/test_reports/iteration_156.json`, backend validation PASS, frontend validation PASS, deployment PASS.
+- Added the C8 evidence pack under `/app/memory/WP18C8_*`.
+
 # 2026-08-07 — WP-18 roadmap reconciliation lock
 
 ## 2026-08-07 — WP-18C7 Forecasting & Commitments

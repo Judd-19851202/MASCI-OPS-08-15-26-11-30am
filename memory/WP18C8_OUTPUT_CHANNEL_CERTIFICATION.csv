@@ -1,0 +1,9 @@
+channel,applies,result,evidence_or_reason
+screen,YES,PASS,PM and Executive routes render governed C8 summary cards, tables, tabs, and decision brief
+detail_drilldown,YES,PASS,Metric table and line table include drill-down paths to budget review / schedule / forecasting surfaces
+csv_export,YES,PASS,PM and Executive export endpoints returned `200` with `text/csv` and attachment headers on 2026-08-07
+print,NO,NOT_APPLICABLE_WITH_REASON,C8 did not inherit or require a governed print output contract
+pdf,NO,NOT_APPLICABLE_WITH_REASON,C8 did not inherit or require a governed PDF output contract
+email,NO,NOT_APPLICABLE_WITH_REASON,No governed C8 email dispatch requirement exists in recovered scope
+notification,NO,NOT_APPLICABLE_WITH_REASON,No governed C8 notification contract exists in recovered scope
+ai_summary,NO,NOT_APPLICABLE_WITH_REASON,C8 remained non-AI for truth; no new AI summarizer was authorized or required

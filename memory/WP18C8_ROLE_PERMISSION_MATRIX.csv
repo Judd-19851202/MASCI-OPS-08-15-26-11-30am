@@ -1,0 +1,8 @@
+role,c8_surface,access,reason,status
+Executive / COO / VP Operations / Area Ops Manager / Project Executive,/admin/governance/project-controls/earned-value,READ_ONLY,Executive decision support is legitimate inside C8 but edit authority stays with PM / project controls,CERTIFIED
+Admin Governance,/admin/governance/project-controls/earned-value,READ_ONLY,Matches existing governance shell and preserves one truth source,CERTIFIED
+Project Manager,/pm/project-controls/earned-value + /pm/project-controls/budget,READ_WRITE,PM owns project-level review, snapshot capture, export, and commitment/actual-cost linkage,CERTIFIED
+Superintendent / Foreman / Field Leadership,No dedicated C8 route,NOT_APPLICABLE_WITH_REASON,Field personas supply production truth upstream but do not get direct earned-value financial controls in this package,CERTIFIED
+Safety,No dedicated C8 route,NOT_APPLICABLE_WITH_REASON,No direct earned-value authority in the recovered C8 contract,CERTIFIED
+HR,No dedicated C8 route,NOT_APPLICABLE_WITH_REASON,No direct earned-value authority in the recovered C8 contract,CERTIFIED
+Dispatch / Shop / Equipment,No dedicated C8 route,NOT_APPLICABLE_WITH_REASON,Operational support roles feed upstream facts but do not own earned-value financial math,CERTIFIED

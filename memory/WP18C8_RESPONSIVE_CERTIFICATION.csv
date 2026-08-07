@@ -1,0 +1,16 @@
+surface,route,role,viewport_px,result,evidence
+PM Earned Value,/pm/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,PM,390,PASS,auto_frontend_testing_agent 2026-08-07
+PM Earned Value,/pm/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,PM,430,PASS,auto_frontend_testing_agent 2026-08-07
+PM Earned Value,/pm/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,PM,768,PASS,auto_frontend_testing_agent 2026-08-07
+PM Earned Value,/pm/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,PM,1024,PASS,auto_frontend_testing_agent 2026-08-07
+PM Earned Value,/pm/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,PM,1440,PASS,auto_frontend_testing_agent 2026-08-07
+Executive Earned Value,/admin/governance/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,Executive/Admin,390,PASS,auto_frontend_testing_agent 2026-08-07
+Executive Earned Value,/admin/governance/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,Executive/Admin,430,PASS,auto_frontend_testing_agent 2026-08-07
+Executive Earned Value,/admin/governance/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,Executive/Admin,768,PASS,auto_frontend_testing_agent 2026-08-07
+Executive Earned Value,/admin/governance/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,Executive/Admin,1024,PASS,auto_frontend_testing_agent 2026-08-07
+Executive Earned Value,/admin/governance/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026,Executive/Admin,1440,PASS,auto_frontend_testing_agent 2026-08-07
+PM Budget Trust-Link Review,/pm/project-controls/budget?project_number=ZZ-RUNTIME-CERT-2026,PM,390,PASS,mcp_screenshot_tool 2026-08-07 overflow=False
+PM Budget Trust-Link Review,/pm/project-controls/budget?project_number=ZZ-RUNTIME-CERT-2026,PM,430,PASS,mcp_screenshot_tool 2026-08-07 overflow=False
+PM Budget Trust-Link Review,/pm/project-controls/budget?project_number=ZZ-RUNTIME-CERT-2026,PM,768,PASS,mcp_screenshot_tool 2026-08-07 overflow=False
+PM Budget Trust-Link Review,/pm/project-controls/budget?project_number=ZZ-RUNTIME-CERT-2026,PM,1024,PASS,mcp_screenshot_tool 2026-08-07 overflow=False
+PM Budget Trust-Link Review,/pm/project-controls/budget?project_number=ZZ-RUNTIME-CERT-2026,PM,1440,PASS,mcp_screenshot_tool 2026-08-07 overflow=False

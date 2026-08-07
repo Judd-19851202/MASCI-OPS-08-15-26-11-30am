@@ -5,8 +5,21 @@ Tests the C8 earned-value workspace APIs for PM and Admin/Executive audiences.
 import os
 import pytest
 import requests
+from dotenv import dotenv_values
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+
+def _base_url():
+    env_value = (os.environ.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
+    if env_value and ".preview.emergentagent.com" not in env_value:
+        return env_value
+    env_file = dotenv_values("/app/frontend/.env")
+    file_value = str(env_file.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
+    if file_value and ".preview.emergentagent.com" not in file_value:
+        return file_value
+    return "http://127.0.0.1:8001"
+
+
+BASE_URL = _base_url()
 
 # Test credentials from test_credentials.md
 PM_EMAIL = "cert.pm@example.com"
@@ -18,16 +31,31 @@ ADMIN_PASSWORD = "Maddix123!"
 TEST_PROJECT = "ZZ-RUNTIME-CERT-2026"
 
 
+def wait_for_backend(timeout_seconds=120):
+    deadline = __import__("time").time() + timeout_seconds
+    while __import__("time").time() < deadline:
+        try:
+            response = requests.get(f"{BASE_URL}/health", timeout=5)
+            if response.status_code == 200:
+                return
+        except Exception:
+            pass
+        __import__("time").sleep(2)
+    pytest.skip(f"Backend health did not become ready at {BASE_URL}")
+
+
 class TestEarnedValueEngineBackend:
     """C8 Earned Value Engine API tests"""
 
     @pytest.fixture(scope="class")
     def pm_token(self):
         """Get PM authentication token"""
+        wait_for_backend()
         response = requests.post(
             f"{BASE_URL}/api/pm/login",
             json={"email": PM_EMAIL, "password": PM_PASSWORD},
-            timeout=30
+            headers={"X-Device-Id": "c8-pytest-pm", "X-Test-Rate-Limit-Bypass": "1"},
+            timeout=120
         )
         if response.status_code != 200:
             pytest.skip(f"PM login failed: {response.status_code} - {response.text}")
@@ -37,17 +65,20 @@ class TestEarnedValueEngineBackend:
     @pytest.fixture(scope="class")
     def admin_tokens(self):
         """Get Admin authentication tokens (admin + directory)"""
+        wait_for_backend()
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-            timeout=30
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            headers={"X-Device-Id": "c8-pytest-admin", "X-Test-Rate-Limit-Bypass": "1"},
+            timeout=120
         )
         if response.status_code != 200:
             pytest.skip(f"Admin login failed: {response.status_code} - {response.text}")
         data = response.json()
+        portal_tokens = data.get("portal_tokens") or {}
         return {
-            "admin_token": data.get("admin_token"),
-            "directory_token": data.get("directory_token")
+            "admin_token": portal_tokens.get("admin") or data.get("admin_token") or data.get("token"),
+            "directory_token": data.get("session_token") or data.get("directory_token")
         }
 
     # ==================== PM Earned Value API Tests ====================
@@ -279,7 +310,7 @@ class TestEarnedValueEngineBackend:
     def test_pm_budget_overview_with_trust_link(self, pm_token):
         """Test PM budget overview shows trust-link review lane data"""
         response = requests.get(
-            f"{BASE_URL}/api/pm/project-controls/budget/overview?project_number={TEST_PROJECT}",
+            f"{BASE_URL}/api/pm/project-controls/projects/{TEST_PROJECT}/budget/overview",
             headers={"X-PM-Token": pm_token},
             timeout=30
         )

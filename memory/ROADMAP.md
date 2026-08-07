@@ -1,3 +1,17 @@
+# 2026-08-07 — WP-18C8 final state
+
+## 2026-08-07 — WP-18C8 Earned Value Engine
+
+- **WP-18C8 is COMPLETE, CERTIFIED, and DEPLOYABLE.**
+- Final gate: **GO — READY TO SAVE & DEPLOY**
+- C8 delivered one canonical governed earned-value authority with PM/Admin routes, PM/Admin operator surfaces, budget trust-line activation, snapshot/version evidence, and CSV export.
+- C7 remains frozen and was consumed without reopening its truth contract.
+- C9 remains blocked and unauthorized.
+
+## Next package status
+
+- `WP-18C9` remains **NOT STARTED** and blocked behind explicit authorization after C8 closeout.
+
 # 2026-08-07 — WP-18 master roadmap reconciliation lock
 
 ## 2026-08-07 — WP-18C7 final state

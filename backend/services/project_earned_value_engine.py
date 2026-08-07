@@ -956,6 +956,7 @@ async def get_project_earned_value_snapshot(
     if existing and not force_refresh:
         generated_at = _parse_datetime(existing.get("generated_at"))
         if generated_at and generated_at >= _utcnow() - timedelta(minutes=5):
+            existing["audience"] = audience
             existing["cache_status"] = "reused"
             return _sanitize(existing)
     snapshot = await _build_snapshot(db, project_number, actor=actor, audience=audience)
