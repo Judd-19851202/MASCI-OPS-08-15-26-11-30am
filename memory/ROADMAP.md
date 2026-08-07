@@ -1126,3 +1126,15 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P2
 - Keep WP-18DC blocked until the post-deploy public-form confirmation is complete.
+
+## 2026-08-07 — Production backup alert hotfix follow-up
+
+### P0
+- Manual Save/Deploy required to move the repaired backup-alert/stale-backup bundle into production.
+- After deploy, recheck live production for:
+  - no false red backup email while a fresh complete-R2 backup is actively running
+  - stale active backup jobs reclaimed inside the new 30-minute threshold
+  - scheduler/manual complete-R2 paths no longer blocked by reclaimable stale jobs
+
+### P1
+- Re-run the bounded production backup/recovery certification once the repaired bundle is live.

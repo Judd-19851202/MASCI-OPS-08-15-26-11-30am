@@ -973,3 +973,17 @@
 - The provided line from `routes.transportation_automation` is informational (`daily tick · actions=0 · emails_sent=0 · needs_cfg=0 · errors=0`) and is not a startup/runtime failure.
 - `deployment_agent` found no code-level deployment blockers: env wiring, CORS, ports, supervisor config, Mongo usage, and source configuration all passed.
 - Current conclusion: no code fix was required in preview for the supplied log evidence; if production deployment still fails, the exact blocker is likely outside the shared application code path and needs the real failing deployment error/event from the production deploy pipeline.
+
+## 2026-08-07 — Production backup alert / stale backup repair
+- User reported recurring production backup health emails still firing despite the governed 75-minute red threshold.
+- Root cause repaired in preview:
+  - backup health surfaces could still escalate red while a fresh complete-R2 backup was actively running
+  - stale active backup jobs were not reclaimed aggressively enough, allowing scheduler/manual backup paths to remain blocked
+  - Daily Report operator-facing email copy still exposed internal OPPC/control-plane jargon in the notification template family
+- Implemented application-controlled repairs:
+  - added in-progress complete-backup shielding so active healthy complete-R2 work stays amber instead of paging operators red
+  - standardized stale active backup reclaim at `BACKUP_ACTIVE_STALE_MINUTES=30`
+  - added stale sweep before overlap classification in scheduled/manual backup and restore entrypoints
+  - removed OPPC/control-plane jargon from Daily Report operator-facing email copy
+- Verified in preview with fresh QA: `/app/test_reports/iteration_153.json` → all 63 backend tests passed.
+- Production note: these repairs are not live until the user performs another manual Save/Deploy.

@@ -830,3 +830,11 @@
 - Added Daily Report active draft-session anchoring so same-device midnight rollover no longer resets in-progress reports for 24/7 crews.
 - Adjusted backup health classification to warn at 60 minutes and escalate to red/failure only after 75 minutes.
 - Verified the reopened package with `/app/test_reports/iteration_151.json`, `backend/tests/test_wp18db_incident_auth_backup.py` (`16 passed`), and `python /app/scripts/release_gate.py` (PASS).
+
+## 2026-08-07 — Backup alert / stale backup repair (preview bundle)
+
+- Added active complete-R2 shielding so backup health stays amber, not red, while a fresh backup is genuinely in progress.
+- Reduced stale active backup reclaim threshold to 30 minutes and applied stale sweep before overlap classification across backup/restore entrypoints.
+- Removed OPPC/control-plane jargon from Daily Report operator-facing notification copy.
+- Verified with fresh backend QA in `/app/test_reports/iteration_153.json` (`63/63 backend tests passed`).
+- Production still requires another manual Save/Deploy for this repair to take effect live.
