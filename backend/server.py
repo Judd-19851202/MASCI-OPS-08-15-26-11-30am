@@ -3636,12 +3636,6 @@ register_incident_engine_routes(
         db, _is_valid_admin_token, _is_valid_pm_token,
         is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     ),
-    require_field_actor=__import__(
-        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_pm_or_field"]
-    ).make_require_safety_admin_pm_or_field(
-        db, _is_valid_admin_token, _is_valid_pm_token,
-        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
-    ),
 )
 
 # Public-gate near-miss kiosk (Phase B2). Additive. No auth. Routes
@@ -3684,12 +3678,6 @@ _register_ie_report_routes(
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
     ).make_require_safety_admin_or_pm(
-        db, _is_valid_admin_token, _is_valid_pm_token,
-        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
-    ),
-    require_field_actor=__import__(
-        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_pm_or_field"]
-    ).make_require_safety_admin_pm_or_field(
         db, _is_valid_admin_token, _is_valid_pm_token,
         is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     ),

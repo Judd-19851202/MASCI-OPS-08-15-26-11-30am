@@ -1111,3 +1111,18 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P2
 - Keep deferred notification families and deferred module lanes outside Release 1 until separately certified.
+
+## 2026-08-06 — Post-WP18DB reopened repair roadmap
+
+### P0
+- After Save/Deploy, run the bounded live-production confirmation for:
+  - public Daily Report submit
+  - public Incident Report submit
+  - public Safety Meeting / Pre-Op / DVIR submit access
+  - backup-health email quiet period between 60 and 75 minutes
+
+### P1
+- Monitor for any sibling public-form draft/session regressions on the same shared resiliency layer.
+
+### P2
+- Keep WP-18DC blocked until the post-deploy public-form confirmation is complete.

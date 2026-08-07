@@ -1,36 +1,20 @@
-# WP-18DB Test and Certification Report
+# WP18DB Test And Certification Report
 
-## Active executed suites
+## Final test result
 
-### Reliability control suites
-- `backend/tests/test_checkpoint_d5_d6_release_gate.py` → PASS
-- `backend/tests/test_iter445_scheduler_hardening.py` → PASS
+- Testing agent: `/app/test_reports/iteration_150.json` → PASS
+- Focused backend suite: `backend/tests/test_wp18db_incident_auth_backup.py` → `9 passed`
 
-### Provider / degradation suites
-- `backend/tests/test_iter370_r7_admin_strict_fail_closed.py` → PASS/SKIP ONLY ON TRANSPORT NOISE
-- `backend/tests/test_s1_4_notification_delivery_certification.py` → PASS
-- `backend/tests/test_ai_gateway.py` → PASS
-- `backend/tests/test_compliance_exports.py` → PASS
-- `backend/tests/test_iter331_pdf_non_blocking.py` → PASS
-- `backend/tests/test_track_27_07_storage_invariants.py` → PASS
+## Certified behaviors
 
-### Recovery proof
-- fresh complete archive upload on `2026-08-06`
-- namespace-isolated restore drill `18f83aaa665a` → PASS
+- Daily Report responsive shell passes at `390 / 430 / 768 / 1024 / 1440`
+- Public Incident Report loads without login and advances into the form
+- `POST /api/public/incident-cases` succeeds without login and is idempotent
+- `POST /api/incident-cases` without login remains `401`
+- Public incident weather/project-context helpers are not auth-gated
+- Daily Report draft survives reload and simulated next-day rollover on the same device/session
+- Backup health threshold uses `60m` warning and `75m` red-alert threshold
 
-### Controlled restart measurement
-- backend health recovery: `49.266s`
-- scheduler alive recovery: `44.715s`
+## Final GO decision
 
-### Browser evidence
-- preview smoke load → PASS
-- `/admin/recovery` executive dashboard extension rendered in browser after tokenized admin session → PASS
-
-## Certification status
-
-- Backup architecture: **COMPLETE**
-- Restore proof: **COMPLETE**
-- Scheduler durability: **COMPLETE**
-- Failure independence for auth / notification / PDF / AI / storage: **COMPLETE**
-- Final release gate: **PASS**
-- Final GO decision: **GO — READY TO SAVE & DEPLOY**
+**GO — READY TO SAVE & DEPLOY**

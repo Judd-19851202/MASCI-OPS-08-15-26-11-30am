@@ -821,3 +821,12 @@
 - Added the full `FINAL_DEPLOY_*` package plus `FINAL_DEPLOY_NOTIFICATION_FAMILY_CERTIFICATION.csv`, and superseded stale `FINAL_EMERGENCY_*` records that contradicted current release truth.
 - Refreshed the authoritative deploy suite to `125 passed, 4 skipped, 1 warning, 0 failed, 0 errors`; skip ledger lives in `FINAL_DEPLOY_ACTIVE_TEST_RECONCILIATION.csv`.
 - Final executive state is no longer blocked by application code defects; the only remaining blocker is the exact external-owner Atlas telemetry dependency documented in `FINAL_DEPLOY_ATLAS_ROOT_CAUSE_AND_REPAIR.md` and `FINAL_DEPLOY_EXECUTIVE_GATE.md`.
+
+## 2026-08-06 — WP18DB reopened field-regression repair
+
+- Repaired the shared public-form sticky shell so the synced-status pill no longer blocks submit buttons on Daily Report and sibling fixed-footer forms.
+- Restored Incident Report to the correct public/no-login submit contract via `POST /api/public/incident-cases`, while keeping the internal `/api/incident-cases/*` workspace protected.
+- Returned public incident helper endpoints to no-login access and verified idempotent public filing.
+- Added Daily Report active draft-session anchoring so same-device midnight rollover no longer resets in-progress reports for 24/7 crews.
+- Adjusted backup health classification to warn at 60 minutes and escalate to red/failure only after 75 minutes.
+- Verified the reopened package with `/app/test_reports/iteration_150.json` and `backend/tests/test_wp18db_incident_auth_backup.py` (`9 passed`).

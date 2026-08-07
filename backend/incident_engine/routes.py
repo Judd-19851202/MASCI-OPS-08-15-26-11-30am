@@ -134,10 +134,8 @@ def register_incident_engine_routes(
     """
 
     # ── VOCABULARY ──────────────────────────────────────────────
-    field_actor_dep = require_field_actor or require_actor
-
     @api_router.get("/incident-cases/vocabulary")
-    async def vocabulary(actor=Depends(field_actor_dep)) -> Dict[str, Any]:
+    async def vocabulary(actor=Depends(require_actor)) -> Dict[str, Any]:
         v = build_vocabulary()
         role = normalize_role(actor)
         v["actor_role"] = role
@@ -148,7 +146,7 @@ def register_incident_engine_routes(
     @api_router.post("/incident-cases")
     async def create_case_route(
         body: CreateCaseBody = Body(...),
-        actor=Depends(field_actor_dep),
+        actor=Depends(require_actor),
     ) -> Dict[str, Any]:
         try:
             return await case_service.create_case(
@@ -199,7 +197,7 @@ def register_incident_engine_routes(
     async def patch_field_block_route(
         case_id: str,
         body: PatchFieldBlockBody = Body(...),
-        actor=Depends(field_actor_dep),
+        actor=Depends(require_actor),
     ) -> Dict[str, Any]:
         try:
             return await case_service.update_field_block(
@@ -226,7 +224,7 @@ def register_incident_engine_routes(
     async def transition_route(
         case_id: str,
         body: TransitionBody = Body(...),
-        actor=Depends(field_actor_dep),
+        actor=Depends(require_actor),
     ) -> Dict[str, Any]:
         try:
             return await case_service.transition_case(
@@ -269,7 +267,7 @@ def register_incident_engine_routes(
     async def add_evidence_route(
         case_id: str,
         body: EvidenceBody = Body(...),
-        actor=Depends(field_actor_dep),
+        actor=Depends(require_actor),
     ) -> Dict[str, Any]:
         try:
             ev = await ev_engine.add_evidence(

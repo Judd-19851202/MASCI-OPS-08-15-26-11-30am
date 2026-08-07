@@ -955,3 +955,14 @@
 - Added the complete `FINAL_DEPLOY_*` package, superseded stale `FINAL_EMERGENCY_*` records, and closed backup/restore proof with the exact archive + OPS8 isolated restore drill evidence.
 - Atlas final status remains one exact external-owner dependency only: direct production Atlas Query Insights / Profiler / Performance Advisor access for historical offender attribution.
 - Current executive disposition: **PHYSICALLY_BLOCKED_BY_ONE_EXTERNAL_OWNER_DEPENDENCY**.
+
+## 2026-08-06 — WP18DB reopened field-regression repair
+- Corrected the public/private submission boundary for field and safety tile forms: Daily Report, Incident Report, Safety Meeting, Equipment Pre-Op, and DVIR remain public/no-login submit surfaces; site audit remains the authenticated exception.
+- Repaired the shared fixed-footer collision so the global sync pill no longer obstructs sticky submit actions on public field forms across the responsive matrix.
+- Repaired Incident Report by restoring it to a dedicated public write surface (`/api/public/incident-cases`) while keeping the internal `/api/incident-cases/*` workspace protected.
+- Added an active Daily Report draft-session anchor so 24/7 crews do not lose in-progress work at midnight or on same-device reload.
+- Adjusted backup health behavior so operator warning stays at 60 minutes but red-alert / failure-email sensitivity moves to >75 minutes.
+- Runtime proof bundle:
+  - `/app/test_reports/iteration_150.json` passed comprehensive reopened regression testing
+  - `pytest -q /app/backend/tests/test_wp18db_incident_auth_backup.py` passed (`9 passed`)
+  - preview/workspace executive state re-earned: **GO — READY TO SAVE & DEPLOY**

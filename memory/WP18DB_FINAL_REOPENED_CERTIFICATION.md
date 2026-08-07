@@ -11,7 +11,8 @@ This document is the truthful reopened certification record for that hold.
 | Blocker | Status | Truth |
 |---|---|---|
 | Daily Report / field submit obstruction | RESOLVED | shared fixed-footer collision repaired at shell level |
-| Incident / Accident Report legitimate field-user 401 | RESOLVED | precise auth contract repaired without permission widening |
+| Incident / Accident Report public submit 401 | RESOLVED | public form restored to public write surface; internal workspace stayed protected |
+| Daily Report midnight reset / loss risk | RESOLVED | active draft session anchored across day rollover on the same device |
 | Backup health-failure email sensitivity | RESOLVED | 60-minute warning retained, red-alert threshold moved to 75 minutes |
 
 ## Runtime proof bundle
@@ -21,40 +22,39 @@ This document is the truthful reopened certification record for that hold.
 - `/daily/submit` passed at `390 / 430 / 768 / 1024 / 1440`
 - `/incidents/report` passed at `390 / 430 / 768 / 1024 / 1440`
 - shared-shell spot checks passed on `/meetings/submit`, `/equipment/submit`, and `/fleet/dvir/submit`
-- QA report: `/app/test_reports/iteration_149.json`
+- QA report: `/app/test_reports/iteration_150.json`
 
 ### Incident auth proof
 
-Legitimate field user (`cert.foreman@example.com`) passed:
+Public no-login proof passed:
 
-- create case → `200`
-- patch field block → `200`
-- add evidence → `200`
-- transition to `FIELD_SUBMITTED` → `200`
+- `POST /api/public/incident-cases` → `200`
+- idempotent replay with the same key → `200`, `duplicate=true`
+- canonical filed case returned with `FIELD_SUBMITTED`
 
 Negative controls remained correct:
 
-- no auth → `401`
-- directory only → `401`
-- PM-only create → `403`
+- unauthenticated `POST /api/incident-cases` → `401`
+- internal workspace route family remained protected
 
 ### Draft continuity proof
 
 - Incident draft persisted in `localStorage`
 - draft keys remained present across reload
 - `incident-report-draft-indicator` remained visible after reload on the same draft shell
+- Daily Report active draft session survived simulated next-day reload on the same device without an automatic reset
 
 ### Backup alert-buffer proof
 
 - source path now uses `BACKUP_RPO_TARGET_MINUTES=60` for warning and `BACKUP_HEALTH_ALERT_THRESHOLD_MINUTES=75` for red-alert classification
-- focused backend suite: `backend/tests/test_wp18db_incident_auth_backup.py` → `14 passed`
+- focused backend suite: `backend/tests/test_wp18db_incident_auth_backup.py` → `9 passed`
 - live preview admin proof: `/api/admin/system-health` backup card detail now reports `target ≤ 60m; alert > 75m`
 
 ## Deployment-readiness posture after reopened repairs
 
 - release / regression QA bundle: PASS
-- focused backend proof bundle: PASS (`14 passed`)
-- testing agent sweep: PASS (`/app/test_reports/iteration_149.json`)
+- focused backend proof bundle: PASS (`9 passed`)
+- testing agent sweep: PASS (`/app/test_reports/iteration_150.json`)
 
 ## Evidence set created for the reopened pass
 
@@ -71,4 +71,4 @@ Negative controls remained correct:
 
 ## Boundary of this decision
 
-This is a **preview/workspace** re-earned GO based on repaired source, runtime proof in preview, focused backend certification, and QA sweep evidence. It is **not** a claim that production is already repaired until the user chooses Save/Deploy and confirms live behavior.
+This is a **preview/workspace** re-earned GO based on repaired source, runtime proof in preview, focused backend certification, and QA sweep evidence. Public field/safety tile forms remain no-login submit surfaces, while designated portal workspaces remain protected. This is **not** a claim that production is already repaired until the user chooses Save/Deploy and confirms live behavior.

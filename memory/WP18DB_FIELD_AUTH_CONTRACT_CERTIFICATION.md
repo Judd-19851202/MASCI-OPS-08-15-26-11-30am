@@ -2,42 +2,47 @@
 
 ## Scope
 
-This certification covers the reopened field-report auth contract for the Incident workflow and the related session-handling path used by the field submission UI.
+This certification captures the corrected boundary between **public field/safety tile forms** and **authenticated portal workspaces** after the reopened regression pass.
 
-## Certified actor matrix
+## Corrected constitutional truth
 
-| Actor / header set | Expected result | Certified result |
+- Daily Report (`/daily/submit`) — public submit
+- Incident / Accident Report (`/incidents/report`) — public submit
+- Safety Meeting (`/meetings/submit`) — public submit
+- Equipment Pre-Op (`/equipment/submit`) — public submit
+- DVIR / fleet inspection (`/fleet/dvir/submit`) — public or signed-in submit
+- Site Audit / Safety Inspection (`/safety/inspections/new`) — authenticated exception
+
+## Certified contract matrix
+
+| Surface | Expected contract | Certified result |
 |---|---|---|
-| No auth | deny | `401` |
-| `X-Directory-Token` only | deny | `401` |
-| `X-Directory-Token` + `X-FL-Token` | allow field create / patch / evidence / submit | `200 / 200 / 200 / 200` |
-| `X-Directory-Token` + `X-PM-Token` | do not allow field create if not explicitly authorized | `403` |
-| `X-Directory-Token` + `X-Safety-Token` | preserve safety read gate | `200` on list/read path used in proof |
+| `POST /api/public/incident-cases` | allow without login | `200` |
+| repeat `POST /api/public/incident-cases` with same idempotency key | no duplicate record | `200`, `duplicate=true`, same case |
+| `POST /api/incident-cases` without portal auth | deny (internal workspace stays protected) | `401` |
+| `GET /api/incident-intelligence/weather` without login | allow public helper | `200` |
+| `GET /api/incident-intelligence/project-context/{project}` without login | helper must not auth-fail | non-`401` / non-`403` |
 
 ## Certified backend contract
 
-### Entry gate
+### Public form surfaces
 
-- field reporting routes now accept Field Leadership through `make_require_safety_admin_pm_or_field(...)`
-- Field Leadership acceptance still requires the existing async FL token validation and active session activity check
+- `/api/public/incident-cases` is now the public Incident Report write surface
+- `/api/meetings`, `/api/equipment-inspections`, `/api/daily-reports`, and `/api/fleet/inspections` remain public rate-limited write surfaces
 
-### Authority source of truth
+### Protected workspace surfaces
 
-- accepted field users are normalized to `role="field"`
-- write authority remains governed by the existing incident capability matrix (`role_can(...)`)
-- PM-only create remains denied
-
-### Non-field workspace protection preserved
-
-- broader incident workspace routes remain behind the original Safety/Admin/PM review gate unless explicitly wired to the narrow field gate
+- `/api/incident-cases/*` remains an authenticated internal workspace route family
+- site audit / safety inspection remains the authenticated exception
 
 ## Certified frontend contract
 
 File: `frontend/src/lib/incidentReportApi.js`
 
-- Incident Report requests now use the shared `api` client
-- scoped headers now include `field_leadership`
-- shared session/auth-failure handling is no longer bypassed by a separate standalone client
+- Incident Report public page submits through `submitPublicIncident(...)`
+- Daily Report is routed as `NewDailyReportV3 publicMode`
+- Safety Meeting is routed as `NewMeeting publicMode`
+- DVIR and Equipment Pre-Op remain public submit surfaces on the field/safety tiles
 
 ## Draft preservation / continuity proof
 
@@ -64,10 +69,10 @@ Observed after reload:
 - `incident-report-draft-indicator` present
 - entered step state restored on the same draft shell
 
-## Session-failure handling conclusion
+## Session / continuity conclusion
 
-The reopened repair removed the custom Incident axios bypass and returned the Incident flow to the platform’s governed shared API/session path. Combined with the existing per-keystroke draft persistence, this closes the reopened data-loss risk where a field reporter could hit auth failure and lose work-in-progress state.
+The incident form no longer fails on a missing portal login because the public page is now bound to a public write surface. Combined with the existing draft persistence and the new Daily Report midnight session anchor, the corrected boundary removes both the false-login blocker and the midnight reset risk for public field forms.
 
 ## Certification result
 
-**CERTIFIED IN PREVIEW:** the field auth contract now accepts the real Field Leadership token family on the intended incident-report surfaces, preserves denials for unauthorized / directory-only / PM-only create attempts, and retains draft continuity across reload/interruption on the Incident shell.
+**CERTIFIED IN PREVIEW:** the public field/safety tile forms remain no-login submit surfaces, the protected workspace APIs remain protected, and draft continuity is preserved across interruption/reload on the public Incident and Daily Report shells.

@@ -1,26 +1,22 @@
-# WP-18DB Executive GO / NO-GO
+# WP18DB Executive GO / NO-GO
 
 ## Decision
 
 **GO — READY TO SAVE & DEPLOY**
 
-## Final evidence at decision time
+## Why
 
-- release gate: `PASS`
-- deployment readiness: `PASS`
-- performance budget contract: `PASS`
-- recovery snapshot: `GREEN`
-- backup trust: `90 / green`
-- fresh complete archive age in final gate window: `< 60 min`
-- latest restore drill: `PASS`
-- frontend executive recovery dashboard: `PASS`
-- backend resilience endpoint retest: `PASS`
+- P0 shared submit obstruction: repaired and regression-tested
+- P0 Incident public submit 401: repaired and regression-tested
+- P0 Daily Report midnight reset risk: repaired and regression-tested
+- Backup health alert sensitivity: corrected to 60m warning / 75m red-alert threshold
 
-## Non-blocking notes
+## Evidence
 
-- Recovery snapshot remained `AMBER` because historical 7-day backup failures still appear as advisory context even after the latest successful archive.
-- Mongo live provider-managed failover proof remains an `EXTERNAL OWNER DEPENDENCY`; application-controlled recoverability is complete.
+- `/app/test_reports/iteration_150.json`
+- `/app/backend/tests/test_wp18db_incident_auth_backup.py`
+- `WP18DB_FINAL_REOPENED_CERTIFICATION.md`
 
-## Authorized outcome
+## Boundary
 
-This workspace evidence supports **Save & Deploy**.
+This GO is for the **current preview/workspace bundle**. Production is not claimed repaired until Save/Deploy is performed and live behavior is confirmed.

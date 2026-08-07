@@ -2,142 +2,111 @@
 
 ## Reopened blocker
 
-- **Source evidence:** legitimate field user complaint during Accident / Incident Report submission.
-- **Blocking symptom:** a real field identity reached Incident Report submit and received `401 Unauthorized`.
-- **Constraint:** repair the exact auth/session contract without widening permissions, bypassing project scope, or disabling expiry.
+- **Source evidence:** supervisor field complaint during Accident / Incident Report submission.
+- **Blocking symptom:** the public Incident Report flow reached submit and hit `401 Unauthorized`.
+- **Corrected constitutional truth:** Incident / Accident Report from the public Field/Safety tiles is a **no-login** form. Only designated portal workspace routes require authentication.
 
 ## Exact reproduction
 
-Using the existing governed preview field identity from `/app/memory/test_credentials.md`:
-
-- login endpoint: `/api/auth/multi-login`
-- identity: `cert.foreman@example.com`
-- returned tokens: directory session + `field_leadership` portal token
-
 ### Pre-fix failing call
 
-`POST /api/incident-cases`
+The public page was ultimately wired into the authenticated internal incident workspace submit path:
 
-Headers supplied during reproduction:
+- frontend submit path attempted the authenticated incident engine helpers
+- internal write surface: `POST /api/incident-cases`
 
-- `X-Directory-Token`
-- `X-FL-Token`
-
-Observed result:
+Observed result without portal auth:
 
 - HTTP `401`
 - detail: `Safety, Admin, or PM login required`
 
-Backend log correlation during the same proof window recorded:
+Backend log correlation during proof recorded:
 
 - `POST /api/incident-cases HTTP/1.1" 401 Unauthorized`
 
 ## First failing layer
 
-The first failing layer was the **outer backend dependency gate**, with a second confirming client-side contract gap.
+The first failing layer was the **public/private route-boundary mismatch**, with auth only appearing as the symptom.
 
-### Backend gate mismatch
+### Backend boundary mismatch
 
-Before repair, the Incident engine/report routes were registered behind `make_require_safety_admin_or_pm(...)`.
+Before repair, the page submit path targeted the **internal incident workspace** route family (`/api/incident-cases/*`), which is correctly auth-gated for portal operations.
 
-That meant:
-
-- Safety users were accepted.
-- Admin users were accepted.
-- PM users were accepted.
-- Legitimate Field Leadership users were rejected **before** the incident capability matrix could run.
-
-So the field actor never reached the governed `role_can(...)` checks for create / patch / evidence / submit.
+That internal route family is not the constitutional contract for the public Field/Safety tile form.
 
 ### Frontend client mismatch
 
 File: `frontend/src/lib/incidentReportApi.js`
 
-Before repair, the Incident Report client:
+Before repair, the Incident Report client submitted through the internal incident-engine helper set instead of a public rate-limited endpoint.
 
-- used its own standalone axios client
-- scoped auth headers to `safety`, `admin`, and `pm`
-- omitted `field_leadership`
-- bypassed the shared session-status / auth-failure handling stack in `frontend/src/lib/api.js`
+So the page contract and the route contract disagreed:
 
-So the frontend and backend were both enforcing the wrong outer contract for a legitimate field reporter.
+- UI surface = public tile form
+- submit route = authenticated workspace route
 
 ## Smallest safe repair
 
-### Narrow backend field gate
+### Public submit route added for the public form
 
-File: `backend/routes/safety_portal/_deps.py`
+File: `backend/incident_engine/public_gate.py`
 
-Added a dedicated dependency:
+Added a dedicated public endpoint:
 
-- `make_require_safety_admin_pm_or_field(...)`
+- `POST /api/public/incident-cases`
 
 Behavior:
 
-- preserves existing Safety/Admin/PM acceptance
-- accepts a legitimate `X-FL-Token` after the existing async Field Leadership token + session-activity validation
-- normalizes the accepted actor to `role="field"`, so the existing incident capability matrix remains the single source of truth
+- accepts no-login public Incident Report submissions
+- reuses the governed incident engine to create the canonical case
+- records evidence items best-effort
+- transitions the case to `FIELD_SUBMITTED`
+- preserves idempotency through the public-submission register
 
-### Narrow route wiring only where field submission actually needs it
+### Public helper route correction
 
-Files:
+File: `backend/incident_engine/report_routes.py`
 
-- `backend/incident_engine/routes.py`
-- `backend/incident_engine/report_routes.py`
-- `backend/server.py`
+The public Incident Report helpers were returned to public access:
 
-The new field-capable gate was applied only to:
+- `/api/incident-intelligence/weather`
+- `/api/incident-intelligence/project-context/{project_number}`
 
-- incident vocabulary
-- create case
-- patch field block
-- add evidence
-- transition submit path
-- weather lookup
-- project-context lookup
-
-The broader Safety/Admin/PM workspace gate was left intact for the rest of the incident workspace.
+These are form-assist endpoints for the public reporting surface and should not demand portal auth.
 
 ### Frontend contract repair
 
 File: `frontend/src/lib/incidentReportApi.js`
 
-- switched from the standalone axios client to the governed shared `api` client
-- expanded scoped auth headers to include `field_leadership`
-- preserved directory-token forwarding
-- restored shared auth/session handling on 401s instead of a silent client-side side path
+- final submit now uses the dedicated public endpoint through `submitPublicIncident(...)`
+- public incident helpers no longer depend on login
+- internal authenticated workspace helpers remain separate and protected
 
 ## Runtime proof after repair
 
-Using the same legitimate field identity:
+Unauthenticated public proof passed:
 
-- `POST /api/incident-cases` → `200`
-- `PATCH /api/incident-cases/{id}/field-block` → `200`
-- `POST /api/incident-cases/{id}/evidence` → `200`
-- `POST /api/incident-cases/{id}/transitions` to `FIELD_SUBMITTED` → `200`
+- `POST /api/public/incident-cases` → `200`
+- canonical case returned with `case_id` and `case_number`
+- filed state returned as `FIELD_SUBMITTED`
+- replay with the same idempotency key returns `duplicate=true` with the same case id
 
-Observed filed result during proof:
+### Negative controls still correct
 
-- case state advanced to `FIELD_SUBMITTED`
-- case number was issued (`2026-00009` in the direct proof run)
-
-### Negative controls still denied
-
-- no auth → `401`
-- directory token only → `401`
-- PM directory + PM token only → `403` on create
+- unauthenticated `POST /api/incident-cases` → `401`
+- internal authenticated incident workspace remains protected
 
 ## Why this is the precise fix
 
-The repair did **not** widen authority to all field routes.
+The repair did **not** weaken the internal incident workspace.
 
-It only restored the intended field-submission path by:
+It restored the correct public/private split by:
 
-1. accepting the legitimate field token family on the exact incident-report surfaces that need it
-2. preserving the existing incident capability matrix as the write authority
-3. keeping unauthorized and PM-only create attempts denied
-4. restoring shared session/error handling in the Incident frontend client
+1. keeping the internal `/api/incident-cases/*` workspace auth-gated
+2. moving the public form back onto a dedicated no-login endpoint
+3. keeping public helper endpoints public
+4. preserving canonical incident creation, evidence handling, filing, and idempotency
 
 ## Conclusion
 
-The legitimate field-user 401 was not caused by expired tokens, missing session activity, or a failing permission matrix. It was caused by a **mismatched outer auth contract**: the field reporter path used the Field Leadership token family, but both the frontend client and backend route gate were limited to Safety/Admin/PM. The reopened repair restored the governed field-report contract without weakening authorization.
+The incident 401 was not truly a field-user authorization defect. It was a **surface-boundary defect**: a public tile form was routed into an authenticated internal workspace API. The reopened repair restored the governed public-form contract without opening the protected incident workspace.
