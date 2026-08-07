@@ -1773,10 +1773,6 @@ from lib.release_identity import (  # noqa: E402 — release identity block is i
 
 _STARTUP_TS = datetime.now(timezone.utc)
 _REPO_ROOT = ROOT_DIR.parent
-_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL = os.environ.get(
-    "FRONTEND_INTERNAL_RELEASE_IDENTITY_URL",
-    "http://127.0.0.1:3000/release-identity.json",
-).rstrip("/")
 _FRONTEND_SERVED_IDENTITY_CACHE = {"ts": 0.0, "identity": None}
 
 
@@ -1808,6 +1804,25 @@ def _empty_frontend_identity(source: str, *, error: Optional[str] = None) -> Dic
     }
 
 
+def _frontend_release_identity_candidate_urls() -> List[str]:
+    candidates: List[str] = []
+    raw_values = [
+        os.environ.get("FRONTEND_INTERNAL_RELEASE_IDENTITY_URL"),
+        os.environ.get("APP_DOMAIN"),
+        os.environ.get("REACT_APP_BACKEND_URL"),
+        os.environ.get("PUBLIC_BASE_URL"),
+        "http://127.0.0.1:3000",
+    ]
+    for raw in raw_values:
+        value = str(raw or "").strip().rstrip("/")
+        if not value:
+            continue
+        url = value if value.endswith("/release-identity.json") else f"{value}/release-identity.json"
+        if url not in candidates:
+            candidates.append(url)
+    return candidates
+
+
 def _read_served_frontend_identity() -> Dict[str, Any]:
     import urllib.request as _urlreq
 
@@ -1815,17 +1830,26 @@ def _read_served_frontend_identity() -> Dict[str, Any]:
     cached = _FRONTEND_SERVED_IDENTITY_CACHE.get("identity")
     if cached and (now - float(_FRONTEND_SERVED_IDENTITY_CACHE.get("ts") or 0.0)) < 5.0:
         return cached
-    try:
-        with _urlreq.urlopen(_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL, timeout=1.5) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
-        identity = normalize_frontend_release_identity_payload(
-            payload if isinstance(payload, dict) else None,
-            source=f"served:{_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL}",
-        )
-    except Exception as exc:  # noqa: BLE001
+    errors: List[str] = []
+    identity = None
+    for candidate_url in _frontend_release_identity_candidate_urls():
+        try:
+            with _urlreq.urlopen(candidate_url, timeout=1.5) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+            identity = normalize_frontend_release_identity_payload(
+                payload if isinstance(payload, dict) else None,
+                source=f"served:{candidate_url}",
+            )
+            if identity.get("commit") or identity.get("source_hash"):
+                break
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"{candidate_url} -> {type(exc).__name__}: {exc}")
+            identity = None
+    if identity is None:
+        source = _frontend_release_identity_candidate_urls()[0] if _frontend_release_identity_candidate_urls() else "unknown"
         identity = _empty_frontend_identity(
-            f"served:{_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL}",
-            error=f"{type(exc).__name__}: {exc}",
+            f"served:{source}",
+            error="; ".join(errors[-3:]) if errors else "frontend release identity probe failed",
         )
     _FRONTEND_SERVED_IDENTITY_CACHE.update({"ts": now, "identity": identity})
     return identity
@@ -1876,9 +1900,13 @@ _INTENDED_RELEASE_COMMIT, _INTENDED_RELEASE_SOURCE, _WORKSPACE_IDENTITY_SNAPSHOT
     _REPO_ROOT,
     env=os.environ,
 )
+_FRONTEND_GENERATED_IDENTITY_AT_BOOT = read_frontend_build_identity(_REPO_ROOT)
+if str(_INTENDED_RELEASE_COMMIT).startswith("PRE_SAVE_CANDIDATE:UNPROVEN:") and _FRONTEND_GENERATED_IDENTITY_AT_BOOT.get("commit"):
+    _INTENDED_RELEASE_COMMIT = _FRONTEND_GENERATED_IDENTITY_AT_BOOT.get("commit")
+    _INTENDED_RELEASE_SOURCE = "frontend_generated_identity_fallback"
 _RESOLVED_COMMIT, _COMMIT_SOURCE = resolve_runtime_commit(
     _REPO_ROOT,
-    frontend_build_commit=read_frontend_build_identity(_REPO_ROOT).get("commit"),
+    frontend_build_commit=_FRONTEND_GENERATED_IDENTITY_AT_BOOT.get("commit"),
     source_hash=_SOURCE_HASH,
 )
 _INSTANCE_FINGERPRINT = build_instance_fingerprint(
