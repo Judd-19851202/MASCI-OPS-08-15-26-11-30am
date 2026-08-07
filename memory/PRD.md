@@ -1,5 +1,12 @@
 # PRD
 
+## 2026-08-07 — WP-18 roadmap authority lock
+
+- The authoritative roadmap is now locked by `/app/memory/WP18_MASTER_EXECUTION_ROADMAP.md` and `/app/memory/WP18_ROADMAP_RECONCILIATION_REPORT.md`.
+- Repository evidence resolves the current WP-18 position as: `C1` through `C6` complete; `CX/CY/CZ/DA/DB` complete as certification/stabilization packages; next core package is **`C7 — Forecasting and Commitments`** if and only if separately authorized.
+- `WP-18DC` remains a blocked placeholder reference only and is not a formally defined governing package in current repository artifacts.
+- `WP-18 COMPLETE` remains bounded by the ECAP core sequence ending at `C10`.
+
 ## 2026-08-06 — iter150 WP-18DB closeout
 
 - Preview verified ✅

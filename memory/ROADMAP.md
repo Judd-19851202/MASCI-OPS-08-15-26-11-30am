@@ -1,3 +1,19 @@
+# 2026-08-07 — WP-18 master roadmap reconciliation lock
+
+- Authority is now locked by:
+  - `/app/memory/WP18_MASTER_EXECUTION_ROADMAP.md`
+  - `/app/memory/WP18_ROADMAP_RECONCILIATION_REPORT.md`
+- Current authoritative position: `WP-18C1` through `WP-18C6` are complete; `WP18CX`, `WP18CY`, `WP18CZ`, `WP18DA`, and `WP18DB` are completed certification/stabilization packages; the next core package, if separately authorized, is **`WP-18C7 — Forecasting and Commitments`**.
+- `WP-18DC` has no formal governing package definition in repository evidence and is **not** the authoritative next package.
+- `WP-18 COMPLETE` means the remaining core sequence closes as `C7 → C8 → C9 → C10`, with `C10` as the final migration/backfill/reconciliation/certification boundary.
+
+## ROADMAP AUTHORITY & ANTI-INVENTION RULE
+
+- Only explicitly evidenced and governed packages count as roadmap packages.
+- Certification/hotfix/deferred-module notes do **not** create new core package numbers.
+- Recommendations, backlog items, potential improvements, and placeholder labels do **not** become roadmap phases without formal authorization.
+- Where historical sections below conflict with this lock, this dated section supersedes them while preserving the older text as audit history.
+
 # 2026-08-06 — WP18DB final state
 
 - **WP-18DB is COMPLETE, CERTIFIED, and DEPLOYABLE.**

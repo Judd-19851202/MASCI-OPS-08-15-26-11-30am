@@ -1,3 +1,9 @@
+# 2026-08-07 — WP-18 roadmap reconciliation lock
+
+- Added `/app/memory/WP18_MASTER_EXECUTION_ROADMAP.md` as the authoritative locked sequence from the current certified position through `WP-18 COMPLETE`.
+- Added `/app/memory/WP18_ROADMAP_RECONCILIATION_REPORT.md` documenting the recovered original `C1-C10` definitions, the actual executed path, the classification of `CX/CY/CZ/DA/DB`, and the determination that `WP-18DC` is not a formally defined next package.
+- Updated `ROADMAP.md` and `PRD.md` with the permanent roadmap authority / anti-invention rule and the locked determination that the next core package is `WP-18C7`.
+
 # 2026-08-06 — WP18DB final closeout
 
 - Completed WP-18DB with a fresh complete preview archive (`MASCI_complete_backup_2026-08-06_210529Z.zip`), green recovery posture, green backup trust score (`90`), passing restore drill evidence, passing deployment readiness, and a passing final release gate.
