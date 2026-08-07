@@ -21,8 +21,17 @@ This document is the truthful reopened certification record for that hold.
 
 - `/daily/submit` passed at `390 / 430 / 768 / 1024 / 1440`
 - `/incidents/report` passed at `390 / 430 / 768 / 1024 / 1440`
-- shared-shell spot checks passed on `/meetings/submit`, `/equipment/submit`, and `/fleet/dvir/submit`
-- QA report: `/app/test_reports/iteration_150.json`
+- shared-shell/public route checks passed on `/meetings/new`, `/equipment/new`, and `/fleet/dvir/new`
+- QA report: `/app/test_reports/iteration_151.json`
+
+### Public no-login submit proof
+
+- `POST /api/daily-reports` → `200` without auth
+- `POST /api/public/incident-cases` → `200` without auth
+- `POST /api/meetings` → `200` without auth
+- `POST /api/equipment-inspections` → `200` without auth
+- `POST /api/fleet/inspections` → `200` without auth
+- protected exception preserved: `/safety/inspections/new` redirects to `/safety-portal/login`
 
 ### Incident auth proof
 
@@ -47,14 +56,16 @@ Negative controls remained correct:
 ### Backup alert-buffer proof
 
 - source path now uses `BACKUP_RPO_TARGET_MINUTES=60` for warning and `BACKUP_HEALTH_ALERT_THRESHOLD_MINUTES=75` for red-alert classification
-- focused backend suite: `backend/tests/test_wp18db_incident_auth_backup.py` → `9 passed`
+- focused backend suite: `backend/tests/test_wp18db_incident_auth_backup.py` → `16 passed`
 - live preview admin proof: `/api/admin/system-health` backup card detail now reports `target ≤ 60m; alert > 75m`
+- code-path certification confirms quiet/degraded behavior from `61–75` minutes and red only after `>75`; safe live-age forcing was not performed in preview
 
 ## Deployment-readiness posture after reopened repairs
 
 - release / regression QA bundle: PASS
-- focused backend proof bundle: PASS (`9 passed`)
-- testing agent sweep: PASS (`/app/test_reports/iteration_150.json`)
+- focused backend proof bundle: PASS (`16 passed`)
+- testing agent sweep: PASS (`/app/test_reports/iteration_151.json`)
+- formal regression / reliability gate: PASS (`python /app/scripts/release_gate.py`)
 
 ## Evidence set created for the reopened pass
 
@@ -64,6 +75,8 @@ Negative controls remained correct:
 - `WP18DB_FIELD_RESPONSIVE_SUBMISSION_CERTIFICATION.md`
 - `WP18DB_POST_GO_REGRESSION_REGISTER.csv`
 - `WP18DB_FINAL_REOPENED_CERTIFICATION.md`
+- `/app/test_reports/iteration_151.json`
+- `backend/tests/test_wp18db_incident_auth_backup.py`
 
 ## Executive decision for the reopened pass
 

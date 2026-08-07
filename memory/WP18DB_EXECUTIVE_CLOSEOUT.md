@@ -20,9 +20,10 @@ The earlier WP-18DB closeout was correctly suspended after live supervisor evide
 ## Evidence summary
 
 - Shared-shell responsive repair verified at `390 / 430 / 768 / 1024 / 1440`
-- Public Incident Report runtime + backend idempotency verified in `/app/test_reports/iteration_150.json`
-- Daily Report midnight continuity verified in `/app/test_reports/iteration_150.json`
-- Focused backend regression suite: `pytest -q /app/backend/tests/test_wp18db_incident_auth_backup.py` → `9 passed`
+- Public field/safety tile runtime proofs verified in `/app/test_reports/iteration_151.json`
+- Daily Report midnight continuity verified in `/app/test_reports/iteration_151.json`
+- Focused backend regression suite: `pytest -q /app/backend/tests/test_wp18db_incident_auth_backup.py` → `16 passed`
+- Formal release/regression gate: `python /app/scripts/release_gate.py` → `decision: pass`
 
 ## Closeout decision
 

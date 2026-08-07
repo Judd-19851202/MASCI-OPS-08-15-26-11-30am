@@ -13,8 +13,9 @@
 
 ## Evidence
 
-- `/app/test_reports/iteration_150.json`
-- `/app/backend/tests/test_wp18db_incident_auth_backup.py`
+- `/app/test_reports/iteration_151.json`
+- `pytest -q /app/backend/tests/test_wp18db_incident_auth_backup.py` → `16 passed`
+- `python /app/scripts/release_gate.py` → `decision: pass`
 - `WP18DB_FINAL_REOPENED_CERTIFICATION.md`
 
 ## Boundary

@@ -829,4 +829,4 @@
 - Returned public incident helper endpoints to no-login access and verified idempotent public filing.
 - Added Daily Report active draft-session anchoring so same-device midnight rollover no longer resets in-progress reports for 24/7 crews.
 - Adjusted backup health classification to warn at 60 minutes and escalate to red/failure only after 75 minutes.
-- Verified the reopened package with `/app/test_reports/iteration_150.json` and `backend/tests/test_wp18db_incident_auth_backup.py` (`9 passed`).
+- Verified the reopened package with `/app/test_reports/iteration_151.json`, `backend/tests/test_wp18db_incident_auth_backup.py` (`16 passed`), and `python /app/scripts/release_gate.py` (PASS).

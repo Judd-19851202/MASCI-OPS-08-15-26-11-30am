@@ -963,6 +963,7 @@
 - Added an active Daily Report draft-session anchor so 24/7 crews do not lose in-progress work at midnight or on same-device reload.
 - Adjusted backup health behavior so operator warning stays at 60 minutes but red-alert / failure-email sensitivity moves to >75 minutes.
 - Runtime proof bundle:
-  - `/app/test_reports/iteration_150.json` passed comprehensive reopened regression testing
-  - `pytest -q /app/backend/tests/test_wp18db_incident_auth_backup.py` passed (`9 passed`)
+  - `/app/test_reports/iteration_151.json` passed final comprehensive reopened regression testing
+  - `pytest -q /app/backend/tests/test_wp18db_incident_auth_backup.py` passed (`16 passed`)
+  - `python /app/scripts/release_gate.py` passed the final WP-18DB regression/reliability gate
   - preview/workspace executive state re-earned: **GO — READY TO SAVE & DEPLOY**
