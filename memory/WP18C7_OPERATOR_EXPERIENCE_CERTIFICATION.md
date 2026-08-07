@@ -14,4 +14,5 @@
 
 ## Runtime proof
 - Frontend PASS for PM, Admin, and FL routes in `/app/test_reports/iteration_155.json`
-- PM smoke screenshot captured in-tool during implementation.
+- Direct responsive runtime certification PASS at `390 / 430 / 768 / 1024 / 1440` for all three routes.
+- Final operator-surface result: **15 / 15 route-width combinations PASS**.

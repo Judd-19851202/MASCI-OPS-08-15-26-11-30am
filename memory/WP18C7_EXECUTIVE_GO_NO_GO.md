@@ -7,7 +7,8 @@
 - PM, Executive/Admin, and Field Leadership runtime routes all passed.
 - PM commitment create/update and snapshot capture passed.
 - Deployment readiness scan passed.
+- Responsive certification passed `15 / 15` route-width combinations.
 - No open blockers remained after testing.
 
-## Justified skips
-- Full automated multi-width browser certification in `auto_frontend_testing_agent` was blocked by preview timeout instability; no UI defects were found in the successful route tests and the component code uses responsive containment patterns.
+## Final note
+- No responsive-certification substitution remains open.

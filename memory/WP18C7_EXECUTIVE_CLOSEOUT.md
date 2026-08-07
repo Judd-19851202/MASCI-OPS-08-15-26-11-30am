@@ -13,6 +13,8 @@
 - Backend deep validation: `/app/wp18c7_backend_test_results.json`
 - Deployment readiness: PASS
 - Activation register: `/app/memory/WP18C7_ACTIVATION_REGISTER.csv`
+- Responsive certification: **15 / 15 route-width combinations PASS** across PM, Executive, and Field Leadership at `390 / 430 / 768 / 1024 / 1440`.
 
-## Justified certification note
-- A dedicated responsive automation pass was partially blocked by preview-environment timeout instability in `auto_frontend_testing_agent`; however, the implementation passed live route testing, code review of responsive structure, and PM smoke rendering without UI defects.
+## Certification addendum
+- The responsive-certification substitution is now closed.
+- One real UI defect was found during this addendum (scenario comparison missing from the shared workspace) and repaired with the smallest safe UI change before rerunning the affected widths.

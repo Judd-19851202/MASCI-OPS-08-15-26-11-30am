@@ -7,6 +7,7 @@
 - Delivered one governed Forecasting & Commitments authority in `backend/services/project_forecasting_commitments.py` with PM/Admin/Field Leadership surfaces wired to the same truth.
 - Added PM commitment lifecycle create/update, forecast snapshot versioning, confidence/explainability, constraint pressure, and work-block lineage visibility without starting C8/C9/C10.
 - Added the C7 evidence pack under `/app/memory/WP18C7_*`, plus activation register, live backend/frontend verification, and passing deployment readiness.
+- Responsive certification addendum closed: PM, Executive, and Field Leadership C7 routes passed all `15 / 15` route-width combinations at `390 / 430 / 768 / 1024 / 1440`; the only defect found (missing scenario comparison surface) was repaired and rerun to PASS.
 - Runtime proof:
   - `/app/test_reports/iteration_155.json`
   - `/app/wp18c7_backend_test_results.json`

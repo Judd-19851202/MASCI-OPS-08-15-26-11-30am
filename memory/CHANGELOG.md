@@ -5,6 +5,7 @@
 - Added governed backend authority in `backend/services/project_forecasting_commitments.py` combining schedule forecasting reuse, production/resource/cost outlooks, manual commitments, PO-derived commitments, constraints, confidence, and versioning.
 - Extended `backend/routes/enterprise_governance.py` and `backend/routes/field_leadership_portal.py` with PM/Admin/Field Leadership C7 APIs.
 - Added frontend routes and shared workspace UI for PM, Executive/Admin, and Field Leadership: `/pm/project-controls/forecasting`, `/admin/governance/project-controls/forecasting`, `/field-leadership/portal/forecasting`.
+- Added the smallest safe responsive-certification repair by surfacing schedule scenario comparison in the shared workspace, then reran PM/Admin/FL at `390 / 430 / 768 / 1024 / 1440` to a final **15 / 15 PASS**.
 - Added automated coverage: `/app/backend/tests/test_wp18c7_forecasting_commitments.py`, `/app/test_reports/iteration_155.json`, `/app/wp18c7_backend_test_results.json`.
 - Added the C7 evidence pack and activation register under `/app/memory/WP18C7_*`.
 
