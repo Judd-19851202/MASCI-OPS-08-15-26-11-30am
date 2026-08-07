@@ -450,7 +450,7 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
             "escalation_policy_id": "oppc.daily_report.review_ack",
             "description": (
                 "Notify the responsible PM distribution and create a governed audit trail for the "
-                "Daily Report entering the OPPC proof chain."
+                "Daily Report filing and project-team distribution."
             ),
         },
         "oppc.daily_report.review_queue": {
@@ -591,12 +591,11 @@ def build_operations_control_plane_registry() -> Dict[str, Any]:
             "channel_family": "daily_report",
             "title_template": "Daily Report submitted — {project_label}",
             "message_template": (
-                "{doc_id} for {report_date} entered the OPPC proof chain. "
-                "Communication is required under the registered control-plane policy."
+                "{doc_id} for {report_date} has been filed and sent to the project team. "
+                "Review the attached Daily Report and follow the standard project closeout process."
             ),
             "email_note": (
-                "This message was created from a registered operational event and issued through the "
-                "Operations Control Plane."
+                "This Daily Report was filed in MASCI OPS and sent to the assigned project distribution."
             ),
         },
         "oppc.daily_report.pending_review.v1": {
