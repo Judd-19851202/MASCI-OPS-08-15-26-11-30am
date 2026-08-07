@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { AdminRouteShell } from "@/components/admin/AdminRouteShell";
@@ -34,6 +34,7 @@ export default function AdminEarnedValueEngine() {
   const [workspace, setWorkspace] = useState(null);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
+  const bootLoadedRef = useRef(false);
 
   useEffect(() => {
     setProjectNumber(params.get("project_number") || "");
@@ -54,6 +55,7 @@ export default function AdminEarnedValueEngine() {
     try {
       const data = await fetchAdminProjectEarnedValueSnapshot(pn, { forceRefresh });
       setWorkspace(data || null);
+      if (data) bootLoadedRef.current = true;
     } catch (error) {
       toast.error(error?.response?.data?.detail || "Could not load the executive earned-value workspace.");
     } finally {
@@ -62,7 +64,14 @@ export default function AdminEarnedValueEngine() {
   };
 
   useEffect(() => {
-    if (projectNumber) load(projectNumber);
+    if (!projectNumber) return undefined;
+    bootLoadedRef.current = false;
+    setWorkspace(null);
+    const retryTimer = window.setTimeout(() => {
+      if (!bootLoadedRef.current) load(projectNumber, true);
+    }, 1800);
+    load(projectNumber);
+    return () => window.clearTimeout(retryTimer);
   }, [projectNumber]);
 
   const captureSnapshot = async (note) => {

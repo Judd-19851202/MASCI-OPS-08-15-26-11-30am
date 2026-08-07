@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import PmShell from "@/components/PmShell";
@@ -34,6 +34,7 @@ export default function PmEarnedValueEngine() {
   const [workspace, setWorkspace] = useState(null);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
+  const bootLoadedRef = useRef(false);
 
   useEffect(() => {
     setProjectNumber(params.get("project_number") || "");
@@ -54,6 +55,7 @@ export default function PmEarnedValueEngine() {
     try {
       const data = await fetchPmProjectEarnedValueSnapshot(pn, { forceRefresh });
       setWorkspace(data || null);
+      if (data) bootLoadedRef.current = true;
     } catch (error) {
       toast.error(error?.response?.data?.detail || "Could not load the earned-value workspace.");
     } finally {
@@ -62,7 +64,14 @@ export default function PmEarnedValueEngine() {
   };
 
   useEffect(() => {
-    if (projectNumber) load(projectNumber);
+    if (!projectNumber) return undefined;
+    bootLoadedRef.current = false;
+    setWorkspace(null);
+    const retryTimer = window.setTimeout(() => {
+      if (!bootLoadedRef.current) load(projectNumber, true);
+    }, 1800);
+    load(projectNumber);
+    return () => window.clearTimeout(retryTimer);
   }, [projectNumber]);
 
   const captureSnapshot = async (note) => {
