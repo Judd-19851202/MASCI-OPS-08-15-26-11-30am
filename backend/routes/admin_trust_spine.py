@@ -35,7 +35,11 @@ from lib.ots_truth import (
     projected_truth_relationship,
     public_ots_projection,
 )
-from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
+from lib.trust_spine import (
+    WORKFLOW_EXPECTED_STAGES,
+    canonical_workflows_for_event,
+    workflow_family,
+)
 
 
 def _parse_iso(ts: Optional[str]) -> Optional[datetime]:
@@ -326,24 +330,25 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 "n": {"$sum": 1},
             }},
         ]):
-            wf = (row["_id"].get("workflow") or "") or "unknown"
+            source_wf = (row["_id"].get("workflow") or "") or "unknown"
             stage = row["_id"].get("stage") or "unknown"
             status = row["_id"].get("status") or "unknown"
-            slot = workflows.setdefault(wf, {
-                "workflow": wf,
-                "events_24h": 0,
-                "ok_24h": 0,
-                "failed_24h": 0,
-                "skipped_24h": 0,
-                "stages_seen": {},
-                "stages_failed": {},
-            })
-            n = int(row["n"])
-            slot["events_24h"] += n
-            slot[f"{status}_24h"] = slot.get(f"{status}_24h", 0) + n
-            slot["stages_seen"][stage] = slot["stages_seen"].get(stage, 0) + n
-            if status == "failed":
-                slot["stages_failed"][stage] = slot["stages_failed"].get(stage, 0) + n
+            for wf in canonical_workflows_for_event(source_wf):
+                slot = workflows.setdefault(wf, {
+                    "workflow": wf,
+                    "events_24h": 0,
+                    "ok_24h": 0,
+                    "failed_24h": 0,
+                    "skipped_24h": 0,
+                    "stages_seen": {},
+                    "stages_failed": {},
+                })
+                n = int(row["n"])
+                slot["events_24h"] += n
+                slot[f"{status}_24h"] = slot.get(f"{status}_24h", 0) + n
+                slot["stages_seen"][stage] = slot["stages_seen"].get(stage, 0) + n
+                if status == "failed":
+                    slot["stages_failed"][stage] = slot["stages_failed"].get(stage, 0) + n
 
         # Ensure every workflow listed in the expected contract appears
         # in the dashboard — even if it produced zero events — so the
@@ -361,18 +366,19 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             })
 
         for wf, slot in workflows.items():
+            wf_selector = {"workflow": {"$in": workflow_family(wf)}} if len(workflow_family(wf)) > 1 else {"workflow": wf}
             latest = await db.trust_spine_events.find_one(
-                {"workflow": wf}, sort=[("ts", -1)],
+                wf_selector, sort=[("ts", -1)],
                 projection={"_id": 0},
             )
             slot["latest"] = latest
             slot["last_failure"] = await db.trust_spine_events.find_one(
-                {"workflow": wf, "status": "failed"},
+                {**wf_selector, "status": "failed"},
                 sort=[("ts", -1)],
                 projection={"_id": 0},
             )
             last_ok = await db.trust_spine_events.find_one(
-                {"workflow": wf, "status": "ok"},
+                {**wf_selector, "status": "ok"},
                 sort=[("ts", -1)],
                 projection={"_id": 0, "ts": 1, "stage": 1, "record_id": 1},
             )
@@ -530,8 +536,9 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         """
         limit = max(1, min(int(limit or 50), 500))
         rows: List[Dict[str, Any]] = []
+        wf_family = workflow_family(workflow)
         cursor = db.trust_spine_events.find(
-            {"workflow": workflow},
+            {"workflow": {"$in": wf_family}} if len(wf_family) > 1 else {"workflow": workflow},
             {"_id": 0},
             sort=[("ts", -1)],
             limit=limit,

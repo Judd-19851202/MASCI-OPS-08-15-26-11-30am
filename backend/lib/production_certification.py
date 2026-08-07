@@ -32,7 +32,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
+from lib.trust_spine import WORKFLOW_EXPECTED_STAGES, workflow_family
 
 
 STATUS_VERIFIED = "VERIFIED"
@@ -363,7 +363,11 @@ def _policy_payload(workflow: str) -> Dict[str, Any]:
 
 
 async def _latest_terminal_success(db, workflow: str, status: Optional[str] = None):
-    q: Dict[str, Any] = {"workflow": workflow, "stage": {"$in": ["completed", "completed_for_environment"]}}
+    wf_family = workflow_family(workflow)
+    q: Dict[str, Any] = {
+        "workflow": {"$in": wf_family} if len(wf_family) > 1 else workflow,
+        "stage": {"$in": ["completed", "completed_for_environment"]},
+    }
     if status:
         q["status"] = status
     return await db.trust_spine_events.find_one(
@@ -377,8 +381,13 @@ async def _latest_terminal_success(db, workflow: str, status: Optional[str] = No
 
 
 async def _first_completed_ok(db, workflow: str):
+    wf_family = workflow_family(workflow)
     return await db.trust_spine_events.find_one(
-        {"workflow": workflow, "stage": {"$in": ["completed", "completed_for_environment"]}, "status": "ok"},
+        {
+            "workflow": {"$in": wf_family} if len(wf_family) > 1 else workflow,
+            "stage": {"$in": ["completed", "completed_for_environment"]},
+            "status": "ok",
+        },
         sort=[("ts", 1)],
         projection={
             "_id": 0, "ts": 1, "correlation_id": 1, "record_id": 1,
@@ -387,8 +396,11 @@ async def _first_completed_ok(db, workflow: str):
 
 
 async def _count_completed(db, workflow: str, status: str) -> int:
+    wf_family = workflow_family(workflow)
     return await db.trust_spine_events.count_documents({
-        "workflow": workflow, "stage": {"$in": ["completed", "completed_for_environment"]}, "status": status,
+        "workflow": {"$in": wf_family} if len(wf_family) > 1 else workflow,
+        "stage": {"$in": ["completed", "completed_for_environment"]},
+        "status": status,
     })
 
 
@@ -409,8 +421,9 @@ async def _audit_row_for_correlation(db, cid: str) -> Optional[Dict[str, Any]]:
 
 
 async def _workflow_has_any_evidence(db, workflow: str) -> bool:
+    wf_family = workflow_family(workflow)
     row = await db.trust_spine_events.find_one(
-        {"workflow": workflow},
+        {"workflow": {"$in": wf_family}} if len(wf_family) > 1 else {"workflow": workflow},
         projection={"_id": 0, "workflow": 1},
         sort=[("ts", -1)],
     )
@@ -418,8 +431,9 @@ async def _workflow_has_any_evidence(db, workflow: str) -> bool:
 
 
 async def _latest_any_event(db, workflow: str):
+    wf_family = workflow_family(workflow)
     return await db.trust_spine_events.find_one(
-        {"workflow": workflow},
+        {"workflow": {"$in": wf_family}} if len(wf_family) > 1 else {"workflow": workflow},
         sort=[("ts", -1)],
         projection={
             "_id": 0, "ts": 1, "status": 1, "stage": 1, "correlation_id": 1,

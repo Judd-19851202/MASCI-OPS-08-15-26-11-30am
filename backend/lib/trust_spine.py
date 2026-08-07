@@ -213,6 +213,26 @@ WORKFLOW_EXPECTED_STAGES: Dict[str, list] = {
     ],
 }
 
+WORKFLOW_COMPATIBILITY_ALIASES: Dict[str, list[str]] = {
+    "daily-report": ["oppc-daily-report-proof-chain"],
+}
+
+
+def workflow_family(workflow: str) -> list[str]:
+    family = [workflow]
+    for alias in WORKFLOW_COMPATIBILITY_ALIASES.get(workflow, []):
+        if alias not in family:
+            family.append(alias)
+    return family
+
+
+def canonical_workflows_for_event(workflow: str) -> list[str]:
+    targets = [workflow]
+    for canonical, aliases in WORKFLOW_COMPATIBILITY_ALIASES.items():
+        if workflow in aliases and canonical not in targets:
+            targets.append(canonical)
+    return targets
+
 
 def new_correlation_id() -> str:
     """Return a fresh correlation ID for one record's lifecycle.
