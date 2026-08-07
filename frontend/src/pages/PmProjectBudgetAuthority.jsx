@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Download, FileUp, RefreshCw, ShieldCheck, Wallet } from "lucide-react";
+import { Download, FileUp, Plus, RefreshCw, ShieldCheck, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import PmShell from "@/components/PmShell";
 import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
@@ -24,6 +24,8 @@ import {
   fetchPmProjectBudgetVersions,
   fetchPmProjectPayItems,
   fetchPmWorkTypes,
+  reviewPmBudgetActualCostCandidate,
+  reviewPmBudgetCommitmentCandidate,
   reviewPmProjectBudgetImportRow,
 } from "@/lib/projectControlsApi";
 import { useSearchParams } from "react-router-dom";
@@ -84,6 +86,105 @@ function buildDrafts(rows) {
   return Object.fromEntries((rows || []).map((row) => [row.row_id, { ...(row.selected || {}) }]));
 }
 
+function fmtMoney(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function TrustLinkEditor({ candidate, kind, lineOptions, onSubmit, working }) {
+  const { t } = useT();
+  const sourceAmount = Number(kind === "commitment" ? candidate?.commitment_amount : candidate?.candidate_amount || 0);
+  const seedAllocations = (candidate?.allocations || []).length
+    ? candidate.allocations.map((row) => ({ budget_line_id: row.budget_line_id || "", amount: String(row.amount ?? "") }))
+    : [{ budget_line_id: candidate?.budget_line_id || lineOptions[0]?.value || "", amount: sourceAmount ? sourceAmount.toFixed(2) : "" }];
+  const [allocations, setAllocations] = useState(seedAllocations);
+  const [reviewNote, setReviewNote] = useState(candidate?.review_note || "");
+
+  const updateAllocation = (index, key, value) => {
+    setAllocations((prev) => prev.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
+  };
+
+  const addAllocation = () => {
+    setAllocations((prev) => [...prev, { budget_line_id: lineOptions[0]?.value || "", amount: "" }]);
+  };
+
+  const removeAllocation = (index) => {
+    setAllocations((prev) => prev.filter((_, rowIndex) => rowIndex !== index));
+  };
+
+  const allocatedTotal = allocations.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const isMatched = Math.abs(allocatedTotal - sourceAmount) < 0.01;
+
+  const submit = (action) => {
+    onSubmit?.(candidate.candidate_id, {
+      action,
+      review_note: reviewNote,
+      allocations: allocations
+        .filter((row) => row.budget_line_id && Number(row.amount || 0) > 0)
+        .map((row) => ({ budget_line_id: row.budget_line_id, amount: Number(row.amount || 0) })),
+    });
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-budget-${kind}-row-${candidate.candidate_id}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="font-semibold text-slate-900">{candidate.vendor || candidate.source_label || t("Vendor pending")}</div>
+          <div className="mt-1 text-sm text-slate-600">{candidate.description || t("No description")}</div>
+          <div className="mt-2 text-xs text-slate-500" data-testid={`pm-project-budget-${kind}-source-${candidate.candidate_id}`}>
+            {fmtMoney(sourceAmount)} · {operatorStatusLabel(candidate.review_status, t)}
+          </div>
+        </div>
+        <Badge variant={candidate.review_status === "approved" ? "default" : "outline"} data-testid={`pm-project-budget-${kind}-status-${candidate.candidate_id}`}>
+          {operatorStatusLabel(candidate.review_status, t)}
+        </Badge>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {allocations.map((row, index) => (
+          <div key={`${candidate.candidate_id}-allocation-${index}`} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 md:grid-cols-[1.6fr_0.7fr_auto]" data-testid={`pm-project-budget-${kind}-allocation-${candidate.candidate_id}-${index}`}>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500" htmlFor={`${kind}-line-${candidate.candidate_id}-${index}`}>{t("Budget line")}</label>
+              <select id={`${kind}-line-${candidate.candidate_id}-${index}`} className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm" value={row.budget_line_id} onChange={(event) => updateAllocation(index, "budget_line_id", event.target.value)} data-testid={`pm-project-budget-${kind}-allocation-line-${candidate.candidate_id}-${index}`}>
+                <option value="">{t("Choose budget line")}</option>
+                {lineOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500" htmlFor={`${kind}-amount-${candidate.candidate_id}-${index}`}>{t("Amount to link")}</label>
+              <Input id={`${kind}-amount-${candidate.candidate_id}-${index}`} type="number" min="0" step="0.01" value={row.amount} onChange={(event) => updateAllocation(index, "amount", event.target.value)} data-testid={`pm-project-budget-${kind}-allocation-amount-${candidate.candidate_id}-${index}`} />
+            </div>
+            <div className="flex items-end justify-end">
+              <Button type="button" variant="outline" size="icon" onClick={() => removeAllocation(index)} disabled={working || allocations.length === 1} data-testid={`pm-project-budget-${kind}-allocation-remove-${candidate.candidate_id}-${index}`}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-slate-500" data-testid={`pm-project-budget-${kind}-allocation-total-${candidate.candidate_id}`}>
+            {t("Allocated")}: {fmtMoney(allocatedTotal)} · {t("Source")}: {fmtMoney(sourceAmount)} · {isMatched ? t("Ready to approve") : t("Amounts must equal the source total")}
+          </div>
+          <Button type="button" variant="outline" onClick={addAllocation} disabled={working} data-testid={`pm-project-budget-${kind}-allocation-add-${candidate.candidate_id}`}>
+            <Plus className="mr-2 h-4 w-4" /> {t("Add line")}
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500" htmlFor={`${kind}-review-note-${candidate.candidate_id}`}>{t("Review note")}</label>
+          <Textarea id={`${kind}-review-note-${candidate.candidate_id}`} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} data-testid={`pm-project-budget-${kind}-review-note-${candidate.candidate_id}`} />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" onClick={() => submit("approve")} disabled={working || !isMatched} data-testid={`pm-project-budget-${kind}-approve-${candidate.candidate_id}`}>{t("Approve linkage")}</Button>
+          <Button type="button" variant="outline" onClick={() => submit("review_required")} disabled={working} data-testid={`pm-project-budget-${kind}-review-required-${candidate.candidate_id}`}>{t("Keep in review")}</Button>
+          <Button type="button" variant="outline" onClick={() => submit("reject")} disabled={working} data-testid={`pm-project-budget-${kind}-reject-${candidate.candidate_id}`}>{t("Reject")}</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function summaryCards(overview) {
   const counts = overview?.counts || {};
   return [
@@ -112,6 +213,7 @@ export default function PmProjectBudgetAuthority() {
   const [importDetail, setImportDetail] = useState(null);
   const [rowDrafts, setRowDrafts] = useState({});
   const [compareWith, setCompareWith] = useState("");
+  const lineOptions = useMemo(() => lines.map((line) => ({ value: line.budget_line_id, label: `${line.customer_pay_item_number || "—"} · ${line.project_cost_code || "—"} · ${line.description || line.budget_line_id}` })), [lines]);
 
   useEffect(() => {
     const next = params.get("project_number") || "";
@@ -243,6 +345,21 @@ export default function PmProjectBudgetAuthority() {
       downloadResponseFile(response, `${projectNumber}-budget-comparison.csv`);
     } catch (error) {
       toast.error(error?.response?.data?.detail || t("Could not export the budget comparison."));
+    }
+  };
+
+  const onReviewTrustCandidate = async (kind, candidateId, payload) => {
+    if (!projectNumber) return;
+    setWorking(true);
+    try {
+      if (kind === "commitment") await reviewPmBudgetCommitmentCandidate(projectNumber, candidateId, payload);
+      else await reviewPmBudgetActualCostCandidate(projectNumber, candidateId, payload);
+      toast.success(payload.action === "approve" ? t("Trust-line linkage approved.") : payload.action === "reject" ? t("Candidate rejected.") : t("Candidate kept in review."));
+      await load(projectNumber, activeImportId);
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || t("Could not update the trust-line review."));
+    } finally {
+      setWorking(false);
     }
   };
 
@@ -472,9 +589,11 @@ export default function PmProjectBudgetAuthority() {
                       <th className="px-3 py-2">{t("Pay item")}</th>
                       <th className="px-3 py-2">{t("Work type")}</th>
                       <th className="px-3 py-2">{t("Line kind")}</th>
-                      <th className="px-3 py-2">{t("Budget")}</th>
-                      <th className="px-3 py-2">{t("Forecast")}</th>
-                      <th className="px-3 py-2">{t("Remaining")}</th>
+                        <th className="px-3 py-2">{t("Budget")}</th>
+                        <th className="px-3 py-2">{t("Commitments")}</th>
+                        <th className="px-3 py-2">{t("Actual cost")}</th>
+                        <th className="px-3 py-2">{t("Forecast")}</th>
+                        <th className="px-3 py-2">{t("Remaining")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -484,11 +603,13 @@ export default function PmProjectBudgetAuthority() {
                         <td className="px-3 py-3 text-slate-700">{workTypes.find((item) => item.work_type_id === line.enterprise_work_type_id)?.name || line.enterprise_work_type_id || "—"}</td>
                         <td className="px-3 py-3 text-slate-700">{line.line_kind}</td>
                         <td className="px-3 py-3 text-slate-700">${Number(line.budget_amount || 0).toFixed(2)}</td>
+                          <td className="px-3 py-3 text-slate-700">${Number(line.commitment_amount || 0).toFixed(2)}</td>
+                          <td className="px-3 py-3 text-slate-700">${Number(line.actual_cost_amount || 0).toFixed(2)}</td>
                         <td className="px-3 py-3 text-slate-700">${Number(line.forecast_amount || 0).toFixed(2)}</td>
                         <td className="px-3 py-3 text-slate-700">${Number(line.remaining_amount || 0).toFixed(2)}</td>
                       </tr>
                     ))}
-                    {!loading && lines.length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={6}>{t("No active budget lines yet.")}</td></tr> : null}
+                      {!loading && lines.length === 0 ? <tr><td className="px-3 py-6 text-sm text-slate-500" colSpan={8}>{t("No active budget lines yet.")}</td></tr> : null}
                   </tbody>
                 </table>
               </div>
@@ -522,31 +643,23 @@ export default function PmProjectBudgetAuthority() {
             <section className="grid gap-6 xl:grid-cols-2" data-testid="pm-project-budget-trustline-grid">
               <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-commitment-candidates-section">
                 <h2 className="text-xl font-black text-slate-900">{t("PO links needing review")}</h2>
-                <p className="mt-1 text-sm text-slate-600">{t("PO Requests remain commitment truth. Unlinked commitments are preserved for review.")}</p>
+                <p className="mt-1 text-sm text-slate-600">{t("PO Requests remain commitment truth. C8 now requires each approved amount to land on governed budget lines before EV can trust commitment coverage.")}</p>
                 <div className="mt-4 space-y-3">
                   {(overview?.commitment_candidates || []).map((row) => (
-                    <div key={row.candidate_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-budget-commitment-row-${row.candidate_id}`}>
-                      <div className="font-semibold text-slate-900">{row.vendor || t("Vendor pending")}</div>
-                      <div className="mt-1 text-sm text-slate-600">{row.description || t("No description")}</div>
-                      <div className="mt-2 text-xs text-slate-500">${Number(row.commitment_amount || 0).toFixed(2)} · {row.review_status}</div>
-                    </div>
+                    <TrustLinkEditor key={`${row.candidate_id}:${row.review_status}:${row.reviewed_at || ""}`} candidate={row} kind="commitment" lineOptions={lineOptions} onSubmit={(candidateId, payload) => onReviewTrustCandidate("commitment", candidateId, payload)} working={working} />
                   ))}
-                  {!loading && !(overview?.commitment_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No PO links need review for this project yet.")}</div> : null}
+                  {!loading && !(overview?.commitment_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-budget-commitment-empty-state">{t("No PO links need review for this project yet.")}</div> : null}
                 </div>
               </div>
 
               <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm" data-testid="pm-project-budget-actual-cost-candidates-section">
                 <h2 className="text-xl font-black text-slate-900">{t("Receipts needing review")}</h2>
-                <p className="mt-1 text-sm text-slate-600">{t("Candidate receipts are review-only and do not replace accounting / ERP truth.")}</p>
+                <p className="mt-1 text-sm text-slate-600">{t("Candidate receipts stay review-only and do not replace accounting / ERP truth, but C8 can now allocate them to governed budget lines for recognized AC coverage.")}</p>
                 <div className="mt-4 space-y-3">
                   {(overview?.actual_cost_candidates || []).map((row) => (
-                    <div key={row.candidate_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`pm-project-budget-actual-cost-row-${row.candidate_id}`}>
-                      <div className="font-semibold text-slate-900">{row.vendor || t("Vendor pending")}</div>
-                      <div className="mt-1 text-sm text-slate-600">{row.description || t("No description")}</div>
-                      <div className="mt-2 text-xs text-slate-500">${Number(row.candidate_amount || 0).toFixed(2)} · {row.review_status}</div>
-                    </div>
+                    <TrustLinkEditor key={`${row.candidate_id}:${row.review_status}:${row.reviewed_at || ""}`} candidate={row} kind="actual-cost" lineOptions={lineOptions} onSubmit={(candidateId, payload) => onReviewTrustCandidate("actual", candidateId, payload)} working={working} />
                   ))}
-                  {!loading && !(overview?.actual_cost_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">{t("No receipts need review for this project yet.")}</div> : null}
+                  {!loading && !(overview?.actual_cost_candidates || []).length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500" data-testid="pm-project-budget-actual-cost-empty-state">{t("No receipts need review for this project yet.")}</div> : null}
                 </div>
               </div>
             </section>

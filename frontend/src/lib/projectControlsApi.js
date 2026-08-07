@@ -134,6 +134,23 @@ export async function createPmProjectForecastSnapshot(projectNumber, note = "") 
   return data;
 }
 
+export async function fetchPmProjectEarnedValueSnapshot(projectNumber, { forceRefresh = false } = {}) {
+  const suffix = forceRefresh ? "?force_refresh=true" : "";
+  const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/earned-value${suffix}`);
+  return data;
+}
+
+export async function createPmProjectEarnedValueSnapshot(projectNumber, note = "") {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/earned-value/snapshots`, { note });
+  return data;
+}
+
+export async function downloadPmProjectEarnedValueExport(projectNumber) {
+  return api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/earned-value/export`, {
+    responseType: "blob",
+  });
+}
+
 export async function createPmProjectForecastCommitment(projectNumber, payload) {
   const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/commitments`, payload);
   return data;
@@ -181,6 +198,23 @@ export async function fetchAdminProjectForecastingWorkspace(projectNumber) {
 export async function createAdminProjectForecastSnapshot(projectNumber, note = "") {
   const { data } = await api.post(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/forecasting/snapshots`, { note });
   return data;
+}
+
+export async function fetchAdminProjectEarnedValueSnapshot(projectNumber, { forceRefresh = false } = {}) {
+  const suffix = forceRefresh ? "?force_refresh=true" : "";
+  const { data } = await api.get(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/earned-value${suffix}`);
+  return data;
+}
+
+export async function createAdminProjectEarnedValueSnapshot(projectNumber, note = "") {
+  const { data } = await api.post(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/earned-value/snapshots`, { note });
+  return data;
+}
+
+export async function downloadAdminProjectEarnedValueExport(projectNumber) {
+  return api.get(`/admin/governance/project-controls/projects/${encodeURIComponent(projectNumber)}/earned-value/export`, {
+    responseType: "blob",
+  });
 }
 
 export async function runAdminOperationalIntelligenceBackfill(force = false) {
@@ -263,6 +297,16 @@ export async function fetchPmProjectBudgetLines(projectNumber, versionId) {
 
 export async function fetchPmProjectBudgetReviewQueue(projectNumber) {
   const { data } = await api.get(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/review-queue`);
+  return data;
+}
+
+export async function reviewPmBudgetCommitmentCandidate(projectNumber, candidateId, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/commitment-candidates/${encodeURIComponent(candidateId)}/review`, payload);
+  return data;
+}
+
+export async function reviewPmBudgetActualCostCandidate(projectNumber, candidateId, payload) {
+  const { data } = await api.post(`/pm/project-controls/projects/${encodeURIComponent(projectNumber)}/budget/actual-cost-candidates/${encodeURIComponent(candidateId)}/review`, payload);
   return data;
 }
 

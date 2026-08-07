@@ -84,6 +84,8 @@ from services.project_budget_authority import (
     list_budget_review_queue,
     list_project_budget_lines,
     list_project_budget_versions,
+    review_budget_actual_cost_candidate,
+    review_budget_commitment_candidate,
     review_budget_import_row,
     run_project_budget_backfill,
 )
@@ -125,6 +127,10 @@ from services.project_forecasting_commitments import (
     create_project_forecast_commitment,
     get_project_forecasting_workspace,
     update_project_forecast_commitment,
+)
+from services.project_earned_value_engine import (
+    export_project_earned_value_snapshot,
+    get_project_earned_value_snapshot,
 )
 from pm_auth import is_valid_pm_user_token_async
 
@@ -434,6 +440,17 @@ class ForecastCommitmentBody(BaseModel):
     confidence: str = "medium"
     evidence_note: str = ""
     note: str = ""
+
+
+class BudgetTrustAllocationBody(BaseModel):
+    budget_line_id: str = Field(..., min_length=2, max_length=240)
+    amount: float = Field(..., ge=0)
+
+
+class BudgetTrustLinkReviewBody(BaseModel):
+    action: str = "approve"
+    allocations: List[BudgetTrustAllocationBody] = Field(default_factory=list)
+    review_note: str = ""
 
 
 def _runtime_db(request: Optional[Request], db):
@@ -1069,6 +1086,29 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         resolved = await resolve_actor_from_request(runtime_db, request, True)
         return await get_project_forecasting_workspace(runtime_db, project_number, actor=resolved, audience="executive", note=body.note)
 
+    @api_router.get("/api/admin/governance/project-controls/projects/{project_number}/earned-value")
+    async def governance_project_earned_value_workspace(request: Request, project_number: str, force_refresh: bool = False, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        return await get_project_earned_value_snapshot(runtime_db, project_number, actor=resolved, audience="executive", force_refresh=force_refresh)
+
+    @api_router.post("/api/admin/governance/project-controls/projects/{project_number}/earned-value/snapshots")
+    async def governance_project_earned_value_snapshot(request: Request, project_number: str, body: ForecastWorkspaceNoteBody, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        return await get_project_earned_value_snapshot(runtime_db, project_number, actor=resolved, audience="executive", note=body.note, force_refresh=True)
+
+    @api_router.get("/api/admin/governance/project-controls/projects/{project_number}/earned-value/export")
+    async def governance_project_earned_value_export(request: Request, project_number: str, actor=Depends(require_admin)):
+        runtime_db = _runtime_db(request, db)
+        resolved = await resolve_actor_from_request(runtime_db, request, True)
+        payload = await export_project_earned_value_snapshot(runtime_db, project_number, actor=resolved, audience="executive")
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
     @api_router.get("/api/pm/project-controls/overview")
     async def pm_project_controls_overview(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
@@ -1209,6 +1249,29 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         actor = await _require_project_scope(runtime_db, request, project_number)
         return await get_project_forecasting_workspace(runtime_db, project_number, actor=actor, audience="pm", note=body.note)
 
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/earned-value")
+    async def pm_project_earned_value_snapshot(request: Request, project_number: str, force_refresh: bool = False):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_earned_value_snapshot(runtime_db, project_number, actor=actor, audience="pm", force_refresh=force_refresh)
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/earned-value/snapshots")
+    async def pm_project_earned_value_capture_snapshot(request: Request, project_number: str, body: ForecastWorkspaceNoteBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        return await get_project_earned_value_snapshot(runtime_db, project_number, actor=actor, audience="pm", note=body.note, force_refresh=True)
+
+    @api_router.get("/api/pm/project-controls/projects/{project_number}/earned-value/export")
+    async def pm_project_earned_value_export(request: Request, project_number: str):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        payload = await export_project_earned_value_snapshot(runtime_db, project_number, actor=actor, audience="pm")
+        return StreamingResponse(
+            io.StringIO(payload["content"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{payload["filename"]}"', "Cache-Control": "no-store"},
+        )
+
     @api_router.post("/api/pm/project-controls/projects/{project_number}/forecasting/commitments")
     async def pm_project_forecasting_commitment_create(request: Request, project_number: str, body: ForecastCommitmentBody):
         runtime_db = _runtime_db(request, db)
@@ -1278,6 +1341,30 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
         await _require_project_scope(runtime_db, request, project_number)
         rows = await list_budget_review_queue(runtime_db, project_number=project_number)
         return {"count": len(rows), "items": rows}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/budget/commitment-candidates/{candidate_id}/review")
+    async def pm_project_budget_review_commitment_candidate(request: Request, project_number: str, candidate_id: str, body: BudgetTrustLinkReviewBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await review_budget_commitment_candidate(runtime_db, project_number, candidate_id, actor=actor, action=body.action, allocations=[item.model_dump() for item in body.allocations], review_note=body.review_note)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "candidate": row}
+
+    @api_router.post("/api/pm/project-controls/projects/{project_number}/budget/actual-cost-candidates/{candidate_id}/review")
+    async def pm_project_budget_review_actual_cost_candidate(request: Request, project_number: str, candidate_id: str, body: BudgetTrustLinkReviewBody):
+        runtime_db = _runtime_db(request, db)
+        actor = await _require_project_scope(runtime_db, request, project_number)
+        try:
+            row = await review_budget_actual_cost_candidate(runtime_db, project_number, candidate_id, actor=actor, action=body.action, allocations=[item.model_dump() for item in body.allocations], review_note=body.review_note)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "candidate": row}
 
     @api_router.get("/api/pm/project-controls/projects/{project_number}/budget/imports")
     async def pm_project_budget_imports(request: Request, project_number: str):

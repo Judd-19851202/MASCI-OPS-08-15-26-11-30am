@@ -544,6 +544,330 @@ async def _get_latest_active_version(db, project_number: str) -> Optional[Dict[s
     )
 
 
+def _allocation_amount(value: Any) -> float:
+    return round(max(_safe_float(value), 0.0), 2)
+
+
+def _normalize_link_allocations(raw_allocations: Any) -> List[Dict[str, Any]]:
+    allocations: List[Dict[str, Any]] = []
+    for row in raw_allocations or []:
+        if not isinstance(row, dict):
+            continue
+        budget_line_id = _clean(row.get("budget_line_id"))
+        amount = _allocation_amount(row.get("amount"))
+        if not budget_line_id or amount <= 0:
+            continue
+        allocations.append({"budget_line_id": budget_line_id, "amount": amount})
+    return allocations
+
+
+def _budget_line_operator_label(line: Dict[str, Any]) -> str:
+    parts = [
+        _clean(line.get("customer_pay_item_number")),
+        _clean(line.get("project_cost_code")),
+        _clean(line.get("description")),
+    ]
+    label = " · ".join(part for part in parts if part)
+    return label or _clean(line.get("budget_line_id")) or "Budget line"
+
+
+async def _active_budget_line_index(db, project_number: str) -> Tuple[Optional[Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+    active_version = await _get_latest_active_version(db, project_number)
+    if not active_version:
+        return None, {}
+    lines = await list_project_budget_lines(db, project_number, version_id=active_version["version_id"])
+    return active_version, {row["budget_line_id"]: row for row in lines if _clean(row.get("budget_line_id"))}
+
+
+async def _refresh_project_review_lane(db, project_number: str, *, actor: Optional[Dict[str, Any]] = None) -> None:
+    open_commitments = await db[COLL_BUDGET_COMMITMENTS].count_documents({"project_number": project_number, "review_status": {"$in": ["pending_review", "review_required"]}})
+    open_actuals = await db[COLL_BUDGET_ACTUALS].count_documents({"project_number": project_number, "review_status": {"$in": ["pending_review", "review_required"]}})
+    total_open = int(open_commitments or 0) + int(open_actuals or 0)
+    review_id = f"budget-review:project:{project_number}"
+    if total_open <= 0:
+        await _mark_review_resolved(db, review_id, actor=actor, resolution_note="All commitment and actual-cost candidates are now linked or dispositioned.")
+        return
+    await _upsert_review_item(
+        db,
+        {
+            "review_id": review_id,
+            "project_number": project_number,
+            "status": "open",
+            "priority": 75,
+            "title": "Budget trust-line linkage needs review",
+            "description": "Approved commitments and receipt-based actual-cost candidates must be linked to governed budget lines before downstream EV metrics can publish at full confidence.",
+            "owner_role": "pm",
+            "category": "budget_linkage",
+            "counts": {
+                "open_commitment_candidates": int(open_commitments or 0),
+                "open_actual_cost_candidates": int(open_actuals or 0),
+            },
+            "evidence": [
+                COLL_BUDGET_COMMITMENTS,
+                COLL_BUDGET_ACTUALS,
+                COLL_BUDGET_LINES,
+            ],
+        },
+    )
+
+
+async def _recalculate_budget_financial_rollups(db, project_number: str, *, actor: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    active_version, line_index = await _active_budget_line_index(db, project_number)
+    if not active_version or not line_index:
+        await _refresh_project_review_lane(db, project_number, actor=actor)
+        return {
+            "project_number": project_number,
+            "version_id": (active_version or {}).get("version_id") or "",
+            "line_count": 0,
+            "approved_commitment_candidates": 0,
+            "approved_actual_cost_candidates": 0,
+        }
+
+    commitment_groups: Dict[str, List[Dict[str, Any]]] = {line_id: [] for line_id in line_index}
+    actual_groups: Dict[str, List[Dict[str, Any]]] = {line_id: [] for line_id in line_index}
+
+    approved_commitments = [
+        _sanitize(row)
+        async for row in db[COLL_BUDGET_COMMITMENTS].find(
+            {"project_number": project_number, "review_status": "approved"},
+            {"_id": 0},
+        )
+    ]
+    approved_actuals = [
+        _sanitize(row)
+        async for row in db[COLL_BUDGET_ACTUALS].find(
+            {"project_number": project_number, "review_status": "approved"},
+            {"_id": 0},
+        )
+    ]
+
+    for candidate in approved_commitments:
+        allocations = _normalize_link_allocations(candidate.get("allocations"))
+        for allocation in allocations:
+            line = line_index.get(allocation["budget_line_id"])
+            if not line:
+                continue
+            commitment_groups.setdefault(line["budget_line_id"], []).append(
+                {
+                    "candidate_id": candidate.get("candidate_id"),
+                    "source_po_id": candidate.get("source_po_id"),
+                    "po_number": candidate.get("po_number"),
+                    "vendor": candidate.get("vendor"),
+                    "amount": allocation["amount"],
+                    "reviewed_at": candidate.get("reviewed_at"),
+                    "reviewed_by": candidate.get("reviewed_by"),
+                }
+            )
+
+    for candidate in approved_actuals:
+        allocations = _normalize_link_allocations(candidate.get("allocations"))
+        for allocation in allocations:
+            line = line_index.get(allocation["budget_line_id"])
+            if not line:
+                continue
+            actual_groups.setdefault(line["budget_line_id"], []).append(
+                {
+                    "candidate_id": candidate.get("candidate_id"),
+                    "source_record_id": candidate.get("source_record_id"),
+                    "source_kind": candidate.get("source_kind"),
+                    "source_label": candidate.get("source_label"),
+                    "amount": allocation["amount"],
+                    "reviewed_at": candidate.get("reviewed_at"),
+                    "reviewed_by": candidate.get("reviewed_by"),
+                }
+            )
+
+    totals = {
+        "budget_amount": 0.0,
+        "commitment_amount": 0.0,
+        "actual_cost_amount": 0.0,
+        "forecast_amount": 0.0,
+        "remaining_amount": 0.0,
+        "revenue_amount": 0.0,
+        "billing_amount": 0.0,
+        "collections_amount": 0.0,
+        "labor_cost_budget_amount": 0.0,
+        "equipment_cost_budget_amount": 0.0,
+        "material_cost_budget_amount": 0.0,
+        "subcontract_cost_budget_amount": 0.0,
+        "other_cost_budget_amount": 0.0,
+    }
+
+    now = _utcnow()
+    for line_id, original in line_index.items():
+        line = deepcopy(original)
+        commitment_refs = commitment_groups.get(line_id, [])
+        actual_refs = actual_groups.get(line_id, [])
+        line["commitment_refs"] = _sanitize(commitment_refs)
+        line["actual_cost_refs"] = _sanitize(actual_refs)
+        line["commitment_amount"] = round(sum(_allocation_amount(row.get("amount")) for row in commitment_refs), 2)
+        line["actual_cost_amount"] = round(sum(_allocation_amount(row.get("amount")) for row in actual_refs), 2)
+        budget_amount = round(_safe_float(line.get("budget_amount")), 2)
+        line["remaining_amount"] = round(max(budget_amount - line["actual_cost_amount"], 0.0), 2)
+        line["forecast_amount"] = round(max(_safe_float(line.get("forecast_amount") or budget_amount), budget_amount), 2)
+        line["updated_at"] = now
+        if actor:
+            line["updated_by"] = _actor_label(actor)
+        await db[COLL_BUDGET_LINES].replace_one(
+            {"project_number": project_number, "version_id": line.get("version_id"), "budget_line_id": line_id},
+            line,
+            upsert=True,
+        )
+        for key in totals:
+            totals[key] = round(totals[key] + _safe_float(line.get(key)), 2)
+
+    await db[COLL_BUDGET_VERSIONS].update_one(
+        {"project_number": project_number, "version_id": active_version["version_id"]},
+        {
+            "$set": {
+                "totals": totals,
+                "updated_at": now,
+                "updated_by": _actor_label(actor),
+            }
+        },
+    )
+    await _refresh_project_review_lane(db, project_number, actor=actor)
+    return {
+        "project_number": project_number,
+        "version_id": active_version["version_id"],
+        "line_count": len(line_index),
+        "approved_commitment_candidates": len(approved_commitments),
+        "approved_actual_cost_candidates": len(approved_actuals),
+        "totals": totals,
+    }
+
+
+async def _review_budget_link_candidate(
+    db,
+    *,
+    project_number: str,
+    candidate_id: str,
+    collection_name: str,
+    actor: Dict[str, Any],
+    action: str,
+    allocations: Optional[List[Dict[str, Any]]] = None,
+    review_note: str = "",
+) -> Dict[str, Any]:
+    await ensure_project_budget_foundation(db)
+    candidate = await db[collection_name].find_one({"project_number": project_number, "candidate_id": candidate_id}, {"_id": 0})
+    if not candidate:
+        raise LookupError("budget_candidate_not_found")
+
+    normalized_action = _clean(action).lower() or "review_required"
+    if normalized_action not in {"approve", "reject", "review_required"}:
+        raise ValueError("invalid_budget_link_action")
+
+    active_version, line_index = await _active_budget_line_index(db, project_number)
+    if normalized_action == "approve" and (not active_version or not line_index):
+        raise ValueError("budget_link_requires_active_budget_version")
+
+    normalized_allocations = _normalize_link_allocations(allocations)
+    source_amount = _allocation_amount(
+        candidate.get("commitment_amount")
+        if collection_name == COLL_BUDGET_COMMITMENTS
+        else candidate.get("candidate_amount")
+    )
+    if normalized_action == "approve":
+        if not normalized_allocations:
+            raise ValueError("budget_link_allocations_required")
+        for allocation in normalized_allocations:
+            if allocation["budget_line_id"] not in line_index:
+                raise ValueError("budget_link_line_not_found")
+        allocated_total = round(sum(_allocation_amount(row.get("amount")) for row in normalized_allocations), 2)
+        if abs(allocated_total - source_amount) > 0.01:
+            raise ValueError("budget_link_allocation_total_mismatch")
+    else:
+        normalized_allocations = []
+
+    updated = deepcopy(candidate)
+    updated["review_status"] = "approved" if normalized_action == "approve" else "rejected" if normalized_action == "reject" else "review_required"
+    updated["reviewed_at"] = _utcnow()
+    updated["reviewed_by"] = _actor_label(actor)
+    updated["review_note"] = _clean(review_note)
+    updated["allocations"] = [
+        {
+            "budget_line_id": row["budget_line_id"],
+            "amount": row["amount"],
+            "label": _budget_line_operator_label(line_index.get(row["budget_line_id"], {})),
+        }
+        for row in normalized_allocations
+    ]
+    updated["linked_amount"] = round(sum(_allocation_amount(row.get("amount")) for row in normalized_allocations), 2)
+    updated["updated_at"] = _utcnow()
+    updated["budget_line_id"] = normalized_allocations[0]["budget_line_id"] if len(normalized_allocations) == 1 else ""
+    if normalized_action != "approve":
+        updated["linked_amount"] = 0.0
+        updated["budget_line_id"] = ""
+
+    await db[collection_name].replace_one(
+        {"project_number": project_number, "candidate_id": candidate_id},
+        updated,
+        upsert=True,
+    )
+    recalculated = await _recalculate_budget_financial_rollups(db, project_number, actor=actor)
+    await _write_audit(
+        db,
+        "budget_link_candidate_reviewed",
+        actor,
+        "budget_link_candidate",
+        candidate_id,
+        updated,
+        before=candidate,
+        metadata={
+            "collection_name": collection_name,
+            "project_number": project_number,
+            "action": normalized_action,
+            "allocation_count": len(normalized_allocations),
+            "recalculated_totals": recalculated.get("totals") or {},
+        },
+    )
+    return _sanitize(updated)
+
+
+async def review_budget_commitment_candidate(
+    db,
+    project_number: str,
+    candidate_id: str,
+    *,
+    actor: Dict[str, Any],
+    action: str,
+    allocations: Optional[List[Dict[str, Any]]] = None,
+    review_note: str = "",
+) -> Dict[str, Any]:
+    return await _review_budget_link_candidate(
+        db,
+        project_number=project_number,
+        candidate_id=candidate_id,
+        collection_name=COLL_BUDGET_COMMITMENTS,
+        actor=actor,
+        action=action,
+        allocations=allocations,
+        review_note=review_note,
+    )
+
+
+async def review_budget_actual_cost_candidate(
+    db,
+    project_number: str,
+    candidate_id: str,
+    *,
+    actor: Dict[str, Any],
+    action: str,
+    allocations: Optional[List[Dict[str, Any]]] = None,
+    review_note: str = "",
+) -> Dict[str, Any]:
+    return await _review_budget_link_candidate(
+        db,
+        project_number=project_number,
+        candidate_id=candidate_id,
+        collection_name=COLL_BUDGET_ACTUALS,
+        actor=actor,
+        action=action,
+        allocations=allocations,
+        review_note=review_note,
+    )
+
+
 def _line_financial_rollups(selected: Dict[str, Any]) -> Dict[str, Any]:
     budget_amount = _safe_float(selected.get("budget_amount"))
     return {
@@ -931,11 +1255,12 @@ async def review_budget_import_row(db, project_number: str, import_id: str, row_
 async def _sync_commitment_candidates_for_project(db, project_number: str, *, actor: Optional[Dict[str, Any]] = None) -> Dict[str, int]:
     created = 0
     reviewed = 0
-    async for po in db.po_requests.find({"project_number": project_number, "status": {"$in": ["Approved", "Closed"]}}, {"_id": 0}):
+    async for po in db.po_requests.find({"project_number": project_number, "status": {"$in": ["Approved", "Pending Receipt", "Overdue Receipt", "Receipt Uploaded", "Closed"]}}, {"_id": 0}):
         source_po_id = _clean(po.get("id"))
         if not source_po_id:
             continue
         amount = _safe_float(po.get("approved_amount") if po.get("approved_amount") is not None else po.get("estimated_amount"))
+        existing = await db[COLL_BUDGET_COMMITMENTS].find_one({"project_number": project_number, "source_po_id": source_po_id}, {"_id": 0})
         candidate = {
             "candidate_id": f"budget-commitment:{project_number}:{source_po_id}",
             "project_number": project_number,
@@ -945,16 +1270,22 @@ async def _sync_commitment_candidates_for_project(db, project_number: str, *, ac
             "description": _clean(po.get("description")),
             "commitment_amount": amount,
             "currency": "USD",
-            "budget_line_id": "",
-            "review_status": "review_required",
+            "budget_line_id": _clean((existing or {}).get("budget_line_id")),
+            "review_status": (existing or {}).get("review_status") or "review_required",
             "trust_line": "po_requests",
-            "created_at": _utcnow(),
+            "allocations": _sanitize((existing or {}).get("allocations") or []),
+            "linked_amount": _safe_float((existing or {}).get("linked_amount")),
+            "review_note": _clean((existing or {}).get("review_note")),
+            "reviewed_at": (existing or {}).get("reviewed_at"),
+            "reviewed_by": (existing or {}).get("reviewed_by"),
+            "created_at": (existing or {}).get("created_at") or _utcnow(),
             "updated_at": _utcnow(),
         }
-        existing = await db[COLL_BUDGET_COMMITMENTS].find_one({"project_number": project_number, "source_po_id": source_po_id}, {"_id": 0})
+        if existing and candidate["review_status"] == "approved" and abs(_safe_float(candidate.get("linked_amount")) - amount) > 0.01:
+            candidate["review_status"] = "review_required"
+            candidate["review_note"] = _clean(candidate.get("review_note")) or "Source commitment amount changed after approval and requires a fresh governed allocation review."
         if existing:
             reviewed += 1
-            candidate["created_at"] = existing.get("created_at") or candidate["created_at"]
         else:
             created += 1
         await db[COLL_BUDGET_COMMITMENTS].replace_one({"project_number": project_number, "source_po_id": source_po_id}, candidate, upsert=True)
@@ -975,7 +1306,7 @@ async def _sync_commitment_candidates_for_project(db, project_number: str, *, ac
                 "provenance": {"review_required_count": unresolved},
             },
         )
-    elif actor:
+    else:
         await _mark_review_resolved(db, f"budget-review:commitments:{project_number}", actor=actor, resolution_note="No unresolved commitment candidates remain.")
     return {"created": created, "review_required": unresolved, "touched": created + reviewed}
 
@@ -986,6 +1317,7 @@ async def _sync_actual_cost_candidates_for_project(db, project_number: str, *, a
         source_record_id = _clean(po.get("id"))
         if not source_record_id:
             continue
+        existing = await db[COLL_BUDGET_ACTUALS].find_one({"project_number": project_number, "source_kind": "po_receipt", "source_record_id": source_record_id}, {"_id": 0})
         candidate = {
             "candidate_id": f"budget-actual:{project_number}:po-receipt:{source_record_id}",
             "project_number": project_number,
@@ -994,15 +1326,22 @@ async def _sync_actual_cost_candidates_for_project(db, project_number: str, *, a
             "vendor": _clean(po.get("vendor")),
             "description": _clean(po.get("description")),
             "candidate_amount": _safe_float(po.get("receipt_amount")),
-            "budget_line_id": "",
-            "review_status": "review_required",
+            "budget_line_id": _clean((existing or {}).get("budget_line_id")),
+            "review_status": (existing or {}).get("review_status") or "review_required",
             "trust_line": "vendor_receipt_review_only_not_accounting_truth",
-            "created_at": _utcnow(),
+            "allocations": _sanitize((existing or {}).get("allocations") or []),
+            "linked_amount": _safe_float((existing or {}).get("linked_amount")),
+            "review_note": _clean((existing or {}).get("review_note")),
+            "reviewed_at": (existing or {}).get("reviewed_at"),
+            "reviewed_by": (existing or {}).get("reviewed_by"),
+            "created_at": (existing or {}).get("created_at") or _utcnow(),
             "updated_at": _utcnow(),
         }
-        existing = await db[COLL_BUDGET_ACTUALS].find_one({"project_number": project_number, "source_kind": "po_receipt", "source_record_id": source_record_id}, {"_id": 0})
+        if existing and candidate["review_status"] == "approved" and abs(_safe_float(candidate.get("linked_amount")) - _safe_float(po.get("receipt_amount"))) > 0.01:
+            candidate["review_status"] = "review_required"
+            candidate["review_note"] = _clean(candidate.get("review_note")) or "Receipt amount changed after approval and requires a fresh governed allocation review."
         if existing:
-            candidate["created_at"] = existing.get("created_at") or candidate["created_at"]
+            pass
         else:
             created += 1
         await db[COLL_BUDGET_ACTUALS].replace_one(
@@ -1027,7 +1366,7 @@ async def _sync_actual_cost_candidates_for_project(db, project_number: str, *, a
                 "provenance": {"review_required_count": unresolved},
             },
         )
-    elif actor:
+    else:
         await _mark_review_resolved(db, f"budget-review:actuals:{project_number}", actor=actor, resolution_note="No unresolved actual-cost candidates remain.")
     return {"created": created, "review_required": unresolved}
 
@@ -1185,6 +1524,8 @@ async def get_project_budget_overview(db, project_number: str) -> Dict[str, Any]
     active_version = next((row for row in versions if row.get("status") == "active"), None)
     lines = await list_project_budget_lines(db, project_number, version_id=active_version["version_id"]) if active_version else []
     imports = await list_budget_import_sessions(db, project_number)
+    await _sync_commitment_candidates_for_project(db, project_number)
+    await _sync_actual_cost_candidates_for_project(db, project_number)
     review_queue = await list_budget_review_queue(db, project_number=project_number)
     commitment_candidates = [
         _sanitize(row)
@@ -1195,7 +1536,7 @@ async def get_project_budget_overview(db, project_number: str) -> Dict[str, Any]
         async for row in db[COLL_BUDGET_ACTUALS].find({"project_number": project_number}, {"_id": 0}).sort([("created_at", -1)]).limit(25)
     ]
     work_ledger_count = await db.project_controls_work_ledger.count_documents({"project_number": project_number})
-    approved_pos = await db.po_requests.count_documents({"project_number": project_number, "status": {"$in": ["Approved", "Closed"]}})
+    approved_pos = await db.po_requests.count_documents({"project_number": project_number, "status": {"$in": ["Approved", "Pending Receipt", "Overdue Receipt", "Receipt Uploaded", "Closed"]}})
     return {
         "project": {
             "project_number": project_number,

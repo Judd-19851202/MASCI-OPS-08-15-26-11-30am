@@ -389,7 +389,9 @@ const PmMondayReviewWorkspace = React.lazy(() => import("@/pages/PmMondayReviewW
 const PmProjectControlsAuthority = React.lazy(() => import("@/pages/PmProjectControlsAuthority"));
 const PmProjectBudgetAuthority = React.lazy(() => import("@/pages/PmProjectBudgetAuthority"));
 const PmForecastingCommitments = React.lazy(() => import("@/pages/PmForecastingCommitments"));
+const PmEarnedValueEngine = React.lazy(() => import("@/pages/PmEarnedValueEngine"));
 const AdminForecastingCommitments = React.lazy(() => import("@/pages/AdminForecastingCommitments"));
+const AdminEarnedValueEngine = React.lazy(() => import("@/pages/AdminEarnedValueEngine"));
 const AdminGovernanceProjectControlsAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectControlsAuthority"));
 const AdminGovernanceProjectBudgetAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectBudgetAuthority"));
 const AdminGovernanceProjectScheduleAuthority = React.lazy(() => import("@/pages/admin/AdminGovernanceProjectScheduleAuthority"));
@@ -710,6 +712,7 @@ export function AppRoutes() {
             <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />
             <Route path="/admin/executive-overview" element={A(<ExecutiveOverview />)} />
             <Route path="/admin/governance/project-controls/forecasting" element={A(<AdminForecastingCommitments />)} />
+            <Route path="/admin/governance/project-controls/earned-value" element={A(<AdminEarnedValueEngine />)} />
             <Route path="/admin/executive-intelligence" element={A(<ExecutiveIntelligence />)} />
             <Route path="/admin/executive-oi" element={<Navigate to="/admin/executive-operational-intelligence" replace />} />
             {/* Track 13.22 · Phase D · Material Movement Ledger · Admin Data-Quality + CSV. */}
@@ -922,6 +925,7 @@ export function AppRoutes() {
             <Route path="/pm/project-controls"  element={P(<PmProjectControlsAuthority />)} />
             <Route path="/pm/project-controls/budget"  element={P(<PmProjectBudgetAuthority />)} />
             <Route path="/pm/project-controls/forecasting"  element={P(<PmForecastingCommitments />)} />
+            <Route path="/pm/project-controls/earned-value"  element={P(<PmEarnedValueEngine />)} />
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal
