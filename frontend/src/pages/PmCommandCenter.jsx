@@ -92,7 +92,7 @@ export default function PmCommandCenter() {
   }, []);
 
   const headerSubtitle = useMemo(() => {
-    if (projectNumber) return `Project · ${sanitizeOperatorProjectNumber(projectNumber, "Operations support")}`;
+    if (projectNumber) return `Project · ${sanitizeOperatorProjectNumber(projectNumber, "Project support")}`;
     return "Projects assigned to you";
   }, [projectNumber]);
 

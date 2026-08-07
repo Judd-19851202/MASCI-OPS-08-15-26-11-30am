@@ -435,7 +435,7 @@ export default function JhaPlansAdmin() {
               {rows.map((row) => {
                 const isOpen = !!openMap[row.project_number];
                 const isBusy = busyJob === row.project_number;
-                const safeProjectNumber = sanitizeOperatorProjectNumber(row.project_number, "Operations support");
+                const safeProjectNumber = sanitizeOperatorProjectNumber(row.project_number, "Project support");
                 const safeProjectLabel = formatOperatorJobLabel(row.project_number, row.project_name);
                 const safeMeta = [row.location, row.client, row.project_manager]
                   .filter(Boolean)

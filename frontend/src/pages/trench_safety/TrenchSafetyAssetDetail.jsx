@@ -128,8 +128,8 @@ export default function TrenchSafetyAssetDetail() {
   const deploymentRows = useMemo(
     () => (allDeps || []).map((d) => ({
       id: d.id,
-      project: sanitizeOperatorReference(d.project_name, "Operations support work") || "—",
-      projectNumber: sanitizeOperatorProjectNumber(d.project_number, "Operations support") || "—",
+      project: sanitizeOperatorReference(d.project_name, "Project details") || "—",
+      projectNumber: sanitizeOperatorProjectNumber(d.project_number, "Project support") || "—",
       superintendent: d.superintendent || "—",
       foreman: d.foreman || "—",
       assignedBy: sanitizeOperatorReference(d.assigned_by, "—") || "—",
@@ -288,7 +288,7 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Status")}            value={t(doc.operational_status || "Available")} testId="f-status" />
               <Field label={t("Current Location")}  value={doc.current_location} testId="f-location" />
               <Field label={t("Current Project")}   value={sanitizeOperatorReference(doc.current_project_name, "—")} testId="f-project" />
-              <Field label={t("Project Number")}    value={sanitizeOperatorProjectNumber(doc.current_project_number, "Operations support")} mono testId="f-project-number" />
+              <Field label={t("Project Number")}    value={sanitizeOperatorProjectNumber(doc.current_project_number, "Project support")} mono testId="f-project-number" />
               <Field label={t("Superintendent")}    value={doc.current_superintendent} testId="f-superintendent" />
               <Field label={t("Foreman")}           value={doc.current_foreman} testId="f-foreman" />
               <Field label={t("Yard")}              value={doc.yard_location} testId="f-yard" />
@@ -351,7 +351,7 @@ export default function TrenchSafetyAssetDetail() {
                 <ul className="text-sm divide-y divide-slate-100">
                   {deps.map((d) => (
                     <li key={d.id} className="py-1.5">
-                      <div className="font-bold text-slate-900">{sanitizeOperatorReference(d.project_name, "Operations support work") || "—"}</div>
+                      <div className="font-bold text-slate-900">{sanitizeOperatorReference(d.project_name, "Project details") || "—"}</div>
                       <div className="text-xs text-slate-500 font-mono">{d.assigned_at?.slice(0, 10)}{d.returned_at ? ` → ${d.returned_at.slice(0, 10)}` : ` · ${t("active")}`}</div>
                     </li>
                   ))}

@@ -152,8 +152,8 @@ export default function HrFieldLeadership() {
                 (() => {
                   const safeEmployee = sanitizeOperatorReference(r.employee_name, "Crew record");
                   const safeSupervisor = sanitizeOperatorReference(r.supervisor_name, "Supervisor record");
-                  const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Operations support");
-                  const safeProjectName = sanitizeOperatorProjectName(r.project_name, "Operations support work");
+                  const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Project support");
+                  const safeProjectName = sanitizeOperatorProjectName(r.project_name, "Project details");
                   return (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50">
                   <td className="px-3 py-2 font-mono text-xs">{(r.occurred_at || "").slice(0, 10)}</td>
@@ -196,8 +196,8 @@ function HrFlDetailDrawer({ rec, onClose, onPdf }) {
   const detailEntries = Object.entries(details).filter(([k, v]) => v !== "" && v != null && k !== "outstanding_equipment_acknowledged");
   const safeEmployee = sanitizeOperatorReference(rec.employee_name, "Crew record");
   const safeSupervisor = sanitizeOperatorReference(rec.supervisor_name, "Supervisor record");
-  const safeProjectNumber = sanitizeOperatorProjectNumber(rec.project_number, "Operations support");
-  const safeProjectName = sanitizeOperatorProjectName(rec.project_name, "Operations support work");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(rec.project_number, "Project support");
+  const safeProjectName = sanitizeOperatorProjectName(rec.project_name, "Project details");
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4" onClick={onClose} data-testid="hr-fl-drawer">

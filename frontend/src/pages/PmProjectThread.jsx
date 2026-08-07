@@ -72,13 +72,13 @@ function todayYyyyMmDd() {
 // ─────────────────────────────────────────────────────────────
 
 function missionAdapter({ job, recent, oi }) {
-  const projectName = sanitizeOperatorReference(job?.project_name, "Operations support work") || "—";
+  const projectName = sanitizeOperatorReference(job?.project_name, "Project details") || "—";
   const location    = sanitizeOperatorReference(job?.location, "—") || "—";
   const client      = sanitizeOperatorReference(job?.client, "—") || "—";
   const pm          = sanitizeOperatorReference(job?.project_manager, "—") || "—";
   const superintendent = sanitizeOperatorReference(recent?.superintendent, "—") || "—";
   const sourceDate = recent?.source_report_date || null;
-  const safeProjectNumber = sanitizeOperatorProjectNumber(job?.project_number, "Operations support");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(job?.project_number, "Project support");
 
   // Health derives client-side ONLY from the certified OI attention
   // level — no new scoring is invented. Plain-English "Why" mirrors
@@ -326,7 +326,7 @@ function documentsAdapter(jhaItems) {
 export default function PmProjectThread() {
   const { projectNumber } = useParams();
   const pn = (projectNumber || "").trim();
-  const safePn = sanitizeOperatorProjectNumber(pn, "Operations support");
+  const safePn = sanitizeOperatorProjectNumber(pn, "Project support");
   const allowed = isPm() || isAdmin();
 
   const [state, setState] = useState({

@@ -80,7 +80,7 @@ export default function PmProjectSelector({ value, projectNumber, onChange }) {
         {options.map((o) => (
           <option key={o.project_number} value={o.project_number}>
             {containsOperatorUnsafeLanguage(`${o.project_number} ${o.project_name || ""}`)
-              ? "Operations support"
+              ? "Project support"
               : formatOperatorJobLabel(o.project_number, o.project_name || o.project_number)}
           </option>
         ))}

@@ -232,8 +232,8 @@ export default function ViewMeeting() {
 
         <ReportSection number="01" title={t("Meeting Information")}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-            <KV label={t("Project Name")} value={sanitizeOperatorReference(data.project_name, "Operations support work")} />
-            <KV label={t("Project Number")} value={sanitizeOperatorProjectNumber(data.project_number, "Operations support")} />
+            <KV label={t("Project Name")} value={sanitizeOperatorReference(data.project_name, "Project details")} />
+            <KV label={t("Project Number")} value={sanitizeOperatorProjectNumber(data.project_number, "Project support")} />
             <div className="lg:col-span-2">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                 {t("Location")}

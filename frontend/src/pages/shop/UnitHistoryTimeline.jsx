@@ -177,7 +177,7 @@ function EventCard({ ev }) {
     ev.related_dvir_id ? `DVIR ${ev.related_dvir_id.slice(-8)}` : null,
     ev.related_work_order_id ? `WO ${ev.related_work_order_id.slice(-8)}` : null,
     ev.related_attachment_id ? `attach ${ev.related_attachment_id.slice(-8)}` : null,
-    ev.project_number ? `project ${sanitizeOperatorProjectNumber(ev.project_number, "Operations support")}` : null,
+    ev.project_number ? `project ${sanitizeOperatorProjectNumber(ev.project_number, "Project support")}` : null,
   ].filter(Boolean);
   return (
     <Card data-testid={`unit-history-event-${ev.event_id}`}>

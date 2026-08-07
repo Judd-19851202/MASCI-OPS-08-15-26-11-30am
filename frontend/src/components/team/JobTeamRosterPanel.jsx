@@ -121,7 +121,7 @@ function LoginStatusBadge({ status }) {
 
 export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const adminScope = scope === "admin";
-  const safeProjectNumber = sanitizeOperatorReference(projectNumber, "Operations support");
+  const safeProjectNumber = sanitizeOperatorReference(projectNumber, "Project support");
   const [items, setItems] = useState([]);
   const [registry, setRegistry] = useState([]);
   const [directory, setDirectory] = useState([]);

@@ -228,7 +228,7 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
             const incidentCount = incidentsByPn[pn] ?? 0;
             const lastIso = latestDailyByPn[pn];
             const action = nextActionFor(pn);
-            const safeProjectLabel = sanitizeOperatorProjectNumber(pn, "Operations support");
+            const safeProjectLabel = sanitizeOperatorProjectNumber(pn, "Project support");
             const actionTone =
               action === t("Missing Daily Report") ? "amber"
               : action === t("Review Safety Item") ? "rose"

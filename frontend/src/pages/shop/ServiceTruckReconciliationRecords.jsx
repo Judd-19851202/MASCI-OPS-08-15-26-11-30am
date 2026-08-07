@@ -82,8 +82,8 @@ export default function ServiceTruckReconciliationRecords() {
   return (
     <div data-testid="strr-list-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
-        portalName="MASCI" portalRole="Shop Portal · Service Truck Reconciliation"
-        pageTitle="Service Truck Reconciliation Records"
+        portalName="MASCI" portalRole="Shop Portal · Service Truck Daily Check"
+        pageTitle="Service Truck Daily Check Records"
         subtitle="Start-of-day · dispensed (from Fuel/Lube Visits) · end-of-day · variance · status."
         primaryActions={
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -134,13 +134,13 @@ export default function ServiceTruckReconciliationRecords() {
 
         {error && (
           <div data-testid="strr-list-error" style={{ background: "#fae2e0", padding: 12, borderRadius: 4, color: "#a33", fontSize: 12, marginBottom: 12 }}>
-            Service truck reconciliation records unavailable. No data invented. · {error}
+            Service truck daily check records unavailable. No data invented. · {error}
           </div>
         )}
 
         {data && (
           <div data-testid="strr-list-count-strip" style={{ fontSize: 12, color: "#555", marginBottom: 10 }}>
-            <strong data-testid="strr-list-count">{data.count}</strong> reconciliation{data.count === 1 ? "" : "s"} ({dates.from} → {dates.to})
+            <strong data-testid="strr-list-count">{data.count}</strong> daily check{data.count === 1 ? "" : "s"} ({dates.from} → {dates.to})
           </div>
         )}
 
@@ -148,8 +148,8 @@ export default function ServiceTruckReconciliationRecords() {
 
         {data && rows.length === 0 && !error && (
           <EmptyState data-testid="strr-list-empty"
-            kicker="No reconciliations in scope"
-            title="No service truck reconciliations found for this range."
+            kicker="No daily checks in scope"
+            title="No service truck daily checks found for this range."
             body="Adjust the date range or filters. No placeholder rows will be invented." />
         )}
 

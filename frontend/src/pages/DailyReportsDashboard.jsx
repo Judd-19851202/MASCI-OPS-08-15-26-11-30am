@@ -242,7 +242,7 @@ export default function DailyReportsDashboard() {
               showCert={showCert}
               renderItem={(it) => {
                 const safeProjectLabel = formatOperatorJobLabel(it.project_number, it.project_name || jobsMaster[(it.project_number || "").trim()] || it.project_number);
-                const safeProjectNumber = sanitizeOperatorProjectNumber(it.project_number, "Operations support");
+                const safeProjectNumber = sanitizeOperatorProjectNumber(it.project_number, "Project support");
                 return (
                 <div
                   onClick={() => navigate(`${dailyReportDetailBase}/${it.id}`)}
