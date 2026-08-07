@@ -148,7 +148,7 @@ export default function SafetyReports() {
       const code = e?.response?.status;
       if (code === 404) {
         toast.message(t("Export pending"), {
-          description: t("This export is awaiting backend wiring. The underlying data is available — open the linked module to print."),
+          description: t("This export is still being prepared. The same live information is already available in the linked page if you need it now."),
         });
       } else {
         toast.error(operationalError(e,
@@ -194,7 +194,7 @@ export default function SafetyReports() {
 
         <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-md p-4 text-xs text-slate-600">
           <strong className="block mb-1 font-mono uppercase tracking-[0.15em] text-slate-700">{t("Need a custom report?")}</strong>
-          {t("All exports use the same underlying API. For ad-hoc pulls beyond what's listed here, open the linked module and use its built-in print/PDF view, or contact Admin to add a new export to this page.")}
+          {t("All exports use the same live information shown in the linked pages. For anything not listed here, open the related page and use its built-in print or PDF option, or ask Admin to add a new export to this page.")}
         </div>
       </div>
     </SafetyShell>

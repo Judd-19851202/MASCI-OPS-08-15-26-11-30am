@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/lib/i18n";
+import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
 
 const STATUS_TONE = {
   green: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -122,7 +123,7 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(14,116,144,0.14),_transparent_38%),linear-gradient(135deg,#f8fafc_0%,#ffffff_58%,#ecfeff_100%)] p-6 shadow-sm sm:p-8" data-testid="earned-value-hero-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">WP-18C8 · {t("Earned Value")}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">{t("Earned Value")}</div>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{t("Budget, progress, and cost in one project view")}</h1>
             <p className="mt-4 max-w-2xl text-sm text-slate-600 sm:text-base" data-testid="earned-value-hero-description">
               {t("See what the job should have earned by now, what it has actually earned, what it has cost, what is driving the result, and where to look next.")}
@@ -132,16 +133,16 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
             <div data-testid="earned-value-project-selector-wrap">{selector}</div>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={onRefresh} disabled={!projectNumber || loading || working} data-testid="earned-value-refresh-button"><RefreshCw className="mr-2 h-4 w-4" /> {t("Refresh")}</Button>
-              <Button variant="outline" onClick={() => onCaptureSnapshot?.(snapshotNote)} disabled={!projectNumber || loading || working} data-testid="earned-value-capture-snapshot-button"><GitBranch className="mr-2 h-4 w-4" /> {t("Save snapshot")}</Button>
+              <Button variant="outline" onClick={() => onCaptureSnapshot?.(snapshotNote)} disabled={!projectNumber || loading || working} data-testid="earned-value-capture-snapshot-button"><GitBranch className="mr-2 h-4 w-4" /> {t("Save update")}</Button>
               <Button variant="outline" onClick={onExport} disabled={!projectNumber || loading || working} data-testid="earned-value-export-button"><Download className="mr-2 h-4 w-4" /> {t("Export CSV")}</Button>
             </div>
-            <Input placeholder={t("Snapshot note (optional)")} value={snapshotNote} onChange={(event) => setSnapshotNote(event.target.value)} data-testid="earned-value-snapshot-note-input" />
+            <Input placeholder={t("Update note (optional)")} value={snapshotNote} onChange={(event) => setSnapshotNote(event.target.value)} data-testid="earned-value-snapshot-note-input" />
           </div>
         </div>
       </div>
 
-      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-loading-state">{t("Loading earned value for this job…")}</CardContent></Card> : null}
-      {!loading && !projectNumber ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-empty-project-state">{t("Choose a project to open the C8 earned-value workspace.")}</CardContent></Card> : null}
+      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-loading-state">{t("Loading Earned Value for this job…")}</CardContent></Card> : null}
+      {!loading && !projectNumber ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="earned-value-empty-project-state">{t("Choose a project to open its Earned Value view.")}</CardContent></Card> : null}
 
       {!loading && projectNumber && workspace ? (
         <>
@@ -152,19 +153,19 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
               <CardTitle className="text-lg text-slate-900">{t("Operator decision brief")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 text-sm text-slate-700">
-              <div data-testid="earned-value-decision-what-happened"><span className="font-semibold text-slate-900">{t("What happened")}: </span>{workspace?.decision_brief?.what_happened || "—"}</div>
-              <div data-testid="earned-value-decision-where-we-are"><span className="font-semibold text-slate-900">{t("Where we are now")}: </span>{workspace?.decision_brief?.where_we_are_now || "—"}</div>
-              <div data-testid="earned-value-decision-what-changed"><span className="font-semibold text-slate-900">{t("What changed")}: </span>{workspace?.decision_brief?.what_changed || "—"}</div>
-              <div data-testid="earned-value-decision-why"><span className="font-semibold text-slate-900">{t("Why")}: </span>{workspace?.decision_brief?.why || "—"}</div>
-              <div data-testid="earned-value-decision-risk"><span className="font-semibold text-slate-900">{t("What is at risk")}: </span>{workspace?.decision_brief?.what_is_at_risk || "—"}</div>
-              <div data-testid="earned-value-decision-if-nothing-changes"><span className="font-semibold text-slate-900">{t("If nothing changes")}: </span>{workspace?.decision_brief?.if_nothing_changes || "—"}</div>
+              <div data-testid="earned-value-decision-what-happened"><span className="font-semibold text-slate-900">{t("What happened")}: </span>{sanitizeOperatorCopy(workspace?.decision_brief?.what_happened, workspace?.decision_brief?.what_happened || "—")}</div>
+              <div data-testid="earned-value-decision-where-we-are"><span className="font-semibold text-slate-900">{t("Where we are now")}: </span>{sanitizeOperatorCopy(workspace?.decision_brief?.where_we_are_now, workspace?.decision_brief?.where_we_are_now || "—")}</div>
+              <div data-testid="earned-value-decision-what-changed"><span className="font-semibold text-slate-900">{t("What changed")}: </span>{sanitizeOperatorCopy(workspace?.decision_brief?.what_changed, workspace?.decision_brief?.what_changed || "—")}</div>
+              <div data-testid="earned-value-decision-why"><span className="font-semibold text-slate-900">{t("Why")}: </span>{sanitizeOperatorCopy(workspace?.decision_brief?.why, workspace?.decision_brief?.why || "—")}</div>
+              <div data-testid="earned-value-decision-risk"><span className="font-semibold text-slate-900">{t("What is at risk")}: </span>{sanitizeOperatorCopy(workspace?.decision_brief?.what_is_at_risk, workspace?.decision_brief?.what_is_at_risk || "—")}</div>
+              <div data-testid="earned-value-decision-if-nothing-changes"><span className="font-semibold text-slate-900">{t("If nothing changes")}: </span>{sanitizeOperatorCopy(workspace?.decision_brief?.if_nothing_changes, workspace?.decision_brief?.if_nothing_changes || "—")}</div>
             </CardContent>
           </Card>
 
           <Tabs defaultValue="overview" className="space-y-5" data-testid="earned-value-tabs-root">
             <TabsList className="flex w-full flex-wrap justify-start gap-2 rounded-2xl bg-slate-100 p-1" data-testid="earned-value-tabs-list">
               <TabsTrigger value="overview" data-testid="earned-value-overview-tab-trigger">{t("Overview")}</TabsTrigger>
-              <TabsTrigger value="lineage" data-testid="earned-value-lineage-tab-trigger">{t("Source detail")}</TabsTrigger>
+              <TabsTrigger value="lineage" data-testid="earned-value-lineage-tab-trigger">{t("Supporting records")}</TabsTrigger>
               <TabsTrigger value="governance" data-testid="earned-value-governance-tab-trigger">{t("Review & history")}</TabsTrigger>
             </TabsList>
 

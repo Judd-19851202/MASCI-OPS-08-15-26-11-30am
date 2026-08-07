@@ -285,6 +285,27 @@
       "remediation_reference": "docs/governance/RELEASE_GATE_REGISTER.md#one-body-enforcement"
     },
     {
+      "gate_id": "operator-language-hard-fail",
+      "description": "Run the operator-language hard-fail scanner and block release if banned internal implementation language appears on operator-facing surfaces.",
+      "command_or_verifier": "python3 scripts/operator_language_gate.py --json",
+      "execution_environment": "workspace",
+      "blocking_status": "BLOCK",
+      "timeout_seconds": 600,
+      "evidence_output": "release_gate_report.gates[operator-language-hard-fail]",
+      "owner": "jaymn.judd@mascigc.com",
+      "failure_action": "Repair operator-facing language or classify the surface as a documented technical-admin exception before certification",
+      "applicability": [
+        "preview",
+        "production"
+      ],
+      "dependencies": [
+        "one-body-authorities"
+      ],
+      "severity": "P0",
+      "failure_message": "Operator-facing screens still expose banned internal package or implementation language.",
+      "remediation_reference": "memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv"
+    },
+    {
       "gate_id": "performance-baseline-contract",
       "description": "Validate the canonical D7/D8 performance baseline, Atlas evidence register, query inventory, and bounded self-healing contract.",
       "command_or_verifier": "python3 scripts/release_gate.py --target <preview|production> --json",

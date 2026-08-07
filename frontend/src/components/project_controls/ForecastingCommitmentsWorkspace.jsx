@@ -289,9 +289,9 @@ export default function ForecastingCommitmentsWorkspace({ mode = "pm", projectNu
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.12),_transparent_38%),linear-gradient(135deg,#f8fafc_0%,#ffffff_58%,#eef2ff_100%)] p-6 shadow-sm sm:p-8" data-testid="forecasting-hero-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">WP-18C7 · Forecasting & Commitments</div>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Evidence-backed forecast authority</h1>
-            <p className="mt-4 max-w-2xl text-sm text-slate-600 sm:text-base" data-testid="forecasting-hero-description">One governed workspace for likely finish, pace, commitments, and explainable risk. Forecasts stay distinct from commitments and every visible number ties back to preserved operational evidence.</p>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">Forecasting & Commitments</div>
+            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">One approved place to review likely finish, pace, commitments, and risk</h1>
+            <p className="mt-4 max-w-2xl text-sm text-slate-600 sm:text-base" data-testid="forecasting-hero-description">Use this view to understand where the job is headed, which commitments are at risk, and what actions should happen next.</p>
           </div>
           <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[320px]">
             <div data-testid="forecasting-project-selector-wrap">{selector}</div>
@@ -304,8 +304,8 @@ export default function ForecastingCommitmentsWorkspace({ mode = "pm", projectNu
         </div>
       </div>
 
-      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="forecasting-loading-state">Loading governed forecast workspace…</CardContent></Card> : null}
-      {!loading && !projectNumber ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="forecasting-empty-project-state">Select a project to load the C7 forecast workspace.</CardContent></Card> : null}
+      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="forecasting-loading-state">Loading the latest forecast view…</CardContent></Card> : null}
+      {!loading && !projectNumber ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="forecasting-empty-project-state">Select a project to open its forecast view.</CardContent></Card> : null}
 
       {!loading && projectNumber && workspace ? (
         <>

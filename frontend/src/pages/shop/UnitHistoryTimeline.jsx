@@ -406,7 +406,7 @@ export default function UnitHistoryTimeline() {
               Not yet tracked
             </h3>
             <div style={{ fontSize: 11, color: "#666", marginBottom: 8 }}>
-              These event families are honest placeholders — backend has no source yet. They will appear here when their tracks ship.
+              These event families are not tracked yet. They will appear here as soon as those records become available.
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 8 }}>
               {data.unavailable_event_types.map((u) => (

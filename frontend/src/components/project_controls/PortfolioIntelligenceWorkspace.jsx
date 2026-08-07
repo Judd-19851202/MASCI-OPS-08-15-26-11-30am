@@ -11,6 +11,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/lib/i18n";
+import {
+  formatOperatorJobLabel,
+  sanitizeOperatorCopy,
+  sanitizeOperatorProjectName,
+  sanitizeOperatorProjectNumber,
+} from "@/lib/operatorLanguage";
 
 
 const BAND_TONE = {
@@ -53,6 +59,28 @@ function fmtDate(value) {
   } catch {
     return String(value);
   }
+}
+
+function displayProjectNumber(row) {
+  return sanitizeOperatorProjectNumber(row?.project_number, "Project record");
+}
+
+function displayProjectName(row) {
+  return sanitizeOperatorProjectName(row?.project_name, "Project work");
+}
+
+function displayProjectLabel(row) {
+  return formatOperatorJobLabel(row?.project_number, row?.project_name);
+}
+
+function decisionRuleLabel(rule) {
+  const trigger = String(rule?.trigger || "");
+  if (trigger.includes("Likely finish")) return "Late finish risk";
+  if (trigger.includes("CPI")) return "Cost pressure";
+  if (trigger.includes("commitments")) return "Commitment pressure";
+  if (trigger.includes("constraints")) return "Constraint pressure";
+  if (trigger.includes("stale or missing")) return "Missing or older records";
+  return "Portfolio review rule";
 }
 
 function SummaryCard({ icon: Icon, label, value, note, badge, testId }) {
@@ -116,8 +144,8 @@ function ProjectCard({ row, healthRow, index, onOpenDetail }) {
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">{row.project_number}</div>
-            <h3 className="mt-1 text-lg font-semibold text-slate-950" data-testid={`portfolio-project-name-${index}`}>{row.project_name}</h3>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">{displayProjectNumber(row)}</div>
+            <h3 className="mt-1 text-lg font-semibold text-slate-950" data-testid={`portfolio-project-name-${index}`}>{displayProjectName(row)}</h3>
             <div className="mt-2 flex flex-wrap gap-2">
               <Badge className={`border ${tone(row.priority_band)}`} data-testid={`portfolio-project-priority-${index}`}>{row.priority_label}</Badge>
               {healthStatus ? <Badge className={`border ${HEALTH_TONE[healthStatus] || tone("amber")}`} data-testid={`portfolio-project-health-${index}`}>Project Health · {healthStatus}</Badge> : null}
@@ -150,14 +178,14 @@ function ProjectCard({ row, healthRow, index, onOpenDetail }) {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid={`portfolio-project-why-${index}`}>
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Why it matters</div>
-          <div className="mt-2 text-sm text-slate-700">{row.why_it_matters}</div>
+          <div className="mt-2 text-sm text-slate-700">{sanitizeOperatorCopy(row.why_it_matters, row.why_it_matters)}</div>
           <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Recommended action</div>
-          <div className="mt-2 text-sm text-slate-700">{row.recommended_action}</div>
+          <div className="mt-2 text-sm text-slate-700">{sanitizeOperatorCopy(row.recommended_action, row.recommended_action)}</div>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Link to={row.drilldowns?.forecasting || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-forecast-link-${index}`}>Open C7</Link>
-          <Link to={row.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-earned-value-link-${index}`}>Open C8</Link>
+          <Link to={row.drilldowns?.forecasting || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-forecast-link-${index}`}>Open forecast</Link>
+          <Link to={row.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-earned-value-link-${index}`}>Open Earned Value</Link>
           <Link to={row.drilldowns?.project_performance || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50" data-testid={`portfolio-project-performance-link-${index}`}>Project performance</Link>
         </div>
       </CardContent>
@@ -258,10 +286,10 @@ export const PortfolioIntelligenceWorkspace = ({
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.14),_transparent_36%),linear-gradient(135deg,#f8fafc_0%,#ffffff_58%,#ecfccb_100%)] p-6 shadow-sm sm:p-8" data-testid="portfolio-intelligence-hero-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">WP-18C9 · {t("Portfolio Intelligence")}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">{t("Portfolio Intelligence")}</div>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{mode === "pm" ? t("Cross-project visibility for your assigned work") : t("One executive reporting hierarchy for the real portfolio")}</h1>
             <p className="mt-4 max-w-2xl text-sm text-slate-600 sm:text-base" data-testid="portfolio-intelligence-hero-description">
-              {t("This surface reuses certified C6, C7, and C8 truth. It does not create a second forecast, EV, or KPI engine, and every project keeps a direct drill-back to the source evidence.")}
+              {t("This view uses the same approved project cost, schedule, production, forecast, commitment, and Earned Value records already shown inside each project.")}
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[340px]">
@@ -271,7 +299,7 @@ export const PortfolioIntelligenceWorkspace = ({
                 <div className="mt-1 text-2xl font-semibold text-slate-950">{fmtWhole(workspace?.scope?.project_count)}</div>
               </div>
               <div className="rounded-2xl border border-white/60 bg-white/80 p-3" data-testid="portfolio-intelligence-hero-generated-at">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Generated")}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t("Updated")}</div>
                 <div className="mt-1 text-sm font-semibold text-slate-950">{fmtDate(workspace?.generated_at)}</div>
               </div>
             </div>
@@ -280,13 +308,13 @@ export const PortfolioIntelligenceWorkspace = ({
               <Button variant="outline" onClick={onExport} disabled={loading || working} data-testid="portfolio-intelligence-export-button"><Download className="mr-2 h-4 w-4" /> {t("Export CSV")}</Button>
             </div>
             <div className="rounded-2xl border border-white/60 bg-white/80 p-3 text-xs text-slate-600" data-testid="portfolio-intelligence-hero-note">
-              {workspace?.authority_contract?.non_duplication_rules?.[0] || t("Portfolio math reuses upstream truth and preserves drill-back lineage.")}
+              {t("Every project keeps a direct path back to the supporting records behind its cost, schedule, commitments, and production outlook.")}
             </div>
           </div>
         </div>
       </div>
 
-      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="portfolio-intelligence-loading-state">{t("Loading governed portfolio intelligence…")}</CardContent></Card> : null}
+      {loading ? <Card className="border-slate-200"><CardContent className="p-6 text-sm text-slate-600" data-testid="portfolio-intelligence-loading-state">{t("Loading the latest portfolio view…")}</CardContent></Card> : null}
 
       {!loading && workspace ? (
         <>
@@ -296,7 +324,7 @@ export const PortfolioIntelligenceWorkspace = ({
             <TabsList className="flex w-full flex-wrap justify-start gap-2 rounded-2xl bg-slate-100 p-1" data-testid="portfolio-intelligence-tabs-list">
               <TabsTrigger value="overview" data-testid="portfolio-intelligence-tab-overview">{t("Overview")}</TabsTrigger>
               <TabsTrigger value="projects" data-testid="portfolio-intelligence-tab-projects">{t("Projects needing attention")}</TabsTrigger>
-              <TabsTrigger value="governance" data-testid="portfolio-intelligence-tab-governance">{t("Governance")}</TabsTrigger>
+              <TabsTrigger value="governance" data-testid="portfolio-intelligence-tab-governance">{t("How to read this page")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-5" data-testid="portfolio-intelligence-overview-panel">
@@ -324,9 +352,9 @@ export const PortfolioIntelligenceWorkspace = ({
                     <CardTitle className="text-lg text-slate-950">{t("Comparability standard")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4 text-sm text-slate-700">
-                    <div data-testid="portfolio-comparability-financial">{workspace?.comparability_standard?.financial?.rule}</div>
-                    <div data-testid="portfolio-comparability-production">{workspace?.comparability_standard?.production?.rule}</div>
-                    <div data-testid="portfolio-comparability-schedule">{workspace?.comparability_standard?.schedule?.rule}</div>
+                    <div data-testid="portfolio-comparability-financial">{t("Only approved dollar values are added together. Portfolio cost and schedule ratios come from total dollars, not project averages.")}</div>
+                    <div data-testid="portfolio-comparability-production">{t("Production quantities are only added when the unit matches. Unlike units stay separate.")}</div>
+                    <div data-testid="portfolio-comparability-schedule">{t("Projects are compared using commitment dates and risk counts. This page never invents a single portfolio finish date.")}</div>
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600" data-testid="portfolio-comparability-note">{financial.math_note}</div>
                   </CardContent>
                 </Card>
@@ -337,10 +365,10 @@ export const PortfolioIntelligenceWorkspace = ({
                   title={t("What changed")}
                   rows={workspace?.change_report?.items || []}
                   testId="portfolio-change-table"
-                  emptyLabel={t("No governed portfolio changes were published in this snapshot.")}
+                  emptyLabel={t("No new project changes were published in this update.")}
                   columns={[
-                    { key: "project_number", label: t("Project") },
-                    { key: "message", label: t("Change") },
+                    { key: "project_number", label: t("Project"), render: (row) => displayProjectLabel(row) },
+                    { key: "message", label: t("Change"), render: (row) => sanitizeOperatorCopy(row.message, row.message) },
                     { key: "band", label: t("Band"), render: (row) => <Badge className={`border ${tone(row.band)}`}>{row.band}</Badge> },
                   ]}
                 />
@@ -363,9 +391,9 @@ export const PortfolioIntelligenceWorkspace = ({
                 title={t("Top schedule-risk projects")}
                 rows={schedule.worst_projects || []}
                 testId="portfolio-schedule-risk-table"
-                emptyLabel={t("No projects are currently forecast past their commitments.")}
+                  emptyLabel={t("No projects are currently forecast past their commitments.")}
                 columns={[
-                  { key: "project_number", label: t("Project") },
+                  { key: "project_number", label: t("Project"), render: (row) => displayProjectLabel(row) },
                   { key: "days_from_commitment", label: t("Days late") },
                   { key: "likely_finish_date", label: t("Likely finish"), render: (row) => fmtDate(row.likely_finish_date) },
                   { key: "committed_finish_date", label: t("Committed finish"), render: (row) => fmtDate(row.committed_finish_date) },
@@ -404,11 +432,11 @@ export const PortfolioIntelligenceWorkspace = ({
             <TabsContent value="governance" className="space-y-5" data-testid="portfolio-intelligence-governance-panel">
               <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
                 <TableCard
-                  title={t("Decision rules")}
+                  title={t("How priorities are set")}
                   rows={workspace?.decision_rules || []}
                   testId="portfolio-decision-rule-table"
                   columns={[
-                    { key: "rule_id", label: t("Rule") },
+                    { key: "rule_id", label: t("Priority signal"), render: (row) => decisionRuleLabel(row) },
                     { key: "band", label: t("Band"), render: (row) => <Badge className={`border ${tone(row.band)}`}>{row.band}</Badge> },
                     { key: "trigger", label: t("Trigger") },
                     { key: "recommended_action", label: t("Action") },
@@ -416,29 +444,35 @@ export const PortfolioIntelligenceWorkspace = ({
                 />
                 <Card className="border-slate-200 shadow-sm" data-testid="portfolio-authority-card">
                   <CardHeader>
-                    <CardTitle className="text-lg text-slate-950">{t("Authority contract")}</CardTitle>
+                    <CardTitle className="text-lg text-slate-950">{t("How this result is calculated")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm text-slate-700">
-                    <div data-testid="portfolio-authority-role">{t("Portfolio truth role")}: <span className="font-semibold text-slate-950">{workspace?.authority_contract?.portfolio_truth_role}</span></div>
-                    {Object.entries(workspace?.authority_contract?.upstream_authorities || {}).map(([key, value]) => (
-                      <div key={key} className="flex items-start justify-between gap-3" data-testid={`portfolio-authority-${key}`}>
-                        <span className="font-medium text-slate-900">{key.replaceAll("_", " ")}</span>
-                        <span className="text-right text-xs text-slate-500">{String(value)}</span>
+                    <div data-testid="portfolio-authority-role">{t("This page brings together the same approved project records already used by each project team.")}</div>
+                    {[
+                      ["Project performance", t("Production, work progress, and current field signals")],
+                      ["Forecast and commitments", t("Likely finish, commitment dates, and forecast cost outlook")],
+                      ["Earned Value", t("Portfolio cost and schedule performance rollups")],
+                      ["Project access", t("Only the projects you are allowed to see are included here")],
+                      ["AI summary", t("Not used for the numbers shown on this page")],
+                    ].map(([label, detail], index) => (
+                      <div key={`${label}-${index}`} className="flex items-start justify-between gap-3" data-testid={`portfolio-authority-source-${index}`}>
+                        <span className="font-medium text-slate-900">{label}</span>
+                        <span className="text-right text-xs text-slate-500">{detail}</span>
                       </div>
                     ))}
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600" data-testid="portfolio-authority-note">{(workspace?.authority_contract?.non_duplication_rules || []).join(" ")}</div>
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600" data-testid="portfolio-authority-note">{t("Portfolio cost performance is calculated from approved project totals. Ratio shortcuts and mixed-unit production totals are never used.")}</div>
                   </CardContent>
                 </Card>
               </div>
 
               <TableCard
-                title={t("Freshness and runtime status")}
+                title={t("Freshness and coverage")}
                 rows={[
-                  { id: "fresh", label: t("Fresh project snapshots"), value: fmtWhole(freshness.fresh) },
-                  { id: "watch", label: t("Watch project snapshots"), value: fmtWhole(freshness.watch) },
-                  { id: "stale", label: t("Stale project snapshots"), value: fmtWhole(freshness.stale) },
-                  { id: "missing", label: t("Missing project snapshots"), value: fmtWhole(freshness.missing) },
-                  { id: "blocked", label: t("Open C9 blockers"), value: fmtWhole(workspace?.blocked_dependencies?.open_blocked_by_c9_count) },
+                  { id: "fresh", label: t("Projects with up-to-date records"), value: fmtWhole(freshness.fresh) },
+                  { id: "watch", label: t("Projects that should be checked soon"), value: fmtWhole(freshness.watch) },
+                  { id: "stale", label: t("Projects using older records"), value: fmtWhole(freshness.stale) },
+                  { id: "missing", label: t("Projects still missing supporting records"), value: fmtWhole(freshness.missing) },
+                  { id: "blocked", label: t("Open portfolio blockers"), value: fmtWhole(workspace?.blocked_dependencies?.open_blocked_by_c9_count) },
                 ]}
                 testId="portfolio-runtime-status-table"
                 columns={[
@@ -449,13 +483,13 @@ export const PortfolioIntelligenceWorkspace = ({
 
               {workspace?.refresh_errors?.length ? (
                 <TableCard
-                  title={t("Refresh failures isolated during this run")}
+                  title={t("Projects that could not update just now")}
                   rows={workspace.refresh_errors}
                   testId="portfolio-refresh-error-table"
                   columns={[
-                    { key: "project_number", label: t("Project") },
-                    { key: "source", label: t("Source") },
-                    { key: "error", label: t("Error") },
+                    { key: "project_number", label: t("Project"), render: (row) => sanitizeOperatorProjectNumber(row.project_number, "Project record") },
+                    { key: "source", label: t("Area"), render: (row) => ({ c6: "Project performance", c7: "Forecast", c8: "Earned Value" }[row.source] || "Project records") },
+                    { key: "error", label: t("Issue"), render: (row) => sanitizeOperatorCopy(row.error, "This project could not update right now.") },
                   ]}
                 />
               ) : null}
@@ -469,21 +503,21 @@ export const PortfolioIntelligenceWorkspace = ({
           {selectedProject ? (
             <>
               <DialogHeader>
-                <DialogTitle data-testid="portfolio-project-detail-title">{selectedProject.project_number} · {selectedProject.project_name}</DialogTitle>
-                <DialogDescription data-testid="portfolio-project-detail-description">{selectedProject.why_it_matters}</DialogDescription>
+                <DialogTitle data-testid="portfolio-project-detail-title">{displayProjectLabel(selectedProject)}</DialogTitle>
+                <DialogDescription data-testid="portfolio-project-detail-description">{sanitizeOperatorCopy(selectedProject.why_it_matters, selectedProject.why_it_matters)}</DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="border-slate-200 shadow-sm" data-testid="portfolio-project-detail-action-card">
                   <CardHeader><CardTitle className="text-base text-slate-950">{t("Recommended action")}</CardTitle></CardHeader>
-                  <CardContent className="text-sm text-slate-700">{selectedProject.recommended_action}</CardContent>
+                  <CardContent className="text-sm text-slate-700">{sanitizeOperatorCopy(selectedProject.recommended_action, selectedProject.recommended_action)}</CardContent>
                 </Card>
                 <Card className="border-slate-200 shadow-sm" data-testid="portfolio-project-detail-lineage-card">
-                  <CardHeader><CardTitle className="text-base text-slate-950">{t("Source lineage")}</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="text-base text-slate-950">{t("Supporting records")}</CardTitle></CardHeader>
                   <CardContent className="space-y-2 text-sm text-slate-700">
-                    <div data-testid="portfolio-project-lineage-c6">C6 · {(selectedProject.source_lineage || {}).c6_snapshot_id || "—"}</div>
-                    <div data-testid="portfolio-project-lineage-c7">C7 · {(selectedProject.source_lineage || {}).c7_version_id || "—"}</div>
-                    <div data-testid="portfolio-project-lineage-c8">C8 · {(selectedProject.source_lineage || {}).c8_version_id || "—"}</div>
+                    <div data-testid="portfolio-project-lineage-c6">Project performance updated · {fmtDate((selectedProject.source_lineage || {}).c6_generated_at)}</div>
+                    <div data-testid="portfolio-project-lineage-c7">Forecast updated · {fmtDate((selectedProject.source_lineage || {}).c7_generated_at)}</div>
+                    <div data-testid="portfolio-project-lineage-c8">Earned Value updated · {fmtDate((selectedProject.source_lineage || {}).c8_generated_at)}</div>
                   </CardContent>
                 </Card>
               </div>
@@ -516,8 +550,8 @@ export const PortfolioIntelligenceWorkspace = ({
               </div>
 
               <div className="flex flex-wrap gap-2" data-testid="portfolio-project-detail-links">
-                <Link to={selectedProject.drilldowns?.forecasting || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-forecast-link">Open C7</Link>
-                <Link to={selectedProject.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-earned-value-link">Open C8</Link>
+                <Link to={selectedProject.drilldowns?.forecasting || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-forecast-link">Open forecast</Link>
+                <Link to={selectedProject.drilldowns?.earned_value || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-earned-value-link">Open Earned Value</Link>
                 <Link to={selectedProject.drilldowns?.project_performance || "#"} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-performance-link">Project performance</Link>
                 {selectedProject.drilldowns?.project_pnl ? <Link to={selectedProject.drilldowns.project_pnl} className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" data-testid="portfolio-project-detail-pnl-link">Project P&amp;L</Link> : null}
               </div>

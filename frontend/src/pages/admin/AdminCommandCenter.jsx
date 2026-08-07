@@ -218,7 +218,7 @@ export default function AdminCommandCenter() {
     >
       {loading && (
         <div className="text-sm text-slate-500" data-testid="cc-loading">
-          Loading command center snapshot…
+          Loading the latest command center view…
         </div>
       )}
       {err && (
@@ -226,13 +226,13 @@ export default function AdminCommandCenter() {
           className="rounded-md bg-rose-50 border border-rose-200 text-rose-700 p-3 text-sm"
           data-testid="cc-error"
         >
-          Failed to load snapshot: {err}
+          We could not load the command center right now. {err}
         </div>
       )}
       {snap && (
         <div className="space-y-4" data-testid="cc-snapshot">
           <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900" data-testid="cc-portfolio-link-callout">
-            Cross-project cost, schedule, commitments, and C7/C8 drill-back now live in{` `}
+            Cross-project cost, schedule, commitments, and direct project drill-back now live in{` `}
             <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="cc-portfolio-link">
               Portfolio Intelligence
             </Link>
@@ -257,7 +257,7 @@ export default function AdminCommandCenter() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase tracking-widest text-slate-400">Computed</div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-400">Updated</div>
               <div className="text-xs font-mono text-slate-200" data-testid="cc-computed-at">
                 {fmtTs(snap.computed_at)}
               </div>
@@ -286,16 +286,8 @@ export default function AdminCommandCenter() {
           </div>
 
           {/* TUNING LINK */}
-          <div className="text-xs text-slate-500 pt-2 border-t border-slate-100">
-            Thresholds & calendar are operator-tunable ·{" "}
-            <a className="underline" href="/api/admin/command-center/thresholds" target="_blank" rel="noreferrer">
-              read current config
-            </a>
-            . Adjust via{" "}
-            <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded">
-              PATCH /api/admin/command-center/thresholds
-            </code>
-            . Every change is audit-logged.
+          <div className="text-xs text-slate-500 pt-2 border-t border-slate-100" data-testid="cc-admin-settings-note">
+            Timing and thresholds can be updated from the admin settings record. Every change is audit-logged.
           </div>
         </div>
       )}

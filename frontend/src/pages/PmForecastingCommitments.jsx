@@ -95,7 +95,7 @@ export default function PmForecastingCommitments() {
   };
 
   return (
-    <PmShell title="Forecasting & Commitments" subtitle="C7 governed forecast authority" data-testid="pm-forecasting-commitments-page">
+    <PmShell title="Forecasting & Commitments" subtitle="Approved forecast records for likely finish, pace, and commitments" data-testid="pm-forecasting-commitments-page">
       <ForecastingCommitmentsWorkspace
         mode="pm"
         projectNumber={projectNumber}

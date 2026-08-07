@@ -1,0 +1,173 @@
+route/surface,role,visible text,banned term,classification,replacement,runtime proof,status
+/AdminAIConfiguration,Admin,API keys are managed in,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminAIConfiguration.jsx:276,EXEMPT
+/AdminAIConfiguration,Admin,Provider API keys never appear in this UI.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminAIConfiguration.jsx:491,EXEMPT
+/AdminAIConfiguration,Admin,Primary route:,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminAIConfiguration.jsx:733,EXEMPT
+/AdminAnalytics,Admin,Lightweight operational telemetry.,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/AdminAnalytics.jsx:108,EXEMPT
+/AdminAnalytics,Admin,Top route count,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminAnalytics.jsx:149,EXEMPT
+/AdminAnalytics,Admin,No API traffic in window,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminAnalytics.jsx:219,EXEMPT
+/AdminAnalytics,Admin,API calls,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminAnalytics.jsx:36,EXEMPT
+/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:144,EXEMPT
+/AdminDiagnostics,Admin,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:155,EXEMPT
+/AdminDiagnostics,Admin,Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:171,EXEMPT
+/AdminEmail,Admin,Auto-routing rules · distribution lists · route catalog.,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminEmail.jsx:16,EXEMPT
+/AdminGovernanceListPage,Admin,"No governance records are currently available for this page. When the source collection is populated, this page will summarize each item in plain English here.",collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/admin/AdminGovernanceListPage.jsx:375,EXEMPT
+/AdminGuide,Admin,", the email content is logged to backend logs instead of sending — useful in preview env but never the case in production.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/pages/AdminGuide.jsx:389,EXEMPT
+/AdminGuide,Admin,POST /api/field-leadership/time-off/public-link,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/AdminGuide.jsx:454,EXEMPT
+/AdminGuide,Admin,— telematics placeholder (live API integration deferred).,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/AdminGuide.jsx:570,EXEMPT
+/AdminGuide,Admin,— work-order placeholder (live API integration deferred).,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/AdminGuide.jsx:571,EXEMPT
+/AdminGuide,Admin,NO live API calls today. Integration framework is passive-observational until live keys are issued and stability is proven.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/AdminGuide.jsx:605,EXEMPT
+/AdminIntegrationCenter,Admin,API Key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminIntegrationCenter.jsx:156,EXEMPT
+/AdminIntegrationCenter,Admin,Bulk-create / bulk-update mappings before the live API is wired. Each CSV must include an internal asset key (column:,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminIntegrationCenter.jsx:651,EXEMPT
+/AdminIntegrationCenter,Admin,collection is written. Existing mappings will,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/admin/AdminIntegrationCenter.jsx:898,EXEMPT
+/AdminLegacyImports,Admin,collection:,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/AdminLegacyImports.jsx:457,EXEMPT
+/AdminOperationalIntelligence,Admin,Recipient/group CRUD is served by the admin API (,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
+/AdminOperationalIntelligenceRecipients,Admin,Member removal is not yet exposed via the API — deactivate the individual recipient instead.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:833,EXEMPT
+/AdminOperationalInventory,Admin,". 10-field coverage matrix across every portal, user type, public route, and cross-cutting workflow. Surfaces drift as the platform grows. No mutations from this surface.",route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminOperationalInventory.jsx:124,EXEMPT
+/AdminOperationalInventory,Admin,— Translation schema (body_es + Block renderer),schema,TECHNICAL_ADMIN_EXCEPTION,form layout,static_scan::frontend/src/pages/admin/AdminOperationalInventory.jsx:264,EXEMPT
+/AdminOperationalInventory,Admin,Public route,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminOperationalInventory.jsx:371,EXEMPT
+/AdminOperationalInventory,Admin,Schema landed,schema,TECHNICAL_ADMIN_EXCEPTION,form layout,static_scan::frontend/src/pages/admin/AdminOperationalInventory.jsx:442,EXEMPT
+/AdminOperationalInventory,Admin,fields to the article schema. Missing translation → graceful fallback to English. English remains canonical. This panel goes green as Pass 3 lands.,schema,TECHNICAL_ADMIN_EXCEPTION,form layout,static_scan::frontend/src/pages/admin/AdminOperationalInventory.jsx:450,EXEMPT
+/AdminOperationalInventory,Admin,"Every portal has a login door, every public route has guidance, every workflow is documented.",route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminOperationalInventory.jsx:527,EXEMPT
+/AdminOperationsDashboard,Admin,Read-only operational visibility. Derived from Motive telemetry + Verified geofences.,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/AdminOperationsDashboard.jsx:106,EXEMPT
+/AdminPlatformConfiguration,Admin,Runtime & Build,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminPlatformConfiguration.jsx:121,EXEMPT
+/AdminStorageRecovery,Admin,Runtime R2 fallback (local → R2 on write),runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:409,EXEMPT
+/AdminStorageRecovery,Admin,Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:685,EXEMPT
+/DeployRecovery,Operator,"Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.",collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:179,EXEMPT
+/DeployRecovery,Operator,GET /api/health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:197,EXEMPT
+/DeployRecovery,Operator,POST /api/auth/multi-login,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:198,EXEMPT
+/DevHub,Operator,"One-click export of the entire application source tree — backend, frontend, scripts, and memory docs — to pair with a pinned manual snapshot when the recipient needs code + documentation together.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/pages/DevHub.jsx:281,EXEMPT
+/DevHub,Operator,"One-click export of the entire application source tree — backend, frontend, scripts, and memory docs — to pair with a pinned manual snapshot when the recipient needs code + documentation together.",frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/DevHub.jsx:281,EXEMPT
+/IntegrationTruth,Operator,Loading alias telemetry…,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/IntegrationTruth.jsx:319,EXEMPT
+/OperationsControlCenter.ots.test,Operator,Platform Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx:85,EXEMPT
+/OperationsControlCenter.ots.test,Operator,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx:88,EXEMPT
+/SelfProtection,Operator,Generated by backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/pages/admin/SelfProtection.jsx:283,EXEMPT
+/SelfProtection,Operator,Probe runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/SelfProtection.jsx:296,EXEMPT
+/SelfProtection,Operator,Telemetry doctrine,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/SelfProtection.jsx:318,EXEMPT
+AdminSignatureMigrationPanel,Shared Operator Component,Collection,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/components/AdminSignatureMigrationPanel.jsx:134,EXEMPT
+AdminUnifiedDirectoryPanel,Shared Operator Component,Auto-mirrored from a legacy per-portal collection (Phase K1).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/components/AdminUnifiedDirectoryPanel.jsx:63,EXEMPT
+BackendVersionBadge,Shared Operator Component,Backend …,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/components/BackendVersionBadge.jsx:33,EXEMPT
+BackendVersionBadge,Shared Operator Component,Backend /api/version unreachable — redeploy,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/components/BackendVersionBadge.jsx:46,EXEMPT
+BackendVersionBadge,Shared Operator Component,Backend /api/version unreachable — redeploy,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/components/BackendVersionBadge.jsx:46,EXEMPT
+DraftHealthTile,Shared Operator Component,/draft-telemetry/recent?limit=200,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/components/admin/DraftHealthTile.jsx:120,EXEMPT
+DraftHealthTile,Shared Operator Component,/draft-telemetry/health,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/components/admin/DraftHealthTile.jsx:121,EXEMPT
+MaintainxP0Tab,Shared Operator Component,API key configured,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/components/admin/MaintainxP0Tab.jsx:200,EXEMPT
+MaintainxP0Tab,Shared Operator Component,Last 4 characters of the API key — for confirmation only,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/components/admin/MaintainxP0Tab.jsx:211,EXEMPT
+MaintainxP0Tab,Shared Operator Component,to probe the MaintainX API using the server-side environment key. No secret data is sent to the browser.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/components/admin/MaintainxP0Tab.jsx:324,EXEMPT
+OperationalHealthDashboardShell,Shared Operator Component,Primary route,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:149,EXEMPT
+RestoreBackupPanel,Shared Operator Component,— every collection found in the .zip is,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/components/RestoreBackupPanel.jsx:346,EXEMPT
+RestoreBackupPanel,Shared Operator Component,wipe every collection,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/components/RestoreBackupPanel.jsx:391,EXEMPT
+export_pdf_fallback,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/export_pdf_fallback.py:38,EXEMPT
+export_pdf_fallback,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/export_pdf_fallback.py:39,EXEMPT
+hub_banners_pdf,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/hub_banners_pdf.py:35,EXEMPT
+notification_delivery,Technical,invalid api key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/lib/notification_delivery.py:361,EXEMPT
+notification_delivery,Technical,api key is invalid,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/lib/notification_delivery.py:362,EXEMPT
+pdf_render,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/pdf_render.py:35,EXEMPT
+pdf_render,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/pdf_render.py:36,EXEMPT
+phase56_notify_audit_proof,Technical,Runtime cert · edit cycle,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::backend/tests/runtime_cert/phase56_notify_audit_proof.py:104,EXEMPT
+phase56_notify_audit_proof,Technical,Runtime cert · remove cycle,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::backend/tests/runtime_cert/phase56_notify_audit_proof.py:113,EXEMPT
+phase56_notify_audit_proof,Technical,Runtime cert · re-assign cycle,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::backend/tests/runtime_cert/phase56_notify_audit_proof.py:126,EXEMPT
+phase56_notify_audit_proof,Technical,/app/backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/runtime_cert/phase56_notify_audit_proof.py:29,EXEMPT
+phase56_notify_audit_proof,Technical,ZZ-RUNTIME-CERT-2026,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::backend/tests/runtime_cert/phase56_notify_audit_proof.py:37,EXEMPT
+phase56_notify_audit_proof,Technical,/app/backend/.env,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/runtime_cert/phase56_notify_audit_proof.py:57,EXEMPT
+pm_welcome_pdf,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/pm_welcome_pdf.py:38,EXEMPT
+test_dr_pdf_002_executive_comprehension,Technical,/app/backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_pdf_002_executive_comprehension.py:10,EXEMPT
+test_dr_pdf_002_executive_comprehension,Technical,/app/backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_pdf_002_executive_comprehension.py:285,EXEMPT
+test_dr_pdf_002_executive_comprehension,Technical,/app/backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_pdf_002_executive_comprehension.py:307,EXEMPT
+test_dr_pdf_003_polish_and_totals,Technical,/app/backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_pdf_003_polish_and_totals.py:17,EXEMPT
+test_dr_pdf_003_polish_and_totals,Technical,/app/backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_pdf_003_polish_and_totals.py:279,EXEMPT
+test_dr_pdf_003_polish_and_totals,Technical,/app/backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_pdf_003_polish_and_totals.py:359,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/api,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:173,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/app/frontend/src/pages/daily-report-v2/DailyReportV2.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:446,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/app/frontend/src/pages/daily-report-v2/DailyReportV2.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:456,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/app/backend/routes/dr_v2_pdf.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:465,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,frontend/src,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:467,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/app/frontend/src,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:545,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/app/frontend/src/components/DrV2ApprovedReportsPanel.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:575,EXEMPT
+test_dr_roi_001f_v2_pdf,Technical,/app/frontend/src/pages/daily-report-v2,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_dr_roi_001f_v2_pdf.py:588,EXEMPT
+test_iter182_backup_email_storm_fix,Technical,/app/backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter182_backup_email_storm_fix.py:30,EXEMPT
+test_iter182_backup_email_storm_fix,Technical,/app/backend/.env,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter182_backup_email_storm_fix.py:41,EXEMPT
+test_iter310_pdf_single_footer_invariant,Technical,backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter310_pdf_single_footer_invariant.py:41,EXEMPT
+test_iter310_pdf_single_footer_invariant,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter310_pdf_single_footer_invariant.py:43,EXEMPT
+test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:22,EXEMPT
+test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:34,EXEMPT
+test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:46,EXEMPT
+test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:54,EXEMPT
+test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:59,EXEMPT
+test_iter337_pdf_header_reference,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter337_pdf_header_reference.py:16,EXEMPT
+test_iter357_notifications_digest,Technical,/app/frontend/.env,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_iter357_notifications_digest.py:29,EXEMPT
+test_iter357_notifications_digest,Technical,/app/backend/.env,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter357_notifications_digest.py:30,EXEMPT
+test_notify_ownership_lock,Technical,/app/frontend/.env,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_notify_ownership_lock.py:37,EXEMPT
+test_pdf_lockup_sweep,Technical,frontend/src/pages/ViewInspection.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:119,EXEMPT
+test_pdf_lockup_sweep,Technical,frontend/src/pages/ViewIncident.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:120,EXEMPT
+test_pdf_lockup_sweep,Technical,frontend/src/pages/ViewDailyReport.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:121,EXEMPT
+test_pdf_lockup_sweep,Technical,frontend/src/pages/ViewMeeting.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:122,EXEMPT
+test_pdf_lockup_sweep,Technical,frontend/src/lib/printReport.js,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:150,EXEMPT
+test_pdf_lockup_sweep,Technical,backend/pdf_branding.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_pdf_lockup_sweep.py:20,EXEMPT
+test_pdf_lockup_sweep,Technical,backend/server.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_pdf_lockup_sweep.py:21,EXEMPT
+test_pdf_lockup_sweep,Technical,backend/routes/master_history.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_pdf_lockup_sweep.py:54,EXEMPT
+test_pdf_lockup_sweep,Technical,backend/routes/training_center.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_pdf_lockup_sweep.py:55,EXEMPT
+test_pdf_lockup_sweep,Technical,backend/routes/safety_portal/fire_ext_attachments.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_pdf_lockup_sweep.py:56,EXEMPT
+test_pdf_lockup_sweep,Technical,backend/routes,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_pdf_lockup_sweep.py:83,EXEMPT
+test_rel01_backup_notification_truth,Technical,/app/backend/server.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_rel01_backup_notification_truth.py:6,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,Verify backend health and environment configuration.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:103,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,Verify backend is healthy.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:106,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,API key is invalid,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:181,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,Expected provider_accepted=False due to invalid API key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:212,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,api key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:217,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,API key is invalid,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:376,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,api key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:400,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,Should not show provider_accepted when API key is invalid,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:405,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,api key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:575,EXEMPT
+test_s1_4_notification_delivery_certification,Technical,CERTIFICATION RESULT: BLOCKER - Provider auth failed (API key invalid),API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/tests/test_s1_4_notification_delivery_certification.py:576,EXEMPT
+test_sm_pdf_001_meeting_layout,Technical,/app/backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_sm_pdf_001_meeting_layout.py:13,EXEMPT
+test_sm_pdf_001_meeting_layout,Technical,/app/backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_sm_pdf_001_meeting_layout.py:299,EXEMPT
+test_sm_pdf_001_meeting_layout,Technical,Static guard — `_render_meeting` must not write to any collection.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/tests/test_sm_pdf_001_meeting_layout.py:305,EXEMPT
+test_sm_pdf_001_meeting_layout,Technical,/app/backend/pdf_render.py,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_sm_pdf_001_meeting_layout.py:306,EXEMPT
+test_track_15_28c_notification_canonicalization,Technical,legacy collection tasks_notifications must be dropped,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/tests/test_track_15_28c_notification_canonicalization.py:119,EXEMPT
+test_track_15_73q_pm_email_coverage,Technical,/app/backend/.env,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_15_73q_pm_email_coverage.py:16,EXEMPT
+test_track_15_73q_pm_email_coverage,Technical,/app/frontend/.env,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_track_15_73q_pm_email_coverage.py:17,EXEMPT
+test_track_16_09_transportation_dispatch_gate_email_pilot,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_16_09_transportation_dispatch_gate_email_pilot.py:26,EXEMPT
+test_track_19_18_pdf_excellence,Technical,<th>Payload</th>,payload,TECHNICAL_ADMIN_EXCEPTION,submitted details,static_scan::backend/tests/test_track_19_18_pdf_excellence.py:168,EXEMPT
+test_track_21_2e_email_safety,Technical,Non-TEST_ payload inventory must exist,payload,TECHNICAL_ADMIN_EXCEPTION,submitted details,static_scan::backend/tests/test_track_21_2e_email_safety.py:180,EXEMPT
+test_track_21_2e_email_safety,Technical,Preview backend/.env must declare EMAIL_SAFETY_MODE=strict,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_21_2e_email_safety.py:197,EXEMPT
+test_track_21_2e_email_safety,Technical,One of the current backend logs must record the SDK patch activation.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_21_2e_email_safety.py:204,EXEMPT
+test_track_21_2e_email_safety,Technical,backend*.log,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_21_2e_email_safety.py:205,EXEMPT
+test_track_21_2e_email_safety,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_21_2e_email_safety.py:21,EXEMPT
+test_track_21_2e_email_safety,Technical,Backend supervisor logs must contain the Track 21.2 SDK-patch,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_21_2e_email_safety.py:217,EXEMPT
+test_track_22_1b_email_dispatch,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_22_1b_email_dispatch.py:30,EXEMPT
+test_track_22_1g_non_email_scheduler_migration,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_22_1g_non_email_scheduler_migration.py:30,EXEMPT
+test_track_22_1h_email_scheduler_migration,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_22_1h_email_scheduler_migration.py:32,EXEMPT
+test_track_27_10_golden_pdf_regression,Technical,/app/backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_track_27_10_golden_pdf_regression.py:4,EXEMPT
+test_wp18cy_daily_report_email_transport,Technical,Daily Report submitted — Runtime Project,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::backend/tests/test_wp18cy_daily_report_email_transport.py:102,EXEMPT
+test_wp18cy_daily_report_email_transport,Technical,Runtime Project,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::backend/tests/test_wp18cy_daily_report_email_transport.py:114,EXEMPT
+track_15_65_seed_email_routes,Technical,Single fallback when shop_users collection is empty (Pre-Op fail / OOS).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/scripts/track_15_65_seed_email_routes.py:128,EXEMPT
+track_15_65_seed_email_routes,Technical,read-only audit of the route catalog,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/scripts/track_15_65_seed_email_routes.py:422,EXEMPT
+training,Training / Localization,Trust but verify. The Integrity Check proves that every collection currently in your live DB is captured in the most recent backup — catches new collections that a future feature adds without updating the backup routine.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/data/training.js:783,EXEMPT
+training_pdf,Technical,"Pipeline: photo → indexer mirrors to job_photos → frontend requests /thumb-signed?t=<token> → backend checks cache → if miss, decodes (Pillow + pillow-heif) → encodes WebP/AVIF/JPEG in one pass → stores all 3 → serves right format per Accept header.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:1095,EXEMPT
+training_pdf,Technical,"Pipeline: photo → indexer mirrors to job_photos → frontend requests /thumb-signed?t=<token> → backend checks cache → if miss, decodes (Pillow + pillow-heif) → encodes WebP/AVIF/JPEG in one pass → stores all 3 → serves right format per Accept header.",frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1095,EXEMPT
+training_pdf,Technical,"Frontend cap: 6 thumb requests in flight, gated by IntersectionObserver (300px rootMargin).",frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1097,EXEMPT
+training_pdf,Technical,"Pipeline: foto → indexer → job_photos → frontend pide /thumb-signed → backend revisa caché → si miss, decodifica (Pillow + pillow-heif) → encodea WebP/AVIF/JPEG en una pasada → guarda los 3 → sirve formato según Accept.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:1104,EXEMPT
+training_pdf,Technical,"Pipeline: foto → indexer → job_photos → frontend pide /thumb-signed → backend revisa caché → si miss, decodifica (Pillow + pillow-heif) → encodea WebP/AVIF/JPEG en una pasada → guarda los 3 → sirve formato según Accept.",frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1104,EXEMPT
+training_pdf,Technical,"Tope frontend: 6 peticiones en vuelo, gateadas por IntersectionObserver (300px rootMargin).",frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1106,EXEMPT
+training_pdf,Technical,Render concurrency 2 (semaphore). Frontend 6 in-flight tiles.,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1114,EXEMPT
+training_pdf,Technical,Concurrencia 2 (semáforo). Frontend 6 mosaicos en vuelo.,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1115,EXEMPT
+training_pdf,Technical,Outstanding equipment count updates live from the equipment_checkout collection.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:1164,EXEMPT
+training_pdf,Technical,Empty state when collection is empty (new install).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:1383,EXEMPT
+training_pdf,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:28,EXEMPT
+training_pdf,Technical,"iPhone HEIC photos render correctly (backend converts HEIC → WebP/AVIF/JPEG). Pre-Op photos NOT in library — diagnostic, not progress documentation.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:803,EXEMPT
+training_pdf,Technical,Fotos HEIC del iPhone renderizan bien (backend convierte). Fotos Pre-Op NO en biblioteca — son diagnóstico.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:813,EXEMPT
+training_pdf,Technical,React (frontend) + FastAPI (backend) + MongoDB. Deployed at mascidocs.com.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:833,EXEMPT
+training_pdf,Technical,React (frontend) + FastAPI (backend) + MongoDB. Deployed at mascidocs.com.,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:833,EXEMPT
+training_pdf,Technical,Content: ONE zip per run — MASCI_full_backup_YYYY-MM-DD_HHMMSSZ.zip. Every collection as JSON + all uploaded files.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:862,EXEMPT
+training_pdf,Technical,Storage: /app/backend/backups/. Listed via Admin → On-Server Backups.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:863,EXEMPT
+training_pdf,Technical,Inside the .zip: normal file. Unzip in Explorer/Finder. JSON per collection. PDFs. Base64 photos. Not encrypted — store safely.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:866,EXEMPT
+training_pdf,Technical,Scheduled backup failed? Check /app/backend logs (grep 'scheduled-backup'). Usually disk space.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:868,EXEMPT
+training_pdf,Technical,Almacenamiento: /app/backend/backups/. Listado vía Admin → Respaldos en Servidor.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:873,EXEMPT
+training_pdf,Technical,¿Respaldo programado falló? Revise logs /app/backend (grep 'scheduled-backup'). Usualmente espacio en disco.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:878,EXEMPT
+training_pdf,Technical,Trust but verify. Integrity Check proves every live collection is captured in the most recent backup.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:920,EXEMPT
+training_pdf,Technical,Status: /api/admin/crew-recovery/status. Shows live DB vs seed counts.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:947,EXEMPT
+training_pdf,Technical,Reset Password: /api/admin/crew-recovery/reset-password. Rare.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:948,EXEMPT
+training_pdf,Technical,Estado: /api/admin/crew-recovery/status. Muestra DB en vivo vs semilla.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:954,EXEMPT
+training_pdf,Technical,Reiniciar Contraseña: /api/admin/crew-recovery/reset-password. Raro.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:955,EXEMPT
+training_pdf,Technical,"6 — Smoke: curl /api/health, login all 3 tiers, spot-check dashboards, Backup panel.",API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:978,EXEMPT
+training_pdf,Technical,"6 — Prueba: curl /api/health, login en 3 niveles, tableros, panel Respaldo.",API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:988,EXEMPT

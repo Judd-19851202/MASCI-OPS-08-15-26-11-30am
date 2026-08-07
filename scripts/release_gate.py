@@ -364,6 +364,25 @@ def _migration_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
     return {"returncode": 0 if not errors else 1, "errors": errors}
 
 
+def _operator_language_gate() -> dict[str, Any]:
+    outcome = _run(["python3", "scripts/operator_language_gate.py", "--json"], cwd=REPO_ROOT, timeout=600)
+    payload: dict[str, Any] = {}
+    stdout_tail = outcome.get("stdout_tail") or ""
+    if stdout_tail.strip():
+        try:
+            payload = json.loads(stdout_tail)
+        except Exception:
+            payload = {
+                "parse_error": "operator language gate did not emit valid json",
+                "raw_stdout": stdout_tail[-2000:],
+            }
+    return {
+        **outcome,
+        **payload,
+        "returncode": 0 if outcome.get("returncode") == 0 else 1,
+    }
+
+
 def _post_deploy_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
     schema = REPO_ROOT / "docs" / "recovery" / "POST_DEPLOY_CERTIFICATE_SCHEMA.json"
     errors = []
@@ -432,6 +451,7 @@ CHECK_RUNNERS = {
     "release-identity-verifier": lambda manifest, target: _release_identity_verifier(),
     "release-gate-manifest": lambda manifest, target: _manifest_gate(manifest),
     "one-body-authorities": lambda manifest, target: _one_body_gate(manifest),
+    "operator-language-hard-fail": lambda manifest, target: _operator_language_gate(),
     "performance-baseline-contract": lambda manifest, target: _performance_baseline_gate(manifest),
     "workflow-audit": lambda manifest, target: _workflow_gate(),
     "backup-verification-contract": lambda manifest, target: _backup_contract_gate(manifest),

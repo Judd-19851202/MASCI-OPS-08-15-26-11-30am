@@ -167,7 +167,7 @@ function SectionTimeline({ section }) {
   return (
     <div data-testid="report-viewer-section-timeline">
       <h2 className="text-lg font-bold mt-6 mb-2 pb-1 border-b border-slate-300">{t("Timeline")}</h2>
-      <Table head={[t("When"), t("Event"), t("Actor"), t("Payload")]}
+      <Table head={[t("When"), t("Event"), t("Actor"), t("Details")]}
              rows={rows} empty={t("No events yet.")}
              testId="report-viewer-timeline-table" />
     </div>

@@ -13,6 +13,7 @@ import {
 import { formatPlatformTime } from "@/lib/platformTime";
 import { useT } from "@/lib/i18n";
 import { isReleaseDeferred } from "@/lib/releaseScope";
+import { formatOperatorJobLabel, sanitizeOperatorCopy, sanitizeOperatorProjectNumber, sanitizeOperatorProjectName } from "@/lib/operatorLanguage";
 
 function humanizeToken(value) {
   return String(value || "")
@@ -101,8 +102,8 @@ export default function ExecutiveOperationalIntelligence() {
           header: t("Project"),
       render: (p) => (
         <div>
-              <div className="font-semibold text-neutral-900">{p.project_name || t("Project name not reported")}</div>
-              <div className="text-xs text-neutral-500">{p.project_number || p.project_id || t("Project reference not reported")}</div>
+              <div className="font-semibold text-neutral-900">{sanitizeOperatorProjectName(p.project_name, t("Project name not reported"))}</div>
+              <div className="text-xs text-neutral-500">{sanitizeOperatorProjectNumber(p.project_number || p.project_id, t("Project reference not reported"))}</div>
         </div>
       ),
       wrap: true,
@@ -144,7 +145,7 @@ export default function ExecutiveOperationalIntelligence() {
                 {t("Use this page to understand what landed in the selected period, which projects need leadership attention, and whether the enterprise briefing is ready for distribution.")}
               </p>
               <div className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900" data-testid="exec-intel-portfolio-link-callout">
-                {t("For governed portfolio cost, schedule, commitments, and earned-value drill-back, use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Intelligence")}</Link>.
+                {t("For approved portfolio cost, schedule, commitments, and Earned Value drill-back, use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Intelligence")}</Link>.
               </div>
             </div>
             <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />
@@ -300,7 +301,7 @@ export default function ExecutiveOperationalIntelligence() {
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   {(oppc.what_is_at_risk || []).slice(0, 6).map((item) => (
                     <div key={item.project_number} className="flex items-center justify-between gap-3">
-                      <span>{item.project_name || item.project_number}</span>
+                      <span>{formatOperatorJobLabel(item.project_number, item.project_name)}</span>
                       <span className="text-xs text-neutral-500">{t("Recovery overdue")} {item.recovery_overdue || 0}</span>
                     </div>
                   ))}
@@ -313,7 +314,7 @@ export default function ExecutiveOperationalIntelligence() {
                   {(oppc.resource_conflicts || []).slice(0, 6).map((item, idx) => (
                     <div key={`${item.resource_key}-${idx}`}>
                       <div className="font-semibold">{humanizeToken(item.conflict_type)}</div>
-                      <div className="text-xs text-neutral-500">{item.project_number} · {item.why}</div>
+                      <div className="text-xs text-neutral-500">{sanitizeOperatorProjectNumber(item.project_number, t("Project reference not reported"))} · {sanitizeOperatorCopy(item.why, item.why || t("Details pending"))}</div>
                     </div>
                   ))}
                   {!(oppc.resource_conflicts || []).length ? <EmptyEvidence label={t("No active resource conflicts are reported right now.")} /> : null}
@@ -324,7 +325,7 @@ export default function ExecutiveOperationalIntelligence() {
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   {(oppc.recovery_overdue || []).slice(0, 6).map((item) => (
                     <div key={item.variance_key || item.project_number}>
-                      <div className="font-semibold">{item.project_number} · {item.strategy || t("strategy pending")}</div>
+                      <div className="font-semibold">{sanitizeOperatorProjectNumber(item.project_number, t("Project reference not reported"))} · {sanitizeOperatorCopy(item.strategy, item.strategy || t("strategy pending"))}</div>
                       <div className="text-xs text-neutral-500">{humanizeToken(item.recovery_status)} · {humanizeToken(item.recovery_priority)}</div>
                     </div>
                   ))}
