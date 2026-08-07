@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import re
 from collections import Counter, defaultdict
@@ -27,6 +28,9 @@ COLL_CREW_OBSERVATIONS = "project_controls_crew_observations"
 COLL_WORK_LEDGER = "project_controls_work_ledger"
 COLL_AUDIT = "project_controls_authority_audit"
 COLL_RUNS = "project_controls_authority_runs"
+
+_FOUNDATION_STATE_BY_DB: Dict[str, Dict[str, Any]] = {}
+_FOUNDATION_READY_LOCK = asyncio.Lock()
 
 PROJECT_LIFECYCLE_STATES = [
     "Proposal",
@@ -1484,8 +1488,15 @@ async def run_project_controls_backfill(db, *, force: bool = False) -> Dict[str,
 
 
 async def ensure_project_controls_foundation(db, *, force_backfill: bool = False) -> Dict[str, Any]:
-    await _ensure_indexes(db)
-    seed = await _seed_work_types(db)
+    db_key = str(getattr(db, "name", "")) or COLL_WORK_TYPES
+    seed = _FOUNDATION_STATE_BY_DB.get(db_key, {}).get("seed")
+    if seed is None:
+        async with _FOUNDATION_READY_LOCK:
+            seed = _FOUNDATION_STATE_BY_DB.get(db_key, {}).get("seed")
+            if seed is None:
+                await _ensure_indexes(db)
+                seed = _sanitize(await _seed_work_types(db))
+                _FOUNDATION_STATE_BY_DB[db_key] = {"seed": seed}
     if force_backfill:
         backfill = await run_project_controls_backfill(db, force=True)
     else:

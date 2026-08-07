@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import csv
 import hashlib
 import io
@@ -41,6 +42,9 @@ COLL_BUDGET_COMMITMENTS = "project_budget_commitment_candidates"
 COLL_BUDGET_ACTUALS = "project_budget_actual_cost_candidates"
 COLL_BUDGET_DISTRIBUTION = "project_budget_distribution_audit"
 COLL_BUDGET_RUNS = "project_budget_runs"
+
+_FOUNDATION_READY_DBS: set[str] = set()
+_FOUNDATION_READY_LOCK = asyncio.Lock()
 
 VERSION_STAGES = [
     "bid",
@@ -998,8 +1002,13 @@ def _budget_line_doc(project_number: str, version_id: str, selected: Dict[str, A
 
 
 async def ensure_project_budget_foundation(db) -> Dict[str, Any]:
-    await _ensure_indexes(db)
-    await ensure_project_controls_foundation(db)
+    db_key = str(getattr(db, "name", "")) or COLL_BUDGET_VERSIONS
+    if db_key not in _FOUNDATION_READY_DBS:
+        async with _FOUNDATION_READY_LOCK:
+            if db_key not in _FOUNDATION_READY_DBS:
+                await _ensure_indexes(db)
+                await ensure_project_controls_foundation(db)
+                _FOUNDATION_READY_DBS.add(db_key)
     last_run = await db[COLL_BUDGET_RUNS].find_one({"run_type": "wp18c3_backfill"}, {"_id": 0})
     return {
         "ok": True,
