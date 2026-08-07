@@ -215,7 +215,7 @@ function ProjectDrilldown({ pn, onClose }) {
             {row.cp_snapshot ? (
               <div className="mt-2 p-2 rounded border border-slate-200 bg-slate-50 text-slate-800">
                 <div className="text-[10px] font-mono uppercase tracking-[0.15em] font-bold text-slate-500 mb-0.5">
-                  Latest Competent Person snapshot
+                  Latest Competent Person update
                 </div>
                 {row.cp_snapshot.person_name_snapshot || row.cp_snapshot.employee_id}
                 {" · "}

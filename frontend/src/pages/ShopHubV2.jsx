@@ -854,7 +854,7 @@ export default function ShopHubV2() {
                      title="Service truck start and close day"
                      body="Log start-of-day quantities and close the day against actual fuel and lube visits." />
             <HubCard to="/shop/service-truck-reconciliation" testid="shop-hub-v2-action-strr-records"
-                     title="Reconciliation records"
+                     title="Daily check records"
                      body="Truck-day variance history showing clear, review, and high-variance days." />
           </div>
         </section>
@@ -893,7 +893,7 @@ export default function ShopHubV2() {
           <SectionHeader
             kicker="08 · Records"
             title="Archive, records, and history"
-            caption="Pre-ops, truck DVIRs, fuel and lube, and reconciliation history in one place."
+            caption="Pre-ops, truck DVIRs, fuel and lube, and daily check history in one place."
           />
           <div data-testid="shop-hub-v2-records-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
@@ -906,7 +906,7 @@ export default function ShopHubV2() {
             <HubCard to="/shop/fuel-lube" testid="shop-hub-v2-record-fuel-lube"
                      title="Fuel and lube visit records" body="Submitted visit history." />
             <HubCard to="/shop/service-truck-reconciliation" testid="shop-hub-v2-record-strr"
-                     title="Reconciliation Records" body="Truck-day variance archive." />
+                     title="Daily Check Records" body="Truck-day variance archive." />
             <HubCard to="/shop/fleet?focus_filter=rts_pending" testid="shop-hub-v2-record-rts-7d"
                      title="Returned to service · last 7 days"
                      body="Units verified safe to use and released in the last week."

@@ -478,7 +478,7 @@ export default function FleetVisibility({ scope = "shop" }) {
     ? { kicker: t("Shop · Fleet Repair Queue"), title: t("Trucks needing attention") }
     : scope === "dispatch"
     ? { kicker: t("Dispatch · Fleet Availability"), title: t("Fleet operational status") }
-    : { kicker: t("Safety · Fleet Governance"), title: t("Open defects across fleet") };
+    : { kicker: t("Safety · Fleet Oversight"), title: t("Open defects across fleet") };
 
   // UXS-11E · pick the right portal sidebar based on scope.
   const sideNav = scope === "dispatch"

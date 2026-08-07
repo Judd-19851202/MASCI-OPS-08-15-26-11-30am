@@ -172,7 +172,7 @@ export default function EmployeeRosterField({
       ) : unresolvedFreeText ? (
         <div className="mt-1 text-[11px] text-amber-700 leading-snug" data-testid={`${testId}-unresolved-warning`}>
           <span className="font-mono font-bold uppercase tracking-wider">{t("Not in roster")}.</span>{" "}
-          {t("Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.")}{" "}
+          {t("Saved as typed text. This stays on the roster follow-up list until you either pick from the roster or add this person to the employee list.")}{" "}
           <a href="/admin/operational-language#roster_backed_selector" target="_blank" rel="noreferrer" className="underline">
             {t("What does this mean?")}
           </a>

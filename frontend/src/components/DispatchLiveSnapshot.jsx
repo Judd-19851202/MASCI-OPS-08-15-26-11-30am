@@ -68,7 +68,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
         if (!cancelled) {
           setLoading(false);
           if (snap) {
-            setStaleMessage(t("Live refresh failed. Dispatch is showing the last good fleet snapshot instead of a blank widget."));
+            setStaleMessage(t("Live refresh failed. Dispatch is showing the last good fleet update instead of a blank widget."));
           }
         }
       });
@@ -100,7 +100,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] font-bold text-orange-700">
-          {t("Live Fleet Snapshot")}
+          {t("Live Fleet Status")}
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider">
           <span

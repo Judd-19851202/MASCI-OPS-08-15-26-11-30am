@@ -233,7 +233,7 @@ export default function V2Index() {
         portalName="MASCI"
         portalRole="V2 Preview Review Hub"
         pageTitle="V2 lanes · live + companion + retired"
-        subtitle="Live-swapped portals are mounted at their canonical routes with legacy rollback preserved. Companion lanes supplement the classic portal. Retired lanes are documented for history only."
+        subtitle="Live-swapped portals are mounted at their standard routes with legacy rollback preserved. Companion lanes supplement the classic portal. Retired lanes are documented for history only."
         lastActivity={<span data-testid="v2-index-last-activity">Operator Review Hub</span>}
       >
         <section data-testid="v2-index-section-operational" style={{ marginBottom: 28 }}>

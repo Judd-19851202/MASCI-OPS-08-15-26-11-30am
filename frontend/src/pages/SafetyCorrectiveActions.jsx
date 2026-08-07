@@ -357,7 +357,7 @@ export default function SafetyCorrectiveActions() {
           sections={[
             {
               label: t("Roles"),
-              body: t("Safety owns CAPA governance — create, edit, advance, verify, close. HR adds labor/accountability notes only (no Safety override). PM and FL get read-only visibility on records affecting their crews. Admin keeps supervisory authority."),
+              body: t("Safety leads CAPA handling — create, edit, advance, verify, and close. HR adds labor and accountability notes only. PM and Field Leadership can read records affecting their crews. Admin keeps supervisory access."),
             },
             {
               label: t("Lifecycle gate"),
@@ -365,11 +365,11 @@ export default function SafetyCorrectiveActions() {
             },
             {
               label: t("Downstream visibility"),
-              body: t("Open and Verified CAPAs surface on the PM Crew Compliance lens, HR Accountability Timeline, Governance Health dashboard, and Compliance Findings. Closed CAPAs remain in the audit trail forever."),
+              body: t("Open and Verified CAPAs surface on the PM Crew Compliance lens, HR Accountability Timeline, the standards dashboard, and Compliance Findings. Closed CAPAs remain in the audit trail forever."),
             },
             {
               label: t("Why this matters"),
-              body: t("Open CAPAs that never close are silent operational debt. Severe incidents without a CAPA are a governance failure surfaced by Governance Health. Every status change is appended to the CAPA's status_history for OSHA / DOT / insurance review."),
+              body: t("Open CAPAs that never close are silent operational debt. Severe incidents without a CAPA are surfaced on the standards dashboard. Every status change is appended to the CAPA history for OSHA / DOT / insurance review."),
             },
           ]}
         />

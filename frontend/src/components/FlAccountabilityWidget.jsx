@@ -72,7 +72,7 @@ export default function FlAccountabilityWidget({ employeeId, onClose, compact = 
         );
         if (alive) setData(r.data);
       } catch (e) {
-        if (alive) setErr(operationalError(e, t("Could not load employee snapshot.")));
+        if (alive) setErr(operationalError(e, t("Could not load employee update.")));
       } finally {
         if (alive) setLoading(false);
       }
@@ -83,7 +83,7 @@ export default function FlAccountabilityWidget({ employeeId, onClose, compact = 
   if (loading) {
     return (
       <div className="bg-white border-2 border-red-200 rounded-md p-4 flex items-center gap-2 text-sm text-slate-600" data-testid="fl-widget-loading">
-        <Loader2 className="w-4 h-4 animate-spin" /> {t("Loading employee snapshot…")}
+        <Loader2 className="w-4 h-4 animate-spin" /> {t("Loading employee update…")}
       </div>
     );
   }

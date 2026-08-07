@@ -546,7 +546,7 @@ export default function PmMondayReviewWorkspace() {
               </div>
 
               <div className="rounded-[2rem] border border-white/40 bg-white/80 p-5 shadow-sm" data-testid="pm-monday-review-payroll-panel">
-                <div className="text-sm font-black text-slate-900">Payroll Reconciliation</div>
+                <div className="text-sm font-black text-slate-900">Payroll Review</div>
                 <div className="mt-3 space-y-2 text-sm">
                   <div data-testid="pm-monday-review-payroll-status">Lifecycle: {workspace.payroll_summary.lifecycle_state}</div>
                   <div data-testid="pm-monday-review-payroll-field-hours">Field hours: {workspace.payroll_summary.field_labor_hours}</div>

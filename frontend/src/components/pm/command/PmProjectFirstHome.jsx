@@ -317,8 +317,8 @@ function PhotoLightbox({ photos, openIndex, onClose, onNext, onPrev }) {
   const reportRef = p.report_number || p.source_id || "";
   const dateLabel = p.record_date || p.captured_at || "";
   const dateText = dateLabel ? String(dateLabel).slice(0, 10) : "";
-  const safePhotoProject = formatOperatorJobLabel(p.project_number, p.project_name || p.project_number || t("Operations support"));
-  const safePhotoProjectNumber = sanitizeOperatorProjectNumber(p.project_number, t("Operations support"));
+  const safePhotoProject = formatOperatorJobLabel(p.project_number, p.project_name || p.project_number || t("Assigned job"));
+  const safePhotoProjectNumber = sanitizeOperatorProjectNumber(p.project_number, t("Assigned job"));
 
   const openReport = () => {
     if (!p.source_id) return;
@@ -461,7 +461,7 @@ function FieldTruth({ photos, dailies, loading }) {
 
   return (
     <SectionShell
-      kicker={t("Section B · Field Truth")}
+      kicker={t("Section B · Field Updates")}
       title={t("Latest Dailies & Photos from the Field")}
       lede={t("What the crews submitted at end-of-shift. Click any row to open the record.")}
       testId="pm-pfh-field-truth"
@@ -481,7 +481,7 @@ function FieldTruth({ photos, dailies, loading }) {
               {dailies.slice(0, 5).map((d) => (
                 <li key={d.id || d.report_id}>
                   {(() => {
-                    const safeDailyProject = formatOperatorJobLabel(d.project_number, d.project_name || d.project_number || t("Operations support"));
+                    const safeDailyProject = formatOperatorJobLabel(d.project_number, d.project_name || d.project_number || t("Assigned job"));
                     return (
                   <Link
                     to={`/daily/${d.id || d.report_id}`}
@@ -526,7 +526,7 @@ function FieldTruth({ photos, dailies, loading }) {
             <div className="grid grid-cols-4 gap-1.5" data-testid="pm-pfh-photo-grid">
               {safePhotos.slice(0, 8).map((p, i) => {
                 const src = thumbSrc(p);
-                const safeCapProject = sanitizeOperatorProjectNumber(p.project_number, t("Operations support"));
+                const safeCapProject = sanitizeOperatorProjectNumber(p.project_number, t("Assigned job"));
                 const cap = [safeCapProject, p.record_date].filter(Boolean).join(" · ");
                 return (
                   <button
@@ -582,7 +582,7 @@ function ProjectRisk({ safety, shop, loading }) {
     <SectionShell
       kicker={t("Section C · Project Risk")}
       title={t("What Needs PM Action")}
-      lede={t("Safety, equipment, and accountability items that block project work.")}
+      lede={t("Safety, equipment, and accountability items that can slow today’s progress.")}
       testId="pm-pfh-project-risk"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

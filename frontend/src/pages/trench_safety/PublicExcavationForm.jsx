@@ -322,7 +322,7 @@ export default function PublicExcavationForm() {
           <div className="space-y-2 text-xs text-slate-700">
             <div>{t("• Pulls jobs, roster, and trench assets from certified sources")}</div>
             <div>{t("• Expands only the sections your conditions trigger")}</div>
-            <div>{t("• Preserves bilingual field notes with canonical English storage")}</div>
+            <div>{t("• Preserves bilingual field notes with an approved English copy for reporting")}</div>
           </div>
         </div>
       )}

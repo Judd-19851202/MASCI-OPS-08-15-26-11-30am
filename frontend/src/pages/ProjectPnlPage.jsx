@@ -224,7 +224,7 @@ export default function ProjectPnlPage() {
           <div className="bg-white border-2 border-dashed border-slate-300 rounded-md p-10 text-center">
             <TrendingUp className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 text-sm">
-              Pick a project to see the live cost snapshot.
+              Pick a project to see the latest cost update.
             </p>
           </div>
         )}

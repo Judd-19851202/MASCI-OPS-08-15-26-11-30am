@@ -94,8 +94,8 @@ export default function TenantBrandingPanel() {
             Tenant Branding · sender + support identity
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Source-of-truth for sender / reply-to / support strings across email,
-            PDFs, and help text. Source: <span className="font-mono">{doc?.source || "env_defaults"}</span>
+            Main source for sender / reply-to / support text across email,
+            PDFs, and help text. Current source: <span className="font-mono">{doc?.source || "env_defaults"}</span>
           </p>
         </div>
       </header>

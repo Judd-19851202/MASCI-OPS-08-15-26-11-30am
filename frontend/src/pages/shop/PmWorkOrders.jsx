@@ -289,7 +289,7 @@ function PmWorkOrderDetail({ id }) {
           </Card>
         )}
 
-        <Card title="Checklist results (read-only snapshot)">
+        <Card title="Checklist results (read-only update)">
           {(wo.checklist_results || []).length === 0 && <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>No checklist captured.</div>}
           {(wo.checklist_results || []).map((c, i) => (
             <div key={i} style={{ fontSize: 12, padding: "4px 0", borderBottom: "1px dashed #e5e7eb" }}>

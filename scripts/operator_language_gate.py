@@ -107,7 +107,7 @@ EXEMPT_PATTERNS = [
     "frontend/src/components/RestoreBackupPanel.jsx",
     "frontend/src/components/BackendVersionBadge.jsx",
     "frontend/src/components/telemetry/*",
-    "frontend/src/lib/*",
+    "frontend/src/lib/**",
     "frontend/src/app/*",
     "backend/export_pdf_fallback.py",
     "backend/hub_banners_pdf.py",
@@ -149,6 +149,8 @@ def _matches_any(relative_path: str, patterns: Iterable[str]) -> bool:
 def _classification(relative_path: str) -> str:
     if relative_path in OPERATOR_SURFACE_HINTS:
         return "OPERATOR_FACING"
+    if relative_path.startswith("frontend/src/lib/"):
+        return "TECHNICAL_ADMIN_EXCEPTION"
     if Path(relative_path).stem.startswith("Admin") and relative_path.startswith("frontend/src/pages/"):
         return "TECHNICAL_ADMIN_EXCEPTION"
     if relative_path.startswith("frontend/src/pages/admin/"):

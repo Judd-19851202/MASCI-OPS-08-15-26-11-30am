@@ -360,3 +360,4 @@ training_pdf,Technical,Estado: /api/admin/crew-recovery/status. Muestra DB en vi
 training_pdf,Technical,Reiniciar Contraseña: /api/admin/crew-recovery/reset-password. Raro.,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:955,EXEMPT
 training_pdf,Technical,"6 — Smoke: curl /api/health, login all 3 tiers, spot-check dashboards, Backup panel.",API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:978,EXEMPT
 training_pdf,Technical,"6 — Prueba: curl /api/health, login en 3 niveles, tableros, panel Respaldo.",API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/training_pdf.py:988,EXEMPT
+useMapSnapshot,Technical,/operations-map/snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/lib/operations-map/useMapSnapshot.js:17,EXEMPT

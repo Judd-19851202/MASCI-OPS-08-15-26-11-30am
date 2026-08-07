@@ -693,8 +693,8 @@ export default function AssignmentCreateDrawer({
           {isEquipMove
             ? t("Equipment Move: dispatch picks the truck/lowboy, the piece of equipment being hauled, pickup, drop-off. Same lifecycle, same board — completed counts as an Equipment Move on operational memory.")
             : isTanker
-              ? t("Tanker / Liquid Asphalt: dispatch picks the truck, tanker trailer, terminal/source, destination plant or tank, and the liquid product. Same lifecycle, same board — feeds plant continuity and supply truth.")
-              : t("Truck is required. Driver is optional — self-start can claim later. Pick a project, source, and material so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle).")}
+              ? t("Tanker / Liquid Asphalt: dispatch picks the truck, tanker trailer, terminal or source, destination plant or tank, and the liquid product. Same lifecycle, same board — keeps the plant continuity and supply picture accurate.")
+              : t("Truck is required. Driver is optional — self-start can claim later. Pick a project, source, and material so the board record stays accurate. Wait reasons stay approved and are set later in the driver flow.")}
         </div>
 
         {/* Body */}
@@ -1030,7 +1030,7 @@ export default function AssignmentCreateDrawer({
                   : t("Issue assignment")}
           </Button>
           <p className="text-[11px] text-slate-500 mt-2 text-center">
-            {t("Truck appears on the board immediately. Driver lifecycle stays the source of operational truth.")}
+            {t("Truck appears on the board immediately. Driver status stays aligned with the same live board record.")}
           </p>
         </footer>
       </aside>

@@ -194,7 +194,7 @@ export default function CanonicalInspectionSections({
         data-testid={`${testidPrefix}-loading`}
         className="mt-3 text-xs font-mono uppercase tracking-[0.16em] text-slate-500 inline-flex items-center gap-1.5"
       >
-        <Loader2 className="w-3 h-3 animate-spin" /> Building inspection from canonical record…
+        <Loader2 className="w-3 h-3 animate-spin" /> Building inspection from saved asset record…
       </div>
     );
   }

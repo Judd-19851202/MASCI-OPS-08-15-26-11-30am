@@ -69,7 +69,7 @@ export default function MyAssignedProjectsWidget({ title = "My assigned jobs" })
           <ul className="divide-y divide-slate-100">
             {projects.map(([pn, roles]) => (
               <li key={pn} className="py-2 flex items-center justify-between" data-testid={`mp-row-${pn}`}>
-                <span className="font-mono text-sm text-slate-800">{sanitizeOperatorProjectNumber(pn, t("Operations support"))}</span>
+                <span className="font-mono text-sm text-slate-800">{sanitizeOperatorProjectNumber(pn, t("Project support"))}</span>
                 <span className="flex gap-1 flex-wrap justify-end">
                   {[...new Set(roles)].map((r) => (
                     <Badge key={r} variant="secondary" className="text-[10px]">

@@ -186,8 +186,8 @@ export default function AddAssetDialog({ open, onClose, onCreated }) {
               >
                 <Info className="w-4 h-4 mt-0.5 shrink-0" />
                 <div>
-                  <span className="font-bold">Create a canonical asset record.</span>{" "}
-                  This becomes the source of truth for taxonomy, documents, and readiness.
+                  <span className="font-bold">Create the main asset record.</span>{" "}
+                  This becomes the main record for type, documents, and readiness.
                   Photos and documents are never required — you can add them after saving.
                 </div>
               </div>

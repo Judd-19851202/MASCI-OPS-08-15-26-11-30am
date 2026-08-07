@@ -886,7 +886,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 ) : (
                   <div className="mt-1 text-[10px] text-amber-700 font-mono inline-flex items-center gap-1" data-testid="operator-unlinked">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                    {t("Not in roster — will create governance finding")}
+                    {t("Not in roster — needs roster follow-up")}
                   </div>
                 )
               ) : null}
@@ -1031,7 +1031,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               }`}
             >
               {canonicalAvailable
-                ? t("Equipment Type (legacy compat · auto-set from canonical record)")
+                ? t("Equipment Type (legacy support · auto-set from approved record)")
                 : t("Equipment Type *")}
             </Label>
             <Select value={data.equipment_type} onValueChange={applyEquipmentType}>
@@ -1054,7 +1054,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500"
                 data-testid="legacy-select-demoted"
               >
-                {t("Canonical asset_type is authoritative · this dropdown is retained for backward compatibility only.")}
+                {t("Approved asset type controls this field · this dropdown stays only for older records.")}
               </p>
             )}
           </div>
@@ -1134,7 +1134,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                       className="mt-2 text-[10px] font-mono uppercase tracking-[0.16em] text-emerald-700"
                       data-testid="preop-canonical-authority-note"
                     >
-                      Canonical authority · asset_type = {canonicalCapture?.asset_type}
+                      Approved record · asset type = {canonicalCapture?.asset_type}
                     </div>
                   )}
                 </div>

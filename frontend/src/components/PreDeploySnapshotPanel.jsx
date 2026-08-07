@@ -77,9 +77,9 @@ export default function PreDeploySnapshotPanel() {
             clearInterval(poll);
             setBuilding(false);
             if (cur?.last?.outcome === "ok") {
-              toast.success(`Snapshot complete — ${cur.last.filename}`);
+      toast.success(`Backup complete — ${cur.last.filename}`);
             } else if (cur?.last?.outcome && cur.last.outcome !== "in-progress") {
-              toast.error(`Snapshot failed — ${cur.last.outcome}`);
+      toast.error(`Backup failed — ${cur.last.outcome}`);
             }
           }
         }, 3000);
@@ -88,14 +88,14 @@ export default function PreDeploySnapshotPanel() {
       }
     } catch (e) {
       setBuilding(false);
-      toast.error(operationalError(e, "Snapshot failed"));
+      toast.error(operationalError(e, "Backup failed"));
     }
   };
 
   if (loading) {
     return (
       <div className="bg-white border border-slate-200 rounded-md p-4 flex items-center gap-2 text-sm text-slate-500" data-testid="predeploy-loading">
-        <Loader2 className="w-4 h-4 animate-spin" /> Checking snapshot freshness…
+        <Loader2 className="w-4 h-4 animate-spin" /> Checking backup freshness…
       </div>
     );
   }
@@ -121,7 +121,7 @@ export default function PreDeploySnapshotPanel() {
       accent: "text-blue-700",
       icon: Loader2,
       iconSpin: true,
-      label: "SNAPSHOT IN PROGRESS",
+      label: "BACKUP RUN IN PROGRESS",
       msg: "A fresh complete archive is being written to R2 right now.",
     };
   } else if (hrs < 1) {
@@ -172,7 +172,7 @@ export default function PreDeploySnapshotPanel() {
         </div>
         <div className="flex-1 min-w-0">
           <div className={`font-mono text-[10px] uppercase tracking-[0.25em] font-bold ${zone.accent}`}>
-            Pre-Deploy Snapshot
+            Pre-Deploy Backup Check
           </div>
           <h3 className={`font-display text-lg sm:text-xl font-black tracking-tight ${zone.text} leading-tight mt-0.5`}>
             {zone.label}
@@ -202,7 +202,7 @@ export default function PreDeploySnapshotPanel() {
           {building || inProgress ? (
             <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Building…</>
           ) : (
-            <><Rocket className="w-4 h-4 mr-1.5" /> Snapshot Now</>
+            <><Rocket className="w-4 h-4 mr-1.5" /> Run Backup Now</>
           )}
         </Button>
       </div>

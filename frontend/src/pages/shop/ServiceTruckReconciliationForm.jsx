@@ -107,19 +107,19 @@ export default function ServiceTruckReconciliationForm() {
     workflowKey: "service-truck-reconciliation",
     title: result.kind === "start"
       ? "Start of Day Logged Successfully"
-      : "Service Truck Reconciliation Closed Successfully",
+      : "Service Truck Daily Check Closed Successfully",
     description: result.kind === "start"
       ? "This service truck record is on file and ready for end-of-day closeout."
-      : "This end-of-day reconciliation is on file with the computed variance result.",
+      : "This end-of-day truck check is on file with the computed difference result.",
     documentNumber: result.body.doc_id || result.body.id || "",
     submittedAt: new Date().toISOString(),
     submittedBy: techName || undefined,
     project: truck || undefined,
     whatHappensNext: result.kind === "start"
       ? ["Return at end of day to close the record and compute variance from submitted fuel/lube visits."]
-      : ["Shop can review the linked visits and any variance notes from this same record."],
+      : ["Shop can review the linked visits and any difference notes from this same record."],
     followUpRequired: result.kind === "start"
-      ? "Close this reconciliation at the end of day to complete the variance review."
+      ? "Close this daily check at the end of day to complete the difference review."
       : (result.body.status === "needs_review"
         ? "A shop manager should add review notes before the day is fully cleared."
         : "No further action is required unless the shop team requests follow-up."),
@@ -161,7 +161,7 @@ export default function ServiceTruckReconciliationForm() {
 
   async function submitClose(e) {
     e.preventDefault(); setError(""); setResult(null);
-    if (!truck.trim() && !reconciliationId.trim()) { setError("Provide reconciliation id, or date + truck."); return; }
+    if (!truck.trim() && !reconciliationId.trim()) { setError("Provide the daily check id, or enter the date and truck."); return; }
     setSubmitting(true);
     try {
       const body = {
@@ -189,8 +189,8 @@ export default function ServiceTruckReconciliationForm() {
   return (
     <div data-testid="strr-form-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
-        portalName="MASCI" portalRole="Shop Portal · Service Truck Reconciliation"
-        pageTitle="Service Truck Daily Reconciliation"
+        portalName="MASCI" portalRole="Shop Portal · Service Truck Daily Check"
+        pageTitle="Service Truck Daily Fuel and Fluid Check"
         subtitle="Start-of-day and end-of-day fuel and fluid accountability by truck and day. Operational accountability — not accounting."
         primaryActions={<BackToShopLink testId="strr-form-back-to-shop" />}
       >
@@ -232,7 +232,7 @@ export default function ServiceTruckReconciliationForm() {
             </label>
             {mode === "close" && (
               <label data-testid="strr-form-rec-id-label" style={{ fontSize: 12, display: "flex", flexDirection: "column", gap: 2 }}>
-                <span>Reconciliation id (optional)</span>
+                <span>Daily check id (optional)</span>
                 <input data-testid="strr-form-rec-id" placeholder="strr-…" value={reconciliationId}
                        onChange={(e) => setReconciliationId(e.target.value)} style={{ padding: 5, fontSize: 12 }} />
               </label>
@@ -283,7 +283,7 @@ export default function ServiceTruckReconciliationForm() {
         {result && result.kind === "start" && (
           <Card data-testid="strr-form-start-result" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 13 }}>
-              <strong>Start of day logged.</strong> Reconciliation id <code>{result.body.id}</code>. Close at end of day to compute variance.
+              <strong>Start of day logged.</strong> Daily check id <code>{result.body.id}</code>. Close at end of day to review any difference.
             </div>
           </Card>
         )}
@@ -291,7 +291,7 @@ export default function ServiceTruckReconciliationForm() {
         {result && result.kind === "close" && result.body.reconciliation && (
           <Card data-testid="strr-form-close-result" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 13, marginBottom: 6 }}>
-              <strong>Day closed.</strong> Reconciliation id <code>{result.body.id}</code> · status <strong>{result.body.status}</strong> ·{" "}
+              <strong>Day closed.</strong> Daily check id <code>{result.body.id}</code> · status <strong>{result.body.status}</strong> ·{" "}
               <StatusChip status={result.body.variance_status} />
             </div>
             <div data-testid="strr-form-close-result-grid"

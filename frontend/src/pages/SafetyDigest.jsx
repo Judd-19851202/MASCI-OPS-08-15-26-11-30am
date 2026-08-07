@@ -88,7 +88,7 @@ export default function SafetyDigest() {
         </div>
       </div>
 
-      <h2 className="font-display text-xl font-black mb-3">{t("This week's snapshot")}</h2>
+      <h2 className="font-display text-xl font-black mb-3">{t("This week's update")}</h2>
       {loading ? (
         <LoadingState label={t("Loading…")} testId="safety-digest-loading" />
       ) : (

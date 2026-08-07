@@ -1802,7 +1802,7 @@ function TransportationStatusPanel({ employeeId }) {
             ? "HR employee not found."
             : "This employee is not linked to a Transportation driver record."}
         </div>
-        <div className="mt-1 text-[11px] text-slate-500">HR is the source of truth — link via Transportation admin if this employee should be dispatch-eligible.</div>
+        <div className="mt-1 text-[11px] text-slate-500">HR keeps the approved employee record — link through Transportation admin if this employee should be dispatch-eligible.</div>
       </div>
     );
   }
@@ -1857,7 +1857,7 @@ function TransportationStatusPanel({ employeeId }) {
         </Link>
       )}
       <div className="text-[10px] uppercase tracking-wide text-slate-400">
-        Read-only · HR is the source of truth · Transportation is reactive
+        Read-only · HR keeps the approved employee record · Transportation reflects it
       </div>
     </div>
   );

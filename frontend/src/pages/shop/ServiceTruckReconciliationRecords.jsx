@@ -109,7 +109,7 @@ export default function ServiceTruckReconciliationRecords() {
         </div>
 
         <div data-testid="strr-list-filters-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 6, marginBottom: 12 }}>
-          <input data-testid="strr-list-filter-doc-id" placeholder="Reconciliation #" value={filters.doc_id}
+          <input data-testid="strr-list-filter-doc-id" placeholder="Daily check #" value={filters.doc_id}
                  onChange={(e) => setFilters({ ...filters, doc_id: e.target.value.toUpperCase() })} style={{ padding: 5, fontSize: 12 }} />
           <input data-testid="strr-list-filter-truck" placeholder="Service truck unit" value={filters.service_truck_unit}
                  onChange={(e) => setFilters({ ...filters, service_truck_unit: e.target.value })} style={{ padding: 5, fontSize: 12 }} />

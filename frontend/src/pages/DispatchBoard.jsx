@@ -654,12 +654,12 @@ export default function DispatchBoard() {
           id="dispatch-operational-board"
           icon={Activity}
           title={t("What this board is telling you")}
-          summary={t("Calm operational truth · forgiving transitions · governance signals")}
+          summary={t("Calm live status · forgiving transitions · action signals")}
           accent="orange"
           sections={[
             {
               label: t("Lifecycle"),
-              body: t("Every truck moves through 13 canonical states. Non-standard transitions are accepted but tagged so operations are never blocked. See the glossary for full definitions."),
+              body: t("Every truck moves through 13 approved states. Non-standard transitions are accepted but tagged so operations are never blocked. See the glossary for full definitions."),
             },
             {
               label: t("Findings"),
@@ -671,7 +671,7 @@ export default function DispatchBoard() {
             },
             {
               label: t("Restraint"),
-              body: t("Read-only · refreshes every 5 seconds · no chat, no maps, no analytics. The lifecycle engine is the single source of operational truth — every action here delegates to it so nothing gets out of sync."),
+              body: t("Read-only · refreshes every 5 seconds · no chat, no maps, no analytics. This board stays aligned with the same live driver-status record, so actions here do not drift out of sync."),
             },
           ]}
         />

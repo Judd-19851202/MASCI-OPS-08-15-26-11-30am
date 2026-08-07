@@ -157,7 +157,7 @@ async def build_project_monday_briefing(db, *, project_number: str, week_ending:
             "logic": [
                 "Schedule forecast uses the existing deterministic schedule engine.",
                 "Confidence score uses the shared oppc_confidence engine.",
-                "Briefing warnings surface stale/missing source data without replacing calculated truth.",
+                "Briefing warnings surface stale or missing source data without replacing the calculated result.",
             ],
         },
         "approval_history": [],
@@ -217,7 +217,7 @@ async def build_enterprise_monday_briefing(db, *, week_ending: str, actor_label:
             ],
             "logic": [
                 "Enterprise briefing is an executive rollup of shared project workspaces and confidence calculations.",
-                "No manual briefing-only data replaces schedule or health truth.",
+                "No manual briefing-only data replaces the approved schedule or health record.",
             ],
         },
         "approval_history": [],

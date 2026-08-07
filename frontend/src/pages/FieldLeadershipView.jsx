@@ -202,7 +202,7 @@ export default function FieldLeadershipView() {
     [t("Employee"), sanitizeOperatorReference(preferOriginal("/employee_name", rec.employee_name), t("Crew member"))],
     [t("Position"), preferOriginal("/employee_position", rec.employee_position)],
     [t("Supervisor"), sanitizeOperatorReference(preferOriginal("/supervisor_name", rec.supervisor_name), t("Supervisor"))],
-    [t("Job"), rec.project_number ? `${sanitizeOperatorProjectNumber(rec.project_number, t("Operations support"))} · ${sanitizeOperatorProjectName(rec.project_name, t("Operations support work")) || ""}` : sanitizeOperatorProjectName(rec.project_name, t("Operations support work"))],
+    [t("Job"), rec.project_number ? `${sanitizeOperatorProjectNumber(rec.project_number, t("Assigned job"))} · ${sanitizeOperatorProjectName(rec.project_name, t("Assigned job details")) || ""}` : sanitizeOperatorProjectName(rec.project_name, t("Assigned job details"))],
     [t("Location"), rec.location || rec.work_area],
     [t("Assigned PM"), rec.assigned_pm],
     [t("Date / Time"), (rec.occurred_at || "").replace("T", " ").slice(0, 16)],

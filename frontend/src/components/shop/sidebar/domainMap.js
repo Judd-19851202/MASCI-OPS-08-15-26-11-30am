@@ -85,8 +85,8 @@ export const DOMAINS_V2 = [
     routes: [
       { to: "/shop/fuel-lube/new",                        label: "New Fuel/Lube Visit",       desc: "Log a fuel or lube visit.",                        icon: Fuel },
       { to: "/shop/fuel-lube",                            label: "Fuel/Lube Records",         desc: "Submitted visit archive.",                         icon: Archive },
-      { to: "/shop/service-truck-reconciliation/new",     label: "New Truck Reconciliation",  desc: "Reconcile a service-truck day.",                   icon: ClipboardList },
-      { to: "/shop/service-truck-reconciliation",         label: "Reconciliation Records",    desc: "Truck-day variance archive.",                      icon: Archive },
+      { to: "/shop/service-truck-reconciliation/new",     label: "New Truck Daily Check",    desc: "Review a service-truck day.",                     icon: ClipboardList },
+      { to: "/shop/service-truck-reconciliation",         label: "Daily Check Records",      desc: "Truck-day variance archive.",                     icon: Archive },
       { to: "/shop/trench-safety-repairs",                label: "Trench Safety Repairs",     desc: "Trench asset repair queue.",                       icon: HardHat },
     ],
   },

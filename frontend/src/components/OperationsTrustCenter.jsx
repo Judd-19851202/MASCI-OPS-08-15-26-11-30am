@@ -111,7 +111,7 @@ function boundedHeadline(ots) {
   if (claim === "CORRELATED") {
     return "Operational score remains a derived summary. The bounded claim is correlated only and cannot exceed Trust Spine.";
   }
-  return "Derived operational summary is available, but canonical truth remains bounded by Trust Spine ownership.";
+    return "Derived operational summary is available, but the approved source record still stays with Trust Spine.";
 }
 
 function TruthDisclosure({ ots, scoreBandLabel, score, testidPrefix = "otc-truth-disclosure" }) {
@@ -126,13 +126,13 @@ function TruthDisclosure({ ots, scoreBandLabel, score, testidPrefix = "otc-truth
         data-testid={`${testidPrefix}-score-vs-claim`}
       >
         <span className="font-semibold text-slate-900">Score vs claim:</span>{" "}
-        Score {score ?? 0} and {scoreBandLabel || "derived score band"} remain operator summaries. The canonical claim stays {ots.permitted_claim || "UNKNOWN"} and cannot exceed Trust Spine.
+        Score {score ?? 0} and {scoreBandLabel || "derived score band"} remain operator summaries. The approved claim stays {ots.permitted_claim || "UNKNOWN"} and cannot exceed Trust Spine.
       </div>
       <div
         className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
         data-testid={testidPrefix}
       >
-        <div className="break-words" data-testid={`${testidPrefix}-subject`}><span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}</div>
+        <div className="break-words" data-testid={`${testidPrefix}-subject`}><span className="font-semibold text-slate-900">Page focus:</span> {ots.truth_subject || "UNKNOWN"}</div>
         <div className="break-words" data-testid={`${testidPrefix}-claim`}><span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}</div>
         <div className="break-words" data-testid={`${testidPrefix}-ceiling`}><span className="font-semibold text-slate-900">Claim ceiling:</span> {ots.claim_ceiling || "UNKNOWN"}</div>
         <div className="break-words" data-testid={`${testidPrefix}-confidence`}><span className="font-semibold text-slate-900">Confidence:</span> {ots.evidence_confidence || "UNKNOWN"}</div>
@@ -401,7 +401,7 @@ function OperatorActionPanel({ actions, totalEtaSeconds }) {
           </h4>
         </div>
         <p className="text-xs text-emerald-800 mt-1">
-          The current scoring model did not surface action items. Trust Spine still remains the canonical owner for bounded trust claims.
+          The current scoring model did not surface action items. Trust Spine still remains the main owner for bounded trust claims.
         </p>
       </div>
     );

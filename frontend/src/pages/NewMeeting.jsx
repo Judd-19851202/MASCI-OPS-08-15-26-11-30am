@@ -1059,7 +1059,7 @@ export default function NewMeeting({ publicMode = false }) {
                 ) : (
                   <div className="text-[10px] text-amber-700 font-mono inline-flex items-center gap-1" data-testid={`attendee-unlinked-${i}`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                    {t("Not in roster — will create governance finding")}
+                    {t("Not in roster — needs roster follow-up")}
                   </div>
                 )
               ) : null}

@@ -157,7 +157,7 @@ function attentionAdapter({ oi, mm, recent }) {
     items.push({
       severity: "HIGH",
       label: `Material movement verification: ${vs.replace("_", " ")}`,
-      why: "Haul cycle vs. scale-ticket reconciliation flagged for review.",
+      why: "Haul cycle vs. scale-ticket mismatch flagged for review.",
       owner: "Project Manager",
       due: "Today",
     });

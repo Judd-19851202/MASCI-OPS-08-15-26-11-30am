@@ -503,7 +503,7 @@ export const PortfolioIntelligenceWorkspace = ({
                   { id: "fresh", label: t("Projects with up-to-date records"), value: fmtWhole(freshness.fresh) },
                   { id: "watch", label: t("Projects that should be checked soon"), value: fmtWhole(freshness.watch) },
                   { id: "stale", label: t("Projects using older records"), value: fmtWhole(freshness.stale) },
-                  { id: "missing", label: t("Projects still missing supporting records"), value: fmtWhole(freshness.missing) },
+                  { id: "missing", label: t("Projects still missing source detail"), value: fmtWhole(freshness.missing) },
                   { id: "blocked", label: t("Open portfolio blockers"), value: fmtWhole(workspace?.blocked_dependencies?.open_blocked_by_c9_count) },
                 ]}
                 testId="portfolio-runtime-status-table"

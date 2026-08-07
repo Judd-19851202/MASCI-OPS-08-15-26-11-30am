@@ -305,7 +305,7 @@ def register_dr_v2_pdf_routes(
         limit: int,
         actor: Any,
     ) -> Dict[str, Any]:
-        """Canonical approved Daily Reports list sourced from
+        """Approved Daily Reports list sourced from
         `daily_reports` only."""
         limit = max(1, min(int(limit or 50), 200))
 
@@ -365,7 +365,7 @@ def register_dr_v2_pdf_routes(
                     continue
                 items.append({
                     "id": rid,
-                    "source": "canonical",
+                    "source": "approved",
                     "report_id": rid,
                     "project_number": d.get("project_number") or "",
                     "project_name": d.get("project_name") or "",
@@ -385,7 +385,7 @@ def register_dr_v2_pdf_routes(
         limit: int = 50,
         actor=Depends(require_admin_pm_or_hr_read),
     ):
-        """Canonical approved Daily Reports list."""
+        """Approved Daily Reports list."""
         return await _list_approved_impl(limit, actor)
 
     @api_router.get("/daily-reports/{report_id}/pdf", status_code=202)
@@ -394,7 +394,7 @@ def register_dr_v2_pdf_routes(
         actor=Depends(require_admin_pm_or_hr_read),
         background_tasks: BackgroundTasks = None,
     ):
-        """Canonical Daily Report PDF export."""
+        """Approved Daily Report PDF export."""
         return await _queue_pdf_job(report_id, actor, background_tasks)
 
     async def _queue_pdf_job(report_id: str, actor: Any, background_tasks: Optional[BackgroundTasks]):
@@ -451,7 +451,7 @@ def register_dr_v2_pdf_routes(
             "pdf_bytes": pdf_bytes,
             "filename": filename,
             "rendered_at": rendered_at,
-            "source": "canonical",
+            "source": "approved",
         }
 
     async def _run_pdf_job(job_id: str, report_id: str, actor: Any) -> None:

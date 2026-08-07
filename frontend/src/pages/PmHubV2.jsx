@@ -418,7 +418,7 @@ export default function PmHubV2() {
               to="/constraints"
               testid="pm-hub-v2-queue-constraints"
               title="Project Constraints Requiring Resolution"
-              why="Open constraints blocking project work — Project Risks are permanently relabelled as Project Constraints"
+              why="Open constraints blocking progress on the job — Project Risks are permanently relabelled as Project Constraints"
               source="Live count · open constraints"
               value={s.constraints_open}
               loaded={s.loaded}

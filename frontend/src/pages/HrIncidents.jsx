@@ -120,7 +120,7 @@ export default function HrIncidents() {
           summary={t("Read-only view across the OSHA window. Closeout and CAPA action happen in the Safety portal.")}
           sections={[
             { label: t("Why this matters"), body: t("HR owns OSHA recordkeeping and labor-side accountability. Spotting a recordable here triggers the 300/301 workflow even though the incident itself is owned by Safety.") },
-            { label: t("Source of truth"), body: t("Every row links straight to the original Safety incident. If something looks wrong, fix it in Safety — this view aggregates and never edits.") },
+            { label: t("Original incident record"), body: t("Every row links straight to the original Safety incident. If something looks wrong, fix it in Safety — this view aggregates and never edits.") },
           ]}
         />
 

@@ -93,7 +93,7 @@ export default function PmPortfolioIntelligence() {
       portalName="MASCI"
       portalRole="Project Management"
       pageTitle="Portfolio Intelligence"
-      subtitle="Cross-project visibility for cost, commitments, and schedule truth in your scope"
+      subtitle="Cross-project visibility for cost, commitments, and schedule status in your scope"
       sideNav={<PmSideNavV2 />}
       primaryActions={(
         <div className="flex items-center gap-3">

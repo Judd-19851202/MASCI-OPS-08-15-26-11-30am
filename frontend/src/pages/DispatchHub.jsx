@@ -575,7 +575,7 @@ function CoachingBlock({ collapsed, onToggle, t }) {
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 text-sm text-slate-700">
           <CoachLi>{t("Start with anything needing attention.")}</CoachLi>
           <CoachLi>{t("Issue assignments before reviewing history.")}</CoachLi>
-          <CoachLi>{t("Driver taps are the source of operational truth.")}</CoachLi>
+          <CoachLi>{t("Driver taps create the live operating record.")}</CoachLi>
           <CoachLi>{t("PMs see production awareness only.")}</CoachLi>
           <CoachLi>{t("Shop sees breakdown continuity only.")}</CoachLi>
           <CoachLi>{t("Motive validates later — it does not replace the driver.")}</CoachLi>

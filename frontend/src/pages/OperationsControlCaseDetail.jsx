@@ -82,7 +82,7 @@ export default function OperationsControlCaseDetail() {
     { key: "follow-up-work", label: "Follow-up work", value: `${(records.tasks || []).length} tasks · ${(records.corrective_actions || []).length} actions` },
     { key: "forecast-confidence", label: "Forecast and confidence", value: `${(records.forecast_history?.snapshots || []).length} forecast updates · ${(records.confidence_history?.snapshots || []).length} confidence updates` },
     { key: "resolution", label: "Current status", value: humanizeOperatorToken(caseDoc.status, "Open") },
-    { key: "supporting-records", label: "Supporting records", value: `${(records.evidence_packages || []).length} packets · ${(records.baselines || []).length} snapshots` },
+    { key: "supporting-records", label: "Attached records", value: `${(records.evidence_packages || []).length} packets · ${(records.baselines || []).length} saved updates` },
   ]), [caseDoc, records]);
 
   const runTransition = useCallback(async (toStatus) => {
@@ -281,10 +281,10 @@ export default function OperationsControlCaseDetail() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5" data-testid="occ-case-evidence-baseline-card">
-            <div className="flex items-center gap-2 text-slate-500"><Package className="h-4 w-4" /><span className="text-[11px] uppercase tracking-[0.26em]">Supporting records</span></div>
+            <div className="flex items-center gap-2 text-slate-500"><Package className="h-4 w-4" /><span className="text-[11px] uppercase tracking-[0.26em]">Attached records</span></div>
             <div className="mt-4 space-y-3 text-sm text-slate-700">
               <div data-testid="occ-case-evidence-count">Case packets: {(records.evidence_packages || []).length}</div>
-              <div data-testid="occ-case-baseline-count">Saved snapshots: {(records.baselines || []).length}</div>
+              <div data-testid="occ-case-baseline-count">Saved updates: {(records.baselines || []).length}</div>
               <div data-testid="occ-case-forecast-count">Forecast updates: {(records.forecast_history?.snapshots || []).length}</div>
               <div data-testid="occ-case-confidence-count">Confidence updates: {(records.confidence_history?.snapshots || []).length}</div>
               <div data-testid="occ-case-task-count">Tasks / follow-up actions: {(records.tasks || []).length} / {(records.corrective_actions || []).length}</div>
@@ -293,7 +293,7 @@ export default function OperationsControlCaseDetail() {
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5" data-testid="occ-case-release-state-card">
             <div className="flex items-center gap-2 text-slate-500"><CheckCircle2 className="h-4 w-4" /><span className="text-[11px] uppercase tracking-[0.26em]">Case readiness</span></div>
-            <div className="mt-3 text-sm text-slate-700">This case stays open until follow-up work, messages, and supporting records are complete.</div>
+            <div className="mt-3 text-sm text-slate-700">This case stays open until follow-up work, messages, and attached records are complete.</div>
           </div>
         </div>
       </div>

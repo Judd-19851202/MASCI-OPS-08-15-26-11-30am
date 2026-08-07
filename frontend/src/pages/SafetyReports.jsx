@@ -175,7 +175,7 @@ export default function SafetyReports() {
               {t("Reports & Exports")}
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              {t("Operational reports the team hands to insurance, OSHA, the leadership team, and project owners. Each export pulls from the same live data the portal displays — never a stale snapshot.")}
+              {t("Operational reports the team hands to insurance, OSHA, the leadership team, and project owners. Each export pulls from the same live data the portal displays — never an out-of-date saved copy.")}
             </p>
           </div>
         </header>

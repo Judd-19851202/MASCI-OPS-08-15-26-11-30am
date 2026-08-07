@@ -259,8 +259,8 @@ export default function FieldLeadershipRecords() {
                 <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-500" data-testid="leadership-empty">{t("No records yet for the current filters.")}</td></tr>
               ) : items.map((r) => {
                 const safeEmployee = sanitizeOperatorReference(r.employee_name, t("Crew member"));
-                const safeJobNumber = sanitizeOperatorProjectNumber(r.project_number, t("Operations support"));
-                const safeJobName = sanitizeOperatorProjectName(r.project_name, t("Operations support work"));
+                const safeJobNumber = sanitizeOperatorProjectNumber(r.project_number, t("Assigned job"));
+                const safeJobName = sanitizeOperatorProjectName(r.project_name, t("Assigned job details"));
                 const safeSupervisor = sanitizeOperatorReference(r.supervisor_name, t("Supervisor"));
                 return (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50" data-testid={`leadership-row-${r.id}`}>

@@ -165,7 +165,7 @@ export default function MotiveOpsIntelPanel({ className = "" }) {
           <RefreshCw className="w-3 h-3" /> Refresh
         </button>
       </div>
-      <h3 className="font-display text-xl font-black tracking-tight text-slate-900 mb-3">Live Operations Snapshot</h3>
+      <h3 className="font-display text-xl font-black tracking-tight text-slate-900 mb-3">Live Operations Update</h3>
 
       <FleetStrip fleet={data.fleet} />
 

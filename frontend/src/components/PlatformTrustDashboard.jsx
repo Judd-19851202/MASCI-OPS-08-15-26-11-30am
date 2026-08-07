@@ -119,8 +119,8 @@ function OwnershipNote({ surface, relationship, primaryStatus, checkedAt }) {
       </p>
       <div className="grid gap-3 md:grid-cols-2 text-sm text-slate-700">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" data-testid="trust-spine-owner-note-subject">
-          <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Truth subject</div>
-          <div className="mt-1 font-semibold text-slate-950">{humanizeToken(surface.truth_subject || "workflow lifecycle truth")}</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Page focus</div>
+          <div className="mt-1 font-semibold text-slate-950">{humanizeToken(surface.truth_subject || "workflow lifecycle status")}</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" data-testid="trust-spine-owner-note-checked-at">
           <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Checked at</div>
@@ -164,7 +164,7 @@ function TruthDisclosure({ ots, testidPrefix }) {
         data-testid={testidPrefix}
       >
         <div data-testid={`${testidPrefix}-subject`}>
-          <span className="font-semibold text-slate-900">What this page measures:</span> {humanizeToken(ots.truth_subject || "workflow lifecycle truth")}
+          <span className="font-semibold text-slate-900">What this page measures:</span> {humanizeToken(ots.truth_subject || "workflow lifecycle status")}
         </div>
         <div data-testid={`${testidPrefix}-claim`}>
           <span className="font-semibold text-slate-900">Allowed claim:</span> {humanizeToken(ots.permitted_claim || "not declared")}
@@ -481,7 +481,7 @@ export default function PlatformTrustDashboard() {
       <LegacyAdminModernShell
         title="Platform Trust Spine"
         subtitle="Primary lifecycle evidence for the Admin portal's critical workflows."
-        breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
+        breadcrumb={[{ label: "Standards & Health", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
         testidPrefix="platform-trust-spine"
       >
         <div
@@ -500,7 +500,7 @@ export default function PlatformTrustDashboard() {
       <LegacyAdminModernShell
         title="Platform Trust Spine"
         subtitle="Primary lifecycle evidence for the Admin portal's critical workflows."
-        breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
+        breadcrumb={[{ label: "Standards & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
         testidPrefix="platform-trust-spine"
       >
         <div
@@ -529,7 +529,7 @@ export default function PlatformTrustDashboard() {
     <LegacyAdminModernShell
       title="Platform Trust Spine"
       subtitle="Primary lifecycle evidence for the Admin portal's critical workflows."
-      breadcrumb={[{ label: "Governance & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
+      breadcrumb={[{ label: "Standards & Trust", to: "/admin/governance-trust" }, { label: "Platform Trust Spine" }]}
       testidPrefix="platform-trust-spine"
     >
     <div
@@ -540,11 +540,11 @@ export default function PlatformTrustDashboard() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl space-y-2">
             <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-700">
-              Workflow completion truth
+              Workflow completion status
             </div>
             <h2 className="text-2xl font-black text-slate-950">How to read this page</h2>
             <p className="text-sm text-slate-700 leading-relaxed">
-              This page is the source of truth for whether critical workflows actually completed, failed, or simply had no activity in the last 24 hours. A quiet workflow is shown as an evidence gap, not a false pass.
+              This page is the main place to confirm whether critical workflows completed, failed, or simply had no activity in the last 24 hours. A quiet workflow is shown as an evidence gap, not a false pass.
             </p>
           </div>
           <div className="grid min-w-[240px] grid-cols-2 gap-3">

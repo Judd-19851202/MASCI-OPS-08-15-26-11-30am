@@ -142,7 +142,7 @@ export default function DesignSystemDemo() {
         {/* Status Chips */}
         <Section
           kicker="01 · Vocabulary"
-          title="StatusChip · Canonical Status Registry"
+          title="StatusChip · Standard Status Registry"
           description="Every operator-facing state in MASCI maps to one of these chips. Forbidden labels (Rejected · Denied · Failed) are absent by design."
           testId="ds-demo-section-status"
         >

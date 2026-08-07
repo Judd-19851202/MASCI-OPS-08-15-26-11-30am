@@ -133,7 +133,7 @@ export function TrenchSafetyPulseCard({ allowSend = true }) {
         {allowSend && (
           <>
             <Button size="sm" onClick={() => onGenerate(false)} disabled={generating} className="bg-cyan-700 hover:bg-cyan-800" data-testid="pulse-generate-btn">
-              {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (<><Activity className="w-3.5 h-3.5 mr-1" /> {t("Generate Snapshot")}</>)}
+              {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (<><Activity className="w-3.5 h-3.5 mr-1" /> {t("Generate Update")}</>)}
             </Button>
             <Button size="sm" onClick={() => onGenerate(true)} disabled={generating} variant="outline" data-testid="pulse-send-btn">
               <Send className="w-3.5 h-3.5 mr-1" /> {t("Generate + Send")}
@@ -181,7 +181,7 @@ function PulseViewerDialog({ open, onOpenChange, pulseId, liveSnapshot }) {
           const txt = await r.text();
           if (!cancelled) setHtml(txt);
         } else if (liveSnapshot) {
-          // No saved pulse yet — generate one (snapshot only) to view
+          // No saved pulse yet — generate one (view-only update) to view
           const r = await api.post("/trench-safety/pulse/generate?send=false");
           if (!cancelled) {
             const apiBase = process.env.REACT_APP_BACKEND_URL;
@@ -245,7 +245,7 @@ function PulseHistoryDialog({ open, onOpenChange }) {
           <div className="flex items-center gap-2 py-8 text-slate-500"><Loader2 className="w-5 h-5 animate-spin" /></div>
         ) : items.length === 0 ? (
           <div className="text-sm text-slate-500" data-testid="pulse-history-empty">
-            {t("No pulses generated yet. Press Generate Snapshot to create the first.")}
+            {t("No pulses generated yet. Press Generate Update to create the first.")}
           </div>
         ) : (
           <ul className="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">

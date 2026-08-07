@@ -114,7 +114,7 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
     forecast_authority: t("Current remaining-cost outlook"),
     metric_governance: t("Shared project-controls definitions"),
     work_block_authority: t("Field work records"),
-    ai_role: t("No AI-generated truth"),
+    ai_role: t("AI is not producing these numbers"),
   };
 
   const heroCards = useMemo(() => ([
@@ -300,7 +300,7 @@ export default function EarnedValueWorkspace({ mode = "pm", projectNumber, selec
                 title={t("Why a measure is blocked or partial")}
                 rows={lines.map((row) => ({ id: row.budget_line_id, label: row.label, limitations: (row.limitations || []).join(" "), source_records: (row.source_records || []).join(", ") || "—" }))}
                 testId="earned-value-limitations-table"
-                emptyLabel={t("No EV limitations were published.")}
+                emptyLabel={t("No limitations for value of work completed were published.")}
                 columns={[
                   { key: "label", label: t("Budget line") },
                   { key: "limitations", label: t("Why confidence changed") },

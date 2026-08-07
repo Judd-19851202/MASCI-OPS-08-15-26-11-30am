@@ -232,7 +232,7 @@ export default function PmProjectControlsAuthority() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-black text-slate-900">{t("Project pay items")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("These remain customer / contract truth for this project only.")}</p>
+                  <p className="mt-1 text-sm text-slate-600">{t("These remain the customer / contract approved record for this project only.")}</p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700" data-testid="pm-project-controls-pay-item-count">{payItems.length}</span>
               </div>

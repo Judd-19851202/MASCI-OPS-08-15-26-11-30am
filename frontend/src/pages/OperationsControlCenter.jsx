@@ -344,7 +344,7 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
           <div className="text-[10px] uppercase tracking-[0.28em] text-slate-500 font-mono font-bold">
-            Operations support overview
+            Operations overview
           </div>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950" data-testid="occ-control-plane-registry-title">
             Record flow and message activity
@@ -384,10 +384,10 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
 
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid="occ-registry-snapshot">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500">Current snapshot</div>
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">Current view</div>
             <div className="mt-3 space-y-2 text-sm text-slate-700">
               <div data-testid="occ-registry-version"><span className="font-semibold text-slate-950">Version:</span> {registry?.version || "—"}</div>
-              <div data-testid="occ-registry-baseline-name"><span className="font-semibold text-slate-950">Saved snapshot:</span> {sanitizeOperatorReference(registry?.baseline_name, "Current operations snapshot")}</div>
+              <div data-testid="occ-registry-baseline-name"><span className="font-semibold text-slate-950">Saved update:</span> {sanitizeOperatorReference(registry?.baseline_name, "Current operations update")}</div>
               <div data-testid="occ-registry-captured-at"><span className="font-semibold text-slate-950">Updated:</span> {snapshot?.captured_at ? formatPlatformTime(snapshot.captured_at) : "—"}</div>
             </div>
           </div>
@@ -431,7 +431,7 @@ function RegistryCard({ registryData, eventsData, communicationsData, baselinesD
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4" data-testid="occ-registry-baselines-list">
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">Saved snapshots</div>
+          <div className="text-[11px] uppercase tracking-widest text-slate-500">Saved updates</div>
           <div className="mt-3 space-y-3">
             {baselines.length === 0 && <div className="text-sm text-slate-500">No saved snapshots yet.</div>}
             {baselines.slice(0, 5).map((row) => (

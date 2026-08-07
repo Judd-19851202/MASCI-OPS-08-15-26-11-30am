@@ -725,7 +725,7 @@ export default function PmProjectSchedule() {
               <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div>
                   <h2 className="text-xl font-black text-slate-900">{t("Exports")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Prepare master schedule, lookahead, crew, equipment, material, and work-package plan exports without creating a parallel reporting truth.")}</p>
+                  <p className="mt-1 text-sm text-slate-600">{t("Prepare master schedule, lookahead, crew, equipment, material, and work-package plan exports without creating a conflicting second report.")}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" value={exportKind} onChange={(event) => setExportKind(event.target.value)} data-testid="pm-project-schedule-export-kind-select">
@@ -857,7 +857,7 @@ export default function PmProjectSchedule() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-black text-slate-900">{t("Items needing review")}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{t("Unclear schedule links stay here with a reason instead of becoming silent schedule truth.")}</p>
+                  <p className="mt-1 text-sm text-slate-600">{t("Unclear schedule links stay here with a reason instead of being treated like approved schedule records.")}</p>
                 </div>
                 <Badge variant="secondary" data-testid="pm-project-schedule-review-count-badge">{reviewQueue.length}</Badge>
               </div>

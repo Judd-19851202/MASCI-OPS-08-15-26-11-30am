@@ -1154,7 +1154,7 @@ export function DriverWorkspace() {
       {data.hr_projection && (
         <Card title="HR lifecycle projection" testid="driver-hr-lifecycle-panel">
           <div className="text-xs text-slate-500 mb-2" data-testid="driver-hr-lifecycle-disclaimer">
-            View-only snapshot. Make employment changes in HR.
+            View only. Make employment changes in HR.
           </div>
           <Row
             label="Transport projection"

@@ -208,7 +208,7 @@ function ExecutiveSnapshot({ snap }) {
   const readinessLabel = pct >= 80 ? t("Ready for closeout") : pct >= 50 ? t("Under investigation") : t("Early — evidence gathering");
   return (
     <div className="rounded-xl border-2 border-slate-900 bg-slate-900 text-white p-4" data-testid="case-exec-snapshot">
-      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">{t("Executive snapshot")}</div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">{t("Executive update")}</div>
       <div className="mt-1 font-display text-base font-black leading-snug" data-testid="case-exec-snapshot-headline">
         {readinessLabel} · {pct}%
       </div>

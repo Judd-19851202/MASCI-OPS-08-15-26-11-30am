@@ -560,7 +560,7 @@ export default function TrenchSafetyReports() {
       </div>
       <div className="mt-6 p-3 border border-slate-200 rounded bg-slate-50 text-xs text-slate-600" data-testid="reports-footnote">
         <History className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />
-        {t("All figures are read directly from the Trench Safety registry, activity log, inspection/repair/hold collections, and the latest stored Pulse snapshot. No separate analytics layer or duplicate data store.")}
+        {t("All figures are read directly from the Trench Safety registry, activity log, inspection/repair/hold collections, and the latest saved Pulse update. No separate analytics layer or duplicate data store.")}
       </div>
     </TrenchSafetyShell>
   );

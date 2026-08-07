@@ -371,7 +371,7 @@ export default function PmProjectBudgetAuthority() {
     <PmShell
       title="Project Budget"
       section="jobs"
-      subtitle="Review budget imports, approve line setup, and activate the budget version without guessing job cost truth."
+      subtitle="Review budget imports, approve line setup, and activate the budget version without guessing the current job cost picture."
     >
       <div className="space-y-6" data-testid="pm-project-budget-authority-page">
         <div className="rounded-[1.75rem] border border-white/30 bg-white/85 p-5 shadow-sm backdrop-blur" data-testid="pm-project-budget-header-card">
@@ -379,7 +379,7 @@ export default function PmProjectBudgetAuthority() {
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{t("Budget setup")}</div>
               <h1 className="mt-2 text-3xl font-black text-slate-900">{t("Project Budget")}</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Customer pay items stay contract truth, company work types stay admin-managed, and each budget line stays ready for job cost review.")}</p>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">{t("Customer pay items stay tied to the contract record, company work types stay admin-managed, and each budget line stays ready for job cost review.")}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button type="button" variant="outline" onClick={() => load(projectNumber, activeImportId)} data-testid="pm-project-budget-refresh-button">
