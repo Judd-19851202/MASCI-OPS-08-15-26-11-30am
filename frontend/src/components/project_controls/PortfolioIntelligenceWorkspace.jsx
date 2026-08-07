@@ -91,11 +91,13 @@ function TableCard({ title, rows, columns, testId, emptyLabel = "No governed row
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, index) => (
-                  <tr key={row.id || row.project_number || row.unit || index} className="border-b border-slate-100 align-top" data-testid={`${testId}-row-${index}`}>
+                {rows.map((row, index) => {
+                  const rowKey = row.id || [row.project_number, row.kind, row.metric, row.unit, index].filter(Boolean).join("::");
+                  return (
+                  <tr key={rowKey} className="border-b border-slate-100 align-top" data-testid={`${testId}-row-${index}`}>
                     {columns.map((column) => <td key={column.key} className="px-3 py-3 text-slate-700">{column.render ? column.render(row, index) : (row[column.key] ?? "—")}</td>)}
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
