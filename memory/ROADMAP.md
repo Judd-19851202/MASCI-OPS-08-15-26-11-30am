@@ -1138,3 +1138,14 @@ Authority: current canonical roadmap after Wave 3 Formal Closeout reconciliation
 
 ### P1
 - Re-run the bounded production backup/recovery certification once the repaired bundle is live.
+
+## 2026-08-07 — Post-deploy recertification status
+
+### P0
+- Production hotfix re-certification for backup alert truth + Daily Report email copy is complete.
+
+### P1
+- No further WP-18DB work remains on this hotfix scope unless new live evidence shows regression.
+
+### P2
+- WP-18DC remains blocked by user instruction and out of scope for this closeout.

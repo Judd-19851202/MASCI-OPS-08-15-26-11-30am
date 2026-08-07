@@ -987,3 +987,24 @@
   - removed OPPC/control-plane jargon from Daily Report operator-facing email copy
 - Verified in preview with fresh QA: `/app/test_reports/iteration_153.json` → all 63 backend tests passed.
 - Production note: these repairs are not live until the user performs another manual Save/Deploy.
+
+## 2026-08-07 — Post-deploy live production re-certification
+- Re-certified the deployed production hotfix at `https://mascidocs.com` after manual Save/Deploy.
+- Live production release identity verified:
+  - commit `3878577792aefd541b61f1127738898c2c69b6a1`
+  - source hash `dfd33aa0abcc3bfbd7d3d74249fc1aeb`
+  - `runtime_matches_intended_release=true`
+  - `frontend_backend_release_match=true`
+- Live backup hotfix verified:
+  - system-health backup card green at ~31m freshness
+  - latest complete artifact `MASCI_complete_backup_2026-08-07_100153Z.zip`
+  - integrity `PASS`, completeness `COMPLETE`, availability `AVAILABLE`, recoverable `true`
+  - scheduler active and healthy, `r2_hourly_effective=true`, no blocking stale job, reclaimable stale rows no longer blocking cadence
+- Live Daily Report hotfix verified:
+  - controlled production filing created `DR-2026-00463`
+  - notification state advanced to `provider_accepted`
+  - PDF downloaded successfully with valid `%PDF` signature
+  - recipient-facing copy no longer contains OPPC / control-plane jargon
+  - trust spine daily-report row is green and reconciles `oppc-daily-report-proof-chain` correctly
+- Independent QA verification: `/app/test_reports/iteration_154.json` → all 8 production recertification areas verified.
+- Current executive state for the hotfix scope: **POST-DEPLOY REPAIR CERTIFIED — PRODUCTION GO**.

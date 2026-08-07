@@ -838,3 +838,11 @@
 - Removed OPPC/control-plane jargon from Daily Report operator-facing notification copy.
 - Verified with fresh backend QA in `/app/test_reports/iteration_153.json` (`63/63 backend tests passed`).
 - Production still requires another manual Save/Deploy for this repair to take effect live.
+
+## 2026-08-07 — Production hotfix re-certification complete
+
+- Verified live deployed production bundle parity at `https://mascidocs.com` with commit `3878577792aefd541b61f1127738898c2c69b6a1` and source hash `dfd33aa0abcc3bfbd7d3d74249fc1aeb`.
+- Confirmed backup scheduler truth: active healthy cadence, no blocking stale jobs, `r2_hourly_effective=true`, fresh complete backup green, and backup integrity `PASS/COMPLETE/AVAILABLE`.
+- Confirmed controlled production Daily Report `DR-2026-00463` filed successfully, reached `provider_accepted`, produced a valid PDF, and used recipient-facing copy free of OPPC/control-plane jargon.
+- Confirmed trust spine daily-report reconciliation is green and no false degraded/amber state remains.
+- Independent production QA verification recorded in `/app/test_reports/iteration_154.json`.
