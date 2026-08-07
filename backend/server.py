@@ -1834,7 +1834,15 @@ def _read_served_frontend_identity() -> Dict[str, Any]:
     identity = None
     for candidate_url in _frontend_release_identity_candidate_urls():
         try:
-            with _urlreq.urlopen(candidate_url, timeout=1.5) as resp:
+            req = _urlreq.Request(
+                candidate_url,
+                headers={
+                    "User-Agent": "MASCI-Release-Identity/1.0",
+                    "Accept": "application/json,text/plain,*/*",
+                    "Cache-Control": "no-cache",
+                },
+            )
+            with _urlreq.urlopen(req, timeout=1.5) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
             identity = normalize_frontend_release_identity_payload(
                 payload if isinstance(payload, dict) else None,

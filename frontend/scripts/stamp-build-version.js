@@ -37,6 +37,26 @@ const RELEASE_FINGERPRINT_RELATIVE_PATHS = fs.existsSync(SCOPE_FILE)
 const pad = (n) => String(n).padStart(2, "0");
 let builtAtIso = (process.env.BUILT_AT || process.env.DEPLOY_BUILT_AT || "").trim();
 
+function readExistingGeneratedIdentity() {
+  try {
+    const src = fs.readFileSync(OUT_FILE, "utf8");
+    const pick = (re) => {
+      const m = src.match(re);
+      return m ? m[1] : "";
+    };
+    return {
+      version: pick(/BUILD_VERSION\s*=\s*"([^"]+)"/),
+      commit: pick(/BUILD_COMMIT\s*=\s*"([^"]+)"/),
+      commitSource: pick(/BUILD_COMMIT_SOURCE\s*=\s*"([^"]+)"/),
+      builtAt: pick(/BUILT_AT_ISO\s*=\s*"([^"]+)"/),
+    };
+  } catch {
+    return { version: "", commit: "", commitSource: "", builtAt: "" };
+  }
+}
+
+const existingGeneratedIdentity = readExistingGeneratedIdentity();
+
 let commit = "";
 let commitFull = "";
 let commitSource = "";
@@ -92,6 +112,15 @@ try {
   // we'll just stamp the date.
 }
 
+if (!commitFull) {
+  const existingCommit = (existingGeneratedIdentity.commit || "").trim();
+  if (existingCommit) {
+    commitFull = existingCommit;
+    commit = existingCommit.slice(0, 7);
+    commitSource = (existingGeneratedIdentity.commitSource || "existing:generated_identity").trim() || "existing:generated_identity";
+  }
+}
+
 if (!builtAtIso) {
   try {
     builtAtIso = execSync(`git show -s --format=%cI ${commitFull || "HEAD"}`, {
@@ -101,7 +130,7 @@ if (!builtAtIso) {
       .toString()
       .trim();
   } catch {
-    builtAtIso = new Date().toISOString();
+    builtAtIso = (existingGeneratedIdentity.builtAt || "").trim() || new Date().toISOString();
   }
 }
 const builtAtDate = new Date(builtAtIso);

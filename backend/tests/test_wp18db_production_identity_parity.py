@@ -24,3 +24,16 @@ def test_public_release_identity_file_contains_commit_and_source_hash():
     payload = json.loads(Path('/app/frontend/public/release-identity.json').read_text(encoding='utf-8'))
     assert len(str(payload.get('commit') or '')) == 40
     assert len(str(payload.get('source_hash') or '')) >= 12
+
+
+def test_stamp_script_reuses_existing_commit_when_git_and_env_commit_unavailable():
+    source = Path('/app/frontend/scripts/stamp-build-version.js').read_text(encoding='utf-8')
+    assert 'readExistingGeneratedIdentity' in source
+    assert 'existing:generated_identity' in source
+    assert 'existingGeneratedIdentity.commit' in source
+
+
+def test_served_release_probe_uses_request_headers_not_plain_localhost_only():
+    source = Path('/app/backend/server.py').read_text(encoding='utf-8')
+    assert 'MASCI-Release-Identity/1.0' in source
+    assert 'Accept": "application/json,text/plain,*/*"' in source or "'Accept': 'application/json,text/plain,*/*'" in source
