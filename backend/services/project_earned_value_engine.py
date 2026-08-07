@@ -889,12 +889,14 @@ async def _build_snapshot(db, project_number: str, *, actor: Optional[Dict[str, 
     if stale_sources:
         totals["confidence"] = _min_confidence(totals.get("confidence") or "high", "review_required")
     source_records = _metric_source_records(lines)
+    forecast_summary = (((payloads.get("forecast") or {}).get("cost") or {}).get("summary") or {})
+    has_remaining_work = any(_to_float(line.get("remaining_quantity"), 0.0) > 0 for line in lines)
     readiness = {
         "budget": "ready" if payloads.get("budget_lines") else "blocked",
         "schedule": "ready" if payloads.get("activities") else "blocked",
         "quantity": "ready" if any(line.get("approved_quantity", 0) > 0 for line in lines) else ("partial" if payloads.get("activities") else "blocked"),
         "actual_cost": "ready" if payloads.get("budget_lines") and blocked.get("open_actual_cost_count", 0) == 0 and any(_to_float(line.get("ac"), 0.0) > 0 for line in lines) else ("partial" if payloads.get("budget_lines") and blocked.get("open_actual_cost_count", 0) > 0 else "blocked"),
-        "forecast": "ready" if (((payloads.get("forecast") or {}).get("cost") or {}).get("summary") or {}).get("projected_remaining_cost") is not None else "blocked",
+        "forecast": "ready" if payloads.get("forecast") and (forecast_summary.get("projected_remaining_cost") is not None or not has_remaining_work) else "blocked",
         "freshness": "stale" if stale_sources else "current",
     }
     overall_inputs = [value for key, value in readiness.items() if key != "freshness"]
