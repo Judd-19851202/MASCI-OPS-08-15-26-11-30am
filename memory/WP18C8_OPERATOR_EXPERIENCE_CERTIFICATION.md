@@ -9,43 +9,39 @@ Result: PASS
 |---|---|---|
 | What happened? | `decision_brief.what_happened` | PASS |
 | Where are we now? | summary cards + readiness + metric table | PASS |
-| What changed? | version capture + change detection summary | PASS |
-| Why? | decision brief + line limitations | PASS |
+| What changed? | version capture + governed snapshot change trail | PASS |
+| Why? | decision brief + line limitations + blocked dependency reasons | PASS |
 | What is at risk? | blocked dependency lists + decision brief | PASS |
 | What happens if nothing changes? | decision brief | PASS |
 | What action is required, by whom, by when? | required actions table | PASS |
 
-## User-facing surfaces certified
+## Certified user-facing surfaces
 
-- PM C8 workspace
-- Executive/Admin C8 workspace
-- PM budget trust-line review lane for C8 linkage
-- Executive Overview launch card
-- PM/Admin navigation entries
+- PM earned-value workspace
+- Executive/Admin earned-value workspace
+- PM budget trust-line review lane for commitment and actual-cost linkage
+- PM / Executive navigation entries and export controls
 
-## Operator language result
+## Final runtime evidence
 
-- New user-facing copy uses operator language (`approved quantity`, `budget review lane`, `recognized actual cost`, `remaining-work forecast`) instead of implementation jargon.
-- Blocked data states say why confidence changed instead of hiding behind a generic error.
-- Review-required states explain exactly which trust line still needs attention.
+- `testing_agent` `/app/test_reports/iteration_158.json`: PASS
+- `auto_frontend_testing_agent`: PASS
+- PM and Executive pages auto-load on first visit without a manual Refresh.
+- PM budget review route stays usable after the final hardening performance repair.
+- Seeded proof project `ZZ-RUNTIME-CERT-2026` renders BAC `1200`, EV `1200`, AC `900`, CPI `1.3333`, and readiness overall `ready`.
 
-## First-load behavior
+## Operator-language result
 
-- Initial PM/Admin route visits now auto-load without requiring the user to click Refresh.
-- Runtime re-check passed after adding a one-shot retry on first mount.
+- Visible copy stays operator-facing: `Budget, progress, and cost in one project view`, `Operator decision brief`, `What happened`, `Where we are now`, `What changed`, `Why`, and `What is at risk`.
+- No visible implementation phrases such as `engine authority` or `black-box` remained on the certified PM/Admin/Budget surfaces.
+- Blocked / partial states explain *why* confidence changed rather than masking the reason behind a generic status pill.
 
 ## Budget review lane result
 
-- The PM budget page no longer stops at passive candidate display.
-- C8 now lets PMs allocate approved commitment and actual-cost candidates to governed budget lines.
-- After approval, the review queue returned to `0` on the seeded project.
-
-## Seeded runtime evidence
-
-- PM route rendered with BAC/EV/AC/EAC cards and tabs.
-- Executive route rendered the same governed truth in read-only context.
-- PM budget review page showed `Items Needing Review = 0` after seeded approvals.
+- The PM budget page remains an active review surface, not a passive candidate list.
+- Approved commitment and actual-cost candidates can be allocated to governed budget lines.
+- Final runtime certification showed `Items Needing Review = 0` on the seeded project after linkage was completed.
 
 ## Final result
 
-WP-18C8 passes operator-experience certification for the implemented surfaces.
+WP-18C8 passes operator-experience certification for the implemented PM, Executive, and PM Budget Review surfaces.

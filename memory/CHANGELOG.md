@@ -1,3 +1,9 @@
+# 2026-08-07 — WP-18C8 Final Executive Hardening
+
+- Reopened C8 for final proof only, repaired the PM Budget Review performance outlier by caching repeated foundation/index setup in `backend/services/project_controls_authority.py` and `backend/services/project_budget_authority.py`, and remeasured the live runtime to a final PASS.
+- Final verification passed: `testing_agent` `/app/test_reports/iteration_158.json`, `auto_frontend_testing_agent` browser runtime certification, `deep_testing_backend_v2` backend certification, and `pytest /app/backend/tests/test_wp18c8_earned_value_engine.py` (`11 / 11` pass).
+- Reconciled the final C8 evidence pack with updated performance/query, operator experience, responsive, accessibility, regression, deployment readiness, and executive closeout artifacts.
+
 # 2026-08-07 — WP-18C8 Earned Value Engine
 
 - Added canonical backend authority in `backend/services/project_earned_value_engine.py` for governed C8 snapshots, metric truth, versions, and CSV export.

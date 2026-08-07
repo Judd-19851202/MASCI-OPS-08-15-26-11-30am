@@ -3,34 +3,42 @@
 Date: 2026-08-07
 Result: PASS
 
-## Backend runtime proof
+## Final regression evidence
 
-- PM local API proof passed
-- Executive/Admin local API proof passed
+### Backend
+
+- `pytest /app/backend/tests/test_wp18c8_earned_value_engine.py -q` → `11 passed in 13.72s`
+- `deep_testing_backend_v2` final hardening pass → `19 / 19` checks passed
 - PM unauthenticated earned-value access returned `401`
-- PM and Executive CSV export endpoints returned `200` with `text/csv`
-- Budget overview returned approved candidate linkage with `review_queue_open = 0`
+- PM/Admin earned-value JSON and CSV export endpoints returned `200`
 
-## Frontend runtime proof
+### Frontend / browser runtime
 
-- Smoke check passed for PM earned-value route
-- Smoke check passed for Executive earned-value route
-- First-load auto-load retest passed without manual Refresh
-- PM budget review responsive sweep passed at `390 / 430 / 768 / 1024 / 1440`
-- ES toggle smoke check passed on the PM earned-value route
+- `mcp_screenshot_tool` smoke check on preview root: PASS
+- `testing_agent` report `/app/test_reports/iteration_158.json`: PASS
+- `auto_frontend_testing_agent`: PASS across PM earned value, Executive earned value, and PM Budget Review
+- First-load auto-load behavior passed on PM/Admin earned-value pages without manual Refresh
+- Responsive sweep passed at `390 / 430 / 768 / 1024 / 1440`
 
-## Subagent / test-agent evidence
+## Resolved regression during final hardening
 
-- `testing_agent` report: `/app/test_reports/iteration_156.json`
-  - initial failure found: first-load route required refresh
-  - repaired and re-verified
-- `deep_testing_backend_v2`: PASS for WP-18C8 backend validation
-- `auto_frontend_testing_agent`: PASS (`100%`) for PM/Admin C8 surfaces, seeded metrics, discoverability, and responsiveness
+- PM Budget Review previously spent ~`11.5s` in repeated foundation/index setup.
+- Root cause was repeated per-request foundation work in `project_controls_authority` and `project_budget_authority`.
+- Final repair cached one-time foundation setup per DB and removed the repeated hot-path cost.
 
-## Added automated regression coverage
+## Final pass set referenced by closeout
 
-- `backend/tests/test_wp18c8_earned_value_engine.py`
+- `/app/test_reports/iteration_158.json`
+- `/app/test_reports/pytest/pytest_wp18c8_iter158.xml`
+- `/app/backend_test_wp18c8_final_hardening.py`
+- `/app/backend_test_wp18c8_final_hardening_results.json`
+- `/app/backend/tests/test_wp18c8_earned_value_engine.py`
 
 ## Final regression result
 
-- No open C8 regression remained at closeout.
+- Unresolved C8 blockers: `0`
+- Truth defects: `0`
+- Unjustified test gaps/skips: `0`
+- Operator-language defects: `0`
+
+No open C8 regression remained at closeout.

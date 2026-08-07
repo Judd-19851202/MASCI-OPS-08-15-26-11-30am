@@ -4,11 +4,12 @@
 
 - Preview verified ✅
 - Result: **WP-18C8 — GO — READY TO SAVE & DEPLOY**.
+- Final executive hardening re-opened the package for proof, repaired the PM Budget Review hot path by caching repeated foundation/index setup in the budget + project-controls authorities, then remeasured the runtime to a final PASS.
 - Delivered one governed C8 earned-value authority in `backend/services/project_earned_value_engine.py` with PM/Admin surfaces wired to inherited budget, schedule, quantity, actual-cost, KPI-governance, and C7 forecast truth.
 - Activated the PM budget trust-line review lane so approved commitment and actual-cost candidates can be allocated to governed budget lines instead of staying passive blockers.
 - Added PM/Admin snapshot capture, CSV export, version evidence, drill-down lineage, and operator decision-brief behavior without opening C9.
 - Runtime seeded proof project: `ZZ-RUNTIME-CERT-2026` with BAC `1200`, EV `1200`, AC `900`, CPI `1.3333`, readiness `ready`, open actual-cost candidates `0`, open commitment candidates `0`.
-- Added the C8 evidence pack under `/app/memory/WP18C8_*`, plus regression, backend validation, frontend validation, and deployment readiness PASS.
+- Added the C8 evidence pack under `/app/memory/WP18C8_*`, plus final regression (`/app/test_reports/iteration_158.json`), backend validation, frontend runtime certification, and deployment readiness PASS.
 
 ## 2026-08-07 — WP-18C7 Forecasting & Commitments closeout
 
