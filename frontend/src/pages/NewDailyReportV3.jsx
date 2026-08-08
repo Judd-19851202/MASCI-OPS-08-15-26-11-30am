@@ -1059,7 +1059,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     <FormShell
       kicker={t("MASCI · Daily Job Report")}
       title={t("Today's report")}
-      subtitle={t("Nine short steps. Dropdowns first. AI drafts the story of this shift from your field evidence. Save state, scope, and next action stay visible the whole time.")}
+      subtitle={t("Nine short steps. Dropdowns first. AI drafts the story of this shift from your field records. Save state, scope, and next action stay visible the whole time.")}
       backLink={!publicMode ? "/" : null}
       draftSlot={(
         <div className="flex items-center gap-2" data-testid="dr-v3-draft-pill-slot">

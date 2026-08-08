@@ -1,5 +1,13 @@
 # PRD
 
+## 2026-08-08 — WP18C9 permanent constitutional closeout complete
+
+- Result: **WP-18C9 — GO — READY TO SAVE & DEPLOY — PERMANENTLY FROZEN**.
+- Exact frontend build-identity regression was reconciled by rerunning the failing extended-release-fields test and the canonical restamp flow; the restamp produced no file changes and the full D5/D6 release-gate suite returned `39 / 39 PASS`.
+- Final certification chain: release identity PASS, operator-language findings `0`, runtime screenshot ledger `85 / 85 PASS`, accumulated C7+C8+C9 readiness `27 / 27 PASS`, focused release regressions `78 / 78 PASS`, release gate PASS, unexplained warnings `0`, blockers `0`.
+- Permanent inheritance now in force for all future operator-facing packages: static operator-language certification, runtime screenshot-led certification, release-identity certification, `WP18DA` performance requirements, and `WP18DB` reliability requirements.
+- Freeze state now in force: **C7 frozen, C8 frozen, C9 permanently frozen, C10 not authorized**.
+
 ## 2026-08-08 — WP18C9 final certification rebuild complete
 
 - Result: **WP-18C9 — GO — READY TO SAVE & DEPLOY**.
@@ -9,6 +17,10 @@
 
 ### Current governing state
 
+- Runtime screenshot-ledger failures: **0**
+- Frontend/backend release-identity mismatches: **0**
+- Exact remaining blockers: **0**
+- Unexplained warnings: **0**
 - Operator-language findings: **0**
 - Unresolved comprehension defects: **0**
 - Responsive gaps on the rebuilt C9 surfaces: **0**

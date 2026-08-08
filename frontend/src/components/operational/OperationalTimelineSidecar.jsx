@@ -34,7 +34,7 @@ const MAX_VISIBLE = 30;
 // surface that calmly at the foot.
 
 export default function OperationalTimelineSidecar({ projectNumber }) {
-  const safeProjectNumber = sanitizeOperatorProjectNumber(projectNumber, "Project support");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(projectNumber, "");
   const [state, setState] = React.useState({
     items: null,
     truncated: false,

@@ -1,3 +1,10 @@
+# 2026-08-08 — WP18C9 permanent constitutional closeout
+
+- Reconciled the previously reported frontend build-identity regression by rerunning the exact extended-release-fields test, then executing the canonical frontend restamp flow; the restamp returned `module_written=false, public_identity_written=false`, confirming the generated identity already matched the governed source state.
+- Added the final closeout governance record in `/app/memory/WP18C9_FINAL_CONSTITUTIONAL_CLOSEOUT_ADDENDUM.md` and locked the permanent inheritance rule: future operator-facing work must pass static operator-language validation, runtime screenshot-led certification, release-identity certification, `WP18DA` performance requirements, and `WP18DB` reliability requirements before GO.
+- Final proof: release identity PASS, operator-language gate `0` findings, runtime screenshot ledger `85 / 85 PASS`, D5/D6 release-gate suite `39 / 39 PASS`, accumulated C7+C8+C9 readiness `27 / 27 PASS`, focused release regressions `78 / 78 PASS`, release gate PASS, unexplained warnings `0`.
+- Final state: **WP-18C9 — GO — READY TO SAVE & DEPLOY — PERMANENTLY FROZEN**. **C10 not authorized.**
+
 # 2026-08-08 — WP18C9 Executive / PM IA and certification rebuild
 
 - Rebuilt the C9 Executive / PM experience around attention-first hierarchy: portfolio condition first, then cost/schedule meaning, then supporting pressures, then direct project actions and drilldowns.

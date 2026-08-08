@@ -29,7 +29,7 @@ function formatAttentionContext(item) {
   else if (item?.project_id) parts.push(item.project_id);
   if (item?.source_type) parts.push(humanizeToken(item.source_type));
   if (item?.summary_scope) parts.push(humanizeToken(item.summary_scope));
-  return parts.filter(Boolean).join(" · ") || "Operational evidence linked to this period.";
+  return parts.filter(Boolean).join(" · ") || "Operational records linked to this period.";
 }
 
 export const PRESETS = [
@@ -110,7 +110,7 @@ export function KpiTile({ label, value, unit, testid, footnote }) {
 export function EmptyEvidence({ label }) {
   return (
     <div className="text-xs text-neutral-500 italic py-3">
-      {label || "No operational evidence in this range."}
+      {label || "No operational records in this range."}
     </div>
   );
 }
@@ -135,7 +135,7 @@ export function AttentionList({ title, items, kind, testid }) {
         <div className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
           {title}
         </div>
-        <EmptyEvidence label={`No ${kind} evidence in this range.`} />
+        <EmptyEvidence label={`No ${kind} records in this range.`} />
       </div>
     );
   }
@@ -184,7 +184,7 @@ export function EvidenceFooter({ children }) {
     >
       {children || (
         <>
-          Sourced from the operational data spine · every metric traces back to
+          Sourced from current operating records · every metric traces back to
           reports, photos, and events submitted by field supervisors.
         </>
       )}

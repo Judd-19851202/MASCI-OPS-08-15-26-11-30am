@@ -544,7 +544,7 @@ function Counter({ testId, label, value, tone }) {
 export default function PmProjectDetail() {
   const { projectNumber } = useParams();
   const pn = (projectNumber || "").trim();
-  const safePn = sanitizeOperatorProjectNumber(pn, "Project support");
+  const safePn = sanitizeOperatorProjectNumber(pn, "");
 
   return (
     <PmShell

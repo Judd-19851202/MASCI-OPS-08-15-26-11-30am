@@ -112,7 +112,7 @@ export default function PmOperationalIntelligence() {
         error={error}
         actionBusy={actionBusy}
         title={t("Project Performance")}
-        subtitle={t("See what changed, why it matters, what needs action next, and what evidence supports it for this job.")}
+        subtitle={t("See what changed, why it matters, what needs action next, and what current records support it for this job.")}
         projectSelector={<PmProjectSelector projectNumber={projectNumber} onChange={chooseProject} />}
         onRefresh={() => load(projectNumber, true)}
         onExport={exportDeferred ? null : handleExport}

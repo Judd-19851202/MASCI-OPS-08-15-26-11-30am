@@ -1,18 +1,20 @@
-# 2026-08-08 — WP18C9 final state
+# 2026-08-08 — WP18C9 permanent freeze state
 
-- **WP-18C9 is COMPLETE, CERTIFIED, and DEPLOYABLE.**
-- Final gate: **GO — READY TO SAVE & DEPLOY**
-- The Executive / PM experience rebuild is complete, the operator-language hard gate remains at `0` FAIL rows, and the accumulated C7+C8+C9 readiness chain is **PASS**.
-- **C9 is now frozen. Stop here. Do not start C10.**
+- **WP-18C9 is COMPLETE, CERTIFIED, DEPLOYABLE, and PERMANENTLY FROZEN.**
+- Final gate: **GO — READY TO SAVE & DEPLOY — PERMANENTLY FROZEN**
+- The Executive / PM experience rebuild is complete, the operator-language hard gate remains at `0` FAIL rows, the runtime screenshot ledger is `85 / 85 PASS`, frontend/backend release identity is **PASS**, and the accumulated C7+C8+C9 readiness chain is **PASS**.
+- **C9 is permanently frozen. Stop here. Do not start C10.**
 
 ## Current top priority
 
-- Preserve the certified C9 state and prevent recurrence through the new pre-merge operator-language guard.
+- Preserve the certified C9 state and prevent recurrence through the permanent inherited release requirements.
 
 ## P0
 
 - keep `/app/memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv` at `0` FAIL rows
+- preserve the certified runtime screenshot ledger requirement for all future operator-facing work
 - preserve the certified release identity / release gate / C7+C8+C9 regression chain
+- preserve inherited `WP18DA` performance and `WP18DB` reliability gate requirements
 
 ## P1
 

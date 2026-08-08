@@ -289,9 +289,44 @@ def test_pre_save_candidate_policy_is_governed_and_specific():
             "rationale": "Executive Operations Dashboard copy and hierarchy were refined so it complements rather than duplicates the rebuilt portfolio experience.",
         },
         {
+            "path": "frontend/src/components/ods/HorizonPrimitives.jsx",
+            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
+            "rationale": "Executive operational-intelligence primitives were updated to remove operator-facing software-language references and support the governed screenshot-ledger certification standard.",
+        },
+        {
+            "path": "frontend/src/components/operational/OperationalTimelineSidecar.jsx",
+            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
+            "rationale": "Project-detail runtime certification required removal of generic project fallback language from the operational timeline sidecar.",
+        },
+        {
+            "path": "frontend/src/pages/NewDailyReportV3.jsx",
+            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
+            "rationale": "The daily-report filing experience is part of the permanent screenshot-ledger scope, so operator-facing copy was reconciled to the certified comprehension standard.",
+        },
+        {
+            "path": "frontend/src/pages/PmOperationalIntelligence.jsx",
+            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
+            "rationale": "PM project-performance copy was aligned to the operator-comprehension standard and is now governed as part of the permanent runtime screenshot ledger.",
+        },
+        {
+            "path": "frontend/src/pages/PmProjectDetail.jsx",
+            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
+            "rationale": "PM project-detail runtime certification required elimination of generic fallback identity on the certified route.",
+        },
+        {
             "path": "scripts/premerge_operator_language_check.py",
             "mission_ref": "WP18C9 Recurrence prevention",
             "rationale": "The lightweight pre-merge operator-language guard is part of the governed C9 closeout because it prevents recurrence of the exact operator-comprehension defect class remediated here.",
+        },
+        {
+            "path": "scripts/runtime_screenshot_ledger_gate.py",
+            "mission_ref": "WP18C9 Runtime screenshot ledger enforcement",
+            "rationale": "The permanent runtime screenshot-ledger gate is part of the constitutional C9 closeout and must remain governed for all future operator-facing certification runs.",
+        },
+        {
+            "path": "pytest.ini",
+            "mission_ref": "WP18C9 Warning reconciliation",
+            "rationale": "The final C9 closeout required zero unexplained warnings, so the exact third-party Starlette multipart PendingDeprecationWarning is narrowly filtered here without muting other warnings.",
         },
         {
             "path": "backend/server.py",
@@ -396,6 +431,9 @@ def test_preview_and_production_acceptance_gates_are_distinct():
     preview = set(manifest["preview_acceptance_gates"])
     production = set(manifest["production_acceptance_gates"])
     assert production > preview
+    assert "operator-language-hard-fail" in preview
+    assert "runtime-screenshot-ledger" in preview
+    assert "runtime-screenshot-ledger" in production
     assert "backup-verification-contract" in production
     assert "performance-baseline-contract" in preview
     assert "performance-baseline-contract" in production
@@ -516,6 +554,7 @@ def test_release_gate_cli_emits_manifest_hashes():
     "release_identity_certificate",
     "build_certificate",
     "test_certificate",
+    "runtime_screenshot_ledger",
     "performance_baseline",
     "atlas_alert_evidence_register",
     "query_inventory",
