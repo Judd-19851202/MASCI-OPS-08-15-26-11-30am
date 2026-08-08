@@ -493,8 +493,20 @@ def _project_attention(
 
 
 def _project_row(job: Dict[str, Any], op_doc: Dict[str, Any], forecast_doc: Dict[str, Any], ev_doc: Dict[str, Any], *, audience: str) -> Dict[str, Any]:
-    project_number = _clean(job.get("project_number"))
-    project_name = _clean(job.get("project_name") or job.get("name") or "")
+    project_number = _clean(
+        job.get("project_number")
+        or op_doc.get("project_number")
+        or forecast_doc.get("project_number")
+        or ev_doc.get("project_number")
+    )
+    project_name = _clean(
+        job.get("project_name")
+        or job.get("name")
+        or op_doc.get("project_name")
+        or forecast_doc.get("project_name")
+        or ev_doc.get("project_name")
+        or ""
+    )
     financial = _project_financial_payload(ev_doc)
     schedule = _project_schedule_payload(forecast_doc)
     commitments = _project_commitment_payload(forecast_doc)

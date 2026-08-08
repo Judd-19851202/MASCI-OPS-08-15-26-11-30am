@@ -1,8 +1,72 @@
-# MASCI Operator Language Remediation Test Results
+# MASCI Test Results
+
+## Latest Test: WP-18C9 Executive/PM Experience Verification
+## Test Date: 2026-08-08
+## Tester: Testing Agent (E2)
+## Preview URL: https://masci-audit-hub.preview.emergentagent.com
+
+---
+
+# WP-18C9 Executive/PM Experience Test Results (2026-08-08)
+
+## Test Scope
+Verification of rebuilt WP-18C9 Executive/PM experience:
+1. Executive Overview landing page with distinct purpose cards
+2. Executive portfolio view with attention-first hierarchy
+3. PM portfolio view with attention-first hierarchy
+4. PM Command Center project name display (no generic fallback)
+5. PM Command Center admin-only intelligence-strip defect check
+6. Project detail dialog, filters, and search functionality
+7. Spanish language toggle
+
+## Test Results
+
+### ✅ PASSED (5/7)
+1. ✅ Executive Overview landing page - Three distinct purpose cards working correctly
+2. ✅ Executive portfolio view - Attention-first hierarchy (40 projects needing attention)
+3. ✅ PM portfolio view - Attention-first hierarchy with PM-specific framing
+4. ✅ Project detail dialog, filters, and search - All functional
+5. ✅ PM Command Center project-first home view - Default view working
+
+### ❌ FAILED (1/7)
+1. ❌ **PM Command Center - Generic project name fallback**: 11 out of 42 projects show "Project number unavailable" instead of recognizable names. This affects scoped PM fixtures.
+
+### ⚠️ PARTIAL PASS (1/7)
+1. ⚠️ **Spanish language toggle**: Works but shows mixed English/Spanish content
+
+## Critical Issues
+
+### Issue #1: Generic Project Name Fallback (HIGH PRIORITY)
+**Location:** PM Command Center project selector and assigned projects list  
+**Problem:** 11 projects display "Project number unavailable" instead of recognizable project numbers/names  
+**Examples:**
+- "Project number unavailable · Earned Value readiness — Incomplete actual-cost evi..."
+- "Project number unavailable · Project name not available"
+
+**Files Affected:**
+- `/app/frontend/src/components/pm/command/PmProjectSelector.jsx` (lines 40-43)
+- `/app/frontend/src/components/pm/command/PmProjectFirstHome.jsx` (lines 256-258)
+
+**Impact:** PMs cannot identify which projects need attention when they see generic "unavailable" labels.
+
+### Issue #2: Mixed Language in Spanish Mode (MEDIUM PRIORITY)
+**Location:** PM Command Center when Spanish language selected  
+**Problem:** Some UI elements remain in English when Spanish is selected:
+- "Project Management Center" (page title)
+- "MISSING DAILY REPORT" (action badge)
+- "OPEN PROJECT" (link text)
+
+**Impact:** Creates confusion for Spanish-speaking users.
+
+## Detailed Report
+Full test report available at: `/app/wp18c9_test_report.md`
+
+---
+
+# Previous Test: MASCI Operator Language Remediation
 
 ## Test Date: 2026-08-07
 ## Tester: Testing Agent (E2)
-## Preview URL: https://masci-audit-hub.preview.emergentagent.com
 
 ## Test Scope
 Testing for removal of banned operator-language terms across MASCI preview surfaces:

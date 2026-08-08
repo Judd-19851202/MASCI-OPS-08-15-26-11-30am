@@ -158,6 +158,61 @@
       "mission_ref": "WP18C9 Closeout evidence pack",
       "rationale": "WP-18C9 portfolio intelligence closeout artifacts are governed certification outputs and must remain eligible PRE_SAVE_CANDIDATE dirty entries until final closeout is saved."
     },
+    {
+      "path": "backend/services/portfolio_intelligence.py",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "The governed C9 closeout explicitly rebuilds portfolio condition hierarchy, project identity recovery, and attention-first semantics without changing the underlying C7/C8 math engines."
+    },
+    {
+      "path": "frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "The core C9 workspace was intentionally rebuilt to deliver the required attention-first executive and PM information architecture."
+    },
+    {
+      "path": "frontend/src/pages/ExecutiveOverview.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "Executive Overview now defines the governed purpose split between overview, portfolio performance, and immediate operations."
+    },
+    {
+      "path": "frontend/src/pages/PmPortfolioIntelligence.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "PM portfolio framing was rebuilt so PMs see assigned-project performance instead of generic cross-product language."
+    },
+    {
+      "path": "frontend/src/pages/PmCommandCenter.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "PM Management Center now avoids the admin-only intelligence strip dependency and carries governed scoped identity framing."
+    },
+    {
+      "path": "frontend/src/components/pm/command/PmProjectFirstHome.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "The PM project-first surface now resolves project names from scoped portfolio data and removes operator-facing architecture explanations."
+    },
+    {
+      "path": "frontend/src/components/pm/command/PmProjectSelector.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "PM selector behavior was aligned with scoped identity requirements for the C9 closeout."
+    },
+    {
+      "path": "frontend/src/lib/projectControlsPresentation.js",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "Shared KPI presentation now uses governed operator-readable cost and schedule language across C8/C9 surfaces."
+    },
+    {
+      "path": "frontend/src/lib/operatorLanguage.js",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "Operator identity sanitation now removes fixture markers while preserving legitimate project identity on governed C9 surfaces."
+    },
+    {
+      "path": "frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
+      "mission_ref": "WP18C9 Executive / PM IA rebuild",
+      "rationale": "Executive Operations Dashboard copy and hierarchy were refined so it complements rather than duplicates the rebuilt portfolio experience."
+    },
+    {
+      "path": "scripts/premerge_operator_language_check.py",
+      "mission_ref": "WP18C9 Recurrence prevention",
+      "rationale": "The lightweight pre-merge operator-language guard is part of the governed C9 closeout because it prevents recurrence of the exact operator-comprehension defect class remediated here."
+    },
       {
         "path": "backend/server.py",
         "mission_ref": "PDC-01B Build and backup evidence",
