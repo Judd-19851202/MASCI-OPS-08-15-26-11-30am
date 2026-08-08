@@ -1112,7 +1112,9 @@ async def get_project_earned_value_snapshot(
     cache_lookup_ms = round((time.perf_counter() - cache_lookup_started) * 1000, 2)
     if existing and not force_refresh:
         generated_at = _parse_datetime(existing.get("generated_at"))
-        if generated_at and generated_at >= _utcnow() - timedelta(minutes=5):
+        latest_forecast = await db[COLL_FORECAST_SNAPSHOTS].find_one({"project_number": project_number}, {"_id": 0, "version_id": 1}, sort=[("version_number", -1)])
+        forecast_dependency_stale = bool(latest_forecast and latest_forecast.get("version_id") != ((existing.get("source_register") or {}).get("forecast_snapshot") or ""))
+        if generated_at and generated_at >= _utcnow() - timedelta(minutes=5) and not forecast_dependency_stale:
             existing["audience"] = audience
             existing["cache_status"] = "reused"
             existing["performance_profile"] = {
@@ -1130,6 +1132,7 @@ async def get_project_earned_value_snapshot(
     versioning_ms = round((time.perf_counter() - version_started) * 1000, 2)
     snapshot_write_started = time.perf_counter()
     await db[COLL_EV_SNAPSHOTS].replace_one({"project_number": project_number}, snapshot, upsert=True)
+    await db["portfolio_intelligence_snapshots"].delete_many({"projects.project_number": project_number})
     snapshot_write_ms = round((time.perf_counter() - snapshot_write_started) * 1000, 2)
     snapshot["performance_profile"] = {
         **(snapshot.get("performance_profile") or {}),

@@ -144,6 +144,9 @@ def _focused_regressions() -> dict[str, Any]:
         "/app/backend/tests/test_checkpoint_d4_dependency_governance.py",
         "/app/backend/tests/test_checkpoint_d5_d6_release_gate.py",
         "/app/backend/tests/test_checkpoint_d7_d8_performance_repairs.py",
+        "/app/backend/tests/test_prec10_corrective_action_truth_governance.py",
+        "/app/backend/tests/test_prec10_schedule_truth_chain_independent.py",
+        "/app/backend/tests/test_prec10_platform_truth_integrity.py",
     ], cwd=REPO_ROOT, timeout=1800)
 
 

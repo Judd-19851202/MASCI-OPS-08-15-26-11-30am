@@ -16844,6 +16844,9 @@ app.include_router(_op_map_router)
 from routes.platform_data_truth import build_platform_data_truth_router  # noqa: E402
 app.include_router(build_platform_data_truth_router(db, get_runtime_identity=_runtime_identity_bundle))
 
+from routes.platform_truth_integrity import build_platform_truth_integrity_router  # noqa: E402
+app.include_router(build_platform_truth_integrity_router(db, require_admin))
+
 from routes.wp17a_kpi_governance import build_wp17a_kpi_governance_router  # noqa: E402
 app.include_router(build_wp17a_kpi_governance_router(require_admin))
 

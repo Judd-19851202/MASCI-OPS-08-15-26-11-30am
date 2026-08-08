@@ -13,7 +13,6 @@ from services.project_controls_authority import (
     _status,
     _to_float,
     _write_audit,
-    get_project_lookahead,
 )
 from services.project_schedule_authority import (
     COLL_SCHEDULE_ACTIVITIES,
@@ -21,6 +20,7 @@ from services.project_schedule_authority import (
     COLL_SCHEDULE_VERSIONS,
     COLL_WORK_PACKAGES,
     ensure_project_schedule_foundation,
+    get_reconciled_schedule_lookahead,
     list_schedule_activities,
     list_schedule_versions,
 )
@@ -852,9 +852,19 @@ async def get_daily_work_plan(db, project_number: str, *, work_date: str = "") -
     await ensure_schedule_actuals_foundation(db)
     work_date = _date_text(work_date) or datetime.now(timezone.utc).date().isoformat()
     existing = await db[COLL_DAILY_WORK_PLANS].find_one({"project_number": project_number, "work_date": work_date}, {"_id": 0})
-    if existing:
-        return _sanitize(existing)
     active_version = await _active_version(db, project_number)
+    lookahead = await get_reconciled_schedule_lookahead(db, project_number)
+    current_version_id = (active_version or {}).get("version_id") or ""
+    current_lookahead_id = lookahead.get("lookahead_id") or ""
+    if existing:
+        is_current_horizon = work_date >= datetime.now(timezone.utc).date().isoformat()
+        if is_current_horizon and (
+            _clean(existing.get("version_id")) != _clean(current_version_id)
+            or _clean(existing.get("lookahead_id")) != _clean(current_lookahead_id)
+        ):
+            await db[COLL_DAILY_WORK_PLANS].delete_one({"project_number": project_number, "work_date": work_date})
+        else:
+            return _sanitize(existing)
     if not active_version:
         return {
             "plan_id": _plan_id(project_number, work_date),
@@ -866,7 +876,6 @@ async def get_daily_work_plan(db, project_number: str, *, work_date: str = "") -
             "notes": "No active governed schedule version exists yet.",
         }
     activities = await list_schedule_activities(db, project_number, version_id=active_version.get("version_id") or "")
-    lookahead = await get_project_lookahead(db, project_number)
     focus_activity_ids = {row.get("activity_id") for row in activities if _clean(row.get("activity_id")) and ((_as_date(row.get("planned_start_date")) or date.min) <= _as_date(work_date) <= (_as_date(row.get("planned_finish_date")) or date.max))}
     for task in lookahead.get("tasks") or []:
         if _clean(task.get("activity_id")):

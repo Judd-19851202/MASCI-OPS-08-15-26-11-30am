@@ -1191,7 +1191,7 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
     async def pm_project_controls_lookahead(request: Request, project_number: str):
         runtime_db = _runtime_db(request, db)
         await _require_project_scope(runtime_db, request, project_number)
-        return await get_project_lookahead(runtime_db, project_number)
+        return await get_reconciled_schedule_lookahead(runtime_db, project_number)
 
     @api_router.put("/api/pm/project-controls/projects/{project_number}/lookahead")
     async def pm_project_controls_save_lookahead(request: Request, project_number: str, body: LookaheadBody):

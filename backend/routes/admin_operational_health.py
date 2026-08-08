@@ -26,7 +26,7 @@ from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 
 _BACKEND_INTERNAL_BASE = os.environ.get("OCC_HEALTH_INTERNAL_BASE", "http://127.0.0.1:8001").rstrip("/")
-_PROBE_TIMEOUT_S = 8.0
+_PROBE_TIMEOUT_S = 30.0
 _WORKSPACE = Path("/app")
 _SCANNER_PATH = _WORKSPACE / "backend/tools/wp15_governance_convergence_scan.py"
 _CI_ASSERT_PATH = _WORKSPACE / "scripts/assert_wp15_governance_convergence.py"
@@ -68,6 +68,7 @@ _PROBE_PATHS = {
     "sessions_recent": "/api/admin/sessions/recent",
     "trust_spine": "/api/admin/trust-spine",
     "production_certification": "/api/admin/production-certification",
+    "platform_truth_integrity": "/api/admin/platform-truth-integrity",
     "occ_trust_events": "/api/admin/occ/trust-events?limit=25",
 }
 
@@ -75,6 +76,7 @@ _SECTION_DEFS = [
     ("constitutional-status", "Constitutional Status"),
     ("governance-drift", "Governance Drift"),
     ("certification-health", "Certification Health"),
+    ("platform-truth-integrity", "Platform Truth Integrity"),
     ("trust-spine-integrity", "Trust Spine Integrity"),
     ("identity-health", "Identity Health"),
     ("authorization-health", "Authorization Health"),
@@ -599,6 +601,19 @@ def _build_cards(*, probes: Dict[str, Dict[str, Any]], scanner: Dict[str, Any], 
         cert_missing.extend(_missing_headings(cert_doc["text"], ["Certification History", "Continuous Gate Coverage", "Append-Only Retention Rule"]))
     history_status = "green" if not cert_missing and history_entries >= 3 else "unknown"
     cards.append(_card(section_id="certification-health", card_id="wp15-certification-history", title="WP-15 Certification History Retention", status=history_status, summary=(f"Append-only certification history includes {history_entries} retained evidence entries." if history_status == "green" else "Certification history retention evidence is missing or incomplete."), root_cause_explanation=("The closeout documentation retains historical certification checkpoints rather than only the latest verdict." if history_status == "green" else f"Missing certification history evidence: {', '.join(cert_missing or ['insufficient history entries'])}."), endpoint=str(_DOC_FILES["continuous_certification"]), evidence_source_label="WP-15 certification history ledger", producer="markdown certification ledger", checked_at=cert_doc.get("modified_at") or final_cert_doc.get("modified_at"), last_successful_refresh=generated_at, verified_at=final_cert_doc.get("modified_at"), affected_files=[str(_DOC_FILES["continuous_certification"]), str(_DOC_FILES["final_certification"])], affected_modules=["documentation", "certification_history"], affected_workflows=[], recommended_action="Publish the continuous certification ledger with explicit historical entries and append-only rules." if history_status != "green" else "", evidence={"history_entries": history_entries, "continuous_certification_present": cert_doc["exists"], "final_certification_present": final_cert_doc["exists"], "missing": cert_missing}))
+
+    truth_probe = probes["platform_truth_integrity"]
+    if not truth_probe["ok"]:
+        cards.append(_card(section_id="platform-truth-integrity", card_id="synthetic-certification-contamination", title="Synthetic / Certification Contamination", status="unknown", summary="Platform truth-integrity evidence was unavailable.", root_cause_explanation=truth_probe.get("error") or "Truth-integrity probe failed.", endpoint="/api/admin/platform-truth-integrity", evidence_source_label="Platform truth-integrity scanner", producer="platform_truth_integrity", checked_at=None, last_successful_refresh=None, verified_at=None, affected_files=["backend/lib/platform_truth_integrity.py", "backend/routes/platform_truth_integrity.py"], affected_modules=["platform_truth_integrity"], affected_workflows=[], recommended_action="Restore the platform truth-integrity scanner before relying on contamination health.", evidence={"probe": truth_probe}, drilldown="/admin/governance-trust"))
+        cards.append(_card(section_id="platform-truth-integrity", card_id="stale-derived-state", title="Stale Derived State", status="unknown", summary="Derived-state staleness evidence was unavailable.", root_cause_explanation=truth_probe.get("error") or "Truth-integrity probe failed.", endpoint="/api/admin/platform-truth-integrity", evidence_source_label="Platform truth-integrity scanner", producer="platform_truth_integrity", checked_at=None, last_successful_refresh=None, verified_at=None, affected_files=["backend/lib/platform_truth_integrity.py", "backend/routes/platform_truth_integrity.py"], affected_modules=["platform_truth_integrity"], affected_workflows=[], recommended_action="Restore the platform truth-integrity scanner before relying on stale-derived-state health.", evidence={"probe": truth_probe}, drilldown="/admin/governance-trust"))
+    else:
+        truth = truth_probe["body"] or {}
+        contamination = truth.get("contamination") or {}
+        stale = truth.get("stale_derived_state") or {}
+        contamination_blockers = contamination.get("blocking_findings") or []
+        stale_blockers = stale.get("blocking_findings") or []
+        cards.append(_card(section_id="platform-truth-integrity", card_id="synthetic-certification-contamination", title="Synthetic / Certification Contamination", status=_normalize_status(contamination.get("overall_status")), summary=("No blocking contamination findings were detected in the current governed family scan." if _normalize_status(contamination.get("overall_status")) == "green" else f"{len(contamination_blockers)} blocking contamination finding(s) remain across material families."), root_cause_explanation=("Material data families either use explicit governed markers or currently show no contamination evidence." if _normalize_status(contamination.get("overall_status")) == "green" else "One or more material families still rely on heuristic-only exclusion, contradictory markers, or certification-scope rows without complete isolation evidence."), endpoint="/api/admin/platform-truth-integrity/contamination", evidence_source_label="Platform contamination integrity scan", producer="platform_truth_integrity", checked_at=contamination.get("generated_at"), last_successful_refresh=truth_probe.get("refreshed_at"), verified_at=contamination.get("generated_at"), affected_files=["backend/lib/platform_truth_integrity.py", "backend/routes/platform_truth_integrity.py"], affected_modules=["platform_truth_integrity"], affected_workflows=[row.get("family_id") for row in contamination_blockers][:8], recommended_action="Convert heuristic-only families to explicit governed classification and isolate certification-scoped data from operator aggregates." if contamination_blockers else "", evidence={"blocking_findings": contamination_blockers[:8], "sample_families": (contamination.get("families") or [])[:8]}, drilldown="/admin/governance-trust"))
+        cards.append(_card(section_id="platform-truth-integrity", card_id="stale-derived-state", title="Stale Derived State", status=_normalize_status(stale.get("overall_status")), summary=("No blocking stale-derived-state mismatches were detected in the current governed dependency scan." if _normalize_status(stale.get("overall_status")) == "green" else f"{len(stale_blockers)} stale-derived-state finding(s) remain across governed downstream chains."), root_cause_explanation=("Current downstream chains either recompute on demand or remain aligned to their upstream governed signatures." if _normalize_status(stale.get("overall_status")) == "green" else "One or more derived states still point at older upstream signatures, versions, or dependency snapshots."), endpoint="/api/admin/platform-truth-integrity/stale-derived-state", evidence_source_label="Platform stale-derived-state scan", producer="platform_truth_integrity", checked_at=stale.get("generated_at"), last_successful_refresh=truth_probe.get("refreshed_at"), verified_at=stale.get("generated_at"), affected_files=["backend/lib/platform_truth_integrity.py", "backend/routes/platform_truth_integrity.py", "backend/services/project_schedule_authority.py"], affected_modules=["platform_truth_integrity", "project_schedule_authority"], affected_workflows=[row.get("id") for row in stale_blockers][:8], recommended_action="Repair the mismatched downstream chain and add deterministic invalidation before treating it as current." if stale_blockers else "", evidence={"blocking_findings": stale_blockers[:8], "sample_checks": (stale.get("checks") or [])[:8]}, drilldown="/admin/governance-trust"))
 
     trust_probe = probes["trust_spine"]
     events_probe = probes["occ_trust_events"]

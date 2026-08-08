@@ -16,7 +16,8 @@ It is intentionally fail-closed: any material family not fully traced from canon
 | PM schedule authority | governed project-controls schedule authority | `/schedule/overview`, `/schedule/lookahead`, `/schedule/daily-work-plan` all 200 for certification project; independent source-chain parity now passes; stale lookahead mismatch against active schedule was found and repaired in preview | PARTIAL PASS |
 | C7 forecasting / commitments | governed forecasting workspace | PM + admin forecasting workspace both 200 in this run | PARTIAL PASS |
 | C8 earned value | admin governance earned-value route | certification project earned-value summary 200 in this run | PARTIAL PASS |
-| C9 portfolio performance | admin governance portfolio intelligence | portfolio intelligence 200 with `projects=43` in this run | PARTIAL PASS |
+| C9 portfolio performance | admin governance portfolio intelligence | portfolio intelligence 200 with `projects=43` in this run; deterministic invalidation now clears affected cached C9 snapshots when newer C7/C8 project dependencies are written | PARTIAL PASS |
+| Platform truth-integrity scanner | governed contamination + stale-derived-state integrity checks | `/api/admin/platform-truth-integrity/*` now scans material families and derived chains; current outcome is fail-closed with explicit blocking findings for heuristic-only family governance gaps and stale C9 snapshots | PARTIAL PASS |
 | Trust Spine | trust-spine canonical workflow evidence | `/api/admin/trust-spine` 200 with `platform_band=green` | PASS for workflow evidence, insufficient for whole-platform closure |
 | HR queue/time-off/roster truth | employee requests, FL records, HR roster authority | all three endpoints 200 with current KPI metadata | PARTIAL PASS |
 | Governance / R2 / capacity / production certification | governed admin truth endpoints | all major endpoints 200 in this run | PARTIAL PASS |

@@ -1120,7 +1120,20 @@ async def get_portfolio_intelligence_snapshot(
     existing = await db[COLL_PORTFOLIO_SNAPSHOTS].find_one({"scope_key": scope_key}, {"_id": 0})
     if existing and not force_refresh:
         generated_at = _parse_datetime(existing.get("generated_at"))
-        if generated_at and generated_at >= _utcnow() - timedelta(minutes=PORTFOLIO_CACHE_TTL_MINUTES):
+        dependencies_stale = False
+        for row in existing.get("projects") or []:
+            project_number = row.get("project_number")
+            if not project_number:
+                continue
+            latest_forecast = await db[COLL_FORECAST_VERSIONS].find_one({"project_number": project_number}, {"_id": 0, "version_id": 1}, sort=[("version_number", -1)])
+            latest_ev = await db[COLL_EV_SNAPSHOTS].find_one({"project_number": project_number}, {"_id": 0, "versioning.current_version_id": 1}, sort=[("generated_at", -1)])
+            if latest_forecast and latest_forecast.get("version_id") != ((row.get("source_lineage") or {}).get("c7_version_id") or ""):
+                dependencies_stale = True
+                break
+            if latest_ev and (((latest_ev.get("versioning") or {}).get("current_version_id") or "") != ((row.get("source_lineage") or {}).get("c8_version_id") or "")):
+                dependencies_stale = True
+                break
+        if generated_at and generated_at >= _utcnow() - timedelta(minutes=PORTFOLIO_CACHE_TTL_MINUTES) and not dependencies_stale:
             existing["cache_status"] = "reused"
             return _sanitize(existing)
     try:

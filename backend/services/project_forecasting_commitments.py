@@ -787,6 +787,8 @@ async def _persist_snapshot_version(db, project_number: str, workspace: Dict[str
         before=latest,
         metadata={"note": _clean(note)},
     )
+    await db["portfolio_intelligence_snapshots"].delete_many({"projects.project_number": project_number})
+    await db["project_earned_value_snapshots"].delete_many({"project_number": project_number})
     recent_versions = [_sanitize(item) async for item in db[COLL_FORECAST_SNAPSHOTS].find({"project_number": project_number}, {"_id": 0, "version_id": 1, "version_number": 1, "generated_at": 1, "change_detection": 1, "note": 1}).sort([("version_number", -1)]).limit(8)]
     return {
         "current_version_id": row["version_id"],
