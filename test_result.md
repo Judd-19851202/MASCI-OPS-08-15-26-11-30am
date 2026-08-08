@@ -1,13 +1,173 @@
 # MASCI Test Results
 
-## Latest Test: WP-18C9 Executive/PM Experience Verification
-## Test Date: 2026-08-08
+## Latest Test: PM Command Center Focused Retest (Post-Fix Verification)
+## Test Date: 2026-08-08 (Second Run)
 ## Tester: Testing Agent (E2)
 ## Preview URL: https://masci-audit-hub.preview.emergentagent.com
 
 ---
 
-# WP-18C9 Executive/PM Experience Test Results (2026-08-08)
+# PM Command Center Focused Retest Results (2026-08-08 - Post-Fix Verification)
+
+## Test Scope
+Focused retest of three specific PM Command Center fixes:
+1. PM Project Selector - verify no generic "Project number unavailable" fallback
+2. PM Assigned Projects List - verify recognizable project names for scoped PM fixtures
+3. Spanish language translations - verify PM Command Center page title/subtitle/action strings
+
+## Test Credentials
+- PM User: cert.pm@example.com / CertProof2026!
+- Test URL: https://masci-audit-hub.preview.emergentagent.com/pm/command-center
+
+## ❌ CRITICAL FAILURE: All Three Test Points Failed
+
+### 1. ❌ PM Project Selector - Generic Fallback Still Present
+**Status**: FAILED - Issue NOT fixed
+**Finding**: 11 out of 12 selector options show "Project number unavailable"
+
+**Evidence**:
+```
+Option 1: Project number unavailable · Earned Value readiness — Incomplete actual-cost evi...
+Option 2: Project number unavailable · Earned Value readiness — Cost and schedule both unf...
+Option 3: Project number unavailable · Earned Value readiness — Completed work with open c...
+[... 8 more identical cases ...]
+Option 11: Project number unavailable · Project name not available...
+```
+
+**Screenshot**: `.screenshots/pm_cc_retest_english.png`
+
+### 2. ❌ PM Assigned Projects List - Generic Fallback Still Present
+**Status**: FAILED - Issue NOT fixed
+**Finding**: All 11 project rows in "Projects Assigned to You" section show "Project number unavailable"
+
+**Evidence**:
+```
+Row 1: Project number unavailable · Earned Value readiness — Incomplete actual-cost evidence
+Row 2: Project number unavailable · Earned Value readiness — Cost and schedule both unfavorable
+Row 3: Project number unavailable · Earned Value readiness — Completed work with open commitments
+[... 8 more identical cases ...]
+```
+
+**Screenshot**: `.screenshots/pm_cc_retest_english.png`
+
+### 3. ❌ Spanish Translations - Not Working
+**Status**: FAILED - Spanish toggle not functioning
+**Finding**: After clicking Spanish language toggle, page content did not translate
+
+**Evidence**:
+- Page title remained in English: "Project Management Center"
+- Action badges remained in English: "MISSING DAILY REPORT", "OPEN PROJECT"
+- Project fallback text remained in English: "Project number unavailable"
+
+**Screenshot**: `.screenshots/pm_cc_retest_spanish.png`
+
+## Root Cause Analysis
+
+### Backend API Investigation
+Captured API responses during PM Command Center load:
+
+**✓ `/api/pm/project-controls/portfolio-intelligence` - Working Correctly**
+```json
+{
+  "projects": [
+    {
+      "project_number": "ZZ-C8-BOTH-RED",
+      "project_name": "C8 Certification — Cost and schedule both unfavorable"
+    },
+    {
+      "project_number": "ZZ-C8-PROGRESS-PARTIAL",
+      "project_name": "C8 Certification — Incomplete progress evidence"
+    },
+    {
+      "project_number": "ZZ-C8-COST-RED",
+      "project_name": "C8 Certification — Unfavorable cost performance"
+    }
+    // ... 8 more projects with proper data
+  ]
+}
+```
+
+**❌ `/api/pm/jobs` - Returns Empty/Malformed Data**
+- Status: 200 OK
+- Body: Empty or not properly formatted
+- This endpoint is called by `PmProjectSelector.jsx` (line 26)
+- When it returns empty data, the selector has no options to populate
+
+### Code Analysis
+
+**File**: `/app/frontend/src/components/pm/command/PmProjectSelector.jsx`
+- Lines 39-43: `optionLabel()` function still contains fallback strings:
+  - `"Project number unavailable"` (line 40)
+  - `"Project name unavailable"` (line 42)
+- Line 26: Calls `/api/pm/jobs` which returns empty data
+- Line 29-35: Tries to extract project data but gets empty array
+
+**File**: `/app/frontend/src/components/pm/command/PmProjectFirstHome.jsx`
+- Lines 256-258: Also contains fallback strings:
+  - `"Project number unavailable"` (line 256)
+  - `t("Project name unavailable")` (line 258)
+- Line 138: Calls `/api/pm/project-controls/portfolio-intelligence` which HAS correct data
+- Line 156: Builds `projectDirectory` lookup from portfolio-intelligence
+- Line 129: Gets project numbers from `overview.scoped_projects`
+- **Issue**: The lookup is working, but the project numbers in `scoped_projects` don't match the ones in `projectDirectory`
+
+### The Disconnect
+
+The system has TWO sources of project data:
+1. `/api/pm/jobs` - Used by selector - Returns EMPTY
+2. `/api/pm/project-controls/portfolio-intelligence` - Used by project list - Returns CORRECT data
+
+But even though portfolio-intelligence has the right data, the project list is displaying generic fallbacks. This suggests:
+- The `overview.scoped_projects` array contains project numbers that don't exist in the `projectDirectory` lookup
+- OR the project numbers are in a different format/case
+- OR the `overview` data itself is malformed
+
+## Impact Assessment
+
+**Severity**: HIGH - Blocks PM operational use
+
+**User Impact**:
+- PMs cannot identify which projects need attention
+- All 11 assigned projects show as "Project number unavailable"
+- Spanish-speaking operators cannot use the PM Command Center
+- This is the EXACT same issue reported in WP-18C9 test - no progress made
+
+**Operator Experience**:
+- PM logs in and sees 11 projects all labeled "Project number unavailable"
+- Cannot distinguish between projects
+- Must click each one individually to discover which project it is
+- Defeats the purpose of the "5:30 AM 10-second test" design goal
+
+## Recommendations for Main Agent
+
+### Priority 1: Fix `/api/pm/jobs` Endpoint
+1. Investigate why `/api/pm/jobs` returns empty data for cert.pm@example.com
+2. Ensure it returns the same project data structure as portfolio-intelligence
+3. Verify PM scoping is working correctly (PM should see only assigned projects)
+
+### Priority 2: Align Data Sources
+1. Ensure `overview.scoped_projects` contains project numbers that match the portfolio-intelligence data
+2. Verify the `/api/pm/command-center/overview` endpoint returns correct scoped_projects array
+3. Consider using a single source of truth for project data instead of two different endpoints
+
+### Priority 3: Fix Spanish Translations
+1. Verify the `t()` translation function is working in PM Command Center components
+2. Add Spanish translations for:
+   - "Project number unavailable" → "Número de proyecto no disponible"
+   - "Project name unavailable" → "Nombre de proyecto no disponible"
+   - "MISSING DAILY REPORT" → "INFORME DIARIO FALTANTE"
+   - "OPEN PROJECT" → "ABRIR PROYECTO"
+3. Test language toggle functionality
+
+### Priority 4: Add Defensive Fallbacks
+Even after fixing the data source, keep fallbacks but make them more informative:
+- Instead of "Project number unavailable", use the actual project number from the array
+- Add a tooltip or help text explaining why the name might be missing
+- Log warnings when fallbacks are used so issues can be detected
+
+---
+
+# Previous Test: WP-18C9 Executive/PM Experience Verification (2026-08-08 - First Run)
 
 ## Test Scope
 Verification of rebuilt WP-18C9 Executive/PM experience:

@@ -39,10 +39,12 @@ import { OperationsTransportationHealthWidget } from "@/components/operations_tr
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
+import { useT } from "@/lib/i18n";
 
 const OVERVIEW_POLL_MS = 45000;
 
 export default function PmCommandCenter() {
+  const { t } = useT();
   usePageTitle("PM Command Center · MASCI");
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -77,7 +79,7 @@ export default function PmCommandCenter() {
   useEffect(() => {
     let active = true;
     fetchPmProjects().then((rows) => {
-      if (active) setProjectOptions(rows || []);
+      if (active) setProjectOptions((rows || []).filter((row) => String(row?.project_number || "").trim()));
     });
     return () => {
       active = false;
@@ -101,17 +103,17 @@ export default function PmCommandCenter() {
   }, []);
 
   const headerSubtitle = useMemo(() => {
-    if (!projectNumber) return "See which of your projects need attention today and open the right record fast.";
+    if (!projectNumber) return t("See which of your projects need attention today and open the right record fast.");
     const matched = (projectOptions || []).find((row) => row.project_number === projectNumber);
-    const safeNumber = sanitizeOperatorProjectNumber(projectNumber, "Project number unavailable");
-    return matched?.project_name ? `Focused on ${formatOperatorJobLabel(safeNumber, matched.project_name)}` : `Focused on ${safeNumber} — Project name unavailable`;
-  }, [projectNumber, projectOptions]);
+    const safeNumber = sanitizeOperatorProjectNumber(projectNumber, t("Project number unavailable"));
+    return matched?.project_name ? `${t("Focused on")} ${formatOperatorJobLabel(safeNumber, matched.project_name)}` : `${t("Focused on")} ${safeNumber} — ${t("Project name unavailable")}`;
+  }, [projectNumber, projectOptions, t]);
 
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Project Management"
-      pageTitle="Project Management Center"
+      portalRole={t("Project Management")}
+      pageTitle={t("Project Management Center")}
       subtitle={headerSubtitle}
       showBack
       backHref="/pm"
@@ -128,14 +130,14 @@ export default function PmCommandCenter() {
             className="text-xs text-slate-600 hover:text-slate-900 font-mono uppercase tracking-widest"
             data-testid="pm-cc-back-hub"
           >
-            PM Home
+            {t("PM Home")}
           </Link>
         </div>
       }
       lastActivity={
         overview?.as_of
-          ? `Updated ${formatPlatformTimeOnly(overview.as_of)}`
-          : overview ? "Updated just now" : null
+          ? `${t("Updated")} ${formatPlatformTimeOnly(overview.as_of)}`
+          : overview ? t("Updated just now") : null
       }
     >
       <div data-testid="pm-command-center" className="space-y-4">
@@ -144,8 +146,8 @@ export default function PmCommandCenter() {
           {overview ? (
             <div className="text-[10.5px] font-mono uppercase tracking-widest text-slate-500" data-testid="pm-cc-as-of">
               {overview.as_of
-                ? `Updated ${formatPlatformTimeOnly(overview.as_of)}`
-                : "Updated just now"}
+                ? `${t("Updated")} ${formatPlatformTimeOnly(overview.as_of)}`
+                : t("Updated just now")}
             </div>
           ) : null}
         </div>
@@ -178,7 +180,7 @@ export default function PmCommandCenter() {
             data-testid="pm-cc-back-to-projects"
             className="inline-flex items-center min-h-[44px] px-3 -ml-1 text-xs font-mono uppercase tracking-widest text-slate-600 hover:text-slate-900"
           >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to project view
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> {t("Back to project view")}
           </button>
         </div>
 
