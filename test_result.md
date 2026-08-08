@@ -7,6 +7,107 @@
 
 ---
 
+# PRE-C10 Remediation Batch Validation (2026-08-08 - Seventh Run)
+
+## Test Scope
+Validation of PRE-C10 remediation batch focusing on loading state placeholders and legacy banner continuity language.
+
+## Test Credentials Used
+- Admin: jaymn.judd@mascigc.com / Maddix123!
+- HR: cert.hr@example.com / CertProof2026!
+
+## ✅ ALL TESTS PASSED (6/6)
+
+### 1. ✅ `/admin/deploy-recovery` - Loading State Placeholders
+**Status**: PASS
+**Findings**:
+- ✓ Current build shows "Loading…" placeholder during API delay (not false zero)
+- ✓ R2 status shows "Loading…" placeholder during API delay (not false zero)
+- ✓ Recent backup count shows "—" placeholder during API delay (not "0")
+- ✓ After API completes, real values appear (Current Build: "unknown", Backup Count: "5")
+- ✓ No false zeros displayed during loading state
+
+**API Tested**: `/api/admin/deploy-recovery` (delayed 5 seconds)
+**Screenshot**: `deploy_recovery_test.png`
+
+### 2. ✅ `/admin/deploy-recovery` - Legacy Banner Continuity Language
+**Status**: PASS
+**Findings**:
+- ✓ Legacy banner `[data-testid='legacy-moved-banner']` renders correctly
+- ✓ Banner contains "Primary workspace available" (approved continuity language)
+- ✓ Banner contains "Open primary workspace" button text
+- ✓ Banner contains "This route still works" (continuity language)
+- ✓ Banner does NOT contain forbidden phrase "This page has moved"
+- ✓ Banner uses amber color scheme (non-blocking, informational)
+
+**Screenshot**: `legacy_banner_test.png`
+
+### 3. ✅ `/hr/employees` - Loading State Placeholders
+**Status**: PASS
+**Findings**:
+- ✓ Result summary shows "Loading employee roster…" during API delay (not false zeros)
+- ✓ All 6 KPI tiles show "—" placeholders during loading (not "0")
+- ✓ After API completes, real values appear ("Showing 290 employees")
+- ✓ No false zeros in KPI tiles during loading state
+
+**API Tested**: `/api/hr/employees` (delayed 5 seconds)
+**Screenshot**: `hr_employees_test.png`
+
+### 4. ✅ `/admin/project-staffing` - Loading State
+**Status**: PASS
+**Findings**:
+- ✓ Projects card title shows neutral "Projects" during loading (not "Projects (0)")
+- ✓ After API completes, real count appears in title
+- ✓ No false zero count displayed during loading state
+
+**API Tested**: `/api/project-staffing/summary` (delayed 5 seconds)
+**Screenshot**: `project_staffing_test.png`
+
+### 5. ✅ `/admin/executive-overview` - Portfolio Card Reliability
+**Status**: PASS
+**Findings**:
+- ✓ `[data-testid='executive-overview-purpose-grid']` present and rendering correctly
+- ✓ `[data-testid='portfolio-attention-primary-card']` present and rendering correctly
+- ✓ Page contains "Current portfolio condition" text
+- ✓ Portfolio workspace component renders reliably
+- ✓ All three purpose cards render (Operations Command Center, Executive Operations Dashboard, Portfolio Performance)
+
+**Screenshot**: `executive_overview_test.png`, `exec_overview_full.png`
+
+### 6. ✅ Admin Authentication Flow
+**Status**: PASS
+**Findings**:
+- ✓ Admin login successful with credentials from `/app/memory/test_credentials.md`
+- ✓ HR login successful with credentials from `/app/memory/test_credentials.md`
+- ✓ Multi-portal authentication working correctly
+
+## Summary Statistics
+- **Total Tests**: 6
+- **Passed**: 6 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+**PRE-C10 Remediation Batch Validation Status**: ✅ COMPLETE - ALL TESTS PASSED
+
+All user-facing behaviors validated successfully:
+1. ✅ `/admin/deploy-recovery` - Loading placeholders work correctly (no false zeros)
+2. ✅ `/admin/deploy-recovery` - Legacy banner uses continuity language
+3. ✅ `/hr/employees` - Loading placeholders work correctly (no false zeros in KPI tiles)
+4. ✅ `/admin/project-staffing` - Projects card title stays neutral during loading
+5. ✅ `/admin/executive-overview` - Portfolio card renders reliably with correct content
+6. ✅ Authentication flows working correctly for admin and HR portals
+
+**Key Findings**:
+- All loading states properly show placeholders ("Loading…", "—") instead of false zeros
+- Legacy banner correctly uses continuity language ("Primary workspace available", "This route still works") and avoids forbidden phrases ("This page has moved")
+- Portfolio card and purpose grid render reliably on executive overview page
+- Route interception successfully delayed APIs to verify loading state behavior
+
+**No issues found. All PRE-C10 remediation requirements met.**
+
+---
+
+
 # WP-18C9 Admin Browser Verification - FINAL (2026-08-08 - Sixth Run)
 
 ## Test Scope
