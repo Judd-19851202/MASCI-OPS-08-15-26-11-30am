@@ -1,542 +1,484 @@
 """
-WP-18DA Backend/Resilience Verification Test Suite
-
-Tests:
-1. Preview runtime warm restart behavior
-2. Scheduler/worker reliability (singleton_scheduler proxy fix)
-3. Performance-critical Mongo/API checks (indexes)
-4. Core public/API latency sanity
-5. Output-channel runtime sanity (PDF/export endpoints)
-6. Deployment-readiness sanity
+Backend API Testing for PRE-C10 Remediation Batch
+Tests the exact API behaviors specified in the review request.
 """
-
-import asyncio
+import requests
 import json
-import os
 import sys
-import time
-from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional
 
-import httpx
+# Backend URL from frontend/.env
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
-# Backend URL from environment
-BACKEND_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://masci-audit-hub.preview.emergentagent.com")
-API_BASE = f"{BACKEND_URL}/api"
+# Test credentials from /app/memory/test_credentials.md
+SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
+SUPER_ADMIN_PASSWORD = "Maddix123!"
 
-# Test results
-results = {
-    "test_suite": "WP-18DA Backend/Resilience Verification",
-    "timestamp": datetime.now(timezone.utc).isoformat(),
-    "tests": [],
-    "summary": {"passed": 0, "failed": 0, "warnings": 0}
-}
+class Colors:
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    END = '\033[0m'
+    BOLD = '\033[1m'
 
+def print_test_header(test_name: str):
+    print(f"\n{Colors.BLUE}{Colors.BOLD}{'='*80}{Colors.END}")
+    print(f"{Colors.BLUE}{Colors.BOLD}TEST: {test_name}{Colors.END}")
+    print(f"{Colors.BLUE}{Colors.BOLD}{'='*80}{Colors.END}")
 
-def log_test(name: str, status: str, details: str = "", latency_ms: float = None):
-    """Log a test result"""
-    result = {
-        "name": name,
-        "status": status,
-        "details": details,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-    if latency_ms is not None:
-        result["latency_ms"] = round(latency_ms, 2)
+def print_success(message: str):
+    print(f"{Colors.GREEN}✓ {message}{Colors.END}")
+
+def print_error(message: str):
+    print(f"{Colors.RED}✗ {message}{Colors.END}")
+
+def print_warning(message: str):
+    print(f"{Colors.YELLOW}⚠ {message}{Colors.END}")
+
+def print_info(message: str):
+    print(f"{Colors.BLUE}ℹ {message}{Colors.END}")
+
+class TestResults:
+    def __init__(self):
+        self.passed = []
+        self.failed = []
+        self.warnings = []
     
-    results["tests"].append(result)
+    def add_pass(self, test_name: str, details: str = ""):
+        self.passed.append((test_name, details))
+        print_success(f"{test_name}: PASS {details}")
     
-    if status == "PASS":
-        results["summary"]["passed"] += 1
-        print(f"✅ {name}: {status}")
-    elif status == "FAIL":
-        results["summary"]["failed"] += 1
-        print(f"❌ {name}: {status}")
-    else:
-        results["summary"]["warnings"] += 1
-        print(f"⚠️  {name}: {status}")
+    def add_fail(self, test_name: str, details: str):
+        self.failed.append((test_name, details))
+        print_error(f"{test_name}: FAIL - {details}")
     
-    if details:
-        print(f"   {details}")
-    if latency_ms is not None:
-        print(f"   Latency: {latency_ms:.2f}ms")
+    def add_warning(self, test_name: str, details: str):
+        self.warnings.append((test_name, details))
+        print_warning(f"{test_name}: WARNING - {details}")
+    
+    def print_summary(self):
+        print(f"\n{Colors.BOLD}{'='*80}{Colors.END}")
+        print(f"{Colors.BOLD}TEST SUMMARY{Colors.END}")
+        print(f"{Colors.BOLD}{'='*80}{Colors.END}")
+        print(f"{Colors.GREEN}Passed: {len(self.passed)}{Colors.END}")
+        print(f"{Colors.RED}Failed: {len(self.failed)}{Colors.END}")
+        print(f"{Colors.YELLOW}Warnings: {len(self.warnings)}{Colors.END}")
+        
+        if self.failed:
+            print(f"\n{Colors.RED}{Colors.BOLD}FAILED TESTS:{Colors.END}")
+            for test_name, details in self.failed:
+                print(f"  {Colors.RED}✗ {test_name}: {details}{Colors.END}")
+        
+        if self.warnings:
+            print(f"\n{Colors.YELLOW}{Colors.BOLD}WARNINGS:{Colors.END}")
+            for test_name, details in self.warnings:
+                print(f"  {Colors.YELLOW}⚠ {test_name}: {details}{Colors.END}")
+        
+        return len(self.failed) == 0
 
+results = TestResults()
 
-async def test_health_endpoint():
-    """Test 1.1: /api/health endpoint recovery"""
+def test_multi_login() -> Optional[Dict[str, Any]]:
+    """
+    Test 1: POST /api/auth/multi-login
+    Expected: Returns portal_tokens.admin, portal_tokens.hr, and session_token
+    """
+    print_test_header("1. POST /api/auth/multi-login - Super Admin Login")
+    
     try:
-        start = time.time()
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{API_BASE}/health")
-        latency = (time.time() - start) * 1000
+        url = f"{BACKEND_URL}/auth/multi-login"
+        payload = {
+            "email": SUPER_ADMIN_EMAIL,
+            "password": SUPER_ADMIN_PASSWORD
+        }
         
-        if response.status_code == 200:
-            data = response.json()
-            log_test(
-                "1.1 /api/health endpoint",
-                "PASS",
-                f"Status: {data.get('status', 'unknown')}, Ready: {data.get('ready', False)}",
-                latency
-            )
-            return True
-        else:
-            log_test("1.1 /api/health endpoint", "FAIL", f"HTTP {response.status_code}")
-            return False
+        print_info(f"POST {url}")
+        print_info(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(url, json=payload, timeout=30)
+        
+        print_info(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            results.add_fail("multi-login", f"Expected 200, got {response.status_code}")
+            print_error(f"Response: {response.text[:500]}")
+            return None
+        
+        data = response.json()
+        
+        # Check for session_token
+        if "session_token" not in data:
+            results.add_fail("multi-login", "Missing session_token in response")
+            return None
+        
+        session_token = data.get("session_token")
+        print_success(f"session_token present: {session_token[:20]}...")
+        
+        # Check for portal_tokens
+        if "portal_tokens" not in data:
+            results.add_fail("multi-login", "Missing portal_tokens in response")
+            return None
+        
+        portal_tokens = data.get("portal_tokens", {})
+        
+        # Check for admin token
+        if "admin" not in portal_tokens or not portal_tokens["admin"]:
+            results.add_fail("multi-login", "Missing portal_tokens.admin")
+            return None
+        
+        admin_token = portal_tokens["admin"]
+        print_success(f"portal_tokens.admin present: {admin_token[:20]}...")
+        
+        # Check for hr token
+        if "hr" not in portal_tokens or not portal_tokens["hr"]:
+            results.add_fail("multi-login", "Missing portal_tokens.hr")
+            return None
+        
+        hr_token = portal_tokens["hr"]
+        print_success(f"portal_tokens.hr present: {hr_token[:20]}...")
+        
+        results.add_pass("multi-login", "All required tokens present")
+        
+        return {
+            "session_token": session_token,
+            "admin_token": admin_token,
+            "hr_token": hr_token,
+            "portal_tokens": portal_tokens
+        }
+        
     except Exception as e:
-        log_test("1.1 /api/health endpoint", "FAIL", str(e))
-        return False
+        results.add_fail("multi-login", f"Exception: {str(e)}")
+        return None
 
-
-async def test_version_endpoint():
-    """Test 1.2: /api/version endpoint recovery"""
+def test_deploy_recovery(admin_token: str, session_token: str):
+    """
+    Test 2: GET /api/admin/deploy-recovery
+    Expected: Returns 200 with current, r2, and recent_backups keys
+    """
+    print_test_header("2. GET /api/admin/deploy-recovery - Deployment Recovery Info")
+    
     try:
-        start = time.time()
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{API_BASE}/version")
-        latency = (time.time() - start) * 1000
+        url = f"{BACKEND_URL}/admin/deploy-recovery"
+        headers = {
+            "X-Admin-Token": admin_token,
+            "X-Directory-Token": session_token
+        }
         
-        if response.status_code == 200:
-            data = response.json()
-            log_test(
-                "1.2 /api/version endpoint",
-                "PASS",
-                f"Version: {data.get('version', 'unknown')}, Source: {data.get('source_hash', 'unknown')[:8]}",
-                latency
-            )
-            return True
-        else:
-            log_test("1.2 /api/version endpoint", "FAIL", f"HTTP {response.status_code}")
-            return False
+        print_info(f"GET {url}")
+        print_info(f"Headers: X-Admin-Token, X-Directory-Token")
+        
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        print_info(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            results.add_fail("deploy-recovery", f"Expected 200, got {response.status_code}")
+            print_error(f"Response: {response.text[:500]}")
+            return
+        
+        data = response.json()
+        
+        # Check for required keys
+        required_keys = ["current", "r2", "recent_backups"]
+        missing_keys = [key for key in required_keys if key not in data]
+        
+        if missing_keys:
+            results.add_fail("deploy-recovery", f"Missing keys: {', '.join(missing_keys)}")
+            print_error(f"Response keys: {list(data.keys())}")
+            return
+        
+        print_success(f"'current' key present: {type(data['current'])}")
+        print_success(f"'r2' key present: {type(data['r2'])}")
+        print_success(f"'recent_backups' key present: {type(data['recent_backups'])}")
+        
+        results.add_pass("deploy-recovery", "All required keys present")
+        
     except Exception as e:
-        log_test("1.2 /api/version endpoint", "FAIL", str(e))
-        return False
+        results.add_fail("deploy-recovery", f"Exception: {str(e)}")
 
-
-async def test_public_data_route():
-    """Test 1.3: Public data route recovery"""
+def test_trust_spine(admin_token: str, session_token: str):
+    """
+    Test 3: GET /api/admin/trust-spine
+    Expected: Returns 200 with platform_band, canonical_status, and workflows array
+    """
+    print_test_header("3. GET /api/admin/trust-spine - Trust Spine Status")
+    
     try:
-        start = time.time()
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{API_BASE}/job-hazard-files/public/grouped")
-        latency = (time.time() - start) * 1000
+        url = f"{BACKEND_URL}/admin/trust-spine"
+        headers = {
+            "X-Admin-Token": admin_token,
+            "X-Directory-Token": session_token
+        }
         
-        if response.status_code == 200:
-            data = response.json()
-            # data is a list of groups
-            count = len(data) if isinstance(data, list) else len(data.get("groups", []))
-            log_test(
-                "1.3 /api/job-hazard-files/public/grouped",
-                "PASS",
-                f"Groups: {count}",
-                latency
-            )
-            return True
-        else:
-            log_test("1.3 Public data route", "FAIL", f"HTTP {response.status_code}")
-            return False
+        print_info(f"GET {url}")
+        print_info(f"Headers: X-Admin-Token, X-Directory-Token")
+        
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        print_info(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            results.add_fail("trust-spine", f"Expected 200, got {response.status_code}")
+            print_error(f"Response: {response.text[:500]}")
+            return
+        
+        data = response.json()
+        
+        # Check for required keys
+        if "platform_band" not in data:
+            results.add_fail("trust-spine", "Missing 'platform_band' key")
+            return
+        
+        if "canonical_status" not in data:
+            results.add_fail("trust-spine", "Missing 'canonical_status' key")
+            return
+        
+        if "workflows" not in data:
+            results.add_fail("trust-spine", "Missing 'workflows' key")
+            return
+        
+        if not isinstance(data["workflows"], list):
+            results.add_fail("trust-spine", "'workflows' is not an array")
+            return
+        
+        print_success(f"platform_band: {data['platform_band']}")
+        print_success(f"canonical_status: {data['canonical_status']}")
+        print_success(f"workflows array length: {len(data['workflows'])}")
+        
+        results.add_pass("trust-spine", "All required keys present with correct structure")
+        
     except Exception as e:
-        log_test("1.3 Public data route", "FAIL", str(e))
-        return False
+        results.add_fail("trust-spine", f"Exception: {str(e)}")
 
-
-async def test_scheduler_logs():
-    """Test 2: Scheduler/worker reliability - check for MongoClient errors"""
+def test_deployment_readiness(admin_token: str, session_token: str):
+    """
+    Test 4: GET /api/admin/deployment-readiness
+    Expected: Returns 200 with structured decision payload
+    """
+    print_test_header("4. GET /api/admin/deployment-readiness - Deployment Readiness Decision")
+    
     try:
-        # Check backend logs for "Cannot use MongoClient after close" errors
-        # Only check logs from the most recent startup
-        import subprocess
+        url = f"{BACKEND_URL}/admin/deployment-readiness"
+        headers = {
+            "X-Admin-Token": admin_token,
+            "X-Directory-Token": session_token
+        }
         
-        # Get logs from the most recent startup
-        result = subprocess.run(
-            ["bash", "-c", "awk '/Application startup complete/,0' /var/log/supervisor/backend.err.log | tail -n 300"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        print_info(f"GET {url}")
+        print_info(f"Headers: X-Admin-Token, X-Directory-Token")
         
-        logs = result.stdout
+        response = requests.get(url, headers=headers, timeout=30)
         
-        # Check for the specific error in recent logs
-        mongo_close_errors = logs.count("Cannot use MongoClient after close")
+        print_info(f"Status Code: {response.status_code}")
         
-        # Check for singleton scheduler lock acquisitions
-        lock_acquired = logs.count("LOCK ACQUIRED")
+        if response.status_code != 200:
+            results.add_fail("deployment-readiness", f"Expected 200, got {response.status_code}")
+            print_error(f"Response: {response.text[:500]}")
+            return
         
-        # Check for scheduler heartbeat failures
-        heartbeat_failures = logs.count("heartbeat tick failed")
+        data = response.json()
         
-        if mongo_close_errors > 0:
-            log_test(
-                "2. Scheduler reliability",
-                "FAIL",
-                f"Found {mongo_close_errors} 'Cannot use MongoClient after close' errors in current runtime"
-            )
-            return False
-        elif lock_acquired > 0:
-            log_test(
-                "2. Scheduler reliability",
-                "PASS",
-                f"Singleton scheduler working correctly. Lock acquisitions: {lock_acquired}, Heartbeat failures: {heartbeat_failures}. No MongoClient close errors in current runtime."
-            )
-            return True
-        else:
-            log_test(
-                "2. Scheduler reliability",
-                "WARNING",
-                "No scheduler activity detected in recent logs"
-            )
-            return True
+        # Check for decision key
+        if "decision" not in data:
+            results.add_fail("deployment-readiness", "Missing 'decision' key")
+            return
+        
+        decision = data["decision"]
+        print_success(f"decision: {decision}")
+        
+        # Check for other expected keys
+        expected_keys = ["blocking_gates", "advisory_findings", "summary"]
+        for key in expected_keys:
+            if key in data:
+                print_success(f"'{key}' key present")
+            else:
+                results.add_warning("deployment-readiness", f"Missing '{key}' key")
+        
+        results.add_pass("deployment-readiness", f"Structured decision payload present (decision={decision})")
+        
     except Exception as e:
-        log_test("2. Scheduler reliability", "WARNING", f"Could not check logs: {str(e)}")
-        return True
+        results.add_fail("deployment-readiness", f"Exception: {str(e)}")
 
-
-async def test_mongo_indexes():
-    """Test 3: Performance-critical Mongo indexes verification"""
+def test_hr_employees(admin_token: str, hr_token: str, session_token: str):
+    """
+    Test 5: GET /api/hr/employees
+    Expected: Returns 200 with items list (admin+HR session context)
+    """
+    print_test_header("5. GET /api/hr/employees - HR Employee List")
+    
     try:
-        # Load the explain snapshot
-        with open("/app/memory/wp18da_query_explain_snapshot_after.json", "r") as f:
-            explain_data = json.load(f)
+        url = f"{BACKEND_URL}/hr/employees"
+        headers = {
+            "X-Admin-Token": admin_token,
+            "X-HR-Token": hr_token,
+            "X-Directory-Token": session_token
+        }
         
-        # Check safety equipment issuances employee query
-        issuances_query = explain_data.get("safety_issuances_employee_filter", {})
-        issuances_index = issuances_query.get("indexName", "")
-        issuances_collscan = issuances_query.get("winningPlanStage", "") == "COLLSCAN"
-        issuances_docs = issuances_query.get("totalDocsExamined", 0)
-        issuances_keys = issuances_query.get("totalKeysExamined", 0)
+        print_info(f"GET {url}")
+        print_info(f"Headers: X-Admin-Token, X-HR-Token, X-Directory-Token")
         
-        if issuances_collscan:
-            log_test(
-                "3.1 Safety issuances index",
-                "FAIL",
-                f"Using COLLSCAN instead of index"
-            )
-        elif issuances_index == "ix_safety_issuances_employee_email_issued_date":
-            log_test(
-                "3.1 Safety issuances index",
-                "PASS",
-                f"Index: {issuances_index}, Docs: {issuances_docs}, Keys: {issuances_keys}"
-            )
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        print_info(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            results.add_fail("hr-employees", f"Expected 200, got {response.status_code}")
+            print_error(f"Response: {response.text[:500]}")
+            return
+        
+        data = response.json()
+        
+        # Check for items key
+        if "items" not in data:
+            results.add_fail("hr-employees", "Missing 'items' key")
+            return
+        
+        items = data["items"]
+        if not isinstance(items, list):
+            results.add_fail("hr-employees", "'items' is not an array")
+            return
+        
+        print_success(f"items array present with {len(items)} employees")
+        
+        if len(items) == 0:
+            results.add_warning("hr-employees", "items list is empty")
         else:
-            log_test(
-                "3.1 Safety issuances index",
-                "WARNING",
-                f"Using index: {issuances_index} (expected: ix_safety_issuances_employee_email_issued_date)"
-            )
+            results.add_pass("hr-employees", f"Non-empty items list ({len(items)} employees)")
         
-        # Check safety equipment trainings employee query
-        trainings_query = explain_data.get("safety_trainings_employee_filter", {})
-        trainings_index = trainings_query.get("indexName", "")
-        trainings_collscan = trainings_query.get("winningPlanStage", "") == "COLLSCAN"
-        trainings_docs = trainings_query.get("totalDocsExamined", 0)
-        trainings_keys = trainings_query.get("totalKeysExamined", 0)
-        
-        if trainings_collscan:
-            log_test(
-                "3.2 Safety trainings index",
-                "FAIL",
-                f"Using COLLSCAN instead of index"
-            )
-        elif trainings_index == "ix_safety_trainings_employee_email_training_date":
-            log_test(
-                "3.2 Safety trainings index",
-                "PASS",
-                f"Index: {trainings_index}, Docs: {trainings_docs}, Keys: {trainings_keys}"
-            )
-        else:
-            log_test(
-                "3.2 Safety trainings index",
-                "WARNING",
-                f"Using index: {trainings_index} (expected: ix_safety_trainings_employee_email_training_date)"
-            )
-        
-        # Check field leadership project query
-        fl_query = explain_data.get("field_leadership_project_filter", {})
-        fl_index = fl_query.get("indexName", "")
-        fl_collscan = fl_query.get("winningPlanStage", "") == "COLLSCAN"
-        fl_docs = fl_query.get("totalDocsExamined", 0)
-        fl_keys = fl_query.get("totalKeysExamined", 0)
-        
-        if fl_collscan:
-            log_test(
-                "3.3 Field leadership index",
-                "FAIL",
-                f"Using COLLSCAN instead of index"
-            )
-        elif fl_index == "ix_fl_project_number_created_at":
-            log_test(
-                "3.3 Field leadership index",
-                "PASS",
-                f"Index: {fl_index}, Docs: {fl_docs}, Keys: {fl_keys}"
-            )
-        else:
-            log_test(
-                "3.3 Field leadership index",
-                "WARNING",
-                f"Using index: {fl_index} (expected: ix_fl_project_number_created_at)"
-            )
-        
-        return not (issuances_collscan or trainings_collscan or fl_collscan)
     except Exception as e:
-        log_test("3. Mongo indexes", "FAIL", f"Error checking indexes: {str(e)}")
-        return False
+        results.add_fail("hr-employees", f"Exception: {str(e)}")
 
+def test_project_staffing_summary(admin_token: str, session_token: str):
+    """
+    Test 6: GET /api/project-staffing/summary?limit=10
+    Expected: Returns 200 with items and totals payload
+    """
+    print_test_header("6. GET /api/project-staffing/summary - Project Staffing Summary")
+    
+    try:
+        url = f"{BACKEND_URL}/project-staffing/summary?limit=10"
+        headers = {
+            "X-Admin-Token": admin_token,
+            "X-Directory-Token": session_token
+        }
+        
+        print_info(f"GET {url}")
+        print_info(f"Headers: X-Admin-Token, X-Directory-Token")
+        
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        print_info(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            results.add_fail("project-staffing", f"Expected 200, got {response.status_code}")
+            print_error(f"Response: {response.text[:500]}")
+            return
+        
+        data = response.json()
+        
+        # Check for items and totals keys
+        if "items" not in data:
+            results.add_fail("project-staffing", "Missing 'items' key")
+            return
+        
+        if "totals" not in data:
+            results.add_fail("project-staffing", "Missing 'totals' key")
+            return
+        
+        items = data["items"]
+        totals = data["totals"]
+        
+        if not isinstance(items, list):
+            results.add_fail("project-staffing", "'items' is not an array")
+            return
+        
+        print_success(f"items array present with {len(items)} projects")
+        print_success(f"totals object present: {type(totals)}")
+        
+        results.add_pass("project-staffing", f"Structured items/totals payload present")
+        
+    except Exception as e:
+        results.add_fail("project-staffing", f"Exception: {str(e)}")
 
-async def test_api_latency():
-    """Test 4: Core public/API latency sanity"""
+def test_auth_header_regressions(admin_token: str, hr_token: str, session_token: str):
+    """
+    Test 7: Verify no auth-header regressions (401s)
+    Re-test all endpoints to ensure no 401 errors
+    """
+    print_test_header("7. Auth Header Regression Check - Verify No 401s")
+    
     endpoints = [
-        ("/health", "Health check"),
-        ("/version", "Version info"),
-        ("/job-hazard-files/public/grouped", "Public data")
+        ("deploy-recovery", f"{BACKEND_URL}/admin/deploy-recovery", {"X-Admin-Token": admin_token, "X-Directory-Token": session_token}),
+        ("trust-spine", f"{BACKEND_URL}/admin/trust-spine", {"X-Admin-Token": admin_token, "X-Directory-Token": session_token}),
+        ("deployment-readiness", f"{BACKEND_URL}/admin/deployment-readiness", {"X-Admin-Token": admin_token, "X-Directory-Token": session_token}),
+        ("hr-employees", f"{BACKEND_URL}/hr/employees", {"X-Admin-Token": admin_token, "X-HR-Token": hr_token, "X-Directory-Token": session_token}),
+        ("project-staffing", f"{BACKEND_URL}/project-staffing/summary?limit=10", {"X-Admin-Token": admin_token, "X-Directory-Token": session_token}),
     ]
     
-    all_pass = True
-    for endpoint, description in endpoints:
+    all_passed = True
+    for name, url, headers in endpoints:
         try:
-            start = time.time()
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(f"{API_BASE}{endpoint}")
-            latency = (time.time() - start) * 1000
-            
-            if response.status_code == 200:
-                # Latency thresholds (generous for preview environment)
-                if latency < 200:
-                    status = "PASS"
-                elif latency < 500:
-                    status = "WARNING"
-                else:
-                    status = "FAIL"
-                    all_pass = False
-                
-                log_test(
-                    f"4. Latency: {description}",
-                    status,
-                    f"Endpoint: {endpoint}",
-                    latency
-                )
+            response = requests.get(url, headers=headers, timeout=30)
+            if response.status_code == 401:
+                results.add_fail(f"auth-regression-{name}", f"Got 401 Unauthorized")
+                all_passed = False
+                print_error(f"{name}: 401 Unauthorized")
             else:
-                log_test(
-                    f"4. Latency: {description}",
-                    "FAIL",
-                    f"HTTP {response.status_code}"
-                )
-                all_pass = False
+                print_success(f"{name}: No 401 (status={response.status_code})")
         except Exception as e:
-            log_test(
-                f"4. Latency: {description}",
-                "FAIL",
-                str(e)
-            )
-            all_pass = False
+            results.add_fail(f"auth-regression-{name}", f"Exception: {str(e)}")
+            all_passed = False
     
-    return all_pass
-
-
-async def test_pdf_endpoint():
-    """Test 5.1: PDF endpoint sanity"""
-    # We'll test a public PDF endpoint if available, or skip if auth required
-    try:
-        # Try to get a list of safety forms to find a PDF endpoint
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            # This endpoint might require auth, so we'll just check if it responds
-            response = await client.get(f"{API_BASE}/safety-forms/equipment-issuances", params={"limit": 1})
-            
-            if response.status_code == 401:
-                log_test(
-                    "5.1 PDF endpoint",
-                    "WARNING",
-                    "PDF endpoints require authentication - cannot test without credentials"
-                )
-                return True
-            elif response.status_code == 200:
-                log_test(
-                    "5.1 PDF endpoint",
-                    "PASS",
-                    "PDF generation infrastructure is available"
-                )
-                return True
-            else:
-                log_test(
-                    "5.1 PDF endpoint",
-                    "WARNING",
-                    f"HTTP {response.status_code} - PDF endpoint status unclear"
-                )
-                return True
-    except Exception as e:
-        log_test("5.1 PDF endpoint", "WARNING", f"Could not verify PDF endpoint: {str(e)}")
-        return True
-
-
-async def test_export_endpoint():
-    """Test 5.2: Export endpoint sanity"""
-    try:
-        # Try a public export endpoint
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{API_BASE}/field-leadership/export/csv")
-            
-            if response.status_code == 401:
-                log_test(
-                    "5.2 Export endpoint",
-                    "WARNING",
-                    "Export endpoints require authentication - cannot test without credentials"
-                )
-                return True
-            elif response.status_code == 200:
-                log_test(
-                    "5.2 Export endpoint",
-                    "PASS",
-                    "Export infrastructure is available"
-                )
-                return True
-            else:
-                log_test(
-                    "5.2 Export endpoint",
-                    "WARNING",
-                    f"HTTP {response.status_code} - Export endpoint status unclear"
-                )
-                return True
-    except Exception as e:
-        log_test("5.2 Export endpoint", "WARNING", f"Could not verify export endpoint: {str(e)}")
-        return True
-
-
-async def test_deployment_readiness():
-    """Test 6: Deployment-readiness sanity"""
-    blockers = []
-    
-    # Check if backend is responding
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{API_BASE}/health")
-            if response.status_code != 200:
-                blockers.append(f"Health endpoint returned {response.status_code}")
-    except Exception as e:
-        blockers.append(f"Health endpoint unreachable: {str(e)}")
-    
-    # Check if version endpoint is responding
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{API_BASE}/version")
-            if response.status_code != 200:
-                blockers.append(f"Version endpoint returned {response.status_code}")
-    except Exception as e:
-        blockers.append(f"Version endpoint unreachable: {str(e)}")
-    
-    # Check backend logs for critical errors
-    try:
-        import subprocess
-        result = subprocess.run(
-            ["tail", "-n", "200", "/var/log/supervisor/backend.err.log"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        
-        logs = result.stdout
-        
-        # Check for critical errors
-        if "Cannot use MongoClient after close" in logs:
-            blockers.append("MongoClient close errors detected in logs")
-        
-        if "CRITICAL" in logs or "FATAL" in logs:
-            critical_count = logs.count("CRITICAL") + logs.count("FATAL")
-            blockers.append(f"Found {critical_count} CRITICAL/FATAL errors in logs")
-    except Exception as e:
-        # Non-blocking if we can't check logs
-        pass
-    
-    if blockers:
-        log_test(
-            "6. Deployment readiness",
-            "FAIL",
-            f"Blockers found: {'; '.join(blockers)}"
-        )
-        return False
+    if all_passed:
+        results.add_pass("auth-header-regressions", "No 401 errors detected across all endpoints")
     else:
-        log_test(
-            "6. Deployment readiness",
-            "PASS",
-            "No deployment blockers detected"
-        )
-        return True
+        results.add_fail("auth-header-regressions", "One or more endpoints returned 401")
 
-
-async def main():
-    """Run all tests"""
-    print("=" * 80)
-    print("WP-18DA Backend/Resilience Verification Test Suite")
-    print("=" * 80)
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"Timestamp: {results['timestamp']}")
-    print("=" * 80)
-    print()
+def main():
+    print(f"\n{Colors.BOLD}{'='*80}{Colors.END}")
+    print(f"{Colors.BOLD}PRE-C10 REMEDIATION BATCH - BACKEND API VALIDATION{Colors.END}")
+    print(f"{Colors.BOLD}Preview URL: https://masci-audit-hub.preview.emergentagent.com{Colors.END}")
+    print(f"{Colors.BOLD}{'='*80}{Colors.END}")
     
-    # Test 1: Runtime warm restart behavior
-    print("Test 1: Preview runtime warm restart behavior")
-    print("-" * 80)
-    await test_health_endpoint()
-    await test_version_endpoint()
-    await test_public_data_route()
-    print()
-    
-    # Test 2: Scheduler/worker reliability
-    print("Test 2: Scheduler/worker reliability")
-    print("-" * 80)
-    await test_scheduler_logs()
-    print()
-    
-    # Test 3: Performance-critical Mongo/API checks
-    print("Test 3: Performance-critical Mongo/API checks")
-    print("-" * 80)
-    await test_mongo_indexes()
-    print()
-    
-    # Test 4: Core public/API latency sanity
-    print("Test 4: Core public/API latency sanity")
-    print("-" * 80)
-    await test_api_latency()
-    print()
-    
-    # Test 5: Output-channel runtime sanity
-    print("Test 5: Output-channel runtime sanity")
-    print("-" * 80)
-    await test_pdf_endpoint()
-    await test_export_endpoint()
-    print()
-    
-    # Test 6: Deployment-readiness sanity
-    print("Test 6: Deployment-readiness sanity")
-    print("-" * 80)
-    await test_deployment_readiness()
-    print()
-    
-    # Summary
-    print("=" * 80)
-    print("TEST SUMMARY")
-    print("=" * 80)
-    print(f"Total tests: {len(results['tests'])}")
-    print(f"✅ Passed: {results['summary']['passed']}")
-    print(f"❌ Failed: {results['summary']['failed']}")
-    print(f"⚠️  Warnings: {results['summary']['warnings']}")
-    print()
-    
-    # Save results to file
-    with open("/app/wp18da_test_results.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print("Results saved to: /app/wp18da_test_results.json")
-    print()
-    
-    # Exit code
-    if results['summary']['failed'] > 0:
-        print("❌ OVERALL STATUS: FAIL - Some tests failed")
+    # Test 1: Multi-login
+    tokens = test_multi_login()
+    if not tokens:
+        print_error("\nCannot proceed without valid authentication tokens")
+        results.print_summary()
         sys.exit(1)
-    elif results['summary']['warnings'] > 0:
-        print("⚠️  OVERALL STATUS: PASS WITH WARNINGS")
+    
+    admin_token = tokens["admin_token"]
+    hr_token = tokens["hr_token"]
+    session_token = tokens["session_token"]
+    
+    # Test 2: Deploy Recovery
+    test_deploy_recovery(admin_token, session_token)
+    
+    # Test 3: Trust Spine
+    test_trust_spine(admin_token, session_token)
+    
+    # Test 4: Deployment Readiness
+    test_deployment_readiness(admin_token, session_token)
+    
+    # Test 5: HR Employees
+    test_hr_employees(admin_token, hr_token, session_token)
+    
+    # Test 6: Project Staffing Summary
+    test_project_staffing_summary(admin_token, session_token)
+    
+    # Test 7: Auth Header Regressions
+    test_auth_header_regressions(admin_token, hr_token, session_token)
+    
+    # Print summary
+    success = results.print_summary()
+    
+    if success:
+        print(f"\n{Colors.GREEN}{Colors.BOLD}✓ ALL TESTS PASSED{Colors.END}\n")
         sys.exit(0)
     else:
-        print("✅ OVERALL STATUS: PASS - All tests passed")
-        sys.exit(0)
-
+        print(f"\n{Colors.RED}{Colors.BOLD}✗ SOME TESTS FAILED{Colors.END}\n")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
