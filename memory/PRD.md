@@ -1,17 +1,23 @@
 # PRD
 
-## 2026-08-07 — WP18 Operator Comprehension remediation verified
+## 2026-08-08 — WP18C9 final certification rebuild complete
 
-- Current verified result: operator-language remediation for the active WP18 comprehension sweep is **PASS** at the gate level (`/app/scripts/operator_language_gate.py` → `0` operator-facing banned findings; `362` technical/admin exceptions).
-- Verified repairs include Shop service-truck daily-check wording, PM fallback wording, shared portfolio / earned-value plain-language wording, Spanish updates for the newly changed operator strings, and backend daily-report metadata using `source="approved"`.
-- Verification evidence: `/app/test_reports/iteration_1.json`, `/app/test_result.md`, `/app/wp18_operator_language_validation_report.md`, `/app/memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv`.
-- Important status correction: this remediation does **not** re-certify WP-18C9 as GO or deployable. C9 remains **NO-GO / not yet fully re-certified** until broader runtime, role, responsive, accessibility, and release-readiness evidence is explicitly re-established.
+- Result: **WP-18C9 — GO — READY TO SAVE & DEPLOY**.
+- Rebuilt the Executive / PM information architecture around attention-first decision support, removed operator-facing software-explanation copy, reconciled primary project conditions, and repaired PM project identity rendering without altering governed C7/C8 math.
+- Final verification evidence: `/app/test_reports/iteration_3.json`, focused PM frontend retests PASS, `python /app/scripts/premerge_operator_language_check.py` PASS, `python /app/backend/scripts/verify_release_identity.py --strict` PASS, `python /app/scripts/release_gate.py --target preview --json` PASS, and targeted regression chain `66 passed, 1 warning`.
+- Freeze state now in force: **C7 frozen, C8 frozen, C9 frozen, C10 not authorized**.
 
-### Next action items
+### Current governing state
 
-- P1: complete broader runtime evidence for remaining high-risk operator surfaces, especially full Safety route coverage, role-scoped checks, and representative EN/ES validation beyond the remediated strings.
-- P1: preserve the hard gate and exception discipline so new user-facing copy cannot reintroduce banned internal language.
-- P2: only after the broader certification evidence is complete, reconcile older historical GO/deployable claims elsewhere in memory to the current verified state.
+- Operator-language findings: **0**
+- Unresolved comprehension defects: **0**
+- Responsive gaps on the rebuilt C9 surfaces: **0**
+- Accessibility blockers on the rebuilt C9 surfaces: **0**
+- Required EN/ES gaps on the rebuilt C9 surfaces: **0**
+- KPI truth defects / false-green / fake-zero defects in the certified C9 chain: **0**
+- Performance-budget violations in the certified chain: **0**
+- Reliability blockers in the certified chain: **0**
+- Accumulated C7+C8+C9 deployment readiness: **PASS**
 
 ## 2026-08-07 — WP-18C9 Complete
 

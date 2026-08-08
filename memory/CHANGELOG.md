@@ -1,3 +1,10 @@
+# 2026-08-08 — WP18C9 Executive / PM IA and certification rebuild
+
+- Rebuilt the C9 Executive / PM experience around attention-first hierarchy: portfolio condition first, then cost/schedule meaning, then supporting pressures, then direct project actions and drilldowns.
+- Added governed `primary_condition` / `condition_counts`, removed contradictory project badges, repaired PM project identity rendering, normalized fixture markers out of operator-facing names, and implemented the pre-merge operator-language guard.
+- Final proof: `iteration_3.json` PASS, PM focused retests PASS, release identity PASS, release gate PASS, pre-merge operator-language guard PASS, and targeted regression chain `66 passed, 1 warning`.
+- Final state: **WP-18C9 — GO — READY TO SAVE & DEPLOY**. **C9 frozen. C10 not authorized.**
+
 # 2026-08-07 — WP18 Operator Comprehension remediation
 
 - Repaired remaining operator-facing wording leaks across Shop, PM, Safety, shared project-controls, and related fallback strings so users see plain language instead of internal terms like reconciliation, truth, snapshot, supporting records, operations support, and EV.

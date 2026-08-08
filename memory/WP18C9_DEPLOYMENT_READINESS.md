@@ -1,16 +1,20 @@
 # WP18C9 Deployment Readiness
 
-Date: 2026-08-07  
+Date: 2026-08-08  
 Status: PASS
 
-## Release-Gate Result
-- `python /app/scripts/release_gate.py` returned `decision: pass` for preview.
-- The new `operator-language-hard-fail` gate passed with **0** operator-facing findings.
+## Release-gate result
+- `python /app/scripts/release_gate.py --target preview --json` → `decision: pass`
+- `python /app/backend/scripts/verify_release_identity.py --strict` → PASS
+- `python /app/scripts/premerge_operator_language_check.py` → PASS (`0` FAIL rows)
 
-## Deployment-Agent Result
-- Deployment assessment: PASS
-- No hardcoded secrets or environment miswiring detected.
-- Frontend and backend environment usage remains compliant with platform rules.
+## Certified readiness statement
+- Source authority: PASS
+- Release identity: PASS
+- Operator-language hard-fail gate: PASS (`0` operator-facing findings)
+- Clean backend build: PASS
+- Clean frontend build: PASS
+- Focused regressions / accumulated C7+C8+C9 deployment readiness: PASS
 
-## Preview-to-Deploy Statement
-This workspace is certified as a preview deployment candidate only. No production deployment was executed in this run. The result supports the user’s manual Save/Deploy decision.
+## Preview-to-deploy statement
+This workspace is certified as a **preview deployment candidate**. No production deployment was executed in this run. The result supports the user’s manual Save / Deploy decision.

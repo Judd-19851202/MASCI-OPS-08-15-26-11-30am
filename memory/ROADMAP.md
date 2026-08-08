@@ -1,26 +1,26 @@
-# 2026-08-07 — WP18 Operator Comprehension current status
+# 2026-08-08 — WP18C9 final state
 
-- **Operator-language remediation is VERIFIED, but WP-18C9 is not re-certified.**
-- Verified now: operator-language gate PASS (`0` FAIL rows), targeted Shop/PM wording retests PASS, backend metadata PASS, Spanish spot-check PASS.
-- Not yet re-established by this pass: full C9 runtime / responsive / accessibility / role-scope / release-readiness certification across every affected surface.
+- **WP-18C9 is COMPLETE, CERTIFIED, and DEPLOYABLE.**
+- Final gate: **GO — READY TO SAVE & DEPLOY**
+- The Executive / PM experience rebuild is complete, the operator-language hard gate remains at `0` FAIL rows, and the accumulated C7+C8+C9 readiness chain is **PASS**.
+- **C9 is now frozen. Stop here. Do not start C10.**
 
 ## Current top priority
 
-- Rebuild the broader C9 evidence pack from the now-clean operator-language baseline instead of treating the gate pass alone as final certification.
+- Preserve the certified C9 state and prevent recurrence through the new pre-merge operator-language guard.
 
 ## P0
 
-- preserve zero operator-facing banned findings in `/app/memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv`
-- keep backend/user-facing metadata on approved plain-language terms only
+- keep `/app/memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv` at `0` FAIL rows
+- preserve the certified release identity / release gate / C7+C8+C9 regression chain
 
 ## P1
 
-- complete representative runtime coverage for Safety, PM, Shop, Executive, and shared operator surfaces at required widths and roles
-- extend EN/ES verification beyond the remediated strings where operator-facing wording changed historically
+- none for C9 closeout; only future work explicitly authorized outside the frozen C9 package may proceed
 
 ## P2
 
-- reconcile older historical GO / deployable claims once the broader certification evidence is complete
+- no C10 work is authorized
 
 # 2026-08-07 — WP-18C9 final state
 

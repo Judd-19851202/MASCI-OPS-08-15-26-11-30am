@@ -1,15 +1,15 @@
 # WP18C9 C7 / C8 Regression Report
 
-Date: 2026-08-07  
+Date: 2026-08-08  
 Status: PASS
 
-## Automated Regression Results
+## Automated regression results
 - `pytest -q /app/backend/tests/test_wp18c7_forecasting_commitments.py` → **11 passed**
 - `pytest -q /app/backend/tests/test_wp18c8_earned_value_engine.py` → **11 passed**
 - `pytest -q /app/backend/tests/test_wp18c9_portfolio_intelligence.py` → **5 passed**
-- Combined targeted run → **27 passed**
+- Full targeted readiness chain with release-gate / operator-language / C7 / C8 / C9 coverage → **66 passed, 1 warning**
 
-## Inherited UI Surfaces Rechecked
-- PM forecasting page operator copy repaired and runtime-certified.
-- PM Earned Value page operator copy repaired and runtime-certified.
-- C9 consumes C7/C8 outputs and did not reopen or redesign the frozen truth engines.
+## Certified inheritance statement
+- C9 continues to consume frozen C7 forecasting and frozen C8 earned-value truth outputs.
+- The rebuild changed presentation, hierarchy, identity handling, and certified closeout behavior only.
+- No alternate forecast or EV calculation engine was introduced.

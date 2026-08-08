@@ -1,23 +1,25 @@
 # WP18C9 Executive Operator Experience Certification
 
-Date: 2026-08-07  
+Date: 2026-08-08  
 Status: PASS
 
-## Certified Operator Questions
-| Question | Executive portfolio answer |
+## Certified five-second answers
+| Question | Certified answer on the rebuilt surfaces |
 |---|---|
-| What am I looking at? | A single cross-project portfolio view with cost, schedule, commitments, constraints, production outlook, and actions |
-| What does it mean? | Each card and project row explains whether the work is stable, needs attention, or lacks enough current records |
-| Is something wrong? | Yes, when the page shows attention now, watch closely, or insufficient evidence |
-| Why? | Each project card includes a direct “Why it matters” explanation |
-| What should I do next? | Each project card includes a specific next action and drill-back links |
+| What needs attention? | The primary attention summary is the first major portfolio signal and reconciles Critical / Needs Attention / Watch Closely / Needs Current Information counts. |
+| How serious is it? | Every project card carries exactly one governed primary condition badge. |
+| Why? | Each card explains the operational reason directly in the “Why” block. |
+| What changed? | Portfolio change summaries now surface only material changes and suppress empty/no-change filler. |
+| What should happen next? | Each card contains a direct recommended action. |
+| Where do I open the project or record? | Each card and detail dialog provides direct project, forecast, and cost / earned-value links. |
 
-## Reconciled Executive Surfaces
-- `/admin/executive-overview` is now the canonical executive portfolio page.
-- `/admin/executive-operational-intelligence` remains a supporting operations dashboard and now points operators to Portfolio Intelligence for cross-project controls.
-- `/admin/command-center` remains a live operational triage surface and now points operators to Portfolio Intelligence for portfolio controls.
+## Reconciled executive surfaces
+- `/admin/executive-overview` is the high-level executive landing page that distinguishes overview, operations, and portfolio performance.
+- `/admin/executive-operational-intelligence` is the operating-period dashboard for current operational change, briefing readiness, and live friction.
+- `/admin/command-center` remains the immediate operational triage surface.
+- Portfolio performance remains the cross-project controls view for cost, schedule, commitments, constraints, and reporting confidence.
 
-## UX Outcome
-- No redundant second executive dashboard was added.
-- The visible copy now uses project-controls language instead of internal package language.
-- The page remains usable at mobile and desktop widths with the same core actions.
+## Certification outcome
+- Contradictory primary project statuses were removed from the rebuilt C9 cards.
+- Generic project-identity fallback was removed from the certified PM / Executive surfaces in favor of recognized project names or governed omission of unsafe internal fixture numbers.
+- The rebuilt Executive / PM portfolio and PM management-center flows passed responsive, interaction, and EN/ES retests on the live preview.
