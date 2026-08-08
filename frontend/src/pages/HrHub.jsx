@@ -98,8 +98,8 @@ const TILE_DEFS = {
     desc: "CDL holders, endorsements, tanker capability.",
     stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   // MCC-1 HR Access Extension · 2026-06-08 · Motive driver mapping cleanup
-  motiveDrivers: { to: "/hr/motive-drivers", icon: Truck, label: "Motive Driver Cleanup",
-    desc: "Link, ignore, mark former Motive drivers without admin.",
+  motiveDrivers: { to: "/hr/motive-drivers", icon: Truck, label: "Driver Link Review",
+    desc: "Link, ignore, or mark former drivers without admin access.",
     stripe: "border-l-violet-600", btn: "bg-slate-800 hover:bg-slate-900" },
   safetyRecords: { to: "/hr/safety-records", icon: ShieldCheck, label: "Safety Records",
     desc: "Read-only Safety library and per-employee training.",

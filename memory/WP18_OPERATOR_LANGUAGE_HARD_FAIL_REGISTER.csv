@@ -74,12 +74,12 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminLegacyImports,Admin,collection:,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/AdminLegacyImports.jsx:457,EXEMPT
 /AdminLegacyImports,Admin,OCR/AI-assisted reconciliation queue · humans approve every promotion.,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:85,EXEMPT
 /AdminLegacyImports,Admin,Historical Records · Reconciliation Queue,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:98,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:491,EXEMPT
-/AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:495,EXEMPT
-/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:727,EXEMPT
-/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:730,EXEMPT
-/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:749,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:754,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:495,EXEMPT
+/AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:499,EXEMPT
+/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:736,EXEMPT
+/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:739,EXEMPT
+/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:758,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:763,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient/group CRUD is served by the admin API (,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Canonical English PDF export · legacy + modern records in one list · management access only,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:658,EXEMPT
@@ -124,13 +124,13 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminStorageRecovery,Admin,Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:685,EXEMPT
 /AdminStorageRecovery,Admin,Lifecycle Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:822,EXEMPT
 /AdminVendorThread,Admin,Owner (source-of-truth for vendor master),truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/AdminVendorThread.jsx:185,EXEMPT
-/DeployRecovery,Operator,No backup runs recorded yet — confirm the hourly R2 snapshot cron is armed before deploy.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:129,EXEMPT
-/DeployRecovery,Operator,"Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.",collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:179,EXEMPT
-/DeployRecovery,Operator,"Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:179,EXEMPT
-/DeployRecovery,Operator,Snapshot the build version above so it can be referenced in the rollback target.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:191,EXEMPT
-/DeployRecovery,Operator,GET /api/health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:197,EXEMPT
-/DeployRecovery,Operator,POST /api/auth/multi-login,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:198,EXEMPT
-/DeployRecovery,Operator,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:89,EXEMPT
+/DeployRecovery,Operator,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:115,EXEMPT
+/DeployRecovery,Operator,No backup runs recorded yet — confirm the hourly R2 snapshot cron is armed before deploy.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:157,EXEMPT
+/DeployRecovery,Operator,"Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.",collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:207,EXEMPT
+/DeployRecovery,Operator,"Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:207,EXEMPT
+/DeployRecovery,Operator,Snapshot the build version above so it can be referenced in the rollback target.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:219,EXEMPT
+/DeployRecovery,Operator,GET /api/health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:225,EXEMPT
+/DeployRecovery,Operator,POST /api/auth/multi-login,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:226,EXEMPT
 /DevHub,Operator,Confidential developer-facing export and snapshot controls.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/DevHub.jsx:207,EXEMPT
 /DevHub,Operator,"Pin a snapshot before handing material to any outside party, and pair it with the source bundle only when you need a byte-exact diligence package.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/DevHub.jsx:241,EXEMPT
 /DevHub,Operator,Pin a Snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/DevHub.jsx:262,EXEMPT
@@ -272,8 +272,7 @@ test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTIO
 test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:54,EXEMPT
 test_iter331_pdf_non_blocking,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter331_pdf_non_blocking.py:59,EXEMPT
 test_iter337_pdf_header_reference,Technical,backend,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter337_pdf_header_reference.py:16,EXEMPT
-test_iter357_notifications_digest,Technical,/app/frontend/.env,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_iter357_notifications_digest.py:29,EXEMPT
-test_iter357_notifications_digest,Technical,/app/backend/.env,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/tests/test_iter357_notifications_digest.py:30,EXEMPT
+test_iter357_notifications_digest,Technical,/app/frontend/.env,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_iter357_notifications_digest.py:27,EXEMPT
 test_notify_ownership_lock,Technical,/app/frontend/.env,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_notify_ownership_lock.py:37,EXEMPT
 test_pdf_lockup_sweep,Technical,frontend/src/pages/ViewInspection.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:119,EXEMPT
 test_pdf_lockup_sweep,Technical,frontend/src/pages/ViewIncident.jsx,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/tests/test_pdf_lockup_sweep.py:120,EXEMPT

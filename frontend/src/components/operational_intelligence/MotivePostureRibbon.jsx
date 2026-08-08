@@ -23,89 +23,89 @@ const RIBBON_TONE = {
     border: "border-emerald-300",
     text: "text-emerald-900",
     icon: CheckCircle2,
-    label: "MOTIVE · LIVE",
+    label: "LOCATION FEED · LIVE",
   },
   CONFIGURED: {
     bg: "bg-amber-50",
     border: "border-amber-300",
     text: "text-amber-900",
     icon: AlertTriangle,
-    label: "MOTIVE · AWAITING FIRST SYNC",
+    label: "LOCATION FEED · AWAITING FIRST SYNC",
   },
   UNREACHABLE: {
     bg: "bg-amber-50",
     border: "border-amber-300",
     text: "text-amber-900",
     icon: AlertTriangle,
-    label: "MOTIVE · CONNECTIVITY DEGRADED",
+    label: "LOCATION FEED · CONNECTIVITY DEGRADED",
   },
   MISSING_CONFIG: {
     bg: "bg-slate-50",
     border: "border-slate-300",
     text: "text-slate-800",
     icon: AlertTriangle,
-    label: "MOTIVE · NOT CONFIGURED",
+    label: "LOCATION FEED · NOT CONFIGURED",
   },
   MISSING_SECRET: {
     bg: "bg-slate-50",
     border: "border-slate-300",
     text: "text-slate-800",
     icon: AlertTriangle,
-    label: "MOTIVE · MISSING CREDENTIALS",
+    label: "LOCATION FEED · MISSING CREDENTIALS",
   },
   DISABLED: {
     bg: "bg-slate-50",
     border: "border-slate-300",
     text: "text-slate-700",
     icon: AlertTriangle,
-    label: "MOTIVE · DISABLED",
+    label: "LOCATION FEED · DISABLED",
   },
   PARTIAL: {
     bg: "bg-amber-50",
     border: "border-amber-300",
     text: "text-amber-900",
     icon: AlertTriangle,
-    label: "MOTIVE · PARTIAL",
+    label: "LOCATION FEED · PARTIAL",
   },
   ERROR: {
     bg: "bg-red-50",
     border: "border-red-300",
     text: "text-red-900",
     icon: AlertTriangle,
-    label: "MOTIVE · ERROR",
+    label: "LOCATION FEED · ERROR",
   },
   DEFAULT: {
     bg: "bg-slate-50",
     border: "border-slate-300",
     text: "text-slate-800",
     icon: AlertTriangle,
-    label: "MOTIVE · UNKNOWN",
+    label: "LOCATION FEED · UNKNOWN",
   },
 };
 
 function messageFor(payload) {
   const overall = payload?.overall || "DEFAULT";
   if (overall === "LIVE_VERIFIED" && payload?.connectivity_status === "UNREACHABLE") {
-    return "Recent Motive position data is still being received, but the direct Motive connectivity probe is failing right now. Fresh updates may degrade if that persists.";
+    return "Recent location data is still arriving, but the direct connectivity check is failing right now. Fresh updates may degrade if that continues.";
   }
   switch (overall) {
     case "LIVE_VERIFIED":
-      return "Motive is live and delivering recent position data.";
+      return "Live location data is active and delivering recent position updates.";
     case "UNREACHABLE":
-      return "Motive location feed is not currently verified. Dispatch assignments remain available, but live fleet location may be incomplete.";
+      return "The live location feed is not currently verified. Dispatch assignments remain available, but fleet position may be incomplete.";
     case "MISSING_CONFIG":
     case "MISSING_SECRET":
-      return "Motive credentials are not configured in this environment. The map renders demo/geofence data only; live fleet position is not available.";
+      return "Live location access is not configured in this environment. The map can still show assignment and geofence context, but live fleet position is not available.";
     case "CONFIGURED":
-      return "Motive credentials are present, but no recent successful sync has been observed. Dispatch assignments remain available.";
+      return "Location access is configured, but no recent successful sync has been observed. Dispatch assignments remain available.";
     case "PARTIAL":
-      return "Motive is partially configured. Some live signals may be missing.";
+      return "Location access is partially configured. Some live signals may be missing.";
     case "DISABLED":
-      return "Motive integration is disabled. Dispatch operates on assignments and roll-off data only.";
+      return "Live location access is disabled. Dispatch operates on assignments and roll-off data only.";
     case "ERROR":
-      return "Motive reported an error. Dispatch assignments remain available.";
+      return "The live location feed reported an error. Dispatch assignments remain available.";
     default:
-      return "Motive live status could not be determined.";
+      return "Live location status could not be determined.";
   }
 }
 
@@ -176,7 +176,7 @@ export default function MotivePostureRibbon({
         className="mb-3 flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600"
       >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Checking Motive live posture…
+        Checking live location status…
       </div>
     );
   }
@@ -192,7 +192,7 @@ export default function MotivePostureRibbon({
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-3.5 w-3.5" />
           <span>
-            Motive posture unavailable. Dispatch assignments and roll-off data
+            Live location status is unavailable. Dispatch assignments and roll-off data
             remain available.
           </span>
         </div>

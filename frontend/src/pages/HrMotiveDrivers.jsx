@@ -8,13 +8,13 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import MappingCleanupTab from "@/components/admin/MappingCleanupTab";
 
 export default function HrMotiveDrivers() {
-  usePageTitle("Motive Driver Cleanup · HR · MASCI");
+  usePageTitle("Driver Link Review · HR · MASCI");
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="HR Portal · Motive"
-      pageTitle="Driver Cleanup"
-      subtitle="Reconcile Motive drivers with employee directory"
+      portalRole="HR Portal · Driver Matching"
+      pageTitle="Driver Link Review"
+      subtitle="Review incoming driver matches against the employee directory"
       sideNav={<HrSideNavV2 />}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6" data-testid="hr-motive-drivers-page">
