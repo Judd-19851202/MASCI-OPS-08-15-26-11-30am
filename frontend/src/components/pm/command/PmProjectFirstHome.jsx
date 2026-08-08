@@ -124,13 +124,38 @@ function EmptyRow({ children, testId }) {
 // ── Section A — Project Command (Track 13.1 — per-project rollup list)
 // Track 13.2 — project rows now include health-at-a-glance signals
 // (dailies-this-week count + next-action).
-function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop = null }) {
+function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop = null, projectOptions = [] }) {
   const { t } = useT();
   const scopedProjects = overview?.scoped_projects;
   // "all" means super-admin / unscoped — show count only.
   const isAdminScope = scopedProjects === "all" || scopedProjects == null;
-  const projects = Array.isArray(scopedProjects) ? scopedProjects : [];
+  const projects = Array.isArray(scopedProjects) ? scopedProjects.filter((value) => Boolean(String(value || "").trim())) : [];
   const counts = overview?.counts || {};
+  const [localProjectOptions, setLocalProjectOptions] = useState([]);
+  useEffect(() => {
+    let active = true;
+    if (projectOptions.length) return undefined;
+    fetch(`${API}/pm/project-controls/portfolio-intelligence`, { headers: _authHeaders() })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!active) return;
+        const rows = Array.isArray(payload?.projects)
+          ? payload.projects.map((row) => ({ project_number: row.project_number || "", project_name: row.project_name || "" }))
+          : [];
+        setLocalProjectOptions(rows.filter((row) => row.project_number));
+      })
+      .catch(() => {
+        if (active) setLocalProjectOptions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [overview?.as_of, projectOptions]);
+  const resolvedProjectOptions = projectOptions.length ? projectOptions : localProjectOptions;
+  const projectDirectory = React.useMemo(
+    () => Object.fromEntries((resolvedProjectOptions || []).map((row) => [String(row.project_number || "").trim(), row.project_name || ""])),
+    [resolvedProjectOptions],
+  );
 
   // Group dailies + incidents per project_number for per-project rollup.
   function _by(arr, key) {
@@ -175,7 +200,7 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
       title={t("Projects Assigned to You")}
       lede={isAdminScope
         ? t("Admin / super-admin sees all MASCI projects. Click any project to drill in.")
-        : t("Each PM only sees projects they've been assigned through the Admin Project Manager Directory.")}
+        : t("These are the projects currently assigned to you.")}
       testId="pm-pfh-project-command"
     >
       {loading ? (
@@ -228,7 +253,9 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
             const incidentCount = incidentsByPn[pn] ?? 0;
             const lastIso = latestDailyByPn[pn];
             const action = nextActionFor(pn);
-            const safeProjectLabel = sanitizeOperatorProjectNumber(pn, "Project support");
+            const safeProjectNumber = sanitizeOperatorProjectNumber(pn, "Project number unavailable");
+            const projectName = String(projectDirectory[pn] || "").trim();
+            const safeProjectLabel = projectName ? formatOperatorJobLabel(safeProjectNumber, projectName) : `${safeProjectNumber} — ${t("Project name unavailable")}`;
             const actionTone =
               action === t("Missing Daily Report") ? "amber"
               : action === t("Review Safety Item") ? "rose"
@@ -248,11 +275,11 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
                   <div className="flex items-center gap-3 min-w-0">
                     <Briefcase className="w-4 h-4 text-red-700 shrink-0" />
                     <div className="min-w-0">
-                      <div className="font-bold text-slate-900 text-sm font-mono">{safeProjectLabel}</div>
+                      <div className="font-bold text-slate-900 text-sm">{safeProjectLabel}</div>
                       <div className="text-[11px] text-slate-500">
                         {lastIso
                           ? `${t("Last activity")}: ${relAgo(lastIso)}`
-                          : t("No recent activity logged.")}
+                          : t("No recent field, safety, or shop activity reported yet.")}
                       </div>
                     </div>
                   </div>
@@ -749,7 +776,7 @@ function SupportResources({ overview, onOpenDetailedView }) {
 }
 
 // ── orchestrator ──────────────────────────────────────────────────
-export default function PmProjectFirstHome({ overview, loading, onOpenDetailedView }) {
+export default function PmProjectFirstHome({ overview, loading, onOpenDetailedView, projectOptions = [] }) {
   const [extra, setExtra] = useState({
     safety: null, shop: null, photos: null, dailies: null, loading: true,
   });
@@ -779,6 +806,7 @@ export default function PmProjectFirstHome({ overview, loading, onOpenDetailedVi
         dailies={extra.dailies}
         incidents={extra.safety?.incidents}
         shop={extra.shop}
+        projectOptions={projectOptions}
       />
       <FieldTruth photos={extra.photos} dailies={extra.dailies} loading={extra.loading} />
       <ProjectRisk safety={extra.safety} shop={extra.shop} loading={extra.loading} />

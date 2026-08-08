@@ -309,13 +309,37 @@ def _change_summary(forecast_doc: Dict[str, Any], ev_doc: Dict[str, Any]) -> Lis
     items: List[str] = []
     for row in ((forecast_doc or {}).get("change_detection") or {}).get("summary") or []:
         label = _clean(row)
-        if label:
+        if label and not label.lower().startswith("no governed "):
             items.append(label)
     for row in (((ev_doc or {}).get("versioning") or {}).get("change_detection") or {}).get("summary") or []:
         label = _clean(row)
-        if label and label not in items:
+        if label and not label.lower().startswith("no governed ") and label not in items:
             items.append(label)
     return items[:6]
+
+
+def _primary_condition(priority_band: str, reasons: List[Dict[str, str]], freshness: Dict[str, Any]) -> Dict[str, Any]:
+    rule_ids = {str(reason.get("rule_id") or "") for reason in reasons}
+    red_count = sum(1 for reason in reasons if reason.get("band") == "red")
+    amber_count = sum(1 for reason in reasons if reason.get("band") == "amber")
+    has_information_gap = (
+        freshness.get("overall") in {"missing", "stale"}
+        or any(reason.get("band") == "insufficient_evidence" for reason in reasons)
+    )
+    cost_red = "C9-COST-RED-001" in rule_ids
+    schedule_red = bool({"C9-SCHEDULE-RED-001", "C9-EV-RED-001"} & rule_ids)
+    severe_commitment = "C9-COMMIT-RED-001" in rule_ids
+    severe_constraint = "C9-CONSTRAINT-RED-001" in rule_ids
+
+    if red_count and ((cost_red and schedule_red) or red_count >= 2 or severe_commitment or (severe_constraint and (cost_red or schedule_red))):
+        return {"code": "critical", "label": "Critical", "rank": 0}
+    if red_count:
+        return {"code": "needs_attention", "label": "Needs Attention", "rank": 1}
+    if amber_count:
+        return {"code": "watch_closely", "label": "Watch Closely", "rank": 2}
+    if has_information_gap or priority_band == "insufficient_evidence":
+        return {"code": "needs_information", "label": "Needs Current Information", "rank": 3}
+    return {"code": "on_track", "label": "On Track", "rank": 4}
 
 
 def _project_attention(
@@ -338,7 +362,7 @@ def _project_attention(
         if numeric < 1:
             return f"Cost is running about {(spent_per_dollar - 1) * 100:.0f}% higher than the value of work completed."
         if numeric > 1:
-            return f"Cost is running about {(1 - spent_per_dollar) * 100:.0f}% lower than the value of work completed."
+            return f"Cost efficiency is running about {(1 - spent_per_dollar) * 100:.0f}% better than plan."
         return "Cost is currently running on plan."
 
     def _schedule_message(value: Any) -> str:
@@ -346,9 +370,9 @@ def _project_attention(
             return "Schedule performance cannot be trusted yet because the current progress picture is incomplete."
         numeric = float(value)
         if numeric < 1:
-            return f"Schedule progress is about {(1 - numeric) * 100:.0f}% behind plan."
+            return f"Schedule progress is about {(1 - numeric) * 100:.0f}% behind planned progress."
         if numeric > 1:
-            return f"Schedule progress is about {(numeric - 1) * 100:.0f}% ahead of plan."
+            return f"Schedule progress is about {(numeric - 1) * 100:.0f}% ahead of planned progress."
         return "Schedule progress is currently on plan."
 
     reasons: List[Dict[str, str]] = []
@@ -470,7 +494,7 @@ def _project_attention(
 
 def _project_row(job: Dict[str, Any], op_doc: Dict[str, Any], forecast_doc: Dict[str, Any], ev_doc: Dict[str, Any], *, audience: str) -> Dict[str, Any]:
     project_number = _clean(job.get("project_number"))
-    project_name = _clean(job.get("project_name") or job.get("name") or project_number)
+    project_name = _clean(job.get("project_name") or job.get("name") or "")
     financial = _project_financial_payload(ev_doc)
     schedule = _project_schedule_payload(forecast_doc)
     commitments = _project_commitment_payload(forecast_doc)
@@ -500,6 +524,7 @@ def _project_row(job: Dict[str, Any], op_doc: Dict[str, Any], forecast_doc: Dict
         resource_pressure=resource_pressure,
         freshness=freshness,
     )
+    primary_condition = _primary_condition(priority_band, attention_reasons, freshness)
     lineage = {
         "c6_snapshot_id": (op_doc or {}).get("snapshot_id"),
         "c7_version_id": (forecast_doc or {}).get("version_id") or (((forecast_doc or {}).get("workspace") or {}).get("versioning") or {}).get("current_version_id"),
@@ -512,12 +537,12 @@ def _project_row(job: Dict[str, Any], op_doc: Dict[str, Any], forecast_doc: Dict
         "project_number": project_number,
         "project_name": project_name,
         "priority_band": priority_band,
-        "priority_label": {
-            "red": "Projects Needing Attention",
-            "amber": "Watch Closely",
-            "green": "Stable",
-            "insufficient_evidence": "Insufficient Evidence",
-        }.get(priority_band, "Watch Closely"),
+        "priority_label": primary_condition["label"],
+        "primary_condition": primary_condition,
+        "identity_status": {
+            "project_number_missing": not bool(project_number),
+            "project_name_missing": not bool(project_name),
+        },
         "attention_reasons": attention_reasons,
         "why_it_matters": why_it_matters,
         "recommended_action": recommended_action,
@@ -927,6 +952,7 @@ async def _build_snapshot(db, *, actor: Optional[Dict[str, Any]], audience: str,
             "scope": {"mode": scope_mode, "project_count": 0, "project_numbers": []},
             "portfolio_summary": {
                 "counts": {"total": 0, "red": 0, "amber": 0, "green": 0, "insufficient_evidence": 0},
+                "condition_counts": {"critical": 0, "needs_attention": 0, "watch_closely": 0, "on_track": 0, "needs_information": 0},
                 "financial": {"status": "insufficient_evidence", "math_note": "No scoped projects are available for this actor."},
                 "schedule": {"status": "insufficient_evidence"},
                 "commitments": {"status": "insufficient_evidence"},
@@ -989,11 +1015,12 @@ async def _build_snapshot(db, *, actor: Optional[Dict[str, Any]], audience: str,
         _project_row(job, op_docs.get(job["project_number"], {}), forecast_docs.get(job["project_number"], {}), ev_docs.get(job["project_number"], {}), audience=audience)
         for job in projects
     ]
-    rank = {"red": 0, "amber": 1, "insufficient_evidence": 2, "green": 3}
-    rows.sort(key=lambda row: (rank.get(row.get("priority_band"), 99), row.get("project_number") or ""))
+    rank = {"critical": 0, "needs_attention": 1, "watch_closely": 2, "needs_information": 3, "on_track": 4}
+    rows.sort(key=lambda row: (rank.get(((row.get("primary_condition") or {}).get("code")), 99), row.get("project_number") or ""))
     row_build_ms = round((time.perf_counter() - row_started) * 1000, 2)
 
     counts = Counter(row.get("priority_band") or "insufficient_evidence" for row in rows)
+    condition_counts = Counter(((row.get("primary_condition") or {}).get("code")) or "needs_information" for row in rows)
     change_report = _change_report(rows, previous_rows)
     payload = {
         "scope_key": scope_key,
@@ -1013,6 +1040,13 @@ async def _build_snapshot(db, *, actor: Optional[Dict[str, Any]], audience: str,
                 "amber": counts.get("amber", 0),
                 "green": counts.get("green", 0),
                 "insufficient_evidence": counts.get("insufficient_evidence", 0),
+            },
+            "condition_counts": {
+                "critical": condition_counts.get("critical", 0),
+                "needs_attention": condition_counts.get("needs_attention", 0),
+                "watch_closely": condition_counts.get("watch_closely", 0),
+                "on_track": condition_counts.get("on_track", 0),
+                "needs_information": condition_counts.get("needs_information", 0),
             },
             "financial": _financial_rollup(rows),
             "schedule": _schedule_rollup(rows),
@@ -1048,6 +1082,7 @@ async def _build_snapshot(db, *, actor: Optional[Dict[str, Any]], audience: str,
                 {
                     "project_number": row.get("project_number"),
                     "priority_band": row.get("priority_band"),
+                    "primary_condition": (row.get("primary_condition") or {}).get("code"),
                     "c7": (row.get("source_lineage") or {}).get("c7_version_id"),
                     "c8": (row.get("source_lineage") or {}).get("c8_version_id"),
                     "c6": (row.get("source_lineage") or {}).get("c6_snapshot_id"),
@@ -1100,7 +1135,7 @@ async def export_portfolio_intelligence_snapshot(db, *, actor: Optional[Dict[str
             {
                 "project_number": row.get("project_number"),
                 "project_name": row.get("project_name"),
-                "priority_band": row.get("priority_band"),
+                "priority_band": (row.get("primary_condition") or {}).get("label") or row.get("priority_label") or row.get("priority_band"),
                 "freshness": (row.get("freshness") or {}).get("overall"),
                 "cpi": (row.get("financial") or {}).get("cpi"),
                 "spi": (row.get("financial") or {}).get("spi"),
@@ -1140,8 +1175,8 @@ async def export_portfolio_intelligence_snapshot(db, *, actor: Optional[Dict[str
         "open_constraints": "Open constraints",
         "recommended_action": "Recommended action",
         "why_it_matters": "What is happening",
-        "forecast_drilldown": "Forecast drill-back",
-        "earned_value_drilldown": "Cost and earned value drill-back",
+        "forecast_drilldown": "Open forecast",
+        "earned_value_drilldown": "Open cost and earned value",
     }
     writer = csv.DictWriter(output, fieldnames=list(field_map.values()))
     writer.writeheader()

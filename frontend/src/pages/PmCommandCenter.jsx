@@ -30,16 +30,15 @@ import PmMaterialsBoard from "@/components/pm/command/PmMaterialsBoard";
 import PmShopImpactBoard from "@/components/pm/command/PmShopImpactBoard";
 import PmSafetyImpactBoard from "@/components/pm/command/PmSafetyImpactBoard";
 import PmTimelineBoard from "@/components/pm/command/PmTimelineBoard";
-import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
+import PmProjectSelector, { fetchPmProjects } from "@/components/pm/command/PmProjectSelector";
 import PmProjectFirstHome from "@/components/pm/command/PmProjectFirstHome";
 import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
 import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
 import { Users } from "lucide-react";
 import { OperationsTransportationHealthWidget } from "@/components/operations_transportation_integration";
-import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
-import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 const OVERVIEW_POLL_MS = 45000;
 
@@ -58,6 +57,7 @@ export default function PmCommandCenter() {
   const [overview, setOverview] = useState(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [resourceKindFilter, setResourceKindFilter] = useState(initialKind);
+  const [projectOptions, setProjectOptions] = useState([]);
 
   const loadOverview = useCallback(async () => {
     try {
@@ -74,6 +74,15 @@ export default function PmCommandCenter() {
     const id = setInterval(loadOverview, OVERVIEW_POLL_MS);
     return () => clearInterval(id);
   }, [loadOverview]);
+  useEffect(() => {
+    let active = true;
+    fetchPmProjects().then((rows) => {
+      if (active) setProjectOptions(rows || []);
+    });
+    return () => {
+      active = false;
+    };
+  }, [overview?.as_of]);
   const setProjectNumber = useCallback((pn) => {
     const next = new URLSearchParams(searchParams);
     if (pn) next.set("project_number", pn);
@@ -92,9 +101,11 @@ export default function PmCommandCenter() {
   }, []);
 
   const headerSubtitle = useMemo(() => {
-    if (projectNumber) return `Project · ${sanitizeOperatorProjectNumber(projectNumber, "Project support")}`;
-    return "Projects assigned to you";
-  }, [projectNumber]);
+    if (!projectNumber) return "See which of your projects need attention today and open the right record fast.";
+    const matched = (projectOptions || []).find((row) => row.project_number === projectNumber);
+    const safeNumber = sanitizeOperatorProjectNumber(projectNumber, "Project number unavailable");
+    return matched?.project_name ? `Focused on ${formatOperatorJobLabel(safeNumber, matched.project_name)}` : `Focused on ${safeNumber} — Project name unavailable`;
+  }, [projectNumber, projectOptions]);
 
   return (
     <PortalShell
@@ -128,18 +139,8 @@ export default function PmCommandCenter() {
       }
     >
       <div data-testid="pm-command-center" className="space-y-4">
-        {/* Track 19.52 · P1 #3 — OI Attention Strip.
-           project_intelligence signal at the very top of the PM
-           Command Center. Zero-drift: no new backend, no new score. */}
-        <OiAttentionStrip
-          portal="pm"
-          productIds={["project_intelligence"]}
-          title="Project Intelligence · attention now"
-          testId="pm-cc-oi-strip"
-        />
-
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <PmProjectSelector value={projectNumber} onChange={setProjectNumber} />
+          <PmProjectSelector value={projectNumber} onChange={setProjectNumber} options={projectOptions.length ? projectOptions : null} />
           {overview ? (
             <div className="text-[10.5px] font-mono uppercase tracking-widest text-slate-500" data-testid="pm-cc-as-of">
               {overview.as_of
@@ -165,6 +166,7 @@ export default function PmCommandCenter() {
           <PmProjectFirstHome
             overview={overview}
             loading={loadingOverview}
+            projectOptions={projectOptions}
             onOpenDetailedView={() => setViewMode("detailed")}
           />
         ) : (

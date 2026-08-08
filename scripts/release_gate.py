@@ -50,7 +50,7 @@ def _copy_repo() -> Path:
     tmp_root = Path(tempfile.mkdtemp(prefix="masci-release-gate-"))
     dst = tmp_root / "repo"
     ignore = shutil.ignore_patterns(
-        ".git", ".emergent", "node_modules", "frontend/node_modules", "frontend/build", "__pycache__", ".pytest_cache", "deploy_reports", "test_reports", "walkthrough_reports"
+        ".git", ".emergent", "node_modules", "frontend/node_modules", "frontend/build", "frontend/.cache", ".cache", "__pycache__", ".pytest_cache", "deploy_reports", "test_reports", "walkthrough_reports"
     )
     shutil.copytree(REPO_ROOT, dst, ignore=ignore)
     return dst
@@ -137,6 +137,7 @@ def _focused_regressions() -> dict[str, Any]:
         }
     return _run([
         "python3", "-m", "pytest", "-q",
+        "/app/backend/tests/test_operator_language_premerge_guard.py",
         "/app/backend/tests/test_runtime_identity_contract.py",
         "/app/backend/tests/test_checkpoint_d2_runtime_truth_normalization.py",
         "/app/backend/tests/test_checkpoint_d3_database_authority.py",

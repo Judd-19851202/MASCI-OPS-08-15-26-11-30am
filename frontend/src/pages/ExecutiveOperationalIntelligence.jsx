@@ -139,25 +139,25 @@ export default function ExecutiveOperationalIntelligence() {
                 {t("Executive operations dashboard")}
               </div>
               <h1 className="text-2xl font-black text-slate-950">
-                {t("Current portfolio view in plain English")}
+                {t("What needs leadership attention right now")}
               </h1>
               <p className="text-sm text-slate-700 leading-relaxed">
-                {t("Use this page to understand what landed in the selected period, which projects need leadership attention, and whether the enterprise briefing is ready for distribution.")}
+                {t("Start with the issues that need leadership action, then review what changed in the selected period and whether the enterprise briefing is ready to send.")}
               </p>
               <div className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900" data-testid="exec-intel-portfolio-link-callout">
-                {t("For approved portfolio cost, schedule, commitments, and cost-performance drill-back, use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Intelligence")}</Link>.
+                {t("Use")} <Link to="/admin/executive-overview" className="font-semibold underline" data-testid="exec-intel-portfolio-link">{t("Portfolio Performance")}</Link> {t("for cross-project cost, schedule, commitments, and current reporting.")}
               </div>
             </div>
             <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Projects reporting")}</div>
-              <div className="mt-1 text-2xl font-black text-slate-950">{totalProjects}</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Items needing review")}</div>
+              <div className="mt-1 text-2xl font-black text-slate-950">{attention?.total || 0}</div>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Resource conflicts")}</div>
-              <div className="mt-1 text-2xl font-black text-slate-950">{oppcSummary.resource_conflicts ?? 0}</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Projects reporting")}</div>
+              <div className="mt-1 text-2xl font-black text-slate-950">{totalProjects}</div>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Briefing status")}</div>
@@ -173,7 +173,7 @@ export default function ExecutiveOperationalIntelligence() {
         ) : null}
         {loading ? (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500" data-testid="exec-intel-loading">
-            {t("Loading portfolio evidence…")}
+            {t("Loading the current operating picture…")}
           </div>
         ) : null}
 
@@ -204,13 +204,13 @@ export default function ExecutiveOperationalIntelligence() {
               label="Projects reporting"
               value={totalProjects}
               testid="exec-kpi-projects"
-              footnote="Projects with usable reporting evidence in range."
+              footnote="Projects with current reporting in the selected period."
             />
             <KpiTile
               label="Photos captured"
               value={kpis.photo_count ?? 0}
               testid="exec-kpi-photos"
-              footnote="Field evidence added by crews and supervisors."
+              footnote="Field photos added by crews and supervisors."
             />
             <KpiTile
               label="Open executive variances"
@@ -225,8 +225,8 @@ export default function ExecutiveOperationalIntelligence() {
         <section data-testid="exec-horizon-2">
           <HorizonHeader
             number={2}
-            title={t("What is happening")}
-            subtitle={t("Top-at-risk projects by delay and safety")}
+            title={t("Which projects are carrying the most operating friction")}
+            subtitle={t("Delay, safety, and readiness issues that are rising to the top")}
             testid="exec-horizon-2-header"
           />
           <div
@@ -256,7 +256,7 @@ export default function ExecutiveOperationalIntelligence() {
           <HorizonHeader
             number={3}
             title={t("What needs attention")}
-            subtitle={`${attention?.total || 0} evidence-linked items`}
+            subtitle={`${attention?.total || 0} ${t("items need review")}`}
             testid="exec-horizon-3-header"
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -292,7 +292,7 @@ export default function ExecutiveOperationalIntelligence() {
             <HorizonHeader
               number="OPPC"
               title="Enterprise Operations Center"
-              subtitle={t("Variance, recovery, and resource coordination from the enterprise operations center")}
+              subtitle={t("Variance, recovery, and resource coordination that may require leadership intervention")}
               testid="exec-horizon-oppc-header"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -340,7 +340,7 @@ export default function ExecutiveOperationalIntelligence() {
             <HorizonHeader
               number="BRIEF"
               title="Monday Morning Briefing"
-              subtitle={t("Portfolio briefing lifecycle, freeze state, and executive narrative")}
+              subtitle={t("Briefing readiness, approval state, and current summary lines")}
               testid="exec-horizon-briefing-header"
             />
             <div className="rounded-lg border border-neutral-200 bg-white p-4 space-y-4" data-testid="exec-briefing-panel">
@@ -363,7 +363,7 @@ export default function ExecutiveOperationalIntelligence() {
               </div>
               <div className="space-y-2 text-sm text-neutral-700" data-testid="exec-briefing-summary-lines">
                 {(briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
-                {!(briefing?.summary_lines || []).length ? <div className="text-neutral-500">{t("No executive narrative is published yet. Generate the latest briefing to build the summary from current operating evidence.")}</div> : null}
+                {!(briefing?.summary_lines || []).length ? <div className="text-neutral-500">{t("No executive summary lines are published yet. Generate the latest briefing to build the current summary from operating records.")}</div> : null}
               </div>
               <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">{t("Warnings")}: {(briefing?.warnings || []).join(" · ") || t("No warning text was returned")}</div>
             </div>

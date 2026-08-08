@@ -7,10 +7,10 @@ import { PortfolioIntelligenceWorkspace } from "@/components/project_controls/Po
 import {
   downloadPmPortfolioIntelligenceExport,
   fetchPmPortfolioIntelligence,
-  fetchProjectHealthSnapshot,
   refreshPmPortfolioIntelligence,
 } from "@/lib/projectControlsApi";
 import { usePageTitle } from "@/lib/usePageTitle";
+import { useT } from "@/lib/i18n";
 
 
 function fileNameFromResponse(response, fallback) {
@@ -32,27 +32,23 @@ function downloadResponseFile(response, fallback) {
 }
 
 export default function PmPortfolioIntelligence() {
-  usePageTitle("PM Portfolio Intelligence · MASCI");
+  const { t } = useT();
+  usePageTitle("Your Project Portfolio · MASCI");
   const [workspace, setWorkspace] = useState(null);
-  const [projectHealth, setProjectHealth] = useState(null);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
 
   const load = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     try {
-      const [portfolio, health] = await Promise.all([
-        fetchPmPortfolioIntelligence({ forceRefresh }),
-        fetchProjectHealthSnapshot(),
-      ]);
+      const portfolio = await fetchPmPortfolioIntelligence({ forceRefresh });
       setWorkspace(portfolio || null);
-      setProjectHealth(health || null);
     } catch (error) {
-      toast.error(error?.response?.data?.detail || "Could not load portfolio intelligence.");
+      toast.error(error?.response?.data?.detail || t("Could not load your project portfolio."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     load(false);
@@ -61,15 +57,11 @@ export default function PmPortfolioIntelligence() {
   const refresh = async () => {
     setWorking(true);
     try {
-      const [portfolio, health] = await Promise.all([
-        refreshPmPortfolioIntelligence(),
-        fetchProjectHealthSnapshot(),
-      ]);
+      const portfolio = await refreshPmPortfolioIntelligence();
       setWorkspace(portfolio || null);
-      setProjectHealth(health || null);
-      toast.success("Portfolio evidence refreshed.");
+      toast.success(t("Project portfolio refreshed."));
     } catch (error) {
-      toast.error(error?.response?.data?.detail || "Could not refresh portfolio intelligence.");
+      toast.error(error?.response?.data?.detail || t("Could not refresh your project portfolio."));
     } finally {
       setWorking(false);
     }
@@ -80,9 +72,9 @@ export default function PmPortfolioIntelligence() {
     try {
       const response = await downloadPmPortfolioIntelligenceExport();
       downloadResponseFile(response, "pm-portfolio-intelligence.csv");
-      toast.success("Portfolio CSV downloaded.");
+      toast.success(t("Portfolio CSV downloaded."));
     } catch (error) {
-      toast.error(error?.response?.data?.detail || "Could not export portfolio intelligence.");
+      toast.error(error?.response?.data?.detail || t("Could not export your project portfolio."));
     } finally {
       setWorking(false);
     }
@@ -91,9 +83,9 @@ export default function PmPortfolioIntelligence() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Project Management"
-      pageTitle="Portfolio Intelligence"
-      subtitle="Cross-project visibility for cost, commitments, and schedule status in your scope"
+      portalRole={t("Project Management")}
+      pageTitle={t("Your Project Portfolio")}
+      subtitle={t("See which of your projects need attention across cost, schedule, commitments, and current reporting.")}
       sideNav={<PmSideNavV2 />}
       primaryActions={(
         <div className="flex items-center gap-3">
@@ -107,7 +99,6 @@ export default function PmPortfolioIntelligence() {
         <PortfolioIntelligenceWorkspace
           mode="pm"
           workspace={workspace}
-          projectHealth={projectHealth}
           loading={loading}
           working={working}
           onRefresh={refresh}

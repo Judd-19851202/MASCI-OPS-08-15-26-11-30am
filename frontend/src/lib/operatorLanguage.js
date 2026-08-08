@@ -212,9 +212,17 @@ export function sanitizeOperatorProjectNumber(value, fallback = "Project number 
 }
 
 export function sanitizeOperatorProjectName(value, fallback = "Project name not available") {
-  const raw = sanitizeOperatorCopy(value, "");
-  if (!raw || containsOperatorUnsafeLanguage(value)) return fallback;
-  return raw;
+  const raw = String(value || "").trim();
+  const normalized = raw
+    .replace(/\bforensic\b/gi, "")
+    .replace(/\bfixture\b/gi, "")
+    .replace(/\bpreview\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  const safe = sanitizeOperatorCopy(normalized, "");
+  if (!safe) return fallback;
+  if (containsOperatorUnsafeLanguage(safe)) return fallback;
+  return safe;
 }
 
 export function formatOperatorJobLabel(projectNumber, projectName) {

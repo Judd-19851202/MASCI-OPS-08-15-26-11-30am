@@ -98,14 +98,14 @@ export function operatorBandLabel(value, lang = "en") {
   const labels = {
     green: copy(lang, "On track", "En camino"),
     amber: copy(lang, "Watch closely", "Vigilar de cerca"),
-    red: copy(lang, "Immediate attention", "Atención inmediata"),
-    blocked: copy(lang, "Not enough current information", "No hay suficiente información actual"),
-    missing: copy(lang, "Missing information", "Falta información"),
-    stale: copy(lang, "Older information", "Información desactualizada"),
+    red: copy(lang, "Needs attention", "Necesita atención"),
+    blocked: copy(lang, "Needs current information", "Necesita información actual"),
+    missing: copy(lang, "Needs current information", "Necesita información actual"),
+    stale: copy(lang, "Needs current information", "Necesita información actual"),
     watch: copy(lang, "Check soon", "Revisar pronto"),
     partial: copy(lang, "Review before using", "Revisar antes de usar"),
     review_required: copy(lang, "Review before using", "Revisar antes de usar"),
-    insufficient_evidence: copy(lang, "Not enough current information", "No hay suficiente información actual"),
+    insufficient_evidence: copy(lang, "Needs current information", "Necesita información actual"),
     ready: copy(lang, "Ready to use", "Listo para usar"),
     high: copy(lang, "High confidence", "Alta confianza"),
     medium: copy(lang, "Medium confidence", "Confianza media"),
@@ -117,7 +117,7 @@ export function measurementMethodLabel(value, lang = "en") {
   const key = String(value || "").trim().toLowerCase();
   if (key === "quantity_based") return copy(lang, "Installed quantity", "Cantidad instalada");
   if (key === "schedule_based") return copy(lang, "Approved progress", "Avance aprobado");
-  if (key === "blocked") return copy(lang, "Waiting on evidence", "En espera de evidencia");
+  if (key === "blocked") return copy(lang, "Waiting on current records", "En espera de registros actuales");
   return value ? String(value).replaceAll("_", " ") : "—";
 }
 
@@ -135,7 +135,7 @@ function defaultUnavailable(metricKey, lang = "en") {
     bac: copy(lang, "The approved budget has not been published for this view yet.", "El presupuesto aprobado aún no se ha publicado para esta vista."),
     pv: copy(lang, "Planned work value is blocked until the current baseline timing is available.", "El valor del trabajo planificado está bloqueado hasta que exista el cronograma base vigente."),
     ev: copy(lang, "Completed work value is blocked until approved quantity or approved progress is available.", "El valor del trabajo completado está bloqueado hasta que exista cantidad aprobada o avance aprobado."),
-    ac: copy(lang, "Actual cost is blocked until linked cost evidence is available.", "El costo real está bloqueado hasta que exista evidencia de costo vinculada."),
+    ac: copy(lang, "Actual cost is blocked until linked cost records are available.", "El costo real está bloqueado hasta que existan registros de costo vinculados."),
     etc: copy(lang, "The remaining-cost outlook is not available yet.", "La proyección del costo restante aún no está disponible."),
     eac: copy(lang, "The finish-cost outlook is not available yet.", "La proyección del costo final aún no está disponible."),
   };
@@ -223,16 +223,16 @@ function describeCpi(value, lang = "en") {
   if (numeric < 1) {
     const percent = (spentPerDollar - 1) * 100;
     return {
-      primaryValue: copy(lang, `${roundPercent(percent)} more spent than value earned`, `${roundPercent(percent)} más gastado que valor ganado`),
-      shortValue: copy(lang, `${roundPercent(percent)} over`, `${roundPercent(percent)} por encima`),
-      explanation: copy(lang, `For every $1.00 of work completed, about $${spentPerDollar.toFixed(2)} has been spent.`, `Por cada $1.00 de trabajo completado, se ha gastado aproximadamente $${spentPerDollar.toFixed(2)}.`),
+      primaryValue: copy(lang, `${roundPercent(percent)} worse than plan`, `${roundPercent(percent)} peor que el plan`),
+      shortValue: copy(lang, `${roundPercent(percent)} worse than plan`, `${roundPercent(percent)} peor que el plan`),
+      explanation: copy(lang, `Costs are running about ${roundPercent(percent)} higher than the value of work completed.`, `Los costos están corriendo aproximadamente ${roundPercent(percent)} por encima del valor del trabajo completado.`),
     };
   }
   const percent = (1 - spentPerDollar) * 100;
   return {
-    primaryValue: copy(lang, `${roundPercent(percent)} less spent than value earned`, `${roundPercent(percent)} menos gastado que valor ganado`),
-    shortValue: copy(lang, `${roundPercent(percent)} under`, `${roundPercent(percent)} por debajo`),
-    explanation: copy(lang, `For every $1.00 of work completed, about $${spentPerDollar.toFixed(2)} has been spent.`, `Por cada $1.00 de trabajo completado, se ha gastado aproximadamente $${spentPerDollar.toFixed(2)}.`),
+    primaryValue: copy(lang, `${roundPercent(percent)} better than plan`, `${roundPercent(percent)} mejor que el plan`),
+    shortValue: copy(lang, `${roundPercent(percent)} better than plan`, `${roundPercent(percent)} mejor que el plan`),
+    explanation: copy(lang, `Cost efficiency is currently favorable. For every $1.00 of work completed, about $${spentPerDollar.toFixed(2)} has been spent.`, `La eficiencia de costo es favorable en este momento. Por cada $1.00 de trabajo completado, se ha gastado aproximadamente $${spentPerDollar.toFixed(2)}.`),
   };
 }
 

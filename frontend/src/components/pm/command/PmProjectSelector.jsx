@@ -9,11 +9,11 @@ import React, { useEffect, useState } from "react";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 import { getPmToken } from "@/lib/pmAuth";
-import { containsOperatorUnsafeLanguage, formatOperatorJobLabel } from "@/lib/operatorLanguage";
+import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-async function fetchPmProjects() {
+export async function fetchPmProjects() {
   const h = { "Content-Type": "application/json" };
   const a = getAdminToken();
   const p = getPmToken();
@@ -36,12 +36,23 @@ async function fetchPmProjects() {
   } catch (_e) { return []; }
 }
 
-export default function PmProjectSelector({ value, projectNumber, onChange }) {
+function optionLabel(option) {
+  const projectNumber = sanitizeOperatorProjectNumber(option?.project_number, "Project number unavailable");
+  const projectName = String(option?.project_name || "").trim();
+  return projectName ? formatOperatorJobLabel(projectNumber, projectName) : `${projectNumber} — Project name unavailable`;
+}
+
+export default function PmProjectSelector({ value, projectNumber, onChange, options: providedOptions = null }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const selectedValue = value ?? projectNumber ?? "";
 
   useEffect(() => {
+    if (Array.isArray(providedOptions)) {
+      setOptions(providedOptions);
+      setLoading(false);
+      return undefined;
+    }
     let live = true;
     fetchPmProjects().then((rows) => {
       if (!live) return;
@@ -56,13 +67,13 @@ export default function PmProjectSelector({ value, projectNumber, onChange }) {
         }
       }
       if (currentValue && !seen.has(currentValue)) {
-        out.unshift({ project_number: currentValue, project_name: "Current project" });
+        out.unshift({ project_number: currentValue, project_name: "" });
       }
       setOptions(out);
       setLoading(false);
     });
     return () => { live = false; };
-  }, [selectedValue]);
+  }, [providedOptions, selectedValue]);
 
   return (
     <div className="flex items-center gap-2" data-testid="pm-project-selector-wrapper">
@@ -79,9 +90,7 @@ export default function PmProjectSelector({ value, projectNumber, onChange }) {
         <option value="">{loading ? "Loading projects…" : "All my projects"}</option>
         {options.map((o) => (
           <option key={o.project_number} value={o.project_number}>
-            {containsOperatorUnsafeLanguage(`${o.project_number} ${o.project_name || ""}`)
-              ? "Project support"
-              : formatOperatorJobLabel(o.project_number, o.project_name || o.project_number)}
+            {optionLabel(o)}
           </option>
         ))}
       </select>
