@@ -136,7 +136,10 @@ def _create_capa(title="iter356-lifecycle-test"):
     payload = {
         "title": f"{title}-{uuid.uuid4().hex[:6]}",
         "description": "lifecycle test seed",
-        "source_kind": "manual",
+        # PRE-C10 safety truth guard:
+        # lifecycle certification rows must remain technically auditable
+        # without polluting operator/executive KPI surfaces.
+        "source_kind": "synthetic_test",
         "source_id": "",
         "project_number": "TEST-LIFECYCLE",
         "assigned_to_name": "Test Owner",

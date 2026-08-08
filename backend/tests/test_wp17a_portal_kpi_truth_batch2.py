@@ -7,9 +7,6 @@ from time import sleep
 import requests
 from pymongo import MongoClient
 
-from lib.corrective_action_truth import open_corrective_action_query, overdue_corrective_action_query
-from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
-
 
 def _kv(path: str, key: str) -> str:
     try:
@@ -29,6 +26,41 @@ SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"
 
 _CLOSED_CA = ["Completed", "Closed", "Cancelled"]
+_ALL_CLOSED_CA = {
+    "Completed", "Closed", "Cancelled", "Canceled",
+    "completed", "closed", "cancelled", "canceled",
+}
+_HIDDEN_CLASSIFICATIONS = {
+    "preview_certification",
+    "synthetic_test",
+    "legacy_hidden_backfill",
+}
+
+
+def _is_operator_visible_corrective_action(row: dict) -> bool:
+    cls = str(row.get("technical_record_classification") or "").strip().lower()
+    if cls in _HIDDEN_CLASSIFICATIONS:
+        return False
+    if row.get("truth_visibility_scope") == "technical_audit_only":
+        return False
+    if row.get("synthetic_record") is True:
+        return False
+    if row.get("hidden_from_operations") is True:
+        return False
+    if row.get("certification_record") is True:
+        return False
+    return True
+
+
+def _is_open_corrective_action(row: dict) -> bool:
+    return _is_operator_visible_corrective_action(row) and str(row.get("status") or "") not in _ALL_CLOSED_CA
+
+
+def _is_overdue_corrective_action(row: dict, *, today_iso: str) -> bool:
+    if not _is_open_corrective_action(row):
+        return False
+    due = (row.get("due_date") or "").strip()
+    return bool(due) and due[:10] < today_iso
 
 
 def _admin_headers() -> dict[str, str]:
@@ -70,18 +102,13 @@ def test_executive_overview_reconciles_canonical_safety_counts():
     assert api_incidents == db_incidents
 
     api_open_ca = data["tiles"]["safety"]["unresolved_corrective_actions"]
-    db_open_ca = db.corrective_actions.count_documents(
-        apply_synthetic_corrective_action_exclusion(open_corrective_action_query())
-    )
+    rows = list(db.corrective_actions.find({}, {"_id": 0}))
+    db_open_ca = sum(1 for row in rows if _is_open_corrective_action(row))
     assert api_open_ca == db_open_ca
 
     generated_at = data["generated_at"]
     api_overdue_ca = data["tiles"]["overdue"]["overdue_corrective_actions"]
-    db_overdue_ca = db.corrective_actions.count_documents(
-        apply_synthetic_corrective_action_exclusion(
-            overdue_corrective_action_query(today_iso=generated_at[:10])
-        )
-    )
+    db_overdue_ca = sum(1 for row in rows if _is_overdue_corrective_action(row, today_iso=generated_at[:10]))
     assert api_overdue_ca == db_overdue_ca
 
 
@@ -108,12 +135,11 @@ def test_project_health_reconciles_row_counts_and_contract_metadata():
     })
     assert row["indicators"]["incidents_open"] == db_incidents
 
-    db_ca_overdue = db.corrective_actions.count_documents({
-        "project_number": pn,
-        **apply_synthetic_corrective_action_exclusion(
-            overdue_corrective_action_query(today_iso=generated_at[:10])
-        ),
-    })
+    db_ca_overdue = sum(
+        1
+        for row in db.corrective_actions.find({"project_number": pn}, {"_id": 0})
+        if _is_overdue_corrective_action(row, today_iso=generated_at[:10])
+    )
     assert row["indicators"]["ca_overdue"] == db_ca_overdue
 
 

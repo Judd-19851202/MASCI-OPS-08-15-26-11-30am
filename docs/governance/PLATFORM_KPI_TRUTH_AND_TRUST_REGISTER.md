@@ -135,7 +135,9 @@ Any unexpanded family above still counts against final PRE-C10 GO.
 2. Several modern KPI families return valid runtime payloads but still lack explicit top-level `kpi_metadata`, drilldown provenance, or full downstream consumer inventory.
 3. `OCC Health` and `Platform Trust` are currently truthful in failing closed (`MISMATCH`) rather than falsely green — this is preferable, but still blocks closure.
 4. Project-controls downstream runtime evidence is materially stronger now: schedule, lookahead, daily work plan, C7, C8, and C9 all returned live certification-project payloads in this run.
-5. Executive safety KPI parity was rechecked against the governed corrective-action exclusion contract. The live executive tile and live safety overview both currently resolve to `corrective_actions_open=10`; an older raw-database parity harness was stale because it ignored governed technical/synthetic exclusion.
+5. Executive safety KPI parity was rechecked against an independent source-record oracle. The intermediate `open=10` reading was not a legitimate alternate KPI — it was preview test pollution from lifecycle rows that were wrongly created as `live_operational`. After governed reclassification plus test-harness repair, live runtime truth returned to `open=2`, `overdue=2`.
+6. Independent hostile tests now prove that explicit governed hidden markers exclude technical rows, while test-like names alone do **not** hide legitimate operator records.
+7. Schedule source-chain testing now proves exact value parity from source records → schedule authority → lookahead/daily-work-plan → C7 → C8 → C9 for the deterministic certification project, and surfaced a real stale-lookahead defect that has now been repaired in preview.
 
 ## Exit criteria for this register
 

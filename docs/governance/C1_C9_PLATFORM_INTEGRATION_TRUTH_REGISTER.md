@@ -11,9 +11,9 @@ It is intentionally fail-closed: any material family not fully traced from canon
 
 | Family | Canonical source / authority | Key runtime evidence in this run | Current state |
 |---|---|---|---|
-| Safety corrective-action truth | `incidents`, `corrective_actions`, shared corrective-action truth helper | overview/digest/runtime parity previously repaired; archive-history test now passes again; executive safety tile now rechecked against the governed exclusion contract (`open=10`) | PARTIAL PASS |
+| Safety corrective-action truth | `incidents`, `corrective_actions`, governed explicit classification markers | overview/digest/runtime parity previously repaired; archive-history test now passes again; `open=10` drift root-caused to preview lifecycle test pollution; independent source-record oracle + hostile exclusion tests now pass with repaired live value `open=2`, `overdue=2` | PARTIAL PASS |
 | Safety archive/history lifecycle | incident engine + archive/history routes | `test_prec10_incident_archive_history.py` passed in this run | PARTIAL PASS |
-| PM schedule authority | governed project-controls schedule authority | `/schedule/overview`, `/schedule/lookahead`, `/schedule/daily-work-plan` all 200 for certification project | PARTIAL PASS |
+| PM schedule authority | governed project-controls schedule authority | `/schedule/overview`, `/schedule/lookahead`, `/schedule/daily-work-plan` all 200 for certification project; independent source-chain parity now passes; stale lookahead mismatch against active schedule was found and repaired in preview | PARTIAL PASS |
 | C7 forecasting / commitments | governed forecasting workspace | PM + admin forecasting workspace both 200 in this run | PARTIAL PASS |
 | C8 earned value | admin governance earned-value route | certification project earned-value summary 200 in this run | PARTIAL PASS |
 | C9 portfolio performance | admin governance portfolio intelligence | portfolio intelligence 200 with `projects=43` in this run | PARTIAL PASS |

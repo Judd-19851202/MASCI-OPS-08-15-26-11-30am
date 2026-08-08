@@ -1197,8 +1197,38 @@ def _work_package_doc(project_number: str, version_id: str, phase_id: str, work_
 
 async def _seed_lookahead_from_activities(db, project_number: str, activities: List[Dict[str, Any]], *, actor: Dict[str, Any]) -> Dict[str, Any]:
     existing = await get_project_lookahead(db, project_number)
-    if existing.get("tasks") and any(task.get("activity_id") for task in existing.get("tasks") or []):
+
+    def _activity_signature(row: Dict[str, Any]) -> tuple[str, str, str, str, str]:
+        return (
+            _clean(row.get("activity_id")),
+            _clean(row.get("budget_line_id")),
+            _clean(row.get("customer_pay_item_number")),
+            _clean(row.get("planned_start_date")),
+            _clean(row.get("planned_finish_date")),
+        )
+
+    def _task_signature(row: Dict[str, Any]) -> tuple[str, str, str, str, str]:
+        return (
+            _clean(row.get("activity_id") or row.get("schedule_activity_id")),
+            _clean(row.get("budget_line_id")),
+            _clean(row.get("customer_pay_item_number")),
+            _clean(row.get("planned_start")),
+            _clean(row.get("planned_finish")),
+        )
+
+    current_signatures = {
+        _activity_signature(activity)
+        for activity in activities
+        if _clean(activity.get("activity_id"))
+    }
+    existing_signatures = {
+        _task_signature(task)
+        for task in (existing.get("tasks") or [])
+        if _clean(task.get("activity_id") or task.get("schedule_activity_id"))
+    }
+    if current_signatures and existing_signatures == current_signatures:
         return existing
+
     focus_tasks = []
     for activity in sorted(activities, key=lambda row: (row.get("planned_start_date") or "", row.get("activity_id") or ""))[:40]:
         planned = activity.get("planned_assignments") or {}
@@ -1231,6 +1261,17 @@ async def _seed_lookahead_from_activities(db, project_number: str, activities: L
         "comparison_note": "Lookahead stays a governed operational view of the active master schedule. Resequencing here does not overwrite the baseline schedule.",
     }
     return await save_project_lookahead(db, project_number, payload, actor=actor)
+
+
+async def get_reconciled_schedule_lookahead(db, project_number: str) -> Dict[str, Any]:
+    await ensure_project_schedule_foundation(db)
+    active_version = await _active_schedule_version(db, project_number)
+    if not active_version:
+        return await get_project_lookahead(db, project_number)
+    activities = await list_schedule_activities(db, project_number, version_id=active_version.get("version_id") or "")
+    if not activities:
+        return await get_project_lookahead(db, project_number)
+    return await _seed_lookahead_from_activities(db, project_number, activities, actor={"email": "system", "role": "system"})
 
 
 async def activate_schedule_import_session(db, project_number: str, import_id: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:
@@ -1345,13 +1386,12 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
         COLL_SCHEDULE_ACTUAL_CANDIDATES,
     )
 
-    job, versions, imports, review_queue, budget_lines, lookahead = await asyncio.gather(
+    job, versions, imports, review_queue, budget_lines = await asyncio.gather(
         _load_job(db, project_number),
         list_schedule_versions(db, project_number),
         list_schedule_imports(db, project_number),
         list_schedule_review_queue(db, project_number=project_number),
         _list_budget_lines_for_project(db, project_number),
-        get_project_lookahead(db, project_number),
     )
     active_version = next((row for row in versions if row.get("status") == "active"), None)
     activities_task = list_schedule_activities(db, project_number, version_id=active_version["version_id"]) if active_version else asyncio.sleep(0, result=[])
@@ -1368,8 +1408,7 @@ async def get_schedule_spine_overview(db, project_number: str) -> Dict[str, Any]
         approved_actual_count_task,
         daily_plan_count_task,
     )
-    if active_version and activities:
-        lookahead = await _seed_lookahead_from_activities(db, project_number, activities, actor={"email": "system", "role": "system"})
+    lookahead = await get_reconciled_schedule_lookahead(db, project_number)
     work_ledger_rows = [_sanitize(row) for row in work_ledger_rows]
     actuals_summary = {
         "summary": {
