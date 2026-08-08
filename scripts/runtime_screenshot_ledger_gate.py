@@ -329,6 +329,21 @@ def _goto(page, url: str) -> None:
     raise last_error
 
 
+def _wait_for_surface_ready(page, surface: Surface) -> None:
+    selector = surface.checks.get("selector")
+    if selector:
+        try:
+            page.wait_for_selector(selector, state="attached", timeout=12000)
+            return
+        except Exception:
+            pass
+    try:
+        page.wait_for_load_state("networkidle", timeout=8000)
+    except Exception:
+        pass
+    page.wait_for_timeout(1200)
+
+
 def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> None:
     page = context.new_page()
     _goto(page, base_url)
@@ -422,6 +437,7 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
     page.wait_for_timeout(2200)
     if surface.state_kind == "shared_confirmation":
         _prime_confirmation_state(page)
+    _wait_for_surface_ready(page, surface)
     if surface.checks.get("needs_dialog") and width >= 1024:
         button = page.locator('[data-testid^="portfolio-project-detail-button-"]').first
         if button.count() > 0:

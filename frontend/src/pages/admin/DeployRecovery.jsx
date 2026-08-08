@@ -18,6 +18,7 @@ const STATUS_CLS = {
   green:  "bg-emerald-50 border-emerald-300 text-emerald-900",
   yellow: "bg-amber-50 border-amber-300 text-amber-900",
   red:    "bg-red-50 border-red-300 text-red-900",
+  slate:  "bg-slate-50 border-slate-200 text-slate-700",
 };
 
 export default function DeployRecovery() {
@@ -44,6 +45,19 @@ export default function DeployRecovery() {
     conflicts: [],
     has_conflict: false,
   };
+  const isInitialLoad = loading && !data;
+  const recentBackups = Array.isArray(data?.recent_backups) ? data.recent_backups : null;
+  const currentVersionLabel = isInitialLoad ? "Loading…" : (data?.current?.version || "—");
+  const currentBuildTime = isInitialLoad ? "Checking release identity…" : (data?.current?.built_at || "");
+  const r2Status = isInitialLoad ? "slate" : (data?.r2?.status || "slate");
+  const r2StatusLabel = isInitialLoad ? "Loading…" : ((data?.r2?.status || "—").toUpperCase());
+  const r2Detail = isInitialLoad
+    ? "Checking archive connectivity and recent snapshot evidence."
+    : (data?.r2?.detail || "Archive evidence is unavailable right now.");
+  const recentBackupCountLabel = isInitialLoad ? "—" : String(recentBackups?.length || 0);
+  const recentBackupNote = isInitialLoad
+    ? "Waiting for backup evidence"
+    : "Successful runs on record";
 
   const load = async () => {
     setLoading(true);
@@ -101,22 +115,22 @@ export default function DeployRecovery() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-4">
           <div className="bg-white border border-slate-200 rounded-md p-4">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold mb-1">Current build</div>
-            <div className="font-display text-lg font-black break-words">{data?.current?.version || "—"}</div>
-            <div className="text-xs text-slate-500 font-mono">{data?.current?.built_at || ""}</div>
+            <div className="font-display text-lg font-black break-words" data-testid="deploy-recovery-current-build-value">{currentVersionLabel}</div>
+            <div className="text-xs text-slate-500 font-mono" data-testid="deploy-recovery-current-build-time">{currentBuildTime}</div>
           </div>
-          <div className={`border-2 rounded-md p-4 ${STATUS_CLS[data?.r2?.status || "yellow"]}`} data-testid="recovery-r2-card">
+          <div className={`border-2 rounded-md p-4 ${STATUS_CLS[r2Status]}`} data-testid="recovery-r2-card">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold mb-1 flex items-center gap-1">
               <Cloud className="w-3.5 h-3.5" /> R2 cloud archive
             </div>
-            <div className="font-display text-lg font-black">{(data?.r2?.status || "—").toUpperCase()}</div>
-            <div className="text-xs">{data?.r2?.detail || ""}</div>
+            <div className="font-display text-lg font-black" data-testid="deploy-recovery-r2-status">{r2StatusLabel}</div>
+            <div className="text-xs" data-testid="deploy-recovery-r2-detail">{r2Detail}</div>
           </div>
           <div className="bg-white border border-slate-200 rounded-md p-4">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-600 font-bold mb-1 flex items-center gap-1">
               <HardDrive className="w-3.5 h-3.5" /> Recent backups
             </div>
-            <div className="font-display text-3xl font-black">{(data?.recent_backups || []).length}</div>
-            <div className="text-xs text-slate-500">Successful runs on record</div>
+            <div className="font-display text-3xl font-black" data-testid="deploy-recovery-recent-backup-count">{recentBackupCountLabel}</div>
+            <div className="text-xs text-slate-500" data-testid="deploy-recovery-recent-backup-note">{recentBackupNote}</div>
           </div>
         </div>
 
@@ -125,11 +139,13 @@ export default function DeployRecovery() {
           <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold mb-2 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" /> Latest successful backups
           </h2>
-          {(data?.recent_backups || []).length === 0 ? (
+          {isInitialLoad ? (
+            <p className="text-sm text-slate-500 italic" data-testid="recovery-backup-loading-state">Loading backup evidence…</p>
+          ) : (recentBackups || []).length === 0 ? (
             <p className="text-sm text-slate-500 italic">No backup runs recorded yet — confirm the hourly R2 snapshot cron is armed before deploy.</p>
           ) : (
             <ul className="text-xs divide-y divide-slate-100" data-testid="recovery-backup-list">
-              {data.recent_backups.map((b, i) => (
+              {recentBackups.map((b, i) => (
                 <li key={i} className="py-2 flex items-center gap-3">
                   <span className="font-mono text-slate-500 whitespace-nowrap">{(b.started_at || "").slice(0, 19).replace("T", " ")}</span>
                   <span className="font-bold">{b.kind}</span>

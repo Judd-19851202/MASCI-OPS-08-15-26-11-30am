@@ -90,6 +90,15 @@ def test_critical_route_missing_is_blocker():
     assert "critical_route_missing" in CODE_DEFECT_FINDING_CODES
 
 
+def test_missing_required_permissions_is_advisory_data_issue():
+    from routes.admin_deployment_readiness import _workflow_failure_is_data_issue  # noqa: PLC0415
+
+    assert _workflow_failure_is_data_issue(
+        reason="missing required permissions: notification.ack",
+        remediation="Grant the missing permission through the governed identity role matrix before retrying this action.",
+    ) is True
+
+
 # ─── 4-6 · synthetic conditions trigger blocking_gates ─────────────
 @pytest.mark.asyncio
 async def test_unknown_audit_triggers_blocker(monkeypatch):

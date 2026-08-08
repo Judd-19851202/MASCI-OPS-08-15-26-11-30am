@@ -61,6 +61,20 @@ DATA_ISSUE_FINDING_CODES = {
     "employee_missing_id",
 }
 
+
+def _workflow_failure_is_data_issue(*, reason: str, remediation: str) -> bool:
+    reason_l = str(reason or "").lower()
+    remediation_l = str(remediation or "").lower()
+    phrases = (
+        "no pm resolved",
+        "no recipient",
+        "dead-letter unconfigured",
+        "outside the actor governance boundary",
+        "missing required permissions",
+        "grant the missing permission through the governed identity role matrix",
+    )
+    return any(phrase in reason_l or phrase in remediation_l for phrase in phrases)
+
 # Findings that ARE code defects — these block deploy:
 CODE_DEFECT_FINDING_CODES = {
     # If a critical email route (always-cc, safety inbox, dead-letter)
@@ -171,13 +185,9 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             # operator-managed data (project_team_assignments, env
             # variable), classify as advisory. Otherwise — and by
             # default — classify as a code defect to be safe.
-            is_data_issue = any(
-                phrase in reason
-                for phrase in (
-                    "no pm resolved", "no recipient",
-                    "dead-letter unconfigured",
-                    "outside the actor governance boundary",
-                )
+            is_data_issue = _workflow_failure_is_data_issue(
+                reason=reason,
+                remediation=lf.get("remediation") or "",
             )
             entry = {
                 "id": f"workflow_red:{w.get('workflow')}",

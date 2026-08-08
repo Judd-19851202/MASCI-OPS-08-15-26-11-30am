@@ -33,6 +33,7 @@ export default function AdminRecoveryStream() {
   const [loading, setLoading] = useState(true);
   const [workflow, setWorkflow] = useState("");
   const [onlyUndos, setOnlyUndos] = useState(false);
+  const isInitialLoad = loading && events.length === 0;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -115,7 +116,7 @@ export default function AdminRecoveryStream() {
             <span className="text-slate-700">Only reversals (undo)</span>
           </label>
           <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            {events.length} events
+            {isInitialLoad ? "Loading events" : `${events.length} events`}
           </span>
         </section>
 

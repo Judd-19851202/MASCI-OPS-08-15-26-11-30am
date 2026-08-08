@@ -86,6 +86,7 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
       )
     );
   }, [data.items, q]);
+  const isInitialLoad = !data.loaded && data.items.length === 0;
 
   const teamLinkBase = scope === "admin" ? "/admin/jobs" : "/pm/job";
 
@@ -296,7 +297,7 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center justify-between">
-            <span>Projects ({filtered.length})</span>
+            <span>{isInitialLoad ? "Projects" : `Projects (${filtered.length})`}</span>
             <div className="relative w-72">
               <Search className="w-3.5 h-3.5 absolute left-2 top-2.5 text-slate-400" />
               <Input

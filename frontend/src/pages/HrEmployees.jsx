@@ -97,7 +97,7 @@ export default function HrEmployees() {
   const [tradeFilter, setTradeFilter] = useRememberedFilter("hr.employees.trade", "all");
   const [q, setQ] = useState(initialQ);
   const [items, setItems] = useState([]);
-  const [totalMatching, setTotalMatching] = useState(0);
+  const [totalMatching, setTotalMatching] = useState(null);
   const [truncated, setTruncated] = useState(false);
   const [warning, setWarning] = useState(null);
   const [facets, setFacets] = useState({ crews: [], supervisors: [], trades: [], buckets: [] });
@@ -216,6 +216,7 @@ export default function HrEmployees() {
     });
     return buckets;
   }, [items]);
+  const isInitialRosterLoad = loading && items.length === 0;
 
   // Filter chip descriptors — one per active narrowing. Chips are
   // individually removable so HR can undo one filter at a time
@@ -290,12 +291,12 @@ export default function HrEmployees() {
             which is the same array the table below iterates, so KPI
             counts and table row count can never drift. */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4" data-testid="hremp-kpi-row">
-          <SummaryTile label="Actively Employed" value={counts.active} icon={UserCheck} accent="emerald" />
-          <SummaryTile label="Pending / Onboarding" value={counts.pending} icon={Briefcase} accent="blue" />
-          <SummaryTile label="Off-roll / Inactive" value={counts.off_roll} icon={UserMinus} accent="slate" />
-          <SummaryTile label="Terminated" value={counts.terminated} icon={AlertOctagon} accent="rose" />
-          <SummaryTile label="Retired" value={counts.retired} icon={CheckCircle2} accent="purple" />
-          <SummaryTile label="Total in View" value={items.length} icon={Users} accent="amber" />
+          <SummaryTile label="Actively Employed" value={isInitialRosterLoad ? null : counts.active} icon={UserCheck} accent="emerald" />
+          <SummaryTile label="Pending / Onboarding" value={isInitialRosterLoad ? null : counts.pending} icon={Briefcase} accent="blue" />
+          <SummaryTile label="Off-roll / Inactive" value={isInitialRosterLoad ? null : counts.off_roll} icon={UserMinus} accent="slate" />
+          <SummaryTile label="Terminated" value={isInitialRosterLoad ? null : counts.terminated} icon={AlertOctagon} accent="rose" />
+          <SummaryTile label="Retired" value={isInitialRosterLoad ? null : counts.retired} icon={CheckCircle2} accent="purple" />
+          <SummaryTile label="Total in View" value={isInitialRosterLoad ? null : items.length} icon={Users} accent="amber" />
         </div>
 
         {/* TRACK 27.00 · Saved views strip. Twelve pre-filled filter
@@ -459,18 +460,22 @@ export default function HrEmployees() {
             output row count. If it ever doesn't, something upstream
             is lying. */}
         <div className="flex flex-wrap items-center gap-2 mb-3 text-xs" data-testid="hremp-result-summary">
-          <span className="font-medium text-slate-700" data-testid="hremp-result-count">
-            Showing <strong>{items.length}</strong>{" "}
-            {items.length === 1 ? "employee" : "employees"}
-            {truncated && (
-              <span className="ml-1 text-amber-700" data-testid="hremp-truncated">
-                (first {items.length} of <strong>{totalMatching}</strong> — narrow filters to see all)
-              </span>
-            )}
-            {!truncated && totalMatching > 0 && bucket !== "any" && (
-              <span className="ml-1 text-slate-500">· matches filter</span>
-            )}
-          </span>
+          {isInitialRosterLoad ? (
+            <span className="font-medium text-slate-700" data-testid="hremp-result-count">Loading employee roster…</span>
+          ) : (
+            <span className="font-medium text-slate-700" data-testid="hremp-result-count">
+              Showing <strong>{items.length}</strong>{" "}
+              {items.length === 1 ? "employee" : "employees"}
+              {truncated && (
+                <span className="ml-1 text-amber-700" data-testid="hremp-truncated">
+                  (first {items.length} of <strong>{totalMatching ?? items.length}</strong> — narrow filters to see all)
+                </span>
+              )}
+              {!truncated && (totalMatching ?? 0) > 0 && bucket !== "any" && (
+                <span className="ml-1 text-slate-500">· matches filter</span>
+              )}
+            </span>
+          )}
           {activeChips.map((c) => (
             <button
               key={c.key}
@@ -740,7 +745,7 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
         <Icon className="w-4 h-4 opacity-70" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] opacity-80 font-bold">{label}</span>
       </div>
-      <div className="font-display text-2xl font-black mt-1 leading-none">{value}</div>
+      <div className="font-display text-2xl font-black mt-1 leading-none">{value ?? "—"}</div>
     </div>
   );
 }

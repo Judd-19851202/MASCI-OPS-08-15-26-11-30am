@@ -752,7 +752,7 @@
     "baseline_capture_only": true,
     "authority_route": "backend/routes/admin_runtime_reliability.py",
     "machine_readable_baseline": "docs/performance/performance_baseline.json",
-    "performance_budget_register": "memory/WP18DA_PERFORMANCE_BUDGET_REGISTER.csv",
+    "performance_budget_register": "docs/performance/WP18DA_PERFORMANCE_BUDGET_REGISTER.csv",
     "query_inventory": "docs/performance/query_inventory.json",
     "atlas_evidence_register": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
     "index_query_recommendation_register": "docs/performance/INDEX_QUERY_RECOMMENDATION_REGISTER.md",

@@ -74,18 +74,17 @@ export function LegacyMovedBanner({ pathname }) {
       <div className="mx-auto max-w-7xl px-4 py-3 sm:py-2 flex flex-col sm:flex-row sm:items-center gap-2">
         <div className="min-w-0 flex-1">
           <div className="text-xs font-semibold uppercase tracking-widest text-amber-800">
-            This page has moved
+            Primary workspace available
           </div>
           <div className="mt-0.5 text-sm text-amber-900">
             <span className="font-semibold">
               {entry.canonicalTitle || "Operations Control"}
             </span>{" "}
-            is the new home.{" "}
+            is the primary workspace for this work.{" "}
             <span className="text-amber-800">{entry.reason}</span>
           </div>
           <div className="mt-1 text-[11px] text-amber-800/80">
-            This URL will keep working during the transition — no
-            bookmarks broken.
+            This route still works, so existing bookmarks and operator links stay intact.
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -95,7 +94,7 @@ export function LegacyMovedBanner({ pathname }) {
             className="rounded-md border border-amber-600 bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
             data-testid="legacy-moved-banner-open-canonical"
           >
-            Open in Operations Control
+            Open primary workspace
           </button>
           <button
             type="button"
@@ -104,7 +103,7 @@ export function LegacyMovedBanner({ pathname }) {
             data-testid="legacy-moved-banner-dismiss"
             aria-label="Dismiss for this session"
           >
-            Dismiss
+            Hide for now
           </button>
         </div>
       </div>
