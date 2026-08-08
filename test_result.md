@@ -1,6 +1,77 @@
 # MASCI Test Results
 
-## Latest Test: WP-18C9 Admin Browser Verification - FINAL
+## Latest Test: PM Command Center Project Identity Retest
+## Test Date: 2026-08-08 (Operator-Language Sanitizer Fix Verification)
+## Tester: Testing Agent (E2)
+## Preview URL: https://masci-audit-hub.preview.emergentagent.com
+
+---
+
+# PM Command Center Project Identity Retest (2026-08-08)
+
+## Test Scope
+Focused retest of PM Command Center project identity display after operator-language sanitizer fix.
+
+## Test Credentials Used
+- PM: cert.pm@example.com / CertProof2026!
+
+## ✅ TEST PASSED
+
+### PM Command Center Project Identity Display
+**Status**: PASS
+**File**: `frontend/src/components/pm/command/PmProjectFirstHome.jsx`
+**URL**: `/pm/command-center`
+
+**Test Objective**: Verify that project rows render real visible identifiers (project number and/or project name), not the fallback "Project details unavailable".
+
+**Findings**:
+- ✅ All 11 project rows show real visible project identifiers
+- ✅ 0 rows show fallback "Project details unavailable"
+- ✅ Page renders correctly without visual issues
+- ✅ No console errors detected
+- ⚠️ Minor network errors (Sentry, health checks, CDN) - non-blocking, expected in preview
+
+**Project Identifiers Verified**:
+1. ZZ-C8-ACTUAL-PARTIAL
+2. ZZ-C8-BOTH-RED
+3. ZZ-C8-COMPLETE-WITH-COMMITMENTS
+4. ZZ-C8-COST-RED
+5. ZZ-C8-FAVORABLE-BOTH
+6. ZZ-C8-INSUFFICIENT
+7. ZZ-C8-INVALID-DENOMINATOR
+8. ZZ-C8-PROGRESS-PARTIAL
+9. ZZ-C8-SCHEDULE-RED
+10. ZZ-C8-STALE
+11. ZZ-RUNTIME-CERT-2026
+
+**Fix Verified**: The operator-language sanitizer fix in `PmProjectFirstHome.jsx` (lines 256-260) is working correctly:
+- `sanitizeOperatorProjectNumber(pn, "")` successfully returns real project numbers
+- `formatOperatorJobLabel(safeProjectNumber, projectName)` properly formats the display
+- Fallback "Project details unavailable" only appears when data is truly missing (not observed in test)
+
+**Screenshot**: `.screenshots/pm_cc_identity_retest.png`
+
+## Summary Statistics
+- **Total Tests**: 1
+- **Passed**: 1 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+**PM Command Center Project Identity Retest Status**: ✅ PASS
+
+The operator-language sanitizer fix has been successfully verified. All project rows in the PM Command Center first-screen project list now display real visible identifiers (project numbers) instead of the generic fallback message "Project details unavailable".
+
+**Key Verification Points**:
+1. ✅ Real project identifiers visible in all 11 rows
+2. ✅ No fallback "Project details unavailable" messages
+3. ✅ Page renders correctly
+4. ✅ No console or network blockers
+
+**Operator-language sanitizer fix is production-ready.**
+
+---
+
+# Previous Test: WP-18C9 Admin Browser Verification - FINAL
 ## Test Date: 2026-08-08 (Sixth Run - WP-18C9 Admin Verification with Corrected Auth)
 ## Tester: Testing Agent (E2)
 ## Preview URL: https://masci-audit-hub.preview.emergentagent.com

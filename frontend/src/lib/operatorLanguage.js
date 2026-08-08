@@ -158,6 +158,7 @@ const OPERATOR_TERM_REPLACEMENTS = [
 ];
 
 const INTERNAL_CODE_PATTERN = /\b(?:c1|c2|c3|c4|c5|c6|c7|c8|c9|c10|wp\d+[a-z0-9-]*|ecap|oppc|devhub|preview|fixture|qa|uat|r2|ocr|telemetry|snapshot|kpi|rollup|spine|forensic|cockpit|authority contract|read model|source lineage|schema|payload|backend|frontend|api|route|collection)\b/i;
+const SYNTHETIC_PROJECT_NUMBER_PATTERN = /^(?:test[_-]|smoke[_-]|synthetic[_-]|cert[_-]?test|parity[_-]|iter\d+|qa[_-]?smoke|recert|0000-?test)/i;
 
 function collapseWhitespace(value) {
   return String(value || "")
@@ -207,7 +208,8 @@ export function humanizeOperatorToken(value, fallback = "Operations record") {
 
 export function sanitizeOperatorProjectNumber(value, fallback = "Project number not available") {
   const raw = String(value || "").trim();
-  if (!raw || containsOperatorUnsafeLanguage(raw)) return fallback;
+  if (!raw) return fallback;
+  if (SYNTHETIC_PROJECT_NUMBER_PATTERN.test(raw)) return fallback;
   return raw;
 }
 
