@@ -1742,6 +1742,9 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     report_dict["team_snapshot"] = _snap
             except Exception:  # noqa: BLE001 — snapshot is best-effort
                 pass
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            doc = apply_governed_fixture_markers(doc, "daily_reports")
             await db.daily_reports.insert_one(doc)
             try:
                 await sync_crew_observation_for_report(db, doc)

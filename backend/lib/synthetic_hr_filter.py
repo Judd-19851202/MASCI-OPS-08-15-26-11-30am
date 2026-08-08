@@ -28,6 +28,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from lib.governed_fixture_evidence import is_governed_fixture
+from lib.governed_record_classification import (
+    apply_governed_visibility_exclusion,
+    governed_visibility_exclusion_clauses,
+)
+
 
 # Anchored so a real employee named "Testa" would NOT match. Same
 # regex family as synthetic_flr_filter.
@@ -58,53 +64,20 @@ _TEST_EMAIL_RE = (
 
 
 def synthetic_hr_exclusion_clauses() -> List[Dict[str, Any]]:
-    """Return the mongo $and clauses that exclude synthetic employees."""
-    return [
-        {"synthetic_record": {"$ne": True}},
-        {"hidden_from_operations": {"$ne": True}},
-        {"name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
-        {"preferred_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
-        {"legal_first_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
-        {"legal_last_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
-        {"employee_id": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
-        {"email": {"$not": {"$regex": _TEST_EMAIL_RE, "$options": "i"}}},
-    ]
+    """Return the governed visibility clauses for operator-facing employee reads."""
+    return governed_visibility_exclusion_clauses()
 
 
 def apply_synthetic_hr_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     """Mix synthetic exclusion into a mongo query for the ``employees``
     collection. Idempotent — calling twice yields the same effective
     query."""
-    q = dict(query or {})
-    extra = synthetic_hr_exclusion_clauses()
-    existing = q.get("$and")
-    if isinstance(existing, list):
-        q["$and"] = existing + extra
-    else:
-        q["$and"] = extra
-    return q
+    return apply_governed_visibility_exclusion(query)
 
 
 def is_synthetic_hr(doc: Dict[str, Any]) -> bool:
     """Python-side classifier used by cleanup + tests."""
-    import re
-    if not doc:
-        return False
-    if doc.get("synthetic_record") is True:
-        return True
-    if doc.get("hidden_from_operations") is True:
-        return True
-    for field in (
-        "name", "preferred_name", "legal_first_name", "legal_last_name",
-        "employee_id",
-    ):
-        val = (doc.get(field) or "").strip() if isinstance(doc.get(field), str) else ""
-        if val and re.match(_TEST_NAME_RE, val, re.IGNORECASE):
-            return True
-    email = (doc.get("email") or "").strip().lower() if isinstance(doc.get("email"), str) else ""
-    if email and re.search(_TEST_EMAIL_RE, email, re.IGNORECASE):
-        return True
-    return False
+    return is_governed_fixture(doc, "employees")
 
 
 __all__ = [

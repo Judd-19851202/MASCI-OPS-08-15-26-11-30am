@@ -97,6 +97,9 @@ def register_training_routes(
             "waived_at": body.waived_at or None,
             "waiver_reason": body.waiver_reason or None,
         }
+        from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+        doc = apply_governed_fixture_markers(doc, "training_records")
         await db.safety_training_records.insert_one(doc)
         doc.pop("_id", None)
         return doc

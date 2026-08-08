@@ -504,6 +504,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     doc["team_snapshot"] = _snap
             except Exception:  # noqa: BLE001
                 pass
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            doc = apply_governed_fixture_markers(doc, "inspections")
             await db.inspections.insert_one(doc)
             doc.pop("_id", None)
             # Mirror photos into the Job Photos library (Phase 1 read-only).
@@ -706,6 +709,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     doc["team_snapshot"] = _snap
             except Exception:  # noqa: BLE001
                 pass
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            doc = apply_governed_fixture_markers(doc, "meetings")
             await db.meetings.insert_one(doc)
             doc.pop("_id", None)
             # TRACK 15.76 · Trust Spine — open record lifecycle.
@@ -830,6 +836,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     doc["team_snapshot"] = _snap
             except Exception:  # noqa: BLE001
                 pass
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            doc = apply_governed_fixture_markers(doc, "jhas")
             await db.jhas.insert_one(doc)
             doc.pop("_id", None)
             # TRACK 15.76 · Trust Spine — open record lifecycle.
@@ -957,6 +966,9 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     doc["team_snapshot"] = _snap
             except Exception:  # noqa: BLE001
                 pass
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            doc = apply_governed_fixture_markers(doc, "incidents")
             await db.incidents.insert_one(doc)
             doc.pop("_id", None)
             # TRACK 15.76 · Trust Spine — open record lifecycle.

@@ -30,6 +30,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from lib.governed_fixture_evidence import is_governed_fixture
+from lib.governed_record_classification import (
+    apply_governed_visibility_exclusion,
+    governed_visibility_exclusion_clauses,
+)
+
 # Regex applied to `project_number` (and `doc_id` as a safety net)
 # to catch legacy synthetic fixtures. Anchored so it only matches
 # strings that START with a known synthetic sentinel — a real
@@ -86,14 +92,8 @@ _EXPLICIT_MARKERS = [
 
 
 def synthetic_exclusion_clauses() -> List[Dict[str, Any]]:
-    """Return the mongo $and clauses that exclude synthetic DRs."""
-    return [
-        {"synthetic_record": {"$ne": True}},
-        {"hidden_from_operations": {"$ne": True}},
-        {"certification_record": {"$ne": True}},
-        {"project_number": {"$not": {"$regex": _TEST_PROJECT_RE, "$options": "i"}}},
-        {"project_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
-    ]
+    """Return the governed visibility clauses for operator-facing DR reads."""
+    return governed_visibility_exclusion_clauses()
 
 
 def apply_synthetic_dr_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
@@ -103,34 +103,13 @@ def apply_synthetic_dr_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     The clauses are appended to `$and` so callers with existing
     `$or` / equality clauses remain intact.
     """
-    q = dict(query or {})
-    extra = synthetic_exclusion_clauses()
-    existing = q.get("$and")
-    if isinstance(existing, list):
-        q["$and"] = existing + extra
-    else:
-        q["$and"] = extra
-    return q
+    return apply_governed_visibility_exclusion(query)
 
 
 def is_synthetic_dr(doc: Dict[str, Any]) -> bool:
     """Python-side classifier used by the cleanup script + tests."""
     import re
-    if not doc:
-        return False
-    if doc.get("synthetic_record") is True:
-        return True
-    if doc.get("hidden_from_operations") is True:
-        return True
-    if doc.get("certification_record") is True:
-        return True
-    pn = (doc.get("project_number") or "").strip()
-    if pn and re.match(_TEST_PROJECT_RE, pn, re.IGNORECASE):
-        return True
-    name = (doc.get("project_name") or "").strip()
-    if name and re.match(_TEST_NAME_RE, name, re.IGNORECASE):
-        return True
-    return False
+    return is_governed_fixture(doc, "daily_reports")
 
 
 __all__ = [

@@ -107,6 +107,106 @@ All user-facing behaviors validated successfully:
 
 ---
 
+# PRE-C10 Contamination-Governance Remediation Backend Verification (2026-08-08)
+
+## Test Scope
+Backend-only verification for MASCI PRE-C10 contamination-governance remediation on preview environment.
+
+## Test Credentials Used
+- Admin: jaymn.judd@mascigc.com / Maddix123!
+
+## ✅ ALL BACKEND TESTS PASSED (6/6)
+
+### 1. ✅ POST /api/auth/multi-login - Admin Authentication
+**Status**: PASS
+**Findings**:
+- ✓ Authentication successful with status 200
+- ✓ session_token returned correctly
+- ✓ portal_tokens.admin returned correctly
+- ✓ Token pair valid for protected admin routes
+
+### 2. ✅ GET /api/admin/platform-truth-integrity/contamination
+**Status**: PASS
+**Findings**:
+- ✓ overall_status = green
+- ✓ release_gate_blocked = false
+- ✓ blocking_findings is empty (no blocking contamination findings)
+- ✓ All 11 required families show status=green and heuristic_only_count=0:
+  - employees: green, heuristic_only_count=0
+  - daily_reports: green, heuristic_only_count=0
+  - field_leadership_records: green, heuristic_only_count=0
+  - incidents: green, heuristic_only_count=0
+  - meetings: green, heuristic_only_count=0
+  - jhas: green, heuristic_only_count=0
+  - inspections: green, heuristic_only_count=0
+  - training_records: green, heuristic_only_count=0
+  - safety_issuances: green, heuristic_only_count=0
+  - dispatch_assignments: green, heuristic_only_count=0
+  - equipment_inspections: green, heuristic_only_count=0
+
+**API Response**: 200 OK, 22 families scanned
+
+### 3. ✅ GET /api/admin/platform-truth-integrity
+**Status**: PASS
+**Findings**:
+- ✓ overall_status = green
+- ✓ release_gate_blocked = false
+- ✓ contamination.overall_status = green
+- ✓ stale_derived_state.overall_status = green
+
+**API Response**: 200 OK
+
+### 4. ✅ GET /api/hr/employees?limit=200 - Business Consumer Leak Check
+**Status**: PASS
+**Findings**:
+- ✓ No operator-visible names starting with TEST_/TEST-/SMOKE_/SYNTHETIC_/CERT_TEST/PARITY_/ITER[0-9]
+- ✓ Checked 200 employees, 0 leaks detected
+- ✓ Governed visibility exclusion working correctly
+
+**API Response**: 200 OK
+
+### 5. ✅ GET /api/daily-reports - Business Consumer Leak Check
+**Status**: PASS
+**Findings**:
+- ✓ No operator-visible project_name values starting with synthetic prefixes
+- ✓ Checked 1000 daily reports, 0 leaks detected
+- ✓ Governed visibility exclusion working correctly
+
+**API Response**: 200 OK
+
+### 6. ✅ Auth Regression - Protected Admin Route Access
+**Status**: PASS
+**Findings**:
+- ✓ Multi-login succeeds with 200
+- ✓ Protected admin route access works with returned token pair
+- ✓ No 401 or 403 errors on protected routes
+
+## Summary Statistics
+- **Total Tests**: 6
+- **Passed**: 6 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+**PRE-C10 Backend Verification Status**: ✅ COMPLETE - ALL TESTS PASSED
+
+All backend verification requirements met:
+1. ✅ Contamination endpoint returns green status with no blocking findings
+2. ✅ Platform truth integrity endpoint returns green for both contamination and stale state
+3. ✅ Business consumer leak checks passed (employees and daily-reports)
+4. ✅ Auth regression passed (multi-login and protected route access)
+
+**Key Findings**:
+- Governed explicit classification contract working correctly
+- Deterministic fixture-evidence classification active
+- No synthetic/certification/technical rows leaking to operator/executive consumers
+- Contamination gate is GREEN with blocking_findings empty
+- All 11 required families show green status with heuristic_only_count=0
+- Release gate is not blocked
+
+**No issues found. PRE-C10 contamination-governance remediation verified successfully on preview.**
+
+---
+
 
 # WP-18C9 Admin Browser Verification - FINAL (2026-08-08 - Sixth Run)
 

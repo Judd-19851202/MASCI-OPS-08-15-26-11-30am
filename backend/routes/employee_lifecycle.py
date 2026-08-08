@@ -1541,6 +1541,9 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             }],
             "deleted_at": None,
         }
+        from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+        doc = apply_governed_fixture_markers(doc, "employees")
         await db.employees.insert_one(doc)
 
         # iter286 · mirror CDL + medical-card expirations on create too
@@ -2525,6 +2528,9 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 for k, v in payload.items():
                     new_emp[k] = v
                 try:
+                    from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+                    new_emp = apply_governed_fixture_markers(new_emp, "employees")
                     await db.employees.insert_one(new_emp)
                     new_emp.pop("_id", None)
                     created_n += 1

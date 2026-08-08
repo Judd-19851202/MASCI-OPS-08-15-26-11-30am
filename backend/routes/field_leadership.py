@@ -565,6 +565,9 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
                 when=rec.get("occurred_at") or rec.get("created_at"),
             )
 
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            rec = apply_governed_fixture_markers(rec, "field_leadership_records")
             await db.field_leadership_records.insert_one(dict(rec))
 
             # OMEGA · Phase Alpha · Termination Form Addendum.
@@ -1694,6 +1697,9 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         }
         from doc_ids import ensure_doc_id, _field_leadership_prefix
         await ensure_doc_id(db, rec, _field_leadership_prefix, when=now_iso)
+        from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+        rec = apply_governed_fixture_markers(rec, "field_leadership_records")
         await db.field_leadership_records.insert_one(dict(rec))
         await db.time_off_public_links.update_one(
             {"token": token},

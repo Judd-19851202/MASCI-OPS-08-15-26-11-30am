@@ -1201,6 +1201,9 @@ def build_dispatch_lifecycle_router(
                     f"[track-16-09-gate] non-fatal · {_gate_exc!r}")
                 _consumed_override_id = None
 
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            doc = apply_governed_fixture_markers(doc, "dispatch_assignments")
             await db.dispatch_assignments.insert_one(doc)
             # Consume the override (one-shot scope = first successful assignment).
             if _consumed_override_id:

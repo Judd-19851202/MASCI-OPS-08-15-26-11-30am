@@ -18,8 +18,13 @@ Applies to reads on:
 """
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, List
+
+from lib.governed_fixture_evidence import is_governed_fixture
+from lib.governed_record_classification import (
+    apply_governed_visibility_exclusion,
+    governed_visibility_exclusion_clauses,
+)
 
 
 _TEST_SENTINEL_RE = (
@@ -45,20 +50,11 @@ SAFETY_ISSUANCE_FIELDS = ("employee_name", "equipment_name")
 
 
 def _clauses(fields: tuple[str, ...]) -> List[Dict[str, Any]]:
-    return (
-        [{"synthetic_record": {"$ne": True}}, {"hidden_from_operations": {"$ne": True}}]
-        + [{f: {"$not": {"$regex": _TEST_SENTINEL_RE, "$options": "i"}}} for f in fields]
-    )
+    return governed_visibility_exclusion_clauses()
 
 
 def _apply(query: Dict[str, Any], fields: tuple[str, ...]) -> Dict[str, Any]:
-    q = dict(query or {})
-    extras = _clauses(fields)
-    if isinstance(q.get("$and"), list):
-        q["$and"] = q["$and"] + extras
-    else:
-        q["$and"] = extras
-    return q
+    return apply_governed_visibility_exclusion(query)
 
 
 def apply_synthetic_incident_exclusion(query): return _apply(query, INCIDENT_FIELDS)
@@ -71,14 +67,16 @@ def apply_synthetic_safety_issuance_exclusion(query): return _apply(query, SAFET
 
 
 def is_synthetic_safety_doc(doc: Dict[str, Any], fields: tuple[str, ...] = INCIDENT_FIELDS) -> bool:
-    if not doc:
-        return False
-    if doc.get("synthetic_record") is True or doc.get("hidden_from_operations") is True:
-        return True
-    for f in fields:
-        v = doc.get(f)
-        if isinstance(v, str) and re.match(_TEST_SENTINEL_RE, v.strip(), re.IGNORECASE):
-            return True
+    family = {
+        INCIDENT_FIELDS: "incidents",
+        JHA_FIELDS: "jhas",
+        INSPECTION_FIELDS: "inspections",
+        MEETING_FIELDS: "meetings",
+        SAFETY_TRAINING_FIELDS: "training_records",
+        SAFETY_ISSUANCE_FIELDS: "safety_issuances",
+    }.get(fields)
+    if family:
+        return is_governed_fixture(doc, family)
     return False
 
 

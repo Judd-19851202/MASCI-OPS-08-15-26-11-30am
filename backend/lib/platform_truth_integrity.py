@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
 from lib.governed_certification_lane import GOVERNED_CERTIFICATION_PROJECT_NUMBER
-from lib.synthetic_corrective_action_filter import HIDDEN_CLASSIFICATIONS
+from lib.governed_fixture_evidence import find_fixture_evidence
+from lib.governed_record_classification import HIDDEN_CLASSIFICATIONS, is_hidden_from_live_operations
 from lib.synthetic_dr_filter import _TEST_NAME_RE as DR_TEST_NAME_RE
 from lib.synthetic_dr_filter import _TEST_PROJECT_RE as DR_TEST_PROJECT_RE
 from lib.synthetic_fleet_filter import DISPATCH_ASSIGNMENT_FIELDS, EQUIPMENT_MASTER_FIELDS, FLEET_DEFECT_FIELDS, INSPECTION_FIELDS as FLEET_INSPECTION_FIELDS
@@ -56,8 +57,10 @@ def _signature_hash(rows: Iterable[Dict[str, Any]], fields: List[str]) -> List[t
     return sorted(out)
 
 
-def _family_status(*, heuristic_only_count: int, explicit_hidden_count: int, certification_project_rows: int, conflicting_marker_count: int, operator_consumer_count: int, mixed_mode: bool) -> str:
+def _family_status(*, heuristic_only_count: int, fixture_only_count: int, explicit_hidden_count: int, certification_project_rows: int, conflicting_marker_count: int, operator_consumer_count: int, mixed_mode: bool) -> str:
     if conflicting_marker_count > 0:
+        return "red"
+    if fixture_only_count > 0:
         return "red"
     if heuristic_only_count > 0:
         return "red"
@@ -68,9 +71,11 @@ def _family_status(*, heuristic_only_count: int, explicit_hidden_count: int, cer
     return "green"
 
 
-def _family_summary(*, heuristic_only_count: int, explicit_hidden_count: int, certification_project_rows: int, conflicting_marker_count: int, mixed_mode: bool) -> str:
+def _family_summary(*, heuristic_only_count: int, fixture_only_count: int, explicit_hidden_count: int, certification_project_rows: int, conflicting_marker_count: int, mixed_mode: bool) -> str:
     if conflicting_marker_count > 0:
         return f"{conflicting_marker_count} records carry contradictory truth markers."
+    if fixture_only_count > 0:
+        return f"{fixture_only_count} records match deterministic fixture evidence but still lack explicit governed metadata."
     if heuristic_only_count > 0:
         return f"{heuristic_only_count} records still rely on heuristic-only exclusion instead of explicit governed metadata."
     if mixed_mode and certification_project_rows > 0:
@@ -90,6 +95,29 @@ async def _sample(db, collection: str, query: Dict[str, Any], *, fields: Dict[st
     if collection not in await db.list_collection_names():
         return []
     return [row async for row in db[collection].find(query, fields).limit(limit)]
+
+
+async def _fixture_only_matches(
+    db,
+    *,
+    collection: str,
+    family_id: str,
+    limit: int = 5,
+) -> Dict[str, Any]:
+    if collection not in await db.list_collection_names():
+        return {"count": 0, "samples": []}
+    count = 0
+    samples: List[Dict[str, Any]] = []
+    cursor = db[collection].find({})
+    async for row in cursor:
+        if is_hidden_from_live_operations(row):
+            continue
+        if find_fixture_evidence(row, family_id):
+            count += 1
+            if len(samples) < limit:
+                row.pop("_id", None)
+                samples.append(row)
+    return {"count": count, "samples": samples}
 
 
 def _explicit_hidden_query() -> Dict[str, Any]:
@@ -394,6 +422,12 @@ async def scan_platform_contamination_integrity(db) -> Dict[str, Any]:
         heuristic_query = heuristic_query_builder() if callable(heuristic_query_builder) else None
         heuristic_candidate_count = await _count(db, collection, heuristic_query) if heuristic_query else 0
         heuristic_only_count = await _count(db, collection, {"$and": [heuristic_query, _not_explicit_hidden_query()]}) if heuristic_query else 0
+        fixture_scan = await _fixture_only_matches(
+            db,
+            collection=collection,
+            family_id=config["family_id"],
+        )
+        fixture_only_count = fixture_scan["count"]
         certification_query_builder = config.get("certification_query")
         certification_query = certification_query_builder() if callable(certification_query_builder) else None
         certification_project_rows = await _count(db, collection, certification_query) if certification_query else 0
@@ -405,6 +439,7 @@ async def scan_platform_contamination_integrity(db) -> Dict[str, Any]:
         conflicting_marker_count = await _count(db, collection, conflicting_marker_query)
         status = _family_status(
             heuristic_only_count=heuristic_only_count,
+            fixture_only_count=fixture_only_count,
             explicit_hidden_count=explicit_hidden_count,
             certification_project_rows=certification_project_rows,
             conflicting_marker_count=conflicting_marker_count,
@@ -417,6 +452,11 @@ async def scan_platform_contamination_integrity(db) -> Dict[str, Any]:
             {"$or": [q for q in [heuristic_query, certification_query, _explicit_hidden_query()] if q]},
             fields=config.get("sample_fields") or {"_id": 0},
         )
+        for row in fixture_scan["samples"]:
+            if row not in samples:
+                samples.append(row)
+            if len(samples) >= 5:
+                break
         result = {
             "family_id": config["family_id"],
             "label": config["label"],
@@ -427,11 +467,13 @@ async def scan_platform_contamination_integrity(db) -> Dict[str, Any]:
             "explicit_hidden_count": explicit_hidden_count,
             "heuristic_candidate_count": heuristic_candidate_count,
             "heuristic_only_count": heuristic_only_count,
+            "fixture_only_count": fixture_only_count,
             "certification_project_rows": certification_project_rows,
             "conflicting_marker_count": conflicting_marker_count,
             "status": status,
             "summary": _family_summary(
                 heuristic_only_count=heuristic_only_count,
+                fixture_only_count=fixture_only_count,
                 explicit_hidden_count=explicit_hidden_count,
                 certification_project_rows=certification_project_rows,
                 conflicting_marker_count=conflicting_marker_count,

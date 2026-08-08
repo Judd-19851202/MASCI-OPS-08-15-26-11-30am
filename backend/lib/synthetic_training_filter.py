@@ -16,8 +16,13 @@ Applies to reads on:
 """
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, List
+
+from lib.governed_fixture_evidence import is_governed_fixture
+from lib.governed_record_classification import (
+    apply_governed_visibility_exclusion,
+    governed_visibility_exclusion_clauses,
+)
 
 
 _TEST_SENTINEL_RE = (
@@ -43,20 +48,11 @@ TRAINING_GUIDE_FIELDS = ("title", "slug")
 
 
 def _clauses(fields: tuple[str, ...]) -> List[Dict[str, Any]]:
-    return (
-        [{"synthetic_record": {"$ne": True}}, {"hidden_from_operations": {"$ne": True}}]
-        + [{f: {"$not": {"$regex": _TEST_SENTINEL_RE, "$options": "i"}}} for f in fields]
-    )
+    return governed_visibility_exclusion_clauses()
 
 
 def _apply(query: Dict[str, Any], fields: tuple[str, ...]) -> Dict[str, Any]:
-    q = dict(query or {})
-    extras = _clauses(fields)
-    if isinstance(q.get("$and"), list):
-        q["$and"] = q["$and"] + extras
-    else:
-        q["$and"] = extras
-    return q
+    return apply_governed_visibility_exclusion(query)
 
 
 def apply_synthetic_qualification_exclusion(query): return _apply(query, QUALIFICATION_FIELDS)
@@ -66,14 +62,8 @@ def apply_synthetic_training_guide_exclusion(query): return _apply(query, TRAINI
 
 
 def is_synthetic_training_doc(doc: Dict[str, Any], fields: tuple[str, ...] = QUALIFICATION_FIELDS) -> bool:
-    if not doc:
-        return False
-    if doc.get("synthetic_record") is True or doc.get("hidden_from_operations") is True:
-        return True
-    for f in fields:
-        v = doc.get(f)
-        if isinstance(v, str) and re.match(_TEST_SENTINEL_RE, v.strip(), re.IGNORECASE):
-            return True
+    if fields == QUALIFICATION_FIELDS:
+        return is_governed_fixture(doc, "training_records")
     return False
 
 

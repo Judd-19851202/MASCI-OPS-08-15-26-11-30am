@@ -48,13 +48,14 @@ def test_platform_truth_integrity_route_and_scans_reflect_current_state():
 
     contamination, stale = asyncio.run(_run())
 
-    assert contamination["overall_status"] == "red"
+    assert contamination["overall_status"] == "green"
     by_family = {row["family_id"]: row for row in contamination["families"] if row.get("present")}
     assert by_family["corrective_actions"]["status"] == "green"
-    assert by_family["employees"]["status"] == "red"
-    assert by_family["employees"]["heuristic_only_count"] > 0
-    assert by_family["daily_reports"]["status"] == "red"
-    assert by_family["field_leadership_records"]["status"] == "red"
+    assert by_family["employees"]["status"] == "green"
+    assert by_family["employees"]["heuristic_only_count"] == 0
+    assert by_family["daily_reports"]["status"] == "green"
+    assert by_family["daily_reports"]["heuristic_only_count"] == 0
+    assert by_family["field_leadership_records"]["status"] == "green"
     assert by_family["project_forecasting_snapshots"]["status"] in {"green", "yellow"}
 
     by_check = {row["id"]: row for row in stale["checks"]}
@@ -70,4 +71,4 @@ def test_platform_truth_integrity_route_and_scans_reflect_current_state():
     body = resp.json()
     assert body["contamination"]["overall_status"] == contamination["overall_status"]
     assert body["stale_derived_state"]["overall_status"] == stale["overall_status"]
-    assert body["release_gate_blocked"] is True
+    assert body["release_gate_blocked"] is False

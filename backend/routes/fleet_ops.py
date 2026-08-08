@@ -627,6 +627,9 @@ def build_router(
                 prefix_map.get(payload.kind, "FLI"),
                 when=insp_doc.get("inspection_date") or insp_doc.get("created_at"),
             )
+            from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+            insp_doc = apply_governed_fixture_markers(insp_doc, "equipment_inspections")
             await db.equipment_inspections.insert_one(insp_doc)
 
             # ── Track 13.31B-D5.1 · Smart DVIR canonical write stamp ──

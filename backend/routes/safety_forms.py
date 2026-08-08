@@ -1103,6 +1103,9 @@ def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_adm
                 rec["team_snapshot"] = _snap
         except Exception:  # noqa: BLE001
             pass
+        from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+        rec = apply_governed_fixture_markers(rec, "safety_issuances")
         await db.safety_equipment_issuances.insert_one(dict(rec))
         rec.pop("_id", None)
         _schedule_email("issuance", rec)
