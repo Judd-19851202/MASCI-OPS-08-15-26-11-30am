@@ -1,0 +1,500 @@
+{
+  "release_health": [
+    {
+      "endpoint": "/api/version",
+      "status": "PASS",
+      "details": "Version endpoint accessible, service: masci-hub, commit: 63ca717d",
+      "response_data": {
+        "service": "masci-hub",
+        "commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+        "commit_source": "frontend_build_version",
+        "built_at": "2026-08-08T04:03:01+00:00",
+        "build_at_source": "artifact_mtime",
+        "source_hash": "ef87eceb272c0c1f112e55fcdf4d7e03",
+        "source_hash_scope_files": [
+          "release_identity_scope.json",
+          "backend/lib/release_identity.py",
+          "docs/governance/release_gate_manifest.json",
+          "backend/server.py",
+          "backend/pdf_render.py",
+          "backend/training_pdf.py",
+          "backend/routes/daily_reports.py",
+          "backend/routes/dr_v2.py",
+          "backend/routes/dr_v2_canonicalize.py",
+          "backend/routes/dr_v2_pdf.py",
+          "backend/routes/dr_v2_photos.py",
+          "backend/routes/dispatch_portal_auth.py",
+          "backend/services/photo_intelligence/pipeline.py",
+          "backend/scripts/verify_release_identity.py",
+          "frontend/scripts/stamp-build-version.js",
+          "frontend/src/app/routing/AppRoutes.jsx",
+          "frontend/src/pages/NewDailyReportV3.jsx",
+          "frontend/src/pages/DailyReportsDashboard.jsx",
+          "frontend/src/pages/ViewDailyReport.jsx"
+        ],
+        "release": "ef87eceb272c0c1f112e55fcdf4d7e03",
+        "intended_release_commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+        "intended_release_source": "frontend_generated_identity_fallback",
+        "runtime_matches_intended_release": true,
+        "frontend_build_version": "v2026.08.08-63ca717",
+        "frontend_build_commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+        "frontend_build_commit_source": "git:HEAD",
+        "frontend_build_built_at": "2026-08-08T01:22:01+00:00",
+        "frontend_build_source_hash": "ef87eceb272c0c1f112e55fcdf4d7e03",
+        "frontend_build_source": "served:https://mascidocs.com/release-identity.json",
+        "frontend_build_dependency_manifest_hash": "9ae579b3caf398802e930981c2b390dbe278420b3d86d6e2c9fa9b325a63a85a",
+        "frontend_build_release_gate_manifest_hash": "02998958efce0b49cd83309d3a07a706909e379ddc0afa82fe9687efc9253250",
+        "frontend_generated_build_commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+        "frontend_generated_build_source": "generated:frontend/src/buildVersion.generated.js",
+        "frontend_public_release_commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+        "frontend_public_release_source": "generated:frontend/public/release-identity.json",
+        "frontend_backend_release_match": true,
+        "frontend_backend_release_match_reason": "match",
+        "frontend_generated_vs_served_match": true,
+        "frontend_served_identity_error": null,
+        "instance_fingerprint": "2ff55226c0f7d0ffd28bdf92b32ffe18",
+        "process_started_at": "2026-08-08T14:24:46.269814+00:00",
+        "started_at": "2026-08-08T14:24:46.269814+00:00",
+        "uptime_s": 1412,
+        "session_timeouts": {
+          "enabled": true,
+          "tiers": {
+            "ADMIN_HR": {
+              "idle_min": 15,
+              "abs_hour": 4
+            },
+            "OPERATIONS": {
+              "idle_min": 30,
+              "abs_hour": 8
+            },
+            "FIELD": {
+              "idle_min": 60,
+              "abs_hour": 12
+            }
+          }
+        },
+        "sentry": {
+          "enabled": true
+        },
+        "app_env": "production",
+        "db_name": "masci_safety",
+        "runtime_identity": {
+          "status": "VERIFIED",
+          "valid": true,
+          "mismatch_category": null,
+          "identity": {
+            "app_env": "production",
+            "environment_name": "PRODUCTION",
+            "db_name": "masci_safety",
+            "mongo_scheme": "mongodb+srv",
+            "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+            "mongo_user": "masci_prod_user",
+            "cluster_fingerprint": "3cc597c2d577",
+            "effective_database": "masci_safety",
+            "enforce_db_isolation": true,
+            "release_commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+            "release_source_hash": "ef87eceb272c0c1f112e55fcdf4d7e03",
+            "preview_distinction": "production",
+            "scheduler_authority": "enabled",
+            "read_write_mode": "read_write",
+            "domain_host_context": "https://mascidocs.com",
+            "source_identity": "ef87eceb272c0c1f112e55fcdf4d7e03",
+            "approved_cluster_identifier": "MASCI-prod",
+            "approved_hostname": "masci-prod.1nduwmg.mongodb.net",
+            "approved_db_name": "masci_safety",
+            "approved_username": "masci_prod_user",
+            "identity_fingerprint": "4fd4f802f53e",
+            "environment_fingerprint": "5f193979cbd0",
+            "environment_fingerprint_version": "env-authority-v1",
+            "backup_bucket": "masci-hub",
+            "backup_prefix": "backups/production/auto-90d/",
+            "query_duplicates": {},
+            "is_atlas": true,
+            "is_local": false,
+            "read_only_validation": {
+              "requested": false,
+              "active": false,
+              "db_authority": "unknown",
+              "read_only_mode": false,
+              "startup_write_suppressed": false,
+              "http_mutation_barrier_active": false,
+              "session_writes_suppressed": false,
+              "scheduler_disabled": false,
+              "backup_scheduler_disabled": false,
+              "email_disabled": false,
+              "ai_disabled": false,
+              "ods_disabled": false,
+              "trust_spine_disabled": false,
+              "maintainx_disabled": true,
+              "webhooks_disabled": false,
+              "non_production_domain": false,
+              "zero_write_proven": false,
+              "approved_preview_db_name": "masci_safety_preview",
+              "approved_preview_hosts": [
+                "localhost",
+                "127.0.0.1",
+                "::1"
+              ],
+              "errors": []
+            }
+          },
+          "validation": {
+            "status": "VERIFIED",
+            "valid": true,
+            "mismatch_category": null,
+            "remediation_owner": "platform-ops",
+            "remediation_action": "No action required.",
+            "detail": "env=production host=masci-prod.1nduwmg.mongodb.net db=masci_safety fingerprint=4fd4f802f53e",
+            "errors": [],
+            "warnings": []
+          }
+        },
+        "environment_identity": {
+          "app_env": "production",
+          "db_name": "masci_safety",
+          "db_isolation_enforced": true,
+          "storage_bucket": "unknown",
+          "storage_endpoint_present": null,
+          "scheduler_enabled": true,
+          "email_safety_mode": "unknown",
+          "auto_email_reports": null,
+          "resend_webhook_secret_present": null,
+          "dev_endpoints_enabled": null,
+          "maintainx_write_enabled": null,
+          "ai_provider_key_present": null,
+          "delete_engine_status": "DISABLED",
+          "runtime_identity_status": "VERIFIED",
+          "runtime_identity_mismatch_category": null,
+          "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+          "identity_fingerprint": "4fd4f802f53e"
+        }
+      }
+    },
+    {
+      "endpoint": "/release-identity.json",
+      "status": "PASS",
+      "details": "Release identity accessible",
+      "response_data": {
+        "version": "v2026.08.08-63ca717",
+        "commit": "63ca717d9e07c032520f7faac1a7446f58edb97e",
+        "commit_source": "git:HEAD",
+        "built_at": "2026-08-08T01:22:01+00:00",
+        "source_hash": "ef87eceb272c0c1f112e55fcdf4d7e03",
+        "dependency_manifest_hash": "9ae579b3caf398802e930981c2b390dbe278420b3d86d6e2c9fa9b325a63a85a",
+        "migration_manifest_hash": "15192f5cf53149a0ce77eda8076a150f01c537c899184447b7ee290b0e9561c9",
+        "release_gate_manifest_hash": "02998958efce0b49cd83309d3a07a706909e379ddc0afa82fe9687efc9253250",
+        "release_gate_manifest_version": "D5D6_RELEASE_GATE/v1",
+        "release_gate_manifest_id": "masci-release-gate-canonical",
+        "repository": "workspace",
+        "branch": "",
+        "workspace_dirty": false
+      }
+    },
+    {
+      "endpoint": "/api/health",
+      "status": "PASS",
+      "details": "Health check passed: ok=True",
+      "response_data": {
+        "ok": true,
+        "service": "masci-hub",
+        "ts": "2026-08-08T14:48:19.154828+00:00",
+        "runtime_identity": {
+          "status": "VERIFIED",
+          "valid": true,
+          "mismatch_category": null
+        }
+      }
+    },
+    {
+      "endpoint": "/api/ready",
+      "status": "PASS",
+      "details": "Readiness check passed",
+      "response_data": {
+        "ok": true,
+        "state": "ready",
+        "reason": "startup_complete",
+        "event_loop_ok": true,
+        "mongo_ok": true,
+        "startup_complete": true,
+        "runtime_identity": {
+          "ok": true,
+          "status": "VERIFIED",
+          "mismatch_category": null
+        }
+      }
+    },
+    {
+      "endpoint": "/api/health/full",
+      "status": "PASS",
+      "details": "Full health check passed",
+      "response_data": {
+        "ok": true,
+        "mongo": true,
+        "scheduler": true,
+        "backup_recent": true,
+        "runtime_identity_ok": true,
+        "runtime_identity_status": "VERIFIED"
+      }
+    }
+  ],
+  "auth_session": [
+    {
+      "endpoint": "/api/auth/multi-login",
+      "status": "PASS",
+      "details": "Login successful, portals: admin, pm, shop, hr, safety, dispatch, field_leadership, fl",
+      "response_data": {
+        "portals": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ],
+        "has_session_token": true
+      }
+    },
+    {
+      "endpoint": "/api/admin/check",
+      "status": "FAIL",
+      "details": "Admin check failed with status 401",
+      "response_data": {
+        "detail": "Admin login required"
+      }
+    },
+    {
+      "endpoint": "/api/pm/jobs (pm)",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "PM login required"
+      }
+    },
+    {
+      "endpoint": "/api/hr/daily-reports (hr)",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "HR session expired or invalid"
+      }
+    },
+    {
+      "endpoint": "/api/safety/incidents (safety)",
+      "status": "BLOCKED",
+      "details": "Endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/dispatch/drivers (dispatch)",
+      "status": "BLOCKED",
+      "details": "Endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/shop/equipment (shop)",
+      "status": "BLOCKED",
+      "details": "Endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/field-leadership/reports (field_leadership)",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Field Leadership access required"
+      }
+    }
+  ],
+  "admin_diagnostics": [
+    {
+      "endpoint": "/api/admin/deployment-readiness",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/deployment-readiness/performance-budget-contract",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/deployment-readiness/history",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/recovery/snapshot",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/recovery/configuration-recovery",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/trust-spine",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/notifications/digest",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    }
+  ],
+  "project_controls": [
+    {
+      "endpoint": "/api/pm/project-controls/portfolio-intelligence",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "portal authentication required"
+      }
+    },
+    {
+      "endpoint": "/api/pm/project-controls/forecasting",
+      "status": "BLOCKED",
+      "details": "Forecasting endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/pm/project-controls/earned-value",
+      "status": "BLOCKED",
+      "details": "Earned value endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/pm/command-center",
+      "status": "BLOCKED",
+      "details": "Command center endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/admin/project-controls/portfolio-intelligence",
+      "status": "BLOCKED",
+      "details": "Admin portfolio intelligence endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/admin/cost-schedule-summary",
+      "status": "BLOCKED",
+      "details": "Cost/schedule summary endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    }
+  ],
+  "public_boundaries": [
+    {
+      "endpoint": "/api/daily-reports/validate",
+      "status": "FAIL",
+      "details": "Status 401, unexpected response",
+      "response_data": {
+        "detail": "Admin, PM, or HR login required"
+      }
+    },
+    {
+      "endpoint": "/api/incidents/public",
+      "status": "FAIL",
+      "details": "Status 401, unexpected response",
+      "response_data": {
+        "detail": "Safety, Admin, or PM login required"
+      }
+    },
+    {
+      "endpoint": "/api/meetings/public",
+      "status": "FAIL",
+      "details": "Status 401, unexpected response",
+      "response_data": {
+        "detail": "Safety, Admin, or PM login required"
+      }
+    },
+    {
+      "endpoint": "/api/equipment/public",
+      "status": "BLOCKED",
+      "details": "Public equipment endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/dvir/validate",
+      "status": "BLOCKED",
+      "details": "DVIR validation endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    }
+  ],
+  "notifications_exports": [
+    {
+      "endpoint": "/api/admin/notifications/digest",
+      "status": "FAIL",
+      "details": "Status 401, expected 200",
+      "response_data": {
+        "detail": "Invalid admin token"
+      }
+    },
+    {
+      "endpoint": "/api/admin/notifications/status",
+      "status": "BLOCKED",
+      "details": "Notification status endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/admin/exports/status",
+      "status": "BLOCKED",
+      "details": "Export status endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "endpoint": "/api/admin/provider-state",
+      "status": "BLOCKED",
+      "details": "Provider-visible state endpoint not found (may not be implemented)",
+      "response_data": {
+        "detail": "Not Found"
+      }
+    }
+  ]
+}

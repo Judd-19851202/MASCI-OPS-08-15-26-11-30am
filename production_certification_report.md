@@ -1,371 +1,340 @@
-# MASCI Production Certification Report
-## Live Production Runtime Verification - https://mascidocs.com
-**Date:** 2026-08-08  
-**Tester:** Testing Agent (E2)  
-**Scope:** Broad production browser certification sweep  
-**Credentials Used:** Production-validated Super Admin (jaymn.judd@mascigc.com)
+# MASCI Production Backend Certification Report
+## Target: https://mascidocs.com
+## Date: 2026-08-08
+## Mode: SAFE, NON-DESTRUCTIVE, READ-ONLY verification
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-**Overall Status:** ✅ PRODUCTION READY with minor route discrepancies
+**PRODUCTION STATUS: ❌ CRITICAL AUTHENTICATION FAILURE - NOT READY FOR GO**
 
-- **Total Tests Executed:** 40+
-- **Pass Rate:** 85% (34/40)
-- **Critical Defects:** 0
-- **Major Defects:** 1 (Spanish language toggle)
-- **Minor Issues:** 5 (404 routes, navigation items)
+A **P0 authentication bug** blocks all authenticated API access in production. While the `/api/auth/multi-login` endpoint successfully returns portal tokens, **those tokens are immediately rejected** by all authenticated endpoints with "Invalid admin token" / "PM login required" errors.
 
-**Key Findings:**
-- ✅ Authentication and session management working correctly
-- ✅ All critical public surfaces operational
-- ✅ Admin executive surfaces functional with no forbidden terms
-- ✅ PM Command Center operational with C9 frozen architecture compliance
-- ✅ Mobile responsiveness verified
-- ⚠️ Spanish language toggle not functioning on root page
-- ⚠️ Some PM navigation items return 404 (may be intentional/deprecated)
+**Impact**: Complete loss of authenticated API functionality. No admin, PM, HR, Safety, Dispatch, Shop, or Field Leadership operations can be performed via API.
 
 ---
 
-## SECTION 1: RELEASE / SHELL / AUTH
+## TEST RESULTS BY CATEGORY
 
-### ✅ PASS - All Core Auth Functions Working
+### 1. ✅ RELEASE / HEALTH / IDENTITY (5/5 PASS)
 
-| Test | Status | Details |
-|------|--------|---------|
-| Root page `/` | ✅ PASS | Loads successfully, title: "Home · MASCI Operations Platform" |
-| Admin login `/admin/login` | ✅ PASS | All form elements present with correct data-testid attributes |
-| Super Admin authentication | ✅ PASS | Successfully authenticated and redirected to admin area |
-| Session persistence on reload | ✅ PASS | Session maintained after page reload |
-| Protected route enforcement | ✅ PASS | Deep links to protected routes work when authenticated |
-| Logout functionality | ✅ PASS | Logout successful, redirects to home/login |
+All release and health endpoints are functioning correctly:
 
-**Evidence:**
-- Screenshots: `prod_01_root.png`, `prod_02_admin_login.png`, `prod_03_admin_authenticated.png`
-- Authentication flow uses correct selectors: `[data-testid="admin-email-input"]`, `[data-testid="admin-password-input"]`, `[data-testid="admin-login-submit"]`
-- Session cookies properly set and maintained
+| Endpoint | Status | Details |
+|----------|--------|---------|
+| `/api/version` | ✅ PASS | Service: masci-hub, Commit: 63ca717d, Built: 2026-08-08T04:03:01+00:00 |
+| `/release-identity.json` | ✅ PASS | Release identity accessible, runtime matches intended release |
+| `/api/health` | ✅ PASS | Health check passed: ok=True |
+| `/api/ready` | ✅ PASS | Readiness check passed |
+| `/api/health/full` | ✅ PASS | Full health check passed, no component failures detected |
 
----
+**Runtime Identity Verification**:
+- App Environment: `production`
+- Database: `masci_safety` (MongoDB Atlas: masci-prod.1nduwmg.mongodb.net)
+- Release Commit: `63ca717d9e07c032520f7faac1a7446f58edb97e`
+- Runtime Identity Status: `VERIFIED` ✅
+- Frontend/Backend Release Match: `true` ✅
+- Uptime: 1412 seconds (23.5 minutes) at time of test
 
-## SECTION 2: PUBLIC / NO-LOGIN SURFACES
-
-### ✅ PASS - 9 of 10 Public Routes Operational
-
-| Route | Status | Details |
-|-------|--------|---------|
-| `/daily/submit` | ✅ PASS | Daily report form loads correctly |
-| `/thank-you` | ✅ PASS | Confirmation page renders |
-| `/incidents/report` | ✅ PASS | Incident report form loads |
-| `/meetings/submit` | ✅ PASS | Meeting submission form loads |
-| `/equipment/submit` | ✅ PASS | Equipment form loads |
-| `/fleet/dvir/new` | ✅ PASS | DVIR form loads with all sections |
-| `/qaqc` | ✅ PASS | QA/QC page loads |
-| `/field` | ✅ PASS | Field page loads |
-| `/constraints` | ✅ PASS | Constraints page loads |
-| `/jha` | ❌ FAIL | **404 Not Found** |
-
-**Critical Finding - JHA Route:**
-- **Route:** `/jha`
-- **Expected:** JHA form or landing page
-- **Actual:** 404 error
-- **Severity:** MEDIUM - Public route advertised but not accessible
-- **Recommendation:** Either implement the route or remove references to it
-
-**Evidence:**
-- Screenshots: `prod_public_daily_submit.png`, `prod_public_incidents_report.png`, `prod_public_fleet_dvir_new.png`
-- All accessible forms render correctly with proper structure
-- No operator-language leaks detected on public surfaces
+**Session Timeout Configuration**:
+- ADMIN_HR tier: 15 min idle, 4 hour absolute
+- OPERATIONS tier: 30 min idle, 8 hour absolute  
+- FIELD tier: 60 min idle, 12 hour absolute
 
 ---
 
-## SECTION 3: ADMIN / EXECUTIVE / OPERATIONS
+### 2. ❌ AUTH / SESSION / ROLE FANOUT (1/8 - CRITICAL FAILURE)
 
-### ✅ PASS - All Admin Surfaces Operational
+| Endpoint/Test | Status | Details |
+|---------------|--------|---------|
+| `/api/auth/multi-login` | ✅ PASS | Login successful, returns 8 portal tokens |
+| `/api/admin/check` | ❌ **P0 FAIL** | **"Invalid admin token"** - token rejected immediately after login |
+| `/api/pm/jobs` | ❌ **P0 FAIL** | **"PM login required"** - PM token rejected |
+| `/api/hr/daily-reports` | ❌ **P0 FAIL** | **"HR session expired or invalid"** |
+| `/api/field-leadership/reports` | ❌ **P0 FAIL** | **"Field Leadership access required"** |
+| `/api/safety/incidents` | 🚫 BLOCKED | Endpoint not found (404) |
+| `/api/dispatch/drivers` | 🚫 BLOCKED | Endpoint not found (404) |
+| `/api/shop/equipment` | 🚫 BLOCKED | Endpoint not found (404) |
 
-| Route | Status | C9 Compliance | Details |
-|-------|--------|---------------|---------|
-| `/admin` | ✅ PASS | ✅ Clean | Admin landing loads successfully |
-| `/admin/executive-intelligence` | ✅ PASS | ✅ Clean | Executive Intelligence dashboard operational |
-| `/admin/operations-dashboard` | ✅ PASS | ✅ Clean | Operations Dashboard (Motive Visibility) working |
-| `/admin/operations-control` | ✅ PASS | ✅ Clean | Operations Control loads |
-| `/admin/governance-trust` | ✅ PASS | ✅ Clean | Governance Trust page accessible |
-| `/admin/recovery` | ✅ PASS | ✅ Clean | Recovery Dashboard loads |
+**Authentication Flow Analysis**:
 
-**Note on Executive Overview:**
-- The route `/admin/executive-overview` returns 404 when accessed directly
-- However, an "Executive Overview" page IS accessible through navigation from `/admin`
-- This may be a routing configuration where the actual route differs from the expected pattern
-- **Recommendation:** Verify the canonical route for Executive Overview
+1. **Multi-Login Request**: ✅ SUCCESS
+   ```
+   POST /api/auth/multi-login
+   Body: {"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"}
+   Response: 200 OK
+   ```
 
-**C9 Frozen Architecture Verification:**
-- ✅ No "Project support" fallback strings found
-- ✅ No "Operations support" generic labels found
-- ✅ No "plain English" operator language found
-- ✅ No "reporting hierarchy" terms found
-- ✅ No "Project name unavailable" or "Project number unavailable" fallbacks detected
+2. **Tokens Returned**: ✅ SUCCESS
+   - Portals: admin, pm, shop, hr, safety, dispatch, field_leadership, fl
+   - Session token: present
+   - Must change password: false
+   - Token format: `<user_id>.<hmac_signature>` (64-char hex signature)
 
-**Evidence:**
-- Screenshots: `prod_admin_executive_overview.png`, `prod_exec_intel_verified.png`, `prod_ops_dashboard_verified.png`
-- Executive Intelligence shows real project data with confidence scores
-- Operations Dashboard displays Motive integration status correctly
+3. **Token Validation**: ❌ **IMMEDIATE FAILURE**
+   - All portal tokens rejected within milliseconds of being issued
+   - Tested with 2-second delay: still rejected
+   - Tested with X-Directory-Token (session_token): rejected
+   - Tested across multiple endpoints: all rejected
 
----
+**Root Cause Analysis**:
 
-## SECTION 4: PM / PROJECT CONTROLS
+The authentication system requires **active session activity records** in the database for tokens to be valid (see `/app/backend/user_directory.py:521-522`):
 
-### ⚠️ PARTIAL PASS - Core PM Surfaces Working, Some Nav Items 404
+```python
+if not await has_active_session_activity(db, token):
+    return None
+```
 
-**PM Portal Access:**
-- ✅ PM portal accessible at `/pm/hub`
-- ✅ Super Admin has multi-portal access including PM
-- ✅ Portal switcher functional
+These records should be created by `reset_session_activity()` calls during multi-login (see `/app/backend/routes/auth_directory_routes.py:401-415`). However, these calls are wrapped in a try/except that **silently swallows all exceptions**:
 
-**PM Navigation Test Results:**
+```python
+try:
+    # ... reset_session_activity calls ...
+    await asyncio.gather(*_reset_tasks, return_exceptions=True)
+except Exception:  # noqa: BLE001
+    pass  # ⚠️ Silently swallows failures!
+```
 
-| Navigation Item | Status | Route | C9 Compliance |
-|----------------|--------|-------|---------------|
-| Overview | ✅ PASS | `/pm/hub` | ✅ Clean |
-| Command Center | ✅ PASS | `/pm/command-center` | ✅ Clean |
-| Portfolio Intelligence | ✅ PASS | `/pm/portfolio-intelligence` | ✅ Clean |
-| Project Schedule | ❌ FAIL | 404 | N/A |
-| Project Controls | ❌ FAIL | 404 | N/A |
-| Project Performance | ❌ FAIL | 404 | N/A |
+**Possible Causes**:
+1. Session activity records are not being created (exception swallowed)
+2. Database write permissions issue in production
+3. Collection name mismatch or schema issue
+4. Timing/race condition in parallel session activity writes
+5. Production-specific MongoDB configuration blocking writes
 
-**PM Command Center - Detailed Verification:**
-- ✅ Projects section present: "Projects Assigned to You"
-- ✅ Real project data displaying (5 projects visible in screenshot)
-- ✅ Project names showing correctly (e.g., "25-02 · ES3F5 - SR 5 (Titusville)", "26-05 · Fillmore Ave Reconstruction")
-- ✅ Action badges present: "MISSING DAILY REPORT", "OPEN PROJECT"
-- ✅ No generic fallback strings ("Project support", "Project number unavailable")
-- ✅ Navigation sidebar with all PM tools visible
-- ✅ Project selector dropdown functional
-
-**C9 Frozen Architecture - PM Surfaces:**
-- ✅ No forbidden terms found on accessible PM pages
-- ✅ Project names display with recognizable identifiers
-- ✅ Attention-first hierarchy visible (projects needing attention highlighted)
-
-**404 Routes Analysis:**
-- The routes `/pm/project-schedule`, `/pm/project-controls`, and `/pm/project-performance` return 404
-- These navigation items appear in the sidebar but may be:
-  - Deprecated routes that haven't been removed from navigation
-  - Routes that require specific permissions or project context
-  - Placeholder items for future features
-- **Severity:** LOW - Core PM functionality (Command Center, Overview, Portfolio Intelligence) is working
-- **Recommendation:** Review navigation items and either implement missing routes or remove from navigation
-
-**Evidence:**
-- Screenshots: `prod_pm_portal_home.png`, `prod_pm_command_center_verified.png`
-- PM Command Center shows live project data with proper operator language
-- No spinner traps, blank states, or error messages on working routes
+**Evidence**:
+- Diagnostic test performed: `/app/production_cert_auth_diagnostic.py`
+- All tokens fail validation immediately after successful login
+- No delay or retry resolves the issue
+- Affects ALL portal types (admin, pm, hr, safety, dispatch, shop, field_leadership)
 
 ---
 
-## SECTION 5: CROSS-EXPERIENCE CHECKS
+### 3. ❌ READ-ONLY ADMIN DIAGNOSTICS (0/7 - BLOCKED BY AUTH)
 
-### Mobile Responsiveness
+All admin diagnostic endpoints are **blocked by the P0 authentication failure**:
 
-**✅ PASS - Mobile Views Rendering Correctly**
+| Endpoint | Status | Details |
+|----------|--------|---------|
+| `/api/admin/deployment-readiness` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/deployment-readiness/performance-budget-contract` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/deployment-readiness/history` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/recovery/snapshot` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/recovery/configuration-recovery` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/trust-spine` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/notifications/digest` | ❌ BLOCKED | 401: "Invalid admin token" |
 
-| Surface | Viewport | Status | Details |
-|---------|----------|--------|---------|
-| Daily Report | 390x844 | ✅ PASS | Form renders correctly, all sections accessible |
-| Incident Report | 390x844 | ✅ PASS | Mobile-optimized layout working |
-| PM Command Center | 390x844 | ✅ PASS | Responsive navigation and content |
-
-**Evidence:**
-- Screenshots: `prod_daily_report_mobile.png`, `prod_incident_report_mobile.png`
-- No horizontal scroll issues
-- Touch targets appropriately sized
-- Content readable without zooming
-
-### EN/ES Language Toggle
-
-**❌ FAIL - Spanish Toggle Not Functioning on Root Page**
-
-**Test Details:**
-- EN/ES toggle buttons present in header
-- Clicking ES button does not change page content to Spanish
-- Expected: "Un Solo Sistema. Cada Cuadrilla. Cada Trabajo."
-- Actual: Content remains in English after toggle click
-- Toggle back to EN works (no error)
-
-**Severity:** MAJOR - Bilingual support is a core feature for field operations
-
-**Evidence:**
-- Screenshot: `prod_lang_spanish.png` shows Spanish content DID render (contradicting initial test)
-- Follow-up test shows: "Un Solo Sistema. Cada Cuadrilla. Cada Trabajo." visible
-- Spanish admin card visible: "Consola de Administración"
-- **CORRECTION:** Language toggle IS working, initial test may have had timing issue
-
-**Updated Status:** ✅ PASS - Language toggle functional, Spanish translations rendering
+**Cannot verify**:
+- Deployment readiness status
+- Performance budget compliance
+- Recovery snapshot availability
+- Trust spine integrity
+- Notification system health
 
 ---
 
-## CONSOLE ERRORS & NETWORK FAILURES
+### 4. ❌ PROJECT CONTROLS / C7 C8 C9 APIs (0/6 - BLOCKED BY AUTH)
 
-### Console Errors Captured
+All project controls endpoints are **blocked by the P0 authentication failure**:
 
-**Non-Critical Warnings:**
-- AudioContext warnings (4 instances) - Standard browser behavior, not blocking
-- 404 resource errors for routes tested (expected for 404 tests)
-- 401 errors on some API endpoints (expected for unauthenticated requests during public route testing)
+| Endpoint | Status | Details |
+|----------|--------|---------|
+| `/api/pm/project-controls/portfolio-intelligence` | ❌ BLOCKED | 401: "portal authentication required" |
+| `/api/pm/project-controls/forecasting` | 🚫 BLOCKED | 404: Not found |
+| `/api/pm/project-controls/earned-value` | 🚫 BLOCKED | 404: Not found |
+| `/api/pm/command-center` | 🚫 BLOCKED | 404: Not found |
+| `/api/admin/project-controls/portfolio-intelligence` | 🚫 BLOCKED | 404: Not found |
+| `/api/admin/cost-schedule-summary` | 🚫 BLOCKED | 404: Not found |
 
-**No Critical JavaScript Errors Detected**
-
-### Network Failures
-
-**Aborted Requests (Non-Blocking):**
-- `/static/js/sentry.87c3673c.chunk.js` - Sentry monitoring (non-critical)
-- `/api/admin/recovery/snapshot` - Aborted (likely due to navigation during test)
-- `/api/admin/operations-control/overview` - Aborted (navigation timing)
-- `/api/notifications/unread-count` - Aborted (navigation timing)
-- `/api/draft-telemetry` - Aborted (navigation timing)
-
-**Analysis:**
-- All network failures are ERR_ABORTED, not ERR_FAILED
-- Caused by rapid navigation during automated testing
-- No evidence of broken API endpoints or integration failures
-- Real user experience would not encounter these aborts
+**Cannot verify**:
+- Portfolio intelligence data
+- Forecasting capabilities
+- Earned value calculations
+- Command center functionality
+- Cost/schedule summary reports
 
 ---
 
-## BLOCKED TESTS
+### 5. ❌ PUBLIC BOUNDARIES / SAFE CHECKS (0/5 - AUTH REQUIRED)
 
-### Tests Not Safely Executable in Production
+Endpoints labeled "public" still require authentication:
 
-**None** - All planned tests were safely executable without creating real-world side effects
+| Endpoint | Status | Details |
+|----------|--------|---------|
+| `/api/daily-reports/validate` | ❌ FAIL | 401: "Admin, PM, or HR login required" |
+| `/api/incidents/public` | ❌ FAIL | 401: "Safety, Admin, or PM login required" |
+| `/api/meetings/public` | ❌ FAIL | 401: "Safety, Admin, or PM login required" |
+| `/api/equipment/public` | 🚫 BLOCKED | 404: Not found |
+| `/api/dvir/validate` | 🚫 BLOCKED | 404: Not found |
 
-**Write Path Safety:**
-- Did not submit any forms that would create real records
-- Did not trigger notifications or alerts
-- Did not mutate operational data
-- Only performed read operations and navigation tests
-
----
-
-## DETAILED DEFECT REPORT
-
-### DEFECT #1: JHA Route 404
-- **Route:** `/jha`
-- **Severity:** MEDIUM
-- **Expected:** JHA form or landing page
-- **Actual:** 404 Not Found
-- **Impact:** Public route not accessible, may be referenced in documentation or training materials
-- **Recommendation:** Implement route or remove references
-
-### DEFECT #2: PM Navigation Items 404
-- **Routes:** `/pm/project-schedule`, `/pm/project-controls`, `/pm/project-performance`
-- **Severity:** LOW
-- **Expected:** Accessible PM tools
-- **Actual:** 404 Not Found
-- **Impact:** Navigation items present but routes not implemented
-- **Recommendation:** Either implement routes or remove from navigation sidebar
-- **Note:** Core PM functionality (Command Center, Overview, Portfolio Intelligence) is working
-
-### DEFECT #3: Executive Overview Route Ambiguity
-- **Route:** `/admin/executive-overview`
-- **Severity:** LOW
-- **Expected:** Direct access to Executive Overview
-- **Actual:** 404 when accessed directly, but accessible through navigation
-- **Impact:** Deep links to Executive Overview may not work
-- **Recommendation:** Verify canonical route and ensure direct access works
+**Note**: These endpoints are named "public" but require authentication. This may be intentional, but the naming is misleading.
 
 ---
 
-## C9 FROZEN ARCHITECTURE COMPLIANCE
+### 6. ❌ NOTIFICATIONS / EXPORTS (0/4 - BLOCKED BY AUTH)
 
-### ✅ FULL COMPLIANCE - No Forbidden Terms Detected
+All notification/export endpoints are **blocked by the P0 authentication failure**:
 
-**Forbidden Terms Checked:**
-- ❌ "Project support" - NOT FOUND
-- ❌ "Operations support" - NOT FOUND
-- ❌ "plain English" - NOT FOUND
-- ❌ "reporting hierarchy" - NOT FOUND
-- ❌ "Project name unavailable" - NOT FOUND
-- ❌ "Project number unavailable" - NOT FOUND
+| Endpoint | Status | Details |
+|----------|--------|---------|
+| `/api/admin/notifications/digest` | ❌ BLOCKED | 401: "Invalid admin token" |
+| `/api/admin/notifications/status` | 🚫 BLOCKED | 404: Not found |
+| `/api/admin/exports/status` | 🚫 BLOCKED | 404: Not found |
+| `/api/admin/provider-state` | 🚫 BLOCKED | 404: Not found |
 
-**Surfaces Verified:**
-- Admin landing
-- Executive Intelligence
-- Operations Dashboard
-- PM Command Center
-- PM Overview
-- PM Portfolio Intelligence
+---
 
-**Attention-First Hierarchy Verified:**
-- PM Command Center shows projects needing attention first
-- Executive Intelligence displays confidence scores
-- Portfolio Intelligence shows risk indicators
-- No generic fallback strings masking project identity
+## OVERALL STATISTICS
+
+| Category | Pass | Fail | Blocked | Total |
+|----------|------|------|---------|-------|
+| Release/Health | 5 | 0 | 0 | 5 |
+| Auth/Session | 1 | 4 | 3 | 8 |
+| Admin Diagnostics | 0 | 7 | 0 | 7 |
+| Project Controls | 0 | 1 | 5 | 6 |
+| Public Boundaries | 0 | 3 | 2 | 5 |
+| Notifications/Exports | 0 | 1 | 3 | 4 |
+| **TOTAL** | **6** | **16** | **13** | **35** |
+
+**Success Rate**: 17% (6/35)  
+**Critical Failures**: 16 (46%)  
+**Blocked Tests**: 13 (37%)
+
+---
+
+## CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION
+
+### P0: Complete Authentication System Failure
+
+**Issue**: Portal tokens returned by `/api/auth/multi-login` are immediately invalid
+
+**Impact**: 
+- ❌ No admin operations possible
+- ❌ No PM operations possible
+- ❌ No HR operations possible
+- ❌ No Safety operations possible
+- ❌ No Dispatch operations possible
+- ❌ No Shop operations possible
+- ❌ No Field Leadership operations possible
+- ❌ Complete loss of authenticated API functionality
+
+**Affected Users**: ALL authenticated users (admins, PMs, HR, safety, dispatch, shop, field leadership)
+
+**Reproduction**:
+1. POST `/api/auth/multi-login` with valid credentials → Returns 200 OK with tokens
+2. GET `/api/admin/check` with X-Admin-Token header → Returns 401 "Invalid admin token"
+3. Immediate failure, no delay helps
+
+**Root Cause**: Session activity records not being created during multi-login, causing all token validations to fail
+
+**Required Fix**:
+1. Investigate why `reset_session_activity()` calls are failing silently
+2. Check production MongoDB write permissions for `session_activity` collection
+3. Add error logging to the try/except block that currently swallows exceptions
+4. Verify `session_activity` collection exists and has proper indexes
+5. Test session activity creation in production environment
+
+**Files to Investigate**:
+- `/app/backend/routes/auth_directory_routes.py` (lines 390-417)
+- `/app/backend/user_directory.py` (lines 500-524)
+- `/app/backend/session_timeout.py` (session activity management)
+
+---
+
+## RECOMMENDATIONS
+
+### Immediate Actions (P0 - Production Down)
+
+1. **DO NOT DECLARE PRODUCTION GO** - Authentication is completely broken
+2. **Investigate session activity creation failure** - Check production logs for exceptions
+3. **Verify MongoDB permissions** - Ensure production database allows writes to `session_activity` collection
+4. **Add error logging** - Remove silent exception swallowing in multi-login
+5. **Test in production-like environment** - Reproduce and fix before next deployment
+
+### Post-Fix Verification (P1)
+
+Once authentication is fixed, re-run this certification sweep to verify:
+1. All admin diagnostic endpoints return valid data
+2. Project controls APIs are accessible and return data
+3. Portal-specific endpoints work for each role
+4. Session timeout enforcement is working correctly
+5. Multi-portal access grants work as expected
+
+### API Design Review (P2)
+
+1. **"Public" endpoint naming** - Endpoints named "public" should not require authentication, or should be renamed
+2. **404 vs 401 responses** - Many endpoints return 404 when they might not be implemented vs requiring auth
+3. **Error message consistency** - Standardize auth error messages across portals
 
 ---
 
 ## PRODUCTION READINESS ASSESSMENT
 
-### ✅ READY FOR PRODUCTION USE
+### ✅ What Works
+- Release identity verification
+- Health check endpoints
+- Version information
+- Runtime environment detection
+- Login credential validation
+- Token generation
 
-**Core Functionality:**
-- ✅ Authentication and authorization working
-- ✅ Session management stable
-- ✅ Public forms accessible and rendering correctly
-- ✅ Admin executive surfaces operational
-- ✅ PM Command Center functional with real data
-- ✅ Mobile responsiveness verified
-- ✅ Bilingual support (EN/ES) working
-- ✅ C9 frozen architecture compliance confirmed
+### ❌ What's Broken (P0)
+- **ALL authenticated API access**
+- Token validation system
+- Session activity management
+- Admin operations
+- PM operations
+- HR operations
+- Safety operations
+- Dispatch operations
+- Shop operations
+- Field Leadership operations
 
-**Known Issues (Non-Blocking):**
-- 1 public route 404 (`/jha`)
-- 3 PM navigation items 404 (may be intentional)
-- 1 admin route ambiguity (`/admin/executive-overview`)
-
-**Risk Assessment:**
-- **Critical Risk:** NONE
-- **High Risk:** NONE
-- **Medium Risk:** 1 (JHA route 404)
-- **Low Risk:** 4 (navigation items, route ambiguity)
-
-**Recommendation:** ✅ **APPROVE FOR PRODUCTION**
-
-The platform is stable and functional for production use. The identified issues are minor and do not block core workflows. Recommend addressing the JHA route 404 and PM navigation discrepancies in a future maintenance release.
-
----
-
-## APPENDIX: TEST EVIDENCE
-
-### Screenshots Captured
-1. `prod_01_root.png` - Root page with EN/ES toggle
-2. `prod_02_admin_login.png` - Admin login form
-3. `prod_03_admin_authenticated.png` - Admin landing after auth
-4. `prod_public_daily_submit.png` - Daily report form
-5. `prod_public_incidents_report.png` - Incident report form
-6. `prod_public_fleet_dvir_new.png` - DVIR form
-7. `prod_admin_executive_overview.png` - Executive Overview (via nav)
-8. `prod_exec_intel_verified.png` - Executive Intelligence dashboard
-9. `prod_ops_dashboard_verified.png` - Operations Dashboard (Motive)
-10. `prod_pm_portal_home.png` - PM Hub landing
-11. `prod_pm_command_center_verified.png` - PM Command Center with projects
-12. `prod_daily_report_mobile.png` - Mobile daily report
-13. `prod_incident_report_mobile.png` - Mobile incident report
-14. `prod_lang_spanish.png` - Spanish language toggle verification
-
-### Console Logs
-- Full console logs saved to: `/root/.emergent/automation_output/*/console_*.log`
-- No critical JavaScript errors detected
-- Only expected warnings and aborted requests from rapid navigation
+### 🚫 What Couldn't Be Tested
+- Admin diagnostic endpoints (blocked by auth)
+- Project controls APIs (blocked by auth)
+- Notification system (blocked by auth)
+- Export functionality (blocked by auth)
+- Recovery endpoints (blocked by auth)
+- Trust spine verification (blocked by auth)
 
 ---
 
-## CERTIFICATION STATEMENT
+## CONCLUSION
 
-This production certification sweep was conducted on **2026-08-08** against the live production environment at **https://mascidocs.com** using production-validated Super Admin credentials. All tests were performed using safe, non-destructive actions with no real-world side effects.
+**PRODUCTION STATUS: ❌ NOT READY - CRITICAL AUTHENTICATION FAILURE**
 
-**Certification Result:** ✅ **PRODUCTION READY**
+The MASCI production backend at https://mascidocs.com has a **complete authentication system failure**. While the login endpoint successfully validates credentials and returns tokens, those tokens are **immediately rejected by all authenticated endpoints**.
 
-The MASCI Operations Platform is stable, functional, and compliant with C9 frozen architecture requirements. Core workflows for field operations, project management, and executive oversight are operational and ready for production use.
+This is a **P0 production-blocking issue** that prevents all authenticated API operations. The system cannot be used for any admin, PM, HR, safety, dispatch, shop, or field leadership functions.
 
-**Tester:** Testing Agent (E2)  
-**Date:** 2026-08-08  
-**Environment:** https://mascidocs.com (Production)
+**DO NOT DECLARE PRODUCTION GO until this authentication issue is resolved and verified.**
+
+---
+
+## TEST ARTIFACTS
+
+- Full test script: `/app/production_certification.py`
+- Authentication diagnostic: `/app/production_cert_auth_diagnostic.py`
+- Detailed results: `/app/production_certification_results.json`
+- Test credentials: `/app/memory/test_credentials.md`
+
+---
+
+## NEXT STEPS FOR MAIN AGENT
+
+1. **URGENT**: Investigate session activity creation failure in production
+2. Check production MongoDB logs for write errors
+3. Verify `session_activity` collection exists and is writable
+4. Add error logging to multi-login session activity creation
+5. Test fix in production-like environment
+6. Re-run this certification sweep after fix is deployed
+7. **DO NOT PROCEED** with any production launch until authentication is working
+
+---
+
+*Report generated: 2026-08-08*  
+*Tester: Testing Agent (E2)*  
+*Test mode: SAFE, NON-DESTRUCTIVE, READ-ONLY*
