@@ -18540,6 +18540,19 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                     db, workflow=kind, stage=STAGE_COMPLETED,
                     record=record, module=_spine_module, status="ok",
                 )
+            elif (
+                delivery.get("notification_state") == STATUS_CONFIGURATION_BLOCKED
+                and contract.get("delivery_mode") != DELIVERY_MODE_PROVIDER_LIVE
+            ):
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_COMPLETED_FOR_ENVIRONMENT,
+                    record=record, module=_spine_module, status="ok",
+                    remediation="Preview environment intentionally blocked live provider delivery; workflow completed for the governed environment.",
+                )
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_COMPLETED,
+                    record=record, module=_spine_module, status="ok",
+                )
             else:
                 await emit_workflow_stage(
                     db, workflow=kind, stage=STAGE_PROVIDER_ACCEPTED,

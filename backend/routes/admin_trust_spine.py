@@ -19,12 +19,13 @@ Band rules (no fake-green):
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 
 from lib.canonical_truth import canonical_truth_surface
+from lib.governed_certification_lane import GOVERNED_CERTIFICATION_PROJECT_NUMBER
 from lib.ots_truth import (
     CORRELATED,
     OBSERVED,
@@ -36,6 +37,11 @@ from lib.ots_truth import (
     public_ots_projection,
 )
 from lib.production_certification import WORKFLOW_CERTIFICATION_POLICIES
+from lib.synthetic_safety_filter import (
+    INSPECTION_FIELDS,
+    JHA_FIELDS,
+    is_synthetic_safety_doc,
+)
 from lib.trust_spine import (
     WORKFLOW_EXPECTED_STAGES,
     canonical_workflows_for_event,
@@ -54,6 +60,57 @@ PREVIEW_SAFE_DELIVERY_WORKFLOWS = {
     "dvir",
 }
 
+HEALTH_HEALTHY = "healthy"
+HEALTH_HEALTHY_QUIET = "healthy_quiet"
+HEALTH_AGING = "aging"
+HEALTH_STALE = "stale"
+HEALTH_DEGRADED = "degraded"
+HEALTH_NOT_YET_EXERCISED = "not_yet_exercised"
+HEALTH_BLOCKED = "blocked"
+HEALTH_UNKNOWN = "unknown"
+
+
+def _current_week_ending(today: Optional[date] = None) -> str:
+    anchor = today or datetime.now(timezone.utc).date()
+    delta = (anchor.weekday() + 1) % 7
+    return (anchor - timedelta(days=delta)).isoformat()
+
+
+def _parse_date_only(value: Any) -> Optional[date]:
+    text = str(value or "").strip()[:10]
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _is_certification_project(doc: Optional[Dict[str, Any]]) -> bool:
+    if not doc:
+        return False
+    return str(doc.get("project_number") or "").strip() == GOVERNED_CERTIFICATION_PROJECT_NUMBER
+
+
+async def _latest_non_synthetic_safety_doc(db, collection: str, fields: tuple[str, ...]) -> Optional[Dict[str, Any]]:
+    cursor = db[collection].find({}, {"_id": 0}).sort("created_at", -1).limit(40)
+    async for doc in cursor:
+        if _is_certification_project(doc):
+            continue
+        if is_synthetic_safety_doc(doc, fields):
+            continue
+        return doc
+    return None
+
+
+async def _find_event_record(db, workflow: str, record_id: str) -> List[Dict[str, Any]]:
+    if not record_id:
+        return []
+    return await db.trust_spine_events.find(
+        {"workflow": workflow, "record_id": record_id},
+        {"_id": 0, "ts": 1, "stage": 1, "status": 1, "module": 1, "failure_reason": 1, "record_id": 1},
+    ).sort("ts", 1).to_list(30)
+
 
 def _workflow_policy_window_hours(workflow: str) -> int:
     policy = WORKFLOW_CERTIFICATION_POLICIES.get(workflow)
@@ -65,6 +122,340 @@ def _hours_since(ts: Optional[str], now: datetime) -> Optional[float]:
     if not dt:
         return None
     return round((now - dt).total_seconds() / 3600.0, 1)
+
+
+async def _apply_cadence_semantics(db, slot: Dict[str, Any], *, now: datetime) -> None:
+    workflow = str(slot.get("workflow") or "")
+    last_success = slot.get("last_success") or {}
+    last_success_ts = _parse_iso(last_success.get("ts"))
+
+    slot.setdefault("health_state", HEALTH_UNKNOWN)
+    slot.setdefault("cadence_classification", "UNKNOWN")
+    slot.setdefault("current_freshness_policy", f"{slot.get('freshness_window_hours')}h workflow freshness window")
+    slot.setdefault("downstream_consumers", [])
+
+    if workflow == "dispatch-assignment":
+        latest = await db.dispatch_assignments.find_one({}, {"_id": 0, "id": 1, "project_number": 1, "created_at": 1, "updated_at": 1}, sort=[("created_at", -1)])
+        latest_created = _parse_iso((latest or {}).get("created_at"))
+        has_new_activity = bool(last_success_ts and latest_created and latest_created > last_success_ts)
+        slot.update({
+            "business_purpose": "Creates governed dispatch assignments only when a real transportation move is scheduled.",
+            "evidence_source_detail": "dispatch_assignments + trust_spine_events(dispatch-assignment)",
+            "expected_cadence": "event-driven",
+            "source_latest_activity": latest,
+            "current_freshness_policy": f"{slot.get('freshness_window_hours')}h flat window before cadence override",
+            "new_business_activity_expected": "only when a new dispatch assignment is created",
+            "lack_of_activity_normal": "yes",
+            "downstream_consumers": ["Dispatch workspace", "transportation execution", "admin operations views"],
+            "regression_guard": "Any dispatch assignment created after the last successful Trust Spine completion must leave quiet-green immediately.",
+        })
+        if last_success_ts and not has_new_activity:
+            slot.update({
+                "cadence_classification": "C",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "quiet_current",
+                "reason": "No recent applicable dispatch assignment occurred; the most recent governed assignment processed correctly.",
+                "remediation": None,
+            })
+        return
+
+    if workflow == "inspection":
+        latest_doc = await _latest_non_synthetic_safety_doc(db, "inspections", INSPECTION_FIELDS)
+        latest_created = _parse_iso((latest_doc or {}).get("created_at"))
+        latest_doc_id = str((latest_doc or {}).get("doc_id") or "")
+        latest_events = await _find_event_record(db, workflow, latest_doc_id)
+        latest_completed = any(row.get("stage") in {"completed", "completed_for_environment"} and row.get("status") == "ok" for row in latest_events)
+        has_new_legit_activity = bool(last_success_ts and latest_created and latest_created > last_success_ts)
+        slot.update({
+            "business_purpose": "Routes a legitimate safety inspection through governed delivery proof when an inspection is filed.",
+            "evidence_source_detail": "inspections + trust_spine_events(inspection)",
+            "expected_cadence": "event-driven",
+            "source_latest_activity": latest_doc,
+            "current_freshness_policy": f"{slot.get('freshness_window_hours')}h flat window before cadence override",
+            "new_business_activity_expected": "only when a legitimate inspection is submitted",
+            "lack_of_activity_normal": "yes",
+            "downstream_consumers": ["Safety dashboard", "field leadership", "executive safety rollups"],
+            "regression_guard": "A newer legitimate inspection than the last successful Trust Spine completion must not remain quiet-green unless its lifecycle completes.",
+        })
+        if latest_completed or (last_success_ts and latest_created and latest_created <= last_success_ts):
+            slot.update({
+                "cadence_classification": "C",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "quiet_current",
+                "reason": "No newer legitimate inspection requires processing after the last successful inspection lifecycle.",
+                "remediation": None,
+            })
+        elif has_new_legit_activity:
+            slot.update({
+                "cadence_classification": "A",
+                "health_state": HEALTH_DEGRADED,
+                "band": "amber",
+                "reason": "A newer legitimate inspection exists, but its Trust Spine lifecycle never reached a truthful terminal stage.",
+                "remediation": "Repair the inspection submission path so legitimate inspections emit a complete or completed-for-environment terminal event.",
+            })
+        return
+
+    if workflow == "jha":
+        latest_doc = await _latest_non_synthetic_safety_doc(db, "jhas", JHA_FIELDS)
+        latest_doc_id = str((latest_doc or {}).get("doc_id") or "")
+        latest_events = await _find_event_record(db, workflow, latest_doc_id)
+        latest_completed = any(row.get("stage") in {"completed", "completed_for_environment"} and row.get("status") == "ok" for row in latest_events)
+        latest_created = _parse_iso((latest_doc or {}).get("created_at"))
+        slot.update({
+            "business_purpose": "Captures a governed Job Hazard Analysis and its proof-chain when a legitimate JHA is submitted.",
+            "evidence_source_detail": "jhas + trust_spine_events(jha)",
+            "expected_cadence": "event-driven",
+            "source_latest_activity": latest_doc,
+            "current_freshness_policy": f"{slot.get('freshness_window_hours')}h flat window before cadence override",
+            "new_business_activity_expected": "only when a legitimate JHA is submitted",
+            "lack_of_activity_normal": "yes",
+            "downstream_consumers": ["Safety dashboard", "field leadership", "executive safety rollups"],
+            "regression_guard": "A controlled certification JHA must produce a truthful terminal Trust Spine stage before JHA can be marked healthy.",
+        })
+        if latest_completed or (last_success_ts and (latest_created is None or latest_created <= last_success_ts)):
+            slot.update({
+                "cadence_classification": "C",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "quiet_current",
+                "reason": "The latest legitimate or controlled-certification JHA already produced terminal proof and no newer JHA is pending.",
+                "remediation": None,
+            })
+        else:
+            slot.update({
+                "cadence_classification": "E",
+                "health_state": HEALTH_NOT_YET_EXERCISED,
+                "band": "amber-no-activity",
+                "reason": "A current governed preview certification chain for a legitimate JHA has not yet produced terminal proof, so executable readiness remains unproven.",
+                "remediation": "Run one clearly tagged controlled-certification JHA through the real submission path and verify terminal Trust Spine proof.",
+            })
+        return
+
+    if workflow == "operational-events-materialization":
+        latest_source = await db.motive_events.find_one({}, {"_id": 0, "id": 1, "event_at": 1, "created_at": 1, "event_family": 1}, sort=[("created_at", -1)])
+        latest_target = await db.operational_events.find_one({}, {"_id": 0, "id": 1, "occurred_at": 1, "updated_at": 1, "event_type": 1}, sort=[("updated_at", -1)])
+        source_created = _parse_iso((latest_source or {}).get("created_at") or (latest_source or {}).get("event_at"))
+        target_updated = _parse_iso((latest_target or {}).get("updated_at") or (latest_target or {}).get("occurred_at"))
+        if source_created and target_updated and source_created > target_updated:
+            slot.update({
+                "cadence_classification": "D",
+                "health_state": HEALTH_STALE,
+                "band": "amber",
+                "business_purpose": "Normalizes raw Motive presence events into canonical operational_events.",
+                "evidence_source_detail": "motive_events → operational_events via routes.operational_events.materialize",
+                "expected_cadence": "backlog-driven / infrastructure",
+                "source_latest_activity": latest_source,
+                "current_freshness_policy": f"{slot.get('freshness_window_hours')}h flat window before backlog-aware override",
+                "new_business_activity_expected": "yes while newer raw motive_events exist",
+                "lack_of_activity_normal": "no when raw motive_events are newer than operational_events",
+                "downstream_consumers": ["Equipment Location", "operational intelligence", "transport verification"],
+                "reason": "Raw motive_events are newer than the canonical operational_events read model, so the operational-events materialization state is truly stale.",
+                "remediation": "Run the real materialization workflow against the current backlog and verify operational_events catches up to motive_events.",
+                "regression_guard": "If motive_events.created_at is newer than operational_events.updated_at, materialization must not report healthy.",
+            })
+        elif source_created and target_updated and source_created <= target_updated:
+            slot.update({
+                "cadence_classification": "C",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "quiet_current",
+                "business_purpose": "Normalizes raw Motive presence events into canonical operational_events.",
+                "evidence_source_detail": "motive_events → operational_events via routes.operational_events.materialize",
+                "expected_cadence": "backlog-driven / infrastructure",
+                "source_latest_activity": latest_source,
+                "current_freshness_policy": f"{slot.get('freshness_window_hours')}h flat window before backlog-aware override",
+                "new_business_activity_expected": "only when newer raw motive_events arrive than the current operational_events read model",
+                "lack_of_activity_normal": "yes when no newer raw motive_events exist",
+                "downstream_consumers": ["Equipment Location", "operational intelligence", "transport verification"],
+                "reason": "No newer raw motive_events exist beyond the canonical operational_events read model, so the materialization workflow is healthy but quiet.",
+                "remediation": None,
+                "regression_guard": "If motive_events.created_at moves ahead of operational_events.updated_at, materialization must leave quiet-green immediately.",
+            })
+        return
+
+    if workflow == "oppc-cost-code-plan":
+        latest = await db.jobs_master.find_one(
+            {"oppc_planning_lifecycle.last_mutated_at": {"$exists": True}},
+            {"_id": 0, "project_number": 1, "oppc_planning_lifecycle": 1, "oppc_last_weekly_rollover": 1},
+            sort=[("oppc_planning_lifecycle.last_mutated_at", -1)],
+        )
+        lifecycle = (latest or {}).get("oppc_planning_lifecycle") or {}
+        rollover = (latest or {}).get("oppc_last_weekly_rollover") or {}
+        latest_mutated = _parse_iso(lifecycle.get("last_mutated_at"))
+        rollover_applied = _parse_iso(rollover.get("applied_at"))
+        mutation_is_rollover_side_effect = bool(
+            latest_mutated and rollover_applied and abs((latest_mutated - rollover_applied).total_seconds()) <= 90
+        )
+        if last_success_ts and latest_mutated and (latest_mutated <= last_success_ts or mutation_is_rollover_side_effect):
+            slot.update({
+                "cadence_classification": "F",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "source_current",
+                "business_purpose": "Tracks governed project schedule / cost-code plan edits when the planning source changes.",
+                "evidence_source_detail": "jobs_master.oppc_planning_lifecycle + trust_spine_events(oppc-cost-code-plan)",
+                "expected_cadence": "on-demand / source-mutation driven",
+                "source_latest_activity": latest,
+                "new_business_activity_expected": "only when a planner changes the cost-code schedule or planning lifecycle",
+                "lack_of_activity_normal": "yes",
+                "downstream_consumers": ["PM schedule workspace", "Monday review", "forecasting"],
+                "reason": "No newer direct cost-code-plan mutation exists after the last successful lifecycle; the prior weekly freshness rule was too broad for this mutation-driven workflow.",
+                "remediation": None,
+                "regression_guard": "Compare oppc_planning_lifecycle.last_mutated_at to the latest successful Trust Spine completion before downgrading this workflow.",
+            })
+        return
+
+    if workflow == "oppc-forecasting":
+        latest_job = None
+        latest_row = None
+        async for job in db.jobs_master.find({"oppc_forecast_overrides.0": {"$exists": True}}, {"_id": 0, "project_number": 1, "oppc_forecast_overrides": 1}):
+            for row in (job.get("oppc_forecast_overrides") or []):
+                updated = _parse_iso(row.get("updated_at") or row.get("created_at"))
+                if updated and (latest_row is None or updated > latest_row):
+                    latest_row = updated
+                    latest_job = {"project_number": job.get("project_number"), "override": row}
+        if last_success_ts and latest_row and latest_row <= last_success_ts:
+            slot.update({
+                "cadence_classification": "F",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "source_current",
+                "business_purpose": "Captures governed forecast overrides only when forecast assumptions change.",
+                "evidence_source_detail": "jobs_master.oppc_forecast_overrides + trust_spine_events(oppc-forecasting)",
+                "expected_cadence": "on-demand / source-mutation driven",
+                "source_latest_activity": latest_job,
+                "new_business_activity_expected": "only when forecast assumptions or override windows change",
+                "lack_of_activity_normal": "yes",
+                "downstream_consumers": ["Forecasting workspace", "portfolio intelligence", "earned-value consumers"],
+                "reason": "No newer forecasting mutation exists after the last successful forecasting lifecycle; the prior weekly freshness rule was too broad for this governed on-demand workflow.",
+                "remediation": None,
+                "regression_guard": "Compare the latest forecast override mutation to the latest successful Trust Spine completion before downgrading forecasting.",
+            })
+        return
+
+    if workflow == "oppc-monday-look-behind":
+        current_week = _current_week_ending(now.date())
+        latest_completed_week = None
+        async for row in db.trust_spine_events.find({"workflow": workflow, "stage": "completed", "status": "ok"}, {"_id": 0, "record_id": 1, "ts": 1}).sort("ts", -1).limit(1):
+            latest_completed_week = str(row.get("record_id") or "").split(":")[-1]
+        if latest_completed_week == current_week:
+            slot.update({
+                "cadence_classification": "B",
+                "health_state": HEALTH_HEALTHY,
+                "band": "green",
+                "freshness_status": "cadence_current",
+                "business_purpose": "Captures the weekly Monday look-behind review for the current governed week-ending cycle.",
+                "evidence_source_detail": "jobs_master.oppc_monday_reviews + trust_spine_events(oppc-monday-look-behind)",
+                "expected_cadence": "weekly / business-due",
+                "new_business_activity_expected": f"yes — current cycle {current_week}",
+                "lack_of_activity_normal": "no once the weekly cycle is due",
+                "downstream_consumers": ["Monday review", "recovery planning", "C7/C8/C9 parity consumers"],
+                "reason": f"The current Monday look-behind cycle for week ending {current_week} is complete and current.",
+                "remediation": None,
+                "regression_guard": "The current week-ending cycle must complete before Monday look-behind can remain healthy.",
+            })
+        else:
+            slot.update({
+                "cadence_classification": "E",
+                "health_state": HEALTH_NOT_YET_EXERCISED,
+                "band": "amber-no-activity",
+                "business_purpose": "Captures the weekly Monday look-behind review for the current governed week-ending cycle.",
+                "evidence_source_detail": "jobs_master.oppc_monday_reviews + trust_spine_events(oppc-monday-look-behind)",
+                "expected_cadence": "weekly / business-due",
+                "new_business_activity_expected": f"yes — current cycle {current_week}",
+                "lack_of_activity_normal": "no once the weekly cycle is due",
+                "downstream_consumers": ["Monday review", "recovery planning", "C7/C8/C9 parity consumers"],
+                "reason": f"The current Monday look-behind cycle for week ending {current_week} has not been completed in this environment, so current certification evidence is missing.",
+                "remediation": "Run one clearly tagged current-cycle Monday look-behind certification through start → review → complete.",
+                "regression_guard": "The current week-ending cycle must complete before Monday look-behind can be marked healthy.",
+            })
+        return
+
+    if workflow == "oppc-monday-morning-briefing":
+        current_week = _current_week_ending(now.date())
+        latest_doc = await db.oppc_monday_briefings.find_one({}, {"_id": 0, "week_ending": 1, "status": 1, "generated_at": 1, "approved_at": 1, "frozen_at": 1, "updated_at": 1}, sort=[("frozen_at", -1), ("updated_at", -1)])
+        latest_frozen_week = str((latest_doc or {}).get("week_ending") or "") if str((latest_doc or {}).get("status") or "") == "frozen" else ""
+        if latest_frozen_week == current_week:
+            slot.update({
+                "cadence_classification": "B",
+                "health_state": HEALTH_HEALTHY,
+                "band": "green",
+                "freshness_status": "cadence_current",
+                "business_purpose": "Generates, approves, and freezes the weekly Monday Morning Briefing package.",
+                "evidence_source_detail": "oppc_monday_briefings + trust_spine_events(oppc-monday-morning-briefing)",
+                "expected_cadence": "weekly / business-due",
+                "new_business_activity_expected": f"yes — current cycle {current_week}",
+                "lack_of_activity_normal": "no once the weekly cycle is due",
+                "downstream_consumers": ["Executive Monday briefing", "PM briefing packet"],
+                "reason": f"The current Monday briefing cycle for week ending {current_week} is frozen and current.",
+                "remediation": None,
+                "regression_guard": "The current week-ending cycle must remain frozen before Monday briefing can remain healthy.",
+            })
+        else:
+            slot.update({
+                "cadence_classification": "E",
+                "health_state": HEALTH_NOT_YET_EXERCISED,
+                "band": "amber-no-activity",
+                "business_purpose": "Generates, approves, and freezes the weekly Monday Morning Briefing package.",
+                "evidence_source_detail": "oppc_monday_briefings + trust_spine_events(oppc-monday-morning-briefing)",
+                "expected_cadence": "weekly / business-due",
+                "new_business_activity_expected": f"yes — current cycle {current_week}",
+                "lack_of_activity_normal": "no once the weekly cycle is due",
+                "downstream_consumers": ["Executive Monday briefing", "PM briefing packet"],
+                "reason": f"The current Monday briefing cycle for week ending {current_week} has not been frozen in this environment, so current certification evidence is missing.",
+                "remediation": "Run one clearly tagged current-cycle Monday briefing certification through generate → approve → freeze.",
+                "regression_guard": "The current week-ending cycle must be frozen before Monday briefing can be marked healthy.",
+            })
+        return
+
+    if workflow == "oppc-weekly-rollover":
+        latest = await db.jobs_master.find_one({"oppc_last_weekly_rollover.applied_at": {"$exists": True}}, {"_id": 0, "project_number": 1, "oppc_last_weekly_rollover": 1}, sort=[("oppc_last_weekly_rollover.applied_at", -1)])
+        rollover = (latest or {}).get("oppc_last_weekly_rollover") or {}
+        anchor = _parse_date_only(rollover.get("rollover_anchor_date"))
+        next_due = anchor + timedelta(days=7) if anchor else None
+        if next_due and now.date() < next_due:
+            slot.update({
+                "cadence_classification": "B",
+                "health_state": HEALTH_HEALTHY,
+                "band": "green",
+                "freshness_status": "cadence_current",
+                "business_purpose": "Applies the governed weekly rollover when the next planning-cycle anchor is due.",
+                "evidence_source_detail": "jobs_master.oppc_last_weekly_rollover + trust_spine_events(oppc-weekly-rollover)",
+                "expected_cadence": "weekly / due-date anchored",
+                "source_latest_activity": latest,
+                "new_business_activity_expected": f"only when the next rollover anchor {next_due.isoformat()} is due",
+                "lack_of_activity_normal": "yes before the next due anchor date",
+                "downstream_consumers": ["Project schedule workspace", "Monday review planning window"],
+                "reason": f"Weekly rollover is still within its governed cadence; the next rollover is not due until {next_due.isoformat()}.",
+                "remediation": None,
+                "regression_guard": "Do not downgrade weekly rollover before its next due anchor date.",
+            })
+        return
+
+    if workflow == "shop-defect":
+        latest = await db.fleet_defects.find_one({"inspection_kind": "manual_oos"}, {"_id": 0, "id": 1, "truck_unit_number": 1, "status": 1, "inspection_kind": 1}, sort=[("_id", -1)])
+        latest_id = str((latest or {}).get("id") or "")
+        last_record_id = str((last_success or {}).get("record_id") or "")
+        if latest_id and latest_id == last_record_id:
+            slot.update({
+                "cadence_classification": "C",
+                "health_state": HEALTH_HEALTHY_QUIET,
+                "band": "green",
+                "freshness_status": "quiet_current",
+                "business_purpose": "Tracks manual out-of-service shop defects only when Dispatch flips a unit OOS.",
+                "evidence_source_detail": "fleet_defects(manual_oos) + trust_spine_events(shop-defect)",
+                "expected_cadence": "event-driven",
+                "source_latest_activity": latest,
+                "new_business_activity_expected": "only when a manual OOS flip occurs",
+                "lack_of_activity_normal": "yes",
+                "downstream_consumers": ["Shop defect panel", "dispatch / fleet OOS visibility"],
+                "reason": "No recent applicable manual OOS flip occurred after the last successful shop-defect lifecycle.",
+                "remediation": None,
+                "regression_guard": "A new manual OOS defect after the last successful lifecycle must leave quiet-green immediately.",
+            })
+        return
 
 
 def _workflow_impact_profile(workflow: str) -> Dict[str, str]:
@@ -101,9 +492,20 @@ def _workflow_impact_profile(workflow: str) -> Dict[str, str]:
 
 def _workflow_root_cause(slot: Dict[str, Any]) -> str:
     workflow = str(slot.get("workflow") or "")
+    classification = str(slot.get("cadence_classification") or "")
     missing = list(slot.get("missing_stages") or [])
     freshness = str(slot.get("freshness_status") or "unknown")
     latest_module = (slot.get("latest") or {}).get("module") or "unknown emitter"
+    if classification == "C":
+        return "No recent applicable business event occurred after the last legitimate successful lifecycle; the workflow is healthy but quiet."
+    if classification == "B":
+        return "The workflow is still inside its governed due-date cadence, so older evidence remains current."
+    if classification == "E":
+        return "The workflow lacks current governed certification evidence for the active cycle, so executable readiness is not yet proven in this environment."
+    if classification == "F":
+        return "The previous freshness policy was broader than the workflow semantics; this workflow should be judged by source mutation or due-date readiness rather than elapsed wall-clock time alone."
+    if classification == "D":
+        return "The underlying business or infrastructure state is genuinely stale relative to newer source activity, so downstream truth is behind."
     if workflow == "oppc-enterprise-resource-coordination" and missing:
         return (
             "The enterprise OPPC read paths emitted only dashboard_updated evidence, so the workflow never satisfied its "
@@ -127,6 +529,17 @@ def _workflow_root_cause(slot: Dict[str, Any]) -> str:
 
 
 def _workflow_failing_dependency(slot: Dict[str, Any]) -> str:
+    classification = str(slot.get("cadence_classification") or "")
+    if classification == "C":
+        return "none — waiting for the next real business event is normal for this workflow"
+    if classification == "B":
+        return "none — current cadence window has not reached the next due event"
+    if classification == "E":
+        return "controlled certification evidence for the active governed cycle has not yet been exercised"
+    if classification == "F":
+        return "Trust Spine freshness policy was broader than the workflow's actual cadence semantics"
+    if classification == "D":
+        return "current source activity exists beyond the latest canonical processed evidence"
     if slot.get("failed_24h"):
         return str(((slot.get("last_failure") or {}).get("module")) or ((slot.get("latest") or {}).get("module")) or "unresolved failing module")
     if slot.get("missing_stages"):
@@ -150,20 +563,29 @@ def _workflow_degradation_entry(slot: Dict[str, Any]) -> Dict[str, Any]:
             "workflow_family": workflow_family(str(slot.get("workflow") or "")),
             "latest_emitter_module": latest.get("module") or last_success.get("module") or "—",
             "route": "/api/admin/trust-spine",
+            "evidence_source_detail": slot.get("evidence_source_detail"),
         },
         "current_value_state": {
             "reason": slot.get("reason"),
+            "health_state": slot.get("health_state"),
+            "cadence_classification": slot.get("cadence_classification"),
             "events_24h": slot.get("events_24h"),
             "events_policy_window": slot.get("events_policy_window"),
             "missing_stages": slot.get("missing_stages"),
             "latest_evidence_ts": latest.get("ts"),
             "last_success_ts": last_success.get("ts"),
+            "current_freshness_policy": slot.get("current_freshness_policy"),
         },
         "expected_value_state": {
             "freshness_window_hours": slot.get("freshness_window_hours"),
             "terminal_success_criteria": slot.get("terminal_success_criteria"),
             "expected_stages": slot.get("expected_stages"),
+            "expected_cadence": slot.get("expected_cadence"),
+            "new_business_activity_expected": slot.get("new_business_activity_expected"),
+            "lack_of_activity_normal": slot.get("lack_of_activity_normal"),
         },
+        "business_purpose": slot.get("business_purpose"),
+        "last_legitimate_evidence": slot.get("source_latest_activity") or last_success,
         "freshness": {
             "status": slot.get("freshness_status"),
             "age_hours": slot.get("freshness_age_hours"),
@@ -172,6 +594,7 @@ def _workflow_degradation_entry(slot: Dict[str, Any]) -> Dict[str, Any]:
         },
         "failing_dependency": _workflow_failing_dependency(slot),
         "affected_workflows": [slot.get("workflow")],
+        "downstream_consumers": slot.get("downstream_consumers") or [],
         "downstream_impact": profile["downstream_impact"],
         "c6_c7_c8_c9_impact": profile["c6_c7_c8_c9_impact"],
         "operator_data_trustworthy": profile["trustworthiness"],
@@ -665,6 +1088,8 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                     f"{len(seen_ok_stages)}/{len(expected) or 1} expected stage(s) satisfied"
                 )
                 slot["remediation"] = None
+
+            await _apply_cadence_semantics(db, slot, now=now)
 
             profile = _workflow_impact_profile(wf)
             slot["root_cause"] = _workflow_root_cause(slot)

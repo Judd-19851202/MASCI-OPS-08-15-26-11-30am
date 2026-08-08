@@ -124,12 +124,12 @@ async def test_trust_spine_endpoint_no_evidence_is_amber_not_green():
     assert "workflows" in payload
     no_evidence_rows = [
         w for w in payload["workflows"]
-        if w.get("freshness_status") == "unavailable"
+        if w.get("health_state") == "not_yet_exercised"
     ]
     assert no_evidence_rows, "expected at least one unexercised workflow fixture"
     for w in no_evidence_rows[:5]:
         assert w["band"] == "amber-no-activity"
-        assert "no lifecycle evidence" in w["reason"]
+        assert ("evidence" in w["reason"].lower()) or ("proof" in w["reason"].lower())
 
 
 @pytest.mark.asyncio

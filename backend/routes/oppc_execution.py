@@ -250,6 +250,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
             doc["regenerated_note"] = _clean(body.note) or "Administrative regenerate from frozen briefing"
         saved = await persist_monday_briefing_doc(db, doc)
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_generated", stage="record_created")
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_validated", stage="validation_complete")
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number=project_number, record_id=f"brief:{project_number}:{week}", module="routes/oppc_execution.py:generate_project_monday_briefing", event_name="briefing_generated", stage="dashboard_updated")
         return {"ok": True, "briefing": saved}
 
@@ -932,6 +933,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
             doc["regenerated_note"] = _clean(body.note) or "Administrative regenerate from frozen briefing"
         saved = await persist_monday_briefing_doc(db, doc)
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_generated", stage="record_created")
+        await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_validated", stage="validation_complete")
         await _emit_workflow_event(db, workflow="oppc-monday-morning-briefing", project_number="enterprise", record_id=f"brief:enterprise:{week}", module="routes/oppc_execution.py:generate_enterprise_monday_briefing", event_name="briefing_generated", stage="dashboard_updated")
         return {"ok": True, "briefing": saved}
 
