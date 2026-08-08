@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ChevronRight, ChevronDown, FolderOpen, Folder, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
@@ -37,6 +37,7 @@ export default function JobFolderList({
   emptyMsg = null,
   jobsMaster = null,         // DR-JOB-002 · canonical { project_number → project_name } map (optional)
   showCert = false,          // DR-JOB-003 · admin opt-in for cert/test pollution tier
+  defaultOpenFirst = false,
 }) {
   const { t } = useT();
   const [search, setSearch] = useState("");
@@ -131,6 +132,14 @@ export default function JobFolderList({
         f.name.toLowerCase().includes(q) || f.number.toLowerCase().includes(q)
     );
   }, [folders, search]);
+
+  useEffect(() => {
+    if (!defaultOpenFirst || visibleFolders.length === 0) return;
+    setOpenMap((prev) => {
+      if (Object.keys(prev).length > 0) return prev;
+      return { [visibleFolders[0].key]: true };
+    });
+  }, [defaultOpenFirst, visibleFolders]);
 
   const toggleAll = (open) => {
     const next = {};

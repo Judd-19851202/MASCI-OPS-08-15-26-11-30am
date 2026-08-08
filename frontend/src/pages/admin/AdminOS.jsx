@@ -61,15 +61,19 @@ function adminHeaders() {
 
 async function probe(path) {
   if (!path) return { ok: false, body: null, status: 0 };
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 10000);
   try {
-    const r = await fetch(`${API}${path}`, { headers: adminHeaders() });
+    const r = await fetch(`${API}${path}`, { headers: adminHeaders(), signal: controller.signal });
     return {
       ok: r.ok,
       status: r.status,
       body: r.ok ? await r.json() : null,
     };
   } catch (_e) {
-    return { ok: false, body: null, status: 0 };
+    return { ok: false, body: null, status: 0, timed_out: true };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
@@ -637,16 +641,21 @@ export default function AdminOS() {
     let cancelled = false;
     const domainsWithProbe = DOMAINS.filter((d) => d.probe);
     setLoaded(false);
-    // Fire probes independently so a slow endpoint does not stall the
-    // whole grid. Each card resolves as soon as ITS endpoint returns.
-    let remaining = domainsWithProbe.length;
-    domainsWithProbe.forEach((d) => {
-      probe(d.probe).then((row) => {
+    setResults({});
+    if (domainsWithProbe.length === 0) {
+      setLoaded(true);
+      return () => {
+        cancelled = true;
+      };
+    }
+    Promise.allSettled(
+      domainsWithProbe.map(async (d) => {
+        const row = await probe(d.probe);
         if (cancelled) return;
         setResults((prev) => ({ ...prev, [d.id]: row }));
-        remaining -= 1;
-        if (remaining <= 0) setLoaded(true);
-      });
+      })
+    ).finally(() => {
+      if (!cancelled) setLoaded(true);
     });
     return () => {
       cancelled = true;

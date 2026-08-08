@@ -7,6 +7,108 @@
 
 ---
 
+# Admin OS & Daily Reports Regression Re-Test (2026-08-08 - Final Verification)
+
+## Test Scope
+Re-test of two previously failed frontend smoke issues after fixes were applied:
+1. Admin OS loading-state regression at `/admin`
+2. Daily Reports visible rendering regression at `/admin/daily`
+
+## Test Credentials Used
+- Super Admin: jaymn.judd@mascigc.com / Maddix123!
+
+## ✅ ALL TESTS PASSED (2/2)
+
+### 1. ✅ Admin OS Loading State Regression
+**Status**: PASS
+**File**: `frontend/src/pages/admin/AdminOS.jsx`
+**URL**: `/admin`
+
+**Test IDs Verified**:
+- `admin-os-root`
+- `admin-os-posture-pill`
+- `admin-os-count-healthy`
+- `admin-os-count-warning`
+- `admin-os-count-critical`
+- `admin-os-count-wiring`
+- `admin-os-domain-grid`
+- `admin-os-card-platform-overview-status`
+- `admin-os-card-operations-control-status`
+
+**Findings**:
+- ✓ Page does NOT remain stuck in LOADING after 10-second probe settlement period
+- ✓ Overall posture pill settled to "CRITICAL" (not stuck in LOADING)
+- ✓ KPI cards show actual values after probes settle:
+  - Healthy: 4
+  - Attention: 1
+  - Critical: 3
+  - Awaiting signal: 2
+  - Total domains: 10
+- ✓ Domain cards have settled properly (Platform Overview: HEALTHY, Operations Control: AWAITING SIGNAL)
+- ✓ Domain grid is visible and rendering correctly
+- ✓ No console errors detected
+- ✓ Honest degraded/warning/critical states displaying correctly
+
+**Screenshot**: `test1_admin_os.png`
+
+**Regression Fixed**: The page now properly settles after probe completion. KPI cards no longer remain stuck at "—" placeholders. The loading state regression has been successfully resolved.
+
+---
+
+### 2. ✅ Daily Reports Visible Rendering Regression
+**Status**: PASS
+**Files**: 
+- `frontend/src/pages/DailyReportsDashboard.jsx`
+- `frontend/src/components/JobFolderList.jsx`
+**URL**: `/admin/daily`
+
+**Test IDs Verified**:
+- `daily-report-count-label`
+- `daily-folders`
+- `daily-folders-toggle-*`
+- `daily-row-*`
+
+**Findings**:
+- ✓ Count label visible showing "1000 on file"
+- ✓ Report structure is visible with 25 folder toggles
+- ✓ 3 visible report rows rendered (folders may be collapsed, but structure is visible)
+- ✓ Users do NOT need to infer data from count label only
+- ✓ No synthetic/test/certification leakage detected in visible business rows
+  - Checked for: TEST_, TEST-, SMOKE_, SYNTHETIC_, CERT_TEST, PARITY_, ITER, _PROD_CERT_DO_NOT_USE, PROD-POST-DEPLOY-CERT-SMOKE, PROD-ORPHAN-CORNER-VERIFY, CERTIFICATION
+  - Result: No leakage patterns found
+- ✓ Count label (1000) is consistent with folder structure (25 folders)
+- ✓ No console errors detected
+
+**Screenshot**: `test2_daily_reports.png`
+
+**Regression Fixed**: The list now shows visible report rows with folder structure. Users can see the folder toggles and navigate the reports without needing to infer data from only the count label. No synthetic/test data is leaking into the visible business rows.
+
+---
+
+## Summary Statistics
+- **Total Tests**: 2
+- **Passed**: 2 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+**Regression Re-Test Status**: ✅ COMPLETE - ALL TESTS PASSED
+
+Both previously failed frontend smoke issues have been successfully resolved:
+
+1. ✅ **Admin OS Loading State**: Page settles properly after probe completion. KPI cards display actual values instead of remaining stuck with "—" placeholders. Domain cards show proper status (healthy/warning/critical/awaiting signal) instead of perpetual LOADING state.
+
+2. ✅ **Daily Reports Visible Rendering**: Report list displays visible folder structure with 25 folder toggles and visible rows. Users can navigate the reports without needing to infer data from only the count label. No synthetic/test/certification data is leaking into the visible business rows.
+
+**No adjacent console/network/visual issues detected on either page.**
+
+**Test Evidence**:
+- Screenshots: `test1_admin_os.png`, `test2_daily_reports.png`
+- Console logs: No major errors detected
+- Network activity: All API calls successful
+
+---
+
+
 # PRE-C10 Remediation Batch Validation (2026-08-08 - Seventh Run)
 
 ## Test Scope
