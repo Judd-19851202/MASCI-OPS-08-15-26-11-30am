@@ -1,0 +1,64 @@
+{
+  "test_suite": "WP-18C9 Frozen Closeout Backend Verification",
+  "timestamp": "2026-08-08T14:07:00.991540+00:00",
+  "tests": [
+    {
+      "name": "1. Admin Authentication",
+      "status": "PASS",
+      "details": "Authenticated successfully. Portals: ['admin', 'dispatch', 'field_leadership', 'hr', 'pm', 'safety', 'shop']. Tokens received: ['X-Admin-Token', 'X-PM-Token', 'X-Directory-Token']",
+      "timestamp": "2026-08-08T14:07:01.781360+00:00"
+    },
+    {
+      "name": "2a. Admin \u2192 PM Command Center API",
+      "status": "PASS",
+      "details": "Overview: 0 trucks, 0 drivers",
+      "timestamp": "2026-08-08T14:07:02.499210+00:00"
+    },
+    {
+      "name": "2b. Admin \u2192 Executive Overview API",
+      "status": "PASS",
+      "details": "Retrieved 0 projects",
+      "timestamp": "2026-08-08T14:07:03.497234+00:00"
+    },
+    {
+      "name": "2c. Admin \u2192 PM Jobs API",
+      "status": "PASS",
+      "details": "Retrieved 0 jobs",
+      "timestamp": "2026-08-08T14:07:03.773741+00:00"
+    },
+    {
+      "name": "2d. Version/Release Identity",
+      "status": "PASS",
+      "details": "Version: unknown, Source: ef87eceb",
+      "timestamp": "2026-08-08T14:07:03.885899+00:00"
+    },
+    {
+      "name": "3. PM Authentication",
+      "status": "PASS",
+      "details": "Authenticated successfully. Portals: ['pm']. Tokens received: ['X-PM-Token', 'X-Directory-Token']",
+      "timestamp": "2026-08-08T14:07:04.403763+00:00"
+    },
+    {
+      "name": "4a. PM \u2192 Command Center API",
+      "status": "PASS",
+      "details": "Overview: 0 trucks, 0 drivers",
+      "timestamp": "2026-08-08T14:07:05.689178+00:00"
+    },
+    {
+      "name": "4b. PM \u2192 Jobs API",
+      "status": "PASS",
+      "details": "Retrieved 0 jobs (PM-scoped)",
+      "timestamp": "2026-08-08T14:07:06.686801+00:00"
+    },
+    {
+      "name": "4c. PM \u2192 Operational Intelligence API",
+      "status": "PASS",
+      "details": "Retrieved 0 projects",
+      "timestamp": "2026-08-08T14:07:07.709870+00:00"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0
+  }
+}
