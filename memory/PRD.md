@@ -1,5 +1,12 @@
 # PRD
 
+## 2026-08-08 — PRE-C10 remediation batch: false-zero + certification repair
+
+- Result of this batch: preview repaired and verified for targeted false-zero/loading-state truth, legacy continuity messaging, and executive screenshot-certification reliability. This is **not** a full platform GO.
+- Implemented guarded loading states on `/admin/deploy-recovery`, `/hr/employees`, and `/admin/project-staffing`; updated legacy-route continuity copy; and hardened `/app/scripts/runtime_screenshot_ledger_gate.py` so certification waits for the governed surface selector before scoring.
+- Verification evidence: `/app/test_reports/iteration_4.json` PASS, `auto_frontend_testing_agent` PASS, `deep_testing_backend_v2` PASS, and `/app/test_reports/runtime_screenshot_ledger/ledger.json` now reports `85 / 85 PASS` with `failures = 0`.
+- Current governing status after this batch: preview is improved, but live production still requires user-controlled redeployment, `/api/admin/trust-spine` remains `platform_band=amber` with `canonical_status=DEGRADED`, and C10 remains **not authorized**.
+
 ## 2026-08-08 — WP18C9 permanent constitutional closeout complete
 
 - Result: **WP-18C9 — GO — READY TO SAVE & DEPLOY — PERMANENTLY FROZEN**.

@@ -1,3 +1,11 @@
+# 2026-08-08 — PRE-C10 false-zero/loading-state + certification repair batch
+
+- Repaired false-zero loading behavior on Admin Go-Live Recovery, HR Employees, and Project Staffing so loading states show placeholders instead of fake `0` counts.
+- Reworded the legacy-route banner to continuity language (`Primary workspace available`, `Open primary workspace`, `This route still works`) and removed the visible `This page has moved` migration wording.
+- Hardened `/app/scripts/runtime_screenshot_ledger_gate.py` to wait for the governed surface selector before certification, then regenerated the runtime screenshot ledger to `85 / 85 PASS`.
+- Verification: `/app/test_reports/iteration_4.json` PASS, `auto_frontend_testing_agent` PASS, `deep_testing_backend_v2` PASS.
+- Current status: preview fixes verified; live production still requires redeployment by the user, the broader PRE-C10 denominator is still open, and C10 remains **not authorized**.
+
 # 2026-08-08 — WP18C9 permanent constitutional closeout
 
 - Reconciled the previously reported frontend build-identity regression by rerunning the exact extended-release-fields test, then executing the canonical frontend restamp flow; the restamp returned `module_written=false, public_identity_written=false`, confirming the generated identity already matched the governed source state.

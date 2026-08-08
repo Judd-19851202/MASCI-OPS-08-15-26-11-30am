@@ -1,3 +1,27 @@
+# 2026-08-08 — PRE-C10 remediation current state
+
+- Latest verified batch closed the targeted false-zero/loading-state and screenshot-certification issues on preview.
+- Do **not** treat this as the final platform GO: preview truth still reports `Trust Spine = amber / canonical DEGRADED`, deployment readiness is `pass` with advisory follow-up, and live production remains **redeploy-required** until the user saves and deploys.
+- **C10 remains not authorized.**
+
+## Current top priority
+
+- Finish the remaining PRE-C10 truth/workflow denominator in truth-first order, then re-certify before any GO statement.
+
+## P0
+
+- close the remaining Trust Spine amber / degraded status to an evidence-backed pass
+- continue the remaining PRE-C10 truth-authority and workflow audit items that are still open outside this targeted repair batch
+- keep live production in redeploy-required status until the user performs the save/deploy step
+
+## P1
+
+- continue any still-evidenced operator-experience follow-up items outside the repaired false-zero/certification batch
+
+## P2
+
+- do not start C10
+
 # 2026-08-08 — WP18C9 permanent freeze state
 
 - **WP-18C9 is COMPLETE, CERTIFIED, DEPLOYABLE, and PERMANENTLY FROZEN.**
