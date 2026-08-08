@@ -360,17 +360,16 @@ async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
 
     # JOBS-ISSUE-NO-OWNER — open incident or CA with no owner
     r_no_owner = rules.get("JOBS-ISSUE-NO-OWNER", DEFAULT_THRESHOLDS["rules"]["JOBS-ISSUE-NO-OWNER"])
-    unowned_cas = await db.corrective_actions.find(
+    unowned_query = apply_synthetic_corrective_action_exclusion(
         {"status": {"$in": ["Open", "In Progress", "Pending Review"]},
          "$or": [{"assigned_to_name": None}, {"assigned_to_name": ""},
-                 {"assigned_to_name": {"$exists": False}}]},
+                 {"assigned_to_name": {"$exists": False}}]}
+    )
+    unowned_cas = await db.corrective_actions.find(
+        unowned_query,
         {"_id": 0, "id": 1, "title": 1, "project_number": 1, "due_date": 1, "created_at": 1},
     ).limit(20).to_list(length=20)
-    unowned_count = await db.corrective_actions.count_documents(
-        {"status": {"$in": ["Open", "In Progress", "Pending Review"]},
-         "$or": [{"assigned_to_name": None}, {"assigned_to_name": ""},
-                 {"assigned_to_name": {"$exists": False}}]},
-    )
+    unowned_count = await db.corrective_actions.count_documents(unowned_query)
 
     if unowned_count >= r_no_owner["red"]:
         warnings.append({"kind": "JOBS-ISSUE-NO-OWNER", "severity": "red",

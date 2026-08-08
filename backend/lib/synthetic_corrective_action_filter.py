@@ -1,27 +1,42 @@
 from __future__ import annotations
 
-import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
-_TITLE_PREFIX_RE = re.compile(r"^(TEST[_\-]|SMOKE[_\-]|SYNTHETIC[_\-]|ITER[0-9])", re.IGNORECASE)
-_PROJECT_RE = re.compile(
-    r"^(TEST[_\-]|SMOKE[_\-]|SYNTHETIC[_\-]|ITER[0-9]|QA_SMOKE|CERT_TEST|RECERT|PARITY)",
-    re.IGNORECASE,
-)
-_TITLE_OR_DESC_RE = re.compile(r"\b(synthetic|integration test|lifecycle test)\b", re.IGNORECASE)
+LIVE_OPERATIONAL_CLASSIFICATION = "live_operational"
+PREVIEW_CERTIFICATION_CLASSIFICATION = "preview_certification"
+SYNTHETIC_TEST_CLASSIFICATION = "synthetic_test"
+LEGACY_HIDDEN_BACKFILL_CLASSIFICATION = "legacy_hidden_backfill"
+
+LIVE_OPERATIONS_SCOPE = "live_operations"
+TECHNICAL_AUDIT_ONLY_SCOPE = "technical_audit_only"
+
+GOVERNED_HIDDEN_SOURCE_KIND_TO_CLASSIFICATION = {
+    "preview_certification": PREVIEW_CERTIFICATION_CLASSIFICATION,
+    "synthetic_test": SYNTHETIC_TEST_CLASSIFICATION,
+}
+
+HIDDEN_CLASSIFICATIONS = {
+    PREVIEW_CERTIFICATION_CLASSIFICATION,
+    SYNTHETIC_TEST_CLASSIFICATION,
+    LEGACY_HIDDEN_BACKFILL_CLASSIFICATION,
+}
+
 _EXPLICIT_MARKERS = ["synthetic_record", "hidden_from_operations", "certification_record"]
+
+
+def hidden_corrective_action_classification_for_source_kind(source_kind: Optional[str]) -> Optional[str]:
+    kind = (source_kind or "").strip().lower()
+    return GOVERNED_HIDDEN_SOURCE_KIND_TO_CLASSIFICATION.get(kind)
 
 
 def synthetic_corrective_action_exclusion_clauses() -> List[Dict[str, Any]]:
     return [
+        {"technical_record_classification": {"$nin": sorted(HIDDEN_CLASSIFICATIONS)}},
+        {"truth_visibility_scope": {"$ne": TECHNICAL_AUDIT_ONLY_SCOPE}},
         {"synthetic_record": {"$ne": True}},
         {"hidden_from_operations": {"$ne": True}},
         {"certification_record": {"$ne": True}},
-        {"title": {"$not": {"$regex": _TITLE_PREFIX_RE.pattern, "$options": "i"}}},
-        {"title": {"$not": {"$regex": _TITLE_OR_DESC_RE.pattern, "$options": "i"}}},
-        {"description": {"$not": {"$regex": _TITLE_OR_DESC_RE.pattern, "$options": "i"}}},
-        {"project_number": {"$not": {"$regex": _PROJECT_RE.pattern, "$options": "i"}}},
     ]
 
 
@@ -36,34 +51,69 @@ def apply_synthetic_corrective_action_exclusion(query: Dict[str, Any]) -> Dict[s
     return q
 
 
-def is_synthetic_corrective_action(doc: Dict[str, Any]) -> bool:
+def is_hidden_corrective_action(doc: Dict[str, Any]) -> bool:
     if not doc:
         return False
+    classification = str(doc.get("technical_record_classification") or "").strip().lower()
+    if classification in HIDDEN_CLASSIFICATIONS:
+        return True
+    if doc.get("truth_visibility_scope") == TECHNICAL_AUDIT_ONLY_SCOPE:
+        return True
     for marker in _EXPLICIT_MARKERS:
         if doc.get(marker) is True:
             return True
-    title = (doc.get("title") or "").strip()
-    description = (doc.get("description") or "").strip()
-    project_number = (doc.get("project_number") or "").strip()
-    return bool(
-        _TITLE_PREFIX_RE.search(title)
-        or _TITLE_OR_DESC_RE.search(title)
-        or _TITLE_OR_DESC_RE.search(description)
-        or _PROJECT_RE.search(project_number)
-    )
+    return False
 
 
-def synthetic_corrective_action_markers(doc: Dict[str, Any]) -> Dict[str, bool]:
-    is_synth = is_synthetic_corrective_action(doc)
+def is_synthetic_corrective_action(doc: Dict[str, Any]) -> bool:
+    return is_hidden_corrective_action(doc)
+
+
+def synthetic_corrective_action_markers(doc: Dict[str, Any], *, preserve_existing: bool = False) -> Dict[str, Any]:
+    existing_classification = str(doc.get("technical_record_classification") or "").strip().lower()
+    classification = hidden_corrective_action_classification_for_source_kind(doc.get("source_kind"))
+    if not classification and preserve_existing and existing_classification:
+        classification = existing_classification
+
+    if classification in HIDDEN_CLASSIFICATIONS:
+        reason = {
+            PREVIEW_CERTIFICATION_CLASSIFICATION: "preview_certification_record",
+            SYNTHETIC_TEST_CLASSIFICATION: "synthetic_test_record",
+            LEGACY_HIDDEN_BACKFILL_CLASSIFICATION: "legacy_hidden_backfill",
+        }.get(classification, "technical_hidden_record")
+        return {
+            "technical_record_classification": classification,
+            "truth_visibility_scope": TECHNICAL_AUDIT_ONLY_SCOPE,
+            "governed_classification_reason": reason,
+            "governed_classification_source": f"source_kind:{(doc.get('source_kind') or '').strip().lower() or 'preserved'}",
+            "synthetic_record": True,
+            "hidden_from_operations": True,
+            "certification_record": classification == PREVIEW_CERTIFICATION_CLASSIFICATION or bool(doc.get("certification_record")),
+        }
+
     return {
-        "synthetic_record": is_synth,
-        "hidden_from_operations": is_synth,
-        "certification_record": is_synth,
+        "technical_record_classification": LIVE_OPERATIONAL_CLASSIFICATION,
+        "truth_visibility_scope": LIVE_OPERATIONS_SCOPE,
+        "governed_classification_reason": "live_operational_default",
+        "governed_classification_source": "source_kind:operational",
+        "synthetic_record": False,
+        "hidden_from_operations": False,
+        "certification_record": False,
     }
 
 
 __all__ = [
+    "GOVERNED_HIDDEN_SOURCE_KIND_TO_CLASSIFICATION",
+    "HIDDEN_CLASSIFICATIONS",
+    "LEGACY_HIDDEN_BACKFILL_CLASSIFICATION",
+    "LIVE_OPERATIONAL_CLASSIFICATION",
+    "LIVE_OPERATIONS_SCOPE",
+    "PREVIEW_CERTIFICATION_CLASSIFICATION",
+    "SYNTHETIC_TEST_CLASSIFICATION",
+    "TECHNICAL_AUDIT_ONLY_SCOPE",
     "apply_synthetic_corrective_action_exclusion",
+    "hidden_corrective_action_classification_for_source_kind",
+    "is_hidden_corrective_action",
     "is_synthetic_corrective_action",
     "synthetic_corrective_action_exclusion_clauses",
     "synthetic_corrective_action_markers",

@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 from fastapi.responses import StreamingResponse
 
@@ -127,7 +128,7 @@ async def _equipment_history(db, master_id: str) -> List[Dict[str, Any]]:
 
     # 3. Corrective actions
     async for d in db.corrective_actions.find(
-        {"equipment_master_id": master_id},
+        apply_synthetic_corrective_action_exclusion({"equipment_master_id": master_id}),
         {"_id": 0, "id": 1, "title": 1, "status": 1, "priority": 1,
          "due_date": 1, "completed_at": 1, "created_at": 1},
     ).limit(500):
@@ -223,7 +224,7 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
 
     # 2. Corrective actions assigned to / linked
     async for d in db.corrective_actions.find(
-        {"employee_master_id": master_id},
+        apply_synthetic_corrective_action_exclusion({"employee_master_id": master_id}),
         {"_id": 0, "id": 1, "title": 1, "status": 1, "priority": 1,
          "due_date": 1, "assigned_to_name": 1, "created_at": 1},
     ).limit(500):

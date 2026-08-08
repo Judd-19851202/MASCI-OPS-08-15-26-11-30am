@@ -69,7 +69,7 @@ def build_safety_router(
         directory_portal_minter=directory_portal_minter,
     )
     register_overview_routes(api_router, db, require_admin, require_safety_token)
-    register_corrective_action_routes(api_router, db, require_safety_token)
+    register_corrective_action_routes(api_router, db, require_safety_token, require_admin)
     register_daily_report_routes(api_router, db, require_safety_token)
     register_fire_extinguisher_routes(api_router, db, require_safety_token)
     register_fire_ext_attachment_routes(api_router, db, require_safety_token)

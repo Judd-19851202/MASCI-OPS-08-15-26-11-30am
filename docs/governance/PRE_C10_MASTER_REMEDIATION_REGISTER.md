@@ -1,6 +1,6 @@
 # MASCI Operations Platform — PRE-C10 Master Remediation Register
 
-Last updated: 2026-08-08T18:37Z
+Last updated: 2026-08-08T19:52Z
 
 Status: **NO-GO**
 
@@ -43,8 +43,10 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SAFETY-002 | Safety truth | Corrective-action overdue logic counted blank `due_date` values as overdue and diverged across overview / digest / executive / command-center / operations-center consumers | REPAIRED → CERTIFIED | shared helper `lib/corrective_action_truth.py`; preview runtime now reconciles `open=2`, `overdue=2` across `/api/safety/overview`, digest preview, executive overview, command center, operations center, project health |
 | PRE-C10-SAFETY-003 | Safety truth | Preview certification / test corrective actions leaked into operator and executive truth as live safety work | REPAIRED → CERTIFIED | shared filter `lib/synthetic_corrective_action_filter.py`; preview backfill flagged `96` synthetic rows; visible corrective-action list now resolves to the 2 real incident-linked records only |
 | PRE-C10-SAFETY-004 | Safety lifecycle | Incident lifecycle regression and corrective-action lifecycle regression rerun against live preview auth/session contracts | REPAIRED → CERTIFIED | `test_iter451_incident_lifecycle.py` = 17/17 pass; `test_iter356_capa_lifecycle.py` = 7/7 pass; `test_wp18db_incident_auth_backup.py` = 16/16 pass |
+| PRE-C10-SAFETY-005 | Safety truth governance | Certification/test corrective-action exclusion moved to explicit governed classification and technical-audit visibility, with admin audit/search path retained | REPAIRED → CERTIFIED | hidden records now require explicit `technical_record_classification` / `truth_visibility_scope`; `test_prec10_safety_corrective_action_truth.py` = 7/7 pass; admin audit route `/api/admin/safety/corrective-actions/technical` returns hidden rows while operator list / exports / digests exclude them |
 | PRE-C10-SCHEDULE-002 | Schedule truth | PM schedule authority runtime lane rerun with live preview auth contract: overview, staged import, row review, activation, export, actuals overview, lookahead, daily work plan | REPAIRED → CERTIFIED | `test_wp18c4_schedule_api.py` = 4/4 pass; `test_wp18c5_schedule_actuals_foundation.py` = 3/3 pass |
 | PRE-C10-SCHEDULE-003 | Schedule scope | PM-only project selector / schedule access guard verified with forensic fixture — assigned projects visible, unassigned schedule denied | REPAIRED → CERTIFIED | `test_prec10_schedule_scope_guard.py` = 3/3 pass; `/api/pm/jobs` returns only `ZZ-FOR-ASSIGN-01` + `ZZ-FOR-ASSIGN-02`; unauthorized `ZZ-RUNTIME-CERT-2026` schedule overview returns 403 |
+| PRE-C10-SCHEDULE-004 | Schedule UI scope | PM schedule selector no longer injects unauthorized query-string projects into the browser option set; stale unauthorized project values clear from the UI | REPAIRED → CERTIFIED | browser smoke on `/pm/project-schedule?project_number=ZZ-RUNTIME-CERT-2026` now shows only assigned options and clears the stale unauthorized value; no unauthorized project string remains in DOM |
 
 ## Trust Spine cadence classifications now certified
 
@@ -68,14 +70,17 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SCREENSHOT-001 | Product Quality Ledger | 85-screen ledger needed richer quality contract than load/wait checks alone | REPAIRED → CERTIFIED |
 | PRE-C10-ADMIN-001 | Deployment readiness | equipment missing canonical `unit_number` advisories | OPEN ADVISORY |
 | PRE-C10-ADMIN-002 | Deployment readiness | employee rows missing canonical `employee_id` advisories | OPEN ADVISORY |
-| PRE-C10-SAFETY-001 | Safety | dashboard truth plus incident/corrective-action runtime regressions are now certified; archive / search-history parity / downstream notifications / exports / governed nomenclature denominator still open | IN PROGRESS |
-| PRE-C10-SCHEDULE-001 | Scheduling | project scoping plus core schedule authority / actuals lanes are now certified; editing / revision approval / version-history operator UX / Rolling Two-Week parity / weekly reconciliation / C7-C8-C9 downstream parity denominator still open | IN PROGRESS |
+| PRE-C10-SAFETY-001 | Safety | dashboard truth, governed hidden-record exclusion, digests/exports parity, and incident/corrective-action runtime regressions are now certified; archive / search-history parity / project-view parity / governed nomenclature denominator still open | IN PROGRESS |
+| PRE-C10-SCHEDULE-001 | Scheduling | project scoping plus core schedule authority / actuals lanes and UI selector scope are now certified; editing / revision approval / version-history operator UX / Rolling Two-Week parity / weekly reconciliation / C7-C8-C9 downstream parity denominator still open | IN PROGRESS |
+| PRE-C10-KPI-001 | KPI truth / Trust Spine closure | platform-wide KPI denominator must cover every live KPI/card/score/health/status/summary metric across Admin, Executive, PM, Field Leadership, Safety, HR, Shop, Dispatch, Fleet, Transportation, Project Controls, Daily Reports, Compliance, Training, C6, C7, C8, C9, exports and derived consumers | IN PROGRESS |
 | PRE-C10-AUTH-001 | Authentication UX | compact session state / sign-out proof / public-home usability / protected-route enforcement denominator still open | IN PROGRESS |
 | PRE-C10-UX-002 | Operator experience | vendor leakage / equipment location UX / executive copy / ALL REPORTS SYNCED / nomenclature / visual semantics denominator still open | IN PROGRESS |
 | PRE-C10-MASTER-001 | Denominator management | continue broadening this register until every remaining PRE-C10 lane is explicitly dispositioned | IN PROGRESS |
 
 ## Next execution focus
 
-1. Continue Safety from the certified truth + lifecycle baseline: archive / search-history parity, downstream notifications / exports, project-view parity, and governed terminology cleanup.
+1. Continue Safety from the certified truth + lifecycle baseline: archive / search-history parity, project-view parity, and governed terminology cleanup.
 2. Continue Scheduling from the certified scope + authority baseline: editing / revision approval workflow, version-history operator UX, Rolling Two-Week parity, weekly reconciliation, and C7/C8/C9 downstream truth checks.
-3. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned.
+3. Expand `/app/docs/governance/PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` until every live KPI/card/score/health/status/summary surface is dispositioned PASS/FAIL with runtime evidence.
+4. Continue populating `/app/docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining material family reaches runtime-backed PASS.
+5. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned.

@@ -138,6 +138,7 @@ EVENT_TYPES: Tuple[str, ...] = (
     "case.created",
     "case.field_submitted",
     "case.state_changed",
+    "case.archived",
     "case.reopened",
     "field_block.updated",
     "safety_block.updated",

@@ -9,18 +9,20 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from lib.corrective_action_truth import normalize_corrective_action_due_date
 from lib.synthetic_corrective_action_filter import (
     apply_synthetic_corrective_action_exclusion,
+    is_hidden_corrective_action,
+    HIDDEN_CLASSIFICATIONS,
     synthetic_corrective_action_markers,
 )
 from ._models import CorrectiveActionCreate, CorrectiveActionUpdate
 
 
 def register_corrective_action_routes(
-    api_router: APIRouter, db, require_safety_token,
+    api_router: APIRouter, db, require_safety_token, require_admin,
 ) -> None:
     @api_router.get("/safety/corrective-actions")
     async def list_corrective_actions(
@@ -46,6 +48,30 @@ def register_corrective_action_routes(
             apply_synthetic_corrective_action_exclusion(q),
             {"_id": 0},
         ).sort("created_at", -1).to_list(1000)
+
+    @api_router.get("/admin/safety/corrective-actions/technical", dependencies=[Depends(require_admin)])
+    async def list_technical_corrective_actions(
+        q: str = Query("", max_length=120),
+        classification: str = Query("", max_length=80),
+        limit: int = Query(200, ge=1, le=500),
+    ):
+        query: dict = {
+            "$or": [
+                {"technical_record_classification": {"$in": sorted(HIDDEN_CLASSIFICATIONS)}},
+                {"truth_visibility_scope": "technical_audit_only"},
+                {"synthetic_record": True},
+                {"hidden_from_operations": True},
+                {"certification_record": True},
+            ]
+        }
+        if classification.strip():
+            query = {"$and": [query, {"technical_record_classification": classification.strip().lower()}]}
+        if q.strip():
+            rx = {"$regex": q.strip(), "$options": "i"}
+            search = {"$or": [{"id": rx}, {"title": rx}, {"description": rx}, {"project_number": rx}, {"source_kind": rx}]}
+            query = {"$and": [query, search]}
+        items = await db.corrective_actions.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
+        return {"count": len(items), "items": items}
 
     @api_router.post("/safety/corrective-actions")
     async def create_corrective_action(
@@ -129,7 +155,7 @@ def register_corrective_action_routes(
     @api_router.get("/safety/corrective-actions/{ca_id}")
     async def get_corrective_action(ca_id: str, _: dict = Depends(require_safety_token)):
         doc = await db.corrective_actions.find_one({"id": ca_id}, {"_id": 0})
-        if not doc:
+        if not doc or is_hidden_corrective_action(doc):
             raise HTTPException(404, "Not found")
         return doc
 
@@ -176,7 +202,7 @@ def register_corrective_action_routes(
             else:
                 update[k] = v
         candidate = {**existing, **update}
-        update.update(synthetic_corrective_action_markers(candidate))
+        update.update(synthetic_corrective_action_markers(candidate, preserve_existing=True))
 
         # iter356 · Lifecycle enforcement on status transitions.
         new_status_raw = update.get("status")

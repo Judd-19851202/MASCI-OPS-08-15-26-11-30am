@@ -302,135 +302,161 @@ def build_auth_directory_router(
 
     @router.post("/api/auth/multi-login")
     async def multi_login(body: MultiLoginBody, request: Request):
-        # Track 24.1 · P1-B — brute-force lockout at the master login
-        # gate. Uses the platform-standard LOGIN_MAX_FAILS + lockout
-        # window from `lib.rate_limiting`. Every per-portal login route
-        # already calls these; multi-login was the only unguarded path.
-        ip = _client_ip(request)
-        bypass_lockout = _is_test_request(request)
-        if not bypass_lockout:
-            _check_login_lockout(ip)
-        row = await ud.authenticate(db, email=body.email, password=body.password)
-        if not row:
-            # Audit failures so brute-forcing surfaces in /admin
+        login_stage = "start"
+        try:
+            # Track 24.1 · P1-B — brute-force lockout at the master login
+            # gate. Uses the platform-standard LOGIN_MAX_FAILS + lockout
+            # window from `lib.rate_limiting`. Every per-portal login route
+            # already calls these; multi-login was the only unguarded path.
+            login_stage = "resolve_ip"
+            ip = _client_ip(request)
+            login_stage = "detect_test_bypass"
+            bypass_lockout = _is_test_request(request)
             if not bypass_lockout:
-                _record_login_fail(ip)
-            await ud.write_audit(
-                db,
-                actor_email=body.email,
-                action="multi_login_failed",
-                ip=ip,
-                user_agent=request.headers.get("user-agent"),
-            )
-            raise HTTPException(status_code=401, detail="Invalid email or password.")
-        if not bypass_lockout:
-            _reset_login_fails(ip)
-        # iter375 · Phase 4B — TOTP MFA gate for super-admin directory users.
-        # If MFA is enabled, do NOT mint portal tokens. Return a short-lived
-        # challenge token; the frontend must POST /api/auth/mfa/verify-login
-        # with a TOTP (or recovery) code to receive portal tokens.
-        cfg = row.get("mfa") or {}
-        if cfg.get("enabled"):
-            try:
-                import mfa as _mfa  # noqa: PLC0415
-                challenge = _mfa.mint_challenge_token(row["id"])
-                await _mfa.write_audit(
-                    db, user_id=row["id"], user_email=row.get("email"),
-                    event="LOGIN_MFA_CHALLENGE_ISSUED",
+                login_stage = "check_lockout"
+                _check_login_lockout(ip)
+            login_stage = "authenticate"
+            row = await ud.authenticate(db, email=body.email, password=body.password)
+            if not row:
+                # Audit failures so brute-forcing surfaces in /admin
+                if not bypass_lockout:
+                    _record_login_fail(ip)
+                await ud.write_audit(
+                    db,
+                    actor_email=body.email,
+                    action="multi_login_failed",
+                    ip=ip,
+                    user_agent=request.headers.get("user-agent"),
+                )
+                raise HTTPException(status_code=401, detail="Invalid email or password.")
+            if not bypass_lockout:
+                login_stage = "reset_lockout"
+                _reset_login_fails(ip)
+            # iter375 · Phase 4B — TOTP MFA gate for super-admin directory users.
+            # If MFA is enabled, do NOT mint portal tokens. Return a short-lived
+            # challenge token; the frontend must POST /api/auth/mfa/verify-login
+            # with a TOTP (or recovery) code to receive portal tokens.
+            login_stage = "check_mfa"
+            cfg = row.get("mfa") or {}
+            if cfg.get("enabled"):
+                try:
+                    import mfa as _mfa  # noqa: PLC0415
+                    challenge = _mfa.mint_challenge_token(row["id"])
+                    await _mfa.write_audit(
+                        db, user_id=row["id"], user_email=row.get("email"),
+                        event="LOGIN_MFA_CHALLENGE_ISSUED",
+                        ip=_client_ip(request),
+                        user_agent=request.headers.get("user-agent"),
+                    )
+                except Exception as e:  # noqa: BLE001
+                    logger.error(f"[multi-login] failed to mint MFA challenge: {e}")
+                    raise HTTPException(status_code=500, detail="MFA challenge unavailable")
+                return {
+                    "ok": True,
+                    "mfa_required": True,
+                    "mfa_challenge_token": challenge,
+                    "user": {"email": row.get("email"), "name": row.get("name")},
+                }
+            login_stage = "make_directory_token"
+            session_token = ud.make_directory_token()
+            login_stage = "persist_session"
+            await ud.persist_session(db, token=session_token, user_id=row["id"])
+            login_stage = "stamp_last_login"
+            await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
+            # Mint per-portal tokens + directory session token
+            login_stage = "mint_portal_tokens"
+            portal_tokens = await _mint_all(row)
+
+            # Track 15.14A · Layer 1 — TEMP-PASSWORD ENFORCEMENT.
+            # If the directory user still owes a password rotation, do NOT
+            # hand them any portal tokens. The SPA detects must_change_password
+            # and forces them through /change-password. The session_token
+            # remains valid so /api/auth/change-master-password can authenticate
+            # the rotation itself. After rotation completes the user re-runs
+            # multi-login and gets a full token bundle.
+            login_stage = "check_must_change_password"
+            if bool(row.get("must_change_password")):
+                await ud.write_audit(
+                    db,
+                    actor_email=row["email"],
+                    action="multi_login_temp_pw_blocked",
+                    target_email=row["email"],
+                    diff={"reason": "must_change_password=true; portal_tokens suppressed"},
                     ip=_client_ip(request),
                     user_agent=request.headers.get("user-agent"),
                 )
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"[multi-login] failed to mint MFA challenge: {e}")
-                raise HTTPException(status_code=500, detail="MFA challenge unavailable")
-            return {
-                "ok": True,
-                "mfa_required": True,
-                "mfa_challenge_token": challenge,
-                "user": {"email": row.get("email"), "name": row.get("name")},
-            }
-        session_token = ud.make_directory_token()
-        await ud.persist_session(db, token=session_token, user_id=row["id"])
-        await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
-        # Mint per-portal tokens + directory session token
-        portal_tokens = await _mint_all(row)
-
-        # Track 15.14A · Layer 1 — TEMP-PASSWORD ENFORCEMENT.
-        # If the directory user still owes a password rotation, do NOT
-        # hand them any portal tokens. The SPA detects must_change_password
-        # and forces them through /change-password. The session_token
-        # remains valid so /api/auth/change-master-password can authenticate
-        # the rotation itself. After rotation completes the user re-runs
-        # multi-login and gets a full token bundle.
-        if bool(row.get("must_change_password")):
+                return {
+                    "ok": True,
+                    "session_token": session_token,
+                    "portal_tokens": {},
+                    "user": ud.public_view(row),
+                    "must_change_password": True,
+                }
+            # Initiative 4 fix — reset session_activity for every minted
+            # portal token. Each portal token is deterministic per
+            # (user_id, pwh), so without this a stale row would expire the
+            # session before the first authenticated request.
+            # RC-1 M-19 fix (2026-02-11): parallelize the 6-7 reset writes
+            # with asyncio.gather. Each reset is an independent Mongo upsert
+            # on a different `_id`, so semantics are identical. This shaves
+            # ~700-1000ms off multi-login (was the dominant serial hot spot).
+            try:
+                login_stage = "reset_session_activity"
+                from session_timeout import reset_session_activity
+                import asyncio  # noqa: PLC0415
+                _portal_tier = {
+                    "admin": "ADMIN_HR", "hr": "ADMIN_HR",
+                    "pm": "OPERATIONS", "shop": "OPERATIONS",
+                    "safety": "OPERATIONS", "dispatch": "OPERATIONS",
+                    "field_leadership": "ADMIN_FL",
+                }
+                _ua = request.headers.get("user-agent") or ""
+                _ip = _client_ip(request)
+                _reset_tasks = [
+                    reset_session_activity(
+                        db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
+                        user_id=row.get("id"),
+                        email=row.get("email"),
+                        actor_label=_portal,
+                        directory_token=session_token,
+                        ip=_ip,
+                        user_agent=_ua,
+                    )
+                    for _portal, _tok in (portal_tokens or {}).items()
+                    if _tok
+                ]
+                if _reset_tasks:
+                    await asyncio.gather(*_reset_tasks, return_exceptions=True)
+            except Exception:  # noqa: BLE001
+                pass
+            login_stage = "write_audit"
             await ud.write_audit(
                 db,
                 actor_email=row["email"],
-                action="multi_login_temp_pw_blocked",
+                action="multi_login",
                 target_email=row["email"],
-                diff={"reason": "must_change_password=true; portal_tokens suppressed"},
+                diff={"portals_granted": sorted([p for p, t in portal_tokens.items() if t])},
                 ip=_client_ip(request),
                 user_agent=request.headers.get("user-agent"),
             )
+            login_stage = "return_response"
             return {
                 "ok": True,
                 "session_token": session_token,
-                "portal_tokens": {},
+                "portal_tokens": portal_tokens,
                 "user": ud.public_view(row),
-                "must_change_password": True,
+                "must_change_password": bool(row.get("must_change_password")),
             }
-        # Initiative 4 fix — reset session_activity for every minted
-        # portal token. Each portal token is deterministic per
-        # (user_id, pwh), so without this a stale row would expire the
-        # session before the first authenticated request.
-        # RC-1 M-19 fix (2026-02-11): parallelize the 6-7 reset writes
-        # with asyncio.gather. Each reset is an independent Mongo upsert
-        # on a different `_id`, so semantics are identical. This shaves
-        # ~700-1000ms off multi-login (was the dominant serial hot spot).
-        try:
-            from session_timeout import reset_session_activity
-            import asyncio  # noqa: PLC0415
-            _portal_tier = {
-                "admin": "ADMIN_HR", "hr": "ADMIN_HR",
-                "pm": "OPERATIONS", "shop": "OPERATIONS",
-                "safety": "OPERATIONS", "dispatch": "OPERATIONS",
-                "field_leadership": "ADMIN_FL",
-            }
-            _ua = request.headers.get("user-agent") or ""
-            _ip = _client_ip(request)
-            _reset_tasks = [
-                reset_session_activity(
-                    db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
-                    user_id=row.get("id"),
-                    email=row.get("email"),
-                    actor_label=_portal,
-                    directory_token=session_token,
-                    ip=_ip,
-                    user_agent=_ua,
-                )
-                for _portal, _tok in (portal_tokens or {}).items()
-                if _tok
-            ]
-            if _reset_tasks:
-                await asyncio.gather(*_reset_tasks, return_exceptions=True)
-        except Exception:  # noqa: BLE001
-            pass
-        await ud.write_audit(
-            db,
-            actor_email=row["email"],
-            action="multi_login",
-            target_email=row["email"],
-            diff={"portals_granted": sorted([p for p, t in portal_tokens.items() if t])},
-            ip=_client_ip(request),
-            user_agent=request.headers.get("user-agent"),
-        )
-        return {
-            "ok": True,
-            "session_token": session_token,
-            "portal_tokens": portal_tokens,
-            "user": ud.public_view(row),
-            "must_change_password": bool(row.get("must_change_password")),
-        }
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            logger.exception(
+                "[multi-login] unexpected failure at stage=%s email=%s: %s",
+                login_stage,
+                (body.email or "").strip().lower(),
+                exc,
+            )
+            raise
 
     @router.post("/api/auth/multi-logout")
     async def multi_logout(

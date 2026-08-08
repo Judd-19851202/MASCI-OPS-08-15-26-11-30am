@@ -949,13 +949,13 @@ async def _detect_incident_lifecycle(db) -> List[Dict[str, Any]]:
         inc_pk = inc.get("id")
         if not inc_pk:
             continue
-        linked = await db.corrective_actions.count_documents({
+        linked = await db.corrective_actions.count_documents(apply_synthetic_corrective_action_exclusion({
             "$or": [
                 {"incident_id": inc_pk},
                 {"source_kind": "incident", "source_id": inc_pk},
                 {"related_entities": {"$elemMatch": {"kind": "incident", "id": inc_pk}}},
             ],
-        })
+        }))
         if linked > 0:
             continue
         person = inc.get("person_name") or inc.get("person_involved") or "(unknown)"
@@ -986,8 +986,10 @@ async def _detect_incident_lifecycle(db) -> List[Dict[str, Any]]:
     # Rule 2: CAPA_AWAITING_VERIFICATION — Pending Review > 7 days.
     cutoff_7d = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     cursor = db.corrective_actions.find(
-        {"status": {"$in": ["Pending Review", "pending_review", "pending review"]},
-         "updated_at": {"$lt": cutoff_7d}},
+        apply_synthetic_corrective_action_exclusion({
+            "status": {"$in": ["Pending Review", "pending_review", "pending review"]},
+            "updated_at": {"$lt": cutoff_7d},
+        }),
         {"_id": 0},
     ).limit(500)
     async for capa in cursor:
@@ -1025,10 +1027,11 @@ async def _detect_incident_lifecycle(db) -> List[Dict[str, Any]]:
 
     # Rule 3: CAPA_NO_OWNER — open/in-progress with no assigned_to_name.
     cursor = db.corrective_actions.find(
-        {"status": {"$nin": ["Closed", "closed", "Verified", "verified",
-                              "completed", "resolved"]},
-         "$or": [{"assigned_to_name": {"$in": [None, ""]}},
-                 {"assigned_to_name": {"$exists": False}}]},
+        apply_synthetic_corrective_action_exclusion({
+            "status": {"$nin": ["Closed", "closed", "Verified", "verified", "completed", "resolved"]},
+            "$or": [{"assigned_to_name": {"$in": [None, ""]}},
+                    {"assigned_to_name": {"$exists": False}}],
+        }),
         {"_id": 0},
     ).limit(500)
     async for capa in cursor:

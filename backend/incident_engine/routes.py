@@ -45,6 +45,11 @@ class TransitionBody(BaseModel):
     reason: str = ""
 
 
+class ArchiveBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str = ""
+
+
 class EvidenceBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     evidence_type: str
@@ -161,14 +166,17 @@ def register_incident_engine_routes(
     async def list_cases_route(
         state: Optional[str] = Query(default=None),
         incident_type: Optional[str] = Query(default=None),
+        query: Optional[str] = Query(default=None),
         limit: int = Query(default=100, ge=1, le=500),
         include_legacy: bool = Query(default=False),
+        include_archived: bool = Query(default=False),
         actor=Depends(require_actor),
     ) -> Dict[str, Any]:
         try:
             cases = await case_service.list_cases(
                 db, actor=actor, state=state,
-                incident_type=incident_type, limit=limit,
+                incident_type=incident_type, query=query,
+                include_archived=include_archived, limit=limit,
             )
         except Exception as e:
             raise _handle(e)
@@ -234,6 +242,22 @@ def register_incident_engine_routes(
         except Exception as e:
             raise _handle(e)
 
+    @api_router.post("/incident-cases/{case_id}/archive")
+    async def archive_case_route(
+        case_id: str,
+        body: ArchiveBody = Body(...),
+        actor=Depends(require_actor),
+    ) -> Dict[str, Any]:
+        try:
+            return await case_service.archive_case(
+                db,
+                case_id=case_id,
+                actor=actor,
+                reason=body.reason,
+            )
+        except Exception as e:
+            raise _handle(e)
+
     # ── TIMELINE / AUDIT ────────────────────────────────────────
     @api_router.get("/incident-cases/{case_id}/timeline")
     async def timeline_route(
@@ -253,7 +277,7 @@ def register_incident_engine_routes(
         return await list_events(
             db, case_id=case_id, limit=2000,
             event_types=[
-                "case.state_changed", "case.reopened", "case.closed",
+                "case.state_changed", "case.archived", "case.reopened", "case.closed",
                 "recordability.changed", "root_cause.updated",
                 "executive_review.recorded",
                 "corrective_action.assigned", "corrective_action.verified",

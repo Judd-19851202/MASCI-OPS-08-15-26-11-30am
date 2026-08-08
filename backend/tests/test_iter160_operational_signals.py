@@ -428,7 +428,7 @@ def test_ca_create_close_integration_records_cycle_time():
         json={
             "title": label,
             "description": "telemetry integration test",
-            "source_kind": "manual",
+            "source_kind": "synthetic_test",
             "priority": "Medium",
             "due_date": "2026-06-01",
         },

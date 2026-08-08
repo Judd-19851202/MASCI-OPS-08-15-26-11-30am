@@ -132,6 +132,10 @@ class IncidentCase(BaseModel):
     submitted_at: str = ""
     closed_at: str = ""
     reopened_at: str = ""
+    archived: bool = False
+    archived_at: str = ""
+    archived_by: str = ""
+    archived_reason: str = ""
 
     # Cached counters for cheap list views. Authoritative source is
     # always the linked collections.

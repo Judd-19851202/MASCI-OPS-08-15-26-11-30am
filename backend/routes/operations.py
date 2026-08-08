@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -1210,7 +1211,7 @@ def build_operations_router(
         safety_cas = []
         try:
             safety_cas = await db.corrective_actions.find(
-                {"asset_id": asset_id}, {"_id": 0},
+                apply_synthetic_corrective_action_exclusion({"asset_id": asset_id}), {"_id": 0},
             ).sort("created_at", -1).to_list(10)
         except Exception:
             pass

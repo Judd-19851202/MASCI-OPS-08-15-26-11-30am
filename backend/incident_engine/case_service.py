@@ -84,6 +84,8 @@ async def list_cases(
     actor: Any,
     state: Optional[str] = None,
     incident_type: Optional[str] = None,
+    query: Optional[str] = None,
+    include_archived: bool = False,
     limit: int = 100,
 ) -> List[Dict[str, Any]]:
     if not (actor_can(actor, "case.read_all") or actor_can(actor, "case.read_own")):
@@ -91,10 +93,22 @@ async def list_cases(
             f"role={normalize_role(actor)!r} cannot list incident cases"
         )
     q: Dict[str, Any] = {}
+    if not include_archived:
+        q["archived"] = {"$ne": True}
     if state:
         q["state"] = state.upper()
     if incident_type:
         q["field_block.incident_type"] = incident_type.lower()
+    if query:
+        rx = {"$regex": str(query).strip(), "$options": "i"}
+        q["$or"] = [
+            {"case_number": rx},
+            {"field_block.job_number": rx},
+            {"field_block.location_label": rx},
+            {"field_block.reporter_name": rx},
+            {"field_block.observed_conditions": rx},
+            {"safety_block.root_cause_summary": rx},
+        ]
     cur = (
         db[COLLECTION_CASES]
         .find(q, {"_id": 0})
@@ -232,6 +246,10 @@ async def transition_case(
     if ts == "REOPENED":
         update["reopened_at"] = now
         update["closed_at"] = ""
+        update["archived"] = False
+        update["archived_at"] = ""
+        update["archived_by"] = ""
+        update["archived_reason"] = ""
 
     # Field observations become immutable at every non-DRAFT state.
     if ts in IMMUTABLE_AFTER_STATES:
@@ -272,6 +290,41 @@ async def transition_case(
             actor=actor,
         )
 
+    doc.update(update)
+    return doc
+
+
+async def archive_case(
+    db,
+    *,
+    case_id: str,
+    actor: Any,
+    reason: str,
+) -> Dict[str, Any]:
+    if not actor_can(actor, "transition.close"):
+        raise PermissionError("role_not_authorized")
+    doc = await get_case(db, case_id)
+    if not doc:
+        raise LookupError(f"case {case_id} not found")
+    if (doc.get("state") or "").upper() != "CLOSED":
+        raise ValueError("case_must_be_closed_before_archive")
+    now = _now()
+    update = {
+        "archived": True,
+        "archived_at": now,
+        "archived_by": _actor_name(actor),
+        "archived_reason": str(reason or "").strip(),
+        "updated_at": now,
+    }
+    await db[COLLECTION_CASES].update_one({"id": case_id}, {"$set": update})
+    await emit_event(
+        db,
+        case_id=case_id,
+        event_type="case.archived",
+        actor=actor,
+        reason=update["archived_reason"],
+        payload={"archived_at": now},
+    )
     doc.update(update)
     return doc
 

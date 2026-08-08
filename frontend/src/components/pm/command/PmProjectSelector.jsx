@@ -52,30 +52,33 @@ export default function PmProjectSelector({ value, projectNumber, onChange, opti
   const [loading, setLoading] = useState(true);
   const selectedValue = value ?? projectNumber ?? "";
 
+  const applyOptions = (rows) => {
+    // Deduplicate by project_number, preserve server order.
+    const seen = new Set();
+    const out = [];
+    const currentValue = selectedValue || "";
+    for (const r of rows || []) {
+      if (!seen.has(r.project_number)) {
+        seen.add(r.project_number);
+        out.push(r);
+      }
+    }
+    setOptions(out);
+    setLoading(false);
+    if (currentValue && !seen.has(currentValue)) {
+      onChange?.(null);
+    }
+  };
+
   useEffect(() => {
     if (Array.isArray(providedOptions)) {
-      setOptions(providedOptions);
-      setLoading(false);
+      applyOptions(providedOptions);
       return undefined;
     }
     let live = true;
     fetchPmProjects().then((rows) => {
       if (!live) return;
-      // Deduplicate by project_number, preserve order
-      const seen = new Set();
-      const out = [];
-      const currentValue = selectedValue || "";
-      for (const r of rows) {
-        if (!seen.has(r.project_number)) {
-          seen.add(r.project_number);
-          out.push(r);
-        }
-      }
-      if (currentValue && !seen.has(currentValue)) {
-        out.unshift({ project_number: currentValue, project_name: "" });
-      }
-      setOptions(out);
-      setLoading(false);
+      applyOptions(rows);
     });
     return () => { live = false; };
   }, [lang, providedOptions, selectedValue]);

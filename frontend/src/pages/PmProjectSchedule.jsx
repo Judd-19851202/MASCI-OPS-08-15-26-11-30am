@@ -3,7 +3,7 @@ import { CalendarRange, Download, FileUp, RefreshCw, Send, ShieldCheck } from "l
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import PmShell from "@/components/PmShell";
-import PmProjectSelector from "@/components/pm/command/PmProjectSelector";
+import PmProjectSelector, { fetchPmProjects } from "@/components/pm/command/PmProjectSelector";
 import { ScheduleActualsWorkspace } from "@/components/pm/schedule/ScheduleActualsWorkspace";
 import { ScheduleDailyWorkPlanPanel } from "@/components/pm/schedule/ScheduleDailyWorkPlanPanel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -249,11 +249,33 @@ export default function PmProjectSchedule() {
   const [candidateDrafts, setCandidateDrafts] = useState({});
   const [dailyPlanDraft, setDailyPlanDraft] = useState(buildDailyPlanDraft(null));
   const [dailyPlanDate, setDailyPlanDate] = useState(todayText());
+  const [scopedProjects, setScopedProjects] = useState([]);
+  const [scopeLoaded, setScopeLoaded] = useState(false);
+  const [scopeAlert, setScopeAlert] = useState("");
 
   useEffect(() => {
     const next = params.get("project_number") || "";
     setProjectNumber(next);
   }, [params]);
+
+  useEffect(() => {
+    let live = true;
+    fetchPmProjects().then((rows) => {
+      if (!live) return;
+      setScopedProjects(rows || []);
+      setScopeLoaded(true);
+    }).catch(() => {
+      if (!live) return;
+      setScopedProjects([]);
+      setScopeLoaded(true);
+    });
+    return () => { live = false; };
+  }, []);
+
+  const scopedProjectNumbers = useMemo(
+    () => new Set((scopedProjects || []).map((row) => row?.project_number).filter(Boolean)),
+    [scopedProjects],
+  );
 
   const load = async (pn = projectNumber, pinnedImportId = "", requestedPlanDate = dailyPlanDate) => {
     if (!pn) return;
@@ -307,8 +329,27 @@ export default function PmProjectSchedule() {
   };
 
   useEffect(() => {
-    if (projectNumber) load(projectNumber);
-  }, [projectNumber]);
+    if (!projectNumber || !scopeLoaded) return;
+    if (!scopedProjectNumbers.has(projectNumber)) {
+      setOverview(null);
+      setVersions([]);
+      setActivities([]);
+      setWorkPackages([]);
+      setImports([]);
+      setReviewQueue([]);
+      setLookahead(null);
+      setActualsOverview(null);
+      setCandidateDrafts({});
+      setDailyPlanDraft(buildDailyPlanDraft(null));
+      const msg = t("That project is not in your PM schedule scope.");
+      setScopeAlert(msg);
+      toast.error(msg);
+      setProject(null);
+      return;
+    }
+    setScopeAlert("");
+    load(projectNumber);
+  }, [projectNumber, scopeLoaded, scopedProjectNumbers]);
 
   useEffect(() => {
     if (!projectNumber) {
@@ -496,6 +537,12 @@ export default function PmProjectSchedule() {
           </div>
           <div className="mt-4 max-w-sm" data-testid="pm-project-schedule-project-picker-shell">
             <PmProjectSelector projectNumber={projectNumber} onChange={setProject} />
+            {scopeAlert ? (
+              <Alert data-testid="pm-project-schedule-scope-alert" variant="destructive">
+                <AlertTitle>{t("Project access updated")}</AlertTitle>
+                <AlertDescription>{scopeAlert}</AlertDescription>
+              </Alert>
+            ) : null}
           </div>
         </div>
 

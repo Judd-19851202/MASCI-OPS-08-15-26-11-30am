@@ -841,7 +841,10 @@ def build_pm_command_center_router(
                               source_system="incidents"),
             })
         capas: List[Dict[str, Any]] = []
-        async for c in db.corrective_actions.find(capa_q, {"_id": 0}).limit(200):
+        async for c in db.corrective_actions.find(
+            apply_synthetic_corrective_action_exclusion(capa_q),
+            {"_id": 0},
+        ).limit(200):
             capas.append({
                 "capa_id": c.get("id"),
                 "summary": c.get("summary") or c.get("description"),
@@ -1231,7 +1234,10 @@ def build_pm_command_center_router(
         }
         if nums:
             ca_q["project_number"] = {"$in": nums}
-        async for c in db.corrective_actions.find(ca_q, {"_id": 0}).limit(int(limit)):
+        async for c in db.corrective_actions.find(
+            apply_synthetic_corrective_action_exclusion(ca_q),
+            {"_id": 0},
+        ).limit(int(limit)):
             c_id = c.get("id") or ""
             # CAPAs anchor on the PM Incidents Dashboard (single
             # surface housing CAPAs) — pre-select with focus_capa.

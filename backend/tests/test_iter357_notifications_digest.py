@@ -20,14 +20,11 @@ Invariants:
 """
 from __future__ import annotations
 
-import os
-
 import requests
 
 
 # ---------------- bootstrap ----------------
 _FRONT_ENV = "/app/frontend/.env"
-_BACK_ENV = "/app/backend/.env"
 try:
     with open(_FRONT_ENV) as fh:
         for ln in fh:
@@ -39,26 +36,33 @@ try:
 except FileNotFoundError:
     URL = "http://localhost:8001"
 
-try:
-    with open(_BACK_ENV) as fh:
-        for ln in fh:
-            if ln.startswith("ADMIN_PASSWORD="):
-                ADMIN_PASSWORD = ln.split("=", 1)[1].strip().strip('"')
-                break
-        else:
-            ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
-except FileNotFoundError:
-    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
-
-ADMIN_TOKEN = ""
-if URL and ADMIN_PASSWORD:
+ADMIN_HEADERS = {}
+SAFETY_HEADERS = {}
+if URL:
     try:
-        r = requests.post(f"{URL}/api/admin/login",
-                          json={"password": ADMIN_PASSWORD}, timeout=10)
+        r = requests.post(
+            f"{URL}/api/auth/multi-login",
+            json={"email": "ops8-admin-only-preview@example.com", "password": "AdminOnlyOps8!"},
+            timeout=15,
+        )
         if r.status_code == 200:
-            ADMIN_TOKEN = r.json().get("token", "")
+            body = r.json()
+            ADMIN_HEADERS = {
+                "X-Admin-Token": (body.get("portal_tokens") or {}).get("admin", ""),
+                "X-Directory-Token": body.get("session_token") or "",
+            }
     except Exception:
-        ADMIN_TOKEN = ""
+        ADMIN_HEADERS = {}
+    try:
+        r = requests.post(
+            f"{URL}/api/safety/login",
+            json={"email": "cert.safety@example.com", "password": "CertProof2026!"},
+            timeout=15,
+        )
+        if r.status_code == 200:
+            SAFETY_HEADERS = {"X-Safety-Token": r.json().get("token", "")}
+    except Exception:
+        SAFETY_HEADERS = {}
 
 import requests.api  # noqa: E402, F401
 import requests.sessions  # noqa: E402
@@ -68,23 +72,81 @@ _orig_session_request = requests.sessions.Session.request
 
 
 def _patched(method, url, **kwargs):
-    if ADMIN_TOKEN and isinstance(url, str) and URL and url.startswith(URL):
+    if isinstance(url, str) and URL and url.startswith(URL):
         headers = kwargs.get("headers") or {}
-        headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
+        if url.endswith("/api/admin/notifications/digest") or url.endswith("/api/admin/compliance/scan") or "/api/admin/compliance/findings" in url:
+            for k, v in ADMIN_HEADERS.items():
+                if v:
+                    headers.setdefault(k, v)
+        if url.endswith("/api/safety/notifications/digest"):
+            for k, v in SAFETY_HEADERS.items():
+                if v:
+                    headers.setdefault(k, v)
         kwargs["headers"] = headers
     return _orig_request(method, url, **kwargs)
 
 
 def _patched_session(self, method, url, **kwargs):
-    if ADMIN_TOKEN and isinstance(url, str) and URL and url.startswith(URL):
+    if isinstance(url, str) and URL and url.startswith(URL):
         headers = kwargs.get("headers") or {}
-        headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
+        if url.endswith("/api/admin/notifications/digest") or url.endswith("/api/admin/compliance/scan") or "/api/admin/compliance/findings" in url:
+            for k, v in ADMIN_HEADERS.items():
+                if v:
+                    headers.setdefault(k, v)
+        if url.endswith("/api/safety/notifications/digest"):
+            for k, v in SAFETY_HEADERS.items():
+                if v:
+                    headers.setdefault(k, v)
         kwargs["headers"] = headers
     return _orig_session_request(self, method, url, **kwargs)
 
 
 requests.api.request = _patched
 requests.sessions.Session.request = _patched_session
+
+
+def _auth_post(url: str, **kwargs):
+    headers = kwargs.pop("headers", {}) or {}
+    if url.endswith("/api/admin/compliance/scan") or "/api/admin/compliance/findings" in url:
+        login = requests.post(
+            f"{URL}/api/auth/multi-login",
+            json={"email": "ops8-admin-only-preview@example.com", "password": "AdminOnlyOps8!"},
+            timeout=15,
+        )
+        assert login.status_code == 200, login.text
+        body = login.json()
+        headers = {
+            "X-Admin-Token": (body.get("portal_tokens") or {}).get("admin", ""),
+            "X-Directory-Token": body.get("session_token") or "",
+            **headers,
+        }
+    return requests.post(url, headers=headers, **kwargs)
+
+
+def _auth_get(url: str, **kwargs):
+    headers = kwargs.pop("headers", {}) or {}
+    if url.endswith("/api/admin/notifications/digest") or "/api/admin/compliance/findings" in url:
+        login = requests.post(
+            f"{URL}/api/auth/multi-login",
+            json={"email": "ops8-admin-only-preview@example.com", "password": "AdminOnlyOps8!"},
+            timeout=15,
+        )
+        assert login.status_code == 200, login.text
+        body = login.json()
+        headers = {
+            "X-Admin-Token": (body.get("portal_tokens") or {}).get("admin", ""),
+            "X-Directory-Token": body.get("session_token") or "",
+            **headers,
+        }
+    elif url.endswith("/api/safety/notifications/digest"):
+        login = requests.post(
+            f"{URL}/api/safety/login",
+            json={"email": "cert.safety@example.com", "password": "CertProof2026!"},
+            timeout=15,
+        )
+        assert login.status_code == 200, login.text
+        headers = {"X-Safety-Token": login.json().get("token", ""), **headers}
+    return requests.get(url, headers=headers, **kwargs)
 
 
 ADMIN_URL = f"{URL}/api/admin/notifications/digest"
@@ -110,8 +172,8 @@ def test_safety_digest_rejects_anon():
 # ---------------- Shape ----------------
 
 def test_admin_digest_shape():
-    requests.post(SCAN_URL, timeout=60)
-    r = requests.get(ADMIN_URL, timeout=15)
+    _auth_post(SCAN_URL, timeout=60)
+    r = _auth_get(ADMIN_URL, timeout=15)
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["ok"] is True
@@ -128,8 +190,8 @@ def test_admin_digest_shape():
 
 
 def test_safety_digest_shape():
-    requests.post(SCAN_URL, timeout=60)
-    r = requests.get(SAFETY_URL, timeout=15)
+    _auth_post(SCAN_URL, timeout=60)
+    r = _auth_get(SAFETY_URL, timeout=15)
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["ok"] is True
@@ -146,8 +208,8 @@ def test_safety_digest_shape():
 def test_safety_digest_counts_match_findings():
     """Safety digest counts must equal live open-finding counts for the
     rules they aggregate."""
-    requests.post(SCAN_URL, timeout=60)
-    r = requests.get(SAFETY_URL, timeout=15)
+    _auth_post(SCAN_URL, timeout=60)
+    r = _auth_get(SAFETY_URL, timeout=15)
     assert r.status_code == 200
     body = r.json()
     summary = body["summary"]
@@ -161,7 +223,7 @@ def test_safety_digest_counts_match_findings():
         "trainings_expired":            "TRN_EXPIRED",
     }
     for summary_key, rule_id in expected.items():
-        r2 = requests.get(
+        r2 = _auth_get(
             f"{LIST_URL}?rule_id={rule_id}&limit=1000", timeout=15,
         )
         live_count = r2.json().get("count", 0)
@@ -175,8 +237,8 @@ def test_safety_digest_counts_match_findings():
 def test_admin_digest_includes_critical_section_when_present():
     """If governance summary reports >0 critical, the admin digest must
     include a 'critical_findings' section."""
-    requests.post(SCAN_URL, timeout=60)
-    r = requests.get(ADMIN_URL, timeout=15)
+    _auth_post(SCAN_URL, timeout=60)
+    r = _auth_get(ADMIN_URL, timeout=15)
     body = r.json()
     summary = body["summary"]
     keys = [s["key"] for s in body["sections"]]
@@ -189,9 +251,9 @@ def test_admin_digest_includes_critical_section_when_present():
 
 def test_section_items_have_minimum_shape():
     """Every section with items must include the keys we render in UI."""
-    requests.post(SCAN_URL, timeout=60)
+    _auth_post(SCAN_URL, timeout=60)
     for url in (ADMIN_URL, SAFETY_URL):
-        r = requests.get(url, timeout=15)
+        r = _auth_get(url, timeout=15)
         body = r.json()
         for s in body["sections"]:
             for it in s.get("items") or []:

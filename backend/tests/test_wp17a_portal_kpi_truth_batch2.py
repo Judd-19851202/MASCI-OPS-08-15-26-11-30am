@@ -7,6 +7,9 @@ from time import sleep
 import requests
 from pymongo import MongoClient
 
+from lib.corrective_action_truth import open_corrective_action_query, overdue_corrective_action_query
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
+
 
 def _kv(path: str, key: str) -> str:
     try:
@@ -67,15 +70,18 @@ def test_executive_overview_reconciles_canonical_safety_counts():
     assert api_incidents == db_incidents
 
     api_open_ca = data["tiles"]["safety"]["unresolved_corrective_actions"]
-    db_open_ca = db.corrective_actions.count_documents({"status": {"$nin": _CLOSED_CA}})
+    db_open_ca = db.corrective_actions.count_documents(
+        apply_synthetic_corrective_action_exclusion(open_corrective_action_query())
+    )
     assert api_open_ca == db_open_ca
 
     generated_at = data["generated_at"]
     api_overdue_ca = data["tiles"]["overdue"]["overdue_corrective_actions"]
-    db_overdue_ca = db.corrective_actions.count_documents({
-        "status": {"$nin": _CLOSED_CA},
-        "due_date": {"$lt": generated_at, "$nin": [None, ""]},
-    })
+    db_overdue_ca = db.corrective_actions.count_documents(
+        apply_synthetic_corrective_action_exclusion(
+            overdue_corrective_action_query(today_iso=generated_at[:10])
+        )
+    )
     assert api_overdue_ca == db_overdue_ca
 
 
@@ -104,8 +110,9 @@ def test_project_health_reconciles_row_counts_and_contract_metadata():
 
     db_ca_overdue = db.corrective_actions.count_documents({
         "project_number": pn,
-        "status": {"$nin": _CLOSED_CA},
-        "due_date": {"$lt": generated_at},
+        **apply_synthetic_corrective_action_exclusion(
+            overdue_corrective_action_query(today_iso=generated_at[:10])
+        ),
     })
     assert row["indicators"]["ca_overdue"] == db_ca_overdue
 
