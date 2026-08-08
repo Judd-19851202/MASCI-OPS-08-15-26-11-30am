@@ -10,6 +10,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { formatOperatorJobLabel, sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
+import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -37,12 +38,16 @@ export async function fetchPmProjects() {
 }
 
 function optionLabel(option) {
-  const projectNumber = sanitizeOperatorProjectNumber(option?.project_number, "Project number unavailable");
+  const projectNumber = sanitizeOperatorProjectNumber(option?.project_number, "");
   const projectName = String(option?.project_name || "").trim();
-  return projectName ? formatOperatorJobLabel(projectNumber, projectName) : `${projectNumber} — Project name unavailable`;
+  if (projectNumber && projectName) return formatOperatorJobLabel(projectNumber, projectName);
+  if (projectName) return projectName;
+  if (projectNumber) return projectNumber;
+  return "Project details unavailable";
 }
 
 export default function PmProjectSelector({ value, projectNumber, onChange, options: providedOptions = null }) {
+  const { t } = useT();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const selectedValue = value ?? projectNumber ?? "";
@@ -78,7 +83,7 @@ export default function PmProjectSelector({ value, projectNumber, onChange, opti
   return (
     <div className="flex items-center gap-2" data-testid="pm-project-selector-wrapper">
       <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500" htmlFor="pm-cc-project-select">
-        Project
+        {t("Project")}
       </label>
       <select
         id="pm-cc-project-select"
@@ -87,7 +92,7 @@ export default function PmProjectSelector({ value, projectNumber, onChange, opti
         onChange={(e) => onChange(e.target.value || null)}
         className="text-xs sm:text-sm border border-slate-300 rounded px-2 py-1 bg-white text-slate-900 focus:border-slate-500 focus:ring-1 focus:ring-slate-400 focus:outline-none max-w-xs"
       >
-        <option value="">{loading ? "Loading projects…" : "All my projects"}</option>
+        <option value="">{loading ? t("Loading projects…") : t("All my projects")}</option>
         {options.map((o) => (
           <option key={o.project_number} value={o.project_number}>
             {optionLabel(o)}

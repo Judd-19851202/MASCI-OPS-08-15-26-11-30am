@@ -253,9 +253,11 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
             const incidentCount = incidentsByPn[pn] ?? 0;
             const lastIso = latestDailyByPn[pn];
             const action = nextActionFor(pn);
-            const safeProjectNumber = sanitizeOperatorProjectNumber(pn, "Project number unavailable");
+            const safeProjectNumber = sanitizeOperatorProjectNumber(pn, "");
             const projectName = String(projectDirectory[pn] || "").trim();
-            const safeProjectLabel = projectName ? formatOperatorJobLabel(safeProjectNumber, projectName) : `${safeProjectNumber} — ${t("Project name unavailable")}`;
+            const safeProjectLabel = safeProjectNumber && projectName
+              ? formatOperatorJobLabel(safeProjectNumber, projectName)
+              : (projectName || safeProjectNumber || t("Project details unavailable"));
             const actionTone =
               action === t("Missing Daily Report") ? "amber"
               : action === t("Review Safety Item") ? "rose"
@@ -296,7 +298,7 @@ function ProjectCommand({ overview, loading, dailies = [], incidents = [], shop 
                       {action}
                     </span>
                     <span className="text-[10px] font-mono uppercase tracking-wider text-red-700">
-                      {t("Open Project")} <ArrowRight className="w-3 h-3 inline ml-1" />
+                      {t("Open project")} <ArrowRight className="w-3 h-3 inline ml-1" />
                     </span>
                   </div>
                 </Link>

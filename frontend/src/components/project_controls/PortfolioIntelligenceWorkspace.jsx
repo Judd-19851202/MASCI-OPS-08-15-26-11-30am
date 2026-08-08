@@ -69,7 +69,7 @@ function fmtDate(value) {
 }
 
 function displayProjectNumber(row) {
-  return sanitizeOperatorProjectNumber(row?.project_number, "Project number unavailable");
+  return sanitizeOperatorProjectNumber(row?.project_number, "");
 }
 
 function displayProjectName(row, t) {
@@ -81,7 +81,8 @@ function displayProjectName(row, t) {
 function displayProjectLabel(row, t) {
   const projectNumber = displayProjectNumber(row);
   const projectName = displayProjectName(row, t);
-  if (projectName === t("Project name unavailable")) return `${projectNumber} — ${projectName}`;
+  if (!projectNumber && projectName) return projectName;
+  if (projectName === t("Project name unavailable")) return projectNumber || t("Project details unavailable");
   return formatOperatorJobLabel(projectNumber, projectName);
 }
 
@@ -255,7 +256,7 @@ function ProjectCard({ row, index, onOpenDetail, t, lang }) {
       <CardContent className="space-y-5 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3 min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500" data-testid={`portfolio-project-number-${index}`}>{displayProjectNumber(row)}</div>
+            {displayProjectNumber(row) ? <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500" data-testid={`portfolio-project-number-${index}`}>{displayProjectNumber(row)}</div> : null}
             <h3 className="font-display text-2xl font-black tracking-tight text-slate-950" data-testid={`portfolio-project-name-${index}`}>{displayProjectName(row, t)}</h3>
             <Badge className={`rounded-sm border ${conditionTone(primaryCondition)}`} data-testid={`portfolio-project-condition-${index}`}>
               {row?.primary_condition?.label || CONDITION_LABEL[primaryCondition]}

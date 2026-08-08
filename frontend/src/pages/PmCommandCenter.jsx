@@ -44,7 +44,7 @@ import { useT } from "@/lib/i18n";
 const OVERVIEW_POLL_MS = 45000;
 
 export default function PmCommandCenter() {
-  const { t } = useT();
+  const { t, lang } = useT();
   usePageTitle("PM Command Center · MASCI");
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -105,9 +105,12 @@ export default function PmCommandCenter() {
   const headerSubtitle = useMemo(() => {
     if (!projectNumber) return t("See which of your projects need attention today and open the right record fast.");
     const matched = (projectOptions || []).find((row) => row.project_number === projectNumber);
-    const safeNumber = sanitizeOperatorProjectNumber(projectNumber, t("Project number unavailable"));
-    return matched?.project_name ? `${t("Focused on")} ${formatOperatorJobLabel(safeNumber, matched.project_name)}` : `${t("Focused on")} ${safeNumber} — ${t("Project name unavailable")}`;
-  }, [projectNumber, projectOptions, t]);
+    const safeNumber = sanitizeOperatorProjectNumber(projectNumber, "");
+    if (matched?.project_name && safeNumber) return `${t("Focused on")} ${formatOperatorJobLabel(safeNumber, matched.project_name)}`;
+    if (matched?.project_name) return `${t("Focused on")} ${matched.project_name}`;
+    if (safeNumber) return `${t("Focused on")} ${safeNumber}`;
+    return t("See which of your projects need attention today and open the right record fast.");
+  }, [lang, projectNumber, projectOptions, t]);
 
   return (
     <PortalShell
