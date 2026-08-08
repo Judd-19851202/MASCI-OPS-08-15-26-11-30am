@@ -47,7 +47,7 @@ function optionLabel(option) {
 }
 
 export default function PmProjectSelector({ value, projectNumber, onChange, options: providedOptions = null }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const selectedValue = value ?? projectNumber ?? "";
@@ -78,7 +78,7 @@ export default function PmProjectSelector({ value, projectNumber, onChange, opti
       setLoading(false);
     });
     return () => { live = false; };
-  }, [providedOptions, selectedValue]);
+  }, [lang, providedOptions, selectedValue]);
 
   return (
     <div className="flex items-center gap-2" data-testid="pm-project-selector-wrapper">
