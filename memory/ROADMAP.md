@@ -1,5 +1,27 @@
 # 2026-08-08 — PRE-C10 remediation current state
 
+- **PRE-C10: OPEN — NO-GO**
+- **Live production: redeployment required**
+- **C10: not authorized**
+- Contamination-governance gate: **GREEN in preview**
+- Platform truth integrity: **GREEN in preview**
+
+## Updated next actions after contamination closure batch
+
+### P0 — still required before any PRE-C10 closeout
+
+- Complete remaining Safety downstream/archive/search/reopen/notification/export/tasks-executive-period-filter parity.
+- Complete full Schedule closure: revision/version history, approvals, baselines, Rolling Two-Week, actuals, work blocks, and full runtime operator flow.
+- Finish exhaustive KPI denominator inventory and C1–C9 source-to-consumer truth evidence.
+- Re-run and close the full screenshot product-quality ledger; complete WP-18DA and WP-18DB evidence.
+- Finish release identity and final PRE-C10 no-false-green evidence pack.
+
+### P1 — UX / operator-experience closure still open
+
+- Finish acronym / nomenclature cleanup across remaining operator-visible hubs, pages, and training content.
+- Continue Motive / equipment-location UX cleanup on remaining operator-facing dispatch and fleet surfaces.
+- Finish responsive, accessibility, and EN/ES closure on remaining rebuilt surfaces.
+
 - Latest verified batch closed the targeted false-zero/loading-state and screenshot-certification issues on preview.
 - Do **not** treat this as the final platform GO: preview truth still reports `Trust Spine = amber / canonical DEGRADED`, deployment readiness is `pass` with advisory follow-up, and live production remains **redeploy-required** until the user saves and deploys.
 - **C10 remains not authorized.**

@@ -1,5 +1,29 @@
 # PRD
 
+## 2026-08-08 — PRE-C10 remediation continuation: contamination closure, UI truth smoke, operator-language cleanup
+
+- This entry supersedes older same-day notes that used GO / ready-to-deploy language. **Current governing state remains: PRE-C10 OPEN — NO-GO; live production redeployment required; C10 not authorized; do not save; do not deploy.**
+- Completed in this batch:
+  - closed the contamination-governance gate with deterministic governed fixture evidence + preview backfill across employees, daily reports, field leadership, incidents, meetings, JHAs, inspections, training, safety issuances, dispatch assignments, and equipment inspections;
+  - moved shared read filters to the governed classification contract and hardened write paths so new synthetic/certification rows are explicitly marked;
+  - verified `/api/admin/platform-truth-integrity` and `/api/admin/platform-truth-integrity/contamination` are both green in preview;
+  - fixed Admin OS probe loading so cards settle honestly instead of hanging in `LOADING`;
+  - fixed Daily Reports dashboard so real rows are visible instead of only a count label;
+  - fixed PM command-center project identity so assigned projects show real labels instead of `Project details unavailable`;
+  - removed user-facing vendor wording from the dispatch location ribbon and HR driver-link review surfaces.
+- Verification evidence from this batch:
+  - `python -m pytest /app/backend/tests/test_prec10_governed_fixture_evidence.py -q` → `5 passed`
+  - `python -m pytest /app/backend/tests/test_prec10_platform_truth_integrity.py -q` → `1 passed`
+  - direct preview checks confirmed contamination gate `GREEN`, platform truth integrity `GREEN`, employee leak check `PASS`, and daily-report leak check `PASS`
+  - `auto_frontend_testing_agent` PASS on Admin OS loading, Daily Reports rendering, PM command center identity, and targeted product-quality surfaces
+  - `python /app/scripts/operator_language_gate.py` → `operator_facing_banned_findings=0`
+  - deployment-readiness scan PASS after CORS hardening; this is readiness evidence only and does **not** authorize deployment.
+- Remaining denominator still open after this batch:
+  - full Safety downstream/archive/search/notification/export closure
+  - full Schedule revision/version/baseline/Two-Week/runtime workflow closure
+  - exhaustive KPI denominator and C1–C9 cross-surface evidence completion
+  - complete screenshot product-quality certification rerun, WP-18DA, WP-18DB, release identity, accessibility, responsive, EN/ES, and remaining operator-language cleanup.
+
 ## 2026-08-08 — PRE-C10 remediation batch: false-zero + certification repair
 
 - Result of this batch: preview repaired and verified for targeted false-zero/loading-state truth, legacy continuity messaging, and executive screenshot-certification reliability. This is **not** a full platform GO.
