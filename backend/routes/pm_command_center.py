@@ -31,6 +31,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from lib.enterprise_governance import GovernanceProjectScope, governance_project_scope
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 import dispatch_lifecycle as DLS
 
@@ -437,7 +438,9 @@ def build_pm_command_center_router(
         # CAPAs
         capas_q: Dict[str, Any] = {"status": {"$nin": ["Completed", "Closed", "Cancelled"]}}
         if nums: capas_q["project_number"] = {"$in": nums}
-        capas_open = await db.corrective_actions.count_documents(capas_q)
+        capas_open = await db.corrective_actions.count_documents(
+            apply_synthetic_corrective_action_exclusion(capas_q)
+        )
 
         # Material movement today (daily_reports)
         today_yyyymmdd = datetime.now(timezone.utc).date().isoformat()

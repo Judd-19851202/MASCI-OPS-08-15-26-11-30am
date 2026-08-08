@@ -33,6 +33,7 @@ ADMIN (X-Admin-Token):
 from __future__ import annotations
 
 from lib.mongo_query import safe_regex
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 
@@ -1973,12 +1974,14 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             query["status"] = status
         items = []
         async for r in db.corrective_actions.find(
-            query, {"_id": 0},
+            apply_synthetic_corrective_action_exclusion(query), {"_id": 0},
         ).sort("created_at", -1).limit(limit):
             items.append(r)
-        open_count = await db.corrective_actions.count_documents({
-            "status": {"$nin": ["closed", "completed", "verified"]}
-        })
+        open_count = await db.corrective_actions.count_documents(
+            apply_synthetic_corrective_action_exclusion({
+                "status": {"$nin": ["closed", "completed", "verified"]}
+            })
+        )
         return {
             "ok": True,
             "items": items,

@@ -38,6 +38,8 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 # canonical ownership derivation. Source workflows are NOT mutated;
 # projection is read-only.
 from lib import accountability_projection as _acc_proj
+from lib.corrective_action_truth import overdue_corrective_action_query
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 
 # ─── In-memory cache (15 sec like recovery_dashboard) ────────────────
@@ -561,10 +563,10 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
     # SAF-CA-OVERDUE
     r_ca = rules.get("SAF-CA-OVERDUE", DEFAULT_THRESHOLDS["rules"]["SAF-CA-OVERDUE"])
     today = datetime.now(timezone.utc).isoformat()[:10]
-    ca_overdue_count = await db.corrective_actions.count_documents({
-        "status": {"$in": ["Open", "In Progress", "Pending Review"]},
-        "due_date": {"$ne": None, "$lt": today},
-    })
+    ca_overdue_query = apply_synthetic_corrective_action_exclusion(
+        overdue_corrective_action_query(today_iso=today)
+    )
+    ca_overdue_count = await db.corrective_actions.count_documents(ca_overdue_query)
     if ca_overdue_count >= r_ca["red"]:
         warnings.append({"kind": "SAF-CA-OVERDUE", "severity": "red",
                          "message": f"{ca_overdue_count} corrective action(s) past due date",
@@ -577,8 +579,7 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
                          "owner": "safety", "drill_to": "/safety-portal/corrective-actions?status=overdue"})
     if ca_overdue_count > 0:
         ca_docs = await db.corrective_actions.find(
-            {"status": {"$in": ["Open", "In Progress", "Pending Review"]},
-             "due_date": {"$ne": None, "$lt": today}},
+            ca_overdue_query,
             {"_id": 0, "id": 1, "title": 1, "due_date": 1, "assigned_to_name": 1,
              "priority": 1, "status": 1},
             sort=[("due_date", 1)],
@@ -599,10 +600,12 @@ async def _build_safety_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
     r_chronic = rules.get("SAF-CA-CHRONIC", DEFAULT_THRESHOLDS["rules"]["SAF-CA-CHRONIC"])
     chronic_days = int(r_chronic.get("amber_days", 60))
     cutoff_chronic = (datetime.now(timezone.utc) - timedelta(days=chronic_days)).isoformat()
-    chronic_count = await db.corrective_actions.count_documents({
-        "status": {"$in": ["Open", "In Progress", "Pending Review"]},
-        "created_at": {"$lt": cutoff_chronic},
-    })
+    chronic_count = await db.corrective_actions.count_documents(
+        apply_synthetic_corrective_action_exclusion({
+            "status": {"$in": ["Open", "In Progress", "Pending Review"]},
+            "created_at": {"$lt": cutoff_chronic},
+        })
+    )
     if chronic_count >= r_chronic.get("amber", 1):
         warnings.append({"kind": "SAF-CA-CHRONIC", "severity": "amber",
                          "message": f"{chronic_count} corrective action(s) open more than {chronic_days} days",

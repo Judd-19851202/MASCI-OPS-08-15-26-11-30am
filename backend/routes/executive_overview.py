@@ -28,25 +28,17 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Request
 
+from lib.corrective_action_truth import open_corrective_action_query, overdue_corrective_action_query
 from lib.enterprise_governance import require_governed_action
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 logger = logging.getLogger(__name__)
 
 _CLOSED_INCIDENT_RESOLUTION = "Closed"
-_CLOSED_CORRECTIVE_ACTION_STATUSES = ["Completed", "Closed", "Cancelled"]
-
-
 def _open_incident_query(extra: Dict[str, Any] | None = None) -> Dict[str, Any]:
     query: Dict[str, Any] = {"resolution_status": {"$ne": _CLOSED_INCIDENT_RESOLUTION}}
-    if extra:
-        query.update(extra)
-    return query
-
-
-def _open_corrective_action_query(extra: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    query: Dict[str, Any] = {"status": {"$nin": list(_CLOSED_CORRECTIVE_ACTION_STATUSES)}}
     if extra:
         query.update(extra)
     return query
@@ -210,7 +202,7 @@ def register(app, *, db=None, require_admin_dep=None):
         # ───────────── Tile 2 — Overdue Operational Items ─────────────
         # Corrective actions due before now, still open
         overdue_capa = await db.corrective_actions.count_documents(
-            _open_corrective_action_query({"due_date": {"$lt": now_iso, "$nin": [None, ""]}})
+            apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=today_iso))
         )
         # Daily Reports cadence: projects with no DR in the last 3 days
         # (signal only — not authoritative "missing", just "needs attention")
@@ -238,7 +230,7 @@ def register(app, *, db=None, require_admin_dep=None):
                 sources=["corrective_actions", "daily_reports"],
                 formula={
                     "overdue_corrective_actions": {
-                        "match": _open_corrective_action_query({"due_date": {"$lt": now_iso, "$nin": [None, ""]}}),
+                        "match": apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=today_iso)),
                     },
                     "stale_daily_reports": "active project_number in last 7 days but absent from last 3 days",
                 },
@@ -375,7 +367,9 @@ def register(app, *, db=None, require_admin_dep=None):
 
         # ───────────── Tile 5 — Safety Attention Items ─────────────
         unresolved_incidents = await db.incidents.count_documents(_open_incident_query())
-        unresolved_capa = await db.corrective_actions.count_documents(_open_corrective_action_query())
+        unresolved_capa = await db.corrective_actions.count_documents(
+            apply_synthetic_corrective_action_exclusion(open_corrective_action_query())
+        )
         trench_holds_active = 0
         try:
             trench_holds_active = await db.trench_safety_holds.count_documents({
@@ -464,7 +458,7 @@ def register(app, *, db=None, require_admin_dep=None):
                 sources=["incidents", "corrective_actions", "trench_safety_holds", "safety_training_records", "tasks"],
                 formula={
                     "unresolved_incidents": _open_incident_query(),
-                    "unresolved_corrective_actions": _open_corrective_action_query(),
+                    "unresolved_corrective_actions": apply_synthetic_corrective_action_exclusion(open_corrective_action_query()),
                     "workplace_violence_window_days": 90,
                     "public_interaction_window_days": 30,
                     "training_overdue_task_key": "incident.aftercare.training_14d",

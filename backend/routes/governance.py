@@ -42,6 +42,7 @@ from typing import Any, Dict, List, Optional, Set
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response as _FastAPIResponse
 from pydantic import BaseModel, Field
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -370,10 +371,10 @@ async def _detect_capa_overdue(db) -> List[Dict[str, Any]]:
     today = _today_iso()
     out: List[Dict[str, Any]] = []
     cursor = db.corrective_actions.find(
-        {
+        apply_synthetic_corrective_action_exclusion({
             "due_date": {"$gt": "", "$lt": today},
             "status": {"$nin": ["closed", "completed", "verified", "resolved"]},
-        },
+        }),
         {"_id": 0, "id": 1, "title": 1, "description": 1, "status": 1,
          "due_date": 1, "linked_employee_name": 1, "employee_name": 1,
          "incident_id": 1, "owner": 1},
@@ -415,10 +416,12 @@ async def _detect_incident_closed_capa_open(db) -> List[Dict[str, Any]]:
         if not inc_pk:
             continue
         # Open CAPAs linked back to this incident by id.
-        open_capa_count = await db.corrective_actions.count_documents({
-            "incident_id": inc_pk,
-            "status": {"$nin": ["closed", "completed", "verified", "resolved"]},
-        })
+        open_capa_count = await db.corrective_actions.count_documents(
+            apply_synthetic_corrective_action_exclusion({
+                "incident_id": inc_pk,
+                "status": {"$nin": ["closed", "completed", "verified", "resolved"]},
+            })
+        )
         if open_capa_count <= 0:
             continue
         out.append({

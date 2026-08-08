@@ -188,7 +188,7 @@ export default function ExecutiveIntelligence() {
           <KpiCard label={t("Open cases")}       value={H.open_cases ?? 0}          testId="kpi-open"      tone={H.open_cases > 0 ? "default" : "ok"} />
           <KpiCard label={t("Critical cases")}   value={H.critical_cases ?? 0}      testId="kpi-critical"  tone={H.critical_cases > 0 ? "critical" : "ok"} />
           <KpiCard label={t("Avg readiness")}    value={`${H.avg_readiness_pct ?? 0}%`} testId="kpi-readiness" tone={(H.avg_readiness_pct||0) >= 70 ? "ok" : "warn"} />
-          <KpiCard label={t("Open CAPAs")}       value={H.corrective_actions_open ?? 0} testId="kpi-capa"    sub={`${H.corrective_actions_total ?? 0} ${t("total")}`} tone={H.corrective_actions_open > 5 ? "warn" : "default"} />
+          <KpiCard label={t("Open Corrective Actions")} value={H.corrective_actions_open ?? 0} testId="kpi-capa" sub={`${H.corrective_actions_total ?? 0} ${t("total")}`} tone={H.corrective_actions_open > 5 ? "warn" : "default"} />
         </section>
 
         <section className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="exec-intel-production-confidence">

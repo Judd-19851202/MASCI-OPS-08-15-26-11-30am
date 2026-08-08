@@ -17,22 +17,19 @@ B. BACKEND ENFORCEMENT (safety_portal/corrective_actions.py PATCH)
    - status_history[] appended on every status change
    - transition_note flows through to status_history entry
 
-Authentication uses the legacy /api/admin/login → X-Admin-Token. Admin
-satisfies the safety token via the existing safety-or-admin gate on
-/api/safety/corrective-actions endpoints.
+Authentication uses the current preview contracts:
+  - admin governance routes: /api/auth/multi-login fixture → X-Admin-Token + X-Directory-Token
+  - safety corrective-action routes: /api/safety/login → X-Safety-Token
 """
 from __future__ import annotations
 
-import os
 import uuid
-from datetime import datetime, timedelta, timezone
 
 import requests
 
 
 # Target -----------------------------------------------------------------
 _FRONT_ENV = "/app/frontend/.env"
-_BACK_ENV = "/app/backend/.env"
 try:
     with open(_FRONT_ENV) as fh:
         for ln in fh:
@@ -44,40 +41,27 @@ try:
 except FileNotFoundError:
     URL = "http://localhost:8001"
 
-try:
-    with open(_BACK_ENV) as fh:
-        for ln in fh:
-            if ln.startswith("ADMIN_PASSWORD="):
-                ADMIN_PASSWORD = ln.split("=", 1)[1].strip().strip('"')
-                break
-        else:
-            ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
-except FileNotFoundError:
-    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
-
+# Bootstrap live preview tokens.
 ADMIN_TOKEN = ""
-if URL and ADMIN_PASSWORD:
-    try:
-        r = requests.post(f"{URL}/api/admin/login",
-                          json={"password": ADMIN_PASSWORD}, timeout=10)
-        if r.status_code == 200:
-            ADMIN_TOKEN = r.json().get("token", "")
-    except Exception:
-        ADMIN_TOKEN = ""
-
-# Bootstrap a safety token via the master multi-login so the safety
-# corrective-actions endpoints accept us. Falls back to admin-token-only
-# tests if the master directory isn't seeded.
+DIRECTORY_TOKEN = ""
 SAFETY_TOKEN = ""
-SUPER_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL", "jaymn.judd@mascigc.com")
-SUPER_PW = os.environ.get("SUPER_ADMIN_BOOTSTRAP_PASSWORD", "Maddix123!")
 if URL:
     try:
         r = requests.post(f"{URL}/api/auth/multi-login",
-                          json={"email": SUPER_EMAIL, "password": SUPER_PW},
+                          json={"email": "ops8-admin-only-preview@example.com", "password": "AdminOnlyOps8!"},
                           timeout=15)
         if r.status_code == 200:
-            SAFETY_TOKEN = (r.json().get("portal_tokens") or {}).get("safety", "")
+            ADMIN_TOKEN = (r.json().get("portal_tokens") or {}).get("admin", "")
+            DIRECTORY_TOKEN = r.json().get("session_token", "")
+    except Exception:
+        ADMIN_TOKEN = ""
+        DIRECTORY_TOKEN = ""
+    try:
+        r = requests.post(f"{URL}/api/safety/login",
+                          json={"email": "cert.safety@example.com", "password": "CertProof2026!"},
+                          timeout=15)
+        if r.status_code == 200:
+            SAFETY_TOKEN = r.json().get("token", "")
     except Exception:
         SAFETY_TOKEN = ""
 
@@ -94,6 +78,8 @@ def _patched(method, url, **kwargs):
         headers = kwargs.get("headers") or {}
         if ADMIN_TOKEN:
             headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
+        if DIRECTORY_TOKEN:
+            headers.setdefault("X-Directory-Token", DIRECTORY_TOKEN)
         if SAFETY_TOKEN:
             headers.setdefault("X-Safety-Token", SAFETY_TOKEN)
         kwargs["headers"] = headers
@@ -105,6 +91,8 @@ def _patched_session(self, method, url, **kwargs):
         headers = kwargs.get("headers") or {}
         if ADMIN_TOKEN:
             headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
+        if DIRECTORY_TOKEN:
+            headers.setdefault("X-Directory-Token", DIRECTORY_TOKEN)
         if SAFETY_TOKEN:
             headers.setdefault("X-Safety-Token", SAFETY_TOKEN)
         kwargs["headers"] = headers

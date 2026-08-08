@@ -1351,7 +1351,7 @@ async def _safety_counts(db) -> Dict[str, Any]:
             {"resolution_status": {"$ne": "Closed"}},
         )
         ca_open = await db.corrective_actions.count_documents(
-            {"status": {"$nin": ["Completed", "Closed", "Cancelled"]}},
+            apply_synthetic_corrective_action_exclusion({"status": {"$nin": ["Completed", "Closed", "Cancelled"]}}),
         )
         return {"incidents_open": int(incidents_open),
                 "corrective_actions_open": int(ca_open)}

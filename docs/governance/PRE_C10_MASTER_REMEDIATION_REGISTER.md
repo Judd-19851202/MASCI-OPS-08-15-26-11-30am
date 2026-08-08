@@ -1,6 +1,6 @@
 # MASCI Operations Platform — PRE-C10 Master Remediation Register
 
-Last updated: 2026-08-08T17:41Z
+Last updated: 2026-08-08T18:15Z
 
 Status: **NO-GO**
 
@@ -40,6 +40,8 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-TRUST-010 | Trust Spine | Current-cycle Monday look-behind lacked certification evidence and payroll readiness | REPAIRED → CERTIFIED | current-cycle Monday review now completes after real payroll lifecycle + activity review |
 | PRE-C10-TRUTH-004 | Shared primitive | Shared truthful-state classifier implemented for loading / true zero / empty / unknown / unavailable / stale / no access / error | REPAIRED → CERTIFIED | `src/lib/truthfulDataState.js`, `truthfulDataState.test.js` |
 | PRE-C10-LEDGER-001 | Product Quality Ledger | Upgraded product-quality screenshot ledger rerun completed with governed quality criteria | REPAIRED → CERTIFIED | `/app/test_reports/runtime_screenshot_ledger/ledger.json` (`wp18db-product-quality-v2`, `failures=0`) |
+| PRE-C10-SAFETY-002 | Safety truth | Corrective-action overdue logic counted blank `due_date` values as overdue and diverged across overview / digest / executive / command-center / operations-center consumers | REPAIRED → CERTIFIED | shared helper `lib/corrective_action_truth.py`; preview runtime now reconciles `open=2`, `overdue=2` across `/api/safety/overview`, digest preview, executive overview, command center, operations center, project health |
+| PRE-C10-SAFETY-003 | Safety truth | Preview certification / test corrective actions leaked into operator and executive truth as live safety work | REPAIRED → CERTIFIED | shared filter `lib/synthetic_corrective_action_filter.py`; preview backfill flagged `96` synthetic rows; visible corrective-action list now resolves to the 2 real incident-linked records only |
 
 ## Trust Spine cadence classifications now certified
 
@@ -63,7 +65,7 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SCREENSHOT-001 | Product Quality Ledger | 85-screen ledger needed richer quality contract than load/wait checks alone | REPAIRED → CERTIFIED |
 | PRE-C10-ADMIN-001 | Deployment readiness | equipment missing canonical `unit_number` advisories | OPEN ADVISORY |
 | PRE-C10-ADMIN-002 | Deployment readiness | employee rows missing canonical `employee_id` advisories | OPEN ADVISORY |
-| PRE-C10-SAFETY-001 | Safety | dashboard truth / incident lifecycle / corrective-action lifecycle / CAPA nomenclature denominator still open | IN PROGRESS |
+| PRE-C10-SAFETY-001 | Safety | dashboard truth lane corrected for corrective-action counts and certification leakage; incident lifecycle / archive / reopen / downstream notifications / governed nomenclature denominator still open | IN PROGRESS |
 | PRE-C10-SCHEDULE-001 | Scheduling | project scoping / initial schedule flow / editing / versioning / baseline / Rolling Two-Week parity denominator still open | IN PROGRESS |
 | PRE-C10-AUTH-001 | Authentication UX | compact session state / sign-out proof / public-home usability / protected-route enforcement denominator still open | IN PROGRESS |
 | PRE-C10-UX-002 | Operator experience | vendor leakage / equipment location UX / executive copy / ALL REPORTS SYNCED / nomenclature / visual semantics denominator still open | IN PROGRESS |
@@ -71,6 +73,6 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 
 ## Next execution focus
 
-1. Move into Safety truth and lifecycle: dashboard counts, date-range parity, incident → corrective action → verification → close → archive → reopen.
+1. Continue Safety lifecycle from the corrected truth baseline: incident → triage → investigate → corrective action → complete / verify → close → archive → reopen, plus downstream notifications / exports / project-view parity.
 2. Continue Schedule / scoping denominator after Safety: authorized-project scoping, initial schedule flow, editing, baseline, version history, Rolling Two-Week, C7/C8/C9 parity.
 3. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned.

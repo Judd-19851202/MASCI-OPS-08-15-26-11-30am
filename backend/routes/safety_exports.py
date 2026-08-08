@@ -19,6 +19,9 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, StreamingResponse
 
+from lib.corrective_action_truth import open_corrective_action_query, overdue_corrective_action_query
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
+
 # TRACK 27.03 · Phase 2 · Local-time formatter for the print-friendly
 # report subtitle + filename stamp. DB comparisons keep using the raw
 # `.date().isoformat()` UTC-date for correctness — only the display
@@ -122,7 +125,7 @@ def build_safety_exports_router(db, require_token: Callable) -> APIRouter:
     # ── 2. Corrective Actions ────────────────────────────────────────
     @router.get("/corrective-actions", dependencies=[Depends(require_token)])
     async def export_corrective_actions(format: str = Query("csv", pattern="^(csv|pdf)$")):
-        docs = await _docs(db.corrective_actions)
+        docs = await _docs(db.corrective_actions, apply_synthetic_corrective_action_exclusion({}))
         header = ["Created", "Title", "Category", "Status", "Severity", "Owner", "Due", "Linked"]
         rows = [[
             d.get("created_at", "")[:10],
@@ -275,7 +278,7 @@ def build_safety_exports_router(db, require_token: Callable) -> APIRouter:
         projects = await _docs(db.projects, limit=2000)
         incidents = await _docs(db.incidents)
         inspections = await _docs(db.inspections)
-        cas = await _docs(db.corrective_actions)
+        cas = await _docs(db.corrective_actions, apply_synthetic_corrective_action_exclusion({}))
 
         def _bucket(coll, key) -> Dict[str, int]:
             b: Dict[str, int] = {}
@@ -319,8 +322,8 @@ def build_safety_exports_router(db, require_token: Callable) -> APIRouter:
                 return 0
 
         kpis = [
-            ("Open Corrective Actions",   await _count(db.corrective_actions, {"status": "Open"})),
-            ("Overdue Corrective Actions", await _count(db.corrective_actions, {"status": "Open", "due_date": {"$lt": now.date().isoformat()}})),
+            ("Open Corrective Actions", await _count(db.corrective_actions, apply_synthetic_corrective_action_exclusion(open_corrective_action_query()))),
+            ("Overdue Corrective Actions", await _count(db.corrective_actions, apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=now.date().isoformat())))),
             ("Incidents (7 days)",        await _count(db.incidents,           {"incident_date": {"$gte": d7}})),
             ("Inspections (30 days)",     await _count(db.inspections,         {"inspection_date": {"$gte": d30}})),
             ("Training Expiring (30 days)", await _count(db.training_records, {"expiration_date": {"$gte": now.date().isoformat(), "$lte": soon}})),

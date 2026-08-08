@@ -10,6 +10,11 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 
+from lib.corrective_action_truth import (
+    open_corrective_action_query,
+    overdue_corrective_action_query,
+)
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 
 
@@ -25,11 +30,10 @@ async def _build_overview_payload(db) -> dict:
         "meetings_last_7d": await db.safety_meetings.count_documents({"created_at": {"$gte": seven_days_ago}}),
         "inspections_last_30d": await db.inspections.count_documents({"created_at": {"$gte": thirty_days_ago}}),
         "corrective_actions_open": await db.corrective_actions.count_documents(
-            {"status": {"$in": ["Open", "In Progress", "Pending Review"]}}
+            apply_synthetic_corrective_action_exclusion(open_corrective_action_query())
         ),
         "corrective_actions_overdue": await db.corrective_actions.count_documents(
-            {"status": {"$in": ["Open", "In Progress", "Pending Review"]},
-             "due_date": {"$ne": None, "$lt": today}}
+            apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=today))
         ),
         "training_deficiencies_total": await db.field_leadership_records.count_documents(
             apply_synthetic_flr_exclusion({"kind": "training_deficiency"})

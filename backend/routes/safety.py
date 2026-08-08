@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from lib.enterprise_governance import build_governance_actor_context, require_governed_action
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 
 # ============================================================
@@ -1446,7 +1447,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         # orphan CAPA referencing a non-existent source record.
         try:
             linked = await db.corrective_actions.find(
-                {"source_kind": "incident", "source_id": canonical_id},
+                apply_synthetic_corrective_action_exclusion({"source_kind": "incident", "source_id": canonical_id}),
                 {"_id": 0, "id": 1, "title": 1, "status": 1},
             ).to_list(50)
         except Exception:

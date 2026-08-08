@@ -11,6 +11,11 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from lib.corrective_action_truth import normalize_corrective_action_due_date
+from lib.synthetic_corrective_action_filter import (
+    apply_synthetic_corrective_action_exclusion,
+    synthetic_corrective_action_markers,
+)
 from ._models import CorrectiveActionCreate, CorrectiveActionUpdate
 
 
@@ -37,7 +42,10 @@ def register_corrective_action_routes(
             q["source_kind"] = source_kind.strip()
         if source_id:
             q["source_id"] = source_id.strip()
-        return await db.corrective_actions.find(q, {"_id": 0}).sort("created_at", -1).to_list(1000)
+        return await db.corrective_actions.find(
+            apply_synthetic_corrective_action_exclusion(q),
+            {"_id": 0},
+        ).sort("created_at", -1).to_list(1000)
 
     @api_router.post("/safety/corrective-actions")
     async def create_corrective_action(
@@ -55,7 +63,7 @@ def register_corrective_action_routes(
             "assigned_to_name": (body.assigned_to_name or "").strip(),
             "assigned_to_email": (body.assigned_to_email or "").strip().lower(),
             "priority": body.priority or "Medium",
-            "due_date": body.due_date,
+            "due_date": normalize_corrective_action_due_date(body.due_date),
             "status": "Open",
             "notes": (body.notes or "").strip(),
             "completion_notes": "",
@@ -70,6 +78,7 @@ def register_corrective_action_routes(
             "created_at": now,
             "updated_at": now,
         }
+        doc.update(synthetic_corrective_action_markers(doc))
         await db.corrective_actions.insert_one(doc)
         doc.pop("_id", None)
 
@@ -162,8 +171,12 @@ def register_corrective_action_routes(
         for k, v in payload.items():
             if k == "related_entities" and v is not None:
                 update[k] = [dict(x) for x in v]
+            elif k == "due_date":
+                update[k] = normalize_corrective_action_due_date(v)
             else:
                 update[k] = v
+        candidate = {**existing, **update}
+        update.update(synthetic_corrective_action_markers(candidate))
 
         # iter356 · Lifecycle enforcement on status transitions.
         new_status_raw = update.get("status")

@@ -34,6 +34,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from lib.enterprise_governance import governance_project_scope_numbers
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -214,7 +215,7 @@ def build_pm_router(
                          {"employee_name": {"$in": names}}]}
         items = []
         async for r in db.corrective_actions.find(
-            q,
+            apply_synthetic_corrective_action_exclusion(q),
             {"_id": 0},
         ).sort("created_at", -1).limit(limit):
             items.append(r)
@@ -245,11 +246,13 @@ def build_pm_router(
             "$or": [{"employee_name": {"$in": names}}],
             "expiration_date": {"$gt": "", "$lt": today},
         })
-        open_capas = await db.corrective_actions.count_documents({
-            "$or": [{"linked_employee_name": {"$in": names}},
-                    {"employee_name": {"$in": names}}],
-            "status": {"$nin": ["closed", "completed", "verified"]},
-        })
+        open_capas = await db.corrective_actions.count_documents(
+            apply_synthetic_corrective_action_exclusion({
+                "$or": [{"linked_employee_name": {"$in": names}},
+                        {"employee_name": {"$in": names}}],
+                "status": {"$nin": ["closed", "completed", "verified"]},
+            })
+        )
         ppe_records = await db.safety_equipment_issuances.count_documents({
             "employee_name": {"$in": names},
         })

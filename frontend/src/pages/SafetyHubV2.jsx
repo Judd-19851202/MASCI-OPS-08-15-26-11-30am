@@ -189,7 +189,7 @@ export default function SafetyHubV2() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="wp17-kicker text-white/70">Today’s focus</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Reduce field risk by turning incidents, CAPAs, and compliance gaps into the next visible action.</h2>
+              <h2 className="mt-2 font-display text-xl font-black text-white">Reduce field risk by turning incidents, corrective actions, and compliance gaps into the next visible action.</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
                 See incidents, corrective actions, and gaps early so the field gets answers fast.
               </p>

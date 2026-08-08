@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Header
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 
 ROLE_ADMIN = "admin"
@@ -241,9 +242,10 @@ async def _safety(db, employee_uuid: str, motive_user_id: str):
                 {"assigned_to_employee_id": employee_uuid},
             ],
         }
-        async for ca in db.corrective_actions.find(q, {"_id": 0, "id": 1, "title": 1,
-                                                        "priority": 1, "due_date": 1,
-                                                        "status": 1}).sort("due_date", 1).limit(20):
+        async for ca in db.corrective_actions.find(
+            apply_synthetic_corrective_action_exclusion(q),
+            {"_id": 0, "id": 1, "title": 1, "priority": 1, "due_date": 1, "status": 1},
+        ).sort("due_date", 1).limit(20):
             ca_rows.append(ca)
 
     return {

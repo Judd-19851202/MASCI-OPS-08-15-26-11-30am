@@ -14,6 +14,12 @@ from typing import Callable, Optional
 
 from fastapi import APIRouter, Depends
 
+from lib.corrective_action_truth import (
+    open_corrective_action_query,
+    overdue_corrective_action_query,
+)
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,12 +33,11 @@ async def build_digest_payload(db) -> dict:
         "as_of": now.isoformat(),
         "kpis": {
             "open_corrective_actions": await db.corrective_actions.count_documents(
-                {"status": {"$in": ["Open", "In Progress", "Pending Review"]}}
+                apply_synthetic_corrective_action_exclusion(open_corrective_action_query())
             ),
-            "overdue_corrective_actions": await db.corrective_actions.count_documents({
-                "status": {"$in": ["Open", "In Progress", "Pending Review"]},
-                "due_date": {"$ne": None, "$lt": today},
-            }),
+            "overdue_corrective_actions": await db.corrective_actions.count_documents(
+                apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=today))
+            ),
             "incidents_last_7d": await db.incidents.count_documents(
                 {"created_at": {"$gte": seven_days_ago}}
             ),
@@ -50,7 +55,7 @@ async def build_digest_payload(db) -> dict:
             ),
         },
         "top_open_corrective_actions": await db.corrective_actions.find(
-            {"status": {"$in": ["Open", "In Progress", "Pending Review"]}},
+            apply_synthetic_corrective_action_exclusion(open_corrective_action_query()),
             {"_id": 0, "title": 1, "priority": 1, "status": 1, "project_number": 1,
              "due_date": 1, "assigned_to_name": 1},
         ).sort("created_at", 1).to_list(5),

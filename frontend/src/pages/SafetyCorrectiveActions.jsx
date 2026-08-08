@@ -352,24 +352,24 @@ export default function SafetyCorrectiveActions() {
           id="capa-lifecycle"
           icon={ClipboardCheck}
           accent="indigo"
-          title={t("CAPA Lifecycle")}
+          title={t("Corrective Actions Lifecycle")}
           summary={t("Open → In Progress → Pending Review → Verified → Closed (illegal jumps are blocked)")}
           sections={[
             {
               label: t("Roles"),
-              body: t("Safety leads CAPA handling — create, edit, advance, verify, and close. HR adds labor and accountability notes only. PM and Field Leadership can read records affecting their crews. Admin keeps supervisory access."),
+              body: t("Safety leads corrective action handling — create, edit, advance, verify, and close. HR adds labor and accountability notes only. PM and Field Leadership can read records affecting their crews. Admin keeps supervisory access."),
             },
             {
               label: t("Lifecycle gate"),
-              body: t("A CAPA cannot move directly from Pending Review to Closed. It must pass through Verified — a separate review step that confirms the corrective work actually happened. The verifier is stamped onto the record."),
+              body: t("A corrective action cannot move directly from Pending Review to Closed. It must pass through Verified — a separate review step that confirms the corrective work actually happened. The verifier is stamped onto the record."),
             },
             {
               label: t("Downstream visibility"),
-              body: t("Open and Verified CAPAs surface on the PM Crew Compliance lens, HR Accountability Timeline, the standards dashboard, and Compliance Findings. Closed CAPAs remain in the audit trail forever."),
+              body: t("Open and Verified corrective actions surface on the PM Crew Compliance lens, HR Accountability Timeline, the standards dashboard, and Compliance Findings. Closed records remain in the audit trail forever."),
             },
             {
               label: t("Why this matters"),
-              body: t("Open CAPAs that never close are silent operational debt. Severe incidents without a CAPA are surfaced on the standards dashboard. Every status change is appended to the CAPA history for OSHA / DOT / insurance review."),
+              body: t("Open corrective actions that never close are silent operational debt. Severe incidents without a linked corrective action are surfaced on the standards dashboard. Every status change is appended to the history for OSHA / DOT / insurance review."),
             },
           ]}
         />

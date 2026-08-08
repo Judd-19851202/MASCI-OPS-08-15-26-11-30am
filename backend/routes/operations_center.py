@@ -37,11 +37,13 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from lib.corrective_action_truth import overdue_corrective_action_query
 from lib.enterprise_governance import (
     build_governance_actor_context,
     require_governed_action,
     resolve_actor_from_request,
 )
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -242,10 +244,11 @@ def build_operations_center_router(db, require_any_portal_token) -> APIRouter:
             return await db.incidents.count_documents({"$and": clauses})
 
         async def p_ca_overdue() -> int:
-            clauses: List[Dict[str, Any]] = [{
-                "status": {"$nin": ["Completed", "Closed", "Cancelled"]},
-                "due_date": {"$lt": now.isoformat()},
-            }]
+            clauses: List[Dict[str, Any]] = [
+                apply_synthetic_corrective_action_exclusion(
+                    overdue_corrective_action_query(today_iso=now.date().isoformat())
+                )
+            ]
             if role == "pm" and pm_proj is not None:
                 clauses.append({"project_number": {"$in": pm_proj}})
             return await db.corrective_actions.count_documents({"$and": clauses})

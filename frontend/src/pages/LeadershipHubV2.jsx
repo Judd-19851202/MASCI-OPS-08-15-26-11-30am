@@ -99,7 +99,7 @@ export default function LeadershipHubV2() {
 
         <Section k="01 · Threats to Safety · live" t="Safety attention items" c="Live safety summary">
           <QC to="/safety-portal" testid="lead-hub-v2-q-incidents-open" title="Open Incidents" why="Incidents not yet closed by Safety" source="Safety summary" value={ds.safety?.incidents_open ?? null} loaded={s.loaded} />
-          <QC to="/safety-portal" testid="lead-hub-v2-q-capas-overdue" title="Overdue CAPAs" why="Corrective actions past due dates" source="Corrective action summary" value={sa.corrective_actions_overdue ?? null} loaded={s.loaded} />
+          <QC to="/safety-portal" testid="lead-hub-v2-q-capas-overdue" title="Overdue Corrective Actions" why="Corrective actions past due dates" source="Corrective action summary" value={sa.corrective_actions_overdue ?? null} loaded={s.loaded} />
           <QC to="/safety-portal" testid="lead-hub-v2-q-training-expired" title="Training · Expired" why="Credentials already expired — renewal needed" source="Training status summary" value={sa.training_expired ?? null} loaded={s.loaded} />
         </Section>
 

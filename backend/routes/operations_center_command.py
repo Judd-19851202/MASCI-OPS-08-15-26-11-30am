@@ -42,6 +42,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Depends, Query
 
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 import dispatch_lifecycle as DLS
 from routes.pm_command_center import (
@@ -216,7 +217,7 @@ def build_operations_center_command_router(
         incidents_open = await db.incidents.count_documents(
             {"resolution_status": {"$ne": "Closed"}})
         capas_open = await db.corrective_actions.count_documents(
-            {"status": {"$nin": ["Completed", "Closed", "Cancelled"]}})
+            apply_synthetic_corrective_action_exclusion({"status": {"$nin": ["Completed", "Closed", "Cancelled"]}}))
         # Critical safety events — incidents with severity flagged critical/lost-time.
         critical_safety = await db.incidents.count_documents({
             "resolution_status": {"$ne": "Closed"},
@@ -641,7 +642,7 @@ def build_operations_center_command_router(
                               source_system="incidents"),
             })
         async for c in db.corrective_actions.find(
-            {"status": {"$nin": ["Completed", "Closed", "Cancelled"]}},
+            apply_synthetic_corrective_action_exclusion({"status": {"$nin": ["Completed", "Closed", "Cancelled"]}}),
             {"_id": 0},
         ):
             tier = _safety_tier({"severity": c.get("severity"), "status": c.get("status")})

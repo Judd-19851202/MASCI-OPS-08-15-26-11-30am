@@ -55,10 +55,12 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from lib.corrective_action_truth import open_corrective_action_query, overdue_corrective_action_query
 from lib.enterprise_governance import (
     governance_project_scope_numbers,
     require_governed_action,
 )
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 
 from services.cost_codes.foundation import (
     build_confidence_governance_summary,
@@ -77,18 +79,8 @@ ALLOWED_ROLES = {"admin", "executive", "safety", "pm"}
 # safety incidents). Used by the red-status rule.
 HIGH_SEV = {"High", "Critical", "Severe"}
 _CLOSED_INCIDENT_RESOLUTION = "Closed"
-_CLOSED_CORRECTIVE_ACTION_STATUSES = ["Completed", "Closed", "Cancelled"]
-
-
 def _open_incident_match(extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     match: Dict[str, Any] = {"resolution_status": {"$ne": _CLOSED_INCIDENT_RESOLUTION}}
-    if extra:
-        match.update(extra)
-    return match
-
-
-def _open_corrective_action_match(extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    match: Dict[str, Any] = {"status": {"$nin": list(_CLOSED_CORRECTIVE_ACTION_STATUSES)}}
     if extra:
         match.update(extra)
     return match
@@ -202,7 +194,7 @@ def _build_project_health_kpi_metadata(now_iso: str) -> Dict[str, Any]:
             "ca_overdue": {
                 "kpi_name": "Corrective Actions Overdue",
                 "business_definition": "Open corrective actions with a due date in the past.",
-                "formula": {"match": _open_corrective_action_match({"due_date": {"$lt": now_iso}}), "group_by": "project_number"},
+                "formula": {"match": apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=now_iso[:10])), "group_by": "project_number"},
             },
         },
     }
@@ -325,7 +317,7 @@ def build_project_health_router(db, require_any_portal_token) -> APIRouter:
         async def _agg_ca_overdue():
             return await _agg_count_by(
                 db.corrective_actions,
-                _open_corrective_action_match({"due_date": {"$lt": now.isoformat()}}))
+                apply_synthetic_corrective_action_exclusion(overdue_corrective_action_query(today_iso=now.date().isoformat())))
 
         (tasks_overdue, pos_pending, pos_missing, pos_overdue,
          docs_expiring, docs_expired, incidents_open,

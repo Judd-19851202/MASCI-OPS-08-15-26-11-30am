@@ -32,6 +32,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
+
 from lib.enterprise_governance import build_governance_actor_context, require_governed_action
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
@@ -559,7 +561,10 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             if role == "pm" and pm_proj is not None:
                 q_doc = {"$and": [q_doc, {"project_number": {"$in": pm_proj}}]}
             rows = []
-            async for d in db.corrective_actions.find(q_doc, {"_id": 0}).sort("due_date", 1).limit(limit * 2):
+            async for d in db.corrective_actions.find(
+                apply_synthetic_corrective_action_exclusion(q_doc),
+                {"_id": 0},
+            ).sort("due_date", 1).limit(limit * 2):
                 rows.append(_row(
                     "corrective_actions", d,
                     title=d.get("title") or "—",

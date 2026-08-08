@@ -263,8 +263,8 @@ export default function SafetyHub() {
             <KPI label={t("Incidents · 7d")} value={kpis.incidents_last_7d ?? 0} sub={t("Last 7 days")} valueClass="text-red-700" />
             <KPI label={t("Meetings · 7d")} value={kpis.meetings_last_7d ?? 0} sub={t("Toolbox + huddles")} valueClass="text-emerald-700" />
             <KPI label={t("Inspections · 30d")} value={kpis.inspections_last_30d ?? 0} sub={t("Last 30 days")} />
-            <KPI label={t("CA · Open")} value={kpis.corrective_actions_open ?? 0} sub={t("Awaiting close-out")} valueClass="text-amber-700" />
-            <KPI label={t("CA · Overdue")} value={kpis.corrective_actions_overdue ?? 0} sub={t("Past due date")} valueClass="text-red-700" />
+            <KPI label={t("Corrective Actions · Open")} value={kpis.corrective_actions_open ?? 0} sub={t("Awaiting close-out")} valueClass="text-amber-700" />
+            <KPI label={t("Corrective Actions · Overdue")} value={kpis.corrective_actions_overdue ?? 0} sub={t("Past due date")} valueClass="text-red-700" />
             <KPI label={t("Training Deficiencies")} value={kpis.training_deficiencies_total ?? 0} sub={t("Field Leadership records")} />
             <KPI label={t("PPE Issuances")} value={kpis.safety_equipment_issuances_total ?? 0} sub={t("Equipment Accountability")} />
           </>

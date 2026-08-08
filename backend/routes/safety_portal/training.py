@@ -13,6 +13,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 
 from ._models import TrainingRecordCreate, TrainingRecordUpdate
@@ -158,10 +159,12 @@ def register_training_routes(
                 "kind": "safety_equipment_issuance",
                 "employee_name": name,
             }))
-        open_cas = await db.corrective_actions.count_documents({
-            "assigned_to_name": name,
-            "status": {"$in": ["Open", "In Progress", "Pending Review"]},
-        }) if name else 0
+        open_cas = await db.corrective_actions.count_documents(
+            apply_synthetic_corrective_action_exclusion({
+                "assigned_to_name": name,
+                "status": {"$in": ["Open", "In Progress", "Pending Review"]},
+            })
+        ) if name else 0
         today = datetime.now(timezone.utc).isoformat()[:10]
         thirty_out = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
         expiring_30 = [

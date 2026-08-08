@@ -32,6 +32,7 @@ Auto-Offboarding Playbook:
 from __future__ import annotations
 
 from lib.mongo_query import safe_regex
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
 
 import logging
@@ -2019,10 +2020,12 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # Outstanding corrective actions / incidents counts (Phase A
         # already creates tasks for these, but we surface raw count too).
         try:
-            ca_open = await db.corrective_actions.count_documents({
-                "employee_master_id": employee_id,
-                "status": {"$ne": "Closed"},
-            })
+            ca_open = await db.corrective_actions.count_documents(
+                apply_synthetic_corrective_action_exclusion({
+                    "employee_master_id": employee_id,
+                    "status": {"$ne": "Closed"},
+                })
+            )
         except Exception:
             ca_open = 0
 

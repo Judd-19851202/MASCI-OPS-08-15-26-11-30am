@@ -11,8 +11,6 @@ Run::
 """
 from __future__ import annotations
 
-import hashlib
-import hmac
 import os
 import time
 
@@ -165,31 +163,28 @@ BASE_URL = _base_url()
 API = f"{BASE_URL}/api"
 
 
-def _admin_token() -> str:
-    """Reconstruct the deterministic admin portal token from ADMIN_PASSWORD."""
-    from server import _admin_token_for  # type: ignore
-    pw = os.environ.get("ADMIN_PASSWORD", "")
-    return _admin_token_for(pw) if pw else ""
-
-
 @pytest.fixture(scope="module")
 def admin_headers():
-    tok = _admin_token()
-    if not tok:
-        pytest.skip("ADMIN_PASSWORD not configured")
-    # Clear any prior session_activity row so session_timeout middleware
-    # treats this run as a fresh login.
-    try:
-        from motor.motor_asyncio import AsyncIOMotorClient
-        import asyncio
-        async def _clear():
-            db = AsyncIOMotorClient(os.environ["MONGO_URL"])[os.environ["DB_NAME"]]
-            th = hashlib.sha256(tok.encode()).hexdigest()
-            await db.session_activity.delete_many({"token_hash": th})
-        asyncio.get_event_loop().run_until_complete(_clear()) if False else asyncio.run(_clear())
-    except Exception:
-        pass
-    return {"X-Admin-Token": tok, "Content-Type": "application/json"}
+    resp = requests.post(
+        f"{API}/auth/multi-login",
+        json={
+            "email": "ops8-admin-only-preview@example.com",
+            "password": "AdminOnlyOps8!",
+        },
+        timeout=15,
+    )
+    if resp.status_code != 200:
+        pytest.skip(f"preview admin fixture unavailable: {resp.status_code}")
+    body = resp.json()
+    admin_token = (body.get("portal_tokens") or {}).get("admin")
+    session_token = body.get("session_token")
+    if not admin_token or not session_token:
+        pytest.skip("preview admin fixture missing admin/session token")
+    return {
+        "X-Admin-Token": admin_token,
+        "X-Directory-Token": session_token,
+        "Content-Type": "application/json",
+    }
 
 
 @pytest.fixture

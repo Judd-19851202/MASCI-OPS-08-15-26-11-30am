@@ -30,6 +30,7 @@ from incident_engine.fleet_crosslink import list_incidents_by_unit
 
 REPO_ROOT = Path("/app")
 FE_ROOT = REPO_ROOT / "frontend/src"
+APP_ROUTES = FE_ROOT / "app/routing/AppRoutes.jsx"
 
 
 def _run(coro):
@@ -246,18 +247,22 @@ def test_app_js_no_longer_imports_newincident():
 
 def test_newincident_file_retained_with_documented_reason():
     """The file itself stays on disk because older lock tests reference
-    it. The App.js comment documents this decision."""
+    it. The routed-shell comments document this decision."""
     p = FE_ROOT / "pages/NewIncident.jsx"
     assert p.is_file(), "NewIncident.jsx must remain on disk (pattern ref)"
-    app_txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
-    assert "retired NewIncident" in app_txt
+    combined = (
+        (FE_ROOT / "App.js").read_text(encoding="utf-8")
+        + "\n"
+        + APP_ROUTES.read_text(encoding="utf-8")
+    )
+    assert "retired NewIncident" in combined
 
 
 # ═══════════════════════════════════════════════════════════════════
 # 6 · Full route certification
 # ═══════════════════════════════════════════════════════════════════
 def test_all_production_routes_still_mounted():
-    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    txt = APP_ROUTES.read_text(encoding="utf-8")
     for needle in (
         '<Route path="/incidents/report"',
         '<Route path="/incidents/new" element={<Navigate to="/incidents/report" replace />}',
