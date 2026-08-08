@@ -83,6 +83,16 @@ def _admin_token() -> str:
     return body["portal_tokens"]["admin"]
 
 
+def _admin_directory_token() -> str:
+    status, body = _http(
+        "POST",
+        "/api/auth/multi-login",
+        body={"email": SUPER_EMAIL, "password": SUPER_PW},
+    )
+    assert status == 200, f"Admin multi-login failed: {status} · {body}"
+    return body.get("session_token") or ""
+
+
 @pytest.fixture(scope="module")
 def pm_tok() -> str:
     return _pm_token()
@@ -91,6 +101,11 @@ def pm_tok() -> str:
 @pytest.fixture(scope="module")
 def admin_tok() -> str:
     return _admin_token()
+
+
+@pytest.fixture(scope="module")
+def admin_dir_tok() -> str:
+    return _admin_directory_token()
 
 
 def test_pm_jobs_requires_token():
@@ -111,8 +126,8 @@ def test_pm_jobs_returns_scoped_jobs_for_pm(pm_tok):
         assert "_id" not in j
 
 
-def test_pm_jobs_returns_all_jobs_for_admin(admin_tok, pm_tok):
-    s_admin, da = _http("GET", "/api/pm/jobs", headers={"X-Admin-Token": admin_tok})
+def test_pm_jobs_returns_all_jobs_for_admin(admin_tok, admin_dir_tok, pm_tok):
+    s_admin, da = _http("GET", "/api/pm/jobs", headers={"X-Admin-Token": admin_tok, "X-Directory-Token": admin_dir_tok})
     assert s_admin == 200
     assert da["scope"] == "admin_all"
     s_pm, dp = _http("GET", "/api/pm/jobs", headers={"X-PM-Token": pm_tok})

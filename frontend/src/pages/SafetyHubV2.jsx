@@ -167,7 +167,7 @@ export default function SafetyHubV2() {
   ].every((v) => v === null || v === 0);
 
   return (
-    <div data-testid="safety-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
+    <div data-testid="safety-hub-page" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
         portalRole="Safety Operations"
@@ -212,7 +212,7 @@ export default function SafetyHubV2() {
         {/* TRACK 23.8 · Company-wide Safety Operational KPIs.
             Consumes shared Track 23.7 aggregator spine · one identity
             for numbers · safety-first framing · project drilldown. */}
-        <div style={{ margin: "16px 0 20px 0" }}>
+        <div data-testid="safety-kpi-strip" style={{ margin: "16px 0 20px 0" }}>
           <SafetyOperationalKpisCard />
         </div>
 

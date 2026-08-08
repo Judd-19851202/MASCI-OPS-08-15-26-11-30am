@@ -31,8 +31,8 @@ BASE_URL = _load_base_url()
 
 PM_EMAIL = "cert.pm@example.com"
 PM_PASSWORD = "CertProof2026!"
-ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-ADMIN_PASSWORD = "Maddix123!"
+ADMIN_EMAIL = "ops8-admin-only-preview@example.com"
+ADMIN_PASSWORD = "AdminOnlyOps8!"
 TEST_PROJECT = "ZZ-RUNTIME-CERT-2026"
 
 
@@ -43,16 +43,20 @@ class TestWP18C4ScheduleAPIs:
             pytest.skip("REACT_APP_BACKEND_URL is not configured for runtime API verification")
         session = requests.Session()
         response = session.post(
-            f"{BASE_URL}/api/admin/login",
+            f"{BASE_URL}/api/auth/multi-login",
             json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
         )
         if response.status_code != 200:
             pytest.skip(f"Admin login failed: {response.status_code}")
         data = response.json()
+        admin_token = (data.get("portal_tokens") or {}).get("admin")
+        directory_token = data.get("session_token") or ""
+        if not admin_token or not directory_token:
+            pytest.skip("Admin fixture missing admin/session token")
         session.headers.update(
             {
-                "X-Admin-Token": data.get("admin_token") or data.get("token"),
-                "X-Directory-Token": data.get("directory_token") or "",
+                "X-Admin-Token": admin_token,
+                "X-Directory-Token": directory_token,
             }
         )
         return session
