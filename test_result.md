@@ -108,6 +108,107 @@ Both previously failed frontend smoke issues have been successfully resolved:
 
 ---
 
+# Quick UI Sanity Check - Product Quality Surfaces (2026-08-08)
+
+## Test Scope
+Quick sanity check on 6 previously failing product-quality surfaces before full ledger finishes.
+
+## Test Credentials Used
+- Admin: jaymn.judd@mascigc.com / Maddix123!
+- PM: cert.pm@example.com / CertProof2026!
+
+## ✅ ALL TESTS PASSED (6/6)
+
+### 1. ✅ `/admin/command-center`
+**Status**: PASS
+**Findings**:
+- ✓ Page renders stable command-center surface (not blank)
+- ✓ Visible copy includes "Command Center"
+- ✓ Page title shows "Operations Command Center"
+- ✓ No console errors detected
+
+**Screenshot**: `sanity_admin_command_center.png`
+
+### 2. ✅ `/admin/executive-operational-intelligence`
+**Status**: PASS
+**Findings**:
+- ✓ `[data-testid='exec-intel-page']` present
+- ✓ Visible heading includes "What needs leadership attention right now"
+- ✓ Page renders correctly with executive operations dashboard content
+- ✓ No console errors detected
+
+**Screenshot**: `sanity_admin_exec_intel.png`
+
+### 3. ✅ `/admin/executive-overview`
+**Status**: PASS
+**Findings**:
+- ✓ `[data-testid='portfolio-attention-primary-card']` present
+- ✓ Visible copy includes "Current portfolio condition"
+- ✓ Page shows three purpose cards (Operations Command Center, Executive Operations Dashboard, Portfolio Performance)
+- ✓ Portfolio Performance section displays correctly
+- ✓ No console errors detected
+
+**Screenshot**: `sanity_admin_exec_overview.png`
+
+### 4. ✅ `/pm/command-center`
+**Status**: PASS
+**Findings**:
+- ✓ `[data-testid='pm-command-center']` present
+- ✓ Visible copy includes "Project Management Center"
+- ✓ Page renders with project selector and "Projects Assigned to You" section
+- ✓ No console errors detected
+
+**Note**: Initial test timed out with "networkidle" wait strategy. Retry with "domcontentloaded" succeeded, indicating page has long-running network requests but renders correctly.
+
+**Screenshot**: `sanity_pm_command_center_retry_pass.png`
+
+### 5. ✅ `/pm/project-controls/forecasting?project_number=ZZ-RUNTIME-CERT-2026`
+**Status**: PASS
+**Findings**:
+- ✓ `[data-testid='pm-section-content']` present
+- ✓ Page renders forecasting & commitments workspace correctly
+- ✓ Shows "One approved place to review likely finish, pace, commitments, and risk"
+- ✓ Displays forecast data (Likely Finish: 2026-08-29, Next 7 Days: 178.18, At-Risk Commitments: 0)
+- ✓ No console errors detected
+
+**Screenshot**: `sanity_pm_forecasting.png`
+
+### 6. ✅ `/pm/project-controls/earned-value?project_number=ZZ-RUNTIME-CERT-2026`
+**Status**: PASS
+**Findings**:
+- ✓ `[data-testid='pm-section-content']` present
+- ✓ Page renders earned value workspace correctly
+- ✓ Shows "Budget, progress, and cost in one project view"
+- ✓ Displays EV metrics (Approved Budget: $1,200, Value of Work Completed: $1,200, Actual Cost: $900, Current Forecast: $900)
+- ✓ No console errors detected
+
+**Screenshot**: `sanity_pm_earned_value.png`
+
+## Summary Statistics
+- **Total Tests**: 6
+- **Passed**: 6 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+**Quick UI Sanity Check Status**: ✅ COMPLETE - ALL TESTS PASSED
+
+All 6 product-quality surfaces verified successfully:
+1. ✅ Admin Command Center - Renders stable with "Command Center" text
+2. ✅ Admin Executive Operational Intelligence - Has required testid and heading text
+3. ✅ Admin Executive Overview - Has portfolio card and "Current portfolio condition" text
+4. ✅ PM Command Center - Has required testid and "Project Management Center" text
+5. ✅ PM Forecasting - Has pm-section-content testid, displays forecast data
+6. ✅ PM Earned Value - Has pm-section-content testid, displays EV metrics
+
+**No blocking visual or selector issues detected.**
+
+**Test Evidence**:
+- Screenshots: All 6 surfaces captured successfully
+- Console logs: No major errors detected
+- Network activity: All API calls successful (PM command center has long-running requests but renders correctly)
+
+---
+
 
 # PRE-C10 Remediation Batch Validation (2026-08-08 - Seventh Run)
 

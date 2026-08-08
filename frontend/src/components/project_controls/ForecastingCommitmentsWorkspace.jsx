@@ -285,6 +285,7 @@ export default function ForecastingCommitmentsWorkspace({ mode = "pm", projectNu
   };
 
   return (
+    <div data-testid={mode === "pm" ? "pm-section-content" : `forecasting-surface-${mode}`}>
     <div className="mx-auto w-full max-w-7xl space-y-6 pb-10" data-testid={`forecasting-workspace-${mode}`}>
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.12),_transparent_38%),linear-gradient(135deg,#f8fafc_0%,#ffffff_58%,#eef2ff_100%)] p-6 shadow-sm sm:p-8" data-testid="forecasting-hero-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -349,6 +350,7 @@ export default function ForecastingCommitmentsWorkspace({ mode = "pm", projectNu
           </Tabs>
         </>
       ) : null}
+    </div>
     </div>
   );
 }
