@@ -15,6 +15,7 @@ import { Users, AlertTriangle, ArrowRight, Search, ShieldAlert, ChevronDown, Che
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getTruthfulValuePresentation, TRUTHFUL_DATA_STATE } from "@/lib/truthfulDataState";
 import { Badge } from "@/components/ui/badge";
 import { buildWave3AdminHeaders } from "@/lib/wave3AdminHeaders";
 
@@ -87,6 +88,7 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
     );
   }, [data.items, q]);
   const isInitialLoad = !data.loaded && data.items.length === 0;
+  const projectCountMetric = getTruthfulValuePresentation({ isLoading: isInitialLoad, value: filtered.length });
 
   const teamLinkBase = scope === "admin" ? "/admin/jobs" : "/pm/job";
 
@@ -297,7 +299,7 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center justify-between">
-            <span>{isInitialLoad ? "Projects" : `Projects (${filtered.length})`}</span>
+            <span>{projectCountMetric.state === TRUTHFUL_DATA_STATE.LOADING ? "Projects" : `Projects (${projectCountMetric.displayValue})`}</span>
             <div className="relative w-72">
               <Search className="w-3.5 h-3.5 absolute left-2 top-2.5 text-slate-400" />
               <Input

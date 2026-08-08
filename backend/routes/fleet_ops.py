@@ -693,12 +693,35 @@ def build_router(
             # defect / OOS condition that needs shop delivery.
             if payload.kind == "dvir":
                 try:
-                    from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                    from lib.trust_spine import (  # noqa: PLC0415
+                        emit_record_created,
+                        emit_workflow_stage,
+                        STAGE_VALIDATION_COMPLETE,
+                        STAGE_AUDIT_WRITTEN,
+                        STAGE_DASHBOARD_UPDATED,
+                        STAGE_COMPLETED,
+                    )
                     await emit_record_created(
                         db,
                         workflow="dvir",
                         record=insp_doc,
                         module="routes/fleet_ops.py:submit_fleet_inspection",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="dvir",
+                        stage=STAGE_VALIDATION_COMPLETE,
+                        record=insp_doc,
+                        module="routes/fleet_ops.py:submit_fleet_inspection",
+                        status="ok",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="dvir",
+                        stage=STAGE_AUDIT_WRITTEN,
+                        record=insp_doc,
+                        module="fleet_inspections.insert_one",
+                        status="ok",
                     )
                 except Exception:  # noqa: BLE001
                     pass
@@ -807,6 +830,32 @@ def build_router(
                         schedule_auto_email("dvir", insp_doc)
                     except Exception:  # noqa: BLE001
                         pass
+
+            if payload.kind == "dvir":
+                try:
+                    from lib.trust_spine import (  # noqa: PLC0415
+                        emit_workflow_stage,
+                        STAGE_DASHBOARD_UPDATED,
+                        STAGE_COMPLETED,
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="dvir",
+                        stage=STAGE_DASHBOARD_UPDATED,
+                        record=insp_doc,
+                        module="fleet_status_rebuild",
+                        status="ok",
+                    )
+                    await emit_workflow_stage(
+                        db,
+                        workflow="dvir",
+                        stage=STAGE_COMPLETED,
+                        record=insp_doc,
+                        module="routes/fleet_ops.py:submit_fleet_inspection",
+                        status="ok",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
 
             return {
                 "ok": True,

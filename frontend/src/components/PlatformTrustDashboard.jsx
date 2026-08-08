@@ -16,7 +16,8 @@
  *     without leaving the screen.
  *
  * Hard rules honored:
- *   - No fake green: idle workflows render AMBER-NO-ACTIVITY,
+ *   - No fake green: workflows without current evidence render
+ *     AMBER-NO-ACTIVITY,
  *     partial-evidence workflows render AMBER, failures render RED.
  *   - No shell scripts, no tokens to copy, no Mongo queries.
  *   - No PII: only operational identifiers are shown.
@@ -58,7 +59,7 @@ const BAND = {
     tone: "bg-slate-50 border-slate-200",
     pill: "bg-slate-100 text-slate-700 border-slate-300",
     Icon: Hourglass,
-    label: "No activity 24h",
+    label: "Fresh evidence missing",
   },
   red: {
     tone: "bg-rose-50 border-rose-200",
@@ -291,13 +292,38 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
                     {(row.expected_stages || []).map((item) => sanitizeOperatorReference(item, "stage")).join(" → ") || "—"}
                   </code>
                 </div>
+                <div>
+                  <span className="font-semibold text-slate-800">Freshness:</span>{" "}
+                  <span data-testid={`trust-spine-freshness-${row.workflow}`}>
+                    {humanizeToken(row.freshness_status || "unknown")} · {row.freshness_window_hours || "—"}h window
+                  </span>
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 text-xs text-slate-700">
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-3" data-testid={`trust-spine-root-cause-${row.workflow}`}>
+                  <div className="font-semibold text-slate-900">Root cause</div>
+                  <div className="mt-1">{sanitizeOperatorReference(row.root_cause, "No root cause recorded.")}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-3" data-testid={`trust-spine-dependency-${row.workflow}`}>
+                  <div className="font-semibold text-slate-900">Failing dependency</div>
+                  <div className="mt-1 font-mono text-[11px] text-slate-600 break-all">{sanitizeOperatorReference(row.failing_dependency, "No dependency recorded.")}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-3" data-testid={`trust-spine-downstream-${row.workflow}`}>
+                  <div className="font-semibold text-slate-900">Downstream impact</div>
+                  <div className="mt-1">{sanitizeOperatorReference(row.downstream_impact, "No downstream impact recorded.")}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-3" data-testid={`trust-spine-trustworthiness-${row.workflow}`}>
+                  <div className="font-semibold text-slate-900">Operator trust status</div>
+                  <div className="mt-1">{humanizeToken(row.operator_data_trustworthy || "unknown")}</div>
+                  <div className="mt-1 text-slate-500">Latest success {fmtTs(row.last_success?.ts)} · age {row.freshness_age_hours ?? "—"}h</div>
+                </div>
               </div>
               {row.missing_stages && row.missing_stages.length > 0 && (
                 <div
                   data-testid={`trust-spine-missing-${row.workflow}`}
                   className="text-xs text-amber-800"
                 >
-                  <span className="font-semibold">Missing in last 24h:</span>{" "}
+                  <span className="font-semibold">Missing in current freshness window:</span>{" "}
                   {row.missing_stages.map((item) => sanitizeOperatorReference(item, "stage")).join(", ")}
                 </div>
               )}
@@ -544,7 +570,7 @@ export default function PlatformTrustDashboard() {
             </div>
             <h2 className="text-2xl font-black text-slate-950">How to read this page</h2>
             <p className="text-sm text-slate-700 leading-relaxed">
-              This page is the main place to confirm whether critical workflows completed, failed, or simply had no activity in the last 24 hours. A quiet workflow is shown as an evidence gap, not a false pass.
+              This page is the main place to confirm whether critical workflows completed, failed, or fell outside their governed freshness windows. A quiet workflow is shown as an evidence gap, not a false pass.
             </p>
           </div>
           <div className="grid min-w-[240px] grid-cols-2 gap-3">
@@ -572,7 +598,7 @@ export default function PlatformTrustDashboard() {
                 Platform Trust Spine
               </h3>
               <p className="text-xs text-slate-500">
-                Workflow lifecycle evidence across the last 24 hours ·{" "}
+                Workflow lifecycle evidence across the governed freshness windows ·{" "}
                 {lastRun && `last refresh ${lastRun}`}
               </p>
               <p
@@ -630,7 +656,7 @@ export default function PlatformTrustDashboard() {
             </div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-            <div className="text-xs text-slate-600">Idle 24h</div>
+            <div className="text-xs text-slate-600">Fresh evidence missing</div>
             <div
               className="text-lg font-semibold text-slate-900"
               data-testid="trust-spine-stat-idle"

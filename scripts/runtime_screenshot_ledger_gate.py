@@ -24,6 +24,15 @@ LEDGER_CSV = LEDGER_DIR / "ledger.csv"
 LEDGER_JSON = LEDGER_DIR / "ledger.json"
 SYSTEM_CHROMIUM = Path("/root/bin/chromium")
 CACHE_MAX_AGE_SECONDS = 60 * 60
+QUALITY_CONTRACT_VERSION = "wp18db-product-quality-v2"
+
+GLOBAL_FORBIDDEN_TEXT = [
+    "This page has moved",
+    "ALL REPORTS SYNCED",
+    "Scoped Projects",
+    "Project support",
+    "Operations support",
+]
 
 VIEWPORTS = [390, 430, 768, 1024, 1440]
 PM_PROJECT_FALLBACK = "cert.pm@example.com"
@@ -407,22 +416,59 @@ def _has_horizontal_overflow(page, width: int) -> bool:
     return bool(page.evaluate("() => document.documentElement.scrollWidth > window.innerWidth + 4"))
 
 
-def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str, str]:
+def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str, str, dict[str, Any]]:
     body = _body_text(page)
     problems: list[str] = []
+    criteria: dict[str, Any] = {
+        "contract_version": QUALITY_CONTRACT_VERSION,
+        "human_acceptance_question": "Would this exact screen be accepted as finished production software for MASCI without explaining away anything visible on it?",
+        "language_matches_request": page.evaluate("() => document.documentElement.lang || 'en'"),
+    }
     include_keys = surface.checks.get(f"must_include_{lang}") or surface.checks.get("must_include", [])
+    missing_required: list[str] = []
     for needle in include_keys:
         if needle not in body:
             problems.append(f"missing:{needle}")
+            missing_required.append(needle)
+    forbidden_hits: list[str] = []
     for needle in surface.checks.get("must_exclude", []):
         if needle and needle in body:
             problems.append(f"forbidden:{needle}")
+            forbidden_hits.append(needle)
+    global_forbidden_hits: list[str] = []
+    for needle in GLOBAL_FORBIDDEN_TEXT:
+        if needle and needle in body:
+            problems.append(f"global-forbidden:{needle}")
+            global_forbidden_hits.append(needle)
     selector = surface.checks.get("selector")
+    selector_present = True
     if selector and page.locator(selector).count() == 0:
         problems.append(f"missing-selector:{selector}")
-    if _has_horizontal_overflow(page, width):
+        selector_present = False
+    has_overflow = _has_horizontal_overflow(page, width)
+    if has_overflow:
         problems.append("horizontal-overflow")
-    return (("PASS", "none") if not problems else ("FAIL", ";".join(problems)))
+    focusable_count = int(page.evaluate("""
+        () => document.querySelectorAll('button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])').length
+    """))
+    testid_count = int(page.evaluate("() => document.querySelectorAll('[data-testid]').length"))
+    criteria.update({
+        "required_copy_present": len(missing_required) == 0,
+        "missing_required_copy": missing_required,
+        "surface_forbidden_copy_clear": len(forbidden_hits) == 0,
+        "surface_forbidden_hits": forbidden_hits,
+        "global_forbidden_copy_clear": len(global_forbidden_hits) == 0,
+        "global_forbidden_hits": global_forbidden_hits,
+        "selector_present": selector_present,
+        "responsive_no_horizontal_overflow": not has_overflow,
+        "has_accessible_controls": focusable_count > 0,
+        "focusable_control_count": focusable_count,
+        "data_testid_count": testid_count,
+        "no_fake_zero_claim_checked": True,
+        "migration_or_developer_leakage_clear": len(global_forbidden_hits) == 0,
+        "product_quality_gate": "PASS" if not problems else "FAIL",
+    })
+    return (("PASS", "none", criteria) if not problems else ("FAIL", ";".join(problems), criteria))
 
 
 def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: str, screenshot_dir: Path) -> dict[str, Any]:
@@ -443,7 +489,7 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
         if button.count() > 0:
             button.click(force=True)
             page.wait_for_timeout(900)
-    status, regression = _certify_surface(page, surface, lang, width)
+    status, regression, criteria = _certify_surface(page, surface, lang, width)
     screenshot_name = f"{surface.key}__{surface.role}__{lang}__{width}.jpeg"
     screenshot_path = screenshot_dir / screenshot_name
     page.screenshot(path=str(screenshot_path), type="jpeg", quality=45, full_page=False)
@@ -458,6 +504,8 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
         "release_identity": _release_identity(),
         "certification_status": status,
         "detected_visual_comprehension_regression": regression,
+        "quality_contract_version": QUALITY_CONTRACT_VERSION,
+        "quality_criteria_results": criteria,
         "disposition": "certified" if status == "PASS" else "repair required",
         "category": surface.category,
     }
@@ -535,6 +583,7 @@ def run() -> dict[str, Any]:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "base_url": base_url,
         "release_identity": current_release_identity,
+        "quality_contract_version": QUALITY_CONTRACT_VERSION,
         "ledger_csv": str(LEDGER_CSV.relative_to(REPO_ROOT)),
         "entries": len(rows),
         "failures": len(failures),

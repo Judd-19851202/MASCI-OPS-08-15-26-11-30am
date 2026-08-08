@@ -13,9 +13,9 @@ and **never mutates** anything.
 Band rules (no fake-green):
 
 * RED   — any failed_24h event OR contradicted dashboard
-* AMBER — events_24h > 0 but missing one or more expected stages
-* AMBER-NO-ACTIVITY — events_24h == 0 (workflow idle in last 24h)
-* GREEN — events_24h > 0, no failures, all expected stages observed
+* AMBER — current-policy evidence exists but one or more expected stages are missing
+* AMBER-NO-ACTIVITY — no current evidence within the workflow freshness policy
+* GREEN — evidence is current for the workflow policy, no failures, all expected stages observed
 """
 from __future__ import annotations
 
@@ -35,11 +35,148 @@ from lib.ots_truth import (
     projected_truth_relationship,
     public_ots_projection,
 )
+from lib.production_certification import WORKFLOW_CERTIFICATION_POLICIES
 from lib.trust_spine import (
     WORKFLOW_EXPECTED_STAGES,
     canonical_workflows_for_event,
     workflow_family,
 )
+
+
+PREVIEW_SAFE_DELIVERY_WORKFLOWS = {
+    "daily-report",
+    "meeting",
+    "inspection",
+    "incident",
+    "jha",
+    "qaqc",
+    "equipment-inspection",
+    "dvir",
+}
+
+
+def _workflow_policy_window_hours(workflow: str) -> int:
+    policy = WORKFLOW_CERTIFICATION_POLICIES.get(workflow)
+    return int(getattr(policy, "stale_threshold_hours", 24) or 24)
+
+
+def _hours_since(ts: Optional[str], now: datetime) -> Optional[float]:
+    dt = _parse_iso(ts)
+    if not dt:
+        return None
+    return round((now - dt).total_seconds() / 3600.0, 1)
+
+
+def _workflow_impact_profile(workflow: str) -> Dict[str, str]:
+    if workflow.startswith("oppc-"):
+        return {
+            "downstream_impact": "Project Controls, Monday Review, executive portfolio intelligence, and downstream C7/C8/C9 surfaces may reflect stale or incomplete planning evidence.",
+            "c6_c7_c8_c9_impact": "Affects C6 operational intelligence lineage and can cascade into C7 forecasting, C8 earned value, and C9 portfolio truth if current planning evidence is incomplete.",
+            "trustworthiness": "bounded_historical_only",
+        }
+    if workflow in {"incident", "inspection", "jha", "meeting", "qaqc", "equipment-inspection", "dvir"}:
+        return {
+            "downstream_impact": "Safety and field-compliance dashboards may only be trustworthy up to the latest captured evidence for this workflow.",
+            "c6_c7_c8_c9_impact": "Indirect downstream impact via executive and operational dashboards; no direct C7/C8/C9 planning writeback.",
+            "trustworthiness": "bounded_historical_only",
+        }
+    if workflow in {"dispatch-assignment", "shop-defect", "operational-events-materialization"}:
+        return {
+            "downstream_impact": "Admin operations, recovery, and dispatch/shop visibility can drift from the latest operational state until this evidence refreshes.",
+            "c6_c7_c8_c9_impact": "Indirect trust-layer impact; stale materialization can hide or delay downstream truth propagation.",
+            "trustworthiness": "bounded_historical_only",
+        }
+    if workflow == "hr-request":
+        return {
+            "downstream_impact": "Employee lifecycle queues and HR operational counts remain trustworthy only up to the latest captured request evidence.",
+            "c6_c7_c8_c9_impact": "No direct C7/C8/C9 writeback; affects admin truth and staffing operational awareness.",
+            "trustworthiness": "bounded_historical_only",
+        }
+    return {
+        "downstream_impact": "Downstream consumers should treat the displayed data as incomplete until fresh lifecycle evidence is restored.",
+        "c6_c7_c8_c9_impact": "No direct downstream impact mapping has been registered yet.",
+        "trustworthiness": "no",
+    }
+
+
+def _workflow_root_cause(slot: Dict[str, Any]) -> str:
+    workflow = str(slot.get("workflow") or "")
+    missing = list(slot.get("missing_stages") or [])
+    freshness = str(slot.get("freshness_status") or "unknown")
+    latest_module = (slot.get("latest") or {}).get("module") or "unknown emitter"
+    if workflow == "oppc-enterprise-resource-coordination" and missing:
+        return (
+            "The enterprise OPPC read paths emitted only dashboard_updated evidence, so the workflow never satisfied its "
+            f"required lifecycle contract ({', '.join(missing)} missing) even when the screen rendered successfully."
+        )
+    if slot.get("failed_24h"):
+        return str(((slot.get("last_failure") or {}).get("failure_reason")) or "A current lifecycle stage emitted a failed Trust Spine event.")
+    if freshness == "stale":
+        return (
+            f"No fresh lifecycle evidence was captured inside the governed {slot.get('freshness_window_hours')}h window. "
+            "The workflow has historical proof, but the current environment has not refreshed it within policy."
+        )
+    if freshness == "unavailable":
+        return "No successful lifecycle evidence exists in trust_spine_events for this workflow yet, so current truth cannot be claimed."
+    if missing:
+        return (
+            f"Current evidence exists, but {latest_module} did not emit the full expected lifecycle contract; "
+            f"missing stage(s): {', '.join(missing)}."
+        )
+    return str(slot.get("reason") or "Lifecycle evidence is degraded.")
+
+
+def _workflow_failing_dependency(slot: Dict[str, Any]) -> str:
+    if slot.get("failed_24h"):
+        return str(((slot.get("last_failure") or {}).get("module")) or ((slot.get("latest") or {}).get("module")) or "unresolved failing module")
+    if slot.get("missing_stages"):
+        return str(((slot.get("latest") or {}).get("module")) or "workflow emitter is not writing the full expected-stage contract")
+    if str(slot.get("freshness_status") or "") == "stale":
+        return "governed runtime exercise / certification refresh for this workflow is outside the allowed freshness window"
+    if str(slot.get("freshness_status") or "") == "unavailable":
+        return "no lifecycle execution has yet produced a successful trust-spine evidence chain for this workflow"
+    return "none"
+
+
+def _workflow_degradation_entry(slot: Dict[str, Any]) -> Dict[str, Any]:
+    latest = slot.get("latest") or {}
+    last_success = slot.get("last_success") or {}
+    profile = _workflow_impact_profile(str(slot.get("workflow") or ""))
+    return {
+        "workflow": slot.get("workflow"),
+        "band": slot.get("band"),
+        "source_authority": {
+            "canonical_collection": "trust_spine_events",
+            "workflow_family": workflow_family(str(slot.get("workflow") or "")),
+            "latest_emitter_module": latest.get("module") or last_success.get("module") or "—",
+            "route": "/api/admin/trust-spine",
+        },
+        "current_value_state": {
+            "reason": slot.get("reason"),
+            "events_24h": slot.get("events_24h"),
+            "events_policy_window": slot.get("events_policy_window"),
+            "missing_stages": slot.get("missing_stages"),
+            "latest_evidence_ts": latest.get("ts"),
+            "last_success_ts": last_success.get("ts"),
+        },
+        "expected_value_state": {
+            "freshness_window_hours": slot.get("freshness_window_hours"),
+            "terminal_success_criteria": slot.get("terminal_success_criteria"),
+            "expected_stages": slot.get("expected_stages"),
+        },
+        "freshness": {
+            "status": slot.get("freshness_status"),
+            "age_hours": slot.get("freshness_age_hours"),
+            "window_hours": slot.get("freshness_window_hours"),
+            "last_success_ts": last_success.get("ts"),
+        },
+        "failing_dependency": _workflow_failing_dependency(slot),
+        "affected_workflows": [slot.get("workflow")],
+        "downstream_impact": profile["downstream_impact"],
+        "c6_c7_c8_c9_impact": profile["c6_c7_c8_c9_impact"],
+        "operator_data_trustworthy": profile["trustworthiness"],
+        "root_cause": _workflow_root_cause(slot),
+    }
 
 
 def _parse_iso(ts: Optional[str]) -> Optional[datetime]:
@@ -87,6 +224,8 @@ def _workflow_truth_projection(slot: Dict[str, Any], *, now_iso: str) -> Dict[st
     events_24h = int(slot.get("events_24h") or 0)
     missing_stages = list(slot.get("missing_stages") or [])
 
+    freshness_status = str(slot.get("freshness_status") or "unknown")
+
     if contradictions:
         evidence_state = "contradicted"
         evidence_quality = "CORRELATED"
@@ -99,13 +238,13 @@ def _workflow_truth_projection(slot: Dict[str, Any], *, now_iso: str) -> Dict[st
         evidence_confidence = "HIGH"
         truth_evaluation = "MISMATCH"
         permitted_claim = VALIDATED
-    elif events_24h == 0 and latest_ts:
+    elif freshness_status == "stale":
         evidence_state = "stale"
         evidence_quality = "DURABLE_OBSERVED"
         evidence_confidence = "LOW"
         truth_evaluation = "DEGRADED"
         permitted_claim = OBSERVED
-    elif events_24h == 0:
+    elif freshness_status == "unavailable":
         evidence_state = "unavailable"
         evidence_quality = "UNAVAILABLE"
         evidence_confidence = "UNKNOWN"
@@ -129,8 +268,12 @@ def _workflow_truth_projection(slot: Dict[str, Any], *, now_iso: str) -> Dict[st
         degradation_reasons.append(str(slot.get("reason") or "Lifecycle evidence is degraded."))
 
     unknowns: List[str] = []
-    if events_24h == 0:
-        unknowns.append("No lifecycle events were observed for this workflow in the last 24 hours.")
+    if freshness_status == "stale":
+        unknowns.append(
+            f"Latest successful evidence is {slot.get('freshness_age_hours')}h old, beyond the governed {slot.get('freshness_window_hours')}h freshness window."
+        )
+    elif freshness_status == "unavailable":
+        unknowns.append("No successful lifecycle evidence has been captured for this workflow yet.")
     elif missing_stages:
         unknowns.append("The expected-stage contract is incomplete in the current evaluation window.")
 
@@ -185,7 +328,7 @@ def _workflow_truth_projection(slot: Dict[str, Any], *, now_iso: str) -> Dict[st
             surface_id="trust_spine",
             card=truth_card,
             canonical_owner_route="/api/admin/trust-spine",
-            derivation_explanation=f"{slot.get('workflow') or 'workflow'} lifecycle truth is projected from trust_spine_events and the expected-stage contract.",
+            derivation_explanation=f"{slot.get('workflow') or 'workflow'} lifecycle truth is projected from trust_spine_events, the expected-stage contract, and the workflow-specific freshness policy.",
             derived_status=truth_card["truth_evaluation"],
         ),
     }
@@ -248,13 +391,13 @@ def _route_truth_projection(
     if partial_count:
         degradation_reasons.append(f"{partial_count} workflow(s) are missing one or more expected stages.")
     if idle_count:
-        degradation_reasons.append(f"{idle_count} workflow(s) emitted no lifecycle events in the last 24 hours.")
+        degradation_reasons.append(f"{idle_count} workflow(s) have no current lifecycle evidence inside their governed freshness windows.")
 
     unknowns: List[str] = []
     if total_events_24h == 0:
         unknowns.append("No workflow emitted lifecycle evidence in the last 24 hours.")
     elif idle_count:
-        unknowns.append("Idle workflows are evidence gaps, not proof of workflow health.")
+        unknowns.append("Stale or unavailable workflows remain evidence gaps, not proof of workflow health.")
 
     truth_card = canonical_truth_card(
         truth_subject="workflow_lifecycle_truth",
@@ -270,6 +413,7 @@ def _route_truth_projection(
             "trust_spine_events",
             "expected_stage_contract",
             "per_workflow_rollup_24h",
+            "workflow_specific_freshness_policy",
             "workflow_band_summary",
         ],
         prohibited_claims=[
@@ -384,36 +528,82 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             )
             slot["last_success"] = last_ok
 
+            policy_window_hours = _workflow_policy_window_hours(wf)
+            policy_since_iso = (now - timedelta(hours=policy_window_hours)).isoformat()
+            policy_stage_counts: Dict[str, int] = {}
+            policy_stage_failures: Dict[str, int] = {}
+            policy_events = 0
+            async for policy_row in db.trust_spine_events.aggregate([
+                {"$match": {**wf_selector, "ts": {"$gte": policy_since_iso}}},
+                {"$group": {
+                    "_id": {"stage": "$stage", "status": "$status"},
+                    "n": {"$sum": 1},
+                }},
+            ]):
+                stage = policy_row["_id"].get("stage") or "unknown"
+                status = policy_row["_id"].get("status") or "unknown"
+                n = int(policy_row.get("n") or 0)
+                policy_events += n
+                policy_stage_counts[stage] = policy_stage_counts.get(stage, 0) + n
+                if status == "failed":
+                    policy_stage_failures[stage] = policy_stage_failures.get(stage, 0) + n
+
+            slot["policy_since"] = policy_since_iso
+            slot["events_policy_window"] = policy_events
+            slot["freshness_window_hours"] = policy_window_hours
+            slot["policy_stages_seen"] = policy_stage_counts
+            slot["policy_stages_failed"] = policy_stage_failures
+            policy = WORKFLOW_CERTIFICATION_POLICIES.get(wf)
+            slot["terminal_success_criteria"] = getattr(policy, "terminal_success_criteria", "Complete expected-stage contract with current evidence.")
+
+            latest_success_ts = (last_ok or {}).get("ts")
+            freshness_age_hours = _hours_since(latest_success_ts or (latest or {}).get("ts"), now)
+            slot["freshness_age_hours"] = freshness_age_hours
+            if latest_success_ts and freshness_age_hours is not None and freshness_age_hours <= policy_window_hours:
+                slot["freshness_status"] = "current"
+            elif latest_success_ts:
+                slot["freshness_status"] = "stale"
+            else:
+                slot["freshness_status"] = "unavailable"
+
             expected = WORKFLOW_EXPECTED_STAGES.get(wf, [])
             seen_ok_stages = set()
-            if wf == "daily-report":
-                expected = [
-                    "record_created", "routing_resolved", "recipients_built",
-                    "notification_queued", "audit_written",
-                ]
-                provider_ok = slot["stages_seen"].get("provider_accepted", 0) - slot["stages_failed"].get("provider_accepted", 0) > 0
-                preview_ok = slot["stages_seen"].get("delivery_captured_preview", 0) - slot["stages_failed"].get("delivery_captured_preview", 0) > 0
-                completed_ok = slot["stages_seen"].get("completed", 0) - slot["stages_failed"].get("completed", 0) > 0
-                completed_env_ok = slot["stages_seen"].get("completed_for_environment", 0) - slot["stages_failed"].get("completed_for_environment", 0) > 0
+            if wf in PREVIEW_SAFE_DELIVERY_WORKFLOWS:
+                provider_ok = policy_stage_counts.get("provider_accepted", 0) - policy_stage_failures.get("provider_accepted", 0) > 0
+                preview_ok = policy_stage_counts.get("delivery_captured_preview", 0) - policy_stage_failures.get("delivery_captured_preview", 0) > 0
+                completed_ok = policy_stage_counts.get("completed", 0) - policy_stage_failures.get("completed", 0) > 0
+                completed_env_ok = policy_stage_counts.get("completed_for_environment", 0) - policy_stage_failures.get("completed_for_environment", 0) > 0
+                dvir_no_alert_path = wf == "dvir" and not (provider_ok or preview_ok or policy_stage_counts.get("notification_queued", 0) > 0)
+                if dvir_no_alert_path:
+                    expected = [
+                        "record_created", "validation_complete",
+                        "audit_written", "dashboard_updated", "completed",
+                    ]
+                else:
+                    expected = [
+                        "record_created", "routing_resolved", "recipients_built",
+                        "notification_queued", "audit_written",
+                    ]
                 if provider_ok and preview_ok:
                     expected = [*expected, "provider_accepted", "delivery_captured_preview", "completed", "completed_for_environment"]
                 elif provider_ok:
                     expected = [*expected, "provider_accepted", "completed"]
                 elif preview_ok:
                     expected = [*expected, "delivery_captured_preview", "completed_for_environment"]
-                else:
+                elif not dvir_no_alert_path:
                     expected = [*expected, "provider_accepted"]
                 slot["delivery_path"] = (
                     "contradictory" if provider_ok and preview_ok else
                     "provider_live" if provider_ok else
                     "preview_capture" if preview_ok else
+                    "not_required" if dvir_no_alert_path else
                     "unresolved"
                 )
                 slot["delivery_terminal_stage_ok"] = provider_ok or preview_ok or completed_ok or completed_env_ok
             # A stage is "satisfied" only if we have at least one ok
-            # event for it within the last 24h (fake-green guard).
+            # event for it inside the workflow freshness window.
             for stg in expected:
-                if slot["stages_seen"].get(stg, 0) - slot["stages_failed"].get(stg, 0) > 0:
+                if policy_stage_counts.get(stg, 0) - policy_stage_failures.get(stg, 0) > 0:
                     seen_ok_stages.add(stg)
             missing_stages = [s for s in expected if s not in seen_ok_stages]
             slot["expected_stages"] = list(expected)
@@ -438,31 +628,50 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 slot["remediation"] = lf.get("remediation") or (
                     "Inspect backend logs and re-run the failing workflow."
                 )
-            elif slot["events_24h"] == 0:
-                slot["band"] = "amber-no-activity"
-                slot["failure_stage"] = None
-                slot["reason"] = "no lifecycle events in last 24h"
-                slot["remediation"] = (
-                    "Submit a record for this workflow to refresh its evidence."
-                )
-            elif missing_stages:
+            elif missing_stages and policy_events > 0:
                 slot["band"] = "amber"
                 slot["failure_stage"] = missing_stages[0]
                 slot["reason"] = (
-                    f"missing expected stage(s): {', '.join(missing_stages)}"
+                    f"current evidence is missing expected stage(s): {', '.join(missing_stages)}"
                 )
                 slot["remediation"] = (
                     "Wire missing stages into this workflow; partial evidence "
                     "is not green."
                 )
+            elif slot["freshness_status"] == "current":
+                slot["band"] = "green"
+                slot["failure_stage"] = None
+                slot["reason"] = (
+                    f"evidence is current inside the {policy_window_hours}h policy window with "
+                    f"{len(seen_ok_stages)}/{len(expected) or 1} expected stage(s) satisfied"
+                )
+                slot["remediation"] = None
+            elif slot["events_24h"] == 0:
+                slot["band"] = "amber-no-activity"
+                slot["failure_stage"] = None
+                if slot["freshness_status"] == "stale":
+                    slot["reason"] = (
+                        f"latest successful evidence is {freshness_age_hours}h old, beyond the governed {policy_window_hours}h freshness window"
+                    )
+                    slot["remediation"] = "Refresh this workflow through its governed runtime path so current evidence is captured."
+                else:
+                    slot["reason"] = "no lifecycle evidence has been captured for this workflow yet"
+                    slot["remediation"] = "Exercise the governed runtime path for this workflow to establish an initial evidence chain."
             else:
                 slot["band"] = "green"
                 slot["failure_stage"] = None
                 slot["reason"] = (
-                    f"{slot['ok_24h']} ok event(s) across "
-                    f"{len(seen_ok_stages)}/{len(expected) or 1} expected stage(s)"
+                    f"evidence is current inside the {policy_window_hours}h policy window with "
+                    f"{len(seen_ok_stages)}/{len(expected) or 1} expected stage(s) satisfied"
                 )
                 slot["remediation"] = None
+
+            profile = _workflow_impact_profile(wf)
+            slot["root_cause"] = _workflow_root_cause(slot)
+            slot["failing_dependency"] = _workflow_failing_dependency(slot)
+            slot["downstream_impact"] = profile["downstream_impact"]
+            slot["c6_c7_c8_c9_impact"] = profile["c6_c7_c8_c9_impact"]
+            slot["operator_data_trustworthy"] = profile["trustworthiness"]
 
             slot.update(_workflow_truth_projection(slot, now_iso=now.isoformat()))
 
@@ -515,6 +724,11 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             "total_failed_24h": total_failed_24h,
             "workflow_count": len(rows),
             "workflows": rows,
+            "degraded_components": [
+                _workflow_degradation_entry(row)
+                for row in rows
+                if row.get("band") != "green"
+            ],
             "allowed_stages": sorted([
                 "record_created", "validation_complete", "routing_resolved",
                 "recipients_built", "notification_queued", "delivery_captured_preview",

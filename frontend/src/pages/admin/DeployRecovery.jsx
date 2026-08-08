@@ -9,6 +9,7 @@ import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { getTruthfulValuePresentation, TRUTHFUL_DATA_STATE } from "@/lib/truthfulDataState";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
@@ -47,17 +48,28 @@ export default function DeployRecovery() {
   };
   const isInitialLoad = loading && !data;
   const recentBackups = Array.isArray(data?.recent_backups) ? data.recent_backups : null;
-  const currentVersionLabel = isInitialLoad ? "Loading…" : (data?.current?.version || "—");
+  const buildMetric = getTruthfulValuePresentation({
+    isLoading: isInitialLoad,
+    isUnavailable: !isInitialLoad && !data?.current?.version,
+    value: data?.current?.version || null,
+  });
+  const backupMetric = getTruthfulValuePresentation({
+    isLoading: isInitialLoad,
+    value: recentBackups?.length ?? null,
+  });
+  const currentVersionLabel = buildMetric.displayValue;
   const currentBuildTime = isInitialLoad ? "Checking release identity…" : (data?.current?.built_at || "");
   const r2Status = isInitialLoad ? "slate" : (data?.r2?.status || "slate");
   const r2StatusLabel = isInitialLoad ? "Loading…" : ((data?.r2?.status || "—").toUpperCase());
   const r2Detail = isInitialLoad
     ? "Checking archive connectivity and recent snapshot evidence."
     : (data?.r2?.detail || "Archive evidence is unavailable right now.");
-  const recentBackupCountLabel = isInitialLoad ? "—" : String(recentBackups?.length || 0);
+  const recentBackupCountLabel = backupMetric.displayValue;
   const recentBackupNote = isInitialLoad
     ? "Waiting for backup evidence"
-    : "Successful runs on record";
+    : backupMetric.state === TRUTHFUL_DATA_STATE.TRUE_ZERO
+      ? "No successful runs on record yet"
+      : "Successful runs on record";
 
   const load = async () => {
     setLoading(true);

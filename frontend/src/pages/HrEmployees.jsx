@@ -19,6 +19,7 @@ import { Users, Plus, Search, ArrowLeft, Home, RefreshCw,
 import axios from "axios";
 import { getHrToken } from "@/lib/hrAuth";
 import { Button } from "@/components/ui/button";
+import { getTruthfulValuePresentation } from "@/lib/truthfulDataState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -217,6 +218,12 @@ export default function HrEmployees() {
     return buckets;
   }, [items]);
   const isInitialRosterLoad = loading && items.length === 0;
+  const activeMetric = getTruthfulValuePresentation({ isLoading: isInitialRosterLoad, value: counts.active });
+  const pendingMetric = getTruthfulValuePresentation({ isLoading: isInitialRosterLoad, value: counts.pending });
+  const offRollMetric = getTruthfulValuePresentation({ isLoading: isInitialRosterLoad, value: counts.off_roll });
+  const terminatedMetric = getTruthfulValuePresentation({ isLoading: isInitialRosterLoad, value: counts.terminated });
+  const retiredMetric = getTruthfulValuePresentation({ isLoading: isInitialRosterLoad, value: counts.retired });
+  const totalInViewMetric = getTruthfulValuePresentation({ isLoading: isInitialRosterLoad, value: items.length });
 
   // Filter chip descriptors — one per active narrowing. Chips are
   // individually removable so HR can undo one filter at a time
@@ -291,12 +298,12 @@ export default function HrEmployees() {
             which is the same array the table below iterates, so KPI
             counts and table row count can never drift. */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4" data-testid="hremp-kpi-row">
-          <SummaryTile label="Actively Employed" value={isInitialRosterLoad ? null : counts.active} icon={UserCheck} accent="emerald" />
-          <SummaryTile label="Pending / Onboarding" value={isInitialRosterLoad ? null : counts.pending} icon={Briefcase} accent="blue" />
-          <SummaryTile label="Off-roll / Inactive" value={isInitialRosterLoad ? null : counts.off_roll} icon={UserMinus} accent="slate" />
-          <SummaryTile label="Terminated" value={isInitialRosterLoad ? null : counts.terminated} icon={AlertOctagon} accent="rose" />
-          <SummaryTile label="Retired" value={isInitialRosterLoad ? null : counts.retired} icon={CheckCircle2} accent="purple" />
-          <SummaryTile label="Total in View" value={isInitialRosterLoad ? null : items.length} icon={Users} accent="amber" />
+          <SummaryTile label="Actively Employed" metric={activeMetric} icon={UserCheck} accent="emerald" />
+          <SummaryTile label="Pending / Onboarding" metric={pendingMetric} icon={Briefcase} accent="blue" />
+          <SummaryTile label="Off-roll / Inactive" metric={offRollMetric} icon={UserMinus} accent="slate" />
+          <SummaryTile label="Terminated" metric={terminatedMetric} icon={AlertOctagon} accent="rose" />
+          <SummaryTile label="Retired" metric={retiredMetric} icon={CheckCircle2} accent="purple" />
+          <SummaryTile label="Total in View" metric={totalInViewMetric} icon={Users} accent="amber" />
         </div>
 
         {/* TRACK 27.00 · Saved views strip. Twelve pre-filled filter
@@ -730,7 +737,7 @@ export default function HrEmployees() {
   );
 }
 
-function SummaryTile({ label, value, icon: Icon, accent }) {
+function SummaryTile({ label, metric, icon: Icon, accent }) {
   const palette = {
     emerald: "border-emerald-300 text-emerald-900",
     slate: "border-slate-300 text-slate-700",
@@ -745,7 +752,10 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
         <Icon className="w-4 h-4 opacity-70" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] opacity-80 font-bold">{label}</span>
       </div>
-      <div className="font-display text-2xl font-black mt-1 leading-none">{value ?? "—"}</div>
+      <div className="font-display text-2xl font-black mt-1 leading-none">{metric?.displayValue ?? "—"}</div>
+      {metric?.isPlaceholder && metric?.statusLabel ? (
+        <div className="mt-1 text-[11px] font-medium uppercase tracking-wide opacity-70">{metric.statusLabel}</div>
+      ) : null}
     </div>
   );
 }

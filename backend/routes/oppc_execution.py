@@ -670,12 +670,57 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         )
         await _emit_workflow_event(
             db,
+            workflow="oppc-variance-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="variance_dashboard_updated",
+            stage="dashboard_updated",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-recovery-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="recovery_intelligence_started",
+            stage="record_created",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-recovery-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="recovery_strategy_validated",
+            stage="validation_complete",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-recovery-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="recovery_review_written",
+            stage="audit_written",
+        )
+        await _emit_workflow_event(
+            db,
             workflow="oppc-recovery-intelligence",
             project_number=project_number,
             record_id=variance_key,
             module="routes/oppc_execution.py:update_variance_review",
             event_name="recovery_required" if _slug(review_doc.get("status")) == "recovery_required" else "variance_closed",
             stage="dashboard_updated",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-recovery-intelligence",
+            project_number=project_number,
+            record_id=variance_key,
+            module="routes/oppc_execution.py:update_variance_review",
+            event_name="recovery_intelligence_completed",
+            stage="completed",
         )
         if _slug(review_doc.get("status")) == "closed":
             await _emit_workflow_event(
@@ -716,14 +761,51 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
             request=request,
         )
         payload = await build_enterprise_resource_coordination(db, _week_ending(week_ending or ""))
+        record_id = f"enterprise:{payload.get('planning_cycle')}"
         await _emit_workflow_event(
             db,
             workflow="oppc-enterprise-resource-coordination",
             project_number="enterprise",
-            record_id=f"enterprise:{payload.get('planning_cycle')}",
+            record_id=record_id,
             module="routes/oppc_execution.py:get_enterprise_resource_coordination",
-            event_name="variance_detected",
+            event_name="resource_coordination_opened",
+            stage="record_created",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_enterprise_resource_coordination",
+            event_name="resource_coordination_validated",
+            stage="validation_complete",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_enterprise_resource_coordination",
+            event_name="resource_coordination_audited",
+            stage="audit_written",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_enterprise_resource_coordination",
+            event_name="resource_coordination_published",
             stage="dashboard_updated",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_enterprise_resource_coordination",
+            event_name="resource_coordination_completed",
+            stage="completed",
         )
         return payload
 
@@ -743,14 +825,51 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
             request=request,
         )
         payload = await build_executive_operations_center(db, _week_ending(week_ending or ""))
+        record_id = f"executive:{payload.get('planning_cycle')}"
         await _emit_workflow_event(
             db,
             workflow="oppc-enterprise-resource-coordination",
             project_number="enterprise",
-            record_id=f"executive:{payload.get('planning_cycle')}",
+            record_id=record_id,
             module="routes/oppc_execution.py:get_executive_operations_center",
-            event_name="variance_review_completed",
+            event_name="executive_operations_opened",
+            stage="record_created",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_executive_operations_center",
+            event_name="executive_operations_validated",
+            stage="validation_complete",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_executive_operations_center",
+            event_name="executive_operations_audited",
+            stage="audit_written",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_executive_operations_center",
+            event_name="executive_operations_published",
             stage="dashboard_updated",
+        )
+        await _emit_workflow_event(
+            db,
+            workflow="oppc-enterprise-resource-coordination",
+            project_number="enterprise",
+            record_id=record_id,
+            module="routes/oppc_execution.py:get_executive_operations_center",
+            event_name="executive_operations_completed",
+            stage="completed",
         )
         return payload
 

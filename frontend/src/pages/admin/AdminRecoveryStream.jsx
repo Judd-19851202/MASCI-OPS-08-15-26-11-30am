@@ -14,6 +14,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { getTruthfulValuePresentation } from "@/lib/truthfulDataState";
 import { RotateCcw, Loader2, RefreshCw, Filter, Undo2 } from "lucide-react";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -34,6 +35,7 @@ export default function AdminRecoveryStream() {
   const [workflow, setWorkflow] = useState("");
   const [onlyUndos, setOnlyUndos] = useState(false);
   const isInitialLoad = loading && events.length === 0;
+  const eventCountMetric = getTruthfulValuePresentation({ isLoading: isInitialLoad, value: events.length });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,7 +118,7 @@ export default function AdminRecoveryStream() {
             <span className="text-slate-700">Only reversals (undo)</span>
           </label>
           <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            {isInitialLoad ? "Loading events" : `${events.length} events`}
+            {isInitialLoad ? "Loading events" : `${eventCountMetric.displayValue} events`}
           </span>
         </section>
 
