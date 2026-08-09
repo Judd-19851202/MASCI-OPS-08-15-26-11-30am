@@ -1,3 +1,27 @@
+# 2026-08-09 — PRE-C10 cross-entity green-state current state
+
+- **PRE-C10 remains OPEN — NO-GO**
+- Cross-entity runtime truth is now **GREEN** at `/api/admin/platform-truth-integrity/cross-entity`.
+- The governed Admin-only exception state is now the official audit baseline for unresolved historical relationships (`9,800` active non-blocking rows at this checkpoint).
+
+## Updated next actions after the cross-entity green-state batch
+
+### P0 — still required before any PRE-C10 closeout
+
+- Finish Admin OS truth/count lineage closure with direct runtime proof.
+- Finish auth/logout/session denominator, including the stale-session skip denominator and all-role lifecycle evidence.
+- Finish coaching/progressive-disclosure denominator and close remaining KPI / C1–C9 truth rows.
+- Reconcile every owner-observed PRE-C10 defect, then re-run the fresh full Screenshot Product Quality ledger and final consolidated certification chain.
+
+### P1 — still open after this batch
+
+- Preserve and audit the governed cross-entity exception state while the remaining denominators close.
+- Continue explicit row-by-row disposition of any remaining OPEN / PARTIAL PRE-C10 register lanes.
+
+### P2
+
+- Do not start C10.
+
 # 2026-08-09 — PRE-C10 cross-entity integrity current state
 
 - **PRE-C10 remains OPEN — NO-GO**

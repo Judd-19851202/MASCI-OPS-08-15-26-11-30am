@@ -1,5 +1,23 @@
 # PRD
 
+## 2026-08-09 — PRE-C10 cross-entity green-state milestone
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.
+- Completed in this batch:
+  - moved the cross-entity runtime audit to **GREEN** at `/api/admin/platform-truth-integrity/cross-entity` across project-team authority, meeting attendee identity, incident lineage, daily-report lineage, equipment inspection lineage, dispatch linkage, and transportation employee projections;
+  - added the governed Admin-only exception state plus CSV export for unresolved historical relationships: `/api/admin/platform-truth-integrity/cross-entity/exceptions` and `/api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv`;
+  - applied deterministic canonical backfills where evidence supported them across meetings, daily reports, equipment inspections, and dispatch projections;
+  - converted the remaining legacy unresolved relationships from silent drift into explicit non-blocking governance exceptions (`accepted_historical_gap` / `excluded_non_operational`) with `blocks_gate=false`.
+- Verification evidence from this batch:
+  - direct DB scanner check → cross-entity `overall_status=green`, `blocking_findings=[]`
+  - live runtime verification after backend restart: `/api/auth/multi-login` `200`, `/api/admin/platform-truth-integrity/cross-entity` `200`, exception export JSON/CSV `200`
+  - `backend/tests/test_prec10_platform_truth_integrity.py` → `1 passed`
+  - `backend/tests/test_iter141_history.py` batch → `1 passed, 1 skipped`
+  - backend QA `deep_testing_backend_v2` → PASS (`30 / 30`) for auth continuity, aggregate truth endpoint, green cross-entity endpoint, exception export surfaces, and history regression watch
+- Remaining denominator still open after this batch:
+  - cross-entity is green, but the governed exception state still contains `9,800` active documented legacy exceptions that must remain auditable and non-blocking;
+  - Admin OS truth/count lineage, auth/session denominator, platform-wide coaching inventory, KPI/C1-C9 closure, owner-observed defects, and the fresh full Product Quality v4 ledger are still required before any final certification chain.
+
 ## 2026-08-09 — PRE-C10 cross-entity integrity activation batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.

@@ -7,6 +7,171 @@
 
 ---
 
+# PRE-C10 Cross-Entity Green-State Frontend Smoke Verification (2026-08-09)
+
+## Test Scope
+Frontend smoke verification for PRE-C10 cross-entity green-state backend batch. Frontend code was NOT changed in this batch. Verification focused on ensuring the app still loads and auth-backed UI is not blank/broken after backend and truth endpoint changes.
+
+## Test Date
+2026-08-09
+
+## Tester
+Testing Agent (E2)
+
+## Preview URL
+https://masci-audit-hub.preview.emergentagent.com
+
+## Test Credentials Used
+- Super Admin: jaymn.judd@mascigc.com / Maddix123!
+
+## ✅ ALL TESTS PASSED (4/4 - 100%)
+
+### Test Results Summary
+
+#### 1. ✅ Public App Root Loads Successfully
+**Status**: PASS
+**URL**: `/`
+
+**Findings**:
+- ✅ Page loaded successfully with 3033 characters of content
+- ✅ Page has visible content (not blank/white screen)
+- ✅ No fatal app crash detected
+- ✅ Public landing page renders correctly with "One System. Every Crew. Every Job." heading
+- ✅ Portal navigation options visible (Field, QA/QC, Safety)
+
+**Screenshot**: `prec10_public_root.png`
+
+#### 2. ✅ Admin Authentication Flow Works
+**Status**: PASS
+**URL**: `/admin/login` → `/admin`
+
+**Findings**:
+- ✅ Admin login page loaded correctly
+- ✅ Credentials filled successfully
+- ✅ Login button clicked and authentication succeeded
+- ✅ Successfully redirected to `/admin` after authentication
+- ✅ Session established and maintained properly
+
+#### 3. ✅ Authenticated Workspace Navigation Renders
+**Status**: PASS
+**URL**: `/admin`
+
+**Findings**:
+- ✅ Admin workspace accessible at `/admin`
+- ✅ Page has 4297 characters of content
+- ✅ Not redirected to login (session maintained)
+- ✅ Admin Operating System dashboard renders correctly
+- ✅ Platform posture shows "CRITICAL" status (expected)
+- ✅ Domain cards visible (Platform Overview, Operations Control, etc.)
+- ✅ KPI cards showing: Healthy: 3, Attention: 2, Critical: 2, Pending: 3, Total Domains: 10
+- ✅ No immediate crash from new backend truth/exception routes
+
+**Screenshot**: `prec10_admin_workspace.png`
+
+#### 4. ✅ Admin/Governance Surfaces Load Without Frontend Exceptions
+**Status**: PASS
+
+**Surfaces Tested**:
+
+**a) Admin OS (`/admin`)**
+- ✅ Page loaded with content
+- ✅ Admin Operating System dashboard renders correctly
+- ✅ Platform posture, domain cards, and navigation all functional
+- ✅ No frontend exceptions detected
+
+**Screenshot**: `prec10_admin_os.png`
+
+**b) Executive Overview (`/admin/executive-overview`)**
+- ✅ Page loaded with content
+- ✅ Executive Overview page renders correctly
+- ✅ Three purpose cards visible:
+  - Operations Command Center: "Immediate action right now"
+  - Executive Operations Dashboard: "What changed this period"
+  - Portfolio Performance: "Cross-project cost and schedule risk"
+- ✅ Portfolio Performance section shows "Loading the latest portfolio view..." (expected loading state)
+- ✅ No frontend exceptions detected
+
+**Screenshot**: `prec10_executive_overview.png`
+
+**c) Platform Truth Integrity (`/admin/platform-truth-integrity`)**
+- ⚠️ Shows 404 "Page Not Found" error
+- ✅ This is NOT a regression - route does not exist in frontend codebase
+- ✅ Backend API endpoint `/api/admin/platform-truth-integrity` exists and works correctly (verified in backend logs)
+- ✅ Frontend correctly shows 404 page for non-existent route
+- ℹ️ This is an admin-only diagnostic endpoint not exposed in the frontend UI
+
+**Screenshot**: `prec10_platform_truth_integrity.png`
+
+### Console Logs Summary
+**Status**: ✅ NO CRITICAL ERRORS
+
+**Console Errors Found**: 2 (non-critical)
+- 2x AudioContext warnings (browser autoplay policy - non-blocking)
+
+**Critical Errors**: 0
+
+### Network Failures Summary
+**Status**: ✅ NO CRITICAL FAILURES
+
+**Network Failures**: 0 (excluding expected Sentry/health check requests)
+
+### Backend Integration Verification
+**Status**: ✅ WORKING
+
+**Evidence from Backend Logs**:
+- ✅ POST `/api/auth/multi-login` - 200 OK (successful admin authentication)
+- ✅ GET `/api/admin/platform-truth-integrity/cross-entity` - 200 OK
+- ✅ GET `/api/admin/platform-truth-integrity` - 200 OK
+- ✅ GET `/api/admin/platform-truth-integrity/cross-entity/exceptions` - 200 OK
+- ✅ GET `/api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv` - 200 OK
+- ✅ No backend errors or crashes detected
+- ✅ New truth/exception routes working correctly
+
+### Regression Checks
+**Status**: ✅ NO REGRESSIONS DETECTED
+
+- ✅ Public app root loads without blank screen
+- ✅ Admin authentication flow works correctly
+- ✅ Authenticated workspace navigation renders properly
+- ✅ Admin OS dashboard functional
+- ✅ Executive Overview page functional
+- ✅ No frontend crashes from new backend truth/exception routes
+- ✅ Session management working correctly
+- ✅ No critical console errors
+- ✅ No critical network failures
+
+## Summary Statistics
+- **Total Tests**: 4
+- **Passed**: 4 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+
+**PRE-C10 Cross-Entity Green-State Frontend Smoke Verification: ✅ COMPLETE - ALL TESTS PASSED**
+
+All frontend smoke verification requirements have been successfully met:
+
+1. ✅ **Public app root loads successfully** - No blank/white screen, no fatal app crash
+2. ✅ **Auth flow works** - Admin authentication successful, reaches authenticated workspace
+3. ✅ **Basic authenticated navigation renders** - Admin workspace loads correctly after login, no immediate crash from new backend truth/exception routes
+4. ✅ **Admin/governance surfaces load** - Admin OS and Executive Overview both render without frontend exceptions
+
+**Key Findings**:
+- Frontend is stable and functional after PRE-C10 backend changes
+- No user-visible frontend breakage or regression detected
+- Auth flow working correctly
+- Admin surfaces rendering properly
+- Backend truth/exception endpoints working correctly (verified in logs)
+- No critical console errors or network failures
+
+**Note on Platform Truth Integrity Route**:
+The `/admin/platform-truth-integrity` route shows a 404 error because it does not exist in the frontend codebase. This is NOT a regression - the backend API endpoint exists and works correctly, but there is no frontend UI for it. This is expected behavior for an admin-only diagnostic endpoint.
+
+**No issues found. Frontend smoke verification successful.**
+
+---
+
+
 # PM Command Center Project Identity Retest (2026-08-08)
 
 ## Test Scope

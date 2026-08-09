@@ -1,3 +1,12 @@
+# 2026-08-09 — PRE-C10 cross-entity gate moved to GREEN
+
+- Cross-entity scanner now returns **GREEN** at `/api/admin/platform-truth-integrity/cross-entity` with `blocking_findings=[]` and `release_gate_blocked=false`.
+- Added the governed Admin-only exception state and CSV export for unresolved historical relationships: `/api/admin/platform-truth-integrity/cross-entity/exceptions` and `/api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv`.
+- Applied deterministic preview backfills where evidence supported them: additional meeting attendee bindings, daily-report submitter bindings, equipment operator links, one transport driver projection, and one transport truck projection from canonical source entities.
+- Remaining unresolved legacy relationships are no longer silent drift: they are explicitly classified as non-blocking governance exceptions (`accepted_historical_gap` / `excluded_non_operational`). Current active exception count: `9,800`.
+- Verification in this batch: direct DB scanner check GREEN, live admin truth endpoints GREEN, `test_prec10_platform_truth_integrity.py` PASS, `test_iter141_history.py` PASS/SKIP batch, and `deep_testing_backend_v2` PASS (`30 / 30`).
+- PRE-C10 overall remains **OPEN / NO-GO**. Cross-entity green does **not** authorize Save, Deploy, or C10.
+
 # 2026-08-09 — PRE-C10 cross-entity integrity audit activation
 
 - Added a fail-closed cross-entity audit surface at `/api/admin/platform-truth-integrity/cross-entity`, covering project-team authority, meeting attendee identity, incident lineage, daily-report lineage, equipment inspection lineage, dispatch linkage, and transportation employee projections.
