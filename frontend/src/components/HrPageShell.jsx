@@ -4,7 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { PortalShell } from "@/design-system/PortalShell";
 import { useT } from "@/lib/i18n";
 import { getHrUser } from "@/lib/hrAuth";
-import { clearAllSessions } from "@/lib/sessionReset";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 import { api } from "@/lib/api";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
@@ -18,7 +18,7 @@ export default function HrPageShell({ title, kicker, children }) {
   const signOut = async () => {
     try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
     await clearAllSessions();
-    nav("/hr/login");
+    redirectToPublicHome(nav);
   };
 
   return (
@@ -32,6 +32,7 @@ export default function HrPageShell({ title, kicker, children }) {
       showBack
       backHref="/hr"
       onSignOut={signOut}
+      authSessionGuard
       experienceTone="hr"
     >
       <div className="space-y-5" data-testid="hr-page-shell-body">

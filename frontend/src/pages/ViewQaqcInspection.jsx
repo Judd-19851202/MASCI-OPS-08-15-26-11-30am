@@ -29,7 +29,7 @@ function CenterState({ message, loading = false, testId = "view-qaqc-state" }) {
         <div className="wp17-panel flex min-h-[18rem] items-center justify-center text-center text-slate-500" data-testid={testId}>
           <div>
             {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3" /> : null}
-            <div className="font-mono text-xs uppercase tracking-[0.18em]">QA / QC</div>
+            <div className="font-mono text-xs uppercase tracking-[0.18em]">QA/QC</div>
             <div className="mt-2 text-sm sm:text-base text-slate-600">{message}</div>
           </div>
         </div>
@@ -80,10 +80,10 @@ function wrapWithAdminShell(isAdminRoute, data, children) {
   if (!isAdminRoute) return children;
   return (
     <AdminRouteShell
-      pageTitle="QA / QC Inspection"
+      pageTitle="QA/QC Inspection"
       subtitle="Admin review for field quality evidence, checklist outcomes, and sign-off state."
-      portalRole="Admin · QA / QC"
-      crumbs={[{ label: "Field Operations" }, { label: "QA / QC" }, { label: data?.project_name || data?.id?.slice?.(0, 8)?.toUpperCase() || "Inspection" }]}
+      portalRole="Admin · QA/QC"
+      crumbs={[{ label: "Field Operations" }, { label: "QA/QC" }, { label: data?.project_name || data?.id?.slice?.(0, 8)?.toUpperCase() || "Inspection" }]}
       showShellHeader={false}
       showBreadcrumbs={false}
       contentClassName="px-0 py-0"
@@ -181,9 +181,9 @@ export default function ViewQaqcInspection() {
         <div data-print-hide>
         <DetailPageHero
           backHref={listUrl}
-          backLabel={isAdminRoute ? t("Admin · QA / QC") : t("QA / QC")}
-          kicker={t("Field Operations · QA / QC Review")}
-          title={t("QA / QC Inspection Report")}
+          backLabel={isAdminRoute ? t("Admin · QA/QC") : t("QA/QC")}
+          kicker={t("Field Operations · QA/QC Review")}
+          title={t("QA/QC Inspection Report")}
           description={heroDescription || t("Review checklist outcomes, deficiency history, and sign-off evidence for this field quality record.")}
           actions={heroChips}
           toolbar={(

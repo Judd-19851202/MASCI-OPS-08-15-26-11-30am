@@ -8,22 +8,22 @@
 
 :root {
   /* ── Per-portal accent triplet (border / fill / muted) ───────── */
-  --portal-admin-700:    #b91c1c;  /* red-700 */
-  --portal-admin-50:     #fef2f2;
-  --portal-safety-700:   #0e7490;  /* cyan-700 */
-  --portal-safety-50:    #ecfeff;
+  --portal-admin-700:    #334155;  /* slate-700 */
+  --portal-admin-50:     #f8fafc;
+  --portal-safety-700:   #b42318;  /* safety red */
+  --portal-safety-50:    #fef2f2;
   --portal-hr-700:       #7e22ce;  /* purple-700 */
   --portal-hr-50:        #faf5ff;
-  --portal-dispatch-700: #b45309;  /* amber-700 */
-  --portal-dispatch-50:  #fffbeb;
+  --portal-dispatch-700: #0369a1;  /* sky-700 */
+  --portal-dispatch-50:  #f0f9ff;
   --portal-shop-700:     #c2410c;  /* orange-700 */
   --portal-shop-50:      #fff7ed;
-  --portal-pm-700:       #047857;  /* emerald-700 */
-  --portal-pm-50:        #ecfdf5;
-  --portal-field-700:    #334155;  /* slate-700 */
-  --portal-field-50:     #f8fafc;
-  --portal-training-700: #4338ca;  /* indigo-700 */
-  --portal-training-50:  #eef2ff;
+  --portal-pm-700:       #4338ca;  /* indigo-700 */
+  --portal-pm-50:        #eef2ff;
+  --portal-field-700:    #9a5b12;  /* field ochre */
+  --portal-field-50:     #fffbeb;
+  --portal-training-700: #2563eb;  /* blue-600 */
+  --portal-training-50:  #eff6ff;
 
   /* ── Spacing & rhythm ─────────────────────────────────────────── */
   --pad-card:  1.25rem;   /* p-5 */

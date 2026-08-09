@@ -6,6 +6,7 @@
 import React from "react";
 import { Lightbulb, Eye, ArrowRight, AlertTriangle, XCircle } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 
 const BLOCKS = [
   {
@@ -53,29 +54,22 @@ const BLOCKS = [
 export default function CoachingPanel({ compact = false, className = "" }) {
   const { t } = useT();
   return (
-    <section
-      data-testid="oa-coaching-panel"
-      className={`grid grid-cols-1 ${compact ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-5"} gap-3 ${className}`}
-    >
-      {BLOCKS.map((b) => (
-        <div
-          key={b.key}
-          data-testid={b.testid}
-          className={`wp17-coaching-card wp17-coaching-card--${b.tone} p-4`}
-        >
-          <div className="flex items-start gap-3">
-            <span className="wp17-coaching-card__icon shrink-0">
-              <b.icon className="w-4 h-4" />
-            </span>
-            <div className="min-w-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">
-                {t(b.titleEn)}
-              </div>
-              <p className="mt-2 text-sm text-slate-700 leading-6">{t(b.bodyEn)}</p>
-            </div>
-          </div>
-        </div>
-      ))}
-    </section>
+    <WorkflowCoachingDisclosure
+      title={t("Operations Actions guide")}
+      description={t("Ownership first, then routing, then escalation.")}
+      icon={Lightbulb}
+      testIdPrefix="oa-coaching-panel"
+      containerTestId="oa-coaching-panel"
+      blocks={BLOCKS.map((block) => ({
+        icon: block.icon,
+        label: t(block.titleEn),
+        body: t(block.bodyEn),
+        tone: block.tone,
+        testId: block.testid,
+      }))}
+      className={className}
+      defaultOpen={false}
+      collapsedCounterLabel={compact ? t("Operations Actions guide") : undefined}
+    />
   );
 }

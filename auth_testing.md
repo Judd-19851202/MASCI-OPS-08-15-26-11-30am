@@ -17,3 +17,10 @@ curl -b cookies.txt http://localhost:8001/api/auth/me
 ```
 
 Login should return the user object and set `access_token` + `refresh_token` cookies. The `/me` call should return the same user using those cookies.
+
+## PRE-C10 current logout closure scope
+
+- Verify compact authenticated home-session treatment on `/` when a portal session exists.
+- Verify logout sends the operator to public home `/`, not a login form.
+- Verify tokens are cleared and browser back/refresh do not resurrect privileged state.
+- Active role denominator in this batch: Admin, PM, HR, Dispatch, Safety, Shop, Leadership.

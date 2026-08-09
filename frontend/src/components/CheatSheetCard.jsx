@@ -41,7 +41,7 @@ export default function CheatSheetCard() {
     {
       icon: ClipboardCheck,
       eyebrow: t("Quality & Compliance"),
-      title: t("QA / QC"),
+      title: t("QA/QC"),
       body: t(
         "Concrete · Rebar · Subcontractor Inspections. Sign on screen, submit, instant PDF + record.",
       ),

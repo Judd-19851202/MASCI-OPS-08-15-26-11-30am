@@ -33,7 +33,7 @@ import DispatchIntegrationsTab from "@/components/DispatchIntegrationsTab";
 import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer";
 import { clearDispatchToken, getDispatchUser, getDispatchToken } from "@/lib/dispatchAuth";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
-import { clearAllSessions } from "@/lib/sessionReset";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
@@ -114,7 +114,7 @@ export default function DispatchHub() {
 
   const logout = async () => {
     await clearAllSessions();
-    nav("/dispatch-portal/login", { replace: true });
+    redirectToPublicHome(nav);
   };
 
   return (
@@ -124,6 +124,7 @@ export default function DispatchHub() {
       pageTitle={user.name || t("Dispatcher")}
       portalSwitcherCurrent="dispatch"
       onSignOut={logout}
+      authSessionGuard
       primaryActions={<OfflineIndicator />}
     >
       <div data-testid="dispatch-hub" className={sidebarV2 ? "flex w-full" : "w-full"}>

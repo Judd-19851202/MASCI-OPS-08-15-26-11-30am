@@ -107,6 +107,76 @@
   --wp17-tone-soft-border: rgba(139, 92, 246, 0.22);
 }
 
+.wp17-tone--admin {
+  --wp17-tone-solid: var(--domain-admin-solid);
+  --wp17-tone-soft-bg: var(--domain-admin-soft-bg);
+  --wp17-tone-soft-text: var(--domain-admin-soft-text);
+  --wp17-tone-soft-border: var(--domain-admin-soft-border);
+}
+
+.wp17-tone--pm {
+  --wp17-tone-solid: var(--domain-pm-solid);
+  --wp17-tone-soft-bg: var(--domain-pm-soft-bg);
+  --wp17-tone-soft-text: var(--domain-pm-soft-text);
+  --wp17-tone-soft-border: var(--domain-pm-soft-border);
+}
+
+.wp17-tone--hr {
+  --wp17-tone-solid: var(--domain-hr-solid);
+  --wp17-tone-soft-bg: var(--domain-hr-soft-bg);
+  --wp17-tone-soft-text: var(--domain-hr-soft-text);
+  --wp17-tone-soft-border: var(--domain-hr-soft-border);
+}
+
+.wp17-tone--safety {
+  --wp17-tone-solid: var(--domain-safety-solid);
+  --wp17-tone-soft-bg: var(--domain-safety-soft-bg);
+  --wp17-tone-soft-text: var(--domain-safety-soft-text);
+  --wp17-tone-soft-border: var(--domain-safety-soft-border);
+}
+
+.wp17-tone--dispatch {
+  --wp17-tone-solid: var(--domain-dispatch-solid);
+  --wp17-tone-soft-bg: var(--domain-dispatch-soft-bg);
+  --wp17-tone-soft-text: var(--domain-dispatch-soft-text);
+  --wp17-tone-soft-border: var(--domain-dispatch-soft-border);
+}
+
+.wp17-tone--shop {
+  --wp17-tone-solid: var(--domain-shop-solid);
+  --wp17-tone-soft-bg: var(--domain-shop-soft-bg);
+  --wp17-tone-soft-text: var(--domain-shop-soft-text);
+  --wp17-tone-soft-border: var(--domain-shop-soft-border);
+}
+
+.wp17-tone--training {
+  --wp17-tone-solid: var(--domain-training-solid);
+  --wp17-tone-soft-bg: var(--domain-training-soft-bg);
+  --wp17-tone-soft-text: var(--domain-training-soft-text);
+  --wp17-tone-soft-border: var(--domain-training-soft-border);
+}
+
+.wp17-tone--field {
+  --wp17-tone-solid: var(--domain-field-solid);
+  --wp17-tone-soft-bg: var(--domain-field-soft-bg);
+  --wp17-tone-soft-text: var(--domain-field-soft-text);
+  --wp17-tone-soft-border: var(--domain-field-soft-border);
+}
+
+.wp17-tone--qaqc {
+  --wp17-tone-solid: var(--domain-qaqc-solid);
+  --wp17-tone-soft-bg: var(--domain-qaqc-soft-bg);
+  --wp17-tone-soft-text: var(--domain-qaqc-soft-text);
+  --wp17-tone-soft-border: var(--domain-qaqc-soft-border);
+}
+
+.wp17-tone--leadership {
+  --wp17-tone-solid: var(--domain-leadership-solid);
+  --wp17-tone-soft-bg: var(--domain-leadership-soft-bg);
+  --wp17-tone-soft-text: var(--domain-leadership-soft-text);
+  --wp17-tone-soft-border: var(--domain-leadership-soft-border);
+}
+
 .wp17-shell,
 .wp17-public-shell {
   color: var(--wp17-navy-900);

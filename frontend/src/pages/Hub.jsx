@@ -21,13 +21,14 @@ import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
-  GraduationCap, UserCheck, Users, ArrowRight, MapPin, Lock, Phone,
-  BookOpen, LogOut, ShieldAlert, ShieldCheck, Truck, ExternalLink,
+  GraduationCap, UserCheck, Users, MapPin, Lock, Phone,
+  BookOpen, ShieldAlert, ShieldCheck, Truck, ExternalLink,
 } from "lucide-react";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
 import { ActionCard, ExternalPlatformCard, InformationCard, ModuleCard, WorkflowCard } from "@/components/CanonicalCard";
 import { SectionHeading } from "@/components/SectionHeading";
+import { WorkspaceSessionControl } from "@/components/WorkspaceSessionControl";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -35,52 +36,13 @@ import { getAdminToken, clearAdminToken } from "@/lib/adminAuth";
 import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getShopToken, clearShopToken } from "@/lib/shopAuth";
 import { getDispatchToken, clearDispatchToken, getDispatchUser } from "@/lib/dispatchAuth";
+import { getFlToken, getFlUser, clearFlToken } from "@/lib/flAuth";
 import { getHrToken, getHrUser, clearHrToken } from "@/lib/hrAuth";
 import { getSafetyToken, getSafetyUser, clearSafetyToken } from "@/lib/safetyAuth";
 import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
 import { tileAccentFor } from "@/lib/portalPalette";
 import { authorizedPortals, isSignedInAnywhere } from "@/lib/permissions";
-import { clearAllSessions } from "@/lib/sessionReset";
-function WelcomeBackHero({ session }) {
-  const { t } = useT();
-  return (
-    <ActionCard
-      tone={tileAccentFor(session.kind)}
-      appearance="solid"
-      title={session.name || t("Signed in")}
-      description={`${t("Tap to jump back into your")} ${t(session.scopeLabel)} ${t("dashboard")}.`}
-      eyebrow={`${t("Welcome back")} · ${t(session.scopeLabel)}`}
-      testId="hub-welcome-back"
-      className="mb-6"
-      footerSlot={(
-        <div className="flex flex-wrap items-center gap-2 w-full">
-          <Link
-            to={session.to}
-            className="wp17-cta wp17-cta--outline wp17-cta--sm !text-slate-900"
-            data-testid="hub-welcome-back-open"
-          >
-            {t("Open")}
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <button
-            onClick={session.signOut}
-            className="wp17-cta wp17-cta--ghost wp17-cta--sm !text-white hover:!bg-white/10 hover:!border-white/15"
-            data-testid="hub-welcome-back-signout"
-            title={t("Sign out")}
-            type="button"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            {t("Sign out")}
-          </button>
-        </div>
-      )}
-    >
-      <div className="font-mono text-[10px] uppercase tracking-[0.2em] opacity-70 font-bold" data-testid="hub-welcome-back-label">
-          {t("Welcome back")} · {t(session.scopeLabel)}
-      </div>
-    </ActionCard>
-  );
-}
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 
 const FIELD_ENTRY_CARDS = [
   {
@@ -88,15 +50,15 @@ const FIELD_ENTRY_CARDS = [
     icon: HardHat,
     title: "Field",
     description: "File end-of-day reports, log equipment walk-arounds, and capture crew, weather, and production from the job site.",
-    tone: "amber",
+    tone: "field",
     testId: "hub-section-field",
   },
   {
     to: "/qaqc",
     icon: ClipboardCheck,
-    title: "QA / QC",
+    title: "QA/QC",
     description: "Run quality inspections on concrete, asphalt, rebar, and subcontractor work — signed, photographed, routed, and archived.",
-    tone: "emerald",
+    tone: "qaqc",
     testId: "hub-section-qc",
   },
   {
@@ -104,7 +66,7 @@ const FIELD_ENTRY_CARDS = [
     icon: Shield,
     title: "Safety",
     description: "File toolbox talks, JHAs, incident reports, and trench-box plans — directly from the truck or trailer.",
-    tone: "red",
+    tone: "safety",
     testId: "hub-section-safety",
   },
 ];
@@ -123,7 +85,7 @@ export default function Hub() {
   const handleSignOut = async () => {
     await clearAllSessions();
     force((n) => n + 1);
-    navigate("/sign-in", { replace: true });
+    redirectToPublicHome(navigate);
   };
 
   const session = useMemo(
@@ -132,14 +94,7 @@ export default function Hub() {
   );
 
   const headerAction = session ? (
-    <Link
-      to={session.to}
-      className="inline-flex items-center h-10 rounded-full border border-white/12 bg-white/10 px-3.5 text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-white hover:bg-white/18"
-      data-testid="hub-resume-link"
-      title={t(`Open ${session.scopeLabel}`)}
-    >
-      {t("Resume")}
-    </Link>
+    <WorkspaceSessionControl session={session} onSignOut={handleSignOut} />
   ) : (
     <Link
       to="/sign-in"
@@ -202,9 +157,6 @@ export default function Hub() {
               </div>
           </div>
         </div>
-
-        {/* Welcome back strip (only when an active session is detected) */}
-        {session && <WelcomeBackHero session={session} />}
 
         {/* iter218 · Day-1 "Start Here" entry — visible only when NO
             session is detected, so it stays out of the way for crews
@@ -417,6 +369,11 @@ function detectActiveSession(t, signOut) {
   if (getDispatchToken()) {
     const u = getDispatchUser() || {};
     return { kind: "dispatch", scopeLabel: "Dispatch Portal", name: u.name || u.email || "Dispatcher", to: "/dispatch-portal",
+             signOut };
+  }
+  if (getFlToken()) {
+    const u = getFlUser() || {};
+    return { kind: "leadership", scopeLabel: "Field Leadership", name: u.name || u.email || "Field Leadership", to: "/field-leadership/portal/dashboard",
              signOut };
   }
   if (isLeadershipAuthed()) {

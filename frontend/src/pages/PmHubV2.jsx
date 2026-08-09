@@ -520,7 +520,7 @@ export default function PmHubV2() {
               <Card title="Fleet" description="PM-scoped equipment view" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/pm/qaqc" data-testid="pm-hub-v2-dest-qaqc" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <Card title="QA / QC" description="Quality inspections · per-project" status={<StatusChip statusKey="verified" compact />} />
+              <Card title="QA/QC" description="Quality inspections · per-project" status={<StatusChip statusKey="verified" compact />} />
             </Link>
             <Link to="/pm/crew-compliance" data-testid="pm-hub-v2-dest-crew" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <Card title="Crew Compliance" description="Per-crew qualifications and training status" status={<StatusChip statusKey="verified" compact />} />

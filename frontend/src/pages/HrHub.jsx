@@ -18,7 +18,7 @@ import HrCompletenessTile from "@/components/HrCompletenessTile";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
-import { clearAllSessions } from "@/lib/sessionReset";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
@@ -201,7 +201,7 @@ export default function HrHub() {
   const signOut = async () => {
     // P0 (iter179): wipe every auth artifact, not just HR.
     await clearAllSessions();
-    nav("/hr/login");
+    redirectToPublicHome(nav);
   };
 
   return (
@@ -213,6 +213,7 @@ export default function HrHub() {
       showNotifications={false}
       showPortalSwitcher={false}
       showSignOut={false}
+      authSessionGuard
     >
       <div className="min-h-screen blueprint-bg pb-16">
       <div className="caution-stripe" />

@@ -39,7 +39,7 @@ const FORM_TILES = [
   { to: "/pm/trench-boxes",   icon: Box,           title: "Trench Box Data",     countKey: "trenchBoxes", sub: "boxes on file",     accent: "slate" },
   { to: "/pm/incidents",      icon: AlertOctagon,  title: "Incident Reports",    countKey: "incidents",  sub: "reports on file",    accent: "redDeep" },
   { to: "/pm/equipment",      icon: Wrench,        title: "Equipment Pre-Op",    countKey: "equipment",  sub: "inspections on file", accent: "slate" },
-  { to: "/pm/qaqc",           icon: ShieldCheck,   title: "QA / QC Inspections", countKey: "qaqc",       sub: "Records on your jobs", accent: "amber" },
+  { to: "/pm/qaqc",           icon: ShieldCheck,   title: "QA/QC Inspections", countKey: "qaqc",       sub: "Records on your jobs", accent: "amber" },
   { to: "/pm/photos",         icon: ImageIcon,     title: "Job Photos",          countKey: null,         sub: "All photos by job & week", accent: "rose" },
   { to: "/pm/field-leadership", icon: UserCheck,   title: "Field Leadership",    countKey: null,         sub: "Crew docs · my jobs only", accent: "amber" },
   { to: "/guidance", icon: GraduationCap, title: "Training & Guides", countKey: null,    sub: "Operator guides · PDF download", accent: "slate" },

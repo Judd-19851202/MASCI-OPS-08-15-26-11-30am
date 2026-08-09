@@ -25,7 +25,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
-import { clearAllSessions } from "@/lib/sessionReset";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, Cable, Truck, Activity, Rocket, History, GraduationCap,
@@ -140,7 +140,7 @@ export default function AdminShell({
   const handleSignOut = useCallback(async () => {
     if (signOutCapability.available !== true) return;
     await clearAllSessions();
-    window.location.assign("/admin/login");
+    redirectToPublicHome();
   }, [signOutCapability]);
 
   return (

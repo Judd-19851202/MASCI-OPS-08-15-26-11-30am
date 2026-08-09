@@ -11,52 +11,33 @@
 //
 // Field-first, non-punitive, superintendent-friendly. Collapsible by
 // default so the form stays scan-friendly on a phone.
-import React, { useState } from "react";
-import { ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import React from "react";
+import { ShieldAlert } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 
-export default function OshaCoachingBlock({ title, why, requirement, example, mistakes, escalate, ifUnsure, testId, defaultOpen = false, tone = "amber" }) {
+export default function OshaCoachingBlock({ title, why, requirement, example, mistakes, escalate, ifUnsure, testId, tone = "amber" }) {
   const { t } = useT();
-  const [open, setOpen] = useState(defaultOpen);
-
-  const toneClass = {
-    amber: "wp17-coaching-card--amber",
-    red: "wp17-coaching-card--red",
-    cyan: "wp17-coaching-card--cyan",
-  }[tone] || "wp17-coaching-card--amber";
 
   return (
-    <div className={`wp17-coaching-card ${toneClass} mt-3 p-3 sm:p-4`} data-testid={testId}>
-      <button
-        type="button"
-        onClick={() => setOpen((p) => !p)}
-        className="w-full flex items-start gap-3 text-left"
-        data-testid={`${testId}-toggle`}
-      >
-        <span className="wp17-coaching-card__icon mt-0.5 shrink-0">
-          <ShieldAlert className="w-4 h-4" />
-        </span>
-        <div className="flex-1">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold leading-snug text-slate-500">
-            {t("OSHA Coaching")} · {t(title)}
-          </div>
-          {!open && (
-            <div className="mt-2 text-sm leading-6 text-slate-700 line-clamp-2">{t(why)}</div>
-          )}
-        </div>
-        {open ? <ChevronUp className="w-4 h-4 mt-1 shrink-0 text-slate-500" /> : <ChevronDown className="w-4 h-4 mt-1 shrink-0 text-slate-500" />}
-      </button>
-
-      {open && (
-        <div className="mt-3 space-y-2.5 text-sm leading-6 text-slate-700" data-testid={`${testId}-body`}>
-          <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("Why This Matters")}</span>{t(why)}</div>
-          {requirement && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("OSHA Requirement")}</span>{t(requirement)}</div>}
-          {example && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("Example")}</span>{t(example)}</div>}
-          {mistakes && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("Common Mistakes")}</span>{t(mistakes)}</div>}
-          {escalate && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("When To Escalate")}</span>{t(escalate)}</div>}
-          {ifUnsure && <div><span className="font-mono text-[10px] uppercase tracking-[0.16em] mr-2 text-slate-500">{t("If Unsure")}</span>{t(ifUnsure)}</div>}
-        </div>
-      )}
-    </div>
+    <WorkflowCoachingDisclosure
+      title={`${t("OSHA Coaching")} · ${t(title)}`}
+      description={t(why)}
+      icon={ShieldAlert}
+      testIdPrefix={testId}
+      containerTestId={testId}
+      triggerTestId={`${testId}-toggle`}
+      panelTestId={`${testId}-body`}
+      collapsedCounterLabel={`${t("OSHA Coaching")} · ${t(title)}`}
+      defaultOpen={false}
+      blocks={[
+        { label: t("Why This Matters"), body: t(why), tone, testId: `${testId}-why` },
+        requirement ? { label: t("OSHA Requirement"), body: t(requirement), tone, testId: `${testId}-requirement` } : null,
+        example ? { label: t("Example"), body: t(example), tone, testId: `${testId}-example` } : null,
+        mistakes ? { label: t("Common Mistakes"), body: t(mistakes), tone, testId: `${testId}-mistakes` } : null,
+        escalate ? { label: t("When To Escalate"), body: t(escalate), tone, testId: `${testId}-escalate` } : null,
+        ifUnsure ? { label: t("If Unsure"), body: t(ifUnsure), tone, testId: `${testId}-if-unsure` } : null,
+      ].filter(Boolean)}
+    />
   );
 }

@@ -20,6 +20,7 @@ import { getShopToken } from "@/lib/shopAuth";
 import { getHrToken } from "@/lib/hrAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+import { isFl } from "@/lib/flAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 import { getDirectoryToken, getDirectoryUser } from "@/lib/directoryAuth";
 
@@ -64,7 +65,7 @@ const TOKEN_PROBES = {
   hr: () => !!getHrToken(),
   safety: () => !!getSafetyToken(),
   dispatch: () => !!getDispatchToken(),
-  leadership: () => isLeadershipAuthed(),
+  leadership: () => isLeadershipAuthed() || isFl(),
 };
 
 /**

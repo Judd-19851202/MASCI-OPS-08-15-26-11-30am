@@ -227,11 +227,11 @@ export default function NewQaqcInspection() {
 
   return (
     <FormShell
-      kicker={t("MASCI · QA / QC")}
+      kicker={t("MASCI · QA/QC")}
       title={titleLabel}
       subtitle={t("Inspection capture with evidence, checklist answers, and sign-off.")}
       backLink="/qaqc"
-      backLabel={t("QA / QC")}
+      backLabel={t("QA/QC")}
       headerClassName="border-emerald-200/60"
       containerTestId="qaqc-form-shell"
     >
@@ -242,7 +242,7 @@ export default function NewQaqcInspection() {
           </div>
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">
-              {t("QA / QC")}
+              {t("QA/QC")}
             </span>
             <p className="mt-1 text-sm text-slate-600" data-testid="qaqc-form-intro">
               {t("Capture site conditions, checklist results, photo evidence, and final sign-off in one shared inspection workflow.")}

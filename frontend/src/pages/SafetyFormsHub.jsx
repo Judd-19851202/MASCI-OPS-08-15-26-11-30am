@@ -13,6 +13,7 @@ import { isSafetyForms, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
 import { isSafety } from "@/lib/safetyAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 
 // iter321 · Safety Forms Hub — calm tile pattern (family contract).
 // Replaces the legacy hot FormTile (`border-2 border-slate-300 +
@@ -60,12 +61,10 @@ export default function SafetyFormsHub() {
     }
   }, [navigate]);
 
-  const signOut = () => {
-    // Only the legacy token is owned by this page. Safety Portal sign-out
-    // happens from /safety-portal; Admin sign-out from /admin. Just clear
-    // the legacy SF token and route back to the Safety section.
+  const signOut = async () => {
     clearSafetyFormsToken();
-    navigate("/safety", { replace: true });
+    await clearAllSessions();
+    redirectToPublicHome(navigate);
   };
 
   return (
@@ -76,6 +75,7 @@ export default function SafetyFormsHub() {
       subtitle={t("Issue equipment with full accountability and document use & care training — every submission emails a clean PDF to safety@mascigc.com.")}
       sideNav={<SafetySideNavV2 />}
       onSignOut={signOut}
+      authSessionGuard
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="safety-forms-hub-page">
         {/* iter322 · Portal continuity — if user arrived from FL with

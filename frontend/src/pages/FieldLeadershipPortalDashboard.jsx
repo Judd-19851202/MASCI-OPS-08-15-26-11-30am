@@ -19,6 +19,7 @@ import {
   SAFETY_EQUIPMENT_ISSUANCE_LINK,
 } from "@/lib/fieldLeadershipSchemas";
 import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 
 // iter353d · inline lookup helper (queries the FL DQ endpoint to
 // resolve a name → employee_id, then renders the mini-widget).
@@ -125,10 +126,11 @@ export default function FieldLeadershipPortalDashboard() {
     })();
   }, [t]);
 
-  const signOut = () => {
+  const signOut = async () => {
     clearFlToken();
     toast.success(t("Signed out"));
-    navigate("/field-leadership/portal/login", { replace: true });
+    await clearAllSessions();
+    redirectToPublicHome(navigate);
   };
 
   return (
@@ -139,6 +141,7 @@ export default function FieldLeadershipPortalDashboard() {
       subtitle={resolvedSubtitle}
       showNotifications={false}
       onSignOut={signOut}
+      authSessionGuard
     >
       <div className="max-w-6xl w-full mx-auto px-0 py-6 space-y-4" data-testid="fl-portal-dashboard">
         <section className="wp17-mission-banner" data-testid="fl-portal-mission-banner">

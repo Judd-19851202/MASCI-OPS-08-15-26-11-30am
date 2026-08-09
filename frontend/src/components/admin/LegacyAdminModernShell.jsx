@@ -144,6 +144,7 @@ export default function LegacyAdminModernShell({
         subtitle={typeof subtitle === "string" ? lt(subtitle) : subtitle}
         primaryActions={actions}
         onSignOut={onSignOut}
+        authSessionGuard
         signOutCapability={signOutCapability}
         sideNav={<SideNavV3 variant="admin" onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >

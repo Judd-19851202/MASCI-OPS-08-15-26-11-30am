@@ -11,6 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { MobileNavigation } from "@/design-system/MobileNavigation";
 import { useBranding } from "@/lib/BrandingProvider";
 import { clearAllSessions } from "@/lib/sessionReset";
+import { isSignedInAnywhere } from "@/lib/permissions";
+import { hasLoggedOutMarker, redirectToPublicHome } from "@/lib/sessionReset";
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
 import { useT } from "@/lib/i18n";
 import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
@@ -161,6 +163,7 @@ export function PortalShell({
   showNotifications = true,
   showPortalSwitcher = true,
   showSignOut = true,
+  authSessionGuard = false,
   signOutCapability = null,
   portalSwitcherCurrent = null,
   hideProviderLine = false,
@@ -218,8 +221,24 @@ export function PortalShell({
       return;
     }
     await clearAllSessions();
-    window.location.assign("/sign-in");
+    redirectToPublicHome();
   };
+
+  React.useEffect(() => {
+    if (!authSessionGuard || typeof window === "undefined") return undefined;
+    const check = () => {
+      if (hasLoggedOutMarker() && !isSignedInAnywhere()) {
+        window.location.replace("/");
+      }
+    };
+    check();
+    window.addEventListener("pageshow", check);
+    window.addEventListener("focus", check);
+    return () => {
+      window.removeEventListener("pageshow", check);
+      window.removeEventListener("focus", check);
+    };
+  }, [authSessionGuard]);
 
   const utilityRail = (showSearch || showNotifications || showPortalSwitcher || showSignOut) ? (
     <div className="wp17-panel px-4 py-3 sm:px-5" data-testid="ds-portal-shell-utility-rail-card">

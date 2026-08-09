@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { LayoutDashboard } from "lucide-react";
 import SideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { PortalShell } from "@/design-system/PortalShell";
-import { clearAllSessions } from "@/lib/sessionReset";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 
@@ -22,7 +22,7 @@ export default function PmShell({
   const signOut = async () => {
     await clearAllSessions();
     toast.success(t("Signed out"));
-    navigate("/pm/login", { replace: true });
+    redirectToPublicHome(navigate);
   };
 
   return (
@@ -34,6 +34,7 @@ export default function PmShell({
       subtitle={subtitle ? t(subtitle) : t("Track project details, blockers, due dates, and field coordination in one place.")}
       sideNav={<SideNavV2 />}
       onSignOut={signOut}
+      authSessionGuard
       experienceTone="pm"
       showPageHeader={showPageHeader}
     >

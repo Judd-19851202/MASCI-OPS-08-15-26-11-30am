@@ -9,7 +9,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+import { useT } from "@/lib/i18n";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -27,6 +29,7 @@ const STATUS_CHIP = {
 };
 
 export default function DispatchIntegrationsTab() {
+  const { t } = useT();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -118,12 +121,37 @@ export default function DispatchIntegrationsTab() {
         />
       </div>
 
-      <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-md p-4 text-xs text-slate-600">
-        <strong className="block mb-1 font-mono uppercase tracking-[0.15em] text-slate-700">How this works</strong>
-        Mapping records live in <code>asset_mappings</code> / <code>employee_mappings</code> — they tie MASCI master IDs to
-        external Motive / MaintainX IDs without ever mutating <code>equipment_master</code> or <code>employees</code>.
-        Dispatch reads the live numbers here; Admin manages the mappings at <Link to="/admin/integrations" className="font-bold text-slate-900 underline">/admin/integrations</Link>.
-      </div>
+      <WorkflowCoachingDisclosure
+        title={t("Integration mapping guide")}
+        eyebrow={t("How this works")}
+        description={t("Dispatch reads live readiness here while Admin owns the governed mapping records.")}
+        testIdPrefix="dispatch-integrations-guide"
+        defaultOpen={false}
+        collapsedCounterLabel={t("Integration mapping guide")}
+        blocks={[
+          {
+            tone: "slate",
+            label: t("Approved mapping records"),
+            body: (
+              <span>
+                {t("Mapping records live in")} <code>asset_mappings</code> / <code>employee_mappings</code>
+                {t(" — they tie MASCI master IDs to external Motive / MaintainX IDs without mutating the governed equipment or employee master records.")}
+              </span>
+            ),
+            testId: "dispatch-integrations-guide-mapping",
+          },
+          {
+            tone: "amber",
+            label: t("Where operators act"),
+            body: (
+              <span>
+                {t("Dispatch reads the live numbers here. Admin manages the mappings at")} <Link to="/admin/integrations" className="font-bold text-slate-900 underline">/admin/integrations</Link>.
+              </span>
+            ),
+            testId: "dispatch-integrations-guide-admin-link",
+          },
+        ]}
+      />
 
       <MotiveActivityStrip />
     </div>

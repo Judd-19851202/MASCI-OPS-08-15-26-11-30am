@@ -69,8 +69,8 @@ export default function QaqcSection() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="QA / QC"
-      pageTitle={t("QA / QC")}
+      portalRole="QA/QC"
+      pageTitle={t("QA/QC")}
       subtitle={t("Quality assurance and quality control inspections for concrete, rebar, and subcontractor work.")}
       homeHref="/qaqc"
       backHref="/"
@@ -87,7 +87,7 @@ export default function QaqcSection() {
           </div>
           <div className="flex-1">
             <span className="font-mono text-xs uppercase tracking-[0.22em] text-emerald-700 font-bold">
-              {t("Quality Assurance · Quality Control")}
+              {t("Quality Assurance / Quality Control")}
             </span>
             <p className="text-slate-600 text-base mt-2 max-w-2xl">
               {t(

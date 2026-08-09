@@ -114,7 +114,7 @@ export default function PmQaqcList() {
   return (
     <PortalShell
       portalName="MASCI" portalRole={t("PM Portal · QA/QC")}
-      pageTitle={t("My Project QA / QC Records")}
+      pageTitle={t("My Project QA/QC Records")}
       subtitle={t("Records filtered to jobs where you are the assigned PM")}
       sideNav={<PmSideNavV2 />}
     >
@@ -136,7 +136,7 @@ export default function PmQaqcList() {
               {t("PM · QA/QC")}
             </span>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900">
-              {t("My Project QA / QC Records")}
+              {t("My Project QA/QC Records")}
             </h1>
             <p className="text-xs text-slate-500 mt-1">
               {t("Records are filtered to jobs where you are the assigned PM.")}

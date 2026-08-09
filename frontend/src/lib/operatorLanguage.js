@@ -39,7 +39,6 @@ const BANNED_OPERATOR_TERMS = [
   "responsive behavior",
   "information hierarchy",
   "debug",
-  "qa",
   "uat",
   "ticket",
   "defect",
@@ -62,16 +61,15 @@ const BANNED_OPERATOR_TERMS = [
   "audits",
   "defect",
   "defects",
-  "qaqc",
-  "qa/qc",
 ];
 
 const OPERATOR_TERM_REPLACEMENTS = [
+  [/\bqa\s*\/\s*qc\b/gi, "QA/QC"],
+  [/\bqaqc\b/gi, "QA/QC"],
+  [/\bquality assurance\s*[·/-]\s*quality control\b/gi, "Quality Assurance / Quality Control"],
   [/\bdeterministic\s*[·-]\s*canonical\b/gi, "Based on current records"],
   [/\bdeferred in this release\b/gi, "not available on this page yet"],
   [/\bread-?only\b/gi, "view only"],
-  [/\bqa\/qc\b/gi, "quality checks"],
-  [/\bqaqc\b/gi, "quality checks"],
   [/\baudits\b/gi, "reviews"],
   [/\baudit\b/gi, "review"],
   [/\bdefects\b/gi, "issues"],
@@ -135,7 +133,6 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\bresponsive behavior\b/gi, "mobile and desktop support"],
   [/\binformation hierarchy\b/gi, "clear priorities"],
   [/\bdebug\b/gi, ""],
-  [/\bqa\b/gi, "review"],
   [/\buat\b/gi, "review"],
   [/\bdefect\b/gi, "issue"],
   [/\bticket\b/gi, "item"],
@@ -159,12 +156,14 @@ const OPERATOR_TERM_REPLACEMENTS = [
 
 const INTERNAL_CODE_PATTERN = /\b(?:c1|c2|c3|c4|c5|c6|c7|c8|c9|c10|wp\d+[a-z0-9-]*|ecap|oppc|devhub|preview|fixture|qa|uat|r2|ocr|telemetry|snapshot|kpi|rollup|spine|forensic|cockpit|authority contract|read model|source lineage|schema|payload|backend|frontend|api|route|collection)\b/i;
 const SYNTHETIC_PROJECT_NUMBER_PATTERN = /^(?:test[_-]|smoke[_-]|synthetic[_-]|cert[_-]?test|parity[_-]|iter\d+|qa[_-]?smoke|recert|0000-?test)/i;
+const QAQC_PLACEHOLDER = "MASCIQAQCDOMAINTOKEN";
+const QAQC_EXPANDED_PLACEHOLDER = "MASCIQUALITYASSURANCECONTROLDOMAINTOKEN";
 
 function collapseWhitespace(value) {
   return String(value || "")
     .replace(/[._/]+/g, " ")
     .replace(/\s{2,}/g, " ")
-    .replace(/\s+([·,.;:!?])/g, "$1")
+    .replace(/\s+([,.;:!?])/g, "$1")
     .trim();
 }
 
@@ -186,9 +185,14 @@ export function sanitizeOperatorCopy(value, fallback = "") {
   for (const [pattern, replacement] of OPERATOR_TERM_REPLACEMENTS) {
     next = next.replace(pattern, replacement);
   }
+  next = next
+    .replace(/Quality Assurance \/ Quality Control/g, QAQC_EXPANDED_PLACEHOLDER)
+    .replace(/QA\/QC/g, QAQC_PLACEHOLDER);
   next = collapseWhitespace(next)
     .replace(/\bto\s*$/i, "")
     .replace(/^[-·,:;\s]+|[-·,:;\s]+$/g, "")
+    .replace(new RegExp(QAQC_EXPANDED_PLACEHOLDER, "g"), "Quality Assurance / Quality Control")
+    .replace(new RegExp(QAQC_PLACEHOLDER, "g"), "QA/QC")
     .trim();
   return next || fallback;
 }

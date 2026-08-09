@@ -38,6 +38,9 @@ import {
   getDirectoryToken,
 } from "./directoryAuth";
 
+export const POST_LOGOUT_PUBLIC_HOME = "/";
+const LOGOUT_MARKER_KEY = "masci.auth.logout_at";
+
 // All identity-derived localStorage / sessionStorage keys that any
 // portal authentication writes. Kept narrow on purpose — operational
 // keys (drafts, queues, ops_*, device id, posthog) are NOT included.
@@ -149,6 +152,14 @@ export async function clearAllSessions({ notifyBackend = true, preserveSafetyFor
     try { sessionStorage.removeItem(key); } catch { /* ignore */ }
   }
 
+  try {
+    const stamp = String(Date.now());
+    localStorage.setItem(LOGOUT_MARKER_KEY, stamp);
+    sessionStorage.setItem(LOGOUT_MARKER_KEY, stamp);
+  } catch {
+    /* ignore storage errors */
+  }
+
   // Best-effort server-side invalidation. Failures here are non-fatal:
   // we already cleared the client. A 401/network error simply means
   // we logged out a session that was already gone.
@@ -178,5 +189,23 @@ export async function clearAllSessions({ notifyBackend = true, preserveSafetyFor
     } catch {
       /* offline / network error — local wipe already done, safe */
     }
+  }
+}
+
+export function hasLoggedOutMarker() {
+  try {
+    return Boolean(localStorage.getItem(LOGOUT_MARKER_KEY) || sessionStorage.getItem(LOGOUT_MARKER_KEY));
+  } catch {
+    return false;
+  }
+}
+
+export function redirectToPublicHome(navigate, options = { replace: true }) {
+  if (typeof navigate === "function") {
+    navigate(POST_LOGOUT_PUBLIC_HOME, options);
+    return;
+  }
+  if (typeof window !== "undefined") {
+    window.location.assign(POST_LOGOUT_PUBLIC_HOME);
   }
 }

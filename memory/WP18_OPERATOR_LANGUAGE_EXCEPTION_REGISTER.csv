@@ -74,12 +74,12 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminLegacyImports,Admin,collection:,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/AdminLegacyImports.jsx:457,EXEMPT
 /AdminLegacyImports,Admin,OCR/AI-assisted reconciliation queue · humans approve every promotion.,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:85,EXEMPT
 /AdminLegacyImports,Admin,Historical Records · Reconciliation Queue,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:98,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:495,EXEMPT
-/AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:499,EXEMPT
-/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:736,EXEMPT
-/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:739,EXEMPT
-/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:758,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:763,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:496,EXEMPT
+/AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:500,EXEMPT
+/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:737,EXEMPT
+/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:740,EXEMPT
+/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:759,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:764,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient/group CRUD is served by the admin API (,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Canonical English PDF export · legacy + modern records in one list · management access only,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:658,EXEMPT
@@ -112,6 +112,8 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminProjectIdentityGovernance,Admin,No governance items match the current filter. Run a re-scan to refresh detection.,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:444,EXEMPT
 /AdminProjectIdentityGovernance,Admin,Suggested canonical,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:509,EXEMPT
 /AdminProjectIdentityGovernance,Admin,— Pick canonical project —,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:566,EXEMPT
+/AdminQaqcList,Admin,All QA / QC Inspections,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::frontend/src/pages/AdminQaqcList.jsx:100,EXEMPT
+/AdminQaqcList,Admin,QA / QC,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::frontend/src/pages/AdminQaqcList.jsx:92,EXEMPT
 /AdminRecovery,Admin,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:392,EXEMPT
 /AdminRecovery,Admin,Sources: recovery snapshot · deployment readiness · cluster capacity · scheduler runs · system health,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:410,EXEMPT
 /AdminRecovery,Admin,Archive lineage,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:458,EXEMPT
@@ -231,6 +233,9 @@ notifications,Technical,/admin/governance,governance,TECHNICAL_ADMIN_EXCEPTION,o
 notifications,Technical,Operational records reference employee names HR's master cannot resolve. Resolving each one closes operational records back into the canonical identity timeline.,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::backend/routes/notifications.py:406,EXEMPT
 notifications,Technical,"Visit Crew Compliance to see which of these are on your projects — read-only governance, but you can escalate to Safety/HR.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:518,EXEMPT
 notifications,Technical,Safety governance issue — surfaces here so FL knows incident exposure on the field side.,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:684,EXEMPT
+pdf_render,Technical,QA / QC Inspection,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/pdf_render.py:2476,EXEMPT
+pdf_render,Technical,QA / QC Inspection,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/pdf_render.py:2676,EXEMPT
+pdf_render,Technical,Inspección de QA / QC,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/pdf_render.py:2676,EXEMPT
 pdf_render,Technical,"These files were attached to the canonical Daily Report record. Extraction results were not persisted on this report, so the PDF is listing the stored evidence references directly.",canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::backend/pdf_render.py:322,EXEMPT
 pdf_render,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/pdf_render.py:35,EXEMPT
 pdf_render,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/pdf_render.py:36,EXEMPT
@@ -329,6 +334,7 @@ test_wp18cy_daily_report_email_transport,Technical,Runtime Project,runtime,TECHN
 track_15_41_pdf_compare,Technical,"Stripped, non-empty lines. Token-of-truth for",truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::backend/scripts/track_15_41_pdf_compare.py:30,EXEMPT
 track_15_65_seed_email_routes,Technical,Single fallback when shop_users collection is empty (Pre-Op fail / OOS).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/scripts/track_15_65_seed_email_routes.py:128,EXEMPT
 track_15_65_seed_email_routes,Technical,read-only audit of the route catalog,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/scripts/track_15_65_seed_email_routes.py:422,EXEMPT
+training,Training / Localization,Lesson 5 — QA / QC Inspections,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::frontend/src/data/training.js:202,EXEMPT
 training,Training / Localization,Trust but verify. The Integrity Check proves that every collection currently in your live DB is captured in the most recent backup — catches new collections that a future feature adds without updating the backup routine.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/data/training.js:783,EXEMPT
 training,Training / Localization,Lesson 6 — Safe Deploy / Redeploy Workflow (Pre-Deploy Snapshot + Atlas),snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/data/training.js:828,EXEMPT
 training_pdf,Technical,"Pipeline: photo → indexer mirrors to job_photos → frontend requests /thumb-signed?t=<token> → backend checks cache → if miss, decodes (Pillow + pillow-heif) → encodes WebP/AVIF/JPEG in one pass → stores all 3 → serves right format per Accept header.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:1095,EXEMPT
@@ -341,6 +347,10 @@ training_pdf,Technical,Render concurrency 2 (semaphore). Frontend 6 in-flight ti
 training_pdf,Technical,Concurrencia 2 (semáforo). Frontend 6 mosaicos en vuelo.,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:1115,EXEMPT
 training_pdf,Technical,Outstanding equipment count updates live from the equipment_checkout collection.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:1164,EXEMPT
 training_pdf,Technical,Empty state when collection is empty (new install).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/training_pdf.py:1383,EXEMPT
+training_pdf,Technical,Lesson 5 — QA / QC Inspections,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/training_pdf.py:261,EXEMPT
+training_pdf,Technical,Lección 5 — Inspecciones de QA / QC,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/training_pdf.py:262,EXEMPT
+training_pdf,Technical,"Hub → QA / QC. Three forms today: Concrete Form Inspection, Rebar Inspection, Subcontractor Work Inspection. More to come.",QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/training_pdf.py:266,EXEMPT
+training_pdf,Technical,"Hub → QA / QC. Tres formularios hoy: Inspección de Formaleta de Concreto, Inspección de Acero, Inspección de Trabajo del Subcontratista. Más por venir.",QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::backend/training_pdf.py:276,EXEMPT
 training_pdf,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/training_pdf.py:28,EXEMPT
 training_pdf,Technical,"iPhone HEIC photos render correctly (backend converts HEIC → WebP/AVIF/JPEG). Pre-Op photos NOT in library — diagnostic, not progress documentation.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:803,EXEMPT
 training_pdf,Technical,Fotos HEIC del iPhone renderizan bien (backend convierte). Fotos Pre-Op NO en biblioteca — son diagnóstico.,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:813,EXEMPT

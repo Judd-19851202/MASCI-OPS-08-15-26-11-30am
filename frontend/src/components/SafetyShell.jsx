@@ -4,7 +4,7 @@ import { ShieldAlert } from "lucide-react";
 import { PortalShell } from "@/design-system/PortalShell";
 import { useT } from "@/lib/i18n";
 import { getSafetyUser } from "@/lib/safetyAuth";
-import { clearAllSessions } from "@/lib/sessionReset";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 import { api } from "@/lib/api";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
@@ -26,7 +26,7 @@ export default function SafetyShell({
   const signOut = async () => {
     try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
     await clearAllSessions();
-    nav("/safety-portal/login");
+    redirectToPublicHome(nav);
   };
 
   return (
@@ -40,6 +40,7 @@ export default function SafetyShell({
       showBack
       backHref="/safety-portal"
       onSignOut={signOut}
+      authSessionGuard
       experienceTone="safety"
       showPageHeader={showPageHeader}
     >

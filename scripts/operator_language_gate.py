@@ -73,6 +73,9 @@ BANNED_PATTERNS = [
     BannedPattern("collection", re.compile(r"\bcollection\b", re.IGNORECASE), "record list"),
     BannedPattern("engine", re.compile(r"(?:earned value|decision|metric|forecast|forecasting|qualification|operational)\s+engine", re.IGNORECASE), "approved calculation"),
     BannedPattern("telemetry", re.compile(r"\btelemetry\b", re.IGNORECASE), "activity details"),
+    BannedPattern("review QC", re.compile(r"\breview\s+qc\b", re.IGNORECASE), "QA/QC"),
+    BannedPattern("QC Review", re.compile(r"(?<!/)\bqc\s+review\b", re.IGNORECASE), "QA/QC review"),
+    BannedPattern("QA / QC", re.compile(r"\bqa\s+/\s+qc\b|\bqa\s+qc\b", re.IGNORECASE), "QA/QC"),
 ]
 
 SCAN_ROOTS = [

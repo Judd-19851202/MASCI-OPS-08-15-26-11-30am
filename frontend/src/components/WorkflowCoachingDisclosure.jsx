@@ -29,6 +29,10 @@ export function WorkflowCoachingDisclosure({
   open,
   onOpenChange,
   collapsedCounterLabel,
+  containerTestId,
+  triggerTestId,
+  panelTestId,
+  counterTestId,
 }) {
   const { t } = useT();
   const panelId = useId();
@@ -72,13 +76,13 @@ export function WorkflowCoachingDisclosure({
   return (
     <section
       className={`rounded-2xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.05)] ${className}`.trim()}
-      data-testid={testIdPrefix}
+      data-testid={containerTestId || testIdPrefix}
     >
       <button
         type="button"
         onClick={() => setExpanded(!isOpen)}
         className="flex min-h-[56px] w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50/80"
-        data-testid={`${testIdPrefix}-trigger`}
+        data-testid={triggerTestId || `${testIdPrefix}-trigger`}
         aria-expanded={isOpen}
         aria-controls={`${panelId}-panel`}
       >
@@ -106,7 +110,7 @@ export function WorkflowCoachingDisclosure({
           ) : (
             <span
               className="block pt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600"
-              data-testid={`${testIdPrefix}-counter`}
+              data-testid={counterTestId || `${testIdPrefix}-counter`}
             >
               {helperCopy}
             </span>
@@ -126,7 +130,7 @@ export function WorkflowCoachingDisclosure({
         <div
           id={`${panelId}-panel`}
           className="border-t border-slate-200 px-4 pb-4 pt-3"
-          data-testid={`${testIdPrefix}-panel`}
+          data-testid={panelTestId || `${testIdPrefix}-panel`}
         >
           <div className="space-y-3">
             {visibleBlocks.map((block, index) => {

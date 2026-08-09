@@ -49,6 +49,7 @@ import {
 } from "@/lib/fieldLeadershipSchemas";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import LastActivityLine from "@/components/admin/LastActivityLine";
+import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 
 const FL_PAL = paletteFor("leadership");
 
@@ -317,12 +318,11 @@ export default function FieldLeadershipHub() {
     return null;
   }
 
-  const signOut = () => {
+  const signOut = async () => {
     clearLeadershipToken();
-    // iter342 · also clear the modern FL portal token so the per-user
-    // session ends cleanly. No silent ghost sessions.
     try { clearFlToken(); } catch { /* noop */ }
-    navigate("/");
+    await clearAllSessions();
+    redirectToPublicHome(navigate);
   };
 
   const admin = isAdmin();
@@ -338,6 +338,7 @@ export default function FieldLeadershipHub() {
       portalSwitcherCurrent="leadership"
       showNotifications={false}
       onSignOut={signOut}
+      authSessionGuard
       primaryActions={
         <div className="flex items-center gap-2" data-testid="leadership-header-actions">
           <OfflineIndicator />

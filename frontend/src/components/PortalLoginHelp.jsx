@@ -21,6 +21,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, LifeBuoy, GraduationCap } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 
 const PORTAL_LABELS = {
   hr:         { en: "Human Resources",           es: "Recursos Humanos" },
@@ -56,45 +57,72 @@ export function PortalLoginHelp({ portal, identityId, onboardId, tshootId }) {
   const onboardHref  = `/guidance/${onboardId  || defaults.onboard  || ""}`.replace(/\/$/, "/guidance");
   const identityHref = `/guidance/${identityId || defaults.identity || ""}`.replace(/\/$/, "/guidance");
   const tshootHref   = `/guidance/${tshootId   || defaults.tshoot   || "public-cant-login"}`;
+  const heading = portalLabel
+    ? (lang === "es" ? `Nuevo en ${portalLabel}?` : `New to ${portalLabel}?`)
+    : t("New to this portal?");
 
   return (
-    <div
-      className="mt-6 pt-5 border-t border-slate-200 space-y-2"
-      data-testid={`portal-login-help-${portal}`}
-    >
-      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold flex items-center gap-1.5">
-        <BookOpen className="w-3.5 h-3.5" />
-        {portalLabel
-          ? (lang === "es" ? `Nuevo en ${portalLabel}?` : `New to ${portalLabel}?`)
-          : t("New to this portal?")}
-      </div>
-      <Link
-        to={onboardHref}
-        className="block text-sm text-amber-700 hover:text-amber-900 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
-        data-testid={`portal-login-help-${portal}-onboarding`}
-      >
-        <GraduationCap className="w-3.5 h-3.5" />
-        {t("Start first-week onboarding")} →
-      </Link>
-      <Link
-        to={identityHref}
-        className="block text-sm text-amber-700 hover:text-amber-900 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
-        data-testid={`portal-login-help-${portal}-identity`}
-      >
-        <BookOpen className="w-3.5 h-3.5" />
-        {portalLabel
-          ? (lang === "es" ? `Cómo funciona ${portalLabel}` : `How ${portalLabel} works`)
-          : t("How this portal works")}
-        {" →"}
-      </Link>
-      <Link
-        to={tshootHref}
-        className="block text-sm text-slate-600 hover:text-slate-900 hover:underline inline-flex items-center gap-1.5 min-h-[44px] py-1"
-        data-testid={`portal-login-help-${portal}-troubleshoot`}
-      >
-        <LifeBuoy className="w-3.5 h-3.5" />
-        {t("Fix sign-in problems")} →
-      </Link>
-    </div>
+    <WorkflowCoachingDisclosure
+      title={heading}
+      description={t("Open sign-in help only if you need onboarding or troubleshooting.")}
+      icon={BookOpen}
+      testIdPrefix={`portal-login-help-${portal}`}
+      containerTestId={`portal-login-help-${portal}`}
+      className="mt-6 border-t border-slate-200 pt-5"
+      defaultOpen={false}
+      collapsedCounterLabel={heading}
+      blocks={[
+        {
+          icon: GraduationCap,
+          label: t("Start first-week onboarding"),
+          body: (
+            <Link
+              to={onboardHref}
+              className="inline-flex min-h-[44px] items-center gap-1.5 text-sm text-amber-700 hover:text-amber-900 hover:underline"
+              data-testid={`portal-login-help-${portal}-onboarding`}
+            >
+              {t("Start first-week onboarding")} →
+            </Link>
+          ),
+          tone: "amber",
+          testId: `portal-login-help-${portal}-onboarding-block`,
+        },
+        {
+          icon: BookOpen,
+          label: portalLabel
+            ? (lang === "es" ? `Cómo funciona ${portalLabel}` : `How ${portalLabel} works`)
+            : t("How this portal works"),
+          body: (
+            <Link
+              to={identityHref}
+              className="inline-flex min-h-[44px] items-center gap-1.5 text-sm text-amber-700 hover:text-amber-900 hover:underline"
+              data-testid={`portal-login-help-${portal}-identity`}
+            >
+              {portalLabel
+                ? (lang === "es" ? `Cómo funciona ${portalLabel}` : `How ${portalLabel} works`)
+                : t("How this portal works")}
+              {" →"}
+            </Link>
+          ),
+          tone: "sky",
+          testId: `portal-login-help-${portal}-identity-block`,
+        },
+        {
+          icon: LifeBuoy,
+          label: t("Fix sign-in problems"),
+          body: (
+            <Link
+              to={tshootHref}
+              className="inline-flex min-h-[44px] items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 hover:underline"
+              data-testid={`portal-login-help-${portal}-troubleshoot`}
+            >
+              {t("Fix sign-in problems")} →
+            </Link>
+          ),
+          tone: "slate",
+          testId: `portal-login-help-${portal}-troubleshoot-block`,
+        },
+      ]}
+    />
   );
 }

@@ -39,6 +39,8 @@ PM_PROJECT_FALLBACK = "cert.pm@example.com"
 PM_PASSWORD_FALLBACK = "CertProof2026!"
 HR_EMAIL_FALLBACK = "cert.hr@example.com"
 HR_PASSWORD_FALLBACK = "CertProof2026!"
+DISPATCH_EMAIL_FALLBACK = "cert.dispatch@example.com"
+DISPATCH_PASSWORD_FALLBACK = "CertProof2026!"
 ADMIN_EMAIL_FALLBACK = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD_FALLBACK = "Maddix123!"
 
@@ -100,6 +102,13 @@ def _hr_creds() -> tuple[str, str]:
     return (
         _credential(r"cert\.hr@example\.com", HR_EMAIL_FALLBACK),
         _credential(r"CertProof2026!", HR_PASSWORD_FALLBACK),
+    )
+
+
+def _dispatch_creds() -> tuple[str, str]:
+    return (
+        _credential(r"cert\.dispatch@example\.com", DISPATCH_EMAIL_FALLBACK),
+        _credential(r"CertProof2026!", DISPATCH_PASSWORD_FALLBACK),
     )
 
 
@@ -376,6 +385,217 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
                 "collapsed_panel_selector": "[data-testid='daily-reports-coaching-strip-panel']",
             },
         ),
+        Surface(
+            key="admin_login_help",
+            role="public",
+            route="/admin/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-admin']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-admin-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-admin-panel']",
+            },
+        ),
+        Surface(
+            key="pm_login_help",
+            role="public",
+            route="/pm/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-pm']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-pm-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-pm-panel']",
+            },
+        ),
+        Surface(
+            key="hr_login_help",
+            role="public",
+            route="/hr/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-hr']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-hr-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-hr-panel']",
+            },
+        ),
+        Surface(
+            key="safety_login_help",
+            role="public",
+            route="/safety-portal/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-safety']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-safety-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-safety-panel']",
+            },
+        ),
+        Surface(
+            key="dispatch_login_help",
+            role="public",
+            route="/dispatch-portal/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-dispatch']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-dispatch-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-dispatch-panel']",
+            },
+        ),
+        Surface(
+            key="operations_actions",
+            role="public",
+            route="/operations-actions",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='oa-summary-tiles']",
+                "collapsed_trigger_selector": "[data-testid='oa-coaching-panel-trigger']",
+                "collapsed_panel_selector": "[data-testid='oa-coaching-panel-panel']",
+            },
+        ),
+        Surface(
+            key="operations_actions_new",
+            role="public",
+            route="/operations-actions/new",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='oa-new-form']",
+                "collapsed_trigger_selector": "[data-testid='oa-coaching-panel-trigger']",
+                "collapsed_panel_selector": "[data-testid='oa-coaching-panel-panel']",
+            },
+        ),
+        Surface(
+            key="notifications_digest",
+            role="admin",
+            route="/notifications",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='notif-refresh']",
+                "collapsed_trigger_selector": "[data-testid='lifecycle-guide-toggle-notifications-digest']",
+                "collapsed_panel_selector": "[data-testid='lifecycle-guide-body-notifications-digest']",
+            },
+        ),
+        Surface(
+            key="admin_compliance_findings",
+            role="admin",
+            route="/admin/compliance-findings",
+            viewports=VIEWPORTS,
+            languages=["en"],
+            category="tier1",
+            checks={
+                "must_include": ["How findings work"],
+                "must_exclude": [],
+                "selector": "[data-testid='admin-compliance-findings']",
+                "collapsed_trigger_selector": "[data-testid='lifecycle-guide-toggle-admin-compliance-findings']",
+                "collapsed_panel_selector": "[data-testid='lifecycle-guide-body-admin-compliance-findings']",
+            },
+        ),
+        Surface(
+            key="hr_incidents",
+            role="hr",
+            route="/hr/incidents",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='hr-incidents-page']",
+                "collapsed_trigger_selector": "[data-testid='lifecycle-guide-toggle-hr-incidents']",
+                "collapsed_panel_selector": "[data-testid='lifecycle-guide-body-hr-incidents']",
+            },
+        ),
+        Surface(
+            key="pm_crew_compliance",
+            role="pm",
+            route="/pm/crew-compliance",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='pm-crew-compliance']",
+                "collapsed_trigger_selector": "[data-testid='lifecycle-guide-toggle-pm-crew-compliance']",
+                "collapsed_panel_selector": "[data-testid='lifecycle-guide-body-pm-crew-compliance']",
+            },
+        ),
+        Surface(
+            key="dispatch_operational_board",
+            role="dispatch",
+            route="/dispatch-portal/board",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='dispatch-board']",
+                "collapsed_trigger_selector": "[data-testid='lifecycle-guide-toggle-dispatch-operational-board']",
+                "collapsed_panel_selector": "[data-testid='lifecycle-guide-body-dispatch-operational-board']",
+            },
+        ),
+        Surface(
+            key="public_excavation_form",
+            role="public",
+            route="/trench-safety/excavation/new",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='public-excavation-page']",
+                "collapsed_trigger_selectors": [
+                    "[data-testid='coach-soil-toggle']",
+                    "[data-testid='coach-protective-toggle']",
+                    "[data-testid='coach-access-toggle']",
+                    "[data-testid='coach-utility-toggle']",
+                    "[data-testid='coach-water-toggle']",
+                    "[data-testid='coach-atmos-toggle']",
+                    "[data-testid='coach-cp-toggle']",
+                ],
+                "collapsed_panel_selectors": [
+                    "[data-testid='coach-soil-body']",
+                    "[data-testid='coach-protective-body']",
+                    "[data-testid='coach-access-body']",
+                    "[data-testid='coach-utility-body']",
+                    "[data-testid='coach-water-body']",
+                    "[data-testid='coach-atmos-body']",
+                    "[data-testid='coach-cp-body']",
+                ],
+            },
+        ),
     ]
 
 
@@ -454,7 +674,7 @@ def _wait_for_hydration_clear(page, role: str) -> None:
             pass
 
 
-def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str], hr_creds: tuple[str, str]) -> dict[str, str]:
+def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str], hr_creds: tuple[str, str], dispatch_creds: tuple[str, str]) -> dict[str, str]:
     page = context.new_page()
     if role == "admin":
         _goto(page, f"{base_url}/admin/login")
@@ -517,6 +737,27 @@ def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: t
               hr_token: window.localStorage.getItem('masci.hr.token')
                 || window.sessionStorage.getItem('masci.hr.token')
                 || '',
+            })
+            """
+        )
+        page.close()
+        return tokens
+    elif role == "dispatch":
+        _goto(page, f"{base_url}/dispatch-portal/login")
+        page.wait_for_timeout(600)
+        if "/dispatch-portal/login" in page.url:
+            page.locator('[data-testid="dispatch-email-input"]').fill(dispatch_creds[0])
+            page.locator('[data-testid="dispatch-password-input"]').fill(dispatch_creds[1])
+            page.locator('[data-testid="dispatch-login-submit"]').click(force=True)
+        page.wait_for_function(
+            "() => !!window.localStorage.getItem('masci.dispatch.token')",
+            timeout=20000,
+        )
+        page.wait_for_timeout(1200)
+        tokens = page.evaluate(
+            """
+            () => ({
+              dispatch_token: window.localStorage.getItem('masci.dispatch.token') || '',
             })
             """
         )
@@ -587,23 +828,30 @@ def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str
     has_overflow = _has_horizontal_overflow(page, width)
     if has_overflow:
         problems.append("horizontal-overflow")
+    collapsed_trigger_selectors = surface.checks.get("collapsed_trigger_selectors") or []
     collapsed_trigger_selector = surface.checks.get("collapsed_trigger_selector")
-    coaching_collapsed_by_default = True
     if collapsed_trigger_selector:
-        trigger_locator = page.locator(collapsed_trigger_selector)
+        collapsed_trigger_selectors.append(collapsed_trigger_selector)
+    coaching_collapsed_by_default = True
+    for trigger_selector in collapsed_trigger_selectors:
+        trigger_locator = page.locator(trigger_selector)
         if trigger_locator.count() == 0:
             coaching_collapsed_by_default = False
-            problems.append(f"missing-collapsed-trigger:{collapsed_trigger_selector}")
+            problems.append(f"missing-collapsed-trigger:{trigger_selector}")
         else:
             expanded_state = trigger_locator.first.get_attribute("aria-expanded")
             if expanded_state != "false":
                 coaching_collapsed_by_default = False
-                problems.append(f"coaching-not-collapsed:{collapsed_trigger_selector}:{expanded_state}")
+                problems.append(f"coaching-not-collapsed:{trigger_selector}:{expanded_state}")
+    collapsed_panel_selectors = surface.checks.get("collapsed_panel_selectors") or []
     collapsed_panel_selector = surface.checks.get("collapsed_panel_selector")
+    if collapsed_panel_selector:
+        collapsed_panel_selectors.append(collapsed_panel_selector)
     collapsed_panel_hidden = True
-    if collapsed_panel_selector and page.locator(collapsed_panel_selector).count() > 0:
-        collapsed_panel_hidden = False
-        problems.append(f"collapsed-panel-visible:{collapsed_panel_selector}")
+    for panel_selector in collapsed_panel_selectors:
+        if page.locator(panel_selector).count() > 0:
+            collapsed_panel_hidden = False
+            problems.append(f"collapsed-panel-visible:{panel_selector}")
     focusable_count = int(page.evaluate("""
         () => document.querySelectorAll('button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])').length
     """))
@@ -629,14 +877,14 @@ def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str
     return (("PASS", "none", criteria) if not problems else ("FAIL", ";".join(problems), criteria))
 
 
-def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: str, screenshot_dir: Path, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> dict[str, Any]:
+def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: str, screenshot_dir: Path, admin_creds: tuple[str, str], pm_creds: tuple[str, str], dispatch_creds: tuple[str, str]) -> dict[str, Any]:
     page.set_viewport_size({"width": width, "height": 800})
     _goto(page, f"{base_url}{surface.route}")
-    if surface.role in {"admin", "pm", "hr"}:
+    if surface.role in {"admin", "pm", "hr", "dispatch"}:
         page.wait_for_timeout(1200)
         _wait_for_hydration_clear(page, surface.role)
         if "/login" in page.url or "/sign-in" in page.url:
-            _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds, _hr_creds())
+            _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds, _hr_creds(), dispatch_creds)
             _goto(page, f"{base_url}{surface.route}")
             page.wait_for_timeout(1200)
             _wait_for_hydration_clear(page, surface.role)
@@ -645,10 +893,10 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
     _set_lang(page, lang)
     page.reload(wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(2200)
-    if surface.role in {"admin", "pm", "hr"}:
+    if surface.role in {"admin", "pm", "hr", "dispatch"}:
         _wait_for_hydration_clear(page, surface.role)
-    if surface.role in {"admin", "pm", "hr"} and ("/login" in page.url or "/sign-in" in page.url):
-        _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds, _hr_creds())
+    if surface.role in {"admin", "pm", "hr", "dispatch"} and ("/login" in page.url or "/sign-in" in page.url):
+        _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds, _hr_creds(), dispatch_creds)
         _goto(page, f"{base_url}{surface.route}")
         page.wait_for_timeout(1200)
         _wait_for_hydration_clear(page, surface.role)
@@ -688,6 +936,7 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
     admin_creds = _admin_creds()
     pm_creds = _pm_creds()
     hr_creds = _hr_creds()
+    dispatch_creds = _dispatch_creds()
     pm_project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
     surfaces = _surface_inventory(pm_project_number)
     if surface_keys:
@@ -741,11 +990,13 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
         pm_context = browser.new_context()
         public_context = browser.new_context()
         hr_context = browser.new_context()
-        contexts = {"admin": admin_context, "pm": pm_context, "public": public_context, "hr": hr_context}
+        dispatch_context = browser.new_context()
+        contexts = {"admin": admin_context, "pm": pm_context, "public": public_context, "hr": hr_context, "dispatch": dispatch_context}
 
-        admin_session = _prime_context_with_tokens(admin_context, base_url, "admin", admin_creds, pm_creds, hr_creds)
-        pm_session = _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds, hr_creds)
-        _prime_context_with_tokens(hr_context, base_url, "hr", admin_creds, pm_creds, hr_creds)
+        admin_session = _prime_context_with_tokens(admin_context, base_url, "admin", admin_creds, pm_creds, hr_creds, dispatch_creds)
+        pm_session = _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds, hr_creds, dispatch_creds)
+        _prime_context_with_tokens(hr_context, base_url, "hr", admin_creds, pm_creds, hr_creds, dispatch_creds)
+        _prime_context_with_tokens(dispatch_context, base_url, "dispatch", admin_creds, pm_creds, hr_creds, dispatch_creds)
         admin_headers = {"X-Admin-Token": admin_session.get("admin_token", "")}
         if admin_session.get("directory_token"):
             admin_headers["X-Directory-Token"] = admin_session["directory_token"]
@@ -767,7 +1018,7 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
                 for width in surface.viewports:
                     print(f"capturing {surface.key} role={surface.role} lang={lang} width={width}", flush=True)
                     page = ctx.new_page()
-                    rows.append(_capture_surface(page, surface, base_url, width, lang, screenshots_dir, admin_creds, pm_creds))
+                    rows.append(_capture_surface(page, surface, base_url, width, lang, screenshots_dir, admin_creds, pm_creds, dispatch_creds))
                     page.close()
 
         browser.close()
