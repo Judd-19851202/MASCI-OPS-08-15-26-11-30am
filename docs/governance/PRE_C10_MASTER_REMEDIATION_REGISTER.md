@@ -1,6 +1,6 @@
 # MASCI Operations Platform — PRE-C10 Master Remediation Register
 
-Last updated: 2026-08-08T19:52Z
+Last updated: 2026-08-09T04:15Z
 
 Status: **NO-GO**
 
@@ -47,6 +47,12 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SCHEDULE-002 | Schedule truth | PM schedule authority runtime lane rerun with live preview auth contract: overview, staged import, row review, activation, export, actuals overview, lookahead, daily work plan | REPAIRED → CERTIFIED | `test_wp18c4_schedule_api.py` = 4/4 pass; `test_wp18c5_schedule_actuals_foundation.py` = 3/3 pass |
 | PRE-C10-SCHEDULE-003 | Schedule scope | PM-only project selector / schedule access guard verified with forensic fixture — assigned projects visible, unassigned schedule denied | REPAIRED → CERTIFIED | `test_prec10_schedule_scope_guard.py` = 3/3 pass; `/api/pm/jobs` returns only `ZZ-FOR-ASSIGN-01` + `ZZ-FOR-ASSIGN-02`; unauthorized `ZZ-RUNTIME-CERT-2026` schedule overview returns 403 |
 | PRE-C10-SCHEDULE-004 | Schedule UI scope | PM schedule selector no longer injects unauthorized query-string projects into the browser option set; stale unauthorized project values clear from the UI | REPAIRED → CERTIFIED | browser smoke on `/pm/project-schedule?project_number=ZZ-RUNTIME-CERT-2026` now shows only assigned options and clears the stale unauthorized value; no unauthorized project string remains in DOM |
+| PRE-C10-AUTH-002 | Auth continuity | C2/WP15 admin truth routes, safety runtime surfaces, and any-portal continuity broke after directory-bound portal-token validation drifted away from the expected standalone portal-token contract | REPAIRED → CERTIFIED | `test_c2_checkpoint.py` = 29/29 pass; `test_wp15_operational_health.py` = 30/30 pass; direct admin/safety/PM continuity checks now return 200 without requiring a second directory header on the affected governed routes |
+| PRE-C10-LEDGER-002 | Product Quality Ledger | Warmup requests in the screenshot certification gate were minting replacement admin sessions and invalidating the browser session mid-run, producing false portfolio failures | REPAIRED → CERTIFIED | `/app/scripts/runtime_screenshot_ledger_gate.py` now reuses the primed browser session for warmups; fresh full ledger regenerated at `2026-08-09T03:18:58.163132+00:00` with `rows=85`, `failures=0`, `decision=pass` |
+| PRE-C10-SAFETY-006 | Safety runtime continuity | Multi-login portal tokens for Safety/Admin/PM were failing governed safety/search reads, and the stale `TRACK 28.06` suite still depended on forbidden string heuristics instead of explicit governed markers | REPAIRED → CERTIFIED | `test_track_28_06_safety_e2e.py` = 10/10 pass with explicit `synthetic_record` markers; archive/history = 1/1 pass; incident lifecycle = 17/17 pass; corrective-action truth/governance packs = 3/3, 7/7, 7/7 pass |
+| PRE-C10-LANG-001 | EN/ES language constitution | Track 18 language constitution/migration records were missing and several canonical copy checkpoints were not preserved in source | REPAIRED → CERTIFIED | `test_track_18_03_platform_language_constitution.py` = 30/30 pass; `test_track_18_04_platform_language_migration.py` = 50/50 pass; `operator_language_gate.py` still reports `operator_facing_banned_findings=0` |
+| PRE-C10-RESP-001 | Responsive contract | Admin OS summary strip and responsive baseline inventory drifted from the governed responsive primitives | REPAIRED → CERTIFIED | `test_track_28_08_responsive_contract.py` = 7/7 pass; frontend QA at 390/430/768/1024/1440 PASS via `/app/test_reports/iteration_6.json` |
+| PRE-C10-REL-001 | Runtime reliability | Public health heartbeat ignored fresh successful backup-health rows, admin diagnostics drifted away from standalone admin-token continuity, and incident-forensics still leaked non-`***` redaction markers | REPAIRED → CERTIFIED | `test_rel01_runtime_reliability.py` = 14/14 pass; `test_wp18db_incident_auth_backup.py` = 16/16 pass; `test_checkpoint_d7_d8_performance_repairs.py` = 5/5 pass |
 
 ## Trust Spine cadence classifications now certified
 
@@ -70,17 +76,17 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SCREENSHOT-001 | Product Quality Ledger | 85-screen ledger needed richer quality contract than load/wait checks alone | REPAIRED → CERTIFIED |
 | PRE-C10-ADMIN-001 | Deployment readiness | equipment missing canonical `unit_number` advisories | OPEN ADVISORY |
 | PRE-C10-ADMIN-002 | Deployment readiness | employee rows missing canonical `employee_id` advisories | OPEN ADVISORY |
-| PRE-C10-SAFETY-001 | Safety | dashboard truth, governed hidden-record exclusion, independent corrective-action KPI oracle, hostile misclassification tests, and incident/corrective-action runtime regressions are now certified; archive / search-history parity / project-view parity / governed nomenclature denominator still open | IN PROGRESS |
-| PRE-C10-SCHEDULE-001 | Scheduling | project scoping plus core schedule authority / actuals lanes and UI selector scope are now certified; stale lookahead-vs-active-schedule drift was found and repaired in preview; independent source→schedule→lookahead/daily-plan→C7→C8→C9 certification-project parity now passes; revision approval / version-history UX / broader denominator still open | IN PROGRESS |
-| PRE-C10-KPI-001 | KPI truth / Trust Spine closure | platform-wide KPI denominator must cover every live KPI/card/score/health/status/summary metric across Admin, Executive, PM, Field Leadership, Safety, HR, Shop, Dispatch, Fleet, Transportation, Project Controls, Daily Reports, Compliance, Training, C6, C7, C8, C9, exports and derived consumers | IN PROGRESS |
-| PRE-C10-AUTH-001 | Authentication UX | compact session state / sign-out proof / public-home usability / protected-route enforcement denominator still open | IN PROGRESS |
-| PRE-C10-UX-002 | Operator experience | vendor leakage / equipment location UX / executive copy / ALL REPORTS SYNCED / nomenclature / visual semantics denominator still open | IN PROGRESS |
+| PRE-C10-SAFETY-001 | Safety | core runtime lifecycle, archive/history, governed hidden-record exclusion, multi-login continuity, and independent corrective-action KPI packs are now certified; broader project-view / long-tail denominator review remains tracked here | PARTIAL PASS |
+| PRE-C10-SCHEDULE-001 | Scheduling | scope guard, schedule authority, actuals, downstream lookahead/daily-plan, C7, C8, and C9 packs are certified; broader revision / version-history UX denominator remains tracked here | PARTIAL PASS |
+| PRE-C10-KPI-001 | KPI truth / Trust Spine closure | core KPI truth packs, cross-surface parity, C2/C6/C7/C8/C9 proof packs, and platform truth-integrity scanners are certified in preview; exhaustive denominator bookkeeping remains tracked here | PARTIAL PASS |
+| PRE-C10-AUTH-001 | Authentication UX | standalone multi-login portal-token continuity is repaired on the currently certified admin/safety/search/runtime surfaces; broader sign-out / protected-route denominator remains tracked here | PARTIAL PASS |
+| PRE-C10-UX-002 | Operator experience | canonical language, responsive strip repair, safety ownership wording, transportation search wording, and screenshot-led product quality are certified; remaining long-tail UX bookkeeping stays tracked here | PARTIAL PASS |
 | PRE-C10-MASTER-001 | Denominator management | continue broadening this register until every remaining PRE-C10 lane is explicitly dispositioned | IN PROGRESS |
 
 ## Next execution focus
 
-1. Continue Safety from the certified truth + lifecycle baseline: archive / search-history parity, project-view parity, and governed terminology cleanup.
-2. Continue Scheduling from the certified scope + authority baseline: editing / revision approval workflow, version-history operator UX, Rolling Two-Week parity, weekly reconciliation, and C7/C8/C9 downstream truth checks.
-3. Expand `/app/docs/governance/PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` until every live KPI/card/score/health/status/summary surface is dispositioned PASS/FAIL with runtime evidence.
-4. Continue populating `/app/docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining material family reaches runtime-backed PASS.
+1. Promote the remaining PARTIAL PASS lanes to closed dispositions only where route-by-route evidence exists; do not silently collapse denominator rows.
+2. Expand `/app/docs/governance/PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` until every live KPI/card/score/health/status/summary surface is dispositioned PASS/FAIL with runtime evidence.
+3. Continue populating `/app/docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining material family reaches runtime-backed PASS.
+4. Preserve the 85/85 screenshot-ledger pass, language-constitution pass, responsive pass, and runtime-reliability pass on subsequent edits.
 5. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned.

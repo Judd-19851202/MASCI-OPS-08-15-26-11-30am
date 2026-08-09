@@ -1,5 +1,28 @@
 # PRD
 
+## 2026-08-09 — PRE-C10 remediation continuation: C2/WP15 closure, full screenshot recertification, safety continuity, language/responsive/reliability gates
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.
+- Completed in this batch:
+  - repaired the C2/WP15 auth/health contract drift by restoring standalone admin continuity on the certified truth routes and collapsing the ninth operational-health section back into the governed eight-section contract;
+  - root-caused and fixed the screenshot-ledger portfolio false failures by reusing the primed browser session for warmups instead of minting replacement admin sessions; fresh full ledger now passes `85 / 85` with `0` failures;
+  - restored multi-login Safety/Admin/PM portal-token continuity across certified safety/search surfaces and updated the stale Safety E2E harness to use explicit governed synthetic markers instead of forbidden name heuristics;
+  - added Track 18 language-constitution / migration records, preserved the canonical Hub / Safety / Transportation copy checkpoints, and repaired the Admin OS responsive summary strip contract;
+  - restored runtime reliability by honoring fresh successful backup-health rows in public health, preserving standalone admin continuity on diagnostic routes, and normalizing incident-forensics secret redaction markers.
+- Verification evidence from this batch:
+  - `backend/tests/test_c2_checkpoint.py` → `29 passed`
+  - `backend/tests/test_wp15_operational_health.py` → `30 passed`
+  - fresh full screenshot ledger `/app/test_reports/runtime_screenshot_ledger/ledger.json` → `85 entries`, `0 failures`, `decision=pass`
+  - Safety packs: `test_prec10_incident_archive_history.py` `1 passed`, `test_iter451_incident_lifecycle.py` `17 passed`, `test_prec10_corrective_action_truth_governance.py` `3 passed`, `test_prec10_safety_corrective_action_truth.py` `7 passed`, `test_iter356_capa_lifecycle.py` `7 passed`, `test_iter357_notifications_digest.py` `7 passed`, `test_track_28_06_safety_e2e.py` `10 passed`
+  - Schedule packs: `test_prec10_schedule_truth_chain_independent.py` `5 passed`, `test_prec10_schedule_downstream_parity.py` `3 passed`, `test_wp18c4_schedule_api.py` `4 passed`, `test_wp18c5_schedule_actuals_api.py` `1 passed`, `test_wp18c7_forecasting_commitments.py` `11 passed`, `test_wp18c8_earned_value_engine.py` `11 passed`, `test_wp18c9_portfolio_intelligence.py` `5 passed`
+  - KPI / C1–C9 packs: `test_wp17a_kpi_truth_p0.py` `5 passed`, `test_wp17a_portal_kpi_truth_batch2.py` `25 passed, 2 skipped`, `test_prec10_platform_truth_integrity.py` `1 passed`, `test_iteration_573_platform_integrity.py` `4 passed`, `test_wp18c2_project_controls.py` `5 passed`, `test_wp18c2_project_controls_authority.py` `3 passed`, `test_wp18c6_operational_intelligence_api.py` `3 passed`, `test_wp18c6_operational_intelligence_e2e.py` `15 passed`, `test_wp18c6_operational_intelligence_foundation.py` `1 passed`, `test_prec10_cross_surface_parity.py` `7 passed`
+  - Language / responsive / reliability packs: `test_track_18_03_platform_language_constitution.py` `30 passed`, `test_track_18_04_platform_language_migration.py` `50 passed`, `test_track_28_08_responsive_contract.py` `7 passed`, `test_rel01_runtime_reliability.py` `14 passed`, `test_checkpoint_d7_d8_performance_repairs.py` `5 passed`, `test_wp18db_incident_auth_backup.py` `16 passed`
+  - frontend QA agent report `/app/test_reports/iteration_6.json` → PASS (Hub canonical hero, executive overview EN/ES, widths `390/430/768/1024/1440`, keyboard smoke, no rescue overlays).
+- Remaining denominator still open after this batch:
+  - explicit closeout bookkeeping inside `PRE_C10_MASTER_REMEDIATION_REGISTER.md`, `PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md`, and `C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining partial lane is formally dispositioned;
+  - long-tail auth/logout/public-home denominator and any still-unlisted user-observed production findings;
+  - final GO remains blocked until unresolved P0/P1 = 0 under the user’s required denominator.
+
 ## 2026-08-08 — PRE-C10 remediation continuation: contamination closure, UI truth smoke, operator-language cleanup
 
 - This entry supersedes older same-day notes that used GO / ready-to-deploy language. **Current governing state remains: PRE-C10 OPEN — NO-GO; live production redeployment required; C10 not authorized; do not save; do not deploy.**

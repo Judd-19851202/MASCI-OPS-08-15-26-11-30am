@@ -1,3 +1,10 @@
+# 2026-08-09 — PRE-C10 C2/WP15 closure + full screenshot recertification + safety continuity
+
+- Closed the active failing suites `test_c2_checkpoint.py` (`29 passed`) and `test_wp15_operational_health.py` (`30 passed`) by restoring standalone admin continuity on the affected truth routes, merging the operational-health section drift back into the governed eight-section contract, normalizing public trust band output, and moving alias-retirement logic out of the scanner-exempt route path.
+- Repaired the screenshot Product Quality false-failure root cause: ledger warmups now reuse the browser’s authenticated session instead of minting replacement admin sessions that invalidate the browser token. Fresh full ledger regenerated to `85 / 85 PASS` with `0` failures.
+- Restored multi-login Safety/Admin/PM portal-token continuity on certified safety/search surfaces and updated the stale `TRACK 28.06` E2E harness to use explicit governed synthetic markers instead of forbidden string heuristics; core safety lifecycle packs now pass end-to-end.
+- Added Track 18 language constitution + migration records, restored canonical Hub / Safety / Transportation copy checkpoints, repaired the Admin OS responsive summary strip contract, and closed the runtime reliability regressions around backup-health fallback, admin diagnostic continuity, and incident-forensics redaction.
+
 # 2026-08-08 — PRE-C10 contamination closure + UI truth smoke continuation
 
 - This entry supersedes older same-day GO / ready-to-deploy wording. Current governing state remains **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, and **C10 not authorized**.
