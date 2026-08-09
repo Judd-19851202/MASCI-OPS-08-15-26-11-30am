@@ -46,9 +46,21 @@ import {
   formatCoords,
 } from "@/lib/geolocation";
 import { toast } from "sonner";
+import {
+  useFormDraft,
+  getDeviceScopedActorId,
+  DraftStatusPill,
+  DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  hasMeaningfulPublicDraft,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2";
+const ISSUANCE_FORM_BASE = "safety-equipment-issuance";
 
 export default function NewSafetyEquipmentIssuance() {
   const { t, lang } = useT();
@@ -56,6 +68,42 @@ export default function NewSafetyEquipmentIssuance() {
   const [data, setData] = useState(buildIssuanceDefaults());
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+  const actorId = React.useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = React.useState(() => getActivePublicDraftSession(ISSUANCE_FORM_BASE));
+  const draftPayload = React.useMemo(() => ({
+    ...data,
+    draft_session_id: draftSessionId || "",
+  }), [data, draftSessionId]);
+  const draftScope = React.useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft(ISSUANCE_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
+
+  React.useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "issued_date", "condition"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(ISSUANCE_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const restored = restore();
+    if (!restored) return;
+    const restoredSessionId = ensureActivePublicDraftSession(ISSUANCE_FORM_BASE, restored.draft_session_id || draftSessionId);
+    const { draft_session_id: _draftSessionId, ...next } = restored;
+    setDraftSessionId(restoredSessionId);
+    setData(next);
+    toast.success(t("Draft restored"));
+  }, [restore, t, draftSessionId]);
+
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(ISSUANCE_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
+    toast.message(t("Draft discarded"));
+  }, [discard, t, draftSessionId]);
 
   // iter332 · Safety Portal Form-Entry continuity. When the user starts
   // this form from the Safety Portal Records review surface, we honor
@@ -178,6 +226,9 @@ export default function NewSafetyEquipmentIssuance() {
       }
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-issuances", payload);
+      await commit();
+      clearActivePublicDraftSession(ISSUANCE_FORM_BASE, draftSessionId);
+      setDraftSessionId("");
       // TRACK 14.0-S1 — Preserve original Spanish in the bilingual sidecar.
       if (submitLang === "es" && res?.data?.id) {
         const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
@@ -213,6 +264,7 @@ export default function NewSafetyEquipmentIssuance() {
       backLabel={fromRecords && authed ? t("Back to Review") : t("Safety Forms")}
       widthClass="max-w-4xl"
       containerTestId="iss-form-shell"
+      draftSlot={<DraftStatusPill status={draftStatus} testId="iss-draft-pill" />}
       stickyFooter={(
         <div className="flex justify-between items-center gap-3" data-testid="iss-form-actions">
           <div className="text-xs font-mono text-slate-600 truncate">
@@ -243,6 +295,16 @@ export default function NewSafetyEquipmentIssuance() {
         </div>
       )}
     >
+      {pendingDraft ? (
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          label={pendingDraft.project_name || pendingDraft.project_number || pendingDraft.employee_name || t("Safety equipment issuance")}
+          updatedAt={pendingDraft.savedAt}
+          testId="iss-draft-restore"
+        />
+      ) : null}
       <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-100 bg-white/85 p-4 shadow-sm" data-testid="iss-form-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white shrink-0">
             <HardHat className="w-6 h-6" />
@@ -309,6 +371,7 @@ export default function NewSafetyEquipmentIssuance() {
             <JobPicker
               projectName={data.project_name}
               projectNumber={data.project_number}
+              publicFallback
               onSelect={applyJob}
             />
             <Row>

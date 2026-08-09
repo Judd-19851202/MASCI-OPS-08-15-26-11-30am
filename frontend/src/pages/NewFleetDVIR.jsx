@@ -57,11 +57,23 @@ import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  useFormDraft,
+  getDeviceScopedActorId,
+  DraftStatusPill,
+  DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  hasMeaningfulPublicDraft,
+} from "@/lib/resiliency";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
 const inputCls =
   "h-14 text-base";
+const DVIR_FORM_BASE = "fleet-dvir";
 
 // PASS / FAIL / NA button group — large tap targets · gloves-friendly.
 function PassFailNaButtons({ value, onChange, testId, t }) {
@@ -126,6 +138,7 @@ function SeverityRationale({ rationale, regulationRef, severity, t }) {
 export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const nav = useNavigate();
   const { t, lang } = useT();
+  const actorId = useMemo(() => getDeviceScopedActorId(), []);
 
   // Phase 5 · kind-specific copy. Defaults preserve Phase 2 behavior.
   const isWeeklyLead = kind === "weekly_lead";
@@ -256,6 +269,54 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const [cameraSystemPresent, setCameraSystemPresent] = useState("");   // "yes" | "no" | "unsure" | ""
   const [cameraClear, setCameraClear] = useState("");                    // "yes" | "no" | ""
   const [cameraObstructionNote, setCameraObstructionNote] = useState("");
+  const draftBase = `${DVIR_FORM_BASE}-${kind}`;
+  const [draftSessionId, setDraftSessionId] = useState(() => getActivePublicDraftSession(draftBase));
+  const draftPayload = useMemo(() => ({
+    kind,
+    driverName,
+    date,
+    time,
+    truckUnit,
+    truckPlate,
+    truckVin,
+    odo,
+    hours,
+    trailers,
+    truckChecklist,
+    defectDetails,
+    notes,
+    signature,
+    cameraSystemPresent,
+    cameraClear,
+    cameraObstructionNote,
+    draft_session_id: draftSessionId || "",
+  }), [
+    kind,
+    driverName,
+    date,
+    time,
+    truckUnit,
+    truckPlate,
+    truckVin,
+    odo,
+    hours,
+    trailers,
+    truckChecklist,
+    defectDetails,
+    notes,
+    signature,
+    cameraSystemPresent,
+    cameraClear,
+    cameraObstructionNote,
+    draftSessionId,
+  ]);
+  const draftScope = useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft(draftBase, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
   // Track 13.31B-D5.4 · structured canonical section capture for DVIR
   const [canonicalCapture, setCanonicalCapture] = useState(null);
   // TRACK 19.12 · HelpDrawer POC on DVIR — replaces the noisy
@@ -265,6 +326,43 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const canonicalAvailable =
     canonicalCapture?.template_status === "available" && !!canonicalCapture?.asset_type;
   const errRef = useRef(null);
+
+  useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "date", "time", "kind"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(draftBase));
+  }, [draftPayload, draftSessionId, draftBase]);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const restored = restore();
+    if (!restored) return;
+    const restoredSessionId = ensureActivePublicDraftSession(draftBase, restored.draft_session_id || draftSessionId);
+    setDraftSessionId(restoredSessionId);
+    setDriverName(restored.driverName || "");
+    setDate(restored.date || new Date().toISOString().slice(0, 10));
+    setTime(restored.time || new Date().toTimeString().slice(0, 5));
+    setTruckUnit(restored.truckUnit || "");
+    setTruckPlate(restored.truckPlate || "");
+    setTruckVin(restored.truckVin || "");
+    setOdo(restored.odo || "");
+    setHours(restored.hours || "");
+    setTrailers(Array.isArray(restored.trailers) ? restored.trailers : []);
+    setTruckChecklist(restored.truckChecklist || {});
+    setDefectDetails(restored.defectDetails || {});
+    setNotes(restored.notes || "");
+    setSignature(restored.signature || "");
+    setCameraSystemPresent(restored.cameraSystemPresent || "");
+    setCameraClear(restored.cameraClear || "");
+    setCameraObstructionNote(restored.cameraObstructionNote || "");
+    toast.success(t("Draft restored"));
+  }, [restore, t, draftBase, draftSessionId]);
+
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(draftBase, draftSessionId);
+    setDraftSessionId("");
+    toast.message(t("Draft discarded"));
+  }, [discard, t, draftBase, draftSessionId]);
 
   // Auto-fill truck plate + vin when unit chosen
   const onPickTruck = (unitNumber) => {
@@ -445,6 +543,9 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
           if (r.status === 400) break;  // don't retry on validation errors
         } else {
           const result = await r.json();
+          await commit();
+          clearActivePublicDraftSession(draftBase, draftSessionId);
+          setDraftSessionId("");
           setSubmitting(false);
           nav(`/fleet/dvir/submitted/${result.inspection_id}`, {
             replace: true,
@@ -587,6 +688,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       backLabel={t("Field")}
       widthClass="max-w-6xl"
       containerTestId="dvir-form-shell"
+      draftSlot={<DraftStatusPill status={draftStatus} testId="dvir-draft-pill" />}
       stickyFooter={(
         <div className="wp17-sticky-action-bar" data-testid="dvir-form-actions">
           <div className="wp17-sticky-action-note hidden sm:block">
@@ -610,6 +712,16 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
         </div>
       )}
     >
+      {pendingDraft ? (
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          label={pendingDraft.truckUnit || pendingDraft.driverName || formCopy.pageTitle}
+          updatedAt={pendingDraft.savedAt}
+          testId="dvir-draft-restore"
+        />
+      ) : null}
       <div className="pb-20" data-testid="fleet-dvir-form" data-modernized="dvir-modernized">
         {metaError && (
           <div

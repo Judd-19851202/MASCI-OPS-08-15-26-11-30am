@@ -131,11 +131,14 @@ Mode: verification-only, no credential rotation, no user/auth record mutation fo
   - Track 19.11 EN/ES overlay smoke passed across `/daily/submit`, `/equipment/new`, `/fleet/dvir/new`, and `/meetings/submit`;
   - public-vs-portal access doctrine was re-verified and repaired: `/field`, `/daily/submit`, `/equipment/submit`, `/shift`, `/fleet/dvir/new`, `/fleet/weekly-lead/new`, `/fleet/weekly-emergency/new`, `/field/calculators`, `/safety`, `/safety/inspections/new`, `/meetings/submit`, `/incidents/report`, `/jha`, `/trench-safety`, `/safety/cards`, `/safety/forms`, `/safety/forms/equipment-issuance/new`, and `/safety/forms/equipment-training/new` all load signed-out without redirect or session-expired overlay, while `/admin`, `/pm`, `/hr`, `/safety-portal`, `/dispatch-portal`, `/shop`, `/field-leadership/portal/dashboard`, and `/leadership` still redirect to governed login routes when signed out;
   - anonymous preview POST proof now exists for `/api/inspections`, `/api/safety-forms/equipment-issuances`, and `/api/safety-forms/equipment-trainings`.
+  - anonymous-safe lookup hardening is now in place via `/api/public/jobs-lookup` and `/api/public/equipment-master-lookup`, with public form clients switched away from the broader internal `/api/jobs` and `/api/equipment-master` payloads.
 - Remaining auth denominator still open:
   - all-role browser proof (Admin, Executive, PM, FL, Safety, HR, Shop, Dispatch, other governed roles);
   - expiry/deep-link/multi-workspace/full owner-observed replay;
   - full EN/ES + responsive + accessibility denominator;
-  - final owner-observed disposition chain.
+  - final owner-observed disposition chain;
+  - full route/API access matrix closure and guidance-center public/protected denominator;
+  - full public device/draft continuity denominator per `docs/governance/PUBLIC_DEVICE_AND_DRAFT_CONTINUITY_CONTRACT.md`.
 
 ## Executive conclusion
 - This register proves continuity by static contract and focused regression evidence.

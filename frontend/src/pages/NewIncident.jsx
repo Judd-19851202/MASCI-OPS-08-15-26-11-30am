@@ -57,13 +57,20 @@ import {
 import { cn } from "@/lib/utils";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import {
-  useFormDraft, getActorId, mintIdempotencyKey, enqueueUpload,
+  useFormDraft, getDeviceScopedActorId, mintIdempotencyKey, enqueueUpload,
   persistIdempotencyKey, loadIdempotencyKey,
   DraftStatusPill, DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  buildPublicDraftScopedFormKey,
+  hasMeaningfulPublicDraft,
 } from "@/lib/resiliency";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
+const INCIDENT_FORM_BASE = "incident-new";
 
 export default function NewIncident({ publicMode = false }) {
   const navigate = useNavigate();
@@ -127,10 +134,32 @@ export default function NewIncident({ publicMode = false }) {
 
   // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
   // (do NOT auto-overwrite the form). Autosave continues silently.
-  const actorId = React.useMemo(() => getActorId(), []);
+  const actorId = React.useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = React.useState(() => getActivePublicDraftSession(INCIDENT_FORM_BASE));
+  const draftPayload = React.useMemo(() => ({
+    ...data,
+    draft_session_id: draftSessionId || "",
+  }), [data, draftSessionId]);
+  const draftScope = React.useMemo(
+    () => buildPublicDraftSessionScope(draftSessionId),
+    [draftSessionId],
+  );
+  const scopedDraftFormKey = React.useMemo(
+    () => buildPublicDraftScopedFormKey(INCIDENT_FORM_BASE, draftSessionId),
+    [draftSessionId],
+  );
   const {
     pendingDraft, draftStatus, restore, discard, commit,
-  } = useFormDraft("incident-new", data, actorId);
+  } = useFormDraft(INCIDENT_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
+
+  React.useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "severity"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(INCIDENT_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
 
   // TRUST-1 · TF-002 — hydrate any persisted idempotency key from IDB
   // so a reload mid-offline-queue does not mint a duplicate incident.
@@ -139,27 +168,32 @@ export default function NewIncident({ publicMode = false }) {
     let cancelled = false;
     (async () => {
       try {
-        const k = await loadIdempotencyKey("incident-new");
+        const k = await loadIdempotencyKey(scopedDraftFormKey);
         if (!cancelled && k && !idempotencyKeyRef.current) {
           idempotencyKeyRef.current = k;
         }
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [scopedDraftFormKey]);
 
   const onRestoreDraft = React.useCallback(() => {
     const d = restore();
     if (d) {
-      setData(d);
+      const restoredSessionId = ensureActivePublicDraftSession(INCIDENT_FORM_BASE, d.draft_session_id || draftSessionId);
+      const { draft_session_id: _draftSessionId, ...restored } = d;
+      setDraftSessionId(restoredSessionId);
+      setData(restored);
       toast.success(t("Draft restored"));
     }
-  }, [restore, t]);
+  }, [restore, t, draftSessionId]);
 
-  const onDiscardDraft = React.useCallback(() => {
-    discard();
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(INCIDENT_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
     toast.message(t("Draft discarded"));
-  }, [discard, t]);
+  }, [discard, t, draftSessionId]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
   const setMap = (mapKey, key, value) =>
@@ -301,7 +335,7 @@ export default function NewIncident({ publicMode = false }) {
         idempotencyKeyRef.current = mintIdempotencyKey();
         // TRUST-1 · TF-002 — persist immediately so a reload mid-queue
         // does not regenerate the key and produce a duplicate.
-        try { await persistIdempotencyKey("incident-new", idempotencyKeyRef.current); }
+        try { await persistIdempotencyKey(scopedDraftFormKey, idempotencyKeyRef.current); } 
         catch { /* ignore */ }
       }
       const r = await enqueueUpload({
@@ -318,6 +352,8 @@ export default function NewIncident({ publicMode = false }) {
           duration: 6000,
         });
         await commit();
+        clearActivePublicDraftSession(INCIDENT_FORM_BASE, draftSessionId);
+        setDraftSessionId("");
         idempotencyKeyRef.current = null;
         if (publicMode || !isAdmin()) {
           navigate("/thank-you", {
@@ -337,6 +373,8 @@ export default function NewIncident({ publicMode = false }) {
       const res = { data: r.data };
       toast.success(t("Incident report filed · Safety + PM notified · visible under Incidents"));
       await commit();
+      clearActivePublicDraftSession(INCIDENT_FORM_BASE, draftSessionId);
+      setDraftSessionId("");
       idempotencyKeyRef.current = null;
       // TRACK 14.0-S1 Amendment A — persist Spanish originals sidecar.
       if (lang === "es" && payload._originals) {

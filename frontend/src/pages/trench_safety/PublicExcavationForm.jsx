@@ -360,6 +360,7 @@ export default function PublicExcavationForm() {
           <JobPicker
             projectName={f.project_name}
             projectNumber={f.project_number}
+            publicFallback
             onSelect={onJobSelect}
             data-testid="exc-jobpicker"
           />

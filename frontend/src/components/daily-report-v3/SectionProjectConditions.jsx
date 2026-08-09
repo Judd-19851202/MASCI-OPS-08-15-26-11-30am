@@ -69,6 +69,7 @@ export function SectionProjectConditions({
           <JobPicker
             projectNumber={data.project_number}
             projectName={data.project_name}
+            publicFallback
             onSelect={(job) => {
               // TRACK 24.9 Phase C · Full project-context commit.
               //

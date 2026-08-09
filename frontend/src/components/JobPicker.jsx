@@ -32,22 +32,47 @@ import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 // Module-level cache so every <JobPicker> on the page hits the API once.
 let _jobsCache = null;
 let _jobsPromise = null;
-async function loadJobs() {
-  if (_jobsCache) return _jobsCache;
-  if (_jobsPromise) return _jobsPromise;
-  _jobsPromise = api
-    .get("/jobs", { skipSessionStatus: true })
+let _publicJobsCache = null;
+let _publicJobsPromise = null;
+async function loadJobs({ publicFallback = false } = {}) {
+  if (publicFallback && _publicJobsCache) return _publicJobsCache;
+  if (!publicFallback && _jobsCache) return _jobsCache;
+  if (publicFallback && _publicJobsPromise) return _publicJobsPromise;
+  if (!publicFallback && _jobsPromise) return _jobsPromise;
+  const promise = api
+    .get(publicFallback ? "/public/jobs-lookup" : "/jobs", { skipSessionStatus: true })
     .then((r) => {
       const items = Array.isArray(r.data?.items) ? r.data.items : [];
-      _jobsCache = items.length ? items : STATIC_LIBRARY;
-      return _jobsCache;
+      const resolved = items.length ? items : STATIC_LIBRARY;
+      if (publicFallback) {
+        _publicJobsCache = resolved;
+      } else {
+        _jobsCache = resolved;
+      }
+      return resolved;
     })
     .catch(() => {
       // Network error — fall back to the static seed so the picker still works.
-      _jobsCache = STATIC_LIBRARY;
-      return _jobsCache;
+      if (publicFallback) {
+        _publicJobsCache = STATIC_LIBRARY;
+      } else {
+        _jobsCache = STATIC_LIBRARY;
+      }
+      return STATIC_LIBRARY;
+    })
+    .finally(() => {
+      if (publicFallback) {
+        _publicJobsPromise = null;
+      } else {
+        _jobsPromise = null;
+      }
     });
-  return _jobsPromise;
+  if (publicFallback) {
+    _publicJobsPromise = promise;
+  } else {
+    _jobsPromise = promise;
+  }
+  return promise;
 }
 
 export function JobPicker({
@@ -57,6 +82,7 @@ export function JobPicker({
   className = "",
   allowCustom = true,
   emptyHint = "",
+  publicFallback = false,
   "data-testid": dataTestId,
 }) {
   const [open, setOpen] = useState(false);
@@ -65,13 +91,13 @@ export function JobPicker({
 
   useEffect(() => {
     let alive = true;
-    loadJobs().then((jobs) => {
+    loadJobs({ publicFallback }).then((jobs) => {
       if (alive) setLibrary(jobs);
     });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [publicFallback]);
 
   // Match by project_number first (canonical key), then by exact name.
   const matched = useMemo(() => {

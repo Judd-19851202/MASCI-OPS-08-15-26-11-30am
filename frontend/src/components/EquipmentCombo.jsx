@@ -31,16 +31,24 @@ import { useT } from "@/lib/i18n";
  */
 let _cache = null;
 let _cachePromise = null;
+let _publicCache = null;
+let _publicCachePromise = null;
 
-async function loadMaster() {
-  if (_cache && Array.isArray(_cache.items) && _cache.items.length > 0) {
-    return _cache;
+async function loadMaster({ publicFallback = false } = {}) {
+  const cache = publicFallback ? _publicCache : _cache;
+  const cachePromise = publicFallback ? _publicCachePromise : _cachePromise;
+  if (cache && Array.isArray(cache.items) && cache.items.length > 0) {
+    return cache;
   }
-  if (_cachePromise) return _cachePromise;
-  _cachePromise = api
-    .get("/equipment-master", { timeout: 30000, skipSessionStatus: true })
+  if (cachePromise) return cachePromise;
+  const promise = api
+    .get(publicFallback ? "/public/equipment-master-lookup" : "/equipment-master", { timeout: 30000, skipSessionStatus: true })
     .then((r) => {
       if (r?.data && Array.isArray(r.data.items) && r.data.items.length > 0) {
+        if (publicFallback) {
+          _publicCache = r.data;
+          return _publicCache;
+        }
         _cache = r.data;
         return _cache;
       }
@@ -48,14 +56,25 @@ async function loadMaster() {
     })
     .catch(() => ({ categories: [], items: [], grouped: {} }))
     .finally(() => {
-      _cachePromise = null;
+      if (publicFallback) {
+        _publicCachePromise = null;
+      } else {
+        _cachePromise = null;
+      }
     });
-  return _cachePromise;
+  if (publicFallback) {
+    _publicCachePromise = promise;
+  } else {
+    _cachePromise = promise;
+  }
+  return promise;
 }
 
 export function clearEquipmentCache() {
   _cache = null;
   _cachePromise = null;
+  _publicCache = null;
+  _publicCachePromise = null;
 }
 
 export const EquipmentCombo = ({
@@ -64,6 +83,7 @@ export const EquipmentCombo = ({
   onPick,
   placeholder,
   filterCategories = null,
+  publicFallback = false,
   "data-testid": dataTestId,
   testId = "equipment-combo",
   className = "",
@@ -79,7 +99,7 @@ export const EquipmentCombo = ({
     let alive = true;
     let retryTimer = null;
     const tryLoad = (attempt) => {
-      loadMaster().then((d) => {
+      loadMaster({ publicFallback }).then((d) => {
         if (!alive) return;
         setData(d);
         if ((d?.items?.length || 0) === 0 && attempt < 2) {
@@ -92,7 +112,7 @@ export const EquipmentCombo = ({
       alive = false;
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, []);
+  }, [publicFallback]);
 
   // Close on outside click
   useEffect(() => {

@@ -5032,6 +5032,49 @@ async def list_equipment_master(category: Optional[str] = None):
     }
 
 
+@api_router.get("/public/equipment-master-lookup")
+async def list_equipment_master_public(category: Optional[str] = None):
+    """Anonymous-safe equipment lookup for public Field/Safety workflows.
+
+    Exposes only the minimum unit selection data required to complete
+    public workflows. No plate, VIN/serial, comments, company metadata,
+    or archive/internal fields are returned.
+    """
+    from lib.synthetic_fleet_filter import apply_synthetic_equipment_exclusion  # noqa: PLC0415
+    await _purge_expired("equipment_master")
+    q: Dict[str, Any] = dict(ACTIVE_FILTER)
+    if category:
+        q["category"] = category
+    q = apply_synthetic_equipment_exclusion(q)
+    projection = {
+        "_id": 0,
+        "id": 1,
+        "unit_number": 1,
+        "year": 1,
+        "make": 1,
+        "model": 1,
+        "make_model": 1,
+        "display_label": 1,
+        "category": 1,
+        "preop_equipment_type": 1,
+    }
+    cursor = db.equipment_master.find(q, projection).sort(
+        [("category", 1), ("unit_number", 1), ("make_model", 1)]
+    )
+    docs = await cursor.to_list(2000)
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for d in docs:
+        grouped.setdefault(d.get("category", "Misc Equipment"), []).append(d)
+    categories = sorted(grouped.keys())
+    return {
+        "categories": categories,
+        "items": docs,
+        "grouped": grouped,
+        "count": len(docs),
+        "contract": "anonymous-safe-equipment-master.v1",
+    }
+
+
 @api_router.get("/admin/equipment-master/archive")
 async def equipment_master_archive(_: bool = Depends(require_shop_or_admin)):
     return {
@@ -5089,6 +5132,33 @@ async def list_jobs_public():
     """Public — drives the JobPicker on every form. Active jobs only."""
     from jobs_master import list_jobs
     return {"items": await list_jobs(db, only_active=True)}
+
+
+@api_router.get("/public/jobs-lookup")
+async def list_jobs_public_lookup():
+    """Anonymous-safe project lookup for public workflows only.
+
+    Restricts the response to the minimum project identity needed for
+    public form selection and confirmation. No PM emails, co-PM lists,
+    budget/schedule metadata, or cost-code payloads are exposed.
+    """
+    cursor = db.jobs_master.find(
+        {"active": {"$ne": False}},
+        {
+            "_id": 0,
+            "id": 1,
+            "project_number": 1,
+            "project_name": 1,
+            "location": 1,
+            "client": 1,
+        },
+    ).sort("project_number", 1)
+    items = await cursor.to_list(2000)
+    return {
+        "items": items,
+        "count": len(items),
+        "contract": "anonymous-safe-jobs.v1",
+    }
 
 
 # DR-FIX-2 · R7 · Superintendent auto-population helper.

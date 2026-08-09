@@ -35,8 +35,13 @@ import { computeGrade } from "@/lib/grading";
 import { GradeBanner } from "@/components/Grade";
 import { getCurrentPosition, reverseGeocode, formatCoords } from "@/lib/geolocation";
 import {
-  useFormDraft, getActorId, DraftStatusPill, DraftRestorePrompt,
+  useFormDraft, getDeviceScopedActorId, DraftStatusPill, DraftRestorePrompt,
   enqueueOffline, replayOfflineQueue, registerOfflineAutoReplay,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  hasMeaningfulPublicDraft,
 } from "@/lib/resiliency";
 
 // iter438 · Phase 31 · Pass C · offline queue formKey for inspection
@@ -47,6 +52,7 @@ registerOfflineAutoReplay(INSPECTION_QUEUE_KEY);
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
+const INSPECTION_FORM_BASE = "inspection-new";
 
 export default function NewInspection({ publicMode = false }) {
   const navigate = useNavigate();
@@ -57,23 +63,43 @@ export default function NewInspection({ publicMode = false }) {
 
   // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
   // (do NOT auto-overwrite the form). Autosave continues silently.
-  const actorId = React.useMemo(() => getActorId(), []);
+  const actorId = React.useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = React.useState(() => getActivePublicDraftSession(INSPECTION_FORM_BASE));
+  const draftPayload = React.useMemo(() => ({
+    ...data,
+    draft_session_id: draftSessionId || "",
+  }), [data, draftSessionId]);
+  const draftScope = React.useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
   const {
     pendingDraft, draftStatus, restore, discard, commit,
-  } = useFormDraft("inspection-new", data, actorId);
+  } = useFormDraft(INSPECTION_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
+
+  React.useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "inspection_date", "inspection_time"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(INSPECTION_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
 
   const onRestoreDraft = React.useCallback(() => {
     const d = restore();
     if (d) {
-      setData(d);
+      const restoredSessionId = ensureActivePublicDraftSession(INSPECTION_FORM_BASE, d.draft_session_id || draftSessionId);
+      const { draft_session_id: _draftSessionId, ...restored } = d;
+      setDraftSessionId(restoredSessionId);
+      setData(restored);
       toast.success(t("Draft restored"));
     }
-  }, [restore, t]);
+  }, [restore, t, draftSessionId]);
 
-  const onDiscardDraft = React.useCallback(() => {
-    discard();
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(INSPECTION_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
     toast.message(t("Draft discarded"));
-  }, [discard, t]);
+  }, [discard, t, draftSessionId]);
 
   // iter438 · attempt to replay any queued inspection submits on mount
   // and on the `online` event. Silent · operational continuity.
@@ -230,6 +256,8 @@ export default function NewInspection({ publicMode = false }) {
           // iter438 · clear the draft once we've queued — the queued
           // copy is the durable copy from this point.
           await commit();
+          clearActivePublicDraftSession(INSPECTION_FORM_BASE, draftSessionId);
+          setDraftSessionId("");
           toast.message(t("Saved · will send when online."), {
             description: t("This inspection is on this device and will upload automatically."),
             duration: 6000,
@@ -253,6 +281,8 @@ export default function NewInspection({ publicMode = false }) {
       }
       // iter434 · Phase 31 · clear the draft on confirmed submission.
       await commit();
+      clearActivePublicDraftSession(INSPECTION_FORM_BASE, draftSessionId);
+      setDraftSessionId("");
       toast.success(t("Inspection filed · graded · visible under Audits & Inspections"));
       navigate("/thank-you", {
         state: {
@@ -346,6 +376,7 @@ export default function NewInspection({ publicMode = false }) {
               <JobPicker
                 projectName={data.project_name}
                 projectNumber={data.project_number}
+                publicFallback
                 onSelect={applyJob}
               />
             </div>

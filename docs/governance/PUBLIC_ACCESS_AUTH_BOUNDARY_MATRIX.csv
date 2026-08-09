@@ -1,0 +1,46 @@
+surface_type,path_or_endpoint,classification,auth_owner_or_guard,anonymous_safe_contract,current_runtime_status,notes
+route,/,PUBLIC,None,Public home must never require auth or show session-expired UI,Verified 2026-08-09,Signed-out browser shows Sign In and no privileged shell
+route,/field,PUBLIC,None,Field tile landing is public,Verified 2026-08-09,
+route,/daily/submit,PUBLIC,None,Public daily-report workflow,Verified 2026-08-09,Public route/browser proof passed; anonymous-safe lookup hardening still being broadened
+route,/equipment/submit,PUBLIC,None,Public equipment pre-op workflow,Verified 2026-08-09,Now uses anonymous device draft continuity + anonymous-safe equipment lookup
+route,/shift,PUBLIC,None,Public shift-start workflow,Verified 2026-08-09,
+route,/fleet/dvir/new,PUBLIC,None,Public DVIR workflow,Verified 2026-08-09,Now uses anonymous device draft continuity
+route,/fleet/weekly-lead/new,PUBLIC,None,Public weekly lead trucking workflow,Verified 2026-08-09,
+route,/fleet/weekly-emergency/new,PUBLIC,None,Public weekly emergency trucking workflow,Verified 2026-08-09,
+route,/field/calculators,PUBLIC,None,Public no-login material tools,Verified 2026-08-09,
+route,/safety,PUBLIC,None,Public Safety tile landing,Verified 2026-08-09,
+route,/safety/inspections/new,PUBLIC,None,Public site inspection workflow,Verified 2026-08-09,Security corrected from portal-only drift
+route,/meetings/submit,PUBLIC,None,Public safety-meeting workflow,Verified 2026-08-09,Public route/browser proof passed; anonymous-safe lookup hardening applied
+route,/incidents/report,PUBLIC,None,Public incident-report workflow,Verified 2026-08-09,Uses anonymous-safe project lookup after current hardening
+route,/jha,PUBLIC,None,Public JHA workflow,Verified 2026-08-09,
+route,/trench-safety,PUBLIC,None,Public trench-safety workflow,Verified 2026-08-09,
+route,/safety/cards,PUBLIC,None,Public safety cards workflow,Verified 2026-08-09,
+route,/safety/forms,PUBLIC,None,Public safety-forms hub,Verified 2026-08-09,
+route,/safety/forms/equipment-issuance/new,PUBLIC,None,Public safety equipment issuance workflow,Verified 2026-08-09,Now uses anonymous device draft continuity + anonymous-safe roster/project lookup
+route,/safety/forms/equipment-training/new,PUBLIC,None,Public safety equipment training workflow,Verified 2026-08-09,Now uses anonymous device draft continuity + anonymous-safe roster/project lookup
+route,/guidance,PUBLIC / MIXED CONTENT,None at route entry,General guidance entry is public; protected portal-specific content must intentionally ask for auth,Verified 2026-08-09,Signed-out guidance landing loads with no session-expired UI
+route,/guidance/portal-hr-identity,PUBLIC GUIDANCE,None,Portal overview article is public educational content,Verified 2026-08-09,Signed-out route loads and preserves explicit sign-in CTA only
+route,/guidance/hr-01-portal-intro,ROLE-RESTRICTED GUIDANCE,Server visibility filter,Protected HR training must not render signed-out,Verified 2026-08-09,Signed-out route returns guidance-level "Not available" instead of session-expired or random 401
+route,/training,PUBLIC,None,General field-training entry is public,Open,Needs explicit protected-content boundary audit where tracks overlap portal roles
+route,/admin,AUTHENTICATED PORTAL,RequireAdmin / directory admin,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/pm,AUTHENTICATED PORTAL,RequirePm,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/hr,AUTHENTICATED PORTAL,RequireHr,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/safety-portal,AUTHENTICATED PORTAL,RequireSafetyPortal,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/dispatch-portal,AUTHENTICATED PORTAL,RequireDispatch,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/shop,AUTHENTICATED PORTAL,RequireShop,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,Protected even though not listed in latest amendment; preserved current governed login until explicitly reclassified
+route,/field-leadership/portal/dashboard,AUTHENTICATED PORTAL,RequireFieldLeadershipPortal,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/leadership,AUTHENTICATED PORTAL,RequireFieldLeadershipPortal / leadership login,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
+route,/safety-portal/audits,ROLE-RESTRICTED,RequireSafetyPortal,Safety Audit remains protected,Verified 2026-08-09,
+api,/api/public/jobs-lookup,PUBLIC,None,Anonymous-safe project lookup only: id/project_number/project_name/location/client,Verified 2026-08-09,Created to replace leaking /api/jobs usage on public forms
+api,/api/public/equipment-master-lookup,PUBLIC,None,Anonymous-safe equipment lookup only: id/unit_number/year/make/model/make_model/display_label/category/preop_equipment_type,Verified 2026-08-09,Created to replace leaking /api/equipment-master usage on public forms
+api,/api/hr/employee-roster/public,PUBLIC,None,Anonymous-safe employee roster only: id/name/employee_id/trade/role/crew/active,Verified 2026-08-09,No private HR/contact/pay data
+api,/api/jobs,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Still exists for broader internal consumers and is not anonymous-safe
+api,/api/equipment-master,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Still exists for broader internal consumers and is not anonymous-safe
+api,/api/master-lookup/employees,AUTHENTICATED PORTAL,Portal auth required,Protected employee lookup for authenticated portals only,Verified 2026-08-09,Returns 401 signed-out
+api,/api/inspections,PUBLIC POST,None,Public inspection submit endpoint with rate limiting and no session dependency,Verified 2026-08-09,Anonymous POST proof captured
+api,/api/safety-forms/equipment-issuances,PUBLIC POST,None,Public issuance submit endpoint with rate limiting and no session dependency,Verified 2026-08-09,Anonymous POST proof captured
+api,/api/safety-forms/equipment-trainings,PUBLIC POST,None,Public training submit endpoint with rate limiting and no session dependency,Verified 2026-08-09,Anonymous POST proof captured
+api,/api/auth/multi-login,PUBLIC AUTH ENTRY,None,Public login entry for protected portals only,Verified 2026-08-09,Not used by public workflows
+api,/api/auth/multi-logout,AUTHENTICATED SESSION,Valid session/token context,Protected logout endpoint,Verified 2026-08-09,
+api,/api/auth/me-directory,AUTHENTICATED SESSION,Directory/portal token,Protected auth continuity endpoint,Verified 2026-08-09,
+api,/api/guidance/articles,PUBLIC / FILTERED,None,Public guidance list with server-side visibility filtering,Verified 2026-08-09,Protected articles are filtered instead of failing through session-expired UI

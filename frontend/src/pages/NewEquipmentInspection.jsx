@@ -39,9 +39,21 @@ import { ProgressRail } from "@/components/ProgressRail";
 import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  useFormDraft,
+  getDeviceScopedActorId,
+  DraftStatusPill,
+  DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  hasMeaningfulPublicDraft,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-14 text-base";
+const EQUIPMENT_PREOP_FORM_BASE = "equipment-preop";
 
 // Critical fluid items — failing any of these means the unit physically can't
 // safely operate until the fluid is corrected. Block the inspection from being
@@ -238,6 +250,19 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const [unitSearch, setUnitSearch] = useState("");
   const [criticalFluidAlert, setCriticalFluidAlert] = useState(null); // {section, item} when blocking
   const [tallyCollapsed, setTallyCollapsed] = useState(false);
+  const actorId = useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = useState(() => getActivePublicDraftSession(EQUIPMENT_PREOP_FORM_BASE));
+  const draftPayload = useMemo(() => ({
+    ...data,
+    draft_session_id: draftSessionId || "",
+  }), [data, draftSessionId]);
+  const draftScope = useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft(EQUIPMENT_PREOP_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
   // Track 13.31B-D5.4 · structured canonical section capture
   const [canonicalCapture, setCanonicalCapture] = useState(null);
   const canonicalAvailable =
@@ -254,6 +279,29 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       setData((p) => ({ ...p, equipment_type: canonicalCapture.asset_type }));
     }
   }, [canonicalCapture, data.equipment_type]);
+
+  useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "inspection_date", "report_date", "status"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(EQUIPMENT_PREOP_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const restored = restore();
+    if (!restored) return;
+    const restoredSessionId = ensureActivePublicDraftSession(EQUIPMENT_PREOP_FORM_BASE, restored.draft_session_id || draftSessionId);
+    const { draft_session_id: _draftSessionId, ...next } = restored;
+    setDraftSessionId(restoredSessionId);
+    setData(next);
+    toast.success(t("Draft restored"));
+  }, [restore, t, draftSessionId]);
+
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(EQUIPMENT_PREOP_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
+    toast.message(t("Draft discarded"));
+  }, [discard, t, draftSessionId]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -595,6 +643,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       }
       payload = { ...payload, submit_language: lang || "en" };
       const res = await api.post("/equipment-inspections", payload);
+      await commit();
+      clearActivePublicDraftSession(EQUIPMENT_PREOP_FORM_BASE, draftSessionId);
+      setDraftSessionId("");
       // TRACK 14.0-S1 Amendment A — bilingual originals sidecar.
       if (lang === "es" && payload._originals) {
         try {
@@ -705,6 +756,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       backLabel={t("Field")}
       widthClass="max-w-4xl"
       containerTestId="equipment-form-shell"
+      draftSlot={<DraftStatusPill status={draftStatus} testId="equipment-draft-pill" />}
       stickyFooter={(
         <div className="wp17-sticky-action-bar" data-testid="equipment-form-actions">
           <div className="wp17-sticky-action-note hidden sm:block">
@@ -733,6 +785,16 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         </div>
       )}
     >
+      {pendingDraft ? (
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          label={pendingDraft.project_name || pendingDraft.project_number || pendingDraft.equipment_unit || t("Equipment Pre-Op")}
+          updatedAt={pendingDraft.savedAt}
+          testId="equipment-draft-restore"
+        />
+      ) : null}
       <div className="space-y-6 pb-24" data-testid="preop-modernized">
       {/* Critical-fluid / major-safety stop-work modal */}
       {criticalFluidAlert && (
@@ -835,6 +897,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               <JobPicker
                 projectName={data.project_name}
                 projectNumber={data.project_number}
+                publicFallback={publicMode}
                 onSelect={applyJob}
               />
             </div>
@@ -1107,6 +1170,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                   <EquipmentCombo
                     value={data.equipment_unit}
                     onChange={(v) => set("equipment_unit", v)}
+                    publicFallback={publicMode}
                     onPick={(it) => {
                       setData((p) => ({
                         ...p,

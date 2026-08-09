@@ -53,12 +53,18 @@ import {
 // mid-entry because this surface had no draft persistence. Wired the
 // shared resiliency layer with no schema changes.
 import {
-  useFormDraft, getActorId,
+  useFormDraft, getDeviceScopedActorId,
   DraftStatusPill, DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  hasMeaningfulPublicDraft,
 } from "@/lib/resiliency";
 
 const inputCls =
   "h-14 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
+const MEETING_FORM_BASE = "meeting-new";
 
 export default function NewMeeting({ publicMode = false }) {
   const navigate = useNavigate();
@@ -78,23 +84,43 @@ export default function NewMeeting({ publicMode = false }) {
   // navigation, accidental close, and transient network failure.
   // Field-incident reproduction: 20-attendee meeting + Request-to-Add
   // failure + refresh → previously lost everything; now restores.
-  const actorId = React.useMemo(() => getActorId(), []);
+  const actorId = React.useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = React.useState(() => getActivePublicDraftSession(MEETING_FORM_BASE));
+  const draftPayload = React.useMemo(() => ({
+    ...data,
+    draft_session_id: draftSessionId || "",
+  }), [data, draftSessionId]);
+  const draftScope = React.useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
   const {
     pendingDraft, draftStatus, restore, discard, commit,
-  } = useFormDraft("meeting-new", data, actorId);
+  } = useFormDraft(MEETING_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
+
+  React.useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "date", "time", "weather"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(MEETING_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
 
   const onRestoreDraft = React.useCallback(() => {
     const d = restore();
     if (d) {
-      setData(d);
+      const restoredSessionId = ensureActivePublicDraftSession(MEETING_FORM_BASE, d.draft_session_id || draftSessionId);
+      const { draft_session_id: _draftSessionId, ...restored } = d;
+      setDraftSessionId(restoredSessionId);
+      setData(restored);
       toast.success(t("Draft restored"));
     }
-  }, [restore, t]);
+  }, [restore, t, draftSessionId]);
 
-  const onDiscardDraft = React.useCallback(() => {
-    discard();
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(MEETING_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
     toast.message(t("Draft discarded"));
-  }, [discard, t]);
+  }, [discard, t, draftSessionId]);
 
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
@@ -348,7 +374,11 @@ export default function NewMeeting({ publicMode = false }) {
       // TRACK 15.60 · clear the IDB draft once the server confirms
       // persistence, so the next visit starts clean. Do this BEFORE
       // navigate() to avoid stale-draft restoration on the return.
-      try { await commit(); } catch { /* never break submit success */ }
+      try {
+        await commit();
+        clearActivePublicDraftSession(MEETING_FORM_BASE, draftSessionId);
+        setDraftSessionId("");
+      } catch { /* never break submit success */ }
       // TRACK 14.0-S1 Amendment A — preserve original-language strings
       // in the bilingual_records sidecar collection. Fire-and-forget;
       // a failure here must not break the user's flow.
@@ -548,6 +578,7 @@ export default function NewMeeting({ publicMode = false }) {
               <JobPicker
                 projectName={data.project_name}
                 projectNumber={data.project_number}
+                publicFallback
                 onSelect={applyJob}
               />
             </div>

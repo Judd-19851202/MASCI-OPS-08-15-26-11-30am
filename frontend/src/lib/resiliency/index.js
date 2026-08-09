@@ -54,6 +54,15 @@ export {
   clearActiveDailyReportDraftSession,
   buildDailyReportSessionScope,
 } from "./dailyReportScope";
+export {
+  isPublicDraftSessionId,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  buildPublicDraftScopedFormKey,
+  hasMeaningfulPublicDraft,
+} from "./publicDraftScope";
 export { default as OfflineIndicator } from "./OfflineIndicator";
 export { default as DraftStatusPill } from "./DraftStatusPill";
 export { default as DraftRestorePrompt } from "./DraftRestorePrompt";

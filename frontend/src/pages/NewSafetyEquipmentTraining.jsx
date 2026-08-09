@@ -32,15 +32,63 @@ import {
   rememberSupervisor,
 } from "@/lib/safetyFormsSchema";
 import { toast } from "sonner";
+import {
+  useFormDraft,
+  getDeviceScopedActorId,
+  DraftStatusPill,
+  DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  hasMeaningfulPublicDraft,
+} from "@/lib/resiliency";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2";
+const TRAINING_FORM_BASE = "safety-equipment-training";
 
 export default function NewSafetyEquipmentTraining() {
   const { t, lang } = useT();
   const navigate = useNavigate();
   const [data, setData] = useState(buildTrainingDefaults());
   const [saving, setSaving] = useState(false);
+  const actorId = React.useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = React.useState(() => getActivePublicDraftSession(TRAINING_FORM_BASE));
+  const draftPayload = React.useMemo(() => ({
+    ...data,
+    draft_session_id: draftSessionId || "",
+  }), [data, draftSessionId]);
+  const draftScope = React.useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft(TRAINING_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
+
+  React.useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "training_date"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(TRAINING_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const restored = restore();
+    if (!restored) return;
+    const restoredSessionId = ensureActivePublicDraftSession(TRAINING_FORM_BASE, restored.draft_session_id || draftSessionId);
+    const { draft_session_id: _draftSessionId, ...next } = restored;
+    setDraftSessionId(restoredSessionId);
+    setData(next);
+    toast.success(t("Draft restored"));
+  }, [restore, t, draftSessionId]);
+
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    clearActivePublicDraftSession(TRAINING_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
+    toast.message(t("Draft discarded"));
+  }, [discard, t, draftSessionId]);
 
   // iter332 · Safety Portal Form-Entry continuity. See sibling page.
   const fromRecords = (typeof window !== "undefined" &&
@@ -114,6 +162,9 @@ export default function NewSafetyEquipmentTraining() {
       }
       payload = { ...payload, submit_language: submitLang || "en" };
       const res = await api.post("/safety-forms/equipment-trainings", payload);
+      await commit();
+      clearActivePublicDraftSession(TRAINING_FORM_BASE, draftSessionId);
+      setDraftSessionId("");
       // TRACK 14.0-S1 — Preserve original Spanish in the bilingual sidecar.
       if (submitLang === "es" && res?.data?.id) {
         const { persistBilingualSidecar } = await import("@/lib/translateOnSubmit");
@@ -149,6 +200,7 @@ export default function NewSafetyEquipmentTraining() {
       backLabel={fromRecords && authed ? t("Back to Review") : t("Safety Forms")}
       widthClass="max-w-4xl"
       containerTestId="trn-form-shell"
+      draftSlot={<DraftStatusPill status={draftStatus} testId="trn-draft-pill" />}
       stickyFooter={(
         <div className="flex justify-between items-center shadow-none gap-3" data-testid="trn-form-actions">
           <div className="text-xs font-mono text-slate-600 truncate">
@@ -175,6 +227,16 @@ export default function NewSafetyEquipmentTraining() {
         </div>
       )}
     >
+      {pendingDraft ? (
+        <DraftRestorePrompt
+          pendingDraft={pendingDraft}
+          onRestore={onRestoreDraft}
+          onDiscard={onDiscardDraft}
+          label={pendingDraft.project_name || pendingDraft.project_number || pendingDraft.employee_name || t("Safety equipment training")}
+          updatedAt={pendingDraft.savedAt}
+          testId="trn-draft-restore"
+        />
+      ) : null}
       <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-100 bg-white/85 p-4 shadow-sm" data-testid="trn-form-summary">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-amber-600 text-white shrink-0">
             <GraduationCap className="w-6 h-6" />
@@ -224,6 +286,7 @@ export default function NewSafetyEquipmentTraining() {
                 <JobPicker
                   projectName={data.project_name}
                   projectNumber={data.project_number}
+                  publicFallback
                   onSelect={applyJob}
                 />
               </Field>

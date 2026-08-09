@@ -561,6 +561,7 @@ function ProjectPickerField({ value, onChange, testId, onSelectProject }) {
           <JobPicker
             projectName=""
             projectNumber={displayLabel}
+            publicFallback
             onSelect={(job) => {
               if (!job) return;
               const num = job.project_number || "";
