@@ -12,6 +12,7 @@
   - `backend/tests/test_prec10_platform_truth_integrity.py` → `1 passed`
   - `backend/tests/test_iter141_history.py` batch → `1 passed, 1 skipped`
   - direct runtime verification after backend restart: `/api/auth/multi-login` `200`, `/api/admin/platform-truth-integrity/cross-entity` `200`
+  - backend QA `deep_testing_backend_v2` → PASS for auth continuity, aggregated truth endpoint, cross-entity endpoint, and employee-history route regression watch
 - Remaining denominator still open after this batch:
   - cross-entity runtime truth remains **RED / BLOCKING** for meeting MASCI name-only attendees, incident project/submitter lineage, daily-report project/submitter lineage, equipment operator history reachability, and dispatch driver/truck/project linkage drift;
   - Admin OS truth/count lineage, auth/session denominator, platform-wide coaching inventory, and the full fresh Product Quality v4 ledger are still required before any final certification chain.
