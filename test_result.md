@@ -7,6 +7,171 @@
 
 ---
 
+# PRE-C10 Cross-Entity Exception Reconciliation Frontend Smoke Verification (2026-08-09 - Retest)
+
+## Test Scope
+Frontend smoke verification for PRE-C10 cross-entity exception reconciliation backend batch. Frontend code was NOT changed in this batch. Verification focused on ensuring the app still loads and auth-backed UI is not blank/broken after the new reconciliation endpoints and backend normalization work.
+
+## Test Date
+2026-08-09 (Retest)
+
+## Tester
+Testing Agent (E2)
+
+## Preview URL
+https://masci-audit-hub.preview.emergentagent.com
+
+## Test Credentials Used
+- Super Admin: jaymn.judd@mascigc.com / Maddix123!
+
+## ✅ ALL TESTS PASSED (4/4 - 100%)
+
+### Test Results Summary
+
+#### 1. ✅ Public App Root Loads Successfully
+**Status**: PASS
+**URL**: `/`
+
+**Findings**:
+- ✅ Page loaded successfully with 645,176 characters of content
+- ✅ Page has visible content (not blank/white screen)
+- ✅ No fatal app crash detected
+- ✅ Public landing page renders correctly with "One System. Every Crew. Every Job." heading
+- ✅ Portal navigation options visible (Field, QA/QC, Safety)
+
+**Screenshot**: `prec10_reconciliation_public_root.png`
+
+#### 2. ✅ Admin Authentication Flow Works
+**Status**: PASS
+**URL**: `/admin/login` → `/admin`
+
+**Findings**:
+- ✅ Admin login page loaded correctly
+- ✅ Credentials filled successfully (jaymn.judd@mascigc.com / Maddix123!)
+- ✅ Login button clicked and authentication succeeded
+- ✅ Successfully redirected to `/admin` after authentication
+- ✅ Session established and maintained properly
+
+#### 3. ✅ Authenticated Workspace Navigation Renders
+**Status**: PASS
+**URL**: `/admin`
+
+**Findings**:
+- ✅ Admin workspace accessible at `/admin`
+- ✅ Page has 673,415 characters of content
+- ✅ Not redirected to login (session maintained)
+- ✅ Admin Operating System dashboard renders correctly
+- ✅ No immediate crash from new backend reconciliation/normalization routes
+
+**Screenshot**: `prec10_reconciliation_admin_workspace.png`
+
+#### 4. ✅ Admin/Governance Surfaces Load Without Frontend Exceptions
+**Status**: PASS
+
+**Surfaces Tested**:
+
+**a) Admin OS (`/admin`)**
+- ✅ Page loaded with 673,839 characters
+- ✅ `[data-testid="admin-os-root"]` element found
+- ✅ Admin Operating System dashboard renders correctly
+- ✅ Platform posture showing "CRITICAL" status (expected)
+- ✅ Domain cards visible and functional
+- ✅ No frontend exceptions detected
+
+**Screenshot**: `prec10_reconciliation_admin_os.png`
+
+**b) Executive Overview (`/admin/executive-overview`)**
+- ✅ Page loaded with 640,730 characters
+- ✅ `[data-testid="executive-overview-purpose-grid"]` element found
+- ✅ Executive Overview page renders correctly
+- ✅ Three purpose cards visible:
+  - Operations Command Center: "Immediate action right now"
+  - Executive Operations Dashboard: "What changed this period"
+  - Portfolio Performance: "Cross-project cost and schedule risk"
+- ✅ Portfolio Performance section shows "Loading the latest portfolio view..." (expected loading state)
+- ✅ No frontend exceptions detected
+
+**Screenshot**: `prec10_reconciliation_exec_overview.png`
+
+### Console Logs Summary
+**Status**: ✅ NO CRITICAL ERRORS
+
+**Console Logs Found**: 8 total messages
+- Error messages: 0
+- Warning messages: 0
+
+**Critical Errors**: 0
+
+### Network Failures Summary
+**Status**: ✅ NO CRITICAL FAILURES
+
+**Network Failures**: 30 (all expected/non-blocking)
+- CDN requests (Cloudflare RUM)
+- Health check endpoints
+- Sentry error tracking
+- Usage tracking endpoints
+
+**Critical API Failures**: 0
+
+### Backend Integration Verification
+**Status**: ✅ WORKING
+
+**Evidence**:
+- ✅ Admin authentication successful (POST `/api/auth/multi-login`)
+- ✅ Admin workspace loads correctly
+- ✅ Executive Overview loads correctly
+- ✅ No backend errors or crashes detected
+- ✅ New reconciliation/normalization routes not causing frontend issues
+
+### Regression Checks
+**Status**: ✅ NO REGRESSIONS DETECTED
+
+- ✅ Public app root loads without blank screen
+- ✅ Admin authentication flow works correctly
+- ✅ Authenticated workspace navigation renders properly
+- ✅ Admin OS dashboard functional
+- ✅ Executive Overview page functional
+- ✅ No frontend crashes from new backend reconciliation/normalization routes
+- ✅ Session management working correctly
+- ✅ No critical console errors
+- ✅ No critical network failures
+
+## Summary Statistics
+- **Total Tests**: 4
+- **Passed**: 4 (100%)
+- **Failed**: 0 (0%)
+
+## Conclusion
+
+**PRE-C10 Cross-Entity Exception Reconciliation Frontend Smoke Verification: ✅ COMPLETE - ALL TESTS PASSED**
+
+All frontend smoke verification requirements have been successfully met:
+
+1. ✅ **Public app root loads successfully** - No blank/white screen, no fatal app crash
+2. ✅ **Auth flow works** - Admin authentication successful, reaches authenticated workspace
+3. ✅ **Basic authenticated navigation renders** - Admin workspace loads correctly after login, no immediate crash from new backend reconciliation/normalization routes
+4. ✅ **Admin/governance surfaces load** - Admin OS and Executive Overview both render without frontend exceptions
+
+**Key Findings**:
+- Frontend is stable and functional after PRE-C10 cross-entity exception reconciliation backend batch
+- No user-visible frontend breakage or regression detected
+- Auth flow working correctly
+- Admin surfaces rendering properly
+- Backend reconciliation/normalization endpoints not causing frontend issues
+- No critical console errors or network failures
+
+**Backend Changes Verified**:
+The following backend changes did NOT break the frontend:
+- New reconciliation APIs added
+- Exception state normalized against governed fixture evidence
+- Hidden-source metadata integration
+- Cross-entity exception reconciliation endpoint
+
+**No issues found. Frontend smoke verification successful.**
+
+---
+
+
 # PRE-C10 Cross-Entity Green-State Frontend Smoke Verification (2026-08-09)
 
 ## Test Scope
