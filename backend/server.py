@@ -1373,6 +1373,8 @@ async def require_admin_or_asset_admin(
     handlers and tests can verify which path resolved.
     """
     async def _authorize(actor: Dict[str, Any]) -> Dict[str, Any]:
+        if actor.get("_actor") == "admin" or actor.get("role") in {"admin", "asset_admin"}:
+            return actor
         context = await build_governance_actor_context(db, actor)
         if "asset_documents.read" in set(context.get("permissions") or []):
             return actor

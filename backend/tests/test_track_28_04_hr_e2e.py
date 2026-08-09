@@ -183,6 +183,7 @@ def _new_employee_payload(
         "department": "Field Ops",
         "lifecycle_status": lifecycle_status,
         "original_hire_date": "2024-01-15",
+        "synthetic_record": True,
     }
 
 
@@ -197,7 +198,10 @@ def _create_employee(hdrs: Dict[str, str], **kwargs) -> Dict[str, Any]:
 def _delete_employee(hdrs: Dict[str, str], emp_id: str) -> None:
     """Hard-purge via Mongo (soft-delete API not universal). Always
     called from a finally block."""
-    _mongo().employees.delete_one({"id": emp_id})
+    try:
+        _mongo().employees.delete_one({"id": emp_id})
+    except Exception:
+        pass
 
 
 # ─────────────────────────────────────────────────────────────

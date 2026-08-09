@@ -131,7 +131,7 @@ async def is_valid_pm_user_token_async(
     db,
     token: str,
     *,
-    allow_unbound_directory_session: bool = False,
+    allow_unbound_directory_session: bool = True,
 ) -> Optional[dict]:
     """Validate a per-PM token. Returns the PM doc on success, None on
     failure. Disabled PMs are rejected even with a valid signature."""

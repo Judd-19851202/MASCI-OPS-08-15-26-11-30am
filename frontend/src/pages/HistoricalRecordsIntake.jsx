@@ -10,6 +10,7 @@ import {
 } from "@/lib/employeeRecordsApi";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import HrPageShell from "@/components/HrPageShell";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -209,28 +210,32 @@ export default function HistoricalRecordsIntake() {
             </CardContent>
           </Card>
 
-          <Card data-testid="intake-how-it-works">
-            <CardHeader>
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{t("How this works")}</div>
-              <CardTitle>{t("Three steps to a clean record")}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ol className="space-y-2 text-sm text-slate-800">
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">1</span>
-                  <span><b>{t("Attach the file")}</b> — {t("Bring in the original record exactly as it was saved or scanned.")}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">2</span>
-                  <span><b>{t("Link the right person")}</b> — {t("Choose the employee, company, or related job detail before approval.")}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">3</span>
-                  <span><b>{t("Send it for review")}</b> — {t("The review queue is the final stop before it becomes part of the permanent record.")}</span>
-                </li>
-              </ol>
-            </CardContent>
-          </Card>
+          <WorkflowCoachingDisclosure
+            eyebrow={t("How this works")}
+            title={t("Three steps to a clean record")}
+            testIdPrefix="intake-how-it-works"
+            blocks={[
+              {
+                tone: "slate",
+                label: t("Attach the file"),
+                body: t("Bring in the original record exactly as it was saved or scanned."),
+                testId: "intake-how-it-works-step-1",
+              },
+              {
+                tone: "sky",
+                label: t("Link the right person"),
+                body: t("Choose the employee, company, or related job detail before approval."),
+                testId: "intake-how-it-works-step-2",
+              },
+              {
+                tone: "emerald",
+                label: t("Send it for review"),
+                body: t("The review queue is the final stop before it becomes part of the permanent record."),
+                testId: "intake-how-it-works-step-3",
+              },
+            ]}
+            defaultOpen={false}
+          />
         </section>
 
         <Card data-testid="intake-form">

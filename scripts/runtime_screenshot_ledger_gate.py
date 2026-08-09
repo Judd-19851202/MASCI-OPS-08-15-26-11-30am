@@ -24,7 +24,7 @@ LEDGER_CSV = LEDGER_DIR / "ledger.csv"
 LEDGER_JSON = LEDGER_DIR / "ledger.json"
 SYSTEM_CHROMIUM = Path("/root/bin/chromium")
 CACHE_MAX_AGE_SECONDS = 60 * 60
-QUALITY_CONTRACT_VERSION = "wp18db-product-quality-v3"
+QUALITY_CONTRACT_VERSION = "wp18db-product-quality-v4"
 
 GLOBAL_FORBIDDEN_TEXT = [
     "This page has moved",
@@ -37,6 +37,8 @@ GLOBAL_FORBIDDEN_TEXT = [
 VIEWPORTS = [390, 430, 768, 1024, 1440]
 PM_PROJECT_FALLBACK = "cert.pm@example.com"
 PM_PASSWORD_FALLBACK = "CertProof2026!"
+HR_EMAIL_FALLBACK = "cert.hr@example.com"
+HR_PASSWORD_FALLBACK = "CertProof2026!"
 ADMIN_EMAIL_FALLBACK = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD_FALLBACK = "Maddix123!"
 
@@ -91,6 +93,13 @@ def _pm_creds() -> tuple[str, str]:
     return (
         email_match.group(0) if email_match else PM_PROJECT_FALLBACK,
         password_match.group(0) if password_match else PM_PASSWORD_FALLBACK,
+    )
+
+
+def _hr_creds() -> tuple[str, str]:
+    return (
+        _credential(r"cert\.hr@example\.com", HR_EMAIL_FALLBACK),
+        _credential(r"CertProof2026!", HR_PASSWORD_FALLBACK),
     )
 
 
@@ -331,6 +340,42 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
             },
             state_kind="shared_confirmation",
         ),
+        Surface(
+            key="hr_employee_lifecycle",
+            role="hr",
+            route="/hr/employees",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [
+                    "WHY THE FIRST DAY MATTERS",
+                    "WHO ELSE MAKES DAY-1 WORK",
+                    "WHAT HAPPENS AFTER YOU FINISH ONBOARDING",
+                    "WHEN TO CALL HR DIRECTOR",
+                    "COMMON LIFECYCLE MISTAKES",
+                ],
+                "selector": "[data-testid='hr-employees-page']",
+                "collapsed_trigger_selector": "[data-testid='helptip-block-employee-lifecycle-trigger']",
+                "collapsed_panel_selector": "[data-testid='helptip-block-employee-lifecycle-panel']",
+            },
+        ),
+        Surface(
+            key="admin_daily_reports_review",
+            role="admin",
+            route="/admin/daily",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='daily-reports-summary']",
+                "collapsed_trigger_selector": "[data-testid='daily-reports-coaching-strip-trigger']",
+                "collapsed_panel_selector": "[data-testid='daily-reports-coaching-strip-panel']",
+            },
+        ),
     ]
 
 
@@ -409,7 +454,7 @@ def _wait_for_hydration_clear(page, role: str) -> None:
             pass
 
 
-def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> dict[str, str]:
+def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str], hr_creds: tuple[str, str]) -> dict[str, str]:
     page = context.new_page()
     if role == "admin":
         _goto(page, f"{base_url}/admin/login")
@@ -449,6 +494,29 @@ def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: t
             """
             () => ({
               pm_token: window.localStorage.getItem('masci.pm.token') || '',
+            })
+            """
+        )
+        page.close()
+        return tokens
+    elif role == "hr":
+        _goto(page, f"{base_url}/hr/login")
+        page.wait_for_timeout(600)
+        if "/hr/login" in page.url:
+            page.locator('[data-testid="hr-email-input"]').fill(hr_creds[0])
+            page.locator('[data-testid="hr-password-input"]').fill(hr_creds[1])
+            page.locator('[data-testid="hr-login-submit"]').click(force=True)
+        page.wait_for_function(
+            "() => !!window.localStorage.getItem('masci.hr.token') || !!window.sessionStorage.getItem('masci.hr.token')",
+            timeout=20000,
+        )
+        page.wait_for_timeout(1200)
+        tokens = page.evaluate(
+            """
+            () => ({
+              hr_token: window.localStorage.getItem('masci.hr.token')
+                || window.sessionStorage.getItem('masci.hr.token')
+                || '',
             })
             """
         )
@@ -519,6 +587,23 @@ def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str
     has_overflow = _has_horizontal_overflow(page, width)
     if has_overflow:
         problems.append("horizontal-overflow")
+    collapsed_trigger_selector = surface.checks.get("collapsed_trigger_selector")
+    coaching_collapsed_by_default = True
+    if collapsed_trigger_selector:
+        trigger_locator = page.locator(collapsed_trigger_selector)
+        if trigger_locator.count() == 0:
+            coaching_collapsed_by_default = False
+            problems.append(f"missing-collapsed-trigger:{collapsed_trigger_selector}")
+        else:
+            expanded_state = trigger_locator.first.get_attribute("aria-expanded")
+            if expanded_state != "false":
+                coaching_collapsed_by_default = False
+                problems.append(f"coaching-not-collapsed:{collapsed_trigger_selector}:{expanded_state}")
+    collapsed_panel_selector = surface.checks.get("collapsed_panel_selector")
+    collapsed_panel_hidden = True
+    if collapsed_panel_selector and page.locator(collapsed_panel_selector).count() > 0:
+        collapsed_panel_hidden = False
+        problems.append(f"collapsed-panel-visible:{collapsed_panel_selector}")
     focusable_count = int(page.evaluate("""
         () => document.querySelectorAll('button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])').length
     """))
@@ -532,6 +617,8 @@ def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str
         "global_forbidden_hits": global_forbidden_hits,
         "selector_present": selector_present,
         "responsive_no_horizontal_overflow": not has_overflow,
+        "coaching_collapsed_by_default": coaching_collapsed_by_default,
+        "coaching_panel_hidden_by_default": collapsed_panel_hidden,
         "has_accessible_controls": focusable_count > 0,
         "focusable_control_count": focusable_count,
         "data_testid_count": testid_count,
@@ -545,11 +632,11 @@ def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str
 def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: str, screenshot_dir: Path, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> dict[str, Any]:
     page.set_viewport_size({"width": width, "height": 800})
     _goto(page, f"{base_url}{surface.route}")
-    if surface.role in {"admin", "pm"}:
+    if surface.role in {"admin", "pm", "hr"}:
         page.wait_for_timeout(1200)
         _wait_for_hydration_clear(page, surface.role)
         if "/login" in page.url or "/sign-in" in page.url:
-            _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds)
+            _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds, _hr_creds())
             _goto(page, f"{base_url}{surface.route}")
             page.wait_for_timeout(1200)
             _wait_for_hydration_clear(page, surface.role)
@@ -558,10 +645,10 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
     _set_lang(page, lang)
     page.reload(wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(2200)
-    if surface.role in {"admin", "pm"}:
+    if surface.role in {"admin", "pm", "hr"}:
         _wait_for_hydration_clear(page, surface.role)
-    if surface.role in {"admin", "pm"} and ("/login" in page.url or "/sign-in" in page.url):
-        _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds)
+    if surface.role in {"admin", "pm", "hr"} and ("/login" in page.url or "/sign-in" in page.url):
+        _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds, _hr_creds())
         _goto(page, f"{base_url}{surface.route}")
         page.wait_for_timeout(1200)
         _wait_for_hydration_clear(page, surface.role)
@@ -600,6 +687,7 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
     current_release_identity = _release_identity()
     admin_creds = _admin_creds()
     pm_creds = _pm_creds()
+    hr_creds = _hr_creds()
     pm_project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
     surfaces = _surface_inventory(pm_project_number)
     if surface_keys:
@@ -652,10 +740,12 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
         admin_context = browser.new_context()
         pm_context = browser.new_context()
         public_context = browser.new_context()
-        contexts = {"admin": admin_context, "pm": pm_context, "public": public_context}
+        hr_context = browser.new_context()
+        contexts = {"admin": admin_context, "pm": pm_context, "public": public_context, "hr": hr_context}
 
-        admin_session = _prime_context_with_tokens(admin_context, base_url, "admin", admin_creds, pm_creds)
-        pm_session = _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds)
+        admin_session = _prime_context_with_tokens(admin_context, base_url, "admin", admin_creds, pm_creds, hr_creds)
+        pm_session = _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds, hr_creds)
+        _prime_context_with_tokens(hr_context, base_url, "hr", admin_creds, pm_creds, hr_creds)
         admin_headers = {"X-Admin-Token": admin_session.get("admin_token", "")}
         if admin_session.get("directory_token"):
             admin_headers["X-Directory-Token"] = admin_session["directory_token"]

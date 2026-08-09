@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 
 // ─────────────────────────────────────────────────────────────────────
 // HelpTip — small (i) icon next to a label; click reveals body
@@ -64,29 +65,35 @@ export function WhyItMattersPanel({ title, children, dismissible = true }) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed || !children) return null;
   return (
-    <div
-      className="border-l-4 border-amber-500 bg-amber-50 p-3 rounded-r flex gap-3 items-start"
-      data-testid="why-it-matters-panel"
-    >
-      <Lightbulb className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-      <div className="flex-1 text-sm text-slate-800 leading-relaxed">
-        <strong className="block text-[11px] uppercase tracking-wider text-amber-700 font-bold mb-1">
-          {resolvedTitle}
-        </strong>
-        {children}
-      </div>
-      {dismissible && (
-        <button
-          type="button"
-          onClick={() => setDismissed(true)}
-          className="text-slate-500 hover:text-slate-800"
-          aria-label="Dismiss"
-          data-testid="why-it-matters-dismiss"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
-    </div>
+    <WorkflowCoachingDisclosure
+      title={resolvedTitle}
+      blocks={[
+        {
+          tone: "amber",
+          body: (
+            <div className="space-y-3">
+              <div>{children}</div>
+              {dismissible ? (
+                <button
+                  type="button"
+                  onClick={() => setDismissed(true)}
+                  className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.18em] text-slate-500 hover:text-slate-900"
+                  aria-label="Dismiss"
+                  data-testid="why-it-matters-dismiss"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  {t("Dismiss")}
+                </button>
+              ) : null}
+            </div>
+          ),
+          testId: "why-it-matters-panel-body",
+        },
+      ]}
+      icon={Lightbulb}
+      testIdPrefix="why-it-matters-panel"
+      defaultOpen={false}
+    />
   );
 }
 

@@ -4603,6 +4603,7 @@ const ES = {
   "Can't sign in?": "¿No puede iniciar sesión?",
   "Fix sign-in problems": "Resolver problemas de inicio de sesión",
   "workflow tips available · tap to expand": "consejos del flujo de trabajo disponibles · toque para expandir",
+  "Workflow tips": "Consejos del flujo de trabajo",
   "Search the roster by employee name": "Busque al empleado por nombre en la lista",
   "Open guide": "Abrir guía",
   "DVIR guide": "Guía DVIR",

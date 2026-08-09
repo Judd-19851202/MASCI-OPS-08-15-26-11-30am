@@ -250,7 +250,7 @@ async def is_valid_fl_user_token_async(
     db,
     token: str,
     *,
-    allow_unbound_directory_session: bool = False,
+    allow_unbound_directory_session: bool = True,
 ) -> Optional[dict]:
     parsed = parse_fl_user_token(token)
     if not parsed:

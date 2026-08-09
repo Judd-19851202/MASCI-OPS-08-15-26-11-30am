@@ -23,7 +23,7 @@
 //     to EN when not present).
 //   • One H-line of vertical space when collapsed.
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import {
   Lightbulb, AlertTriangle, BookOpen, ArrowRight,
   PhoneForwarded, Users, Clock,
@@ -31,6 +31,7 @@ import {
 import { useT } from "@/lib/i18n";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
+import { WorkflowCoachingDisclosure } from "@/components/WorkflowCoachingDisclosure";
 
 const KIND_META = {
   why: {
@@ -93,6 +94,7 @@ export function HelpTip({
   const meta = KIND_META[kind] || KIND_META.why;
   const Icon = meta.icon;
   const [open, setOpen] = useState(Boolean(defaultOpen));
+  const panelId = useId();
 
   const rawTitle = (lang === "es" && title_es) ? title_es : (title || (lang === "es" ? meta.label_es : meta.label_en));
   const rawBody = (lang === "es" && body_es) ? body_es : body;
@@ -112,6 +114,7 @@ export function HelpTip({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-controls={`${panelId}-body`}
         className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors"
         data-testid={`helptip-${safeKey}-toggle`}
       >
@@ -123,8 +126,8 @@ export function HelpTip({
             {renderedTitle}
           </span>
           {!open ? (
-            <span className="mt-2 block line-clamp-2 text-sm leading-6 text-slate-700">
-              {renderedBody}
+            <span className="mt-2 block text-[11px] font-mono uppercase tracking-[0.18em] text-slate-400">
+              {lang === "es" ? "Toque para expandir" : "Tap to expand"}
             </span>
           ) : null}
         </span>
@@ -132,6 +135,7 @@ export function HelpTip({
       </button>
       {open && (
         <div
+          id={`${panelId}-body`}
           className="border-t border-slate-200/70 px-4 pb-4 pt-3 text-sm leading-6 text-slate-700"
           data-testid={`helptip-${safeKey}-body`}
         >
@@ -185,38 +189,23 @@ export function HelpTipBlock({ formKey, kinds, className = "", showCounter = fal
     ? tips.filter((t) => kinds.includes(t.kind))
     : tips;
 
-  // Discoverability counter — single subtle line above the tips block,
-  // shown only when at least 3 tips are available. Operator-approved.
-  const counterLabel =
-    lang === "es"
-      ? `${filtered.length} consejos disponibles · toca para expandir`
-      : `${filtered.length} workflow tips available · tap to expand`;
+  const safeFormKey = formKey.replace(/[^a-z0-9\-]/gi, "-").toLowerCase();
 
   return (
-    <div
-      className={`space-y-1 ${className}`}
-      data-testid={`helptip-block-${formKey.replace(/[^a-z0-9\-]/gi, "-").toLowerCase()}`}
-    >
-      {showCounter && filtered.length >= 3 && (
-        <div
-          className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 pl-1 pb-0.5"
-          data-testid={`helptip-block-${formKey.replace(/[^a-z0-9\-]/gi, "-").toLowerCase()}-counter`}
-        >
-          {counterLabel}
-        </div>
-      )}
-      {filtered.map((t, i) => (
-        <HelpTip
-          key={`${t.form_key}-${t.kind}-${i}`}
-          kind={t.kind}
-          title={t.title}
-          body={t.body}
-          title_es={t.title_es}
-          body_es={t.body_es}
-          testId={`${t.form_key}-${t.kind}`}
-        />
-      ))}
-    </div>
+    <WorkflowCoachingDisclosure
+      blocks={filtered.map((t, i) => ({
+        icon: (KIND_META[t.kind] || KIND_META.why).icon,
+        tone: (KIND_META[t.kind] || KIND_META.why).tone,
+        label: (lang === "es" && t.title_es) ? t.title_es : (t.title || (lang === "es" ? (KIND_META[t.kind] || KIND_META.why).label_es : (KIND_META[t.kind] || KIND_META.why).label_en)),
+        body: (lang === "es" && t.body_es) ? t.body_es : t.body,
+        testId: `helptip-block-${safeFormKey}-tip-${i}`,
+      }))}
+      title={lang === "es" ? "Consejos del flujo de trabajo" : "Workflow tips"}
+      testIdPrefix={`helptip-block-${safeFormKey}`}
+      className={className}
+      defaultOpen={false}
+      collapsedCounterLabel={showCounter && filtered.length >= 3 ? undefined : undefined}
+    />
   );
 }
 

@@ -404,6 +404,7 @@ class EmployeeCreate(BaseModel):
     # iter287 · CDL endorsements + restrictions (structured codes only)
     cdl_endorsements: Optional[List[str]] = None
     cdl_restrictions: Optional[List[str]] = None
+    synthetic_record: Optional[bool] = None
 
     @field_validator("lifecycle_status")
     @classmethod
@@ -1528,6 +1529,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             # iter287 · CDL endorsements + restrictions (structured codes)
             "cdl_endorsements": (body.cdl_endorsements or []),
             "cdl_restrictions": (body.cdl_restrictions or []),
+            "synthetic_record": bool(body.synthetic_record),
             "lifecycle_status": body.lifecycle_status,
             "is_active": _is_active_for_status(body.lifecycle_status),
             "added_via": "hr-portal",

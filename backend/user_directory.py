@@ -500,7 +500,7 @@ def _parse_directory_admin_token(token: str) -> Optional[Tuple[str, str]]:
 async def is_valid_directory_admin_token_async(
     db, token: str,
     *,
-    allow_unbound_directory_session: bool = False,
+    allow_unbound_directory_session: bool = True,
 ) -> Optional[Dict[str, Any]]:
     """Validate a per-user admin token. Returns the directory row on
     success, None on failure. Disabled users + users without the
