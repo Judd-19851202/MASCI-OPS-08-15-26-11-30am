@@ -59,6 +59,20 @@ Primary work first, optional coaching second, diagnostics third, recovery last.
 - Required-warning visibility preserved on the certified Safety corrective-actions surface.
 - No horizontal overflow on the certified coaching routes at the tested widths.
 - English / Spanish coaching disclosure behavior verified on the targeted routes.
+- 2026-08-09 public/supervisor subset verified at **390 + 1440 widths** in **EN + ES** with direct runtime proof:
+  - `/field/calculators`
+  - `/safety/inspections/new`
+  - `/safety/forms/equipment-issuance/new`
+  - `/safety/forms/equipment-training/new`
+  - `/field-leadership/portal/dashboard`
+  - Result on every route: route-specific coaching trigger present, collapsed by default, `aria-expanded=false` before interaction, panel absent until opened, expands correctly, and re-collapses cleanly.
+- 2026-08-09 secure HR/Admin subset also verified at **390 + 1440 widths** in **EN + ES** with direct runtime proof:
+  - `/document-expirations`
+  - `/hr/driver-qualification`
+  - `/hr/payroll-variance`
+  - `/hr/time-off`
+  - `/admin/dispatch`
+  - Result on every route: route-specific coaching trigger present, collapsed by default, `aria-expanded=false` before interaction, panel absent until opened, expands correctly, and re-collapses cleanly.
 
 ## Remaining open denominator
 
@@ -98,9 +112,19 @@ Primary work first, optional coaching second, diagnostics third, recovery last.
 | `/equipment/new` | Public | `HelpDrawer` | `equipment-help-drawer-trigger` | collapsed | No | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | v4 runtime ledger | **REPAIRED + RUNTIME CERTIFIED** |
 | `/fleet/dvir/new` | Public | `HelpDrawer` | `dvir-help-drawer-trigger` | collapsed | No | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | v4 runtime ledger | **REPAIRED + RUNTIME CERTIFIED** |
 | `/meetings/new` | Public | `HelpDrawer` | `meeting-help-drawer-trigger` | collapsed | No | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | v4 runtime ledger | **REPAIRED + RUNTIME CERTIFIED** |
+| `/field/calculators` | Public | `HelpTipBlock` (`material-calculator`) | `helptip-block-material-calculator-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/safety/inspections/new` | Public | `HelpTipBlock` (`inspection`) | `helptip-block-inspection-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/safety/forms/equipment-issuance/new` | Public | `HelpTipBlock` (`equipment-issuance`) | `helptip-block-equipment-issuance-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/safety/forms/equipment-training/new` | Public | `HelpTipBlock` (`equipment-training`) | `helptip-block-equipment-training-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/field-leadership/portal/dashboard` | Field Leadership | `HelpTipBlock` (`field-leadership.portal-dashboard`) | `helptip-block-field-leadership-portal-dashboard-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/document-expirations` | HR | `HelpTipBlock` (`document-expirations`) | `helptip-block-document-expirations-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/hr/driver-qualification` | HR | `HelpTipBlock` (`driver-qualification.dashboard`) | `helptip-block-driver-qualification-dashboard-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/hr/payroll-variance` | HR | `HelpTipBlock` (`payroll-variance`) | `helptip-block-payroll-variance-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/hr/time-off` | HR | `HelpTipBlock` (`time-off-review`) | `helptip-block-time-off-review-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
+| `/admin/dispatch` | Admin | `HelpTipBlock` (`dispatch.handoff`) | `helptip-block-dispatch-handoff-trigger` | collapsed | No | PASS | PASS | PASS | PASS | N/A | N/A | PASS | PASS | direct runtime verification 2026-08-09 | **REPAIRED + RUNTIME CERTIFIED** |
 
 ### Shared-family denominator rows still open
 
-- **Shared `HelpTipBlock` family** now inherits the collapsed-by-default repair, but these routes remain part of the active denominator until they are explicitly runtime-certified or factually exempted: `/document-expirations`, `/field/calculators`, `/field-leadership/portal`, `/field-leadership/portal/change-password`, `/leadership/records`, `/admin/leadership/records`, `/shop/fleet`, `/safety-portal/fleet`, `/hr/driver-qualification`, `/hr/employee-accountability`, `/hr/field-leadership`, `/hr/field-leadership-users`, `/hr/payroll-variance`, `/hr/time-off`, `/hr/time-verification`, `/safety/inspections/new`, `/qaqc/:slug/new`, `/safety/forms/equipment-issuance/new`, `/safety/forms/equipment-training/new`, `/safety-portal/documents`, `/safety-portal/fire-extinguishers`, `/safety-portal/library`, `/safety-portal/training`, `/admin/dispatch`, plus other route-specific `HelpTip` / `HelpTipBlock` consumers already mapped in source.
+- **Shared `HelpTipBlock` family** now inherits the collapsed-by-default repair, but these routes remain part of the active denominator until they are explicitly runtime-certified or factually exempted: `/field-leadership/portal/change-password`, `/leadership/records`, `/admin/leadership/records`, `/shop/fleet`, `/safety-portal/fleet`, `/hr/employee-accountability`, `/hr/field-leadership`, `/hr/field-leadership-users`, `/hr/time-verification`, `/qaqc/:slug/new`, `/safety-portal/documents`, `/safety-portal/fire-extinguishers`, `/safety-portal/library`, `/safety-portal/training`, plus other route-specific `HelpTip` / `HelpTipBlock` consumers already mapped in source.
 - **Shared `LifecycleGuide` family** now inherits the collapsed-by-default repair, but these routes remain part of the active denominator until explicitly closed: `/admin/dls/shift-qr`, `/admin/operational-language`, `/admin/incidents/:id`, `/pm/incidents/:id`, `/safety-portal/incidents/:id`, `/hr/employees/:id/accountability`.
 - **Shared `HelpDrawer` family** is currently collapsed by explicit trigger (drawer closed until opened) on `/incidents/report`, `/equipment/new`, `/equipment/submit`, `/fleet/dvir/new`, `/fleet/dvir/submit`, `/fleet/weekly-lead/new`, `/fleet/weekly-emergency/new`, `/meetings/new`, `/meetings/submit`; these remain current denominator rows for route-by-route runtime spot certification.
