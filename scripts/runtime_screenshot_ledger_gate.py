@@ -24,7 +24,7 @@ LEDGER_CSV = LEDGER_DIR / "ledger.csv"
 LEDGER_JSON = LEDGER_DIR / "ledger.json"
 SYSTEM_CHROMIUM = Path("/root/bin/chromium")
 CACHE_MAX_AGE_SECONDS = 60 * 60
-QUALITY_CONTRACT_VERSION = "wp18db-product-quality-v2"
+QUALITY_CONTRACT_VERSION = "wp18db-product-quality-v3"
 
 GLOBAL_FORBIDDEN_TEXT = [
     "This page has moved",
@@ -127,7 +127,7 @@ def _pm_project_number(base_url: str, pm_email: str, pm_password: str) -> str:
     raise RuntimeError("No PM project number available for screenshot ledger")
 
 
-def _admin_tokens(base_url: str, admin_email: str, admin_password: str) -> tuple[str, str]:
+def _admin_tokens(base_url: str, admin_email: str, admin_password: str) -> tuple[str, str, dict[str, Any]]:
     response = _request_with_retry(
         "post",
         f"{base_url}/api/auth/multi-login",
@@ -142,7 +142,34 @@ def _admin_tokens(base_url: str, admin_email: str, admin_password: str) -> tuple
     directory_token = payload.get("session_token") or payload.get("directory_token") or ""
     if not admin_token:
         raise RuntimeError("Admin token missing for runtime screenshot ledger")
-    return admin_token, directory_token
+    return admin_token, directory_token, payload.get("user") or {}
+
+
+def _warm_surface_data(base_url: str, surface: Surface, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> None:
+    warm_admin_path = surface.checks.get("warm_admin_path")
+    if warm_admin_path:
+        admin_token, directory_token, _user = _admin_tokens(base_url, admin_creds[0], admin_creds[1])
+        headers = {"X-Admin-Token": admin_token}
+        if directory_token:
+            headers["X-Directory-Token"] = directory_token
+        response = _request_with_retry("get", f"{base_url}{warm_admin_path}", headers=headers, timeout=90)
+        response.raise_for_status()
+
+    warm_pm_path = surface.checks.get("warm_pm_path")
+    if warm_pm_path:
+        project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
+        response = _request_with_retry(
+            "post",
+            f"{base_url}/api/pm/login",
+            json={"email": pm_creds[0], "password": pm_creds[1]},
+            headers={"X-Device-Id": "runtime-ledger-pm-warm", "X-Test-Rate-Limit-Bypass": "1"},
+            timeout=120,
+        )
+        response.raise_for_status()
+        pm_token = response.json().get("token") or response.json().get("access_token") or ""
+        path = str(warm_pm_path).replace("{project_number}", project_number)
+        response = _request_with_retry("get", f"{base_url}{path}", headers={"X-PM-Token": pm_token}, timeout=90)
+        response.raise_for_status()
 
 
 def _request_with_retry(method: str, url: str, **kwargs):
@@ -213,7 +240,7 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
                 "must_include_es": ["Condición actual del portafolio"],
                 "must_exclude": ["plain English", "Project support", "Operations support", "Project details unavailable"],
                 "selector": "[data-testid='portfolio-attention-primary-card']",
-                "needs_dialog": True,
+                "warm_admin_path": "/api/admin/governance/project-controls/portfolio-intelligence",
             },
         ),
         Surface(
@@ -347,43 +374,50 @@ def _wait_for_surface_ready(page, surface: Surface) -> None:
         except Exception:
             pass
     try:
-        page.wait_for_load_state("networkidle", timeout=8000)
+        page.wait_for_load_state("load", timeout=2500)
     except Exception:
         pass
-    page.wait_for_timeout(1200)
+    page.wait_for_timeout(900)
+
+
+def _wait_for_hydration_clear(page, role: str) -> None:
+    selector = f"[data-testid='portal-hydrating-{role}']"
+    try:
+        if page.locator(selector).count() > 0:
+            page.wait_for_selector(selector, state="detached", timeout=12000)
+    except Exception:
+        try:
+            page.wait_for_timeout(1800)
+        except Exception:
+            pass
 
 
 def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> None:
     page = context.new_page()
-    _goto(page, base_url)
     if role == "admin":
-        admin_token, directory_token = _admin_tokens(base_url, admin_creds[0], admin_creds[1])
-        page.evaluate(
-            """
-            ([adminToken, directoryToken]) => {
-              localStorage.setItem('masci.admin.token', adminToken);
-              if (directoryToken) {
-                localStorage.setItem('masci.directory.token', directoryToken);
-                localStorage.setItem('masci.directory.remember', '1');
-              }
-            }
-            """,
-            [admin_token, directory_token],
+        _goto(page, f"{base_url}/admin/login")
+        page.wait_for_timeout(600)
+        if "/admin/login" in page.url:
+            page.locator('[data-testid="admin-email-input"]').fill(admin_creds[0])
+            page.locator('[data-testid="admin-password-input"]').fill(admin_creds[1])
+            page.locator('[data-testid="admin-login-submit"]').click(force=True)
+        page.wait_for_function(
+            "() => !!window.localStorage.getItem('masci.admin.token') && !!window.localStorage.getItem('masci.directory.token')",
+            timeout=20000,
         )
+        page.wait_for_timeout(1200)
     elif role == "pm":
-        response = _request_with_retry(
-            "post",
-            f"{base_url}/api/pm/login",
-            json={"email": pm_creds[0], "password": pm_creds[1]},
-            headers={"X-Device-Id": "runtime-ledger-pm-browser", "X-Test-Rate-Limit-Bypass": "1"},
-            timeout=120,
+        _goto(page, f"{base_url}/pm/login")
+        page.wait_for_timeout(600)
+        if "/pm/login" in page.url:
+            page.locator('[data-testid="pm-email-input"]').fill(pm_creds[0])
+            page.locator('[data-testid="pm-password-input"]').fill(pm_creds[1])
+            page.locator('[data-testid="pm-login-submit"]').click(force=True)
+        page.wait_for_function(
+            "() => !!window.localStorage.getItem('masci.pm.token')",
+            timeout=20000,
         )
-        response.raise_for_status()
-        payload = response.json()
-        token = payload.get("token") or payload.get("access_token") or ""
-        if not token:
-            raise RuntimeError("PM token missing for runtime screenshot ledger")
-        page.evaluate("(token) => localStorage.setItem('masci.pm.token', token)", token)
+        page.wait_for_timeout(1200)
     page.close()
 
 
@@ -471,16 +505,29 @@ def _certify_surface(page, surface: Surface, lang: str, width: int) -> tuple[str
     return (("PASS", "none", criteria) if not problems else ("FAIL", ";".join(problems), criteria))
 
 
-def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: str, screenshot_dir: Path) -> dict[str, Any]:
+def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: str, screenshot_dir: Path, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> dict[str, Any]:
     page.set_viewport_size({"width": width, "height": 800})
     _goto(page, f"{base_url}{surface.route}")
     if surface.role in {"admin", "pm"}:
         page.wait_for_timeout(1200)
+        _wait_for_hydration_clear(page, surface.role)
+        if "/login" in page.url or "/sign-in" in page.url:
+            _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds)
+            _goto(page, f"{base_url}{surface.route}")
+            page.wait_for_timeout(1200)
+            _wait_for_hydration_clear(page, surface.role)
     if surface.state_kind == "shared_confirmation":
         _prime_confirmation_state(page)
     _set_lang(page, lang)
     page.reload(wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(2200)
+    if surface.role in {"admin", "pm"}:
+        _wait_for_hydration_clear(page, surface.role)
+    if surface.role in {"admin", "pm"} and ("/login" in page.url or "/sign-in" in page.url):
+        _prime_context_with_tokens(page.context, base_url, surface.role, admin_creds, pm_creds)
+        _goto(page, f"{base_url}{surface.route}")
+        page.wait_for_timeout(1200)
+        _wait_for_hydration_clear(page, surface.role)
     if surface.state_kind == "shared_confirmation":
         _prime_confirmation_state(page)
     _wait_for_surface_ready(page, surface)
@@ -511,19 +558,33 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
     }
 
 
-def run() -> dict[str, Any]:
+def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
     base_url = _base_url()
     current_release_identity = _release_identity()
+    admin_creds = _admin_creds()
+    pm_creds = _pm_creds()
+    pm_project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
+    surfaces = _surface_inventory(pm_project_number)
+    if surface_keys:
+        wanted = set(surface_keys)
+        surfaces = [surface for surface in surfaces if surface.key in wanted]
+        if not surfaces:
+            raise RuntimeError(f"No screenshot-ledger surfaces matched: {', '.join(surface_keys)}")
+    expected_entries = sum(len(surface.languages) * len(surface.viewports) for surface in surfaces)
     if LEDGER_JSON.exists():
         try:
             cached = json.loads(LEDGER_JSON.read_text(encoding="utf-8"))
             generated_at = datetime.fromisoformat(str(cached.get("generated_at") or "").replace("Z", "+00:00"))
             age_seconds = (datetime.now(timezone.utc) - generated_at).total_seconds()
             if (
+                not surface_keys
+                and
                 cached.get("release_identity") == current_release_identity
                 and cached.get("decision") == "pass"
                 and age_seconds <= CACHE_MAX_AGE_SECONDS
                 and Path(REPO_ROOT / str(cached.get("ledger_csv") or "")).exists()
+                and not cached.get("requested_surface_keys")
+                and int(cached.get("entries") or 0) == expected_entries
             ):
                 return {
                     "generated_at": cached.get("generated_at"),
@@ -539,10 +600,6 @@ def run() -> dict[str, Any]:
                 }
         except Exception:
             pass
-    admin_creds = _admin_creds()
-    pm_creds = _pm_creds()
-    pm_project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
-    surfaces = _surface_inventory(pm_project_number)
 
     if LEDGER_DIR.exists():
         shutil.rmtree(LEDGER_DIR)
@@ -564,11 +621,16 @@ def run() -> dict[str, Any]:
         _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds)
 
         for surface in surfaces:
+            try:
+                _warm_surface_data(base_url, surface, admin_creds, pm_creds)
+            except Exception as exc:
+                print(f"warmup failed for {surface.key}: {exc}", flush=True)
             ctx = contexts[surface.role]
             for lang in surface.languages:
                 for width in surface.viewports:
+                    print(f"capturing {surface.key} role={surface.role} lang={lang} width={width}", flush=True)
                     page = ctx.new_page()
-                    rows.append(_capture_surface(page, surface, base_url, width, lang, screenshots_dir))
+                    rows.append(_capture_surface(page, surface, base_url, width, lang, screenshots_dir, admin_creds, pm_creds))
                     page.close()
 
         browser.close()
@@ -584,6 +646,7 @@ def run() -> dict[str, Any]:
         "base_url": base_url,
         "release_identity": current_release_identity,
         "quality_contract_version": QUALITY_CONTRACT_VERSION,
+        "requested_surface_keys": list(surface_keys or []),
         "ledger_csv": str(LEDGER_CSV.relative_to(REPO_ROOT)),
         "entries": len(rows),
         "failures": len(failures),
@@ -608,8 +671,9 @@ def run() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
-    _ = parser.parse_args()
-    payload = run()
+    parser.add_argument("--surface-key", action="append", dest="surface_keys")
+    args = parser.parse_args()
+    payload = run(args.surface_keys)
     print(json.dumps(payload, indent=2))
     return 0 if payload["decision"] == "pass" else 1
 

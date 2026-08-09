@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, Request
@@ -130,6 +131,12 @@ async def governance_project_scope_numbers(db, actor: Any) -> Optional[List[str]
         return None
     if not isinstance(actor, dict):
         return []
+    email = str(actor.get("email") or "").strip().lower()
+    configured_super_email = str(os.environ.get("SUPER_ADMIN_EMAIL") or "").strip().lower()
+    if configured_super_email and email == configured_super_email:
+        return None
+    if actor.get("is_super_admin") is True:
+        return None
     resolved = await resolve_governance_actor_context(db, actor)
     if str(resolved.get("governance_scope_mode") or "") == "global":
         return None

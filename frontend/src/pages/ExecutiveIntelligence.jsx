@@ -391,7 +391,7 @@ export default function ExecutiveIntelligence() {
                         {row.incident_type} · {row.state}
                       </span>
                       <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500 ml-auto">
-                        {t("Open")} {row.days_open ?? "—"}d · {t("CAPA open")} {row.capa_open || 0}
+                        {t("Open")} {row.days_open ?? "—"}d · {t("Corrective actions open")} {row.capa_open || 0}
                       </span>
                     </button>
                   </li>

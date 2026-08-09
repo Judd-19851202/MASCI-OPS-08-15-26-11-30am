@@ -288,7 +288,7 @@ export default function ExecutiveCaseReport() {
         </Section>
 
         {/* CAPA */}
-        <Section title={t("Corrective Actions (CAPA)")} icon={ShieldCheck} testId="capa">
+        <Section title={t("Corrective Actions")} icon={ShieldCheck} testId="capa">
           {(capa.items || []).length === 0 ? <NotDocumented /> : (
             <>
               <ul className="space-y-1.5" data-testid="exec-report-capa-list">
@@ -404,7 +404,7 @@ export default function ExecutiveCaseReport() {
           <dl>
             <Field label={t("Days open")} value={ops.days_open} testId="ops-days-open" />
             <Field label={t("Time to intake (days)")} value={ops.time_to_intake_days} testId="ops-tt-intake" />
-            <Field label={t("Time to CAPA (days)")} value={ops.time_to_capa_days} testId="ops-tt-capa" />
+            <Field label={t("Time to corrective action (days)")} value={ops.time_to_capa_days} testId="ops-tt-capa" />
             <Field label={t("Time to closure (days)")} value={ops.time_to_closure_days} testId="ops-tt-close" />
           </dl>
         </Section>

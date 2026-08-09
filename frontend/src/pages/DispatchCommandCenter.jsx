@@ -191,7 +191,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
         <OvRow k="Active" v={fleet.active} testId="ov-fleet-active" />
         <OvRow k="Out of service" v={fleet.oos} testId="ov-fleet-oos" />
         <OvRow k="In shop" v={fleet.in_shop} testId="ov-fleet-in-shop" />
-        <OvRow k="Unmapped (Motive)" v={fleet.unmapped} testId="ov-fleet-unmapped" />
+        <OvRow k="Unlinked location feeds" v={fleet.unmapped} testId="ov-fleet-unmapped" />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-driver-card">
@@ -237,13 +237,13 @@ function OverviewPane({ summary, loading, onJumpTo }) {
         <OvRow k="Total" v={ah.total_assets} testId="ov-ah-total" />
         <OvRow k="Active" v={ah.active} testId="ov-ah-active" />
         <OvRow k="Retired" v={ah.retired} testId="ov-ah-retired" />
-        <OvRow k="Motive coverage" v={ah.motive_coverage_pct != null ? `${ah.motive_coverage_pct}%` : "—"} testId="ov-ah-coverage" />
+        <OvRow k="Location feed coverage" v={ah.motive_coverage_pct != null ? `${ah.motive_coverage_pct}%` : "—"} testId="ov-ah-coverage" />
         <OvRow k="Conflicts" v={ah.conflicts} testId="ov-ah-conflicts" />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-integration-card">
         <h3 className="font-display text-sm font-black text-slate-900 mb-1.5">Integrations</h3>
-        <OvRow k="Motive" v={ir.motive || "—"} mono={false} testId="ov-int-motive" />
+        <OvRow k="Location feed" v={ir.motive || "—"} mono={false} testId="ov-int-motive" />
         <OvRow k="FleetWatcher" v={ir.fleetwatcher === "not_connected" ? "Pending Integration" : ir.fleetwatcher} mono={false} testId="ov-int-fleetwatcher" />
         <OvRow k="MaintainX" v={ir.maintainx === "not_connected" ? "Pending Integration" : ir.maintainx} mono={false} testId="ov-int-maintainx" />
         <OvRow k="SMS provider" v={ir.sms_provider === "active" ? "Active" : "Not Configured"} mono={false} testId="ov-int-sms" />

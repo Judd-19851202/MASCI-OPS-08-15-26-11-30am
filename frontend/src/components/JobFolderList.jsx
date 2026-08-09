@@ -239,7 +239,7 @@ export default function JobFolderList({
                     <div className="flex items-center gap-2 flex-wrap">
                       {folder.number !== "—" && (
                         <span className="inline-flex items-center px-2 py-0.5 bg-slate-800 text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
-                          #{sanitizeOperatorProjectNumber(folder.number, "Project support")}
+                          #{sanitizeOperatorProjectNumber(folder.number, "Project number unavailable")}
                         </span>
                       )}
                       <span className="font-display text-base sm:text-lg font-bold text-slate-900 truncate">

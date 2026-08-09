@@ -578,7 +578,7 @@ function CoachingBlock({ collapsed, onToggle, t }) {
           <CoachLi>{t("Driver taps create the live operating record.")}</CoachLi>
           <CoachLi>{t("PMs see production awareness only.")}</CoachLi>
           <CoachLi>{t("Shop sees breakdown continuity only.")}</CoachLi>
-          <CoachLi>{t("Motive validates later — it does not replace the driver.")}</CoachLi>
+          <CoachLi>{t("The location feed validates later — it does not replace the driver.")}</CoachLi>
         </ul>
       </div>
     </section>

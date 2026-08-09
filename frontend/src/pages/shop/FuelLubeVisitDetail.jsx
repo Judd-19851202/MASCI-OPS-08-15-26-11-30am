@@ -66,7 +66,7 @@ export default function FuelLubeVisitDetail() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, fontSize: 12 }}>
                 <div>Visit #: <strong>{visit.doc_id || visit.id || "—"}</strong></div>
                 <div>Date: <strong>{visit.visit_date}</strong></div>
-                <div>Project: <strong>{sanitizeOperatorProjectNumber(visit.project_number, "Project support") || "—"}</strong>{visit.project_name ? ` · ${sanitizeOperatorReference(visit.project_name, "Project details")}` : ""}</div>
+                <div>Project: <strong>{sanitizeOperatorProjectNumber(visit.project_number, "Project number unavailable") || "—"}</strong>{visit.project_name ? ` · ${sanitizeOperatorReference(visit.project_name, "Project details")}` : ""}</div>
                 <div>Truck: <strong>{visit.fuel_lube_truck_unit || "—"}</strong></div>
                 <div>Tech: <strong>{sanitizeOperatorReference(visit.fuel_lube_tech_name, "Tech record") || "—"}</strong>{visit.fuel_lube_tech_id ? ` (${visit.fuel_lube_tech_id})` : ""}</div>
                 <div>Arrival → Departure: <strong>{visit.arrival_time || "—"}</strong> → <strong>{visit.departure_time || "—"}</strong></div>

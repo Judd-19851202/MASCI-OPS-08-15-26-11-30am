@@ -14,9 +14,7 @@
 // The banner is dismissible for the current session (per-tab). Any
 // future visit re-shows the banner until Phase E sunsets the legacy
 // route entirely.
-import React, { useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { lookupLegacyRoute } from "@/app/routing/legacyRedirects";
+import React from "react";
 
 const SESSION_KEY_PREFIX = "masci.aos.banner.dismissed:";
 
@@ -43,72 +41,7 @@ function markDismissed(pathname) {
 }
 
 export function LegacyMovedBanner({ pathname }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const activePath = pathname || location.pathname;
-  const entry = useMemo(() => lookupLegacyRoute(activePath), [activePath]);
-  const [dismissed, setDismissed] = useState(() =>
-    isDismissedForRoute(activePath),
-  );
-
-  if (!entry) return null;
-  if (dismissed) return null;
-
-  const openCanonical = () => {
-    navigate(entry.canonical);
-  };
-
-  const dismiss = () => {
-    markDismissed(activePath);
-    setDismissed(true);
-  };
-
-  return (
-    <div
-      role="status"
-      className="w-full border-b border-amber-300 bg-amber-50"
-      data-testid="legacy-moved-banner"
-      data-legacy-path={activePath}
-      data-canonical-path={entry.canonical}
-    >
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:py-2 flex flex-col sm:flex-row sm:items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold uppercase tracking-widest text-amber-800">
-            Primary workspace available
-          </div>
-          <div className="mt-0.5 text-sm text-amber-900">
-            <span className="font-semibold">
-              {entry.canonicalTitle || "Operations Control"}
-            </span>{" "}
-            is the primary workspace for this work.{" "}
-            <span className="text-amber-800">{entry.reason}</span>
-          </div>
-          <div className="mt-1 text-[11px] text-amber-800/80">
-            This route still works, so existing bookmarks and operator links stay intact.
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={openCanonical}
-            className="rounded-md border border-amber-600 bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
-            data-testid="legacy-moved-banner-open-canonical"
-          >
-            Open primary workspace
-          </button>
-          <button
-            type="button"
-            onClick={dismiss}
-            className="rounded-md border border-amber-300 bg-white px-2 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100"
-            data-testid="legacy-moved-banner-dismiss"
-            aria-label="Dismiss for this session"
-          >
-            Hide for now
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 // Wrapper that prepends the banner in front of the legacy page's own

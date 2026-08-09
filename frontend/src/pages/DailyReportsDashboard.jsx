@@ -243,7 +243,7 @@ export default function DailyReportsDashboard() {
               defaultOpenFirst
               renderItem={(it) => {
                 const safeProjectLabel = formatOperatorJobLabel(it.project_number, it.project_name || jobsMaster[(it.project_number || "").trim()] || it.project_number);
-                const safeProjectNumber = sanitizeOperatorProjectNumber(it.project_number, "Project support");
+                const safeProjectNumber = sanitizeOperatorProjectNumber(it.project_number, "Project number unavailable");
                 return (
                 <div
                   onClick={() => navigate(`${dailyReportDetailBase}/${it.id}`)}

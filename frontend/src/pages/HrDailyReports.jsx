@@ -215,7 +215,7 @@ export default function HrDailyReports() {
                 {items.map((r, idx) => (
                   (() => {
                     const safeProjectName = sanitizeOperatorProjectName(r.project_name, "Project details");
-                    const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Project support");
+                    const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Project number unavailable");
                     const safePmName = sanitizeOperatorReference(r.pm_name, "Project manager");
                     const safeSuperintendent = sanitizeOperatorReference(r.superintendent, "Superintendent");
                     const safePreparedBy = sanitizeOperatorReference(r.prepared_by, "Field record");

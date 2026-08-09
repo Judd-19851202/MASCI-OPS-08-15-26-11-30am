@@ -214,7 +214,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
           <CardHeader className="pb-4"><CardTitle>Project & Operator</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <KV label="Project" value={sanitizeOperatorReference(data.project_name, "Project details")} />
-            <KV label="Project #" value={sanitizeOperatorProjectNumber(data.project_number, "Project support")} />
+            <KV label="Project #" value={sanitizeOperatorProjectNumber(data.project_number, "Project number unavailable")} />
             <KV label="Location" value={sanitizeOperatorReference(data.location, "—")} full />
             <KV label="Operator" value={sanitizeOperatorReference(formatEmployeeIdentity(data) || data.operator_name, "Operator record")} />
             <KV label="Date / Time" value={`${data.inspection_date} ${data.inspection_time}`} />

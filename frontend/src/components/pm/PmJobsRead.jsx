@@ -136,7 +136,7 @@ export default function PmJobsRead() {
               <tbody>
                 {filtered.map((j) => (
                   (() => {
-                    const safeProjectNumber = sanitizeOperatorProjectNumber(j.project_number, "Project support");
+                    const safeProjectNumber = sanitizeOperatorProjectNumber(j.project_number, "Project number unavailable");
                     const safeProjectName = sanitizeOperatorProjectName(j.project_name, "Project details");
                     const safeLocation = sanitizeOperatorReference(j.location, "Project yard");
                     const safeManager = sanitizeOperatorReference(j.project_manager, "Assigned PM");

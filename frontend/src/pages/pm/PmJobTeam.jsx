@@ -11,7 +11,7 @@ import { sanitizeOperatorProjectNumber } from "@/lib/operatorLanguage";
 
 export default function PmJobTeam() {
   const { projectNumber } = useParams();
-  const safeProjectNumber = sanitizeOperatorProjectNumber(projectNumber, "Project support");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(projectNumber, "Project number unavailable");
   return (
     <PortalShell portal="pm" title={`Job Team — ${safeProjectNumber}`}>
       <div className="space-y-4 p-4">

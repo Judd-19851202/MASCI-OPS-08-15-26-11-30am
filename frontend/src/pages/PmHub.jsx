@@ -295,7 +295,7 @@ export default function PmHub() {
                   <h3 className="text-base font-semibold text-slate-900">Crew Compliance</h3>
                   <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">180-day scope</span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">Training currency, PPE, CAPA exposure, expirations.</p>
+                <p className="text-xs text-slate-500 mt-0.5">Training currency, PPE, corrective-action exposure, expirations.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
                   <div data-testid="pm-crew-card-tile-crew">
                     <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 flex items-center gap-1">
@@ -317,7 +317,7 @@ export default function PmHub() {
                   </div>
                   <div data-testid="pm-crew-card-tile-capas">
                     <div className={`text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 ${crewSummary?.open_capas ? "text-amber-700" : "text-slate-500"}`}>
-                      <ClipboardCheck className="w-3 h-3" /> Open CAPAs
+                      <ClipboardCheck className="w-3 h-3" /> Open Corrective Actions
                     </div>
                     <div className={`text-xl font-semibold mt-0.5 ${crewSummary?.open_capas ? "text-amber-700" : "text-slate-900"}`}>{crewSummary?.open_capas ?? "—"}</div>
                   </div>
@@ -438,7 +438,7 @@ export default function PmHub() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-1">
-                  Operational accountability awareness for crews on your projects — training currency, PPE, CAPA exposure, expirations.
+                  Operational accountability awareness for crews on your projects — training currency, PPE, corrective-action exposure, expirations.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-3" data-testid="pm-crew-compliance-card-tiles">
                   <div data-testid="pm-crew-card-tile-crew">
@@ -467,7 +467,7 @@ export default function PmHub() {
                   </div>
                   <div data-testid="pm-crew-card-tile-capas">
                     <div className={`font-mono text-[10px] uppercase tracking-[0.18em] font-bold flex items-center gap-1 ${crewSummary?.open_capas ? "text-amber-700" : "text-slate-500"}`}>
-                      <ClipboardCheck className="w-3 h-3" /> Open CAPAs
+                      <ClipboardCheck className="w-3 h-3" /> Open Corrective Actions
                     </div>
                     <div className={`font-display text-2xl font-black leading-none mt-1 ${crewSummary?.open_capas ? "text-amber-700" : "text-slate-900"}`}>
                       {crewSummary?.open_capas ?? "—"}

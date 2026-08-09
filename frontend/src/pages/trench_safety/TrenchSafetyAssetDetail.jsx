@@ -129,7 +129,7 @@ export default function TrenchSafetyAssetDetail() {
     () => (allDeps || []).map((d) => ({
       id: d.id,
       project: sanitizeOperatorReference(d.project_name, "Project details") || "—",
-      projectNumber: sanitizeOperatorProjectNumber(d.project_number, "Project support") || "—",
+      projectNumber: sanitizeOperatorProjectNumber(d.project_number, "Project number unavailable") || "—",
       superintendent: d.superintendent || "—",
       foreman: d.foreman || "—",
       assignedBy: sanitizeOperatorReference(d.assigned_by, "—") || "—",
@@ -288,7 +288,7 @@ export default function TrenchSafetyAssetDetail() {
               <Field label={t("Status")}            value={t(doc.operational_status || "Available")} testId="f-status" />
               <Field label={t("Current Location")}  value={doc.current_location} testId="f-location" />
               <Field label={t("Current Project")}   value={sanitizeOperatorReference(doc.current_project_name, "—")} testId="f-project" />
-              <Field label={t("Project Number")}    value={sanitizeOperatorProjectNumber(doc.current_project_number, "Project support")} mono testId="f-project-number" />
+              <Field label={t("Project Number")}    value={sanitizeOperatorProjectNumber(doc.current_project_number, "Project number unavailable")} mono testId="f-project-number" />
               <Field label={t("Superintendent")}    value={doc.current_superintendent} testId="f-superintendent" />
               <Field label={t("Foreman")}           value={doc.current_foreman} testId="f-foreman" />
               <Field label={t("Yard")}              value={doc.yard_location} testId="f-yard" />

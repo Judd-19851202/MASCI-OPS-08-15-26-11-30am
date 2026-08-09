@@ -163,7 +163,7 @@ export default function ServiceTruckReconciliationDetail() {
                     <Link key={v.id} to={`/shop/fuel-lube/${v.id}`}
                           data-testid={`strr-detail-visit-${v.id}`}
                           style={{ display: "block", padding: 8, background: "#f6f6f6", borderRadius: 3, textDecoration: "none", color: "inherit", fontSize: 12 }}>
-                      <strong>{v.id}</strong> · Project {sanitizeOperatorProjectNumber(v.project_number, "Project support") || "—"} · Tech {sanitizeOperatorReference(v.fuel_lube_tech_name, "Tech record") || "—"} ·
+                      <strong>{v.id}</strong> · Project {sanitizeOperatorProjectNumber(v.project_number, "Project number unavailable") || "—"} · Tech {sanitizeOperatorReference(v.fuel_lube_tech_name, "Tech record") || "—"} ·
                       Units serviced {v.units_serviced} · Issues {v.issues_found_count || 0} ·
                       Red diesel {Number(v.totals?.red_diesel_gallons || 0).toFixed(1)} gal ·
                       DEF {Number(v.totals?.def_gallons || 0).toFixed(1)} gal

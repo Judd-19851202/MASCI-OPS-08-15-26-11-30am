@@ -708,6 +708,33 @@ async def _super_admin_row_for_token_async(token: Optional[str]) -> Optional[Dic
     return None
 
 
+async def _linked_directory_super_admin_for_pm_doc(pm_doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not isinstance(pm_doc, dict):
+        return None
+    if not pm_doc.get("linked_to_directory"):
+        return None
+    email = str(pm_doc.get("email") or "").strip().lower()
+    if not email:
+        return None
+    configured_super_email = str(os.environ.get("SUPER_ADMIN_EMAIL") or "").strip().lower()
+    if configured_super_email and email == configured_super_email:
+        return {
+            "email": email,
+            "is_super_admin": True,
+            "active_roles": ["system_administrator"],
+            "portals": ["admin", "pm", "hr", "safety", "dispatch", "shop", "field"]
+        }
+    try:
+        row = await db.user_directory.find_one({"email": email}, {"_id": 0})
+    except Exception:
+        return None
+    if not row or row.get("disabled"):
+        return None
+    if row.get("is_super_admin") is True:
+        return row
+    return None
+
+
 async def _is_valid_super_admin_token_async(token: Optional[str]) -> bool:
     return (await _super_admin_row_for_token_async(token)) is not None
 
@@ -910,6 +937,16 @@ async def require_admin_async(
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
                 enforce_password_change_required(request, pm_doc)
+                linked_super_admin = await _linked_directory_super_admin_for_pm_doc(pm_doc)
+                if linked_super_admin:
+                    return {
+                        **pm_doc,
+                        **linked_super_admin,
+                        "_actor_kind": "pm_user",
+                        "_actor": "pm",
+                        "role": "pm",
+                        "_auth_path": "pm_token_linked_super_admin",
+                    }
                 return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
         # TRACK 15.32 — legacy shared-PM token path retired.
     if admin_namespace:
@@ -931,6 +968,16 @@ async def require_pm_portal_or_super_admin(
         pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
         if pm_doc:
             enforce_password_change_required(request, pm_doc)
+            linked_super_admin = await _linked_directory_super_admin_for_pm_doc(pm_doc)
+            if linked_super_admin:
+                return {
+                    **pm_doc,
+                    **linked_super_admin,
+                    "_actor_kind": "pm_user",
+                    "_actor": "pm",
+                    "role": "pm",
+                    "_auth_path": "pm_token_linked_super_admin",
+                }
             return pm_doc
     raise HTTPException(status_code=401, detail="PM login required")
 
@@ -947,6 +994,16 @@ async def require_pm_portal_or_super_admin_async(
         pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
         if pm_doc:
             enforce_password_change_required(request, pm_doc)
+            linked_super_admin = await _linked_directory_super_admin_for_pm_doc(pm_doc)
+            if linked_super_admin:
+                return {
+                    **pm_doc,
+                    **linked_super_admin,
+                    "_actor_kind": "pm_user",
+                    "_actor": "pm",
+                    "role": "pm",
+                    "_auth_path": "pm_token_linked_super_admin",
+                }
             return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
     raise HTTPException(status_code=401, detail="PM login required")
 

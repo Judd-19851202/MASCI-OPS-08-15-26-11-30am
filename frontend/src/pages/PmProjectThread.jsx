@@ -78,7 +78,7 @@ function missionAdapter({ job, recent, oi }) {
   const pm          = sanitizeOperatorReference(job?.project_manager, "—") || "—";
   const superintendent = sanitizeOperatorReference(recent?.superintendent, "—") || "—";
   const sourceDate = recent?.source_report_date || null;
-  const safeProjectNumber = sanitizeOperatorProjectNumber(job?.project_number, "Project support");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(job?.project_number, "Project number unavailable");
 
   // Health derives client-side ONLY from the certified OI attention
   // level — no new scoring is invented. Plain-English "Why" mirrors
@@ -326,7 +326,7 @@ function documentsAdapter(jhaItems) {
 export default function PmProjectThread() {
   const { projectNumber } = useParams();
   const pn = (projectNumber || "").trim();
-  const safePn = sanitizeOperatorProjectNumber(pn, "Project support");
+  const safePn = sanitizeOperatorProjectNumber(pn, "Project number unavailable");
   const allowed = isPm() || isAdmin();
 
   const [state, setState] = useState({

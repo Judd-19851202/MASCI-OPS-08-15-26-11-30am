@@ -381,7 +381,7 @@ export default function PmHubV2() {
               to="/pm/due-today"
               testid="pm-hub-v2-queue-due-today"
               title="Due Today"
-              why="CAPAs dated today + Daily Reports for today awaiting your verify"
+              why="Corrective actions dated today + Daily Reports for today awaiting your verify"
               source="Live count · real deadlines for today"
               value={s.due_today}
               loaded={s.loaded}
@@ -408,7 +408,7 @@ export default function PmHubV2() {
             <QueueCard
               to="/pm/incidents?tab=capas"
               testid="pm-hub-v2-queue-capas"
-              title="CAPAs Due"
+              title="Corrective Actions Due"
               why="Open corrective actions awaiting close-out"
               source="Live count · open corrective actions"
               value={s.capas_due}
@@ -549,7 +549,7 @@ export default function PmHubV2() {
           >
             <EmptyState
               title="All PM queues are clear."
-              explanation="No daily reports awaiting verify · no incidents awaiting verify · no open CAPAs · no open constraints · no QA/QC action."
+              explanation="No daily reports awaiting verify · no incidents awaiting verify · no open corrective actions · no open constraints · no QA/QC action."
               severity="good"
             />
           </Section>

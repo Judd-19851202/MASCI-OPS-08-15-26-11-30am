@@ -385,7 +385,7 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
               );
               return (
                 (() => {
-                  const safeFolderNumber = sanitizeOperatorProjectNumber(folder.number, "Project support");
+                  const safeFolderNumber = sanitizeOperatorProjectNumber(folder.number, "Project number unavailable");
                   const safeFolderLabel = formatOperatorJobLabel(folder.number, folder.name);
                   return (
                 <li

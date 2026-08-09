@@ -82,7 +82,7 @@ export default function PmSafetyImpactBoard({ projectNumber }) {
 
       {capas.length > 0 ? (
         <div className="space-y-1.5 mt-4">
-          <h3 className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Corrective Actions (CAPAs)</h3>
+          <h3 className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Corrective Actions</h3>
           <div className="overflow-x-auto -mx-3 sm:mx-0">
             <table className="w-full min-w-[700px] text-xs sm:text-sm">
               <thead>

@@ -32,7 +32,7 @@ function authHeaders() {
 }
 
 function kindLabel(kind) {
-  if (kind === "capa") return "CAPA";
+  if (kind === "capa") return "Corrective Action";
   if (kind === "daily_report_pending") return "Daily Report";
   return kind || "—";
 }
@@ -152,7 +152,7 @@ export default function PmDueTodayV2() {
         portalName="MASCI"
         portalRole="PM Portal · Due Today"
         pageTitle={`What is due today on your projects?${asOfDate ? ` · ${asOfDate}` : ""}`}
-        subtitle="Live aggregation of real deadlines · CAPAs due today + daily reports awaiting PM verify for today. Every count traces to a real source field."
+        subtitle="Live aggregation of real deadlines · corrective actions due today + daily reports awaiting PM verify for today. Every count traces to a real source field."
         primaryActions={
           <div style={{ display: "flex", gap: 8 }}>
             <Link to="/pm/hub" data-testid="pm-due-back-hub" style={{
@@ -178,7 +178,7 @@ export default function PmDueTodayV2() {
           }}
         >
           <Card
-            title="CAPAs Due Today"
+            title="Corrective Actions Due Today"
             description="Corrective actions with due_date == today (not closed)"
             metric={state.loaded ? (counts.capas_due_today ?? "—") : "…"}
             status={<StatusChip statusKey={counts.capas_due_today ? "pending_verification" : "verified"} compact />}
@@ -210,7 +210,7 @@ export default function PmDueTodayV2() {
             <EmptyState
               testId="pm-due-empty"
               title="Nothing due today."
-              explanation="No CAPAs are dated due today and no daily reports for today are awaiting your verify."
+              explanation="No corrective actions are dated due today and no daily reports for today are awaiting your verify."
               severity="good"
             />
           }

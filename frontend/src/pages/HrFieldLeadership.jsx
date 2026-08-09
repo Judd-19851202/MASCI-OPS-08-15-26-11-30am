@@ -152,7 +152,7 @@ export default function HrFieldLeadership() {
                 (() => {
                   const safeEmployee = sanitizeOperatorReference(r.employee_name, "Crew record");
                   const safeSupervisor = sanitizeOperatorReference(r.supervisor_name, "Supervisor record");
-                  const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Project support");
+                  const safeProjectNumber = sanitizeOperatorProjectNumber(r.project_number, "Project number unavailable");
                   const safeProjectName = sanitizeOperatorProjectName(r.project_name, "Project details");
                   return (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50">
@@ -196,7 +196,7 @@ function HrFlDetailDrawer({ rec, onClose, onPdf }) {
   const detailEntries = Object.entries(details).filter(([k, v]) => v !== "" && v != null && k !== "outstanding_equipment_acknowledged");
   const safeEmployee = sanitizeOperatorReference(rec.employee_name, "Crew record");
   const safeSupervisor = sanitizeOperatorReference(rec.supervisor_name, "Supervisor record");
-  const safeProjectNumber = sanitizeOperatorProjectNumber(rec.project_number, "Project support");
+  const safeProjectNumber = sanitizeOperatorProjectNumber(rec.project_number, "Project number unavailable");
   const safeProjectName = sanitizeOperatorProjectName(rec.project_name, "Project details");
 
   return (
