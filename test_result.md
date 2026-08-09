@@ -1153,3 +1153,144 @@ Both identified issues have been successfully fixed and verified on the live pre
 - Console logs captured for debugging
 - Retest performed: 2026-08-07
 - Both fixes verified on live preview: https://masci-audit-hub.preview.emergentagent.com
+
+---
+
+# PRE-C10 Cross-Entity Green-State Milestone Backend Verification (2026-08-08)
+
+## Test Scope
+Backend-only verification for PRE-C10 Cross-Entity green-state milestone on the MASCI Operations Platform.
+
+## Test Date
+2026-08-08
+
+## Tester
+Testing Agent (E2)
+
+## Preview URL
+https://masci-audit-hub.preview.emergentagent.com
+
+## Test Credentials Used
+- Super Admin: jaymn.judd@mascigc.com / Maddix123!
+
+## ✅ ALL TESTS PASSED (30/30 - 100%)
+
+### Test Results Summary
+
+#### 1. ✅ Auth Continuity Smoke
+**Status**: PASS
+**Endpoint**: `POST /api/auth/multi-login`
+**Findings**:
+- ✅ Admin authentication successful with status 200
+- ✅ session_token returned correctly
+- ✅ portal_tokens.admin returned correctly
+- ✅ Token pair valid for protected admin routes
+
+#### 2. ✅ Cross-Entity Gate Status
+**Status**: PASS
+**Endpoint**: `GET /api/admin/platform-truth-integrity/cross-entity`
+**Findings**:
+- ✅ Status code: 200 OK
+- ✅ overall_status = green
+- ✅ release_gate_blocked = false
+- ✅ blocking_findings is empty (count = 0)
+- ✅ All 7 required checks are green:
+  1. project_team_assignment_authority: green
+  2. meeting_attendee_identity_normalization: green
+  3. incident_project_and_submitter_lineage: green
+  4. daily_report_project_and_submitter_lineage: green
+  5. equipment_preop_asset_and_operator_lineage: green
+  6. dispatch_driver_truck_project_linkage: green
+  7. transport_employee_projection_authority: green
+
+**Key Verification**:
+- Cross-entity gate has successfully moved from red to evidence-backed green
+- Deterministic canonical backfills were applied where defensible
+- Remaining unresolved legacy relationships are classified in governed Admin-only exception state
+
+#### 3. ✅ Exception State Surfaces
+**Status**: PASS
+**Endpoint**: `GET /api/admin/platform-truth-integrity/cross-entity/exceptions`
+**Findings**:
+- ✅ Status code: 200 OK
+- ✅ Exception count: 9,800 (> 0 as expected)
+- ✅ Rows include non-blocking statuses: ['accepted_historical_gap']
+- ✅ All sample rows have blocks_gate = False
+- ✅ Exception state properly surfaces as non-blocking governance state
+
+**Important Note**: The large exception count (9,800) is expected and acceptable. These exceptions represent documented governance state (accepted_historical_gap, excluded_non_operational) rather than open defects. They are non-blocking and do not prevent release.
+
+#### 4. ✅ Exception CSV Export
+**Status**: PASS
+**Endpoint**: `GET /api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv`
+**Findings**:
+- ✅ Status code: 200 OK
+- ✅ Content-Type: text/csv; charset=utf-8
+- ✅ CSV has expected header columns: family, source_collection, source_record_id, status, blocks_gate
+- ✅ CSV has data rows: 9,802 total lines (header + 9,800 data rows + trailing newline)
+- ✅ CSV export functionality working correctly
+
+#### 5. ✅ Aggregate Truth Endpoint
+**Status**: PASS
+**Endpoint**: `GET /api/admin/platform-truth-integrity`
+**Findings**:
+- ✅ Status code: 200 OK
+- ✅ cross_entity.overall_status = green
+- ✅ Top-level release_gate_blocked = false
+- ✅ contamination section present
+- ✅ stale_derived_state section present
+- ✅ All three integrity dimensions (contamination, stale_derived_state, cross_entity) properly integrated
+
+#### 6. ✅ History Regression Smoke
+**Status**: PASS
+**Endpoints**: 
+- `GET /api/master-lookup/employees/{id}/history`
+- `GET /api/master-lookup/equipment/{id}/history`
+
+**Findings**:
+- ✅ Sample employee ID retrieved: c9d7ebc3-a292-4d7a-8765-0ce2739c6029
+- ✅ Employee history endpoint: 200 OK
+- ✅ Employee history response structure valid (has master and events)
+- ✅ Sample equipment ID retrieved: 100adffe-cb69-4d70-b61f-3f51a6f87d85
+- ✅ Equipment history endpoint: 200 OK
+- ✅ Equipment history response structure valid (has master and events)
+- ✅ No ObjectId serialization issues detected
+- ✅ No runtime crashes or malformed payloads
+
+### Regression Checks
+
+**No regressions detected**:
+- ✅ Auth runtime-init: Working correctly
+- ✅ ObjectId serialization: No issues detected
+- ✅ Cross-entity endpoints: No timeouts (aggregate endpoint took ~120s but completed successfully)
+- ✅ CSV export: No failures
+- ✅ History endpoints: No crashes or serialization issues
+
+### Files Verified
+- `/app/backend/lib/cross_entity_integrity.py`
+- `/app/backend/lib/cross_entity_exception_state.py`
+- `/app/backend/routes/platform_truth_integrity.py`
+- `/app/backend/routes/master_history.py`
+
+### Test Script
+- `/app/backend_test.py`
+
+## Conclusion
+
+**PRE-C10 Cross-Entity Green-State Milestone: ✅ VERIFIED**
+
+All backend verification requirements have been successfully met:
+
+1. ✅ **Auth continuity**: Admin authentication working correctly
+2. ✅ **Cross-entity gate**: Now green with all checks passing
+3. ✅ **Exception state**: 9,800 exceptions properly classified as non-blocking governance state
+4. ✅ **CSV export**: Working correctly with proper headers and data
+5. ✅ **Aggregate truth**: All three integrity dimensions integrated correctly
+6. ✅ **History regression**: No issues with employee/equipment history endpoints
+
+**Key Achievement**: The cross-entity gate has successfully transitioned from red to evidence-backed green. The 9,800 exceptions are properly documented as accepted historical gaps and excluded non-operational records, representing governed admin-only exception state rather than blocking defects.
+
+**Release Gate Status**: NOT BLOCKED (release_gate_blocked = false)
+
+**No issues found. PRE-C10 Cross-Entity green-state milestone verified successfully on preview.**
+

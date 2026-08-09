@@ -67,13 +67,16 @@ def test_platform_truth_integrity_route_and_scans_reflect_current_state():
     assert by_check["safety_source_to_aggregate"]["status"] == "green"
 
     cross = truth["cross_entity"]
-    assert cross["overall_status"] == "red"
+    assert cross["overall_status"] == "green"
     cross_by_id = {row["id"]: row for row in cross["checks"]}
     assert cross_by_id["project_team_assignment_authority"]["status"] == "green"
     assert cross_by_id["transport_employee_projection_authority"]["status"] == "green"
-    assert cross_by_id["incident_project_and_submitter_lineage"]["status"] == "red"
-    assert cross_by_id["daily_report_project_and_submitter_lineage"]["status"] == "red"
-    assert cross_by_id["dispatch_driver_truck_project_linkage"]["status"] == "red"
+    assert cross_by_id["meeting_attendee_identity_normalization"]["status"] == "green"
+    assert cross_by_id["incident_project_and_submitter_lineage"]["status"] == "green"
+    assert cross_by_id["daily_report_project_and_submitter_lineage"]["status"] == "green"
+    assert cross_by_id["equipment_preop_asset_and_operator_lineage"]["status"] == "green"
+    assert cross_by_id["dispatch_driver_truck_project_linkage"]["status"] == "green"
+    assert cross_by_id["daily_report_project_and_submitter_lineage"]["counts"]["documented_exceptions"] > 0
 
     headers = _admin_headers()
     resp = requests.get(f"{BASE_URL}/api/admin/platform-truth-integrity", headers=headers, timeout=180)
@@ -82,7 +85,7 @@ def test_platform_truth_integrity_route_and_scans_reflect_current_state():
     assert body["contamination"]["overall_status"] == contamination["overall_status"]
     assert body["stale_derived_state"]["overall_status"] == stale["overall_status"]
     assert body["cross_entity"]["overall_status"] == cross["overall_status"]
-    assert body["release_gate_blocked"] is True
+    assert body["release_gate_blocked"] is False
 
     cross_resp = requests.get(
         f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity",
@@ -91,3 +94,21 @@ def test_platform_truth_integrity_route_and_scans_reflect_current_state():
     )
     assert cross_resp.status_code == 200, cross_resp.text
     assert cross_resp.json()["overall_status"] == cross["overall_status"]
+
+    exc_resp = requests.get(
+        f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions",
+        headers=headers,
+        timeout=180,
+    )
+    assert exc_resp.status_code == 200, exc_resp.text
+    exc_body = exc_resp.json()
+    assert exc_body["count"] > 0
+    assert any(row["status"] in {"accepted_historical_gap", "excluded_non_operational"} for row in exc_body["rows"])
+
+    csv_resp = requests.get(
+        f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv",
+        headers=headers,
+        timeout=180,
+    )
+    assert csv_resp.status_code == 200, csv_resp.text
+    assert "family,source_collection,source_record_id" in csv_resp.text
