@@ -3,6 +3,7 @@
 - **PRE-C10 remains OPEN — NO-GO**
 - Cross-entity runtime truth is now **GREEN** at `/api/admin/platform-truth-integrity/cross-entity`.
 - The governed Admin-only exception state is now the official audit baseline for unresolved historical relationships (`9,800` active non-blocking rows at this checkpoint).
+- Exception reconciliation is complete: `7,032 excluded_non_operational`, `2,768 accepted_historical_gap`, `169` current/live non-blocking rows, and `0` materially misclassified exceptions.
 
 ## Updated next actions after the cross-entity green-state batch
 

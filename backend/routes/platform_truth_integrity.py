@@ -6,6 +6,11 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
 from lib.cross_entity_exception_state import exceptions_to_csv, list_cross_entity_exceptions
+from lib.cross_entity_exception_reconciliation import (
+    cross_entity_exception_reconciliation_csv,
+    normalize_cross_entity_exception_state,
+    scan_cross_entity_exception_reconciliation,
+)
 from lib.platform_truth_integrity import (
     scan_cross_entity_integrity,
     scan_platform_contamination_integrity,
@@ -53,6 +58,32 @@ def build_platform_truth_integrity_router(db, require_admin_dep):
             media_type="text/csv",
             headers={
                 "Content-Disposition": "attachment; filename=cross-entity-exceptions.csv",
+            },
+        )
+
+    @router.post("/api/admin/platform-truth-integrity/cross-entity/exceptions/reconcile")
+    async def admin_platform_truth_cross_entity_exceptions_reconcile(_: Any = Depends(require_admin_dep)):
+        normalization = await normalize_cross_entity_exception_state(db)
+        reconciliation = await scan_cross_entity_exception_reconciliation(db)
+        return {
+            "normalization": normalization,
+            "reconciliation": reconciliation,
+        }
+
+    @router.get("/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation")
+    async def admin_platform_truth_cross_entity_exceptions_reconciliation(_: Any = Depends(require_admin_dep)):
+        return await scan_cross_entity_exception_reconciliation(db)
+
+    @router.get(
+        "/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation.csv",
+        response_class=PlainTextResponse,
+    )
+    async def admin_platform_truth_cross_entity_exceptions_reconciliation_csv(_: Any = Depends(require_admin_dep)):
+        return PlainTextResponse(
+            await cross_entity_exception_reconciliation_csv(db),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": "attachment; filename=cross-entity-exceptions-reconciliation.csv",
             },
         )
 

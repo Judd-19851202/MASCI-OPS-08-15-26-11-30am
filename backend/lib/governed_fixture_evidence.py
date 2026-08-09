@@ -614,6 +614,15 @@ FIXTURE_EVIDENCE_RULES: Dict[str, List[FixtureRule]] = {
             match_all=[{"field": "truck_id", "op": "startswith", "value": "T-iter418"}],
         ),
         _rule(
+            evidence_source="backend/tests/test_iter417_operational_attachments.py",
+            match_all=[
+                {"field": "truck_id", "op": "eq", "value": "T-IT417"},
+                {"field": "driver_name", "op": "eq", "value": "Test Driver"},
+                {"field": "project_number", "op": "eq", "value": "9999"},
+            ],
+            reason="historical_source_controlled_fixture_evidence",
+        ),
+        _rule(
             evidence_source="backend/tests/test_iter419_wait_reason.py",
             match_all=[{"field": "truck_id", "op": "startswith", "value": "T-iter419"}],
         ),

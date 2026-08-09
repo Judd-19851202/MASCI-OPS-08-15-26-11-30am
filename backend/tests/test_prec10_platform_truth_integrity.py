@@ -112,3 +112,31 @@ def test_platform_truth_integrity_route_and_scans_reflect_current_state():
     )
     assert csv_resp.status_code == 200, csv_resp.text
     assert "family,source_collection,source_record_id" in csv_resp.text
+
+    reconcile_resp = requests.post(
+        f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions/reconcile",
+        headers=headers,
+        timeout=180,
+    )
+    assert reconcile_resp.status_code == 200, reconcile_resp.text
+    reconcile_body = reconcile_resp.json()
+    assert reconcile_body["reconciliation"]["total_exceptions"] > 0
+    assert reconcile_body["reconciliation"]["classification_integrity"]["materially_misclassified_exceptions"] == 0
+
+    reconciliation_resp = requests.get(
+        f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation",
+        headers=headers,
+        timeout=180,
+    )
+    assert reconciliation_resp.status_code == 200, reconciliation_resp.text
+    reconciliation_body = reconciliation_resp.json()
+    assert reconciliation_body["classification_integrity"]["materially_misclassified_exceptions"] == 0
+    assert reconciliation_body["record_temporality"]["current_live_operational_records"] >= 0
+
+    reconciliation_csv_resp = requests.get(
+        f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation.csv",
+        headers=headers,
+        timeout=180,
+    )
+    assert reconciliation_csv_resp.status_code == 200, reconciliation_csv_resp.text
+    assert "section,metric,count" in reconciliation_csv_resp.text

@@ -18,6 +18,29 @@
   - cross-entity is green, but the governed exception state still contains `9,800` active documented legacy exceptions that must remain auditable and non-blocking;
   - Admin OS truth/count lineage, auth/session denominator, platform-wide coaching inventory, KPI/C1-C9 closure, owner-observed defects, and the fresh full Product Quality v4 ledger are still required before any final certification chain.
 
+## 2026-08-09 — PRE-C10 cross-entity exception reconciliation batch
+
+- Added a dedicated reconciliation surface for the governed exception state:
+  - `POST /api/admin/platform-truth-integrity/cross-entity/exceptions/reconcile`
+  - `GET /api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation`
+  - `GET /api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation.csv`
+- Added `docs/governance/CROSS_ENTITY_EXCEPTION_RECONCILIATION.md` with the current factual snapshot:
+  - total exceptions `9,800`
+  - `7,032 excluded_non_operational`
+  - `2,768 accepted_historical_gap`
+  - `169 current/live non-blocking`
+  - `5,432 hidden/fixture-backed`
+  - `0 materially misclassified`
+- Reconciliation repair performed in preview:
+  - added the missing governed fixture-evidence rule for `test_iter417_operational_attachments.py`
+  - normalized cross-entity exception state against governed fixture evidence and hidden-source metadata
+  - hid `30` visible dispatch fixture rows from live operations
+  - reclassified `4,857` exception rows to `fixture_record_with_verified_test_provenance`
+- Reconciliation conclusion:
+  - GREEN still holds because the remaining non-blocking set is evidence-preserved and does not create materially false current operational truth;
+  - materially misclassified exceptions remain `0`;
+  - unresolved current/live rows remain visible as governed exception conditions rather than silent disappearance.
+
 ## 2026-08-09 — PRE-C10 cross-entity integrity activation batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.

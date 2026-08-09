@@ -7,6 +7,14 @@
 - Verification in this batch: direct DB scanner check GREEN, live admin truth endpoints GREEN, `test_prec10_platform_truth_integrity.py` PASS, `test_iter141_history.py` PASS/SKIP batch, and `deep_testing_backend_v2` PASS (`30 / 30`).
 - PRE-C10 overall remains **OPEN / NO-GO**. Cross-entity green does **not** authorize Save, Deploy, or C10.
 
+# 2026-08-09 — PRE-C10 cross-entity exception reconciliation
+
+- Added reconciliation APIs: `/api/admin/platform-truth-integrity/cross-entity/exceptions/reconcile`, `/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation`, and `/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation.csv`.
+- Added `docs/governance/CROSS_ENTITY_EXCEPTION_RECONCILIATION.md` with the factual snapshot: total exceptions `9,800`, `7,032 excluded_non_operational`, `2,768 accepted_historical_gap`, `169` current/live non-blocking rows, `5,432` hidden/fixture-backed rows, and `0` materially misclassified exceptions.
+- Fixed a missing governed fixture-evidence rule for `test_iter417_operational_attachments.py` and normalized exception state against governed fixture evidence / hidden-source metadata.
+- Reconciliation repair outcome: `30` visible dispatch fixture rows were hidden from live operations and `4,857` exception rows were reclassified to `fixture_record_with_verified_test_provenance`.
+- Cross-entity remains **GREEN** after reconciliation; material misclassification remains `0`.
+
 # 2026-08-09 — PRE-C10 cross-entity integrity audit activation
 
 - Added a fail-closed cross-entity audit surface at `/api/admin/platform-truth-integrity/cross-entity`, covering project-team authority, meeting attendee identity, incident lineage, daily-report lineage, equipment inspection lineage, dispatch linkage, and transportation employee projections.
