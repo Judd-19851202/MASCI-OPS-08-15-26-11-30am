@@ -268,8 +268,8 @@ export default function NewInspection({ publicMode = false }) {
               ]
             : undefined,
           openRecordTo: !publicMode && isAdmin() && res.data?.id ? `/inspect/${res.data.id}` : undefined,
-          returnTo: "/audits",
-          startAnotherTo: "/inspections/submit",
+          returnTo: publicMode ? "/safety" : "/audits",
+          startAnotherTo: "/safety/inspections/new",
         },
         replace: true,
       });
@@ -286,8 +286,8 @@ export default function NewInspection({ publicMode = false }) {
       kicker={t("MASCI · Safety Inspections")}
       title={t("Job Site Safety Inspection")}
       subtitle={t("A walking record of what's safe, what isn't, and what was fixed today.")}
-      backLink="/"
-      backLabel={t("Home")}
+      backLink={publicMode ? "/safety" : "/"}
+      backLabel={publicMode ? t("Safety") : t("Home")}
       draftSlot={<DraftStatusPill status={draftStatus} testId="inspection-draft-pill" />}
       widthClass="max-w-4xl"
       containerTestId="inspection-form-shell"

@@ -21,6 +21,7 @@ import { Search, User, AlertCircle, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
+import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 
 const API_BASE = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -70,7 +71,11 @@ export default function EmployeeRosterField({
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const r = await axios.get(`${API_BASE}/master-lookup/employees`, {
+        const usePublicEndpoint = !hasAnyPortalAuthToken();
+        const endpoint = usePublicEndpoint
+          ? `${API_BASE}/hr/employee-roster/public`
+          : `${API_BASE}/master-lookup/employees`;
+        const r = await axios.get(endpoint, {
           params: { q: trimmed, limit: 8 },
         });
         const items = Array.isArray(r.data?.items) ? r.data.items :

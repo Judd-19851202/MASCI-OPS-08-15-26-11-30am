@@ -457,16 +457,13 @@ import { WithLegacyBanner } from "@/components/admin/LegacyMovedBanner";
 // Crew Hub (Basecamp-style /app section)
 // Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
 
-// iter236 · Site Inspection moved into Safety portal ownership.
-// The legacy public form-password gate (SITE_INSPECTION_CODE = "1982")
-// and the public submission paths (/submit, /inspections/submit,
-// /inspect/new) are removed. Site Inspection is now an authenticated
-// Safety/Admin-only operation at /safety/inspections/new. Public/legacy
-// URLs redirect to /safety-portal/login so anyone with a stale link
-// reaches the right place.
+// PRE-C10 public-access doctrine correction.
+// Site Inspection belongs to the public Safety tile, not the secured
+// Safety Portal. Legacy public form URLs must land on the canonical
+// public inspection form instead of a portal login.
 const InspectionLegacyRedirect = () => (
   <Navigate
-    to="/safety-portal/login?returnTo=/safety/inspections/new"
+    to="/safety/inspections/new"
     replace
   />
 );
@@ -529,7 +526,7 @@ export function AppRoutes() {
             <Route path="/" element={<Hub />} />
             <Route path="/revise/:token" element={<Revise />} />
             <Route path="/safety" element={<SafetySection />} />
-            <Route path="/safety/forms/login" element={<SafetyFormsLogin />} />
+            <Route path="/safety/forms/login" element={<Navigate to="/safety/forms" replace />} />
             <Route path="/safety/forms" element={<SafetyFormsHub />} />
             <Route path="/safety/forms/equipment-issuance/new" element={<NewSafetyEquipmentIssuance />} />
             <Route path="/safety/forms/equipment-issuance/:id" element={<ViewSafetyForm kind="issuance" />} />
@@ -574,10 +571,9 @@ export function AppRoutes() {
             <Route path="/leadership/records/:id" element={<FieldLeadershipView />} />
             <Route path="/leadership/:kind/new" element={<FieldLeadershipFormPage />} />
 
-            {/* iter236 · Site Inspection moved into Safety portal ownership.
-                Legacy URLs redirect to safety login; the authoritative
-                authenticated entry is /safety/inspections/new. */}
-            <Route path="/safety/inspections/new" element={SF(<NewInspection />)} />
+            {/* PRE-C10 public tile doctrine: Safety tile forms stay public.
+                Portals remain secured; crew-facing form entry does not. */}
+            <Route path="/safety/inspections/new" element={<NewInspection publicMode />} />
             <Route path="/inspect/new" element={<InspectionLegacyRedirect />} />
             <Route path="/submit" element={<InspectionLegacyRedirect />} />
             <Route path="/inspections/submit" element={<InspectionLegacyRedirect />} />
@@ -636,7 +632,7 @@ export function AppRoutes() {
             <Route path="/daily/new" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/daily/submit" element={<NewDailyReportV3 publicMode />} />
 
-            <Route path="/equipment/new" element={<NewEquipmentInspection />} />
+            <Route path="/equipment/new" element={<NewEquipmentInspection publicMode />} />
             <Route path="/equipment/submit" element={<NewEquipmentInspection publicMode />} />
             <Route path="/equipment/:id" element={<RedirectWithId base="/admin/equipment" />} />
 

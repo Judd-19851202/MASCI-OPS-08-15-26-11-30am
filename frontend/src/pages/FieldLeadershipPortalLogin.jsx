@@ -42,6 +42,8 @@ import { clearShopToken } from "@/lib/shopAuth";
 import { clearHrToken } from "@/lib/hrAuth";
 import { operationalError } from "@/lib/errors";
 import { setMustChange } from "@/lib/mustChangePassword";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
+import { setPortalContextForPath } from "@/lib/portalContext";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -102,19 +104,20 @@ export default function FieldLeadershipPortalLogin() {
       const user = r?.data?.user || null;
       const kind = r?.data?.kind || "fl";
       if (!tok) throw new Error("missing-token");
-      // Only replace sibling portal tokens after the login request has
-      // actually succeeded. Failed attempts must not wipe an active admin
-      // or Field Leadership session already present in the browser.
-      clearAdminToken(); clearHrToken(); clearPmToken(); clearShopToken(); clearFlToken();
+      // Successful login is a fresh identity boundary. Wipe every prior
+      // browser auth artifact before applying the new governed session.
+      await prepareFreshLoginSession();
       if (kind === "admin") {
         // iter344 · Super-admin signed in via FL screen. Store as admin
         // token (the Hub gate accepts admin via isAdmin()). Do NOT mint
         // an FL identity — admin is a different identity domain.
         setAdminToken(tok, { remember: rememberMe });
+        setPortalContextForPath("/leadership");
         toast.success(`${t("Welcome,")} ${user?.name || t("Admin")}`);
       } else {
         setFlToken(tok, rememberMe);
         setFlUser(user);
+        setPortalContextForPath("/field-leadership/portal/dashboard");
         toast.success(`${t("Welcome,")} ${user?.name || t("Field Leader")}`);
       }
       // TRACK 23.9A — SSO upgrade.

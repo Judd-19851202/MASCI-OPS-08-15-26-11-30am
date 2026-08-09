@@ -99,6 +99,44 @@ Mode: verification-only, no credential rotation, no user/auth record mutation fo
 - Runtime-only auth tests that hit the preview URL are classified as environment-limited when the D1 fail-closed startup gate intentionally returns 502.
 - That 502 state is not treated as a continuity pass; it is treated as honest non-execution for live preview proof.
 
+## 2026-08-09 PRE-C10 auth/logout/session amendment status
+- Status: **OPEN — shared root cause repaired, denominator still in progress**.
+- Original recurring symptom:
+  - signed-out return and stale portal context were not uniformly governed across login/logout boundaries;
+  - Field Leadership direct login could inherit stale sibling portal tokens from a prior user/session;
+  - Track 19.11 overlay smoke labels were still documentation-skipped, blocking `UNJUSTIFIED SKIPS = 0`.
+- Root cause:
+  - logout repair had been centralized, but successful portal-login flows were still allowed to write a new identity on top of old browser auth artifacts;
+  - `/leadership/login` and `/field-leadership/portal/login` were not treated as explicit identity-switch routes by the shared login-route wipe;
+  - portal-context stamping was not consistently refreshed at successful-login time.
+- Why the prior repair was not permanent:
+  - it fixed the sign-out/public-home path locally, but left the fresh-login boundary fragmented across page-specific logic;
+  - a shared failure class remained where a new FL login could retain stale Dispatch/Safety tokens from the previous auth state.
+- Shared owner/components:
+  - `frontend/src/lib/sessionReset.js`
+  - `frontend/src/components/EnforcePortalScope.jsx`
+  - `frontend/src/lib/portalContext.js`
+  - direct portal login pages and shared `SignIn.jsx` / `AdminLogin.jsx`
+- Shared repair now in place:
+  - new `prepareFreshLoginSession()` fail-closed browser wipe before every successful login write;
+  - destination-based portal-context stamping;
+  - FL login routes added to the shared explicit-login wipe;
+  - redundant token-key cleanup to survive helper drift;
+  - `memory/TRACK_19_11_SESSION_OVERLAY_REGRESSION_REPORT.md` written so Track 19.11 live-smoke assertions are documented, not skipped.
+- Current direct evidence:
+  - focused frontend regressions PASS: `Hub.session-home.test.jsx`, `c2_session_reset.test.js`, `AdminOS.truthLineage.test.jsx`;
+  - preview browser repro before fix showed stale FL-over-admin sibling tokens (`dispatchToken` + `safetyToken` remained true);
+  - preview browser repro after fix showed only governed FL+directory state remained and `portalContext` became `field-leadership`;
+  - preview browser logout flow returned to `/`, restored a visible signed-out public entry, and browser-back landed on guarded login instead of privileged content;
+  - Track 19.11 EN/ES overlay smoke passed across `/daily/submit`, `/equipment/new`, `/fleet/dvir/new`, and `/meetings/submit`;
+  - public-vs-portal access doctrine was re-verified and repaired: `/field`, `/daily/submit`, `/equipment/submit`, `/shift`, `/fleet/dvir/new`, `/fleet/weekly-lead/new`, `/fleet/weekly-emergency/new`, `/field/calculators`, `/safety`, `/safety/inspections/new`, `/meetings/submit`, `/incidents/report`, `/jha`, `/trench-safety`, `/safety/cards`, `/safety/forms`, `/safety/forms/equipment-issuance/new`, and `/safety/forms/equipment-training/new` all load signed-out without redirect or session-expired overlay, while `/admin`, `/pm`, `/hr`, `/safety-portal`, `/dispatch-portal`, `/shop`, `/field-leadership/portal/dashboard`, and `/leadership` still redirect to governed login routes when signed out;
+  - anonymous preview POST proof now exists for `/api/inspections`, `/api/safety-forms/equipment-issuances`, and `/api/safety-forms/equipment-trainings`.
+- Remaining auth denominator still open:
+  - all-role browser proof (Admin, Executive, PM, FL, Safety, HR, Shop, Dispatch, other governed roles);
+  - expiry/deep-link/multi-workspace/full owner-observed replay;
+  - full EN/ES + responsive + accessibility denominator;
+  - final owner-observed disposition chain.
+
 ## Executive conclusion
 - This register proves continuity by static contract and focused regression evidence.
 - It does not claim deployment GO.

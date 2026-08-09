@@ -44,6 +44,8 @@ const LOGIN_PATHS = {
 const ALL_LOGIN_PATHS = [
   ...Object.values(LOGIN_PATHS),
   "/sign-in",
+  "/leadership/login",
+  "/field-leadership/portal/login",
   "/safety/forms/login",
   "/dev/login",
 ];

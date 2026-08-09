@@ -27,6 +27,8 @@ import { setAdminToken } from "@/lib/adminAuth";
 import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
+import { setPortalContextForPath } from "@/lib/portalContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -71,8 +73,10 @@ export default function SafetyLogin() {
       // iter346-B · universal super-admin fallback. Backend returns
       // kind:"admin" when a super-admin signed in via this gate.
       const kind = r?.data?.kind || "safety";
+      await prepareFreshLoginSession();
       if (kind === "admin") {
         setAdminToken(r.data.token, { remember });
+        setPortalContextForPath("/admin");
         const name = r.data?.user?.name;
         toast.success(name ? `${t("Welcome,")} ${name}` : t("Welcome, Admin"));
         nav("/admin", { replace: true });
@@ -80,6 +84,7 @@ export default function SafetyLogin() {
       }
       setSafetyToken(r.data.token, remember);
       setSafetyUser(r.data.user);
+      setPortalContextForPath("/safety-portal");
       // TRACK 23.9A — SSO upgrade: silently establish master session
       // + fan out every portal token the directory grants this user.
       try { await attemptSsoUpgrade(email.trim(), password, remember); } catch { /* no-op */ }

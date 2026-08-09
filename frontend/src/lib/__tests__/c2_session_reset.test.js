@@ -19,11 +19,12 @@ jest.mock("../directoryAuth", () => ({
   getDirectoryToken: () => "dir-token",
 }));
 
-import { clearAllSessions } from "../sessionReset";
+import { clearAllSessions, prepareFreshLoginSession } from "../sessionReset";
 
 describe("C2 shared sign-out contract", () => {
   beforeEach(() => {
     localStorage.setItem("masci.directory.token", "dir-token");
+    sessionStorage.setItem("masci.portal-context", "admin");
     global.fetch = jest.fn(() => Promise.resolve({ ok: true }));
   });
 
@@ -36,6 +37,18 @@ describe("C2 shared sign-out contract", () => {
   it("sign-out clears authenticated state and calls multi-logout", async () => {
     await clearAllSessions();
     expect(localStorage.getItem("masci.directory.token")).toBeNull();
+    expect(sessionStorage.getItem("masci.portal-context")).toBeNull();
     expect(global.fetch).toHaveBeenCalled();
+  });
+
+  it("fresh login prep clears stale auth without writing a logout marker", async () => {
+    localStorage.setItem("masci.dispatch.token", "dispatch-stale");
+    localStorage.setItem("masci.auth.logout_at", "123");
+    sessionStorage.setItem("masci.auth.logout_at", "123");
+    await prepareFreshLoginSession();
+    expect(localStorage.getItem("masci.dispatch.token")).toBeNull();
+    expect(localStorage.getItem("masci.auth.logout_at")).toBeNull();
+    expect(sessionStorage.getItem("masci.auth.logout_at")).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

@@ -24,6 +24,8 @@ import { api } from "@/lib/api";
 import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
+import { setPortalContextForPath } from "@/lib/portalContext";
 import { useT } from "@/lib/i18n";
 import { useBranding } from "@/lib/BrandingProvider";
 import { toast } from "sonner";
@@ -71,7 +73,9 @@ export default function AdminLogin() {
         return;
       }
       if (data?.ok) {
+        await prepareFreshLoginSession();
         applyMultiLoginResponse(data, rememberMe);
+        setPortalContextForPath(landingFor(data.user));
         toast.success(`${t("Welcome")} ${data?.user?.name || ""}`, { duration: 4000 });
         navigate(landingFor(data.user), { replace: true });
       } else {
@@ -140,6 +144,7 @@ export default function AdminLogin() {
         { timeout: 90000 } // backend cold-start can take ~60s
       );
       if (res?.data?.ok) {
+        await prepareFreshLoginSession();
         applyMultiLoginResponse(res.data, rememberMe);
         const user = res.data.user;
         const portals = user?.portals || [];
@@ -150,11 +155,13 @@ export default function AdminLogin() {
             `Welcome ${user?.name || ""} — this account doesn't have Admin access. Routing you to ${portals[0]?.toUpperCase() || "the Hub"}.`,
             { duration: 6000 }
           );
+          setPortalContextForPath(landingFor(user));
           navigate(landingFor(user), { replace: true });
           return;
         }
         toast.success(`Welcome back, ${user?.name || "admin"}`);
         const from = location.state?.from || "/admin";
+        setPortalContextForPath(from);
         navigate(from, { replace: true });
       } else {
         toast.error("Sign-in failed — server did not return a session");

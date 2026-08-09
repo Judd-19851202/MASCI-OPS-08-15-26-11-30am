@@ -473,16 +473,11 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         return str(project_number) in set(governed_actor.get("project_numbers") or [])
 
     # ---------- Inspections ----------
-    # iter236 · Site Inspection moved fully into Safety portal ownership.
-    # If require_safety_or_admin is provided, the endpoint requires Safety or
-    # Admin auth (the iter236 default). If omitted (legacy callers), the route
-    # falls back to public + rate-limit so registration doesn't crash if a
-    # legacy caller wires the registration without the new dep.
-    _insp_deps = (
-        [Depends(require_safety_or_admin)]
-        if require_safety_or_admin is not None
-        else [Depends(rate_limit_public_post)]
-    )
+    # PRE-C10 doctrine correction · the Safety tile is public while the
+    # Safety Portal remains secured. Site Inspection create must therefore
+    # stay anonymous-safe + rate-limited, with review/list/detail surfaces
+    # still governed by portal auth.
+    _insp_deps = [Depends(rate_limit_public_post)]
 
     @api_router.post("/inspections", response_model=Inspection, dependencies=_insp_deps)
     async def create_inspection(payload: InspectionCreate, request: Request):

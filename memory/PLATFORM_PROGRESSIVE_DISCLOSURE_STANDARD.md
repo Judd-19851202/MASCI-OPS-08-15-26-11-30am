@@ -2,6 +2,8 @@
 
 Status: PARTIAL PASS — PRE-C10 blocking standard remains open until the remaining denominator closes.
 
+This standard now inherits `docs/governance/MASCI_OPS_PERMANENT_FIX_DOCTRINE.md`: a coaching surface is not closed because one route looked cleaner or a targeted screenshot passed. Closure requires route-by-route end-to-end operator proof, required-warning protection, shared-family blast-radius review, and durable regression coverage.
+
 ## Runtime rule
 
 Primary work first, optional coaching second, diagnostics third, recovery last.

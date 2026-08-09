@@ -19,6 +19,8 @@ import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearShopToken } from "@/lib/shopAuth";
 import { setMustChange } from "@/lib/mustChangePassword";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
+import { setPortalContextForPath } from "@/lib/portalContext";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -113,17 +115,20 @@ export default function PmLogin() {
       );
       if (res?.data?.ok && res?.data?.token) {
         const kind = res?.data?.kind || "pm";
+        await prepareFreshLoginSession();
         // iter346-B · universal super-admin fallback. If a super-admin
         // signed in via the PM gate, backend returns kind:"admin" —
         // store as admin token instead of PM token.
         if (kind === "admin") {
           setAdminToken(res.data.token, { remember: rememberMe });
+          setPortalContextForPath("/admin");
           const name = res.data?.pm?.name;
           toast.success(name ? `${t("Welcome,")} ${name}` : t("Welcome, Admin"));
           navigate("/admin", { replace: true });
           return;
         }
         setPmToken(res.data.token, { remember: rememberMe });
+        setPortalContextForPath("/pm");
         // TRACK 23.9A — SSO upgrade: silently establish master session
         // + fan out every portal token the directory grants this user.
         try { await attemptSsoUpgrade(email.trim().toLowerCase(), password, rememberMe); } catch { /* no-op */ }

@@ -4,6 +4,14 @@ Last updated: 2026-08-09T16:45Z
 
 Status: **NO-GO**
 
+## Permanent constitutional amendment now inherited
+
+- `docs/governance/MASCI_OPS_PERMANENT_FIX_DOCTRINE.md` is now a governing platform rule.
+- `docs/governance/PERMANENT_FIX_CLOSURE_REGISTER.csv` is now the required closure ledger for material PRE-C10 findings and their inherited contracts.
+- Previously claimed PASS / CERTIFIED states remain usable only where the available evidence already satisfies the Permanent Fix doctrine.
+- Where applicable doctrine evidence is missing, the row remains **NOT PROVEN / OPEN** until direct end-to-end and runtime proof exists.
+- Fresh final acceptance still requires: Admin OS → Auth/Session → Coaching → KPI → C1–C9 → Owner-observed closeout → recurrence/failure-class audit → fresh full Product Quality v4 ledger → final consolidated certification chain.
+
 This register is the current denominator for PRE-C10 remediation. Items are never silently removed; they move between factual states only:
 
 - `REPRODUCED → ROOT-CAUSED → REPAIRED → CERTIFIED`
@@ -15,8 +23,8 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 
 - Trust Spine: **PASS** (`platform_band=green`, `canonical_status=VERIFIED`)
 - Truthful-state primitive: **PARTIAL PASS** (shared primitive implemented and verified on repaired surfaces; rollout continues)
-- Screenshot Product Quality Ledger: **PASS** (contract version `wp18db-product-quality-v2`, `rows=85`, `failures=0`)
-- Screenshot Product Quality coaching subset: **PASS** (contract version `wp18db-product-quality-v4`, targeted rows `20`, failures `0`)
+- Screenshot Product Quality Ledger: **NOT PROVEN FOR FINAL PRE-C10** — earlier full-ledger pass is historical evidence only and must be rerun as a fresh v4 ledger after all remaining repairs settle.
+- Screenshot Product Quality coaching subset: **PARTIAL / INHERITED** — targeted v4 subset remains useful route evidence, but it does not close the full-platform denominator.
 - Deployment readiness: **PASS WITH ADVISORIES**
 - Live production: **REDEPLOYMENT REQUIRED**
 - C10: **NOT AUTHORIZED**
@@ -82,17 +90,17 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SAFETY-001 | Safety | core runtime lifecycle, archive/history, governed hidden-record exclusion, multi-login continuity, and independent corrective-action KPI packs are now certified; broader project-view / long-tail denominator review remains tracked here | PARTIAL PASS |
 | PRE-C10-SCHEDULE-001 | Scheduling | scope guard, schedule authority, actuals, downstream lookahead/daily-plan, C7, C8, and C9 packs are certified; broader revision / version-history UX denominator remains tracked here | PARTIAL PASS |
 | PRE-C10-KPI-001 | KPI truth / Trust Spine closure | core KPI truth packs, cross-surface parity, C2/C6/C7/C8/C9 proof packs, and platform truth-integrity scanners are certified in preview; exhaustive denominator bookkeeping remains tracked here | PARTIAL PASS |
-| PRE-C10-AUTH-001 | Authentication UX | standalone multi-login portal-token continuity is repaired on the currently certified admin/safety/search/runtime surfaces; the owner-observed runtime gate now passes after deterministic submit-state timing was aligned with the real browser interaction contract; broader sign-out / protected-route denominator remains tracked here | PARTIAL PASS |
+| PRE-C10-AUTH-001 | Authentication UX | shared logout/public-home continuity remains in progress. New shared auth failure class was reproduced and repaired: successful Field Leadership login could inherit stale sibling portal tokens because fresh-login browser wipe and portal-context stamping were not centralized across all direct portal-login writers, and FL login routes bypassed the explicit identity-switch wipe. Shared fix now ships in `sessionReset.js`, `EnforcePortalScope.jsx`, `portalContext.js`, and direct login pages; focused frontend regressions pass and `memory/TRACK_19_11_SESSION_OVERLAY_REGRESSION_REPORT.md` now removes the Track 19.11 documentation-gated skips. Full all-role browser denominator still remains open. | PARTIAL PASS |
 | PRE-C10-UX-002 | Operator experience | canonical language, responsive strip repair, safety ownership wording, transportation search wording, screenshot-led product quality, and the shared coaching-disclosure repair are certified on the currently exercised routes; remaining long-tail UX bookkeeping stays tracked here | PARTIAL PASS |
 | PRE-C10-CROSS-ENTITY-001 | Cross-entity evidence & history integrity | **GREEN at the cross-entity gate, but not a PRE-C10 GO.** `/api/admin/platform-truth-integrity/cross-entity` returns `overall_status=green` and `release_gate_blocked=false`. Exception reconciliation is now documented in `docs/governance/CROSS_ENTITY_EXCEPTION_RECONCILIATION.md`: total exceptions `9,800`; statuses `7,032 excluded_non_operational` + `2,768 accepted_historical_gap`; current/live operational exceptions `169`; hidden/fixture-backed exceptions `5,432`; materially misclassified exceptions `0`. Shared repairs shipped in preview: deterministic canonical backfills for meetings/daily/equipment/dispatch where defensible, canonical submitter stamping on new incident/daily/equipment writes, employee/equipment history joins, Admin-only exception state/export, and exception normalization against governed fixture evidence. Verified by backend QA pass (30/30). | PASS at cross-entity gate / PRE-C10 overall still OPEN |
 | PRE-C10-MASTER-001 | Denominator management | continue broadening this register until every remaining PRE-C10 lane is explicitly dispositioned | IN PROGRESS |
 
 ## Next execution focus
 
-1. Promote the remaining PARTIAL PASS lanes to closed dispositions only where route-by-route evidence exists; do not silently collapse denominator rows.
-2. Keep `PRE-C10-ADMIN-003` active until Admin OS EN/ES, governed widths, final screenshot-ledger coverage, and downstream truth parity all pass.
-3. Expand `/app/docs/governance/PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` until every live KPI/card/score/health/status/summary surface is dispositioned PASS/FAIL with runtime evidence.
-4. Continue populating `/app/docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining material family reaches runtime-backed PASS.
-5. Cross-entity gate is green; continue with the remaining PRE-C10 denominator in order: Admin OS truth/count lineage, auth/session denominator, coaching/progressive-disclosure denominator, KPI/C1-C9 truth rows, owner-observed defects, then a fresh full screenshot-ledger rerun.
-6. Preserve the 85/85 screenshot-ledger pass, the new coaching-subset v4 pass (`20 / 20`), language-constitution pass, responsive pass, and runtime-reliability pass on subsequent edits.
-7. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned.
+1. Reconcile every relied-upon PRE-C10 row against the Permanent Fix doctrine before calling anything closed.
+2. Keep `PRE-C10-ADMIN-003` active until Admin OS source → authority → count/status semantics → consumer display → EN/ES → widths → accessibility → downstream parity are directly proven.
+3. Expand `/app/docs/governance/PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` until every live KPI/card/score/health/status/summary surface is dispositioned under doctrine-grade runtime evidence.
+4. Continue populating `/app/docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining material family reaches runtime-backed PASS with end-to-end consumer proof.
+5. Continue in the mandated order: Admin OS truth/count lineage, auth/session denominator, coaching/progressive-disclosure denominator, KPI truth denominator, remaining C1–C9 rows, owner-observed defects, recurrence/failure-class audit, fresh full Product Quality v4 ledger, final certification chain.
+6. Treat historical screenshot, coaching-subset, language, responsive, and reliability passes as inherited evidence only; rerun or expand them wherever doctrine closure requires.
+7. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned with no hidden open denominator.

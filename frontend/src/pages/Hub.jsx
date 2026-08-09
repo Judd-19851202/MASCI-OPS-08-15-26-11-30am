@@ -17,7 +17,7 @@
 // restricted tiles to avoid telegraphing internal structure to
 // unauthorized viewers.
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
@@ -43,6 +43,7 @@ import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
 import { tileAccentFor } from "@/lib/portalPalette";
 import { authorizedPortals, isSignedInAnywhere } from "@/lib/permissions";
 import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
+import { setPortalContext } from "@/lib/portalContext";
 
 const FIELD_ENTRY_CARDS = [
   {
@@ -92,6 +93,12 @@ export default function Hub() {
     () => detectActiveSession(t, handleSignOut, renderTick),
     [t, renderTick],
   );
+
+  useEffect(() => {
+    if (!session) {
+      try { setPortalContext("public"); } catch { /* noop */ }
+    }
+  }, [session]);
 
   const headerAction = session ? (
     <WorkspaceSessionControl session={session} onSignOut={handleSignOut} />
@@ -373,7 +380,7 @@ function detectActiveSession(t, signOut) {
   }
   if (getFlToken()) {
     const u = getFlUser() || {};
-    return { kind: "leadership", scopeLabel: "Field Leadership", name: u.name || u.email || "Field Leadership", to: "/field-leadership/portal/dashboard",
+    return { kind: "leadership", scopeLabel: "Field Leadership", name: u.name || u.email || "Field Leadership", to: "/leadership",
              signOut };
   }
   if (isLeadershipAuthed()) {

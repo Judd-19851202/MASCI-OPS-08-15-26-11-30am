@@ -987,7 +987,7 @@ def _schedule_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[str, An
 # ─────────────────────────────────────────────────────────────────────
 
 
-def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_admin_token_async=None):
+def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_admin_token_async=None, rate_limit_public_post=None):
     """Mount /api/safety-forms/* routes.
 
     ``_is_valid_admin_token`` is the existing helper from server.py so we
@@ -1065,8 +1065,10 @@ def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_adm
         return {"ok": True}
 
     # ── Issuance ─────────────────────────────────────────────────────
-    @router.post("/equipment-issuances")
-    async def create_issuance(body: IssuanceBody, _: bool = Depends(_require_safety_or_admin)):
+    _public_form_post_deps = [Depends(rate_limit_public_post)] if rate_limit_public_post is not None else []
+
+    @router.post("/equipment-issuances", dependencies=_public_form_post_deps)
+    async def create_issuance(body: IssuanceBody):
         if not body.acknowledgment:
             raise HTTPException(status_code=400, detail="Acknowledgment required")
         if not body.employee_signature or not body.supervisor_signature:
@@ -1347,8 +1349,8 @@ def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_adm
         )
 
     # ── Training ─────────────────────────────────────────────────────
-    @router.post("/equipment-trainings")
-    async def create_training(body: TrainingBody, _: bool = Depends(_require_safety_or_admin)):
+    @router.post("/equipment-trainings", dependencies=_public_form_post_deps)
+    async def create_training(body: TrainingBody):
         if not body.acknowledgment:
             raise HTTPException(status_code=400, detail="Acknowledgment required")
         if not body.employee_signature or not body.instructor_signature:

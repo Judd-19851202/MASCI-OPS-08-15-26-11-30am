@@ -7,6 +7,13 @@ Status: **OPEN / PARTIAL**
 This document is the active integration-truth ledger for the current PRE-C10 remediation package.
 It is intentionally fail-closed: any material family not fully traced from canonical source → governed consumer remains **OPEN**.
 
+## Permanent doctrine inheritance
+
+- This register now inherits `docs/governance/MASCI_OPS_PERMANENT_FIX_DOCTRINE.md`.
+- A C1–C9 family is not closed because a local screen, API, test, or screenshot passed.
+- Required closure is end-to-end: root cause, failure class, shared repair, canonical authority, downstream consumers, outputs, runtime operability, and regression protection.
+- Earlier passing packs remain inherited evidence only where they satisfy that full doctrine; otherwise the family remains **OPEN / NOT PROVEN**.
+
 ## Active material families currently evidenced
 
 | Family | Canonical source / authority | Key runtime evidence in this run | Current state |

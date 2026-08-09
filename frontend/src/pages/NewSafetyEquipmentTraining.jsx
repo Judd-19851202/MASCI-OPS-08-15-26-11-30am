@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Save,
   Loader2,
@@ -45,14 +45,10 @@ export default function NewSafetyEquipmentTraining() {
   // iter332 · Safety Portal Form-Entry continuity. See sibling page.
   const fromRecords = (typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("from") === "records");
-  const backPath = fromRecords ? "/safety-portal/forms-records" : "/safety/forms";
+  const backPath = fromRecords && authed ? "/safety-portal/forms-records" : "/safety/forms";
 
   // iter323 · Safety Forms ownership — Safety Portal + Admin + legacy.
   const authed = isSafety() || isAdmin() || isSafetyForms();
-
-  if (!authed) {
-    return <Navigate to="/safety-portal/login?from=safety-forms" replace />;
-  }
 
   const update = (patch) => setData((d) => ({ ...d, ...patch }));
 
@@ -132,8 +128,8 @@ export default function NewSafetyEquipmentTraining() {
           submittedAt: new Date().toISOString(),
           submittedBy: data.instructor_name || "",
           contextItems: [{ label: "Employee", value: data.employee_name || "" }],
-          openRecordTo: res.data?.id ? `/safety/forms/equipment-training/${res.data.id}` : undefined,
-          returnTo: "/safety-portal/forms-records",
+          openRecordTo: authed && res.data?.id ? `/safety/forms/equipment-training/${res.data.id}` : undefined,
+          returnTo: fromRecords && authed ? "/safety-portal/forms-records" : "/safety/forms",
           startAnotherTo: "/safety/forms/equipment-training/new",
         },
       });
@@ -150,7 +146,7 @@ export default function NewSafetyEquipmentTraining() {
       title={t("Equipment Use & Care Training Documentation")}
       subtitle={t("Document operator training, topics covered, signatures, and the equipment involved in one shared safety workflow.")}
       backLink={backPath}
-      backLabel={fromRecords ? t("Back to Review") : t("Safety Forms")}
+      backLabel={fromRecords && authed ? t("Back to Review") : t("Safety Forms")}
       widthClass="max-w-4xl"
       containerTestId="trn-form-shell"
       stickyFooter={(

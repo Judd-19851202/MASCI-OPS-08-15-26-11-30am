@@ -20,6 +20,8 @@ import { clearPmToken } from "@/lib/pmAuth";
 import { toast } from "sonner";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { useT } from "@/lib/i18n";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
+import { setPortalContextForPath } from "@/lib/portalContext";
 import {
   Dialog,
   DialogContent,
@@ -107,15 +109,18 @@ export default function ShopLogin() {
       });
       if (res?.data?.ok && res?.data?.token) {
         const kind = res?.data?.kind || "shop";
+        await prepareFreshLoginSession();
         // iter346-B · universal super-admin fallback.
         if (kind === "admin") {
           setAdminToken(res.data.token, { remember: rememberMe });
+          setPortalContextForPath("/admin");
           const name = res.data?.user?.name;
           toast.success(name ? `${t("Welcome,")} ${name}` : t("Welcome, Admin"));
           navigate("/admin", { replace: true });
           return;
         }
         setShopToken(res.data.token, { remember: rememberMe });
+        setPortalContextForPath("/shop");
         // TRACK 23.9A — SSO upgrade: silently establish master session
         // + fan out every portal token the directory grants this user.
         try { await attemptSsoUpgrade(email.trim().toLowerCase(), password, rememberMe); } catch { /* no-op */ }

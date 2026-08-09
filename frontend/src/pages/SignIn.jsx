@@ -28,6 +28,8 @@ import { clearHrToken } from "@/lib/hrAuth";
 import { clearShopToken } from "@/lib/shopAuth";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
+import { setPortalContext, setPortalContextForPath } from "@/lib/portalContext";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
 import { toast } from "sonner";
 
 export default function SignIn() {
@@ -74,7 +76,9 @@ export default function SignIn() {
         return;
       }
       if (data?.ok) {
+        await prepareFreshLoginSession();
         applyMultiLoginResponse(data, rememberMe);
+        setPortalContextForPath(landingFor(data.user));
         // Track 15.14A Layer 1 — temp-password enforcement on passkey path.
         if (data.must_change_password) {
           setMustChange("directory", true);
@@ -106,6 +110,7 @@ export default function SignIn() {
     // The multi-login response below atomically sets all 4 portal tokens,
     // so there's no need to nuke prior state. Reaching /sign-in with a
     // live session is a no-op until the user submits a fresh password.
+    try { setPortalContext("public"); } catch { /* noop */ }
   }, []);
 
   const onSubmit = async (e) => {
@@ -130,6 +135,7 @@ export default function SignIn() {
         return;
       }
       if (res?.data?.ok) {
+        await prepareFreshLoginSession();
         applyMultiLoginResponse(res.data, rememberMe);
         const user = res.data.user;
         const granted = Object.entries(res.data.portal_tokens || {})
@@ -154,6 +160,7 @@ export default function SignIn() {
           }`,
           { duration: 5000 }
         );
+        setPortalContextForPath(landingFor(user));
         navigate(landingFor(user), { replace: true });
       } else {
         toast.error(t("Sign-in failed"));
@@ -188,7 +195,9 @@ export default function SignIn() {
         : { challenge_token: mfaChallenge, code };
       const res = await api.post("/auth/mfa/verify-login", payload, { timeout: 30000 });
       if (res?.data?.ok) {
+        await prepareFreshLoginSession();
         applyMultiLoginResponse(res.data, rememberMe);
+        setPortalContextForPath(landingFor(res.data.user));
         // Track 15.14A Layer 1 — temp-password enforcement on MFA path.
         if (res.data.must_change_password) {
           setMustChange("directory", true);

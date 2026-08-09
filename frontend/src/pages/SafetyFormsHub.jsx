@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 import {
   HardHat,
   GraduationCap,
@@ -7,13 +7,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { PortalShell } from "@/design-system";
-import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import PortalContextBanner from "@/components/PortalContextBanner";
-import { isSafetyForms, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
-import { isSafety } from "@/lib/safetyAuth";
-import { isAdmin } from "@/lib/adminAuth";
 import { useT } from "@/lib/i18n";
-import { clearAllSessions, redirectToPublicHome } from "@/lib/sessionReset";
 
 // iter321 · Safety Forms Hub — calm tile pattern (family contract).
 // Replaces the legacy hot FormTile (`border-2 border-slate-300 +
@@ -48,34 +43,20 @@ const FormTile = ({ to, icon: Icon, title, desc, ctaLabel, accent = "red", testI
 
 export default function SafetyFormsHub() {
   const { t } = useT();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // iter323 · Safety Portal ownership — accept any of:
-    //   • Safety Portal user (X-Safety-Token)
-    //   • Admin (X-Admin-Token)
-    //   • Legacy Safety-Forms token (backwards compat)
-    // No portal session anywhere → bounce to Safety Portal login.
-    if (!isSafety() && !isAdmin() && !isSafetyForms()) {
-      navigate("/safety-portal/login?from=safety-forms", { replace: true });
-    }
-  }, [navigate]);
-
-  const signOut = async () => {
-    clearSafetyFormsToken();
-    await clearAllSessions();
-    redirectToPublicHome(navigate);
-  };
 
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Safety Portal · Safety Forms"
+      portalRole="Safety Forms"
       pageTitle={t("Safety Forms")}
       subtitle={t("Issue equipment with full accountability and document use & care training — every submission emails a clean PDF to safety@mascigc.com.")}
-      sideNav={<SafetySideNavV2 />}
-      onSignOut={signOut}
-      authSessionGuard
+      homeHref="/safety/forms"
+      backHref="/safety"
+      showBack
+      showSearch={false}
+      showNotifications={false}
+      showPortalSwitcher={false}
+      showSignOut={false}
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="safety-forms-hub-page">
         {/* iter322 · Portal continuity — if user arrived from FL with

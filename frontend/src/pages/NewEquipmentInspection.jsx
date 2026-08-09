@@ -633,7 +633,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             : undefined,
           expectedProcessingStatus: payload.fail_count > 0 ? "Filed and under shop review" : "Filed in equipment records",
           openRecordTo: !publicMode && isAdmin() && res.data?.id ? `/equipment/${res.data.id}` : undefined,
-          returnTo: "/equipment",
+          returnTo: publicMode ? "/field" : "/equipment",
           startAnotherTo: "/equipment/submit",
         },
         replace: true,

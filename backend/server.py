@@ -14556,6 +14556,7 @@ from routes.safety_forms import build_safety_forms_router, ensure_safety_forms_i
 
 _safety_forms_router = build_safety_forms_router(
     db, _is_valid_admin_token, _is_valid_directory_admin_token_async,
+    rate_limit_public_post=rate_limit_public_post,
 )
 app.include_router(_safety_forms_router)
 

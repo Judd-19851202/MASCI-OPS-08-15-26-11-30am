@@ -17,6 +17,7 @@
 //   "hr"                · HR / Office hub
 //   "safety"            · Safety portal
 //   "shop"              · Shop portal
+//   "dispatch"          · Dispatch portal
 //   "public"            · marketing / unauthenticated surfaces
 //
 // Doctrine
@@ -38,14 +39,33 @@ const KNOWN = new Set([
   "hr",
   "safety",
   "shop",
+  "dispatch",
   "public",
 ]);
+
+export function portalContextForPath(pathname = "") {
+  if (typeof pathname !== "string" || !pathname) return "public";
+  if (pathname.startsWith("/admin")) return "admin";
+  if (pathname.startsWith("/pm")) return "pm";
+  if (pathname.startsWith("/hr")) return "hr";
+  if (pathname.startsWith("/shop")) return "shop";
+  if (pathname.startsWith("/safety-portal")) return "safety";
+  if (pathname.startsWith("/dispatch-portal")) return "dispatch";
+  if (pathname.startsWith("/field-leadership/portal") || pathname.startsWith("/leadership")) {
+    return "field-leadership";
+  }
+  return "public";
+}
 
 export function setPortalContext(name) {
   if (!name || !KNOWN.has(name)) return;
   try {
     window.sessionStorage.setItem(KEY, name);
   } catch { /* sessionStorage disabled — capabilities will fall back to "unknown" */ }
+}
+
+export function setPortalContextForPath(pathname) {
+  setPortalContext(portalContextForPath(pathname));
 }
 
 export function getPortalContext() {

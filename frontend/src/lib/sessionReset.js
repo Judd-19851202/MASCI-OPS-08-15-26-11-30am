@@ -37,6 +37,7 @@ import {
   clearDirectorySession,
   getDirectoryToken,
 } from "./directoryAuth";
+import { clearPortalContext } from "./portalContext";
 
 export const POST_LOGOUT_PUBLIC_HOME = "/";
 const LOGOUT_MARKER_KEY = "masci.auth.logout_at";
@@ -48,6 +49,16 @@ const IDENTITY_KEYS = [
   // Multi-portal directory session
   "masci.directory.token",
   "masci.directory.user",
+  // Redundant token key wipe for every portal family. The clear helpers
+  // above remain canonical, but these explicit removals keep the reset
+  // fail-closed even if an auth helper implementation drifts.
+  "masci.admin.token",
+  "masci.pm.token",
+  "masci.shop.token",
+  "masci.hr.token",
+  "masci.safety.token",
+  "masci.dispatch.token",
+  "masci.fl.token",
   // Per-portal user identity objects (the tokens are wiped by their
   // own clear helpers below, but the user objects need explicit kills
   // so PortalSwitcher / WelcomeBack / role-aware UI cannot read them).
@@ -76,9 +87,63 @@ const IDENTITY_KEYS = [
   // Safety-forms standalone auth (separate from safety portal)
   "masci.safetyforms.token",
   "masci.safetyforms.user",
+  // Shared portal-context authority for cross-portal pages.
+  "masci.portal-context",
 ];
 
 const API = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+
+function clearLogoutMarker() {
+  try { localStorage.removeItem(LOGOUT_MARKER_KEY); } catch { /* ignore */ }
+  try { sessionStorage.removeItem(LOGOUT_MARKER_KEY); } catch { /* ignore */ }
+}
+
+function writeLogoutMarker() {
+  try {
+    const stamp = String(Date.now());
+    localStorage.setItem(LOGOUT_MARKER_KEY, stamp);
+    sessionStorage.setItem(LOGOUT_MARKER_KEY, stamp);
+  } catch {
+    /* ignore storage errors */
+  }
+}
+
+function wipeBrowserAuthArtifacts({ preserveSafetyForms = false, loggedOut = false } = {}) {
+  try { clearAdminToken(); } catch { /* ignore */ }
+  try { clearPmToken(); } catch { /* ignore */ }
+  try { clearShopToken(); } catch { /* ignore */ }
+  try { clearHrToken(); } catch { /* ignore */ }
+  try { clearSafetyToken(); } catch { /* ignore */ }
+  try { clearDispatchToken(); } catch { /* ignore */ }
+  try { clearFlToken(); } catch { /* ignore */ }
+  try { clearLeadershipToken(); } catch { /* ignore */ }
+  try { clearDevToken(); } catch { /* ignore */ }
+  if (!preserveSafetyForms) {
+    try { clearSafetyFormsToken(); } catch { /* ignore */ }
+  }
+  try { clearJwt(); } catch { /* ignore */ }
+  try { clearDriverSession(); } catch { /* ignore */ }
+  try { clearDirectorySession(); } catch { /* ignore */ }
+  try { clearPortalContext(); } catch { /* ignore */ }
+
+  for (const key of IDENTITY_KEYS) {
+    if (preserveSafetyForms && key === "masci.safetyforms.token") continue;
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+    try { sessionStorage.removeItem(key); } catch { /* ignore */ }
+  }
+
+  if (loggedOut) {
+    writeLogoutMarker();
+    return;
+  }
+  clearLogoutMarker();
+}
+
+export async function prepareFreshLoginSession({ preserveSafetyForms = false } = {}) {
+  wipeBrowserAuthArtifacts({ preserveSafetyForms, loggedOut: false });
+}
+
+export { clearLogoutMarker };
 
 /**
  * Wipe every auth artifact from this browser. Returns a promise so
@@ -130,35 +195,7 @@ export async function clearAllSessions({ notifyBackend = true, preserveSafetyFor
   // Local wipe FIRST. We must not depend on the network call to
   // succeed before clearing in-browser state — a flaky/offline browser
   // must still end up logged out.
-  try { clearAdminToken(); } catch { /* ignore */ }
-  try { clearPmToken(); } catch { /* ignore */ }
-  try { clearShopToken(); } catch { /* ignore */ }
-  try { clearHrToken(); } catch { /* ignore */ }
-  try { clearSafetyToken(); } catch { /* ignore */ }
-  try { clearDispatchToken(); } catch { /* ignore */ }
-  try { clearFlToken(); } catch { /* ignore */ }
-  try { clearLeadershipToken(); } catch { /* ignore */ }
-  try { clearDevToken(); } catch { /* ignore */ }
-  if (!preserveSafetyForms) {
-    try { clearSafetyFormsToken(); } catch { /* ignore */ }
-  }
-  try { clearJwt(); } catch { /* ignore */ }
-  try { clearDriverSession(); } catch { /* ignore */ }
-  try { clearDirectorySession(); } catch { /* ignore */ }
-
-  for (const key of IDENTITY_KEYS) {
-    if (preserveSafetyForms && key === "masci.safetyforms.token") continue;
-    try { localStorage.removeItem(key); } catch { /* ignore */ }
-    try { sessionStorage.removeItem(key); } catch { /* ignore */ }
-  }
-
-  try {
-    const stamp = String(Date.now());
-    localStorage.setItem(LOGOUT_MARKER_KEY, stamp);
-    sessionStorage.setItem(LOGOUT_MARKER_KEY, stamp);
-  } catch {
-    /* ignore storage errors */
-  }
+  wipeBrowserAuthArtifacts({ preserveSafetyForms, loggedOut: true });
 
   // Best-effort server-side invalidation. Failures here are non-fatal:
   // we already cleared the client. A 401/network error simply means

@@ -20,6 +20,8 @@ import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
+import { prepareFreshLoginSession } from "@/lib/sessionReset";
+import { setPortalContextForPath } from "@/lib/portalContext";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -114,11 +116,13 @@ export default function HrLogin() {
       );
       if (res?.data?.ok && res?.data?.token) {
         const kind = res?.data?.kind || "hr";
+        await prepareFreshLoginSession();
         // iter346-B · universal super-admin fallback. If backend
         // returned kind:"admin" (a super-admin signed in via this
         // gate), store as admin token instead of HR token.
         if (kind === "admin") {
           setAdminToken(res.data.token, { remember: rememberMe });
+          setPortalContextForPath("/admin");
           const name = res.data?.user?.name;
           toast.success(name ? `${t("Welcome,")} ${name}` : t("Welcome, Admin"));
           navigate("/admin", { replace: true });
@@ -130,6 +134,7 @@ export default function HrLogin() {
         // synchronously — stamp then microtask-yield to be safe.
         setHrToken(res.data.token, rememberMe);
         setHrUser(res.data.user || {});
+        setPortalContextForPath("/hr");
         // TRACK 23.9A — SSO upgrade: silently establish master session
         // + fan out every portal token the directory grants this user
         // so cross-portal nav works without a re-login. Best-effort;

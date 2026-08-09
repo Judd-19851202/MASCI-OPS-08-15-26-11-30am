@@ -7,6 +7,7 @@ const mockClearAllSessions = jest.fn(() => Promise.resolve());
 
 const authState = {
   adminToken: null,
+  flToken: null,
 };
 
 jest.mock("react-router-dom", () => ({
@@ -46,7 +47,12 @@ jest.mock("@/lib/safetyAuth", () => ({
   getSafetyUser: () => null,
   clearSafetyToken: () => {},
 }));
-jest.mock("@/lib/flAuth", () => ({ __esModule: true, getFlToken: () => null, clearFlToken: () => {} }));
+jest.mock("@/lib/flAuth", () => ({
+  __esModule: true,
+  getFlToken: () => authState.flToken,
+  getFlUser: () => ({ name: "Field Lead" }),
+  clearFlToken: () => {},
+}));
 jest.mock("@/lib/leadershipAuth", () => ({ __esModule: true, isLeadershipAuthed: () => false, clearLeadershipToken: () => {} }));
 
 jest.mock("@/lib/permissions", () => ({
@@ -79,23 +85,36 @@ function renderHub() {
 describe("Hub authenticated session treatment", () => {
   beforeEach(() => {
     authState.adminToken = null;
+    authState.flToken = null;
     mockNavigate.mockReset();
     mockClearAllSessions.mockClear();
   });
 
   it("keeps the signed-out home state intact when no session is active", () => {
+    sessionStorage.setItem("masci.portal-context", "admin");
     renderHub();
     expect(screen.getByTestId("hub-sign-in-link")).toBeTruthy();
     expect(screen.queryByTestId("home-session-control")).toBeNull();
+    expect(sessionStorage.getItem("masci.portal-context")).toBe("public");
   });
 
   it("shows a compact signed-in control instead of the old oversized home banner", () => {
     authState.adminToken = "admin-token";
+    sessionStorage.setItem("masci.portal-context", "admin");
     renderHub();
 
     expect(screen.queryByTestId("hub-welcome-back")).toBeNull();
     expect(screen.getByTestId("home-session-control")).toBeTruthy();
     expect(screen.getByTestId("hub-resume-link").getAttribute("href")).toBe("/admin");
+    expect(sessionStorage.getItem("masci.portal-context")).toBe("admin");
+  });
+
+  it("routes field leadership resume to the canonical leadership home", () => {
+    authState.flToken = "fl-token";
+    renderHub();
+
+    expect(screen.getByTestId("home-session-control")).toBeTruthy();
+    expect(screen.getByTestId("hub-resume-link").getAttribute("href")).toBe("/leadership");
   });
 
   it("signs out back to the public home from the compact session menu", async () => {

@@ -53,25 +53,51 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
 const API = process.env.REACT_APP_BACKEND_URL;
+const DEFAULT_PROBE_TIMEOUT_MS = 15000;
+const PROBE_TIMEOUTS_MS = {
+  "/api/admin/occ/health": 25000,
+  "/api/admin/operations-control/overview": 20000,
+  "/api/admin/governance/summary": 20000,
+};
+
+function delay(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 // ── HTTP helper ─────────────────────────────────────────────────────
 function adminHeaders() {
   return buildPortalAuthHeaders({ "Content-Type": "application/json" });
 }
 
-async function probe(path) {
+async function probe(path, attempt = 0) {
   if (!path) return { ok: false, body: null, status: 0 };
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+  const timeoutMs = PROBE_TIMEOUTS_MS[path] || DEFAULT_PROBE_TIMEOUT_MS;
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
     const r = await fetch(`${API}${path}`, { headers: adminHeaders(), signal: controller.signal });
+    if (!r.ok && [502, 503, 504].includes(r.status) && attempt < 1) {
+      await delay(300);
+      return probe(path, attempt + 1);
+    }
     return {
       ok: r.ok,
       status: r.status,
       body: r.ok ? await r.json() : null,
     };
-  } catch (_e) {
-    return { ok: false, body: null, status: 0, timed_out: true };
+  } catch (error) {
+    const timedOut = error?.name === "AbortError";
+    if (attempt < 1) {
+      await delay(300);
+      return probe(path, attempt + 1);
+    }
+    return {
+      ok: false,
+      body: null,
+      status: 0,
+      timed_out: timedOut,
+      error_kind: timedOut ? "timeout" : "network",
+    };
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -86,6 +112,42 @@ async function probe(path) {
 function _statusLabel(s) {
   return ({ healthy: "HEALTHY", warning: "ATTENTION", critical: "CRITICAL",
     wiring: "AWAITING SIGNAL", offline: "OFFLINE", loading: "LOADING" })[s] || String(s || "?").toUpperCase();
+}
+
+function mapCanonicalStatus(value) {
+  const normalized = String(value || "UNVERIFIABLE").toUpperCase();
+  if (normalized === "VERIFIED" || normalized === "GREEN" || normalized === "HEALTHY") return "healthy";
+  if (normalized === "DEGRADED" || normalized === "YELLOW" || normalized === "WARNING" || normalized === "AMBER") return "warning";
+  if (normalized === "NOT_APPLICABLE") return "wiring";
+  return normalized === "LOADING" ? "loading" : "critical";
+}
+
+function getCanonicalCounts(payload) {
+  const canonical = payload?.canonical_counts;
+  if (canonical) {
+    return {
+      verified: Number(canonical.verified || 0),
+      degraded: Number(canonical.degraded || 0),
+      mismatch: Number(canonical.mismatch || 0),
+      unverifiable: Number(canonical.unverifiable || 0),
+      notApplicable: Number(canonical.not_applicable || 0),
+      totalApplicable: Number(canonical.total_applicable || 0),
+    };
+  }
+
+  const counts = payload?.counts || {};
+  return {
+    verified: Number(counts.verified || counts.VERIFIED || 0),
+    degraded: Number(counts.degraded || counts.DEGRADED || 0),
+    mismatch: Number(counts.mismatch || counts.MISMATCH || 0),
+    unverifiable: Number(counts.unverifiable || counts.UNVERIFIABLE || 0),
+    notApplicable: Number(counts.not_applicable || counts.NOT_APPLICABLE || 0),
+    totalApplicable: Number(counts.total_applicable || counts.total || 0),
+  };
+}
+
+function isNotApplicableProbe(probeRow) {
+  return String(probeRow?.status || "").toLowerCase() === "disabled" && !!probeRow?.mocked;
 }
 function exportTrustSnapshot(domains, results, summary, overallStatus) {
   const now = new Date();
@@ -203,8 +265,17 @@ function getEvaluatedDomain(domain, probeResult, loaded) {
   if (probeResult?.pending) {
     return { status: "loading", metric: "…", detail: "Loading live data…", stampedAt: null };
   }
-  if (probeResult) {
+  if (probeResult?.ok) {
     return domain.evaluate(probeResult);
+  }
+  if (probeResult?.status === 401 || probeResult?.status === 403) {
+    return { status: "wiring", metric: "—", detail: "Sign in as admin to load live status.", stampedAt: null };
+  }
+  if (probeResult?.timed_out) {
+    return { status: "offline", metric: "—", detail: "Live signal timed out. Refresh to retry.", stampedAt: null };
+  }
+  if (probeResult?.status >= 500 || probeResult?.error_kind === "network") {
+    return { status: "offline", metric: "—", detail: "Live signal unavailable right now.", stampedAt: null };
   }
   if (loaded) {
     return { status: "offline", metric: "—", detail: "Probe unavailable.", stampedAt: null };
@@ -427,13 +498,17 @@ const DOMAINS = [
         };
       }
       const canonical = String(r.body.overall_canonical || r.body.overall_status || "UNVERIFIABLE").toUpperCase();
-      const rootCauses = Array.isArray(r.body.root_cause_groups) ? r.body.root_cause_groups.length : 0;
-      const status = canonical === "VERIFIED" ? "healthy" : canonical === "DEGRADED" ? "warning" : "critical";
-      const metric = rootCauses > 0 ? String(rootCauses) : canonical;
+      const counts = getCanonicalCounts(r.body);
+      const rootCauses = Number(r.body.unique_critical_root_causes || Object.keys(r.body.root_cause_groups || {}).length || 0);
+      const status = mapCanonicalStatus(canonical);
+      const mismatchCount = counts.mismatch;
+      const metric = mismatchCount > 0 ? String(mismatchCount) : counts.degraded > 0 ? String(counts.degraded) : canonical;
       const detail =
         canonical === "VERIFIED"
           ? `Canonical ${canonical.toLowerCase()} · OCC aggregator in bounds`
-          : `${canonical.toLowerCase()} · ${rootCauses} root-cause group(s)`;
+          : mismatchCount > 0
+          ? `${mismatchCount} critical signal(s) · ${rootCauses} root cause(s)`
+          : `${counts.degraded} signal(s) need attention`;
       return { status, metric, detail, stampedAt: r.body.generated_at || null };
     },
   },
@@ -497,7 +572,7 @@ const DOMAINS = [
       const enabled = !!r.body.gateway_enabled;
       const resolved = !!r.body.resolved_provider_available;
       const provider = r.body.resolved_selected_provider || r.body.default_provider || "—";
-      const status = enabled && resolved ? "healthy" : enabled ? "warning" : "warning";
+      const status = enabled && resolved ? "healthy" : enabled ? "critical" : "warning";
       const metric = provider.toUpperCase();
       const detail = enabled
         ? resolved
@@ -531,7 +606,7 @@ const DOMAINS = [
         : 0;
       const band = String(r.body.band || "").toLowerCase();
       const status =
-        empty > 0 || band === "red" ? "critical" : band === "yellow" ? "warning" : "healthy";
+        empty > 0 || band === "red" ? "critical" : ["yellow", "amber"].includes(band) ? "warning" : "healthy";
       const mode = r.body.mode || "—";
       const routeCount = r.body.route_counts?.total ?? 0;
       // Operator-facing metric: route count is meaningful; the mode
@@ -630,7 +705,9 @@ const DOMAINS = [
         };
       }
       const probes = Array.isArray(r.body.probes) ? r.body.probes : [];
-      const degraded = probes.filter((p) => p.status && p.status !== "ok").length;
+      const liveProbes = probes.filter((probeRow) => !isNotApplicableProbe(probeRow));
+      const notApplicable = probes.length - liveProbes.length;
+      const degraded = liveProbes.filter((p) => p.status && p.status !== "ok").length;
       const overall = String(r.body.overall_status || "").toLowerCase();
       const status =
         degraded > 0 || overall === "critical"
@@ -638,11 +715,11 @@ const DOMAINS = [
           : overall === "warning"
           ? "warning"
           : "healthy";
-      const metric = `${probes.length - degraded}/${probes.length || 0}`;
+      const metric = `${liveProbes.length - degraded}/${liveProbes.length || 0}`;
       const detail =
         degraded > 0
           ? `${degraded} integration(s) degraded`
-          : `${probes.length} probes green`;
+          : `${liveProbes.length} live probe(s) green${notApplicable > 0 ? ` · ${notApplicable} not applicable` : ""}`;
       return { status, metric, detail, stampedAt: r.body.checked_at || null };
     },
   },
@@ -665,18 +742,14 @@ const DOMAINS = [
           stampedAt: null,
         };
       }
-      const canonical = String(r.body.overall_canonical || "").toUpperCase();
-      const overall = String(r.body.overall || "").toLowerCase();
-      const cards = Array.isArray(r.body.cards) ? r.body.cards : [];
-      const degraded = cards.filter((card) => {
-        const status = String(card?.status || "").toLowerCase();
-        return status === "red" || status === "yellow";
-      }).length;
-      const ok = canonical === "VERIFIED" || overall === "green";
+      const canonical = String(r.body.overall_canonical || r.body.overall || "UNVERIFIABLE").toUpperCase();
+      const counts = getCanonicalCounts(r.body);
+      const needsAttention = counts.mismatch + counts.degraded;
+      const ok = canonical === "VERIFIED";
       return {
-        status: ok ? "healthy" : degraded > 0 ? "warning" : "critical",
-        metric: ok ? "GREEN" : `${degraded}`,
-        detail: ok ? `Diagnostics in bounds` : `${degraded} diagnostic card(s) need attention`,
+        status: ok ? "healthy" : canonical === "DEGRADED" ? "warning" : "critical",
+        metric: ok ? "GREEN" : `${needsAttention}`,
+        detail: ok ? `Diagnostics in bounds` : `${needsAttention} diagnostic signal(s) need attention`,
         stampedAt: r.body.generated_at || null,
       };
     },

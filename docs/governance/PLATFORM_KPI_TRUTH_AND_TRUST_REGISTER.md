@@ -7,6 +7,12 @@ Status: **OPEN / NO-GO**
 This register is now part of the active PRE-C10 remediation denominator.
 No KPI is considered certified because a card renders, an endpoint returns 200, or a preview screenshot looks correct.
 
+## Permanent doctrine inheritance
+
+- This register now inherits `docs/governance/MASCI_OPS_PERMANENT_FIX_DOCTRINE.md`.
+- Earlier KPI passes are inherited only where they already prove root cause elimination, full source-to-consumer truth, human-operable workflow meaning, cross-surface parity, and durable regression protection.
+- Missing applicable proof means the KPI row remains **FAIL / NOT PROVEN**, even if a prior suite, screenshot, or green badge existed.
+
 ## Governing architecture
 
 Required chain for every KPI:
