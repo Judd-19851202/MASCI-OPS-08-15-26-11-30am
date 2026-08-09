@@ -71,7 +71,7 @@ export default function SafetyFormsLogin() {
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
-                {t("Safety Department")}
+                {t("Safety Operations Ownership")}
               </div>
               <h1 className="field-glance-anchor font-display text-2xl font-black text-slate-900 leading-none mt-1" data-testid="safety-forms-login-title">
                 {t("Safety Forms")}

@@ -123,6 +123,8 @@ def redact_text(text: str) -> str:
             out = pattern.sub("mongodb://***:***@", out)
         else:
             out = pattern.sub(r"\1***", out)
+    out = out.replace("<redacted-param>", "***")
+    out = out.replace("<redacted>", "***")
     return out
 
 

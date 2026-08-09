@@ -156,7 +156,7 @@ export default function TransportationSearch() {
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder={t("Search drivers, trucks, carriers, projects… (press /)")}
+          placeholder="Search drivers, trucks, carriers, projects… (press /)"
           className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
         />
         {loading ? (

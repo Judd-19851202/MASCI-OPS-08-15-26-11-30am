@@ -33,43 +33,71 @@ async def resolve_actor_from_request(db, request: Optional[Request], actor: Any)
         if headers.get("X-Admin-Token"):
             from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
 
-            row = await is_valid_directory_admin_token_async(db, headers.get("X-Admin-Token"))
+            row = await is_valid_directory_admin_token_async(
+                db,
+                headers.get("X-Admin-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "admin", "_auth_path": "directory_admin_token"}
         if headers.get("X-PM-Token"):
             from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
 
-            row = await is_valid_pm_user_token_async(db, headers.get("X-PM-Token"))
+            row = await is_valid_pm_user_token_async(
+                db,
+                headers.get("X-PM-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "pm", "_auth_path": "pm_token"}
         if headers.get("X-HR-Token"):
             from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
 
-            row = await is_valid_hr_user_token_async(db, headers.get("X-HR-Token"))
+            row = await is_valid_hr_user_token_async(
+                db,
+                headers.get("X-HR-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "hr", "_auth_path": "hr_token"}
         if headers.get("X-Safety-Token"):
             from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
 
-            row = await is_valid_safety_user_token_async(db, headers.get("X-Safety-Token"))
+            row = await is_valid_safety_user_token_async(
+                db,
+                headers.get("X-Safety-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "safety", "_auth_path": "safety_token"}
         if headers.get("X-Shop-Token"):
             from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
 
-            row = await is_valid_shop_user_token_async(db, headers.get("X-Shop-Token"))
+            row = await is_valid_shop_user_token_async(
+                db,
+                headers.get("X-Shop-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "shop", "_auth_path": "shop_token"}
         if headers.get("X-Dispatch-Token"):
             from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
 
-            row = await is_valid_dispatch_user_token_async(db, headers.get("X-Dispatch-Token"))
+            row = await is_valid_dispatch_user_token_async(
+                db,
+                headers.get("X-Dispatch-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "dispatch", "_auth_path": "dispatch_token"}
         if headers.get("X-FL-Token"):
             from field_leadership_users import is_valid_fl_user_token_async  # noqa: PLC0415
 
-            row = await is_valid_fl_user_token_async(db, headers.get("X-FL-Token"))
+            row = await is_valid_fl_user_token_async(
+                db,
+                headers.get("X-FL-Token"),
+                allow_unbound_directory_session=True,
+            )
             if row:
                 return {**row, "_actor": "field_leadership", "_auth_path": "field_leadership_token"}
     except Exception:

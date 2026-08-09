@@ -7,7 +7,14 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, Query
 
 from lib.performance_budget_contract import read_performance_budget_contract
-from lib.runtime_reliability import INCIDENT_COLLECTION, INCIDENT_DIR, runtime_health_snapshot
+from lib.runtime_reliability import INCIDENT_COLLECTION, INCIDENT_DIR, redact_text, runtime_health_snapshot
+
+
+def _sanitize_incident_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        return json.loads(redact_text(json.dumps(row, default=str)))
+    except Exception:
+        return {"redacted_payload": redact_text(str(row))}
 
 
 def build_runtime_reliability_router(*, app, db, require_admin_dep) -> APIRouter:
@@ -59,7 +66,7 @@ def build_runtime_reliability_router(*, app, db, require_admin_dep) -> APIRouter
             key=lambda item: str(item.get("captured_at") or ""),
             reverse=True,
         )[:limit]
-        return {"count": len(rows), "rows": rows}
+        return {"count": len(rows), "rows": [_sanitize_incident_row(row) for row in rows]}
 
     return router
 

@@ -684,7 +684,11 @@ async def _is_valid_directory_admin_token_async(token: Optional[str]) -> bool:
         return False
     try:
         import user_directory as _ud_local  # noqa: PLC0415
-        row = await _ud_local.is_valid_directory_admin_token_async(db, token)
+        row = await _ud_local.is_valid_directory_admin_token_async(
+            db,
+            token,
+            allow_unbound_directory_session=True,
+        )
         return row is not None
     except Exception:  # noqa: BLE001
         return False
@@ -747,7 +751,11 @@ async def _super_admin_row_for_token_async(token: Optional[str]) -> Optional[Dic
         return None
     try:
         import user_directory as _ud_local  # noqa: PLC0415
-        row = await _ud_local.is_valid_directory_admin_token_async(db, token)
+        row = await _ud_local.is_valid_directory_admin_token_async(
+            db,
+            token,
+            allow_unbound_directory_session=True,
+        )
     except Exception:  # noqa: BLE001
         return None
     if not row:
@@ -1812,7 +1820,43 @@ async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
         current_db=_canonical_db_name(),
         include_manifest_reads=False,
     )
-    return backup_recent_truth(lineage, threshold_hours=PUBLIC_HEALTH_THRESHOLD_HOURS)
+    truth = backup_recent_truth(lineage, threshold_hours=PUBLIC_HEALTH_THRESHOLD_HOURS)
+    if truth.get("ok"):
+        return truth
+
+    latest_success = await target_db.backup_health.find_one(
+        {"ok": True, "ts": {"$nin": [None, ""]}},
+        {"_id": 0, "ts": 1, "mode": 1, "filename": 1, "audit_reference": 1},
+        sort=[("ts", -1)],
+    )
+    latest_success_ts = str((latest_success or {}).get("ts") or "").strip()
+    if latest_success_ts:
+        try:
+            latest_success_dt = datetime.fromisoformat(latest_success_ts.replace("Z", "+00:00"))
+            latest_success_age_s = (datetime.now(timezone.utc) - latest_success_dt).total_seconds()
+            if latest_success_age_s <= (PUBLIC_HEALTH_THRESHOLD_HOURS * 3600.0):
+                return {
+                    **truth,
+                    "ok": True,
+                    "signal_source": "backup_health_success_fallback",
+                    "age_s": round(float(latest_success_age_s), 2),
+                    "filename": latest_success.get("filename") or truth.get("filename"),
+                    "reason": f"recent_{latest_success.get('mode') or 'backup'}_health_row",
+                }
+        except Exception:
+            pass
+
+    r2_age_s = await _r2_backup_age_seconds_cached()
+    if r2_age_s is None or r2_age_s > (PUBLIC_HEALTH_THRESHOLD_HOURS * 3600.0):
+        return truth
+
+    return {
+        **truth,
+        "ok": True,
+        "signal_source": "r2_age_cache_fallback",
+        "age_s": round(float(r2_age_s), 2),
+        "reason": "r2_object_age_within_threshold",
+    }
 
 
 async def _compute_public_full_health_snapshot() -> Dict[str, Any]:

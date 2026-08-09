@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 
 import { PortalShell } from "../../design-system";
+import { ResponsiveSummaryStrip } from "@/design-system/responsive";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
@@ -767,83 +768,86 @@ export default function AdminOS() {
         </section>
 
         {/* ── Overall posture strip ─────────────────────────────── */}
-        <section
-          className="mb-6 wp16-card wp16-hairline-grid flex flex-wrap items-center gap-4 p-4 sm:p-5 wp17-panel"
-          data-testid="admin-os-posture"
-        >
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
-              {t("Platform posture")}
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
-              <StatusPill
-                status={overallStatus}
-                testid="admin-os-posture-pill"
-              />
-              <span className="text-sm font-semibold text-slate-900 min-w-0 break-words">
-                {overallStatus === "critical"
-                  ? t("One or more domains report a critical condition.")
-                  : overallStatus === "warning"
-                  ? t("One or more domains need attention.")
-                  : overallStatus === "healthy"
-                  ? t("All wired domains report healthy.")
-                  : t("Loading domain probes…")}
-              </span>
-            </div>
-          </div>
-          <div className="w-full xl:w-auto xl:ml-auto flex flex-wrap xl:flex-nowrap items-stretch gap-3 text-sm" data-testid="admin-os-kpi-row">
-            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-healthy">
-              <div className="wp17-metric-card">
-                <div className="wp17-metric-card__label">
-                {t("Healthy")}
-                </div>
-                <div className="wp17-metric-card__value text-emerald-700">
-                {displaySummary ? displaySummary.healthy : "—"}
-                </div>
+        <ResponsiveSummaryStrip
+          className="mb-6 wp16-card wp16-hairline-grid p-4 sm:p-5 wp17-panel"
+          testid="admin-os-posture"
+          left={(
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+                {t("Platform posture")}
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
+                <StatusPill
+                  status={overallStatus}
+                  testid="admin-os-posture-pill"
+                />
+                <span className="text-sm font-semibold text-slate-900 min-w-0 break-words">
+                  {overallStatus === "critical"
+                    ? t("One or more domains report a critical condition.")
+                    : overallStatus === "warning"
+                    ? t("One or more domains need attention.")
+                    : overallStatus === "healthy"
+                    ? t("All wired domains report healthy.")
+                    : t("Loading domain probes…")}
+                </span>
               </div>
             </div>
-            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-warning">
-              <div className="wp17-metric-card">
-                <div className="wp17-metric-card__label">
-                {t("Attention")}
-                </div>
-                <div className="wp17-metric-card__value text-amber-700">
-                {displaySummary ? displaySummary.warning : "—"}
-                </div>
-              </div>
-            </div>
-            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-critical">
-              <div className="wp17-metric-card">
-                <div className="wp17-metric-card__label">
-                {t("Critical")}
-                </div>
-                <div className="wp17-metric-card__value text-rose-700">
-                {displaySummary ? displaySummary.critical : "—"}
+          )}
+          right={(
+            <>
+              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-healthy">
+                <div className="wp17-metric-card">
+                  <div className="wp17-metric-card__label">
+                  {t("Healthy")}
+                  </div>
+                  <div className="wp17-metric-card__value text-emerald-700">
+                  {displaySummary ? displaySummary.healthy : "—"}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-wiring">
-              <div className="wp17-metric-card">
-                <div className="wp17-metric-card__label">
-                {t("Awaiting signal")}
-                </div>
-                <div className="wp17-metric-card__value text-slate-600">
-                {displaySummary ? displaySummary.wiring : "—"}
-                </div>
-              </div>
-            </div>
-            <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]">
-              <div className="wp17-metric-card">
-                <div className="wp17-metric-card__label">
-                {t("Total domains")}
-                </div>
-                <div className="wp17-metric-card__value text-slate-800">
-                {displaySummary ? DOMAINS.length : "—"}
+              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-warning">
+                <div className="wp17-metric-card">
+                  <div className="wp17-metric-card__label">
+                  {t("Attention")}
+                  </div>
+                  <div className="wp17-metric-card__value text-amber-700">
+                  {displaySummary ? displaySummary.warning : "—"}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
+              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-critical">
+                <div className="wp17-metric-card">
+                  <div className="wp17-metric-card__label">
+                  {t("Critical")}
+                  </div>
+                  <div className="wp17-metric-card__value text-rose-700">
+                  {displaySummary ? displaySummary.critical : "—"}
+                  </div>
+                </div>
+              </div>
+              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-wiring">
+                <div className="wp17-metric-card">
+                  <div className="wp17-metric-card__label">
+                  {t("Awaiting signal")}
+                  </div>
+                  <div className="wp17-metric-card__value text-slate-600">
+                  {displaySummary ? displaySummary.wiring : "—"}
+                  </div>
+                </div>
+              </div>
+              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-kpi-row">
+                <div className="wp17-metric-card">
+                  <div className="wp17-metric-card__label">
+                  {t("Total domains")}
+                  </div>
+                  <div className="wp17-metric-card__value text-slate-800">
+                  {displaySummary ? DOMAINS.length : "—"}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        />
 
         <section className="mb-6" data-testid="admin-os-backup-integrity-section">
           <CrewRecoveryPanel />

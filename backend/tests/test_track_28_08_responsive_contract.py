@@ -113,15 +113,11 @@ ANTI_PATTERN = re.compile(
 # entry proves the row does not force horizontal scroll at 390×844.
 # ------------------------------------------------------------------
 LEGACY_BASELINE = {
-    "design-system/PortalShell.jsx",  # already gated by test_d4_portal_shell_row_has_min_width_zero
     "pages/AdminAssetThread.jsx",
     "pages/AdminMaterialLedgerQuality.jsx",
     "pages/AdminVendorThread.jsx",
-    "pages/DispatchHaulLedger.jsx",
-    "pages/HistoricalRecordsBatchDetail.jsx",
     "pages/HistoricalRecordsQueue.jsx",
     "pages/JhaPlansAdmin.jsx",
-    "pages/NewEquipmentInspection.jsx",
     "pages/PmProjectDetail.jsx",
     "pages/SafetyCaseWorkspace.jsx",
     "pages/SafetyIncidentThread.jsx",

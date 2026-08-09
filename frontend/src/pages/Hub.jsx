@@ -170,6 +170,9 @@ export default function Hub() {
         {/* Hero headline */}
         <div className="wp17-public-hero mb-8 sm:mb-12" data-testid="hub-entry-architecture">
           <div className="max-w-4xl">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700" data-testid="hub-hero-kicker">
+                {t("MASCI Operations Platform")}
+              </div>
               <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-slate-900">
                 {lang === "es" ? (
                   <>
@@ -184,7 +187,7 @@ export default function Hub() {
                 )}
               </h1>
               <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
-                {t("Start field work fast, reach the right operational area without guesswork, and keep crews, safety, quality, transportation, and administration moving through one trusted system built for heavy-civil operations.")}
+                {t("Start field work fast with field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations in one trusted system built for heavy-civil operations.")}
               </p>
               <div className="mt-6 flex flex-wrap gap-3" data-testid="hub-next-actions-row">
                 <Button asChild data-testid="hub-next-field-button">

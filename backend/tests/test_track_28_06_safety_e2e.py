@@ -31,6 +31,7 @@ from pymongo import MongoClient
 
 
 TEST_PREFIX = "TEST_28_06_"
+GOVERNED_SYNTHETIC_MARKERS = {"synthetic_record": True}
 
 
 def _backend() -> str:
@@ -128,6 +129,7 @@ def _incident_payload() -> Dict[str, Any]:
         "incident_type": "Near Miss",
         "severity": "Low",
         "description": f"{TEST_PREFIX} Cert probe — do not distribute",
+        **GOVERNED_SYNTHETIC_MARKERS,
     }
 
 
@@ -191,6 +193,7 @@ def test_p6_jha_submit_and_list_hides_synthetic(safety_h):
         "job_title": f"{TEST_PREFIX}Concrete pour cert",
         "task_steps": [{"step": "TEST_28_06_ layout", "hazards": [], "controls": []}],
         "crew_signoffs": [],
+        **GOVERNED_SYNTHETIC_MARKERS,
     }
     r = httpx.post(f"{BACKEND}/api/jhas", json=payload, timeout=30)
     assert r.status_code == 200, f"jha submit: {r.status_code} {r.text[:200]}"
@@ -216,6 +219,7 @@ def test_p6_meeting_submit_and_list_hides_synthetic(safety_h):
         "topic_category": "Toolbox",
         "discussion_notes": "TEST_28_06_ cert",
         "attendees": [],
+        **GOVERNED_SYNTHETIC_MARKERS,
     }
     r = httpx.post(f"{BACKEND}/api/meetings", json=payload, timeout=30)
     assert r.status_code == 200, f"meeting submit: {r.status_code} {r.text[:200]}"
@@ -243,6 +247,7 @@ def test_p6_inspection_submit_and_list_hides_synthetic(admin_h, safety_h):
         "hazards_observed": "No",
         "stop_work_issued": "No",
         "notes": "TEST_28_06_ cert",
+        **GOVERNED_SYNTHETIC_MARKERS,
     }
     r = httpx.post(f"{BACKEND}/api/inspections", json=payload, headers=admin_h, timeout=30)
     assert r.status_code == 200, f"inspection submit: {r.status_code} {r.text[:200]}"
