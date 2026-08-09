@@ -1,6 +1,6 @@
 # MASCI OPS — PLATFORM KPI TRUTH AND TRUST REGISTER
 
-Last updated: 2026-08-08T19:52Z
+Last updated: 2026-08-09T17:47Z
 
 Status: **OPEN / NO-GO**
 
@@ -64,6 +64,7 @@ Important: if a KPI family lacks explicit metadata, drilldown, or parity proof, 
 | Rolling Two-Week Lookahead | `/api/pm/project-controls/projects/ZZ-RUNTIME-CERT-2026/schedule/lookahead` | 200 | Overlay evidence present |
 | Daily Work Plan | `/api/pm/project-controls/projects/ZZ-RUNTIME-CERT-2026/schedule/daily-work-plan?work_date=2026-08-08` | 200 | Overlay evidence present |
 | Trust Spine | `/api/admin/trust-spine` | 200 | `platform_band=green`, `canonical_status=VERIFIED` |
+| System Recovery Collection Diagnostics | `/api/admin/crew-recovery/status` | 200 | `count_audit` now classifies raw counts as canonical/live, legacy/deprecated, telemetry, or genuine zero; no longer presented as business KPI truth |
 
 ## KPI denominator status
 
@@ -108,6 +109,7 @@ Until every row below is PASS, PRE-C10 remains **OPEN / NO-GO**.
 | C8 Earned Value Summary | BAC/PV/EV/AC/CPI/SPI/EAC posture for project controls | Earned-value governed calculations over schedule/budget/actual evidence | project-controls earned value | budget lines, schedule, actual costs, commitments | `/api/admin/governance/project-controls/projects/{project}/earned-value` | Partial but better; parity tests exist to C9 | Current snapshot | Partial until line-level and consumer denominator closes | `PARTIAL` | current earned-value engine | Project controls operators | Admin governance / executive portfolio | EV reports still need inventory | Selected C8↔C9 parity PASS; denominator incomplete | Lines + evidence present | 200; summary present | FAIL |
 | C9 Portfolio Intelligence | Portfolio-level performance posture across projects | Governed portfolio aggregation over C7/C8/schedule/project data | project-controls portfolio intelligence | project schedule + financial + forecasting lineage | `/api/admin/governance/project-controls/portfolio-intelligence` | Partial; downstream parity exists for certification project | Current snapshot | Partial across full portfolio denominator | `PARTIAL` | current portfolio intelligence contract | PM portfolio / admin governance | Executive portfolio | Portfolio exports still need inventory | Certification-project parity PASS; full portfolio parity open | Project-level rows present | 200; `projects=43` | FAIL |
 | Trust Spine Platform Band | Workflow evidence posture for governed operational chains | Aggregated from workflow lifecycle evidence and cadence policy | `trust_spine` | trust spine events, workflow profiles | `/api/admin/trust-spine` | Strong for workflow evidence itself | Current snapshot | Good for workflow chain | `CURRENT` | current trust spine contract | Admin / operations control | Executive platform posture | Trust/event exports | Trust Spine itself PASS; KPI consumer coverage still open | Workflow-level drilldown exists | 200; `platform_band=green` | FAIL |
+| System Recovery Collection Diagnostics | Exception-only technical collection presence for recovery triage | Raw `count_documents` by collection plus governed truth classification envelope | `system-recovery` | raw Mongo collections (`users`, `projects`, `equipment_master`, `employees`, etc.) | `/api/admin/crew-recovery/status` `count_audit` | Strong after the Admin OS repair; the endpoint now explicitly states that these figures are technical diagnostics only and routes each count back to its canonical governed surface | Current snapshot (`refreshed_at`) | Partial by design; this is technical presence data, not business completeness truth | `TECHNICAL_DIAGNOSTIC` | current `count_audit` contract | Exception-only Admin System Recovery | None — primary Admin OS and executive consumers are intentionally excluded | No exports or business rollups allowed | Landing-page parity PASS after re-home to `/admin/system` | Classification labels + canonical surface mapping present | 200; sample returns legacy-deprecated Crew Hub counts alongside canonical/live equipment and employee master counts | PASS |
 
 ## Material KPI families explicitly added to the active denominator but still needing row expansion
 
@@ -138,6 +140,7 @@ Any unexpanded family above still counts against final PRE-C10 GO.
 5. Executive safety KPI parity was rechecked against an independent source-record oracle. The intermediate `open=10` reading was not a legitimate alternate KPI — it was preview test pollution from lifecycle rows that were wrongly created as `live_operational`. After governed reclassification plus test-harness repair, live runtime truth returned to `open=2`, `overdue=2`.
 6. Independent hostile tests now prove that explicit governed hidden markers exclude technical rows, while test-like names alone do **not** hide legitimate operator records.
 7. Schedule source-chain testing now proves exact value parity from source records → schedule authority → lookahead/daily-work-plan → C7 → C8 → C9 for the deterministic certification project, and surfaced a real stale-lookahead defect that has now been repaired in preview.
+8. The Admin OS / System Recovery amendment is now part of the KPI truth ledger: raw recovery counts are explicitly downgraded to technical diagnostics and re-homed off the primary landing, preventing collection totals from masquerading as business truth.
 
 ## Exit criteria for this register
 

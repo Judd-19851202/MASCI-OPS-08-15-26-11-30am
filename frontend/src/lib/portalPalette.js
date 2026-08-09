@@ -50,8 +50,6 @@
 // picks it up automatically.
 //
 // ─── Known drifts (iter144, documented for future reconciliation) ─
-// * ShopHub header uses amber-500 / amber-700 / amber-300 (preserved
-//   in hub*) while the canonical Shop tile palette is orange-600/700.
 // * PmHub tile-CTA uses amber-600 hover + amber-700 text while the
 //   canonical PM palette is indigo. PmHub TILES array is per-tile,
 //   not portal-keyed, so it's left literal.
@@ -103,11 +101,10 @@ export const PORTAL_PALETTE = {
     // dominant variant). Preserve for zero-visual-change.
     heroBg:         "bg-orange-700",
     heroBtnInverse: "bg-white text-orange-700 hover:bg-orange-50",
-    // ShopHub header shipped with amber accents — see drift note.
-    hubHeaderBar:  "border-amber-500",
-    hubKicker:     "text-amber-700",
-    hubKickerStatic: "text-amber-300",
-    hubLinkHover:  "hover:text-amber-300",
+    hubHeaderBar:  "border-orange-600",
+    hubKicker:     "text-orange-700",
+    hubKickerStatic: "text-orange-300",
+    hubLinkHover:  "hover:text-orange-300",
   },
   hr: {
     bg:         "bg-purple-700",

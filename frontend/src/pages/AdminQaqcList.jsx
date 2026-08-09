@@ -80,7 +80,7 @@ export default function AdminQaqcList() {
     <PortalShell
       portalName="MASCI"
       portalRole="Admin · QA/QC"
-      pageTitle="All QA / QC Inspections"
+      pageTitle="All QA/QC Inspections"
       subtitle="Admin-only list of every QA/QC inspection · filter by kind · export to CSV."
       sideNav={renderAdminRouteSideNav()}
       primaryActions={
@@ -92,7 +92,7 @@ export default function AdminQaqcList() {
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-qaqc-list-page">
         <AdminBreadcrumb crumbs={[
           { label: "Field Operations" },
-          { label: "QA / QC" },
+          { label: "QA/QC" },
         ]} />
         <div className="flex items-start gap-3 mb-5">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-600 text-white shrink-0">
@@ -101,7 +101,7 @@ export default function AdminQaqcList() {
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-700 font-bold">Admin · QA/QC</span>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900">
-              All QA / QC Inspections
+              All QA/QC Inspections
             </h1>
           </div>
         </div>

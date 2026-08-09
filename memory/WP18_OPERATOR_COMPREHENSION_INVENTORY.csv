@@ -112,8 +112,6 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminProjectIdentityGovernance,Admin,No governance items match the current filter. Run a re-scan to refresh detection.,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:444,EXEMPT
 /AdminProjectIdentityGovernance,Admin,Suggested canonical,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:509,EXEMPT
 /AdminProjectIdentityGovernance,Admin,— Pick canonical project —,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:566,EXEMPT
-/AdminQaqcList,Admin,All QA / QC Inspections,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::frontend/src/pages/AdminQaqcList.jsx:100,EXEMPT
-/AdminQaqcList,Admin,QA / QC,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::frontend/src/pages/AdminQaqcList.jsx:92,EXEMPT
 /AdminRecovery,Admin,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:392,EXEMPT
 /AdminRecovery,Admin,Sources: recovery snapshot · deployment readiness · cluster capacity · scheduler runs · system health,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:410,EXEMPT
 /AdminRecovery,Admin,Archive lineage,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:458,EXEMPT
@@ -334,7 +332,6 @@ test_wp18cy_daily_report_email_transport,Technical,Runtime Project,runtime,TECHN
 track_15_41_pdf_compare,Technical,"Stripped, non-empty lines. Token-of-truth for",truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::backend/scripts/track_15_41_pdf_compare.py:30,EXEMPT
 track_15_65_seed_email_routes,Technical,Single fallback when shop_users collection is empty (Pre-Op fail / OOS).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::backend/scripts/track_15_65_seed_email_routes.py:128,EXEMPT
 track_15_65_seed_email_routes,Technical,read-only audit of the route catalog,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/scripts/track_15_65_seed_email_routes.py:422,EXEMPT
-training,Training / Localization,Lesson 5 — QA / QC Inspections,QA / QC,TECHNICAL_ADMIN_EXCEPTION,QA/QC,static_scan::frontend/src/data/training.js:202,EXEMPT
 training,Training / Localization,Trust but verify. The Integrity Check proves that every collection currently in your live DB is captured in the most recent backup — catches new collections that a future feature adds without updating the backup routine.,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/data/training.js:783,EXEMPT
 training,Training / Localization,Lesson 6 — Safe Deploy / Redeploy Workflow (Pre-Deploy Snapshot + Atlas),snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/data/training.js:828,EXEMPT
 training_pdf,Technical,"Pipeline: photo → indexer mirrors to job_photos → frontend requests /thumb-signed?t=<token> → backend checks cache → if miss, decodes (Pillow + pillow-heif) → encodes WebP/AVIF/JPEG in one pass → stores all 3 → serves right format per Accept header.",backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::backend/training_pdf.py:1095,EXEMPT

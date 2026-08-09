@@ -12677,6 +12677,132 @@ async def admin_run_data_fixes(_: bool = Depends(require_admin)):
 # (X-Admin-Token / env PM_PASSWORD) — NOT by a Crew Hub JWT — so it works even when
 # every crew owner+admin is locked out.
 
+_CREW_RECOVERY_COUNT_AUDIT = {
+    "users": {
+        "label": "Legacy crew users",
+        "truth_classification": "legacy_deprecated",
+        "classification_label": "Legacy / deprecated",
+        "operator_truth_rule": "Legacy authentication-only table. Do not treat this raw count as current workforce truth.",
+        "canonical_surface": "/admin/identity-security",
+    },
+    "projects": {
+        "label": "Retired crew projects",
+        "truth_classification": "legacy_deprecated",
+        "classification_label": "Legacy / deprecated",
+        "operator_truth_rule": "Retired Crew Hub residue only. Zero does not indicate live project health.",
+        "canonical_surface": "/admin/jobs",
+    },
+    "project_members": {
+        "label": "Retired crew project memberships",
+        "truth_classification": "legacy_deprecated",
+        "classification_label": "Legacy / deprecated",
+        "operator_truth_rule": "Retired Crew Hub staffing residue. Do not use as current staffing truth.",
+        "canonical_surface": "/admin/project-staffing",
+    },
+    "equipment_master": {
+        "label": "Equipment master records",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is technical master-data volume only. Governed equipment surfaces determine operator truth.",
+        "canonical_surface": "/admin/equipment",
+    },
+    "equipment_units": {
+        "label": "Equipment units",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is technical volume only. Readiness and utilization belong to governed fleet views.",
+        "canonical_surface": "/admin/equipment",
+    },
+    "equipment_inspections": {
+        "label": "Equipment inspections",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count may include historical or governed-hidden records. Use governed equipment inspection surfaces for business truth.",
+        "canonical_surface": "/admin/equipment",
+    },
+    "inspections": {
+        "label": "Safety inspections",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is a collection diagnostic only. Governed safety inspection surfaces own operator truth.",
+        "canonical_surface": "/admin/incidents",
+    },
+    "meetings": {
+        "label": "Safety meetings",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is technical volume only. Review governed safety meeting records for actionable truth.",
+        "canonical_surface": "/admin/incidents",
+    },
+    "jhas": {
+        "label": "JHAs",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count can include certification or governed-hidden rows. Governed JHA surfaces decide business truth.",
+        "canonical_surface": "/admin/incidents",
+    },
+    "incidents": {
+        "label": "Incidents",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is not incident severity or active-risk truth. Use the governed incident command surfaces.",
+        "canonical_surface": "/admin/incidents",
+    },
+    "daily_reports": {
+        "label": "Daily reports",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is technical report volume only. Governed reporting surfaces apply visibility and contamination rules.",
+        "canonical_surface": "/admin/daily-reports",
+    },
+    "docs": {
+        "label": "Retired crew documents",
+        "truth_classification": "legacy_deprecated",
+        "classification_label": "Legacy / deprecated",
+        "operator_truth_rule": "Legacy Crew Hub document residue only.",
+        "canonical_surface": "/admin/legacy-imports",
+    },
+    "employees": {
+        "label": "Employee master records",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is master-data volume only. Workforce truth requires governed people and compliance surfaces.",
+        "canonical_surface": "/admin/people",
+    },
+    "suppliers": {
+        "label": "Supplier master records",
+        "truth_classification": "canonical_live",
+        "classification_label": "Canonical / live",
+        "operator_truth_rule": "Raw count is technical volume only. Vendor readiness belongs to governed supplier surfaces.",
+        "canonical_surface": "/admin/equipment",
+    },
+    "notifications": {
+        "label": "Notification events",
+        "truth_classification": "telemetry",
+        "classification_label": "Telemetry",
+        "operator_truth_rule": "High volume does not equal operator backlog. This is system-event telemetry, not business work-in-progress.",
+        "canonical_surface": "/admin/communications",
+    },
+    "activity_log": {
+        "label": "Legacy crew activity log",
+        "truth_classification": "legacy_deprecated",
+        "classification_label": "Legacy / deprecated",
+        "operator_truth_rule": "Retired Crew Hub audit residue only.",
+        "canonical_surface": "/admin/audit-log",
+    },
+}
+
+
+def _crew_recovery_count_state(collection: str, count: int) -> str:
+    classification = (_CREW_RECOVERY_COUNT_AUDIT.get(collection) or {}).get("truth_classification")
+    if count < 0:
+        return "unavailable"
+    if count == 0 and classification == "legacy_deprecated":
+        return "legacy_zero"
+    if count == 0:
+        return "genuine_zero"
+    return "available"
+
 @api_router.get("/admin/crew-recovery/status")
 async def admin_crew_recovery_status(_: bool = Depends(require_admin_strict)):
     """Return counts of every key collection so the office can see at a glance
@@ -12707,10 +12833,25 @@ async def admin_crew_recovery_status(_: bool = Depends(require_admin_strict)):
     crew_users = await db.users.find(
         {}, {"_id": 0, "id": 1, "email": 1, "name": 1, "role": 1, "is_active": 1, "must_change_password": 1}
     ).sort("email", 1).to_list(200)
+    count_audit = []
+    for coll, count in counts.items():
+        meta = _CREW_RECOVERY_COUNT_AUDIT.get(coll, {})
+        count_audit.append({
+            "collection": coll,
+            "count": count,
+            "count_state": _crew_recovery_count_state(coll, count),
+            "label": meta.get("label") or coll,
+            "truth_classification": meta.get("truth_classification") or "unavailable",
+            "classification_label": meta.get("classification_label") or "Unclassified",
+            "operator_truth_rule": meta.get("operator_truth_rule") or "Technical diagnostic only.",
+            "canonical_surface": meta.get("canonical_surface") or None,
+        })
     return {
         "ok": True,
         "counts": counts,
+        "count_audit": count_audit,
         "crew_users": crew_users,
+        "refreshed_at": datetime.now(timezone.utc).isoformat(),
     }
 
 

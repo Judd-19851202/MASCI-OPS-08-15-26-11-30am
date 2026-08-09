@@ -25,6 +25,8 @@ from typing import Any, Callable, Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, Query
 
+from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
+
 logger = logging.getLogger(__name__)
 
 EQUIPMENT_BINDING_TARGETS: List[Tuple[str, List[str]]] = [
@@ -89,7 +91,7 @@ async def _binding_coverage_for_targets(
 
 async def build_master_binding_audit(db) -> Dict[str, Any]:
     eq_master_total = await db.equipment_master.count_documents({})
-    emp_total = await db.employees.count_documents({})
+    emp_total = await db.employees.count_documents(apply_synthetic_hr_exclusion({}))
     equipment_coverage = await _binding_coverage_for_targets(
         db,
         targets=EQUIPMENT_BINDING_TARGETS,

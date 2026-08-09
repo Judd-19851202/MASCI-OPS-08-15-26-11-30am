@@ -28,7 +28,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity,
-  AlertTriangle,
+  ArrowUpRight,
   Archive,
   BarChart3,
   ChevronRight,
@@ -49,7 +49,6 @@ import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
-import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
@@ -99,12 +98,18 @@ function exportTrustSnapshot(domains, results, summary, overallStatus) {
   lines.push(``);
   lines.push(`- Generated: **${localStamp}** (your local time)`);
   lines.push(`- Overall posture: **${_statusLabel(overallStatus)}**`);
-  lines.push(`- Healthy: ${summary.healthy} · Attention: ${summary.warning} · Critical: ${summary.critical} · Awaiting signal: ${summary.wiring} · Total domains: ${domains.length}`);
+  lines.push(`- Healthy: ${summary.healthy} · Attention: ${summary.warning} · Critical: ${summary.critical} · Awaiting signal: ${summary.pending} · Total domains: ${domains.length}`);
   lines.push(``);
   lines.push(`## Domains`);
   for (const d of domains) {
     const r = d.probe ? results[d.id] : null;
-    const evaluated = r ? d.evaluate(r) : d.probe ? { status: "loading" } : d.evaluate(null);
+    const evaluated = r?.pending
+      ? { status: "loading", metric: "…", detail: "Loading live data…" }
+      : r
+      ? d.evaluate(r)
+      : d.probe
+      ? { status: "loading" }
+      : d.evaluate(null);
     lines.push(``);
     lines.push(`### ${String(d.number).padStart(2, "0")} · ${d.label} · ${_statusLabel(evaluated.status)}`);
     lines.push(`- Canonical route: \`${d.to}\``);
@@ -182,26 +187,112 @@ function StatusPill({ status, testid }) {
   );
 }
 
-// ── Domain card ────────────────────────────────────────────────────
-function DomainCard({ domain, probeResult, loaded }) {
-  const { t } = useT();
-  // Three states, in order:
-  //   1. Domain has no probe            → call evaluate(null) once — the
-  //                                       card owns its honest "Needs
-  //                                       wiring" (or similar) state.
-  //   2. Probe done (result available)  → call evaluate(result).
-  //   3. Probe pending (loaded=false)   → generic loading placeholder.
-  let evaluated;
+const ACTION_PRIORITY = {
+  critical: 0,
+  warning: 1,
+  wiring: 2,
+  offline: 2,
+  loading: 3,
+  healthy: 4,
+};
+
+function getEvaluatedDomain(domain, probeResult, loaded) {
   if (!domain.probe) {
-    evaluated = domain.evaluate(null);
-  } else if (probeResult) {
-    evaluated = domain.evaluate(probeResult);
-  } else if (loaded) {
-    // Loaded but somehow no result key — treat as offline.
-    evaluated = { status: "offline", metric: "—", detail: "Probe unavailable.", stampedAt: null };
-  } else {
-    evaluated = { status: "loading", metric: "…", detail: "Loading live data…", stampedAt: null };
+    return domain.evaluate(null);
   }
+  if (probeResult?.pending) {
+    return { status: "loading", metric: "…", detail: "Loading live data…", stampedAt: null };
+  }
+  if (probeResult) {
+    return domain.evaluate(probeResult);
+  }
+  if (loaded) {
+    return { status: "offline", metric: "—", detail: "Probe unavailable.", stampedAt: null };
+  }
+  return { status: "loading", metric: "…", detail: "Loading live data…", stampedAt: null };
+}
+
+function getDomainAction(domain, evaluation) {
+  const detail = typeof evaluation?.detail === "string" ? evaluation.detail : domain.description;
+  const tone = evaluation?.status === "critical" ? "critical" : evaluation?.status === "warning" ? "warning" : "pending";
+
+  switch (domain.id) {
+    case "platform-overview":
+      return {
+        tone,
+        title: "Confirm platform attestation and readiness",
+        summary: detail,
+        action: "Open Platform Overview",
+      };
+    case "operations-control":
+      return {
+        tone,
+        title: "Review shared operational blockers",
+        summary: detail,
+        action: "Open Operations Control",
+      };
+    case "storage-recovery":
+      return {
+        tone,
+        title: "Check backup freshness and restore evidence",
+        summary: detail,
+        action: "Open Storage & Recovery",
+      };
+    case "communications":
+      return {
+        tone,
+        title: "Inspect routing and scheduler posture",
+        summary: detail,
+        action: "Open Communications",
+      };
+    case "identity-security":
+      return {
+        tone,
+        title: "Review session inventory and access posture",
+        summary: detail,
+        action: "Open Identity & Security",
+      };
+    case "governance-trust":
+      return {
+        tone,
+        title: "Resolve governance and readiness findings",
+        summary: detail,
+        action: "Open Governance & Trust",
+      };
+    case "platform-configuration":
+      return {
+        tone,
+        title: "Verify integration and platform configuration health",
+        summary: detail,
+        action: "Open Platform Configuration",
+      };
+    case "diagnostics":
+      return {
+        tone,
+        title: "Inspect runtime diagnostics and worker health",
+        summary: detail,
+        action: "Open Diagnostics",
+      };
+    case "maintenance":
+      return {
+        tone,
+        title: "Use reviewed maintenance controls only when needed",
+        summary: detail,
+        action: "Open Maintenance",
+      };
+    default:
+      return {
+        tone,
+        title: domain.label,
+        summary: detail,
+        action: `Open ${domain.label}`,
+      };
+  }
+}
+
+// ── Domain card ────────────────────────────────────────────────────
+function DomainCard({ domain, evaluation }) {
+  const { t } = useT();
   const Icon = domain.icon;
 
   return (
@@ -229,7 +320,7 @@ function DomainCard({ domain, probeResult, loaded }) {
                 {String(domain.number).padStart(2, "0")}
               </span>
               <StatusPill
-                status={evaluated.status}
+                status={evaluation.status}
                 testid={`admin-os-card-${domain.id}-status`}
               />
             </div>
@@ -253,22 +344,22 @@ function DomainCard({ domain, probeResult, loaded }) {
               className="text-2xl font-black text-slate-900 leading-none"
               data-testid={`admin-os-card-${domain.id}-metric`}
             >
-              {evaluated.metric}
+              {evaluation.metric}
             </div>
             <div
               className="mt-1 text-[11px] text-slate-500 leading-tight truncate"
               data-testid={`admin-os-card-${domain.id}-detail`}
             >
-              {typeof evaluated.detail === "string" ? t(evaluated.detail) : evaluated.detail}
+              {typeof evaluation.detail === "string" ? t(evaluation.detail) : evaluation.detail}
             </div>
           </div>
-          {evaluated.stampedAt ? (
+          {evaluation.stampedAt ? (
             <div
               className="text-[10px] font-mono text-slate-400 text-right shrink-0"
               data-testid={`admin-os-card-${domain.id}-stamp`}
               title={t("Last checked (your local time)")}
             >
-              {formatRelativeTime(evaluated.stampedAt)}
+              {formatRelativeTime(evaluation.stampedAt)}
             </div>
           ) : null}
         </div>
@@ -295,26 +386,24 @@ const DOMAINS = [
     icon: BarChart3,
     to: "/admin/executive-overview",
     description:
-      "One-glance executive summary — service health, build version, uptime.",
-    probe: "/api/version",
+      "Trusted platform posture — readiness, attestation, and runtime command signal.",
+    probe: "/api/admin/platform/status",
     evaluate: (r) => {
       if (!r.ok || !r.body) {
         return {
           status: "critical",
-          metric: "OFFLINE",
-          detail: "Service is not reporting.",
+          metric: "UNKNOWN",
+          detail: "Platform attestation is not reporting.",
           stampedAt: null,
         };
       }
-      const uptime = Number(r.body.uptime_s || 0);
-      const hours = Math.floor(uptime / 3600);
-      const minutes = Math.floor((uptime % 3600) / 60);
-      const commit = String(r.body.commit || "—").slice(0, 8);
+      const ready = !!r.body.readiness?.ready_flag;
+      const attestation = r.body.attestation_version || "runtime";
       return {
-        status: "healthy",
-        metric: `${hours}h ${minutes}m`,
-        detail: `Build ${commit} · ${r.body.service || "service"}`,
-        stampedAt: r.body.started_at,
+        status: ready ? "healthy" : "warning",
+        metric: ready ? "READY" : "HOLD",
+        detail: `Attestation ${attestation} · ${ready ? "platform ready" : "needs readiness review"}`,
+        stampedAt: null,
       };
     },
   },
@@ -327,7 +416,7 @@ const DOMAINS = [
     to: "/admin/operations-control",
     description:
       "The single console for platform maintenance — dry-run, apply, audit.",
-    probe: "/api/admin/operations-control/overview",
+    probe: "/api/admin/occ/health",
     evaluate: (r) => {
       if (!r.ok || !r.body) {
         return {
@@ -337,23 +426,15 @@ const DOMAINS = [
           stampedAt: null,
         };
       }
-      const ops = r.body.operations || [];
-      let critical = 0;
-      let warning = 0;
-      for (const op of ops) {
-        const s = op?.status_snapshot?.status;
-        if (s === "critical") critical += 1;
-        else if (s === "warning") warning += 1;
-      }
-      const status = critical > 0 ? "critical" : warning > 0 ? "warning" : "healthy";
-      const metric = String(ops.length);
+      const canonical = String(r.body.overall_canonical || r.body.overall_status || "UNVERIFIABLE").toUpperCase();
+      const rootCauses = Array.isArray(r.body.root_cause_groups) ? r.body.root_cause_groups.length : 0;
+      const status = canonical === "VERIFIED" ? "healthy" : canonical === "DEGRADED" ? "warning" : "critical";
+      const metric = rootCauses > 0 ? String(rootCauses) : canonical;
       const detail =
-        critical > 0
-          ? `${critical} critical · ${warning} warning`
-          : warning > 0
-          ? `${warning} attention · ${ops.length - warning} healthy`
-          : `${ops.length} operations · all green`;
-      return { status, metric, detail, stampedAt: r.body.checked_at || null };
+        canonical === "VERIFIED"
+          ? `Canonical ${canonical.toLowerCase()} · OCC aggregator in bounds`
+          : `${canonical.toLowerCase()} · ${rootCauses} root-cause group(s)`;
+      return { status, metric, detail, stampedAt: r.body.generated_at || null };
     },
   },
   {
@@ -574,7 +655,7 @@ const DOMAINS = [
     to: "/admin/diagnostics",
     description:
       "System health probes, database capacity, asset-spine, analytics.",
-    probe: "/api/health",
+    probe: "/api/admin/system-health",
     evaluate: (r) => {
       if (!r.ok || !r.body) {
         return {
@@ -584,12 +665,19 @@ const DOMAINS = [
           stampedAt: null,
         };
       }
-      const ok = !!r.body.ok;
+      const canonical = String(r.body.overall_canonical || "").toUpperCase();
+      const overall = String(r.body.overall || "").toLowerCase();
+      const cards = Array.isArray(r.body.cards) ? r.body.cards : [];
+      const degraded = cards.filter((card) => {
+        const status = String(card?.status || "").toLowerCase();
+        return status === "red" || status === "yellow";
+      }).length;
+      const ok = canonical === "VERIFIED" || overall === "green";
       return {
-        status: ok ? "healthy" : "critical",
-        metric: ok ? "OK" : "FAIL",
-        detail: ok ? `Service reporting healthy` : `Service reporting failure`,
-        stampedAt: r.body.ts || null,
+        status: ok ? "healthy" : degraded > 0 ? "warning" : "critical",
+        metric: ok ? "GREEN" : `${degraded}`,
+        detail: ok ? `Diagnostics in bounds` : `${degraded} diagnostic card(s) need attention`,
+        stampedAt: r.body.generated_at || null,
       };
     },
   },
@@ -642,7 +730,7 @@ export default function AdminOS() {
     let cancelled = false;
     const domainsWithProbe = DOMAINS.filter((d) => d.probe);
     setLoaded(false);
-    setResults({});
+    setResults(Object.fromEntries(domainsWithProbe.map((domain) => [domain.id, { pending: true }])));
     if (domainsWithProbe.length === 0) {
       setLoaded(true);
       return () => {
@@ -663,36 +751,53 @@ export default function AdminOS() {
     };
   }, [refreshTick]);
 
+  const domainStates = useMemo(
+    () => DOMAINS.map((domain) => ({
+      ...domain,
+      evaluation: getEvaluatedDomain(domain, results[domain.id], loaded),
+    })),
+    [results, loaded]
+  );
+
   const summary = useMemo(() => {
     let healthy = 0;
     let warning = 0;
     let critical = 0;
-    let wiring = 0;
-    for (const d of DOMAINS) {
-      const r = results[d.id];
-      const evaluated = r
-        ? d.evaluate(r)
-        : d.probe
-        ? { status: "loading" }
-        : d.evaluate(null);
-      const s = evaluated.status;
+    let pending = 0;
+    for (const domain of domainStates) {
+      const s = domain.evaluation.status;
       if (s === "healthy") healthy += 1;
       else if (s === "warning") warning += 1;
       else if (s === "critical") critical += 1;
-      else if (s === "wiring") wiring += 1;
+      else pending += 1;
     }
-    return { healthy, warning, critical, wiring };
-  }, [results]);
+    return { healthy, warning, critical, pending };
+  }, [domainStates]);
+
+  const nextActions = useMemo(
+    () => domainStates
+      .filter((domain) => domain.evaluation.status !== "healthy")
+      .sort((a, b) => {
+        const priorityDelta = (ACTION_PRIORITY[a.evaluation.status] ?? 9) - (ACTION_PRIORITY[b.evaluation.status] ?? 9);
+        return priorityDelta !== 0 ? priorityDelta : a.number - b.number;
+      })
+      .slice(0, 4)
+      .map((domain) => ({
+        domain,
+        actionCopy: getDomainAction(domain, domain.evaluation),
+      })),
+    [domainStates]
+  );
 
   const overallStatus =
-    !loaded
-      ? "loading"
-      : summary.critical > 0
+    summary.critical > 0
       ? "critical"
       : summary.warning > 0
       ? "warning"
+      : summary.pending > 0
+      ? "wiring"
       : "healthy";
-  const displaySummary = loaded ? summary : null;
+  const displaySummary = summary;
 
   return (
     <div
@@ -767,90 +872,112 @@ export default function AdminOS() {
           </div>
         </section>
 
-        {/* ── Overall posture strip ─────────────────────────────── */}
-        <ResponsiveSummaryStrip
-          className="mb-6 wp16-card wp16-hairline-grid p-4 sm:p-5 wp17-panel"
-          testid="admin-os-posture"
-          left={(
-            <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
-                {t("Platform posture")}
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
-                <StatusPill
-                  status={overallStatus}
-                  testid="admin-os-posture-pill"
-                />
-                <span className="text-sm font-semibold text-slate-900 min-w-0 break-words">
-                  {overallStatus === "critical"
-                    ? t("One or more domains report a critical condition.")
-                    : overallStatus === "warning"
-                    ? t("One or more domains need attention.")
-                    : overallStatus === "healthy"
-                    ? t("All wired domains report healthy.")
-                    : t("Loading domain probes…")}
-                </span>
-              </div>
-            </div>
-          )}
-          right={(
-            <>
-              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-healthy">
-                <div className="wp17-metric-card">
-                  <div className="wp17-metric-card__label">
-                  {t("Healthy")}
-                  </div>
-                  <div className="wp17-metric-card__value text-emerald-700">
-                  {displaySummary ? displaySummary.healthy : "—"}
-                  </div>
+        <section className="mb-6 grid gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:items-start" data-testid="admin-os-command-surface">
+          <ResponsiveSummaryStrip
+            className="mb-0 wp16-card wp16-hairline-grid p-4 sm:p-5 wp17-panel"
+            testid="admin-os-posture"
+            left={(
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+                  {t("Platform posture")}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
+                  <StatusPill
+                    status={overallStatus}
+                    testid="admin-os-posture-pill"
+                  />
+                  <span className="text-sm font-semibold text-slate-900 min-w-0 break-words">
+                    {overallStatus === "critical"
+                      ? t("One or more domains report a critical condition.")
+                      : overallStatus === "warning"
+                      ? t("One or more domains need attention.")
+                      : overallStatus === "wiring"
+                      ? t("One or more trust signals are still pending.")
+                      : t("All wired domains report healthy.")}
+                  </span>
                 </div>
               </div>
-              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-warning">
-                <div className="wp17-metric-card">
-                  <div className="wp17-metric-card__label">
-                  {t("Attention")}
-                  </div>
-                  <div className="wp17-metric-card__value text-amber-700">
-                  {displaySummary ? displaySummary.warning : "—"}
-                  </div>
-                </div>
-              </div>
-              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-critical">
-                <div className="wp17-metric-card">
-                  <div className="wp17-metric-card__label">
-                  {t("Critical")}
-                  </div>
-                  <div className="wp17-metric-card__value text-rose-700">
-                  {displaySummary ? displaySummary.critical : "—"}
+            )}
+            right={(
+              <>
+                <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-healthy">
+                  <div className="wp17-metric-card">
+                    <div className="wp17-metric-card__label">{t("Healthy")}</div>
+                    <div className="wp17-metric-card__value text-emerald-700">{displaySummary.healthy}</div>
                   </div>
                 </div>
-              </div>
-              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-wiring">
-                <div className="wp17-metric-card">
-                  <div className="wp17-metric-card__label">
-                  {t("Awaiting signal")}
-                  </div>
-                  <div className="wp17-metric-card__value text-slate-600">
-                  {displaySummary ? displaySummary.wiring : "—"}
+                <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-warning">
+                  <div className="wp17-metric-card">
+                    <div className="wp17-metric-card__label">{t("Attention")}</div>
+                    <div className="wp17-metric-card__value text-amber-700">{displaySummary.warning}</div>
                   </div>
                 </div>
-              </div>
-              <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-kpi-row">
-                <div className="wp17-metric-card">
-                  <div className="wp17-metric-card__label">
-                  {t("Total domains")}
-                  </div>
-                  <div className="wp17-metric-card__value text-slate-800">
-                  {displaySummary ? DOMAINS.length : "—"}
+                <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-critical">
+                  <div className="wp17-metric-card">
+                    <div className="wp17-metric-card__label">{t("Critical")}</div>
+                    <div className="wp17-metric-card__value text-rose-700">{displaySummary.critical}</div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
-        />
+                <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-count-wiring">
+                  <div className="wp17-metric-card">
+                    <div className="wp17-metric-card__label">{t("Pending")}</div>
+                    <div className="wp17-metric-card__value text-slate-600">{displaySummary.pending}</div>
+                  </div>
+                </div>
+                <div className="min-w-[9.5rem] flex-1 xl:flex-none xl:w-[10.25rem]" data-testid="admin-os-kpi-row">
+                  <div className="wp17-metric-card">
+                    <div className="wp17-metric-card__label">{t("Total domains")}</div>
+                    <div className="wp17-metric-card__value text-slate-800">{DOMAINS.length}</div>
+                  </div>
+                </div>
+              </>
+            )}
+          />
 
-        <section className="mb-6" data-testid="admin-os-backup-integrity-section">
-          <CrewRecoveryPanel />
+          <section className="rounded-[var(--radius-card)] border border-slate-200 bg-white p-4 shadow-sm" data-testid="admin-os-next-actions">
+            <div className="mb-3">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Next actions</div>
+              <h3 className="mt-1 font-display text-lg font-black tracking-tight text-slate-900">
+                Attention-first command surface
+              </h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Recovery, diagnostics, and destructive controls stay off this landing until requested.
+              </p>
+            </div>
+
+            {nextActions.length > 0 ? (
+              <div className="space-y-2.5" data-testid="admin-os-next-action-grid">
+                {nextActions.map(({ domain, actionCopy }, index) => (
+                  <Link
+                    key={domain.id}
+                    to={domain.to}
+                    className="group flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 transition-[border-color,background-color] duration-150 hover:border-slate-300 hover:bg-white"
+                    data-testid={`admin-os-next-action-${domain.id}`}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+                        {String(index + 1).padStart(2, "0")} · {t(domain.label)}
+                      </div>
+                      <div className="mt-1 text-sm font-black tracking-tight text-slate-900">
+                        {t(actionCopy.title)}
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600" data-testid={`admin-os-next-action-${domain.id}-summary`}>
+                        {t(actionCopy.summary)}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusPill status={domain.evaluation.status} testid={`admin-os-next-action-${domain.id}-status`} />
+                      <ArrowUpRight className="h-3.5 w-3.5 text-slate-500 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[var(--radius-card)] border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900" data-testid="admin-os-next-actions-clear">
+                All wired domains are healthy right now. Use the domain grid below for deeper review.
+              </div>
+            )}
+          </section>
         </section>
 
         {/* ── 10 domain cards ────────────────────────────────── */}
@@ -858,14 +985,43 @@ export default function AdminOS() {
           className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
           data-testid="admin-os-domain-grid"
         >
-          {DOMAINS.map((d) => (
+          {domainStates.map((d) => (
             <DomainCard
               key={d.id}
               domain={d}
-              probeResult={d.probe ? results[d.id] : null}
-              loaded={loaded}
+              evaluation={d.evaluation}
             />
           ))}
+        </section>
+
+        <section className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3" data-testid="admin-os-recovery-governance">
+          <Link
+            to="/admin/storage-recovery"
+            className="rounded-[var(--radius-card)] border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-300 hover:shadow-md transition-all"
+            data-testid="admin-os-recovery-link-storage"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Recovery evidence</div>
+            <div className="mt-1 font-semibold text-slate-900">Storage & Recovery</div>
+            <p className="mt-2 text-sm text-slate-600">Backups, manifests, retention, restore drills, recovery history, and integrity verification.</p>
+          </Link>
+          <Link
+            to="/admin/diagnostics"
+            className="rounded-[var(--radius-card)] border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-300 hover:shadow-md transition-all"
+            data-testid="admin-os-recovery-link-diagnostics"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Technical detail</div>
+            <div className="mt-1 font-semibold text-slate-900">Diagnostics</div>
+            <p className="mt-2 text-sm text-slate-600">Runtime probes, database capacity, workers, and deployment-readiness diagnostics on request.</p>
+          </Link>
+          <Link
+            to="/admin/system"
+            className="rounded-[var(--radius-card)] border border-amber-200 bg-amber-50 p-4 shadow-sm hover:border-amber-300 hover:shadow-md transition-all"
+            data-testid="admin-os-recovery-link-system"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-amber-800 font-mono">Exception-only</div>
+            <div className="mt-1 font-semibold text-slate-900">System Recovery</div>
+            <p className="mt-2 text-sm text-slate-700">Guarded destructive reconstruction controls stay off the landing and require explicit consequence review.</p>
+          </Link>
         </section>
 
         {/* ── Trust note ─────────────────────────────────────── */}
@@ -876,7 +1032,7 @@ export default function AdminOS() {
           <strong className="text-[color:var(--ink-strong)]">
             {t("Platform command center.")}
           </strong>{" "}
-          {t("Review system health, investigate risks, and open the right operational area from one screen. Every metric is read from a live platform endpoint — cards without a live signal are honestly labelled “Awaiting signal”.")}{" "}
+          {t("Review system health, investigate risks, and open the right operational area from one screen. Every metric is read from a live platform endpoint — cards without a live signal are honestly labelled “Awaiting signal”. Destructive controls are intentionally excluded from this landing.")}{" "}
           {t("Search everything with")}{" "}
           <kbd className="rounded border border-[color:var(--border-bold)] px-1 font-mono text-[10px]">
             ⌘K

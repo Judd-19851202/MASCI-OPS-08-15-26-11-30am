@@ -65,6 +65,7 @@ export const DOMAINS_V3 = [
     ],
     hiddenRoutes: [
       { to: "/admin/platform-overview", label: "Platform Overview" },
+      { to: "/admin/system", label: "System Recovery" },
     ],
   },
 

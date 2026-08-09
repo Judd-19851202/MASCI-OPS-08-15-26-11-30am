@@ -42,16 +42,18 @@ class RoleConfig:
     submit_testid: str
     email: str
     password: str
+    token_key: str | None = None
+    portal_home: str | None = None
 
 
 ROLE_CONFIGS = [
-    RoleConfig("admin", "/admin/login", "admin-email-input", "admin-password-input", "admin-login-submit", _credential(r"jaymn\.judd@mascigc\.com", "jaymn.judd@mascigc.com"), _credential(r"Maddix123!", "Maddix123!")),
-    RoleConfig("pm", "/pm/login", "pm-email-input", "pm-password-input", "pm-login-submit", _credential(r"cert\.pm@example\.com", "cert.pm@example.com"), _credential(r"CertProof2026!", "CertProof2026!")),
-    RoleConfig("hr", "/hr/login", "hr-email-input", "hr-password-input", "hr-login-submit", _credential(r"cert\.hr@example\.com", "cert.hr@example.com"), _credential(r"CertProof2026!", "CertProof2026!")),
-    RoleConfig("safety", "/safety-portal/login", "safety-login-email", "safety-login-password", "safety-login-submit", _credential(r"cert\.safety@example\.com", "cert.safety@example.com"), _credential(r"CertProof2026!", "CertProof2026!")),
-    RoleConfig("dispatch", "/dispatch-portal/login", "dispatch-email-input", "dispatch-password-input", "dispatch-login-submit", _credential(r"cert\.dispatch@example\.com", "cert.dispatch@example.com"), _credential(r"CertProof2026!", "CertProof2026!")),
-    RoleConfig("shop", "/shop/login", "shop-email-input", "shop-password-input", "shop-login-submit", _credential(r"cert\.shop@example\.com", "cert.shop@example.com"), _credential(r"CertProof2026!", "CertProof2026!")),
-    RoleConfig("leadership", "/field-leadership/portal/login", "fl-email", "fl-password", "fl-submit", _credential(r"cert\.foreman@example\.com", "cert.foreman@example.com"), _credential(r"CertProof2026!", "CertProof2026!")),
+    RoleConfig("admin", "/admin/login", "admin-email-input", "admin-password-input", "admin-login-submit", _credential(r"jaymn\.judd@mascigc\.com", "jaymn.judd@mascigc.com"), _credential(r"Maddix123!", "Maddix123!"), "masci.admin.token", "/admin"),
+    RoleConfig("pm", "/pm/login", "pm-email-input", "pm-password-input", "pm-login-submit", _credential(r"cert\.pm@example\.com", "cert.pm@example.com"), _credential(r"CertProof2026!", "CertProof2026!"), "masci.pm.token", "/pm"),
+    RoleConfig("hr", "/hr/login", "hr-email-input", "hr-password-input", "hr-login-submit", _credential(r"cert\.hr@example\.com", "cert.hr@example.com"), _credential(r"CertProof2026!", "CertProof2026!"), "masci.hr.token", "/hr"),
+    RoleConfig("safety", "/safety-portal/login", "safety-login-email", "safety-login-password", "safety-login-submit", _credential(r"cert\.safety@example\.com", "cert.safety@example.com"), _credential(r"CertProof2026!", "CertProof2026!"), "masci.safety.token", "/safety-portal"),
+    RoleConfig("dispatch", "/dispatch-portal/login", "dispatch-email-input", "dispatch-password-input", "dispatch-login-submit", _credential(r"cert\.dispatch@example\.com", "cert.dispatch@example.com"), _credential(r"CertProof2026!", "CertProof2026!"), "masci.dispatch.token", "/dispatch-portal"),
+    RoleConfig("shop", "/shop/login", "shop-email-input", "shop-password-input", "shop-login-submit", _credential(r"cert\.shop@example\.com", "cert.shop@example.com"), _credential(r"CertProof2026!", "CertProof2026!"), "masci.shop.token", "/shop"),
+    RoleConfig("leadership", "/field-leadership/portal/login", "fl-email", "fl-password", "fl-submit", _credential(r"cert\.foreman@example\.com", "cert.foreman@example.com"), _credential(r"CertProof2026!", "CertProof2026!"), "masci.fl.token", "/field-leadership/portal/dashboard"),
 ]
 
 
@@ -90,19 +92,65 @@ def _login_and_logout(page, base_url: str, role: RoleConfig) -> dict[str, Any]:
     _goto(page, f"{base_url}{role.login_path}")
     page.get_by_test_id(role.email_testid).fill(role.email)
     page.get_by_test_id(role.password_testid).fill(role.password, force=True)
-    page.get_by_test_id(role.submit_testid).click(force=True)
+    page.wait_for_function(
+        """
+        (submitTestId) => {
+          const el = document.querySelector(`[data-testid="${submitTestId}"]`);
+          return !!el && !el.disabled;
+        }
+        """,
+        arg=role.submit_testid,
+        timeout=5000,
+    )
+    page.get_by_test_id(role.submit_testid).click()
+    if role.token_key:
+        try:
+            page.wait_for_function(
+                "(tokenKey) => !!window.localStorage.getItem(tokenKey) || !!window.sessionStorage.getItem(tokenKey)",
+                arg=role.token_key,
+                timeout=12000,
+            )
+        except Exception:
+            page.wait_for_timeout(1800)
     page.wait_for_timeout(2200)
 
     _goto(page, f"{base_url}/")
+    for attempt in range(2):
+        for _ in range(24):
+            if page.get_by_test_id("home-session-control-trigger").count() > 0:
+                break
+            page.wait_for_timeout(500)
+        else:
+            if attempt == 0:
+                if role.portal_home:
+                    _goto(page, f"{base_url}{role.portal_home}")
+                    page.wait_for_timeout(2200)
+                _goto(page, f"{base_url}/")
+                continue
+            raise RuntimeError("home session control trigger did not render")
+        break
     compact_count = page.get_by_test_id("home-session-control").count()
     legacy_banner_count = page.get_by_test_id("hub-welcome-back").count()
     signed_in_shot = _save_shot(page, f"{role.key}-home-signed-in")
 
     trigger = page.get_by_test_id("home-session-control-trigger")
-    trigger.wait_for(state="visible", timeout=10000)
-
-    trigger.click(force=True)
+    page.wait_for_timeout(800)
+    trigger.first.click(force=True)
     page.wait_for_timeout(350)
+    menu_background = page.evaluate(
+        """
+        () => {
+          const menu = document.querySelector('[data-testid="home-session-control-summary"]')
+            || document.querySelector('[data-testid="home-session-control-menu"]');
+          if (!menu) return null;
+          const styles = window.getComputedStyle(menu);
+          return {
+            background: styles.backgroundColor,
+            boxShadow: styles.boxShadow,
+          };
+        }
+        """
+    )
     page.get_by_test_id("home-session-control-signout").click(force=True)
     page.wait_for_timeout(1800)
     logged_out_url = page.url
@@ -122,6 +170,7 @@ def _login_and_logout(page, base_url: str, role: RoleConfig) -> dict[str, Any]:
         "logout_destination": logged_out_url,
         "logout_to_public_home": logged_out_url.rstrip("/") == base_url.rstrip("/"),
         "signed_out_home_visible": sign_in_visible,
+        "menu_background": menu_background,
         "back_url": back_url,
         "back_resurrected_session": back_has_session_control,
         "screenshots": {
@@ -168,6 +217,9 @@ def main() -> int:
                   report["failures"].append({"role": role.key, "failure": "logout_destination_wrong", **result})
               if result["back_resurrected_session"]:
                   report["failures"].append({"role": role.key, "failure": "back_resurrected_session", **result})
+              bg = (result.get("menu_background") or {}).get("background", "")
+              if not bg or bg in {"rgba(0, 0, 0, 0)", "transparent"}:
+                  report["failures"].append({"role": role.key, "failure": "session_menu_transparent", **result})
           except Exception as exc:  # noqa: BLE001
               report["roles"].append({"role": role.key, "error": str(exc)})
               report["failures"].append({"role": role.key, "failure": "runtime_error", "error": str(exc)})

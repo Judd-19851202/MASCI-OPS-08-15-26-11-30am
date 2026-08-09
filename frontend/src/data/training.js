@@ -199,11 +199,11 @@ const FIELD_LESSONS = [
     slug: "field-qaqc-inspections",
     track: "field",
     order: 5,
-    title: "Lesson 5 — QA / QC Inspections",
+    title: "Lesson 5 — QA/QC Inspections",
     why: "Quality issues caught BEFORE the pour or BEFORE the sub leaves the site cost a fraction of what it costs to fix later. The QA/QC module documents the inspection, captures photos and signatures, generates a PDF, and routes it straight to the assigned PM — every record tied to a job, a station, and an inspector. This is your evidence trail for owner audits, sub disputes, and warranty claims.",
     duration: "~6 min",
     steps: [
-      "Hub → QA / QC. You'll see the available inspection types — currently three: Concrete Form Inspection, Rebar Inspection, and Subcontractor Work Inspection. More forms are added as the system expands.",
+      "Hub → QA/QC. You'll see the available inspection types — currently three: Concrete Form Inspection, Rebar Inspection, and Subcontractor Work Inspection. More forms are added as the system expands.",
       "Tap the inspection you need. Pick your MASCI Job from the picker — project number, name, location, client, AND the assigned Project Manager auto-fill from the job. The PM's email is captured automatically so the report routes to the right person.",
       "Tap the GPS button next to Location to auto-fill the work area address from your phone's GPS.",
       "Subcontractor / Crew: searchable dropdown of every sub and vendor in the system. If yours isn't there, tap 'Add new' and create it on the spot.",

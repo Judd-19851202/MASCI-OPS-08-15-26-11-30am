@@ -109,25 +109,40 @@ def build_auth_directory_router(
 ) -> APIRouter:
     router = APIRouter(tags=["auth-directory"])
 
+    def _runtime_db(request: Optional[Request] = None):
+        state = getattr(getattr(request, "app", None), "state", None)
+        state_db = getattr(state, "db", None) if state is not None else None
+        if state_db is not None:
+            return state_db
+        target_getter = getattr(db, "get_target", None)
+        if callable(target_getter):
+            target = target_getter()
+            if target is not None:
+                return target
+        return db
+
     async def _resolve_logout_actor(
         *,
+        request: Optional[Request] = None,
         x_directory_token: Optional[str] = None,
         portal_tokens: Optional[List[Optional[str]]] = None,
     ) -> Optional[str]:
+        runtime_db = _runtime_db(request)
         user_id: Optional[str] = None
-        row = await ud.session_user(db, token=x_directory_token or "")
+        row = await ud.session_user(runtime_db, token=x_directory_token or "")
         if row:
             user_id = row.get("id")
         if user_id:
             return user_id
         for tok in [t for t in (portal_tokens or []) if t]:
-            sess = await get_session_activity(db, tok)
+            sess = await get_session_activity(runtime_db, tok)
             if sess and sess.get("user_id"):
                 return sess.get("user_id")
         return None
 
     async def _perform_multi_logout(
         *,
+        request: Optional[Request] = None,
         x_directory_token: Optional[str] = None,
         x_admin_token: Optional[str] = None,
         x_pm_token: Optional[str] = None,
@@ -147,19 +162,21 @@ def build_auth_directory_router(
             x_fl_token,
         ]
         user_id = await _resolve_logout_actor(
+            request=request,
             x_directory_token=x_directory_token,
             portal_tokens=portal_tokens,
         )
+        runtime_db = _runtime_db(request)
 
         cleared_count = 0
         if user_id:
-            cleared_count = await clear_session_activity_for_actor(db, user_id=user_id)
+            cleared_count = await clear_session_activity_for_actor(runtime_db, user_id=user_id)
         else:
             for tok in [t for t in portal_tokens if t]:
-                cleared_count += await clear_session_activity_for_actor(db, token=tok)
+                cleared_count += await clear_session_activity_for_actor(runtime_db, token=tok)
 
         if x_directory_token:
-            await ud.kill_session(db, token=x_directory_token)
+            await ud.kill_session(runtime_db, token=x_directory_token)
 
         return {
             "ok": True,
@@ -304,6 +321,7 @@ def build_auth_directory_router(
     async def multi_login(body: MultiLoginBody, request: Request):
         login_stage = "start"
         try:
+            runtime_db = _runtime_db(request)
             # Track 24.1 · P1-B — brute-force lockout at the master login
             # gate. Uses the platform-standard LOGIN_MAX_FAILS + lockout
             # window from `lib.rate_limiting`. Every per-portal login route
@@ -316,13 +334,13 @@ def build_auth_directory_router(
                 login_stage = "check_lockout"
                 _check_login_lockout(ip)
             login_stage = "authenticate"
-            row = await ud.authenticate(db, email=body.email, password=body.password)
+            row = await ud.authenticate(runtime_db, email=body.email, password=body.password)
             if not row:
                 # Audit failures so brute-forcing surfaces in /admin
                 if not bypass_lockout:
                     _record_login_fail(ip)
                 await ud.write_audit(
-                    db,
+                    runtime_db,
                     actor_email=body.email,
                     action="multi_login_failed",
                     ip=ip,
@@ -343,7 +361,7 @@ def build_auth_directory_router(
                     import mfa as _mfa  # noqa: PLC0415
                     challenge = _mfa.mint_challenge_token(row["id"])
                     await _mfa.write_audit(
-                        db, user_id=row["id"], user_email=row.get("email"),
+                        runtime_db, user_id=row["id"], user_email=row.get("email"),
                         event="LOGIN_MFA_CHALLENGE_ISSUED",
                         ip=_client_ip(request),
                         user_agent=request.headers.get("user-agent"),
@@ -360,9 +378,9 @@ def build_auth_directory_router(
             login_stage = "make_directory_token"
             session_token = ud.make_directory_token()
             login_stage = "persist_session"
-            await ud.persist_session(db, token=session_token, user_id=row["id"])
+            await ud.persist_session(runtime_db, token=session_token, user_id=row["id"])
             login_stage = "stamp_last_login"
-            await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
+            await ud.stamp_last_login(runtime_db, user_id=row["id"], portal="multi")
             # Mint per-portal tokens + directory session token
             login_stage = "mint_portal_tokens"
             portal_tokens = await _mint_all(row)
@@ -377,7 +395,7 @@ def build_auth_directory_router(
             login_stage = "check_must_change_password"
             if bool(row.get("must_change_password")):
                 await ud.write_audit(
-                    db,
+                    runtime_db,
                     actor_email=row["email"],
                     action="multi_login_temp_pw_blocked",
                     target_email=row["email"],
@@ -414,7 +432,7 @@ def build_auth_directory_router(
                 _ip = _client_ip(request)
                 _reset_tasks = [
                     reset_session_activity(
-                        db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
+                        runtime_db, _tok, _portal_tier.get(_portal, "OPERATIONS"),
                         user_id=row.get("id"),
                         email=row.get("email"),
                         actor_label=_portal,
@@ -431,7 +449,7 @@ def build_auth_directory_router(
                 pass
             login_stage = "write_audit"
             await ud.write_audit(
-                db,
+                runtime_db,
                 actor_email=row["email"],
                 action="multi_login",
                 target_email=row["email"],
@@ -460,6 +478,7 @@ def build_auth_directory_router(
 
     @router.post("/api/auth/multi-logout")
     async def multi_logout(
+        request: Request,
         x_directory_token: Optional[str] = Header(default=None),
         x_admin_token: Optional[str] = Header(default=None),
         x_pm_token: Optional[str] = Header(default=None),
@@ -470,6 +489,7 @@ def build_auth_directory_router(
         x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
     ):
         return await _perform_multi_logout(
+            request=request,
             x_directory_token=x_directory_token,
             x_admin_token=x_admin_token,
             x_pm_token=x_pm_token,
@@ -483,8 +503,9 @@ def build_auth_directory_router(
     router._perform_multi_logout = _perform_multi_logout  # type: ignore[attr-defined]
 
     @router.get("/api/auth/me-directory")
-    async def me_directory(x_directory_token: Optional[str] = Header(default=None)):
-        row = await ud.session_user(db, token=x_directory_token or "")
+    async def me_directory(request: Request, x_directory_token: Optional[str] = Header(default=None)):
+        runtime_db = _runtime_db(request)
+        row = await ud.session_user(runtime_db, token=x_directory_token or "")
         if not row:
             raise HTTPException(status_code=401, detail="Not signed in.")
         return {"ok": True, "user": ud.public_view(row)}
@@ -497,7 +518,8 @@ def build_auth_directory_router(
     ):
         """Re-issue a single portal token (used by the switcher when a
         token expires or a tab needs a fresh one)."""
-        row = await ud.session_user(db, token=x_directory_token or "")
+        runtime_db = _runtime_db(request)
+        row = await ud.session_user(runtime_db, token=x_directory_token or "")
         if not row:
             raise HTTPException(status_code=401, detail="Not signed in.")
         target = (body.get("portal") or "").lower().strip()
@@ -541,7 +563,7 @@ def build_auth_directory_router(
                 "field_leadership": "OPERATIONS",
             }.get(target, "OPERATIONS")
             await reset_session_activity(
-                db, tok, _tier,
+                runtime_db, tok, _tier,
                 user_id=row.get("id"),
                 email=row.get("email"),
                 actor_label=target,
@@ -558,12 +580,13 @@ def build_auth_directory_router(
         x_directory_token: Optional[str] = Header(default=None),
         request: Request = None,
     ):
-        row = await ud.session_user(db, token=x_directory_token or "")
+        runtime_db = _runtime_db(request)
+        row = await ud.session_user(runtime_db, token=x_directory_token or "")
         if not row:
             raise HTTPException(status_code=401, detail="Not signed in.")
         try:
             ok = await ud.self_change_password(
-                db,
+                runtime_db,
                 user_id=row["id"],
                 current_password=body.current_password,
                 new_password=body.new_password,
@@ -573,7 +596,7 @@ def build_auth_directory_router(
         if not ok:
             raise HTTPException(status_code=401, detail="Current password is incorrect.")
         await ud.write_audit(
-            db,
+            runtime_db,
             actor_email=row["email"],
             action="change_master_password",
             target_email=row["email"],
@@ -585,11 +608,11 @@ def build_auth_directory_router(
         # The old per-portal tokens, if any, are HMAC-bound to the prior
         # password hash and were already invalidated by the password
         # change above.
-        fresh_row = await db.user_directory.find_one(
+        fresh_row = await runtime_db.user_directory.find_one(
             {"id": row["id"]}, {"_id": 0},
         )
         session_token = ud.make_directory_token()
-        await ud.persist_session(db, token=session_token, user_id=row["id"])
+        await ud.persist_session(runtime_db, token=session_token, user_id=row["id"])
         portal_tokens = await _mint_all(fresh_row or row)
         try:
             from session_timeout import reset_session_activity
@@ -604,7 +627,7 @@ def build_auth_directory_router(
             _ip = _client_ip(request) if request else None
             _tasks = [
                 reset_session_activity(
-                    db, _tok, _tier.get(_p, "OPERATIONS"),
+                    runtime_db, _tok, _tier.get(_p, "OPERATIONS"),
                     user_id=(fresh_row or row).get("id"),
                     email=(fresh_row or row).get("email"),
                     actor_label=_p,
@@ -629,11 +652,12 @@ def build_auth_directory_router(
     # ── Admin endpoints ─────────────────────────────────────────────
     @router.get("/api/admin/directory", dependencies=[Depends(require_admin_strict_dep)])
     async def list_users(q: str = ""):
+        runtime_db = _runtime_db()
         """List directory users. Optional `q` filter performs a
         case-insensitive substring match against `email` + `name`
         (RC1-LIVE-VERIFY · P2 defect fix · 2026-06-15)."""
         rows = []
-        async for r in db.user_directory.find({}, {"_id": 0}).sort("created_at", -1):
+        async for r in runtime_db.user_directory.find({}, {"_id": 0}).sort("created_at", -1):
             view = ud.public_view(r)
             # Track 15.88 · access-state envelope (usable_now, blocked_reason, etc.)
             _enrich_with_access_state(view, r)
@@ -649,6 +673,7 @@ def build_auth_directory_router(
 
     @router.post("/api/admin/directory", dependencies=[Depends(require_admin_strict_dep)])
     async def create_user(body: CreateDirectoryUserBody, request: Request):
+        runtime_db = _runtime_db(request)
         delivery = (body.delivery or "email").lower()
         # If admin chose email delivery and didn't pass a password, generate one.
         password = body.password.strip() if body.password else ""
@@ -662,7 +687,7 @@ def build_auth_directory_router(
                 )
         try:
             view = await ud.create_directory_user(
-                db,
+                runtime_db,
                 email=body.email,
                 name=body.name,
                 portals=body.portals,
@@ -672,7 +697,7 @@ def build_auth_directory_router(
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
         # Track 15.88 · enrich with access-state envelope.
-        _raw = await ud.find_by_id(db, view.get("id"))
+        _raw = await ud.find_by_id(runtime_db, view.get("id"))
         _enrich_with_access_state(view, _raw)
         email_sent = False
         if delivery == "email":
@@ -680,7 +705,7 @@ def build_auth_directory_router(
                 view["email"], view.get("name") or "", password, view["portals"], is_reset=False
             )
         await ud.write_audit(
-            db,
+            runtime_db,
             actor_email=_audit_actor(request),
             action="directory_create",
             target_email=view["email"],
@@ -709,12 +734,13 @@ def build_auth_directory_router(
         dependencies=[Depends(require_admin_strict_dep)],
     )
     async def update_user(user_id: str, body: UpdateDirectoryUserBody, request: Request):
-        existing = await ud.find_by_id(db, user_id)
+        runtime_db = _runtime_db(request)
+        existing = await ud.find_by_id(runtime_db, user_id)
         if not existing:
             raise HTTPException(status_code=404, detail="User not found.")
         try:
             view = await ud.update_directory_user(
-                db,
+                runtime_db,
                 user_id=user_id,
                 name=body.name,
                 portals=body.portals,
@@ -723,7 +749,7 @@ def build_auth_directory_router(
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
         # Track 15.88 · enrich.
-        _raw = await ud.find_by_id(db, user_id)
+        _raw = await ud.find_by_id(runtime_db, user_id)
         _enrich_with_access_state(view, _raw)
         diff = {
             k: getattr(body, k)
@@ -731,7 +757,7 @@ def build_auth_directory_router(
             if getattr(body, k) is not None
         }
         await ud.write_audit(
-            db,
+            runtime_db,
             actor_email=_audit_actor(request),
             action="directory_update",
             target_email=existing.get("email"),
@@ -745,15 +771,16 @@ def build_auth_directory_router(
         dependencies=[Depends(require_admin_strict_dep)],
     )
     async def delete_user(user_id: str, request: Request):
-        existing = await ud.find_by_id(db, user_id)
+        runtime_db = _runtime_db(request)
+        existing = await ud.find_by_id(runtime_db, user_id)
         if not existing:
             raise HTTPException(status_code=404, detail="User not found.")
         try:
-            ok = await ud.delete_directory_user(db, user_id=user_id)
+            ok = await ud.delete_directory_user(runtime_db, user_id=user_id)
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
         await ud.write_audit(
-            db,
+            runtime_db,
             actor_email=_audit_actor(request),
             action="directory_delete",
             target_email=existing.get("email"),
@@ -766,7 +793,8 @@ def build_auth_directory_router(
         dependencies=[Depends(require_admin_strict_dep)],
     )
     async def reset_password(user_id: str, body: AdminResetPasswordBody, request: Request):
-        existing = await ud.find_by_id(db, user_id)
+        runtime_db = _runtime_db(request)
+        existing = await ud.find_by_id(runtime_db, user_id)
         if not existing:
             raise HTTPException(status_code=404, detail="User not found.")
         delivery = (body.delivery or "email").lower()
@@ -781,7 +809,7 @@ def build_auth_directory_router(
                 )
         try:
             view = await ud.rotate_master_password(
-                db,
+                runtime_db,
                 user_id=user_id,
                 new_password=new_pw,
                 must_change=body.must_change,
@@ -789,7 +817,7 @@ def build_auth_directory_router(
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
         # Track 15.88 · enrich.
-        _raw = await ud.find_by_id(db, user_id)
+        _raw = await ud.find_by_id(runtime_db, user_id)
         _enrich_with_access_state(view, _raw)
         email_sent = False
         if delivery == "email":
@@ -801,7 +829,7 @@ def build_auth_directory_router(
                 is_reset=True,
             )
         await ud.write_audit(
-            db,
+            runtime_db,
             actor_email=_audit_actor(request),
             action="directory_password_reset",
             target_email=existing.get("email"),
@@ -827,8 +855,9 @@ def build_auth_directory_router(
         actor: Optional[str] = None,
         action: Optional[str] = None,
     ):
+        runtime_db = _runtime_db()
         rows = await ud.list_audit(
-            db,
+            runtime_db,
             limit=max(1, min(limit, 500)),
             skip=max(0, skip),
             actor=actor,

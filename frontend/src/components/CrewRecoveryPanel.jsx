@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ShieldAlert,
   Loader2,
@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +20,137 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
+import { formatPlatformTime } from "@/lib/platformTime";
+
+const FALLBACK_COUNT_AUDIT = {
+  users: {
+    label: "Legacy crew users",
+    truth_classification: "legacy_deprecated",
+    classification_label: "Legacy / deprecated",
+    operator_truth_rule: "Legacy authentication-only data. Do not treat as active workforce truth.",
+    canonical_surface: "/admin/identity-security",
+  },
+  projects: {
+    label: "Retired crew projects",
+    truth_classification: "legacy_deprecated",
+    classification_label: "Legacy / deprecated",
+    operator_truth_rule: "Retired Crew Hub residue. Zero does not indicate live project health.",
+    canonical_surface: "/admin/jobs",
+  },
+  project_members: {
+    label: "Retired crew project memberships",
+    truth_classification: "legacy_deprecated",
+    classification_label: "Legacy / deprecated",
+    operator_truth_rule: "Retired Crew Hub memberships. Do not use as staffing truth.",
+    canonical_surface: "/admin/project-staffing",
+  },
+  equipment_master: {
+    label: "Equipment master records",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is live master-data volume only. Operational truth lives on the governed equipment surfaces.",
+    canonical_surface: "/admin/equipment",
+  },
+  equipment_units: {
+    label: "Equipment units",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is technical volume only. Unit readiness requires the governed equipment views.",
+    canonical_surface: "/admin/equipment",
+  },
+  equipment_inspections: {
+    label: "Equipment inspections",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count can include historical or governed-hidden rows. Review governed equipment inspection surfaces for business truth.",
+    canonical_surface: "/admin/equipment",
+  },
+  inspections: {
+    label: "Safety inspections",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is a collection diagnostic only. Operator truth belongs to governed safety inspection surfaces.",
+    canonical_surface: "/admin/incidents",
+  },
+  meetings: {
+    label: "Safety meetings",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is technical volume only. Use governed safety meeting records for operational truth.",
+    canonical_surface: "/admin/incidents",
+  },
+  jhas: {
+    label: "JHAs",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count can include certification or audit rows. Governed JHA surfaces own business truth.",
+    canonical_surface: "/admin/incidents",
+  },
+  incidents: {
+    label: "Incidents",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is not incident severity truth. Use the governed incident command surfaces.",
+    canonical_surface: "/admin/incidents",
+  },
+  daily_reports: {
+    label: "Daily reports",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is technical volume only. Governed reporting surfaces apply visibility and contamination rules.",
+    canonical_surface: "/admin/daily-reports",
+  },
+  docs: {
+    label: "Retired crew documents",
+    truth_classification: "legacy_deprecated",
+    classification_label: "Legacy / deprecated",
+    operator_truth_rule: "Legacy Crew Hub documents. Do not interpret zero as a live content outage.",
+    canonical_surface: "/admin/legacy-imports",
+  },
+  employees: {
+    label: "Employee master records",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is master-data volume only. Workforce truth requires governed people and compliance surfaces.",
+    canonical_surface: "/admin/people",
+  },
+  suppliers: {
+    label: "Supplier master records",
+    truth_classification: "canonical_live",
+    classification_label: "Canonical / live",
+    operator_truth_rule: "Raw count is technical volume only. Vendor readiness must be reviewed on governed supplier surfaces.",
+    canonical_surface: "/admin/equipment",
+  },
+  notifications: {
+    label: "Notification events",
+    truth_classification: "telemetry",
+    classification_label: "Telemetry",
+    operator_truth_rule: "High volume does not equal operator backlog. This is system-event telemetry, not business work-in-progress.",
+    canonical_surface: "/admin/communications",
+  },
+  activity_log: {
+    label: "Legacy crew activity log",
+    truth_classification: "legacy_deprecated",
+    classification_label: "Legacy / deprecated",
+    operator_truth_rule: "Retired Crew Hub audit residue only.",
+    canonical_surface: "/admin/audit-log",
+  },
+};
+
+const CLASS_BADGE = {
+  canonical_live: "bg-emerald-100 text-emerald-800 ring-emerald-200",
+  governed_derived: "bg-sky-100 text-sky-800 ring-sky-200",
+  legacy_deprecated: "bg-slate-100 text-slate-700 ring-slate-200",
+  telemetry: "bg-violet-100 text-violet-800 ring-violet-200",
+  unavailable: "bg-rose-100 text-rose-800 ring-rose-200",
+};
+
+const STATE_BADGE = {
+  available: "bg-slate-100 text-slate-700 ring-slate-200",
+  genuine_zero: "bg-amber-100 text-amber-900 ring-amber-200",
+  unavailable: "bg-rose-100 text-rose-800 ring-rose-200",
+  legacy_zero: "bg-slate-100 text-slate-700 ring-slate-200",
+};
 
 /**
  * SystemRecoveryPanel — admin recovery for the office.
@@ -35,9 +167,6 @@ import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 export default function CrewRecoveryPanel() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [integrityState, setIntegrityState] = useState(null);
-  const [integrityLoading, setIntegrityLoading] = useState(false);
-  const [integrityStarting, setIntegrityStarting] = useState(false);
   const [reseedConfirmOpen, setReseedConfirmOpen] = useState(false);
   const [reseedPasswordOpen, setReseedPasswordOpen] = useState(false);
   const [reseedRunning, setReseedRunning] = useState(false);
@@ -57,53 +186,6 @@ export default function CrewRecoveryPanel() {
   useEffect(() => {
     refresh();
   }, []);
-
-  const refreshIntegrity = async () => {
-    setIntegrityLoading(true);
-    try {
-      const [statusRes, latestRes] = await Promise.allSettled([
-        api.get("/admin/backups/integrity-check/status"),
-        api.get("/admin/backups/integrity-check/latest"),
-      ]);
-      const current = statusRes.status === "fulfilled" ? statusRes.value.data : null;
-      const latest = latestRes.status === "fulfilled" ? latestRes.value.data : null;
-      setIntegrityState(current || latest || null);
-    } catch (e) {
-      toast.error(operationalError(e, "Failed to load integrity status"));
-    } finally {
-      setIntegrityLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshIntegrity();
-  }, []);
-
-  useEffect(() => {
-    if (!integrityState || !["queued", "running"].includes(integrityState.state)) return undefined;
-    const id = setInterval(refreshIntegrity, 4000);
-    return () => clearInterval(id);
-  }, [integrityState?.state]);
-
-  const startIntegrity = async () => {
-    if (integrityStarting || ["queued", "running"].includes(integrityState?.state)) return;
-    setIntegrityStarting(true);
-    try {
-      const r = await api.post("/admin/backups/integrity-check/start");
-      setIntegrityState(r.data);
-      toast.success("Integrity check started.");
-    } catch (e) {
-      const data = e?.response?.data;
-      if (e?.response?.status === 409 && data) {
-        setIntegrityState(data);
-        toast.info("Integrity check already running — showing current job.");
-      } else {
-        toast.error(operationalError(e, "Integrity check failed to start"));
-      }
-    } finally {
-      setIntegrityStarting(false);
-    }
-  };
 
   const runReseed = async () => {
     setReseedRunning(true);
@@ -128,6 +210,17 @@ export default function CrewRecoveryPanel() {
   };
 
   const counts = status?.counts || {};
+  const diagnosticsRows = useMemo(() => {
+    const auditRows = Array.isArray(status?.count_audit) && status.count_audit.length > 0
+      ? status.count_audit
+      : Object.entries(counts).map(([collection, count]) => ({
+          collection,
+          count,
+          count_state: count < 0 ? "unavailable" : count === 0 && FALLBACK_COUNT_AUDIT[collection]?.truth_classification === "legacy_deprecated" ? "legacy_zero" : count === 0 ? "genuine_zero" : "available",
+          ...FALLBACK_COUNT_AUDIT[collection],
+        }));
+    return auditRows;
+  }, [counts, status?.count_audit]);
 
   // Highlight rows that look "empty" so the office sees at a glance what's missing
   const emptyAlert = ["equipment_master", "employees", "suppliers"].some(
@@ -145,16 +238,14 @@ export default function CrewRecoveryPanel() {
         </div>
         <div className="flex-1">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700 font-bold">
-            Emergency Recovery — Use only if locked out
+            Exceptional recovery controls
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
             System Recovery
           </h2>
           <p className="text-sm text-slate-600 mt-2">
-            See every database collection at a glance, and re-seed equipment /
-            employees / suppliers if those lists are empty after a redeploy.
-            (The Crew Hub password-reset feature was removed when the in-app
-            Crew Hub was retired in favor of Basecamp.)
+            Reserved for destructive reconstruction when governed Storage & Recovery,
+            Diagnostics, and Maintenance evidence already prove that routine recovery is not enough.
           </p>
         </div>
         <Button
@@ -173,103 +264,101 @@ export default function CrewRecoveryPanel() {
         </Button>
       </div>
 
+      <div className="grid gap-3 mb-5 lg:grid-cols-3" data-testid="crew-recovery-canonical-links">
+        <Link
+          to="/admin/storage-recovery"
+          className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+          data-testid="crew-recovery-link-storage"
+        >
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Canonical recovery evidence</div>
+          <div className="mt-1 font-semibold text-slate-900">Storage & Recovery</div>
+          <div className="mt-1 text-xs">Backups, manifests, retention, restore drills, and integrity jobs.</div>
+        </Link>
+        <Link
+          to="/admin/diagnostics"
+          className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+          data-testid="crew-recovery-link-diagnostics"
+        >
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Canonical technical probes</div>
+          <div className="mt-1 font-semibold text-slate-900">Diagnostics</div>
+          <div className="mt-1 text-xs">Runtime health, workers, deploy readiness, and governed system checks.</div>
+        </Link>
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900" data-testid="crew-recovery-exception-note">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em]">Exception-only rule</div>
+          <div className="mt-1 font-semibold">Do not use raw counts here as business truth.</div>
+          <div className="mt-1 text-xs leading-relaxed">This panel is for technical diagnosis and guarded reconstruction only. Operational truth still belongs to the governed domain surfaces above.</div>
+        </div>
+      </div>
+
       {/* ===== System counts ===== */}
       <div className="bg-slate-50 border-2 border-slate-200 rounded p-3 mb-5">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-700 font-bold mb-2">
-          System status
+          Technical collection diagnostics
         </div>
+        <p className="mb-3 text-xs text-slate-600">
+          Each figure below is a raw collection count. It shows database presence only — not governed business truth,
+          not filtered operator truth, and not release readiness by itself.
+        </p>
         {loading ? (
           <div className="text-slate-500 text-sm flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading…
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs font-mono">
-            {Object.entries(counts).map(([k, v]) => (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 text-xs">
+            {diagnosticsRows.map((row) => {
+              const classTone = CLASS_BADGE[row.truth_classification] || CLASS_BADGE.unavailable;
+              const stateTone = STATE_BADGE[row.count_state] || STATE_BADGE.available;
+              const countValue = typeof row.count === "number" && row.count >= 0 ? row.count.toLocaleString() : "?";
+              return (
               <div
-                key={k}
-                className={`px-2 py-1.5 rounded border ${
-                  v === 0 && ["equipment_master", "employees", "suppliers"].includes(k)
-                    ? "border-red-400 bg-red-50 text-red-800"
-                    : v < 0
-                    ? "border-slate-300 bg-slate-100 text-slate-500"
-                    : "border-slate-200 bg-white text-slate-700"
-                }`}
+                key={row.collection}
+                className="rounded border border-slate-200 bg-white p-3"
+                data-testid={`crew-recovery-count-${row.collection}`}
               >
-                <div className="text-[9px] uppercase tracking-wide opacity-75">{k}</div>
-                <div className="font-bold text-base">{v < 0 ? "?" : v.toLocaleString()}</div>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-[9px] uppercase tracking-wide text-slate-500">{row.collection}</div>
+                    <div className="font-semibold text-slate-900">{row.label || row.collection}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-black text-xl leading-none text-slate-900" data-testid={`crew-recovery-count-${row.collection}-value`}>{countValue}</div>
+                    <div className="mt-1 flex flex-wrap justify-end gap-1">
+                      <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-widest ring-1 ${classTone}`}>
+                        {row.classification_label || "Classified"}
+                      </span>
+                      <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-widest ring-1 ${stateTone}`}>
+                        {(row.count_state || "available").replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-slate-600" data-testid={`crew-recovery-count-${row.collection}-rule`}>
+                  {row.operator_truth_rule || "Technical diagnostic only."}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                  <span>Canonical surface: <span className="font-mono text-slate-700">{row.canonical_surface || "—"}</span></span>
+                  <span>Last refresh: <span className="font-mono text-slate-700">{formatPlatformTime(status?.refreshed_at)}</span></span>
+                </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
         {emptyAlert && (
-          <div className="mt-3 text-xs bg-red-50 border-l-4 border-red-600 px-3 py-2 text-red-800">
-            <strong>Equipment / employees / suppliers list is empty.</strong>{" "}
-            Use the orange &quot;Force re-seed&quot; button below to repopulate from the
-            JSON seed files.
+          <div className="mt-3 text-xs bg-red-50 border-l-4 border-red-600 px-3 py-2 text-red-800" data-testid="crew-recovery-empty-master-warning">
+            <strong>One or more seed-managed master collections are empty.</strong>{" "}
+            Confirm that governed Storage & Recovery evidence and Diagnostics both support a reconstruction path before using the destructive action below.
           </div>
         )}
-      </div>
-
-      <div className="border-2 border-blue-300 bg-blue-50 rounded p-3 mb-5" data-testid="backup-integrity-panel">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-blue-800 font-bold mb-2">
-              Backup integrity verification
-            </div>
-            <p className="text-xs text-slate-700 mb-2.5">
-              Runs the R2 manifest integrity verification as an asynchronous operator job. This prevents false PASS states and avoids browser-edge timeouts.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={refreshIntegrity}
-              disabled={integrityLoading}
-              className="h-9 text-xs font-mono uppercase tracking-wide"
-              data-testid="backup-integrity-refresh"
-            >
-              {integrityLoading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5 mr-1" />}
-              Refresh
-            </Button>
-            <Button
-              onClick={startIntegrity}
-              disabled={integrityStarting || ["queued", "running"].includes(integrityState?.state)}
-              className="bg-blue-700 hover:bg-blue-800 text-white font-bold uppercase tracking-wide text-xs h-10 px-4 border-b-2 border-blue-900"
-              data-testid="backup-integrity-start"
-            >
-              {(integrityStarting || ["queued", "running"].includes(integrityState?.state)) ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Running…</> : <>Start integrity check</>}
-            </Button>
-          </div>
-        </div>
-        <div className="mt-3 rounded border border-blue-200 bg-white p-3 text-xs text-slate-700" data-testid="backup-integrity-status-card">
-          <div><strong>State:</strong> {integrityState?.state || "never run"}</div>
-          <div><strong>Job ID:</strong> {integrityState?.job_id || "—"}</div>
-          <div><strong>Started:</strong> {integrityState?.started_at || integrityState?.created_at || "—"}</div>
-          <div><strong>Completed:</strong> {integrityState?.completed_at || "—"}</div>
-          <div><strong>Duration:</strong> {integrityState?.duration_s != null ? `${integrityState.duration_s}s` : "—"}</div>
-          <div><strong>Manifest count:</strong> {integrityState?.manifest_count_evaluated ?? "—"}</div>
-          <div><strong>Integrity result:</strong> {integrityState?.integrity_result || "not complete"}</div>
-          {integrityState?.classification && <div><strong>Classification:</strong> {integrityState.classification}</div>}
-          {integrityState?.error && <div className="text-red-700"><strong>Failure:</strong> {integrityState.error}</div>}
-          {integrityState?.state === "completed" && Array.isArray(integrityState?.missing_from_backup) && (
-            <div><strong>Missing from backup:</strong> {integrityState.missing_from_backup.length}</div>
-          )}
-          {["queued", "running"].includes(integrityState?.state) && (
-            <div className="text-blue-700 font-semibold mt-2">Verification is still running. PASS/FAIL is not final until the job completes.</div>
-          )}
-        </div>
       </div>
 
       {/* ===== Force re-seed ===== */}
       <div className="border-2 border-orange-300 bg-orange-50 rounded p-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-orange-800 font-bold mb-2">
-          Force re-seed equipment / employees / suppliers
+          Destructive reconstruction
         </div>
         <p className="text-xs text-slate-700 mb-2.5">
-          Wipes the equipment_master / equipment_units / employees / suppliers
-          collections and re-loads them from the JSON seed files. Use only when
-          those lists are empty after a redeploy. Safety records, projects, and
-          user accounts are <strong>NOT</strong> touched.
+          Wipes the seed-managed equipment / employee / supplier masters and rebuilds them from the JSON seed files.
+          Use only after consequence review, explicit confirmation, and traceable evidence that governed recovery paths cannot restore the problem safely.
         </p>
         <Button
           onClick={() => setReseedConfirmOpen(true)}
@@ -287,6 +376,9 @@ export default function CrewRecoveryPanel() {
             </>
           )}
         </Button>
+        <div className="mt-3 rounded-md border border-orange-200 bg-white px-3 py-2 text-xs text-slate-700" data-testid="crew-recovery-destructive-disclosure">
+          Scope: <strong>equipment_master</strong>, <strong>equipment_units</strong>, <strong>employees</strong>, and <strong>suppliers</strong> only. Safety records, projects, audit history, and user accounts are not rebuilt by this action.
+        </div>
       </div>
 
       {/* Confirm dialog for force-reseed */}

@@ -32,6 +32,7 @@ import {
 
 import { PortalShell } from "../../design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
+import { BackupIntegrityJobPanel } from "@/components/admin/BackupIntegrityJobPanel";
 import R2LifecyclePanel from "@/components/admin/R2LifecyclePanel";
 import { api } from "@/lib/api";
 import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
@@ -685,6 +686,10 @@ export default function AdminStorageRecovery() {
           >
             Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit
           </div>
+        </section>
+
+        <section className="mb-6" data-testid="storage-recovery-integrity-section">
+          <BackupIntegrityJobPanel testIdPrefix="storage-recovery-integrity" />
         </section>
 
         {error ? (

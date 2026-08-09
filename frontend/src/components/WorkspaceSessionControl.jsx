@@ -44,7 +44,7 @@ export function WorkspaceSessionControl({ session, onSignOut }) {
           data-testid="home-session-control-menu"
         >
           <div className="space-y-3">
-            <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 px-3 py-2.5">
+            <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50 px-3 py-2.5" data-testid="home-session-control-summary">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
                 {t("Signed in")}
               </div>

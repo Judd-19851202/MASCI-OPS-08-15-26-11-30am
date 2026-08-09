@@ -10,8 +10,8 @@ import { SemanticIcon } from "@/components/icons/AppIcon";
  */
 export function LangToggle({ className = "", variant = "dark", testId = "lang-toggle" }) {
   const { lang, setLang } = useT();
-  const enTestId = `${testId}-en`;
-  const esTestId = `${testId}-es`;
+  const enTestId = testId === "lang-toggle" ? "lang-en" : `${testId}-en`;
+  const esTestId = testId === "lang-toggle" ? "lang-es" : `${testId}-es`;
 
   const baseBtn =
     "min-h-[36px] min-w-[36px] inline-flex items-center justify-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-[0.18em] transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 focus-visible:ring-offset-0";

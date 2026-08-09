@@ -4520,7 +4520,7 @@ const ES = {
     "Densidad de asfalto · núcleos · reportes de vialidad",
   "Rebar inspections · concrete form inspections":
     "Inspecciones de varilla · inspecciones de formaletas de concreto",
-  "Daily QA / QC submittals · field-team turn-ins":
+  "Daily QA/QC submittals · field-team turn-ins":
     "Entregas QA/QC diarias · entregas del equipo de campo",
   "Project Management": "Gestión de Proyectos",
   "The day-to-day project-management workspace — every job, every record, every master list, in one place.":
@@ -5415,9 +5415,9 @@ const ES = {
   "Download PDF": "Descargar PDF",
   "Could not load record": "No se pudo cargar el registro",
   "Could not open PDF": "No se pudo abrir el PDF",
-  "Quality Assurance · Quality Control": "Aseguramiento de Calidad · Control de Calidad",
-  "QA / QC": "QA / QC",
-  "QA / QC Inspections": "Inspecciones de QA / QC",
+  "Quality Assurance / Quality Control": "Aseguramiento de Calidad / Control de Calidad",
+  "QA/QC": "QA/QC",
+  "QA/QC Inspections": "Inspecciones de QA/QC",
   "MASCI · QA/QC": "MASCI · QA/QC",
   "Open Form": "Abrir Formulario",
   "None": "Ninguno",
@@ -8467,7 +8467,7 @@ const ES = {
   "Setup": "Configuración",
   "% Complete": "% completado",
   "PM Portal · QA/QC": "Portal PM · QA/QC",
-  "My Project QA / QC Records": "Mis registros de QA / QC del proyecto",
+  "My Project QA/QC Records": "Mis registros de QA/QC del proyecto",
   "Records filtered to jobs where you are the assigned PM": "Registros filtrados a trabajos donde usted es el PM asignado",
   "PM Portal": "Portal PM",
   "PM · QA/QC": "PM · QA/QC",

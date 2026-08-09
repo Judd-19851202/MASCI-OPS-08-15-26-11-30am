@@ -27,7 +27,7 @@ export default function ExcavationComplianceCard({ result, testId = "excavation-
   const StatusIcon = styles.icon;
 
   return (
-    <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 mb-3 bg-slate-50 pt-2 pb-2 px-4 sm:px-6" data-testid={testId}>
+    <div className="sticky top-0 z-30 mb-3 bg-slate-50 py-2" data-testid={testId}>
       <div className={`border-2 rounded-md text-white ${styles.bg}`} data-testid={`${testId}-banner`}>
         <div className="flex items-start gap-3 p-3">
           <StatusIcon className="w-6 h-6 mt-0.5 shrink-0" />

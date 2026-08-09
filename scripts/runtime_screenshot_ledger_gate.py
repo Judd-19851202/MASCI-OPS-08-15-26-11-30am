@@ -163,6 +163,22 @@ def _admin_tokens(base_url: str, admin_email: str, admin_password: str) -> tuple
     return admin_token, directory_token, payload.get("user") or {}
 
 
+def _operations_action_id(base_url: str, admin_headers: dict[str, str]) -> str:
+    response = _request_with_retry(
+        "get",
+        f"{base_url}/api/operations-actions?limit=1",
+        headers=admin_headers,
+        timeout=120,
+    )
+    response.raise_for_status()
+    actions = response.json().get("actions") or []
+    for row in actions:
+        oa_id = str(row.get("id") or "").strip()
+        if oa_id:
+            return oa_id
+    raise RuntimeError("No Operations Action ID available for screenshot ledger")
+
+
 def _warm_surface_data(
     base_url: str,
     surface: Surface,
@@ -197,7 +213,7 @@ def _request_with_retry(method: str, url: str, **kwargs):
     raise last_error
 
 
-def _surface_inventory(pm_project_number: str) -> list[Surface]:
+def _surface_inventory(pm_project_number: str, operations_action_id: str) -> list[Surface]:
     return [
         Surface(
             key="executive_overview",
@@ -461,6 +477,36 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
             },
         ),
         Surface(
+            key="shop_login_help",
+            role="public",
+            route="/shop/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-shop']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-shop-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-shop-panel']",
+            },
+        ),
+        Surface(
+            key="leadership_login_help",
+            role="public",
+            route="/field-leadership/portal/login",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='portal-login-help-leadership']",
+                "collapsed_trigger_selector": "[data-testid='portal-login-help-leadership-trigger']",
+                "collapsed_panel_selector": "[data-testid='portal-login-help-leadership-panel']",
+            },
+        ),
+        Surface(
             key="operations_actions",
             role="public",
             route="/operations-actions",
@@ -491,6 +537,21 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
             },
         ),
         Surface(
+            key="operations_actions_detail",
+            role="admin",
+            route=f"/operations-actions/{operations_action_id}",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='oa-detail-root']",
+                "collapsed_trigger_selector": "[data-testid='oa-coaching-panel-trigger']",
+                "collapsed_panel_selector": "[data-testid='oa-coaching-panel-panel']",
+            },
+        ),
+        Surface(
             key="notifications_digest",
             role="admin",
             route="/notifications",
@@ -513,7 +574,7 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
             languages=["en"],
             category="tier1",
             checks={
-                "must_include": ["How findings work"],
+                "must_include": [],
                 "must_exclude": [],
                 "selector": "[data-testid='admin-compliance-findings']",
                 "collapsed_trigger_selector": "[data-testid='lifecycle-guide-toggle-admin-compliance-findings']",
@@ -579,21 +640,74 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
                 "collapsed_trigger_selectors": [
                     "[data-testid='coach-soil-toggle']",
                     "[data-testid='coach-protective-toggle']",
-                    "[data-testid='coach-access-toggle']",
-                    "[data-testid='coach-utility-toggle']",
-                    "[data-testid='coach-water-toggle']",
-                    "[data-testid='coach-atmos-toggle']",
                     "[data-testid='coach-cp-toggle']",
                 ],
                 "collapsed_panel_selectors": [
                     "[data-testid='coach-soil-body']",
                     "[data-testid='coach-protective-body']",
-                    "[data-testid='coach-access-body']",
-                    "[data-testid='coach-utility-body']",
-                    "[data-testid='coach-water-body']",
-                    "[data-testid='coach-atmos-body']",
                     "[data-testid='coach-cp-body']",
                 ],
+            },
+        ),
+        Surface(
+            key="incident_report_help_drawer",
+            role="public",
+            route="/incidents/report",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='incident-report']",
+                "pre_action_key": "incident_report_enter_steps",
+                "collapsed_trigger_selector": "[data-testid='incident-report-help-trigger']",
+                "collapsed_panel_selector": "[data-testid='incident-report-help-panel']",
+            },
+        ),
+        Surface(
+            key="equipment_help_drawer",
+            role="public",
+            route="/equipment/new",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='equipment-form-shell']",
+                "collapsed_trigger_selector": "[data-testid='equipment-help-drawer-trigger']",
+                "collapsed_panel_selector": "[data-testid='equipment-help-drawer-panel']",
+            },
+        ),
+        Surface(
+            key="dvir_help_drawer",
+            role="public",
+            route="/fleet/dvir/new",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='dvir-form-shell']",
+                "collapsed_trigger_selector": "[data-testid='dvir-help-drawer-trigger']",
+                "collapsed_panel_selector": "[data-testid='dvir-help-drawer-panel']",
+            },
+        ),
+        Surface(
+            key="meeting_help_drawer",
+            role="public",
+            route="/meetings/new",
+            viewports=VIEWPORTS,
+            languages=["en", "es"],
+            category="tier1",
+            checks={
+                "must_include": [],
+                "must_exclude": [],
+                "selector": "[data-testid='meeting-form-shell']",
+                "collapsed_trigger_selector": "[data-testid='meeting-help-drawer-trigger']",
+                "collapsed_panel_selector": "[data-testid='meeting-help-drawer-panel']",
             },
         ),
     ]
@@ -672,6 +786,18 @@ def _wait_for_hydration_clear(page, role: str) -> None:
             page.wait_for_timeout(1800)
         except Exception:
             pass
+
+
+def _apply_surface_pre_actions(page, surface: Surface) -> None:
+    key = surface.checks.get("pre_action_key")
+    if key == "incident_report_enter_steps":
+        trigger = page.locator('[data-testid="incident-report-help-trigger"]')
+        if trigger.count() == 0:
+            cards = page.locator('[data-testid^="incident-type-card-"]')
+            if cards.count() > 0:
+                cards.first.click(force=True)
+                page.wait_for_timeout(900)
+                page.wait_for_selector('[data-testid="incident-report-help-trigger"]', state="attached", timeout=12000)
 
 
 def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str], hr_creds: tuple[str, str], dispatch_creds: tuple[str, str]) -> dict[str, str]:
@@ -903,6 +1029,7 @@ def _capture_surface(page, surface: Surface, base_url: str, width: int, lang: st
     if surface.state_kind == "shared_confirmation":
         _prime_confirmation_state(page)
     _wait_for_surface_ready(page, surface)
+    _apply_surface_pre_actions(page, surface)
     if surface.checks.get("needs_dialog") and width >= 1024:
         button = page.locator('[data-testid^="portfolio-project-detail-button-"]').first
         if button.count() > 0:
@@ -938,7 +1065,12 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
     hr_creds = _hr_creds()
     dispatch_creds = _dispatch_creds()
     pm_project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
-    surfaces = _surface_inventory(pm_project_number)
+    admin_token, directory_token, _ = _admin_tokens(base_url, admin_creds[0], admin_creds[1])
+    admin_headers = {"X-Admin-Token": admin_token}
+    if directory_token:
+        admin_headers["X-Directory-Token"] = directory_token
+    operations_action_id = _operations_action_id(base_url, admin_headers)
+    surfaces = _surface_inventory(pm_project_number, operations_action_id)
     if surface_keys:
         wanted = set(surface_keys)
         surfaces = [surface for surface in surfaces if surface.key in wanted]

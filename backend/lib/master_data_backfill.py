@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
+
 
 EMPLOYEE_PREFIX = "EMP"
 EMPLOYEE_WIDTH = 6
@@ -108,7 +110,7 @@ def next_equipment_unit(prefix: str, existing_tokens: Set[str]) -> str:
 
 
 async def preview_master_data_backfill(db: Any) -> Dict[str, Any]:
-    employees = await db.employees.find({}, {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "active": 1}).to_list(length=None)
+    employees = await db.employees.find(apply_synthetic_hr_exclusion({}), {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "active": 1}).to_list(length=None)
     equipment = await db.equipment_master.find({}, {"_id": 0, "id": 1, "unit_number": 1, "asset_number": 1, "display_label": 1, "preop_equipment_type": 1, "category": 1, "make": 1, "model": 1, "active": 1}).to_list(length=None)
 
     existing_employee_ids = {upper_token(row.get("employee_id")) for row in employees if normalize_token(row.get("employee_id"))}

@@ -1,0 +1,647 @@
+{
+  "_id": "incident-b8d0f7610df54914900d0a0621c9ac83",
+  "id": "incident-b8d0f7610df54914900d0a0621c9ac83",
+  "captured_at": "2026-08-09T17:11:51.084056+00:00",
+  "captured_dt": "2026-08-09 17:11:51.084060+00:00",
+  "trigger": "consecutive_internal_request_failures",
+  "details": {
+    "path": "/api/banners/active",
+    "status_code": "500",
+    "consecutive": "3"
+  },
+  "release": {
+    "source_hash": "d85b47bea59ff5588bcbcd99d2c63450",
+    "commit": "7fad4c60be3fca9a934a9d567941bb34ce0b1da6",
+    "app_env": "preview",
+    "db_name": "masci_safety_preview",
+    "instance_fingerprint": "54fc2557b36c164055d9d3829593439c",
+    "reload_enabled": true,
+    "server_command": "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload"
+  },
+  "instance_fingerprint": "54fc2557b36c164055d9d3829593439c",
+  "process": {
+    "pid": 59185,
+    "uptime_s": 1358,
+    "restart_count": 851,
+    "thread_count": 32,
+    "active_asyncio_tasks": 30
+  },
+  "health": {
+    "liveness": {
+      "ok": true,
+      "state": "alive"
+    },
+    "readiness": {
+      "ok": true,
+      "state": "ready",
+      "reason": "startup_complete"
+    },
+    "full_health": {
+      "ok": false,
+      "state": "degraded",
+      "reason_codes": []
+    },
+    "event_loop_lag_ms": 31.3,
+    "mongo_latency_ms": 28,
+    "mongo_ok": true,
+    "resources": {
+      "cpu_percent": 0.0,
+      "rss_mb": 315.7,
+      "disk_percent": 90.1,
+      "fd_count": 28,
+      "fd_limit": 1024,
+      "thread_count": 32,
+      "active_asyncio_tasks": 30
+    },
+    "background_tasks": [
+      {
+        "name": "asset-spine-nightly-loop",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelling",
+        "started_at": "2026-08-09T16:49:52.212702+00:00",
+        "ended_at": "2026-08-09T16:49:52.213518+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.212978+00:00",
+        "runtime_s": 1318,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "backup-verification-singleton",
+        "category": "email-scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:28.363139+00:00",
+        "ended_at": "2026-08-09T16:49:52.214935+00:00",
+        "last_seen_at": "2026-08-09T16:49:43.365072+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "cluster-capacity-history",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:27.948626+00:00",
+        "ended_at": "2026-08-09T16:49:52.213566+00:00",
+        "last_seen_at": "2026-08-09T16:49:42.950276+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "deployment-governance-verification",
+        "category": "governance",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:52.209624+00:00",
+        "ended_at": "2026-08-09T16:49:52.213614+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.212550+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": false
+      },
+      {
+        "name": "dispatch-reminder-scheduler",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:52.209653+00:00",
+        "ended_at": "2026-08-09T16:49:52.213812+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.212561+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "job-photos-indexer",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:18.713273+00:00",
+        "ended_at": "2026-08-09T16:49:52.213214+00:00",
+        "last_seen_at": "2026-08-09T16:49:48.714537+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "motive-reliability-supervisor",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:52.123783+00:00",
+        "ended_at": "2026-08-09T16:49:52.213235+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.124670+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "operator-digest-singleton",
+        "category": "email-scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:27.504445+00:00",
+        "ended_at": "2026-08-09T16:49:52.213623+00:00",
+        "last_seen_at": "2026-08-09T16:49:42.505621+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "photo-intelligence-v1-reconciler",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:18.878442+00:00",
+        "ended_at": "2026-08-09T16:49:52.213870+00:00",
+        "last_seen_at": "2026-08-09T16:49:48.881671+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "po-digest-singleton",
+        "category": "email-scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:27.561422+00:00",
+        "ended_at": "2026-08-09T16:49:52.213584+00:00",
+        "last_seen_at": "2026-08-09T16:49:42.562094+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "runtime-reliability-monitor",
+        "category": "runtime-monitor",
+        "critical": true,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:16.531255+00:00",
+        "ended_at": "2026-08-09T16:49:52.213656+00:00",
+        "last_seen_at": "2026-08-09T16:49:46.533582+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "safety-digest-singleton",
+        "category": "email-scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:27.504015+00:00",
+        "ended_at": "2026-08-09T16:49:52.213554+00:00",
+        "last_seen_at": "2026-08-09T16:49:42.505591+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "scheduled-backup-loop",
+        "category": "scheduler",
+        "critical": true,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:52.212567+00:00",
+        "ended_at": "2026-08-09T16:49:52.213203+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.212971+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "scheduled-backup-supervisor",
+        "category": "scheduler-supervisor",
+        "critical": true,
+        "status": "cancelling",
+        "started_at": "2026-08-09T16:49:50.009308+00:00",
+        "ended_at": "2026-08-09T16:49:52.213851+00:00",
+        "last_seen_at": "2026-08-09T16:49:50.009346+00:00",
+        "runtime_s": 1321,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "synthetic-health-monitor",
+        "category": "health-monitor",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:52.123663+00:00",
+        "ended_at": "2026-08-09T16:49:52.214719+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.124699+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "track_23_10_c_trench_backfill",
+        "category": "data-backfill",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:52.124110+00:00",
+        "ended_at": "2026-08-09T16:49:52.213531+00:00",
+        "last_seen_at": "2026-08-09T16:49:52.124686+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "transport-automation-singleton",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:44.927848+00:00",
+        "ended_at": "2026-08-09T16:49:52.214951+00:00",
+        "last_seen_at": "2026-08-09T16:49:44.928744+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      },
+      {
+        "name": "transport-command-digest-singleton",
+        "category": "scheduler",
+        "critical": false,
+        "status": "cancelled",
+        "started_at": "2026-08-09T16:49:44.928249+00:00",
+        "ended_at": "2026-08-09T16:49:52.214959+00:00",
+        "last_seen_at": "2026-08-09T16:49:44.928763+00:00",
+        "runtime_s": null,
+        "last_error": null,
+        "long_running": true
+      }
+    ],
+    "release": {
+      "source_hash": "d85b47bea59ff5588bcbcd99d2c63450",
+      "commit": "7fad4c60be3fca9a934a9d567941bb34ce0b1da6",
+      "app_env": "preview",
+      "db_name": "masci_safety_preview",
+      "instance_fingerprint": "54fc2557b36c164055d9d3829593439c",
+      "reload_enabled": true,
+      "server_command": "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload"
+    },
+    "restart_count": 851,
+    "last_successful_health_at": null,
+    "last_successful_db_at": "2026-08-09T16:49:47.408694+00:00",
+    "safe_self_healing": {
+      "last_resource_relief_at": "2026-08-09T16:49:27.105371+00:00",
+      "resource_relief_actions": [
+        {
+          "at": "2026-08-09T16:49:27.105361+00:00",
+          "action": "bounded_workspace_cleanup",
+          "details": {
+            "freed_bytes": "",
+            "removed_files": "",
+            "removed_dirs": ""
+          }
+        }
+      ],
+      "cooldown_active": false
+    }
+  },
+  "event_loop_lag_ms": 31.3,
+  "mongo": {
+    "ok": true,
+    "latency_ms": 28,
+    "last_success_at": "2026-08-09T16:49:47.408694+00:00"
+  },
+  "resources": {
+    "cpu_percent": 0.0,
+    "rss_mb": 315.7,
+    "disk_percent": 90.1,
+    "fd_count": 28,
+    "fd_limit": 1024,
+    "thread_count": 32,
+    "active_asyncio_tasks": 30
+  },
+  "scheduler_tasks": [
+    {
+      "name": "asset-spine-nightly-loop",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelling",
+      "started_at": "2026-08-09T16:49:52.212702+00:00",
+      "ended_at": "2026-08-09T16:49:52.213518+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.212978+00:00",
+      "runtime_s": 1318,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "backup-verification-singleton",
+      "category": "email-scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:28.363139+00:00",
+      "ended_at": "2026-08-09T16:49:52.214935+00:00",
+      "last_seen_at": "2026-08-09T16:49:43.365072+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "cluster-capacity-history",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:27.948626+00:00",
+      "ended_at": "2026-08-09T16:49:52.213566+00:00",
+      "last_seen_at": "2026-08-09T16:49:42.950276+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "deployment-governance-verification",
+      "category": "governance",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:52.209624+00:00",
+      "ended_at": "2026-08-09T16:49:52.213614+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.212550+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": false
+    },
+    {
+      "name": "dispatch-reminder-scheduler",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:52.209653+00:00",
+      "ended_at": "2026-08-09T16:49:52.213812+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.212561+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "job-photos-indexer",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:18.713273+00:00",
+      "ended_at": "2026-08-09T16:49:52.213214+00:00",
+      "last_seen_at": "2026-08-09T16:49:48.714537+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "motive-reliability-supervisor",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:52.123783+00:00",
+      "ended_at": "2026-08-09T16:49:52.213235+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.124670+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "operator-digest-singleton",
+      "category": "email-scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:27.504445+00:00",
+      "ended_at": "2026-08-09T16:49:52.213623+00:00",
+      "last_seen_at": "2026-08-09T16:49:42.505621+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "photo-intelligence-v1-reconciler",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:18.878442+00:00",
+      "ended_at": "2026-08-09T16:49:52.213870+00:00",
+      "last_seen_at": "2026-08-09T16:49:48.881671+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "po-digest-singleton",
+      "category": "email-scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:27.561422+00:00",
+      "ended_at": "2026-08-09T16:49:52.213584+00:00",
+      "last_seen_at": "2026-08-09T16:49:42.562094+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "runtime-reliability-monitor",
+      "category": "runtime-monitor",
+      "critical": true,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:16.531255+00:00",
+      "ended_at": "2026-08-09T16:49:52.213656+00:00",
+      "last_seen_at": "2026-08-09T16:49:46.533582+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "safety-digest-singleton",
+      "category": "email-scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:27.504015+00:00",
+      "ended_at": "2026-08-09T16:49:52.213554+00:00",
+      "last_seen_at": "2026-08-09T16:49:42.505591+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "scheduled-backup-loop",
+      "category": "scheduler",
+      "critical": true,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:52.212567+00:00",
+      "ended_at": "2026-08-09T16:49:52.213203+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.212971+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "scheduled-backup-supervisor",
+      "category": "scheduler-supervisor",
+      "critical": true,
+      "status": "cancelling",
+      "started_at": "2026-08-09T16:49:50.009308+00:00",
+      "ended_at": "2026-08-09T16:49:52.213851+00:00",
+      "last_seen_at": "2026-08-09T16:49:50.009346+00:00",
+      "runtime_s": 1321,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "synthetic-health-monitor",
+      "category": "health-monitor",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:52.123663+00:00",
+      "ended_at": "2026-08-09T16:49:52.214719+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.124699+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "track_23_10_c_trench_backfill",
+      "category": "data-backfill",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:52.124110+00:00",
+      "ended_at": "2026-08-09T16:49:52.213531+00:00",
+      "last_seen_at": "2026-08-09T16:49:52.124686+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "transport-automation-singleton",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:44.927848+00:00",
+      "ended_at": "2026-08-09T16:49:52.214951+00:00",
+      "last_seen_at": "2026-08-09T16:49:44.928744+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    },
+    {
+      "name": "transport-command-digest-singleton",
+      "category": "scheduler",
+      "critical": false,
+      "status": "cancelled",
+      "started_at": "2026-08-09T16:49:44.928249+00:00",
+      "ended_at": "2026-08-09T16:49:52.214959+00:00",
+      "last_seen_at": "2026-08-09T16:49:44.928763+00:00",
+      "runtime_s": null,
+      "last_error": null,
+      "long_running": true
+    }
+  ],
+  "backup_state": {
+    "alive": true,
+    "armed_at": "2026-08-09T16:49:48.536355+00:00",
+    "last_tick_ts": null,
+    "in_progress": false,
+    "last_attempt_started_at": null,
+    "last_attempt_outcome": null,
+    "resurrect_count": 0,
+    "last_resurrect_ts": null,
+    "r2_hourly_requested": false,
+    "r2_hourly_effective": false,
+    "r2_hourly_locked_off": true,
+    "hourly_cadence_enabled": false,
+    "activation_blockers": [],
+    "activation_status": "DISABLED BY CONFIGURATION",
+    "activation_environment": "unknown",
+    "last_activation_evaluated_at": null,
+    "next_eligible_hourly_slot": null,
+    "backup_runtime": {
+      "stale_marked": 0,
+      "active_jobs": [],
+      "overlap": {
+        "backup_active": false,
+        "restore_active": false,
+        "active_backups": [],
+        "active_restores": [],
+        "overlap_blocked": false
+      },
+      "recent_complete_jobs": []
+    },
+    "boot_step": "cancelled",
+    "boot_step_ts": "2026-08-09T16:49:52.213159+00:00",
+    "boot_exception": null,
+    "last_r2_complete_hour": "2026-08-06T21",
+    "last_r2_complete_date": "2026-08-06"
+  },
+  "recent_errors": [
+    {
+      "at": "2026-08-09T17:11:46.237977+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:46.242659+00:00",
+      "path": "/api/banners/active",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:46.343979+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:46.344145+00:00",
+      "path": "/api/banners/active",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:47.976413+00:00",
+      "path": "/api/banners/active",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:48.037357+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:48.143641+00:00",
+      "path": "/api/banners/active",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:48.144437+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:50.873009+00:00",
+      "path": "/api/banners/active",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:50.975320+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:51.079293+00:00",
+      "path": "/api/branding/current",
+      "status_code": 500,
+      "error": null
+    },
+    {
+      "at": "2026-08-09T17:11:51.083720+00:00",
+      "path": "/api/banners/active",
+      "status_code": 500,
+      "error": null
+    }
+  ],
+  "backend_log_excerpt": "ttr(self._resolve(), name)\n                   ^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 159, in _resolve\n    return self._db_proxy._require_target()[self._collection_name]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 139, in _require_target\n    raise RuntimeError(\"Database accessed before runtime initialization\")\nRuntimeError: Database accessed before runtime initialization\n2026-08-09 16:56:47,608 - routes.auth_directory_routes - ERROR - [multi-login] unexpected failure at stage=authenticate email=jaymn.judd@mascigc.com: Database accessed before runtime initialization\nTraceback (most recent call last):\n  File \"/app/backend/routes/auth_directory_routes.py\", line 319, in multi_login\n  File \"/app/backend/user_directory.py\", line 269, in authenticate\n    row = await find_by_email(db, email)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/user_directory.py\", line 113, in find_by_email\n    return await db.user_directory.find_one(\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 162, in __getattr__\n    return getattr(self._resolve(), name)\n                   ^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 159, in _resolve\n    return self._db_proxy._require_target()[self._collection_name]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 139, in _require_target\n    raise RuntimeError(\"Database accessed before runtime initialization\")\nRuntimeError: Database accessed before runtime initialization\n2026-08-09 16:56:52,528 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 16:57:52,529 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 16:58:52,529 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 16:59:52,531 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:00:52,532 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:01:52,537 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:01:55,145 - routes.auth_directory_routes - ERROR - [multi-login] unexpected failure at stage=authenticate email=jaymn.judd@mascigc.com: Database accessed before runtime initialization\nTraceback (most recent call last):\n  File \"/app/backend/routes/auth_directory_routes.py\", line 319, in multi_login\n  File \"/app/backend/user_directory.py\", line 269, in authenticate\n    row = await find_by_email(db, email)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/user_directory.py\", line 113, in find_by_email\n    return await db.user_directory.find_one(\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 162, in __getattr__\n    return getattr(self._resolve(), name)\n                   ^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 159, in _resolve\n    return self._db_proxy._require_target()[self._collection_name]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 139, in _require_target\n    raise RuntimeError(\"Database accessed before runtime initialization\")\nRuntimeError: Database accessed before runtime initialization\n2026-08-09 17:02:52,538 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:03:52,539 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:04:52,540 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:05:52,542 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:06:52,543 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:06:55,641 - routes.auth_directory_routes - ERROR - [multi-login] unexpected failure at stage=authenticate email=jaymn.judd@mascigc.com: Database accessed before runtime initialization\nTraceback (most recent call last):\n  File \"/app/backend/routes/auth_directory_routes.py\", line 319, in multi_login\n  File \"/app/backend/user_directory.py\", line 269, in authenticate\n    row = await find_by_email(db, email)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/user_directory.py\", line 113, in find_by_email\n    return await db.user_directory.find_one(\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 162, in __getattr__\n    return getattr(self._resolve(), name)\n                   ^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 159, in _resolve\n    return self._db_proxy._require_target()[self._collection_name]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/backend/server.py\", line 139, in _require_target\n    raise RuntimeError(\"Database accessed before runtime initialization\")\nRuntimeError: Database accessed before runtime initialization\n2026-08-09 17:07:52,544 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:08:52,546 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:09:52,547 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n2026-08-09 17:10:52,547 - lib.singleton_scheduler - WARNING - [singleton-lock:backup_scheduler] runtime DB unavailable at scheduler tick \u2014 retrying\n",
+  "storage": "file_fallback"
+}

@@ -102,10 +102,10 @@ export const LESSON_TRANSLATIONS_ES = {
     ],
   },
   "field-qaqc-inspections": {
-    title_es: "Lección 5 — Inspecciones de QA / QC",
+    title_es: "Lección 5 — Inspecciones de QA/QC",
     why_es: "Los problemas de calidad detectados ANTES de la colada o ANTES de que el subcontratista deje el sitio cuestan una fracción de lo que cuesta arreglarlos después. El módulo QA/QC documenta la inspección, captura fotos y firmas, genera un PDF, y lo envía directamente al Gerente de Proyecto asignado — cada registro vinculado a un trabajo, una estación, y un inspector. Esta es su evidencia para auditorías del dueño, disputas con subs y reclamos de garantía.",
     steps_es: [
-      "Hub → QA / QC. Verá los tipos de inspección disponibles — actualmente tres: Inspección de Formaleta de Concreto, Inspección de Acero de Refuerzo, e Inspección de Trabajo del Subcontratista. Más formularios se agregan a medida que el sistema crece.",
+      "Hub → QA/QC. Verá los tipos de inspección disponibles — actualmente tres: Inspección de Formaleta de Concreto, Inspección de Acero de Refuerzo, e Inspección de Trabajo del Subcontratista. Más formularios se agregan a medida que el sistema crece.",
       "Toque la inspección que necesita. Elija su Trabajo MASCI del selector — número de proyecto, nombre, ubicación, cliente, Y el Gerente de Proyecto asignado se llenan automáticamente. El correo del PM se captura automáticamente para que el reporte se envíe a la persona correcta.",
       "Toque el botón GPS al lado de Ubicación para autollenar la dirección del área de trabajo desde el GPS de su teléfono.",
       "Subcontratista / Cuadrilla: lista buscable con todos los subs y vendedores en el sistema. Si el suyo no está, toque 'Agregar nuevo' y créelo en el momento.",

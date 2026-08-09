@@ -43,6 +43,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response as _FastAPIResponse
 from pydantic import BaseModel, Field
 from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
+from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -1597,7 +1598,7 @@ async def _issue_missing_ppe_records(
 
     missing: List[Dict[str, Any]] = []
     async for emp in db.employees.find(
-        {"deleted_at": None, "is_active": {"$ne": False}},
+        apply_synthetic_hr_exclusion({"deleted_at": None, "is_active": {"$ne": False}}),
         {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "position": 1, "is_field": 1},
     ).limit(5000):
         name = (emp.get("name") or "").strip()
