@@ -1520,7 +1520,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             try:
                 from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
 
-                await resolve_identity(
+                binding = await resolve_identity(
                     db,
                     workflow="daily_report",
                     record_id=working_doc.get("id") or "",
@@ -1532,6 +1532,9 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     submitter_name_fallback=str(payload_snapshot.get("prepared_by") or "").strip(),
                     fl_token=fl_token,
                 )
+                canonical_submitter_id = str((binding or {}).get("submitter_canonical_id") or "").strip()
+                if canonical_submitter_id and not str(working_doc.get("prepared_by_employee_id") or "").strip():
+                    post_updates["prepared_by_employee_id"] = canonical_submitter_id
             except Exception:  # pragma: no cover — best-effort audit
                 pass
 

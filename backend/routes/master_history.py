@@ -83,7 +83,34 @@ KIND_META = {
     "training":          {"label": "Training",         "weight": 5},
     "operations_event":  {"label": "Operations Event", "weight": 6},
     "field_leadership":  {"label": "HR / Leadership",  "weight": 7},
+    "meeting":           {"label": "Safety Meeting",   "weight": 8},
+    "daily_report":      {"label": "Daily Report",     "weight": 9},
+    "dispatch":          {"label": "Dispatch",         "weight": 10},
 }
+
+
+def _append_event(feed: List[Dict[str, Any]], seen: set, event: Dict[str, Any]) -> None:
+    key = (event.get("kind"), event.get("record_id"), event.get("route"))
+    if key in seen:
+        return
+    seen.add(key)
+    feed.append(event)
+
+
+async def _binding_record_ids(db, *, workflow: str, employee_id: str) -> List[str]:
+    if "field_submitter_bindings" not in await db.list_collection_names() or not employee_id:
+        return []
+    return [
+        str(row.get("submission_record_id") or "")
+        async for row in db.field_submitter_bindings.find(
+            {
+                "submission_workflow": workflow,
+                "submitter_canonical_id": employee_id,
+            },
+            {"_id": 0, "submission_record_id": 1},
+        )
+        if str(row.get("submission_record_id") or "")
+    ]
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -196,39 +223,84 @@ async def _equipment_history(db, master_id: str) -> List[Dict[str, Any]]:
             "record_id": d.get("id"),
         })
 
+    # 6. Dispatch history for transport trucks bound back to this asset.
+    truck_ids = [
+        str(row.get("id") or "")
+        async for row in db.transport_trucks.find(
+            {"equipment_id": master_id},
+            {"_id": 0, "id": 1},
+        )
+        if str(row.get("id") or "")
+    ]
+    if truck_ids:
+        async for d in db.dispatch_assignments.find(
+            {"truck_id": {"$in": truck_ids}},
+            {"_id": 0, "id": 1, "project_number": 1, "driver_name": 1,
+             "current_state": 1, "assigned_at": 1, "created_at": 1},
+        ).limit(500):
+            feed.append({
+                "at": _norm_date(d.get("assigned_at"), d.get("created_at")),
+                "kind": "dispatch",
+                "title": f"Dispatch · {d.get('current_state') or 'Assigned'}",
+                "subtitle": (f"Project {d.get('project_number')}" if d.get("project_number") else "No project scope")
+                            + (f" · Driver: {d.get('driver_name')}" if d.get("driver_name") else ""),
+                "status": d.get("current_state"),
+                "severity": None,
+                "route": f"/dispatch?id={d.get('id', '')}",
+                "record_id": d.get("id"),
+            })
+
     return feed
 
 
 # ──────────────────────────────────────────────────────────────────
-# Employee history — pulled from 5 collections
+# Employee history — pulled from canonical employee links, submitter bindings,
+# and transportation projections.
 # ──────────────────────────────────────────────────────────────────
-async def _employee_history(db, master_id: str, employee_name: Optional[str]) -> List[Dict[str, Any]]:
+async def _employee_history(
+    db,
+    master_id: str,
+    employee_name: Optional[str],
+    employee_code: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     feed: List[Dict[str, Any]] = []
+    seen: set = set()
 
-    # 1. Incidents
+    incident_binding_ids = await _binding_record_ids(db, workflow="incident", employee_id=master_id)
+    incident_query = {
+        "$or": [
+            {"employee_master_id": master_id},
+            {"reported_by_employee_id": master_id},
+            {"id": {"$in": incident_binding_ids}} if incident_binding_ids else {"id": "__never__"},
+        ]
+    }
     async for d in db.incidents.find(
-        {"employee_master_id": master_id},
+        incident_query,
         {"_id": 0, "id": 1, "incident_date": 1, "incident_type": 1,
-         "severity": 1, "title": 1, "person_name": 1, "location": 1, "created_at": 1},
+         "severity": 1, "title": 1, "person_name": 1, "reported_by": 1,
+         "location": 1, "created_at": 1},
     ).limit(500):
-        feed.append({
+        role_hint = "Reporter" if d.get("reported_by") else "Employee"
+        subtitle = d.get("location") or "—"
+        if d.get("reported_by"):
+            subtitle = f"{subtitle} · {role_hint}: {d.get('reported_by')}"
+        _append_event(feed, seen, {
             "at": _norm_date(d.get("incident_date"), d.get("created_at")),
             "kind": "incident",
             "title": d.get("title") or d.get("incident_type") or "Incident",
-            "subtitle": d.get("location") or "—",
+            "subtitle": subtitle,
             "status": None,
             "severity": d.get("severity"),
             "route": f"/safety-portal/incidents?id={d.get('id', '')}",
             "record_id": d.get("id"),
         })
 
-    # 2. Corrective actions assigned to / linked
     async for d in db.corrective_actions.find(
         apply_synthetic_corrective_action_exclusion({"employee_master_id": master_id}),
         {"_id": 0, "id": 1, "title": 1, "status": 1, "priority": 1,
          "due_date": 1, "assigned_to_name": 1, "created_at": 1},
     ).limit(500):
-        feed.append({
+        _append_event(feed, seen, {
             "at": _norm_date(d.get("created_at"), d.get("due_date")),
             "kind": "ca",
             "title": d.get("title") or "Corrective Action",
@@ -239,13 +311,12 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
             "record_id": d.get("id"),
         })
 
-    # 3. Training records
     async for d in db.safety_training_records.find(
         {"employee_master_id": master_id},
         {"_id": 0, "id": 1, "training_name": 1, "certification_type": 1,
          "completed_date": 1, "expiration_date": 1, "created_at": 1},
     ).limit(500):
-        feed.append({
+        _append_event(feed, seen, {
             "at": _norm_date(d.get("completed_date"), d.get("created_at")),
             "kind": "training",
             "title": d.get("training_name") or "Training",
@@ -257,13 +328,77 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
             "record_id": d.get("id"),
         })
 
-    # 4. Operations events keyed by employee_id
+    meeting_query = {"attendees.employee_id": master_id}
+    async for d in db.meetings.find(
+        meeting_query,
+        {"_id": 0, "id": 1, "topic": 1, "meeting_date": 1,
+         "project_number": 1, "conducted_by": 1, "created_at": 1},
+    ).limit(500):
+        _append_event(feed, seen, {
+            "at": _norm_date(d.get("meeting_date"), d.get("created_at")),
+            "kind": "meeting",
+            "title": d.get("topic") or "Safety Meeting",
+            "subtitle": (f"Conducted by: {d.get('conducted_by') or '—'}"
+                         + (f" · Job {d.get('project_number')}" if d.get("project_number") else "")),
+            "status": None,
+            "severity": None,
+            "route": f"/safety-portal/meetings?id={d.get('id', '')}",
+            "record_id": d.get("id"),
+        })
+
+    daily_report_binding_ids = await _binding_record_ids(db, workflow="daily_report", employee_id=master_id)
+    daily_query = {
+        "$or": [
+            {"prepared_by_employee_id": master_id},
+            {"id": {"$in": daily_report_binding_ids}} if daily_report_binding_ids else {"id": "__never__"},
+        ]
+    }
+    async for d in db.daily_reports.find(
+        daily_query,
+        {"_id": 0, "id": 1, "doc_id": 1, "report_date": 1, "project_number": 1,
+         "project_name": 1, "prepared_by": 1, "created_at": 1},
+    ).limit(500):
+        _append_event(feed, seen, {
+            "at": _norm_date(d.get("report_date"), d.get("created_at")),
+            "kind": "daily_report",
+            "title": d.get("doc_id") or "Daily Report",
+            "subtitle": (d.get("project_name") or d.get("project_number") or "—")
+                        + (f" · Prepared by: {d.get('prepared_by')}" if d.get("prepared_by") else ""),
+            "status": None,
+            "severity": None,
+            "route": f"/admin/daily?id={d.get('id', '')}",
+            "record_id": d.get("id"),
+        })
+
+    equipment_binding_ids = await _binding_record_ids(db, workflow="equipment_inspection", employee_id=master_id)
+    equipment_query = {
+        "$or": [
+            {"operator_employee_id": master_id},
+            {"id": {"$in": equipment_binding_ids}} if equipment_binding_ids else {"id": "__never__"},
+        ]
+    }
+    async for d in db.equipment_inspections.find(
+        equipment_query,
+        {"_id": 0, "id": 1, "inspection_date": 1, "equipment_unit": 1,
+         "project_number": 1, "out_of_service": 1, "created_at": 1},
+    ).limit(500):
+        _append_event(feed, seen, {
+            "at": _norm_date(d.get("inspection_date"), d.get("created_at")),
+            "kind": "inspection",
+            "title": f"Equipment Inspection · {d.get('equipment_unit') or '—'}",
+            "subtitle": (f"Job {d.get('project_number')}" if d.get("project_number") else "No project scope"),
+            "status": d.get("out_of_service"),
+            "severity": None,
+            "route": f"/admin/equipment-inspections?id={d.get('id', '')}",
+            "record_id": d.get("id"),
+        })
+
     async for d in db.operations_events.find(
         {"employee_id": master_id},
         {"_id": 0, "id": 1, "event_type": 1, "event_title": 1,
          "event_description": 1, "severity": 1, "status": 1, "created_at": 1},
     ).limit(500):
-        feed.append({
+        _append_event(feed, seen, {
             "at": _norm_date(d.get("created_at")),
             "kind": "operations_event",
             "title": d.get("event_title") or d.get("event_type") or "Event",
@@ -274,9 +409,35 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
             "record_id": d.get("id"),
         })
 
-    # 5. HR field-leadership records (keyed by name — best-effort)
-    # TRACK 28.03 · exclude synthetic/certification FL records from the
-    # employee history feed (user-facing HR audit surface).
+    transport_query = {"$or": [{"employee_id": master_id}]}
+    if employee_code:
+        transport_query["$or"].append({"employee_id": employee_code})
+    driver_ids = [
+        str(row.get("id") or "")
+        async for row in db.transport_persons.find(
+            transport_query,
+            {"_id": 0, "id": 1},
+        )
+        if str(row.get("id") or "")
+    ]
+    if driver_ids:
+        async for d in db.dispatch_assignments.find(
+            {"driver_id": {"$in": driver_ids}},
+            {"_id": 0, "id": 1, "project_number": 1, "truck_id": 1,
+             "current_state": 1, "assigned_at": 1, "created_at": 1},
+        ).limit(500):
+            _append_event(feed, seen, {
+                "at": _norm_date(d.get("assigned_at"), d.get("created_at")),
+                "kind": "dispatch",
+                "title": f"Dispatch · {d.get('current_state') or 'Assigned'}",
+                "subtitle": (f"Project {d.get('project_number')}" if d.get("project_number") else "No project scope")
+                            + (f" · Truck: {d.get('truck_id')}" if d.get("truck_id") else ""),
+                "status": d.get("current_state"),
+                "severity": None,
+                "route": f"/dispatch?id={d.get('id', '')}",
+                "record_id": d.get("id"),
+            })
+
     if employee_name:
         async for d in db.field_leadership_records.find(
             apply_synthetic_flr_exclusion({
@@ -286,7 +447,7 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
              "supervisor_name": 1, "project_number": 1, "details": 1, "created_at": 1},
         ).limit(500):
             kind_raw = d.get("kind") or "record"
-            feed.append({
+            _append_event(feed, seen, {
                 "at": _norm_date(d.get("occurred_at"), d.get("created_at")),
                 "kind": "field_leadership",
                 "title": kind_raw.replace("_", " ").title(),
@@ -420,7 +581,7 @@ def register_history_routes(router: APIRouter, db) -> None:
         name = master.get("name") or " ".join(
             p for p in [master.get("first_name"), master.get("last_name")] if p
         )
-        feed = _sort_feed(await _employee_history(db, master_id, name))
+        feed = _sort_feed(await _employee_history(db, master_id, name, master.get("employee_id")))
         return master, feed
 
     # ── JSON ──────────────────────────────────────────────────────

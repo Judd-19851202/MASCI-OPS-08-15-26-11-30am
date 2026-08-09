@@ -1,5 +1,21 @@
 # PRD
 
+## 2026-08-09 — PRE-C10 cross-entity integrity activation batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.
+- Completed in this batch:
+  - added a fail-closed cross-entity runtime audit at `/api/admin/platform-truth-integrity/cross-entity` covering project-team authority, meeting attendee identity, incident lineage, daily-report lineage, equipment inspection lineage, dispatch linkage, and transportation employee projections;
+  - repaired shared downstream history instead of page-local views: employee/equipment master-history now consumes meetings, daily reports, dispatch assignments, and equipment inspections through governed links/bindings;
+  - hardened future write paths so new incidents, daily reports, and equipment inspections persist canonical submitter/operator IDs whenever governed identity is available;
+  - executed preview-safe shared backfills that reduced equipment inspection exact-unit asset misses to `0`, attached `9` operator employee links, and renormalized `76` meeting attendee payloads through the canonical meeting helper.
+- Verification evidence from this batch:
+  - `backend/tests/test_prec10_platform_truth_integrity.py` → `1 passed`
+  - `backend/tests/test_iter141_history.py` batch → `1 passed, 1 skipped`
+  - direct runtime verification after backend restart: `/api/auth/multi-login` `200`, `/api/admin/platform-truth-integrity/cross-entity` `200`
+- Remaining denominator still open after this batch:
+  - cross-entity runtime truth remains **RED / BLOCKING** for meeting MASCI name-only attendees, incident project/submitter lineage, daily-report project/submitter lineage, equipment operator history reachability, and dispatch driver/truck/project linkage drift;
+  - Admin OS truth/count lineage, auth/session denominator, platform-wide coaching inventory, and the full fresh Product Quality v4 ledger are still required before any final certification chain.
+
 ## 2026-08-09 — PRE-C10 progressive-disclosure / coaching closure batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.

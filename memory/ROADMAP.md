@@ -1,3 +1,26 @@
+# 2026-08-09 — PRE-C10 cross-entity integrity current state
+
+- **PRE-C10 remains OPEN — NO-GO**
+- Cross-entity runtime truth is now explicit and fail-closed at `/api/admin/platform-truth-integrity/cross-entity`.
+- Shared preview-safe repairs shipped, but the active denominator is still blocked by incidents, daily reports, meetings, equipment operator history, and dispatch linkage drift.
+
+## Updated next actions after the cross-entity activation batch
+
+### P0 — still required before any PRE-C10 closeout
+
+- Close the remaining cross-entity blockers row-by-row: meeting MASCI name-only attendees, incident project/submitter lineage gaps, daily-report project/submitter lineage gaps, equipment operator history gaps, and dispatch driver/truck/project linkage drift.
+- Prove every required relationship family from canonical entity identity → source record → relationship/link → Trust/evidence → downstream history/profile → authorized consumers.
+- Re-run the fresh full screenshot Product Quality ledger only after the cross-entity, auth/session, Admin OS, and coaching denominators settle.
+
+### P1 — still open after this batch
+
+- Finish Admin OS truth/count lineage closure and the remaining C1–C9 source-to-consumer rows with direct runtime evidence.
+- Resolve the remaining stale auth/session skip denominator and complete all-role logout / refresh / public-home lifecycle evidence.
+
+### P2
+
+- Do not start C10.
+
 # 2026-08-09 — PRE-C10 coaching / progressive-disclosure follow-up state
 
 - **PRE-C10 remains OPEN — NO-GO**

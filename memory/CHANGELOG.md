@@ -1,3 +1,11 @@
+# 2026-08-09 — PRE-C10 cross-entity integrity audit activation
+
+- Added a fail-closed cross-entity audit surface at `/api/admin/platform-truth-integrity/cross-entity`, covering project-team authority, meeting attendee identity, incident lineage, daily-report lineage, equipment inspection lineage, dispatch linkage, and transportation employee projections.
+- Shipped shared preview-safe repairs instead of page-local patches: new incident / daily-report / equipment-inspection writes now persist canonical submitter IDs when governed identity is available; employee and equipment master-history feeds now include meetings, daily reports, dispatch events, and equipment inspections through canonical links/bindings.
+- Applied preview backfills to reduce known integrity drift: equipment inspection exact-unit asset misses are now `0`, `9` inspection operator links were canonically attached, and `76` meeting attendee sets were renormalized through the shared meeting-identity helper.
+- Verification in this batch: `backend/tests/test_prec10_platform_truth_integrity.py` PASS, `backend/tests/test_iter141_history.py` PASS/SKIP batch, direct runtime auth recovery PASS after backend restart, and `/api/admin/platform-truth-integrity/cross-entity` returns explicit blocking findings for the still-open cross-entity denominator.
+- Governing state remains **PRE-C10 OPEN — NO-GO**; cross-entity blockers remain open and must close before the fresh full Product Quality v4 ledger and final certification chain.
+
 # 2026-08-09 — PRE-C10 progressive-disclosure / coaching closure batch
 
 - Added the shared `WorkflowCoachingDisclosure` primitive and moved the main coaching families onto one collapsed-by-default pattern: `HelpTipBlock`, `OperationalCoachingStrip`, `WhyItMattersPanel`, Dispatch Hub command coaching, and Historical Records Intake guidance.

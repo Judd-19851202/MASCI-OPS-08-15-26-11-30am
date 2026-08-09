@@ -990,7 +990,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                 from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
                 p = payload.model_dump()
                 fl_token = (request.headers.get("X-FL-Token") or "").strip()
-                await resolve_identity(
+                binding = await resolve_identity(
                     db,
                     workflow="incident",
                     record_id=doc.get("id") or "",
@@ -1002,6 +1002,13 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                     submitter_name_fallback=str(p.get("reported_by") or "").strip(),
                     fl_token=fl_token,
                 )
+                canonical_submitter_id = str((binding or {}).get("submitter_canonical_id") or "").strip()
+                if canonical_submitter_id and not str(doc.get("reported_by_employee_id") or "").strip():
+                    doc["reported_by_employee_id"] = canonical_submitter_id
+                    await db.incidents.update_one(
+                        {"id": doc.get("id")},
+                        {"$set": {"reported_by_employee_id": canonical_submitter_id}},
+                    )
             except Exception:  # pragma: no cover — best-effort audit
                 pass
 

@@ -226,6 +226,39 @@ def register_equipment_routes(
                     doc.update(stamp)
             except Exception:
                 pass
+            try:
+                from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
+                from lib.employee_linkage import resolve_employee  # noqa: PLC0415
+
+                payload_snapshot = payload.model_dump()
+                binding = await resolve_identity(
+                    db,
+                    workflow="equipment_inspection",
+                    record_id=doc.get("id") or "",
+                    record_doc_id=doc.get("doc_id") or "",
+                    project_number=doc.get("project_number") or "",
+                    submitter_employee_id=str(payload_snapshot.get("submitter_employee_id") or payload_snapshot.get("signed_by_employee_id") or "").strip(),
+                    submitter_email_at_submit=str(payload_snapshot.get("submitter_email_at_submit") or "").strip(),
+                    submitter_consent_at=payload_snapshot.get("submitter_consent_at"),
+                    submitter_name_fallback=str(payload_snapshot.get("operator_name") or "").strip(),
+                    fl_token=(request.headers.get("X-FL-Token") or "").strip(),
+                )
+                canonical_operator_id = str((binding or {}).get("submitter_canonical_id") or "").strip()
+                if not canonical_operator_id:
+                    emp = await resolve_employee(
+                        db,
+                        employee_id=str(payload_snapshot.get("submitter_employee_id") or payload_snapshot.get("signed_by_employee_id") or "").strip(),
+                        employee_name=insp.operator_name,
+                    )
+                    canonical_operator_id = str((emp or {}).get("id") or "").strip()
+                if canonical_operator_id:
+                    doc["operator_employee_id"] = canonical_operator_id
+                    await db.equipment_inspections.update_one(
+                        {"id": doc.get("id")},
+                        {"$set": {"operator_employee_id": canonical_operator_id}},
+                    )
+            except Exception:
+                pass
             # Also remember this unit so it shows up in the dropdown next time
             if insp.equipment_unit and insp.equipment_type:
                 try:

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
 from lib.governed_certification_lane import GOVERNED_CERTIFICATION_PROJECT_NUMBER
+from lib.cross_entity_integrity import scan_cross_entity_integrity
 from lib.governed_fixture_evidence import find_fixture_evidence
 from lib.governed_record_classification import HIDDEN_CLASSIFICATIONS, is_hidden_from_live_operations
 from lib.synthetic_dr_filter import _TEST_NAME_RE as DR_TEST_NAME_RE
@@ -696,13 +697,15 @@ async def scan_platform_stale_derived_state(db) -> Dict[str, Any]:
 async def scan_platform_truth_integrity(db) -> Dict[str, Any]:
     contamination = await scan_platform_contamination_integrity(db)
     stale = await scan_platform_stale_derived_state(db)
-    overall_status = "green" if contamination.get("overall_status") == "green" and stale.get("overall_status") == "green" else "red"
+    cross_entity = await scan_cross_entity_integrity(db)
+    overall_status = "green" if contamination.get("overall_status") == "green" and stale.get("overall_status") == "green" and cross_entity.get("overall_status") == "green" else "red"
     return {
         "generated_at": _now_iso(),
         "overall_status": overall_status,
-        "release_gate_blocked": bool(contamination.get("release_gate_blocked") or stale.get("release_gate_blocked")),
+        "release_gate_blocked": bool(contamination.get("release_gate_blocked") or stale.get("release_gate_blocked") or cross_entity.get("release_gate_blocked")),
         "contamination": contamination,
         "stale_derived_state": stale,
+        "cross_entity": cross_entity,
     }
 
 
@@ -710,4 +713,5 @@ __all__ = [
     "scan_platform_contamination_integrity",
     "scan_platform_stale_derived_state",
     "scan_platform_truth_integrity",
+    "scan_cross_entity_integrity",
 ]
