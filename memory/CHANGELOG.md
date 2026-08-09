@@ -1,3 +1,10 @@
+# 2026-08-09 — PRE-C10 progressive-disclosure / coaching closure batch
+
+- Added the shared `WorkflowCoachingDisclosure` primitive and moved the main coaching families onto one collapsed-by-default pattern: `HelpTipBlock`, `OperationalCoachingStrip`, `WhyItMattersPanel`, Dispatch Hub command coaching, and Historical Records Intake guidance.
+- Repaired the known Employee Lifecycle coaching issue on `/hr/employees`, kept `/admin/daily` coaching collapsed by default, and preserved required-warning visibility on the certified Safety corrective-actions surface.
+- Verification passed: `WorkflowCoachingDisclosure.test.jsx` (`3 / 3`), targeted screenshot coaching subset (`20 / 20 PASS`, contract `wp18db-product-quality-v4`), `iteration_7.json` PASS, `deep_testing_backend_v2` PASS, and `auto_frontend_testing_agent` PASS.
+- Governing state remains **PRE-C10 OPEN — NO-GO**; this is a denominator-closure batch, not a final GO.
+
 # 2026-08-09 — PRE-C10 C2/WP15 closure + full screenshot recertification + safety continuity
 
 - Closed the active failing suites `test_c2_checkpoint.py` (`29 passed`) and `test_wp15_operational_health.py` (`30 passed`) by restoring standalone admin continuity on the affected truth routes, merging the operational-health section drift back into the governed eight-section contract, normalizing public trust band output, and moving alias-retirement logic out of the scanner-exempt route path.

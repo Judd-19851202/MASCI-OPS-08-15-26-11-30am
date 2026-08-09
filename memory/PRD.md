@@ -1,5 +1,24 @@
 # PRD
 
+## 2026-08-09 — PRE-C10 progressive-disclosure / coaching closure batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.
+- Completed in this batch:
+  - added the shared collapsed-by-default primitive `WorkflowCoachingDisclosure.jsx` and routed the main coaching families through it (`HelpTipBlock`, `OperationalCoachingStrip`, `WhyItMattersPanel`, Dispatch Hub command coaching, Historical Records Intake guidance);
+  - repaired the known Employee Lifecycle issue so `/hr/employees` no longer opens oversized optional coaching by default;
+  - repaired `/admin/daily` so optional workflow coaching stays collapsed by default while the primary report work remains visible;
+  - preserved required-warning visibility on the certified Safety corrective-actions surface while keeping optional explainer content collapsed by default.
+- Verification evidence from this batch:
+  - unit coverage: `frontend/src/components/__tests__/WorkflowCoachingDisclosure.test.jsx` → `3 passed`
+  - targeted screenshot coaching subset via `scripts/runtime_screenshot_ledger_gate.py` → contract `wp18db-product-quality-v4`, `20 entries`, `0 failures`, `EN/ES`, widths `390/430/768/1024/1440`
+  - frontend QA report `/app/test_reports/iteration_7.json` → PASS on `/hr/employees`, `/admin/daily`, `/dispatch-portal`, `/hr/historical-records/intake`, `/safety-portal/corrective-actions`
+  - backend smoke `deep_testing_backend_v2` → `7 / 7 PASS`
+  - final frontend verification `auto_frontend_testing_agent` → PASS
+- Remaining denominator still open after this batch:
+  - continue explicit row-by-row PRE-C10 closeout across the remaining PARTIAL / OPEN lanes in `PRE_C10_MASTER_REMEDIATION_REGISTER.md`, KPI truth, and C1–C9 truth registers;
+  - complete the fresh full screenshot Product Quality ledger rerun with the upgraded coaching contract after the remaining PRE-C10 edits settle;
+  - close the still-open long-tail auth/logout and HR denominator items before any GO claim.
+
 ## 2026-08-09 — PRE-C10 remediation continuation: C2/WP15 closure, full screenshot recertification, safety continuity, language/responsive/reliability gates
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.

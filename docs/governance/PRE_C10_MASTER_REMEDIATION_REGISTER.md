@@ -1,6 +1,6 @@
 # MASCI Operations Platform — PRE-C10 Master Remediation Register
 
-Last updated: 2026-08-09T04:15Z
+Last updated: 2026-08-09T12:32Z
 
 Status: **NO-GO**
 
@@ -16,6 +16,7 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 - Trust Spine: **PASS** (`platform_band=green`, `canonical_status=VERIFIED`)
 - Truthful-state primitive: **PARTIAL PASS** (shared primitive implemented and verified on repaired surfaces; rollout continues)
 - Screenshot Product Quality Ledger: **PASS** (contract version `wp18db-product-quality-v2`, `rows=85`, `failures=0`)
+- Screenshot Product Quality coaching subset: **PASS** (contract version `wp18db-product-quality-v4`, targeted rows `20`, failures `0`)
 - Deployment readiness: **PASS WITH ADVISORIES**
 - Live production: **REDEPLOYMENT REQUIRED**
 - C10: **NOT AUTHORIZED**
@@ -53,6 +54,7 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-LANG-001 | EN/ES language constitution | Track 18 language constitution/migration records were missing and several canonical copy checkpoints were not preserved in source | REPAIRED → CERTIFIED | `test_track_18_03_platform_language_constitution.py` = 30/30 pass; `test_track_18_04_platform_language_migration.py` = 50/50 pass; `operator_language_gate.py` still reports `operator_facing_banned_findings=0` |
 | PRE-C10-RESP-001 | Responsive contract | Admin OS summary strip and responsive baseline inventory drifted from the governed responsive primitives | REPAIRED → CERTIFIED | `test_track_28_08_responsive_contract.py` = 7/7 pass; frontend QA at 390/430/768/1024/1440 PASS via `/app/test_reports/iteration_6.json` |
 | PRE-C10-REL-001 | Runtime reliability | Public health heartbeat ignored fresh successful backup-health rows, admin diagnostics drifted away from standalone admin-token continuity, and incident-forensics still leaked non-`***` redaction markers | REPAIRED → CERTIFIED | `test_rel01_runtime_reliability.py` = 14/14 pass; `test_wp18db_incident_auth_backup.py` = 16/16 pass; `test_checkpoint_d7_d8_performance_repairs.py` = 5/5 pass |
+| PRE-C10-COACH-001 | Progressive disclosure / coaching | Optional workflow coaching was still competing with primary work on live routes, especially HR Employee Lifecycle, and several shared coaching patterns were not governed by one collapsed-by-default disclosure standard | REPAIRED → CERTIFIED | shared primitive `frontend/src/components/WorkflowCoachingDisclosure.jsx`; `iteration_7.json` PASS; targeted screenshot coaching subset `20 / 20 PASS` at contract `wp18db-product-quality-v4`; `auto_frontend_testing_agent` PASS on `/hr/employees`, `/admin/daily`, `/dispatch-portal`, `/hr/historical-records/intake`, `/safety-portal/corrective-actions`; `deep_testing_backend_v2` `7 / 7 PASS` |
 
 ## Trust Spine cadence classifications now certified
 
@@ -80,7 +82,7 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-SCHEDULE-001 | Scheduling | scope guard, schedule authority, actuals, downstream lookahead/daily-plan, C7, C8, and C9 packs are certified; broader revision / version-history UX denominator remains tracked here | PARTIAL PASS |
 | PRE-C10-KPI-001 | KPI truth / Trust Spine closure | core KPI truth packs, cross-surface parity, C2/C6/C7/C8/C9 proof packs, and platform truth-integrity scanners are certified in preview; exhaustive denominator bookkeeping remains tracked here | PARTIAL PASS |
 | PRE-C10-AUTH-001 | Authentication UX | standalone multi-login portal-token continuity is repaired on the currently certified admin/safety/search/runtime surfaces; broader sign-out / protected-route denominator remains tracked here | PARTIAL PASS |
-| PRE-C10-UX-002 | Operator experience | canonical language, responsive strip repair, safety ownership wording, transportation search wording, and screenshot-led product quality are certified; remaining long-tail UX bookkeeping stays tracked here | PARTIAL PASS |
+| PRE-C10-UX-002 | Operator experience | canonical language, responsive strip repair, safety ownership wording, transportation search wording, screenshot-led product quality, and the shared coaching-disclosure repair are certified on the currently exercised routes; remaining long-tail UX bookkeeping stays tracked here | PARTIAL PASS |
 | PRE-C10-MASTER-001 | Denominator management | continue broadening this register until every remaining PRE-C10 lane is explicitly dispositioned | IN PROGRESS |
 
 ## Next execution focus
@@ -88,5 +90,5 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 1. Promote the remaining PARTIAL PASS lanes to closed dispositions only where route-by-route evidence exists; do not silently collapse denominator rows.
 2. Expand `/app/docs/governance/PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` until every live KPI/card/score/health/status/summary surface is dispositioned PASS/FAIL with runtime evidence.
 3. Continue populating `/app/docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` until every remaining material family reaches runtime-backed PASS.
-4. Preserve the 85/85 screenshot-ledger pass, language-constitution pass, responsive pass, and runtime-reliability pass on subsequent edits.
+4. Preserve the 85/85 screenshot-ledger pass, the new coaching-subset v4 pass (`20 / 20`), language-constitution pass, responsive pass, and runtime-reliability pass on subsequent edits.
 5. Keep extending this register until every user-observed and agent-observed PRE-C10 item is explicitly dispositioned.

@@ -1,3 +1,28 @@
+# 2026-08-09 — PRE-C10 coaching / progressive-disclosure follow-up state
+
+- **PRE-C10 remains OPEN — NO-GO**
+- Shared coaching disclosure is now repaired and certified on the current priority surfaces.
+- Live production remains **redeployment required**.
+- **C10 remains not authorized**.
+
+## Updated next actions after the coaching closure batch
+
+### P0 — still required before any PRE-C10 closeout
+
+- Continue row-by-row closure across every remaining `PARTIAL PASS`, `OPEN`, `IN PROGRESS`, and equivalent PRE-C10 register row.
+- Re-run the fresh full screenshot Product Quality ledger on the upgraded coaching contract after the remaining PRE-C10 edits settle.
+- Finish the long-tail auth/logout denominator and the remaining HR / Employee Lifecycle closeout items.
+- Continue full KPI and C1–C9 source-to-consumer truth reconciliation until the denominator is explicit and closed.
+
+### P1 — UX / operator-experience closure still open
+
+- Keep extending the shared coaching-disclosure rule to any still-unverified long-tail surfaces while preserving required warnings.
+- Finish remaining EN/ES, responsive, and accessibility closeout on the still-open routes outside the newly certified coaching set.
+
+### P2
+
+- Do not start C10.
+
 # 2026-08-08 — PRE-C10 remediation current state
 
 - **PRE-C10: OPEN — NO-GO**
