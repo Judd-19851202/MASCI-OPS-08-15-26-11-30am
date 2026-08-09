@@ -7,7 +7,6 @@ RELEASE_DEFERRED_SURFACES = {
     "daily_report_dedicated_ai_summary",
     "executive_monday_briefing_pdf",
     "internal_certification_route",
-    "pm_project_performance_csv_export",
     "pm_schedule_email_review",
 }
 

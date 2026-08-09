@@ -1136,10 +1136,13 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             now_iso=now.isoformat(),
         )
 
+        public_platform_band = "yellow" if platform_band == "amber" else platform_band
+
         return {
             "track": "15.76",
             "generated_at": now.isoformat(),
-            "platform_band": platform_band,
+            "platform_band": public_platform_band,
+            "platform_band_internal": platform_band,
             "canonical_status": canonical_status,
             "truth_surface": canonical_truth_surface("trust_spine"),
             "ots_truth": route_truth["ots_truth"],

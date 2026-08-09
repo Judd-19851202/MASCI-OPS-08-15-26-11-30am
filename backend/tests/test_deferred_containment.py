@@ -98,21 +98,16 @@ def pm_session():
 class TestReleaseDeferredContainment:
     """Test that deferred surfaces return 404 with release_deferred_surface detail."""
     
-    def test_pm_operational_intelligence_export_deferred(self, pm_session):
-        """PM Project Performance CSV export should return 404 with release_deferred_surface."""
+    def test_pm_operational_intelligence_export_is_live(self, pm_session):
+        """PM Project Performance CSV export is now part of the active release bundle."""
         resp = pm_session.get(
             f"{BASE_URL}/api/pm/project-controls/projects/{PROJECT_NUMBER}/operational-intelligence/export"
         )
-        
-        assert resp.status_code == 404, f"Expected 404, got {resp.status_code}: {resp.text}"
-        
-        data = resp.json()
-        detail = data.get("detail", {})
-        
-        # Verify the deferred surface detail
-        assert detail.get("code") == "release_deferred_surface", f"Expected release_deferred_surface code, got: {detail}"
-        assert detail.get("surface") == "pm_project_performance_csv_export", f"Expected pm_project_performance_csv_export surface, got: {detail}"
-        print(f"PASS: PM operational intelligence export returns 404 with release_deferred_surface: {detail}")
+
+        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
+        assert "text/csv" in resp.headers.get("content-type", "")
+        assert resp.text.splitlines()[0] == "section,metric_id,label,value,unit,confidence,notes"
+        print("PASS: PM operational intelligence export is live and returns centralized CSV")
     
     def test_pm_schedule_email_export_deferred(self, pm_session):
         """PM Schedule email-review action should return 404 with release_deferred_surface."""

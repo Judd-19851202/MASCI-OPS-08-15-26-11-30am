@@ -499,6 +499,8 @@ def _parse_directory_admin_token(token: str) -> Optional[Tuple[str, str]]:
 
 async def is_valid_directory_admin_token_async(
     db, token: str,
+    *,
+    allow_unbound_directory_session: bool = False,
 ) -> Optional[Dict[str, Any]]:
     """Validate a per-user admin token. Returns the directory row on
     success, None on failure. Disabled users + users without the
@@ -518,6 +520,10 @@ async def is_valid_directory_admin_token_async(
     expected = make_directory_admin_token(uid, pwh)
     if not _hmac.compare_digest(token, expected):
         return None
-    if not await has_active_session_activity(db, token):
+    if not await has_active_session_activity(
+        db,
+        token,
+        allow_unbound_directory_session=allow_unbound_directory_session,
+    ):
         return None
     return row

@@ -376,6 +376,7 @@ async def has_active_session_activity(
     token: str,
     *,
     expected_user_id: Optional[str] = None,
+    allow_unbound_directory_session: bool = False,
 ) -> bool:
     """Require an extant session row for server-side revocation support."""
     row = await get_session_activity(db, token)
@@ -387,7 +388,7 @@ async def has_active_session_activity(
     if directory_binding:
         current_directory_token = _CURRENT_DIRECTORY_TOKEN.get()
         if not current_directory_token:
-            return False
+            return allow_unbound_directory_session
         if _hash_token(current_directory_token) != directory_binding:
             return False
         directory_session = await db.directory_sessions.find_one(

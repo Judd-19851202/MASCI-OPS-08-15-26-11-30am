@@ -145,29 +145,22 @@ def _admin_tokens(base_url: str, admin_email: str, admin_password: str) -> tuple
     return admin_token, directory_token, payload.get("user") or {}
 
 
-def _warm_surface_data(base_url: str, surface: Surface, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> None:
+def _warm_surface_data(
+    base_url: str,
+    surface: Surface,
+    *,
+    admin_headers: dict[str, str],
+    pm_token: str,
+    pm_project_number: str,
+) -> None:
     warm_admin_path = surface.checks.get("warm_admin_path")
     if warm_admin_path:
-        admin_token, directory_token, _user = _admin_tokens(base_url, admin_creds[0], admin_creds[1])
-        headers = {"X-Admin-Token": admin_token}
-        if directory_token:
-            headers["X-Directory-Token"] = directory_token
-        response = _request_with_retry("get", f"{base_url}{warm_admin_path}", headers=headers, timeout=90)
+        response = _request_with_retry("get", f"{base_url}{warm_admin_path}", headers=admin_headers, timeout=90)
         response.raise_for_status()
 
     warm_pm_path = surface.checks.get("warm_pm_path")
     if warm_pm_path:
-        project_number = _pm_project_number(base_url, pm_creds[0], pm_creds[1])
-        response = _request_with_retry(
-            "post",
-            f"{base_url}/api/pm/login",
-            json={"email": pm_creds[0], "password": pm_creds[1]},
-            headers={"X-Device-Id": "runtime-ledger-pm-warm", "X-Test-Rate-Limit-Bypass": "1"},
-            timeout=120,
-        )
-        response.raise_for_status()
-        pm_token = response.json().get("token") or response.json().get("access_token") or ""
-        path = str(warm_pm_path).replace("{project_number}", project_number)
+        path = str(warm_pm_path).replace("{project_number}", pm_project_number)
         response = _request_with_retry("get", f"{base_url}{path}", headers={"X-PM-Token": pm_token}, timeout=90)
         response.raise_for_status()
 
@@ -240,6 +233,8 @@ def _surface_inventory(pm_project_number: str) -> list[Surface]:
                 "must_include_es": ["Condición actual del portafolio"],
                 "must_exclude": ["plain English", "Project support", "Operations support", "Project details unavailable"],
                 "selector": "[data-testid='portfolio-attention-primary-card']",
+                "loading_selector": "[data-testid='portfolio-intelligence-loading-state']",
+                "ready_timeout_ms": 25000,
                 "warm_admin_path": "/api/admin/governance/project-controls/portfolio-intelligence",
             },
         ),
@@ -367,9 +362,31 @@ def _goto(page, url: str) -> None:
 
 def _wait_for_surface_ready(page, surface: Surface) -> None:
     selector = surface.checks.get("selector")
+    loading_selector = surface.checks.get("loading_selector")
+    ready_timeout_ms = int(surface.checks.get("ready_timeout_ms") or 12000)
+    deadline = time.time() + (ready_timeout_ms / 1000)
+
+    while time.time() < deadline:
+        try:
+            if selector and page.locator(selector).count() > 0:
+                page.wait_for_selector(selector, state="attached", timeout=2000)
+                return
+        except Exception:
+            pass
+        try:
+            if loading_selector and page.locator(loading_selector).count() > 0:
+                page.wait_for_selector(loading_selector, state="detached", timeout=2000)
+                continue
+        except Exception:
+            pass
+        try:
+            page.wait_for_timeout(700)
+        except Exception:
+            break
+
     if selector:
         try:
-            page.wait_for_selector(selector, state="attached", timeout=12000)
+            page.wait_for_selector(selector, state="attached", timeout=2000)
             return
         except Exception:
             pass
@@ -392,7 +409,7 @@ def _wait_for_hydration_clear(page, role: str) -> None:
             pass
 
 
-def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> None:
+def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: tuple[str, str], pm_creds: tuple[str, str]) -> dict[str, str]:
     page = context.new_page()
     if role == "admin":
         _goto(page, f"{base_url}/admin/login")
@@ -406,6 +423,16 @@ def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: t
             timeout=20000,
         )
         page.wait_for_timeout(1200)
+        tokens = page.evaluate(
+            """
+            () => ({
+              admin_token: window.localStorage.getItem('masci.admin.token') || '',
+              directory_token: window.localStorage.getItem('masci.directory.token') || '',
+            })
+            """
+        )
+        page.close()
+        return tokens
     elif role == "pm":
         _goto(page, f"{base_url}/pm/login")
         page.wait_for_timeout(600)
@@ -418,7 +445,17 @@ def _prime_context_with_tokens(context, base_url: str, role: str, admin_creds: t
             timeout=20000,
         )
         page.wait_for_timeout(1200)
+        tokens = page.evaluate(
+            """
+            () => ({
+              pm_token: window.localStorage.getItem('masci.pm.token') || '',
+            })
+            """
+        )
+        page.close()
+        return tokens
     page.close()
+    return {}
 
 
 def _prime_confirmation_state(page) -> None:
@@ -617,12 +654,22 @@ def run(surface_keys: list[str] | None = None) -> dict[str, Any]:
         public_context = browser.new_context()
         contexts = {"admin": admin_context, "pm": pm_context, "public": public_context}
 
-        _prime_context_with_tokens(admin_context, base_url, "admin", admin_creds, pm_creds)
-        _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds)
+        admin_session = _prime_context_with_tokens(admin_context, base_url, "admin", admin_creds, pm_creds)
+        pm_session = _prime_context_with_tokens(pm_context, base_url, "pm", admin_creds, pm_creds)
+        admin_headers = {"X-Admin-Token": admin_session.get("admin_token", "")}
+        if admin_session.get("directory_token"):
+            admin_headers["X-Directory-Token"] = admin_session["directory_token"]
+        pm_token = pm_session.get("pm_token", "")
 
         for surface in surfaces:
             try:
-                _warm_surface_data(base_url, surface, admin_creds, pm_creds)
+                _warm_surface_data(
+                    base_url,
+                    surface,
+                    admin_headers=admin_headers,
+                    pm_token=pm_token,
+                    pm_project_number=pm_project_number,
+                )
             except Exception as exc:
                 print(f"warmup failed for {surface.key}: {exc}", flush=True)
             ctx = contexts[surface.role]

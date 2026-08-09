@@ -456,6 +456,8 @@ from session_timeout import (  # noqa: E402
     install_session_timeout_middleware, ensure_indexes as ensure_session_timeout_indexes,
     reset_session_activity as _reset_session_activity,
     clear_session_activity as _clear_session_activity,
+    get_session_activity as _get_session_activity,
+    tier_ttl_seconds as _tier_ttl_seconds,
 )
 install_session_timeout_middleware(app, db)
 
@@ -686,6 +688,57 @@ async def _is_valid_directory_admin_token_async(token: Optional[str]) -> bool:
         return row is not None
     except Exception:  # noqa: BLE001
         return False
+
+
+def _coerce_utc_datetime(value: Any) -> Optional[datetime]:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return None
+
+
+async def _directory_admin_row_for_continuity_async(token: Optional[str]) -> Optional[Dict[str, Any]]:
+    if not token or "." not in token:
+        return None
+    try:
+        import user_directory as _ud_local  # noqa: PLC0415
+        uid, _, sig = token.partition(".")
+        if not uid or not sig or len(sig) != 64:
+            return None
+        row = await _ud_local.find_by_id(db, uid)
+        if not row or row.get("disabled"):
+            return None
+        if "admin" not in (row.get("portals") or []):
+            return None
+        password_hash = row.get("password_hash") or ""
+        if not password_hash:
+            return None
+        expected = _ud_local.make_directory_admin_token(uid, password_hash)
+        if not hmac.compare_digest(token, expected):
+            return None
+        activity = await _get_session_activity(db, token)
+        if not activity:
+            return None
+        if activity.get("user_id") and activity.get("user_id") != uid:
+            return None
+        now = datetime.now(timezone.utc)
+        first_seen = _coerce_utc_datetime(activity.get("first_seen_at"))
+        last_seen = _coerce_utc_datetime(activity.get("last_seen_at"))
+        if not first_seen or not last_seen:
+            return None
+        idle_seconds, absolute_seconds = _tier_ttl_seconds("ADMIN_HR")
+        if idle_seconds and (now - last_seen).total_seconds() > idle_seconds:
+            return None
+        if absolute_seconds and (now - first_seen).total_seconds() > absolute_seconds:
+            return None
+        return row
+    except Exception:  # noqa: BLE001
+        return None
 
 
 async def _super_admin_row_for_token_async(token: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -1063,6 +1116,29 @@ async def require_admin_strict(
         raise HTTPException(status_code=401, detail="Admin login required")
     await _record_access_denial(db, request, namespace="admin",
                                 reason="invalid_token_strict")
+    raise HTTPException(status_code=401, detail="Invalid admin token")
+
+
+async def require_admin_continuity(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_directory_token: Optional[str] = Header(default=None, alias="X-Directory-Token"),
+):
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+        return True
+    if x_directory_token:
+        await _record_access_denial(db, request, namespace="admin",
+                                    reason="invalid_token_continuity_with_directory")
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+    row = await _directory_admin_row_for_continuity_async(x_admin_token)
+    if row:
+        return {**row, "_actor": "admin", "role": "admin", "_auth_path": "admin_token_continuity"}
+    if not x_admin_token:
+        await _record_access_denial(db, request, namespace="admin",
+                                    reason="no_token_continuity")
+        raise HTTPException(status_code=401, detail="Admin login required")
+    await _record_access_denial(db, request, namespace="admin",
+                                reason="invalid_token_continuity")
     raise HTTPException(status_code=401, detail="Invalid admin token")
 
 
@@ -1502,7 +1578,7 @@ async def admin_guidance_workflow_coverage(
 # `memory/TRACK_22_1F_PLATFORM_STATUS_SECURITY.md`.
 # ─────────────────────────────────────────────────────────────────────
 @api_router.get("/admin/platform/status")
-async def admin_platform_status(_admin: bool = Depends(require_admin_strict)):
+async def admin_platform_status(_admin: bool = Depends(require_admin_continuity)):
     """Track 22.1F · Runtime attestation. Admin-only, read-only."""
     from lib.platform_status import platform_status
     return platform_status(app)
@@ -4057,7 +4133,7 @@ from services.operations_control.control_plane import (  # noqa: E402
     ensure_registry_snapshot,
 )
 api_router._get_runtime_identity = _runtime_identity_bundle  # type: ignore[attr-defined]
-register_operations_control_routes(api_router, db, require_admin, get_database_authority_plan=lambda: getattr(app.state, "database_authority_plan", None))
+register_operations_control_routes(api_router, db, require_admin_continuity, get_database_authority_plan=lambda: getattr(app.state, "database_authority_plan", None))
 
 
 @register_lifecycle_step("index-ensure")
@@ -4088,7 +4164,7 @@ async def _ensure_dr_v2_alias_indexes_step():
 from routes.occ_health_aggregator import (  # noqa: E402
     register_occ_health_routes,
 )
-register_occ_health_routes(api_router, require_admin)
+register_occ_health_routes(api_router, require_admin_continuity)
 
 # TRACK 25 · SPRINT 7/8 · Trust Events aggregator.
 from routes.occ_trust_events import (  # noqa: E402
@@ -4192,7 +4268,7 @@ from routes.integration_truth import (  # noqa: E402
 register_integration_truth_routes(
     api_router,
     db=db,
-    require_admin_strict=require_admin_strict,
+    require_admin_strict=require_admin_continuity,
     get_runtime_identity=_runtime_identity_bundle,
 )
 
@@ -15493,7 +15569,7 @@ from routes.admin_platform_trust import make_router as _trust_make_router  # noq
 app.include_router(_trust_make_router(db, require_admin, get_runtime_identity=_runtime_identity_bundle))
 # TRACK 15.76 · Platform Trust Spine — lifecycle event observability.
 from routes.admin_trust_spine import make_router as _spine_make_router  # noqa: E402
-app.include_router(_spine_make_router(db, require_admin))
+app.include_router(_spine_make_router(db, require_admin_continuity))
 from lib.trust_spine import ensure_indexes as _spine_ensure_indexes  # noqa: E402
 @register_lifecycle_step("index-ensure")
 async def _startup_trust_spine_indexes():  # noqa: D401

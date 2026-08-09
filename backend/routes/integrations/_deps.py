@@ -58,30 +58,30 @@ def make_require_any_portal_token(
         # validate via the directory lookup, not the legacy sync compare.
         if x_admin_token and "." in x_admin_token:
             from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
-            u = await is_valid_directory_admin_token_async(db, x_admin_token)
+            u = await is_valid_directory_admin_token_async(db, x_admin_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "admin", "name": u.get("name") or "Admin"}
         if actor is None and x_safety_token:
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            u = await is_valid_safety_user_token_async(db, x_safety_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "safety"}
         if actor is None and x_hr_token:
-            u = await is_valid_hr_user_token_async(db, x_hr_token)
+            u = await is_valid_hr_user_token_async(db, x_hr_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "hr"}
         if actor is None and x_shop_token and "." in x_shop_token:
             from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
-            u = await is_valid_shop_user_token_async(db, x_shop_token)
+            u = await is_valid_shop_user_token_async(db, x_shop_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "shop"}
         if actor is None and x_pm_token and "." in x_pm_token:
             from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
-            u = await is_valid_pm_user_token_async(db, x_pm_token)
+            u = await is_valid_pm_user_token_async(db, x_pm_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "pm"}
         if actor is None and x_dispatch_token and "." in x_dispatch_token:
             from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
-            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+            u = await is_valid_dispatch_user_token_async(db, x_dispatch_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "dispatch"}
         if actor is None and x_leadership_token:
@@ -92,7 +92,7 @@ def make_require_any_portal_token(
             except Exception:
                 pass
         if actor is None and x_fl_token and "." in x_fl_token:
-            u = await is_valid_fl_user_token_async(db, x_fl_token)
+            u = await is_valid_fl_user_token_async(db, x_fl_token, allow_unbound_directory_session=True)
             if u:
                 actor = {**u, "_actor": "fl"}
         # TRACK 22.4b-followup-HR · preview-only PVI validation fallback.

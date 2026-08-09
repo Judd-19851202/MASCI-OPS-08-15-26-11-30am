@@ -17,7 +17,7 @@ def make_require_safety_token(db) -> Callable[..., Awaitable[dict]]:
 
     async def _require_safety_token(request: Request) -> dict:
         token = request.headers.get("X-Safety-Token", "")
-        user = await is_valid_safety_user_token_async(db, token)
+        user = await is_valid_safety_user_token_async(db, token, allow_unbound_directory_session=True)
         if user:
             # Track 15.14A Layer 3 — temp-password backstop.
             enforce_password_change_required(request, user)
@@ -53,11 +53,16 @@ def make_require_safety_or_admin(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     ) -> dict:
         if x_safety_token:
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            u = await is_valid_safety_user_token_async(db, x_safety_token, allow_unbound_directory_session=True)
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor": "safety"}
         if x_admin_token:
+            if "." in x_admin_token:
+                from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
+                u = await is_valid_directory_admin_token_async(db, x_admin_token, allow_unbound_directory_session=True)
+                if u:
+                    return {**u, "_actor": "admin", "name": u.get("name") or "Admin"}
             if is_valid_admin_token and is_valid_admin_token(x_admin_token):
                 return {"_actor": "admin", "name": "Admin"}
             if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
@@ -105,12 +110,17 @@ def make_require_safety_or_admin_fleet(
         x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
     ) -> dict:
         if x_admin_token:
+            if "." in x_admin_token:
+                from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
+                u = await is_valid_directory_admin_token_async(db, x_admin_token, allow_unbound_directory_session=True)
+                if u:
+                    return {"role": "admin", **u}
             if is_valid_admin_token and is_valid_admin_token(x_admin_token):
                 return {"role": "admin"}
             if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
                 return {"role": "admin"}
         if x_safety_token:
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            u = await is_valid_safety_user_token_async(db, x_safety_token, allow_unbound_directory_session=True)
             if u:
                 enforce_password_change_required(request, u)
                 return {"role": "safety", **u}
@@ -158,11 +168,16 @@ def make_require_safety_admin_or_pm(
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
     ):
         if x_safety_token:
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            u = await is_valid_safety_user_token_async(db, x_safety_token, allow_unbound_directory_session=True)
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor_kind": "safety_user", "_actor": "safety"}
         if x_admin_token:
+            if "." in x_admin_token:
+                from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
+                u = await is_valid_directory_admin_token_async(db, x_admin_token, allow_unbound_directory_session=True)
+                if u:
+                    return {"role": "admin", "_actor": "admin", "_actor_kind": "admin", **u}
             # Sync legacy sentinel (retired in 15.32 — always False) …
             if is_valid_admin_token and is_valid_admin_token(x_admin_token):
                 return {"role": "admin", "_actor": "admin", "_actor_kind": "admin"}
@@ -173,7 +188,7 @@ def make_require_safety_admin_or_pm(
             # Per-PM token (has ".") → DB lookup; legacy shared PM → env bypass.
             if "." in x_pm_token:
                 from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
-                pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+                pm_doc = await is_valid_pm_user_token_async(db, x_pm_token, allow_unbound_directory_session=True)
                 if pm_doc:
                     # iter452 — tag the PM doc so downstream role-normalizers
                     # can identify it as a PM actor. Pre-existing consumers
@@ -211,17 +226,22 @@ def make_require_safety_or_hr_or_admin(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     ) -> dict:
         if x_safety_token:
-            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            u = await is_valid_safety_user_token_async(db, x_safety_token, allow_unbound_directory_session=True)
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor": "safety"}
         if x_hr_token:
             from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
-            u = await is_valid_hr_user_token_async(db, x_hr_token)
+            u = await is_valid_hr_user_token_async(db, x_hr_token, allow_unbound_directory_session=True)
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor": "hr"}
         if x_admin_token:
+            if "." in x_admin_token:
+                from user_directory import is_valid_directory_admin_token_async  # noqa: PLC0415
+                u = await is_valid_directory_admin_token_async(db, x_admin_token, allow_unbound_directory_session=True)
+                if u:
+                    return {**u, "_actor": "admin", "name": u.get("name") or "Admin"}
             # Sync legacy sentinel (retired but still handles well-known
             # break-glass tokens if enabled) …
             if is_valid_admin_token and is_valid_admin_token(x_admin_token):

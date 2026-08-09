@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.canonical_status import DEGRADED, MISMATCH, NOT_APPLICABLE, UNVERIFIABLE, VERIFIED, to_canonical
+from lib.integration_retirement import retirement_recommendation
 from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.runtime_identity import runtime_identity_public_payload
 
@@ -688,28 +689,6 @@ async def record_dr_v2_alias_hit(db, request) -> None:
     except Exception as exc:  # noqa: BLE001
         logger.debug(f"[dr-v2 alias track] swallowed: {exc}")
 
-
-def _retirement_recommendation(agg_row: Dict[str, Any]) -> str:
-    """Compute a rolling recommendation from aggregate stats.
-
-    Rules:
-      • Never seen in production env → SAFE_TO_RETIRE
-      • Only anonymous or bearer hits → SAFE_TO_RETIRE
-      • Last hit older than 30 days → SAFE_TO_RETIRE
-      • Otherwise → REVIEW_BEFORE_RETIRE
-    """
-    last = agg_row.get("last_observed_at")
-    if isinstance(last, datetime):
-        age = (_now() - last).total_seconds()
-        if age > DR_V2_ALIAS_TTL_DAYS * 24 * 60 * 60:
-            return "SAFE_TO_RETIRE"
-    role = (agg_row.get("last_role") or "").lower()
-    env = (agg_row.get("last_env") or "").lower()
-    if env in ("preview", "unknown", "test") and role in ("anonymous", "bearer"):
-        return "SAFE_TO_RETIRE"
-    return "REVIEW_BEFORE_RETIRE"
-
-
 async def _dr_v2_alias_telemetry_payload(db, recent_limit: int = 50) -> Dict[str, Any]:
     aggregates: List[Dict[str, Any]] = []
     try:
@@ -717,7 +696,11 @@ async def _dr_v2_alias_telemetry_payload(db, recent_limit: int = 50) -> Dict[str
         async for doc in cursor:
             # Recompute recommendation dynamically so operators see the
             # freshest guidance without a background job.
-            doc["retirement_recommendation"] = _retirement_recommendation(doc)
+            doc["retirement_recommendation"] = retirement_recommendation(
+                doc,
+                ttl_days=DR_V2_ALIAS_TTL_DAYS,
+                now=_now(),
+            )
             for k in ("first_observed_at", "last_observed_at"):
                 if isinstance(doc.get(k), datetime):
                     doc[k] = doc[k].isoformat()

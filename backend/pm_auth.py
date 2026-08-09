@@ -127,7 +127,12 @@ async def find_pm_by_id(db, pm_id: str) -> Optional[dict]:
     return await db.project_managers.find_one({"id": pm_id}, {"_id": 0})
 
 
-async def is_valid_pm_user_token_async(db, token: str) -> Optional[dict]:
+async def is_valid_pm_user_token_async(
+    db,
+    token: str,
+    *,
+    allow_unbound_directory_session: bool = False,
+) -> Optional[dict]:
     """Validate a per-PM token. Returns the PM doc on success, None on
     failure. Disabled PMs are rejected even with a valid signature."""
     parsed = parse_pm_token(token)
@@ -145,7 +150,11 @@ async def is_valid_pm_user_token_async(db, token: str) -> Optional[dict]:
     expected = make_pm_token(pm_id, pwh)
     if not hmac.compare_digest(token, expected):
         return None
-    if not await has_active_session_activity(db, token):
+    if not await has_active_session_activity(
+        db,
+        token,
+        allow_unbound_directory_session=allow_unbound_directory_session,
+    ):
         return None
     return pm
 

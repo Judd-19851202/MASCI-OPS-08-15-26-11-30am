@@ -246,7 +246,12 @@ def parse_fl_user_token(token: str) -> Optional[Tuple[str, str]]:
     return uid, sig
 
 
-async def is_valid_fl_user_token_async(db, token: str) -> Optional[dict]:
+async def is_valid_fl_user_token_async(
+    db,
+    token: str,
+    *,
+    allow_unbound_directory_session: bool = False,
+) -> Optional[dict]:
     parsed = parse_fl_user_token(token)
     if not parsed:
         return None
@@ -256,7 +261,11 @@ async def is_valid_fl_user_token_async(db, token: str) -> Optional[dict]:
         pwh = user.get("password_hash") or ""
         if pwh:
             expected = make_fl_user_token(user_id, pwh)
-            if hmac.compare_digest(token, expected) and await has_active_session_activity(db, token):
+            if hmac.compare_digest(token, expected) and await has_active_session_activity(
+                db,
+                token,
+                allow_unbound_directory_session=allow_unbound_directory_session,
+            ):
                 return user
     # iter345 · FL Phase B · Hybrid · validate directory-granted FL tokens.
     # If the embedded id isn't in field_leadership_users, look it up in
@@ -274,7 +283,11 @@ async def is_valid_fl_user_token_async(db, token: str) -> Optional[dict]:
     expected = make_fl_user_token(user_id, pwh)
     if not hmac.compare_digest(token, expected):
         return None
-    if not await has_active_session_activity(db, token):
+    if not await has_active_session_activity(
+        db,
+        token,
+        allow_unbound_directory_session=allow_unbound_directory_session,
+    ):
         return None
     # Return a normalized FL-user-shaped view so downstream code that
     # reads `user["id"]`, `user["email"]`, etc. keeps working unchanged.

@@ -143,7 +143,12 @@ def parse_hr_user_token(token: str) -> Optional[Tuple[str, str]]:
     return uid, sig
 
 
-async def is_valid_hr_user_token_async(db, token: str) -> Optional[dict]:
+async def is_valid_hr_user_token_async(
+    db,
+    token: str,
+    *,
+    allow_unbound_directory_session: bool = False,
+) -> Optional[dict]:
     parsed = parse_hr_user_token(token)
     if not parsed:
         return None
@@ -157,7 +162,11 @@ async def is_valid_hr_user_token_async(db, token: str) -> Optional[dict]:
     expected = make_hr_user_token(user_id, pwh)
     if not hmac.compare_digest(token, expected):
         return None
-    if not await has_active_session_activity(db, token):
+    if not await has_active_session_activity(
+        db,
+        token,
+        allow_unbound_directory_session=allow_unbound_directory_session,
+    ):
         return None
     return user
 
