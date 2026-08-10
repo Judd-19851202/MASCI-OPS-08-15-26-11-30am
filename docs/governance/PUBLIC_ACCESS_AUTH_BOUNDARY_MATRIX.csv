@@ -21,7 +21,19 @@ route,/safety/forms/equipment-training/new,PUBLIC,None,Public safety equipment t
 route,/guidance,PUBLIC / MIXED CONTENT,None at route entry,General guidance entry is public; protected portal-specific content must intentionally ask for auth,Verified 2026-08-09,Signed-out guidance landing loads with no session-expired UI
 route,/guidance/portal-hr-identity,PUBLIC GUIDANCE,None,Portal overview article is public educational content,Verified 2026-08-09,Signed-out route loads and preserves explicit sign-in CTA only
 route,/guidance/hr-01-portal-intro,ROLE-RESTRICTED GUIDANCE,Server visibility filter,Protected HR training must not render signed-out,Verified 2026-08-09,Signed-out route returns guidance-level "Not available" instead of session-expired or random 401
-route,/training,PUBLIC,None,General field-training entry is public,Open,Needs explicit protected-content boundary audit where tracks overlap portal roles
+route,/training,PUBLIC / MIXED CONTENT,None,General training hub is public while protected tracks must render intentional sign-in guidance instead of leaking content or showing session-expired UI,Verified 2026-08-09,Signed-out runtime now proves HR and Field Leadership tracks point to governed login routes
+route,/training/field,PUBLIC TRAINING,None,Field training track is public educational content,Verified 2026-08-09,No-login field training remains directly readable
+route,/training/shop,ROLE-RESTRICTED TRAINING,trainingAudienceAllowed(shop),Shop training content requires Shop or PM or Admin access,Verified 2026-08-09,Signed-out route resolves to training-level access boundary rather than portal-session noise
+route,/training/pm,ROLE-RESTRICTED TRAINING,trainingAudienceAllowed(pm),PM training content requires PM or Admin access,Verified 2026-08-09,Signed-out route resolves to training-level access boundary rather than portal-session noise
+route,/training/admin,ROLE-RESTRICTED TRAINING,trainingAudienceAllowed(admin),Admin training content requires Admin access,Verified 2026-08-09,Signed-out route resolves to training-level access boundary rather than portal-session noise
+route,/training/hr,ROLE-RESTRICTED TRAINING,trainingAudienceAllowed(hr),HR training content requires HR or Admin access,Verified 2026-08-09,Signed-out route shows intentional HR sign-in CTA
+route,/training/leadership,ROLE-RESTRICTED TRAINING,trainingAudienceAllowed(leadership),Field Leadership training content requires Field Leadership portal or Admin access,Verified 2026-08-09,Signed-out route shows governed `/field-leadership/portal/login` CTA
+route,/training/field/packet,PUBLIC DOWNLOAD,None,Field packet remains public onboarding material,Verified 2026-08-09,Direct route hands off to public PDF endpoint
+route,/training/shop/packet,ROLE-RESTRICTED DOWNLOAD,trainingAudienceAllowed(shop),Shop packet requires Shop or PM or Admin access,Verified 2026-08-09,Auth-aware packet route gates before download
+route,/training/pm/packet,ROLE-RESTRICTED DOWNLOAD,trainingAudienceAllowed(pm),PM packet requires PM or Admin access,Verified 2026-08-09,Auth-aware packet route gates before download
+route,/training/admin/packet,ROLE-RESTRICTED DOWNLOAD,trainingAudienceAllowed(admin),Admin packet requires Admin access,Verified 2026-08-09,Auth-aware packet route gates before download
+route,/training/hr/packet,ROLE-RESTRICTED DOWNLOAD,trainingAudienceAllowed(hr),HR packet requires HR or Admin access,Verified 2026-08-09,Signed-out route shows intentional HR sign-in CTA and backend returns 401 without auth
+route,/training/leadership/packet,REDIRECT / PROTECTED TRACK HANDOFF,supportsTrainingPacket(leadership)=false,Unsupported packet routes must never expose a broken or unguarded download path,Verified 2026-08-09,Direct route now redirects to `/training/leadership`
 route,/admin,AUTHENTICATED PORTAL,RequireAdmin / directory admin,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
 route,/pm,AUTHENTICATED PORTAL,RequirePm,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
 route,/hr,AUTHENTICATED PORTAL,RequireHr,Protected portal must redirect to governed auth when signed out,Verified 2026-08-09,
@@ -34,6 +46,12 @@ route,/safety-portal/audits,ROLE-RESTRICTED,RequireSafetyPortal,Safety Audit rem
 api,/api/public/jobs-lookup,PUBLIC,None,Anonymous-safe project lookup only: id/project_number/project_name/location/client,Verified 2026-08-09,Created to replace leaking /api/jobs usage on public forms
 api,/api/public/equipment-master-lookup,PUBLIC,None,Anonymous-safe equipment lookup only: id/unit_number/year/make/model/make_model/display_label/category/preop_equipment_type,Verified 2026-08-09,Created to replace leaking /api/equipment-master usage on public forms
 api,/api/hr/employee-roster/public,PUBLIC,None,Anonymous-safe employee roster only: id/name/employee_id/trade/role/crew/active,Verified 2026-08-09,No private HR/contact/pay data
+api,/api/training/packet.pdf?track=field,PUBLIC DOWNLOAD,None,Field packet remains publicly downloadable onboarding material,Verified 2026-08-09,Focused runtime regression proves public PDF access still works
+api,/api/training/packet.pdf?track=shop,AUTHENTICATED DOWNLOAD,shop / pm / admin token,Shop packet must stay protected,Verified 2026-08-09,Route remains gated before PDF render
+api,/api/training/packet.pdf?track=pm,AUTHENTICATED DOWNLOAD,pm / admin token,PM packet must stay protected,Verified 2026-08-09,Route remains gated before PDF render
+api,/api/training/packet.pdf?track=admin,AUTHENTICATED DOWNLOAD,admin token,Admin packet must stay protected,Verified 2026-08-09,Route remains gated before PDF render
+api,/api/training/packet.pdf?track=hr,AUTHENTICATED DOWNLOAD,hr / admin token,HR packet must not be anonymously readable,Verified 2026-08-09,New focused regression proves 401 signed-out and 200 with HR/Admin token
+api,/api/training/packet.pdf?track=leadership,UNSUPPORTED / NO PUBLIC EXPORT,training packet backend does not publish a leadership packet,No public export exists for this track,Verified 2026-08-09,Direct API returns 404 and the frontend redirects callers back to the protected in-browser track
 api,/api/jobs,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Still exists for broader internal consumers and is not anonymous-safe
 api,/api/equipment-master,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Still exists for broader internal consumers and is not anonymous-safe
 api,/api/master-lookup/employees,AUTHENTICATED PORTAL,Portal auth required,Protected employee lookup for authenticated portals only,Verified 2026-08-09,Returns 401 signed-out

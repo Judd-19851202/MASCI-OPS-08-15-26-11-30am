@@ -14372,6 +14372,8 @@ async def training_packet_pdf(
     x_admin_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
     x_shop_token: Optional[str] = Header(default=None),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
 ):
     """Training packet PDF. The Field Crew track is public so labor can scan
     trailer posters without a login. Shop / PM / Admin tracks are gated —
@@ -14384,6 +14386,8 @@ async def training_packet_pdf(
       • `shop`   → shop / pm / admin token accepted
       • `pm`     → pm / admin token accepted
       • `admin`  → admin token only
+      • `hr`     → hr / admin token accepted
+      • `leadership` → not supported as a packet export; use in-browser training
 
     Side effect: fire-and-forget insert into `training_hits` so the PM/Admin
     hub dashboards can show scan stats. No PII — just track/lang/date and
@@ -14402,6 +14406,15 @@ async def training_packet_pdf(
         if not tok:
             return False
         return bool(_is_valid_admin_token(tok)) or bool(await _is_valid_directory_admin_token_async(tok))
+
+    async def _hr_ok(tok: Optional[str]) -> bool:
+        if not tok:
+            return False
+        try:
+            from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+            return (await is_valid_hr_user_token_async(db, tok)) is not None
+        except Exception:  # noqa: BLE001
+            return False
 
     if t_lower == "admin":
         if not await _admin_ok(x_admin_token):
@@ -14437,6 +14450,15 @@ async def training_packet_pdf(
             raise HTTPException(
                 status_code=401,
                 detail="Shop, PM, or Admin login required for the Shop training packet.",
+            )
+    elif t_lower == "hr":
+        if not (
+            await _admin_ok(x_admin_token)
+            or await _hr_ok(x_hr_token)
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail="HR or Admin login required for the HR training packet.",
             )
     # else: field track → public
 

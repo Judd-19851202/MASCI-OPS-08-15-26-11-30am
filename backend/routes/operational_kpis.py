@@ -97,6 +97,12 @@ def register_operational_kpis_routes(
         payload = await aggregate_project_kpis(
             db=db, project_number=project_number, window=window,
         )
+        payload["kpi_metadata"] = _build_pm_project_kpi_metadata(
+            project_number=project_number,
+            window=payload["window"],
+            date_from=payload.get("date_from"),
+            date_to=payload.get("date_to"),
+        )
         _assert_no_cost(payload)
         return payload
 
@@ -376,6 +382,74 @@ def _build_safety_company_kpi_metadata(*, window: str, date_from: Optional[str],
                 "kpi_name": "Meetings / JHAs / Inspections",
                 "business_definition": "Grouped operational safety activity counts for meetings, JHAs, inspections, trench inspections, and safety photos.",
                 "formula": "Display card shows safety_meetings_count / jha_count / safety_inspection_count with trench_inspection_count and safety_photo_count as supporting context",
+            },
+        },
+    }
+
+
+def _build_pm_project_kpi_metadata(*, project_number: str, window: str, date_from: Optional[str], date_to: Optional[str]) -> Dict[str, Any]:
+    return {
+        "page": {
+            "kpi_name": f"Project Operational KPIs · {project_number}",
+            "business_definition": "Per-project PM operational KPI rollup from the shared operational KPI spine.",
+            "source_of_truth": [
+                "aggregate_project_kpis()",
+                "operational_facts",
+                "incidents",
+                "meetings",
+                "jhas",
+                "inspections",
+                "trench_excavations",
+            ],
+            "api_endpoint": f"/api/pm/projects/{project_number}/operational-kpis",
+            "formula": {
+                "window": window,
+                "date_from": date_from,
+                "date_to": date_to,
+                "shared_spine": "aggregate_project_kpis()",
+            },
+            "confidence": "HIGH",
+            "status_reason": "PM project KPIs reuse the same governed aggregation spine consumed by Safety drilldowns; no PM-only duplicate calculation is allowed.",
+            "drilldown_source": f"/pm/project/{project_number}",
+            "owner": "operations-control",
+            "freshness": "Generated on request.",
+        },
+        "sections": {
+            "labor": {
+                "kpi_name": "Labor activity",
+                "business_definition": "Crew-hour and staffing activity from governed operational facts for the selected project/window.",
+            },
+            "equipment": {
+                "kpi_name": "Equipment activity",
+                "business_definition": "Run/idle/utilization posture from governed equipment facts for the selected project/window.",
+            },
+            "materials": {
+                "kpi_name": "Material flow",
+                "business_definition": "Inbound/outbound material movement for the selected project/window from governed operational facts.",
+            },
+            "production": {
+                "kpi_name": "Production signal",
+                "business_definition": "Production units and completed work captured in the shared operational facts spine.",
+            },
+            "delays": {
+                "kpi_name": "Delay impact",
+                "business_definition": "Delay counts and hours impact from the shared operational facts spine.",
+            },
+            "safety": {
+                "kpi_name": "Safety subset",
+                "business_definition": "Project safety posture derived from the same shared spine exposed to Safety Portal consumers.",
+            },
+            "intelligence": {
+                "kpi_name": "Operational intelligence",
+                "business_definition": "Contextual signals and summaries emitted by the shared operational KPI spine.",
+            },
+            "scheduling_readiness": {
+                "kpi_name": "Scheduling readiness",
+                "business_definition": "Readiness posture bridging operational facts to schedule-oriented downstream consumers.",
+            },
+            "safety_sources": {
+                "kpi_name": "Safety source coverage",
+                "business_definition": "LIVE / PARTIAL / MISSING coverage for each project safety source used by the shared spine.",
             },
         },
     }

@@ -6,9 +6,12 @@ import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { TRACKS } from "@/data/training";
-import { isAdmin } from "@/lib/adminAuth";
-import { isPm } from "@/lib/pmAuth";
-import { isShop } from "@/lib/shopAuth";
+import {
+  supportsTrainingPacket,
+  trainingAudienceAllowed,
+  trainingAudienceLabel,
+  trainingAudienceLoginPath,
+} from "@/lib/trainingAccess";
 
 /**
  * TrainingPacketDownload — auth-aware packet downloader.
@@ -31,21 +34,16 @@ export default function TrainingPacketDownload() {
   const lang = params.get("lang") || "en";
   const location = useLocation();
   const track = TRACKS[trackSlug];
+  const packetSupported = supportsTrainingPacket(trackSlug);
 
   const [state, setState] = useState("loading"); // loading | done | error
   const [err, setErr] = useState("");
 
   const requiredAudience = track?.audience;
-  const isAuthed = (() => {
-    if (!requiredAudience || requiredAudience === "public") return true;
-    if (isAdmin()) return true;
-    if (requiredAudience === "pm") return isPm();
-    if (requiredAudience === "shop") return isShop() || isPm();
-    return false;
-  })();
+  const isAuthed = trainingAudienceAllowed(requiredAudience);
 
   useEffect(() => {
-    if (!track) return;
+    if (!track || !packetSupported) return;
     let cancelled = false;
     (async () => {
       // Field is public → redirect to the PDF URL directly (opens inline).
@@ -95,9 +93,10 @@ export default function TrainingPacketDownload() {
       cancelled = true;
     };
      
-  }, [isAuthed, lang, requiredAudience, track, trackSlug]);
+  }, [isAuthed, lang, packetSupported, requiredAudience, track, trackSlug]);
 
   if (!track) return <Navigate to="/training" replace />;
+  if (!packetSupported) return <Navigate to={`/training/${trackSlug}`} replace />;
 
   // Public (field) → we already redirected; show a brief loading frame.
   if (requiredAudience === "public" || state === "loading") {
@@ -150,24 +149,8 @@ export default function TrainingPacketDownload() {
   }
 
   // login-required
-  const loginPath =
-    requiredAudience === "admin"
-      ? "/admin/login"
-      : requiredAudience === "pm"
-      ? "/pm/login"
-      : "/shop/login";
-  const audienceLabel =
-    uiLang === "es"
-      ? requiredAudience === "admin"
-        ? "Administrador"
-        : requiredAudience === "pm"
-        ? "Gerente de Proyecto"
-        : "Taller"
-      : requiredAudience === "admin"
-      ? "Admin"
-      : requiredAudience === "pm"
-      ? "Project Manager"
-      : "Shop";
+  const loginPath = trainingAudienceLoginPath(requiredAudience);
+  const audienceLabel = trainingAudienceLabel(requiredAudience, uiLang);
 
   return (
     <PageFrame>

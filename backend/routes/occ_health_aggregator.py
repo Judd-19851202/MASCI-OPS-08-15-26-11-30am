@@ -44,6 +44,9 @@ _BACKEND_INTERNAL_BASE = os.environ.get(
 # Per-probe timeout. Kept small so a single stuck upstream never blocks
 # the whole snapshot. Individual cards degrade to UNKNOWN on timeout.
 _PROBE_TIMEOUT_S = 6.0
+_PROBE_TIMEOUTS_S = {
+    "/api/admin/production-certification": 20.0,
+}
 
 
 # ── Section + Card metadata ──────────────────────────────────────
@@ -668,8 +671,9 @@ async def _probe_one(client: httpx.AsyncClient, card_meta: Dict[str, Any],
                      headers: Dict[str, str], now_iso: str) -> Dict[str, Any]:
     url = _BACKEND_INTERNAL_BASE + card_meta["endpoint"]
     hdrs = headers if card_meta.get("requires_auth") else {}
+    timeout_s = _PROBE_TIMEOUTS_S.get(card_meta["endpoint"], _PROBE_TIMEOUT_S)
     try:
-        r = await client.get(url, headers=hdrs)
+        r = await client.get(url, headers=hdrs, timeout=timeout_s)
         if r.status_code >= 400:
             evaluated = card_meta["evaluator"](None, f"HTTP {r.status_code}", now_iso)
         else:

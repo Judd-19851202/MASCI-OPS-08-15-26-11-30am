@@ -19,11 +19,11 @@ import { PortalShell } from "@/design-system";
 import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { useT } from "@/lib/i18n";
 import { TRACKS, lessonsForTrack } from "@/data/training";
-import { isAdmin } from "@/lib/adminAuth";
-import { isPm } from "@/lib/pmAuth";
-import { isShop } from "@/lib/shopAuth";
-import { isLeadershipAuthed } from "@/lib/leadershipAuth";
-import { isHr } from "@/lib/hrAuth";
+import {
+  trainingAudienceAllowed,
+  trainingAudienceLabel,
+  trainingAudienceLoginPath,
+} from "@/lib/trainingAccess";
 
 const ICONS = { HardHat, Wrench, Briefcase, ShieldCheck };
 
@@ -44,29 +44,7 @@ const ACCENTS = {
 // is always visible. Shop requires Shop/PM/Admin. PM requires PM/Admin.
 // Admin requires Admin.
 function trackUnlocked(track) {
-  if (!track) return false;
-  if (track.audience === "public") return true;
-  if (isAdmin()) return true;
-  if (track.audience === "pm") return isPm();
-  if (track.audience === "shop") return isShop() || isPm();
-  if (track.audience === "leadership") return isLeadershipAuthed();
-  if (track.audience === "hr") return isHr();
-  return false;
-}
-
-function loginPathFor(audience) {
-  if (audience === "admin") return "/admin/login";
-  if (audience === "pm") return "/pm/login";
-  if (audience === "shop") return "/shop/login";
-  if (audience === "leadership") return "/leadership";
-  if (audience === "hr") return "/hr/login";
-  return "/";
-}
-
-function loginLabelFor(audience, lang) {
-  const en = { admin: "Admin", pm: "Project Manager", shop: "Shop", leadership: "Field Leadership", hr: "HR Manager" };
-  const es = { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller", leadership: "Liderazgo de Campo", hr: "Gerente RRHH" };
-  return (lang === "es" ? es : en)[audience] || audience;
+  return trainingAudienceAllowed(track?.audience);
 }
 
 export default function TrainingHub() {
@@ -150,7 +128,7 @@ export default function TrainingHub() {
             const unlocked = trackUnlocked(track);
             const destination = unlocked
               ? `/training/${track.slug}`
-              : loginPathFor(track.audience);
+              : trainingAudienceLoginPath(track.audience);
             return (
               <Link
                 key={track.slug}
@@ -201,7 +179,7 @@ export default function TrainingHub() {
                   <p className="text-slate-500 text-sm mt-3 leading-relaxed italic">
                     {t("This track is for office teams. Sign in as")}{" "}
                     <strong className="not-italic text-slate-700">
-                      {loginLabelFor(track.audience, lang)}
+                      {trainingAudienceLabel(track.audience, lang)}
                     </strong>{" "}
                     {t("to see the lessons and packets.")}
                   </p>
@@ -340,10 +318,10 @@ export default function TrainingHub() {
               const unlocked = trackUnlocked(tr);
               const viewPath = unlocked
                 ? `/training/${tr.slug}/poster`
-                : loginPathFor(tr.audience);
+                : trainingAudienceLoginPath(tr.audience);
               const printPath = unlocked
                 ? `/training/${tr.slug}/poster?autoprint=1`
-                : loginPathFor(tr.audience);
+                : trainingAudienceLoginPath(tr.audience);
               const linkState = unlocked
                 ? undefined
                 : { from: `/training/${tr.slug}/poster` };

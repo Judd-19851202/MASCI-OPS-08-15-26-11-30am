@@ -196,7 +196,7 @@ export const EquipmentCombo = ({
             // Self-recover: if cache loaded empty, force a re-fetch.
             if ((data?.items?.length || 0) === 0) {
               clearEquipmentCache();
-              loadMaster().then((d) => setData(d));
+              loadMaster({ publicFallback }).then((d) => setData(d));
             }
             setOpen((v) => !v);
           }}

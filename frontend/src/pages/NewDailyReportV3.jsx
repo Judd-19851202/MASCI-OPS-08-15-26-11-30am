@@ -200,7 +200,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [photoWarmHint, setPhotoWarmHint] = useState(null);
   const [photoIntelStatusState, setPhotoIntelStatusState] = useState(null);
   const draftDefaultsRef = useRef(buildDailyReportDefaults());
-  const autoRestoredDraftRef = useRef(false);
   const idempotencyKeyRef = useRef(null);
   const submitRetryRef = useRef(() => {});
   const deviceId = getDeviceScopedActorId();
@@ -288,19 +287,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
     })();
     return () => { cancelled = true; };
   }, [draftLoaded, pendingDraft, scopedFormKey, data.project_number, data.prepared_by]);
-
-  useEffect(() => {
-    if (!pendingDraft || autoRestoredDraftRef.current) return;
-    const activeSession = String(data.draft_session_id || getActiveDailyReportDraftSession() || "").trim();
-    const pendingSession = String(pendingDraft.draft_session_id || "").trim();
-    if (!activeSession || !pendingSession || activeSession !== pendingSession) return;
-    autoRestoredDraftRef.current = true;
-    const restored = restoreDraft();
-    if (restored) {
-      setData((prev) => ({ ...prev, ...restored, draft_session_id: activeSession }));
-      setFallbackDraftOffer(null);
-    }
-  }, [pendingDraft, restoreDraft, data.draft_session_id]);
 
   useEffect(() => {
     if (!draftLoaded || pendingDraft) return undefined;

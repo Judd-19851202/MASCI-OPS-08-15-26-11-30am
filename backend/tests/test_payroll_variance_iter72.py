@@ -26,9 +26,10 @@ if not BASE_URL:
                 break
 
 API = f"{BASE_URL}/api"
-HR_EMAIL = "hrmanager@mascigc.com"
-HR_PASSWORD = "HRPortal2026!"
+ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
+HR_EMAIL = "cert.hr@example.com"
+HR_PASSWORD = "CertProof2026!"
 
 
 @pytest.fixture(scope="session")
@@ -47,9 +48,15 @@ def hr_token(s):
 
 @pytest.fixture(scope="session")
 def admin_token(s):
-    r = s.post(f"{API}/admin/login", json={"password": ADMIN_PASSWORD}, timeout=20)
-    assert r.status_code == 200
-    return r.json()["token"]
+    r = s.post(
+        f"{API}/auth/multi-login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "rememberMe": True},
+        timeout=60,
+    )
+    assert r.status_code == 200, r.text[:300]
+    token = (r.json().get("portal_tokens") or {}).get("admin")
+    assert token, "missing admin portal token"
+    return token
 
 
 def hh(tok):
@@ -264,14 +271,30 @@ class TestVarianceLifecycle:
 # ---------------- Training packet PDFs ----------------
 
 class TestTrainingPackets:
+    def test_hr_packet_pdf_requires_hr_or_admin(self, s):
+        r = s.get(f"{API}/training/packet.pdf",
+                  params={"track": "hr", "lang": "en"}, timeout=60)
+        assert r.status_code == 401
+
     def test_hr_packet_pdf_renders(self, s, hr_token):
-        # `hr` track isn't explicitly gated in code → public-style; but harmless to send token.
         r = s.get(f"{API}/training/packet.pdf",
                   params={"track": "hr", "lang": "en"},
                   headers={"X-HR-Token": hr_token}, timeout=60)
         assert r.status_code == 200, r.text[:300]
         assert r.content[:4] == b"%PDF"
         assert len(r.content) > 1000
+
+    def test_hr_packet_pdf_renders_with_admin_token(self, s, admin_token):
+        r = s.get(f"{API}/training/packet.pdf",
+                  params={"track": "hr", "lang": "en"},
+                  headers={"X-Admin-Token": admin_token}, timeout=60)
+        assert r.status_code == 200, r.text[:300]
+        assert r.content[:4] == b"%PDF"
+
+    def test_leadership_packet_pdf_is_not_exposed(self, s):
+        r = s.get(f"{API}/training/packet.pdf",
+                  params={"track": "leadership", "lang": "en"}, timeout=60)
+        assert r.status_code == 404
 
     def test_admin_packet_pdf_renders_with_admin_token(self, s, admin_token):
         r = s.get(f"{API}/training/packet.pdf",

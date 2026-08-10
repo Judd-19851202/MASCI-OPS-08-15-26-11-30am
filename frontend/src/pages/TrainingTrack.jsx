@@ -6,10 +6,12 @@ import { renderAdminRouteSideNav } from "@/components/admin/AdminRouteShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { TRACKS, lessonsForTrack } from "@/data/training";
-import { isAdmin } from "@/lib/adminAuth";
-import { isPm } from "@/lib/pmAuth";
-import { isShop } from "@/lib/shopAuth";
-import { isLeadershipAuthed } from "@/lib/leadershipAuth";
+import {
+  supportsTrainingPacket,
+  trainingAudienceAllowed,
+  trainingAudienceLabel,
+  trainingAudienceLoginPath,
+} from "@/lib/trainingAccess";
 
 // Convert any common training-video URL into an embeddable iframe `src`.
 // Supports: YouTube (watch?v=, youtu.be, /embed/), Loom (/share/), Vimeo
@@ -80,14 +82,8 @@ export default function TrainingTrack() {
 
   if (!track) return <Navigate to="/training" replace />;
 
-  // Gate non-public tracks
-  const audience = track.audience;
-  let allowed = true;
-  if (audience === "admin") allowed = isAdmin();
-  else if (audience === "pm") allowed = isAdmin() || isPm();
-  else if (audience === "shop") allowed = isAdmin() || isShop();
-  else if (audience === "leadership") allowed = isAdmin() || isLeadershipAuthed();
-  // field is public — no gate
+  const allowed = trainingAudienceAllowed(track.audience);
+  const packetSupported = supportsTrainingPacket(track.slug);
 
   if (!allowed) {
     return <AccessDenied trackSlug={trackSlug} track={track} t={t} lang={lang} />;
@@ -135,39 +131,50 @@ export default function TrainingTrack() {
             >
               <Printer className="w-3.5 h-3.5" /> {t("Print all cheat sheets")}
             </button>
-            <a
-              href={track.audience === "public"
-                ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=en`
-                : `/training/${track.slug}/packet?lang=en`}
-              target={track.audience === "public" ? "_blank" : undefined}
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-bold transition-colors"
-              data-testid={`training-pdf-${track.slug}-en`}
-            >
-              <FileDown className="w-3.5 h-3.5" /> PDF · EN
-            </a>
-            <a
-              href={track.audience === "public"
-                ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=es`
-                : `/training/${track.slug}/packet?lang=es`}
-              target={track.audience === "public" ? "_blank" : undefined}
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-bold transition-colors"
-              data-testid={`training-pdf-${track.slug}-es`}
-            >
-              <FileDown className="w-3.5 h-3.5" /> PDF · ES
-            </a>
-            <a
-              href={track.audience === "public"
-                ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=bi`
-                : `/training/${track.slug}/packet?lang=bi`}
-              target={track.audience === "public" ? "_blank" : undefined}
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-red-700 bg-red-700 text-white hover:bg-red-800 hover:border-red-800 font-bold transition-colors"
-              data-testid={`training-pdf-${track.slug}-bi`}
-            >
-              <FileDown className="w-3.5 h-3.5" /> PDF · EN + ES
-            </a>
+            {packetSupported ? (
+              <>
+                <a
+                  href={track.audience === "public"
+                    ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=en`
+                    : `/training/${track.slug}/packet?lang=en`}
+                  target={track.audience === "public" ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-bold transition-colors"
+                  data-testid={`training-pdf-${track.slug}-en`}
+                >
+                  <FileDown className="w-3.5 h-3.5" /> PDF · EN
+                </a>
+                <a
+                  href={track.audience === "public"
+                    ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=es`
+                    : `/training/${track.slug}/packet?lang=es`}
+                  target={track.audience === "public" ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-slate-300 text-slate-700 hover:border-red-700 hover:text-red-700 font-bold transition-colors"
+                  data-testid={`training-pdf-${track.slug}-es`}
+                >
+                  <FileDown className="w-3.5 h-3.5" /> PDF · ES
+                </a>
+                <a
+                  href={track.audience === "public"
+                    ? `${process.env.REACT_APP_BACKEND_URL}/api/training/packet.pdf?track=${track.slug}&lang=bi`
+                    : `/training/${track.slug}/packet?lang=bi`}
+                  target={track.audience === "public" ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border-2 border-red-700 bg-red-700 text-white hover:bg-red-800 hover:border-red-800 font-bold transition-colors"
+                  data-testid={`training-pdf-${track.slug}-bi`}
+                >
+                  <FileDown className="w-3.5 h-3.5" /> PDF · EN + ES
+                </a>
+              </>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded border-2 border-dashed border-slate-300 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500"
+                data-testid={`training-pdf-${track.slug}-unavailable`}
+              >
+                <FileDown className="h-3.5 w-3.5" /> {t("Read in browser only")}
+              </span>
+            )}
           </div>
         </div>
 
@@ -207,10 +214,7 @@ function AccessDenied({ track, t, lang }) {
           </h2>
           <p className="text-slate-600 text-sm mt-3">
             {(() => {
-              const role = lang === "es"
-                ? { admin: "Administrador", pm: "Gerente de Proyecto", shop: "Taller", leadership: "Liderazgo de Campo" }
-                : { admin: "Admin", pm: "Project Manager", shop: "Shop", leadership: "Field Leadership" };
-              const label = role[track.audience] || track.audience;
+              const label = trainingAudienceLabel(track.audience, lang);
               return lang === "es"
                 ? `Inicie sesión como ${label} para ver esta capacitación.`
                 : `Sign in as ${label} to view this training.`;
@@ -218,12 +222,9 @@ function AccessDenied({ track, t, lang }) {
           </p>
           <div className="mt-6 flex flex-col gap-2">
             <Link
-              to={track.audience === "admin" ? "/admin/login"
-                  : track.audience === "pm" ? "/pm/login"
-                  : track.audience === "shop" ? "/shop/login"
-                  : track.audience === "leadership" ? "/leadership"
-                  : "/"}
+              to={trainingAudienceLoginPath(track.audience)}
               className="inline-flex items-center justify-center h-11 rounded-md bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+              data-testid="training-track-login-cta"
             >
               {t("Sign In")}
             </Link>

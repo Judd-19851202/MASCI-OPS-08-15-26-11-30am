@@ -24,3 +24,11 @@ Login should return the user object and set `access_token` + `refresh_token` coo
 - Verify logout sends the operator to public home `/`, not a login form.
 - Verify tokens are cleared and browser back/refresh do not resurrect privileged state.
 - Active role denominator in this batch: Admin, PM, HR, Dispatch, Safety, Shop, Leadership.
+
+## PRE-C10 public/protected boundary scope
+
+- Public field and safety workflows must stay signed-out with zero session-expired UI.
+- `/api/training/packet.pdf?track=hr` must require `X-HR-Token` or `X-Admin-Token`.
+- Field Leadership training sign-in CTAs must route to `/field-leadership/portal/login`.
+- Unsupported packet tracks (for example `leadership`) must not expose a broken download path.
+- Anonymous-safe lookup retries must preserve the public lookup endpoint contract.

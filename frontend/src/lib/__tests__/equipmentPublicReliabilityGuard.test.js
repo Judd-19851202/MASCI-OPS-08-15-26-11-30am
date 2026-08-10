@@ -27,4 +27,13 @@ describe("public equipment pre-op reliability guards", () => {
     expect(chip).toContain("skipSessionStatus: true");
     expect(sections).toContain("skipSessionStatus: true");
   });
+
+  test("equipment browser retry preserves the anonymous-safe lookup path", () => {
+    const combo = fs.readFileSync(
+      path.join(process.cwd(), "src/components/EquipmentCombo.jsx"),
+      "utf8",
+    );
+
+    expect(combo).toContain("loadMaster({ publicFallback }).then((d) => setData(d));");
+  });
 });

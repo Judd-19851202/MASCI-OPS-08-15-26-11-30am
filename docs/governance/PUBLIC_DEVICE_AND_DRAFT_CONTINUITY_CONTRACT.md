@@ -47,6 +47,7 @@ Public forms had two shared continuity drifts:
   - `buildPublicDraftScopedFormKey()`
   - `hasMeaningfulPublicDraft()`
 - Wired anonymous device draft continuity into these public workflows:
+  - `/daily/submit`
   - `/safety/inspections/new`
   - `/meetings/submit`
   - `/incidents/report` shared incident entry layer
@@ -59,12 +60,20 @@ Public forms had two shared continuity drifts:
   - `publicAnonymous: true`
   - explicit restore/discard UX via `DraftRestorePrompt`
   - visible draft-state indicator via `DraftStatusPill`
+- Daily Report keeps a stricter same-device contract where supported:
+  - `getActiveDailyReportDraftSession()` / `ensureActiveDailyReportDraftSession()` / `clearActiveDailyReportDraftSession()`
+  - same-device session scope when a draft has already started
+  - explicit `Restore` / `Discard` choice on reload instead of silent auto-restore
+  - fallback recovery for recent/day-before drafts on the same device
+  - persisted `Idempotency-Key` so reconnect/retry stays a single canonical submit
 - Successful submission now clears the active anonymous draft session so the completed draft does not resurface as unfinished work.
 
 ## Permanent regression tripwires added
 
 - `frontend/src/lib/resiliency/__tests__/publicDraftScope.test.js`
 - `frontend/src/lib/resiliency/__tests__/publicDeviceDraftContract.test.js`
+- `frontend/src/lib/resiliency/__tests__/dailyReportScope.test.js`
+- `frontend/src/lib/resiliency/__tests__/dailyReportDraftContinuityContract.test.js`
 
 These fail future builds if the shared anonymous draft session primitives disappear or if audited public forms stop using the anonymous-device draft contract.
 
@@ -75,6 +84,7 @@ These fail future builds if the shared anonymous draft session primitives disapp
   - `publicDeviceDraftContract.test.js`
   - existing `c2_session_reset` and `Hub.session-home` regressions still PASS
 - Clean signed-out browser recovery smoke PASS:
+  - `/daily/submit` now shows an explicit restore/discard prompt on reload, preserves same-device session scope, supports recent/day-before fallback recovery where applicable, and clears the active session after canonical submit/queue settle
   - `/equipment/submit` autosave → reload → restore prompt → restore value
   - `/safety/forms/equipment-issuance/new` autosave → reload → restore prompt → restore value
   - `/fleet/dvir/new` autosave → reload → restore prompt → restore value
