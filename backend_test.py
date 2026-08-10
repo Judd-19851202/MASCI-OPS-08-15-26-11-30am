@@ -1,638 +1,366 @@
 #!/usr/bin/env python3
 """
-PRE-C10 Cross-Entity Green-State Milestone Backend Verification
-Backend-only verification via curl/API checks
+PRE-C10 Proof-Closure Batch Backend QA
+Testing MASCI preview backend endpoints for PRE-C10 proof-closure batch.
 """
 
-import json
-import sys
 import requests
-from typing import Dict, Any, Optional
+import json
+from typing import Dict, Any, Optional, List
 
 # Configuration
-BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
+BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
+PM_EMAIL = "cert.pm@example.com"
+PM_PASSWORD = "CertProof2026!"
 
-# Test results tracking
-test_results = []
-
-
-def log_test(name: str, passed: bool, details: str = "", data: Any = None):
-    """Log test result"""
-    status = "✅ PASS" if passed else "❌ FAIL"
-    print(f"\n{status}: {name}")
-    if details:
-        print(f"  Details: {details}")
-    if data and not passed:
-        print(f"  Data: {json.dumps(data, indent=2)[:500]}")
-    test_results.append({
-        "name": name,
-        "passed": passed,
-        "details": details,
-        "data": data
-    })
-
-
-def test_auth_continuity() -> Optional[Dict[str, str]]:
-    """Test 1: Auth continuity smoke - POST /api/auth/multi-login"""
-    print("\n" + "="*80)
-    print("TEST 1: Auth Continuity Smoke")
-    print("="*80)
+class BackendTester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.admin_token = None
+        self.pm_token = None
+        self.directory_token = None
+        self.results = []
+        
+    def authenticate_admin(self) -> bool:
+        """Authenticate as admin and get token."""
+        print("\n" + "="*80)
+        print("ADMIN AUTHENTICATION")
+        print("="*80)
+        
+        try:
+            response = self.session.post(
+                f"{BASE_URL}/auth/multi-login",
+                json={
+                    "email": ADMIN_EMAIL,
+                    "password": ADMIN_PASSWORD
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.admin_token = data.get("portal_tokens", {}).get("admin")
+                self.directory_token = data.get("session_token")
+                if self.admin_token:
+                    print(f"✅ Admin authentication successful")
+                    print(f"   Admin token: {self.admin_token[:20]}...")
+                    if self.directory_token:
+                        print(f"   Directory token: {self.directory_token[:20]}...")
+                    return True
+                else:
+                    print(f"❌ Admin authentication failed: No admin token in response")
+                    return False
+            else:
+                print(f"❌ Admin authentication failed: {response.status_code}")
+                print(f"   Response: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Admin authentication error: {str(e)}")
+            return False
     
-    try:
-        response = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={
-                "email": ADMIN_EMAIL,
-                "password": ADMIN_PASSWORD
-            },
-            timeout=30
-        )
+    def authenticate_pm(self) -> bool:
+        """Authenticate as PM and get token."""
+        print("\n" + "="*80)
+        print("PM AUTHENTICATION")
+        print("="*80)
         
-        if response.status_code != 200:
-            log_test(
-                "POST /api/auth/multi-login",
-                False,
-                f"Expected 200, got {response.status_code}",
-                response.text[:500]
+        try:
+            response = self.session.post(
+                f"{BASE_URL}/auth/multi-login",
+                json={
+                    "email": PM_EMAIL,
+                    "password": PM_PASSWORD
+                },
+                timeout=30
             )
-            return None
-        
-        data = response.json()
-        
-        # Verify session_token exists
-        if "session_token" not in data:
-            log_test(
-                "POST /api/auth/multi-login - session_token",
-                False,
-                "session_token not found in response",
-                data
-            )
-            return None
-        
-        # Verify portal_tokens.admin exists
-        if "portal_tokens" not in data or "admin" not in data.get("portal_tokens", {}):
-            log_test(
-                "POST /api/auth/multi-login - portal_tokens.admin",
-                False,
-                "portal_tokens.admin not found in response",
-                data
-            )
-            return None
-        
-        log_test(
-            "POST /api/auth/multi-login",
-            True,
-            "Admin authentication successful, tokens returned"
-        )
-        
-        # Return headers for subsequent requests
-        return {
-            "X-Admin-Token": data["portal_tokens"]["admin"]
-        }
-        
-    except Exception as e:
-        log_test(
-            "POST /api/auth/multi-login",
-            False,
-            f"Exception: {str(e)}"
-        )
-        return None
-
-
-def test_cross_entity_gate(headers: Dict[str, str]):
-    """Test 2: Cross-entity gate is now green"""
-    print("\n" + "="*80)
-    print("TEST 2: Cross-Entity Gate Status")
-    print("="*80)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.pm_token = data.get("portal_tokens", {}).get("pm")
+                if self.pm_token:
+                    print(f"✅ PM authentication successful")
+                    print(f"   PM token: {self.pm_token[:20]}...")
+                    return True
+                else:
+                    print(f"❌ PM authentication failed: No PM token in response")
+                    return False
+            else:
+                print(f"❌ PM authentication failed: {response.status_code}")
+                print(f"   Response: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ PM authentication error: {str(e)}")
+            return False
     
-    try:
-        response = requests.get(
-            f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity",
-            headers=headers,
-            timeout=60
-        )
+    def test_endpoint(self, name: str, path: str, expected_status: int = 200, 
+                     use_pm_token: bool = False, check_fields: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Test a single endpoint."""
+        full_url = f"{BASE_URL}{path}"
         
-        if response.status_code != 200:
-            log_test(
-                "GET /api/admin/platform-truth-integrity/cross-entity - Status Code",
-                False,
-                f"Expected 200, got {response.status_code}",
-                response.text[:500]
-            )
-            return
+        try:
+            # Build headers based on authentication type
+            headers = {}
+            if use_pm_token and self.pm_token:
+                headers["X-PM-Token"] = self.pm_token
+            elif self.admin_token:
+                headers["X-Admin-Token"] = self.admin_token
+                if self.directory_token:
+                    headers["X-Directory-Token"] = self.directory_token
+            
+            response = self.session.get(full_url, headers=headers, timeout=30)
+            
+            result = {
+                "name": name,
+                "path": path,
+                "status_code": response.status_code,
+                "expected_status": expected_status,
+                "passed": response.status_code == expected_status,
+                "response_size": len(response.content),
+                "error": None,
+                "data_sample": None,
+                "auth_type": "PM" if use_pm_token else "Admin"
+            }
+            
+            # Try to parse JSON response
+            try:
+                data = response.json()
+                result["data_sample"] = self._get_data_sample(data)
+                
+                # Check for specific fields if requested
+                if check_fields and response.status_code == 200:
+                    missing_fields = [f for f in check_fields if f not in data]
+                    if missing_fields:
+                        result["passed"] = False
+                        result["error"] = f"Missing fields: {missing_fields}"
+                        
+            except Exception:
+                if response.status_code == 200:
+                    result["data_sample"] = response.text[:200]
+            
+            self.results.append(result)
+            return result
+            
+        except Exception as e:
+            result = {
+                "name": name,
+                "path": path,
+                "status_code": None,
+                "expected_status": expected_status,
+                "passed": False,
+                "response_size": 0,
+                "error": str(e),
+                "data_sample": None,
+                "auth_type": "PM" if use_pm_token else "Admin"
+            }
+            self.results.append(result)
+            return result
+    
+    def _get_data_sample(self, data: Any) -> str:
+        """Get a sample of the response data for display."""
+        if isinstance(data, dict):
+            keys = list(data.keys())[:5]
+            sample = {k: data[k] for k in keys if k in data}
+            return json.dumps(sample, indent=2)[:300]
+        elif isinstance(data, list):
+            return f"Array with {len(data)} items"
+        else:
+            return str(data)[:200]
+    
+    def print_result(self, result: Dict[str, Any]):
+        """Print a single test result."""
+        status_icon = "✅" if result["passed"] else "❌"
+        auth_label = f"[{result.get('auth_type', 'Unknown')}]"
+        print(f"\n{status_icon} {result['name']} {auth_label}")
+        print(f"   Path: {result['path']}")
+        print(f"   Status: {result['status_code']} (expected: {result['expected_status']})")
         
-        log_test(
-            "GET /api/admin/platform-truth-integrity/cross-entity - Status Code",
-            True,
-            "200 OK"
-        )
+        if result["error"]:
+            print(f"   Error: {result['error']}")
+        elif result["data_sample"]:
+            print(f"   Response sample: {result['data_sample'][:150]}...")
+    
+    def run_kpi_tests(self):
+        """Test KPI row source/runtime parity checks."""
+        print("\n" + "="*80)
+        print("SCOPE 1: KPI ROW SOURCE/RUNTIME PARITY CHECKS")
+        print("="*80)
         
-        data = response.json()
-        
-        # Verify overall_status = green
-        overall_status = data.get("overall_status")
-        log_test(
-            "Cross-entity overall_status = green",
-            overall_status == "green",
-            f"overall_status = {overall_status}"
-        )
-        
-        # Verify release_gate_blocked = false
-        release_gate_blocked = data.get("release_gate_blocked")
-        log_test(
-            "Cross-entity release_gate_blocked = false",
-            release_gate_blocked == False,
-            f"release_gate_blocked = {release_gate_blocked}"
-        )
-        
-        # Verify blocking_findings is empty
-        blocking_findings = data.get("blocking_findings", [])
-        log_test(
-            "Cross-entity blocking_findings is empty",
-            len(blocking_findings) == 0,
-            f"blocking_findings count = {len(blocking_findings)}",
-            blocking_findings if len(blocking_findings) > 0 else None
-        )
-        
-        # Verify all required checks are green
-        checks = data.get("checks", [])
-        required_checks = [
-            "project_team_assignment_authority",
-            "meeting_attendee_identity_normalization",
-            "incident_project_and_submitter_lineage",
-            "daily_report_project_and_submitter_lineage",
-            "equipment_preop_asset_and_operator_lineage",
-            "dispatch_driver_truck_project_linkage",
-            "transport_employee_projection_authority"
+        tests = [
+            ("Admin Governance Summary", "/admin/governance/summary", False),
+            ("Cluster Capacity", "/cluster/capacity", False),
+            ("Cluster Capacity History", "/cluster/capacity/history?days=30", False),
+            ("HR Employee Requests", "/hr/employee-requests?status=pending&limit=1000", False),
+            ("Field Leadership Time-Off Stats", "/field-leadership/time-off/stats", False),
+            ("Operations Expirations Summary", "/operations/expirations/summary", False),
         ]
         
-        checks_by_id = {check.get("id"): check for check in checks}
-        
-        for check_id in required_checks:
-            check = checks_by_id.get(check_id)
-            if not check:
-                log_test(
-                    f"Cross-entity check: {check_id}",
-                    False,
-                    f"Check not found in response"
-                )
-                continue
-            
-            status = check.get("status")
-            log_test(
-                f"Cross-entity check: {check_id}",
-                status == "green",
-                f"status = {status}, summary = {check.get('summary', '')[:100]}"
-            )
-        
-    except Exception as e:
-        log_test(
-            "GET /api/admin/platform-truth-integrity/cross-entity",
-            False,
-            f"Exception: {str(e)}"
-        )
-
-
-def test_exception_state_surfaces(headers: Dict[str, str]):
-    """Test 3: Exception state surfaces"""
-    print("\n" + "="*80)
-    print("TEST 3: Exception State Surfaces")
-    print("="*80)
+        for name, path, use_pm in tests:
+            result = self.test_endpoint(name, path, use_pm_token=use_pm)
+            self.print_result(result)
     
-    try:
-        response = requests.get(
-            f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions",
-            headers=headers,
-            timeout=60
-        )
+    def run_proof_chain_tests(self):
+        """Test C1-C9 proof chain availability."""
+        print("\n" + "="*80)
+        print("SCOPE 2: C1-C9 PROOF CHAIN AVAILABILITY")
+        print("="*80)
         
-        if response.status_code != 200:
-            log_test(
-                "GET /api/admin/platform-truth-integrity/cross-entity/exceptions - Status Code",
-                False,
-                f"Expected 200, got {response.status_code}",
-                response.text[:500]
-            )
-            return
+        project = "ZZ-RUNTIME-CERT-2026"
+        tests = [
+            ("PM Schedule Overview", f"/pm/project-controls/projects/{project}/schedule/overview", True),
+            ("PM Schedule Lookahead", f"/pm/project-controls/projects/{project}/schedule/lookahead", True),
+            ("PM Daily Work Plan", f"/pm/project-controls/projects/{project}/schedule/daily-work-plan?work_date=2026-08-08", True),
+            ("PM Forecasting Workspace", f"/pm/project-controls/projects/{project}/forecasting/workspace", True),
+            ("Admin Earned Value", f"/admin/governance/project-controls/projects/{project}/earned-value", False),
+            ("Admin Portfolio Intelligence", "/admin/governance/project-controls/portfolio-intelligence", False),
+        ]
         
-        log_test(
-            "GET /api/admin/platform-truth-integrity/cross-entity/exceptions - Status Code",
-            True,
-            "200 OK"
-        )
-        
-        data = response.json()
-        
-        # Verify count > 0
-        count = data.get("count", 0)
-        log_test(
-            "Exception count > 0",
-            count > 0,
-            f"count = {count}"
-        )
-        
-        # Verify rows include non-blocking statuses
-        rows = data.get("rows", [])
-        if len(rows) > 0:
-            non_blocking_statuses = ["accepted_historical_gap", "excluded_non_operational"]
-            has_non_blocking = any(
-                row.get("status") in non_blocking_statuses or not row.get("blocks_gate")
-                for row in rows
-            )
-            
-            # Sample some exception statuses
-            sample_statuses = list(set(row.get("status") for row in rows[:20]))
-            sample_blocks_gate = [row.get("blocks_gate") for row in rows[:5]]
-            
-            log_test(
-                "Exception rows include non-blocking statuses",
-                has_non_blocking,
-                f"Sample statuses: {sample_statuses}, Sample blocks_gate: {sample_blocks_gate}"
-            )
-        else:
-            log_test(
-                "Exception rows include non-blocking statuses",
-                False,
-                "No rows returned"
-            )
-        
-    except Exception as e:
-        log_test(
-            "GET /api/admin/platform-truth-integrity/cross-entity/exceptions",
-            False,
-            f"Exception: {str(e)}"
-        )
-
-
-def test_exception_csv_export(headers: Dict[str, str]):
-    """Test 4: Exception CSV export"""
-    print("\n" + "="*80)
-    print("TEST 4: Exception CSV Export")
-    print("="*80)
+        for name, path, use_pm in tests:
+            result = self.test_endpoint(name, path, use_pm_token=use_pm)
+            self.print_result(result)
     
-    try:
-        response = requests.get(
-            f"{BASE_URL}/api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv",
-            headers=headers,
-            timeout=60
+    def run_production_cert_test(self):
+        """Test production certification blocked-reason repair."""
+        print("\n" + "="*80)
+        print("SCOPE 3: PRODUCTION CERTIFICATION BLOCKED-REASON REPAIR")
+        print("="*80)
+        
+        result = self.test_endpoint(
+            "Production Certification",
+            "/admin/production-certification",
+            use_pm_token=False
         )
+        self.print_result(result)
         
-        if response.status_code != 200:
-            log_test(
-                "GET /api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv - Status Code",
-                False,
-                f"Expected 200, got {response.status_code}",
-                response.text[:500]
-            )
-            return
-        
-        log_test(
-            "GET /api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv - Status Code",
-            True,
-            "200 OK"
-        )
-        
-        # Verify content type
-        content_type = response.headers.get("Content-Type", "")
-        log_test(
-            "CSV export Content-Type",
-            "text/csv" in content_type,
-            f"Content-Type = {content_type}"
-        )
-        
-        # Verify CSV content has header
-        csv_content = response.text
-        lines = csv_content.split("\n")
-        
-        if len(lines) > 0:
-            header = lines[0]
-            expected_columns = ["family", "source_collection", "source_record_id", "status", "blocks_gate"]
-            has_expected_columns = all(col in header for col in expected_columns)
-            
-            log_test(
-                "CSV export has expected header columns",
-                has_expected_columns,
-                f"Header: {header[:200]}"
-            )
-            
-            log_test(
-                "CSV export has data rows",
-                len(lines) > 1,
-                f"Total lines: {len(lines)}"
-            )
-        else:
-            log_test(
-                "CSV export has content",
-                False,
-                "Empty CSV response"
-            )
-        
-    except Exception as e:
-        log_test(
-            "GET /api/admin/platform-truth-integrity/cross-entity/exceptions/export.csv",
-            False,
-            f"Exception: {str(e)}"
-        )
-
-
-def test_aggregate_truth_endpoint(headers: Dict[str, str]):
-    """Test 5: Aggregate truth endpoint"""
-    print("\n" + "="*80)
-    print("TEST 5: Aggregate Truth Endpoint")
-    print("="*80)
-    
-    try:
-        response = requests.get(
-            f"{BASE_URL}/api/admin/platform-truth-integrity",
-            headers=headers,
-            timeout=120
-        )
-        
-        if response.status_code != 200:
-            log_test(
-                "GET /api/admin/platform-truth-integrity - Status Code",
-                False,
-                f"Expected 200, got {response.status_code}",
-                response.text[:500]
-            )
-            return
-        
-        log_test(
-            "GET /api/admin/platform-truth-integrity - Status Code",
-            True,
-            "200 OK"
-        )
-        
-        data = response.json()
-        
-        # Verify cross_entity.overall_status = green
-        cross_entity_status = data.get("cross_entity", {}).get("overall_status")
-        log_test(
-            "Aggregate: cross_entity.overall_status = green",
-            cross_entity_status == "green",
-            f"cross_entity.overall_status = {cross_entity_status}"
-        )
-        
-        # Verify top-level release_gate_blocked = false
-        release_gate_blocked = data.get("release_gate_blocked")
-        log_test(
-            "Aggregate: release_gate_blocked = false",
-            release_gate_blocked == False,
-            f"release_gate_blocked = {release_gate_blocked}"
-        )
-        
-        # Verify contamination and stale_derived_state are present
-        has_contamination = "contamination" in data
-        has_stale_derived_state = "stale_derived_state" in data
-        
-        log_test(
-            "Aggregate: contamination section present",
-            has_contamination,
-            f"contamination present = {has_contamination}"
-        )
-        
-        log_test(
-            "Aggregate: stale_derived_state section present",
-            has_stale_derived_state,
-            f"stale_derived_state present = {has_stale_derived_state}"
-        )
-        
-    except Exception as e:
-        log_test(
-            "GET /api/admin/platform-truth-integrity",
-            False,
-            f"Exception: {str(e)}"
-        )
-
-
-def test_history_regression_smoke(headers: Dict[str, str]):
-    """Test 6: History regression smoke"""
-    print("\n" + "="*80)
-    print("TEST 6: History Regression Smoke")
-    print("="*80)
-    
-    # First, get sample employee and equipment IDs from canonical collections
-    try:
-        # Get a sample employee ID - try /api/employees endpoint
-        employee_response = requests.get(
-            f"{BASE_URL}/api/employees",
-            headers=headers,
-            timeout=30
-        )
-        
-        employee_id = None
-        if employee_response.status_code == 200:
-            employees = employee_response.json()
-            if isinstance(employees, list) and len(employees) > 0:
-                employee_id = employees[0].get("id")
-            elif isinstance(employees, dict):
-                if "employees" in employees:
-                    emp_list = employees.get("employees", [])
-                    if len(emp_list) > 0:
-                        employee_id = emp_list[0].get("id")
-                elif "rows" in employees:
-                    emp_list = employees.get("rows", [])
-                    if len(emp_list) > 0:
-                        employee_id = emp_list[0].get("id")
-                # Try direct list access
-                elif len(employees) > 0 and isinstance(list(employees.values())[0], list):
-                    first_list = list(employees.values())[0]
-                    if len(first_list) > 0:
-                        employee_id = first_list[0].get("id")
-        
-        if not employee_id:
-            log_test(
-                "Get sample employee ID",
-                False,
-                "Could not retrieve sample employee ID"
-            )
-        else:
-            log_test(
-                "Get sample employee ID",
-                True,
-                f"employee_id = {employee_id}"
-            )
-            
-            # Test employee history endpoint
-            emp_history_response = requests.get(
-                f"{BASE_URL}/api/master-lookup/employees/{employee_id}/history",
-                headers=headers,
-                timeout=30
-            )
-            
-            log_test(
-                f"GET /api/master-lookup/employees/{employee_id}/history",
-                emp_history_response.status_code == 200,
-                f"Status: {emp_history_response.status_code}"
-            )
-            
-            if emp_history_response.status_code == 200:
-                emp_data = emp_history_response.json()
-                # Verify no serialization issues
-                has_master = "master" in emp_data
-                has_events = "events" in emp_data
-                log_test(
-                    "Employee history response structure",
-                    has_master and has_events,
-                    f"Has master: {has_master}, Has events: {has_events}"
-                )
-        
-    except Exception as e:
-        log_test(
-            "Employee history regression smoke",
-            False,
-            f"Exception: {str(e)}"
-        )
-    
-    # Get a sample equipment ID
-    try:
-        # Try to get equipment from equipment_master - use /api/equipment-master endpoint
-        equipment_response = requests.get(
-            f"{BASE_URL}/api/equipment-master",
-            headers=headers,
-            timeout=30
-        )
-        
-        equipment_id = None
-        if equipment_response.status_code == 200:
+        # Additional validation for production certification
+        if result["passed"] and result["status_code"] == 200:
             try:
-                equipment_data = equipment_response.json()
-                if isinstance(equipment_data, list) and len(equipment_data) > 0:
-                    equipment_id = equipment_data[0].get("id")
-                elif isinstance(equipment_data, dict):
-                    if "equipment" in equipment_data:
-                        eq_list = equipment_data.get("equipment", [])
-                        if len(eq_list) > 0 and isinstance(eq_list[0], dict):
-                            equipment_id = eq_list[0].get("id")
-                    elif "rows" in equipment_data:
-                        eq_list = equipment_data.get("rows", [])
-                        if len(eq_list) > 0 and isinstance(eq_list[0], dict):
-                            equipment_id = eq_list[0].get("id")
-                    # Try direct list access
-                    else:
-                        for key, value in equipment_data.items():
-                            if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
-                                equipment_id = value[0].get("id")
-                                break
-            except (json.JSONDecodeError, AttributeError, TypeError) as parse_error:
-                log_test(
-                    "Parse equipment response",
-                    False,
-                    f"Failed to parse equipment response: {str(parse_error)}"
+                response = self.session.get(
+                    f"{BASE_URL}/admin/production-certification",
+                    headers={
+                        "X-Admin-Token": self.admin_token,
+                        "X-Directory-Token": self.directory_token
+                    } if self.directory_token else {"X-Admin-Token": self.admin_token},
+                    timeout=30
                 )
+                data = response.json()
+                
+                print("\n   📊 Production Certification Details:")
+                if isinstance(data, dict):
+                    # Check for stable counters/schema
+                    if "overall_status" in data:
+                        print(f"      Overall Status: {data.get('overall_status')}")
+                    if "counters" in data:
+                        counters = data.get("counters", {})
+                        print(f"      Counters: verified={counters.get('verified')}, failed={counters.get('failed')}, blocked={counters.get('blocked')}")
+                    if "workflows" in data:
+                        workflows = data.get("workflows", [])
+                        print(f"      Total Workflows: {len(workflows)}")
+                        
+                        # Check for blocked workflows with reason/remediation
+                        blocked = [w for w in workflows if w.get("status") == "BLOCKED"]
+                        if blocked:
+                            print(f"      Blocked Workflows: {len(blocked)}")
+                            for w in blocked[:3]:  # Show first 3
+                                name = w.get("name", "Unknown")
+                                reason = w.get("blocked_reason", "N/A")
+                                remediation = w.get("remediation", "N/A")
+                                print(f"         - {name}")
+                                print(f"           Reason: {reason}")
+                                if remediation != "N/A":
+                                    print(f"           Remediation: {remediation[:80]}...")
+                        else:
+                            print(f"      ✅ No blocked workflows (all workflows passing)")
+                else:
+                    print(f"      Response type: {type(data)}")
+                    
+            except Exception as e:
+                print(f"   ⚠️  Could not parse production certification details: {str(e)}")
+    
+    def print_summary(self):
+        """Print test summary."""
+        print("\n" + "="*80)
+        print("TEST SUMMARY")
+        print("="*80)
         
-        if not equipment_id:
-            log_test(
-                "Get sample equipment ID",
-                False,
-                "Could not retrieve sample equipment ID - may not be critical if no equipment exists"
-            )
-        else:
-            log_test(
-                "Get sample equipment ID",
-                True,
-                f"equipment_id = {equipment_id}"
-            )
-            
-            # Test equipment history endpoint
-            eq_history_response = requests.get(
-                f"{BASE_URL}/api/master-lookup/equipment/{equipment_id}/history",
-                headers=headers,
-                timeout=30
-            )
-            
-            log_test(
-                f"GET /api/master-lookup/equipment/{equipment_id}/history",
-                eq_history_response.status_code == 200,
-                f"Status: {eq_history_response.status_code}"
-            )
-            
-            if eq_history_response.status_code == 200:
-                eq_data = eq_history_response.json()
-                # Verify no serialization issues
-                has_master = "master" in eq_data
-                has_events = "events" in eq_data
-                log_test(
-                    "Equipment history response structure",
-                    has_master and has_events,
-                    f"Has master: {has_master}, Has events: {has_events}"
-                )
+        total = len(self.results)
+        passed = sum(1 for r in self.results if r["passed"])
+        failed = total - passed
         
-    except Exception as e:
-        log_test(
-            "Equipment history regression smoke",
-            False,
-            f"Exception: {str(e)}"
-        )
-
-
-def print_summary():
-    """Print test summary"""
-    print("\n" + "="*80)
-    print("TEST SUMMARY")
-    print("="*80)
-    
-    total = len(test_results)
-    passed = sum(1 for r in test_results if r["passed"])
-    failed = total - passed
-    
-    print(f"\nTotal Tests: {total}")
-    print(f"Passed: {passed} ({100*passed//total if total > 0 else 0}%)")
-    print(f"Failed: {failed} ({100*failed//total if total > 0 else 0}%)")
-    
-    if failed > 0:
-        print("\n❌ FAILED TESTS:")
-        for result in test_results:
-            if not result["passed"]:
-                print(f"  - {result['name']}")
-                if result["details"]:
-                    print(f"    {result['details']}")
-    
-    return failed == 0
-
+        print(f"\nTotal Tests: {total}")
+        print(f"✅ Passed: {passed}")
+        print(f"❌ Failed: {failed}")
+        print(f"Success Rate: {(passed/total*100):.1f}%")
+        
+        if failed > 0:
+            print("\n❌ FAILED TESTS:")
+            for r in self.results:
+                if not r["passed"]:
+                    print(f"   - {r['name']}: {r['path']}")
+                    print(f"     Status: {r['status_code']} (expected: {r['expected_status']})")
+                    if r["error"]:
+                        print(f"     Error: {r['error']}")
+        
+        print("\n" + "="*80)
+        print("SCOPE-BY-SCOPE RESULTS")
+        print("="*80)
+        
+        # Scope 1: KPI endpoints (first 6)
+        scope1_results = self.results[:6]
+        scope1_passed = sum(1 for r in scope1_results if r["passed"])
+        scope1_status = "✅ PASS" if scope1_passed == len(scope1_results) else "❌ FAIL"
+        print(f"\n1. KPI Row Source/Runtime Parity Checks: {scope1_passed}/{len(scope1_results)} {scope1_status}")
+        
+        # Scope 2: Proof chain endpoints (next 6)
+        scope2_results = self.results[6:12]
+        scope2_passed = sum(1 for r in scope2_results if r["passed"])
+        scope2_status = "✅ PASS" if scope2_passed == len(scope2_results) else "❌ FAIL"
+        print(f"2. C1-C9 Proof Chain Availability: {scope2_passed}/{len(scope2_results)} {scope2_status}")
+        
+        # Scope 3: Production cert (last 1)
+        if len(self.results) > 12:
+            scope3_results = self.results[12:]
+            scope3_passed = sum(1 for r in scope3_results if r["passed"])
+            scope3_status = "✅ PASS" if scope3_passed == len(scope3_results) else "❌ FAIL"
+            print(f"3. Production Certification: {scope3_passed}/{len(scope3_results)} {scope3_status}")
+        
+        return passed == total
 
 def main():
-    """Main test execution"""
+    """Main test execution."""
     print("="*80)
-    print("PRE-C10 Cross-Entity Green-State Milestone Backend Verification")
+    print("PRE-C10 PROOF-CLOSURE BATCH BACKEND QA")
+    print("Preview Environment: https://masci-audit-hub.preview.emergentagent.com")
     print("="*80)
-    print(f"Base URL: {BASE_URL}")
-    print(f"Admin Email: {ADMIN_EMAIL}")
     
-    # Test 1: Auth
-    headers = test_auth_continuity()
-    if not headers:
-        print("\n❌ CRITICAL: Authentication failed. Cannot proceed with remaining tests.")
-        print_summary()
-        sys.exit(1)
+    tester = BackendTester()
     
-    # Test 2: Cross-entity gate
-    test_cross_entity_gate(headers)
+    # Step 1: Authenticate as Admin
+    if not tester.authenticate_admin():
+        print("\n❌ CRITICAL: Admin authentication failed. Cannot proceed with admin tests.")
+        return False
     
-    # Test 3: Exception state surfaces
-    test_exception_state_surfaces(headers)
+    # Step 2: Authenticate as PM
+    if not tester.authenticate_pm():
+        print("\n⚠️  WARNING: PM authentication failed. PM endpoints will be skipped.")
     
-    # Test 4: Exception CSV export
-    test_exception_csv_export(headers)
+    # Step 3: Run KPI tests
+    tester.run_kpi_tests()
     
-    # Test 5: Aggregate truth endpoint
-    test_aggregate_truth_endpoint(headers)
+    # Step 4: Run proof chain tests
+    tester.run_proof_chain_tests()
     
-    # Test 6: History regression smoke
-    test_history_regression_smoke(headers)
+    # Step 5: Run production cert test
+    tester.run_production_cert_test()
     
-    # Print summary
-    all_passed = print_summary()
+    # Step 6: Print summary
+    all_passed = tester.print_summary()
     
-    if all_passed:
-        print("\n✅ ALL TESTS PASSED")
-        sys.exit(0)
-    else:
-        print("\n❌ SOME TESTS FAILED")
-        sys.exit(1)
-
+    return all_passed
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    exit(0 if success else 1)

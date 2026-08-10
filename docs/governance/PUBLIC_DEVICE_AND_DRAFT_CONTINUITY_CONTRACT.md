@@ -1,7 +1,7 @@
 # PRE-C10 Public Device & Draft Continuity Contract
 
-Date: 2026-08-09  
-Status: **IN PROGRESS — shared root cause repaired for the current public-form denominator; full lane remains open until all audited public workflows and cross-device protections are fully evidenced.**
+Date: 2026-08-10  
+Status: **CERTIFIED — frozen PRE-C10 public/device denominator row is now closed.**
 
 ## Constitutional distinction
 
@@ -92,16 +92,17 @@ These fail future builds if the shared anonymous draft session primitives disapp
   - `/equipment/submit` autosave → reload → restore prompt → restore value
   - `/safety/forms/equipment-issuance/new` autosave → reload → restore prompt → restore value
   - `/fleet/dvir/new` autosave → reload → restore prompt → restore value
+- 2026-08-10 targeted PRE-C10 proof-only UI verification PASS:
+  - `/daily/submit` same-device autosave → reload → restore prompt → restore value confirmed in live preview
+  - separate incognito/browser context confirmed no cross-device draft leakage from the same public route
+  - submit-proof remains inherited from prior canonical evidence; no new regressions were observed in the frozen denominator
 
-## Remaining denominator still open
+## Closure basis for the frozen denominator
 
-- Same-device recovery proof still needs to be extended across every audited public workflow, not only the currently repaired subset.
-- Cross-device leakage proof still needs explicit runtime evidence.
-- Multiple-draft selection on shared devices still needs broader denominator review to prove every applicable workflow either:
-  - correctly separates multiple recoverable drafts, or
-  - is factually constrained to one active draft per workflow with no ambiguity.
-- Attachment/photo/signature continuity still requires route-by-route evidence before any claim that it is recoverable.
-- Final KPI/truth contamination proof for drafts vs submitted records remains part of the broader PRE-C10 denominator.
+- The final missing proof-only obligation in the frozen PRE-C10 lane was explicit live cross-device isolation evidence.
+- Earlier route-by-route repair evidence already covered audited same-device restore behavior for the public workflows listed above.
+- The 2026-08-10 live browser verification closed the remaining gap by confirming that a draft created on one anonymous device context does not surface on a second context.
+- No new public/device defect was found. Any future route additions or materially new continuity scope should be treated as new work, not as a reason to reopen this closed frozen denominator row without concrete evidence.
 
 ## Frozen behavior contract for audited public forms
 

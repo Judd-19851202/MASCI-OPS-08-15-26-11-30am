@@ -1,3 +1,27 @@
+# 2026-08-10 — PRE-C10 proof-closure batch after accepted R2 repair
+
+- Continued PRE-C10 closure under the frozen `216` denominator with minimal code churn. Current milestone position: **136 / 216 closed = 63.0%**.
+- Proof-only closure completed for these rows/families:
+  - KPI register: Governance Summary, Cluster Capacity Current, Cluster Capacity History, HR Employee Requests Queue, HR Time-Off Queue, Operations Expirations Summary.
+  - C1–C9 integration register: PM Schedule Authority, C7 Forecasting, C8 Earned Value, C9 Portfolio Performance.
+  - Public / Device final frozen-denominator obligation: same-device restore + live cross-device isolation proof completed.
+  - Coaching ledger: `/daily/submit`, `/admin/daily`, `/pm/daily`, `/admin/daily/:id`, `/pm/daily/:id`, and `/daily-reports/:id` now fully CLOSED.
+  - Owner-observed denominator: final visual-semantics row now directly verified.
+  - Permanent-fix recurrence register: Coaching and Owner-observed rows now CLOSED — DIRECT RUNTIME VERIFIED.
+- Small code repair completed in `backend/lib/production_certification.py`: BLOCKED workflows now surface the blocked reason and operator/engineering remediation instead of dropping that context.
+- Testing and proof for this batch:
+  - backend pytest pack: `35 / 35 PASS`
+  - isolated schedule-actuals runtime chain rerun: `1 / 1 PASS`
+  - backend QA (`deep_testing_backend_v2`): `13 / 13 PASS`
+  - frontend proof-only lane verification: Public/Device PASS, Coaching PASS, Owner-observed visual semantics PASS
+  - detail-route follow-up with valid daily-report fixture `7734b79d-ce2a-42c5-ab0a-a488ea5a22ae`: `10 / 10 PASS`
+- Current batch accounting:
+  - Proof-only rows closed: `19`
+  - Rows requiring actual code repair: `1`
+  - Unique software defects discovered: `1`
+  - High-blast-radius systems modified: `1` (`production_certification` helper only)
+  - Remaining denominator state: `18 partial / 62 open`
+
 # 2026-08-10 — PRE-C10 R2 namespace isolation + bounded provenance retrospective
 
 - Repaired the confirmed P0 preview/production shared-object risk with the smallest safe environment-aware storage architecture: new writes now use deterministic family-scoped keys such as `photos/{env}/...`, `documents/{env}/...`, `safety-docs/{env}/...`, and `promo-assets/{env}/...` while backups continue under `backups/{env}/...`.

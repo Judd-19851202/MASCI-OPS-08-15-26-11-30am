@@ -701,21 +701,29 @@ async def build_certification(db) -> Dict[str, Any]:
             "status": status,
             "freshness_window_hours": round(_freshness_window_for_workflow(wf).total_seconds() / 3600.0, 2),
             "freshness_policy_source": "default_global" if wf not in WORKFLOW_FRESHNESS_WINDOWS else "workflow_override",
-            "evidence_age_hours": _evidence_age_hours((latest or {}).get("ts")),
+            "evidence_age_hours": _evidence_age_hours(
+                (latest_any if status == STATUS_BLOCKED else latest or {}).get("ts")
+            ),
             "policy": _policy_payload(wf),
             "first_verified_at": (first_ok or {}).get("ts"),
             "last_verified_at": (latest_ok or {}).get("ts"),
             "successful_deliveries": ok_count,
             "failed_deliveries": fail_count,
             "last_failure": (latest_fail or {}).get("ts"),
-            "last_failure_reason": (latest_fail or {}).get("failure_reason"),
+            "last_failure_reason": (
+                blocked_reason if status == STATUS_BLOCKED else (latest_fail or {}).get("failure_reason")
+            ),
             "last_failure_record_id": (latest_fail or {}).get("record_id"),
             "operator_remediation": (
+                "Complete the blocked dependency or governance prerequisite, then rerun the workflow."
+                if status == STATUS_BLOCKED else
                 _operator_remediation_for_failure(
                     (latest_fail or {}).get("failure_reason")
                 ) if status == STATUS_FAILED else None
             ),
             "engineering_remediation": (
+                "Ensure the workflow can emit a canonical completed event once its blocker clears."
+                if status == STATUS_BLOCKED else
                 _engineering_remediation_for_failure(
                     (latest_fail or {}).get("failure_reason")
                 ) if status == STATUS_FAILED else None

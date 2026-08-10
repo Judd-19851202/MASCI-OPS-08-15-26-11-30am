@@ -1264,3 +1264,28 @@
 - Added governance evidence at `docs/governance/PRE_C10_R2_NAMESPACE_AND_PROVENANCE_RETROSPECTIVE.md` covering the storage blast radius inventory, the new environment-ownership contract, live verification evidence, and the bounded retrospective classification.
 - Bounded retrospective conclusion: only the shared R2 namespace/ownership gap required reopen-and-repair. Other reviewed repairs remain classified as either `VALID APPLICATION REPAIR` or `VALID PREVIEW/CERTIFICATION REPAIR`; no additional previously closed PRE-C10 obligations were reopened on provenance grounds.
 - PRE-C10 remains **OPEN / NO-GO**. Save, Deploy, Training & Qualifications, and C10 remain unauthorized.
+
+## 2026-08-10 — PRE-C10 proof-only closure batch (post-R2)
+- Continued closure under the frozen `216` denominator with minimal code churn and proof-first doctrine. Current milestone after this batch: **136 / 216 closed = 63.0%**.
+- Proof-only rows closed in this batch:
+  - KPI truth: Governance Summary, Cluster Capacity Current, Cluster Capacity History, HR Employee Requests Queue, HR Time-Off Queue, Operations Expirations Summary.
+  - C1–C9 integration truth: PM Schedule Authority, C7 Forecasting, C8 Earned Value, C9 Portfolio Performance.
+  - Public / Device: final frozen-denominator obligation closed with live same-device restore plus explicit cross-device isolation proof.
+  - Coaching: frozen daily-report coaching denominator closed across `/daily/submit`, `/admin/daily`, `/pm/daily`, `/admin/daily/:id`, `/pm/daily/:id`, and `/daily-reports/:id`.
+  - Owner-observed: final visual-semantics row now `PASS — DIRECTLY VERIFIED`.
+  - Permanent-fix recurrence: Coaching and Owner-observed rows now `CLOSED — DIRECT RUNTIME VERIFIED`.
+- One small backend defect was discovered and repaired in this batch: `backend/lib/production_certification.py` now preserves the blocked reason and exposes operator/engineering remediation for BLOCKED workflows instead of dropping that context.
+- Verification evidence for this batch:
+  - focused pytest pack: `35 / 35 PASS`
+  - isolated schedule-actuals rerun after one transient flake: `1 / 1 PASS`
+  - backend QA (`deep_testing_backend_v2`): `13 / 13 PASS`
+  - frontend proof-only verification: Public/Device PASS, Coaching PASS, Owner-observed visual semantics PASS
+  - detail-route follow-up using valid daily-report fixture `7734b79d-ce2a-42c5-ab0a-a488ea5a22ae`: `10 / 10 PASS`
+- Current accounting for this milestone:
+  - Proof-only rows closed: `19`
+  - Rows requiring actual code repair: `1`
+  - Unique software defects discovered: `1`
+  - High-blast-radius systems modified: `1`
+  - Remaining denominator state: `18 partial / 62 open`
+- The updated fixture ID was recorded in `/app/memory/test_credentials.md` so future runtime detail-route checks use a live preview record.
+- PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.

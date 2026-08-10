@@ -1,3 +1,35 @@
+# 2026-08-10 — PRE-C10 milestone after proof-only closure batch
+
+- **PRE-C10 status:** `136 / 216 closed = 63.0%`
+- **This batch:** `19` proof-only rows closed, `1` row required actual code repair, `1` unique software defect discovered, `1` high-blast-radius system modified.
+- **Remaining:** `18 partial / 62 open`
+
+## What closed in this batch
+
+- KPI truth rows closed: Governance Summary, Cluster Capacity Current, Cluster Capacity History, HR Employee Requests Queue, HR Time-Off Queue, Operations Expirations Summary.
+- C1–C9 rows closed: PM Schedule Authority, C7 Forecasting, C8 Earned Value, C9 Portfolio Performance.
+- Public/Device frozen denominator row closed with live same-device restore + cross-device isolation proof.
+- Coaching frozen denominator rows closed across list/detail/alias daily-report routes.
+- Owner-observed frozen denominator row closed for final visual-semantics drift.
+- Permanent-fix recurrence closed for Coaching and Owner-observed lanes.
+
+## Immediate next actions
+
+### P0
+- Continue row-by-row closure on the remaining KPI denominator, especially Project Health, active employee roster truth, PM/Safety KPI families, Admin OS child cards, R2 lifecycle truth, and production-certification/recovery closeout.
+- Continue C1–C9 on the still-partial families: HR queue/time-off/roster truth, governance/R2/capacity/production-certification, and remaining downstream export/notification consumers.
+- Continue Admin OS / recovery / storage closeout using current runtime evidence without trying to force green values.
+- Continue remaining recurrence rows that still inherit unfinished KPI, C1–C9, auth/session, and Admin OS denominator work.
+
+### P1
+- Re-run only narrow runtime proof for whichever remaining open rows materially change; avoid broad full-certification reruns during active closure.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 current state after R2 isolation repair
 
 - **PRE-C10 remains OPEN — NO-GO**
