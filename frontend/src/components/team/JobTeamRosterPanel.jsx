@@ -409,12 +409,12 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
             {grouped.map((slot) => (
               <div key={slot.key} data-testid={ROW_TEST(slot.key)} className="border-b border-slate-100 pb-2">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+                  <div className="text-xs uppercase tracking-wide text-slate-500 font-medium">
                     {slot.label}
                     {slot.admin_only && (
                       <Badge variant="secondary" className="ml-2 text-[10px]">admin-only</Badge>
                     )}
-                  </p>
+                  </div>
                 </div>
                 {slot.active.length === 0 && (
                   <p className="text-sm text-slate-400 italic">Unassigned</p>
