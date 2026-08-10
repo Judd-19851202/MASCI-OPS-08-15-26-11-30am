@@ -13,9 +13,10 @@
 // Consumer: PmProjectDetail.
 import React from "react";
 import {
-  Users, Wrench, Truck, Package, Clock, ShieldAlert, Sparkles, Calendar,
+  Users, Wrench, Truck, Package, Clock, ShieldAlert, Sparkles, Calendar, CircleHelp,
 } from "lucide-react";
 import { sanitizeOperatorCopy } from "@/lib/operatorLanguage";
+import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const WINDOWS = [
@@ -24,6 +25,17 @@ const WINDOWS = [
   { key: "mtd", label: "Month to date" },
   { key: "ptd", label: "Project to date" },
 ];
+
+function InlineKpiHelp({ metadata, fallbackLabel, testId }) {
+  const help = buildKpiHelpContent(metadata, fallbackLabel);
+  if (!help) return null;
+  return (
+    <span className="inline-flex items-center text-slate-400" title={help.description} data-testid={testId}>
+      <CircleHelp className="h-3.5 w-3.5" aria-hidden />
+      <span className="sr-only">{fallbackLabel} definition</span>
+    </span>
+  );
+}
 
 export default function PmOperationalKPIs({ projectNumber }) {
   const [window, setWindow] = React.useState("7d");
@@ -55,6 +67,9 @@ export default function PmOperationalKPIs({ projectNumber }) {
       <header className="flex flex-wrap items-baseline gap-3">
         <h2 className="font-display text-lg font-black text-slate-900" data-testid="pm-operational-kpis-title">
           Project Performance
+          <span className="ml-1 inline-flex align-middle">
+            <InlineKpiHelp metadata={data?.kpi_metadata?.page} fallbackLabel="Project Operational KPIs" testId="pm-operational-kpis-title-help" />
+          </span>
         </h2>
         <span className="text-xs text-slate-500">Labor · Equipment · Materials · Production · Delays · Safety · Photo findings — budget details stay on the budget page.</span>
         <div className="ml-auto flex flex-wrap gap-1" role="tablist" aria-label="Window">
@@ -101,6 +116,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionKey="key"
               distributionValueKey="hours"
               distributionUnit="hrs"
+              metadata={data.kpi_metadata?.sections?.labor}
             />
             <KpiCard
               title="Equipment Run / Idle"
@@ -118,6 +134,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionKey="equipment"
               distributionValueKey="run"
               distributionUnit="run hrs"
+              metadata={data.kpi_metadata?.sections?.equipment}
             />
             <KpiCard
               title="Materials In / Out"
@@ -135,6 +152,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionKey="material"
               distributionValueKey="quantity"
               distributionUnitAlias="unit"
+              metadata={data.kpi_metadata?.sections?.materials}
             />
             <KpiCard
               title="Delay Impact"
@@ -154,6 +172,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionKey="category"
               distributionValueKey="hours"
               distributionUnit="hrs"
+              metadata={data.kpi_metadata?.sections?.delays}
             />
           </div>
 
@@ -175,6 +194,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionKey="activity"
               distributionValueKey="quantity"
               distributionUnitAlias="unit"
+              metadata={data.kpi_metadata?.sections?.production}
             />
             <KpiCard
               title="Safety"
@@ -193,6 +213,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionValueKey="count"
               distributionUnit=""
               flagCritical={data.safety.escalation_gap_count > 0 ? `${data.safety.escalation_gap_count} escalation gap` : null}
+              metadata={data.kpi_metadata?.sections?.safety}
             />
             <KpiCard
               title="Photo Findings"
@@ -209,15 +230,16 @@ export default function PmOperationalKPIs({ projectNumber }) {
               distributionKey="tag"
               distributionValueKey="count"
               distributionUnit=""
+              metadata={data.kpi_metadata?.sections?.intelligence}
             />
-            <LatestSummaryCard latest={data.intelligence.latest_summary} count={data.intelligence.accepted_summaries_count} />
+            <LatestSummaryCard latest={data.intelligence.latest_summary} count={data.intelligence.accepted_summaries_count} metadata={data.kpi_metadata?.sections?.intelligence} />
           </div>
 
           {/* Scheduling Readiness — future-facing manifest */}
-          <SchedulingReadinessStrip readiness={data.scheduling_readiness} />
+          <SchedulingReadinessStrip readiness={data.scheduling_readiness} metadata={data.kpi_metadata?.sections?.scheduling_readiness} />
 
           {/* Safety Sources classification — honest surface */}
-          <SafetySourcesStrip sources={data.safety_sources} />
+          <SafetySourcesStrip sources={data.safety_sources} metadata={data.kpi_metadata?.sections?.safety_sources} />
         </>
       )}
     </section>
@@ -227,7 +249,7 @@ export default function PmOperationalKPIs({ projectNumber }) {
 function KpiCard({
   title, icon: Icon, testid, value, unit, subs = [], empty, emptyText,
   distribution = [], distributionKey, distributionValueKey,
-  distributionUnit = "", distributionUnitAlias, flagCritical,
+  distributionUnit = "", distributionUnitAlias, flagCritical, metadata,
 }) {
   return (
     <div
@@ -237,6 +259,7 @@ function KpiCard({
       <div className="flex items-center gap-2">
         <Icon className="w-4 h-4 text-slate-500" aria-hidden />
         <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">{title}</span>
+        <InlineKpiHelp metadata={metadata} fallbackLabel={title} testId={`${testid}-help`} />
         {flagCritical && (
           <span className="ml-auto text-[9px] font-bold uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5" data-testid={`${testid}-flag`}>
             {flagCritical}
@@ -276,7 +299,7 @@ function KpiCard({
   );
 }
 
-function LatestSummaryCard({ latest, count }) {
+function LatestSummaryCard({ latest, count, metadata }) {
   const empty = !latest;
   return (
     <div
@@ -286,6 +309,7 @@ function LatestSummaryCard({ latest, count }) {
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-slate-500" aria-hidden />
         <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Latest Approved Shift Story</span>
+        <InlineKpiHelp metadata={metadata} fallbackLabel="Latest Approved Shift Story" testId="pm-kpi-latest-summary-help" />
       </div>
       <div className="mt-1 flex items-baseline gap-1.5">
         <span className="font-display text-2xl font-black text-slate-900">{count}</span>
@@ -303,7 +327,7 @@ function LatestSummaryCard({ latest, count }) {
   );
 }
 
-function SchedulingReadinessStrip({ readiness }) {
+function SchedulingReadinessStrip({ readiness, metadata }) {
   const rows = [
     ["Labor signal",        readiness.labor_signal_available],
     ["Equipment signal",    readiness.equipment_signal_available],
@@ -320,6 +344,7 @@ function SchedulingReadinessStrip({ readiness }) {
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4 text-slate-500" aria-hidden />
         <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Planning Readiness · next-week planning</span>
+        <InlineKpiHelp metadata={metadata} fallbackLabel="Planning Readiness" testId="pm-kpi-scheduling-readiness-help" />
       </div>
       <p className="mt-1 text-[11px] text-slate-500">{sanitizeOperatorCopy(readiness.notes, "Planning follow-up may still be needed.")}</p>
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -341,7 +366,7 @@ function SchedulingReadinessStrip({ readiness }) {
   );
 }
 
-function SafetySourcesStrip({ sources }) {
+function SafetySourcesStrip({ sources, metadata }) {
   const STATUS_STYLES = {
     LIVE:               "bg-emerald-50 border-emerald-200 text-emerald-800",
     PARTIAL:            "bg-amber-50 border-amber-200 text-amber-800",
@@ -363,6 +388,7 @@ function SafetySourcesStrip({ sources }) {
       <div className="flex items-center gap-2">
         <ShieldAlert className="w-4 h-4 text-slate-500" aria-hidden />
         <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Safety Sources · classification</span>
+        <InlineKpiHelp metadata={metadata} fallbackLabel="Safety Sources" testId="pm-kpi-safety-sources-help" />
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {Object.entries(sources).map(([k, v]) => (

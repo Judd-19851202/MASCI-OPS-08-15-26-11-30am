@@ -102,12 +102,13 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Selectâ
                 : t("No employee matches that search.")}
             </CommandEmpty>
             <CommandGroup heading={headingLabel}>
-              {filtered.map((e) => {
+              {filtered.map((e, index) => {
                 const commit = () => { onSelect(e); setOpen(false); };
                 const testid = `${testId}-item-${e.id}`;
+                const key = e.id || `${e.name || 'employee'}-${e.employee_id || 'row'}-${index}`;
                 return (
                 <CommandItem
-                  key={e.id}
+                  key={key}
                   value={`${e.name} ${e.employee_id || ""} ${e.role || ""} ${e.trade || ""} ${e.crew || ""}`}
                   onSelect={guardedOnSelect(commit)}
                   className="py-2 cursor-pointer"

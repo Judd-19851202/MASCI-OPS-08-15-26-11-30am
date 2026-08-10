@@ -926,6 +926,7 @@ function SuccessScreen({ done, onStartAnother, t }) {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [reinspectResult, setReinspectResult] = useState(null);
+  const reinspectionIdempotencyKeyRef = React.useRef(null);
   const confirmation = buildSubmissionConfirmation({
     workflowKey: "excavation",
     documentNumber: done.doc_id || done.id || "",
@@ -951,8 +952,12 @@ function SuccessScreen({ done, onStartAnother, t }) {
   async function triggerReinspect() {
     setSubmitting(true);
     try {
+      if (!reinspectionIdempotencyKeyRef.current) {
+        reinspectionIdempotencyKeyRef.current = mintIdempotencyKey();
+      }
       const r = await api.post(`/trench-safety/excavations/${done.id}/public/reinspection-request`,
-        { reason, note });
+        { reason, note },
+        { headers: { "Idempotency-Key": reinspectionIdempotencyKeyRef.current } });
       setReinspectResult({ ok: true, data: r.data });
       setShowReinspect(false);
     } catch (e) {

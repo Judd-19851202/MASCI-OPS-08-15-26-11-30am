@@ -48,6 +48,7 @@ Public forms had two shared continuity drifts:
   - `hasMeaningfulPublicDraft()`
 - Wired anonymous device draft continuity into these public workflows:
   - `/daily/submit`
+  - `/trench-safety/excavation/new`
   - `/safety/inspections/new`
   - `/meetings/submit`
   - `/incidents/report` shared incident entry layer
@@ -60,6 +61,7 @@ Public forms had two shared continuity drifts:
   - `publicAnonymous: true`
   - explicit restore/discard UX via `DraftRestorePrompt`
   - visible draft-state indicator via `DraftStatusPill`
+  - `Idempotency-Key` on canonical submit paths so reconnect/retry stays one record instead of duplicate truth
 - Daily Report keeps a stricter same-device contract where supported:
   - `getActiveDailyReportDraftSession()` / `ensureActiveDailyReportDraftSession()` / `clearActiveDailyReportDraftSession()`
   - same-device session scope when a draft has already started
@@ -74,6 +76,7 @@ Public forms had two shared continuity drifts:
 - `frontend/src/lib/resiliency/__tests__/publicDeviceDraftContract.test.js`
 - `frontend/src/lib/resiliency/__tests__/dailyReportScope.test.js`
 - `frontend/src/lib/resiliency/__tests__/dailyReportDraftContinuityContract.test.js`
+- `frontend/src/lib/__tests__/publicExcavationContract.test.js`
 
 These fail future builds if the shared anonymous draft session primitives disappear or if audited public forms stop using the anonymous-device draft contract.
 
@@ -85,6 +88,7 @@ These fail future builds if the shared anonymous draft session primitives disapp
   - existing `c2_session_reset` and `Hub.session-home` regressions still PASS
 - Clean signed-out browser recovery smoke PASS:
   - `/daily/submit` now shows an explicit restore/discard prompt on reload, preserves same-device session scope, supports recent/day-before fallback recovery where applicable, and clears the active session after canonical submit/queue settle
+  - `/trench-safety/excavation/new` now shows draft status, restore/discard prompt, public-safe roster fallback, and idempotent canonical submit/reinspection request behavior signed-out
   - `/equipment/submit` autosave → reload → restore prompt → restore value
   - `/safety/forms/equipment-issuance/new` autosave → reload → restore prompt → restore value
   - `/fleet/dvir/new` autosave → reload → restore prompt → restore value

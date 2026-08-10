@@ -14,6 +14,7 @@ route,/meetings/submit,PUBLIC,None,Public safety-meeting workflow,Verified 2026-
 route,/incidents/report,PUBLIC,None,Public incident-report workflow,Verified 2026-08-09,Uses anonymous-safe project lookup after current hardening
 route,/jha,PUBLIC,None,Public JHA workflow,Verified 2026-08-09,
 route,/trench-safety,PUBLIC,None,Public trench-safety workflow,Verified 2026-08-09,
+route,/trench-safety/excavation/new,PUBLIC WORKFLOW,None,Public excavation submission route stays signed-out and now carries the governed draft/device + duplicate-submit contract,Verified 2026-08-10,Runtime QA now proves draft status restore/discard prompt public-safe roster fallback and idempotent submit
 route,/safety/cards,PUBLIC,None,Public safety cards workflow,Verified 2026-08-09,
 route,/safety/forms,PUBLIC,None,Public safety-forms hub,Verified 2026-08-09,
 route,/safety/forms/equipment-issuance/new,PUBLIC,None,Public safety equipment issuance workflow,Verified 2026-08-09,Now uses anonymous device draft continuity + anonymous-safe roster/project lookup
@@ -46,6 +47,9 @@ route,/safety-portal/audits,ROLE-RESTRICTED,RequireSafetyPortal,Safety Audit rem
 api,/api/public/jobs-lookup,PUBLIC,None,Anonymous-safe project lookup only: id/project_number/project_name/location/client,Verified 2026-08-09,Created to replace leaking /api/jobs usage on public forms
 api,/api/public/equipment-master-lookup,PUBLIC,None,Anonymous-safe equipment lookup only: id/unit_number/year/make/model/make_model/display_label/category/preop_equipment_type,Verified 2026-08-09,Created to replace leaking /api/equipment-master usage on public forms
 api,/api/hr/employee-roster/public,PUBLIC,None,Anonymous-safe employee roster only: id/name/employee_id/trade/role/crew/active,Verified 2026-08-09,No private HR/contact/pay data
+api,/api/employees/competent-persons/public,PUBLIC,None,Anonymous-safe competent-person roster for public trench workflows,Verified 2026-08-10,Runtime QA proves signed-out access with roster options and no portal dependency
+api,/api/trench-safety/excavations/public/submit,PUBLIC + IDEMPOTENT,Idempotency-Key supported,Public excavation submission creates one canonical record per idempotency key,Verified 2026-08-10,Runtime QA proves same key returns the same record identity
+api,/api/trench-safety/excavations/{id}/public/reinspection-request,PUBLIC + IDEMPOTENT,Idempotency-Key supported,Public foreman reinspection requests stay public but duplicate clicks must not stamp duplicate reinspection history,Verified 2026-08-10,Contract guard now freezes duplicate prevention on the post-submit reinspection path
 api,/api/training/packet.pdf?track=field,PUBLIC DOWNLOAD,None,Field packet remains publicly downloadable onboarding material,Verified 2026-08-09,Focused runtime regression proves public PDF access still works
 api,/api/training/packet.pdf?track=shop,AUTHENTICATED DOWNLOAD,shop / pm / admin token,Shop packet must stay protected,Verified 2026-08-09,Route remains gated before PDF render
 api,/api/training/packet.pdf?track=pm,AUTHENTICATED DOWNLOAD,pm / admin token,PM packet must stay protected,Verified 2026-08-09,Route remains gated before PDF render
@@ -54,6 +58,8 @@ api,/api/training/packet.pdf?track=hr,AUTHENTICATED DOWNLOAD,hr / admin token,HR
 api,/api/training/packet.pdf?track=leadership,UNSUPPORTED / NO PUBLIC EXPORT,training packet backend does not publish a leadership packet,No public export exists for this track,Verified 2026-08-09,Direct API returns 404 and the frontend redirects callers back to the protected in-browser track
 api,/api/jobs,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Still exists for broader internal consumers and is not anonymous-safe
 api,/api/equipment-master,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Still exists for broader internal consumers and is not anonymous-safe
+api,/api/jobs/{project}/recent-context,ROLE-RESTRICTED PM / ADMIN,require_pm_portal_or_super_admin,Project recent-context is no longer anonymously reachable because it contains operator/project prefill context beyond anonymous-safe lookup scope,Verified 2026-08-10,Signed-out access now returns 401 and authenticated admin access still returns governed context
+api,/api/employees,AUTHENTICATED / INTERNAL MIXED,Legacy mixed consumers,Do not use from public workflows,Open,Public Daily Report crew refresh now uses `/api/hr/employee-roster/public` instead of this broader internal feed
 api,/api/master-lookup/employees,AUTHENTICATED PORTAL,Portal auth required,Protected employee lookup for authenticated portals only,Verified 2026-08-09,Returns 401 signed-out
 api,/api/inspections,PUBLIC POST,None,Public inspection submit endpoint with rate limiting and no session dependency,Verified 2026-08-09,Anonymous POST proof captured
 api,/api/safety-forms/equipment-issuances,PUBLIC POST,None,Public issuance submit endpoint with rate limiting and no session dependency,Verified 2026-08-09,Anonymous POST proof captured

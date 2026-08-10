@@ -62,3 +62,24 @@ def test_public_excavation_uses_anonymous_safe_rosters_and_idempotent_submit():
     assert body1["id"] == body2["id"]
     assert body1.get("doc_id") == body2.get("doc_id")
     assert body1["status"] == body2["status"]
+
+    reinspect_key = str(uuid.uuid4())
+    reinspect_payload = {"reason": "Rain Event", "note": "Runtime idempotency proof"}
+    reinspect_first = requests.post(
+        f"{BASE_URL}/api/trench-safety/excavations/{body1['id']}/public/reinspection-request",
+        json=reinspect_payload,
+        headers={"Content-Type": "application/json", "Idempotency-Key": reinspect_key},
+        timeout=120,
+    )
+    reinspect_second = requests.post(
+        f"{BASE_URL}/api/trench-safety/excavations/{body1['id']}/public/reinspection-request",
+        json=reinspect_payload,
+        headers={"Content-Type": "application/json", "Idempotency-Key": reinspect_key},
+        timeout=120,
+    )
+    reinspect_first.raise_for_status()
+    reinspect_second.raise_for_status()
+    r1 = reinspect_first.json()
+    r2 = reinspect_second.json()
+    assert len(r1.get("reinspection_history") or []) == len(r2.get("reinspection_history") or [])
+    assert (r1.get("reinspection_history") or [{}])[-1].get("reason") == "Rain Event"

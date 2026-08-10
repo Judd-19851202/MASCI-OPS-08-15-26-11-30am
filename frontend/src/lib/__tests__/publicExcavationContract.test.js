@@ -20,6 +20,7 @@ describe("public excavation contract", () => {
     expect(formSource).toContain("DraftStatusPill");
     expect(formSource).toContain("publicAnonymous: true");
     expect(formSource).toContain('headers: { "Idempotency-Key": idempotencyKeyRef.current }');
+    expect(formSource).toContain('headers: { "Idempotency-Key": reinspectionIdempotencyKeyRef.current }');
     expect(formSource).toContain('testId="public-excavation-draft-restore"');
     expect(formSource).toContain("publicFallback");
 

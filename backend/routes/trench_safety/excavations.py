@@ -490,82 +490,87 @@ def register_excavation_routes(
 
     # ── FV-7.3 · Foreman / public reinspection request (no auth) ──
     @api_router.post(PREFIX + "/{ex_id}/public/reinspection-request")
-    async def public_reinspection_request(ex_id: str, body: ReinspectionTrigger):
+    async def public_reinspection_request(ex_id: str, body: ReinspectionTrigger, request: Request):
         """Foreman-initiated reinspection. No approval needed — the
         request is recorded, Safety is notified, and the record is added
         to the reinspection queue. Safety remains responsible for closure."""
-        doc = await db.trench_excavations.find_one({"id": ex_id}, {"_id": 0})
-        if not doc:
-            raise HTTPException(404, "Excavation record not found")
-        reason = body.reason if body.reason in REINSPECTION_TRIGGER_REASONS else "Manual"
-        history = doc.get("reinspection_history", []) or []
-        history.append({
-            "at": now_iso(),
-            "by": "public_foreman",
-            "reason": reason,
-            "note": body.note,
-            "source": "foreman_request",
-        })
-        # Re-enrich and recompute flags so the new state shows correctly
-        merged = {**doc, "reinspection_required": True, "reinspection_completed": False}
-        await _enrich_record_for_flags(db, merged)
-        flags = compute_osha_flags(merged)
-        merged.pop("_linked_assets", None)
-        merged.pop("_cp_lookup", None)
-        new_status = derive_status(merged, flags)
-        await db.trench_excavations.update_one(
-            {"id": ex_id},
-            {"$set": {
-                "reinspection_required": True,
-                "reinspection_completed": False,
-                "reinspection_history": history,
-                "flags": flags,
-                "status": new_status,
-                "updated_at": now_iso(),
-            }},
+        from lib.idempotency import idem_key_from_request, with_idempotency  # noqa: PLC0415
+
+        key = idem_key_from_request(request)
+
+        async def _do_reinspect():
+            doc = await db.trench_excavations.find_one({"id": ex_id}, {"_id": 0})
+            if not doc:
+                raise HTTPException(404, "Excavation record not found")
+            reason = body.reason if body.reason in REINSPECTION_TRIGGER_REASONS else "Manual"
+            history = doc.get("reinspection_history", []) or []
+            history.append({
+                "at": now_iso(),
+                "by": "public_foreman",
+                "reason": reason,
+                "note": body.note,
+                "source": "foreman_request",
+            })
+            merged = {**doc, "reinspection_required": True, "reinspection_completed": False}
+            await _enrich_record_for_flags(db, merged)
+            flags = compute_osha_flags(merged)
+            merged.pop("_linked_assets", None)
+            merged.pop("_cp_lookup", None)
+            new_status = derive_status(merged, flags)
+            await db.trench_excavations.update_one(
+                {"id": ex_id},
+                {"$set": {
+                    "reinspection_required": True,
+                    "reinspection_completed": False,
+                    "reinspection_history": history,
+                    "flags": flags,
+                    "status": new_status,
+                    "updated_at": now_iso(),
+                }},
+            )
+            await write_audit(
+                db, kind="excavation_reinspection_requested_by_foreman",
+                asset_id=ex_id, actor={"email": "public_foreman"},
+                detail={"reason": reason, "note": body.note},
+            )
+            try:
+                from lib.event_fanout import emit_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
+                _ex = await db.trench_excavations.find_one(
+                    {"id": ex_id}, {"_id": 0, "project_number": 1})
+                _pn = (_ex or {}).get("project_number")
+                recipients = [
+                    ("safety", "Critical", True, "trench.reinspection"),
+                    ("superintendent", "Warning", False, "trench.reinspection"),
+                    ("admin", "Warning", False, None),
+                ]
+                for role, severity, with_email, event_key in recipients:
+                    _notif = {
+                        "type": "trench_safety.reinspection_requested",
+                        "title": f"Reinspection requested by foreman · {ex_id}",
+                        "message": f"{reason} · {(body.note or '')[:120]}",
+                        "severity": severity,
+                        "recipient_role": role,
+                        "linked_source_module": "trench_safety:reinspection_requested",
+                        "linked_source_record_id": ex_id,
+                        "linked_equipment_id": ex_id,
+                        "linked_project_number": _pn,
+                        "email_enabled": with_email,
+                    }
+                    if event_key:
+                        await apply_routing(db, _notif, project_number=_pn, event_key=event_key)
+                    await emit_notification(db, _notif)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("foreman reinspection notify failed: %s", e)
+            return await db.trench_excavations.find_one({"id": ex_id}, {"_id": 0})
+
+        return await with_idempotency(
+            db,
+            key,
+            {"role": "public"},
+            _do_reinspect,
+            workflow="trench_excavation_public_reinspection_request",
         )
-        await write_audit(
-            db, kind="excavation_reinspection_requested_by_foreman",
-            asset_id=ex_id, actor={"email": "public_foreman"},
-            detail={"reason": reason, "note": body.note},
-        )
-        # FV-7.3 · Must notify Safety AND Superintendent. No approval
-        # required to REQUEST a reinspection — the request itself is
-        # the operational signal. Each recipient role gets a bell row;
-        # Safety also gets the email.
-        try:
-            from lib.event_fanout import emit_notification  # noqa: PLC0415
-            from lib.team_routing import apply_routing  # noqa: PLC0415
-            # Resolve project_number for roster routing.
-            _ex = await db.trench_excavations.find_one(
-                {"id": ex_id}, {"_id": 0, "project_number": 1})
-            _pn = (_ex or {}).get("project_number")
-            recipients = [
-                ("safety", "Critical", True, "trench.reinspection"),
-                ("superintendent", "Warning", False, "trench.reinspection"),
-                ("admin", "Warning", False, None),  # corporate awareness only
-            ]
-            for role, severity, with_email, event_key in recipients:
-                _notif = {
-                    "type": "trench_safety.reinspection_requested",
-                    "title": f"Reinspection requested by foreman · {ex_id}",
-                    "message": f"{reason} · {(body.note or '')[:120]}",
-                    "severity": severity,
-                    "recipient_role": role,
-                    "linked_source_module": "trench_safety:reinspection_requested",
-                    "linked_source_record_id": ex_id,
-                    "linked_equipment_id": ex_id,
-                    "linked_project_number": _pn,
-                    "email_enabled": with_email,
-                }
-                if event_key:
-                    await apply_routing(db, _notif,
-                                        project_number=_pn,
-                                        event_key=event_key)
-                await emit_notification(db, _notif)
-        except Exception as e:  # noqa: BLE001
-            logger.warning("foreman reinspection notify failed: %s", e)
-        return await db.trench_excavations.find_one({"id": ex_id}, {"_id": 0})
 
     # ── PUBLIC submit (no auth) ────────────────────────────────────
     @api_router.post(PREFIX + "/public/submit")
