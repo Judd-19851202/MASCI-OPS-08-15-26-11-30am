@@ -23,7 +23,9 @@ export default function PmCostCodeAssignmentCard({ projectNumber }) {
         setProgress(assignmentRes?.progress || null);
       } catch (error) {
         if (!alive) return;
-        toast.error(error?.response?.data?.detail || "Failed to load project cost-code setup");
+        const detail = error?.response?.data?.detail;
+        const msg = typeof detail === "string" ? detail : (detail?.reason || detail?.explanation || "Failed to load project cost-code setup");
+        toast.error(msg);
       }
     })();
     return () => { alive = false; };
@@ -77,7 +79,9 @@ export default function PmCostCodeAssignmentCard({ projectNumber }) {
       setProgress(data?.progress || null);
       toast.success("Project cost codes updated");
     } catch (error) {
-      toast.error(error?.response?.data?.detail || "Save failed");
+      const detail = error?.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : (detail?.reason || detail?.explanation || "Save failed");
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

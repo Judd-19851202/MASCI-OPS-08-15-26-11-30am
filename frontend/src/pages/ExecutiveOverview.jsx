@@ -133,42 +133,42 @@ export default function ExecutiveOverview() {
               id="jobs"
               label={t("Jobs needing attention")}
               value={overview.tiles.jobs?.total_attention_jobs ?? 0}
-              subline={t("{{count}} active asset hold(s)", { count: overview.tiles.jobs?.active_asset_holds ?? 0 })}
+              subline={`${overview.tiles.jobs?.active_asset_holds ?? 0} active asset hold(s)`}
               metadata={overview.tiles.jobs?.kpi_metadata}
             />
             <ExecutiveTile
               id="overdue"
               label={t("Overdue work")}
               value={overview.tiles.overdue?.overdue_corrective_actions ?? 0}
-              subline={t("{{count}} project(s) stale on daily reports", { count: overview.tiles.overdue?.stale_projects_no_dr_in_3d ?? 0 })}
+              subline={`${overview.tiles.overdue?.stale_projects_no_dr_in_3d ?? 0} project(s) stale on daily reports`}
               metadata={overview.tiles.overdue?.kpi_metadata}
             />
             <ExecutiveTile
               id="staffing"
               label={t("Staffing gaps")}
               value={(overview.tiles.staffing?.projects_missing_pm ?? 0) + (overview.tiles.staffing?.projects_missing_foreman ?? 0)}
-              subline={t("{{count}} active project(s) in staffing scope", { count: overview.tiles.staffing?.active_projects_count ?? 0 })}
+              subline={`${overview.tiles.staffing?.active_projects_count ?? 0} active project(s) in staffing scope`}
               metadata={overview.tiles.staffing?.kpi_metadata}
             />
             <ExecutiveTile
               id="equipment"
               label={t("Equipment issues")}
               value={overview.tiles.equipment?.out_of_service_units ?? 0}
-              subline={t("{{count}} open defect(s)", { count: overview.tiles.equipment?.open_defects ?? 0 })}
+              subline={`${overview.tiles.equipment?.open_defects ?? 0} open defect(s)`}
               metadata={overview.tiles.equipment?.kpi_metadata}
             />
             <ExecutiveTile
               id="safety"
               label={t("Safety attention")}
               value={overview.tiles.safety?.unresolved_incidents ?? 0}
-              subline={t("{{count}} corrective action(s) still unresolved", { count: overview.tiles.safety?.unresolved_corrective_actions ?? 0 })}
+              subline={`${overview.tiles.safety?.unresolved_corrective_actions ?? 0} corrective action(s) still unresolved`}
               metadata={overview.tiles.safety?.kpi_metadata}
             />
             <ExecutiveTile
               id="activity"
               label={t("Today’s activity")}
               value={overview.tiles.activity?.daily_reports_today ?? 0}
-              subline={t("{{count}} meeting/JHA/inspection events today", { count: (overview.tiles.activity?.safety_meetings_today ?? 0) + (overview.tiles.activity?.jhas_today ?? 0) + (overview.tiles.activity?.equipment_inspections_today ?? 0) })}
+              subline={`${(overview.tiles.activity?.safety_meetings_today ?? 0) + (overview.tiles.activity?.jhas_today ?? 0) + (overview.tiles.activity?.equipment_inspections_today ?? 0)} meeting/JHA/inspection events today`}
               metadata={overview.tiles.activity?.kpi_metadata}
             />
           </div>

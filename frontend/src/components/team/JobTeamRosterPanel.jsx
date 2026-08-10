@@ -64,6 +64,15 @@ function sortRoles(roles) {
 
 const ROW_TEST = (slot) => `job-team-row-${slot}`;
 
+function accessErrText(err) {
+  if (!err) return "";
+  if (typeof err === "string") return err;
+  if (typeof err === "object") {
+    return err.explanation || err.reason || err.detail || err.message || "Access restricted by policy.";
+  }
+  return String(err);
+}
+
 // TRACK 15.10 · canonical display-name fallback hierarchy.
 // 1) full_name → 2) display_name → 3) name → 4) first+last →
 // 5) email → 6) Employee #<id> → 7) "Unknown person — Admin review required"
@@ -374,7 +383,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
             className="text-sm text-amber-900 bg-amber-50 border border-amber-200 p-3 rounded mb-3 flex items-start gap-2"
           >
             <ShieldAlert className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-700" />
-            <p>{accessErr}</p>
+            <p>{accessErrText(accessErr)}</p>
           </div>
         )}
         {err && (
