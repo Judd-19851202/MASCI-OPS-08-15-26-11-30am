@@ -1,6 +1,6 @@
 # C1–C9 Platform Integration Truth Register
 
-Last updated: 2026-08-10T11:55Z
+Last updated: 2026-08-10T16:25Z
 
 Status: **OPEN / PARTIAL**
 
@@ -26,18 +26,22 @@ It is intentionally fail-closed: any material family not fully traced from canon
 | C9 portfolio performance | admin governance portfolio intelligence | `test_wp18c9_portfolio_intelligence.py` = 5/5 pass; full screenshot ledger now certifies portfolio performance at all governed widths/languages; 2026-08-10 live preview runtime recheck confirmed the certification project appears in the portfolio payload | PASS |
 | Platform truth-integrity scanner | governed contamination + stale-derived-state integrity checks | `/api/admin/platform-truth-integrity/*` is now GREEN after shared repairs for daily-report certification isolation + submitter stamping, hidden-row visibility filtering inside the cross-entity scanner, explicit legacy employee fixture governance, and current schedule/C7/C8/C9 stale-state dependency checks; `test_prec10_platform_truth_integrity.py` = 1/1 pass | PASS |
 | Cross-entity evidence & history integrity | `jobs_master`, `employees`, `transport_persons`, `transport_trucks`, `meetings`, `incidents`, `daily_reports`, `equipment_inspections`, `dispatch_assignments`, `field_submitter_bindings`, `cross_entity_exception_state` | `/api/admin/platform-truth-integrity/cross-entity` returns **GREEN** with `blocking_findings=[]`. Reconciliation is now explicit at `/api/admin/platform-truth-integrity/cross-entity/exceptions/reconciliation` and in `docs/governance/CROSS_ENTITY_EXCEPTION_RECONCILIATION.md`: `9,800` active exceptions, `0` materially misclassified exceptions, `169` current/live non-blocking exceptions, and `5,432` hidden/fixture-backed exceptions. The remaining legacy unresolved relationships are no longer silent drift: they are governed as `accepted_historical_gap` or `excluded_non_operational`, with deterministic canonical backfills only where evidence is defensible. | PASS at cross-entity gate |
-| Trust Spine | trust-spine canonical workflow evidence | `/api/admin/trust-spine` 200 with `platform_band=green` | PASS for workflow evidence, insufficient for whole-platform closure |
+| Trust Spine | trust-spine canonical workflow evidence | `test_track_15_76_trust_spine.py` now passes after the preview-safe stale-oracle cleanup; `/api/admin/trust-spine` returns 200 and the frontend `/admin/trust-spine` renders a truthful bounded state even when current preview workflow rows are empty instead of faking green | PASS |
 | HR queue/time-off/roster truth | employee requests, FL records, HR roster authority | employee-requests + time-off source parity rechecked live on 2026-08-10; 2026-08-10 roster closure now adds exact active-roster source parity plus live EmployeeCombo consumer proof (`Alex Stansbury` surfaced from the shared `/api/hr/employee-roster` endpoint on `/daily/submit`) | PASS |
 | Governance / R2 / capacity / production certification | governed admin truth endpoints | governance summary + cluster capacity current/history source parity rechecked live on 2026-08-10; 2026-08-10 admin proof batch also directly rechecked R2 lifecycle builder parity, production-certification builder parity, platform-trust validator parity, OCC count reconciliation, and frontend drilldown truthfulness on `/admin`, `/admin/storage-recovery`, and `/admin/governance-trust` | PASS |
+| Employee / project-member / staffing truth family | `project_team_assignments`, `jobs_master`, governed roster/staffing summary | `test_project_team_assignments.py` and `test_track14_pm_staffing_e2e_iteration517.py` now pass under the live preview URL; `/api/project-staffing/summary` returns 200; frontend `/admin/project-staffing` renders truthful overloaded/unassigned staffing state without false-zero placeholders | PASS |
+| Shop KPI and queue family | dispatch command summary shop slice + shop/corporate intelligence engine | selected Track 19.45B shop/corporate intelligence contract pack passes; `/api/operations/intelligence/shop` returns 200; frontend `/shop` renders `shop-hub-v2-oi-strip` and the recovery queues truthfully from `/api/dispatch/command/summary` | PASS |
+| Dispatch / fleet / transportation KPI family | `equipment_master`, `dispatch_assignments`, `fleet_status`, `fleet_defects`, transportation intelligence engine | shared fleet synthetic sentinel leak repaired once in `lib/synthetic_fleet_filter.py`; `test_track_28_05_fleet_dispatch_e2e.py` + `test_track_19_42_score_retrofit_and_transportation.py` now pass; `/api/dispatch/command/summary` returns 200 and frontend `/dispatch-portal/command` renders the governed command strip and boards | PASS |
+| Daily-report executive rollups and operator summaries | `daily_reports`, summary-draft engine, approved-report registry | export/runtime pack now passes including async PDF polling (`test_iteration_586_async_jobs.py` = 11/11 pass); frontend `/admin/daily` renders truthful report counts and detail drilldown; approved daily-report PDF export panel remains usable on `/admin/operational-intelligence` | PASS |
+| Operational Intelligence / C6 downstream parity family | governed operational-intelligence overview/export/history/audit chain | shared C6 pack now passes (`test_wp17a_kpi_remediation_preview.py`, `test_track_15_76_trust_spine.py`, `test_wp18c6_operational_intelligence_e2e.py` = 43/43 pass); `/api/admin/governance/project-controls/operational-intelligence/overview` and export endpoints return 200; frontend `/admin/operational-intelligence` remains truthful with the approved-reports consumer visible | PASS |
+| Exports / notifications / PDF / email KPI consumers | governed digest, notification, async artifact, approved-report, and CSV/PDF delivery surfaces | consumer proof pack now passes (`test_deferred_containment.py`, `test_track_28_02_field_ops_sweep.py`, `test_iter150_tasks_notifications.py`, `test_prec10_cross_surface_parity.py`, `test_track_22_4b_workflow_trace.py` = 39 pass / 1 skipped) plus `test_iteration_586_async_jobs.py` = 11/11 pass; frontend Safety Digest, Notifications Digest, and Approved Daily Reports PDF flows all PASS | PASS |
+| Cross-surface KPI parity family | shared KPI metadata + governed parity across Admin / PM / Safety / Dispatch / Shop / Daily Report readers | cross-surface parity tests now pass inside the consumer pack, PM/Safety/project-controls parity remains closed from the earlier certified chain, and the human-facing `/admin/project-staffing`, `/admin/operational-intelligence`, `/dispatch-portal/command`, `/shop`, and `/admin/daily` flows now all render the same governed truth without false-zero/blank-state drift | PASS |
 
 ## Open denominator still requiring explicit closure
 
-- Employee / project-member / staffing truth family
-- Shop KPI and queue family
-- Dispatch / fleet / transportation KPI family
-- Daily-report executive rollups and operator summaries
-- Operational Intelligence / C6 downstream parity family (core API/e2e/foundation packs now passing; remaining ledger bookkeeping open)
-- Exports / notifications / PDF / email KPI consumers
-- Every cross-surface KPI parity family listed in `PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md`
+- Admin hub / Admin Operations Dashboard card sets
+- Executive Operations Dashboard and broader leadership scorecard consumers
+- Field Leadership dashboard / constrained forecast-schedule posture surfaces
+- Compliance / governance / qualifications / training / audit posture consumers
 
 No C1–C9 family may be marked PASS until runtime parity, orphan/disconnect checks, and downstream consumer inventory are complete.

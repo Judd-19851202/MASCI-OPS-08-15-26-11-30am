@@ -1,3 +1,27 @@
+# 2026-08-10 — PRE-C10 milestone after consumer + staffing + dispatch/shop KPI closure batch
+
+- **PRE-C10 status:** `175 / 216 closed = 81.0%`
+- **This batch:** `9` rows closed, `1` actual software defect discovered, `1` shared repair required, `1` high-blast-radius system modified.
+- **Remaining:** `8 partial / 33 open`
+
+## What closed in this batch
+
+- C1–C9 register: Trust Spine, employee/project-member/staffing truth family, shop KPI and queue family, dispatch/fleet/transportation KPI family, daily-report executive rollups and operator summaries, operational intelligence/C6 downstream parity family, exports/notifications/PDF/email KPI consumers, cross-surface KPI parity family.
+- KPI register: Daily Report Draft Health, Trust Spine Platform Band.
+
+## Immediate next actions
+
+### P0
+- Finish the remaining Admin OS / executive / field-leadership / compliance card families with human-facing proof.
+- Preserve the newly closed consumer, staffing, dispatch/fleet, shop, draft-health, and Trust Spine lanes unless contradictory runtime evidence appears.
+- After those non-final rows settle, enter the fresh final-certification gate sequence against the latest candidate only.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after Safety truth closure batch
 
 - **PRE-C10 status:** `166 / 216 closed = 76.9%`

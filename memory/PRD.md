@@ -1,5 +1,40 @@
 # PRD
 
+## 2026-08-10 — PRE-C10 consumer + staffing + dispatch/shop KPI closure batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.
+- Milestone advanced to **175 / 216 closed = 81.0%** with **8 partial / 33 open** remaining under the frozen denominator.
+- Completed in this batch:
+  - closed the export / notification / PDF / email consumer lane with current preview-safe artifact proof, digest proof, approved daily-report PDF proof, async-job proof, and human-facing frontend verification;
+  - closed staffing truth, shop KPI/queue truth, dispatch/fleet/transportation truth, daily-report executive rollups/operator summaries, operational-intelligence/C6 downstream parity, and cross-surface KPI parity;
+  - closed the KPI-register rows for Daily Report Draft Health and Trust Spine Platform Band with explicit human-facing admin proof.
+- Real shared defect factually repaired in this batch:
+  - `backend/lib/synthetic_fleet_filter.py` had regressed from sentinel-aware exclusion to explicit-marker-only exclusion, allowing `TEST_28_05_*` synthetic equipment/dispatch/shop rows to leak into `/api/fleet/units`, `/api/dispatch/fleet/status`, `/api/shop/fleet/defects`, and `/api/dispatch/assignments/board`. The shared helper now reapplies sentinel-family filtering at the canonical query layer.
+- Non-defect classifications resolved without app rewrites:
+  - async daily-report PDF delivery uses the governed 202 + poll contract;
+  - frontend release-identity mismatch was runtime metadata drift, corrected by regenerating the build stamp;
+  - the old unauthenticated `/api/equipment-master` oracle was stale because that internal endpoint is intentionally protected;
+  - live meeting traffic made one Trust Spine `events_24h == 0` assertion a stale fixture/oracle, not a software failure.
+- Verification evidence from this batch:
+  - `backend/tests/test_deferred_containment.py`
+  - `backend/tests/test_track_28_02_field_ops_sweep.py`
+  - `backend/tests/test_iter150_tasks_notifications.py`
+  - `backend/tests/test_prec10_cross_surface_parity.py`
+  - `backend/tests/test_track_22_4b_workflow_trace.py`
+  - `backend/tests/test_iteration_586_async_jobs.py`
+  - `backend/tests/test_track14_pm_staffing_e2e_iteration517.py`
+  - `backend/tests/test_track_28_05_fleet_dispatch_e2e.py`
+  - `backend/tests/test_project_team_assignments.py`
+  - `backend/tests/test_wp17a_kpi_remediation_preview.py`
+  - `backend/tests/test_track_15_76_trust_spine.py`
+  - `backend/tests/test_wp18c6_operational_intelligence_e2e.py`
+  - selected doctrine-relevant tests from `test_track_19_45b_shop_corporate_intelligence.py`, `test_track_19_46_weekly_operations_and_apis.py`, and `test_track_19_42_score_retrofit_and_transportation.py`
+  - frontend QA PASS on Trust Spine, Governance & Trust, Operational Intelligence, Project Staffing, Shop Hub V2, Dispatch Command Center, Draft Health tile, and Admin Daily Reports
+- Remaining immediate order after this batch:
+  - remaining Admin OS / executive / field-leadership / compliance card families
+  - remaining auth/session denominator
+  - fresh final-certification gate sequence only after the non-final rows settle
+
 ## 2026-08-10 — PRE-C10 Project Controls + Platform Truth Integrity closure batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.

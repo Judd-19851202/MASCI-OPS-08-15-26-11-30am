@@ -1,3 +1,30 @@
+# 2026-08-10 — PRE-C10 consumer + staffing + dispatch/shop KPI closure batch
+
+- Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **175 / 216 closed = 81.0%**.
+- Closed rows in this batch:
+  - C1–C9: Trust Spine, staffing truth, shop KPI/queue truth, dispatch/fleet/transportation truth, daily-report executive rollups/operator summaries, operational-intelligence/C6 downstream parity, export/notification/PDF/email consumers, cross-surface KPI parity.
+  - KPI register: Daily Report Draft Health and Trust Spine Platform Band.
+- Real defect repaired in this batch:
+  - shared fleet synthetic sentinel filtering had regressed to explicit-marker-only exclusion, so `TEST_28_05_*` rows leaked into fleet/dispatch/shop operational consumers. Fixed once in `backend/lib/synthetic_fleet_filter.py`, then reverified across all affected consumers.
+- Stale / environment classifications handled without app rewrites:
+  - daily-report PDF consumer oracle was updated to the canonical async-job contract (`202 Accepted` + polling);
+  - release-identity mismatch was an environment/runtime metadata drift and was corrected by regenerating the frontend build stamp;
+  - the old unauthenticated `/api/equipment-master` expectation was corrected to the protected endpoint contract;
+  - the Trust Spine “events_24h == 0” meeting assertion was tightened so live preview traffic no longer masquerades as a product defect.
+- Testing and proof for this batch:
+  - consumer pack: `39 pass / 1 skipped`
+  - async artifact pack: `11 / 11 PASS`
+  - staffing + fleet/dispatch pack: `29 / 29 PASS`
+  - draft-health / Trust Spine / C6 pack: `43 / 43 PASS`
+  - shop/corporate/weekly-ops/transportation intelligence contract packs: `41 / 41 PASS` across the selected doctrine-relevant tests
+  - frontend QA PASS on `/admin/trust-spine`, `/admin/governance-trust`, `/admin/operational-intelligence`, `/admin/project-staffing`, `/dispatch-portal/command`, `/shop`, `/admin/governance/legacy-health`, and `/admin/daily`
+- Batch accounting now stands at:
+  - Rows closed: `9`
+  - Actual software defects discovered: `1`
+  - Code repairs required: `1`
+  - High-blast-radius systems modified: `1`
+  - Remaining denominator state: `8 partial / 33 open`
+
 # 2026-08-10 — PRE-C10 Safety truth closure batch
 
 - Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **166 / 216 closed = 76.9%**.

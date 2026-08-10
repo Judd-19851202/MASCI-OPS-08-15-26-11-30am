@@ -24,6 +24,7 @@ Scope covered per the Track 28.02 review request:
 from __future__ import annotations
 
 import os
+import time
 from typing import Iterable
 
 import httpx
@@ -210,10 +211,33 @@ def test_daily_report_pdf_content_type_when_report_exists(
         timeout=60,
         follow_redirects=True,
     )
-    # Accept 200 (rendered) or 404 (PDF not yet rendered/legacy). Anything else = bug.
-    assert r.status_code in (200, 404, 409), (
+    # Canonical contract is async-job aware: 202 means the render was
+    # accepted and must be polled to completion.
+    assert r.status_code in (200, 202, 404, 409), (
         f"PDF endpoint returned {r.status_code}: {r.text[:200]}"
     )
     if r.status_code == 200:
         ct = r.headers.get("content-type", "")
         assert "pdf" in ct.lower(), f"expected application/pdf, got {ct!r}"
+    elif r.status_code == 202:
+        body = r.json()
+        status_url = body.get("status_url")
+        assert status_url, body
+        final = None
+        for _ in range(12):
+            time.sleep(max(float(body.get("poll_after_ms") or 1200) / 1000.0, 0.35))
+            final = httpx.get(
+                f"{BACKEND_URL}{status_url}",
+                headers=admin_headers,
+                timeout=30,
+            )
+            assert final.status_code == 200, final.text[:200]
+            payload = final.json()
+            if payload.get("status") in {"completed", "failed"}:
+                break
+        assert final is not None
+        payload = final.json()
+        assert payload.get("status") == "completed", payload
+        result = payload.get("result") or {}
+        assert result.get("media_type") == "application/pdf", result
+        assert result.get("download_url"), result

@@ -23,7 +23,7 @@ Sentinel fields matched (any → excluded):
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from lib.governed_fixture_evidence import is_governed_fixture
 from lib.governed_record_classification import (
@@ -56,39 +56,59 @@ FLEET_DEFECT_FIELDS = ("unit_number", "source_operator", "project_number")
 
 
 def _field_regex_not_test(field: str) -> Dict[str, Any]:
-    return {field: {"$not": {"$regex": _TEST_SENTINEL_RE, "$options": "i"}}}
+    return {
+        "$or": [
+            {field: {"$exists": False}},
+            {field: None},
+            {field: ""},
+            {field: {"$not": {"$regex": _TEST_SENTINEL_RE, "$options": "i"}}},
+        ]
+    }
 
 
 def _exclusion_clauses(fields: tuple[str, ...]) -> List[Dict[str, Any]]:
-    return governed_visibility_exclusion_clauses()
+    return governed_visibility_exclusion_clauses() + [_field_regex_not_test(field) for field in fields]
+
+
+def _apply_exclusion(query: Optional[Dict[str, Any]], fields: tuple[str, ...]) -> Dict[str, Any]:
+    q = dict(query or {})
+    extra = _exclusion_clauses(fields)
+    existing = q.get("$and")
+    if isinstance(existing, list):
+        q["$and"] = existing + extra
+    else:
+        q["$and"] = extra
+    return q
 
 
 def apply_synthetic_equipment_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     """Mix synthetic exclusion into a mongo query targeting ``equipment_master``."""
-    return apply_governed_visibility_exclusion(query)
+    return _apply_exclusion(query, EQUIPMENT_MASTER_FIELDS)
 
 
 def apply_synthetic_inspection_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     """Mix synthetic exclusion into a mongo query targeting
     ``equipment_inspections`` (Pre-Op / DVIR)."""
-    return apply_governed_visibility_exclusion(query)
+    return _apply_exclusion(query, INSPECTION_FIELDS)
 
 
 def apply_synthetic_dispatch_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     """Mix synthetic exclusion into a mongo query targeting ``dispatch_assignments``."""
-    return apply_governed_visibility_exclusion(query)
+    return _apply_exclusion(query, DISPATCH_ASSIGNMENT_FIELDS)
 
 
 def apply_synthetic_fleet_defect_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     """Mix synthetic exclusion into a mongo query targeting ``fleet_defect_items``."""
-    return apply_governed_visibility_exclusion(query)
+    return _apply_exclusion(query, FLEET_DEFECT_FIELDS)
 
 
 def is_synthetic_fleet_doc(doc: Dict[str, Any], fields: tuple[str, ...] = EQUIPMENT_MASTER_FIELDS) -> bool:
     """Python-side classifier used by cleanup + tests."""
     family = {
+        EQUIPMENT_MASTER_FIELDS: "equipment_master",
         INSPECTION_FIELDS: "equipment_inspections",
         DISPATCH_ASSIGNMENT_FIELDS: "dispatch_assignments",
+        FLEET_DEFECT_FIELDS: "fleet_defects",
     }.get(fields)
     if family:
         return is_governed_fixture(doc, family)

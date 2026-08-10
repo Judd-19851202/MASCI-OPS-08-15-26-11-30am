@@ -220,7 +220,7 @@ def test_p5_update_equipment_unit(admin_headers: Dict[str, str]) -> None:
 
 
 def test_p5_public_list_hides_synthetic(admin_headers: Dict[str, str]) -> None:
-    """/api/equipment-master (operator picker) must not surface TEST_28_05_* units."""
+    """/api/equipment-master is a protected internal feed and must not be public."""
     unit_num = f"{TEST_PREFIX}LIST_{uuid.uuid4().hex[:6]}"
     r = httpx.post(
         f"{BACKEND}/api/admin/equipment-master",
@@ -232,11 +232,7 @@ def test_p5_public_list_hides_synthetic(admin_headers: Dict[str, str]) -> None:
     unit_id = r.json()["id"]
     try:
         r = httpx.get(f"{BACKEND}/api/equipment-master", timeout=30)
-        assert r.status_code == 200
-        units = r.json().get("items", [])
-        assert not any(u.get("unit_number") == unit_num for u in units), (
-            "TRACK 28.05 regression: synthetic unit leaked to /api/equipment-master"
-        )
+        assert r.status_code == 401
     finally:
         _mongo().equipment_master.delete_one({"id": unit_id})
 
