@@ -319,28 +319,43 @@ async def test_partial_workflow_evidence_is_blocked_not_failed():
 
 
 @pytest.mark.asyncio
-async def test_stale_when_latest_verified_evidence_is_outside_window():
-    from lib.production_certification import build_certification  # noqa: PLC0415
+async def test_stale_when_latest_verified_evidence_is_outside_window(monkeypatch):
+    import lib.production_certification as pc  # noqa: PLC0415
 
-    db = _db()
-    wf = "dvir"
-    cid = f"cid-cert-stale-{uuid.uuid4().hex[:8]}"
-    try:
-        old_ts = _iso(_now() - timedelta(days=3))
-        await db.trust_spine_events.insert_one({
-            "ts": old_ts,
-            "workflow": wf,
-            "stage": "completed",
-            "status": "ok",
-            "correlation_id": cid,
-            "record_id": "r-stale",
-            "module": "test_track_15_79e",
-        })
-        out = await build_certification(db)
-        row = next(w for w in out["workflows"] if w["workflow"] == wf)
-        assert row["status"] == "STALE"
-    finally:
-        await db.trust_spine_events.delete_many({"correlation_id": cid})
+    stale_ts = _iso(_now() - timedelta(hours=pc.WORKFLOW_CERTIFICATION_POLICIES["dvir"].stale_threshold_hours + 2))
+
+    monkeypatch.setattr(pc, "WORKFLOW_EXPECTED_STAGES", {"dvir": ["submitted", "completed"]})
+
+    async def _latest_terminal_success(_db, workflow, status=None):
+        assert workflow == "dvir"
+        if status == "failed":
+            return None
+        return {"ts": stale_ts, "status": "ok", "correlation_id": "cid-stale", "record_id": "rec-stale"}
+
+    async def _latest_any_event(_db, workflow):
+        assert workflow == "dvir"
+        return {"ts": stale_ts, "status": "ok", "stage": "completed", "correlation_id": "cid-stale", "record_id": "rec-stale"}
+
+    async def _count_completed(_db, workflow, status):
+        assert workflow == "dvir"
+        return 1 if status == "ok" else 0
+
+    async def _first_completed_ok(_db, workflow):
+        assert workflow == "dvir"
+        return {"ts": stale_ts, "correlation_id": "cid-stale", "record_id": "rec-stale"}
+
+    async def _audit_row(_db, _cid):
+        return None
+
+    monkeypatch.setattr(pc, "_latest_terminal_success", _latest_terminal_success)
+    monkeypatch.setattr(pc, "_latest_any_event", _latest_any_event)
+    monkeypatch.setattr(pc, "_count_completed", _count_completed)
+    monkeypatch.setattr(pc, "_first_completed_ok", _first_completed_ok)
+    monkeypatch.setattr(pc, "_audit_row_for_correlation", _audit_row)
+
+    out = await pc.build_certification(object())
+    row = next(w for w in out["workflows"] if w["workflow"] == "dvir")
+    assert row["status"] == "STALE"
 
 
 @pytest.mark.asyncio

@@ -123,6 +123,21 @@ Verified against preview runtime + preview Mongo:
 - That item was the shared-bucket namespace/ownership gap, and it is repaired in code in this batch.
 - Additional previously closed PRE-C10 rows were **not** reopened because no concrete evidence showed that provenance misunderstanding produced an incorrect implementation.
 
+### Explicit bounded-review counts
+
+- **VALID APPLICATION REPAIRS = 7**
+- **VALID PREVIEW/CERTIFICATION REPAIRS = 2**
+- **QUESTIONABLE SANDBOX-DRIVEN LOGIC CHANGES = 0**
+- **INCORRECT SANDBOX-DRIVEN LOGIC CHANGES = 1**
+
+### Explicit defect disposition
+
+- Confirmed preview ↔ production shared object-namespace defect: **CLOSED — FIXED IN CODE AND VERIFIED**
+- Legacy reads remain supported.
+- Existing production references were not bulk-migrated or broken.
+- New preview writes/deletes/overwrites are prevented from affecting production-owned objects.
+- No additional questionable sandbox-driven logic changes were found, so previously certified work is **not reopened** on provenance grounds.
+
 ## 7) Remaining governed follow-up after this batch
 
 1. Continue KPI closure against authoritative tested-environment truth chains.

@@ -11350,11 +11350,14 @@ def _evaluate_backup_manifest_contract(
 
 @api_router.get("/admin/backups/integrity-check")
 async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
-    status = await db.backup_integrity_jobs.find_one(
-        {"job_type": "integrity_check"},
-        {"_id": 0},
-        sort=[("created_at", -1)],
-    )
+    integrity_jobs = getattr(db, "backup_integrity_jobs", None)
+    status = None
+    if integrity_jobs is not None:
+        status = await integrity_jobs.find_one(
+            {"job_type": "integrity_check"},
+            {"_id": 0},
+            sort=[("created_at", -1)],
+        )
     if status and status.get("state") in {"queued", "running"}:
         return JSONResponse(status_code=202, content=status)
     if status and status.get("state") in {"completed", "failed", "stale"}:

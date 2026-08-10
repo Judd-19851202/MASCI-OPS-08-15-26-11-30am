@@ -1,3 +1,29 @@
+# 2026-08-10 — PRE-C10 admin truth / recovery / recurrence closure batch
+
+- Continued shortest-path PRE-C10 closure under the frozen `216` denominator. New milestone position: **143 / 216 closed = 66.2%**.
+- Closed proof-only rows in this batch:
+  - KPI register: R2 Lifecycle Health, OCC Health Aggregator, Platform Trust Validator, Production Certification Freshness.
+  - C1–C9 register: Governance / R2 / capacity / production certification family.
+  - Master remediation: `PRE-C10-ADMIN-003` (Admin OS information architecture / recovery truth).
+  - Permanent Fix recurrence: `PRE-C10-ADMIN-OS-001` now `CLOSED — DIRECT RUNTIME VERIFIED`.
+- Explicit PRE-C10 carry-forward items now fully recorded in governance evidence:
+  - R2 environment namespace defect disposition: **CLOSED — FIXED IN CODE AND VERIFIED**.
+  - Bounded sandbox-vs-production retrospective counts: `VALID APPLICATION REPAIRS = 7`, `VALID PREVIEW/CERTIFICATION REPAIRS = 2`, `QUESTIONABLE = 0`, `INCORRECT = 1`.
+- One localized admin/recovery code repair was required:
+  - `backend/server.py` backup integrity route now gracefully handles runtimes/tests without `backup_integrity_jobs` instead of crashing.
+- Recovery/storage proof updated without forcing green values:
+  - `BACKUP_RECOVERY_RELEASE_CERTIFICATE.md` now records current preview runtime truth as `pill=RED`, `rpo.status=RED`, `rto.status=GREEN`, hourly complete-R2 disabled in preview by `environment_not_production`, and R2 lifecycle `band=AMBER` / `overall_score=67.5`.
+- Testing and proof for this batch:
+  - focused admin/recovery pytest pack: `86 / 86 PASS`
+  - frontend Admin OS truth-check: `16 / 16 PASS` across `/admin`, `/admin/storage-recovery`, `/admin/system`, `/admin/governance-trust` in EN/ES + desktop/mobile
+  - backend parity proof confirmed live endpoint ↔ builder reconciliation for R2 lifecycle, production certification, platform trust validator, and recovery snapshot semantics
+- Batch accounting:
+  - Proof-only rows closed: `7`
+  - Actual software defects discovered: `1`
+  - Code repairs required: `1`
+  - High-blast-radius systems modified: `1`
+  - Remaining denominator state: `16 partial / 57 open`
+
 # 2026-08-10 — PRE-C10 proof-closure batch after accepted R2 repair
 
 - Continued PRE-C10 closure under the frozen `216` denominator with minimal code churn. Current milestone position: **136 / 216 closed = 63.0%**.

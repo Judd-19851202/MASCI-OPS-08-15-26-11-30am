@@ -39,7 +39,9 @@ def test_complete_r2_state_falls_back_to_backup_health_when_scheduler_memory_emp
 
         out = asyncio.run(server.admin_complete_r2_state(True))
         assert out["nightly_last"]["filename"] == "MASCI_complete_backup_2026-07-13_090407Z.zip"
-        assert out["nightly_last"]["r2_key"] == "backups/auto-90d/MASCI_complete_backup_2026-07-13_090407Z.zip"
+        assert out["nightly_last"]["r2_key"] == (
+            f"{server._canonical_backup_prefix()}MASCI_complete_backup_2026-07-13_090407Z.zip"
+        )
         assert out["nightly_last_date"] == "2026-07-13"
         assert out["nightly_last_hour"] == "2026-07-13T09"
     finally:

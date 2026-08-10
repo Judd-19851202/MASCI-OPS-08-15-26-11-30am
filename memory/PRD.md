@@ -1289,3 +1289,32 @@
   - Remaining denominator state: `18 partial / 62 open`
 - The updated fixture ID was recorded in `/app/memory/test_credentials.md` so future runtime detail-route checks use a live preview record.
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.
+
+## 2026-08-10 — PRE-C10 admin truth / recovery proof batch
+- Continued the accepted closure model: **PROVE FIRST → MODIFY ONLY IF FACTUALLY BROKEN → TARGETED REGRESSION → CLOSE**.
+- New milestone after this batch: **143 / 216 closed = 66.2%** with `16 partial / 57 open` remaining.
+- Proof-only rows closed in this batch:
+  - KPI truth: R2 Lifecycle Health, OCC Health Aggregator, Platform Trust Validator, Production Certification Freshness.
+  - C1–C9 integration truth: Governance / R2 / capacity / production certification family.
+  - Master remediation: `PRE-C10-ADMIN-003` (Admin OS information architecture / recovery truth).
+  - Permanent-fix recurrence: `PRE-C10-ADMIN-OS-001`.
+- Localized software defect repaired in this batch:
+  - `backend/server.py` backup integrity route now gracefully handles runtimes/tests where `backup_integrity_jobs` is absent instead of failing hard.
+- Verification evidence for this batch:
+  - focused admin/recovery pytest pack: `86 / 86 PASS`
+  - frontend Admin OS truth-check: `16 / 16 PASS` across `/admin`, `/admin/storage-recovery`, `/admin/system`, `/admin/governance-trust` in EN/ES + desktop/mobile
+  - direct builder-to-endpoint parity confirmed live for R2 lifecycle, production certification, platform trust validator, and recovery snapshot semantics
+- Required carry-forward PRE-C10 items are now explicitly dispositioned in governance docs:
+  - R2 environment namespace defect: **CLOSED — FIXED IN CODE AND VERIFIED**
+  - bounded sandbox-vs-production retrospective counts:
+    - `VALID APPLICATION REPAIRS = 7`
+    - `VALID PREVIEW/CERTIFICATION REPAIRS = 2`
+    - `QUESTIONABLE SANDBOX-DRIVEN LOGIC CHANGES = 0`
+    - `INCORRECT SANDBOX-DRIVEN LOGIC CHANGES = 1`
+  - Because `QUESTIONABLE = 0`, previously certified work is not reopened on provenance grounds.
+- Current batch accounting:
+  - Proof-only rows closed: `7`
+  - Actual software defects discovered: `1`
+  - Code repairs required: `1`
+  - High-blast-radius systems modified: `1`
+- PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.

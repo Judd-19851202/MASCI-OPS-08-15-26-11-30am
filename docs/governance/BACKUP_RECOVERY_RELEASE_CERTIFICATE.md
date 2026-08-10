@@ -125,3 +125,26 @@ Mode: verification-only; no backup, restore, or migration execution performed in
 ### Addendum conclusion
 - This candidate is not blocked by source-code backup tooling defects anymore.
 - It remains blocked for final Production authorization until live backup completeness is green and fresh restore-drill evidence is captured for the release window.
+
+## 2026-08-10 addendum — preview runtime truth re-verification for PRE-C10 closure
+
+### Current preview runtime truth
+- `GET /api/admin/recovery/snapshot` and the direct route builder now reconcile on the current preview runtime state:
+  - `pill=RED`
+  - `rpo.status=RED` with backup age `~5224.8 min` versus target `60 min`
+  - `rto.status=GREEN` with latest drill `11.485 min` versus target `15 min`
+  - hourly complete-R2 activation status: `DISABLED BY CONFIGURATION`
+  - blocking reason: `environment_not_production`
+- `GET /api/admin/r2/lifecycle/health` and `compute_storage_health(db)` now reconcile directly on the current preview runtime state:
+  - `band=AMBER`
+  - `overall_score=67.5`
+
+### Honest interpretation for PRE-C10
+- The recovery/storage surfaces are now current and truthful for the preview environment being tested.
+- The current RED/AMBER posture is acceptable as evidence because it is honestly derived from preview runtime state.
+- This addendum does **not** claim current production backup freshness or production recoverability.
+
+### Updated classification
+- Source / code contract: VERIFIED
+- Preview runtime truth surface: VERIFIED
+- Production live owner / infrastructure proof: still outside this preview closure pass and still not claimed here

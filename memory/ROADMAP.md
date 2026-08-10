@@ -1,3 +1,39 @@
+# 2026-08-10 — PRE-C10 milestone after admin truth / recovery closure batch
+
+- **PRE-C10 status:** `143 / 216 closed = 66.2%`
+- **This batch:** `7` proof-only rows closed, `1` actual software defect discovered, `1` code repair required, `1` high-blast-radius system modified.
+- **Remaining:** `16 partial / 57 open`
+
+## What closed in this batch
+
+- KPI rows closed: R2 Lifecycle Health, OCC Health Aggregator, Platform Trust Validator, Production Certification Freshness.
+- C1–C9 row closed: Governance / R2 / capacity / production certification family.
+- Admin OS master row closed: `PRE-C10-ADMIN-003`.
+- Recurrence row closed: `PRE-C10-ADMIN-OS-001`.
+
+## Required PRE-C10 carry-forward items now explicitly dispositioned
+
+- **R2 environment namespace isolation:** closed/dispositioned as **FIXED IN CODE AND VERIFIED** with legacy reads preserved and no bulk migration/delete.
+- **Bounded sandbox-vs-production retrospective:**
+  - `VALID APPLICATION REPAIRS = 7`
+  - `VALID PREVIEW/CERTIFICATION REPAIRS = 2`
+  - `QUESTIONABLE SANDBOX-DRIVEN LOGIC CHANGES = 0`
+  - `INCORRECT SANDBOX-DRIVEN LOGIC CHANGES = 1`
+- Because `QUESTIONABLE = 0`, no additional previously certified work was reopened.
+
+## Immediate next actions
+
+### P0
+- Continue remaining KPI denominator rows with the cheapest current proof chains: active employee roster truth, Project Health Summary, safety company posture family, PM operational KPI family, and remaining executive overview tiles only where deterministic evidence exists.
+- Continue remaining C1–C9 partial families: safety corrective-action truth, safety archive/history lifecycle, HR roster truth, platform truth-integrity scanner, and any downstream export/notification consumers that are still legitimately in the frozen denominator.
+- Continue remaining recurrence rows that still depend on unfinished KPI, auth/session, and C1–C9 closure.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after proof-only closure batch
 
 - **PRE-C10 status:** `136 / 216 closed = 63.0%`
