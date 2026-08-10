@@ -30,7 +30,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from ._helpers import now_iso, write_audit
@@ -569,115 +569,117 @@ def register_excavation_routes(
 
     # ── PUBLIC submit (no auth) ────────────────────────────────────
     @api_router.post(PREFIX + "/public/submit")
-    async def public_submit(body: ExcavationSubmit):
-        ex_id = await _next_excavation_id(db)
-        rec: Dict[str, Any] = body.model_dump()
-        rec["id"] = ex_id
-        rec["created_at"] = now_iso()
-        rec["updated_at"] = now_iso()
-        rec["status"] = "Submitted"
-        rec["coaching_notes"] = []
-        rec["review_history"] = []
-        rec["reinspection_history"] = []
-        # Personnel mirror — keep supervisor_name back-compat synced with foreman_name
-        if not rec.get("supervisor_name") and rec.get("foreman_name"):
-            rec["supervisor_name"] = rec["foreman_name"]
-        # Notes — original-language preservation (Correction 9)
-        if rec.get("field_notes") and not rec.get("field_notes_original_text"):
-            rec["field_notes_original_text"] = rec["field_notes"]
-            rec["field_notes_original_language"] = rec.get("language") or "en"
-        # FV-7 · enrich record with linked-asset + CP qualification data
-        await _enrich_record_for_flags(db, rec)
-        # OSHA flags
-        flags = compute_osha_flags(rec)
-        # Strip enrichment fields before persistence (engine-only context)
-        rec.pop("_linked_assets", None)
-        rec.pop("_cp_lookup", None)
-        rec["flags"] = flags
-        rec["status"] = derive_status(rec, flags)
-        # Daily Report cross-reference — non-invasive lookup (Correction 1)
-        rec["daily_report_links"] = []
-        try:
-            search = {}
-            if body.project_number:
-                search["project_number"] = body.project_number
-            elif body.project_name:
-                search["project_name"] = {"$regex": f"^{body.project_name}$", "$options": "i"}
-            if body.date_of_work:
-                search["report_date"] = body.date_of_work
-            if search:
-                dr_cursor = db.daily_reports.find(search, {"_id": 0, "id": 1, "report_number": 1}).limit(5)
-                async for dr in dr_cursor:
+    async def public_submit(body: ExcavationSubmit, request: Request):
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            ex_id = await _next_excavation_id(db)
+            rec: Dict[str, Any] = body.model_dump()
+            rec["id"] = ex_id
+            rec["created_at"] = now_iso()
+            rec["updated_at"] = now_iso()
+            rec["status"] = "Submitted"
+            rec["coaching_notes"] = []
+            rec["review_history"] = []
+            rec["reinspection_history"] = []
+            if not rec.get("supervisor_name") and rec.get("foreman_name"):
+                rec["supervisor_name"] = rec["foreman_name"]
+            if rec.get("field_notes") and not rec.get("field_notes_original_text"):
+                rec["field_notes_original_text"] = rec["field_notes"]
+                rec["field_notes_original_language"] = rec.get("language") or "en"
+            await _enrich_record_for_flags(db, rec)
+            flags = compute_osha_flags(rec)
+            rec.pop("_linked_assets", None)
+            rec.pop("_cp_lookup", None)
+            rec["flags"] = flags
+            rec["status"] = derive_status(rec, flags)
+            rec["daily_report_links"] = []
+            try:
+                search = {}
+                if body.project_number:
+                    search["project_number"] = body.project_number
+                elif body.project_name:
+                    search["project_name"] = {"$regex": f"^{body.project_name}$", "$options": "i"}
+                if body.date_of_work:
+                    search["report_date"] = body.date_of_work
+                if search:
+                    dr_cursor = db.daily_reports.find(search, {"_id": 0, "id": 1, "report_number": 1}).limit(5)
+                    async for dr in dr_cursor:
+                        rec["daily_report_links"].append({
+                            "daily_report_id": dr.get("id"),
+                            "report_number": dr.get("report_number"),
+                            "linked_at": now_iso(),
+                        })
+                if body.triggered_from_daily_report_id and not any(
+                    lk["daily_report_id"] == body.triggered_from_daily_report_id
+                    for lk in rec["daily_report_links"]
+                ):
                     rec["daily_report_links"].append({
-                        "daily_report_id": dr.get("id"),
-                        "report_number": dr.get("report_number"),
+                        "daily_report_id": body.triggered_from_daily_report_id,
+                        "report_number": "",
                         "linked_at": now_iso(),
                     })
-            # Explicit linkage if submitted FROM a daily report
-            if body.triggered_from_daily_report_id and not any(
-                lk["daily_report_id"] == body.triggered_from_daily_report_id
-                for lk in rec["daily_report_links"]
-            ):
-                rec["daily_report_links"].append({
-                    "daily_report_id": body.triggered_from_daily_report_id,
-                    "report_number": "",
-                    "linked_at": now_iso(),
-                })
-        except Exception as e:  # noqa: BLE001
-            logger.warning("excavation daily-report lookup failed: %s", e)
-        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
-        try:
-            from lib.team_routing import snapshot_team  # noqa: PLC0415
-            _snap = await snapshot_team(db, rec.get("project_number"))
-            if _snap:
-                rec["team_snapshot"] = _snap
-        except Exception:  # noqa: BLE001
-            pass
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(
-            db,
-            rec,
-            "EXC",
-            when=rec.get("date_of_work") or rec.get("created_at"),
-        )
-        await db.trench_excavations.insert_one(rec)
-        rec.pop("_id", None)
-        # Reverse-link: stamp excavation_id into the Daily Report doc(s) (Correction 1)
-        try:
-            for link in rec["daily_report_links"]:
-                dr_id = link.get("daily_report_id")
-                if dr_id:
-                    await db.daily_reports.update_one(
-                        {"id": dr_id},
-                        {"$addToSet": {"linked_excavation_ids": ex_id}},
-                    )
-        except Exception as e:  # noqa: BLE001
-            logger.warning("excavation reverse-link write failed: %s", e)
-        # Audit
-        await write_audit(
-            db, kind="excavation_record_created",
-            asset_id=ex_id, actor={"email": body.submitted_by or "public"},
-            detail={
-                "excavation_id": ex_id, "source": body.source,
-                "flag_count": len(flags), "status": rec["status"],
-                "job_id": body.job_id, "project_number": body.project_number,
-                "daily_report_link_count": len(rec["daily_report_links"]),
-            },
-        )
-        # Notification fanout — reuse existing event_fanout
-        try:
-            from lib.event_fanout import emit_notification  # noqa: PLC0415
-            await emit_notification(
+            except Exception as e:  # noqa: BLE001
+                logger.warning("excavation daily-report lookup failed: %s", e)
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, rec.get("project_number"))
+                if _snap:
+                    rec["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(
                 db,
-                kind="trench_excavation_submitted",
-                title=f"Excavation submitted · {rec.get('doc_id') or ex_id}",
-                body=f"{body.project_name or 'Project'} · {body.foreman_name or body.supervisor_name or 'Foreman'} · {rec['status']}",
-                linked_equipment_id=ex_id,
-                actor_email=body.submitted_by or "public",
+                rec,
+                "EXC",
+                when=rec.get("date_of_work") or rec.get("created_at"),
             )
-        except Exception as e:  # noqa: BLE001
-            logger.warning("excavation notify failed: %s", e)
-        return rec
+            await db.trench_excavations.insert_one(rec)
+            rec.pop("_id", None)
+            try:
+                for link in rec["daily_report_links"]:
+                    dr_id = link.get("daily_report_id")
+                    if dr_id:
+                        await db.daily_reports.update_one(
+                            {"id": dr_id},
+                            {"$addToSet": {"linked_excavation_ids": ex_id}},
+                        )
+            except Exception as e:  # noqa: BLE001
+                logger.warning("excavation reverse-link write failed: %s", e)
+            await write_audit(
+                db, kind="excavation_record_created",
+                asset_id=ex_id, actor={"email": body.submitted_by or "public"},
+                detail={
+                    "excavation_id": ex_id, "source": body.source,
+                    "flag_count": len(flags), "status": rec["status"],
+                    "job_id": body.job_id, "project_number": body.project_number,
+                    "daily_report_link_count": len(rec["daily_report_links"]),
+                },
+            )
+            try:
+                from lib.event_fanout import emit_notification  # noqa: PLC0415
+                await emit_notification(
+                    db,
+                    kind="trench_excavation_submitted",
+                    title=f"Excavation submitted · {rec.get('doc_id') or ex_id}",
+                    body=f"{body.project_name or 'Project'} · {body.foreman_name or body.supervisor_name or 'Foreman'} · {rec['status']}",
+                    linked_equipment_id=ex_id,
+                    actor_email=body.submitted_by or "public",
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.warning("excavation notify failed: %s", e)
+            return rec
+
+        return await with_idempotency(
+            db,
+            key,
+            {"role": "public"},
+            _do_create,
+            workflow="trench_excavation_public_submit",
+        )
 
     # ── List + filter ──────────────────────────────────────────────
     @api_router.get(PREFIX)

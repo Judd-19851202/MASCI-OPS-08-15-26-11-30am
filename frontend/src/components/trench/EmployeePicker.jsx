@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 import { fetchHrRoster, subscribeHrRoster } from "@/lib/hrRoster";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 
@@ -18,16 +19,20 @@ import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 // `db.employees`. Less volatile than the main roster — short-lived
 // in-flight de-dup only, no persistent cache (Track 19.03 doctrine).
 let _cpPromise = null;
-async function loadCompetentPersons() {
+async function loadCompetentPersons({ publicFallback = false } = {}) {
   if (_cpPromise) return _cpPromise;
-  _cpPromise = api.get("/employees/competent-persons")
+  const anonymousSafe = publicFallback || !hasAnyPortalAuthToken();
+  _cpPromise = api.get(
+    anonymousSafe ? "/employees/competent-persons/public" : "/employees/competent-persons",
+    anonymousSafe ? { skipSessionStatus: true } : undefined,
+  )
     .then((r) => Array.isArray(r.data?.items) ? r.data.items : [])
     .catch(() => [])
     .finally(() => { _cpPromise = null; });
   return _cpPromise;
 }
 
-export default function EmployeePicker({ value, onSelect, placeholder = "Select…", testId = "employee-picker", role }) {
+export default function EmployeePicker({ value, onSelect, placeholder = "Select…", testId = "employee-picker", role, publicFallback = false }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [roster, setRoster] = useState([]);
@@ -36,15 +41,15 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Select�
   useEffect(() => {
     let alive = true;
     if (isCpMode) {
-      loadCompetentPersons().then((items) => { if (alive) setRoster(items); });
+      loadCompetentPersons({ publicFallback }).then((items) => { if (alive) setRoster(items); });
       return () => { alive = false; };
     }
     // Canonical HR roster — live updates via `hr:roster-changed` bus.
     const apply = (items) => { if (alive) setRoster(items || []); };
     const unsub = subscribeHrRoster(apply);
-    fetchHrRoster().then(apply);
+    fetchHrRoster({ publicFallback }).then(apply);
     return () => { alive = false; unsub(); };
-  }, [isCpMode]);
+  }, [isCpMode, publicFallback]);
 
   const filtered = useMemo(() => {
     if (!role || isCpMode) return roster;

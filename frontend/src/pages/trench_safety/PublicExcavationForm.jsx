@@ -37,11 +37,76 @@ import { useT } from "@/lib/i18n";
 import { translateUserInput, persistBilingualSidecar } from "@/lib/translateOnSubmit";
 import SubmissionConfirmation from "@/components/submission/SubmissionConfirmation";
 import { buildSubmissionConfirmation } from "@/lib/submissionConfirmation";
+import { toast } from "sonner";
+import {
+  useFormDraft,
+  getDeviceScopedActorId,
+  DraftStatusPill,
+  DraftRestorePrompt,
+  getActivePublicDraftSession,
+  ensureActivePublicDraftSession,
+  clearActivePublicDraftSession,
+  buildPublicDraftSessionScope,
+  buildPublicDraftScopedFormKey,
+  hasMeaningfulPublicDraft,
+  mintIdempotencyKey,
+  persistIdempotencyKey,
+  loadIdempotencyKey,
+} from "@/lib/resiliency";
 
 const WORK_TYPES = ["Utility Work", "Storm Drain", "Sanitary Sewer", "Water Main", "Electrical / Communication", "Roadway Excavation", "Structure / Box Culvert", "Drainage", "Other"];
 const SOILS = ["Type A", "Type B", "Type C", "Stable Rock", "Unknown / Needs Review"];
 const PROTECT = ["Trench Box / Shielding", "Shoring", "Sloping", "Benching", "Combination", "Not Required", "Needs Safety Review"];
 const LOCATE = ["Complete", "Pending", "Not Required", "Conflict / Needs Review"];
+const EXCAVATION_FORM_BASE = "public-excavation";
+
+function buildExcavationDefaults(sp, currentLang) {
+  return {
+    job_id: "",
+    project_name: sp.get("project_name") || "",
+    project_number: sp.get("project_number") || "",
+    customer: "",
+    project_manager: "",
+    pm_email: "",
+    location: sp.get("location") || "",
+    work_area: "",
+    date_of_work: sp.get("date") || new Date().toISOString().slice(0, 10),
+    prepared_by_id: "", prepared_by_name: "",
+    foreman_id: "", foreman_name: sp.get("supervisor") || "",
+    leadman_id: "", leadman_name: "",
+    superintendent_id: "", superintendent_name: "",
+    supervisor_name: sp.get("supervisor") || "",
+    crew: sp.get("crew") || "",
+    submitted_by: "", contact_phone: "",
+    length_ft: "", width_ft: "", depth_ft: "", depth_unit: "ft",
+    depth_ge_4ft: null, depth_ge_5ft: null, cave_in_hazard_under_5ft: null,
+    work_type: "Other", soil_classification: "Unknown / Needs Review",
+    protective_system: "Needs Safety Review", no_protective_system_reason: "",
+    assigned_asset_ids: [],
+    road_plates_used: null, road_plate_ids: [],
+    access_egress_required: null, access_egress_installed: null, access_egress_within_25ft: null,
+    ladder_extends_above_landing: null, access_egress_secure: null,
+    utility_locate_required: null, locate_ticket_number: "", locate_status: "Not Required",
+    utility_conflicts_observed: null, utility_notes: "",
+    spoils_2ft_from_edge: null, equipment_near_edge: null, barricades_in_place: null, stop_logs_used: null,
+    water_present: null, seepage_present: null, dewatering_required: null, dewatering_active: null, water_needs_review: null,
+    deep_or_confined_concern: null, hazardous_atmosphere_concern: null,
+    atmospheric_testing_required: null, atmospheric_testing_completed: null, atmospheric_notes: "",
+    competent_person_id: "", competent_person_name: "", competent_person_confirmed: false,
+    inspection_before_entry_completed: null, reinspection_required: null, reinspection_completed: null,
+    rain_event_observed: null,
+    photos: [],
+    field_notes: "",
+    field_notes_original_language: currentLang,
+    field_notes_original_text: "",
+    source: sp.get("source") || "public_tile",
+    triggered_from_daily_report_id: sp.get("daily_report_id") || "",
+    rated_depth_acknowledged: null,
+    rated_depth_acknowledgement_reason: "",
+    rated_depth_tabulated_data_exception: false,
+    emergency_excavation: null,
+  };
+}
 
 function Bool({ value, onChange, testId }) {
   const { t } = useT();
@@ -84,69 +149,74 @@ export default function PublicExcavationForm() {
   const { t, lang } = useT();
   const currentLang = lang || "en";
   const [sp] = useSearchParams();
-
-  const [f, setF] = useState(() => ({
-    // Job (Correction 2)
-    job_id: "",
-    project_name: sp.get("project_name") || "",
-    project_number: sp.get("project_number") || "",
-    customer: "",
-    project_manager: "",
-    pm_email: "",
-    location: sp.get("location") || "",
-    work_area: "",
-    date_of_work: sp.get("date") || new Date().toISOString().slice(0, 10),
-    // Personnel (Correction 3)
-    prepared_by_id: "", prepared_by_name: "",
-    foreman_id: "", foreman_name: sp.get("supervisor") || "",
-    leadman_id: "", leadman_name: "",
-    superintendent_id: "", superintendent_name: "",
-    supervisor_name: sp.get("supervisor") || "",
-    crew: sp.get("crew") || "",
-    submitted_by: "", contact_phone: "",
-    // Dimensions
-    length_ft: "", width_ft: "", depth_ft: "", depth_unit: "ft",
-    depth_ge_4ft: null, depth_ge_5ft: null, cave_in_hazard_under_5ft: null,
-    work_type: "Other", soil_classification: "Unknown / Needs Review",
-    protective_system: "Needs Safety Review", no_protective_system_reason: "",
-    // Assets (Corrections 4 + 5)
-    assigned_asset_ids: [],
-    road_plates_used: null, road_plate_ids: [],
-    // Access / Egress
-    access_egress_required: null, access_egress_installed: null, access_egress_within_25ft: null,
-    ladder_extends_above_landing: null, access_egress_secure: null,
-    // Utility locate
-    utility_locate_required: null, locate_ticket_number: "", locate_status: "Not Required",
-    utility_conflicts_observed: null, utility_notes: "",
-    // Spoils / Edge
-    spoils_2ft_from_edge: null, equipment_near_edge: null, barricades_in_place: null, stop_logs_used: null,
-    // Water
-    water_present: null, seepage_present: null, dewatering_required: null, dewatering_active: null, water_needs_review: null,
-    // Atmosphere
-    deep_or_confined_concern: null, hazardous_atmosphere_concern: null,
-    atmospheric_testing_required: null, atmospheric_testing_completed: null, atmospheric_notes: "",
-    // Competent Person + reinspection
-    competent_person_id: "", competent_person_name: "", competent_person_confirmed: false,
-    inspection_before_entry_completed: null, reinspection_required: null, reinspection_completed: null,
-    rain_event_observed: null,
-    // Photos (Correction 8)
-    photos: [],
-    // Field notes (Correction 9)
-    field_notes: "",
-    field_notes_original_language: currentLang,
-    field_notes_original_text: "",
-    source: sp.get("source") || "public_tile",
-    triggered_from_daily_report_id: sp.get("daily_report_id") || "",
-    // FV-7.1 · Rated-depth acknowledgement (foreman-side)
-    rated_depth_acknowledged: null,
-    rated_depth_acknowledgement_reason: "",
-    rated_depth_tabulated_data_exception: false,
-    // FV-7.5 · Emergency excavation flag
-    emergency_excavation: null,
-  }));
+  const initialForm = useMemo(() => buildExcavationDefaults(sp, currentLang), [sp, currentLang]);
+  const [f, setF] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(null);
   const [err, setErr] = useState("");
+  const actorId = React.useMemo(() => getDeviceScopedActorId(), []);
+  const [draftSessionId, setDraftSessionId] = React.useState(() => getActivePublicDraftSession(EXCAVATION_FORM_BASE));
+  const idempotencyKeyRef = React.useRef(null);
+  const draftPayload = React.useMemo(() => ({
+    ...f,
+    draft_session_id: draftSessionId || "",
+  }), [f, draftSessionId]);
+  const draftScope = React.useMemo(() => buildPublicDraftSessionScope(draftSessionId), [draftSessionId]);
+  const scopedDraftFormKey = React.useMemo(
+    () => buildPublicDraftScopedFormKey(EXCAVATION_FORM_BASE, draftSessionId),
+    [draftSessionId],
+  );
+  const {
+    pendingDraft, draftStatus, restore, discard, commit,
+  } = useFormDraft(EXCAVATION_FORM_BASE, draftPayload, actorId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
+
+  React.useEffect(() => {
+    if (draftSessionId) return;
+    if (!hasMeaningfulPublicDraft(draftPayload, ["draft_session_id", "date_of_work", "source", "triggered_from_daily_report_id"])) return;
+    setDraftSessionId(ensureActivePublicDraftSession(EXCAVATION_FORM_BASE));
+  }, [draftPayload, draftSessionId]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const key = await loadIdempotencyKey(scopedDraftFormKey);
+        if (!cancelled && key && !idempotencyKeyRef.current) {
+          idempotencyKeyRef.current = key;
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [scopedDraftFormKey]);
+
+  const onRestoreDraft = React.useCallback(() => {
+    const restored = restore();
+    if (!restored) return;
+    const restoredSessionId = ensureActivePublicDraftSession(EXCAVATION_FORM_BASE, restored.draft_session_id || draftSessionId);
+    const { draft_session_id: _draftSessionId, ...next } = restored;
+    setDraftSessionId(restoredSessionId);
+    setF(next);
+    toast.success(t("Draft restored"));
+  }, [restore, t, draftSessionId]);
+
+  const resetWorkflow = React.useCallback(() => {
+    clearActivePublicDraftSession(EXCAVATION_FORM_BASE, draftSessionId);
+    setDraftSessionId("");
+    idempotencyKeyRef.current = null;
+    setF(buildExcavationDefaults(sp, currentLang));
+    setErr("");
+  }, [draftSessionId, sp, currentLang]);
+
+  const onDiscardDraft = React.useCallback(async () => {
+    await discard();
+    resetWorkflow();
+    toast.message(t("Draft discarded"));
+  }, [discard, resetWorkflow, t]);
   // FV-7.1 · in-form roster cache so the rated-depth check is deterministic
   // without an extra round-trip. Roster items already include rated_depth_ft.
   const [assetRoster, setAssetRoster] = useState([]);
@@ -243,6 +313,14 @@ export default function PublicExcavationForm() {
     }
     setSaving(true);
     try {
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = mintIdempotencyKey();
+        try {
+          await persistIdempotencyKey(scopedDraftFormKey, idempotencyKeyRef.current);
+        } catch {
+          // ignore
+        }
+      }
       const depthNum = Number(f.depth_ft) || 0;
       const rawPayload = {
         ...f,
@@ -271,7 +349,13 @@ export default function PublicExcavationForm() {
       delete payload._original_language;
       delete payload._translated_at;
       delete payload._translation_source;
-      const r = await api.post("/trench-safety/excavations/public/submit", payload);
+      const r = await api.post("/trench-safety/excavations/public/submit", payload, {
+        headers: { "Idempotency-Key": idempotencyKeyRef.current },
+      });
+      await commit();
+      clearActivePublicDraftSession(EXCAVATION_FORM_BASE, draftSessionId);
+      setDraftSessionId("");
+      idempotencyKeyRef.current = null;
       // Best-effort: write the bilingual sidecar so the original Spanish is
       // preserved for audit while the canonical record stays English.
       const newId = r?.data?.id || r?.data?.excavation_id;
@@ -289,7 +373,7 @@ export default function PublicExcavationForm() {
 
   // ── Success shell ──────────────────────────────────────────────
   if (done) {
-    return <SuccessScreen done={done} setDone={setDone} t={t} />;
+    return <SuccessScreen done={done} onStartAnother={() => { resetWorkflow(); setDone(null); }} t={t} />;
   }
 
   // ── Main form shell ─────────────────────────────────────────────
@@ -308,6 +392,7 @@ export default function PublicExcavationForm() {
       description={t("The platform thinks first and the crew verifies. Compliance is calculated live so only the sections that apply to this trench show up below.")}
       heroMeta={(
         <>
+          <DraftStatusPill status={draftStatus} testId="public-excavation-draft-status" />
           <OperationalStatusBadge tone="cyan" testId="public-excavation-meta-live">{t("Live compliance")}</OperationalStatusBadge>
           <OperationalStatusBadge tone="amber" testId="public-excavation-meta-dynamic">{t("Dynamic sections")}</OperationalStatusBadge>
           <OperationalStatusBadge tone="red" testId="public-excavation-meta-stop">{t("Stop-work authority")}</OperationalStatusBadge>
@@ -329,6 +414,16 @@ export default function PublicExcavationForm() {
       footerText={t("MASCI Operations Platform · Excavation workflow")}
     >
       <div className="space-y-5">
+        {pendingDraft ? (
+          <DraftRestorePrompt
+            pendingDraft={pendingDraft}
+            onRestore={onRestoreDraft}
+            onDiscard={onDiscardDraft}
+            label={pendingDraft.project_name || pendingDraft.project_number || pendingDraft.work_area || t("Excavation workflow")}
+            updatedAt={pendingDraft.savedAt}
+            testId="public-excavation-draft-restore"
+          />
+        ) : null}
 
         {/* Phase 10C · Live operational decision-support panel */}
         <ExcavationComplianceCard result={compliance} />
@@ -397,18 +492,22 @@ export default function PublicExcavationForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div><Label className="text-xs font-bold">{t("Prepared By")}</Label>
               <EmployeePicker value={f.prepared_by_id} placeholder="Pick from roster…" testId="exc-prepared-by"
+                publicFallback
                 onSelect={(e) => setF((p) => ({ ...p, prepared_by_id: e.id, prepared_by_name: e.name }))} />
             </div>
             <div><Label className="text-xs font-bold">{t("Foreman / Supervisor")} *</Label>
               <EmployeePicker value={f.foreman_id} placeholder="Pick from roster…" testId="exc-foreman" role="foreman"
+                publicFallback
                 onSelect={(e) => setF((p) => ({ ...p, foreman_id: e.id, foreman_name: e.name, supervisor_name: e.name }))} />
             </div>
             <div><Label className="text-xs font-bold">{t("Leadman")}</Label>
               <EmployeePicker value={f.leadman_id} placeholder="Pick from roster…" testId="exc-leadman" role="leadman"
+                publicFallback
                 onSelect={(e) => setF((p) => ({ ...p, leadman_id: e.id, leadman_name: e.name }))} />
             </div>
             <div><Label className="text-xs font-bold">{t("Superintendent")}</Label>
               <EmployeePicker value={f.superintendent_id} placeholder="Pick from roster…" testId="exc-superintendent" role="superintendent"
+                publicFallback
                 onSelect={(e) => setF((p) => ({ ...p, superintendent_id: e.id, superintendent_name: e.name }))} />
             </div>
             <div><Label className="text-xs font-bold">{t("Submitted By")} *</Label>
@@ -709,6 +808,7 @@ export default function PublicExcavationForm() {
         <Section num="12" title={t("Competent Person")} testId="exc-section-12" highlight={triggers.cp}>
           <Label className="text-xs font-bold">{t("Competent Person Name")}</Label>
           <EmployeePicker value={f.competent_person_id} placeholder="Pick from roster…" testId="exc-cp-picker" role="competent"
+            publicFallback
             onSelect={(e) => setF((p) => ({ ...p, competent_person_id: e.id, competent_person_name: e.name }))} />
           <div className="flex items-end gap-2 mt-2">
             <input id="cp-conf" type="checkbox" checked={f.competent_person_confirmed} onChange={(e) => set("competent_person_confirmed", e.target.checked)} data-testid="exc-cp-confirmed" />
@@ -820,7 +920,7 @@ const FV73_REASONS = [
   "Other",
 ];
 
-function SuccessScreen({ done, setDone, t }) {
+function SuccessScreen({ done, onStartAnother, t }) {
   const [showReinspect, setShowReinspect] = useState(false);
   const [reason, setReason] = useState("Rain Event");
   const [note, setNote] = useState("");
@@ -841,7 +941,7 @@ function SuccessScreen({ done, setDone, t }) {
     startAnother: {
       label: "Start Another",
       onClick: () => {
-        setDone(null);
+        onStartAnother();
         window.scrollTo({ top: 0 });
       },
     },

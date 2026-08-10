@@ -5172,7 +5172,12 @@ async def list_jobs_public_lookup():
 # canonical store is filled.
 # Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md R7
 @api_router.get("/jobs/{project_number}/recent-context")
-async def jobs_recent_context(project_number: str, foreman: str = "", superintendent: str = ""):
+async def jobs_recent_context(
+    project_number: str,
+    foreman: str = "",
+    superintendent: str = "",
+    _: Dict[str, Any] = Depends(require_pm_portal_or_super_admin),
+):
     """TRACK 19.04 · Smart Prefill contract v19.04.
 
     Returns the most-recent Daily Report crew + equipment baseline for

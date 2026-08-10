@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { buildDailyReportDefaults } from "@/lib/dailyReportSchema";
 import { reverseGeocode } from "@/lib/geolocation";
 import { fetchDailyWeather } from "@/lib/weather";
+import { fetchHrRoster } from "@/lib/hrRoster";
 import {
   useFormDraft,
   persistIdempotencyKey,
@@ -353,8 +354,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     // TRACK 23.4B / HR autofill · re-hydrate trade / crew / supervisor
     // from the CURRENT Employee Master, never yesterday's snapshot.
     try {
-      const { data: empRes } = await api.get("/employees", { skipSessionStatus: true });
-      const list = empRes?.items || empRes || [];
+      const list = await fetchHrRoster({ publicFallback: true });
       setData((prev) => ({
         ...prev,
         masci_crews: refreshCrewFromEmployeeMaster(prev.masci_crews || [], list),

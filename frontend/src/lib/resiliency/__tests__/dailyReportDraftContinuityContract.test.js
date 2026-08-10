@@ -19,9 +19,11 @@ describe("daily report public draft continuity contract", () => {
     expect(source).toContain("recoverArchivedDraft");
     expect(source).toContain("findDraftEntriesForBase");
     expect(source).toContain("fallbackDraftOffer");
+    expect(source).toContain("fetchHrRoster({ publicFallback: true })");
     expect(source).toContain("headers: { \"Idempotency-Key\": idem }");
     expect(source).toContain("clearActiveDailyReportDraftSession(data.draft_session_id || \"\")");
     expect(source).toContain("startAnotherTo: \"/daily/submit\"");
     expect(source).not.toContain("autoRestoredDraftRef");
+    expect(source).not.toContain('api.get("/employees"');
   });
 });
