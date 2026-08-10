@@ -8,6 +8,7 @@ import React, { useEffect, useState } from "react";
 import { Calendar, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { sanitizeOperatorError, sanitizeOperatorReference } from "@/lib/operatorLanguage";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const BAND_PILL = {
   expired: "bg-rose-100 text-rose-900 border-rose-300",
@@ -59,7 +60,10 @@ export default function ExpirationsSummary({ title = "Document Expirations", cla
         </div>
         <button onClick={load} className="text-[10px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-800 inline-flex items-center gap-1" data-testid="docexp-refresh"><RefreshCw className="w-3 h-3" /> Refresh</button>
       </div>
-      <h3 className="font-display text-lg font-black tracking-tight text-slate-900 mb-3">{title}</h3>
+      <div className="mb-3 flex items-center gap-2">
+        <h3 className="font-display text-lg font-black tracking-tight text-slate-900">{title}</h3>
+        <KpiInlineHelp metadata={data?.kpi_metadata} fallbackLabel={title} testId="docexp-title-help" />
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
         {["expired", "in_30", "in_60", "in_90", "healthy"].map((b) => (

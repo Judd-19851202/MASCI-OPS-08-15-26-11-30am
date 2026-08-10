@@ -1,5 +1,25 @@
 # PRD
 
+## 2026-08-10 — PRE-C10 KPI/Admin continuation with hard blockers identified
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.
+- Completed in this batch:
+  - repaired KPI consumer-lineage gaps so `/hr/time-off`, `ExpirationsSummary`, `/safety-hub`, `/safety-hub-v2`, `/dispatch-hub-v2`, `/dispatch-portal/command`, `/shop-hub-v2`, and `/leadership-hub-v2` now surface governed KPI help from shared source metadata;
+  - added governed `kpi_metadata` to `/api/safety/overview` and `/api/dispatch/command/summary`, aligning current Safety/Dispatch/Leadership/Shop readers to the same backend truth contract;
+  - repaired three Admin OS false-red paths in OCC: abandoned/stale-only draft posture now degrades instead of mismatching, degraded integration probes no longer escalate to `MISMATCH`, and AI gateway status now honors the already-supported `EMERGENT_LLM_KEY` fallback so provider availability resolves truthfully.
+- Verification evidence from this batch:
+  - backend: `test_wp17a_portal_kpi_truth_batch2.py` → `5 passed`; `test_track_25_sprint_2_occ_trust_layer.py` → `42 passed`; `test_ai_gateway.py` → `10 passed`;
+  - frontend/source contracts: `PortalKpiMetadataConsumerContract`, `ExecutiveOverviewKpiConsumerContract`, `PmOperationalKpiHelpContract`, and `SafetyOperationalKpiDrilldownContract` all PASS;
+  - browser/runtime: preview `/hr/time-off` smoke PASS with the KPI help popover visible; live `/api/ai/gateway/status` now reports `resolved_provider_available=true`; live `/api/admin/occ/health` improved from `verified=4/degraded=2/mismatch=7` to `verified=6/degraded=3/mismatch=4`.
+- Hard blockers identified that cannot be safely closed by further autonomous code edits alone:
+  - **Recovery freshness blocker**: `/api/admin/recovery/snapshot` remains `pill=RED` with last complete archive `MASCI_complete_backup_2026-08-06_210529Z.zip`, `backup_age_minutes≈4615`, while hourly complete-R2 is explicitly disabled in preview (`activation_blockers=[environment_not_production]`). User/platform action required: run or authorize a fresh canonical complete backup in an environment where the backup policy is allowed, then re-evaluate recovery posture.
+  - **Storage lifecycle blocker**: `/api/admin/r2/lifecycle/health` remains `band=RED` with `inventory_age_minutes≈44074`, `verified_orphan=6237`, `orphan_pct=61.4`, and `backup_score=0`. User/platform action required: execute the authoritative storage inventory/classification/orphan-governance workflow and accept or remediate orphaned objects under the storage governance process.
+  - **Governance data blocker**: `/api/admin/governance/summary` remains `health_label=critical` with `586` open findings, including `431 PPE_MISSING` and `54 INC_NEEDS_CAPA`. User/business action required: complete the underlying PPE issuance and severe-incident CAPA remediation; this is data/process closure, not a frontend/backend code bug.
+  - **Workspace disk-pressure blocker**: `/app` remains at `94%` used (`621 MB` free) even though visible workspace content is only about `3.2 GB`; no deleted-open-file handle was found, and the stale `/tmp` backup build was on the root overlay rather than the `/app` mount. User/platform action required: investigate and reclaim storage on the mounted `/app` volume outside the visible repository footprint before any fresh heavy archive or lifecycle job can be safely attempted.
+- Remaining denominator still open after this batch:
+  - KPI truth, Admin OS, C1–C9, public/device continuity, owner-observed closure, recurrence audit, governance reconciliation, fresh full Product Quality v4, and final consolidated certification all remain incomplete;
+  - even with the new false-red repairs, PRE-C10 remains **NO-GO** because the hard blockers above are real current-state release blockers.
+
 ## 2026-08-10 — PRE-C10 auth/public, draft continuity, KPI, and Admin OS refresh batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **C10 not authorized**.

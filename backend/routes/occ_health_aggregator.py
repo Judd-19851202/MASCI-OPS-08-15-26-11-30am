@@ -413,28 +413,36 @@ def _eval_integrations(body, err, checked_at):
 
     live_probes = [p for p in probes if p.get("applicable")]
     stubbed = [p for p in probes if not p.get("applicable")]
-    degraded = [p for p in live_probes if p.get("canonical_status") != "VERIFIED"]
+    mismatch = [p for p in live_probes if p.get("canonical_status") == "MISMATCH"]
+    degraded = [
+        p for p in live_probes if p.get("canonical_status") in {"DEGRADED", "UNVERIFIABLE"}
+    ]
     overall = str(body.get("overall_status") or "").lower()
-    if overall == "critical" or degraded:
+    if overall == "critical" or mismatch:
         status = "MISMATCH"
-    elif overall == "warning":
-        status = "DEGRADED"
-    elif any(p.get("canonical_status") in {"DEGRADED", "UNVERIFIABLE"} for p in degraded):
+    elif overall in {"warning", "degraded", "partial"} or degraded:
         status = "DEGRADED"
     else:
         status = "VERIFIED"
-    healthy_live = len(live_probes) - len(degraded)
+    healthy_live = len(live_probes) - len(mismatch) - len(degraded)
     total_live = len(live_probes)
     stub_note = f" · {len(stubbed)} not applicable" if stubbed else ""
-    summary = f"{healthy_live}/{total_live} live integration probes healthy{stub_note}"
+    needs_attention = len(mismatch) + len(degraded)
+    attention_note = f" · {needs_attention} need attention" if needs_attention else ""
+    summary = f"{healthy_live}/{total_live} live integration probes healthy{attention_note}{stub_note}"
     action = ("Open Platform Configuration → Integrations to inspect degraded probes."
-              if degraded else "")
+              if mismatch or degraded else "")
     return _mk(status, summary,
                {"probes": probes, "overall_status": body.get("overall_status"),
                 "not_applicable_probe_ids": [p.get("id") for p in stubbed]},
                action, body.get("checked_at") or checked_at,
-               reason_code=("integrations_healthy" if status == "VERIFIED"
-                            else "integrations_degraded"))
+               reason_code=(
+                   "integrations_healthy"
+                   if status == "VERIFIED"
+                   else "integrations_mismatch"
+                   if status == "MISMATCH"
+                   else "integrations_degraded"
+               ))
 
 
 def _eval_email_v2(body, err, checked_at):
@@ -503,23 +511,31 @@ def _eval_draft_health(body, err, checked_at):
     stale = int(buckets.get("stale_1h_to_24h", 0) or 0)
     confidence_raw = body.get("entity_confidence")
     confidence = str(confidence_raw or "UNKNOWN").upper()
-    if failed > 0 or abandoned > 5:
+    if failed > 0:
         status = "MISMATCH"
+        reason_code = "draft_write_failures"
     elif abandoned > 0 or stale > 0:
         status = "DEGRADED"
+        reason_code = "abandoned_or_stale_drafts"
     else:
         status = "VERIFIED"
+        reason_code = "draft_health_healthy"
     if status == "VERIFIED" and confidence_raw is not None and confidence in {"LOW", "UNKNOWN"}:
         status = "DEGRADED"
+        reason_code = "draft_health_low_confidence"
     summary = (
         f"{failed} failed / {abandoned} abandoned / {stale} stale draft slots (confidence {confidence})"
     )
     action = ("Investigate failed drafts in daily reports admin queue." if failed
-              else "Encourage abandoned drafts to be completed or discarded." if abandoned
+              else "Review restore/discard follow-up; abandoned draft slots do not count as submitted truth." if abandoned or stale
               else "")
     return _mk(status, summary,
-               {"buckets": buckets, "sources": body.get("sources")},
-               action, body.get("generated_at") or checked_at)
+               {"buckets": buckets, "sources": body.get("sources"),
+                "entity_basis": body.get("entity_basis"),
+                "entity_confidence": confidence,
+                "limitations": body.get("limitations")},
+               action, body.get("generated_at") or checked_at,
+               reason_code=reason_code)
 
 
 def _eval_sessions(body, err, checked_at):

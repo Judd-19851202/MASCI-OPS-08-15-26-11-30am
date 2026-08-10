@@ -30,6 +30,7 @@ import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionS
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 import { useT } from "@/lib/i18n";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -67,6 +68,7 @@ function useSafetySignals() {
     // to the same source /trench-safety uses (see F22-4-006).
     trench_active_assets: null,
     trench_loaded: false,
+    metadata: null,
   });
 
   useEffect(() => {
@@ -78,6 +80,7 @@ function useSafetySignals() {
         ...prev,
         loaded: true,
         refreshedAt: new Date().toISOString(),
+        metadata: r.ok ? (b.kpi_metadata || null) : null,
         capas_open:             r.ok ? (b.corrective_actions_open ?? null) : null,
         capas_overdue:          r.ok ? (b.corrective_actions_overdue ?? null) : null,
         fire_ext_overdue:       r.ok ? (b.fire_extinguishers_overdue ?? null) : null,
@@ -230,6 +233,7 @@ export default function SafetyHubV2() {
             kicker="01 · Corrective Actions · live"
             title="Open and overdue corrective actions"
             caption="These live counts show what Safety needs to close, verify, or push today."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.corrective_actions} fallbackLabel="Safety corrective actions" testId="safety-hub-v2-capas-help" />}
           />
           <div data-testid="safety-hub-v2-queue-grid-capas"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
@@ -260,6 +264,7 @@ export default function SafetyHubV2() {
             kicker="02 · Compliance · live"
             title="Expirations and inspections"
             caption="These dates show what has expired, what is overdue, and what needs to be scheduled next."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.compliance} fallbackLabel="Safety compliance snapshot" testId="safety-hub-v2-compliance-help" />}
           />
           <div data-testid="safety-hub-v2-queue-grid-compliance"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
@@ -299,6 +304,7 @@ export default function SafetyHubV2() {
             kicker="03 · Incidents · recent activity"
             title="Incidents reported in the last 7 days"
             caption="Use these counts to decide where Safety follow-up is needed first."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.incidents} fallbackLabel="Safety incident activity" testId="safety-hub-v2-incidents-help" />}
           />
           <div data-testid="safety-hub-v2-queue-grid-incidents"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>

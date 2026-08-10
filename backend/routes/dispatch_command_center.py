@@ -46,6 +46,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from pydantic import BaseModel, Field
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 import dispatch_lifecycle as DLS
 from routes.dispatch_lifecycle import DEFAULT_TENANT_ID, _resolve_tenant
 
@@ -73,6 +74,97 @@ def _now_iso() -> str:
 
 def _new_id() -> str:
     return str(uuid.uuid4())
+
+
+def _summary_kpi_metadata() -> Dict[str, Any]:
+    base_sources = [
+        "equipment_master",
+        "dispatch_assignments",
+        "dispatch_driver_sessions",
+        "fleet_status",
+        "fleet_defects",
+        "projects",
+        "daily_reports",
+    ]
+    return {
+        "page": {
+            "kpi_name": "Dispatch Command Summary",
+            "business_definition": "Shared Dispatch operational snapshot consumed by Dispatch, Shop, and leadership readers.",
+            "source_of_truth": base_sources,
+            "api_endpoint": "/api/dispatch/command/summary",
+            "formula": "Server-side aggregation over Dispatch, fleet, haul, shop, safety, and asset-spine facts. No client-side count reconstruction is allowed.",
+            "confidence": "HIGH",
+            "status_reason": "This snapshot powers multiple portals, so all readers must inherit the same governed count lineage.",
+            "drilldown_source": "/dispatch-portal/command",
+            "owner": "dispatch-command-center",
+            "freshness": "Generated on request.",
+        },
+        "sections": {
+            "drivers_haul": {
+                "kpi_name": "Dispatch Driver and Haul Queues",
+                "business_definition": "Drivers awaiting acknowledgement plus active and blocked haul-cycle counts.",
+                "source_of_truth": ["dispatch_assignments", "dispatch_driver_sessions"],
+                "formula": {
+                    "drivers_unacked": "active_total assignments without acknowledgement inside the dispatch session flow",
+                    "active_hauls": "non-terminal active haul assignments",
+                    "waiting_on_plant": "active haul assignments in plant-wait state",
+                    "waiting_on_dump": "active haul assignments in dump-wait state",
+                    "breakdown_impacts": "active haul assignments blocked by breakdown state",
+                },
+                "freshness": "Generated on request.",
+                "status_reason": "These counts drive the next dispatch action in both dispatcher and leadership views.",
+            },
+            "fleet_shop": {
+                "kpi_name": "Fleet and Shop Snapshot",
+                "business_definition": "Fleet availability, in-shop posture, and shop defect pressure for active operations.",
+                "source_of_truth": ["equipment_master", "fleet_status", "fleet_defects"],
+                "formula": {
+                    "fleet_oos": "fleet rows classified out-of-service by the shared status priority chain",
+                    "in_shop": "fleet rows currently routed through the shop or maintenance hold",
+                    "shop_defects_open": "open shop defects",
+                    "active_recovery": "shop recovery rows still in repair",
+                    "waiting_on_parts": "shop recovery rows blocked on parts",
+                },
+                "freshness": "Generated on request.",
+                "status_reason": "Dispatch, Shop, and leadership all consume these numbers to understand equipment pressure without inventing alternate tallies.",
+            },
+            "safety_watch": {
+                "kpi_name": "Dispatch Safety Watch",
+                "business_definition": "Safety counts surfaced into dispatch-facing workflows because they may block routing or execution.",
+                "source_of_truth": ["incidents", "corrective_actions"],
+                "formula": {
+                    "incidents_open": "operator-visible incidents not in a terminal closed state",
+                    "corrective_actions_open": "operator-visible corrective actions not in terminal status",
+                },
+                "freshness": "Generated on request.",
+                "status_reason": "These are shared safety counts, intentionally re-expressed for dispatch and leadership watchlists.",
+            },
+            "command_strip": {
+                "kpi_name": "Dispatch Command Strip",
+                "business_definition": "Always-on summary tiles at the top of the Dispatch Command Center.",
+                "source_of_truth": base_sources,
+                "formula": "Each tile maps directly to a field inside the dispatch command summary payload.",
+                "freshness": "Generated on request.",
+                "status_reason": "The command strip is the highest-visibility consumer of the summary and must show governed lineage for every count.",
+            },
+            "shop_recovery": {
+                "kpi_name": "Shop Recovery Snapshot",
+                "business_definition": "Shop-specific recovery counts reused from the dispatch command summary shop channel.",
+                "source_of_truth": ["fleet_defects", "fleet_status"],
+                "formula": "Shop hub tiles reuse the shop subsection of the dispatch command summary without local recalculation.",
+                "freshness": "Generated on request.",
+                "status_reason": "Shop readers must see the same governed counts the dispatch summary exposes to Dispatch and leadership.",
+            },
+            "overview": {
+                "kpi_name": "Dispatch Command Overview Cards",
+                "business_definition": "Overview cards inside the command center that mirror fleet, driver, haul, shop, and integration posture.",
+                "source_of_truth": base_sources,
+                "formula": "Each overview card is a direct read of the shared summary envelope; no alternate frontend calculation is allowed.",
+                "freshness": "Generated on request.",
+                "status_reason": "The overview cards must stay aligned with the command strip and portal hubs that reuse the same summary endpoint.",
+            },
+        },
+    }
 
 
 def _minutes_since(iso: Optional[str]) -> Optional[int]:
@@ -985,6 +1077,7 @@ def build_dispatch_command_center_router(
                 "maintainx": NOT_CONNECTED,
                 "sms_provider": comm["sms_provider"]["status"],
             },
+            "kpi_metadata": _summary_kpi_metadata(),
         }
 
     # ────────────────────────────────────────────────────────────

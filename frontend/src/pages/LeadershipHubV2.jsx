@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -39,13 +40,16 @@ function QC({ to, testid, title, why, source, value, loaded }) {
   );
 }
 
-function Section({ k, t, c, children }) {
+function Section({ k, t, c, action, children }) {
   return (
     <section style={{ marginBottom: 28 }}>
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 12, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
         <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink-faint)" }}>{k}</div>
         <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)" }}>{t}</h2>
         {c && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{c}</p>}
+        </div>
+        {action}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>{children}</div>
     </section>
@@ -53,11 +57,23 @@ function Section({ k, t, c, children }) {
 }
 
 export default function LeadershipHubV2() {
-  const [s, setS] = useState({ loaded: false, sa: null, ex: null, ds: null });
+  const [s, setS] = useState({ loaded: false, sa: null, ex: null, ds: null, saMeta: null, exMeta: null, dsMeta: null });
   useEffect(() => {
     let cancelled = false;
     Promise.all([j("/api/safety/overview"), j("/api/operations/expirations/summary"), j("/api/dispatch/command/summary")])
-      .then(([sa, ex, ds]) => { if (!cancelled) setS({ loaded: true, sa: sa.body, ex: ex.body, ds: ds.body }); });
+      .then(([sa, ex, ds]) => {
+        if (!cancelled) {
+          setS({
+            loaded: true,
+            sa: sa.body,
+            ex: ex.body,
+            ds: ds.body,
+            saMeta: sa.body?.kpi_metadata || null,
+            exMeta: ex.body?.kpi_metadata || null,
+            dsMeta: ds.body?.kpi_metadata || null,
+          });
+        }
+      });
     return () => { cancelled = true; };
   }, []);
   const sa = s.sa || {};
@@ -97,19 +113,34 @@ export default function LeadershipHubV2() {
           />
         </Section>
 
-        <Section k="01 · Threats to Safety · live" t="Safety attention items" c="Live safety summary">
+        <Section
+          k="01 · Threats to Safety · live"
+          t="Safety attention items"
+          c="Live safety summary"
+          action={<KpiInlineHelp metadata={s.saMeta?.page} fallbackLabel="Safety attention items" testId="leadership-hub-v2-safety-help" />}
+        >
           <QC to="/safety-portal" testid="lead-hub-v2-q-incidents-open" title="Open Incidents" why="Incidents not yet closed by Safety" source="Safety summary" value={ds.safety?.incidents_open ?? null} loaded={s.loaded} />
           <QC to="/safety-portal" testid="lead-hub-v2-q-capas-overdue" title="Overdue Corrective Actions" why="Corrective actions past due dates" source="Corrective action summary" value={sa.corrective_actions_overdue ?? null} loaded={s.loaded} />
           <QC to="/safety-portal" testid="lead-hub-v2-q-training-expired" title="Training · Expired" why="Credentials already expired — renewal needed" source="Training status summary" value={sa.training_expired ?? null} loaded={s.loaded} />
         </Section>
 
-        <Section k="02 · Threats to Execution · live" t="Fleet + shop signals" c="Cross-portal read into dispatch + shop">
+        <Section
+          k="02 · Threats to Execution · live"
+          t="Fleet + shop signals"
+          c="Cross-portal read into dispatch + shop"
+          action={<KpiInlineHelp metadata={s.dsMeta?.sections?.fleet_shop} fallbackLabel="Fleet and shop signals" testId="leadership-hub-v2-execution-help" />}
+        >
           <QC to="/dispatch-portal" testid="lead-hub-v2-q-fleet-oos" title="Fleet · OOS" why="Units out of service across the fleet" source="Fleet status summary" value={ds.fleet?.counts?.oos ?? null} loaded={s.loaded} />
           <QC to="/dispatch-portal" testid="lead-hub-v2-q-breakdowns" title="Active Breakdowns" why="Breakdowns blocking the haul plan" source="Haul impact summary" value={ds.haul?.counts?.breakdown_impacts ?? null} loaded={s.loaded} />
           <QC to="/shop" testid="lead-hub-v2-q-shop-defects" title="Open Shop Defects" why="Defects active across the fleet" source="Shop defect summary" value={ds.shop?.defects_open ?? null} loaded={s.loaded} />
         </Section>
 
-        <Section k="03 · Threats to Compliance · live" t="Document + credential expirations" c="Live expiration dates from shared records">
+        <Section
+          k="03 · Threats to Compliance · live"
+          t="Document + credential expirations"
+          c="Live expiration dates from shared records"
+          action={<KpiInlineHelp metadata={s.exMeta} fallbackLabel="Document and credential expirations" testId="leadership-hub-v2-compliance-help" />}
+        >
           <QC to="/admin/training" testid="lead-hub-v2-q-exp-expired" title="Documents · Expired" why="Already past expiration date" source="Expiration summary" value={ex.expired ?? null} loaded={s.loaded} />
           <QC to="/admin/training" testid="lead-hub-v2-q-exp-30" title="Expiring ≤ 30 days" why="Inside the next 30-day renewal window" source="30-day renewal summary" value={ex.in_30 ?? null} loaded={s.loaded} />
         </Section>

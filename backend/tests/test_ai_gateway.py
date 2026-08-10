@@ -146,3 +146,25 @@ def test_gateway_never_exposes_model_names_at_env_snapshot_field_layer():
     joined = str(snap).lower()
     for banned in ("sk-", "bearer ", "authorization"):
         assert banned not in joined, f"gateway snapshot leaked '{banned}'"
+
+
+def test_gateway_status_snapshot_uses_universal_key_for_provider_availability(monkeypatch):
+    from services.ai_gateway.capabilities import gateway_status_snapshot
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("GOOGLE_AI_API_KEY", raising=False)
+    monkeypatch.setenv("EMERGENT_LLM_KEY", "sk-emergent-test")
+    monkeypatch.setenv("AI_GATEWAY_ENABLED", "true")
+    monkeypatch.setenv("TENANT_AI_ENABLED", "true")
+    monkeypatch.setenv("AI_PROVIDER_ANTHROPIC_ENABLED", "true")
+    monkeypatch.setenv("AI_PROVIDER_OPENAI_ENABLED", "true")
+    monkeypatch.setenv("AI_PROVIDER_GOOGLE_ENABLED", "true")
+    monkeypatch.setenv("AI_DEFAULT_PROVIDER", "anthropic")
+
+    snap = gateway_status_snapshot()
+
+    assert snap["resolved_selected_provider"] == "anthropic"
+    assert snap["resolved_provider_available"] is True
+    assert snap["providers"]["anthropic"]["key_present"] is True
+    assert snap["providers"]["anthropic"]["covered_by_universal"] is True

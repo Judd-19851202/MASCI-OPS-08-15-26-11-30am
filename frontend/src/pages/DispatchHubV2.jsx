@@ -32,6 +32,7 @@ import {
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 import { useT } from "@/lib/i18n";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -68,6 +69,7 @@ function useDispatchSignals() {
     shop_defects_open: null,   // summary.shop.defects_open
     incidents_open: null,      // summary.safety.incidents_open
     capas_open: null,          // summary.safety.corrective_actions_open
+    metadata: null,
   });
 
   useEffect(() => {
@@ -83,6 +85,7 @@ function useDispatchSignals() {
       setS({
         loaded: true,
         refreshedAt: new Date().toISOString(),
+        metadata: r.ok ? (b.kpi_metadata || null) : null,
         drivers_unacked:   r.ok ? (dc.un_acked ?? null) : null,
         active_hauls:      r.ok ? (hc.active_hauls ?? null) : null,
         waiting_plant:     r.ok ? (hc.waiting_on_plant ?? null) : null,
@@ -187,6 +190,7 @@ export default function DispatchHubV2() {
             kicker="01 · Driver & Haul Queues · live"
             title="Open dispatch work"
             caption="These live counts show what Dispatch needs to move, reroute, or recover right now."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.drivers_haul} fallbackLabel="Dispatch driver and haul queues" testId="dispatch-hub-v2-drivers-haul-help" />}
           />
           <div
             data-testid="dispatch-hub-v2-queue-grid-drivers"
@@ -246,6 +250,7 @@ export default function DispatchHubV2() {
             kicker="02 · Fleet & Shop · live"
             title="Equipment and shop signals"
             caption="See what equipment or shop issues could slow down the dispatch plan."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.fleet_shop} fallbackLabel="Fleet and shop snapshot" testId="dispatch-hub-v2-fleet-shop-help" />}
           />
           <div
             data-testid="dispatch-hub-v2-queue-grid-fleet"
@@ -287,6 +292,7 @@ export default function DispatchHubV2() {
             kicker="03 · Safety · cross-portal read"
             title="Safety items Dispatch should watch"
             caption="These safety issues can affect dispatch decisions, routing, or daily coordination."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.safety_watch} fallbackLabel="Dispatch safety watch" testId="dispatch-hub-v2-safety-help" />}
           />
           <div
             data-testid="dispatch-hub-v2-queue-grid-safety"

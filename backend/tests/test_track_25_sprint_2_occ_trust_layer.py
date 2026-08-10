@@ -202,6 +202,15 @@ class TestEvaluatorTruth:
         )
         assert r["status"] == "MISMATCH"
 
+    def test_draft_health_abandoned_without_failed_submissions_is_yellow(self):
+        r = _eval_draft_health(
+            {"buckets": {"failed_last_24h": 0, "abandoned_gt_24h": 105, "stale_1h_to_24h": 2},
+             "entity_confidence": "MEDIUM"},
+            None, NOW,
+        )
+        assert r["status"] == "DEGRADED"
+        assert r["reason_code"] == "abandoned_or_stale_drafts"
+
     def test_draft_health_zero_is_green(self):
         r = _eval_draft_health({"buckets": {}}, None, NOW)
         assert r["status"] == "VERIFIED"
@@ -222,6 +231,22 @@ class TestEvaluatorTruth:
         )
         assert r["checked_at"] == NOW  # falls back to the fresh probe time
         assert isinstance(r["evidence"]["last_scan"], dict)
+
+    def test_integrations_degraded_probe_is_yellow_not_red(self):
+        r = _eval_integrations(
+            {
+                "overall_status": "degraded",
+                "probes": [
+                    {"id": "mongo", "status": "ok"},
+                    {"id": "motive", "status": "degraded"},
+                    {"id": "maintainx", "status": "disabled", "mocked": True},
+                ],
+            },
+            None,
+            NOW,
+        )
+        assert r["status"] == "DEGRADED"
+        assert r["reason_code"] == "integrations_degraded"
 
     def test_governance_no_scan_is_green(self):
         r = _eval_governance({"severity_counts": {}, "health_label": "healthy"},
@@ -276,7 +301,7 @@ class _FakeResponse:
 
 
 def test_aggregator_truth_relationship_points_to_canonical_owner_route(monkeypatch):
-    async def fake_get(self, url, headers=None):  # noqa: ARG001
+    async def fake_get(self, url, headers=None, timeout=None):  # noqa: ARG001
         if url.endswith("/api/health"):
             return _FakeResponse({"ok": True, "service": "svc", "ts": NOW})
         return _FakeResponse({})
@@ -353,7 +378,7 @@ def test_occ_overall_prefers_actionable_verified_truth_over_standalone_unknown(m
         "/api/admin/integrations/health": {"overall_status": "healthy", "probes": []},
     }
 
-    async def fake_get(self, url, headers=None):  # noqa: ARG001
+    async def fake_get(self, url, headers=None, timeout=None):  # noqa: ARG001
         for path, body in payloads.items():
             if url.endswith(path):
                 return _FakeResponse(body)

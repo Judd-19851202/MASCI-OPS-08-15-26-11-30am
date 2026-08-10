@@ -8,6 +8,23 @@
   - OCC production-certification card now reflects real certification posture
   - QA batch `/app/test_reports/iteration_10.json` PASS
 
+## 2026-08-10 — PRE-C10 KPI/Admin continuation current state
+
+- **PRE-C10 remains OPEN — NO-GO**
+- Newly verified in preview:
+  - governed KPI help now renders on the current HR/Safety/Dispatch/Shop/Leadership summary consumers
+  - OCC false-red denominator improved from `verified=4/degraded=2/mismatch=7` to `verified=6/degraded=3/mismatch=4`
+  - AI gateway admin status now resolves provider availability truthfully with the existing universal-key fallback
+
+## Immediate hard blockers before further PRE-C10 closeout
+
+### P0 — external / operational blockers
+
+- Fresh canonical backup posture is blocked by preview configuration and stale recovery evidence (`/api/admin/recovery/snapshot` still RED with backup age ≈ `4615` minutes). A fresh canonical complete backup must be run in an allowed environment.
+- Storage lifecycle posture remains RED (`/api/admin/r2/lifecycle/health`) because inventory/classification/orphan governance is stale and unresolved (`verified_orphan=6237`, `orphan_pct=61.4`, inventory age ≈ `44074` minutes).
+- Governance data posture remains critical (`/api/admin/governance/summary`) with `586` open findings (`431 PPE_MISSING`, `54 INC_NEEDS_CAPA`, others still open). This requires business/data remediation, not another code-only patch.
+- `/app` mounted-volume disk pressure remains unresolved at `94%` used with only `621 MB` free, and the missing usage is not explained by the visible repo footprint. Platform storage reclamation is required before any safe heavy archive/lifecycle work.
+
 ## Updated next actions after this batch
 
 ### P0 — still required before any PRE-C10 closeout

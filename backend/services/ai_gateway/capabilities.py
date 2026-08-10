@@ -67,6 +67,8 @@ PROVIDER_KEY_MAP = {
     "google":    ("AI_PROVIDER_GOOGLE_ENABLED",    "GOOGLE_AI_API_KEY"),
 }
 
+_UNIVERSAL_KEY_ENV = "EMERGENT_LLM_KEY"
+
 
 @dataclass
 class Capability:
@@ -119,13 +121,21 @@ def _resolve_provider() -> tuple[Optional[str], Optional[str], bool]:
         flag_name, key_name = PROVIDER_KEY_MAP.get(name, ("", ""))
         if not flag_name:
             continue
-        if _truthy(_env(flag_name)) and _env(key_name):
+        if _truthy(_env(flag_name)) and _provider_key_present(key_name):
             if selected is None:
                 selected = name
             elif fallback is None:
                 fallback = name
                 break
     return selected, fallback, bool(selected)
+
+
+def _provider_key_present(key_name: str) -> bool:
+    return bool(_env(key_name).strip()) or bool(_env(_UNIVERSAL_KEY_ENV).strip())
+
+
+def _covered_by_universal(key_name: str) -> bool:
+    return not bool(_env(key_name).strip()) and bool(_env(_UNIVERSAL_KEY_ENV).strip())
 
 
 # ─────────────────────── main resolver ────────────────────────────
@@ -232,7 +242,8 @@ def gateway_status_snapshot() -> Dict[str, Any]:
             "flag": flag,
             "enabled": _truthy(_env(flag)),
             "key_env": key,
-            "key_present": _key_present(key),
+            "key_present": _provider_key_present(key),
+            "covered_by_universal": _covered_by_universal(key),
         }
 
     selected, fallback, available = _resolve_provider()

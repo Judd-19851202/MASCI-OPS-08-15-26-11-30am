@@ -24,6 +24,7 @@ import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import { useT } from "@/lib/i18n";
 import { getHrToken } from "@/lib/hrAuth";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 import { formatEmployeeIdentity } from "@/lib/identity";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -246,13 +247,19 @@ function StatsStrip({ stats, t }) {
     { key: "submitted_last_7d", label: t("Last 7 Days"), color: "bg-slate-100 text-slate-900 border-slate-400" },
   ];
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-5" data-testid="time-off-stats">
-      {tiles.map((t) => (
+    <div className="mt-5" data-testid="time-off-stats">
+      <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600">
+        <span>{t("Queue snapshot")}</span>
+        <KpiInlineHelp metadata={stats?.kpi_metadata} fallbackLabel={t("Time Off Requests") } testId="time-off-stats-help" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+        {tiles.map((t) => (
         <div key={t.key} className={`rounded-md p-3 border-2 ${t.color}`}>
           <div className="font-mono text-[10px] uppercase tracking-widest font-bold">{t.label}</div>
           <div className="font-display text-2xl font-black">{stats[t.key] ?? 0}</div>
         </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import React from "react";
 import {
   Truck, User, Send, Activity, Wrench, ShieldAlert, AlertOctagon, AlertTriangle,
 } from "lucide-react";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 function Tile({
   icon: Icon, label, value, sub, tone, onClick, testId,
@@ -48,7 +49,7 @@ function Tile({
   );
 }
 
-export default function CommandStrip({ summary, loading, onJumpTo }) {
+export default function CommandStrip({ summary, loading, onJumpTo, metadata }) {
   const fleet = summary?.fleet?.counts || {};
   const drivers = summary?.drivers?.counts || {};
   const haul = summary?.haul?.counts || {};
@@ -75,6 +76,10 @@ export default function CommandStrip({ summary, loading, onJumpTo }) {
 
   return (
     <div data-testid="command-strip" className="space-y-2">
+      <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500" data-testid="command-strip-help-row">
+        <span>Dispatch snapshot</span>
+        <KpiInlineHelp metadata={metadata} fallbackLabel="Dispatch snapshot" testId="command-strip-help" />
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
         <Tile icon={User}   label="Drivers"    value={skeleton ? "…" : activeDrivers}
           sub={drivers.assignment_only ? `${drivers.assignment_only} no_session` : "active"} tone="sky"     onClick={() => onJumpTo("drivers")} testId="strip-drivers" />

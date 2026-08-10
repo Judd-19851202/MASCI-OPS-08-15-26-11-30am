@@ -28,6 +28,7 @@ import MapCanvas from "@/components/operations-map/MapCanvas";
 import "@/components/operations-map/OperationsMap.css";
 import { useMapSnapshot } from "@/lib/operations-map/useMapSnapshot";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const EMPTY_MAP_FILTERS = { types: [], status: [], driver: null, project: null };
@@ -55,6 +56,7 @@ function useShopSignals() {
     waiting_on_parts: null,
     returned_to_service_7d: null,
     defect_open_units: null,
+    metadata: null,
   });
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +66,7 @@ function useShopSignals() {
       setS({
         loaded: true,
         refreshedAt: new Date().toISOString(),
+        metadata: r.ok ? (r.body?.kpi_metadata || null) : null,
         defects_open:           r.ok ? (sh.defects_open ?? null) : null,
         defects_acked:          r.ok ? (sh.defects_acknowledged ?? null) : null,
         oos_units:              r.ok ? (sh.oos_units ?? null) : null,
@@ -78,7 +81,7 @@ function useShopSignals() {
   return s;
 }
 
-function SectionHeader({ kicker, title, caption }) {
+function SectionHeader({ kicker, title, caption, action }) {
   const { t } = useT();
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
@@ -87,6 +90,7 @@ function SectionHeader({ kicker, title, caption }) {
         <h2 style={{ margin: "2px 0 0", fontSize: 18, fontWeight: 700, color: "var(--ink-strong)", fontFamily: "var(--font-display)" }}>{t(title)}</h2>
         {caption && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>{t(caption)}</p>}
       </div>
+      {action}
     </div>
   );
 }
@@ -741,6 +745,7 @@ export default function ShopHubV2() {
             kicker="01 · Attention required"
             title="What needs shop attention right now"
             caption="Live shop counts. Open any tile to see the work queue behind it."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.shop_recovery} fallbackLabel="Shop attention snapshot" testId="shop-hub-v2-attention-help" />}
           />
           <div data-testid="shop-hub-v2-attention-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
@@ -769,6 +774,7 @@ export default function ShopHubV2() {
             kicker="02 · Active work"
             title="Repair work in motion"
             caption="Assign, accept, start, complete, and review. Repair complete still needs return-to-service verification."
+            action={<KpiInlineHelp metadata={s.metadata?.sections?.shop_recovery} fallbackLabel="Shop repair work in motion" testId="shop-hub-v2-active-work-help" />}
           />
           <div data-testid="shop-hub-v2-active-work-grid"
                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>

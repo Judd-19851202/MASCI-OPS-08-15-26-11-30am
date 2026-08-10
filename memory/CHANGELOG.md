@@ -1,3 +1,11 @@
+# 2026-08-10 — PRE-C10 KPI/Admin continuation and blocker identification
+
+- KPI consumer-lineage repair shipped across `/hr/time-off`, `ExpirationsSummary`, `/safety-hub`, `/safety-hub-v2`, `/dispatch-hub-v2`, `/dispatch-portal/command`, `/shop-hub-v2`, and `/leadership-hub-v2`; `/api/safety/overview` and `/api/dispatch/command/summary` now emit governed `kpi_metadata` for those current readers.
+- Admin OS OCC false-red repair shipped: abandoned/stale-only draft posture now degrades instead of mismatching, degraded integrations stay `DEGRADED`, and AI gateway availability now honors the existing `EMERGENT_LLM_KEY` fallback in admin status.
+- Verification in this batch: `test_wp17a_portal_kpi_truth_batch2.py` PASS (`5 / 5`), `test_track_25_sprint_2_occ_trust_layer.py` PASS (`42 / 42`), `test_ai_gateway.py` PASS (`10 / 10`), focused frontend KPI consumer contracts PASS, runtime `/hr/time-off` KPI-help smoke PASS, and live OCC counts improved to `verified=6 / degraded=3 / mismatch=4`.
+- New hard blockers recorded, not repaired by code alone: stale canonical recovery archive in preview, stale/red R2 lifecycle inventory with `6237` verified orphan objects, governance summary `critical` with `586` open findings, and unresolved `/app` mounted-volume disk pressure (`94%` used).
+- PRE-C10 overall remains **OPEN / NO-GO**.
+
 # 2026-08-10 — PRE-C10 auth/public + draft continuity + KPI/Admin OS refresh
 
 - Training/guidance boundary repaired: HR training stays protected behind `/hr/login`, Field Leadership training now routes to `/field-leadership/portal/login`, `/training/leadership/packet` redirects back to the protected track, and `/api/training/packet.pdf?track=hr` now requires HR/Admin auth while `field` stays public.

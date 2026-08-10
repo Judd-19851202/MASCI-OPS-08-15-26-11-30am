@@ -174,3 +174,20 @@ def test_safety_company_metadata_and_band_logic():
     else:
         expected = "green"
     assert data["status_band"] == expected
+
+
+def test_safety_overview_and_dispatch_summary_publish_governed_metadata():
+    headers = _admin_headers()
+    safety = requests.get(f"{BASE_URL}/api/admin/safety/overview", headers=headers, timeout=30).json()
+    dispatch = requests.get(f"{BASE_URL}/api/dispatch/command/summary", headers=headers, timeout=30).json()
+
+    assert safety.get("kpi_metadata", {}).get("page", {}).get("api_endpoint") == "/api/safety/overview"
+    assert "corrective_actions" in safety.get("kpi_metadata", {}).get("sections", {})
+    assert "compliance" in safety.get("kpi_metadata", {}).get("sections", {})
+    assert "incidents" in safety.get("kpi_metadata", {}).get("sections", {})
+
+    assert dispatch.get("kpi_metadata", {}).get("page", {}).get("api_endpoint") == "/api/dispatch/command/summary"
+    assert "drivers_haul" in dispatch.get("kpi_metadata", {}).get("sections", {})
+    assert "fleet_shop" in dispatch.get("kpi_metadata", {}).get("sections", {})
+    assert "safety_watch" in dispatch.get("kpi_metadata", {}).get("sections", {})
+    assert "command_strip" in dispatch.get("kpi_metadata", {}).get("sections", {})

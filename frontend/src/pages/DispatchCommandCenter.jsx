@@ -33,6 +33,7 @@ import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionS
 // TRACK 22.4a · Operator Trust Repair — Motive stale-data honesty at
 // the top of the Dispatch Command Center.
 import MotivePostureRibbon from "@/components/operational_intelligence/MotivePostureRibbon";
+import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const SUMMARY_POLL_MS = 30000;
 
@@ -104,6 +105,7 @@ export default function DispatchCommandCenter() {
           summary={summary}
           loading={loadingSummary}
           onJumpTo={setTab}
+          metadata={summary?.kpi_metadata?.sections?.command_strip}
         />
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
@@ -169,6 +171,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
   const shop = summary?.shop || {};
   const ah = summary?.asset_health || {};
   const ir = summary?.integration_readiness || {};
+  const metadata = summary?.kpi_metadata?.sections || {};
 
   if (loading && !summary) {
     return (
@@ -184,7 +187,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4" data-testid="overview-pane">
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-fleet-card">
         <h3 className="font-display text-sm font-black text-slate-900 mb-1.5 flex items-center justify-between">
-          <span>Fleet</span>
+          <span className="inline-flex items-center gap-1.5">Fleet <KpiInlineHelp metadata={metadata.fleet_shop} fallbackLabel="Fleet overview" testId="dispatch-overview-fleet-help" /></span>
           <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900" onClick={() => onJumpTo("fleet")}>Open →</button>
         </h3>
         <OvRow k="Total assets" v={fleet.total} testId="ov-fleet-total" />
@@ -196,7 +199,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-driver-card">
         <h3 className="font-display text-sm font-black text-slate-900 mb-1.5 flex items-center justify-between">
-          <span>Drivers</span>
+          <span className="inline-flex items-center gap-1.5">Drivers <KpiInlineHelp metadata={metadata.drivers_haul} fallbackLabel="Driver overview" testId="dispatch-overview-drivers-help" /></span>
           <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900" onClick={() => onJumpTo("drivers")}>Open →</button>
         </h3>
         <OvRow k="Shifted now" v={drivers.shifted} testId="ov-drv-shifted" />
@@ -208,7 +211,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-haul-card">
         <h3 className="font-display text-sm font-black text-slate-900 mb-1.5 flex items-center justify-between">
-          <span>Hauls Today</span>
+          <span className="inline-flex items-center gap-1.5">Hauls Today <KpiInlineHelp metadata={metadata.drivers_haul} fallbackLabel="Haul overview" testId="dispatch-overview-hauls-help" /></span>
           <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900" onClick={() => onJumpTo("hauls")}>Open →</button>
         </h3>
         <OvRow k="Active hauls" v={haul.active_hauls} testId="ov-haul-active" />
@@ -221,7 +224,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-shop-card">
         <h3 className="font-display text-sm font-black text-slate-900 mb-1.5 flex items-center justify-between">
-          <span>Shop</span>
+          <span className="inline-flex items-center gap-1.5">Shop <KpiInlineHelp metadata={metadata.shop_recovery} fallbackLabel="Shop overview" testId="dispatch-overview-shop-help" /></span>
           <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900" onClick={() => onJumpTo("shop")}>Open →</button>
         </h3>
         <OvRow k="Open defects" v={shop.defects_open} testId="ov-shop-open" />
@@ -233,7 +236,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-asset-health-card">
-        <h3 className="font-display text-sm font-black text-slate-900 mb-1.5">Asset Spine Health</h3>
+        <h3 className="font-display text-sm font-black text-slate-900 mb-1.5 inline-flex items-center gap-1.5">Asset Spine Health <KpiInlineHelp metadata={metadata.overview} fallbackLabel="Asset spine health" testId="dispatch-overview-asset-health-help" /></h3>
         <OvRow k="Total" v={ah.total_assets} testId="ov-ah-total" />
         <OvRow k="Active" v={ah.active} testId="ov-ah-active" />
         <OvRow k="Retired" v={ah.retired} testId="ov-ah-retired" />
@@ -242,7 +245,7 @@ function OverviewPane({ summary, loading, onJumpTo }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4" data-testid="overview-integration-card">
-        <h3 className="font-display text-sm font-black text-slate-900 mb-1.5">Integrations</h3>
+        <h3 className="font-display text-sm font-black text-slate-900 mb-1.5 inline-flex items-center gap-1.5">Integrations <KpiInlineHelp metadata={metadata.overview} fallbackLabel="Dispatch integrations" testId="dispatch-overview-integrations-help" /></h3>
         <OvRow k="Location feed" v={ir.motive || "—"} mono={false} testId="ov-int-motive" />
         <OvRow k="FleetWatcher" v={ir.fleetwatcher === "not_connected" ? "Pending Integration" : ir.fleetwatcher} mono={false} testId="ov-int-fleetwatcher" />
         <OvRow k="MaintainX" v={ir.maintainx === "not_connected" ? "Pending Integration" : ir.maintainx} mono={false} testId="ov-int-maintainx" />
