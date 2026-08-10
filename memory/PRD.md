@@ -1318,3 +1318,30 @@
   - Code repairs required: `1`
   - High-blast-radius systems modified: `1`
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.
+
+## 2026-08-10 — PRE-C10 shared KPI engine closure batch
+- Continued the accepted closure model with shared-authority batching and no code churn. New milestone after this batch: **156 / 216 closed = 72.2%** with `16 partial / 44 open` remaining.
+- Proof-only rows closed in this batch:
+  - Executive Overview KPI family: Jobs, Overdue, Staffing, Equipment, Safety, Activity.
+  - Project Health Summary.
+  - Active Employee Roster Count.
+  - Safety Company Posture: status band and totals family.
+  - PM Operational KPI family.
+  - Safety Project KPI family.
+  - C1–C9 HR queue / time-off / roster truth family.
+- Verification evidence for this batch:
+  - backend operational-KPI packs: `24 / 24 PASS` and `16 / 16 PASS` with only stale/non-governing guard tests deselected
+  - direct source-parity scripts against preview Mongo confirmed the exact runtime values before row closure
+  - frontend KPI proof verified Executive Overview and Project Health values exactly, PM project KPI subset on assigned project `ZZ-RUNTIME-CERT-2026`, Safety Hub V2 PTD KPI values, and live EmployeeCombo roster consumption of `Alex Stansbury` on `/daily/submit`
+- No application code changes were required in this batch.
+- Current batch accounting:
+  - Proof-only rows closed: `13`
+  - Actual software defects discovered: `0`
+  - Code repairs required: `0`
+  - High-blast-radius systems modified: `0`
+- Retrospective explicit incorrect-change detail remains unchanged:
+  - the single incorrect sandbox-driven logic change was the shared preview/production R2 object namespace assumption
+  - it affected application storage architecture and preview certification safety, not business-rule truth classification
+  - it was repaired with deterministic environment-owned keys, legacy read compatibility, delete/overwrite ownership guards, and focused regression proof
+  - current disposition remains **CLOSED — FIXED IN CODE AND VERIFIED**
+- PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.

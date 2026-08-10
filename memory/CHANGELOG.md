@@ -1,3 +1,27 @@
+# 2026-08-10 — PRE-C10 shared KPI engine closure batch
+
+- Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **156 / 216 closed = 72.2%**.
+- Closed proof-only rows in this batch:
+  - KPI register: Executive Overview Jobs, Overdue, Staffing, Equipment, Safety, and Activity tiles; Project Health Summary; Active Employee Roster Count; Safety Company Posture status band; Safety Company Posture totals family; PM Operational KPI family; Safety Project KPI family.
+  - C1–C9 register: HR queue / time-off / roster truth family now PASS.
+- No application code changes were required in this batch.
+- Shared-authority proof captured across multiple families at once:
+  - Executive Overview exact source parity against preview Mongo plus frontend tile verification.
+  - Project Health exact source parity plus frontend summary verification.
+  - HR active roster exact source parity plus live EmployeeCombo consumer proof (`Alex Stansbury` surfaced from `/api/hr/employee-roster` on `/daily/submit`).
+  - Safety company PTD band/totals verified in API and Safety Hub V2 UI.
+  - PM/Safety project KPI spine parity verified on assigned PM project `ZZ-RUNTIME-CERT-2026`, with PM scope still correctly failing closed on unassigned `OD-100`.
+- Testing and proof for this batch:
+  - operational KPI backend packs: `24 / 24 PASS` and `16 / 16 PASS` (stale guard tests intentionally deselected)
+  - combined frontend KPI proof: Executive Overview PASS, Project Health PASS, PM Project Detail PASS; follow-up direct selector proof confirmed Safety Hub V2 PTD values and roster consumer proof
+  - direct source-parity scripts confirmed exact runtime values before row closure
+- Batch accounting:
+  - Proof-only rows closed: `13`
+  - Actual software defects discovered: `0`
+  - Code repairs required: `0`
+  - High-blast-radius systems modified: `0`
+  - Remaining denominator state: `16 partial / 44 open`
+
 # 2026-08-10 — PRE-C10 admin truth / recovery / recurrence closure batch
 
 - Continued shortest-path PRE-C10 closure under the frozen `216` denominator. New milestone position: **143 / 216 closed = 66.2%**.

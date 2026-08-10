@@ -138,6 +138,58 @@ Verified against preview runtime + preview Mongo:
 - New preview writes/deletes/overwrites are prevented from affecting production-owned objects.
 - No additional questionable sandbox-driven logic changes were found, so previously certified work is **not reopened** on provenance grounds.
 
+## 6A) The single incorrect sandbox-driven logic change — explicit detail
+
+### What the incorrect change was
+- The application previously allowed preview and production to share the same unscoped R2 object-key namespace for several governed storage families (`photos/`, `documents/`, `safety-docs/`, `promo-assets/`, and explicit-key backup writes).
+
+### Why sandbox provenance caused the wrong decision
+- Preview data provenance work proved that preview database records were isolated, which could easily create a false sense that preview storage was also safely isolated.
+- That assumption was incorrect because object storage keys were still being written into a shared bucket namespace without deterministic environment ownership.
+- In other words: preview database isolation was real, but preview object-key isolation was only partial. Treating preview as “safe enough” without proving object-key ownership was the sandbox-driven mistake.
+
+### What area it affected
+- **Application logic / storage architecture**: yes.
+- **Business rules**: no.
+- **Production business data truth**: not reclassified.
+- **Preview certification / environment safety**: yes, materially.
+
+### Exact repair
+- Added shared ownership authority in `backend/lib/storage_ownership.py`.
+- New writes now use deterministic environment-owned keys such as:
+  - `photos/{env}/...`
+  - `documents/{env}/...`
+  - `safety-docs/{env}/...`
+  - `promo-assets/{env}/...`
+  - backups continue under `backups/{env}/...`
+- Legacy reads remain compatible.
+- Deletes now require current-environment ownership.
+- Explicit-key writes now refuse unsafe overwrite of existing legacy/unowned objects.
+- No bulk migration, delete, or move was performed.
+
+### Blast radius
+- Shared storage helpers and their direct consumers only:
+  - `backend/photo_storage.py`
+  - `backend/safety_doc_storage.py`
+  - `backend/promo_assets_storage.py`
+  - `backend/routes/asset_documents.py`
+  - `backend/routes/operational_attachments.py`
+  - backup archive writes using explicit keys
+
+### Regression proof
+- Focused pytest batch for environment-aware storage ownership: `25 / 25 PASS`
+- Live preview runtime proof:
+  - Safety Documents upload/read/delete PASS with `doc://.../safety-docs/preview/...`
+  - Operational Attachments upload/read/delete PASS with `photos/preview/...`
+  - Promo Assets upload/detail/delete PASS with `promo-assets/preview/...`
+- Independent backend QA: `16 / 16 PASS`
+- Frontend smoke for affected promo-asset surface: PASS
+
+### Current final disposition
+- **INCORRECT SANDBOX-DRIVEN LOGIC CHANGE = 1**
+- Final status: **CLOSED — FIXED IN CODE AND VERIFIED**
+- No further reopen is warranted unless new evidence shows a regression in environment ownership, legacy read compatibility, or delete/overwrite protection.
+
 ## 7) Remaining governed follow-up after this batch
 
 1. Continue KPI closure against authoritative tested-environment truth chains.

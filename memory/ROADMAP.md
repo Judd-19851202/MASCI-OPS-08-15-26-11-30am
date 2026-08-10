@@ -1,3 +1,36 @@
+# 2026-08-10 — PRE-C10 milestone after shared KPI engine closure batch
+
+- **PRE-C10 status:** `156 / 216 closed = 72.2%`
+- **This batch:** `13` proof-only rows closed, `0` actual software defects discovered, `0` code repairs required, `0` high-blast-radius systems modified.
+- **Remaining:** `16 partial / 44 open`
+
+## What closed in this batch
+
+- Executive Overview family: Jobs, Overdue, Staffing, Equipment, Safety, Activity.
+- Project Health Summary.
+- Active Employee Roster Count.
+- Safety Company Posture: status band + totals family.
+- PM Operational KPI family.
+- Safety Project KPI family.
+- C1–C9 HR queue / time-off / roster truth family.
+
+## Immediate next actions
+
+### P0
+- Continue remaining proof-first KPI rows and C1–C9 families with shared-authority batching:
+  - schedule overview / lookahead / daily work plan
+  - C7 forecasting / C8 earned value / C9 portfolio rows inside the KPI register
+  - platform truth-integrity scanner
+  - safety corrective-action truth
+  - downstream export / notification / PDF / email consumers
+- Close recurrence rows immediately as their remaining dependencies become fully proven.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after admin truth / recovery closure batch
 
 - **PRE-C10 status:** `143 / 216 closed = 66.2%`
