@@ -21,7 +21,7 @@ import { PortalLoginHelp } from "@/components/PortalLoginHelp";
 import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
-import { applyMultiLoginResponse, landingFor, stabilizeAdminPortalToken } from "@/lib/directoryAuth";
+import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import { passkeySupported, platformAuthenticatorAvailable, signInWithPasskey } from "@/lib/passkeys";
 import { prepareFreshLoginSession } from "@/lib/sessionReset";
@@ -75,7 +75,6 @@ export default function AdminLogin() {
       if (data?.ok) {
         await prepareFreshLoginSession();
         applyMultiLoginResponse(data, rememberMe);
-        await stabilizeAdminPortalToken(data, rememberMe);
         setPortalContextForPath(landingFor(data.user));
         toast.success(`${t("Welcome")} ${data?.user?.name || ""}`, { duration: 4000 });
         navigate(landingFor(data.user), { replace: true });
@@ -147,7 +146,6 @@ export default function AdminLogin() {
       if (res?.data?.ok) {
         await prepareFreshLoginSession();
         applyMultiLoginResponse(res.data, rememberMe);
-        await stabilizeAdminPortalToken(res.data, rememberMe);
         const user = res.data.user;
         const portals = user?.portals || [];
         if (!portals.includes("admin")) {

@@ -416,10 +416,6 @@ async def persist_session(db, *, token: str, user_id: str, ttl_seconds: int = 60
         await db.directory_sessions.delete_many({"user_id": user_id})
     except Exception as e:  # noqa: BLE001
         logger.warning("[directory] prior session cleanup failed: %s", e)
-    try:
-        await clear_session_activity_for_user(db, user_id)
-    except Exception as e:  # noqa: BLE001
-        logger.warning("[directory] prior portal session cleanup failed: %s", e)
     await db.directory_sessions.insert_one(
         {
             "id": str(uuid.uuid4()),
@@ -499,13 +495,44 @@ def make_directory_admin_token(user_id: str, password_hash: str) -> str:
     return f"{user_id}.{sig}"
 
 
-def _parse_directory_admin_token(token: str) -> Optional[Tuple[str, str]]:
+def _make_directory_admin_session_token_from_nonce(user_id: str, password_hash: str, nonce: str) -> str:
+    if not user_id or not password_hash or not nonce:
+        raise ValueError("user_id, password_hash, and nonce are required")
+    msg = (
+        f"epoch={_admin_session_epoch()}|admin-session:{user_id}:{nonce}:{password_hash[:16]}"
+    ).encode()
+    sig = _hmac.new(_admin_hmac_secret(), msg, _h.sha256).hexdigest()
+    return f"{user_id}.{nonce}.{sig}"
+
+
+def make_directory_admin_session_token(user_id: str, password_hash: str, session_token: str) -> str:
+    """Mint a session-scoped admin token for shared preview/runtime use.
+
+    Shape: ``<user_id>.<nonce>.<HMAC>`` where the nonce is derived from the
+    directory session token. This prevents concurrent shared-account logins
+    from stamping over the same deterministic admin token row.
+    """
+    if not user_id or not password_hash or not session_token:
+        raise ValueError("user_id, password_hash, and session_token are required")
+    nonce = _h.sha256(session_token.encode("utf-8")).hexdigest()[:16]
+    return _make_directory_admin_session_token_from_nonce(user_id, password_hash, nonce)
+
+
+def _parse_directory_admin_token(token: str) -> Optional[Tuple[str, Optional[str], str]]:
     if not token or "." not in token:
         return None
-    uid, _, sig = token.partition(".")
-    if not uid or not sig or len(sig) != 64:
-        return None
-    return uid, sig
+    parts = token.split(".")
+    if len(parts) == 2:
+        uid, sig = parts
+        if not uid or not sig or len(sig) != 64:
+            return None
+        return uid, None, sig
+    if len(parts) == 3:
+        uid, nonce, sig = parts
+        if not uid or not nonce or not sig or len(sig) != 64:
+            return None
+        return uid, nonce, sig
+    return None
 
 
 async def is_valid_directory_admin_token_async(
@@ -519,7 +546,7 @@ async def is_valid_directory_admin_token_async(
     parsed = _parse_directory_admin_token(token)
     if not parsed:
         return None
-    uid, _sig = parsed
+    uid, nonce, _sig = parsed
     row = await find_by_id(db, uid)
     if not row or row.get("disabled"):
         return None
@@ -528,7 +555,11 @@ async def is_valid_directory_admin_token_async(
     pwh = row.get("password_hash") or ""
     if not pwh:
         return None
-    expected = make_directory_admin_token(uid, pwh)
+    expected = (
+        _make_directory_admin_session_token_from_nonce(uid, pwh, nonce)
+        if nonce
+        else make_directory_admin_token(uid, pwh)
+    )
     if not _hmac.compare_digest(token, expected):
         return None
     if not await has_active_session_activity(

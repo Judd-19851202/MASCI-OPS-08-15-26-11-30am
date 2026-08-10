@@ -711,23 +711,17 @@ async def _directory_admin_row_for_continuity_async(token: Optional[str]) -> Opt
         return None
     try:
         import user_directory as _ud_local  # noqa: PLC0415
-        uid, _, sig = token.partition(".")
-        if not uid or not sig or len(sig) != 64:
-            return None
-        row = await _ud_local.find_by_id(db, uid)
-        if not row or row.get("disabled"):
-            return None
-        if "admin" not in (row.get("portals") or []):
-            return None
-        password_hash = row.get("password_hash") or ""
-        if not password_hash:
-            return None
-        expected = _ud_local.make_directory_admin_token(uid, password_hash)
-        if not hmac.compare_digest(token, expected):
+        row = await _ud_local.is_valid_directory_admin_token_async(
+            db,
+            token,
+            allow_unbound_directory_session=True,
+        )
+        if not row:
             return None
         activity = await _get_session_activity(db, token)
         if not activity:
             return None
+        uid = row.get("id") or ""
         if activity.get("user_id") and activity.get("user_id") != uid:
             return None
         now = datetime.now(timezone.utc)
@@ -12448,7 +12442,7 @@ async def admin_list_r2_backups(
 async def admin_recent_sessions(
     request: Request,
     limit: int = 50,
-    _: bool = Depends(require_admin_strict),
+    _: bool = Depends(require_admin_continuity),
 ):
     """Operational visibility into the live `session_activity` table.
 
@@ -15439,7 +15433,7 @@ app.include_router(build_static_helpers_router())
 from routes.recovery_dashboard import build_recovery_dashboard_router  # noqa: E402
 
 app.include_router(
-    build_recovery_dashboard_router(db, require_admin_strict),
+    build_recovery_dashboard_router(db, require_admin_continuity),
     prefix="/api",
 )
 
@@ -15490,7 +15484,7 @@ from routes.integration_health import (  # noqa: E402
     ensure_alert_indexes,
 )
 
-app.include_router(build_integration_health_router(db, require_admin))
+app.include_router(build_integration_health_router(db, require_admin_continuity))
 
 
 # ─── Usage Analytics (iter146 — Phase 2.5) ──────────────────────────
@@ -16264,7 +16258,7 @@ from routes.admin_ops import build_admin_ops_router  # noqa: E402
 from routes.master_data_backfill import build_master_data_backfill_router  # noqa: E402
 from routes.pm_gap_backfill import build_pm_gap_backfill_router  # noqa: E402
 
-_admin_ops_router = build_admin_ops_router(db, require_admin_strict)
+_admin_ops_router = build_admin_ops_router(db, require_admin_continuity)
 _admin_ops_router._get_runtime_identity = _runtime_identity_bundle  # type: ignore[attr-defined]
 app.include_router(_admin_ops_router)
 app.include_router(build_master_data_backfill_router(db, require_admin_strict))
@@ -16276,7 +16270,13 @@ app.include_router(build_pm_gap_backfill_router(db, require_admin_strict))
 # governance findings + the convergence dashboard live admin-only.
 from routes.governance import build_governance_router  # noqa: E402
 
-app.include_router(build_governance_router(db, require_admin_strict))
+app.include_router(
+    build_governance_router(
+        db,
+        require_admin_strict,
+        require_admin_read=require_admin_continuity,
+    )
+)
 
 # ─── Phase IV-BETA.5A-P1A · Governance Health Chip (public read-only) ─
 # Tiny operator-facing chip that reads the persisted doctrine baseline
@@ -19809,7 +19809,7 @@ def _status_health_band(critical_empty: int, recent_errors_24h: int,
 
 
 @_email_router.get("/admin/email-routing/v2/status")
-async def admin_v2_status(_: bool = Depends(require_admin)):
+async def admin_v2_status(_: bool = Depends(require_admin_continuity)):
     """Track 15.72A · Routing-status snapshot.
 
     Read-only, admin-gated. Reads `EMAIL_ROUTING_V2` env, scans the audit

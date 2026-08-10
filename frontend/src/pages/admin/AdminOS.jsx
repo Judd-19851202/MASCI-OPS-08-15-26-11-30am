@@ -66,7 +66,7 @@ function delay(ms) {
 
 // ── HTTP helper ─────────────────────────────────────────────────────
 function adminHeaders() {
-  return buildPortalAuthHeaders({ "Content-Type": "application/json" });
+  return buildPortalAuthHeaders({ "Content-Type": "application/json" }, "admin");
 }
 
 async function probe(path, attempt = 0) {

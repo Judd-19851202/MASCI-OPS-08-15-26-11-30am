@@ -384,6 +384,12 @@ def build_auth_directory_router(
             # Mint per-portal tokens + directory session token
             login_stage = "mint_portal_tokens"
             portal_tokens = await _mint_all(row)
+            if portal_tokens.get("admin") and session_token:
+                portal_tokens["admin"] = ud.make_directory_admin_session_token(
+                    row["id"],
+                    row["password_hash"],
+                    session_token,
+                )
 
             # Track 15.14A · Layer 1 — TEMP-PASSWORD ENFORCEMENT.
             # If the directory user still owes a password rotation, do NOT
@@ -436,7 +442,7 @@ def build_auth_directory_router(
                         user_id=row.get("id"),
                         email=row.get("email"),
                         actor_label=_portal,
-                        directory_token=session_token,
+                        directory_token=None if _portal == "admin" else session_token,
                         ip=_ip,
                         user_agent=_ua,
                     )
@@ -444,9 +450,35 @@ def build_auth_directory_router(
                     if _tok
                 ]
                 if _reset_tasks:
-                    await asyncio.gather(*_reset_tasks, return_exceptions=True)
-            except Exception:  # noqa: BLE001
-                pass
+                    _reset_results = await asyncio.gather(*_reset_tasks, return_exceptions=True)
+                    for _portal, _result in zip((portal_tokens or {}).keys(), _reset_results):
+                        if isinstance(_result, Exception):
+                            logger.warning(
+                                "[multi-login] session activity reset failed for portal=%s email=%s: %s",
+                                _portal,
+                                row.get("email"),
+                                _result,
+                            )
+            except Exception as reset_exc:  # noqa: BLE001
+                logger.warning(
+                    "[multi-login] session activity reset block failed for email=%s: %s",
+                    row.get("email"),
+                    reset_exc,
+                )
+            admin_token = (portal_tokens or {}).get("admin")
+            if admin_token:
+                login_stage = "reset_admin_session_activity"
+                await reset_session_activity(
+                    runtime_db,
+                    admin_token,
+                    "ADMIN_HR",
+                    user_id=row.get("id"),
+                    email=row.get("email"),
+                    actor_label="admin",
+                    directory_token=None,
+                    ip=_client_ip(request),
+                    user_agent=request.headers.get("user-agent") or "",
+                )
             login_stage = "write_audit"
             await ud.write_audit(
                 runtime_db,
@@ -548,6 +580,12 @@ def build_auth_directory_router(
             raise HTTPException(status_code=500, detail=f"{target} token minter not configured.")
         try:
             tok = await _maybe_await(minter(row))
+            if target == "admin":
+                tok = ud.make_directory_admin_session_token(
+                    row["id"],
+                    row["password_hash"],
+                    x_directory_token,
+                )
         except Exception as e:  # noqa: BLE001
             logger.exception(f"[multi-login] portal-token mint failed: {e}")
             raise HTTPException(status_code=500, detail="Failed to mint token.")
@@ -567,7 +605,7 @@ def build_auth_directory_router(
                 user_id=row.get("id"),
                 email=row.get("email"),
                 actor_label=target,
-                directory_token=x_directory_token,
+                directory_token=None if target == "admin" else x_directory_token,
                 ip=(_client_ip(request) if request else None),
                 user_agent=(request.headers.get("user-agent") if request else "") or "",
             )

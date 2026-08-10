@@ -1330,8 +1330,9 @@ class PpeIssuePayload(BaseModel):
 # Router factory
 # ---------------------------------------------------------------------------
 
-def build_governance_router(db, require_admin_strict):
+def build_governance_router(db, require_admin_strict, require_admin_read=None):
     router = APIRouter(tags=["governance"])
+    require_admin_read = require_admin_read or require_admin_strict
 
     @router.post("/api/admin/compliance/scan",
                  dependencies=[Depends(require_admin_strict)])
@@ -1524,7 +1525,7 @@ def build_governance_router(db, require_admin_strict):
         return {"ok": True, "finding": updated}
 
     @router.get("/api/admin/governance/summary",
-                dependencies=[Depends(require_admin_strict)])
+                dependencies=[Depends(require_admin_read)])
     async def governance_summary():
         now = datetime.now(timezone.utc)
         # Open by severity

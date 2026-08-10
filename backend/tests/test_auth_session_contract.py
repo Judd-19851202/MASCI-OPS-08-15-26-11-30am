@@ -47,6 +47,11 @@ MULTI_PORTAL_USER = {
     "password": "AdminPmOps8!"
 }
 
+SUPER_ADMIN_USER = {
+    "email": "jaymn.judd@mascigc.com",
+    "password": "Maddix123!"
+}
+
 PM_USER = {
     "email": "cert.pm@example.com",
     "password": "CertProof2026!"
@@ -103,6 +108,33 @@ class TestMultiLoginFlow:
             timeout=30
         )
         assert response.status_code in [400, 401, 422], f"Expected 4xx, got {response.status_code}"
+
+    def test_super_admin_multi_login_admin_token_is_immediately_usable(self):
+        """Super-admin multi-login must yield an admin token that works on first use."""
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_USER,
+            timeout=30,
+        )
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+
+        data = response.json()
+        session_token = data.get("session_token")
+        admin_token = (data.get("portal_tokens") or {}).get("admin")
+        assert admin_token, "Expected an admin portal token"
+
+        admin_check = requests.get(
+            f"{BASE_URL}/api/admin/system-health",
+            headers={
+                "X-Admin-Token": admin_token,
+                "X-Directory-Token": session_token or "",
+            },
+            timeout=30,
+        )
+        assert admin_check.status_code == 200, (
+            f"Super-admin admin token should survive first admin request, got "
+            f"{admin_check.status_code}: {admin_check.text}"
+        )
 
 
 class TestMeDirectoryEndpoint:

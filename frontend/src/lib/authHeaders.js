@@ -6,6 +6,7 @@ import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getFlToken } from "@/lib/flAuth";
 import { getDirectoryToken } from "@/lib/directoryAuth";
+import { inferActivePortalForAuth } from "@/lib/portalAuthScope";
 
 const PORTAL_HEADER_MAP = {
   admin: "X-Admin-Token",
@@ -32,32 +33,61 @@ const DIRECTORY_COMPATIBLE_PORTALS = new Set([
   "dispatch",
 ]);
 
-export function buildPortalAuthHeaders(extra = {}) {
+function normalizeRequestedPortals(portals = null) {
+  if (portals === "all") return null;
+  if (Array.isArray(portals)) return portals.filter(Boolean);
+  if (typeof portals === "string" && portals.trim()) return [portals.trim()];
+  try {
+    if (typeof window !== "undefined") {
+      const activePortal = inferActivePortalForAuth(window.location?.pathname || "");
+      return activePortal ? [activePortal] : null;
+    }
+  } catch {
+    /* ignore portal inference failures */
+  }
+  return null;
+}
+
+function wantsPortal(requestedPortals, portal) {
+  return !requestedPortals || requestedPortals.includes(portal);
+}
+
+export function buildPortalAuthHeaders(extra = {}, portals = null) {
   const headers = { ...extra };
+  const requestedPortals = normalizeRequestedPortals(portals);
 
   const admin = getAdminToken();
-  if (admin) headers["X-Admin-Token"] = admin;
+  if (admin && wantsPortal(requestedPortals, "admin")) headers["X-Admin-Token"] = admin;
 
   const pm = getPmToken();
-  if (pm) headers["X-PM-Token"] = pm;
+  if (pm && wantsPortal(requestedPortals, "pm")) headers["X-PM-Token"] = pm;
 
   const hr = getHrToken();
-  if (hr) headers["X-HR-Token"] = hr;
+  if (hr && wantsPortal(requestedPortals, "hr")) headers["X-HR-Token"] = hr;
 
   const shop = getShopToken();
-  if (shop) headers["X-Shop-Token"] = shop;
+  if (shop && wantsPortal(requestedPortals, "shop")) headers["X-Shop-Token"] = shop;
 
   const safety = getSafetyToken();
-  if (safety) headers["X-Safety-Token"] = safety;
+  if (safety && wantsPortal(requestedPortals, "safety")) headers["X-Safety-Token"] = safety;
 
   const dispatch = getDispatchToken();
-  if (dispatch) headers["X-Dispatch-Token"] = dispatch;
+  if (dispatch && wantsPortal(requestedPortals, "dispatch")) headers["X-Dispatch-Token"] = dispatch;
 
   const fl = getFlToken();
-  if (fl) headers["X-FL-Token"] = fl;
+  if (fl && (wantsPortal(requestedPortals, "field_leadership") || wantsPortal(requestedPortals, "fl") || wantsPortal(requestedPortals, "leadership"))) {
+    headers["X-FL-Token"] = fl;
+  }
 
   const directory = getDirectoryToken();
-  if (directory) headers["X-Directory-Token"] = directory;
+  if (
+    directory && (
+      !requestedPortals
+      || requestedPortals.some((portal) => DIRECTORY_COMPATIBLE_PORTALS.has(portal))
+    )
+  ) {
+    headers["X-Directory-Token"] = directory;
+  }
 
   return headers;
 }
