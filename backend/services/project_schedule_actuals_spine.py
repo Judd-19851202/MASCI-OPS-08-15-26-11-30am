@@ -856,11 +856,13 @@ async def get_daily_work_plan(db, project_number: str, *, work_date: str = "") -
     lookahead = await get_reconciled_schedule_lookahead(db, project_number)
     current_version_id = (active_version or {}).get("version_id") or ""
     current_lookahead_id = lookahead.get("lookahead_id") or ""
+    current_lookahead_version = int(lookahead.get("version") or 0)
     if existing:
         is_current_horizon = work_date >= datetime.now(timezone.utc).date().isoformat()
         if is_current_horizon and (
             _clean(existing.get("version_id")) != _clean(current_version_id)
             or _clean(existing.get("lookahead_id")) != _clean(current_lookahead_id)
+            or int(existing.get("lookahead_version") or 0) != current_lookahead_version
         ):
             await db[COLL_DAILY_WORK_PLANS].delete_one({"project_number": project_number, "work_date": work_date})
         else:
@@ -889,6 +891,7 @@ async def get_daily_work_plan(db, project_number: str, *, work_date: str = "") -
         "version_id": active_version.get("version_id") or "",
         "baseline_version_id": active_version.get("baseline_version_id") or active_version.get("version_id") or "",
         "lookahead_id": lookahead.get("lookahead_id") or "",
+        "lookahead_version": current_lookahead_version,
         "items": [_plan_item_from_activity(row) for row in selected],
         "notes": "Daily work plans are governed overlays derived from the active current schedule and the rolling lookahead. They never overwrite baseline history.",
         "created_at": _utcnow(),

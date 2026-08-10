@@ -1520,6 +1520,19 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             try:
                 from lib.field_submitter_identity import resolve_identity  # noqa: PLC0415
 
+                prepared_identity = working_doc.get("prepared_by_identity") if isinstance(working_doc.get("prepared_by_identity"), dict) else {}
+                submitter_email = str(
+                    payload_snapshot.get("submitter_email_at_submit")
+                    or prepared_identity.get("email")
+                    or working_doc.get("submitted_by_email")
+                    or ""
+                ).strip()
+                submitter_name = str(
+                    payload_snapshot.get("prepared_by")
+                    or prepared_identity.get("name")
+                    or working_doc.get("prepared_by")
+                    or ""
+                ).strip()
                 binding = await resolve_identity(
                     db,
                     workflow="daily_report",
@@ -1527,12 +1540,16 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     record_doc_id=working_doc.get("doc_id") or "",
                     project_number=working_doc.get("project_number") or "",
                     submitter_employee_id=str(payload_snapshot.get("submitter_employee_id") or "").strip(),
-                    submitter_email_at_submit=str(payload_snapshot.get("submitter_email_at_submit") or "").strip(),
+                    submitter_email_at_submit=submitter_email,
                     submitter_consent_at=payload_snapshot.get("submitter_consent_at"),
-                    submitter_name_fallback=str(payload_snapshot.get("prepared_by") or "").strip(),
+                    submitter_name_fallback=submitter_name,
                     fl_token=fl_token,
                 )
                 canonical_submitter_id = str((binding or {}).get("submitter_canonical_id") or "").strip()
+                if submitter_name and not str(working_doc.get("submitted_by") or "").strip():
+                    post_updates["submitted_by"] = submitter_name
+                if submitter_email and not str(working_doc.get("submitted_by_email") or "").strip():
+                    post_updates["submitted_by_email"] = submitter_email
                 if canonical_submitter_id and not str(working_doc.get("prepared_by_employee_id") or "").strip():
                     post_updates["prepared_by_employee_id"] = canonical_submitter_id
             except Exception:  # pragma: no cover — best-effort audit

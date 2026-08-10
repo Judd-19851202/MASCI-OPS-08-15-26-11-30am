@@ -1,3 +1,46 @@
+# 2026-08-10 — PRE-C10 Safety truth closure batch
+
+- Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **166 / 216 closed = 76.9%**.
+- Additional rows closed on top of the Project Controls batch:
+  - C1–C9 register: Safety corrective-action truth.
+  - C1–C9 register: Safety archive/history lifecycle.
+- Fresh runtime proof captured in this follow-on batch:
+  - `test_prec10_corrective_action_truth_governance.py` = `3 / 3 PASS`
+  - `test_prec10_safety_corrective_action_truth.py` = `7 / 7 PASS`
+  - `test_prec10_incident_archive_history.py` = `1 / 1 PASS`
+  - `test_track_28_06_safety_e2e.py` = `10 / 10 PASS`
+  - live safety runtime recheck: `/api/safety/overview` `200`, `/api/safety/digest/preview` `200`, `/api/safety/exports/corrective-actions?format=csv` `200`
+- Batch accounting now stands at:
+  - Rows closed: `10`
+  - Actual software defects discovered: `5`
+  - Shared repairs required: `5`
+  - High-blast-radius systems modified: `5`
+  - Remaining denominator state: `12 partial / 38 open`
+
+# 2026-08-10 — PRE-C10 Project Controls + Platform Truth Integrity closure batch
+
+- Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **164 / 216 closed = 75.9%**.
+- Closed rows in this batch:
+  - KPI register: Schedule Overview, Rolling Two-Week Lookahead, Daily Work Plan, C7 Forecasting Workspace, C8 Earned Value Summary, C9 Portfolio Intelligence.
+  - C1–C9 register: Platform truth-integrity scanner.
+  - Master remediation: `PRE-C10-SCHEDULE-001` now `REPAIRED → CERTIFIED`.
+- Real shared defects repaired in this batch:
+  - lookahead invalidation now includes current constraint signatures and respects explicit empty-constraint persistence;
+  - daily work plans now invalidate on lookahead version drift;
+  - C8 now reads the full approved-actual lineage instead of truncating to the latest candidate window;
+  - platform truth-integrity now excludes governed hidden rows correctly and legacy admin employee writers now stamp governed fixture markers;
+  - daily-report submitter stamping and governed certification isolation were tightened, then deterministic preview-safe governance backfills reclassified stale technical rows.
+- Testing and proof for this batch:
+  - combined Project Controls proof pack: `40 / 40 PASS`
+  - platform truth-integrity scanner: `1 / 1 PASS`
+  - supporting targeted reruns: schedule actuals chain PASS, C8 engine PASS, direct runtime checks returned 200/green on the governed PM/admin surfaces
+- Batch accounting:
+  - Rows closed: `8`
+  - Actual software defects discovered: `5`
+  - Shared repairs required: `5`
+  - High-blast-radius systems modified: `5`
+  - Remaining denominator state: `14 partial / 38 open`
+
 # 2026-08-10 — PRE-C10 shared KPI engine closure batch
 
 - Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **156 / 216 closed = 72.2%**.

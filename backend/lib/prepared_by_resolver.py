@@ -56,6 +56,48 @@ async def resolve_prepared_by_identity(
     x_dispatch = (h.get("X-Dispatch-Token") or "").strip()
     x_fl = (h.get("X-FL-Token") or "").strip()
     x_leadership = (h.get("X-Leadership-Token") or "").strip()
+    x_directory = (h.get("X-Directory-Token") or "").strip()
+
+    if x_directory:
+        try:
+            from user_directory import session_user  # noqa: PLC0415
+
+            u = await session_user(db, token=x_directory)
+            if u:
+                directory = "directory"
+                role = (u.get("role") or "").strip()
+                if x_admin:
+                    directory = "admin"
+                    role = role or "Admin"
+                elif x_pm:
+                    directory = "pm"
+                    role = role or "Project Manager"
+                elif x_fl:
+                    directory = "fl"
+                elif x_hr:
+                    directory = "hr"
+                    role = role or "HR"
+                elif x_safety:
+                    directory = "safety"
+                    role = role or "Safety"
+                elif x_shop:
+                    directory = "shop"
+                    role = role or "Shop"
+                elif x_dispatch:
+                    directory = "dispatch"
+                    role = role or "Dispatch"
+                elif x_leadership:
+                    directory = "leadership"
+                    role = role or "Field Leadership"
+                return {
+                    "directory": directory,
+                    "user_id": str(u.get("id") or u.get("user_id") or ""),
+                    "name": (u.get("name") or u.get("full_name") or u.get("email") or "").strip(),
+                    "email": (u.get("email") or "").strip(),
+                    "role": role,
+                }
+        except Exception:  # noqa: BLE001
+            pass
 
     # ── PM (per-PM, has `.` in token) ─────────────────────────────────
     if x_pm and "." in x_pm:
@@ -167,10 +209,6 @@ async def resolve_prepared_by_identity(
             except Exception:  # noqa: BLE001
                 admin_ok = False
     if admin_ok:
-        # Admin tokens don't carry a user identity (single shared
-        # break-glass HMAC). Surface as a bound directory with an
-        # opaque user_id of "admin" so audits can still discriminate
-        # admin-submitted reports from FSI fallback.
         return {
             "directory": "admin",
             "user_id": "admin",

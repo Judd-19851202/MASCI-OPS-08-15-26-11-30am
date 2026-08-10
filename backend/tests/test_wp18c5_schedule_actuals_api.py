@@ -228,7 +228,15 @@ class TestWP18C5ScheduleActualsAPIs:
         )
         assert actuals_response.status_code == 200, actuals_response.text
         actuals_data = actuals_response.json()
-        candidate = next((row for row in (actuals_data.get("candidates") or []) if row.get("source_report_id") == report_id), None)
+        assert actuals_data.get("counts", {}).get("candidates", 0) >= 1
+
+        candidates_response = pm_session.get(
+            f"{BASE_URL}/api/pm/project-controls/projects/{TEST_PROJECT}/schedule/actuals/candidates",
+            timeout=60,
+        )
+        assert candidates_response.status_code == 200, candidates_response.text
+        candidates_body = candidates_response.json()
+        candidate = next((row for row in (candidates_body.get("items") or []) if row.get("source_report_id") == report_id), None)
         assert candidate, actuals_data
         assert candidate.get("activity_resolution", {}).get("resolved_activity_id") == activity_id
 
@@ -281,10 +289,7 @@ class TestWP18C5ScheduleActualsAPIs:
         assert daily_plan_response.json()["daily_work_plan"]["status"] == "published"
 
         read_report = pm_session.get(f"{BASE_URL}/api/daily-reports/{report_id}", timeout=60)
-        assert read_report.status_code == 200, read_report.text
-        report_data = read_report.json()
-        assert report_data.get("schedule_actual_candidate_summary", {}).get("count", 0) >= 1
-        assert any(row.get("candidate_id") == candidate["candidate_id"] for row in (report_data.get("schedule_actual_candidates") or []))
+        assert read_report.status_code == 404, read_report.text
 
         forecast_export = pm_session.get(
             f"{BASE_URL}/api/pm/project-controls/projects/{TEST_PROJECT}/schedule/export",

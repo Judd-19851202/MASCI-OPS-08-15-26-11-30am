@@ -38,8 +38,18 @@ async def _binding_ids(db, workflow: str) -> Set[str]:
 async def _list_visible(db, collection: str, projection: Dict[str, int]) -> List[Dict[str, Any]]:
     if collection not in await db.list_collection_names():
         return []
+    effective_projection = dict(projection or {})
+    effective_projection.update(
+        {
+            "hidden_from_operations": 1,
+            "synthetic_record": 1,
+            "certification_record": 1,
+            "technical_record_classification": 1,
+            "truth_visibility_scope": 1,
+        }
+    )
     rows: List[Dict[str, Any]] = []
-    async for row in db[collection].find({}, projection):
+    async for row in db[collection].find({}, effective_projection):
         row.pop("_id", None)
         if is_hidden_from_live_operations(row):
             continue

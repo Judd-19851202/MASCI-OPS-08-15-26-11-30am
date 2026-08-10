@@ -1311,8 +1311,8 @@ async def save_project_lookahead(db, project_number: str, payload: Dict[str, Any
     existing = await get_project_lookahead(db, project_number)
     updated = deepcopy(existing)
     updated["status"] = _status(payload.get("status") or updated.get("status") or "draft", allowed=["draft", "published", "archived"], default="draft")
-    updated["tasks"] = _sanitize(payload.get("tasks") or updated.get("tasks") or [])
-    updated["constraints"] = _sanitize(payload.get("constraints") or updated.get("constraints") or [])
+    updated["tasks"] = _sanitize(payload["tasks"] if "tasks" in payload else updated.get("tasks") or [])
+    updated["constraints"] = _sanitize(payload["constraints"] if "constraints" in payload else updated.get("constraints") or [])
     updated["comparison_note"] = _clean(payload.get("comparison_note") or updated.get("comparison_note") or "")
     updated["version"] = int(updated.get("version") or 1) + 1
     updated["updated_at"] = _utcnow()

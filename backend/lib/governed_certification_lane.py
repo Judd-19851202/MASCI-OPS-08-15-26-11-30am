@@ -150,9 +150,7 @@ def build_governed_routing_override(
 def should_apply_governed_daily_report_lane(doc: Dict[str, Any]) -> bool:
     if bool(doc.get("certification_record")):
         return True
-    if not is_governed_certification_project(doc):
-        return False
-    return is_governed_certification_identity(doc.get("prepared_by_identity"))
+    return is_governed_certification_project(doc)
 
 
 def apply_governed_daily_report_lane(

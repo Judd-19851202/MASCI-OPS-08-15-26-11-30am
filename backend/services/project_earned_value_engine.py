@@ -333,7 +333,20 @@ async def _load_upstream_payloads(db, project_number: str, *, actor: Optional[Di
     async def load_actual_candidates() -> List[Dict[str, Any]]:
         return [
             _sanitize(row)
-            async for row in db[COLL_SCHEDULE_ACTUAL_CANDIDATES].find({"project_number": project_number}, {"_id": 0}).sort([("created_at", -1)]).limit(500)
+            async for row in db[COLL_SCHEDULE_ACTUAL_CANDIDATES].find(
+                {"project_number": project_number, "review_status": "approved"},
+                {
+                    "_id": 0,
+                    "candidate_id": 1,
+                    "review_status": 1,
+                    "source_report_id": 1,
+                    "work_block_id": 1,
+                    "planned_links": 1,
+                    "activity_resolution": 1,
+                    "approved_actual": 1,
+                    "created_at": 1,
+                },
+            ).sort([("created_at", -1)])
         ]
 
     job, budget_payload, schedule_versions, forecasting_workspace, op_intel, actual_candidates = await asyncio.gather(

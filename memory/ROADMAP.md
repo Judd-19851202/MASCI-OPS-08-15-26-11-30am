@@ -1,3 +1,57 @@
+# 2026-08-10 — PRE-C10 milestone after Safety truth closure batch
+
+- **PRE-C10 status:** `166 / 216 closed = 76.9%`
+- **This batch:** `10` rows closed, `5` actual software defects discovered, `5` shared repairs required, `5` high-blast-radius systems modified.
+- **Remaining:** `12 partial / 38 open`
+
+## What closed in this batch
+
+- KPI register: Schedule Overview, Rolling Two-Week Lookahead, Daily Work Plan, C7 Forecasting Workspace, C8 Earned Value Summary, C9 Portfolio Intelligence.
+- C1–C9 register: Platform truth-integrity scanner, Safety corrective-action truth, Safety archive/history lifecycle.
+- Master remediation: `PRE-C10-SCHEDULE-001` now `REPAIRED → CERTIFIED`.
+
+## Immediate next actions
+
+### P0
+- Continue the next shared-authority batches in order:
+  - export / notification / PDF / email consumers
+  - remaining Admin OS lineage
+- Close recurrence rows immediately when their dependent shared contract is fully proven.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
+# 2026-08-10 — PRE-C10 milestone after Project Controls + Platform Truth Integrity closure batch
+
+- **PRE-C10 status:** `164 / 216 closed = 75.9%`
+- **This batch:** `8` rows closed, `5` actual software defects discovered, `5` shared repairs required, `5` high-blast-radius systems modified.
+- **Remaining:** `14 partial / 38 open`
+
+## What closed in this batch
+
+- KPI register: Schedule Overview, Rolling Two-Week Lookahead, Daily Work Plan, C7 Forecasting Workspace, C8 Earned Value Summary, C9 Portfolio Intelligence.
+- C1–C9 register: Platform truth-integrity scanner.
+- Master remediation: `PRE-C10-SCHEDULE-001` now `REPAIRED → CERTIFIED`.
+
+## Immediate next actions
+
+### P0
+- Continue the next shared-authority batches in order:
+  - Safety corrective-action truth
+  - Safety archive/history lifecycle
+  - export / notification / PDF / email consumers
+  - remaining Admin OS lineage
+- Close recurrence rows immediately when their dependent shared contract is fully proven.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after shared KPI engine closure batch
 
 - **PRE-C10 status:** `156 / 216 closed = 72.2%`

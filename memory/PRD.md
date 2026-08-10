@@ -1,5 +1,50 @@
 # PRD
 
+## 2026-08-10 — PRE-C10 Project Controls + Platform Truth Integrity closure batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.
+- Milestone advanced to **164 / 216 closed = 75.9%** with **14 partial / 38 open** still remaining under the frozen denominator.
+- Completed in this batch:
+  - closed the full Project Controls proof chain for the governed certification project: Schedule Overview, active schedule authority, Lookahead, Daily Work Plan, schedule actuals, baseline/version identity, C7 Forecasting & Commitments, C8 Earned Value, and C9 Portfolio Intelligence;
+  - moved the platform truth-integrity scanner to GREEN after shared repairs in daily-report certification isolation/submitter lineage, cross-entity hidden-row visibility filtering, and explicit legacy employee fixture governance;
+  - promoted `PRE-C10-SCHEDULE-001` to `REPAIRED → CERTIFIED`.
+- Shared defects factually repaired in this batch:
+  - stale lookahead snapshots were not invalidating on constraint drift and explicit empty-constraint saves were preserving stale root constraints;
+  - daily work plans were not invalidating on lookahead-version drift;
+  - the earned-value engine was truncating approved actual lineage to the latest candidate window instead of the full approved set;
+  - cross-entity truth scans were counting governed hidden rows because visibility markers were omitted from the scanner projection;
+  - legacy admin employee writers were creating heuristic-only synthetic rows without explicit governed markers, and portal-authored daily reports were not always persisting enough identity/classification metadata for truth-integrity governance.
+- Verification evidence from this batch:
+  - `backend/tests/test_prec10_schedule_downstream_parity.py`
+  - `backend/tests/test_prec10_schedule_truth_chain_independent.py`
+  - `backend/tests/test_prec10_schedule_scope_guard.py`
+  - `backend/tests/test_wp18c4_schedule_api.py`
+  - `backend/tests/test_wp18c5_schedule_actuals_api.py`
+  - `backend/tests/test_wp18c7_forecasting_commitments.py`
+  - `backend/tests/test_wp18c8_earned_value_engine.py`
+  - `backend/tests/test_wp18c9_portfolio_intelligence.py`
+  - Combined Project Controls pack: **40 / 40 PASS**
+  - `backend/tests/test_prec10_platform_truth_integrity.py`: **1 / 1 PASS**
+- Remaining immediate order stays unchanged after this closure:
+  - export / notification / PDF / email consumers
+  - remaining Admin OS lineage
+
+## 2026-08-10 — PRE-C10 safety truth closure follow-on
+
+- Milestone advanced again to **166 / 216 closed = 76.9%** with **12 partial / 38 open** remaining under the frozen denominator.
+- Completed in this follow-on proof batch:
+  - closed the C1–C9 Safety corrective-action truth family with live parity at `open=2`, `overdue=2` across `/api/safety/overview`, `/api/safety/digest/preview`, `/api/safety/exports/corrective-actions?format=csv`, and the hostile marker/oracle tests;
+  - closed the C1–C9 Safety archive/history lifecycle family with current archive → hidden list → audit → reopen proof plus the synthetic-exclusion safety E2E pack.
+- Verification evidence from this follow-on batch:
+  - `backend/tests/test_prec10_corrective_action_truth_governance.py`: **3 / 3 PASS**
+  - `backend/tests/test_prec10_safety_corrective_action_truth.py`: **7 / 7 PASS**
+  - `backend/tests/test_prec10_incident_archive_history.py`: **1 / 1 PASS**
+  - `backend/tests/test_track_28_06_safety_e2e.py`: **10 / 10 PASS**
+  - direct runtime checks: `/api/safety/overview` **200**, `/api/safety/digest/preview` **200**, `/api/safety/exports/corrective-actions?format=csv` **200**
+- Remaining immediate order after this follow-on closure:
+  - export / notification / PDF / email consumers
+  - remaining Admin OS lineage
+
 ## 2026-08-10 — PRE-C10 KPI/Admin continuation with hard blockers identified
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.

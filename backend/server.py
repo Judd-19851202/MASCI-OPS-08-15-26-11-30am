@@ -6366,6 +6366,12 @@ async def upload_employees(
                 }],
                 "deleted_at": None,
             }
+            try:
+                from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+                doc = apply_governed_fixture_markers(doc, "employees")
+            except Exception:
+                pass
             await db.employees.insert_one(dict(doc))
             results["created"] += 1
             items.append({"row_name": name, "action": "created", "id": new_id})
@@ -6474,6 +6480,12 @@ async def create_employee(
         }],
         "deleted_at": None,
     }
+    try:
+        from lib.governed_fixture_evidence import apply_governed_fixture_markers  # noqa: PLC0415
+
+        doc = apply_governed_fixture_markers(doc, "employees")
+    except Exception:
+        pass
     await db.employees.insert_one(doc)
     try:
         await db.employee_lifecycle_events.insert_one({

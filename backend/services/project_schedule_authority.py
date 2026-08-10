@@ -4,6 +4,7 @@ import asyncio
 import csv
 import hashlib
 import io
+import json
 import re
 from collections import defaultdict
 from copy import deepcopy
@@ -1198,22 +1199,54 @@ def _work_package_doc(project_number: str, version_id: str, phase_id: str, work_
 async def _seed_lookahead_from_activities(db, project_number: str, activities: List[Dict[str, Any]], *, actor: Dict[str, Any]) -> Dict[str, Any]:
     existing = await get_project_lookahead(db, project_number)
 
-    def _activity_signature(row: Dict[str, Any]) -> tuple[str, str, str, str, str]:
+    def _normalized_planned_signature(value: Dict[str, Any]) -> str:
+        return json.dumps(_sanitize(value or {}), sort_keys=True, separators=(",", ":"))
+
+    def _normalized_task_signature(value: Dict[str, Any]) -> str:
+        return json.dumps(
+            {
+                "planned_crews": _sanitize(value.get("planned_crews") or []),
+                "planned_equipment": _sanitize(value.get("planned_equipment") or []),
+                "planned_materials": _sanitize(value.get("planned_materials") or []),
+                "planned_vendors": _sanitize(value.get("planned_vendors") or []),
+                "planned_subcontractors": _sanitize(value.get("planned_subcontractors") or []),
+                "planned_constraints": _sanitize(value.get("planned_constraints") or []),
+                "responsible_party": _clean(value.get("responsible_party")),
+                "notes": _clean(value.get("notes")),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
+    def _activity_signature(row: Dict[str, Any]) -> tuple[str, str, str, str, str, str, str, str, str, str, str]:
+        planned = row.get("planned_assignments") or {}
         return (
             _clean(row.get("activity_id")),
             _clean(row.get("budget_line_id")),
             _clean(row.get("customer_pay_item_number")),
             _clean(row.get("planned_start_date")),
             _clean(row.get("planned_finish_date")),
+            _clean(row.get("activity_name")),
+            _clean(row.get("phase_id")),
+            _clean(row.get("work_package_id")),
+            _clean(row.get("enterprise_work_type_id")),
+            _clean(row.get("owner") or "PM"),
+            _normalized_planned_signature(planned),
         )
 
-    def _task_signature(row: Dict[str, Any]) -> tuple[str, str, str, str, str]:
+    def _task_signature(row: Dict[str, Any]) -> tuple[str, str, str, str, str, str, str, str, str, str, str]:
         return (
             _clean(row.get("activity_id") or row.get("schedule_activity_id")),
             _clean(row.get("budget_line_id")),
             _clean(row.get("customer_pay_item_number")),
             _clean(row.get("planned_start")),
             _clean(row.get("planned_finish")),
+            _clean(row.get("title")),
+            _clean(row.get("phase_id")),
+            _clean(row.get("work_package_id")),
+            _clean(row.get("enterprise_work_type_id")),
+            _clean(row.get("responsible_party") or "PM"),
+            _normalized_task_signature(row),
         )
 
     current_signatures = {
@@ -1226,7 +1259,13 @@ async def _seed_lookahead_from_activities(db, project_number: str, activities: L
         for task in (existing.get("tasks") or [])
         if _clean(task.get("activity_id") or task.get("schedule_activity_id"))
     }
-    if current_signatures and existing_signatures == current_signatures:
+    current_constraints = [
+        _sanitize(constraint)
+        for activity in sorted(activities, key=lambda row: (row.get("planned_start_date") or "", row.get("activity_id") or ""))[:40]
+        for constraint in ((activity.get("planned_assignments") or {}).get("planned_constraints") or [])
+    ]
+    existing_constraints = _sanitize(existing.get("constraints") or [])
+    if current_signatures and existing_signatures == current_signatures and existing_constraints == current_constraints:
         return existing
 
     focus_tasks = []
