@@ -1,3 +1,25 @@
+# 2026-08-10 — PRE-C10 auth/session/public-access closure batch
+
+- Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **177 / 216 closed = 81.9%**.
+- Closed rows in this batch:
+  - Master remediation: `PRE-C10-AUTH-001` → `REPAIRED → CERTIFIED`.
+  - Permanent-fix closure: `PRE-C10-AUTH-SESSION-001` → `CLOSED — DIRECT RUNTIME VERIFIED`.
+- Real shared auth defects repaired in this batch:
+  - `backend/user_directory.py::persist_session()` now enforces a single active governed directory session per user and clears stale portal session activity before minting the next directory session;
+  - `backend/session_timeout.py::has_active_session_activity()` now fails closed for directory-bound admin/PM tokens when the backing directory session is gone or expired.
+- Testing and proof for this batch:
+  - browser/runtime auth sweep: `/app/test_reports/iteration_14.json` PASS
+  - dedicated backend contract pack: `backend/tests/test_auth_session_contract.py` = `16 / 16 PASS`
+  - direct-role frontend verification: Dispatch / Shop / Field Leadership PASS
+  - direct-role backend token validation: `6 / 6 PASS`
+  - direct runtime expiry self-proof PASS (directory session expired → `/api/auth/me-directory`, `/api/admin/check`, `/api/pm/check` all return `401`, including stale portal-token-only retries)
+- Batch accounting now stands at:
+  - Rows closed: `2`
+  - Actual software defects discovered: `2`
+  - Code repairs required: `2`
+  - High-blast-radius systems modified: `2`
+  - Remaining denominator state: `6 partial / 33 open`
+
 # 2026-08-10 — PRE-C10 consumer + staffing + dispatch/shop KPI closure batch
 
 - Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **175 / 216 closed = 81.0%**.

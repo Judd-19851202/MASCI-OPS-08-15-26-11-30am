@@ -1,366 +1,449 @@
 #!/usr/bin/env python3
 """
-PRE-C10 Proof-Closure Batch Backend QA
-Testing MASCI preview backend endpoints for PRE-C10 proof-closure batch.
+Backend API Testing for Direct Portal Role Token Flows
+=======================================================
+Tests the remaining direct-role token flows for Dispatch, Shop, and Field Leadership
+after the auth/session fix in /app/backend/user_directory.py.
+
+Test Scope:
+- Dispatch: cert.dispatch@example.com / CertProof2026!
+- Shop: cert.shop@example.com / CertProof2026!
+- Field Leadership: cert.foreman@example.com / CertProof2026!
+
+Validates:
+1. Login endpoints return 200 and usable tokens
+2. Authenticated read endpoints accept the returned token
+3. Logout endpoints (if exist) invalidate tokens
 """
 
 import requests
+import sys
 import json
-from typing import Dict, Any, Optional, List
+from typing import Dict, Optional, Tuple
 
-# Configuration
-BASE_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
-ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-ADMIN_PASSWORD = "Maddix123!"
-PM_EMAIL = "cert.pm@example.com"
-PM_PASSWORD = "CertProof2026!"
+# Backend URL from frontend/.env
+BACKEND_URL = "https://masci-audit-hub.preview.emergentagent.com/api"
 
-class BackendTester:
+# Test credentials from /app/memory/test_credentials.md
+DISPATCH_EMAIL = "cert.dispatch@example.com"
+DISPATCH_PASSWORD = "CertProof2026!"
+
+SHOP_EMAIL = "cert.shop@example.com"
+SHOP_PASSWORD = "CertProof2026!"
+
+FIELD_LEADERSHIP_EMAIL = "cert.foreman@example.com"
+FIELD_LEADERSHIP_PASSWORD = "CertProof2026!"
+
+
+class TestResult:
     def __init__(self):
-        self.session = requests.Session()
-        self.admin_token = None
-        self.pm_token = None
-        self.directory_token = None
-        self.results = []
-        
-    def authenticate_admin(self) -> bool:
-        """Authenticate as admin and get token."""
-        print("\n" + "="*80)
-        print("ADMIN AUTHENTICATION")
-        print("="*80)
-        
-        try:
-            response = self.session.post(
-                f"{BASE_URL}/auth/multi-login",
-                json={
-                    "email": ADMIN_EMAIL,
-                    "password": ADMIN_PASSWORD
-                },
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                self.admin_token = data.get("portal_tokens", {}).get("admin")
-                self.directory_token = data.get("session_token")
-                if self.admin_token:
-                    print(f"✅ Admin authentication successful")
-                    print(f"   Admin token: {self.admin_token[:20]}...")
-                    if self.directory_token:
-                        print(f"   Directory token: {self.directory_token[:20]}...")
-                    return True
-                else:
-                    print(f"❌ Admin authentication failed: No admin token in response")
-                    return False
-            else:
-                print(f"❌ Admin authentication failed: {response.status_code}")
-                print(f"   Response: {response.text[:200]}")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Admin authentication error: {str(e)}")
-            return False
+        self.passed = []
+        self.failed = []
+        self.warnings = []
     
-    def authenticate_pm(self) -> bool:
-        """Authenticate as PM and get token."""
-        print("\n" + "="*80)
-        print("PM AUTHENTICATION")
-        print("="*80)
-        
-        try:
-            response = self.session.post(
-                f"{BASE_URL}/auth/multi-login",
-                json={
-                    "email": PM_EMAIL,
-                    "password": PM_PASSWORD
-                },
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                self.pm_token = data.get("portal_tokens", {}).get("pm")
-                if self.pm_token:
-                    print(f"✅ PM authentication successful")
-                    print(f"   PM token: {self.pm_token[:20]}...")
-                    return True
-                else:
-                    print(f"❌ PM authentication failed: No PM token in response")
-                    return False
-            else:
-                print(f"❌ PM authentication failed: {response.status_code}")
-                print(f"   Response: {response.text[:200]}")
-                return False
-                
-        except Exception as e:
-            print(f"❌ PM authentication error: {str(e)}")
-            return False
+    def add_pass(self, test_name: str, details: str = ""):
+        self.passed.append((test_name, details))
+        print(f"✅ PASS: {test_name}")
+        if details:
+            print(f"   {details}")
     
-    def test_endpoint(self, name: str, path: str, expected_status: int = 200, 
-                     use_pm_token: bool = False, check_fields: Optional[List[str]] = None) -> Dict[str, Any]:
-        """Test a single endpoint."""
-        full_url = f"{BASE_URL}{path}"
-        
-        try:
-            # Build headers based on authentication type
-            headers = {}
-            if use_pm_token and self.pm_token:
-                headers["X-PM-Token"] = self.pm_token
-            elif self.admin_token:
-                headers["X-Admin-Token"] = self.admin_token
-                if self.directory_token:
-                    headers["X-Directory-Token"] = self.directory_token
-            
-            response = self.session.get(full_url, headers=headers, timeout=30)
-            
-            result = {
-                "name": name,
-                "path": path,
-                "status_code": response.status_code,
-                "expected_status": expected_status,
-                "passed": response.status_code == expected_status,
-                "response_size": len(response.content),
-                "error": None,
-                "data_sample": None,
-                "auth_type": "PM" if use_pm_token else "Admin"
-            }
-            
-            # Try to parse JSON response
-            try:
-                data = response.json()
-                result["data_sample"] = self._get_data_sample(data)
-                
-                # Check for specific fields if requested
-                if check_fields and response.status_code == 200:
-                    missing_fields = [f for f in check_fields if f not in data]
-                    if missing_fields:
-                        result["passed"] = False
-                        result["error"] = f"Missing fields: {missing_fields}"
-                        
-            except Exception:
-                if response.status_code == 200:
-                    result["data_sample"] = response.text[:200]
-            
-            self.results.append(result)
-            return result
-            
-        except Exception as e:
-            result = {
-                "name": name,
-                "path": path,
-                "status_code": None,
-                "expected_status": expected_status,
-                "passed": False,
-                "response_size": 0,
-                "error": str(e),
-                "data_sample": None,
-                "auth_type": "PM" if use_pm_token else "Admin"
-            }
-            self.results.append(result)
-            return result
+    def add_fail(self, test_name: str, details: str):
+        self.failed.append((test_name, details))
+        print(f"❌ FAIL: {test_name}")
+        print(f"   {details}")
     
-    def _get_data_sample(self, data: Any) -> str:
-        """Get a sample of the response data for display."""
-        if isinstance(data, dict):
-            keys = list(data.keys())[:5]
-            sample = {k: data[k] for k in keys if k in data}
-            return json.dumps(sample, indent=2)[:300]
-        elif isinstance(data, list):
-            return f"Array with {len(data)} items"
-        else:
-            return str(data)[:200]
+    def add_warning(self, test_name: str, details: str):
+        self.warnings.append((test_name, details))
+        print(f"⚠️  WARNING: {test_name}")
+        print(f"   {details}")
     
-    def print_result(self, result: Dict[str, Any]):
-        """Print a single test result."""
-        status_icon = "✅" if result["passed"] else "❌"
-        auth_label = f"[{result.get('auth_type', 'Unknown')}]"
-        print(f"\n{status_icon} {result['name']} {auth_label}")
-        print(f"   Path: {result['path']}")
-        print(f"   Status: {result['status_code']} (expected: {result['expected_status']})")
-        
-        if result["error"]:
-            print(f"   Error: {result['error']}")
-        elif result["data_sample"]:
-            print(f"   Response sample: {result['data_sample'][:150]}...")
-    
-    def run_kpi_tests(self):
-        """Test KPI row source/runtime parity checks."""
-        print("\n" + "="*80)
-        print("SCOPE 1: KPI ROW SOURCE/RUNTIME PARITY CHECKS")
-        print("="*80)
-        
-        tests = [
-            ("Admin Governance Summary", "/admin/governance/summary", False),
-            ("Cluster Capacity", "/cluster/capacity", False),
-            ("Cluster Capacity History", "/cluster/capacity/history?days=30", False),
-            ("HR Employee Requests", "/hr/employee-requests?status=pending&limit=1000", False),
-            ("Field Leadership Time-Off Stats", "/field-leadership/time-off/stats", False),
-            ("Operations Expirations Summary", "/operations/expirations/summary", False),
-        ]
-        
-        for name, path, use_pm in tests:
-            result = self.test_endpoint(name, path, use_pm_token=use_pm)
-            self.print_result(result)
-    
-    def run_proof_chain_tests(self):
-        """Test C1-C9 proof chain availability."""
-        print("\n" + "="*80)
-        print("SCOPE 2: C1-C9 PROOF CHAIN AVAILABILITY")
-        print("="*80)
-        
-        project = "ZZ-RUNTIME-CERT-2026"
-        tests = [
-            ("PM Schedule Overview", f"/pm/project-controls/projects/{project}/schedule/overview", True),
-            ("PM Schedule Lookahead", f"/pm/project-controls/projects/{project}/schedule/lookahead", True),
-            ("PM Daily Work Plan", f"/pm/project-controls/projects/{project}/schedule/daily-work-plan?work_date=2026-08-08", True),
-            ("PM Forecasting Workspace", f"/pm/project-controls/projects/{project}/forecasting/workspace", True),
-            ("Admin Earned Value", f"/admin/governance/project-controls/projects/{project}/earned-value", False),
-            ("Admin Portfolio Intelligence", "/admin/governance/project-controls/portfolio-intelligence", False),
-        ]
-        
-        for name, path, use_pm in tests:
-            result = self.test_endpoint(name, path, use_pm_token=use_pm)
-            self.print_result(result)
-    
-    def run_production_cert_test(self):
-        """Test production certification blocked-reason repair."""
-        print("\n" + "="*80)
-        print("SCOPE 3: PRODUCTION CERTIFICATION BLOCKED-REASON REPAIR")
-        print("="*80)
-        
-        result = self.test_endpoint(
-            "Production Certification",
-            "/admin/production-certification",
-            use_pm_token=False
-        )
-        self.print_result(result)
-        
-        # Additional validation for production certification
-        if result["passed"] and result["status_code"] == 200:
-            try:
-                response = self.session.get(
-                    f"{BASE_URL}/admin/production-certification",
-                    headers={
-                        "X-Admin-Token": self.admin_token,
-                        "X-Directory-Token": self.directory_token
-                    } if self.directory_token else {"X-Admin-Token": self.admin_token},
-                    timeout=30
-                )
-                data = response.json()
-                
-                print("\n   📊 Production Certification Details:")
-                if isinstance(data, dict):
-                    # Check for stable counters/schema
-                    if "overall_status" in data:
-                        print(f"      Overall Status: {data.get('overall_status')}")
-                    if "counters" in data:
-                        counters = data.get("counters", {})
-                        print(f"      Counters: verified={counters.get('verified')}, failed={counters.get('failed')}, blocked={counters.get('blocked')}")
-                    if "workflows" in data:
-                        workflows = data.get("workflows", [])
-                        print(f"      Total Workflows: {len(workflows)}")
-                        
-                        # Check for blocked workflows with reason/remediation
-                        blocked = [w for w in workflows if w.get("status") == "BLOCKED"]
-                        if blocked:
-                            print(f"      Blocked Workflows: {len(blocked)}")
-                            for w in blocked[:3]:  # Show first 3
-                                name = w.get("name", "Unknown")
-                                reason = w.get("blocked_reason", "N/A")
-                                remediation = w.get("remediation", "N/A")
-                                print(f"         - {name}")
-                                print(f"           Reason: {reason}")
-                                if remediation != "N/A":
-                                    print(f"           Remediation: {remediation[:80]}...")
-                        else:
-                            print(f"      ✅ No blocked workflows (all workflows passing)")
-                else:
-                    print(f"      Response type: {type(data)}")
-                    
-            except Exception as e:
-                print(f"   ⚠️  Could not parse production certification details: {str(e)}")
-    
-    def print_summary(self):
-        """Print test summary."""
+    def summary(self):
+        total = len(self.passed) + len(self.failed)
         print("\n" + "="*80)
         print("TEST SUMMARY")
         print("="*80)
-        
-        total = len(self.results)
-        passed = sum(1 for r in self.results if r["passed"])
-        failed = total - passed
-        
-        print(f"\nTotal Tests: {total}")
-        print(f"✅ Passed: {passed}")
-        print(f"❌ Failed: {failed}")
-        print(f"Success Rate: {(passed/total*100):.1f}%")
-        
-        if failed > 0:
-            print("\n❌ FAILED TESTS:")
-            for r in self.results:
-                if not r["passed"]:
-                    print(f"   - {r['name']}: {r['path']}")
-                    print(f"     Status: {r['status_code']} (expected: {r['expected_status']})")
-                    if r["error"]:
-                        print(f"     Error: {r['error']}")
-        
-        print("\n" + "="*80)
-        print("SCOPE-BY-SCOPE RESULTS")
+        print(f"Total Tests: {total}")
+        print(f"Passed: {len(self.passed)}")
+        print(f"Failed: {len(self.failed)}")
+        print(f"Warnings: {len(self.warnings)}")
         print("="*80)
         
-        # Scope 1: KPI endpoints (first 6)
-        scope1_results = self.results[:6]
-        scope1_passed = sum(1 for r in scope1_results if r["passed"])
-        scope1_status = "✅ PASS" if scope1_passed == len(scope1_results) else "❌ FAIL"
-        print(f"\n1. KPI Row Source/Runtime Parity Checks: {scope1_passed}/{len(scope1_results)} {scope1_status}")
+        if self.failed:
+            print("\n❌ FAILED TESTS:")
+            for test_name, details in self.failed:
+                print(f"  - {test_name}")
+                print(f"    {details}")
         
-        # Scope 2: Proof chain endpoints (next 6)
-        scope2_results = self.results[6:12]
-        scope2_passed = sum(1 for r in scope2_results if r["passed"])
-        scope2_status = "✅ PASS" if scope2_passed == len(scope2_results) else "❌ FAIL"
-        print(f"2. C1-C9 Proof Chain Availability: {scope2_passed}/{len(scope2_results)} {scope2_status}")
+        if self.warnings:
+            print("\n⚠️  WARNINGS:")
+            for test_name, details in self.warnings:
+                print(f"  - {test_name}")
+                print(f"    {details}")
         
-        # Scope 3: Production cert (last 1)
-        if len(self.results) > 12:
-            scope3_results = self.results[12:]
-            scope3_passed = sum(1 for r in scope3_results if r["passed"])
-            scope3_status = "✅ PASS" if scope3_passed == len(scope3_results) else "❌ FAIL"
-            print(f"3. Production Certification: {scope3_passed}/{len(scope3_results)} {scope3_status}")
+        return len(self.failed) == 0
+
+
+def test_dispatch_flow(result: TestResult):
+    """Test Dispatch portal login, /me endpoint, and logout (if exists)."""
+    print("\n" + "="*80)
+    print("TESTING DISPATCH PORTAL")
+    print("="*80)
+    
+    # Test 1: POST /api/dispatch/login
+    print(f"\n1. Testing POST {BACKEND_URL}/dispatch/login")
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/dispatch/login",
+            json={"email": DISPATCH_EMAIL, "password": DISPATCH_PASSWORD},
+            timeout=30
+        )
         
-        return passed == total
+        if response.status_code == 200:
+            data = response.json()
+            token = data.get("token")
+            user = data.get("user")
+            
+            if token and user:
+                result.add_pass(
+                    "Dispatch Login (POST /api/dispatch/login)",
+                    f"Status: 200, Token received: {token[:20]}..., User: {user.get('email')}"
+                )
+                
+                # Test 2: GET /api/dispatch/me with X-Dispatch-Token
+                print(f"\n2. Testing GET {BACKEND_URL}/dispatch/me with X-Dispatch-Token")
+                try:
+                    me_response = requests.get(
+                        f"{BACKEND_URL}/dispatch/me",
+                        headers={"X-Dispatch-Token": token},
+                        timeout=30
+                    )
+                    
+                    if me_response.status_code == 200:
+                        me_data = me_response.json()
+                        result.add_pass(
+                            "Dispatch /me endpoint (GET /api/dispatch/me)",
+                            f"Status: 200, User data: {json.dumps(me_data, indent=2)}"
+                        )
+                    else:
+                        result.add_fail(
+                            "Dispatch /me endpoint (GET /api/dispatch/me)",
+                            f"Status: {me_response.status_code}, Body: {me_response.text[:200]}"
+                        )
+                except Exception as e:
+                    result.add_fail(
+                        "Dispatch /me endpoint (GET /api/dispatch/me)",
+                        f"Exception: {str(e)}"
+                    )
+                
+                # Test 3: Check for logout endpoint
+                print(f"\n3. Checking for Dispatch logout endpoint")
+                # Try common logout paths
+                logout_paths = [
+                    "/dispatch/logout",
+                    "/dispatch/portal/logout",
+                    "/auth/dispatch/logout"
+                ]
+                
+                logout_found = False
+                for path in logout_paths:
+                    try:
+                        logout_response = requests.post(
+                            f"{BACKEND_URL}{path}",
+                            headers={"X-Dispatch-Token": token},
+                            timeout=10
+                        )
+                        if logout_response.status_code != 404:
+                            logout_found = True
+                            if logout_response.status_code in [200, 204]:
+                                # Verify token is invalidated
+                                verify_response = requests.get(
+                                    f"{BACKEND_URL}/dispatch/me",
+                                    headers={"X-Dispatch-Token": token},
+                                    timeout=10
+                                )
+                                if verify_response.status_code == 401:
+                                    result.add_pass(
+                                        f"Dispatch Logout (POST {path})",
+                                        f"Status: {logout_response.status_code}, Token invalidated successfully"
+                                    )
+                                else:
+                                    result.add_fail(
+                                        f"Dispatch Logout (POST {path})",
+                                        f"Logout returned {logout_response.status_code} but token still valid (got {verify_response.status_code} on /me)"
+                                    )
+                            break
+                    except Exception:
+                        continue
+                
+                if not logout_found:
+                    result.add_warning(
+                        "Dispatch Logout endpoint",
+                        "No dedicated logout endpoint found. This is acceptable if using shared-client-logout coverage."
+                    )
+            else:
+                result.add_fail(
+                    "Dispatch Login (POST /api/dispatch/login)",
+                    f"Status: 200 but missing token or user in response. Data: {json.dumps(data, indent=2)}"
+                )
+        else:
+            result.add_fail(
+                "Dispatch Login (POST /api/dispatch/login)",
+                f"Status: {response.status_code}, Body: {response.text[:500]}"
+            )
+    except Exception as e:
+        result.add_fail(
+            "Dispatch Login (POST /api/dispatch/login)",
+            f"Exception: {str(e)}"
+        )
+
+
+def test_shop_flow(result: TestResult):
+    """Test Shop portal login, /me endpoint, and logout (if exists)."""
+    print("\n" + "="*80)
+    print("TESTING SHOP PORTAL")
+    print("="*80)
+    
+    # Test 1: POST /api/shop/login
+    print(f"\n1. Testing POST {BACKEND_URL}/shop/login")
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/shop/login",
+            json={"email": SHOP_EMAIL, "password": SHOP_PASSWORD},
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            token = data.get("token")
+            user = data.get("user")
+            
+            if token and user:
+                result.add_pass(
+                    "Shop Login (POST /api/shop/login)",
+                    f"Status: 200, Token received: {token[:20]}..., User: {user.get('email')}"
+                )
+                
+                # Test 2: GET /api/shop/me with X-Shop-Token
+                print(f"\n2. Testing GET {BACKEND_URL}/shop/me with X-Shop-Token")
+                try:
+                    me_response = requests.get(
+                        f"{BACKEND_URL}/shop/me",
+                        headers={"X-Shop-Token": token},
+                        timeout=30
+                    )
+                    
+                    if me_response.status_code == 200:
+                        me_data = me_response.json()
+                        result.add_pass(
+                            "Shop /me endpoint (GET /api/shop/me)",
+                            f"Status: 200, User data: {json.dumps(me_data, indent=2)}"
+                        )
+                    else:
+                        result.add_fail(
+                            "Shop /me endpoint (GET /api/shop/me)",
+                            f"Status: {me_response.status_code}, Body: {me_response.text[:200]}"
+                        )
+                except Exception as e:
+                    result.add_fail(
+                        "Shop /me endpoint (GET /api/shop/me)",
+                        f"Exception: {str(e)}"
+                    )
+                
+                # Test 3: Check for logout endpoint
+                print(f"\n3. Checking for Shop logout endpoint")
+                logout_paths = [
+                    "/shop/logout",
+                    "/shop/portal/logout",
+                    "/auth/shop/logout"
+                ]
+                
+                logout_found = False
+                for path in logout_paths:
+                    try:
+                        logout_response = requests.post(
+                            f"{BACKEND_URL}{path}",
+                            headers={"X-Shop-Token": token},
+                            timeout=10
+                        )
+                        if logout_response.status_code != 404:
+                            logout_found = True
+                            if logout_response.status_code in [200, 204]:
+                                # Verify token is invalidated
+                                verify_response = requests.get(
+                                    f"{BACKEND_URL}/shop/me",
+                                    headers={"X-Shop-Token": token},
+                                    timeout=10
+                                )
+                                if verify_response.status_code == 401:
+                                    result.add_pass(
+                                        f"Shop Logout (POST {path})",
+                                        f"Status: {logout_response.status_code}, Token invalidated successfully"
+                                    )
+                                else:
+                                    result.add_fail(
+                                        f"Shop Logout (POST {path})",
+                                        f"Logout returned {logout_response.status_code} but token still valid (got {verify_response.status_code} on /me)"
+                                    )
+                            break
+                    except Exception:
+                        continue
+                
+                if not logout_found:
+                    result.add_warning(
+                        "Shop Logout endpoint",
+                        "No dedicated logout endpoint found. This is acceptable if using shared-client-logout coverage."
+                    )
+            else:
+                result.add_fail(
+                    "Shop Login (POST /api/shop/login)",
+                    f"Status: 200 but missing token or user in response. Data: {json.dumps(data, indent=2)}"
+                )
+        else:
+            result.add_fail(
+                "Shop Login (POST /api/shop/login)",
+                f"Status: {response.status_code}, Body: {response.text[:500]}"
+            )
+    except Exception as e:
+        result.add_fail(
+            "Shop Login (POST /api/shop/login)",
+            f"Exception: {str(e)}"
+        )
+
+
+def test_field_leadership_flow(result: TestResult):
+    """Test Field Leadership portal login, /me endpoint, and logout (if exists)."""
+    print("\n" + "="*80)
+    print("TESTING FIELD LEADERSHIP PORTAL")
+    print("="*80)
+    
+    # Test 1: POST /api/field-leadership/portal/login
+    print(f"\n1. Testing POST {BACKEND_URL}/field-leadership/portal/login")
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/field-leadership/portal/login",
+            json={"email": FIELD_LEADERSHIP_EMAIL, "password": FIELD_LEADERSHIP_PASSWORD},
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            token = data.get("token")
+            user = data.get("user")
+            
+            if token and user:
+                result.add_pass(
+                    "Field Leadership Login (POST /api/field-leadership/portal/login)",
+                    f"Status: 200, Token received: {token[:20]}..., User: {user.get('email')}"
+                )
+                
+                # Test 2: GET /api/field-leadership/portal/me with X-FL-Token
+                print(f"\n2. Testing GET {BACKEND_URL}/field-leadership/portal/me with X-FL-Token")
+                try:
+                    me_response = requests.get(
+                        f"{BACKEND_URL}/field-leadership/portal/me",
+                        headers={"X-FL-Token": token},
+                        timeout=30
+                    )
+                    
+                    if me_response.status_code == 200:
+                        me_data = me_response.json()
+                        result.add_pass(
+                            "Field Leadership /me endpoint (GET /api/field-leadership/portal/me)",
+                            f"Status: 200, User data: {json.dumps(me_data, indent=2)}"
+                        )
+                    else:
+                        result.add_fail(
+                            "Field Leadership /me endpoint (GET /api/field-leadership/portal/me)",
+                            f"Status: {me_response.status_code}, Body: {me_response.text[:200]}"
+                        )
+                except Exception as e:
+                    result.add_fail(
+                        "Field Leadership /me endpoint (GET /api/field-leadership/portal/me)",
+                        f"Exception: {str(e)}"
+                    )
+                
+                # Test 3: Check for logout endpoint
+                print(f"\n3. Checking for Field Leadership logout endpoint")
+                logout_paths = [
+                    "/field-leadership/portal/logout",
+                    "/field-leadership/logout",
+                    "/auth/field-leadership/logout"
+                ]
+                
+                logout_found = False
+                for path in logout_paths:
+                    try:
+                        logout_response = requests.post(
+                            f"{BACKEND_URL}{path}",
+                            headers={"X-FL-Token": token},
+                            timeout=10
+                        )
+                        if logout_response.status_code != 404:
+                            logout_found = True
+                            if logout_response.status_code in [200, 204]:
+                                # Verify token is invalidated
+                                verify_response = requests.get(
+                                    f"{BACKEND_URL}/field-leadership/portal/me",
+                                    headers={"X-FL-Token": token},
+                                    timeout=10
+                                )
+                                if verify_response.status_code == 401:
+                                    result.add_pass(
+                                        f"Field Leadership Logout (POST {path})",
+                                        f"Status: {logout_response.status_code}, Token invalidated successfully"
+                                    )
+                                else:
+                                    result.add_fail(
+                                        f"Field Leadership Logout (POST {path})",
+                                        f"Logout returned {logout_response.status_code} but token still valid (got {verify_response.status_code} on /me)"
+                                    )
+                            break
+                    except Exception:
+                        continue
+                
+                if not logout_found:
+                    result.add_warning(
+                        "Field Leadership Logout endpoint",
+                        "No dedicated logout endpoint found. This is acceptable if using shared-client-logout coverage."
+                    )
+            else:
+                result.add_fail(
+                    "Field Leadership Login (POST /api/field-leadership/portal/login)",
+                    f"Status: 200 but missing token or user in response. Data: {json.dumps(data, indent=2)}"
+                )
+        else:
+            result.add_fail(
+                "Field Leadership Login (POST /api/field-leadership/portal/login)",
+                f"Status: {response.status_code}, Body: {response.text[:500]}"
+            )
+    except Exception as e:
+        result.add_fail(
+            "Field Leadership Login (POST /api/field-leadership/portal/login)",
+            f"Exception: {str(e)}"
+        )
+
 
 def main():
-    """Main test execution."""
     print("="*80)
-    print("PRE-C10 PROOF-CLOSURE BATCH BACKEND QA")
-    print("Preview Environment: https://masci-audit-hub.preview.emergentagent.com")
+    print("BACKEND API TESTING: Direct Portal Role Token Flows")
+    print("="*80)
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"Testing Dispatch, Shop, and Field Leadership portals")
     print("="*80)
     
-    tester = BackendTester()
+    result = TestResult()
     
-    # Step 1: Authenticate as Admin
-    if not tester.authenticate_admin():
-        print("\n❌ CRITICAL: Admin authentication failed. Cannot proceed with admin tests.")
-        return False
+    # Run all tests
+    test_dispatch_flow(result)
+    test_shop_flow(result)
+    test_field_leadership_flow(result)
     
-    # Step 2: Authenticate as PM
-    if not tester.authenticate_pm():
-        print("\n⚠️  WARNING: PM authentication failed. PM endpoints will be skipped.")
+    # Print summary
+    success = result.summary()
     
-    # Step 3: Run KPI tests
-    tester.run_kpi_tests()
-    
-    # Step 4: Run proof chain tests
-    tester.run_proof_chain_tests()
-    
-    # Step 5: Run production cert test
-    tester.run_production_cert_test()
-    
-    # Step 6: Print summary
-    all_passed = tester.print_summary()
-    
-    return all_passed
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
-    success = main()
-    exit(0 if success else 1)
+    main()

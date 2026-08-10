@@ -31,6 +31,7 @@ import {
   getDirectoryToken,
   getDirectoryUser,
   landingFor,
+  stabilizeAdminPortalToken,
 } from "@/lib/directoryAuth";
 import { setMustChange, clearAllMustChange } from "@/lib/mustChangePassword";
 import { toast } from "sonner";
@@ -81,15 +82,14 @@ export default function DirectoryChangePassword() {
       );
       if (res?.data?.ok) {
         // Apply the freshly-minted portal tokens (backend Layer 4).
-        applyMultiLoginResponse(
-          {
-            ok: true,
-            session_token: getDirectoryToken(),
-            portal_tokens: res.data.portal_tokens || {},
-            user: res.data.user || user,
-          },
-          true
-        );
+        const authResponse = {
+          ok: true,
+          session_token: getDirectoryToken(),
+          portal_tokens: res.data.portal_tokens || {},
+          user: res.data.user || user,
+        };
+        applyMultiLoginResponse(authResponse, true);
+        await stabilizeAdminPortalToken(authResponse, true);
         // Clear every must-change flag — rotation is done.
         clearAllMustChange();
         setMustChange("directory", false);

@@ -388,7 +388,7 @@ async def has_active_session_activity(
     if directory_binding:
         current_directory_token = _CURRENT_DIRECTORY_TOKEN.get()
         if not current_directory_token:
-            return allow_unbound_directory_session
+            return False
         if _hash_token(current_directory_token) != directory_binding:
             return False
         directory_session = await db.directory_sessions.find_one(

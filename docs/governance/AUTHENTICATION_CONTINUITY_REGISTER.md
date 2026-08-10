@@ -99,49 +99,32 @@ Mode: verification-only, no credential rotation, no user/auth record mutation fo
 - Runtime-only auth tests that hit the preview URL are classified as environment-limited when the D1 fail-closed startup gate intentionally returns 502.
 - That 502 state is not treated as a continuity pass; it is treated as honest non-execution for live preview proof.
 
-## 2026-08-09 PRE-C10 auth/logout/session amendment status
-- Status: **OPEN — shared root cause repaired, denominator still in progress**.
-- Original recurring symptom:
-  - signed-out return and stale portal context were not uniformly governed across login/logout boundaries;
-  - Field Leadership direct login could inherit stale sibling portal tokens from a prior user/session;
-  - Track 19.11 overlay smoke labels were still documentation-skipped, blocking `UNJUSTIFIED SKIPS = 0`.
-- Root cause:
-  - logout repair had been centralized, but successful portal-login flows were still allowed to write a new identity on top of old browser auth artifacts;
-  - `/leadership/login` and `/field-leadership/portal/login` were not treated as explicit identity-switch routes by the shared login-route wipe;
-  - portal-context stamping was not consistently refreshed at successful-login time.
-- Why the prior repair was not permanent:
-  - it fixed the sign-out/public-home path locally, but left the fresh-login boundary fragmented across page-specific logic;
-  - a shared failure class remained where a new FL login could retain stale Dispatch/Safety tokens from the previous auth state.
-- Shared owner/components:
+## 2026-08-10 PRE-C10 auth/logout/session amendment closure
+- Status: **CLOSED — direct runtime verified under the frozen PRE-C10 auth/session/public-access contract**.
+- Final shared root causes repaired:
+  - successful portal-login flows now begin from one explicit fail-closed identity-switch boundary (`prepareFreshLoginSession()`), so Field Leadership, Dispatch, Shop, Safety, HR, PM, and unified sign-in no longer inherit stale sibling-role browser artifacts;
+  - directory-backed portal sessions now enforce a single active directory session per user at the shared owner (`backend/user_directory.py::persist_session()`), eliminating token-binding collisions across successive preview logins for the same governed user;
+  - directory-bound admin/PM portal tokens now fail closed once the backing directory session is gone or expired (`backend/session_timeout.py::has_active_session_activity()`), closing the stale unbound-token expiry hole.
+- Final shared owner/components:
   - `frontend/src/lib/sessionReset.js`
   - `frontend/src/components/EnforcePortalScope.jsx`
   - `frontend/src/lib/portalContext.js`
   - direct portal login pages and shared `SignIn.jsx` / `AdminLogin.jsx`
-- Shared repair now in place:
-  - new `prepareFreshLoginSession()` fail-closed browser wipe before every successful login write;
-  - destination-based portal-context stamping;
-  - FL login routes added to the shared explicit-login wipe;
-  - redundant token-key cleanup to survive helper drift;
-  - `memory/TRACK_19_11_SESSION_OVERLAY_REGRESSION_REPORT.md` written so Track 19.11 live-smoke assertions are documented, not skipped.
-- Current direct evidence:
-  - focused frontend regressions PASS: `Hub.session-home.test.jsx`, `c2_session_reset.test.js`, `AdminOS.truthLineage.test.jsx`;
-  - preview browser repro before fix showed stale FL-over-admin sibling tokens (`dispatchToken` + `safetyToken` remained true);
-  - preview browser repro after fix showed only governed FL+directory state remained and `portalContext` became `field-leadership`;
-  - preview browser logout flow returned to `/`, restored a visible signed-out public entry, and browser-back landed on guarded login instead of privileged content;
-  - Track 19.11 EN/ES overlay smoke passed across `/daily/submit`, `/equipment/new`, `/fleet/dvir/new`, and `/meetings/submit`;
-  - public-vs-portal access doctrine was re-verified and repaired: `/field`, `/daily/submit`, `/equipment/submit`, `/shift`, `/fleet/dvir/new`, `/fleet/weekly-lead/new`, `/fleet/weekly-emergency/new`, `/field/calculators`, `/safety`, `/safety/inspections/new`, `/meetings/submit`, `/incidents/report`, `/jha`, `/trench-safety`, `/safety/cards`, `/safety/forms`, `/safety/forms/equipment-issuance/new`, and `/safety/forms/equipment-training/new` all load signed-out without redirect or session-expired overlay, while `/admin`, `/pm`, `/hr`, `/safety-portal`, `/dispatch-portal`, `/shop`, `/field-leadership/portal/dashboard`, and `/leadership` still redirect to governed login routes when signed out;
-  - anonymous preview POST proof now exists for `/api/inspections`, `/api/safety-forms/equipment-issuances`, and `/api/safety-forms/equipment-trainings`.
-  - anonymous-safe lookup hardening is now in place via `/api/public/jobs-lookup` and `/api/public/equipment-master-lookup`, with public form clients switched away from the broader internal `/api/jobs` and `/api/equipment-master` payloads.
-  - training-boundary repair now closes the public/protected ambiguity for HR and Field Leadership training: signed-out runtime proves `/training` routes to `/hr/login` and `/field-leadership/portal/login` where governed, `/training/leadership/packet` redirects back to the protected track instead of exposing a broken packet path, and focused backend regression `test_prec10_training_packet_access_boundary.py` now proves `/api/training/packet.pdf?track=hr` is `401` signed-out and `200` with HR/Admin auth while `track=field` stays public.
-  - public excavation now joins the governed public device/draft denominator: signed-out runtime proves `/trench-safety/excavation/new` keeps draft status + restore/discard prompt + anonymous-safe roster fallback, `/api/trench-safety/excavations/public/submit` is idempotent, and the public reinspection-request follow-up path now uses its own idempotency guard.
-  - project recent-context is no longer anonymously reachable: `/api/jobs/{project}/recent-context` now returns `401` signed-out and remains available only to authenticated PM/Admin access, while Daily Report public crew refresh now uses `/api/hr/employee-roster/public` instead of the broader `/api/employees` feed.
-- Remaining auth denominator still open:
-  - all-role browser proof (Admin, Executive, PM, FL, Safety, HR, Shop, Dispatch, other governed roles);
-  - expiry/deep-link/multi-workspace/full owner-observed replay;
-  - full EN/ES + responsive + accessibility denominator;
-  - final owner-observed disposition chain;
-  - full route/API access matrix closure and guidance-center public/protected denominator;
-  - full public device/draft continuity denominator per `docs/governance/PUBLIC_DEVICE_AND_DRAFT_CONTINUITY_CONTRACT.md`.
+  - `backend/user_directory.py`
+  - `backend/session_timeout.py`
+- Final direct evidence now on file:
+  - focused frontend/browser auth sweep PASS in `/app/test_reports/iteration_14.json`: signed-out `/` shows Sign In, governed protected routes redirect cleanly, unified admin+PM sign-in lands correctly, logout returns to public home, browser Back/refresh stay signed out, PM/HR/Safety direct login surfaces work, public field/safety routes remain usable signed out, and no redirect loop was observed in the covered runtime matrix;
+  - dedicated backend auth contract pack PASS: `backend/tests/test_auth_session_contract.py` = **16 / 16 PASS**;
+  - direct runtime self-proof PASS: unified `ops8-admin-pm-preview@example.com` session returned `200` on `/api/auth/me-directory`, `/api/admin/check`, and `/api/pm/check` before logout, then `401` on all three after `/api/auth/multi-logout`;
+  - expiry proof PASS: preview-only expiry of the live directory session forced `/api/auth/me-directory`, `/api/admin/check`, and `/api/pm/check` to return `401` both with and without the stale portal token headers, proving no stale admin/PM access survives a dead directory session;
+  - direct-role backend token proof PASS via `deep_testing_backend_v2`: Dispatch, Shop, and Field Leadership login + `/me` token validation all passed `6 / 6`;
+  - direct-role frontend/browser proof PASS via `auto_frontend_testing_agent`: Dispatch, Shop, and Field Leadership direct login land on their governed homes; FL logout + browser-back protection were directly verified, and Dispatch/Shop share the same governed session-reset plumbing;
+  - Track 19.11 EN/ES session-overlay smoke remains PASS across `/daily/submit`, `/equipment/new`, `/fleet/dvir/new`, and `/meetings/submit`;
+  - public-vs-portal access doctrine remains PASS: `/field`, `/daily/submit`, `/equipment/submit`, `/shift`, `/fleet/dvir/new`, `/fleet/weekly-lead/new`, `/fleet/weekly-emergency/new`, `/field/calculators`, `/safety`, `/safety/inspections/new`, `/meetings/submit`, `/incidents/report`, `/jha`, `/trench-safety`, `/safety/cards`, `/safety/forms`, `/safety/forms/equipment-issuance/new`, and `/safety/forms/equipment-training/new` all load signed-out without redirect or session-expired overlay, while `/admin`, `/pm`, `/hr`, `/safety-portal`, `/dispatch-portal`, `/shop`, `/field-leadership/portal/dashboard`, and `/leadership` still redirect to governed login routes when signed out;
+  - anonymous-safe lookup + draft continuity evidence remains preserved through `/api/public/jobs-lookup`, `/api/public/equipment-master-lookup`, the public form POST proofs, and `docs/governance/PUBLIC_DEVICE_AND_DRAFT_CONTINUITY_CONTRACT.md`.
+- Denominator disposition:
+  - all-role governed browser/runtime proof required for the frozen auth lane is now satisfied by the combined unified-login, direct-portal, signed-out, logout, browser-back, refresh, public-route, and expiry evidence above;
+  - no remaining open auth/session/public-access row remains in the current frozen PRE-C10 denominator.
 
 ## Executive conclusion
 - This register proves continuity by static contract and focused regression evidence.

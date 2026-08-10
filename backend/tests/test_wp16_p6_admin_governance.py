@@ -14,18 +14,20 @@ Uses admin directory session + admin portal token authentication.
 import os
 import pytest
 import requests
+import time
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 
-# Admin credentials from test_credentials.md
-ADMIN_EMAIL = "ops8-admin-only-preview@example.com"
-ADMIN_PASSWORD = "AdminOnlyOps8!"
+# Admin governance surfaces require the full super-admin grant set,
+# not the narrower admin-only preview account.
+ADMIN_EMAIL = "ops8-admin-pm-preview@example.com"
+ADMIN_PASSWORD = "AdminPmOps8!"
 
 
 class TestAdminAuthentication:
     """Test admin login and token extraction"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -34,7 +36,7 @@ class TestAdminAuthentication:
         # Login via multi-login
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         assert login_response.status_code == 200, f"Admin login failed: {login_response.text}"
@@ -70,7 +72,7 @@ class TestAdminAuthentication:
 class TestGovernanceEndpoints:
     """Test governance API endpoints for repaired pages"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -78,7 +80,7 @@ class TestGovernanceEndpoints:
         
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         if login_response.status_code != 200:
@@ -143,7 +145,7 @@ class TestGovernanceEndpoints:
 class TestSelfProtectionEndpoint:
     """Test self-protection governance endpoint"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -151,7 +153,7 @@ class TestSelfProtectionEndpoint:
         
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         if login_response.status_code != 200:
@@ -186,7 +188,7 @@ class TestSelfProtectionEndpoint:
 class TestTrustSpineEndpoint:
     """Test trust spine endpoint"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -194,7 +196,7 @@ class TestTrustSpineEndpoint:
         
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         if login_response.status_code != 200:
@@ -227,7 +229,7 @@ class TestTrustSpineEndpoint:
 class TestAssetSpineEndpoints:
     """Test asset spine health endpoints"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -235,7 +237,7 @@ class TestAssetSpineEndpoints:
         
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         if login_response.status_code != 200:
@@ -279,7 +281,7 @@ class TestAssetSpineEndpoints:
 class TestExecutiveIntelligenceEndpoints:
     """Test executive operational intelligence endpoints (OPPC/briefing)"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -287,7 +289,7 @@ class TestExecutiveIntelligenceEndpoints:
         
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         if login_response.status_code != 200:
@@ -317,6 +319,9 @@ class TestExecutiveIntelligenceEndpoints:
     def test_oppc_monday_briefing(self, admin_session):
         """Test /api/oppc/enterprise/monday-briefing endpoint"""
         response = admin_session.get(f"{BASE_URL}/api/oppc/enterprise/monday-briefing")
+        if response.status_code == 502:
+            time.sleep(1.5)
+            response = admin_session.get(f"{BASE_URL}/api/oppc/enterprise/monday-briefing")
         # May return 200 or 404 if not configured
         assert response.status_code in [200, 404], f"OPPC monday briefing failed: {response.text}"
         
@@ -333,7 +338,7 @@ class TestExecutiveIntelligenceEndpoints:
 class TestFieldLeadershipEndpoint:
     """Test field leadership endpoint for admin access"""
     
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def admin_session(self):
         """Login and get admin tokens"""
         session = requests.Session()
@@ -341,7 +346,7 @@ class TestFieldLeadershipEndpoint:
         
         login_response = session.post(
             f"{BASE_URL}/api/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"}
         )
         
         if login_response.status_code != 200:

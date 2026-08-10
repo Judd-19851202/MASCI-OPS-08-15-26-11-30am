@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown, Minus, GraduationCap, ExternalLink } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { api } from "@/lib/api";
+import { API } from "@/lib/api";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 /**
  * Training Scan Stats Stripe — compact panel for the PM Hub & Admin Hub.
@@ -36,8 +37,12 @@ export default function TrainingStatsStripe() {
     let mounted = true;
     (async () => {
       try {
-        const res = await api.get("/admin/training/stats");
-        if (mounted) setStats(res?.data || null);
+        const res = await fetch(`${API}/admin/training/stats`, {
+          headers: buildScopedPortalAuthHeaders(["admin"]),
+        });
+        if (!res.ok) throw new Error(`stats_${res.status}`);
+        const body = await res.json();
+        if (mounted) setStats(body || null);
       } catch (e) {
         if (mounted) setErr(e?.response?.status || "error");
       }

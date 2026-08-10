@@ -20,7 +20,7 @@
 // original per-portal login remains the source of truth for its own
 // success/failure state.
 
-import { applyMultiLoginResponse } from "./directoryAuth";
+import { applyMultiLoginResponse, stabilizeAdminPortalToken } from "./directoryAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -55,6 +55,7 @@ export async function attemptSsoUpgrade(email, password, rememberMe = true) {
     // token already stored is simply refreshed to the deterministic
     // value the master session would have minted.
     applyMultiLoginResponse(body, rememberMe);
+    await stabilizeAdminPortalToken(body, rememberMe);
     return {
       ok: true,
       sso: true,

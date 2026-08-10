@@ -1,3 +1,27 @@
+# 2026-08-10 — PRE-C10 milestone after auth/session/public-access closure batch
+
+- **PRE-C10 status:** `177 / 216 closed = 81.9%`
+- **This batch:** `2` rows closed, `2` actual software defects discovered, `2` shared repairs required, `2` high-blast-radius systems modified.
+- **Remaining:** `6 partial / 33 open`
+
+## What closed in this batch
+
+- Master remediation: shared Authentication UX / logout / public-home / direct-portal continuity denominator.
+- Permanent-fix closure: owner-observed auth/session/public-access recurrence row.
+
+## Immediate next actions
+
+### P0
+- Finish the remaining Admin OS / executive / field-leadership / compliance card families with human-facing proof.
+- Preserve the newly closed auth/session/public-access lane unless contradictory runtime evidence appears.
+- After those non-final rows settle, enter the recurrence/failure-class audit and then the fresh final-certification gate sequence against the latest candidate only.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after consumer + staffing + dispatch/shop KPI closure batch
 
 - **PRE-C10 status:** `175 / 216 closed = 81.0%`

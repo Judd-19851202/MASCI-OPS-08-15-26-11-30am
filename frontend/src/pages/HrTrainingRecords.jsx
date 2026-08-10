@@ -6,7 +6,7 @@
 // data-hygiene gaps without records disappearing).
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Search, GraduationCap, AlertTriangle, ShieldAlert } from "lucide-react";
-import { api } from "@/lib/api";
+import { API } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import HrPageShell from "@/components/HrPageShell";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -53,12 +54,16 @@ export default function HrTrainingRecords() {
   const fetchRows = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: 500 };
-      if (employee.trim()) params.employee = employee.trim();
-      if (source) params.source = source;
-      const r = await api.get("/hr/training-records", { params });
-      setItems(r.data?.items || []);
-      setCounts(r.data?.counts || { safety: 0, track: 0, total: 0, unlinked: 0 });
+      const params = new URLSearchParams({ limit: "500" });
+      if (employee.trim()) params.set("employee", employee.trim());
+      if (source) params.set("source", source);
+      const r = await fetch(`${API}/hr/training-records?${params.toString()}`, {
+        headers: buildScopedPortalAuthHeaders(["hr"]),
+      });
+      if (!r.ok) throw new Error(`hr_training_${r.status}`);
+      const body = await r.json();
+      setItems(body?.items || []);
+      setCounts(body?.counts || { safety: 0, track: 0, total: 0, unlinked: 0 });
     } catch (err) {
       toast.error(operationalError(err, t("Training records temporarily unavailable. Try again in a moment."), t("Your HR session expired. Please sign in again.")));
     } finally {

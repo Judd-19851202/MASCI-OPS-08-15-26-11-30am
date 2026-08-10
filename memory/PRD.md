@@ -1,5 +1,27 @@
 # PRD
 
+## 2026-08-10 — PRE-C10 auth/session/public-access closure batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.
+- Milestone advanced to **177 / 216 closed = 81.9%** with **6 partial / 33 open** remaining under the frozen denominator.
+- Completed in this batch:
+  - closed the shared auth/session/public-access denominator in the master remediation and permanent-fix ledgers;
+  - completed all-role runtime proof across unified Admin+PM login, PM/HR/Safety/Dispatch/Shop/Field Leadership direct login surfaces, signed-out protected redirects, logout → public home, browser-back/refresh denial, and signed-out public field/safety continuity;
+  - locked the dedicated auth contract regression pack at `backend/tests/test_auth_session_contract.py` (**16 / 16 PASS**).
+- Real shared auth defects factually repaired in this batch:
+  - `backend/user_directory.py::persist_session()` now enforces one active governed directory session per user and clears stale portal session activity before minting the new session, eliminating cross-session token-binding collisions;
+  - `backend/session_timeout.py::has_active_session_activity()` now fails closed for directory-bound admin/PM tokens when the backing directory session is absent or expired, closing the stale unbound-token expiry hole.
+- Verification evidence from this batch:
+  - `/app/test_reports/iteration_14.json` PASS for the core auth/session/public-access browser contract;
+  - `backend/tests/test_auth_session_contract.py`: **16 / 16 PASS**;
+  - `auto_frontend_testing_agent` PASS for Dispatch / Shop / Field Leadership direct portal login verification;
+  - `deep_testing_backend_v2` PASS for Dispatch / Shop / Field Leadership backend token validation (`6 / 6`);
+  - direct runtime self-proof PASS for unified login/logout and expired-session invalidation.
+- Remaining immediate order after this batch:
+  - remaining Admin OS / executive / field-leadership / compliance card families
+  - recurrence / failure-class audit on the still-open non-final rows
+  - fresh final-certification gate sequence only after the non-final rows settle
+
 ## 2026-08-10 — PRE-C10 consumer + staffing + dispatch/shop KPI closure batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.

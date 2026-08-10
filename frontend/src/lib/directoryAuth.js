@@ -186,6 +186,26 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
   } catch (e) { /* ignore storage errors */ }
 }
 
+export async function stabilizeAdminPortalToken(response, rememberMe = true) {
+  if (!response?.session_token || !(response?.portal_tokens || {}).admin) return;
+  try {
+    const api = process.env.REACT_APP_BACKEND_URL;
+    const res = await fetch(`${api}/api/auth/issue-portal-token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Directory-Token": response.session_token,
+      },
+      body: JSON.stringify({ portal: "admin" }),
+    });
+    if (!res.ok) return;
+    const body = await res.json();
+    if (body?.token) setAdminToken(body.token, { remember: rememberMe });
+  } catch {
+    /* ignore stabilization failures — existing bundle stays in place */
+  }
+}
+
 /**
  * Pick the most useful landing page for a directory user based on the
  * portals they have.

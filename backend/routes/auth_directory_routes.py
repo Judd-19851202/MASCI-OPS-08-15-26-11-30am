@@ -567,6 +567,7 @@ def build_auth_directory_router(
                 user_id=row.get("id"),
                 email=row.get("email"),
                 actor_label=target,
+                directory_token=x_directory_token,
                 ip=(_client_ip(request) if request else None),
                 user_agent=(request.headers.get("user-agent") if request else "") or "",
             )

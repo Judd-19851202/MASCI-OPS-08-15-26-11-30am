@@ -21,7 +21,7 @@ import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { CanonicalHeader } from "@/components/CanonicalHeader";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { applyMultiLoginResponse, landingFor } from "@/lib/directoryAuth";
+import { applyMultiLoginResponse, landingFor, stabilizeAdminPortalToken } from "@/lib/directoryAuth";
 import { clearAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearHrToken } from "@/lib/hrAuth";
@@ -78,6 +78,7 @@ export default function SignIn() {
       if (data?.ok) {
         await prepareFreshLoginSession();
         applyMultiLoginResponse(data, rememberMe);
+        await stabilizeAdminPortalToken(data, rememberMe);
         setPortalContextForPath(landingFor(data.user));
         // Track 15.14A Layer 1 — temp-password enforcement on passkey path.
         if (data.must_change_password) {
@@ -137,6 +138,7 @@ export default function SignIn() {
       if (res?.data?.ok) {
         await prepareFreshLoginSession();
         applyMultiLoginResponse(res.data, rememberMe);
+        await stabilizeAdminPortalToken(res.data, rememberMe);
         const user = res.data.user;
         const granted = Object.entries(res.data.portal_tokens || {})
           .filter(([, v]) => !!v)
@@ -197,6 +199,7 @@ export default function SignIn() {
       if (res?.data?.ok) {
         await prepareFreshLoginSession();
         applyMultiLoginResponse(res.data, rememberMe);
+        await stabilizeAdminPortalToken(res.data, rememberMe);
         setPortalContextForPath(landingFor(res.data.user));
         // Track 15.14A Layer 1 — temp-password enforcement on MFA path.
         if (res.data.must_change_password) {

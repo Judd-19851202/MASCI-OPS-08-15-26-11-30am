@@ -16,7 +16,8 @@ Applies to reads on:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List
+import re
+from typing import Any, Dict, List, Optional
 
 from lib.governed_fixture_evidence import is_governed_fixture
 from lib.governed_record_classification import (
@@ -48,11 +49,29 @@ TRAINING_GUIDE_FIELDS = ("title", "slug")
 
 
 def _clauses(fields: tuple[str, ...]) -> List[Dict[str, Any]]:
-    return governed_visibility_exclusion_clauses()
+    return governed_visibility_exclusion_clauses() + [_field_regex_not_test(field) for field in fields]
 
 
-def _apply(query: Dict[str, Any], fields: tuple[str, ...]) -> Dict[str, Any]:
-    return apply_governed_visibility_exclusion(query)
+def _field_regex_not_test(field: str) -> Dict[str, Any]:
+    return {
+        "$or": [
+            {field: {"$exists": False}},
+            {field: None},
+            {field: ""},
+            {field: {"$not": {"$regex": _TEST_SENTINEL_RE, "$options": "i"}}},
+        ]
+    }
+
+
+def _apply(query: Optional[Dict[str, Any]], fields: tuple[str, ...]) -> Dict[str, Any]:
+    q = dict(query or {})
+    extra = _clauses(fields)
+    existing = q.get("$and")
+    if isinstance(existing, list):
+        q["$and"] = existing + extra
+    else:
+        q["$and"] = extra
+    return q
 
 
 def apply_synthetic_qualification_exclusion(query): return _apply(query, QUALIFICATION_FIELDS)
@@ -61,9 +80,17 @@ def apply_synthetic_qual_attachment_exclusion(query): return _apply(query, QUAL_
 def apply_synthetic_training_guide_exclusion(query): return _apply(query, TRAINING_GUIDE_FIELDS)
 
 
+def _matches_literal(doc: Dict[str, Any], fields: tuple[str, ...]) -> bool:
+    for field in fields:
+        value = doc.get(field)
+        if isinstance(value, str) and re.search(_TEST_SENTINEL_RE, value.strip(), flags=re.I):
+            return True
+    return False
+
+
 def is_synthetic_training_doc(doc: Dict[str, Any], fields: tuple[str, ...] = QUALIFICATION_FIELDS) -> bool:
     if fields == QUALIFICATION_FIELDS:
-        return is_governed_fixture(doc, "training_records")
+        return is_governed_fixture(doc, "training_records") or _matches_literal(doc, fields)
     return False
 
 

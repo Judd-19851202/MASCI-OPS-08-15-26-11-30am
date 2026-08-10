@@ -62,7 +62,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import bcrypt
-from session_timeout import has_active_session_activity
+from session_timeout import (
+    clear_session_activity_for_user,
+    has_active_session_activity,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -409,6 +412,14 @@ async def persist_session(db, *, token: str, user_id: str, ttl_seconds: int = 60
     """Store a server-side session for the directory token. Default TTL
     is 12 hours. Index `expires_at` for TTL eviction (best-effort)."""
     now = datetime.now(timezone.utc)
+    try:
+        await db.directory_sessions.delete_many({"user_id": user_id})
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[directory] prior session cleanup failed: %s", e)
+    try:
+        await clear_session_activity_for_user(db, user_id)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[directory] prior portal session cleanup failed: %s", e)
     await db.directory_sessions.insert_one(
         {
             "id": str(uuid.uuid4()),

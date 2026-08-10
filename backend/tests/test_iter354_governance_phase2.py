@@ -38,29 +38,46 @@ try:
 except FileNotFoundError:
     URL = "http://localhost:8001"
 
-try:
-    with open(_BACK_ENV) as fh:
-        for ln in fh:
-            if ln.startswith("ADMIN_PASSWORD="):
-                ADMIN_PASSWORD = ln.split("=", 1)[1].strip().strip('"')
-                break
-        else:
-            ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
-except FileNotFoundError:
-    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+ADMIN_EMAIL = "jaymn.judd@mascigc.com"
+ADMIN_PASSWORD = "Maddix123!"
 
-# Bootstrap admin token once at import time.
 ADMIN_TOKEN = ""
-if URL and ADMIN_PASSWORD:
-    try:
-        r = requests.post(f"{URL}/api/admin/login",
-                          json={"password": ADMIN_PASSWORD}, timeout=10)
-        if r.status_code == 200:
-            ADMIN_TOKEN = r.json().get("token", "")
-    except Exception:
-        ADMIN_TOKEN = ""
+DIRECTORY_TOKEN = ""
 
-_HDR = {"X-Admin-Token": ADMIN_TOKEN}
+
+def _refresh_auth() -> None:
+    global ADMIN_TOKEN, DIRECTORY_TOKEN
+    if not URL or not ADMIN_PASSWORD:
+        ADMIN_TOKEN = ""
+        DIRECTORY_TOKEN = ""
+        return
+    try:
+        r = requests.post(
+            f"{URL}/api/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+            timeout=10,
+            headers={"X-Admin-Token": "", "X-Directory-Token": ""},
+        )
+        if r.status_code == 200:
+            body = r.json()
+            ADMIN_TOKEN = (body.get("portal_tokens") or {}).get("admin", "")
+            DIRECTORY_TOKEN = body.get("session_token", "")
+            return
+    except Exception:
+        pass
+    ADMIN_TOKEN = ""
+    DIRECTORY_TOKEN = ""
+
+
+def _auth_headers() -> dict:
+    _refresh_auth()
+    return {
+        "X-Admin-Token": ADMIN_TOKEN,
+        "X-Directory-Token": DIRECTORY_TOKEN,
+    }
+
+
+_refresh_auth()
 
 # Monkey-patch requests so every call to this backend auto-includes the
 # admin token UNLESS the test explicitly sets X-Admin-Token (e.g. to "" for
@@ -73,17 +90,23 @@ _orig_session_request = requests.sessions.Session.request
 
 
 def _patched(method, url, **kwargs):
-    if ADMIN_TOKEN and isinstance(url, str) and URL and url.startswith(URL):
+    if isinstance(url, str) and URL and url.startswith(URL):
         headers = kwargs.get("headers") or {}
-        headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
+        auth = _auth_headers()
+        if auth["X-Admin-Token"]:
+            headers.setdefault("X-Admin-Token", auth["X-Admin-Token"])
+            headers.setdefault("X-Directory-Token", auth["X-Directory-Token"])
         kwargs["headers"] = headers
     return _orig_request(method, url, **kwargs)
 
 
 def _patched_session(self, method, url, **kwargs):
-    if ADMIN_TOKEN and isinstance(url, str) and URL and url.startswith(URL):
+    if isinstance(url, str) and URL and url.startswith(URL):
         headers = kwargs.get("headers") or {}
-        headers.setdefault("X-Admin-Token", ADMIN_TOKEN)
+        auth = _auth_headers()
+        if auth["X-Admin-Token"]:
+            headers.setdefault("X-Admin-Token", auth["X-Admin-Token"])
+            headers.setdefault("X-Directory-Token", auth["X-Directory-Token"])
         kwargs["headers"] = headers
     return _orig_session_request(self, method, url, **kwargs)
 
@@ -98,7 +121,7 @@ SUMMARY_URL = f"{URL}/api/admin/governance/summary"
 
 
 def _scan() -> dict:
-    r = requests.post(SCAN_URL, headers=_HDR, timeout=60)
+    r = requests.post(SCAN_URL, headers=_auth_headers(), timeout=60)
     assert r.status_code == 200, r.text
     return r.json()
 
@@ -118,7 +141,7 @@ def test_compliance_endpoints_reject_anonymous():
         ("POST", f"{LIST_URL}/nonexistent-id/resolve"),
     ]:
         r = requests.request(method, url, timeout=10,
-                             headers={"X-Admin-Token": ""})
+                             headers={"X-Admin-Token": "", "X-Directory-Token": ""})
         assert r.status_code == 401, (
             f"{method} {url} should be 401 but returned {r.status_code}"
         )
@@ -130,7 +153,7 @@ def test_compliance_endpoints_reject_pm_token():
     pm_pw = os.environ.get("PM_PASSWORD") or "Maddix123!"
     r = requests.post(f"{URL}/api/pm/login",
                       json={"password": pm_pw}, timeout=10,
-                      headers={"X-Admin-Token": ""})
+                      headers={"X-Admin-Token": "", "X-Directory-Token": ""})
     if r.status_code != 200:
         # Bypass disabled in env — skip this assertion gracefully.
         return
@@ -138,7 +161,7 @@ def test_compliance_endpoints_reject_pm_token():
     if not pm_token:
         return
     r2 = requests.post(SCAN_URL, timeout=30,
-                       headers={"X-Admin-Token": "", "X-PM-Token": pm_token})
+                       headers={"X-Admin-Token": "", "X-Directory-Token": "", "X-PM-Token": pm_token})
     assert r2.status_code == 401, "PM token must not satisfy admin-strict"
 
 
