@@ -72,6 +72,33 @@ def test_parse_ref_rejects_malformed():
     assert k == "photos/2026/05/abc.jpg"
 
 
+def test_new_photo_keys_are_environment_namespaced(monkeypatch):
+    import photo_storage
+    monkeypatch.setenv("APP_ENV", "preview")
+    key = photo_storage._build_key("dr-1", "jpg")
+    assert key.startswith("photos/preview/")
+
+
+def test_delete_photo_refuses_legacy_unowned_keys(monkeypatch):
+    import photo_storage
+
+    class _Client:
+        def __init__(self):
+            self.deleted = []
+
+        def delete_object(self, Bucket, Key):
+            self.deleted.append({"Bucket": Bucket, "Key": Key})
+
+    client = _Client()
+    monkeypatch.setattr(photo_storage, "_client", lambda: client)
+
+    async def _go():
+        return await photo_storage.delete_photo("photo://bucket/photos/2026/05/legacy.jpg")
+
+    assert asyncio.run(_go()) is False
+    assert client.deleted == []
+
+
 def test_ext_from_data_url_mapping():
     import photo_storage
     cases = {

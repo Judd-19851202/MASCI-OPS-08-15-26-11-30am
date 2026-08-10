@@ -1,3 +1,13 @@
+# 2026-08-10 — PRE-C10 R2 namespace isolation + bounded provenance retrospective
+
+- Repaired the confirmed P0 preview/production shared-object risk with the smallest safe environment-aware storage architecture: new writes now use deterministic family-scoped keys such as `photos/{env}/...`, `documents/{env}/...`, `safety-docs/{env}/...`, and `promo-assets/{env}/...` while backups continue under `backups/{env}/...`.
+- Added shared ownership authority in `backend/lib/storage_ownership.py`, guarded explicit-key writes against unsafe legacy overwrites, and blocked deletes for legacy/unowned or cross-environment objects in `photo_storage.py`, `safety_doc_storage.py`, and `promo_assets_storage.py`.
+- Updated affected consumers (`routes/asset_documents.py`, `routes/operational_attachments.py`) to rebuild refs through the canonical storage helper; legacy refs remain readable and no bulk move/delete/migration was introduced.
+- Added focused regression coverage for the new ownership contract and namespaced write behavior; focused pytest batch passed `25 / 25`.
+- Live preview proof passed across Safety Documents, Operational Attachments, and Promo Assets with environment-aware persisted keys/refs plus successful read/delete parity. Independent backend QA (`deep_testing_backend_v2`) passed `16 / 16`; frontend smoke on root + `/admin/promo-assets` also passed.
+- Added `docs/governance/PRE_C10_R2_NAMESPACE_AND_PROVENANCE_RETROSPECTIVE.md` recording the storage blast radius, implemented behavior contract, runtime proof, and bounded retrospective classification. Result: only the shared R2 namespace/ownership gap required reopen-and-repair; no additional previously closed PRE-C10 obligations were reopened.
+- PRE-C10 overall remains **OPEN / NO-GO**.
+
 # 2026-08-10 — PRE-C10 KPI/Admin continuation and blocker identification
 
 - KPI consumer-lineage repair shipped across `/hr/time-off`, `ExpirationsSummary`, `/safety-hub`, `/safety-hub-v2`, `/dispatch-hub-v2`, `/dispatch-portal/command`, `/shop-hub-v2`, and `/leadership-hub-v2`; `/api/safety/overview` and `/api/dispatch/command/summary` now emit governed `kpi_metadata` for those current readers.

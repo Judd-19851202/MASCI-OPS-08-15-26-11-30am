@@ -66,6 +66,14 @@ import re
 import uuid
 from typing import Optional, Tuple
 
+from lib.storage_ownership import (
+    build_env_owned_key,
+    build_storage_ref,
+    current_app_env,
+    current_env_owns_key,
+    describe_key_ownership,
+)
+
 logger = logging.getLogger(__name__)
 
 # ── Config & lazy client ──────────────────────────────────────────────
@@ -169,7 +177,11 @@ def _parse_ref(ref: str) -> Tuple[str, str]:
 
 
 def _build_ref(key: str) -> str:
-    return f"photo://{_bucket()}/{key}"
+    return build_storage_ref("photo", _bucket(), key)
+
+
+def build_ref_for_key(key: str) -> str:
+    return _build_ref(key)
 
 
 def _ext_from_data_url(data_url: str) -> str:
@@ -200,7 +212,7 @@ def _build_key(source_id: str, ext: str) -> str:
     source ID is preserved for forensics. UUID prevents collisions."""
     today = _dt.datetime.now(_dt.timezone.utc)
     safe_src = "".join(c if c.isalnum() or c in "-_." else "_" for c in (source_id or "unknown"))
-    return f"photos/{today:%Y/%m}/{safe_src}/{uuid.uuid4().hex}.{ext}"
+    return build_env_owned_key("photos", f"{today:%Y/%m}/{safe_src}/{uuid.uuid4().hex}.{ext}")
 
 
 # TRACK 19.04 · Unified Attachment Pipeline
@@ -249,7 +261,42 @@ _MAX_DOC_BYTES = 25 * 1024 * 1024  # 25 MiB — matches email provider hard limi
 def _build_doc_key(source_id: str, ext: str) -> str:
     today = _dt.datetime.now(_dt.timezone.utc)
     safe_src = "".join(c if c.isalnum() or c in "-_." else "_" for c in (source_id or "unknown"))
-    return f"documents/{today:%Y/%m}/{safe_src}/{uuid.uuid4().hex}.{ext}"
+    return build_env_owned_key("documents", f"{today:%Y/%m}/{safe_src}/{uuid.uuid4().hex}.{ext}")
+
+
+def _is_not_found_error(exc: Exception) -> bool:
+    response = getattr(exc, "response", None) or {}
+    error = response.get("Error") or {}
+    code = str(error.get("Code") or response.get("ResponseMetadata", {}).get("HTTPStatusCode") or "").strip().lower()
+    return code in {"404", "nosuchkey", "notfound", "nosuchbucket"}
+
+
+def _object_exists_sync(bucket: str, key: str) -> bool:
+    c = _client()
+    if c is None:
+        raise RuntimeError("photo_storage client unavailable")
+    try:
+        c.head_object(Bucket=bucket, Key=key)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        if _is_not_found_error(exc):
+            return False
+        raise
+
+
+async def _guard_explicit_key_write(key: str) -> None:
+    import asyncio
+
+    ownership = describe_key_ownership(key)
+    env = current_app_env()
+    if ownership.namespaced and ownership.owner_env != env:
+        raise PermissionError(
+            f"refusing to write {ownership.family} object owned by {ownership.owner_env} from {env}",
+        )
+    if ownership.is_legacy and await asyncio.to_thread(_object_exists_sync, _bucket(), ownership.key):
+        raise PermissionError(
+            f"refusing to overwrite legacy unowned object key {ownership.key}",
+        )
 
 
 def _safe_filename(name: str) -> str:
@@ -584,6 +631,7 @@ async def upload_local_file(local_path, *, key: str, content_type: str = "applic
     c = _client()
     if c is None:
         raise RuntimeError("photo_storage client failed to initialize")
+    await _guard_explicit_key_write(key)
     p = Path(str(local_path))
     if not p.exists():
         raise FileNotFoundError(p)
@@ -596,7 +644,7 @@ async def upload_local_file(local_path, *, key: str, content_type: str = "applic
         key,
         ExtraArgs={"ContentType": content_type},
     )
-    return f"photo://{_bucket()}/{key}"
+    return _build_ref(key)
 
 
 async def upload_bytes(data: bytes, *, key: str, content_type: str = "application/octet-stream") -> str:
@@ -612,6 +660,7 @@ async def upload_bytes(data: bytes, *, key: str, content_type: str = "applicatio
     c = _client()
     if c is None:
         raise RuntimeError("photo_storage client failed to initialize")
+    await _guard_explicit_key_write(key)
     await asyncio.to_thread(
         c.put_object,
         Bucket=_bucket(),
@@ -619,7 +668,7 @@ async def upload_bytes(data: bytes, *, key: str, content_type: str = "applicatio
         Body=data,
         ContentType=content_type,
     )
-    return f"photo://{_bucket()}/{key}"
+    return _build_ref(key)
 
 
 async def presigned_get_url_for_key(key: str, ttl_seconds: int = 7 * 24 * 3600) -> str:
@@ -672,6 +721,13 @@ async def delete_photo(ref: str) -> bool:
         return False
     try:
         bucket, key = _parse_ref(ref)
+        if not current_env_owns_key(key):
+            logger.info(
+                "[photo-storage] delete skipped for non-owned key=%s current_env=%s",
+                key,
+                current_app_env(),
+            )
+            return False
         c = _client()
         if c is None:
             return False

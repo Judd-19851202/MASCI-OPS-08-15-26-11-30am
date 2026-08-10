@@ -131,7 +131,7 @@ class TestModuleLayout:
         p = pathlib.Path("/app/backend/safety_doc_storage.py")
         assert p.exists()
         src = p.read_text()
-        for sym in ("upload_doc_bytes", "read_doc_bytes", "delete_doc", "is_configured"):
+        for sym in ("upload_doc_bytes", "read_doc_bytes", "delete_doc", "is_configured", "build_ref_for_key"):
             assert sym in src, f"missing helper: {sym}"
 
 

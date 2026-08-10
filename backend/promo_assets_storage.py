@@ -20,6 +20,7 @@ import uuid
 from typing import Optional, Tuple
 
 import photo_storage  # reuse R2 client + bucket helpers
+from lib.storage_ownership import build_env_owned_key, current_app_env, current_env_owns_key
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def build_key(category: str, name_hint: str, ext: str) -> str:
     cat = _slug(category)
     name = _slug(name_hint)[:60]
     ext_clean = (ext or "bin").lstrip(".").lower()
-    return f"{PROMO_KEY_PREFIX}/{cat}/{uuid.uuid4().hex[:10]}-{name}.{ext_clean}"
+    return build_env_owned_key(PROMO_KEY_PREFIX, f"{cat}/{uuid.uuid4().hex[:10]}-{name}.{ext_clean}")
 
 
 def is_promo_ref(ref: Optional[str]) -> bool:
@@ -132,6 +133,13 @@ async def delete_ref(ref: str) -> None:
     can't 500 the admin DELETE call — the mongo row goes away regardless."""
     try:
         _bucket, key = parse_ref(ref)
+        if not current_env_owns_key(key):
+            logger.info(
+                "[promo-assets] delete skipped for non-owned key=%s current_env=%s",
+                key,
+                current_app_env(),
+            )
+            return
         c = photo_storage._client()  # noqa: SLF001
         if c is None:
             return

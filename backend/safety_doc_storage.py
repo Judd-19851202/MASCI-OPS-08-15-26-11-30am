@@ -22,6 +22,14 @@ import re
 import uuid
 from typing import Optional, Tuple
 
+from lib.storage_ownership import (
+    build_env_owned_key,
+    build_storage_ref,
+    current_app_env,
+    current_env_owns_key,
+    describe_key_ownership,
+)
+
 logger = logging.getLogger(__name__)
 
 # ── Lazily-initialised boto3 client (shared module-level singleton) ──
@@ -98,7 +106,44 @@ def _build_key(doc_id: str, filename: str) -> str:
     today = _dt.datetime.now(_dt.timezone.utc)
     safe_doc = "".join(c if c.isalnum() or c in "-_." else "_" for c in (doc_id or "unknown"))[:48]
     safe_fn = "".join(c if c.isalnum() or c in "-_." else "_" for c in (filename or "file"))[:80]
-    return f"safety-docs/{today:%Y/%m}/{safe_doc}/{uuid.uuid4().hex[:8]}-{safe_fn}"
+    return build_env_owned_key("safety-docs", f"{today:%Y/%m}/{safe_doc}/{uuid.uuid4().hex[:8]}-{safe_fn}")
+
+
+def build_ref_for_key(key: str) -> str:
+    return build_storage_ref("doc", _bucket(), key)
+
+
+def _is_not_found_error(exc: Exception) -> bool:
+    response = getattr(exc, "response", None) or {}
+    error = response.get("Error") or {}
+    code = str(error.get("Code") or response.get("ResponseMetadata", {}).get("HTTPStatusCode") or "").strip().lower()
+    return code in {"404", "nosuchkey", "notfound", "nosuchbucket"}
+
+
+def _object_exists_sync(bucket: str, key: str) -> bool:
+    c = _client()
+    if c is None:
+        raise RuntimeError("safety_doc_storage client unavailable")
+    try:
+        c.head_object(Bucket=bucket, Key=key)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        if _is_not_found_error(exc):
+            return False
+        raise
+
+
+async def _guard_explicit_key_write(key: str) -> None:
+    ownership = describe_key_ownership(key)
+    env = current_app_env()
+    if ownership.namespaced and ownership.owner_env != env:
+        raise PermissionError(
+            f"refusing to write {ownership.family} object owned by {ownership.owner_env} from {env}",
+        )
+    if ownership.is_legacy and await asyncio.to_thread(_object_exists_sync, _bucket(), ownership.key):
+        raise PermissionError(
+            f"refusing to overwrite legacy unowned object key {ownership.key}",
+        )
 
 
 async def upload_doc_bytes(
@@ -129,7 +174,7 @@ async def upload_doc_bytes(
         # CacheControl conservative so cross-portal updates aren't stuck.
         CacheControl="private, max-age=300",
     )
-    ref = f"doc://{_bucket()}/{key}"
+    ref = build_ref_for_key(key)
     logger.info(f"[safety-doc-storage] uploaded {len(data)/1024:.1f} KB → {ref}")
     return ref
 
@@ -146,6 +191,7 @@ async def upload_bytes(data: bytes, *, key: str, content_type: str = "applicatio
     c = _client()
     if c is None:
         raise RuntimeError("safety_doc_storage client failed to initialize")
+    await _guard_explicit_key_write(key)
     await asyncio.to_thread(
         c.put_object,
         Bucket=_bucket(),
@@ -154,7 +200,7 @@ async def upload_bytes(data: bytes, *, key: str, content_type: str = "applicatio
         ContentType=content_type,
         CacheControl="private, max-age=300",
     )
-    return f"doc://{_bucket()}/{key}"
+    return build_ref_for_key(key)
 
 
 async def read_doc_bytes(ref: str) -> bytes:
@@ -200,6 +246,13 @@ async def delete_doc(ref: Optional[str]) -> bool:
     if not is_storage_ref(ref):
         return False
     bucket, key = _parse_ref(ref)
+    if not current_env_owns_key(key):
+        logger.info(
+            "[safety-doc-storage] delete skipped for non-owned key=%s current_env=%s",
+            key,
+            current_app_env(),
+        )
+        return False
     c = _client()
     if c is None:
         return False

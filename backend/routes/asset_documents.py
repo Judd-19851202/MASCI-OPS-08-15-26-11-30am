@@ -433,7 +433,7 @@ def register_asset_documents_routes(
         backend = doc.get("storage_backend") or ("r2" if doc.get("r2_key") else "inline_b64")
         if backend == "r2" and doc.get("r2_key"):
             try:
-                ref = f"photo://{photo_storage._env('S3_BUCKET')}/{doc['r2_key']}"  # noqa: SLF001
+                ref = photo_storage.build_ref_for_key(doc["r2_key"])
                 raw = await photo_storage.read_photo_bytes(ref)
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"[asset-documents] R2 read failed: {exc}")
@@ -521,7 +521,7 @@ def register_asset_documents_routes(
         )
         if doc.get("storage_backend") == "r2" and doc.get("r2_key"):
             try:
-                ref = f"photo://{photo_storage._env('S3_BUCKET')}/{doc['r2_key']}"  # noqa: SLF001
+                ref = photo_storage.build_ref_for_key(doc["r2_key"])
                 await photo_storage.delete_photo(ref)
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"[asset-documents] R2 delete best-effort failed: {exc}")

@@ -1247,3 +1247,20 @@
   - trust spine daily-report row is green and reconciles `oppc-daily-report-proof-chain` correctly
 - Independent QA verification: `/app/test_reports/iteration_154.json` → all 8 production recertification areas verified.
 - Current executive state for the hotfix scope: **POST-DEPLOY REPAIR CERTIFIED — PRODUCTION GO**.
+
+## 2026-08-10 — PRE-C10 R2 namespace isolation and provenance retrospective
+- Governing directive updated: the newer PRE-C10 closure program overrides the older WP-18B handoff wherever they conflict; the frozen PRE-C10 denominator remains `216` with no expansion except under the established genuine-new-defect rule.
+- Confirmed P0 architecture defect repaired in code: preview and production no longer share new-write object namespaces for governed R2 families. New writes now use deterministic environment-aware keys including `photos/{env}/...`, `documents/{env}/...`, `safety-docs/{env}/...`, and `promo-assets/{env}/...`; backup flows remain environment-scoped under `backups/{env}/...`.
+- Added shared storage ownership authority in `backend/lib/storage_ownership.py` and enforced two core rules across shared storage helpers: (1) explicit-key writes cannot overwrite existing legacy/unowned objects unsafely, and (2) destructive deletes require deterministic ownership by the current environment.
+- Preserved compatibility constraints exactly as directed: legacy existing refs remain readable, existing production refs are not bulk-migrated, and no bulk object move/delete/migration was introduced.
+- Affected runtime consumers updated and verified: Safety Documents, Operational Attachments, Asset Documents, and Promo Assets now rebuild refs through canonical storage helpers where needed.
+- Verification evidence for this batch:
+  - focused pytest batch: `25 / 25 PASS`
+  - live preview proof: Safety Documents upload/read/delete PASS with `doc://.../safety-docs/preview/...`
+  - live preview proof: Operational Attachments upload/read/delete PASS with `photos/preview/...`
+  - live preview proof: Promo Assets upload/detail/delete PASS with `promo-assets/preview/...`
+  - `deep_testing_backend_v2`: `16 / 16 PASS`
+  - `auto_frontend_testing_agent`: root load + admin promo-assets smoke PASS
+- Added governance evidence at `docs/governance/PRE_C10_R2_NAMESPACE_AND_PROVENANCE_RETROSPECTIVE.md` covering the storage blast radius inventory, the new environment-ownership contract, live verification evidence, and the bounded retrospective classification.
+- Bounded retrospective conclusion: only the shared R2 namespace/ownership gap required reopen-and-repair. Other reviewed repairs remain classified as either `VALID APPLICATION REPAIR` or `VALID PREVIEW/CERTIFICATION REPAIR`; no additional previously closed PRE-C10 obligations were reopened on provenance grounds.
+- PRE-C10 remains **OPEN / NO-GO**. Save, Deploy, Training & Qualifications, and C10 remain unauthorized.

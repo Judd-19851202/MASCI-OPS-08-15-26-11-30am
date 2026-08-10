@@ -142,7 +142,7 @@ def test_iter429_upload_lands_in_r2_when_configured(monkeypatch):
     async def fake_upload(data, *, ext, source_id, content_type):
         uploaded_bytes_holder["data"] = data
         uploaded_bytes_holder["ext"] = ext
-        return "photo://test-bucket/photos/2026/02/key.png"
+        return "photo://test-bucket/photos/preview/2026/02/key.png"
 
     monkeypatch.setattr("photo_storage.is_configured", lambda: True)
     monkeypatch.setattr("photo_storage.upload_photo_bytes", fake_upload)
@@ -166,7 +166,7 @@ def test_iter429_upload_lands_in_r2_when_configured(monkeypatch):
     # The stored doc should carry r2_key and NOT data_b64
     stored = db.operational_attachments.docs[0]
     assert stored["storage_backend"] == "r2"
-    assert stored["r2_key"] == "photos/2026/02/key.png"
+    assert stored["r2_key"] == "photos/preview/2026/02/key.png"
     assert "data_b64" not in stored
     assert stored["sha256"] == hashlib.sha256(png).hexdigest()
     # Bytes uploaded match exactly
@@ -218,7 +218,7 @@ def test_iter429_fetch_reads_from_r2(monkeypatch):
         "host_id": "asgn-3",
         "type": "load_photo",
         "storage_backend": "r2",
-        "r2_key": "photos/2026/02/abc.png",
+        "r2_key": "photos/preview/2026/02/abc.png",
         "content_type": "image/png",
         "filename": "abc.png",
         "uploaded_by": "x", "uploaded_role": "admin",
@@ -226,10 +226,8 @@ def test_iter429_fetch_reads_from_r2(monkeypatch):
     })
 
     async def fake_read(ref):
-        assert ref.endswith("photos/2026/02/abc.png")
+        assert ref.endswith("photos/preview/2026/02/abc.png")
         return payload
-
-    monkeypatch.setattr("photo_storage._env", lambda k: "test-bucket" if k == "S3_BUCKET" else "")
     monkeypatch.setattr("photo_storage.read_photo_bytes", fake_read)
 
     app = _build_app(db)

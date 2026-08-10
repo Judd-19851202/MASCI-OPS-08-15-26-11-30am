@@ -1,3 +1,29 @@
+# 2026-08-10 — PRE-C10 current state after R2 isolation repair
+
+- **PRE-C10 remains OPEN — NO-GO**
+- The confirmed P0 preview/production shared-bucket namespace defect is now repaired in code with deterministic environment-aware storage ownership for new writes.
+- Legacy object refs remain read-compatible; destructive delete now requires current-environment ownership; no bulk object move/delete/migration was introduced.
+- The bounded provenance retrospective is complete: no additional closed PRE-C10 rows were reopened beyond the R2 ownership gap itself.
+
+## Immediate next actions after this batch
+
+### P0 — still required before any PRE-C10 closeout
+
+- Continue KPI truth closure row-by-row using authoritative tested-environment source truth → governed calculation → API → metadata → UI → drilldown → downstream consumer parity.
+- Continue Admin OS card-by-card truth/count lineage closure, especially recovery and storage-health rows that remain materially open.
+- Continue C1–C9 source-to-consumer closure, Public/Device continuity closure, Coaching residuals, Owner-observed direct runtime proof, and Permanent Fix recurrence rows unaffected by the R2 repair.
+- Re-certify the affected storage/runtime rows inside the frozen `216` denominator without expanding that denominator except under the established genuine-new-defect rule.
+
+### P1 — governance / evidence continuity
+
+- Keep `docs/governance/PRE_C10_R2_NAMESPACE_AND_PROVENANCE_RETROSPECTIVE.md` aligned with any later storage-family or retrospective evidence.
+- Preserve the new environment-aware ownership contract on all future object-storage work so preview and production remain collision-safe under the same code.
+
+### P2
+
+- Do not start Training & Qualifications.
+- Do not start C10.
+
 # 2026-08-10 — PRE-C10 current state after auth/public, draft continuity, KPI, and Admin OS repairs
 
 - **PRE-C10 remains OPEN — NO-GO**

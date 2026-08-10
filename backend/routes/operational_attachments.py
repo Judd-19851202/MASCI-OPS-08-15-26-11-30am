@@ -412,7 +412,7 @@ def build_operational_attachments_router(
                 # photo_storage reads any `photo://<bucket>/<key>` ref ·
                 # we rebuild the canonical ref from the stored key + the
                 # configured bucket so a bucket rotation is transparent.
-                ref = f"photo://{photo_storage._env('S3_BUCKET')}/{doc['r2_key']}"  # noqa: SLF001
+                ref = photo_storage.build_ref_for_key(doc["r2_key"])
                 raw = await photo_storage.read_photo_bytes(ref)
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
@@ -484,7 +484,7 @@ def build_operational_attachments_router(
         # mistake-recovery doctrine says "make it as if it never happened".
         if doc.get("storage_backend") == "r2" and doc.get("r2_key"):
             try:
-                ref = f"photo://{photo_storage._env('S3_BUCKET')}/{doc['r2_key']}"  # noqa: SLF001
+                ref = photo_storage.build_ref_for_key(doc["r2_key"])
                 await photo_storage.delete_photo(ref)
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"[op-attachments] R2 delete best-effort failed: {exc}")
