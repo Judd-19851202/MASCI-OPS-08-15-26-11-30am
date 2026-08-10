@@ -1,3 +1,31 @@
+# 2026-08-10 — PRE-C10 current state after auth/public, draft continuity, KPI, and Admin OS repairs
+
+- **PRE-C10 remains OPEN — NO-GO**
+- Newly verified in preview:
+  - training/guidance public-vs-protected boundary refresh
+  - explicit Daily Report restore/discard prompt on same-device reload
+  - PM operational KPI top-level metadata restoration
+  - OCC production-certification card now reflects real certification posture
+  - QA batch `/app/test_reports/iteration_10.json` PASS
+
+## Updated next actions after this batch
+
+### P0 — still required before any PRE-C10 closeout
+
+- Finish the remaining public-access/device-continuity denominator beyond the newly repaired training and Daily Report slices (attachments/evidence, multi-draft separation, cross-device leakage proof, duplicate-submit proof, KPI contamination proof).
+- Continue KPI truth closure row-by-row until OPEN / PARTIAL KPI families and downstream consumer gaps are zero.
+- Continue Admin OS card-by-card source → authority → status/count semantics → consumer proof beyond the repaired OCC certification card.
+- Close remaining C1–C9 integration truth rows, then revisit every owner-observed defect under the Permanent Fix doctrine.
+- Re-run the fresh full Screenshot Product Quality v4 ledger and final consolidated certification chain only after the remaining repairs settle.
+
+### P1 — governance refresh still open
+
+- Keep `PUBLIC_ACCESS_AUTH_BOUNDARY_MATRIX.csv`, `PUBLIC_DEVICE_AND_DRAFT_CONTINUITY_CONTRACT.md`, `PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md`, and `PERMANENT_FIX_CLOSURE_REGISTER.csv` aligned with current runtime evidence as more rows close.
+
+### P2
+
+- Do not start C10.
+
 # 2026-08-09 — PRE-C10 cross-entity green-state current state
 
 - **PRE-C10 remains OPEN — NO-GO**

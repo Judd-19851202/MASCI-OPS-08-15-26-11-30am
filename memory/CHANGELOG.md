@@ -1,3 +1,12 @@
+# 2026-08-10 — PRE-C10 auth/public + draft continuity + KPI/Admin OS refresh
+
+- Training/guidance boundary repaired: HR training stays protected behind `/hr/login`, Field Leadership training now routes to `/field-leadership/portal/login`, `/training/leadership/packet` redirects back to the protected track, and `/api/training/packet.pdf?track=hr` now requires HR/Admin auth while `field` stays public.
+- Public Daily Report continuity repaired: same-device reload now shows an explicit Restore / Discard prompt instead of silently restoring the draft; Daily Report draft-session tests and source-level contract guards were expanded.
+- PM operational KPI truth improved: `/api/pm/projects/{project}/operational-kpis` now emits governed top-level `kpi_metadata` with shared-spine provenance and section inventory.
+- Admin OS OCC truth improved: the `production_certification` card no longer falsely reports `UNVERIFIABLE` because the OCC backend probe now gives the certification endpoint the runtime it actually needs.
+- Verification in this batch: `test_prec10_training_packet_access_boundary.py` PASS (`5 / 5`), `test_prec10_pm_operational_kpi_metadata.py` PASS (`1 / 1`), `test_prec10_occ_production_cert_probe.py` PASS (`1 / 1`), and `/app/test_reports/iteration_10.json` PASS across all targeted frontend/backend flows.
+- PRE-C10 overall remains **OPEN / NO-GO**.
+
 # 2026-08-09 — PRE-C10 cross-entity gate moved to GREEN
 
 - Cross-entity scanner now returns **GREEN** at `/api/admin/platform-truth-integrity/cross-entity` with `blocking_findings=[]` and `release_gate_blocked=false`.

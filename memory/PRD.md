@@ -1,5 +1,21 @@
 # PRD
 
+## 2026-08-10 — PRE-C10 auth/public, draft continuity, KPI, and Admin OS refresh batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **C10 not authorized**.
+- Completed in this batch:
+  - hardened the training/guidance public-vs-protected boundary so signed-out HR and Field Leadership training now route to governed login paths, `/training/leadership/packet` no longer exposes a broken packet path, and `/api/training/packet.pdf?track=hr` is no longer anonymously readable;
+  - repaired public Daily Report draft continuity so `/daily/submit` now presents an explicit restore/discard prompt on reload instead of silently auto-restoring the same-device draft session;
+  - restored top-level `kpi_metadata` on `/api/pm/projects/{project}/operational-kpis`, preserving PM↔Safety parity on the shared operational KPI spine;
+  - repaired the Admin OS OCC false-unreachable production-certification card by widening the backend fan-out timeout only for `/api/admin/production-certification`, so OCC now reports the real certification band state instead of `UNVERIFIABLE`.
+- Verification evidence from this batch:
+  - backend: `test_prec10_training_packet_access_boundary.py` → `5 passed`; `test_prec10_pm_operational_kpi_metadata.py` → `1 passed`; `test_prec10_occ_production_cert_probe.py` → `1 passed`;
+  - frontend/browser: signed-out training boundary smoke PASS; signed-out Daily Report reload now shows explicit restore/discard prompt PASS;
+  - formal QA: `/app/test_reports/iteration_10.json` → PASS across training boundary, backend packet auth, public Daily Report continuity, PM KPI metadata, OCC production-certification truth, and anonymous equipment lookup.
+- Remaining denominator still open after this batch:
+  - public access, device continuity, KPI truth, Admin OS, C1–C9, owner-observed closure, recurrence audit, and final screenshot/runtime certification are improved but not fully closed;
+  - PRE-C10 remains **NO-GO** until every OPEN / PARTIAL / UNVERIFIED denominator reaches zero with current runtime proof.
+
 ## 2026-08-09 — PRE-C10 cross-entity green-state milestone
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, live production **redeployment required**, **C10 not authorized**, **do not save**, **do not deploy**.
