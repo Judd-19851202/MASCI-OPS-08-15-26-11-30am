@@ -5007,7 +5007,10 @@ class EquipmentMasterItem(BaseModel):
 
 
 @api_router.get("/equipment-master")
-async def list_equipment_master(category: Optional[str] = None):
+async def list_equipment_master(
+    category: Optional[str] = None,
+    _actor: Dict[str, Any] = Depends(_require_any_portal_read),
+):
     from lib.synthetic_fleet_filter import apply_synthetic_equipment_exclusion  # noqa: PLC0415
     await _purge_expired("equipment_master")
     q: Dict[str, Any] = dict(ACTIVE_FILTER)
@@ -5128,8 +5131,12 @@ class JobCoPMsBody(BaseModel):
 
 # -------------------- Project Managers (admin-managed roster) --------------------
 @api_router.get("/jobs")
-async def list_jobs_public():
-    """Public — drives the JobPicker on every form. Active jobs only."""
+async def list_jobs_public(_actor: Dict[str, Any] = Depends(_require_any_portal_read)):
+    """Authenticated internal job list.
+
+    Public/no-login workflows must use `/api/public/jobs-lookup`, which
+    exposes only the anonymous-safe project identity contract.
+    """
     from jobs_master import list_jobs
     return {"items": await list_jobs(db, only_active=True)}
 
@@ -5934,17 +5941,12 @@ async def add_supplier_from_form(body: RosterAddBody):
 # section and any other employee dropdown across the platform.
 # ---------------------------------------------------------------------------
 @api_router.get("/employees")
-async def list_employees():
-    """Public — returns the MASCI crew roster (sorted by name).
+async def list_employees(_actor: Dict[str, Any] = Depends(_require_any_portal_read)):
+    """Authenticated internal MASCI crew roster.
 
-    OMEGA · Public Employee Roster Projection Hardening (2026-06-03):
-    Projection narrowed to the allow-list of fields actually rendered
-    by the 5 public-form pickers (Daily Report, Incident, Safety
-    Meeting, Equipment Inspection, Fleet DVIR). CDL, medical-card,
-    status_history, email, phone, and timestamp fields are no longer
-    returned on this public endpoint. The full record set remains
-    available to authenticated callers via /api/hr/employees and
-    /api/admin/employees/*. No employee data was modified.
+    Public/no-login workflows must use `/api/hr/employee-roster/public`,
+    which exposes the anonymous-safe roster contract. This endpoint is
+    intentionally kept for authenticated internal consumers only.
 
     TRACK 19.03 · HR-IS-GOSPEL hardening:
     Filter now matches the canonical HR roster contract:
@@ -8135,7 +8137,7 @@ BACKUP_DISK_HIGH_WATERMARK = int(os.environ.get("BACKUP_DISK_HIGH_WATERMARK", "7
 BACKUP_DISK_WARN_WATERMARK = int(os.environ.get("BACKUP_DISK_WARN_WATERMARK", "85"))
 BACKUP_COMPLETE_TMP_DIR = Path(tempfile.gettempdir()) / "masci_complete_archive_builds"
 BACKUP_COMPLETE_MIN_FREE_BYTES = int(os.environ.get("BACKUP_COMPLETE_MIN_FREE_BYTES", str(3 * 1024 * 1024 * 1024)) or str(3 * 1024 * 1024 * 1024))
-BACKUP_COMPLETE_MAX_BUILD_BYTES = int(os.environ.get("BACKUP_COMPLETE_MAX_BUILD_BYTES", str(3 * 1024 * 1024 * 1024)) or str(3 * 1024 * 1024 * 1024))
+BACKUP_COMPLETE_MAX_BUILD_BYTES = int(os.environ.get("BACKUP_COMPLETE_MAX_BUILD_BYTES", str(4 * 1024 * 1024 * 1024)) or str(4 * 1024 * 1024 * 1024))
 BACKUP_RESTORE_STREAM_CHUNK_BYTES = int(os.environ.get("BACKUP_RESTORE_STREAM_CHUNK_BYTES", str(8 * 1024 * 1024)) or str(8 * 1024 * 1024))
 
 

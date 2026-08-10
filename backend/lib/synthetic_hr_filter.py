@@ -26,6 +26,7 @@ TEST- because of the required trailing sentinel character).
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List
 
 from lib.governed_fixture_evidence import is_governed_fixture
@@ -45,6 +46,9 @@ _TEST_NAME_RE = (
     r"|CERT_TEST"
     r"|PARITY_"
     r"|ITER[0-9]"
+    r"|PYTEST\b"
+    r"|Queue New Hire\b"
+    r"|G5UploadCanary_"
     r")"
 )
 
@@ -68,16 +72,45 @@ def synthetic_hr_exclusion_clauses() -> List[Dict[str, Any]]:
     return governed_visibility_exclusion_clauses()
 
 
+def _synthetic_literal_clauses() -> List[Dict[str, Any]]:
+    return [
+        {"track_23_5_cert_seed": {"$ne": True}},
+        {"name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
+        {"name": {"$not": {"$regex": r"^Preview Dispatch Driver$", "$options": "i"}}},
+        {"preferred_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
+        {"legal_first_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
+        {"legal_last_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
+        {"email": {"$not": {"$regex": _TEST_EMAIL_RE, "$options": "i"}}},
+        {"employee_id": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
+        {"id": {"$not": {"$regex": r"^driver-iter[0-9]+$", "$options": "i"}}},
+    ]
+
+
 def apply_synthetic_hr_exclusion(query: Dict[str, Any]) -> Dict[str, Any]:
     """Mix synthetic exclusion into a mongo query for the ``employees``
     collection. Idempotent — calling twice yields the same effective
     query."""
-    return apply_governed_visibility_exclusion(query)
+    q = apply_governed_visibility_exclusion(query)
+    existing = q.get("$and") if isinstance(q.get("$and"), list) else []
+    q["$and"] = existing + _synthetic_literal_clauses()
+    return q
+
+
+def _matches_literal(doc: Dict[str, Any]) -> bool:
+    def _hit(value: Any, pattern: str) -> bool:
+        if not isinstance(value, str):
+            return False
+        return re.search(pattern, value.strip(), flags=re.I) is not None
+
+    return any(
+        _hit(doc.get(field), _TEST_NAME_RE)
+        for field in ("name", "preferred_name", "legal_first_name", "legal_last_name", "employee_id")
+    ) or _hit(doc.get("email"), _TEST_EMAIL_RE) or _hit(doc.get("name"), r"^Preview Dispatch Driver$") or _hit(doc.get("id"), r"^driver-iter[0-9]+$") or bool(doc.get("track_23_5_cert_seed"))
 
 
 def is_synthetic_hr(doc: Dict[str, Any]) -> bool:
     """Python-side classifier used by cleanup + tests."""
-    return is_governed_fixture(doc, "employees")
+    return is_governed_fixture(doc, "employees") or _matches_literal(doc)
 
 
 __all__ = [

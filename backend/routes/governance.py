@@ -44,6 +44,9 @@ from fastapi.responses import Response as _FastAPIResponse
 from pydantic import BaseModel, Field
 from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
+from lib.synthetic_hr_filter import is_synthetic_hr
+from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -341,18 +344,18 @@ async def _detect_ppe_missing(db) -> List[Dict[str, Any]]:
             names_with_ppe.add(n.lower())
 
     # Walk active employees and flag the ones missing entirely.
-    q = {"deleted_at": None, "is_active": {"$ne": False}}
+    q = apply_synthetic_hr_exclusion({"deleted_at": None, "is_active": {"$ne": False}})
     cursor = db.employees.find(
-        q, {"_id": 0, "id": 1, "name": 1, "position": 1, "is_field": 1},
+        q, {"_id": 0, "id": 1, "name": 1, "position": 1, "is_field": 1, "trade": 1, "crew": 1, "role": 1},
     ).limit(2000)
     async for emp in cursor:
         name = (emp.get("name") or "").strip()
         if not name:
             continue
-        # Skip purely office personnel where data exists; default to flag
-        # if `is_field` is missing (better to over-flag than miss).
-        is_field = emp.get("is_field")
-        if is_field is False:
+        if is_synthetic_hr(emp):
+            continue
+        applicability = _employee_ppe_applicability(emp)
+        if not applicability["requires_ppe"]:
             continue
         if name.lower() in names_with_ppe:
             continue
@@ -362,9 +365,45 @@ async def _detect_ppe_missing(db) -> List[Dict[str, Any]]:
             "entity_id": emp.get("id") or name,
             "entity_name": name,
             "description": f"{name} is active but has zero PPE issuance records on file.",
-            "source": {"position": emp.get("position") or "", "is_field": is_field},
+            "source": {
+                "position": emp.get("position") or "",
+                "trade": emp.get("trade") or "",
+                "crew": emp.get("crew") or "",
+                "role": emp.get("role") or "",
+                "is_field": emp.get("is_field"),
+                "applicability_reason": applicability["reason"],
+            },
         })
     return out
+
+
+_OFFICE_PPE_EXEMPT_RE = re.compile(r"\b(accounting|payroll|hr|human resources|office|admin|clerk|reception)\b", re.I)
+
+
+def _employee_ppe_applicability(emp: Dict[str, Any]) -> Dict[str, Any]:
+    if emp.get("is_field") is True:
+        return {"requires_ppe": True, "reason": "explicit_is_field"}
+
+    signals = {
+        "trade": str(emp.get("trade") or "").strip(),
+        "crew": str(emp.get("crew") or "").strip(),
+        "role": str(emp.get("role") or "").strip(),
+        "position": str(emp.get("position") or "").strip(),
+    }
+    values = [v for v in signals.values() if v]
+    if not values:
+        return {"requires_ppe": False, "reason": "missing_field_applicability_evidence"}
+    if any(_OFFICE_PPE_EXEMPT_RE.search(v) for v in values):
+        return {"requires_ppe": False, "reason": "office_or_admin_role"}
+    if signals["trade"]:
+        return {"requires_ppe": True, "reason": "trade_signal"}
+    if signals["crew"]:
+        return {"requires_ppe": True, "reason": "crew_signal"}
+    if signals["role"]:
+        return {"requires_ppe": True, "reason": "role_signal"}
+    if signals["position"]:
+        return {"requires_ppe": True, "reason": "position_signal"}
+    return {"requires_ppe": False, "reason": "missing_field_applicability_evidence"}
 
 
 async def _detect_capa_overdue(db) -> List[Dict[str, Any]]:
@@ -511,7 +550,7 @@ async def _detect_daily_report_crew_linkage(db) -> List[Dict[str, Any]]:
     # Active employee name index (same shape as _detect_employee_linkage).
     name_index: Dict[str, List[Dict[str, Any]]] = {}
     async for emp in db.employees.find(
-        {"deleted_at": None, "is_active": {"$ne": False}},
+        apply_synthetic_hr_exclusion({"deleted_at": None, "is_active": {"$ne": False}}),
         {"_id": 0, "id": 1, "name": 1},
     ).limit(5000):
         n = _norm_name(emp.get("name"))
@@ -522,12 +561,12 @@ async def _detect_daily_report_crew_linkage(db) -> List[Dict[str, Any]]:
     # masci_crews stores {name, trade, hours, ..., employee_id (iter360)}.
     name_evidence: Dict[str, Dict[str, Any]] = {}
     async for dr in db.daily_reports.find(
-        {"masci_crews": {"$exists": True, "$ne": []}},
+        apply_synthetic_dr_exclusion({"masci_crews": {"$exists": True, "$ne": []}}),
         {"_id": 0, "id": 1, "masci_crews": 1, "report_date": 1},
     ).limit(2000):
         for row in (dr.get("masci_crews") or []):
             raw = (row.get("name") or "").strip()
-            if not raw:
+            if not raw or _is_placeholder_identity(raw):
                 continue
             n = _norm_name(raw)
             if not n:
@@ -645,6 +684,16 @@ def _norm_name(s: Any) -> str:
     return " ".join(s.strip().lower().split())
 
 
+def _is_placeholder_identity(v: Any) -> bool:
+    norm = _norm_name(v)
+    if not norm:
+        return True
+    compact = norm.replace(" ", "")
+    if len(compact) < 2:
+        return True
+    return norm in {"n/a", "na", "unknown", "none", "employee", "tbd"}
+
+
 async def _detect_employee_linkage(db) -> List[Dict[str, Any]]:
     """EMP_LINK_UNRESOLVABLE · EMP_LINK_AMBIGUOUS · EMP_LINK_MISSING_ID.
 
@@ -658,7 +707,7 @@ async def _detect_employee_linkage(db) -> List[Dict[str, Any]]:
     # ambiguous matches).
     name_index: Dict[str, List[Dict[str, Any]]] = {}
     async for emp in db.employees.find(
-        {"deleted_at": None, "is_active": {"$ne": False}},
+        apply_synthetic_hr_exclusion({"deleted_at": None, "is_active": {"$ne": False}}),
         {"_id": 0, "id": 1, "name": 1},
     ).limit(5000):
         n = _norm_name(emp.get("name"))
@@ -677,7 +726,12 @@ async def _detect_employee_linkage(db) -> List[Dict[str, Any]]:
         proj = {"_id": 0, id_field: 1}
         for f in name_fields:
             proj[f] = 1
-        async for doc in db[coll_name].find({}, proj).limit(20000):
+        source_query: Dict[str, Any] = {}
+        if coll_name == "incidents":
+            source_query = apply_synthetic_incident_exclusion({})
+        elif coll_name == "corrective_actions":
+            source_query = apply_synthetic_corrective_action_exclusion({})
+        async for doc in db[coll_name].find(source_query, proj).limit(20000):
             # Collect any name candidate from this doc (a record might have
             # multiple name fields like linked_employee_name + employee_name).
             raw_candidates: List[str] = []
@@ -690,6 +744,8 @@ async def _detect_employee_linkage(db) -> List[Dict[str, Any]]:
             id_present = bool(doc.get(id_field))
             # Use the first non-empty candidate as the canonical raw.
             raw = raw_candidates[0]
+            if _is_placeholder_identity(raw):
+                continue
             n = _norm_name(raw)
             if not n:
                 continue
@@ -788,7 +844,7 @@ async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
     name_index: Dict[str, str] = {}
     dup_names: set = set()
     async for emp in db.employees.find(
-        {"deleted_at": None, "is_active": {"$ne": False}},
+        apply_synthetic_hr_exclusion({"deleted_at": None, "is_active": {"$ne": False}}),
         {"_id": 0, "id": 1, "name": 1},
     ).limit(5000):
         n = _norm_name(emp.get("name"))
@@ -804,6 +860,51 @@ async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
 
     per_collection: Dict[str, Dict[str, int]] = {}
 
+    dr_scanned = 0
+    dr_backfilled = 0
+    dr_skipped_no_match = 0
+    dr_skipped_ambiguous = 0
+    dr_cursor = db.daily_reports.find(
+        apply_synthetic_dr_exclusion({"masci_crews": {"$exists": True, "$ne": []}}),
+        {"_id": 0, "id": 1, "masci_crews": 1},
+    ).limit(20000)
+    async for dr in dr_cursor:
+        dr_scanned += 1
+        rows = list(dr.get("masci_crews") or [])
+        if not rows:
+            continue
+        changed = False
+        for row in rows:
+            if not isinstance(row, dict) or row.get("employee_id"):
+                continue
+            raw = (row.get("name") or "").strip()
+            if not raw or _is_placeholder_identity(raw):
+                continue
+            n = _norm_name(raw)
+            target = name_index.get(n)
+            if not target:
+                if n in dup_names:
+                    dr_skipped_ambiguous += 1
+                else:
+                    dr_skipped_no_match += 1
+                continue
+            dr_backfilled += 1
+            if not dry_run:
+                row["employee_id"] = target
+                row["linkage_backfilled_at"] = _now_iso()
+                changed = True
+        if changed and not dry_run and dr.get("id"):
+            await db.daily_reports.update_one(
+                {"id": dr.get("id")},
+                {"$set": {"masci_crews": rows, "linkage_backfilled_at": _now_iso()}},
+            )
+    per_collection["daily_reports"] = {
+        "scanned": dr_scanned,
+        "backfilled": dr_backfilled,
+        "skipped_no_match": dr_skipped_no_match,
+        "skipped_ambiguous": dr_skipped_ambiguous,
+    }
+
     for coll_name, name_fields, id_field, _kind in LINKAGE_SOURCES:
         scanned = 0
         backfilled = 0
@@ -812,7 +913,12 @@ async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
         proj = {"_id": 0, "id": 1, id_field: 1}
         for f in name_fields:
             proj[f] = 1
-        cursor = db[coll_name].find({}, proj).limit(20000)
+        source_query: Dict[str, Any] = {}
+        if coll_name == "incidents":
+            source_query = apply_synthetic_incident_exclusion({})
+        elif coll_name == "corrective_actions":
+            source_query = apply_synthetic_corrective_action_exclusion({})
+        cursor = db[coll_name].find(source_query, proj).limit(20000)
         async for doc in cursor:
             scanned += 1
             if doc.get(id_field):
@@ -824,7 +930,7 @@ async def _backfill_employee_links(db, dry_run: bool = True) -> Dict[str, Any]:
                 if isinstance(v, str) and v.strip():
                     name_raw = v.strip()
                     break
-            if not name_raw:
+            if not name_raw or _is_placeholder_identity(name_raw):
                 continue
             n = _norm_name(name_raw)
             target = name_index.get(n)
@@ -938,7 +1044,7 @@ async def _detect_incident_lifecycle(db) -> List[Dict[str, Any]]:
 
     # Rule 1: INC_NEEDS_CAPA — severe incidents w/ zero linked CAPAs.
     cursor = db.incidents.find(
-        {},
+        apply_synthetic_incident_exclusion({}),
         {"_id": 0, "id": 1, "description": 1, "severity": 1,
          "osha_recordable": 1, "incident_date": 1, "date_occurred": 1,
          "person_name": 1, "person_involved": 1, "project_name": 1,
@@ -1599,12 +1705,14 @@ async def _issue_missing_ppe_records(
     missing: List[Dict[str, Any]] = []
     async for emp in db.employees.find(
         apply_synthetic_hr_exclusion({"deleted_at": None, "is_active": {"$ne": False}}),
-        {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "position": 1, "is_field": 1},
+        {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "position": 1, "is_field": 1, "trade": 1, "crew": 1, "role": 1},
     ).limit(5000):
         name = (emp.get("name") or "").strip()
         if not name:
             continue
-        if emp.get("is_field") is False:
+        if is_synthetic_hr(emp):
+            continue
+        if not _employee_ppe_applicability(emp)["requires_ppe"]:
             continue
         if name.lower() in names_with_ppe:
             continue
