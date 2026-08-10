@@ -412,10 +412,6 @@ async def persist_session(db, *, token: str, user_id: str, ttl_seconds: int = 60
     """Store a server-side session for the directory token. Default TTL
     is 12 hours. Index `expires_at` for TTL eviction (best-effort)."""
     now = datetime.now(timezone.utc)
-    try:
-        await db.directory_sessions.delete_many({"user_id": user_id})
-    except Exception as e:  # noqa: BLE001
-        logger.warning("[directory] prior session cleanup failed: %s", e)
     await db.directory_sessions.insert_one(
         {
             "id": str(uuid.uuid4()),

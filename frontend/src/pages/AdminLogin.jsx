@@ -274,7 +274,7 @@ export default function AdminLogin() {
           <Button
             type="button"
             disabled={submitting}
-            onClick={onSubmit}
+            onClick={(e) => e.currentTarget.form?.requestSubmit()}
             className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
             data-testid="admin-login-submit"
           >

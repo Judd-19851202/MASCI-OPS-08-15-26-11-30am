@@ -1,5 +1,34 @@
 # PRD
 
+## 2026-08-10 — PRE-C10 auth/identity permanent-fix revalidation batch
+
+- Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.
+- Current milestone remains **177 / 216 closed = 81.9%** with **6 partial / 33 open** remaining under the frozen denominator. This batch revalidated and permanently repaired the reopened auth/identity lane without expanding the denominator.
+- Shared root cause proven and repaired at the canonical owners:
+  - `frontend/src/lib/authHeaders.js` now scopes raw portal headers to the active portal path instead of leaking every stored portal token into unrelated protected API calls.
+  - `backend/user_directory.py::persist_session()` now preserves parallel directory sessions instead of deleting every prior session for the same user, eliminating shared-account preview churn.
+  - `backend/user_directory.py` now mints session-scoped directory-admin tokens (`<user_id>.<nonce>.<hmac>`) so parallel sessions do not collide on one deterministic admin token.
+  - `backend/session_timeout.py` + `backend/routes/auth_directory_routes.py` now clear only the logged-out directory session’s bound portal activity instead of wiping every session for that user.
+- Production-safe compatibility preserved:
+  - no password verifier rewrite;
+  - no password-hash migration or reset path introduced;
+  - no user recreation or reseeding;
+  - no role/permission flattening or silent privilege expansion;
+  - no production data mutation.
+- Verification evidence for this batch:
+  - `backend/tests/test_auth_session_contract.py`: **18 / 18 PASS**
+  - `/app/test_reports/iteration_15.json`: PASS (`backend 100%`, `frontend 100%`)
+  - `auto_frontend_testing_agent`: PASS on Admin / PM / HR / Safety / Dispatch / Field Leadership / public-access / protected-redirect auth flows when driven with deterministic DOM-submit methods
+  - `deep_testing_backend_v2`: PASS (`8 / 8`) on multi-session coexistence, session-scoped logout, 403 mint denial, 401 wrong-token rejection, expiry protection, and public-access invariants
+  - direct runtime self-proof PASS on two concurrent super-admin sessions, one-session logout isolation, signed-out redirect protection, and public field/safety continuity.
+- Classified but not reopened under auth:
+  - Safety portal “intelligence unavailable” is currently a **NON-AUTH data/runtime issue**, not a credential/session/role failure.
+  - Dispatch live-location warning is currently a **NON-AUTH data/runtime issue**, not a credential/session/role failure.
+- Immediate next order after this batch:
+  - resume remaining **Admin / Executive / Field Leadership / Compliance** non-final PRE-C10 closure items;
+  - keep the auth/identity lane closed unless contradicted by fresh current-runtime evidence;
+  - after the remaining non-final rows settle, continue the recurrence/failure-class audit and the final 20-gate certification sequence.
+
 ## 2026-08-10 — PRE-C10 auth/session/public-access closure batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.

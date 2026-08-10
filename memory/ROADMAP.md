@@ -1,3 +1,30 @@
+# 2026-08-10 — PRE-C10 milestone after auth/identity permanent-fix revalidation batch
+
+- **PRE-C10 status:** `177 / 216 closed = 81.9%`
+- **This batch:** revalidated and permanently re-closed the contradicted auth/identity lane with backward-compatible shared-auth repairs only.
+- **Remaining:** `6 partial / 33 open`
+
+## What closed in this batch
+
+- Shared authentication / identity / session permanence lane re-closed with current-runtime proof.
+- Parallel shared-account session continuity and session-scoped logout recurrence guard now certified.
+
+## Immediate next actions
+
+### P0
+- Resume the shortest-path PRE-C10 sequence: remaining **Admin**, **Executive**, **Field Leadership**, and **Compliance** rows.
+- Preserve the re-closed auth/identity lane unless fresh contradictory runtime evidence appears.
+- Keep Safety “intelligence unavailable” and Dispatch live-location warnings classified as **non-auth runtime/data issues** for later targeted handling, not as reopened auth defects.
+
+### P1
+- After the remaining non-final rows settle, continue the recurrence/failure-class audit and then the final 20-gate certification sequence.
+
+### Guardrails still in force
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after auth/session/public-access closure batch
 
 - **PRE-C10 status:** `177 / 216 closed = 81.9%`

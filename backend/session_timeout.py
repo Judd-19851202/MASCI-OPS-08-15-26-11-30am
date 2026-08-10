@@ -419,6 +419,22 @@ async def clear_session_activity_for_user(db, user_id: str) -> int:
         return 0
 
 
+async def clear_session_activity_for_directory_session(db, directory_token: Optional[str]) -> int:
+    """Delete stamped portal sessions bound to one master directory session."""
+    if not directory_token:
+        return 0
+    try:
+        th = _hash_token(directory_token)
+        result = await db.session_activity.delete_many({"directory_session_token_hash": th})
+        return int(getattr(result, "deleted_count", 0) or 0)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "[session-timeout] clear_session_activity_for_directory_session failed: %s",
+            e,
+        )
+        return 0
+
+
 async def clear_session_activity_for_actor(db, *, user_id: Optional[str] = None, token: Optional[str] = None) -> int:
     """Canonical revocation helper.
 

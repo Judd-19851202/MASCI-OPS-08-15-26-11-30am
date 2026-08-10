@@ -196,7 +196,8 @@ export default function SafetyLogin() {
               </Link>
             </div>
             <Button
-              type="submit"
+              type="button"
+              onClick={(e) => e.currentTarget.form?.requestSubmit()}
               disabled={busy || !email.trim() || !password}
               className="w-full h-12 bg-cyan-700 hover:bg-cyan-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-cyan-900 disabled:opacity-60"
               data-testid="safety-login-submit"

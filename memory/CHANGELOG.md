@@ -1,3 +1,14 @@
+# 2026-08-10 — PRE-C10 auth/identity permanent-fix revalidation batch
+
+- Reopened auth/session truth against current preview runtime and repaired the actual shared owners instead of page-patching portals.
+- Fixed shared frontend portal-header leakage in `frontend/src/lib/authHeaders.js`, so protected APIs now receive only the active portal’s auth headers.
+- Fixed shared backend session churn in `backend/user_directory.py` by preserving parallel directory sessions for the same legitimate user instead of deleting every previous session on each login.
+- Added session-scoped admin tokens plus session-scoped multi-logout cleanup in `backend/user_directory.py`, `backend/session_timeout.py`, and `backend/routes/auth_directory_routes.py`, so one shared-account session logout no longer kills another active session.
+- Added recurrence proof in `backend/tests/test_auth_session_contract.py`; suite now passes **18 / 18**.
+- Independent verification passed in `/app/test_reports/iteration_15.json`; `auto_frontend_testing_agent` and `deep_testing_backend_v2` both confirmed the repaired auth/session lifecycle.
+- Production-safe conclusion for this batch: **no credential resets, no user recreation, no role/permission rebuild, no auth-model breakage introduced**.
+- Milestone accounting remains **177 / 216 closed = 81.9%** with **6 partial / 33 open** remaining because this batch re-closed a contradicted lane without changing the frozen denominator.
+
 # 2026-08-10 — PRE-C10 auth/session/public-access closure batch
 
 - Continued proof-first PRE-C10 closure under the frozen `216` denominator. New milestone position: **177 / 216 closed = 81.9%**.

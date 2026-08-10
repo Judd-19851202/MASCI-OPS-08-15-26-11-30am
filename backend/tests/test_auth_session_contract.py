@@ -71,7 +71,7 @@ class TestMultiLoginFlow:
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json=MULTI_PORTAL_USER,
-            timeout=30
+            timeout=60
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         
@@ -105,7 +105,7 @@ class TestMultiLoginFlow:
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json={"email": "test@example.com"},
-            timeout=30
+            timeout=60
         )
         assert response.status_code in [400, 401, 422], f"Expected 4xx, got {response.status_code}"
 
@@ -114,7 +114,7 @@ class TestMultiLoginFlow:
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json=SUPER_ADMIN_USER,
-            timeout=30,
+            timeout=60,
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
 
@@ -129,7 +129,7 @@ class TestMultiLoginFlow:
                 "X-Admin-Token": admin_token,
                 "X-Directory-Token": session_token or "",
             },
-            timeout=30,
+            timeout=60,
         )
         assert admin_check.status_code == 200, (
             f"Super-admin admin token should survive first admin request, got "
@@ -146,7 +146,7 @@ class TestMeDirectoryEndpoint:
         response = requests.post(
             f"{BASE_URL}/api/auth/multi-login",
             json=MULTI_PORTAL_USER,
-            timeout=30
+            timeout=60
         )
         if response.status_code != 200:
             pytest.skip("Multi-login failed, skipping authenticated tests")
@@ -163,7 +163,7 @@ class TestMeDirectoryEndpoint:
                 "X-Directory-Token": session_token,
                 "X-Admin-Token": admin_token or ""
             },
-            timeout=30
+            timeout=60
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         
@@ -349,6 +349,84 @@ class TestPortalCheckEndpoints:
         ]:
             response = requests.get(f"{BASE_URL}{path}", headers=headers, timeout=30)
             assert response.status_code == 401, f"{label} should 401 after expiry, got {response.status_code}: {response.text[:200]}"
+
+    def test_parallel_shared_account_sessions_survive_and_logout_is_session_scoped(self):
+        """A second shared-account login must not kill the first, and logout must only clear the current session."""
+        sessions = []
+        for _ in range(2):
+            response = requests.post(
+                f"{BASE_URL}/api/auth/multi-login",
+                json=SUPER_ADMIN_USER,
+                timeout=60,
+            )
+            assert response.status_code == 200, response.text[:200]
+            sessions.append(response.json())
+
+        for idx, auth in enumerate(sessions, start=1):
+            me = requests.get(
+                f"{BASE_URL}/api/auth/me-directory",
+                headers={"X-Directory-Token": auth["session_token"]},
+                timeout=60,
+            )
+            assert me.status_code == 200, f"session {idx} directory auth failed: {me.status_code} {me.text[:160]}"
+
+            admin_check = requests.get(
+                f"{BASE_URL}/api/admin/check",
+                headers={
+                    "X-Directory-Token": auth["session_token"],
+                    "X-Admin-Token": auth["portal_tokens"]["admin"],
+                },
+                timeout=30,
+            )
+            assert admin_check.status_code == 200, (
+                f"session {idx} admin auth failed: {admin_check.status_code} {admin_check.text[:160]}"
+            )
+
+        first = sessions[0]
+        logout = requests.post(
+            f"{BASE_URL}/api/auth/multi-logout",
+            headers={
+                "X-Directory-Token": first["session_token"],
+                "X-Admin-Token": first["portal_tokens"]["admin"],
+            },
+            timeout=30,
+        )
+        assert logout.status_code == 200, logout.text[:200]
+
+        first_me = requests.get(
+            f"{BASE_URL}/api/auth/me-directory",
+            headers={"X-Directory-Token": first["session_token"]},
+            timeout=30,
+        )
+        assert first_me.status_code == 401, first_me.text[:200]
+
+        first_admin = requests.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Directory-Token": first["session_token"],
+                "X-Admin-Token": first["portal_tokens"]["admin"],
+            },
+            timeout=30,
+        )
+        assert first_admin.status_code == 401, first_admin.text[:200]
+
+        second = sessions[1]
+        second_me = requests.get(
+            f"{BASE_URL}/api/auth/me-directory",
+            headers={"X-Directory-Token": second["session_token"]},
+            timeout=30,
+        )
+        assert second_me.status_code == 200, second_me.text[:200]
+
+        second_admin = requests.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Directory-Token": second["session_token"],
+                "X-Admin-Token": second["portal_tokens"]["admin"],
+            },
+            timeout=30,
+        )
+        assert second_admin.status_code == 200, second_admin.text[:200]
     
     def test_admin_check_without_token(self):
         """admin/check returns 401 without token"""

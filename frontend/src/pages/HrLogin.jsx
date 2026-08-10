@@ -345,7 +345,8 @@ export default function HrLogin() {
               </button>
             </div>
             <Button
-              type="submit"
+              type="button"
+              onClick={(e) => e.currentTarget.form?.requestSubmit()}
               disabled={submitting}
               className="w-full h-12 bg-purple-700 hover:bg-purple-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-purple-900"
               data-testid="hr-login-submit"

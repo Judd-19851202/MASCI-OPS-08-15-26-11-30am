@@ -38,6 +38,7 @@ from lib.rate_limiting import (
 from session_timeout import (
     clear_session_activity,
     clear_session_activity_for_actor,
+    clear_session_activity_for_directory_session,
     clear_session_activity_for_user,
     get_session_activity,
 )
@@ -169,7 +170,12 @@ def build_auth_directory_router(
         runtime_db = _runtime_db(request)
 
         cleared_count = 0
-        if user_id:
+        if x_directory_token:
+            cleared_count = await clear_session_activity_for_directory_session(
+                runtime_db,
+                x_directory_token,
+            )
+        elif user_id:
             cleared_count = await clear_session_activity_for_actor(runtime_db, user_id=user_id)
         else:
             for tok in [t for t in portal_tokens if t]:
@@ -442,7 +448,7 @@ def build_auth_directory_router(
                         user_id=row.get("id"),
                         email=row.get("email"),
                         actor_label=_portal,
-                        directory_token=None if _portal == "admin" else session_token,
+                        directory_token=session_token,
                         ip=_ip,
                         user_agent=_ua,
                     )
@@ -475,7 +481,7 @@ def build_auth_directory_router(
                     user_id=row.get("id"),
                     email=row.get("email"),
                     actor_label="admin",
-                    directory_token=None,
+                    directory_token=session_token,
                     ip=_client_ip(request),
                     user_agent=request.headers.get("user-agent") or "",
                 )
@@ -605,7 +611,7 @@ def build_auth_directory_router(
                 user_id=row.get("id"),
                 email=row.get("email"),
                 actor_label=target,
-                directory_token=None if target == "admin" else x_directory_token,
+                directory_token=x_directory_token,
                 ip=(_client_ip(request) if request else None),
                 user_agent=(request.headers.get("user-agent") if request else "") or "",
             )
