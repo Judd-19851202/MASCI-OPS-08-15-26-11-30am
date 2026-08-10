@@ -332,7 +332,10 @@ function ProjectDrilldown({ projectNumber, window, onClose }) {
       >
         <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <h4 className="font-display text-lg font-black">{projectNumber}</h4>
+            <h4 className="inline-flex items-center gap-1.5 font-display text-lg font-black">
+              <span>{projectNumber}</span>
+              <InlineKpiHelp metadata={data?.kpi_metadata?.page} fallbackLabel={`Project Safety KPIs ${projectNumber}`} testId="safety-kpis-drilldown-title-help" />
+            </h4>
             <p className="text-xs text-slate-500 mt-0.5">
               Safety subset of the shared operational spine.
             </p>
@@ -368,13 +371,13 @@ function ProjectDrilldown({ projectNumber, window, onClose }) {
                 {data.date_from ? `${data.date_from} → ${data.date_to}` : `Project to date · ends ${data.date_to}`}
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Totals label="Safety events" value={data.safety.safety_event_count} sub={`${data.safety.daily_report_safety_events} DR · ${data.safety.incident_count} incidents`} testid="safety-drilldown-events" />
-                <Totals label="Near-miss / Injuries" value={`${data.safety.near_miss_count} / ${data.safety.injuries_reported}`} sub={`${data.safety.utility_strike_count} utility · ${data.safety.escalation_gap_count} gap${data.safety.escalation_gap_count === 1 ? "" : "s"}`} testid="safety-drilldown-nearmiss" />
-                <Totals label="Meetings / JHAs" value={`${data.safety.safety_meetings_count} / ${data.safety.jha_count}`} sub={`${data.safety.safety_inspection_count} inspections`} testid="safety-drilldown-meetings" />
-                <Totals label="Trench / Photos" value={`${data.safety.trench_inspection_count} / ${data.safety.safety_photo_count}`} sub="" testid="safety-drilldown-trench" />
+                <Totals label="Safety events" value={data.safety.safety_event_count} sub={`${data.safety.daily_report_safety_events} DR · ${data.safety.incident_count} incidents`} testid="safety-drilldown-events" metadata={data.kpi_metadata?.cards?.safety_event_count} />
+                <Totals label="Near-miss / Injuries" value={`${data.safety.near_miss_count} / ${data.safety.injuries_reported}`} sub={`${data.safety.utility_strike_count} utility · ${data.safety.escalation_gap_count} gap${data.safety.escalation_gap_count === 1 ? "" : "s"}`} testid="safety-drilldown-nearmiss" metadata={data.kpi_metadata?.cards?.near_miss_and_injuries} />
+                <Totals label="Meetings / JHAs" value={`${data.safety.safety_meetings_count} / ${data.safety.jha_count}`} sub={`${data.safety.safety_inspection_count} inspections`} testid="safety-drilldown-meetings" metadata={data.kpi_metadata?.cards?.meetings_and_jhas} />
+                <Totals label="Trench / Photos" value={`${data.safety.trench_inspection_count} / ${data.safety.safety_photo_count}`} sub="" testid="safety-drilldown-trench" metadata={data.kpi_metadata?.cards?.trench_and_photos} />
               </div>
               <div className="rounded-md border border-dashed border-slate-300 bg-slate-50/60 p-3">
-                <div className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Sources · this project</div>
+                <div className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-600">Sources · this project <InlineKpiHelp metadata={data.kpi_metadata?.sections?.safety_sources} fallbackLabel="Project Safety Sources" testId="safety-kpis-drilldown-sources-help" /></div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {Object.entries(data.safety_sources || {}).map(([k, v]) => (
                     <span
@@ -397,6 +400,7 @@ function ProjectDrilldown({ projectNumber, window, onClose }) {
               </div>
               <div className="text-xs text-slate-500">
                 Activity context · {data.activity_context.total_man_hours} man-hours · {data.activity_context.unique_employee_count} unique employees · {data.activity_context.delay_hours_impact} delay hrs.
+                <span className="ml-1 inline-flex align-middle"><InlineKpiHelp metadata={data.kpi_metadata?.sections?.activity_context} fallbackLabel="Project Safety Activity Context" testId="safety-kpis-drilldown-activity-help" /></span>
               </div>
             </>
           )}
