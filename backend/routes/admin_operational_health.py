@@ -27,6 +27,9 @@ from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 _BACKEND_INTERNAL_BASE = os.environ.get("OCC_HEALTH_INTERNAL_BASE", "http://127.0.0.1:8001").rstrip("/")
 _PROBE_TIMEOUT_S = 30.0
+_PROBE_TIMEOUT_OVERRIDES = {
+    "platform_truth_integrity": 75.0,
+}
 _WORKSPACE = Path("/app")
 _SCANNER_PATH = _WORKSPACE / "backend/tools/wp15_governance_convergence_scan.py"
 _CI_ASSERT_PATH = _WORKSPACE / "scripts/assert_wp15_governance_convergence.py"
@@ -142,10 +145,10 @@ def _forward_headers(request: Request) -> Dict[str, str]:
     return headers
 
 
-async def _probe_json(client: httpx.AsyncClient, path: str, headers: Dict[str, str]) -> Dict[str, Any]:
+async def _probe_json(client: httpx.AsyncClient, path: str, headers: Dict[str, str], timeout_s: Optional[float] = None) -> Dict[str, Any]:
     refreshed_at = _now_iso()
     try:
-        response = await client.get(f"{_BACKEND_INTERNAL_BASE}{path}", headers=headers)
+        response = await client.get(f"{_BACKEND_INTERNAL_BASE}{path}", headers=headers, timeout=timeout_s or _PROBE_TIMEOUT_S)
         if response.status_code >= 400:
             return {"ok": False, "path": path, "status_code": response.status_code, "error": f"HTTP {response.status_code}", "body": None, "refreshed_at": None}
         return {"ok": True, "path": path, "status_code": response.status_code, "error": None, "body": response.json(), "refreshed_at": refreshed_at}
@@ -823,7 +826,10 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         generated_at = _now_iso()
         headers = _forward_headers(request)
         async with httpx.AsyncClient(timeout=_PROBE_TIMEOUT_S) as client:
-            probe_tasks = {key: _probe_json(client, path, headers) for key, path in _PROBE_PATHS.items()}
+            probe_tasks = {
+                key: _probe_json(client, path, headers, _PROBE_TIMEOUT_OVERRIDES.get(key))
+                for key, path in _PROBE_PATHS.items()
+            }
             probe_results = await asyncio.gather(*probe_tasks.values())
         probes = {key: value for key, value in zip(probe_tasks.keys(), probe_results)}
         scanner = await asyncio.to_thread(_run_scanner)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -695,9 +696,11 @@ async def scan_platform_stale_derived_state(db) -> Dict[str, Any]:
 
 
 async def scan_platform_truth_integrity(db) -> Dict[str, Any]:
-    contamination = await scan_platform_contamination_integrity(db)
-    stale = await scan_platform_stale_derived_state(db)
-    cross_entity = await scan_cross_entity_integrity(db)
+    contamination, stale, cross_entity = await asyncio.gather(
+        scan_platform_contamination_integrity(db),
+        scan_platform_stale_derived_state(db),
+        scan_cross_entity_integrity(db),
+    )
     overall_status = "green" if contamination.get("overall_status") == "green" and stale.get("overall_status") == "green" and cross_entity.get("overall_status") == "green" else "red"
     return {
         "generated_at": _now_iso(),
