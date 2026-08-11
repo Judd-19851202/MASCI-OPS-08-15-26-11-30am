@@ -83,6 +83,7 @@ const ADMIN_SHARED_API_PREFIXES = [
   "/ai/health",
   "/auto-email",
   "/jha-acknowledgements",
+  "/draft-telemetry",
 ];
 
 const HR_COMPAT_ADMIN_API_PREFIXES = [

@@ -73,7 +73,7 @@ const ENTRIES = [
     operational: "A specific operational contradiction detected by the cross-portal Governance engine — e.g., active approved driver with an expired medical card, severe incident without a CAPA, employee name on records that doesn't match the master.",
     lifecycle: "Lifecycle: open → acknowledged → resolved. Findings auto-resolve when the underlying condition disappears (system_auto) and re-open when it returns. Manual acknowledge/resolve attaches a note + admin attribution.",
     accountability: "Admin owns review + resolution. Each finding has a stable id (sha1 of rule+entity) so re-scans don't duplicate. Detection is automatic; remediation is always human-authorized.",
-    downstream: "Visible at /admin/governance and /admin/compliance-findings. Aggregated into the Admin and Safety notifications digests.",
+    downstream: "Visible at /admin/governance/legacy-health and /admin/compliance-findings. Aggregated into the Admin and Safety notifications digests.",
   },
   {
     id: "convergence_score",

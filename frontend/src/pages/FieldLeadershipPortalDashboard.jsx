@@ -104,7 +104,7 @@ export default function FieldLeadershipPortalDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const resolvedSubtitle = user?.role === "Cross-Portal Grant"
-    ? t("Cross-Portal Grant")
+    ? t("Crew accountability · employee readiness · dispatch visibility")
     : user?.role || t("Crew accountability · employee readiness · dispatch visibility");
 
   useEffect(() => {

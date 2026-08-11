@@ -49,7 +49,7 @@ export default function OperationsActionsTile({ className = "" }) {
             {t("Operations Actions")}
           </h3>
           <p className="text-xs text-slate-600 mt-1">
-            {t("Operations Action — operational ownership, not a ticket.")}
+            {t("Operations Action — operational ownership, not support intake.")}
             {totalOpen > 0 ? (
               <span className="ml-1 text-slate-700 font-mono">· {totalOpen} {t("Open")}</span>
             ) : null}

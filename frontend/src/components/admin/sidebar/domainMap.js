@@ -87,7 +87,7 @@ export const DOMAINS_V2 = [
       { to: "/admin/compliance-findings",   label: "Compliance Findings",  desc: "Open governance findings · severity",   icon: AlertTriangle },
       { to: "/admin/incidents",             label: "Incidents",            desc: "Safety incidents · admin review.",      icon: AlertTriangle },
       { to: "/admin/inspections",           label: "Site Inspections",     desc: "Job-site safety inspections.",          icon: ClipboardCheck },
-      { to: "/admin/governance",            label: "Governance Health",    desc: "Cross-portal contradictions · score",   icon: Shield },
+      { to: "/admin/governance/legacy-health", label: "Governance Health", desc: "Cross-portal contradictions · score",   icon: Shield },
       { to: "/admin/governance/project-controls", label: "Project Controls Standards", desc: "Work types · items needing review · data rules", icon: ListChecks },
       { to: "/admin/governance/project-controls/schedule", label: "Project Schedule Review", desc: "Imports · work packages · exports", icon: ListChecks },
       { to: "/admin/governance/project-controls/budget", label: "Project Budget Review", desc: "Imports · financial rules · versions", icon: ListChecks },

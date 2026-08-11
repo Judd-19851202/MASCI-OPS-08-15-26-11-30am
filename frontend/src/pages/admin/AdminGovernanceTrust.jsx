@@ -94,10 +94,10 @@ const manifest = {
   cards: [
     { id: "prod-certification", section: "readiness", title: "Operations Readiness",
       endpoint: "/api/admin/production-certification",
-      drilldown: "/admin/governance", evaluator: _prod_cert },
+      drilldown: "/admin/governance/legacy-health", evaluator: _prod_cert },
     { id: "governance-summary", section: "rules", title: "Standards Rules",
       endpoint: "/api/admin/governance/summary",
-      drilldown: "/admin/governance", evaluator: _governance },
+      drilldown: "/admin/governance/legacy-health", evaluator: _governance },
     { id: "platform-version", section: "rules", title: "Platform Build & Uptime",
       endpoint: "/api/version", drilldown: "/admin/system-health", evaluator: _version },
     { id: "admin-audit", section: "activity", title: "Activity History Freshness",
@@ -115,7 +115,7 @@ const manifest = {
   ],
   maintenance_actions: [
     { id: "governance-admin", title: "Standards Workspace",
-      deep_link: "/admin/governance",
+      deep_link: "/admin/governance/legacy-health",
       description: "Rule library, findings triage, convergence trend.",
       never_touches: "Read-only until you resolve a finding." },
     { id: "audit-log", title: "Activity History",

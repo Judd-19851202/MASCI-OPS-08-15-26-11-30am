@@ -150,7 +150,7 @@ export default function AdminComplianceFindings() {
       section="governance"
       intro={
         <div className="flex items-start gap-3">
-          <Link to="/admin/governance" className="text-xs text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 mt-1" data-testid="findings-back-to-dashboard">
+          <Link to="/admin/governance/legacy-health" className="text-xs text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 mt-1" data-testid="findings-back-to-dashboard">
             <ArrowLeft className="w-3 h-3" /> Governance Health
           </Link>
         </div>

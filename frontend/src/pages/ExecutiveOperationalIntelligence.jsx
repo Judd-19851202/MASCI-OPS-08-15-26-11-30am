@@ -54,38 +54,75 @@ export default function ExecutiveOperationalIntelligence() {
   const [attention, setAttention] = React.useState(null);
   const [oppc, setOppc] = React.useState(null);
   const [briefing, setBriefing] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
+  const [loadingState, setLoadingState] = React.useState({
+    dashboard: false,
+    health: false,
+    attention: false,
+    oppc: false,
+    briefing: false,
+  });
   const [err, setErr] = React.useState(null);
 
   React.useEffect(() => {
     let alive = true;
-    (async () => {
-      try {
-        setLoading(true);
-        setErr(null);
-        const [d, h, a] = await Promise.all([
-          fetchAdminDashboard({ preset }),
-          fetchExecutiveHealth({ preset }),
-          fetchAdminAttention({ preset, limit: 15 }),
-        ]);
-        const [oppcRes, briefingRes] = await Promise.all([
-          api.get("/oppc/enterprise/executive-operations-center").then((r) => r.data).catch(() => null),
-          api.get("/oppc/enterprise/monday-briefing").then((r) => r.data).catch(() => null),
-        ]);
-        const oppcJson = oppcRes || null;
-        const briefingJson = briefingRes || null;
-        if (!alive) return;
-        setDash(d);
-        setHealth(h);
-        setAttention(a);
-        setOppc(oppcJson);
-        setBriefing(briefingJson?.briefing || null);
-      } catch (e) {
-        if (alive) setErr(e?.message || t("Load failed"));
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
+    setErr(null);
+    setLoadingState({
+      dashboard: true,
+      health: true,
+      attention: true,
+      oppc: true,
+      briefing: true,
+    });
+
+    const markLoaded = (key) => {
+      if (!alive) return;
+      setLoadingState((prev) => ({ ...prev, [key]: false }));
+    };
+
+    const captureError = (message) => {
+      if (!alive || !message) return;
+      setErr((prev) => prev || message);
+    };
+
+    fetchAdminDashboard({ preset })
+      .then((data) => {
+        if (alive) setDash(data);
+      })
+      .catch((e) => captureError(e?.message || t("Could not load dashboard totals.")))
+      .finally(() => markLoaded("dashboard"));
+
+    fetchExecutiveHealth({ preset })
+      .then((data) => {
+        if (alive) setHealth(data);
+      })
+      .catch((e) => captureError(e?.message || t("Could not load at-risk projects.")))
+      .finally(() => markLoaded("health"));
+
+    fetchAdminAttention({ preset, limit: 15 })
+      .then((data) => {
+        if (alive) setAttention(data);
+      })
+      .catch((e) => captureError(e?.message || t("Could not load attention items.")))
+      .finally(() => markLoaded("attention"));
+
+    api.get("/oppc/enterprise/executive-operations-center")
+      .then((r) => {
+        if (alive) setOppc(r.data || null);
+      })
+      .catch(() => {
+        if (alive) setOppc(null);
+      })
+      .finally(() => markLoaded("oppc"));
+
+    api.get("/oppc/enterprise/monday-briefing")
+      .then((r) => {
+        if (alive) setBriefing(r.data?.briefing || null);
+      })
+      .catch(() => {
+        if (alive) setBriefing(null);
+      })
+      .finally(() => markLoaded("briefing"));
+
     return () => { alive = false; };
   }, [preset, t]);
 
@@ -95,12 +132,20 @@ export default function ExecutiveOperationalIntelligence() {
   const items = attention?.items || {};
   const oppcSummary = oppc?.summary || {};
   const approvalHistory = briefing?.approval_history || [];
+  const loading = Object.values(loadingState).some(Boolean);
   const initialLoad = loading
     && dash === null
     && health === null
     && attention === null
     && oppc === null
     && briefing === null;
+  const itemsSummaryLoading = loadingState.attention && !attention;
+  const projectsSummaryLoading = loadingState.health && !health;
+  const briefingSummaryLoading = loadingState.briefing && !briefing;
+  const horizon1Loading = loadingState.dashboard || loadingState.health || loadingState.oppc;
+  const horizon2Loading = loadingState.health;
+  const horizon3Loading = loadingState.attention;
+  const briefingLoading = loadingState.briefing;
 
   const atRiskColumns = React.useMemo(() => ([
     {
@@ -159,17 +204,17 @@ export default function ExecutiveOperationalIntelligence() {
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             <SummaryStatCard
               label={t("Items needing review")}
-              value={initialLoad ? null : attention?.total || 0}
+              value={itemsSummaryLoading ? null : attention?.total || 0}
               testId="exec-summary-items"
             />
             <SummaryStatCard
               label={t("Projects reporting")}
-              value={initialLoad ? null : totalProjects}
+              value={projectsSummaryLoading ? null : totalProjects}
               testId="exec-summary-projects"
             />
             <SummaryStatusCard
               label={t("Briefing status")}
-              value={initialLoad ? null : briefingStatusLabel(briefing?.status, t)}
+              value={briefingSummaryLoading ? null : briefingStatusLabel(briefing?.status, t)}
               testId="exec-summary-briefing-status"
             />
           </div>
@@ -182,7 +227,7 @@ export default function ExecutiveOperationalIntelligence() {
         ) : null}
         {loading ? (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500" data-testid="exec-intel-loading">
-            {t("Loading the current operating picture…")}
+            {initialLoad ? t("Loading the current operating picture…") : t("Updating the remaining sections…")}
           </div>
         ) : null}
 
@@ -194,7 +239,7 @@ export default function ExecutiveOperationalIntelligence() {
             subtitle={t("Portfolio totals in range")}
             testid="exec-horizon-1-header"
           />
-          {initialLoad ? (
+          {horizon1Loading && !dash && !health && !oppc ? (
             <SectionPlaceholder
               message={t("Waiting for portfolio totals, project counts, and current variance posture…")}
               testId="exec-horizon-1-loading"
@@ -249,7 +294,7 @@ export default function ExecutiveOperationalIntelligence() {
             className="rounded-lg border border-neutral-200 bg-white p-4"
             data-testid="exec-at-risk"
           >
-            {initialLoad ? (
+            {horizon2Loading && !health ? (
               <SectionPlaceholder
                 message={t("Checking which projects are carrying the most delay, safety, and readiness friction…")}
                 testId="exec-at-risk-loading"
@@ -277,10 +322,10 @@ export default function ExecutiveOperationalIntelligence() {
           <HorizonHeader
             number={3}
             title={t("What needs attention")}
-            subtitle={initialLoad ? t("Checking current attention queues") : `${attention?.total || 0} ${t("items need review")}`}
+            subtitle={horizon3Loading && !attention ? t("Checking current attention queues") : `${attention?.total || 0} ${t("items need review")}`}
             testid="exec-horizon-3-header"
           />
-          {initialLoad ? (
+          {horizon3Loading && !attention ? (
             <SectionPlaceholder
               message={t("Loading the safety, quality, delay, and readiness queues…")}
               testId="exec-horizon-3-loading"
@@ -375,26 +420,26 @@ export default function ExecutiveOperationalIntelligence() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-neutral-500">Status</div>
-                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{initialLoad ? t("Loading current briefing status…") : briefingStatusLabel(briefing?.status, t)}</div>
+                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefingLoading && !briefing ? t("Loading current briefing status…") : briefingStatusLabel(briefing?.status, t)}</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate" disabled={loading && !briefing}>{t("Generate latest")}</button>
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve" disabled={loading && !briefing}>{t("Approve")}</button>
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze" disabled={loading && !briefing}>{t("Freeze")}</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate" disabled={briefingLoading && !briefing}>{t("Generate latest")}</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve" disabled={briefingLoading && !briefing}>{t("Approve")}</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze" disabled={briefingLoading && !briefing}>{t("Freeze")}</button>
                   {briefingPdfDeferred ? <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="exec-briefing-pdf-deferred">{t("PDF is not available on this page yet.")}</div> : <a className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" href={`${process.env.REACT_APP_BACKEND_URL}/api/oppc/enterprise/monday-briefing/pdf`} target="_blank" rel="noreferrer" data-testid="exec-briefing-pdf">{t("Open PDF")}</a>}
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 text-sm">
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">{t("Week ending")}: {initialLoad ? t("Loading…") : briefing?.week_ending || t("Not selected yet")}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">{t("Generated")}: {initialLoad ? t("Loading…") : fmtTs(briefing?.generated_at)}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-history">{t("Approvals and freezes recorded")}: {initialLoad ? "—" : approvalHistory.length}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">{t("Week ending")}: {briefingLoading && !briefing ? t("Loading…") : briefing?.week_ending || t("Not selected yet")}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">{t("Generated")}: {briefingLoading && !briefing ? t("Loading…") : fmtTs(briefing?.generated_at)}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-history">{t("Approvals and freezes recorded")}: {briefingLoading && !briefing ? "—" : approvalHistory.length}</div>
               </div>
               <div className="space-y-2 text-sm text-neutral-700" data-testid="exec-briefing-summary-lines">
-                {initialLoad ? <div className="text-neutral-500">{t("Loading the latest briefing summary lines…")}</div> : null}
-                {!initialLoad ? (briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>) : null}
-                {!initialLoad && !(briefing?.summary_lines || []).length ? <div className="text-neutral-500">{t("No executive summary lines are published yet. Generate the latest briefing to build the current summary from operating records.")}</div> : null}
+                {briefingLoading && !briefing ? <div className="text-neutral-500">{t("Loading the latest briefing summary lines…")}</div> : null}
+                {!(briefingLoading && !briefing) ? (briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>) : null}
+                {!(briefingLoading && !briefing) && !(briefing?.summary_lines || []).length ? <div className="text-neutral-500">{t("No executive summary lines are published yet. Generate the latest briefing to build the current summary from operating records.")}</div> : null}
               </div>
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">{t("Warnings")}: {initialLoad ? t("Loading…") : (briefing?.warnings || []).join(" · ") || t("No warning text was returned")}</div>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">{t("Warnings")}: {briefingLoading && !briefing ? t("Loading…") : (briefing?.warnings || []).join(" · ") || t("No warning text was returned")}</div>
             </div>
           </section>
 

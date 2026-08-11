@@ -29,7 +29,7 @@ Payload shape (every role returns the same envelope):
       title: "Governance score dropped by 12 points overnight",
       body: "...",
       count: 1,
-      action_url: "/admin/governance",
+      action_url: "/admin/governance/legacy-health",
       rule_ids: ["..."] (optional),
       items: [ ... up to 5 sample finding rows ... ]
     },
@@ -153,7 +153,7 @@ async def _build_admin_digest(db) -> Dict[str, Any]:
         "title": f"Governance score · {score}/100 · {label}",
         "body": score_body,
         "count": 1,
-        "action_url": "/admin/governance",
+        "action_url": "/admin/governance/legacy-health",
     })
 
     # Section 2 · Critical findings (top 5).
@@ -222,9 +222,9 @@ async def _build_admin_digest(db) -> Dict[str, Any]:
                 "key": "scan_freshness",
                 "severity": "medium",
                 "title": "Compliance scan is stale",
-                "body": f"Last successful scan finished {finished[:19].replace('T',' ')}. Trigger a fresh scan from /admin/governance to refresh signal.",
+                "body": f"Last successful scan finished {finished[:19].replace('T',' ')}. Trigger a fresh scan from /admin/governance/legacy-health to refresh signal.",
                 "count": 1,
-                "action_url": "/admin/governance",
+                "action_url": "/admin/governance/legacy-health",
             })
 
     return {

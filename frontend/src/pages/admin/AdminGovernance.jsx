@@ -42,6 +42,7 @@ const HEALTH_META = {
   fair:     { tint: "border-sky-500 bg-sky-50 text-sky-900",             label: "Fair" },
   degraded: { tint: "border-amber-500 bg-amber-50 text-amber-900",       label: "Degraded" },
   critical: { tint: "border-rose-500 bg-rose-50 text-rose-900",          label: "Critical" },
+  unknown:  { tint: "border-slate-300 bg-slate-50 text-slate-700",       label: "Loading" },
 };
 
 const FRESHNESS_META = {
@@ -163,18 +164,19 @@ export default function AdminGovernance() {
     }
   }, [load]);
 
-  const sevCounts = summary?.severity_counts || EMPTY_COUNTS;
-  const statusCounts = summary?.status_counts || EMPTY_COUNTS;
-  const ruleCounts = summary?.rule_counts || EMPTY_COUNTS;
+  const hasSummary = Boolean(summary);
+  const sevCounts = hasSummary ? (summary?.severity_counts || EMPTY_COUNTS) : null;
+  const statusCounts = hasSummary ? (summary?.status_counts || EMPTY_COUNTS) : null;
+  const ruleCounts = hasSummary ? (summary?.rule_counts || EMPTY_COUNTS) : null;
   const catalog = summary?.rule_catalog || EMPTY_COUNTS;
-  const score = summary?.convergence_score ?? 0;
-  const healthLabel = summary?.health_label || "fair";
-  const healthMeta = HEALTH_META[healthLabel] || HEALTH_META.fair;
+  const score = hasSummary ? (summary?.convergence_score ?? 0) : null;
+  const healthLabel = hasSummary ? (summary?.health_label || "fair") : "unknown";
+  const healthMeta = HEALTH_META[healthLabel] || HEALTH_META.unknown;
   const freshness = summary?.freshness || {};
   const freshnessMeta = FRESHNESS_META[freshness?.state] || FRESHNESS_META.UNKNOWN;
 
   const totalOpen = useMemo(
-    () => Object.values(sevCounts).reduce((a, b) => a + (b || 0), 0),
+    () => (sevCounts ? Object.values(sevCounts).reduce((a, b) => a + (b || 0), 0) : null),
     [sevCounts]
   );
 
@@ -183,13 +185,16 @@ export default function AdminGovernance() {
   // the 3 employee-linkage rules (iter355) introduced by the entry-time
   // EmployeeRosterField program.
   const linkageOpen = useMemo(() => {
+    if (!ruleCounts) return null;
     return (
       (ruleCounts.EMP_LINK_UNRESOLVABLE || 0) +
       (ruleCounts.EMP_LINK_AMBIGUOUS || 0) +
       (ruleCounts.EMP_LINK_MISSING_ID || 0)
     );
   }, [ruleCounts]);
-  const linkageTint = linkageOpen === 0
+  const linkageTint = linkageOpen == null
+    ? "bg-slate-400 text-white border-slate-500"
+    : linkageOpen === 0
     ? "bg-emerald-600 text-white border-emerald-700"
     : linkageOpen < 10
       ? "bg-amber-500 text-white border-amber-600"
@@ -208,6 +213,7 @@ export default function AdminGovernance() {
   }, [lastScan]);
 
   const sortedRules = useMemo(() => {
+    if (!ruleCounts) return [];
     const entries = Object.entries(ruleCounts);
     entries.sort((a, b) => b[1] - a[1]);
     return entries;
@@ -239,7 +245,7 @@ export default function AdminGovernance() {
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] font-bold opacity-80">Convergence Score</div>
               <div className="font-display text-4xl font-black leading-none mt-1" data-testid="gov-score-value">
-                {loading ? "…" : score}<span className="text-base opacity-70">/100</span>
+                {loading && !hasSummary ? "…" : score}<span className="text-base opacity-70">/100</span>
               </div>
             </div>
           </div>
@@ -253,7 +259,7 @@ export default function AdminGovernance() {
           </div>
           <div className="px-3 py-1.5 bg-white/70 border border-current/30 rounded">
             <div className="font-mono text-[10px] uppercase tracking-wider opacity-70">Total Open</div>
-            <div className="font-display text-lg font-black leading-none" data-testid="gov-total-open">{totalOpen}</div>
+            <div className="font-display text-lg font-black leading-none" data-testid="gov-total-open">{totalOpen == null ? "—" : totalOpen}</div>
           </div>
           {/* iter365 · Linkage Health ambient signal. One small pill, click-through
               to the filtered findings view. No new API; uses already-loaded data. */}
@@ -267,7 +273,7 @@ export default function AdminGovernance() {
             <div>
               <div className="font-mono text-[10px] uppercase tracking-wider opacity-90">Identity Linkage</div>
               <div className="font-display text-lg font-black leading-none" data-testid="gov-linkage-open">
-                {linkageOpen === 0 ? "Clean" : `${linkageOpen} open`}
+                {linkageOpen == null ? "Loading…" : linkageOpen === 0 ? "Clean" : `${linkageOpen} open`}
               </div>
             </div>
           </Link>
@@ -329,21 +335,33 @@ export default function AdminGovernance() {
         {/* Severity tile strip */}
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2">By severity (open + acknowledged)</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="gov-severity-strip">
-            {SEVERITY_ORDER.map((s) => (
-              <SeverityTile key={s} severity={s} count={sevCounts[s] ?? 0} />
-            ))}
-          </div>
+          {loading && !hasSummary ? (
+            <div className="rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600" data-testid="gov-severity-loading">
+              Loading current severity totals…
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="gov-severity-strip">
+              {SEVERITY_ORDER.map((s) => (
+                <SeverityTile key={s} severity={s} count={sevCounts?.[s] ?? 0} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Status pills */}
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2">By status</div>
-          <div className="flex flex-wrap gap-2" data-testid="gov-status-strip">
-            <StatusPill status="open" count={statusCounts.open ?? 0} />
-            <StatusPill status="acknowledged" count={statusCounts.acknowledged ?? 0} />
-            <StatusPill status="resolved" count={statusCounts.resolved ?? 0} />
-          </div>
+          {loading && !hasSummary ? (
+            <div className="rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600" data-testid="gov-status-loading">
+              Loading current status totals…
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2" data-testid="gov-status-strip">
+              <StatusPill status="open" count={statusCounts?.open ?? 0} />
+              <StatusPill status="acknowledged" count={statusCounts?.acknowledged ?? 0} />
+              <StatusPill status="resolved" count={statusCounts?.resolved ?? 0} />
+            </div>
+          )}
         </div>
 
         {/* Per-rule open counts */}
@@ -353,7 +371,11 @@ export default function AdminGovernance() {
               Open by rule (click any row to filter findings)
             </div>
           </div>
-          {sortedRules.length === 0 ? (
+          {loading && !hasSummary ? (
+            <div className="p-6 text-center text-sm text-slate-500" data-testid="gov-rule-loading">
+              Loading current rule counts…
+            </div>
+          ) : sortedRules.length === 0 ? (
             <div className="p-6 text-center text-sm text-slate-500" data-testid="gov-rule-empty">
               No open findings. Convergence is clean — last scan {lastScanRel}.
             </div>
