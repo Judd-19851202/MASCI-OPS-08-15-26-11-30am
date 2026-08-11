@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from lib.synthetic_hr_filter import is_synthetic_hr
+
 
 async def collect_findings(db) -> List[Dict[str, Any]]:
     """Run every drift check; return a flat list of findings."""
@@ -174,7 +176,8 @@ async def _employee_findings(db) -> List[Dict[str, Any]]:
     is missing the canonical employee_id field."""
     out: List[Dict[str, Any]] = []
     try:
-        missing: List[str] = []
+        missing_live: List[str] = []
+        missing_technical: List[str] = []
         async for e in db.employees.find(
             {"$and": [
                 {
@@ -195,31 +198,62 @@ async def _employee_findings(db) -> List[Dict[str, Any]]:
                     {"employee_id": {"$exists": False}},
                 ]},
             ]},
-            {"_id": 0, "id": 1, "name": 1},
+            {
+                "_id": 0,
+                "id": 1,
+                "name": 1,
+                "preferred_name": 1,
+                "email": 1,
+                "employee_id": 1,
+                "synthetic_record": 1,
+                "hidden_from_operations": 1,
+                "technical_record_classification": 1,
+                "truth_visibility_scope": 1,
+                "track_23_5_cert_seed": 1,
+            },
             limit=200,
         ):
-            missing.append(str(e.get("name") or e.get("id") or "")[:40])
-        if missing:
+            label = str(e.get("name") or e.get("id") or "")[:40]
+            if is_synthetic_hr(e):
+                missing_technical.append(label)
+            else:
+                missing_live.append(label)
+        missing_total = len(missing_live) + len(missing_technical)
+        if missing_total:
+            live_only = len(missing_live) > 0
+            summary = (
+                f"{len(missing_live)} active employee(s) saved without a "
+                "canonical employee_id."
+                if live_only
+                else f"{len(missing_technical)} technical / synthetic employee row(s) are missing canonical employee_id."
+            )
+            if live_only and missing_technical:
+                summary += f" {len(missing_technical)} technical / synthetic row(s) are also present in the audit lane."
+
+            remediation = (
+                "Open Admin → People & Access → Employee Master and assign the canonical employee_id to each live employee row below."
+                if live_only
+                else "No live-operations remediation required. Keep these rows in the technical audit lane, or assign a canonical employee_id only if you intend to promote them into live employee records."
+            )
+            remediation_link = "/admin/people-and-access" if live_only else "/admin/governance/legacy-health"
+            impact = (
+                "Data hygiene — no live workflow is blocked, but employee identity is at risk of drift."
+                if live_only
+                else "Technical-audit hygiene only — no live workflow is blocked and no operator roster is incomplete."
+            )
             out.append({
                 "code": "employee_missing_id",
                 "band": "amber",
                 "severity": "cleanup",
-                "count": len(missing),
-                "summary": (
-                    f"{len(missing)} active employee(s) saved without a "
-                    "canonical employee_id."
-                ),
-                "remediation": (
-                    "Open Admin → People & Access → Employee Master and "
-                    "assign the canonical employee_id to each row below."
-                ),
-                "remediation_link": "/admin/people-and-access",
-                "samples": missing[:10],
-                "estimated_remediation_seconds": 20 * min(len(missing), 100),
-                "impact": (
-                    "Data hygiene — no live workflow is blocked, but "
-                    "employee identity is at risk of drift."
-                ),
+                "count": missing_total,
+                "summary": summary,
+                "remediation": remediation,
+                "remediation_link": remediation_link,
+                "samples": (missing_live + missing_technical)[:10],
+                "estimated_remediation_seconds": 20 * min(missing_total, 100),
+                "impact": impact,
+                "live_count": len(missing_live),
+                "technical_count": len(missing_technical),
             })
     except Exception:
         pass

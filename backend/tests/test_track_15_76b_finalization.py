@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from types import SimpleNamespace
 
 import pytest
 from dotenv import load_dotenv
@@ -30,6 +31,28 @@ load_dotenv("/app/backend/.env")
 def _db():
     cli = AsyncIOMotorClient(os.environ["MONGO_URL"])
     return cli[os.environ["DB_NAME"]]
+
+
+class _AsyncCursor:
+    def __init__(self, rows):
+        self.rows = list(rows)
+
+    def limit(self, _n):
+        return self
+
+    async def __aiter__(self):
+        for row in self.rows:
+            yield row
+
+
+class _Collection:
+    def __init__(self, rows):
+        self.rows = list(rows)
+        self.last_query = None
+
+    def find(self, query=None, *_args, **_kwargs):
+        self.last_query = query
+        return _AsyncCursor(self.rows)
 
 
 # ─── 1 · all 7 categories present ──────────────────────────────────
@@ -113,6 +136,63 @@ def test_executive_narrative_is_human_readable():
     assert len(out) > 30
     # Must end with a period, must contain ETA.
     assert "minute" in out.lower()
+
+
+@pytest.mark.asyncio
+async def test_employee_missing_id_synthetic_only_uses_technical_audit_context():
+    from lib.master_data_trust import _employee_findings  # noqa: PLC0415
+
+    db = SimpleNamespace(employees=_Collection([
+        {
+            "name": "Queue New Hire abc-123",
+            "is_active": True,
+            "synthetic_record": True,
+            "technical_record_classification": "synthetic_test",
+            "truth_visibility_scope": "technical_audit_only",
+        },
+        {
+            "name": "G5UploadCanary_1785896193",
+            "is_active": True,
+            "synthetic_record": True,
+            "technical_record_classification": "synthetic_test",
+            "truth_visibility_scope": "technical_audit_only",
+        },
+    ]))
+
+    findings = await _employee_findings(db)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding["code"] == "employee_missing_id"
+    assert finding["live_count"] == 0
+    assert finding["technical_count"] == 2
+    assert "technical / synthetic employee row(s)" in finding["summary"]
+    assert finding["remediation_link"] == "/admin/governance/legacy-health"
+    assert "No live-operations remediation required" in finding["remediation"]
+
+
+@pytest.mark.asyncio
+async def test_employee_missing_id_live_rows_still_point_to_people_access():
+    from lib.master_data_trust import _employee_findings  # noqa: PLC0415
+
+    db = SimpleNamespace(employees=_Collection([
+        {"name": "Alex Stansbury", "is_active": True},
+        {
+            "name": "TEST_iter152_hr_949d21fa",
+            "is_active": True,
+            "synthetic_record": True,
+            "technical_record_classification": "synthetic_test",
+            "truth_visibility_scope": "technical_audit_only",
+        },
+    ]))
+
+    findings = await _employee_findings(db)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding["live_count"] == 1
+    assert finding["technical_count"] == 1
+    assert finding["summary"].startswith("1 active employee(s)")
+    assert "technical / synthetic row(s) are also present" in finding["summary"]
+    assert finding["remediation_link"] == "/admin/people-and-access"
 
 
 # ─── 6 · trend snapshot persistence ───────────────────────────────
