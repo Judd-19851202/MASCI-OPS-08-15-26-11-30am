@@ -109,7 +109,7 @@ function messageFor(payload) {
   }
 }
 
-async function fetchPosture({ timeoutMs = 3000 } = {}) {
+async function fetchPosture({ timeoutMs = 8000 } = {}) {
   const headers = {
     "Content-Type": "application/json",
     ...buildScopedPortalAuthHeaders(["admin", "dispatch"]),

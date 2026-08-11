@@ -22,7 +22,7 @@ import { api } from "@/lib/api";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
-const SAFETY_KPI_TIMEOUT_MS = 5_000;
+const SAFETY_KPI_TIMEOUT_MS = 12_000;
 
 function describeSafetyKpiError(error, subject) {
   if (error?.code === "ECONNABORTED" || /timeout/i.test(String(error?.message || ""))) {

@@ -94,7 +94,7 @@ export default function DispatchCommandCenter() {
            Dispatch Command Center. Zero-drift: pure consumer of
            GET /api/operational-intelligence/summary. */}
         <OiAttentionStrip
-          portal="default"
+          portal="dispatch"
           productIds={["transportation_intelligence"]}
           title="Transportation Intelligence · attention now"
           testId="dcc-oi-strip"

@@ -1,3 +1,37 @@
+# 2026-08-11 — PRE-C10 milestone after safety/dispatch runtime closure batch
+
+- **PRE-C10 status:** `179 / 216 closed = 82.9%`
+- **Remaining:** `6 partial / 31 open = 37 remaining`
+
+## Closed in this batch
+
+- Safety intelligence runtime condition — CLOSED.
+- Dispatch live-location runtime condition — CLOSED as a combination of:
+  - repaired application fallback behavior; and
+  - certified truthful degraded provider state.
+
+## Immediate next actions
+
+### P0
+- Continue remaining **Admin** rows.
+- Continue remaining **Executive** rows.
+- Continue remaining **Field Leadership** rows.
+- Continue remaining **Compliance** rows.
+
+### P1
+- Continue recurrence / failure-class proof rows.
+- Continue KPI / C1–C9 dependency proof rows.
+- Reach final non-final denominator closeout before freezing material code changes.
+
+### P2
+- After the remaining non-final rows close, run the fresh final 20-gate certification chain.
+
+### Still frozen / not authorized
+- No Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-10 — PRE-C10 milestone after auth/identity permanent-fix revalidation batch
 
 - **PRE-C10 status:** `177 / 216 closed = 81.9%`

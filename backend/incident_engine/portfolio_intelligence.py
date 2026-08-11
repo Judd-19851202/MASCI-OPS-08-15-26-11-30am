@@ -23,6 +23,7 @@ lock test greps the PM payload for forbidden keys.
 """
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -112,9 +113,9 @@ async def _rows_for_cases(
     db, cases: List[Dict[str, Any]], *, want_attention: bool = True,
 ) -> List[Dict[str, Any]]:
     """Build one uniform row per case. Callers project via ``_view_*``."""
-    rows: List[Dict[str, Any]] = []
     now = _now_iso()
-    for case in cases:
+
+    async def _build_row(case: Dict[str, Any], sem: asyncio.Semaphore) -> Dict[str, Any]:
         cid = case.get("id") or ""
         fb = case.get("field_block") or {}
         sb = case.get("safety_block") or {}
@@ -122,21 +123,32 @@ async def _rows_for_cases(
         closed = case.get("closed_at") or ""
         days_open = _days_between_iso(submitted, closed or now) if submitted else None
 
-        capa_summary = await summary_for_case(db, case_id=cid)
-        capa_open = int(capa_summary.get("open") or 0)
-        capa_total = int(capa_summary.get("total") or 0)
-        tasks = await ws.list_tasks(db, case_id=cid) or []
+        async with sem:
+            if want_attention:
+                capa_summary, tasks, capa_list, evidence, medical, agency = await asyncio.gather(
+                    summary_for_case(db, case_id=cid),
+                    ws.list_tasks(db, case_id=cid),
+                    list_actions(db, consumer_kind="incident_case", consumer_id=cid),
+                    list_evidence(db, case_id=cid, include_withdrawn=False),
+                    ws.list_medical(db, case_id=cid),
+                    ws.list_agency(db, case_id=cid),
+                )
+            else:
+                capa_summary, tasks = await asyncio.gather(
+                    summary_for_case(db, case_id=cid),
+                    ws.list_tasks(db, case_id=cid),
+                )
+                capa_list, evidence, medical, agency = [], [], [], []
+
+        capa_open = int((capa_summary or {}).get("open") or 0)
+        capa_total = int((capa_summary or {}).get("total") or 0)
+        tasks = tasks or []
         tasks_open = sum(1 for t in tasks
                          if (t.get("status") or "").lower()
                          in ("open", "in_progress", "blocked"))
 
         attention = None
         if want_attention:
-            capa_list = await list_actions(db, consumer_kind="incident_case",
-                                           consumer_id=cid)
-            evidence = await list_evidence(db, case_id=cid, include_withdrawn=False)
-            medical = await ws.list_medical(db, case_id=cid)
-            agency = await ws.list_agency(db, case_id=cid)
             attention = compute_presence_score(
                 case, evidence=evidence, capa=capa_list,
                 medical=medical, agency=agency, tasks=tasks,
@@ -169,8 +181,10 @@ async def _rows_for_cases(
             "_attention_full":  attention,
             "_safety_block":    sb,
         }
-        rows.append(row)
-    return rows
+        return row
+
+    sem = asyncio.Semaphore(12)
+    return await asyncio.gather(*[_build_row(case, sem) for case in cases])
 
 
 def _readiness_band_from_case(case: Dict[str, Any], capa_open: int,

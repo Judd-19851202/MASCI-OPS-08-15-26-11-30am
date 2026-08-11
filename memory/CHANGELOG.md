@@ -1,3 +1,13 @@
+# 2026-08-11 — PRE-C10 safety/dispatch runtime closure batch
+
+- Closed the Safety intelligence runtime defect with a shared operational-intelligence repair instead of page-specific hacks.
+- Backend now supports scoped OI summary access for Safety / Dispatch / Shop while preserving admin-only full summary (`backend/operational_intelligence/routes.py`, `backend/server.py`).
+- Optimized the shared Safety incident intelligence fanout (`backend/incident_engine/portfolio_intelligence.py`) and corrected portal-side timeout/header behavior (`OiAttentionStrip.jsx`, `SafetyHubV2.jsx`, `SafetyTrenchIntelligenceCard.jsx`).
+- Dispatch live-location runtime now renders the truthful degraded Motive posture instead of a false unavailable fallback (`MotivePostureRibbon.jsx`).
+- Dispatch Command Center and Shop both passed blast-radius proof after the shared OI fix.
+- Final QA evidence: `/app/test_reports/iteration_16.json` PASS, frontend 100%, backend 100%, auth contract still green.
+- Frozen PRE-C10 denominator updated to **179 / 216 closed = 82.9%** with **6 partial / 31 open** remaining.
+
 # 2026-08-10 — PRE-C10 auth/identity permanent-fix revalidation batch
 
 - Reopened auth/session truth against current preview runtime and repaired the actual shared owners instead of page-patching portals.

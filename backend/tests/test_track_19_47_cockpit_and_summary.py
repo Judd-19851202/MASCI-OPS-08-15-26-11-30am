@@ -67,13 +67,13 @@ def test_summary_endpoint_registered_read_only():
         assert verb == "get", f"summary endpoint exposes non-GET: {verb}"
 
 
-def test_summary_endpoint_admin_only():
+def test_summary_endpoint_preserves_admin_full_summary_gate():
     src = (BE / "operational_intelligence" / "routes.py").read_text(
         encoding="utf-8")
     idx = src.index('"/operational-intelligence/summary"')
-    # Look 600 chars for require_admin dependency
-    block = src[idx:idx + 800]
-    assert "require_admin" in block
+    block = src[idx:idx + 1400]
+    assert "require_summary_actor" in block
+    assert "Admin auth required for full summary" in block
 
 
 def test_summary_endpoint_never_returns_rendered_html():

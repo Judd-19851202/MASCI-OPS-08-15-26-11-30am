@@ -16,6 +16,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
+import { getDirectoryToken } from "@/lib/directoryAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import SafetyOperationalKpisCard from "@/components/SafetyOperationalKpisCard";
 import SafetyTrenchIntelligenceCard from "@/components/SafetyTrenchIntelligenceCard";
@@ -37,8 +38,10 @@ const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
   const h = { "Content-Type": "application/json" };
   const a = getAdminToken();
+  const d = getDirectoryToken();
   const s = getSafetyToken();
   if (a) h["X-Admin-Token"] = a;
+  if (d) h["X-Directory-Token"] = d;
   if (s) h["X-Safety-Token"] = s;
   return h;
 }

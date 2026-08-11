@@ -52,6 +52,21 @@ SUPER_ADMIN_USER = {
     "password": "Maddix123!"
 }
 
+SHOP_USER = {
+    "email": "cert.shop@example.com",
+    "password": "CertProof2026!"
+}
+
+SAFETY_USER = {
+    "email": "cert.safety@example.com",
+    "password": "CertProof2026!"
+}
+
+DISPATCH_USER = {
+    "email": "cert.dispatch@example.com",
+    "password": "CertProof2026!"
+}
+
 PM_USER = {
     "email": "cert.pm@example.com",
     "password": "CertProof2026!"
@@ -427,6 +442,87 @@ class TestPortalCheckEndpoints:
             timeout=30,
         )
         assert second_admin.status_code == 200, second_admin.text[:200]
+
+    def test_safety_can_read_scoped_operational_intelligence_summary(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SAFETY_USER,
+            timeout=60,
+        )
+        assert response.status_code == 200, response.text[:200]
+        data = response.json()
+        scoped = requests.get(
+            f"{BASE_URL}/api/operational-intelligence/summary",
+            params=[("product_id", "safety_morning_digest")],
+            headers={
+                "X-Directory-Token": data["session_token"],
+                "X-Safety-Token": data["portal_tokens"]["safety"],
+            },
+            timeout=60,
+        )
+        assert scoped.status_code == 200, scoped.text[:200]
+        body = scoped.json()
+        assert [p.get("product_id") for p in body.get("products", [])] == ["safety_morning_digest"]
+
+    def test_dispatch_can_read_scoped_operational_intelligence_summary(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=DISPATCH_USER,
+            timeout=60,
+        )
+        assert response.status_code == 200, response.text[:200]
+        data = response.json()
+        scoped = requests.get(
+            f"{BASE_URL}/api/operational-intelligence/summary",
+            params=[("product_id", "transportation_intelligence")],
+            headers={
+                "X-Directory-Token": data["session_token"],
+                "X-Dispatch-Token": data["portal_tokens"]["dispatch"],
+            },
+            timeout=60,
+        )
+        assert scoped.status_code == 200, scoped.text[:200]
+        body = scoped.json()
+        assert [p.get("product_id") for p in body.get("products", [])] == ["transportation_intelligence"]
+
+    def test_shop_can_read_scoped_operational_intelligence_summary(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SHOP_USER,
+            timeout=60,
+        )
+        assert response.status_code == 200, response.text[:200]
+        data = response.json()
+        scoped = requests.get(
+            f"{BASE_URL}/api/operational-intelligence/summary",
+            params=[("product_id", "shop_intelligence")],
+            headers={
+                "X-Directory-Token": data["session_token"],
+                "X-Shop-Token": data["portal_tokens"]["shop"],
+            },
+            timeout=60,
+        )
+        assert scoped.status_code == 200, scoped.text[:200]
+        body = scoped.json()
+        assert [p.get("product_id") for p in body.get("products", [])] == ["shop_intelligence"]
+
+    def test_non_admin_full_operational_intelligence_summary_remains_forbidden(self):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SAFETY_USER,
+            timeout=60,
+        )
+        assert response.status_code == 200, response.text[:200]
+        data = response.json()
+        full_summary = requests.get(
+            f"{BASE_URL}/api/operational-intelligence/summary",
+            headers={
+                "X-Directory-Token": data["session_token"],
+                "X-Safety-Token": data["portal_tokens"]["safety"],
+            },
+            timeout=60,
+        )
+        assert full_summary.status_code == 403, full_summary.text[:200]
     
     def test_admin_check_without_token(self):
         """admin/check returns 401 without token"""

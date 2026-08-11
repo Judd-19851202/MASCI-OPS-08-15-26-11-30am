@@ -21,10 +21,11 @@ import {
   AlertTriangle, ChevronRight, X, ShieldCheck, Link2Off,
   GraduationCap, RefreshCw,
 } from "lucide-react";
+import { getDirectoryToken } from "@/lib/directoryAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const TRENCH_INTEL_TIMEOUT_MS = 5_000;
+const TRENCH_INTEL_TIMEOUT_MS = 12_000;
 
 function fetchJsonWithTimeout(url, options = {}, timeoutMs = TRENCH_INTEL_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -62,7 +63,9 @@ const SOURCE_CHIP = {
 
 function authHeaders() {
   const h = {};
+  const d = typeof getDirectoryToken === "function" ? getDirectoryToken() : null;
   const s = typeof getSafetyToken === "function" ? getSafetyToken() : null;
+  if (d) h["X-Directory-Token"] = d;
   if (s) h["X-Safety-Token"] = s;
   if (typeof window !== "undefined" && window.localStorage) {
     const admin = window.localStorage.getItem("masci.admin.token");

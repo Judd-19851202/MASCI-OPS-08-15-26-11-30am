@@ -10,8 +10,14 @@ from .registry import list_products, get_product
 
 
 def register_operational_intelligence_routes(
-    api_router: APIRouter, db, *, require_safety_or_admin, require_admin,
+    api_router: APIRouter,
+    db,
+    *,
+    require_safety_or_admin,
+    require_admin,
+    require_summary_actor=None,
 ) -> None:
+    require_summary_actor = require_summary_actor or require_admin
 
     @api_router.get("/operational-intelligence/products")
     async def list_registered_products(actor=Depends(require_safety_or_admin)):
@@ -100,6 +106,15 @@ def register_operational_intelligence_routes(
             return True
         if isinstance(actor, dict):
             return (actor.get("_actor") or "").lower() == "admin"
+        return False
+
+    def _can_view_summary_product(actor, product) -> bool:
+        role = str(getattr(product, "permission_role", "") or "").strip().lower()
+        actor_kind = str((actor or {}).get("_actor") or "").strip().lower() if isinstance(actor, dict) else ""
+        if actor is True or actor_kind == "admin":
+            return True
+        if role == "safety_or_admin":
+            return actor_kind in {"safety", "dispatch", "shop"}
         return False
 
     @api_router.get("/operational-intelligence/recipients")
@@ -306,7 +321,10 @@ def register_operational_intelligence_routes(
         return {"ok": True, "history": row}
 
     @api_router.get("/operational-intelligence/summary")
-    async def _oi_summary(_admin=Depends(require_admin)):
+    async def _oi_summary(
+        product_id: list[str] | None = Query(default=None),
+        actor=Depends(require_summary_actor),
+    ):
         """One-shot Cockpit top-strip endpoint. Composes every
         IMPLEMENTED product, folds a compact per-product summary
         alongside its last history row + last audit row. Graceful
@@ -314,9 +332,18 @@ def register_operational_intelligence_routes(
         whole payload."""
         from .registry import list_products as _lp, ProductStatus
         from .engine import compose as _compose
+        requested_ids = [str(pid).strip() for pid in (product_id or []) if str(pid).strip()]
+        requested_set = set(requested_ids)
+        is_admin_actor = _is_admin(actor)
+        if not requested_set and not is_admin_actor:
+            raise HTTPException(403, detail={"code": "forbidden", "detail": "Admin auth required for full summary"})
         results = []
         buckets = {"LOW": 0, "MEDIUM": 0, "HIGH": 0, "CRITICAL": 0}
         for p in _lp():
+            if requested_set and p.product_id not in requested_set:
+                continue
+            if not _can_view_summary_product(actor, p):
+                continue
             row: dict = {
                 "product_id": p.product_id,
                 "display_name": p.display_name,
@@ -424,6 +451,7 @@ def register_operational_intelligence_routes(
             ],
             "dry_run_default": True,
             "products": results,
+            "requested_product_ids": requested_ids,
         }
 
     @api_router.get("/operational-intelligence/audit")

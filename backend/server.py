@@ -3984,7 +3984,9 @@ from operational_intelligence.routes import (  # noqa: E402
     register_operational_intelligence_routes as _register_oi_routes,
 )
 from fastapi import Header as _OiHeader, HTTPException as _OiHTTPException  # noqa: E402
+from dispatch_users import is_valid_dispatch_user_token_async as _oi_dispatch_valid  # noqa: E402
 from safety_users import is_valid_safety_user_token_async as _oi_safety_valid  # noqa: E402
+from shop_users import is_valid_shop_user_token_async as _oi_shop_valid  # noqa: E402
 
 
 def _make_oi_require_safety_or_admin():
@@ -4015,10 +4017,44 @@ def _make_oi_require_admin_only():
     return _dep
 
 
+def _make_oi_require_summary_actor():
+    """Read-only OI summary gate.
+
+    Admin retains access to the full cockpit summary. Safety / Dispatch /
+    Shop actors may read a filtered product-scoped summary for the portal
+    strips that are contractually assigned to them.
+    """
+
+    async def _dep(
+        x_safety_token: Optional[str] = _OiHeader(default=None, alias="X-Safety-Token"),
+        x_dispatch_token: Optional[str] = _OiHeader(default=None, alias="X-Dispatch-Token"),
+        x_shop_token: Optional[str] = _OiHeader(default=None, alias="X-Shop-Token"),
+        x_admin_token: Optional[str] = _OiHeader(default=None, alias="X-Admin-Token"),
+    ):
+        if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+            return {"_actor": "admin", "name": "Admin"}
+        if x_safety_token:
+            u = await _oi_safety_valid(db, x_safety_token)
+            if u:
+                return {**u, "_actor": "safety"}
+        if x_dispatch_token:
+            u = await _oi_dispatch_valid(db, x_dispatch_token)
+            if u:
+                return {**u, "_actor": "dispatch"}
+        if x_shop_token:
+            u = await _oi_shop_valid(db, x_shop_token)
+            if u:
+                return {**u, "_actor": "shop"}
+        raise _OiHTTPException(401, detail={"code": "unauthorized", "detail": "Operational intelligence auth required"})
+
+    return _dep
+
+
 _register_oi_routes(
     api_router, db,
     require_safety_or_admin=_make_oi_require_safety_or_admin(),
     require_admin=_make_oi_require_admin_only(),
+    require_summary_actor=_make_oi_require_summary_actor(),
 )
 
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.

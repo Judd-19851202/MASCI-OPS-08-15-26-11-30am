@@ -64,25 +64,18 @@ function ArrowGlyph({ direction }) {
   return <span className={`font-mono text-sm font-bold ${cls}`} aria-hidden="true">{map[direction] || "→"}</span>;
 }
 
-async function fetchOiSummary({ portal = "default", timeoutMs = 3000 } = {}) {
+async function fetchOiSummary({ portal = "default", timeoutMs = 15000, productIds = [] } = {}) {
   const requestedScopes = portal === "admin" ? ["admin"] : [portal, "admin"];
   const headers = buildScopedPortalAuthHeaders(requestedScopes, {
     "Content-Type": "application/json",
   });
-  const hasAdminToken = !!headers["X-Admin-Token"];
-  if (!hasAdminToken) {
-    return {
-      ok: false,
-      status: portal === "admin" ? 401 : 503,
-      body: null,
-      reason: portal === "admin" ? "no_admin_token" : "portal_unavailable",
-      hasAdminToken,
-    };
-  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const r = await fetch(`${API}/api/operational-intelligence/summary`, {
+    const params = new URLSearchParams();
+    productIds.filter(Boolean).forEach((pid) => params.append("product_id", pid));
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    const r = await fetch(`${API}/api/operational-intelligence/summary${suffix}`, {
       headers,
       signal: controller.signal,
     });
@@ -92,11 +85,10 @@ async function fetchOiSummary({ portal = "default", timeoutMs = 3000 } = {}) {
       status: r.status,
       body,
       reason: r.ok ? "ok" : "http_error",
-      hasAdminToken,
     };
   } catch (err) {
     const reason = err && err.name === "AbortError" ? "timeout" : "network";
-    return { ok: false, status: 0, body: null, reason, hasAdminToken };
+    return { ok: false, status: 0, body: null, reason };
   } finally {
     clearTimeout(timer);
   }
@@ -118,7 +110,7 @@ export default function OiAttentionStrip({
   title = "Operational Intelligence · attention now",
   testId,
   portal = "default",
-  timeoutMs = 3000,
+  timeoutMs = 15000,
 }) {
   const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [], reason: "" });
   const productIdsKey = React.useMemo(
@@ -135,7 +127,7 @@ export default function OiAttentionStrip({
 
   const load = React.useCallback(() => {
     setState((s) => ({ ...s, loaded: false }));
-    fetchOiSummary({ portal, timeoutMs }).then((r) => {
+    fetchOiSummary({ portal, timeoutMs, productIds: stableProductIds }).then((r) => {
       const all = (r.body && Array.isArray(r.body.products)) ? r.body.products : [];
       const filtered = all.filter((p) => stableProductIds.includes(p.product_id));
       setState({
@@ -144,7 +136,6 @@ export default function OiAttentionStrip({
         status: r.status,
         products: filtered,
         reason: r.reason || "",
-        hasAdminToken: !!r.hasAdminToken,
       });
     });
   }, [portal, stableProductIds, timeoutMs]);

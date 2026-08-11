@@ -1,5 +1,40 @@
 # PRD
 
+## 2026-08-11 — PRE-C10 safety/dispatch runtime closure batch
+
+- PRE-C10 remains **OPEN / NO-GO** with **SAVE / DEPLOY / TRAINING & QUALIFICATIONS / C10** still unauthorized.
+- Denominator movement for this batch: **179 / 216 closed = 82.9%** with **6 partial / 31 open** remaining (**37 remaining total**).
+- Closed this batch:
+  - **Safety intelligence runtime condition** — actual application defect, not auth. Root cause was a shared operational-intelligence summary gate that only allowed admin reads, plus over-aggressive portal timeouts and missing directory-session headers on Safety-side manual fetches.
+  - **Dispatch live-location runtime condition** — split into (a) application defect in the ribbon timeout/fallback path, repaired, and (b) truthful degraded provider state, certified. Current doctrine-aligned runtime truth is: `overall=LIVE_VERIFIED`, `connectivity_status=UNREACHABLE`, `operational_status=LIVE_VERIFIED`.
+- Shared permanent repairs applied:
+  - `backend/operational_intelligence/routes.py`: scoped product summary reads now support safety / dispatch / shop for their own `safety_or_admin` products while preserving **admin-only full summary**.
+  - `backend/server.py`: reused existing portal validators to mint one shared read-only OI summary actor gate instead of page-specific auth bypasses.
+  - `backend/incident_engine/portfolio_intelligence.py`: parallelized case fanout for safety intelligence composition, reducing the core digest compose path from ~12s+ to sub-second local compose time.
+  - `frontend/components/operational_intelligence/OiAttentionStrip.jsx`: scoped product fetches, corrected shared timeout defaults, and preserved truthful fallback messaging.
+  - `frontend/pages/SafetyHubV2.jsx` + `frontend/components/SafetyTrenchIntelligenceCard.jsx`: added directory-session headers to portal-safe manual fetches.
+  - `frontend/components/operational_intelligence/MotivePostureRibbon.jsx`: widened fetch timeout so the ribbon now renders truthful degraded posture instead of a false “unavailable” fallback.
+  - `frontend/pages/DispatchCommandCenter.jsx`: explicit dispatch portal scope for Transportation Intelligence strip.
+- Runtime proof now established:
+  - Safety portal renders Morning Safety Intelligence, Company Safety KPIs, and Trench data without false Connection Problem banners.
+  - Dispatch portal and `/dispatch-portal/command` render Transportation Intelligence plus the truthful Motive degraded-state ribbon.
+  - Shop portal passes the shared-summary blast radius and renders Shop Intelligence correctly.
+- Production-safety posture remains preserved:
+  - no auth/identity reopening;
+  - no credential resets;
+  - no role/permission drift;
+  - no production data mutation.
+- Verified in current preview:
+  - `/app/test_reports/iteration_16.json` PASS (frontend 100%, backend scoped-summary + auth contract 100%)
+  - `backend/tests/test_auth_session_contract.py`: **22 / 22 PASS** in final QA context.
+- Remaining shortest-path focus after this batch:
+  - remaining **Admin** rows;
+  - remaining **Executive** rows;
+  - remaining **Field Leadership** rows;
+  - remaining **Compliance** rows;
+  - remaining recurrence / failure-class / KPI / C1–C9 proof dependencies;
+  - then final non-final denominator closeout before the fresh final 20-gate certification chain.
+
 ## 2026-08-10 — PRE-C10 auth/identity permanent-fix revalidation batch
 
 - Governing state remains unchanged: **PRE-C10 OPEN — NO-GO**, **SAVE not authorized**, **DEPLOY not authorized**, **TRAINING & QUALIFICATIONS not authorized**, **C10 not authorized**.
