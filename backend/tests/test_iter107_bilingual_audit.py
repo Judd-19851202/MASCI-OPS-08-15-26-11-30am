@@ -42,16 +42,38 @@ URL = (
     or os.environ.get("REACT_APP_BACKEND_URL", "")
 ).rstrip("/")
 API = f"{URL}/api"
-LEADERSHIP_PW = "MASCIGC"
+LEADERSHIP_EMAIL = "cert.foreman@example.com"
+LEADERSHIP_PW = "CertProof2026!"
+ADMIN_EMAIL = "ops8-admin-only-preview@example.com"
+ADMIN_PASSWORD = "AdminOnlyOps8!"
 
 
 @pytest.fixture(scope="module")
 def leadership_token():
-    r = requests.post(f"{API}/field-leadership/login", json={"password": LEADERSHIP_PW}, timeout=15)
+    r = requests.post(
+        f"{API}/field-leadership/portal/login",
+        json={"email": LEADERSHIP_EMAIL, "password": LEADERSHIP_PW},
+        timeout=15,
+    )
     assert r.status_code == 200, f"FL login failed: {r.status_code} {r.text[:200]}"
     tok = r.json().get("token")
     assert tok, "FL login returned no token"
     return tok
+
+
+@pytest.fixture(scope="module")
+def admin_headers():
+    r = requests.post(
+        f"{API}/auth/multi-login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD, "portal": "admin"},
+        timeout=15,
+    )
+    assert r.status_code == 200, f"Admin login failed: {r.status_code} {r.text[:200]}"
+    body = r.json()
+    return {
+        "X-Admin-Token": (body.get("portal_tokens") or {}).get("admin", ""),
+        "X-Directory-Token": body.get("session_token", ""),
+    }
 
 
 # ---------- A. /api/translate contract ----------
@@ -117,7 +139,7 @@ class TestTranslateEndpoint:
 # ---------- B. Field Leadership write_up in Spanish ----------
 
 class TestFLWriteUpSpanish:
-    def test_es_write_up_persists_with_submit_language(self, leadership_token):
+    def test_es_write_up_persists_with_submit_language(self, leadership_token, admin_headers):
         """Simulate what the frontend does: call /api/translate FIRST, then
         POST to /api/field-leadership with the translated English values +
         `submit_language='es'` flag."""
@@ -158,7 +180,7 @@ class TestFLWriteUpSpanish:
         r = requests.post(
             f"{API}/field-leadership",
             json=payload,
-            headers={"X-Leadership-Token": leadership_token},
+            headers={"X-FL-Token": leadership_token},
             timeout=30,
         )
         assert r.status_code in (200, 201), f"FL POST failed: {r.status_code} {r.text[:300]}"
@@ -167,7 +189,7 @@ class TestFLWriteUpSpanish:
         assert rec_id, f"No id in response: {body}"
 
         # Step 3 — GET back via admin (conftest auto-injects X-Admin-Token)
-        g = requests.get(f"{API}/field-leadership/{rec_id}", timeout=20)
+        g = requests.get(f"{API}/field-leadership/{rec_id}", headers=admin_headers, timeout=20)
         assert g.status_code == 200, g.text
         rec = g.json()
         desc = (rec.get("details") or {}).get("description") or ""
@@ -191,12 +213,13 @@ class TestFLWriteUpSpanish:
 # ---------- C. Public time-off submission in Spanish ----------
 
 class TestPublicTimeOffSpanish:
-    def test_public_time_off_spanish_persists_english(self):
-        # Mint a public link via the FL admin route (admin token auto-attached).
+    def test_public_time_off_spanish_persists_english(self, admin_headers):
+        # Mint a public link via the admin-governed route.
         emp_name = f"TEST_iter107_{uuid.uuid4().hex[:6]}"
         mint = requests.post(
             f"{API}/field-leadership/time-off/public-link",
             json={"employee_name": emp_name, "employee_email": "test@example.com"},
+            headers=admin_headers,
             timeout=30,
         )
         assert mint.status_code == 200, f"Mint link failed: {mint.status_code} {mint.text[:200]}"
@@ -245,7 +268,7 @@ class TestPublicTimeOffSpanish:
         assert rec_id
 
         # Verify back via admin
-        g = requests.get(f"{API}/field-leadership/{rec_id}", timeout=20)
+        g = requests.get(f"{API}/field-leadership/{rec_id}", headers=admin_headers, timeout=20)
         assert g.status_code == 200
         rec = g.json()
         details = rec.get("details") or {}

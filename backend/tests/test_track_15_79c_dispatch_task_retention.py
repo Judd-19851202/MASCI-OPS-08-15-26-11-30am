@@ -141,13 +141,14 @@ def test_schedule_auto_email_handles_burst_without_loss():
 # ── 4 · done-callback discards finished task (no unbounded growth) ─
 def test_dispatch_retention_set_self_clears():
     import server as srv  # noqa: PLC0415
+    from lib.email_dispatch import register_dispatcher as _register_email_dispatcher  # noqa: PLC0415
 
     async def _run():
         async def _stub_dispatcher(kind, record):
             return None  # finishes immediately
 
         original = srv._dispatch_auto_email
-        srv._dispatch_auto_email = _stub_dispatcher  # type: ignore[assignment]
+        _register_email_dispatcher(_stub_dispatcher)
         try:
             srv._AUTO_EMAIL_DISPATCH_TASKS.clear()
             for i in range(5):
@@ -158,7 +159,7 @@ def test_dispatch_retention_set_self_clears():
             await asyncio.sleep(0.1)
             assert len(srv._AUTO_EMAIL_DISPATCH_TASKS) == 0
         finally:
-            srv._dispatch_auto_email = original  # type: ignore[assignment]
+            _register_email_dispatcher(original)
 
     asyncio.run(_run())
 

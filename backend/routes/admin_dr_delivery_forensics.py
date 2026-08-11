@@ -132,7 +132,7 @@ def _classify(
     expected: List[str],
     spine_stage_index: Dict[str, Dict[str, Any]],
     audit_rows: List[Dict[str, Any]],
-    oppc_email_rows: List[Dict[str, Any]],
+    oppc_email_rows: Optional[List[Dict[str, Any]]] = None,
     dead_letter_configured: bool,
     routed_via_dead_letter: bool = False,
 ) -> str:
@@ -145,6 +145,7 @@ def _classify(
     provider = spine_stage_index.get("provider_accepted") or {}
     audit_sent = any((r.get("status") or "").lower() == "sent" for r in audit_rows)
     audit_captured_preview = any((r.get("status") or "").lower() == "captured_preview" for r in audit_rows)
+    oppc_email_rows = list(oppc_email_rows or [])
     oppc_provider_accepted = any(bool(r.get("provider_accepted")) for r in oppc_email_rows)
     oppc_captured_preview = any(str(r.get("notification_state") or "").lower() == "captured_preview" for r in oppc_email_rows)
     delivery_captured_preview = spine_stage_index.get("delivery_captured_preview") or {}

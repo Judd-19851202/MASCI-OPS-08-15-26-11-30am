@@ -521,7 +521,7 @@ export default function PmProjectBudgetAuthority() {
                           <Input value={draft.description || ""} onChange={(event) => onRowDraft(row.row_id, "description", event.target.value)} placeholder={t("Description")} data-testid={`pm-project-budget-row-description-${row.row_id}`} />
                           <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" value={draft.enterprise_work_type_id || ""} onChange={(event) => onRowDraft(row.row_id, "enterprise_work_type_id", event.target.value)} data-testid={`pm-project-budget-row-work-type-${row.row_id}`}>
                             <option value="">{t("Choose enterprise work type")}</option>
-                            {workTypes.map((workType) => <option key={workType.work_type_id} value={workType.work_type_id}>{workType.code} · {workType.name}</option>)}
+                            {workTypes.map((workType) => <option key={workType.work_type_id} value={workType.work_type_id}>{`${workType.code} · ${workType.name}`}</option>)}
                           </select>
                           <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" value={draft.line_kind || "direct_cost"} onChange={(event) => onRowDraft(row.row_id, "line_kind", event.target.value)} data-testid={`pm-project-budget-row-line-kind-${row.row_id}`}>
                             {LINE_KIND_OPTIONS.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}

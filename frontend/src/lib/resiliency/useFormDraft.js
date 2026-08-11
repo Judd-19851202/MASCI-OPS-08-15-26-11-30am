@@ -43,9 +43,11 @@ import {
   saveDraft, getDraftEntry, discardDraft, clearDraft,
   storeIdempotencyKey, getIdempotencyKey,
   clearIdempotencyKey,
+  migrateLegacyDrafts,
 } from "./draftStore";
 import {
   getDeviceScopedActorId,
+  getLegacyActorIds,
   getStableActorIdentity,
 } from "./actorId";
 import { emitDraftEvent } from "./draftTelemetry";
@@ -101,6 +103,12 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
       let loadedEntry = null;
       try {
         const deviceActorId = getDeviceScopedActorId();
+        await migrateLegacyDrafts(
+          deviceActorId,
+          publicAnonymous ? [] : getLegacyActorIds(),
+          formKey,
+          { targetContext: dataRef.current || {} },
+        );
         const entry = await getDraftEntry(deviceActorId, formKey);
         loadedEntry = entry;
         // TRACK 19.04 · Form Session Isolation.

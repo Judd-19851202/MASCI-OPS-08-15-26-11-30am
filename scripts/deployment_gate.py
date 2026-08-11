@@ -282,7 +282,7 @@ DEFAULT_BASE_URL = (
 )
 
 
-def run_regression() -> Dict[str, Any]:
+def run_regression(base_url: str | None = None) -> Dict[str, Any]:
     """Run the permanent regression suite. Returns ``{passed, output}``."""
     # TRACK 22.4d · gate-wiring — Playwright mobile responsiveness
     # sweep tests can take 4-5s per assertion (real browser round-
@@ -291,15 +291,22 @@ def run_regression() -> Dict[str, Any]:
     # (they still complete in ms). Overall subprocess timeout bumped
     # to 1200s so the mobile family's ~250s worst-case runtime does
     # not force a spurious deploy-block.
-    cmd = ["python", "-m", "pytest", "-q", "--timeout", "90"] + [
-        p for p in REGRESSION_FILES if os.path.exists(p)
-    ]
+    normalized_paths = []
+    for path in REGRESSION_FILES:
+        candidate = path if os.path.isabs(path) else os.path.join("/app", path)
+        if os.path.exists(candidate):
+            normalized_paths.append(candidate)
+    cmd = ["python", "-m", "pytest", "-q", "--timeout", "90"] + normalized_paths
+    env = os.environ.copy()
+    if base_url:
+        env["REACT_APP_BACKEND_URL"] = base_url.rstrip("/")
     proc = subprocess.run(
         cmd,
         cwd="/app/backend",
         capture_output=True,
         text=True,
         timeout=1200,
+        env=env,
     )
     return {
         "passed": proc.returncode == 0,
@@ -308,13 +315,13 @@ def run_regression() -> Dict[str, Any]:
     }
 
 
-def fetch_runtime(base_url: str, admin_token: str | None) -> Dict[str, Any]:
+def fetch_runtime(base_url: str, admin_headers: Dict[str, str] | None) -> Dict[str, Any]:
     """Fetch the live deployment-readiness payload. Returns the parsed
     JSON or raises."""
     req = urllib.request.Request(
         f"{base_url}/api/admin/deployment-readiness",
         headers={
-            "X-Admin-Token": admin_token or "",
+            **(admin_headers or {}),
             "User-Agent": "deployment-gate/15.78",
         },
     )
@@ -324,14 +331,14 @@ def fetch_runtime(base_url: str, admin_token: str | None) -> Dict[str, Any]:
 
 def append_to_ledger(
     base_url: str,
-    admin_token: str | None,
+    admin_headers: Dict[str, str] | None,
     report: Dict[str, Any],
     duration_ms: int,
 ) -> Dict[str, Any] | None:
     """TRACK 15.79 — best-effort append to the immutable deployment
     ledger. Never raises; the ledger is a forensic side-channel and
     must not be allowed to block a passing gate from exiting cleanly."""
-    if not admin_token:
+    if not admin_headers:
         return None
     runtime = report.get("runtime") or {}
     blocking = runtime.get("blocking_gates") or []
@@ -374,7 +381,7 @@ def append_to_ledger(
             data=json.dumps(payload).encode(),
             headers={
                 "Content-Type": "application/json",
-                "X-Admin-Token": admin_token,
+                **admin_headers,
                 "User-Agent": "deployment-gate/15.79",
             },
             method="POST",
@@ -385,12 +392,12 @@ def append_to_ledger(
         return None
 
 
-def resolve_admin_token(base_url: str) -> str | None:
+def resolve_admin_token(base_url: str) -> Dict[str, str] | None:
     """Best-effort admin token: try OPS_ADMIN_TOKEN env, then a super-
     admin multi-login if OPS_ADMIN_EMAIL/PASSWORD are available."""
     tok = os.environ.get("OPS_ADMIN_TOKEN")
     if tok:
-        return tok
+        return {"X-Admin-Token": tok}
     email = os.environ.get("OPS_ADMIN_EMAIL")
     password = os.environ.get("OPS_ADMIN_PASSWORD")
     if not (email and password):
@@ -408,7 +415,14 @@ def resolve_admin_token(base_url: str) -> str | None:
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             body = json.load(resp)
-        return (body.get("portal_tokens") or {}).get("admin")
+        admin_token = (body.get("portal_tokens") or {}).get("admin")
+        if not admin_token:
+            return None
+        headers = {"X-Admin-Token": admin_token}
+        session_token = body.get("session_token")
+        if session_token:
+            headers["X-Directory-Token"] = session_token
+        return headers
     except Exception:
         return None
 
@@ -433,11 +447,11 @@ def main() -> int:
         "runtime": None,
         "exit_code": 0,
     }
-    admin_token: str | None = None
+    admin_token: Dict[str, str] | None = None
 
     # ── Regression layer ────────────────────────────────────────────
     if not args.no_regression:
-        reg = run_regression()
+        reg = run_regression(args.base_url)
         report["regression"] = reg
         if not reg["passed"]:
             report["decision"] = "fail"

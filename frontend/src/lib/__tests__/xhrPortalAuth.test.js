@@ -4,7 +4,7 @@
 import { installPortalXhrAuth } from "@/lib/xhrPortalAuth";
 
 jest.mock("@/lib/authHeaders", () => ({
-  buildPortalAuthHeaders: () => ({
+  buildScopedPortalAuthHeaders: () => ({
     "X-Admin-Token": "admin-token",
     "X-Directory-Token": "directory-token",
   }),

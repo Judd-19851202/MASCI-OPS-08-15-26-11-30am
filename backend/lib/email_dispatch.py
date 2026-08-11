@@ -152,9 +152,15 @@ def schedule_auto_email(kind: str, record: dict) -> None:
         # the dispatcher during module import).
         return
     try:
-        task = asyncio.create_task(_DISPATCHER_HOOK(kind, dict(record)))
+        asyncio.get_running_loop()
     except RuntimeError:
         # No running loop — skip silently (e.g. during sync tests)
+        try:
+            coro = _DISPATCHER_HOOK(kind, dict(record))
+            coro.close()
+        except Exception:
+            pass
         return
+    task = asyncio.create_task(_DISPATCHER_HOOK(kind, dict(record)))
     _AUTO_EMAIL_DISPATCH_TASKS.add(task)
     task.add_done_callback(_AUTO_EMAIL_DISPATCH_TASKS.discard)

@@ -180,7 +180,7 @@ describe("TRACK 15.13I · HrDailyReports auto-retry contract (source check)", ()
     const src = fs.readFileSync(path.resolve(__dirname, "../../pages/HrDailyReports.jsx"), "utf-8");
     expect(src).toMatch(/TRACK 15\.13I/);
     // Must accept a retry counter parameter.
-    expect(src).toMatch(/fetchList\s*=\s*async\s*\(\s*overrides,\s*retryCount\s*=\s*0\s*\)/);
+    expect(src).toMatch(/fetchList\s*=\s*useCallback\(\s*async\s*\(\s*overrides,\s*retryCount\s*=\s*0\s*\)/);
     // Must reschedule on transient failures (5xx / network).
     expect(src).toMatch(/isTransient[\s\S]{0,200}retryCount\s*<\s*2/);
     expect(src).toMatch(/setTimeout\(\(\)\s*=>\s*\{[\s\S]{0,80}fetchList\(overrides,\s*retryCount\s*\+\s*1\)/);

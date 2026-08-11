@@ -956,6 +956,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             policy_stage_counts: Dict[str, int] = {}
             policy_stage_failures: Dict[str, int] = {}
             policy_events = 0
+            partial_chain_missing: List[str] = []
             async for policy_row in db.trust_spine_events.aggregate([
                 {"$match": {**wf_selector, "ts": {"$gte": policy_since_iso}}},
                 {"$group": {
@@ -989,7 +990,8 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             else:
                 slot["freshness_status"] = "unavailable"
 
-            expected = WORKFLOW_EXPECTED_STAGES.get(wf, [])
+            base_expected = list(WORKFLOW_EXPECTED_STAGES.get(wf, []))
+            expected = list(base_expected)
             seen_ok_stages = set()
             if wf in PREVIEW_SAFE_DELIVERY_WORKFLOWS:
                 provider_ok = policy_stage_counts.get("provider_accepted", 0) - policy_stage_failures.get("provider_accepted", 0) > 0
@@ -1029,7 +1031,36 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 if policy_stage_counts.get(stg, 0) - policy_stage_failures.get(stg, 0) > 0:
                     seen_ok_stages.add(stg)
             missing_stages = [s for s in expected if s not in seen_ok_stages]
-            slot["expected_stages"] = list(expected)
+            if wf == "daily-report" and expected and policy_events > 0:
+                latest_chain = await db.trust_spine_events.aggregate([
+                    {"$match": {**wf_selector, "ts": {"$gte": policy_since_iso}, "correlation_id": {"$exists": True, "$ne": None}}},
+                    {"$group": {
+                        "_id": {"correlation_id": "$correlation_id", "stage": "$stage", "status": "$status"},
+                        "latest_ts": {"$max": "$ts"},
+                    }},
+                    {"$group": {
+                        "_id": "$_id.correlation_id",
+                        "stage_statuses": {"$push": {"stage": "$_id.stage", "status": "$_id.status"}},
+                        "latest_ts": {"$max": "$latest_ts"},
+                    }},
+                    {"$sort": {"latest_ts": -1}},
+                    {"$limit": 1},
+                ]).to_list(1)
+                for chain in latest_chain:
+                    chain_seen_ok = {
+                        entry.get("stage")
+                        for entry in (chain.get("stage_statuses") or [])
+                        if entry.get("status") == "ok"
+                    }
+                    if not chain_seen_ok:
+                        continue
+                    chain_missing = [stage for stage in expected if stage not in chain_seen_ok]
+                    if chain_missing:
+                        partial_chain_missing = chain_missing
+                        break
+            if partial_chain_missing:
+                missing_stages = partial_chain_missing
+            slot["expected_stages"] = base_expected
             slot["missing_stages"] = missing_stages
 
             # Band logic.

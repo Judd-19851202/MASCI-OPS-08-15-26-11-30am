@@ -4,7 +4,10 @@
 /* global jest, describe, test, expect, beforeEach */
 
 jest.mock("../deviceId", () => ({ getDeviceId: () => "device-123" }));
-jest.mock("../actorId", () => ({ getActorId: () => "actor-123" }));
+jest.mock("../actorId", () => ({
+  getActorId: () => "actor-123",
+  getStableActorIdentity: () => "stable-actor-123",
+}));
 jest.mock("@/lib/adminAuth", () => ({ getAdminToken: () => "" }), { virtual: true });
 jest.mock("@/lib/pmAuth", () => ({ getPmToken: () => "" }), { virtual: true });
 jest.mock("@/lib/hrAuth", () => ({ getHrToken: () => "" }), { virtual: true });

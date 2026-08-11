@@ -7,7 +7,9 @@ function shouldAttach(url) {
   try {
     const target = new URL(url, window.location.origin);
     const configuredBase = new URL(process.env.REACT_APP_BACKEND_URL || window.location.origin, window.location.origin);
-    return target.origin === configuredBase.origin && target.pathname.startsWith("/api/");
+    const sameBackendOrigin = target.origin === configuredBase.origin;
+    const sameFrontendOrigin = target.origin === window.location.origin;
+    return (sameBackendOrigin || sameFrontendOrigin) && target.pathname.startsWith("/api/");
   } catch {
     return false;
   }

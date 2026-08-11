@@ -32,11 +32,12 @@ describe("buildPortalAuthHeaders", () => {
     expect(headers["X-Admin-Token"]).toBeUndefined();
   });
 
-  test("does not forward directory token to dispatch-only scoped requests", () => {
+  test("preserves directory token for dispatch-only scoped requests without leaking other portal tokens", () => {
     const headers = buildScopedPortalAuthHeaders(["dispatch"], { "Content-Type": "application/json" });
 
     expect(headers["Content-Type"]).toBe("application/json");
     expect(headers["X-Dispatch-Token"]).toBe("dispatch-token");
-    expect(headers["X-Directory-Token"]).toBeUndefined();
+    expect(headers["X-Directory-Token"]).toBe("directory-token");
+    expect(headers["X-Admin-Token"]).toBeUndefined();
   });
 });

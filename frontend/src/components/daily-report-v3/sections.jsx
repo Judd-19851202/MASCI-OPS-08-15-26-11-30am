@@ -1071,9 +1071,7 @@ export function CostCodePicker({ value, options, onChange, testId }) {
       >
         <option value="">— Select —</option>
         {options.map((cc) => (
-          <option key={cc.code} value={cc.code}>
-            {cc.code} · {cc.description || ""}
-          </option>
+          <option key={cc.code} value={cc.code}>{`${cc.code} · ${cc.description || ""}`}</option>
         ))}
       </select>
     </div>

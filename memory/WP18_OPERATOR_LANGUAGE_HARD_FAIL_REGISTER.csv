@@ -116,8 +116,6 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminProjectIdentityGovernance,Admin,No governance items match the current filter. Run a re-scan to refresh detection.,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:444,EXEMPT
 /AdminProjectIdentityGovernance,Admin,Suggested canonical,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:509,EXEMPT
 /AdminProjectIdentityGovernance,Admin,— Pick canonical project —,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:566,EXEMPT
-/AdminRecovery,Admin,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:392,EXEMPT
-/AdminRecovery,Admin,Sources: recovery snapshot · deployment readiness · cluster capacity · scheduler runs · system health,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:410,EXEMPT
 /AdminRecovery,Admin,Archive lineage,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:458,EXEMPT
 /AdminRecovery,Admin,Lineage confidence,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:469,EXEMPT
 /AdminStorageRecovery,Admin,Re-probe R2 HEAD/bucket + refresh status snapshot.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:372,EXEMPT
@@ -152,9 +150,8 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /IntegrationTruth,Operator,Loading alias telemetry…,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/IntegrationTruth.jsx:319,EXEMPT
 /IntegrationTruth,Operator,/admin/integrations/truth-status,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/IntegrationTruth.jsx:451,EXEMPT
 /IntegrationTruth,Operator,Integration Truth,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/IntegrationTruth.jsx:503,EXEMPT
-/OccTrustEventsConsumer.contract.test,Operator,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/__tests__/OccTrustEventsConsumer.contract.test.jsx:51,EXEMPT
-/OperationsControlCenter.ots.test,Operator,Platform Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx:85,EXEMPT
-/OperationsControlCenter.ots.test,Operator,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx:88,EXEMPT
+/OperationsControlCenter.ots.test,Operator,Platform Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx:102,EXEMPT
+/OperationsControlCenter.ots.test,Operator,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx:105,EXEMPT
 /SelfProtection,Operator,/admin/governance/self-protection,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/SelfProtection.jsx:129,EXEMPT
 /SelfProtection,Operator,Governance · Self-Protection,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/SelfProtection.jsx:148,EXEMPT
 /SelfProtection,Operator,Read-only operational visibility into the platform's own governance protections.,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/SelfProtection.jsx:149,EXEMPT

@@ -120,7 +120,7 @@ def build_auth_directory_router(
             target = target_getter()
             if target is not None:
                 return target
-        return db
+        raise HTTPException(status_code=503, detail="Database initializing - please retry")
 
     async def _resolve_logout_actor(
         *,

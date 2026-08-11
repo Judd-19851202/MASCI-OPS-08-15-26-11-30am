@@ -158,10 +158,7 @@ export default function CompetentPersonCombo({
                   value={it.qualification_id}
                   data-testid={`${testidPrefix}-option-${it.qualification_id}`}
                 >
-                  {it.employee_name} · {it.employee_trade}
-                  {it.employee_crew ? ` · ${it.employee_crew}` : ""}
-                  {` · ${t("exp")} `}{it.expires_at || t("n/a")}
-                  {it.warning ? " ⚠" : ""}
+                  {`${it.employee_name} · ${it.employee_trade}${it.employee_crew ? ` · ${it.employee_crew}` : ""} · ${t("exp")} ${it.expires_at || t("n/a")}${it.warning ? " ⚠" : ""}`}
                 </option>
               ))}
             </select>

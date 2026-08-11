@@ -457,7 +457,7 @@ function SummaryStatCard({ label, value, testId }) {
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={testId}>
       <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{label}</div>
       <div className="mt-1 text-2xl font-black text-slate-950">{value == null ? "—" : value}</div>
-      {value == null ? <div className="mt-2 text-xs text-slate-500">Loading current evidence…</div> : null}
+      {value == null ? <div className="mt-2 text-xs text-slate-500">Loading current records…</div> : null}
     </div>
   );
 }
@@ -466,7 +466,7 @@ function SummaryStatusCard({ label, value, testId }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={testId}>
       <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{label}</div>
-      <div className="mt-1 text-sm font-semibold text-slate-950">{value || "Loading current evidence…"}</div>
+      <div className="mt-1 text-sm font-semibold text-slate-950">{value || "Loading current records…"}</div>
     </div>
   );
 }

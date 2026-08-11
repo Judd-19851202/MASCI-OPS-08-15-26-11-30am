@@ -1126,12 +1126,32 @@ async def get_portfolio_intelligence_snapshot(
             if not project_number:
                 continue
             latest_forecast = await db[COLL_FORECAST_VERSIONS].find_one({"project_number": project_number}, {"_id": 0, "version_id": 1}, sort=[("version_number", -1)])
-            latest_ev = await db[COLL_EV_SNAPSHOTS].find_one({"project_number": project_number}, {"_id": 0, "versioning.current_version_id": 1}, sort=[("generated_at", -1)])
+            latest_ev = await db[COLL_EV_SNAPSHOTS].find_one(
+                {"project_number": project_number},
+                {
+                    "_id": 0,
+                    "versioning.current_version_id": 1,
+                    "summary.bac": 1,
+                    "summary.ev": 1,
+                    "summary.ac": 1,
+                    "summary.cpi": 1,
+                },
+                sort=[("generated_at", -1)],
+            )
             if latest_forecast and latest_forecast.get("version_id") != ((row.get("source_lineage") or {}).get("c7_version_id") or ""):
                 dependencies_stale = True
                 break
             if latest_ev and (((latest_ev.get("versioning") or {}).get("current_version_id") or "") != ((row.get("source_lineage") or {}).get("c8_version_id") or "")):
                 dependencies_stale = True
+                break
+            if latest_ev:
+                latest_summary = latest_ev.get("summary") or {}
+                existing_financial = row.get("financial") or {}
+                for key in ("bac", "ev", "ac", "cpi"):
+                    if latest_summary.get(key) is not None and existing_financial.get(key) is None:
+                        dependencies_stale = True
+                        break
+            if dependencies_stale:
                 break
         if generated_at and generated_at >= _utcnow() - timedelta(minutes=PORTFOLIO_CACHE_TTL_MINUTES) and not dependencies_stale:
             existing["cache_status"] = "reused"

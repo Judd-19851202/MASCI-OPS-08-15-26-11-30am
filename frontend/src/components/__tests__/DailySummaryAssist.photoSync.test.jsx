@@ -9,6 +9,7 @@ jest.mock("@/lib/i18n", () => ({
 }));
 
 jest.mock("@/lib/resiliency/actorId", () => ({
+  getDeviceScopedActorId: () => "device-test",
   getStableActorIdentity: () => "actor-test",
 }));
 

@@ -1,3 +1,21 @@
+# 2026-08-11 — MASCI OPS 9 pre-save release-hardening completion
+
+- Completed the pre-save release-diff inventory, removed proven release garbage, and reconciled runtime/source/test evidence before governance-document updates.
+- Fixed verified runtime defects only: duplicate-safe daily work plan writes, C8→C9 cached parity refresh, bounded admin incident-forensics payloads, startup-safe auth DB initialization response, and current scoped-auth/XHR compatibility.
+- Corrected stale oracles without weakening security: scoped portal auth header tests, current session-token deployment/runtime tests, route/base-url aware deployment gate regression execution, and current bilingual/current-copy contracts.
+- Removed testing-agent release garbage from the repository root (`backend_test.py`, `test_result.md`) because they were non-product artifacts and contained release-inappropriate hardcoded test material.
+- Added bounded release-governance evidence documents in `/app/memory/` for freeze state, role smoke, environment/data safety, deployment checklist, transportation acceptance, and release notes.
+- Fresh proof captured in current workspace:
+  - frontend release suite `379 / 379 PASS`
+  - backend deployment gate regression suite `345 / 345 PASS`
+  - backend runtime reliability `14 / 14 PASS`
+  - backend final gate `38 / 38 PASS`
+  - bilingual continuity pack `74 / 74 PASS`
+  - deployment safety doc gate `38 / 38 PASS`
+  - Product Quality v4 full ledger `300 entries / 0 failures / PASS`
+  - deployment-readiness scan PASS
+  - independent QA report `/app/test_reports/iteration_18.json` PASS
+
 # 2026-08-11 — PRE-C10 safety/dispatch runtime closure batch
 
 - Closed the Safety intelligence runtime defect with a shared operational-intelligence repair instead of page-specific hacks.

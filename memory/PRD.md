@@ -1,5 +1,34 @@
 # PRD
 
+## 2026-08-11 — MASCI OPS 9 pre-save release-hardening completion
+
+- Governing state now superseding earlier milestone snapshots: **PRE-C10 remains closed at 216 / 216 = 100%** under the user’s accepted authority baseline.
+- This workspace is now the **UNSAVED FINAL WORKSPACE CANDIDATE** for owner Save only; **Save / Deploy / Training & Qualifications / C10** remain blocked until the owner performs Save and the SHA-bound post-save gate sequence completes.
+- Fresh pre-save proof now established in current runtime/source/test evidence:
+  - frontend release suite: **379 / 379 PASS**;
+  - deployment gate regression pack: **345 / 345 PASS**;
+  - Product Quality v4 full screenshot ledger: **300 entries, 0 failures, decision=pass**;
+  - deployment-readiness runtime decision: **pass**, trust band **green**, blocking gates **0**;
+  - deployment static scan: **PASS**;
+  - independent QA agents: frontend PASS, backend PASS, full-stack iteration 18 PASS.
+- Release-hardening repairs in this batch were limited to verified defects, stale-oracle correction, release-governance documentation, and bounded startup/runtime safety:
+  - restored daily-report legacy draft migration continuity;
+  - preserved scoped portal auth while correcting stale header-test assumptions and same-origin XHR behavior;
+  - made daily work plan generation duplicate-safe under concurrent integrity scans;
+  - corrected portfolio-intelligence cached C8/C9 parity drift;
+  - bounded oversized admin forensics payloads for reliable runtime diagnostics;
+  - aligned deployment gate/runtime tests to current session contracts and base-url isolation;
+  - removed testing-agent release garbage (`backend_test.py`, `test_result.md`) before final readiness classification.
+- Current non-blocking governed advisories remain truthful and visible:
+  - equipment rows missing canonical `unit_number`;
+  - one live employee missing canonical `employee_id`, with additional technical/synthetic audit-lane rows separately disclosed.
+
+## 2026-08-11 — TRACK 18.12C release-governance reconciliation
+
+- TRACK 18.12C remains a release-governance doctrine reference for transportation acceptance, design-language discipline, and deployment safety documentation.
+- VISIBLE = USABLE remains the controlling transportation acceptance rule: hidden or admin-only controls do not count as operator-ready functionality.
+- Current workspace state is a pre-save hardening candidate only; owner Save, SHA-bound final certification, and deployment remain blocked until the post-save gates complete.
+
 ## 2026-08-11 — PRE-C10 safety/dispatch runtime closure batch
 
 - PRE-C10 remains **OPEN / NO-GO** with **SAVE / DEPLOY / TRAINING & QUALIFICATIONS / C10** still unauthorized.

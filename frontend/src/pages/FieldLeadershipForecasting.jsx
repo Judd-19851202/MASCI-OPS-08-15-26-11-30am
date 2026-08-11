@@ -66,9 +66,7 @@ export default function FieldLeadershipForecasting() {
       <select id="field-forecast-project-selector" className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm" value={projectNumber} onChange={(e) => setProject(e.target.value)} data-testid="field-forecast-project-selector">
         <option value="">Select a rostered project</option>
         {projectOptions.map((row) => (
-          <option key={`${row.project_number}-${row.id || row.assignment_id || row.email || "row"}`} value={row.project_number}>
-            {row.project_number} {row.project_name ? `· ${row.project_name}` : ""}
-          </option>
+          <option key={`${row.project_number}-${row.id || row.assignment_id || row.email || "row"}`} value={row.project_number}>{`${row.project_number}${row.project_name ? ` · ${row.project_name}` : ""}`}</option>
         ))}
       </select>
       <Link to="/field-leadership/portal/dashboard" className="text-sm font-semibold text-teal-700 underline-offset-4 hover:underline" data-testid="field-forecast-dashboard-link">Back to dashboard</Link>

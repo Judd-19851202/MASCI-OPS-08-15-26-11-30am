@@ -43,7 +43,7 @@ export default function PublicTrenchSafetyReport() {
       heroIcon={AlertTriangle}
       kicker={t("MASCI Trench Safety · Field Report")}
       title={t("Report a Problem")}
-      description={t("Escalate damage, unsafe conditions, missing pins, or missing labels to Safety immediately. Reports create follow-up work — they do not move or reclassify the asset automatically.")}
+      description={t("Escalate damage, unsafe conditions, missing pins, or missing labels to Safety immediately. Reports create follow-up work. They do not change the asset status automatically.")}
       heroMeta={(
         <>
           <OperationalStatusBadge tone="amber" testId="public-report-meta-safety">{t("Safety alerted")}</OperationalStatusBadge>
@@ -55,6 +55,12 @@ export default function PublicTrenchSafetyReport() {
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-700 font-bold mb-2">{t("When to use this")}</div>
           <p className="text-sm text-slate-600 mb-3">
             {t("Use this route when the issue needs Safety eyes now and the crew should not keep working through uncertainty.")}
+          </p>
+          <p className="mb-3 text-sm font-medium text-slate-700" data-testid="public-report-routing-coaching">
+            {t("Reports are routed to the Safety team immediately.")}
+          </p>
+          <p className="mb-3 text-sm text-slate-600" data-testid="public-report-status-coaching">
+            {t("They do not change the asset status automatically.")}
           </p>
           <button
             type="button"

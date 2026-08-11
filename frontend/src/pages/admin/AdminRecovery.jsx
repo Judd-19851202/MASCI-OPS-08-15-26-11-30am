@@ -166,7 +166,7 @@ export default function AdminRecovery() {
     canonical_status: "UNVERIFIABLE",
     derived_status: "UNVERIFIABLE",
     derivation_explanation: loading
-      ? "Loading recovery status from the latest snapshot."
+      ? "Loading recovery status from the latest saved update."
       : "Recovery status is not currently available.",
     canonical_owner_id: "bcss_recovery_posture",
     evidence_age_source: loading ? "Pending" : "Unavailable",
@@ -198,7 +198,7 @@ export default function AdminRecovery() {
       setPerformanceBudget(perf?.data || null);
       setErr(null);
     } catch (e) {
-      setErr(sanitizeOperatorError(e?.response?.data?.detail || e?.message || e, "Recovery snapshot is unavailable right now."));
+      setErr(sanitizeOperatorError(e?.response?.data?.detail || e?.message || e, "Recovery saved update is unavailable right now."));
     } finally {
       setLoading(false);
     }
@@ -383,13 +383,13 @@ export default function AdminRecovery() {
           className="rounded-md bg-rose-50 border border-rose-200 text-rose-700 p-3 text-sm"
           data-testid="recovery-error"
         >
-          Failed to load snapshot: {err}
+          Failed to load the latest saved update: {err}
         </div>
       )}
       {(snap || loading) && (
         <div className="space-y-4">
           <TruthOwnerPanel
-            title="Operational Truth Spine"
+            title="Operational Records Board"
             surface={otsSurface}
             relationship={otsRelationship}
             checkedAt={snap?.ots_truth?.evaluation_timestamp ? fmtTs(snap.ots_truth.evaluation_timestamp) : (loading ? "Loading…" : "Unavailable")}
@@ -408,7 +408,7 @@ export default function AdminRecovery() {
                 </p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500" data-testid="reliability-executive-sources">
-                Sources: recovery snapshot · deployment readiness · cluster capacity · scheduler runs · system health
+                Sources: recovery archive · deployment readiness · cluster capacity · scheduler runs · system health
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-testid="reliability-executive-cards">

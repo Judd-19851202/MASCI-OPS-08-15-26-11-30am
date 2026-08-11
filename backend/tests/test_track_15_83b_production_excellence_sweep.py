@@ -23,6 +23,7 @@ Locks the Track 15.83B deliverables so they cannot silently regress:
 """
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -42,7 +43,7 @@ OPERATIONS_PY = Path("/app/backend/routes/operations.py")
 ASSET_TRANSFERS_PY = Path("/app/backend/routes/asset_transfers.py")
 
 FRONTEND_ENV = dotenv_values("/app/frontend/.env")
-BASE = (FRONTEND_ENV.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
+BASE = (os.environ.get("REACT_APP_BACKEND_URL") or FRONTEND_ENV.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
 
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"
@@ -284,7 +285,10 @@ def super_admin_tokens() -> dict:
         timeout=60,
     )
     assert r.status_code == 200, r.text
-    return r.json().get("portal_tokens") or {}
+    data = r.json()
+    tokens = data.get("portal_tokens") or {}
+    tokens["session_token"] = data.get("session_token")
+    return tokens
 
 
 def test_operations_transfers_default_returns_legacy_shape(super_admin_tokens):
@@ -292,7 +296,7 @@ def test_operations_transfers_default_returns_legacy_shape(super_admin_tokens):
     assert admin
     r = requests.get(
         f"{BASE}/api/operations/transfers?limit=5",
-        headers={"X-Admin-Token": admin},
+        headers={"X-Admin-Token": admin, "X-Directory-Token": super_admin_tokens.get("session_token", "")},
         timeout=45,
     )
     assert r.status_code == 200, r.text
@@ -308,7 +312,7 @@ def test_operations_transfers_operator_audience_returns_envelope(super_admin_tok
     assert admin
     r = requests.get(
         f"{BASE}/api/operations/transfers?audience=operator&limit=200",
-        headers={"X-Admin-Token": admin},
+        headers={"X-Admin-Token": admin, "X-Directory-Token": super_admin_tokens.get("session_token", "")},
         timeout=45,
     )
     assert r.status_code == 200, r.text
@@ -342,7 +346,7 @@ def test_asset_transfers_operator_audience_smoke(super_admin_tokens):
     assert admin
     r = requests.get(
         f"{BASE}/api/asset-transfers?audience=operator&limit=200",
-        headers={"X-Admin-Token": admin},
+        headers={"X-Admin-Token": admin, "X-Directory-Token": super_admin_tokens.get("session_token", "")},
         timeout=45,
     )
     assert r.status_code == 200, r.text

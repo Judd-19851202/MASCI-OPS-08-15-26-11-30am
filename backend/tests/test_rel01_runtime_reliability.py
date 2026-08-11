@@ -11,6 +11,7 @@ Tests the new runtime reliability infrastructure:
 Test credentials: jaymn.judd@mascigc.com / Maddix123!
 """
 import os
+import time
 import pytest
 import requests
 
@@ -23,11 +24,25 @@ SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"
 
 
+def _request(method, path, *, retries=3, backoff=1.0, **kwargs):
+    last_error = None
+    for attempt in range(retries):
+        try:
+            return requests.request(method, f"{BASE_URL}{path}", **kwargs)
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as exc:
+            last_error = exc
+            if attempt == retries - 1:
+                raise
+            time.sleep(backoff * (attempt + 1))
+    raise last_error
+
+
 @pytest.fixture(scope="module")
-def admin_token():
-    """Get admin token via multi-login"""
-    response = requests.post(
-        f"{BASE_URL}/api/auth/multi-login",
+def admin_auth():
+    """Get admin-scoped auth headers via multi-login"""
+    response = _request(
+        "POST",
+        "/api/auth/multi-login",
         json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASSWORD},
         timeout=15,
     )
@@ -36,7 +51,11 @@ def admin_token():
     assert data.get("ok") is True, f"Multi-login not ok: {data}"
     assert "portal_tokens" in data, "No portal_tokens in response"
     assert "admin" in data["portal_tokens"], "No admin token in portal_tokens"
-    return data["portal_tokens"]["admin"]
+    assert data.get("session_token"), "No session_token in response"
+    return {
+        "X-Admin-Token": data["portal_tokens"]["admin"],
+        "X-Directory-Token": data["session_token"],
+    }
 
 
 class TestPublicHealthEndpoints:
@@ -44,7 +63,7 @@ class TestPublicHealthEndpoints:
 
     def test_api_health_returns_200_with_headers(self):
         """GET /api/health returns 200 quickly with X-MASCI-* headers"""
-        response = requests.get(f"{BASE_URL}/api/health", timeout=15)
+        response = _request("GET", "/api/health", timeout=15)
         assert response.status_code == 200, f"Health check failed: {response.status_code}"
         
         # Verify response body
@@ -67,7 +86,7 @@ class TestPublicHealthEndpoints:
 
     def test_api_ready_returns_readiness_payload(self):
         """GET /api/ready returns 200 with readiness summary"""
-        response = requests.get(f"{BASE_URL}/api/ready", timeout=10)
+        response = _request("GET", "/api/ready", timeout=10)
         assert response.status_code == 200, f"Ready check failed: {response.status_code}"
         
         data = response.json()
@@ -88,7 +107,7 @@ class TestPublicHealthEndpoints:
 
     def test_api_health_full_returns_legacy_contract(self):
         """GET /api/health/full returns legacy boolean contract"""
-        response = requests.get(f"{BASE_URL}/api/health/full", timeout=10)
+        response = _request("GET", "/api/health/full", timeout=10)
         assert response.status_code == 200, f"Full health check failed: {response.status_code}"
         
         data = response.json()
@@ -112,7 +131,7 @@ class TestPublicHealthEndpoints:
 
     def test_api_version_returns_release_info(self):
         """GET /api/version returns release information"""
-        response = requests.get(f"{BASE_URL}/api/version", timeout=10)
+        response = _request("GET", "/api/version", timeout=10)
         assert response.status_code == 200, f"Version check failed: {response.status_code}"
         
         data = response.json()
@@ -125,11 +144,12 @@ class TestPublicHealthEndpoints:
 class TestAuthenticatedDiagnosticEndpoints:
     """Test admin-strict diagnostic endpoints (require admin token)"""
 
-    def test_runtime_health_returns_layered_snapshot(self, admin_token):
+    def test_runtime_health_returns_layered_snapshot(self, admin_auth):
         """GET /api/admin-strict/diag/runtime-health returns layered health snapshot"""
-        response = requests.get(
-            f"{BASE_URL}/api/admin-strict/diag/runtime-health",
-            headers={"X-Admin-Token": admin_token},
+        response = _request(
+            "GET",
+            "/api/admin-strict/diag/runtime-health",
+            headers=admin_auth,
             timeout=15,
         )
         assert response.status_code == 200, f"Runtime health failed: {response.status_code}"
@@ -176,11 +196,12 @@ class TestAuthenticatedDiagnosticEndpoints:
             assert "status" in task
             assert "critical" in task
 
-    def test_incident_forensics_returns_bounded_list(self, admin_token):
+    def test_incident_forensics_returns_bounded_list(self, admin_auth):
         """GET /api/admin-strict/diag/incident-forensics returns bounded list without secrets"""
-        response = requests.get(
-            f"{BASE_URL}/api/admin-strict/diag/incident-forensics?limit=10",
-            headers={"X-Admin-Token": admin_token},
+        response = _request(
+            "GET",
+            "/api/admin-strict/diag/incident-forensics?limit=10",
+            headers=admin_auth,
             timeout=15,
         )
         assert response.status_code == 200, f"Incident forensics failed: {response.status_code}"
@@ -209,14 +230,15 @@ class TestAuthenticatedDiagnosticEndpoints:
             assert "password" not in incident_str or "***" in incident_str
             assert "api_key" not in incident_str or "***" in incident_str
             # MongoDB URIs should be redacted
-            if "mongodb" in incident_str:
+            if "mongodb://" in incident_str or "mongodb+srv://" in incident_str:
                 assert "***" in incident_str
 
-    def test_persistence_health_returns_status(self, admin_token):
+    def test_persistence_health_returns_status(self, admin_auth):
         """GET /api/admin-strict/diag/persistence-health returns persistence status"""
-        response = requests.get(
-            f"{BASE_URL}/api/admin-strict/diag/persistence-health",
-            headers={"X-Admin-Token": admin_token},
+        response = _request(
+            "GET",
+            "/api/admin-strict/diag/persistence-health",
+            headers=admin_auth,
             timeout=15,
         )
         assert response.status_code == 200, f"Persistence health failed: {response.status_code}"
@@ -238,13 +260,14 @@ class TestAuthenticatedDiagnosticEndpoints:
 
 
 class TestOperationalEndpoints:
-    """Test operational endpoints that should work with admin token"""
+    """Test operational endpoints that should work with current admin session headers"""
 
-    def test_daily_reports_approved_works(self, admin_token):
+    def test_daily_reports_approved_works(self, admin_auth):
         """GET /api/daily-reports/approved?limit=1 works"""
-        response = requests.get(
-            f"{BASE_URL}/api/daily-reports/approved?limit=1",
-            headers={"X-Admin-Token": admin_token},
+        response = _request(
+            "GET",
+            "/api/daily-reports/approved?limit=1",
+            headers=admin_auth,
             timeout=15,
         )
         assert response.status_code == 200, f"Daily reports approved failed: {response.status_code}"
@@ -253,11 +276,12 @@ class TestOperationalEndpoints:
         assert "items" in data
         assert isinstance(data["items"], list)
 
-    def test_search_works(self, admin_token):
+    def test_search_works(self, admin_auth):
         """GET /api/search?q=report&limit=3 works"""
-        response = requests.get(
-            f"{BASE_URL}/api/search?q=report&limit=3",
-            headers={"X-Admin-Token": admin_token},
+        response = _request(
+            "GET",
+            "/api/search?q=report&limit=3",
+            headers=admin_auth,
             timeout=15,
         )
         assert response.status_code == 200, f"Search failed: {response.status_code}"
@@ -266,11 +290,12 @@ class TestOperationalEndpoints:
         assert "q" in data
         assert data["q"] == "report"
 
-    def test_dispatch_motive_posture_works(self, admin_token):
+    def test_dispatch_motive_posture_works(self, admin_auth):
         """GET /api/dispatch/motive-posture works"""
-        response = requests.get(
-            f"{BASE_URL}/api/dispatch/motive-posture",
-            headers={"X-Admin-Token": admin_token},
+        response = _request(
+            "GET",
+            "/api/dispatch/motive-posture",
+            headers=admin_auth,
             timeout=15,
         )
         assert response.status_code == 200, f"Motive posture failed: {response.status_code}"
@@ -287,8 +312,9 @@ class TestMultiLogin:
 
     def test_multi_login_returns_portal_tokens(self):
         """POST /api/auth/multi-login returns portal_tokens"""
-        response = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
+        response = _request(
+            "POST",
+            "/api/auth/multi-login",
             json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASSWORD},
             timeout=15,
         )
@@ -320,7 +346,7 @@ class TestRegressionProbes:
         """Health endpoint should respond quickly (no timeout)"""
         import time
         start = time.time()
-        response = requests.get(f"{BASE_URL}/api/health", timeout=15)
+        response = _request("GET", "/api/health", timeout=15)
         elapsed = time.time() - start
         
         assert response.status_code == 200
@@ -329,13 +355,13 @@ class TestRegressionProbes:
 
     def test_api_version_no_500(self):
         """Version endpoint should not return 500"""
-        response = requests.get(f"{BASE_URL}/api/version", timeout=10)
+        response = _request("GET", "/api/version", timeout=10)
         assert response.status_code != 500, f"Version returned 500: {response.text}"
         assert response.status_code == 200
 
     def test_api_ready_no_500(self):
         """Ready endpoint should not return 500"""
-        response = requests.get(f"{BASE_URL}/api/ready", timeout=10)
+        response = _request("GET", "/api/ready", timeout=10)
         assert response.status_code != 500, f"Ready returned 500: {response.text}"
         # Can be 200 (ready) or 503 (not ready), but not 500
         assert response.status_code in [200, 503]

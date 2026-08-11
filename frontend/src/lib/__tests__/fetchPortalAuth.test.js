@@ -4,8 +4,7 @@
 import { installPortalFetchAuth } from "@/lib/fetchPortalAuth";
 
 jest.mock("@/lib/authHeaders", () => ({
-  buildPortalAuthHeaders: () => ({
-    "X-Admin-Token": "admin-token",
+  buildScopedPortalAuthHeaders: () => ({
     "X-HR-Token": "hr-token",
     "X-Directory-Token": "directory-token",
   }),
@@ -30,7 +29,7 @@ describe("installPortalFetchAuth", () => {
     process.env.REACT_APP_BACKEND_URL = originalEnv;
   });
 
-  test("injects portal + directory auth headers into bare /api fetch calls", async () => {
+  test("injects scoped portal + directory auth headers into bare /api fetch calls", async () => {
     installPortalFetchAuth();
 
     await window.fetch("/api/hr/employees?limit=1");
@@ -38,7 +37,6 @@ describe("installPortalFetchAuth", () => {
     expect(nativeFetchMock).toHaveBeenCalledTimes(1);
     const [, init] = nativeFetchMock.mock.calls[0];
     const headers = new Headers(init.headers);
-    expect(headers.get("X-Admin-Token")).toBe("admin-token");
     expect(headers.get("X-HR-Token")).toBe("hr-token");
     expect(headers.get("X-Directory-Token")).toBe("directory-token");
   });

@@ -899,7 +899,11 @@ async def get_daily_work_plan(db, project_number: str, *, work_date: str = "") -
         "updated_at": _utcnow(),
         "updated_by": "project_schedule_actuals_spine",
     }
-    await db[COLL_DAILY_WORK_PLANS].insert_one(plan)
+    await db[COLL_DAILY_WORK_PLANS].replace_one(
+        {"project_number": project_number, "work_date": work_date},
+        plan,
+        upsert=True,
+    )
     return _sanitize(plan)
 
 

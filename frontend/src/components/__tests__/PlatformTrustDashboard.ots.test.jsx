@@ -13,6 +13,10 @@ jest.mock("@/lib/api", () => ({
 
 jest.mock("sonner", () => ({ toast: { error: jest.fn() } }));
 jest.mock("@/components/ui/button", () => ({ Button: ({ children, ...props }) => <button {...props}>{children}</button> }));
+jest.mock("@/components/admin/LegacyAdminModernShell", () => ({
+  __esModule: true,
+  default: ({ children }) => <div data-testid="legacy-admin-shell">{children}</div>,
+}));
 jest.mock("@/components/admin/trust/TrustPrimitives", () => ({
   TruthOwnerPanel: ({ title, testidPrefix }) => <div data-testid={`${testidPrefix}-mock`}>{title}</div>,
 }));
@@ -93,14 +97,15 @@ describe("PlatformTrustDashboard OTS adoption", () => {
 
     render(<PlatformTrustDashboard />);
 
-    expect((await screen.findByTestId("trust-spine-bounded-headline")).textContent).toContain(
+    const [headline] = await screen.findAllByTestId("trust-spine-bounded-headline");
+    expect(headline.textContent).toContain(
       "Lifecycle evidence validated in scope.",
     );
     expect(screen.getByTestId("trust-spine-ots-disclosure-claim").textContent).toContain("VALIDATED");
     expect(screen.getByTestId("trust-spine-ots-disclosure-ceiling").textContent).toContain("VALIDATED");
     expect(screen.getByTestId("trust-spine-ots-disclosure-confidence").textContent).toContain("HIGH");
     expect(screen.getByTestId("trust-spine-ots-disclosure-unknowns").textContent).toContain("Idle workflows are evidence gaps");
-    expect(screen.getByTestId("trust-spine-ots-disclosure-contradictions").textContent).toContain("Conflicting delivery-path evidence");
+    expect(screen.getByTestId("trust-spine-ots-disclosure-contradictions").textContent).toMatch(/Conflicting Delivery Path Evidence/i);
   });
 
   test("expanded workflow shows per-workflow truth disclosure for stale evidence", async () => {
@@ -172,9 +177,9 @@ describe("PlatformTrustDashboard OTS adoption", () => {
     fireEvent.click(row);
 
     expect((await screen.findByTestId("trust-spine-workflow-truth-daily-report-claim")).textContent).toContain("OBSERVED");
-    expect(screen.getByTestId("trust-spine-workflow-truth-daily-report-state").textContent).toContain("stale");
+    expect(screen.getByTestId("trust-spine-workflow-truth-daily-report-state").textContent).toContain("Stale");
     expect(screen.getByTestId("trust-spine-workflow-truth-daily-report-unknowns").textContent).toContain(
-      "No lifecycle events were observed for this workflow in the last 24 hours.",
+      "No lifecycle events were observed for this workflow in the last 24 hours",
     );
   });
 });

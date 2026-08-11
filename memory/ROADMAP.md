@@ -1,3 +1,30 @@
+# 2026-08-11 — MASCI OPS 9 pre-save release-hardening complete
+
+- **Current authority state:** PRE-C10 remains `216 / 216 = 100%` closed under the accepted user baseline.
+- **Current candidate state:** UNSAVED FINAL WORKSPACE CANDIDATE.
+- **Fresh proof state:** frontend suite PASS, backend release/runtime PASS, deployment gate PASS, Product Quality v4 PASS, deployment scan PASS.
+
+## Immediate next actions
+
+### P0
+- Owner Save only.
+- Immediately after owner Save: verify clean SHA and tree-content identity against the recorded pre-save fingerprint.
+- Then run the SHA-bound final certification chain and final 20-gate closeout without changing release content.
+
+### P1
+- Reconfirm the two truthful non-blocking master-data advisories against the saved candidate.
+- Preserve current runtime/auth/startup behavior while executing the post-save gates.
+
+### P2
+- Deployment remains owner-gated after post-save certification.
+- C10 remains blocked until the owner explicitly authorizes it after the saved-candidate gates are complete.
+
+### Still frozen / not authorized
+- No agent Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-11 — PRE-C10 milestone after safety/dispatch runtime closure batch
 
 - **PRE-C10 status:** `179 / 216 closed = 82.9%`

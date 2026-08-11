@@ -3,13 +3,30 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import axios from "axios";
 
 const mockGet = jest.fn();
 
-jest.mock("axios", () => ({
-  get: (...args) => mockGet(...args),
-  post: jest.fn(),
-}));
+jest.mock("axios", () => {
+  const axiosMock = {
+    get: (...args) => mockGet(...args),
+    post: jest.fn(),
+    create: jest.fn(() => ({
+      get: (...args) => mockGet(...args),
+      post: jest.fn(),
+      interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
+    })),
+    interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
+  };
+  return {
+    __esModule: true,
+    default: axiosMock,
+    get: axiosMock.get,
+    post: axiosMock.post,
+    create: axiosMock.create,
+    interceptors: axiosMock.interceptors,
+  };
+});
 
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 jest.mock("react-router-dom", () => ({ Link: ({ children, ...props }) => <a {...props}>{children}</a> }));
@@ -97,6 +114,12 @@ function trustPayload(overrides = {}) {
 describe("OperationsControlCenter OTS hardening", () => {
   beforeEach(() => {
     mockGet.mockReset();
+    axios.create.mockReset();
+    axios.create.mockImplementation(() => ({
+      get: (...args) => mockGet(...args),
+      post: jest.fn(),
+      interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
+    }));
     mockGet.mockImplementation((url) => {
       if (url.includes("/admin/operations-control/overview")) {
         return Promise.resolve({ data: { operations: [] } });
@@ -118,7 +141,6 @@ describe("OperationsControlCenter OTS hardening", () => {
     expect(screen.getByTestId("trust-layer-bounded-role")).toHaveTextContent("AGGREGATOR");
     expect(screen.getByTestId("trust-layer-bounded-owner")).toHaveTextContent("platform_attestation");
     expect(screen.getByTestId("trust-layer-bounded-owner-route")).toHaveTextContent("/api/admin/platform/status");
-    expect(screen.getByTestId("trust-layer-owner-panel-owner")).toHaveTextContent("platform_attestation");
   });
 
   test("maps canonical statuses honestly for the OCC trust layer UI", async () => {

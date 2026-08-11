@@ -8,6 +8,13 @@ import { usePortalHydration } from "@/lib/usePortalHydration";
 const mockPost = jest.fn();
 const mockDirUser = jest.fn();
 const mockDirToken = jest.fn();
+const mockSetAdminToken = jest.fn();
+const mockSetPmToken = jest.fn();
+const mockSetShopToken = jest.fn();
+const mockSetHrToken = jest.fn();
+const mockSetSafetyToken = jest.fn();
+const mockSetDispatchToken = jest.fn();
+const mockSetFlToken = jest.fn();
 
 jest.mock("@/lib/api", () => ({
   api: { post: (...args) => mockPost(...args) },
@@ -18,13 +25,13 @@ jest.mock("@/lib/directoryAuth", () => ({
   getDirectoryToken: () => mockDirToken(),
 }));
 
-jest.mock("@/lib/adminAuth", () => ({ setAdminToken: jest.fn() }));
-jest.mock("@/lib/pmAuth", () => ({ setPmToken: jest.fn() }));
-jest.mock("@/lib/shopAuth", () => ({ setShopToken: jest.fn() }));
-jest.mock("@/lib/hrAuth", () => ({ setHrToken: jest.fn() }));
-jest.mock("@/lib/safetyAuth", () => ({ setSafetyToken: jest.fn() }));
-jest.mock("@/lib/dispatchAuth", () => ({ setDispatchToken: jest.fn() }));
-jest.mock("@/lib/flAuth", () => ({ setFlToken: jest.fn() }));
+jest.mock("@/lib/adminAuth", () => ({ getAdminToken: () => "", setAdminToken: (...args) => mockSetAdminToken(...args) }));
+jest.mock("@/lib/pmAuth", () => ({ getPmToken: () => "", setPmToken: (...args) => mockSetPmToken(...args) }));
+jest.mock("@/lib/shopAuth", () => ({ getShopToken: () => "", setShopToken: (...args) => mockSetShopToken(...args) }));
+jest.mock("@/lib/hrAuth", () => ({ getHrToken: () => "", setHrToken: (...args) => mockSetHrToken(...args) }));
+jest.mock("@/lib/safetyAuth", () => ({ getSafetyToken: () => "", setSafetyToken: (...args) => mockSetSafetyToken(...args) }));
+jest.mock("@/lib/dispatchAuth", () => ({ getDispatchToken: () => "", setDispatchToken: (...args) => mockSetDispatchToken(...args) }));
+jest.mock("@/lib/flAuth", () => ({ getFlToken: () => "", setFlToken: (...args) => mockSetFlToken(...args) }));
 
 function Probe({ portal = "admin", hasToken = false }) {
   const state = usePortalHydration(portal, hasToken);
@@ -37,6 +44,13 @@ describe("usePortalHydration", () => {
     mockPost.mockReset();
     mockDirUser.mockReset();
     mockDirToken.mockReset();
+    mockSetAdminToken.mockReset();
+    mockSetPmToken.mockReset();
+    mockSetShopToken.mockReset();
+    mockSetHrToken.mockReset();
+    mockSetSafetyToken.mockReset();
+    mockSetDispatchToken.mockReset();
+    mockSetFlToken.mockReset();
     mockDirUser.mockReturnValue({ portals: ["admin"] });
     mockDirToken.mockReturnValue("dir-token");
   });

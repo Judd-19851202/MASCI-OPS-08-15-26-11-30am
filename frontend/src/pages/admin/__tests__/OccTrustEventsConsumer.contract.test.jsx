@@ -48,18 +48,16 @@ describe("OCC Trust Events consumer contract compatibility", () => {
   test("AdminGovernanceTrust still evaluates trust-event cards with additive OTS fields present", () => {
     render(<AdminGovernanceTrust />);
 
-    expect(screen.getByTestId("admin-governance-trust")).toHaveTextContent("Governance & Trust");
+    expect(screen.getByTestId("admin-governance-trust")).toHaveTextContent("Standards & Readiness");
     const manifest = manifests["admin-governance-trust"];
     const trustProbe = { ok: true, body: trustEventsBody() };
 
     const unified = manifest.cards.find((card) => card.id === "unified-trust-events").evaluator({ trust_events: trustProbe });
-    const blockers = manifest.cards.find((card) => card.id === "unresolved-blockers").evaluator({ trust_events: trustProbe });
 
     expect(unified.status).toBe("red");
     expect(unified.summary).toMatch(/2 recent events/i);
     expect(unified.evidence.probe_errors).toEqual({});
-    expect(blockers.status).toBe("red");
-    expect(blockers.summary).toMatch(/1 unresolved deploy blocker/i);
+    expect(unified.evidence.unresolved_blockers_count).toBe(1);
   });
 
   test("AdminIdentitySecurity still derives auth-failure status from the stable trust-events envelope", () => {

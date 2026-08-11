@@ -10,11 +10,42 @@ from lib.performance_budget_contract import read_performance_budget_contract
 from lib.runtime_reliability import INCIDENT_COLLECTION, INCIDENT_DIR, redact_text, runtime_health_snapshot
 
 
+MAX_INCIDENT_STRING = 1200
+MAX_INCIDENT_LIST_ITEMS = 25
+MAX_INCIDENT_DICT_KEYS = 60
+MAX_INCIDENT_DEPTH = 5
+
+
+def _bounded_incident_value(value: Any, *, depth: int = 0) -> Any:
+    if depth >= MAX_INCIDENT_DEPTH:
+        return "<trimmed-depth>"
+    if isinstance(value, dict):
+        out: Dict[str, Any] = {}
+        items = list(value.items())
+        for key, item in items[:MAX_INCIDENT_DICT_KEYS]:
+            out[str(key)] = _bounded_incident_value(item, depth=depth + 1)
+        if len(items) > MAX_INCIDENT_DICT_KEYS:
+            out["_trimmed_keys"] = len(items) - MAX_INCIDENT_DICT_KEYS
+        return out
+    if isinstance(value, list):
+        bounded = [_bounded_incident_value(item, depth=depth + 1) for item in value[:MAX_INCIDENT_LIST_ITEMS]]
+        if len(value) > MAX_INCIDENT_LIST_ITEMS:
+            bounded.append(f"<trimmed-items:{len(value) - MAX_INCIDENT_LIST_ITEMS}>")
+        return bounded
+    if isinstance(value, str):
+        clean = redact_text(value)
+        if len(clean) <= MAX_INCIDENT_STRING:
+            return clean
+        return f"{clean[:MAX_INCIDENT_STRING]}<trimmed:{len(clean) - MAX_INCIDENT_STRING}>"
+    return value
+
+
 def _sanitize_incident_row(row: Dict[str, Any]) -> Dict[str, Any]:
     try:
-        return json.loads(redact_text(json.dumps(row, default=str)))
+        payload = json.loads(redact_text(json.dumps(row, default=str)))
+        return _bounded_incident_value(payload)
     except Exception:
-        return {"redacted_payload": redact_text(str(row))}
+        return {"redacted_payload": _bounded_incident_value(redact_text(str(row)))}
 
 
 def build_runtime_reliability_router(*, app, db, require_admin_dep) -> APIRouter:

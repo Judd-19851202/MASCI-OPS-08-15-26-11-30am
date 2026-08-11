@@ -64,19 +64,14 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
 
   it("renders the approved EN hero subheadline (capability sentence)", () => {
     renderHub();
-    // TRACK 26.09 · PF-5 · Hub.jsx currently says "transportation"
-    // (rebrand from "dispatch" — source: Hub.jsx line ~285). Assertion
-    // aligned to current production copy.
-    expect(
-      screen.getByText(
-        /Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter\./,
-      ),
-    ).toBeTruthy();
+    expect(screen.getByTestId("hub-hero-subheadline").textContent).toMatch(
+      /Start field work fast with field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations in one trusted system built for heavy-civil operations/i,
+    );
   });
 
   it('uses the new "Project Systems" title (not legacy "Projects")', () => {
     renderHub();
-    expect(screen.getByTestId("hub-project-systems-title").textContent).toBe(
+    expect(screen.getByTestId("hub-section-projects-title").textContent).toBe(
       "Project Systems",
     );
   });
@@ -84,9 +79,9 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
   it("renders the approved Project Systems description", () => {
     renderHub();
     expect(
-      screen.getByTestId("hub-project-systems-description").textContent,
+      screen.getByTestId("hub-section-projects-description").textContent,
     ).toMatch(
-      /Connected project platforms for communication, utility locating, and construction plans\./,
+      /Connected project platforms for communication, utility locating, and construction plans/i,
     );
   });
 
@@ -149,7 +144,7 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
 
   it("renders the Field Leadership card title (NOT a thin MediumTile)", () => {
     renderHub();
-    expect(screen.getByTestId("hub-field-leadership-title").textContent).toBe(
+    expect(screen.getByTestId("hub-section-leadership-title").textContent).toBe(
       "Field Leadership",
     );
     // Track 15.4B: the public homepage MUST NOT expose internal

@@ -47,6 +47,126 @@ function _idempotencyKey(actorId, formKey) {
   return `${IDEMPOTENCY_PREFIX}${actorId || "anon"}.${formKey}`;
 }
 
+function _dailyReportContextMatches(entry, targetContext = {}) {
+  const form = entry?.form || {};
+  const targetProject = String(targetContext.project_number || "").trim();
+  const targetDate = String(targetContext.report_date || "").trim();
+  const targetInstance = String(targetContext.report_instance || "primary").trim() || "primary";
+  const targetActor = String(targetContext.actor_id || "").trim();
+
+  if (targetProject && String(form.project_number || "").trim() !== targetProject) return false;
+  if (targetDate && String(form.report_date || "").trim() !== targetDate) return false;
+  if (targetInstance && String(form.report_instance || "primary").trim() !== targetInstance) return false;
+  if (targetActor && entry?.savedByActor && String(entry.savedByActor).trim() !== targetActor) return false;
+  return true;
+}
+
+function _legacyDailyReportFormKeys(formKey = "") {
+  if (!formKey.startsWith("daily-report::")) return [formKey];
+  return [formKey, formKey.replace(/^daily-report::/, "daily-report-new::")];
+}
+
+export async function promoteLegacyDailyReportDraft({
+  targetActorId,
+  targetFormKey,
+  targetContext = {},
+  candidates = [],
+}) {
+  const canonicalFormKey = String(targetFormKey || "").trim();
+  if (!targetActorId || !canonicalFormKey) {
+    return { promoted: false, reason: "missing_target" };
+  }
+
+  const targetKey = _draftKey(targetActorId, canonicalFormKey);
+  const currentTarget = await get(targetKey);
+  const validCandidates = candidates
+    .filter((candidate) => candidate?.key && candidate?.entry?.form)
+    .filter((candidate) => _dailyReportContextMatches(candidate.entry, targetContext))
+    .sort((a, b) => Number(b?.entry?.savedAt || 0) - Number(a?.entry?.savedAt || 0));
+
+  const selected = validCandidates[0] || null;
+  if (!selected) {
+    return { promoted: false, reason: "no_valid_candidate" };
+  }
+
+  const selectedSavedAt = Number(selected.entry?.savedAt || 0);
+  const targetSavedAt = Number(currentTarget?.savedAt || 0);
+  if (currentTarget?.form && targetSavedAt >= selectedSavedAt) {
+    return { promoted: false, reason: "target_newer" };
+  }
+
+  await set(targetKey, {
+    ...selected.entry,
+    contract_version: selected.entry?.contract_version || "19.04",
+  });
+
+  let retired = 0;
+  for (const candidate of validCandidates) {
+    if (candidate.key === targetKey) continue;
+    await del(candidate.key);
+    retired += 1;
+  }
+
+  return {
+    promoted: true,
+    retired,
+    targetKey,
+    sourceKey: selected.key,
+  };
+}
+
+export async function migrateLegacyDrafts(targetActorId, legacyActorIds = [], formKey, options = {}) {
+  const canonicalFormKey = String(formKey || "").trim();
+  if (!targetActorId || !canonicalFormKey) return { promoted: false, reason: "missing_target" };
+
+  const actors = Array.from(new Set([targetActorId, ...(legacyActorIds || [])].filter(Boolean)));
+  const allKeys = await idbKeys();
+  const targetKey = _draftKey(targetActorId, canonicalFormKey);
+  const aliases = _legacyDailyReportFormKeys(canonicalFormKey);
+  const candidateKeys = [];
+
+  for (const actorId of actors) {
+    for (const alias of aliases) {
+      const key = _draftKey(actorId, alias);
+      if (key !== targetKey && allKeys.includes(key)) candidateKeys.push(key);
+    }
+  }
+
+  if (!candidateKeys.length) return { promoted: false, reason: "no_candidates" };
+
+  const candidates = [];
+  for (const key of candidateKeys) {
+    const entry = await get(key);
+    if (entry?.form) candidates.push({ key, entry });
+  }
+
+  if (canonicalFormKey.startsWith("daily-report::")) {
+    return promoteLegacyDailyReportDraft({
+      targetActorId,
+      targetFormKey: canonicalFormKey,
+      targetContext: options.targetContext || {},
+      candidates,
+    });
+  }
+
+  const latest = candidates.sort((a, b) => Number(b?.entry?.savedAt || 0) - Number(a?.entry?.savedAt || 0))[0];
+  if (!latest) return { promoted: false, reason: "no_valid_candidate" };
+
+  const currentTarget = await get(targetKey);
+  if (currentTarget?.form && Number(currentTarget.savedAt || 0) >= Number(latest.entry?.savedAt || 0)) {
+    return { promoted: false, reason: "target_newer" };
+  }
+
+  await set(targetKey, latest.entry);
+  let retired = 0;
+  for (const candidate of candidates) {
+    if (candidate.key === targetKey) continue;
+    await del(candidate.key);
+    retired += 1;
+  }
+  return { promoted: true, retired, targetKey, sourceKey: latest.key };
+}
+
 // -------------------------------------------------------------------- save
 // Track 19.04 · Form Session Isolation: `savedByActor` fingerprints
 // the writing actor so a later read on the same device can skip

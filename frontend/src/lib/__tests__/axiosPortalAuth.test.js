@@ -5,8 +5,8 @@ import axios from "axios";
 import { installPortalAxiosAuth } from "@/lib/axiosPortalAuth";
 
 jest.mock("@/lib/authHeaders", () => ({
-  buildPortalAuthHeaders: () => ({
-    "X-Admin-Token": "admin-token",
+  buildScopedPortalAuthHeaders: () => ({
+    "X-HR-Token": "hr-token",
     "X-Directory-Token": "directory-token",
   }),
 }));
@@ -27,13 +27,13 @@ describe("installPortalAxiosAuth", () => {
     process.env.REACT_APP_BACKEND_URL = originalEnv;
   });
 
-  test("injects directory-bound auth into created axios clients for /api routes", async () => {
+  test("injects scoped portal auth into created axios clients for /api routes", async () => {
     installPortalAxiosAuth();
     const client = axios.create({ baseURL: "https://mascidocs.com/api" });
     const handler = client.interceptors.request.handlers[0].fulfilled;
     const config = await handler({ url: "/api/hr/employee-requests", baseURL: "https://mascidocs.com", headers: {} });
 
-    expect(config.headers["X-Admin-Token"]).toBe("admin-token");
+    expect(config.headers["X-HR-Token"]).toBe("hr-token");
     expect(config.headers["X-Directory-Token"]).toBe("directory-token");
   });
 });

@@ -270,11 +270,11 @@ export default function PmProjectControlsAuthority() {
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={mappingForm.pay_item_id} onChange={(event) => setMappingForm((prev) => ({ ...prev, pay_item_id: event.target.value }))} data-testid="pm-project-controls-mapping-pay-item-select">
                   <option value="">{t("Choose pay item")}</option>
-                  {payItems.map((row) => <option key={row.pay_item_id} value={row.pay_item_id}>{row.customer_pay_item_number} · {row.description}</option>)}
+                  {payItems.map((row) => <option key={row.pay_item_id} value={row.pay_item_id}>{`${row.customer_pay_item_number} · ${row.description}`}</option>)}
                 </select>
                 <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={mappingForm.primary_work_type_id} onChange={(event) => setMappingForm((prev) => ({ ...prev, primary_work_type_id: event.target.value }))} data-testid="pm-project-controls-mapping-work-type-select">
                   <option value="">{t("Choose work type")}</option>
-                  {workTypes.map((row) => <option key={row.work_type_id} value={row.work_type_id}>{row.code} · {row.name}</option>)}
+                  {workTypes.map((row) => <option key={row.work_type_id} value={row.work_type_id}>{`${row.code} · ${row.name}`}</option>)}
                 </select>
               </div>
               <Textarea className="mt-3" value={mappingForm.explanation} onChange={(event) => setMappingForm((prev) => ({ ...prev, explanation: event.target.value }))} placeholder={t("Why this mapping is correct for this project.")} data-testid="pm-project-controls-mapping-explanation-input" />

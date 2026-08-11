@@ -148,7 +148,7 @@ export default function Hub() {
                   </>
                 )}
               </h1>
-              <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
+              <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl" data-testid="hub-hero-subheadline">
                 {t("Start field work fast with field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations in one trusted system built for heavy-civil operations.")}
               </p>
               <div className="mt-6 flex flex-wrap gap-3" data-testid="hub-next-actions-row">

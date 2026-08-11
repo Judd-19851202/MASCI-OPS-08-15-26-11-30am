@@ -47,7 +47,7 @@ DISPATCH_HERO = FRONTEND_SRC / "components/DispatchMapHero.jsx"
 DISPATCH_SNAPSHOT = FRONTEND_SRC / "components/DispatchLiveSnapshot.jsx"
 
 FRONTEND_ENV = dotenv_values("/app/frontend/.env")
-BASE = (FRONTEND_ENV.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
+BASE = (os.environ.get("REACT_APP_BACKEND_URL") or FRONTEND_ENV.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
 
 SUPER_ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 SUPER_ADMIN_PASSWORD = "Maddix123!"
@@ -182,6 +182,7 @@ def super_admin_portal_tokens() -> dict:
     tokens = data.get("portal_tokens") or {}
     assert tokens.get("dispatch"), f"Super admin should expose dispatch token, got: {tokens.keys()}"
     assert tokens.get("admin"), f"Super admin should expose admin token, got: {tokens.keys()}"
+    tokens["session_token"] = data.get("session_token")
     return tokens
 
 
@@ -192,7 +193,10 @@ def test_operations_map_snapshot_accepts_dispatch_token(super_admin_portal_token
     dispatch_tok = super_admin_portal_tokens["dispatch"]
     r = requests.get(
         f"{BASE}/api/operations-map/snapshot",
-        headers={"X-Dispatch-Token": dispatch_tok},
+        headers={
+            "X-Dispatch-Token": dispatch_tok,
+            "X-Directory-Token": super_admin_portal_tokens.get("session_token", ""),
+        },
         timeout=45,
     )
     assert r.status_code == 200, (
@@ -208,7 +212,10 @@ def test_operations_map_timeline_accepts_dispatch_token(super_admin_portal_token
     dispatch_tok = super_admin_portal_tokens["dispatch"]
     r = requests.get(
         f"{BASE}/api/operations-map/timeline?limit=5",
-        headers={"X-Dispatch-Token": dispatch_tok},
+        headers={
+            "X-Dispatch-Token": dispatch_tok,
+            "X-Directory-Token": super_admin_portal_tokens.get("session_token", ""),
+        },
         timeout=45,
     )
     assert r.status_code == 200, (
@@ -221,7 +228,10 @@ def test_operations_map_search_accepts_dispatch_token(super_admin_portal_tokens)
     dispatch_tok = super_admin_portal_tokens["dispatch"]
     r = requests.get(
         f"{BASE}/api/operations-map/search?q=truck",
-        headers={"X-Dispatch-Token": dispatch_tok},
+        headers={
+            "X-Dispatch-Token": dispatch_tok,
+            "X-Directory-Token": super_admin_portal_tokens.get("session_token", ""),
+        },
         timeout=45,
     )
     assert r.status_code == 200, (

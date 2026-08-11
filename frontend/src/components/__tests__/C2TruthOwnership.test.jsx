@@ -32,7 +32,7 @@ describe("C2 truth ownership UI contract", () => {
         testidPrefix="truth-owner"
       />,
     );
-    expect(screen.getByTestId("truth-owner-canonical-owner").textContent).toMatch(/trust_spine/);
+    expect(screen.getByTestId("truth-owner-canonical-owner").textContent).toMatch(/Primary owner:/i);
   });
 
   it("derived status is labeled derived", () => {
@@ -44,7 +44,7 @@ describe("C2 truth ownership UI contract", () => {
         testidPrefix="derived-owner"
       />,
     );
-    expect(screen.getByTestId("derived-owner-derived-status").textContent).toMatch(/Displayed DEGRADED/);
+    expect(screen.getByTestId("derived-owner-derived-status").textContent).toMatch(/Shown DEGRADED/i);
   });
 
   it("conflict warning is displayed", () => {
@@ -56,7 +56,7 @@ describe("C2 truth ownership UI contract", () => {
         testidPrefix="validator-owner"
       />,
     );
-    expect(screen.getByTestId("validator-owner-conflicts").textContent).toMatch(/separate from canonical platform truth/i);
+    expect(screen.getByTestId("validator-owner-conflicts").textContent).toMatch(/separate from .*platform truth/i);
   });
 
   it("evidence age is displayed", () => {
