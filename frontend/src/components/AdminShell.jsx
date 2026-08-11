@@ -56,7 +56,6 @@ export const SECTIONS = [
   { key: "audit-log",  to: "/admin/audit-log",  icon: History,         label: "Audit Log",       desc: "Unified timeline" },
   { key: "sessions",   to: "/admin/sessions",   icon: Activity,        label: "Sessions",        desc: "Forensic view" },
   { key: "deploy-recovery", to: "/admin/deploy-recovery", icon: Rocket, label: "Deploy Recovery", desc: "Rollback playbook" },
-  { key: "deploy-readiness", to: "/admin/deploy-readiness", icon: ListChecks, label: "Deploy Readiness", desc: "Pre-deploy QA" },
   { key: "platform-readiness", to: "/admin/platform-readiness", icon: ShieldCheck, label: "Platform Readiness", desc: "Reviews · evidence · blockers" },
   { key: "analytics", to: "/admin/analytics", icon: ChartBar, label: "Usage Analytics", desc: "Operational insight" },
   { key: "operational-inventory", to: "/admin/operational-inventory", icon: Map, label: "Operational Inventory", desc: "Governance coverage" },

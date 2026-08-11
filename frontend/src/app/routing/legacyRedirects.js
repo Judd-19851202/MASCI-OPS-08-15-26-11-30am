@@ -56,12 +56,11 @@ export const LEGACY_MOVED_MAP = {
     occOperationId: "integrations.probe_all",
   },
   "/admin/deploy-readiness": {
-    canonical: "/admin/operations-control?highlight=deploy.readiness_check",
-    canonicalTitle: "Operations Control · Go-Live Readiness",
+    canonical: "/admin/governance-trust",
+    canonicalTitle: "Standards & Readiness",
     reason:
-      "The go-live checklist now runs from Operations Control " +
-      "so you see it next to backups, integrations, and system health.",
-    occOperationId: "deploy.readiness_check",
+      "This operator surface no longer has a dedicated deploy-readiness page. " +
+      "Standards & Readiness remains the right place for current platform posture.",
   },
   "/admin/deploy-recovery": {
     canonical: "/admin/operations-control?highlight=deploy.recovery_playbook",

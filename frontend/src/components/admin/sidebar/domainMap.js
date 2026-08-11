@@ -119,7 +119,6 @@ export const DOMAINS_V2 = [
       { to: "/admin/system-health",     label: "System Health",      desc: "Green/yellow/red operational probe",           icon: Activity },
       { to: "/admin/database",          label: "Database",           desc: "Atlas capacity · 30-day storage trend",        icon: Database },
       { to: "/admin/audit-log",         label: "Activity History",   desc: "Unified activity timeline",                   icon: History },
-      { to: "/admin/deploy-readiness",  label: "Deploy Readiness",   desc: "Pre-deploy QA · gates",                        icon: ListChecks },
       { to: "/admin/deploy-recovery",   label: "Deploy Recovery",    desc: "Rollback playbook · backup chain",             icon: Shield },
       { to: "/admin/analytics",         label: "Usage Analytics",    desc: "Routes · portals · friction",                  icon: ChartBar },
       { to: "/admin/integrations",      label: "Integrations",       desc: "Motive · MaintainX · CSV",                     icon: Cable },

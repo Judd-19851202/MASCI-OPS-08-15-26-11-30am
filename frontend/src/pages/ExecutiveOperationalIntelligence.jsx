@@ -95,6 +95,12 @@ export default function ExecutiveOperationalIntelligence() {
   const items = attention?.items || {};
   const oppcSummary = oppc?.summary || {};
   const approvalHistory = briefing?.approval_history || [];
+  const initialLoad = loading
+    && dash === null
+    && health === null
+    && attention === null
+    && oppc === null
+    && briefing === null;
 
   const atRiskColumns = React.useMemo(() => ([
     {
@@ -151,18 +157,21 @@ export default function ExecutiveOperationalIntelligence() {
             <PresetPicker value={preset} onChange={setPreset} testid="exec-intel-preset-picker" />
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Items needing review")}</div>
-              <div className="mt-1 text-2xl font-black text-slate-950">{attention?.total || 0}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Projects reporting")}</div>
-              <div className="mt-1 text-2xl font-black text-slate-950">{totalProjects}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{t("Briefing status")}</div>
-              <div className="mt-1 text-sm font-semibold text-slate-950">{briefingStatusLabel(briefing?.status, t)}</div>
-            </div>
+            <SummaryStatCard
+              label={t("Items needing review")}
+              value={initialLoad ? null : attention?.total || 0}
+              testId="exec-summary-items"
+            />
+            <SummaryStatCard
+              label={t("Projects reporting")}
+              value={initialLoad ? null : totalProjects}
+              testId="exec-summary-projects"
+            />
+            <SummaryStatusCard
+              label={t("Briefing status")}
+              value={initialLoad ? null : briefingStatusLabel(briefing?.status, t)}
+              testId="exec-summary-briefing-status"
+            />
           </div>
         </section>
 
@@ -185,40 +194,47 @@ export default function ExecutiveOperationalIntelligence() {
             subtitle={t("Portfolio totals in range")}
             testid="exec-horizon-1-header"
           />
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3" data-testid="exec-intel-kpis">
-            <KpiTile
-              label="Total labor hours"
-              value={kpis.labor_hours ?? 0}
-              unit="hrs"
-              testid="exec-kpi-labor"
-              footnote="Crew time captured from operational reporting."
+          {initialLoad ? (
+            <SectionPlaceholder
+              message={t("Waiting for portfolio totals, project counts, and current variance posture…")}
+              testId="exec-horizon-1-loading"
             />
-            <KpiTile
-              label="Total equipment hours"
-              value={kpis.equipment_hours ?? 0}
-              unit="hrs"
-              testid="exec-kpi-equipment"
-              footnote="Live equipment use recorded in the selected period."
-            />
-            <KpiTile
-              label="Projects reporting"
-              value={totalProjects}
-              testid="exec-kpi-projects"
-              footnote="Projects with current reporting in the selected period."
-            />
-            <KpiTile
-              label="Photos captured"
-              value={kpis.photo_count ?? 0}
-              testid="exec-kpi-photos"
-              footnote="Field photos added by crews and supervisors."
-            />
-            <KpiTile
-              label="Open executive variances"
-              value={oppcSummary.open_variances ?? 0}
-              testid="exec-kpi-oppc-variances"
-              footnote="Variance items still open in the enterprise operations center."
-            />
-          </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3" data-testid="exec-intel-kpis">
+              <KpiTile
+                label="Total labor hours"
+                value={kpis.labor_hours ?? 0}
+                unit="hrs"
+                testid="exec-kpi-labor"
+                footnote="Crew time captured from operational reporting."
+              />
+              <KpiTile
+                label="Total equipment hours"
+                value={kpis.equipment_hours ?? 0}
+                unit="hrs"
+                testid="exec-kpi-equipment"
+                footnote="Live equipment use recorded in the selected period."
+              />
+              <KpiTile
+                label="Projects reporting"
+                value={totalProjects}
+                testid="exec-kpi-projects"
+                footnote="Projects with current reporting in the selected period."
+              />
+              <KpiTile
+                label="Photos captured"
+                value={kpis.photo_count ?? 0}
+                testid="exec-kpi-photos"
+                footnote="Field photos added by crews and supervisors."
+              />
+              <KpiTile
+                label="Open executive variances"
+                value={oppcSummary.open_variances ?? 0}
+                testid="exec-kpi-oppc-variances"
+                footnote="Variance items still open in the enterprise operations center."
+              />
+            </div>
+          )}
         </section>
 
         {/* HORIZON 2 · What Is Happening */}
@@ -233,7 +249,12 @@ export default function ExecutiveOperationalIntelligence() {
             className="rounded-lg border border-neutral-200 bg-white p-4"
             data-testid="exec-at-risk"
           >
-            {atRisk.length === 0 ? (
+            {initialLoad ? (
+              <SectionPlaceholder
+                message={t("Checking which projects are carrying the most delay, safety, and readiness friction…")}
+                testId="exec-at-risk-loading"
+              />
+            ) : atRisk.length === 0 ? (
               <div data-testid="exec-at-risk-table">
                 <EmptyEvidence label={t("No at-risk projects in this range.")} />
               </div>
@@ -256,35 +277,42 @@ export default function ExecutiveOperationalIntelligence() {
           <HorizonHeader
             number={3}
             title={t("What needs attention")}
-            subtitle={`${attention?.total || 0} ${t("items need review")}`}
+            subtitle={initialLoad ? t("Checking current attention queues") : `${attention?.total || 0} ${t("items need review")}`}
             testid="exec-horizon-3-header"
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AttentionList
-              title={t("Safety findings")}
-              items={items.safety}
-              kind="safety"
-              testid="exec-attention-safety"
+          {initialLoad ? (
+            <SectionPlaceholder
+              message={t("Loading the safety, quality, delay, and readiness queues…")}
+              testId="exec-horizon-3-loading"
             />
-            <AttentionList
-              title={t("Quality findings")}
-              items={items.quality}
-              kind="quality"
-              testid="exec-attention-quality"
-            />
-            <AttentionList
-              title={t("Active delays")}
-              items={items.delay}
-              kind="delay"
-              testid="exec-attention-delay"
-            />
-            <AttentionList
-              title={t("Readiness blockers")}
-              items={items.readiness}
-              kind="readiness"
-              testid="exec-attention-readiness"
-            />
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AttentionList
+                title={t("Safety findings")}
+                items={items.safety}
+                kind="safety"
+                testid="exec-attention-safety"
+              />
+              <AttentionList
+                title={t("Quality findings")}
+                items={items.quality}
+                kind="quality"
+                testid="exec-attention-quality"
+              />
+              <AttentionList
+                title={t("Active delays")}
+                items={items.delay}
+                kind="delay"
+                testid="exec-attention-delay"
+              />
+              <AttentionList
+                title={t("Readiness blockers")}
+                items={items.readiness}
+                kind="readiness"
+                testid="exec-attention-readiness"
+              />
+            </div>
+          )}
         </section>
 
         {oppc ? (
@@ -347,25 +375,26 @@ export default function ExecutiveOperationalIntelligence() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-neutral-500">Status</div>
-                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{briefingStatusLabel(briefing?.status, t)}</div>
+                  <div className="text-lg font-semibold text-neutral-900" data-testid="exec-briefing-status">{initialLoad ? t("Loading current briefing status…") : briefingStatusLabel(briefing?.status, t)}</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate">{t("Generate latest")}</button>
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve">{t("Approve")}</button>
-                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze">{t("Freeze")}</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("generate")} data-testid="exec-briefing-generate" disabled={loading && !briefing}>{t("Generate latest")}</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("approve")} data-testid="exec-briefing-approve" disabled={loading && !briefing}>{t("Approve")}</button>
+                  <button className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold disabled:opacity-50" onClick={() => runBriefingAction("freeze")} data-testid="exec-briefing-freeze" disabled={loading && !briefing}>{t("Freeze")}</button>
                   {briefingPdfDeferred ? <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900" data-testid="exec-briefing-pdf-deferred">{t("PDF is not available on this page yet.")}</div> : <a className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-2 text-xs font-semibold text-white" href={`${process.env.REACT_APP_BACKEND_URL}/api/oppc/enterprise/monday-briefing/pdf`} target="_blank" rel="noreferrer" data-testid="exec-briefing-pdf">{t("Open PDF")}</a>}
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 text-sm">
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">{t("Week ending")}: {briefing?.week_ending || t("Not selected yet")}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">{t("Generated")}: {fmtTs(briefing?.generated_at)}</div>
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-history">{t("Approvals and freezes recorded")}: {approvalHistory.length}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-week-ending">{t("Week ending")}: {initialLoad ? t("Loading…") : briefing?.week_ending || t("Not selected yet")}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-generated">{t("Generated")}: {initialLoad ? t("Loading…") : fmtTs(briefing?.generated_at)}</div>
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3" data-testid="exec-briefing-history">{t("Approvals and freezes recorded")}: {initialLoad ? "—" : approvalHistory.length}</div>
               </div>
               <div className="space-y-2 text-sm text-neutral-700" data-testid="exec-briefing-summary-lines">
-                {(briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>)}
-                {!(briefing?.summary_lines || []).length ? <div className="text-neutral-500">{t("No executive summary lines are published yet. Generate the latest briefing to build the current summary from operating records.")}</div> : null}
+                {initialLoad ? <div className="text-neutral-500">{t("Loading the latest briefing summary lines…")}</div> : null}
+                {!initialLoad ? (briefing?.summary_lines || []).map((line, idx) => <div key={`${line}-${idx}`}>{line}</div>) : null}
+                {!initialLoad && !(briefing?.summary_lines || []).length ? <div className="text-neutral-500">{t("No executive summary lines are published yet. Generate the latest briefing to build the current summary from operating records.")}</div> : null}
               </div>
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">{t("Warnings")}: {(briefing?.warnings || []).join(" · ") || t("No warning text was returned")}</div>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600" data-testid="exec-briefing-warnings">{t("Warnings")}: {initialLoad ? t("Loading…") : (briefing?.warnings || []).join(" · ") || t("No warning text was returned")}</div>
             </div>
           </section>
 
@@ -375,5 +404,32 @@ export default function ExecutiveOperationalIntelligence() {
         <EvidenceFooter />
       </div>
     </LegacyAdminModernShell>
+  );
+}
+
+function SummaryStatCard({ label, value, testId }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={testId}>
+      <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{label}</div>
+      <div className="mt-1 text-2xl font-black text-slate-950">{value == null ? "—" : value}</div>
+      {value == null ? <div className="mt-2 text-xs text-slate-500">Loading current evidence…</div> : null}
+    </div>
+  );
+}
+
+function SummaryStatusCard({ label, value, testId }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={testId}>
+      <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-mono">{label}</div>
+      <div className="mt-1 text-sm font-semibold text-slate-950">{value || "Loading current evidence…"}</div>
+    </div>
+  );
+}
+
+function SectionPlaceholder({ message, testId }) {
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600" data-testid={testId}>
+      {message}
+    </div>
   );
 }

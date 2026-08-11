@@ -38,23 +38,6 @@ function _prod_cert(probes) {
     evidence: { platform_band: band, counters, workflows_summary_len: (b.workflows || []).length,
       track: b.track } };
 }
-function _deploy(probes) {
-  const p = probes.deploy;
-  if (!p?.ok) return { status: "unknown", summary: "Deploy readiness unreachable.", evidence: { error: p?.error } };
-  const b = p.body || {};
-  const overall = String(b.overall_status || "").toLowerCase();
-  const blockers = Number(b.blocker_count || 0);
-  const warns = Number(b.warn_count || 0);
-  const status = blockers > 0 || overall === "blocked" ? "red"
-    : warns > 0 || overall === "warning" ? "yellow"
-    : overall === "ready" ? "green" : "unknown";
-  return { status,
-    summary: `${b.total_checks || 0} readiness checks · ${blockers} blockers · ${warns} warnings`,
-    recommended_action: blockers ? "Resolve blocker(s) before deploy." : "",
-    checked_at: b.checked_at,
-    evidence: { checks: (b.checks || []).slice(0, 8), overall_status: overall,
-      total: b.total_checks } };
-}
 function _version(probes) {
   const p = probes.version;
   if (!p?.ok) return { status: "unknown", summary: "Version endpoint unreachable.", evidence: { error: p?.error } };
@@ -97,29 +80,13 @@ function _unified_trust_events(probes) {
       probe_errors: b.probe_errors,
     } };
 }
-function _unresolved_blockers(probes) {
-  const p = probes.trust_events;
-  if (!p?.ok) return { status: "unknown", summary: "Blockers unreachable.", evidence: { error: p?.error } };
-  const blockers = p.body?.unresolved_blockers || [];
-  if (blockers.length === 0) {
-    return { status: "green", summary: "Zero unresolved deploy blockers.", checked_at: p.body?.generated_at,
-      evidence: { count: 0 } };
-  }
-  return { status: "red",
-    summary: `${blockers.length} unresolved deploy blocker(s).`,
-    recommended_action: "Resolve blockers or accept risk before deploy.",
-    checked_at: p.body?.generated_at,
-    evidence: { blockers } };
-}
-
 const manifest = {
   id: "governance-trust",
   label: "Standards & Readiness",
-  subtitle: "Operations readiness · standards rules · go-live checks · activity history.",
+  subtitle: "Operations posture · standards rules · activity history.",
   probes: [
     { id: "governance", path: "/admin/governance/summary" },
     { id: "prod_cert", path: "/admin/production-certification" },
-    { id: "deploy", path: "/admin/deploy-readiness" },
     { id: "version", path: "/version" },
     { id: "audit", path: "/admin/audit?limit=5" },
     { id: "trust_events", path: "/admin/occ/trust-events?limit=25" },
@@ -128,12 +95,6 @@ const manifest = {
     { id: "prod-certification", section: "readiness", title: "Operations Readiness",
       endpoint: "/api/admin/production-certification",
       drilldown: "/admin/governance", evaluator: _prod_cert },
-    { id: "deploy-readiness", section: "readiness", title: "Go-Live Readiness",
-      endpoint: "/api/admin/deploy-readiness",
-      drilldown: "/admin/deploy-recovery", evaluator: _deploy },
-    { id: "unresolved-blockers", section: "readiness", title: "Open Go-Live Blockers",
-      endpoint: "/api/admin/occ/trust-events",
-      drilldown: "/admin/deploy-recovery", evaluator: _unresolved_blockers },
     { id: "governance-summary", section: "rules", title: "Standards Rules",
       endpoint: "/api/admin/governance/summary",
       drilldown: "/admin/governance", evaluator: _governance },
@@ -147,7 +108,7 @@ const manifest = {
   ],
   sections: [
     { id: "readiness", label: "Standards & Readiness", icon: ShieldCheck,
-      cards: ["prod-certification", "deploy-readiness", "unresolved-blockers"] },
+      cards: ["prod-certification"] },
     { id: "rules", label: "Standards Rules & Version", icon: ClipboardCheck,
       cards: ["governance-summary", "platform-version"] },
     { id: "activity", label: "Activity History", icon: History, cards: ["admin-audit", "unified-trust-events"] },
@@ -171,7 +132,7 @@ const manifest = {
       severity: "P1", owner: "platform-trust", target_track: "27.11", risk: "medium",
       current_status: "Local pytest only — CI status not surfaced in admin UI.", blocks_production: false },
   ],
-  source_endpoints_line: "Operations readiness service · go-live readiness service · standards summary · platform version · activity history · platform events",
+  source_endpoints_line: "Operations readiness service · standards summary · platform version · activity history · platform events",
 };
 
 export default function AdminGovernanceTrust() {

@@ -105,39 +105,6 @@ function _prod_cert_diag(probes) {
     checked_at: b.generated_at,
     evidence: { platform_band: band, counters: b.counters, track: b.track } };
 }
-function _deploy_diag(probes) {
-  const p = probes.deploy;
-  if (!p?.ok) return { status: "unknown", summary: "Deploy readiness endpoint unreachable.", evidence: { error: p?.error } };
-  const b = p.body || {};
-  const overall = String(b.overall_status || "").toLowerCase();
-  const canonical = String(b.canonical_status || "").toUpperCase();
-  const blockers = Number(b.blocker_count || 0);
-  const warns = Number(b.warn_count || 0);
-  // TRACK 28.11 · Accept canonical vocabulary first, then fall back
-  // to legacy status strings. `overall_status: "attention"` was
-  // being mapped to UNKNOWN because the switch below didn't include
-  // "attention" — that is why the Diagnostics UI showed the card as
-  // UNKNOWN despite the endpoint saying 0 blockers.
-  let status = "unknown";
-  if (canonical === "HEALTHY") status = "green";
-  else if (canonical === "ATTENTION") status = "yellow";
-  else if (canonical === "CRITICAL") status = "red";
-  else if (canonical === "UNKNOWN") status = "unknown";
-  else {
-    // Legacy fallback
-    if (blockers > 0 || overall === "blocked") status = "red";
-    else if (overall === "attention" || overall === "warning" || warns > 0) status = "yellow";
-    else if (overall === "ready" || overall === "pass" || overall === "go") status = "green";
-  }
-  const summary = b.canonical_summary
-    || `${b.total_checks || 0} readiness checks · ${blockers} blocker(s) · ${warns} warn(s)`;
-  return { status,
-    summary,
-    recommended_action: b.recommended_action || "",
-    checked_at: b.checked_at,
-    evidence: b };
-}
-
 const manifest = {
   id: "diagnostics",
   label: "Diagnostics",
@@ -149,7 +116,6 @@ const manifest = {
     { id: "occ", path: "/admin/occ/health" },
     { id: "scheduler", path: "/admin/scheduler-runs?limit=5" },
     { id: "prod_cert", path: "/admin/production-certification" },
-    { id: "deploy", path: "/admin/deploy-readiness" },
   ],
   cards: [
     { id: "api-health", section: "runtime", title: "API Health",
@@ -164,14 +130,12 @@ const manifest = {
       endpoint: "/api/admin/scheduler-runs", drilldown: "/admin/scheduler-runs", evaluator: _scheduler_runs },
     { id: "prod-cert", section: "certification", title: "Production Certification",
       endpoint: "/api/admin/production-certification", drilldown: "/admin/governance-trust", evaluator: _prod_cert_diag },
-    { id: "deploy-readiness", section: "certification", title: "Deploy Readiness",
-      endpoint: "/api/admin/deploy-readiness", drilldown: "/admin/governance-trust", evaluator: _deploy_diag },
   ],
   sections: [
     { id: "runtime", label: "Runtime", icon: Activity, cards: ["api-health", "build-version"] },
     { id: "probes", label: "Probes & OCC", icon: Gauge, cards: ["system-health", "occ-snapshot"] },
     { id: "workers", label: "Workers & Schedulers", icon: Database, cards: ["scheduler-runs"] },
-    { id: "certification", label: "Certification & Deploy", icon: ClipboardList, cards: ["prod-cert", "deploy-readiness"] },
+    { id: "certification", label: "Certification", icon: ClipboardList, cards: ["prod-cert"] },
   ],
   maintenance_actions: [
     { id: "system-health-open", title: "System Health Detail",
@@ -198,7 +162,7 @@ const manifest = {
       severity: "P2", owner: "platform-observability", target_track: "27.13", risk: "low",
       current_status: "Read-only cluster capacity surface is now exposed through /api/admin/database.", blocks_production: false },
   ],
-  source_endpoints_line: "/api/health · /api/version · /api/admin/system-health · /api/admin/occ/health · /api/admin/scheduler-runs · /api/admin/production-certification · /api/admin/deploy-readiness",
+  source_endpoints_line: "/api/health · /api/version · /api/admin/system-health · /api/admin/occ/health · /api/admin/scheduler-runs · /api/admin/production-certification",
 };
 
 export default function AdminDiagnostics() {
