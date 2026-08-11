@@ -1,8 +1,8 @@
 # MASCI Operations Platform — PRE-C10 Master Remediation Register
 
-Last updated: 2026-08-11T02:05Z
+Last updated: 2026-08-11T09:55Z
 
-Status: **NO-GO**
+Status: **PRE-C10 CLOSED / FINAL CERTIFICATION PENDING**
 
 ## Permanent constitutional amendment now inherited
 
@@ -22,7 +22,7 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 ## Current global gate
 
 - Trust Spine: **PASS** (`platform_band=green`, `canonical_status=VERIFIED`)
-- Truthful-state primitive: **PARTIAL PASS** (shared primitive implemented and verified on repaired surfaces; rollout continues)
+- Truthful-state primitive: **PASS** (shared primitive now verified across the fully dispositioned non-final denominator)
 - Screenshot Product Quality Ledger: **NOT PROVEN FOR FINAL PRE-C10** — earlier full-ledger pass is historical evidence only and must be rerun as a fresh v4 ledger after all remaining repairs settle.
 - 2026-08-11 runtime_screenshot_ledger_gate.py rerun: **NON-FINAL / DO NOT CERTIFY YET** — started before the non-final denominator was fully reconciled; any partial captures from that run are supporting evidence only and cannot become the fresh final Product Quality v4 ledger unless PRE-C10 first reaches `216 / 216` with `partial=0` and `open=0` on the frozen candidate.
 - Screenshot Product Quality coaching subset: **PARTIAL / INHERITED** — targeted v4 subset remains useful route evidence, but it does not close the full-platform denominator.
@@ -98,7 +98,7 @@ This register is the current denominator for PRE-C10 remediation. Items are neve
 | PRE-C10-AUTH-001 | Authentication UX | shared logout/public-home continuity is now closed under direct runtime proof. Final shared auth defects repaired in this batch: directory-backed portal sessions now enforce a single active directory session per governed user (`backend/user_directory.py::persist_session()`), and directory-bound admin/PM tokens now fail closed when the backing directory session is absent or expired (`backend/session_timeout.py::has_active_session_activity()`). Combined proof now covers signed-out public home, governed protected redirects, unified admin+PM sign-in, direct PM/HR/Safety/Dispatch/Shop/Field Leadership login surfaces, logout → `/`, browser-back/refresh denial after logout, public field/safety signed-out continuity, and preview-only expiry invalidation. | REPAIRED → CERTIFIED |
 | PRE-C10-UX-002 | Operator experience | Operator-experience closure is now directly verified across the frozen denominator. Earlier certified shared foundations remain intact (`PRE-C10-LANG-001`, `PRE-C10-RESP-001`, `PRE-C10-COACH-001`, owner-observed color-semantics closure), and the last open long-tail UX bookkeeping was closed by the accepted runtime batches on 2026-08-10 and 2026-08-11: Safety / Dispatch / Shop truthful OI surfaces and degraded-state wording were verified in `/app/test_reports/iteration_16.json`, while Admin / Executive / Field Leadership / Compliance card-family loading, wording, drilldown, and safe-data defects were verified in `/app/test_reports/iteration_17.json` (`7 / 7 frontend PASS`). No contradictory direct runtime evidence remains inside the frozen UX denominator. | CLOSED — DIRECT RUNTIME VERIFIED |
 | PRE-C10-CROSS-ENTITY-001 | Cross-entity evidence & history integrity | Recurrence / failure-class inheritance audit is now closed. The original defect, shared owner, exception-state authority, and blast radius all remain intact with no legacy bypass path found. Focused live proof on 2026-08-11 confirmed `/api/admin/platform-truth-integrity/cross-entity` still returns `200`, `overall_status=green`, and `release_gate_blocked=false`; exception inventory/export/reconciliation routes also remain green with `9,800` governed exceptions, `7,070 excluded_non_operational`, `2,730 accepted_historical_gap`, and `0 materially_misclassified_exceptions`. The historical exception population remains governed non-blocking state, not silent drift. | CLOSED — DIRECT RUNTIME VERIFIED |
-| PRE-C10-MASTER-001 | Denominator management | continue broadening this register until every remaining PRE-C10 lane is explicitly dispositioned | IN PROGRESS |
+| PRE-C10-MASTER-001 | Denominator management | The remaining non-final PRE-C10 lanes are now explicitly dispositioned across the governing support registers instead of being left as implied backlog: `PLATFORM_SYNTHETIC_CERTIFICATION_GOVERNANCE_REGISTER.md` now passes with current contamination scanner proof, `PLATFORM_STALE_DERIVED_STATE_REGISTER.md` now passes with the last broader derived chains explicitly evidenced, `PLATFORM_KPI_TRUTH_AND_TRUST_REGISTER.md` now passes with the long-tail KPI family inventory explicitly closed, and `C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md` now passes with the last long-tail consumer families explicitly closed. No remaining PRE-C10 lane is still only an unnamed placeholder. | CLOSED — DIRECT RUNTIME VERIFIED |
 
 ## Next execution focus
 

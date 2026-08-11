@@ -77,8 +77,8 @@ export default function CommandStrip({ summary, loading, onJumpTo, metadata }) {
   return (
     <div data-testid="command-strip" className="space-y-2">
       <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500" data-testid="command-strip-help-row">
-        <span>Dispatch snapshot</span>
-        <KpiInlineHelp metadata={metadata} fallbackLabel="Dispatch snapshot" testId="command-strip-help" />
+        <span>Dispatch summary</span>
+        <KpiInlineHelp metadata={metadata} fallbackLabel="Dispatch summary" testId="command-strip-help" />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
         <Tile icon={User}   label="Drivers"    value={skeleton ? "…" : activeDrivers}

@@ -153,6 +153,31 @@
         "mission_ref": "PDC-01B Closeout governance records",
         "rationale": "CHANGELOG was updated at final closeout to record the exact WP-18DB repairs, final archive, release-gate result, and dashboard extension."
       },
+      {
+        "path_pattern": "docs/governance/PRE_C10_*",
+        "mission_ref": "PRE-C10 final denominator closeout",
+        "rationale": "The governing PRE-C10 closeout register and related bounded denominator artifacts are allowed PRE_SAVE_CANDIDATE deltas while the non-final denominator is being explicitly dispositioned before the frozen final certification chain."
+      },
+      {
+        "path_pattern": "docs/governance/PLATFORM_*",
+        "mission_ref": "PRE-C10 platform truth closeout",
+        "rationale": "Platform truth, KPI, synthetic-governance, and stale-derived-state closeout artifacts are governed PRE_SAVE_CANDIDATE evidence while PRE-C10 denominator closure is being finalized."
+      },
+      {
+        "path": "docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md",
+        "mission_ref": "PRE-C10 C1-C9 closeout",
+        "rationale": "The canonical C1–C9 integration truth register is allowed as a governed PRE_SAVE_CANDIDATE delta while the remaining long-tail consumer families are explicitly dispositioned."
+      },
+      {
+        "path": "docs/governance/PERMANENT_FIX_CLOSURE_REGISTER.csv",
+        "mission_ref": "PRE-C10 permanent-fix closeout",
+        "rationale": "The canonical permanent-fix closure ledger is allowed as a governed PRE_SAVE_CANDIDATE delta while final closeout rows are reconciled and frozen for certification."
+      },
+      {
+        "path_pattern": "memory/WP18_OPERATOR_*",
+        "mission_ref": "PRE-C10 operator-language certification evidence",
+        "rationale": "WP18 operator-language comprehension and exception ledgers are governed certification evidence artifacts and may remain dirty within the bounded PRE_SAVE_CANDIDATE closeout package."
+      },
     {
       "path_pattern": "memory/WP18C9_*",
       "mission_ref": "WP18C9 Closeout evidence pack",

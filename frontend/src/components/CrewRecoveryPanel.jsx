@@ -47,56 +47,56 @@ const FALLBACK_COUNT_AUDIT = {
   equipment_master: {
     label: "Equipment master records",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count is live master-data volume only. Operational truth lives on the governed equipment surfaces.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count is live master-data volume only. Operational decision signals live on the governed equipment surfaces.",
     canonical_surface: "/admin/equipment",
   },
   equipment_units: {
     label: "Equipment units",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
+    classification_label: "Approved / live",
     operator_truth_rule: "Raw count is technical volume only. Unit readiness requires the governed equipment views.",
     canonical_surface: "/admin/equipment",
   },
   equipment_inspections: {
     label: "Equipment inspections",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count can include historical or governed-hidden rows. Review governed equipment inspection surfaces for business truth.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count can include historical or governed-hidden rows. Review governed equipment inspection surfaces for business signal.",
     canonical_surface: "/admin/equipment",
   },
   inspections: {
     label: "Safety inspections",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count is a collection diagnostic only. Operator truth belongs to governed safety inspection surfaces.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count is a record-list diagnostic only. Operator decision signals belong to governed safety inspection surfaces.",
     canonical_surface: "/admin/incidents",
   },
   meetings: {
     label: "Safety meetings",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count is technical volume only. Use governed safety meeting records for operational truth.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count is technical volume only. Use governed safety meeting records for operational signals.",
     canonical_surface: "/admin/incidents",
   },
   jhas: {
     label: "JHAs",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count can include certification or audit rows. Governed JHA surfaces own business truth.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count can include certification or audit rows. Governed JHA surfaces own business signal.",
     canonical_surface: "/admin/incidents",
   },
   incidents: {
     label: "Incidents",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count is not incident severity truth. Use the governed incident command surfaces.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count is not incident severity signal. Use the governed incident command surfaces.",
     canonical_surface: "/admin/incidents",
   },
   daily_reports: {
     label: "Daily reports",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
+    classification_label: "Approved / live",
     operator_truth_rule: "Raw count is technical volume only. Governed reporting surfaces apply visibility and contamination rules.",
     canonical_surface: "/admin/daily-reports",
   },
@@ -110,22 +110,22 @@ const FALLBACK_COUNT_AUDIT = {
   employees: {
     label: "Employee master records",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
-    operator_truth_rule: "Raw count is master-data volume only. Workforce truth requires governed people and compliance surfaces.",
+    classification_label: "Approved / live",
+    operator_truth_rule: "Raw count is master-data volume only. Workforce decisions require governed people and compliance surfaces.",
     canonical_surface: "/admin/people",
   },
   suppliers: {
     label: "Supplier master records",
     truth_classification: "canonical_live",
-    classification_label: "Canonical / live",
+    classification_label: "Approved / live",
     operator_truth_rule: "Raw count is technical volume only. Vendor readiness must be reviewed on governed supplier surfaces.",
     canonical_surface: "/admin/equipment",
   },
   notifications: {
     label: "Notification events",
     truth_classification: "telemetry",
-    classification_label: "Telemetry",
-    operator_truth_rule: "High volume does not equal operator backlog. This is system-event telemetry, not business work-in-progress.",
+    classification_label: "Activity details",
+    operator_truth_rule: "High volume does not equal operator backlog. This is system-event activity detail, not business work-in-progress.",
     canonical_surface: "/admin/communications",
   },
   activity_log: {
@@ -270,7 +270,7 @@ export default function CrewRecoveryPanel() {
           className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
           data-testid="crew-recovery-link-storage"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Canonical recovery evidence</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Recovery evidence</div>
           <div className="mt-1 font-semibold text-slate-900">Storage & Recovery</div>
           <div className="mt-1 text-xs">Backups, manifests, retention, restore drills, and integrity jobs.</div>
         </Link>
@@ -279,25 +279,25 @@ export default function CrewRecoveryPanel() {
           className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
           data-testid="crew-recovery-link-diagnostics"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Canonical technical probes</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Technical checks</div>
           <div className="mt-1 font-semibold text-slate-900">Diagnostics</div>
-          <div className="mt-1 text-xs">Runtime health, workers, deploy readiness, and governed system checks.</div>
+          <div className="mt-1 text-xs">Current system health, workers, deploy readiness, and governed system checks.</div>
         </Link>
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900" data-testid="crew-recovery-exception-note">
           <div className="font-mono text-[10px] uppercase tracking-[0.18em]">Exception-only rule</div>
-          <div className="mt-1 font-semibold">Do not use raw counts here as business truth.</div>
-          <div className="mt-1 text-xs leading-relaxed">This panel is for technical diagnosis and guarded reconstruction only. Operational truth still belongs to the governed domain surfaces above.</div>
+          <div className="mt-1 font-semibold">Do not use raw counts here as business signal.</div>
+          <div className="mt-1 text-xs leading-relaxed">This panel is for technical diagnosis and guarded reconstruction only. Operational decision signals still belong to the governed domain surfaces above.</div>
         </div>
       </div>
 
       {/* ===== System counts ===== */}
       <div className="bg-slate-50 border-2 border-slate-200 rounded p-3 mb-5">
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-700 font-bold mb-2">
-          Technical collection diagnostics
+          Technical record diagnostics
         </div>
         <p className="mb-3 text-xs text-slate-600">
-          Each figure below is a raw collection count. It shows database presence only — not governed business truth,
-          not filtered operator truth, and not release readiness by itself.
+          Each figure below is a raw record count. It shows database presence only — not governed business signal,
+          not filtered operator view, and not release readiness by itself.
         </p>
         {loading ? (
           <div className="text-slate-500 text-sm flex items-center gap-2">
@@ -336,7 +336,7 @@ export default function CrewRecoveryPanel() {
                   {row.operator_truth_rule || "Technical diagnostic only."}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
-                  <span>Canonical surface: <span className="font-mono text-slate-700">{row.canonical_surface || "—"}</span></span>
+                  <span>Approved surface: <span className="font-mono text-slate-700">{row.canonical_surface || "—"}</span></span>
                   <span>Last refresh: <span className="font-mono text-slate-700">{formatPlatformTime(status?.refreshed_at)}</span></span>
                 </div>
               </div>

@@ -249,7 +249,7 @@ function StatsStrip({ stats, t }) {
   return (
     <div className="mt-5" data-testid="time-off-stats">
       <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600">
-        <span>{t("Queue snapshot")}</span>
+        <span>{t("Queue summary")}</span>
         <KpiInlineHelp metadata={stats?.kpi_metadata} fallbackLabel={t("Time Off Requests") } testId="time-off-stats-help" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">

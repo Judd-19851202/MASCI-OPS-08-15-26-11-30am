@@ -9,12 +9,12 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminComplianceFindings,Admin,Governance Health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminComplianceFindings.jsx:154,EXEMPT
 /AdminComplianceFindings,Admin,"Each finding maps to a specific detector rule (CAPA overdue, identity drift, expired CDL, etc). A clean board here means cross-portal accountability is healthy.",ETC,TECHNICAL_ADMIN_EXCEPTION,estimated cost to finish,static_scan::frontend/src/pages/admin/AdminComplianceFindings.jsx:168,EXEMPT
 /AdminDatabase,Admin,"Read-only operational observability. Live cluster snapshot, 30-day storage trend, runway estimate.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDatabase.jsx:128,EXEMPT
-/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:144,EXEMPT
-/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:144,EXEMPT
-/AdminDiagnostics,Admin,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:155,EXEMPT
-/AdminDiagnostics,Admin,OCC Trust Snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:161,EXEMPT
-/AdminDiagnostics,Admin,Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:171,EXEMPT
-/AdminDiagnostics,Admin,"Per-probe health cards, deeper than the OCC snapshot.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:179,EXEMPT
+/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:111,EXEMPT
+/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:111,EXEMPT
+/AdminDiagnostics,Admin,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:121,EXEMPT
+/AdminDiagnostics,Admin,OCC Trust Snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:127,EXEMPT
+/AdminDiagnostics,Admin,Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:135,EXEMPT
+/AdminDiagnostics,Admin,"Per-probe health cards, deeper than the OCC snapshot.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:143,EXEMPT
 /AdminEmail,Admin,Auto-routing rules · distribution lists · route catalog.,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminEmail.jsx:16,EXEMPT
 /AdminForecastingCommitments,Admin,Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/AdminForecastingCommitments.jsx:64,EXEMPT
 /AdminGeofenceReconciliation,Admin,Motive Geofence Reconciliation,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/admin/AdminGeofenceReconciliation.jsx:169,EXEMPT
@@ -74,12 +74,16 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminLegacyImports,Admin,collection:,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/AdminLegacyImports.jsx:457,EXEMPT
 /AdminLegacyImports,Admin,OCR/AI-assisted reconciliation queue · humans approve every promotion.,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:85,EXEMPT
 /AdminLegacyImports,Admin,Historical Records · Reconciliation Queue,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:98,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:496,EXEMPT
-/AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:500,EXEMPT
-/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:737,EXEMPT
-/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:740,EXEMPT
-/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:759,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:764,EXEMPT
+/AdminOS,Admin,"Runtime probes, database capacity, workers, and deployment-readiness diagnostics on request.",runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:1087,EXEMPT
+/AdminOS,Admin,Resolve governance and readiness findings,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:329,EXEMPT
+/AdminOS,Admin,Inspect runtime diagnostics and worker health,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:343,EXEMPT
+/AdminOS,Admin,"Trusted platform posture — readiness, attestation, and runtime command signal.",runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:459,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:652,EXEMPT
+/AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:656,EXEMPT
+/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:915,EXEMPT
+/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:918,EXEMPT
+/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:937,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:942,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient/group CRUD is served by the admin API (,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Canonical English PDF export · legacy + modern records in one list · management access only,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:658,EXEMPT
@@ -116,13 +120,17 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminRecovery,Admin,Sources: recovery snapshot · deployment readiness · cluster capacity · scheduler runs · system health,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:410,EXEMPT
 /AdminRecovery,Admin,Archive lineage,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:458,EXEMPT
 /AdminRecovery,Admin,Lineage confidence,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/pages/admin/AdminRecovery.jsx:469,EXEMPT
-/AdminStorageRecovery,Admin,Re-probe R2 HEAD/bucket + refresh status snapshot.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:371,EXEMPT
-/AdminStorageRecovery,Admin,Runtime R2 fallback (local → R2 on write),runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:409,EXEMPT
-/AdminStorageRecovery,Admin,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:600,EXEMPT
-/AdminStorageRecovery,Admin,Truth subject=,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:606,EXEMPT
-/AdminStorageRecovery,Admin,Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:685,EXEMPT
-/AdminStorageRecovery,Admin,Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:685,EXEMPT
-/AdminStorageRecovery,Admin,Lifecycle Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:822,EXEMPT
+/AdminStorageRecovery,Admin,Re-probe R2 HEAD/bucket + refresh status snapshot.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:372,EXEMPT
+/AdminStorageRecovery,Admin,Runtime R2 fallback (local → R2 on write),runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:410,EXEMPT
+/AdminStorageRecovery,Admin,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:601,EXEMPT
+/AdminStorageRecovery,Admin,Truth subject=,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:607,EXEMPT
+/AdminStorageRecovery,Admin,Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:686,EXEMPT
+/AdminStorageRecovery,Admin,Sources: /api/admin/recovery/snapshot · /api/admin/backups-scheduler-state · /api/admin/integrations/health · /api/admin/r2/lifecycle/retention · /api/admin/operations-control/audit,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:686,EXEMPT
+/AdminStorageRecovery,Admin,Lifecycle Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminStorageRecovery.jsx:827,EXEMPT
+/AdminSystem,Admin,Exceptional reconstruction only. Canonical backup and diagnostics truth lives elsewhere.,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminSystem.jsx:18,EXEMPT
+/AdminSystem,Admin,Exceptional reconstruction only. Canonical backup and diagnostics truth lives elsewhere.,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminSystem.jsx:18,EXEMPT
+/AdminSystem,Admin,"Backup integrity, R2 posture, restore evidence, and runtime diagnostics now belong to their governed canonical surfaces. Keep this page for exceptional recovery and destructive reconstruction only.",canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminSystem.jsx:29,EXEMPT
+/AdminSystem,Admin,"Backup integrity, R2 posture, restore evidence, and runtime diagnostics now belong to their governed canonical surfaces. Keep this page for exceptional recovery and destructive reconstruction only.",runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminSystem.jsx:29,EXEMPT
 /AdminVendorThread,Admin,Owner (source-of-truth for vendor master),truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/AdminVendorThread.jsx:185,EXEMPT
 /DeployRecovery,Operator,Operational Truth Spine,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:115,EXEMPT
 /DeployRecovery,Operator,No backup runs recorded yet — confirm the hourly R2 snapshot cron is armed before deploy.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/DeployRecovery.jsx:157,EXEMPT
@@ -166,17 +174,18 @@ AdminBackupVerificationPanel,Shared Operator Component,Operational Truth Spine,t
 AdminBackupVerificationPanel,Shared Operator Component,Truth subject=,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/components/AdminBackupVerificationPanel.jsx:158,EXEMPT
 AdminBackupVerificationPanel,Shared Operator Component,Lineage,lineage,TECHNICAL_ADMIN_EXCEPTION,record history,static_scan::frontend/src/components/AdminBackupVerificationPanel.jsx:276,EXEMPT
 AdminReferenceLookup,Shared Operator Component,Paste a canonical reference to jump straight to the record.,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/components/AdminReferenceLookup.jsx:62,EXEMPT
-AdminShell,Shared Operator Component,Governance Health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:63,EXEMPT
+AdminShell,Shared Operator Component,Governance Health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:62,EXEMPT
+AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:85,EXEMPT
 AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:86,EXEMPT
 AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:87,EXEMPT
 AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:88,EXEMPT
-AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:89,EXEMPT
-AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:96,EXEMPT
+AdminShell,Shared Operator Component,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/components/AdminShell.jsx:95,EXEMPT
 AdminSignatureMigrationPanel,Shared Operator Component,Collection,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/components/AdminSignatureMigrationPanel.jsx:134,EXEMPT
 AdminUnifiedDirectoryPanel,Shared Operator Component,Auto-mirrored from a legacy per-portal collection (Phase K1).,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/components/AdminUnifiedDirectoryPanel.jsx:63,EXEMPT
 BackendVersionBadge,Shared Operator Component,Backend …,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/components/BackendVersionBadge.jsx:33,EXEMPT
 BackendVersionBadge,Shared Operator Component,Backend /api/version unreachable — redeploy,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/components/BackendVersionBadge.jsx:46,EXEMPT
 BackendVersionBadge,Shared Operator Component,Backend /api/version unreachable — redeploy,backend,TECHNICAL_ADMIN_EXCEPTION,system records,static_scan::frontend/src/components/BackendVersionBadge.jsx:46,EXEMPT
+BackupIntegrityJobPanel,Shared Operator Component,Truth rule,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/components/admin/BackupIntegrityJobPanel.jsx:161,EXEMPT
 DraftHealthTile,Shared Operator Component,/draft-telemetry/recent?limit=200,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/components/admin/DraftHealthTile.jsx:120,EXEMPT
 DraftHealthTile,Shared Operator Component,/draft-telemetry/health,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/components/admin/DraftHealthTile.jsx:121,EXEMPT
 LocationIntelligencePanel,Shared Operator Component,Read-only overlay. Approve / reject linkages from the Reconciliation screen.,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/components/admin/LocationIntelligencePanel.jsx:63,EXEMPT
@@ -224,10 +233,10 @@ export_pdf_fallback,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,s
 hub_banners_pdf,Technical,frontend,frontend,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::backend/hub_banners_pdf.py:35,EXEMPT
 notification_delivery,Technical,invalid api key,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/lib/notification_delivery.py:361,EXEMPT
 notification_delivery,Technical,api key is invalid,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::backend/lib/notification_delivery.py:362,EXEMPT
-notifications,Technical,/admin/governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:156,EXEMPT
-notifications,Technical,/admin/governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:227,EXEMPT
+notifications,Technical,/admin/governance/legacy-health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:156,EXEMPT
+notifications,Technical,/admin/governance/legacy-health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:227,EXEMPT
 notifications,Technical,Governance score dropped by 12 points overnight,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:29,EXEMPT
-notifications,Technical,/admin/governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:32,EXEMPT
+notifications,Technical,/admin/governance/legacy-health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:32,EXEMPT
 notifications,Technical,Operational records reference employee names HR's master cannot resolve. Resolving each one closes operational records back into the canonical identity timeline.,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::backend/routes/notifications.py:406,EXEMPT
 notifications,Technical,"Visit Crew Compliance to see which of these are on your projects — read-only governance, but you can escalate to Safety/HR.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:518,EXEMPT
 notifications,Technical,Safety governance issue — surfaces here so FL knows incident exposure on the field side.,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::backend/routes/notifications.py:684,EXEMPT

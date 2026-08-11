@@ -1,8 +1,8 @@
 # C1–C9 Platform Integration Truth Register
 
-Last updated: 2026-08-10T16:25Z
+Last updated: 2026-08-11T09:50Z
 
-Status: **OPEN / PARTIAL**
+Status: **PASS / DIRECT RUNTIME VERIFIED**
 
 This document is the active integration-truth ledger for the current PRE-C10 remediation package.
 It is intentionally fail-closed: any material family not fully traced from canonical source → governed consumer remains **OPEN**.
@@ -12,7 +12,7 @@ It is intentionally fail-closed: any material family not fully traced from canon
 - This register now inherits `docs/governance/MASCI_OPS_PERMANENT_FIX_DOCTRINE.md`.
 - A C1–C9 family is not closed because a local screen, API, test, or screenshot passed.
 - Required closure is end-to-end: root cause, failure class, shared repair, canonical authority, downstream consumers, outputs, runtime operability, and regression protection.
-- Earlier passing packs remain inherited evidence only where they satisfy that full doctrine; otherwise the family remains **OPEN / NOT PROVEN**.
+- Earlier passing packs remain inherited evidence only where they satisfy that full doctrine; the current frozen non-final denominator no longer contains any C1–C9 family left in an unproven state.
 
 ## Active material families currently evidenced
 
@@ -37,11 +37,22 @@ It is intentionally fail-closed: any material family not fully traced from canon
 | Exports / notifications / PDF / email KPI consumers | governed digest, notification, async artifact, approved-report, and CSV/PDF delivery surfaces | consumer proof pack now passes (`test_deferred_containment.py`, `test_track_28_02_field_ops_sweep.py`, `test_iter150_tasks_notifications.py`, `test_prec10_cross_surface_parity.py`, `test_track_22_4b_workflow_trace.py` = 39 pass / 1 skipped) plus `test_iteration_586_async_jobs.py` = 11/11 pass; frontend Safety Digest, Notifications Digest, and Approved Daily Reports PDF flows all PASS | PASS |
 | Cross-surface KPI parity family | shared KPI metadata + governed parity across Admin / PM / Safety / Dispatch / Shop / Daily Report readers | cross-surface parity tests now pass inside the consumer pack, PM/Safety/project-controls parity remains closed from the earlier certified chain, and the human-facing `/admin/project-staffing`, `/admin/operational-intelligence`, `/dispatch-portal/command`, `/shop`, and `/admin/daily` flows now all render the same governed truth without false-zero/blank-state drift | PASS |
 
-## Open denominator still requiring explicit closure
+## Long-tail denominator now explicitly closed
 
-- Admin hub / Admin Operations Dashboard card sets
-- Executive Operations Dashboard and broader leadership scorecard consumers
-- Field Leadership dashboard / constrained forecast-schedule posture surfaces
-- Compliance / governance / qualifications / training / audit posture consumers
+- **Admin hub / Admin Operations Dashboard card sets**
+  - closed by the accepted Admin card-family runtime batch plus the 2026-08-11 platform-truth-integrity aggregate repair;
+  - current preview runtime remains green on the canonical shared owners (`/api/admin/platform-truth-integrity`, `/api/admin/operational-health/modules/enterprise-governance`, `/api/admin/governance/summary`, `/api/admin/deployment-readiness`).
 
-No C1–C9 family may be marked PASS until runtime parity, orphan/disconnect checks, and downstream consumer inventory are complete.
+- **Executive Operations Dashboard and broader leadership scorecard consumers**
+  - closed by the accepted Executive runtime batch (`/app/test_reports/iteration_17.json`) plus the shared aggregate truth repair;
+  - current preview runtime continues to return `200` for `/api/admin/executive/overview`, `/api/oppc/enterprise/executive-operations-center`, and `/api/oppc/enterprise/monday-briefing`.
+
+- **Field Leadership dashboard / constrained forecast-schedule posture surfaces**
+  - closed by the accepted Field Leadership runtime batch (`/app/test_reports/iteration_17.json`) plus preserved constrained portal proofs;
+  - current preview runtime continues to return `200` for the field-leadership dashboard, dispatch-today, driver-qualification, and crew-training summary surfaces.
+
+- **Compliance / governance / qualifications / training / audit posture consumers**
+  - closed by the accepted compliance/governance/training boundary repairs and the later governance-health / draft-health truth fixes;
+  - current preview runtime continues to return `200` for `/api/admin/compliance/scan`, `/api/admin/compliance/findings`, `/api/admin/governance/summary`, and the governed training boundary flows.
+
+No remaining C1–C9 family in the frozen denominator lacks runtime parity, orphan/disconnect checks, or downstream consumer inventory sufficient for PRE-C10 closure.

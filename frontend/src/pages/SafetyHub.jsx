@@ -250,8 +250,8 @@ export default function SafetyHub() {
       {/* KPI strip — neutral chrome per Rule 5. Colored value text for
           incident/CA emphasis; everything else stays calm. */}
       <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500" data-testid="safety-hub-kpi-help-row">
-        <span>{t("Safety snapshot")}</span>
-        <KpiInlineHelp metadata={kpis?.kpi_metadata?.sections?.classic_hub || kpis?.kpi_metadata?.page} fallbackLabel={t("Safety snapshot")} testId="safety-hub-kpi-help" />
+        <span>{t("Safety summary")}</span>
+        <KpiInlineHelp metadata={kpis?.kpi_metadata?.sections?.classic_hub || kpis?.kpi_metadata?.page} fallbackLabel={t("Safety summary")} testId="safety-hub-kpi-help" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 sm:gap-4 mb-10" data-testid="safety-kpi-strip">
         {loading ? (

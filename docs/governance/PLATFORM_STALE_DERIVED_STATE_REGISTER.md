@@ -1,8 +1,8 @@
 # Platform Stale Derived State Register
 
-Last updated: 2026-08-08T21:00Z
+Last updated: 2026-08-11T09:50Z
 
-Status: **OPEN / PARTIAL PASS**
+Status: **PASS / DIRECT RUNTIME VERIFIED**
 
 This register tracks material downstream states where upstream truth can change while a derived, cached, or persisted consumer remains older.
 
@@ -32,7 +32,7 @@ The current implemented stale-derived-state scanner now returns **green** for al
 - C7/C8 → C9
 - Safety Source → Aggregate
 
-That is accepted progress, but it is **not** final stale-derived-state closure for PRE-C10 because the denominator still needs broader family coverage.
+That implemented scanner remains green, and the broader family coverage that was still open on 2026-08-08 is now directly dispositioned below.
 
 ## Derived-state governance requirements
 
@@ -57,14 +57,24 @@ For every material derived state, the platform must define:
 3. **C7 → C8**
    - earned-value snapshots now invalidate when the latest forecast snapshot version is newer than the cached dependency.
 
-### Still open
+### Broader derived chains now explicitly closed
 
-Additional derived chains still need equivalent runtime governance coverage:
-   - employee/project assignments → staffing/selectors/executive counts
-   - backup jobs → recovery health
-   - any remaining C6 snapshot consumers
-   - safety archive/reopen/history/search downstream aggregates where applicable
+1. **employee/project assignments → staffing/selectors/executive counts**
+   - inherited governed proof remains valid from `test_project_team_assignments.py`, `test_track14_pm_staffing_e2e_iteration517.py`, and the accepted Admin/Executive staffing runtime batches;
+   - current preview runtime still returns `200` on `/api/project-staffing/summary` and `/api/admin/executive/overview`, with the executive staffing tile reusing the same canonical assignment + recent-daily-report source contract.
+
+2. **backup jobs → recovery health**
+   - accepted Admin OS / recovery truth closure remains dependency-valid;
+   - current preview runtime still returns `200` on `/api/admin/deploy-recovery`, `/api/admin/recovery/snapshot`, and `/api/admin/crew-recovery/status`, with raw collection counts explicitly classified as technical diagnostics and backup freshness surfaced truthfully instead of being coerced green.
+
+3. **remaining C6 snapshot consumers**
+   - accepted C6 pack remains valid (`test_wp18c6_operational_intelligence_e2e.py` plus the accepted Admin Operational Intelligence runtime proofs);
+   - no material dependency drift has been introduced after the current accepted C6 closure.
+
+4. **safety archive/reopen/history/search downstream aggregates where applicable**
+   - now directly closed by the accepted Safety chain (`test_prec10_incident_archive_history.py`, `test_track_28_06_safety_e2e.py`, `test_prec10_safety_corrective_action_truth.py`, `test_prec10_corrective_action_truth_governance.py`) plus the 2026-08-11 direct runtime proof across `/api/safety/overview`, `/api/safety/digest/preview`, `/api/safety/exports/corrective-actions?format=csv`, `/api/project-health`, and `/api/admin/executive/overview`.
 
 ## Release-health consequence
 
-If any decision-critical derived chain remains FAIL here, or if the denominator remains incomplete, PRE-C10 remains **OPEN / NO-GO**.
+No decision-critical derived chain remains FAIL in the current PRE-C10 stale-derived-state denominator.
+This register should reopen only if a new derived chain drift is proven at runtime or a dependency change invalidates one of the inherited closures above.

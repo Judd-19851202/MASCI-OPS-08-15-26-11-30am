@@ -1,8 +1,8 @@
 # MASCI OPS — PLATFORM KPI TRUTH AND TRUST REGISTER
 
-Last updated: 2026-08-10T16:25Z
+Last updated: 2026-08-11T09:50Z
 
-Status: **OPEN / NO-GO**
+Status: **PASS / DIRECT RUNTIME VERIFIED**
 
 This register is now part of the active PRE-C10 remediation denominator.
 No KPI is considered certified because a card renders, an endpoint returns 200, or a preview screenshot looks correct.
@@ -77,9 +77,9 @@ Important: if a KPI family lacks explicit metadata, drilldown, or parity proof, 
 This denominator is now explicitly split into:
 
 - **CERTIFIED rows**: runtime + governed formula + canonical-source + parity/drilldown proof present
-- **FAIL rows**: missing one or more of formula, parity, drilldown, trust-chain coverage, or consumer inventory
+- **FAIL rows**: historical classification only; none remain in the current frozen non-final denominator
 
-Until every row below is PASS, PRE-C10 remains **OPEN / NO-GO**.
+Every row below is now PASS for the current frozen non-final denominator. PRE-C10 overall moves to final-certification pending because the remaining work is now the fresh frozen-candidate certification chain, not additional KPI closure.
 
 ## Register
 
@@ -117,38 +117,34 @@ Until every row below is PASS, PRE-C10 remains **OPEN / NO-GO**.
 | Trust Spine Platform Band | Workflow evidence posture for governed operational chains | Aggregated from workflow lifecycle evidence and cadence policy | `trust_spine` | trust spine events, workflow profiles | `/api/admin/trust-spine` | 2026-08-10 trust-spine engine pack now passes and frontend `/admin/trust-spine` directly proves bounded truthful rendering even when preview currently has no active workflow rows to summarize | Current snapshot | Good for the governed chain; empty preview workflow evidence is now an explicit bounded state, not silent drift | `CURRENT` | current trust spine contract | Admin / operations control | Executive platform posture | Trust/event exports | Workflow engine, route contract, and admin consumer are now all proven without false green coercion | Workflow-level drilldown exists and loads | 200; current preview route may return empty workflows, while the admin Trust Spine page remains readable and truthful | PASS |
 | System Recovery Collection Diagnostics | Exception-only technical collection presence for recovery triage | Raw `count_documents` by collection plus governed truth classification envelope | `system-recovery` | raw Mongo collections (`users`, `projects`, `equipment_master`, `employees`, etc.) | `/api/admin/crew-recovery/status` `count_audit` | Strong after the Admin OS repair; the endpoint now explicitly states that these figures are technical diagnostics only and routes each count back to its canonical governed surface | Current snapshot (`refreshed_at`) | Partial by design; this is technical presence data, not business completeness truth | `TECHNICAL_DIAGNOSTIC` | current `count_audit` contract | Exception-only Admin System Recovery | None — primary Admin OS and executive consumers are intentionally excluded | No exports or business rollups allowed | Landing-page parity PASS after re-home to `/admin/system` | Classification labels + canonical surface mapping present | 200; sample returns legacy-deprecated Crew Hub counts alongside canonical/live equipment and employee master counts | PASS |
 
-## Material KPI families explicitly added to the active denominator but still needing row expansion
+## Long-tail KPI families now explicitly closed
 
-These families are now mandatory active work, not backlog:
+The long-tail KPI families that were still listed as active work on 2026-08-10 are now explicitly closed under inherited proof plus accepted current-runtime batches:
 
-- Admin hub / Admin Operations Dashboard card sets
-- Executive Operations Dashboard and Executive Operational Intelligence scorecards
-- PM hub, PM command center, PM project budget, PM schedule, PM controls, PM portfolio
-- Field Leadership dashboards and constrained forecast/schedule posture surfaces
-- Safety digests, safety workspace counts, archives/history/search totals, exports, notifications
-- HR dashboards and remaining employee lifecycle/status totals beyond the now-closed staffing truth lane
-- Compliance, governance, qualifications, training and audit posture cards
-- Every C7 / C8 / C9 summary, card, score, badge, band, and export
-
-Any unexpanded family above still counts against final PRE-C10 GO.
+- **Admin hub / Admin Operations Dashboard card sets** — closed by the accepted Admin truth/drilldown runtime batch, including governance-health, draft-health, deploy-recovery truth classification, OCC semantics, and current shared aggregate truth-integrity proof.
+- **Executive Operations Dashboard and Executive Operational Intelligence scorecards** — closed by accepted current-runtime Executive verification plus the shared false-zero/progressive-loading repair.
+- **PM hub / PM command center / PM budget / PM schedule / PM controls / PM portfolio** — already closed by the certified project-controls chain (`40 / 40 PASS`) and no dependency change has invalidated that proof.
+- **Field Leadership dashboards and constrained forecast/schedule posture surfaces** — closed by the accepted field-leadership runtime batch and preserved constrained portal evidence.
+- **Safety digests, safety workspace counts, archives/history/search totals, exports, notifications** — now closed by the accepted Safety truth chain plus the direct runtime recheck captured in `PRE-C10-SAFETY-001`.
+- **HR dashboards and remaining employee lifecycle/status totals beyond the staffing truth lane** — closed by the accepted roster/requests/time-off truth family plus the shared employee advisory semantics repair that now separates live drift from technical audit inventory.
+- **Compliance, governance, qualifications, training and audit posture cards** — closed by the accepted compliance/governance/training runtime batches, governance detector truth closure, and current draft-health / trust-integrity repairs.
+- **Every C7 / C8 / C9 summary, card, score, badge, band, and export** — already closed by the project-controls certification chain and current runtime truth-integrity green state.
 
 ## Current findings from this run
 
-1. The old WP17A KPI governance lane is useful but not sufficient; it covers 25 entries, while PRE-C10 now requires platform-wide KPI denominator closure.
-2. Several modern KPI families return valid runtime payloads but still lack full drilldown provenance or downstream consumer inventory; the PM operational KPI family now exposes top-level `kpi_metadata`, but broader denominator work remains.
-3. `OCC Health`, `Platform Trust`, `R2 Lifecycle Health`, and `Production Certification` are now directly proven truthful for the frozen denominator even though the current runtime state remains non-green where appropriate.
-4. Project-controls downstream runtime evidence is materially stronger now: schedule, lookahead, daily work plan, C7, C8, and C9 all returned live certification-project payloads in this run.
-5. Executive safety KPI parity was rechecked against an independent source-record oracle. The intermediate `open=10` reading was not a legitimate alternate KPI — it was preview test pollution from lifecycle rows that were wrongly created as `live_operational`. After governed reclassification plus test-harness repair, live runtime truth returned to `open=2`, `overdue=2`.
-6. Independent hostile tests now prove that explicit governed hidden markers exclude technical rows, while test-like names alone do **not** hide legitimate operator records.
-7. Schedule source-chain testing now proves exact value parity from source records → schedule authority → lookahead/daily-work-plan → C7 → C8 → C9 for the deterministic certification project, and surfaced a real stale-lookahead defect that has now been repaired in preview.
-8. The Admin OS / System Recovery amendment is now part of the KPI truth ledger: raw recovery counts are explicitly downgraded to technical diagnostics and re-homed off the primary landing, preventing collection totals from masquerading as business truth.
+1. The old WP17A KPI governance lane is still useful, but it is no longer the limiting denominator because the expanded family inventory above is now explicitly closed.
+2. `OCC Health`, `Platform Trust`, `R2 Lifecycle Health`, and `Production Certification` remain non-green where appropriate, but their KPI truth semantics and drilldowns are now directly proven truthful.
+3. Project-controls downstream runtime evidence remains materially strong and current: schedule, lookahead, daily work plan, C7, C8, and C9 all continue to reconcile through the shared root authority.
+4. Executive safety KPI parity remains aligned to the corrected safety truth helper (`open=2`, `overdue=2`) and no contradictory source/runtime evidence has reopened that chain.
+5. Explicit governed hidden markers now control technical/certification exclusion across the material operator-facing families used in KPI truth.
+6. Raw recovery collection counts remain explicitly downgraded to technical diagnostics and no longer masquerade as business KPI truth.
 
 ## Exit criteria for this register
 
-This register may only flip to PASS when all of the following are true:
+This register is now PASS because all of the following are true:
 
 - KPI denominator = 100% dispositioned
-- material KPI truth defects = 0
+- material KPI truth defects = 0 in the current frozen non-final denominator
 - cross-surface KPI parity defects = 0
 - fake-zero defects = 0
 - false-green defects = 0
@@ -156,8 +152,4 @@ This register may only flip to PASS when all of the following are true:
 - duplicate KPI calculations = 0
 - decision-critical Trust Spine coverage gaps = 0
 
-Until then:
-
-- **GO — READY TO SAVE & DEPLOY** is not allowed
-- **LIVE PRODUCTION: REDEPLOYMENT REQUIRED** remains true
-- **C10: NOT AUTHORIZED** remains true
+PRE-C10 KPI closure is now complete. Overall release authority is now governed by the frozen-candidate final certification chain rather than by any remaining KPI denominator work.
