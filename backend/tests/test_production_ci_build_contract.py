@@ -35,4 +35,6 @@ def test_release_identity_prebuild_guard_is_part_of_frontend_build() -> None:
     pkg = json.loads(_read('frontend/package.json'))
     assert pkg['scripts']['prebuild'] == 'node scripts/stamp-build-version.js'
     script = _read('frontend/scripts/stamp-build-version.js')
-    assert 'python3 backend/scripts/verify_release_identity.py' in script
+    assert 'backend/scripts/verify_release_identity.py' in script
+    assert '"python3"' in script
+    assert '"python"' in script

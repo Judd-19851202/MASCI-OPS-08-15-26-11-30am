@@ -1,5 +1,21 @@
 # PRD
 
+## 2026-08-12 — Deployment failure triage: frontend prebuild fixed, backend path issue classified
+
+- Production deployment log review isolated two separate failure classes:
+  - frontend image build failed inside `node scripts/stamp-build-version.js`;
+  - backend rollout used platform-managed startup path `/root/.venv/bin/uvicorn`, which support classified as **not repo-configurable** when `backend/requirements.txt` is otherwise valid.
+- Implemented repo-level fix:
+  - hardened `frontend/scripts/stamp-build-version.js` to fall back across configured Python, virtualenv Python, `python3`, then `python` instead of failing hard when `PYTHON` points to a missing binary.
+- Verification completed for the code fix:
+  - `env PYTHON=/definitely-missing/python node frontend/scripts/stamp-build-version.js`: **PASS**;
+  - `yarn build`: **PASS**;
+  - targeted release-identity regression tests: **15 / 15 PASS**;
+  - preview frontend smoke: **PASS**;
+  - preview backend smoke (`/api/health`, `/api/version`, multi-login, `/api/admin/system-health`): **PASS**.
+- Important release consequence:
+  - tracked source changed in this batch (`frontend/scripts/stamp-build-version.js` plus aligned regression tests), so the previously authorized SHA `14e833221e89f7ec01444f2de4d0350f10498f39` is no longer the deployable candidate for this fix batch.
+
 ## 2026-08-12 — MASCI OPS 9 release-governance repaired
 
 - Governing release state is now the proven **UNSAVED_FINAL_CANDIDATE** for exactly one owner Save; **Deploy / Training & Qualifications / C10** remain blocked.
