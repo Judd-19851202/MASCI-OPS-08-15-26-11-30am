@@ -7,12 +7,25 @@
   - backend rollout used platform-managed startup path `/root/.venv/bin/uvicorn`, which support classified as **not repo-configurable** when `backend/requirements.txt` is otherwise valid.
 - Implemented repo-level fix:
   - hardened `frontend/scripts/stamp-build-version.js` to fall back across configured Python, virtualenv Python, `python3`, then `python` instead of failing hard when `PYTHON` points to a missing binary.
+- Added permanent focused regression coverage for deploy-time interpreter fallback:
+  - invalid `PYTHON` path;
+  - no usable `VIRTUAL_ENV` + `python3`-only PATH;
+  - no usable `VIRTUAL_ENV` + `python`-only PATH.
 - Verification completed for the code fix:
   - `env PYTHON=/definitely-missing/python node frontend/scripts/stamp-build-version.js`: **PASS**;
+  - `PATH=<python3-only> node frontend/scripts/stamp-build-version.js`: **PASS**;
+  - `PATH=<python-only> node frontend/scripts/stamp-build-version.js`: **PASS**;
   - `yarn build`: **PASS**;
-  - targeted release-identity regression tests: **15 / 15 PASS**;
+  - clean disposable frontend copy with fresh install + build: **PASS**;
+  - targeted release-identity regression tests: **17 / 17 PASS**;
   - preview frontend smoke: **PASS**;
   - preview backend smoke (`/api/health`, `/api/version`, multi-login, `/api/admin/system-health`): **PASS**.
+- Backend startup forensic closure:
+  - exhaustive repo/deploy-config search found **zero** repository-controlled references to `/root/.venv/bin/uvicorn`;
+  - `backend/requirements.txt` fresh install in a disposable venv: **PASS**;
+  - installed executable path resolved to a normal venv-local binary (`<tmp>/bin/uvicorn`) with `uvicorn==0.25.0`;
+  - clean no-reload/no-watch startup succeeded in disposable preflight using preview-safe bindings, and `/api/version` + `/api/health` both responded;
+  - independent RCA classified the rollout failure as a **platform-managed deployment runtime sequencing defect**, not an app-owned startup command defect.
 - Important release consequence:
   - tracked source changed in this batch (`frontend/scripts/stamp-build-version.js` plus aligned regression tests), so the previously authorized SHA `14e833221e89f7ec01444f2de4d0350f10498f39` is no longer the deployable candidate for this fix batch.
 

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 
@@ -43,4 +47,37 @@ def test_frontend_prebuild_falls_back_when_python_env_points_to_missing_binary()
         env={**__import__('os').environ, 'PYTHON': '/definitely-missing/python'},
         check=True,
     )
+    assert completed.returncode == 0
+
+
+def _run_stamp_with_only_interpreter(executable_name: str) -> subprocess.CompletedProcess[str]:
+    node_path = shutil.which("node")
+    assert node_path, "node is required for the stamp script regression tests"
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        link_path = Path(temp_dir) / executable_name
+        os.symlink(sys.executable, link_path)
+        return subprocess.run(
+            [node_path, "frontend/scripts/stamp-build-version.js"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            env={
+                **os.environ,
+                "PATH": temp_dir,
+                "PYTHON": "",
+                "VIRTUAL_ENV": "",
+                "npm_config_python": "",
+            },
+            check=True,
+        )
+
+
+def test_frontend_prebuild_falls_back_to_python3_when_no_virtualenv_is_available() -> None:
+    completed = _run_stamp_with_only_interpreter("python3")
+    assert completed.returncode == 0
+
+
+def test_frontend_prebuild_falls_back_to_python_when_python3_is_unavailable() -> None:
+    completed = _run_stamp_with_only_interpreter("python")
     assert completed.returncode == 0
