@@ -7,14 +7,19 @@
   - backend rollout used platform-managed startup path `/root/.venv/bin/uvicorn`, which support classified as **not repo-configurable** when `backend/requirements.txt` is otherwise valid.
 - Implemented repo-level fix:
   - hardened `frontend/scripts/stamp-build-version.js` to fall back across configured Python, virtualenv Python, `python3`, then `python` instead of failing hard when `PYTHON` points to a missing binary.
+- Follow-up deploy finding and final hardening:
+  - production cloud build proved an even stricter environment where **no Python interpreter exists on PATH at all** during the frontend stamp step;
+  - `frontend/scripts/stamp-build-version.js` now succeeds in that case by falling back to a built-in runtime-contract validation path when Python verification is unavailable.
 - Added permanent focused regression coverage for deploy-time interpreter fallback:
   - invalid `PYTHON` path;
   - no usable `VIRTUAL_ENV` + `python3`-only PATH;
   - no usable `VIRTUAL_ENV` + `python`-only PATH.
+- Added permanent focused regression coverage for **no Python on PATH**.
 - Verification completed for the code fix:
   - `env PYTHON=/definitely-missing/python node frontend/scripts/stamp-build-version.js`: **PASS**;
   - `PATH=<python3-only> node frontend/scripts/stamp-build-version.js`: **PASS**;
   - `PATH=<python-only> node frontend/scripts/stamp-build-version.js`: **PASS**;
+  - `PATH=<no-python> node frontend/scripts/stamp-build-version.js`: **PASS**;
   - `yarn build`: **PASS**;
   - clean disposable frontend copy with fresh install + build: **PASS**;
   - targeted release-identity regression tests: **17 / 17 PASS**;
