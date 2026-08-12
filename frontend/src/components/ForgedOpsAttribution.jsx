@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BUILD_SOURCE_HASH, BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
+import { BUILD_VERSION_LABEL } from "@/buildVersion.generated";
 import { useT } from "@/lib/i18n";
 import { useBranding } from "@/lib/BrandingProvider";
+import { fetchVersionCached } from "@/lib/versionCache";
 
 /**
  * ForgedOpsAttribution — platform-owner branding line, three render modes.
@@ -18,7 +19,26 @@ import { useBranding } from "@/lib/BrandingProvider";
 export function ForgedOpsAttribution({ variant = "global", className = "" }) {
   const { t } = useT();
   const { platform_display_name } = useBranding();
+  const [release, setRelease] = useState(null);
   const platform = platform_display_name || "Operations Platform";
+
+  useEffect(() => {
+    let alive = true;
+    fetchVersionCached().then((payload) => {
+      if (!alive) return;
+      setRelease({
+        version: payload?.frontend_build_version || payload?.release || BUILD_VERSION_LABEL,
+        builtAt: payload?.frontend_build_built_at || payload?.built_at || null,
+        sourceHash: payload?.frontend_build_source_hash || payload?.source_hash || null,
+      });
+    }).catch(() => {
+      if (!alive) return;
+      setRelease({ version: BUILD_VERSION_LABEL, builtAt: null, sourceHash: null });
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   if (variant === "login") {
     return (
       <div
@@ -44,6 +64,9 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
   }
 
   // global — every-page footer.
+  const versionLabel = release?.version || BUILD_VERSION_LABEL;
+  const builtAt = release?.builtAt || "runtime-bound";
+  const sourceHash = release?.sourceHash || "runtime-api-version";
   return (
     <div
       className={`text-center ${className}`}
@@ -79,11 +102,11 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         </Link>{" "}
         ·{" "}
         <span
-          title={`Built ${BUILT_AT_ISO}\nSource ${BUILD_SOURCE_HASH}`}
+          title={`Built ${builtAt}\nSource ${sourceHash}`}
           data-testid="build-version-stamp"
           className="cursor-help select-all"
         >
-          {BUILD_VERSION}
+          {versionLabel}
         </span>
       </div>
     </div>

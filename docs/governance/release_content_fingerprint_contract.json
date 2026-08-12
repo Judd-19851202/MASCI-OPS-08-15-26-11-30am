@@ -1,0 +1,56 @@
+{
+  "schema_version": "MASCI_RELEASE_CONTENT_FINGERPRINT_CONTRACT/v1",
+  "algorithm_version": "masci-release-content-sha256-v1",
+  "include_roots": [
+    "backend",
+    "frontend",
+    "scripts",
+    "docs",
+    "memory",
+    ".github",
+    ".emergent",
+    ".deploy_checks",
+    "auth_testing.md",
+    "release_identity_scope.json",
+    ".env.example",
+    ".gitignore",
+    ".dockerignore",
+    "pytest.ini"
+  ],
+  "exclude_exact": [
+    "memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
+    "backend/static/runtime-data/DEPLOYMENT_HISTORY.json",
+    ".emergent/cron/applied.hash"
+  ],
+  "exclude_globs": [
+    ".git/**",
+    ".screenshots/**",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    ".pytest_cache/**",
+    ".ruff_cache/**",
+    ".mypy_cache/**",
+    "frontend/node_modules/**",
+    "frontend/build/**",
+    "frontend/.cache/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    "test_reports/**",
+    "memory/runtime_incidents/**",
+    "**/*.log",
+    ".DS_Store",
+    "backend/.env",
+    "frontend/.env",
+    "frontend/.env.*",
+    "backend/.env.*"
+  ],
+  "normalize": {
+    ".emergent/emergent.yml": {
+      "format": "json",
+      "drop_keys": [
+        "created_at"
+      ]
+    }
+  }
+}

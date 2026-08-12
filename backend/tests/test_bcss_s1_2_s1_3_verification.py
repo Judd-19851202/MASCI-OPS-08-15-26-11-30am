@@ -165,8 +165,8 @@ class TestS12ConfigurationRecovery:
 class TestS13BackupVerificationHardening:
     """S1-3: Backup Verification Hardening tests."""
 
-    def test_backups_complete_r2_state_shows_fresh_backup(self, admin_tokens):
-        """GET /api/admin/backups-complete-r2-state shows the fresh manual backup."""
+    def test_backups_complete_r2_state_shows_authoritative_recoverable_backup(self, admin_tokens):
+        """GET /api/admin/backups-complete-r2-state shows the current authoritative recoverable backup."""
         response = requests.get(
             f"{BASE_URL}/api/admin/backups-complete-r2-state",
             headers=admin_tokens,
@@ -178,9 +178,10 @@ class TestS13BackupVerificationHardening:
         lineage = data.get("archive_lineage", {})
         newest_valid = lineage.get("newest_valid_recoverable_artifact", {})
         
-        # S1-3 requirement: fresh backup MASCI_complete_backup_2026-07-27_111254Z.zip
-        assert newest_valid.get("filename") == "MASCI_complete_backup_2026-07-27_111254Z.zip", \
-            f"Expected fresh backup, got {newest_valid.get('filename')}"
+        assert str(newest_valid.get("filename") or "").startswith("MASCI_complete_backup_"), \
+            f"Expected authoritative recoverable backup filename, got {newest_valid.get('filename')}"
+        assert newest_valid.get("availability_status") == "AVAILABLE", \
+            f"Expected AVAILABLE recoverable backup, got {newest_valid.get('availability_status')}"
 
     def test_fresh_backup_has_verified_direct_evidence(self, admin_tokens):
         """Fresh backup has direct_evidence_status=VERIFIED."""
@@ -380,9 +381,10 @@ class TestS13NightlyLastArchive:
         # Check the newest valid artifact
         newest_valid = lineage.get("newest_valid_recoverable_artifact", {})
         if newest_valid:
-            # Should be the fresh backup
-            assert "MASCI_complete_backup_2026-07-27" in str(newest_valid.get("filename", "")), \
-                f"Expected fresh backup, got {newest_valid.get('filename')}"
+            assert str(newest_valid.get("filename") or "").startswith("MASCI_complete_backup_"), \
+                f"Expected authoritative recoverable backup, got {newest_valid.get('filename')}"
+            assert newest_valid.get("direct_evidence_status") == "VERIFIED", \
+                f"Expected VERIFIED backup evidence, got {newest_valid.get('direct_evidence_status')}"
 
 
 if __name__ == "__main__":

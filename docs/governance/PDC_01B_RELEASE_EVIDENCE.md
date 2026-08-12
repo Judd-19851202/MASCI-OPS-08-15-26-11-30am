@@ -1,5 +1,33 @@
 # PDC-01B RELEASE EVIDENCE
 
+Date: 2026-08-12  
+Scope: exact governed MASCI OPS 9 release-governance repair candidate  
+Mode: verification-only
+
+## Final pre-save candidate identity
+- Source class: `UNSAVED_FINAL_CANDIDATE`
+- Runtime commit during final proof: `af05183662fe3f40cb69b5d68c0e3970f7b3b5f8`
+- Canonical release-content fingerprint: recorded in `memory/PRE_SAVE_CONTENT_FINGERPRINT.json` only, to avoid tracked-doc self-reference.
+- Dirty files intentionally governed by `pre_save_candidate_policy`
+- Unknown workspace artifacts: `0`
+
+## Final proof bundle
+- Preview release gate: PASS
+- Product Quality v4 runtime screenshot ledger: `300 entries / 0 failures / PASS`
+- Deterministic fingerprint reproducibility: PASS before write / at write / after write
+- Frontend runtime identity parity: PASS
+- Backend runtime identity parity: PASS
+- Clean/dirty semantics for pre-save candidate: PASS
+- Runtime environment separation fail-closed: PASS
+- Independent frontend verification: `21 / 21 PASS`
+- Independent backend verification: `23 / 23 PASS`
+
+## Release-governance conclusions
+- No tracked post-save SHA mutation is required for the next owner Save.
+- Fingerprint self-reference defect is eliminated.
+- Only proven volatile `.emergent/emergent.yml.created_at` is normalized; meaningful platform configuration remains fingerprint-significant.
+- Preview/production resource mismatches are now startup/deployment blockers, not warnings.
+
 Date: 2026-07-20  
 Scope: exact governed PRE_SAVE_CANDIDATE release-evidence closure  
 Mode: verification-only

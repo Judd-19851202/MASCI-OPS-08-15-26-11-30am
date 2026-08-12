@@ -29,6 +29,20 @@ const VERSION_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes — uptime drift is fin
 let _cached = null;        // last resolved {data, fetchedAt}
 let _inflight = null;      // last unresolved Promise
 
+function publishFrontendReleaseIdentity(data) {
+  if (typeof window === "undefined") return;
+  window.__MASCI_RELEASE_IDENTITY__ = {
+    version: data?.frontend_build_version || data?.release || null,
+    commit: data?.frontend_build_commit || data?.commit || null,
+    commit_source: data?.frontend_build_commit_source || data?.commit_source || null,
+    source_hash: data?.frontend_build_source_hash || data?.source_hash || null,
+    built_at: data?.frontend_build_built_at || data?.built_at || null,
+    workspace_dirty: Boolean(data?.frontend_workspace_dirty ?? data?.workspace_dirty),
+    identity_mode: data?.frontend_identity_mode || "runtime-api-version",
+    identity_endpoint: data?.frontend_identity_endpoint || "/api/version",
+  };
+}
+
 export function fetchVersionCached() {
   // Reuse a still-fresh cached value.
   if (_cached && Date.now() - _cached.fetchedAt < VERSION_CACHE_TTL_MS) {
@@ -40,6 +54,7 @@ export function fetchVersionCached() {
   _inflight = fetch(`${API}/api/version`, { cache: "no-store" })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
     .then((data) => {
+      publishFrontendReleaseIdentity(data);
       _cached = { data, fetchedAt: Date.now() };
       _inflight = null;
       return data;

@@ -206,3 +206,106 @@ def test_normal_preview_remains_bootable() -> None:
     })
     assert bundle["validation"].valid is True
     assert bundle["validation"].status in {STATUS_NOT_APPLICABLE, STATUS_DEGRADED}
+
+
+def test_production_refuses_preview_surface_flags() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
+        "ENFORCE_DB_ISOLATION": "true",
+        "DEV_ENDPOINTS_ENABLED": "true",
+        "ENABLE_PREVIEW_VALIDATION_IDENTITIES": "true",
+        "PREVIEW_ONLY_BACKFILL_ENABLED": "true",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "PREVIEW_SURFACE_ENABLED_IN_PRODUCTION"
+    assert "dev_endpoints_enabled_in_production" in bundle["validation"].errors
+    assert "preview_validation_identities_enabled_in_production" in bundle["validation"].errors
+    assert "preview_only_backfill_enabled_in_production" in bundle["validation"].errors
+
+
+def test_production_refuses_preview_storage_namespace_and_endpoint() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
+        "ENFORCE_DB_ISOLATION": "true",
+        "S3_BUCKET": "masci-preview-hub",
+        "BACKUP_PREFIX": "backups/preview/auto-90d/",
+        "S3_ENDPOINT_URL": "https://preview-r2.example.test",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "BACKUP_PREFIX_MISMATCH"
+    assert "backup_prefix_unapproved_for_environment" in bundle["validation"].errors
+    assert "preview_storage_namespace_refused" in bundle["validation"].errors
+
+
+def test_production_refuses_preview_integration_endpoint_and_binding_markers() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
+        "ENFORCE_DB_ISOLATION": "true",
+        "MAINTAINX_BASE_URL": "https://preview-maintainx.example.test/v1",
+        "MAINTAINX_BINDING_ENV": "preview",
+        "RESEND_BINDING_ENV": "preview",
+        "ADMIN_CREDENTIAL_BINDING_ENV": "preview",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "INTEGRATION_ENDPOINT_ENV_MISMATCH"
+    assert "preview_integration_endpoint_refused" in bundle["validation"].errors
+    assert "maintainx_binding_env_unapproved" in bundle["validation"].errors
+    assert "resend_binding_env_unapproved" in bundle["validation"].errors
+    assert "admin_credentials_binding_env_unapproved" in bundle["validation"].errors
+
+
+def test_preview_refuses_production_storage_and_admin_credentials() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "false",
+        "STORAGE_BINDING_ENV": "production",
+        "STORAGE_CREDENTIAL_BINDING_ENV": "production",
+        "ADMIN_CREDENTIAL_BINDING_ENV": "production",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_STORAGE_REFUSED"
+    assert "preview_using_production_storage_binding" in bundle["validation"].errors
+    assert "preview_using_production_storage_credentials" in bundle["validation"].errors
+    assert "preview_using_production_admin_credentials" in bundle["validation"].errors
+
+
+def test_preview_refuses_production_integration_credentials() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "false",
+        "MAINTAINX_BINDING_ENV": "production",
+        "RESEND_BINDING_ENV": "production",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_INTEGRATION_REFUSED"
+    assert "preview_using_production_integration_binding" in bundle["validation"].errors
+    assert "preview_using_production_integration_credentials" in bundle["validation"].errors
+
+
+def test_environment_separation_contract_is_fail_closed_and_public() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "false",
+        "STORAGE_BINDING_ENV": "preview",
+        "MAINTAINX_BINDING_ENV": "shared",
+        "ADMIN_CREDENTIAL_BINDING_ENV": "preview",
+    })
+    identity = bundle["identity"]
+    payload = runtime_identity_public_payload(bundle)
+    separation = identity.environment_separation
+    assert separation["fail_closed"] is True
+    assert separation["storage_binding_env"] == "preview"
+    assert separation["maintainx_binding_env"] == "shared"
+    assert payload["identity"]["environment_separation"]["fail_closed"] is True

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+import uuid
 
 import requests
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -29,7 +30,11 @@ def _admin_headers() -> dict[str, str]:
     resp = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"},
-        timeout=30,
+        headers={
+            "X-Device-Id": f"prec10-platform-truth-{uuid.uuid4().hex[:10]}",
+            "X-Test-Rate-Limit-Bypass": "1",
+        },
+        timeout=60,
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()

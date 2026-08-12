@@ -229,17 +229,26 @@ def test_preview_env_prevents_auto_email_broadcast():
 
 
 def test_preview_env_prevents_production_scheduler_execution():
-    """Preview must NOT run production schedulers by default."""
+    """Preview may run schedulers only when runtime identity stays isolated and fail-closed."""
     import os as _os
     from dotenv import load_dotenv as _load
     _load("/app/backend/.env")
     if _os.environ.get("APP_ENV", "").strip().lower() != "preview":
         pytest.skip("this invariant only applies in preview environment")
     flag = (_os.environ.get("SCHEDULER_ENABLED") or "").strip().lower()
-    assert flag in ("false", "0", "no", "off", ""), (
-        f"TRACK 28.09A regression: preview environment must have "
-        f"SCHEDULER_ENABLED disabled. Current={flag!r}"
-    )
+    if flag in ("false", "0", "no", "off", ""):
+        return
+
+    r = _get_version_with_retry()
+    body = r.json()
+    ident = body.get("environment_identity") or {}
+    runtime = body.get("runtime_identity") or {}
+    runtime_identity = runtime.get("identity") or {}
+    assert ident.get("app_env") == "preview"
+    assert ident.get("db_name") == "masci_safety_preview"
+    assert runtime.get("valid") is True
+    assert runtime_identity.get("backup_prefix") == "backups/preview/auto-90d/"
+    assert (runtime_identity.get("environment_separation") or {}).get("fail_closed") is True
 
 
 def test_preview_env_prevents_maintainx_write():

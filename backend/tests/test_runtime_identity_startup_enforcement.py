@@ -75,6 +75,14 @@ async def _run_boot(server, monkeypatch, env: dict[str, str]):
         "READ_ONLY_VALIDATION_ZERO_WRITE_PROVEN",
         "APP_DOMAIN",
         "SESSION_TIMEOUTS_ENABLED",
+        "DEV_ENDPOINTS_ENABLED",
+        "ENABLE_PREVIEW_VALIDATION_IDENTITIES",
+        "PREVIEW_ONLY_BACKFILL_ENABLED",
+        "STORAGE_BINDING_ENV",
+        "STORAGE_CREDENTIAL_BINDING_ENV",
+        "MAINTAINX_BINDING_ENV",
+        "RESEND_BINDING_ENV",
+        "ADMIN_CREDENTIAL_BINDING_ENV",
     ]:
         monkeypatch.delenv(key, raising=False)
     for key, value in env.items():
@@ -237,3 +245,36 @@ async def test_ro_validation_fully_valid_permits_boot_and_suppresses_monitor(ser
     assert server.db.get_target() is not None
     assert server.app.state.read_only_validation_active is True
     assert started_monitor["count"] == 0
+
+
+async def test_production_preview_surface_flags_refuse_boot(server_module, monkeypatch):
+    server = server_module
+    await _run_boot(server, monkeypatch, {
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
+        "ENFORCE_DB_ISOLATION": "true",
+        "DEV_ENDPOINTS_ENABLED": "true",
+        "ENABLE_PREVIEW_VALIDATION_IDENTITIES": "true",
+    })
+
+    with pytest.raises(RuntimeError, match="PREVIEW_SURFACE_ENABLED_IN_PRODUCTION"):
+        await server._bootstrap_runtime_db()
+
+    assert server.db.get_target() is None
+
+
+async def test_preview_production_storage_binding_refuses_boot(server_module, monkeypatch):
+    server = server_module
+    await _run_boot(server, monkeypatch, {
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "false",
+        "STORAGE_BINDING_ENV": "production",
+    })
+
+    with pytest.raises(RuntimeError, match="PREVIEW_PRODUCTION_STORAGE_REFUSED"):
+        await server._bootstrap_runtime_db()
+
+    assert server.db.get_target() is None

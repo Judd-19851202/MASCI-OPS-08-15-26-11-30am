@@ -64,39 +64,52 @@ def _tag() -> str:
     return f"{TEST_PREFIX}{uuid.uuid4().hex[:6]}_{int(time.time()*1000)}"
 
 
-def _login() -> Dict[str, str]:
+def _login() -> Dict[str, Any]:
     r = httpx.post(
         f"{BACKEND}/api/auth/multi-login",
         json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
         timeout=30,
     )
     r.raise_for_status()
-    return r.json().get("portal_tokens") or {}
+    payload = r.json()
+    return {
+        "portal_tokens": payload.get("portal_tokens") or {},
+        "session_token": payload.get("session_token"),
+    }
 
 
 @pytest.fixture(scope="module")
-def tokens() -> Dict[str, str]:
+def tokens() -> Dict[str, Any]:
     return _login()
 
 
-@pytest.fixture(scope="module")
-def admin_headers(tokens: Dict[str, str]) -> Dict[str, str]:
-    return {"X-Admin-Token": tokens["admin"], "Content-Type": "application/json"}
+def _portal_headers(tokens: Dict[str, Any], portal: str) -> Dict[str, str]:
+    portal_tokens = tokens["portal_tokens"]
+    return {
+        f"X-{portal}-Token": portal_tokens[portal.lower()],
+        "X-Directory-Token": tokens["session_token"],
+        "Content-Type": "application/json",
+    }
 
 
 @pytest.fixture(scope="module")
-def hr_headers(tokens: Dict[str, str]) -> Dict[str, str]:
-    return {"X-HR-Token": tokens["hr"], "Content-Type": "application/json"}
+def admin_headers(tokens: Dict[str, Any]) -> Dict[str, str]:
+    return _portal_headers(tokens, "Admin")
 
 
 @pytest.fixture(scope="module")
-def dispatch_headers(tokens: Dict[str, str]) -> Dict[str, str]:
-    return {"X-Dispatch-Token": tokens["dispatch"], "Content-Type": "application/json"}
+def hr_headers(tokens: Dict[str, Any]) -> Dict[str, str]:
+    return _portal_headers(tokens, "HR")
 
 
 @pytest.fixture(scope="module")
-def shop_headers(tokens: Dict[str, str]) -> Dict[str, str]:
-    return {"X-Shop-Token": tokens["shop"], "Content-Type": "application/json"}
+def dispatch_headers(tokens: Dict[str, Any]) -> Dict[str, str]:
+    return _portal_headers(tokens, "Dispatch")
+
+
+@pytest.fixture(scope="module")
+def shop_headers(tokens: Dict[str, Any]) -> Dict[str, str]:
+    return _portal_headers(tokens, "Shop")
 
 
 # ─────────────────────────────────────────────────────────────

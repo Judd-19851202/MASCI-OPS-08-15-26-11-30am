@@ -46,6 +46,10 @@ def _run(cmd: list[str], *, cwd: Path, timeout: int) -> dict[str, Any]:
     }
 
 
+def _python_cmd(*args: str) -> list[str]:
+    return [sys.executable, *args]
+
+
 def _copy_repo() -> Path:
     tmp_root = Path(tempfile.mkdtemp(prefix="masci-release-gate-"))
     dst = tmp_root / "repo"
@@ -136,7 +140,7 @@ def _focused_regressions() -> dict[str, Any]:
             "returncode": 0,
         }
     return _run([
-        "python3", "-m", "pytest", "-q",
+        *_python_cmd("-m", "pytest", "-q"),
         "/app/backend/tests/test_operator_language_premerge_guard.py",
         "/app/backend/tests/test_runtime_identity_contract.py",
         "/app/backend/tests/test_checkpoint_d2_runtime_truth_normalization.py",
@@ -151,15 +155,15 @@ def _focused_regressions() -> dict[str, Any]:
 
 
 def _secret_scan() -> dict[str, Any]:
-    return _run(["python3", "-m", "pytest", "-q", "/app/backend/tests/test_track_15_80_no_secrets_in_repo.py"], cwd=REPO_ROOT, timeout=900)
+    return _run([*_python_cmd("-m", "pytest", "-q"), "/app/backend/tests/test_track_15_80_no_secrets_in_repo.py"], cwd=REPO_ROOT, timeout=900)
 
 
 def _prd_lint() -> dict[str, Any]:
-    return _run(["python3", "/app/scripts/lint-iteration-summary.py"], cwd=REPO_ROOT, timeout=120)
+    return _run([*_python_cmd("/app/scripts/lint-iteration-summary.py")], cwd=REPO_ROOT, timeout=120)
 
 
 def _release_identity_verifier() -> dict[str, Any]:
-    return _run(["python3", "/app/backend/scripts/verify_release_identity.py", "--strict"], cwd=REPO_ROOT, timeout=600)
+    return _run([*_python_cmd("/app/backend/scripts/verify_release_identity.py", "--strict")], cwd=REPO_ROOT, timeout=600)
 
 
 def _workflow_gate() -> dict[str, Any]:
@@ -369,7 +373,7 @@ def _migration_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
 
 
 def _operator_language_gate() -> dict[str, Any]:
-    outcome = _run(["python3", "scripts/operator_language_gate.py", "--json"], cwd=REPO_ROOT, timeout=600)
+    outcome = _run([*_python_cmd("scripts/operator_language_gate.py", "--json")], cwd=REPO_ROOT, timeout=600)
     payload: dict[str, Any] = {}
     stdout_tail = outcome.get("stdout_tail") or ""
     if stdout_tail.strip():
@@ -388,7 +392,7 @@ def _operator_language_gate() -> dict[str, Any]:
 
 
 def _runtime_screenshot_ledger_gate() -> dict[str, Any]:
-    outcome = _run(["python3", "scripts/runtime_screenshot_ledger_gate.py", "--json"], cwd=REPO_ROOT, timeout=1800)
+    outcome = _run([*_python_cmd("scripts/runtime_screenshot_ledger_gate.py", "--json")], cwd=REPO_ROOT, timeout=1800)
     payload: dict[str, Any] = {}
     stdout_tail = outcome.get("stdout_tail") or ""
     if stdout_tail.strip():

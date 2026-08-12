@@ -1,3 +1,30 @@
+# 2026-08-12 — MASCI OPS 9 release-governance repaired
+
+- **Current authority state:** PRE-C10 remains `216 / 216 = 100%` closed under the accepted user baseline.
+- **Current candidate state:** proven `UNSAVED_FINAL_CANDIDATE` with governed dirty inventory only and `unknown workspace artifacts = 0`.
+- **Fresh proof state:** release gate PASS, Product Quality v4 PASS, fingerprint reproducibility PASS, frontend/backend release identity PASS, environment separation PASS.
+
+## Immediate next actions
+
+### P0
+- Owner Save only.
+- Immediately after owner Save: bind the clean saved SHA to the already-proven runtime identity contract without tracked source edits.
+- Then run the SHA-bound final 20-gate certification chain against the saved candidate.
+
+### P1
+- Reconfirm the two truthful non-blocking master-data advisories against the saved candidate.
+- If still desired after save, run historical forensics on `f8686dc5` and `af051836` as a documentation-only appendix.
+
+### P2
+- Deployment remains owner-gated after post-save certification.
+- C10 remains blocked until the owner explicitly authorizes it after the saved-candidate gates are complete.
+
+### Still frozen / not authorized
+- No agent Save.
+- No Deploy.
+- No Training & Qualifications.
+- No C10.
+
 # 2026-08-11 — MASCI OPS 9 pre-save release-hardening complete
 
 - **Current authority state:** PRE-C10 remains `216 / 216 = 100%` closed under the accepted user baseline.

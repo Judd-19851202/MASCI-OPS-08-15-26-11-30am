@@ -88,6 +88,41 @@ def _normalize_storage_value(value: Optional[str], *, default: str = "UNRESOLVED
     return safe.strip().lower()
 
 
+def _normalized_binding_env(value: Optional[str]) -> Optional[str]:
+    raw = _safe_text(value)
+    if not raw:
+        return None
+    normalized = raw.lower()
+    if normalized in {"prod", "production"}:
+        return "production"
+    if normalized in {"preview", "dev", "development", "stage", "staging", "test", "testing", "nonprod", "non-production"}:
+        return "preview"
+    if normalized in {"shared", "common"}:
+        return "shared"
+    return normalized
+
+
+def _hostname_from_url(value: Optional[str]) -> Optional[str]:
+    raw = _safe_text(value)
+    if not raw:
+        return None
+    try:
+        parsed = urlparse(raw)
+        if parsed.hostname:
+            return parsed.hostname.lower()
+    except Exception:  # noqa: BLE001
+        return raw.lower()
+    return raw.lower()
+
+
+def _contains_non_production_marker(value: Optional[str]) -> bool:
+    safe = _safe_text(value)
+    if not safe:
+        return False
+    lower = safe.lower()
+    return any(marker in lower for marker in ("preview", "staging", "stage", "dev", "test", "localhost", "127.0.0.1"))
+
+
 def build_environment_authority_fingerprint(
     *,
     environment_name: Optional[str],
@@ -195,11 +230,14 @@ class RuntimeIdentity:
     environment_fingerprint_version: str
     backup_bucket: Optional[str]
     backup_prefix: Optional[str]
+    storage_endpoint_host_redacted: Optional[str]
+    maintainx_base_url_host: Optional[str]
     query_duplicates: Dict[str, list[str]]
     parse_error: Optional[str]
     is_atlas: bool
     is_local: bool
     read_only_validation: Dict[str, Any]
+    environment_separation: Dict[str, Any]
 
     def to_safe_dict(self) -> Dict[str, Any]:
         return {
@@ -228,10 +266,13 @@ class RuntimeIdentity:
             "environment_fingerprint_version": self.environment_fingerprint_version,
             "backup_bucket": self.backup_bucket,
             "backup_prefix": self.backup_prefix,
+            "storage_endpoint_host_redacted": "<configured>" if self.storage_endpoint_host_redacted else None,
+            "maintainx_base_url_host": "<configured>" if self.maintainx_base_url_host else None,
             "query_duplicates": self.query_duplicates,
             "is_atlas": self.is_atlas,
             "is_local": self.is_local,
             "read_only_validation": self.read_only_validation,
+            "environment_separation": self.environment_separation,
         }
 
 
@@ -353,6 +394,28 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
     source_identity = release_source_hash or release_commit or "unknown-release"
     backup_bucket = _safe_text(source.get("BACKUP_BUCKET") or source.get("R2_BUCKET") or source.get("S3_BUCKET"))
     backup_prefix = _safe_text(configured_backup_prefix(source))
+    storage_endpoint_host = _hostname_from_url(source.get("S3_ENDPOINT_URL") or source.get("R2_ENDPOINT"))
+    maintainx_base_url_host = _hostname_from_url(source.get("MAINTAINX_BASE_URL"))
+    environment_separation = {
+        "fail_closed": True,
+        "dev_endpoints_enabled": _truthy(source.get("DEV_ENDPOINTS_ENABLED")),
+        "preview_validation_identities_enabled": _truthy(source.get("ENABLE_PREVIEW_VALIDATION_IDENTITIES")),
+        "preview_only_backfill_enabled": _truthy(source.get("PREVIEW_ONLY_BACKFILL_ENABLED") or source.get("ALLOW_PREVIEW_ONLY_BACKFILL")),
+        "storage_binding_env": _normalized_binding_env(source.get("STORAGE_BINDING_ENV") or source.get("R2_BINDING_ENV") or source.get("S3_BINDING_ENV") or source.get("BACKUP_BINDING_ENV")),
+        "storage_credential_binding_env": _normalized_binding_env(source.get("STORAGE_CREDENTIAL_BINDING_ENV") or source.get("R2_CREDENTIAL_BINDING_ENV") or source.get("S3_CREDENTIAL_BINDING_ENV")),
+        "maintainx_binding_env": _normalized_binding_env(source.get("MAINTAINX_BINDING_ENV") or source.get("INTEGRATION_BINDING_ENV")),
+        "resend_binding_env": _normalized_binding_env(source.get("RESEND_BINDING_ENV") or source.get("EMAIL_BINDING_ENV")),
+        "admin_binding_env": _normalized_binding_env(source.get("SUPER_ADMIN_BINDING_ENV") or source.get("ADMIN_CREDENTIAL_BINDING_ENV")),
+        "storage_namespace_has_non_production_marker": any(
+            _contains_non_production_marker(item)
+            for item in (backup_bucket, backup_prefix, storage_endpoint_host)
+        ),
+        "maintainx_endpoint_has_non_production_marker": _contains_non_production_marker(maintainx_base_url_host),
+        "storage_endpoint_present": bool(storage_endpoint_host),
+        "storage_endpoint_authority_label": "configured" if storage_endpoint_host else "missing",
+        "maintainx_endpoint_present": bool(maintainx_base_url_host),
+        "maintainx_endpoint_authority_label": "configured" if maintainx_base_url_host else "missing",
+    }
     environment_fingerprint = build_environment_authority_fingerprint(
         environment_name=environment_name,
         cluster_fingerprint=cluster_fingerprint,
@@ -388,11 +451,14 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
         environment_fingerprint_version=ENVIRONMENT_FINGERPRINT_VERSION,
         backup_bucket=backup_bucket,
         backup_prefix=backup_prefix,
+        storage_endpoint_host_redacted=storage_endpoint_host,
+        maintainx_base_url_host=maintainx_base_url_host,
         query_duplicates=parsed.query_duplicates,
         parse_error=parsed.parse_error,
         is_atlas=parsed.is_atlas,
         is_local=parsed.is_local,
         read_only_validation=read_only_validation,
+        environment_separation=environment_separation,
     )
 
 
@@ -433,6 +499,14 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
             identity.mongo_username == identity.approved_username,
         )
     )
+    environment_separation = identity.environment_separation or {}
+
+    def _binding_refused(binding_key: str, expected_env: str, error_code: str, category: str) -> None:
+        nonlocal mismatch_category
+        binding_value = environment_separation.get(binding_key)
+        if binding_value and binding_value not in {expected_env, "shared"}:
+            errors.append(error_code)
+            mismatch_category = mismatch_category or category
 
     if identity.app_env == "production":
         if identity.read_only_validation.get("requested"):
@@ -461,6 +535,26 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
         if not identity.is_atlas:
             errors.append("atlas_identity_unproven")
             mismatch_category = mismatch_category or "CLUSTER_HOST_MISMATCH"
+        if environment_separation.get("dev_endpoints_enabled"):
+            errors.append("dev_endpoints_enabled_in_production")
+            mismatch_category = mismatch_category or "PREVIEW_SURFACE_ENABLED_IN_PRODUCTION"
+        if environment_separation.get("preview_validation_identities_enabled"):
+            errors.append("preview_validation_identities_enabled_in_production")
+            mismatch_category = mismatch_category or "PREVIEW_SURFACE_ENABLED_IN_PRODUCTION"
+        if environment_separation.get("preview_only_backfill_enabled"):
+            errors.append("preview_only_backfill_enabled_in_production")
+            mismatch_category = mismatch_category or "PREVIEW_BACKFILL_ENABLED_IN_PRODUCTION"
+        if environment_separation.get("storage_namespace_has_non_production_marker"):
+            errors.append("preview_storage_namespace_refused")
+            mismatch_category = mismatch_category or "STORAGE_NAMESPACE_ENV_MISMATCH"
+        if environment_separation.get("maintainx_endpoint_has_non_production_marker"):
+            errors.append("preview_integration_endpoint_refused")
+            mismatch_category = mismatch_category or "INTEGRATION_ENDPOINT_ENV_MISMATCH"
+        _binding_refused("storage_binding_env", "production", "storage_binding_env_unapproved", "STORAGE_BINDING_ENV_MISMATCH")
+        _binding_refused("storage_credential_binding_env", "production", "storage_credentials_binding_env_unapproved", "STORAGE_CREDENTIAL_ENV_MISMATCH")
+        _binding_refused("maintainx_binding_env", "production", "maintainx_binding_env_unapproved", "INTEGRATION_BINDING_ENV_MISMATCH")
+        _binding_refused("resend_binding_env", "production", "resend_binding_env_unapproved", "INTEGRATION_CREDENTIAL_ENV_MISMATCH")
+        _binding_refused("admin_binding_env", "production", "admin_credentials_binding_env_unapproved", "ADMIN_CREDENTIAL_ENV_MISMATCH")
     else:
         preview_db_name_is_valid = identity.db_name == preview_db_name
         preview_user_is_valid = bool(identity.mongo_username and identity.mongo_username != identity.approved_username)
@@ -495,6 +589,11 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
                 mismatch_category = mismatch_category or "PREVIEW_TARGET_UNAPPROVED"
         if identity.db_name and not _is_preview_db_name(identity.db_name):
             warnings.append("preview_db_name_not_explicitly_preview")
+        _binding_refused("storage_binding_env", "preview", "preview_using_production_storage_binding", "PREVIEW_PRODUCTION_STORAGE_REFUSED")
+        _binding_refused("storage_credential_binding_env", "preview", "preview_using_production_storage_credentials", "PREVIEW_PRODUCTION_STORAGE_CREDENTIALS_REFUSED")
+        _binding_refused("maintainx_binding_env", "preview", "preview_using_production_integration_binding", "PREVIEW_PRODUCTION_INTEGRATION_REFUSED")
+        _binding_refused("resend_binding_env", "preview", "preview_using_production_integration_credentials", "PREVIEW_PRODUCTION_INTEGRATION_CREDENTIALS_REFUSED")
+        _binding_refused("admin_binding_env", "preview", "preview_using_production_admin_credentials", "PREVIEW_PRODUCTION_ADMIN_CREDENTIALS_REFUSED")
 
     if errors:
         return RuntimeIdentityValidation(

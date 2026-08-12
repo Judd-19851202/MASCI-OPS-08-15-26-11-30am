@@ -1,121 +1,86 @@
 from __future__ import annotations
 
 import json
-import os
-import subprocess
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "backend"))
 
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+from lib.release_fingerprint import build_release_manifest  # noqa: E402
+from lib.release_identity import (  # noqa: E402
+    build_frontend_effective_identity,
+    commits_match,
+    frontend_identity_contracts_match,
+    read_frontend_build_identity,
+    read_frontend_public_identity,
+    resolve_runtime_release_identity,
+)
 
 
 def main() -> int:
-    strict = "--strict" in sys.argv
-    repo_root = _repo_root()
-    sys.path.insert(0, str(repo_root / "backend"))
-
-    from lib.release_identity import (  # noqa: WPS433
-        assert_release_identity_parity,
-        commits_match,
-        compute_dependency_manifest_hash,
-        compute_migration_manifest_hash,
-        compute_release_gate_manifest_hash,
-        compute_source_hash,
-        read_frontend_build_identity,
-        read_release_fingerprint_relative_paths,
-        resolve_runtime_commit,
-        workspace_candidate_identity,
+    runtime_release = resolve_runtime_release_identity(REPO_ROOT)
+    frontend_build_contract = read_frontend_build_identity(REPO_ROOT)
+    frontend_public_contract = read_frontend_public_identity(REPO_ROOT)
+    frontend_effective = build_frontend_effective_identity(
+        REPO_ROOT,
+        runtime_release=runtime_release,
+        frontend_build_contract=frontend_build_contract,
+        frontend_public_contract=frontend_public_contract,
     )
+    manifest = build_release_manifest(REPO_ROOT)
+    workspace_head = ((runtime_release.get("workspace_snapshot") or {}).get("head") or "")
+    workspace_head_available = bool(workspace_head)
+    workspace_dirty = bool(runtime_release.get("workspace_dirty"))
 
-    frontend = read_frontend_build_identity(repo_root)
-    source_hash = compute_source_hash(repo_root)
-    workspace_candidate, workspace_source, workspace_snapshot = workspace_candidate_identity(repo_root, env={})
-    workspace_head_commit = (workspace_snapshot.get("head") or "").strip() or None
-    runtime_commit, _ = resolve_runtime_commit(
-        repo_root,
-        frontend_build_commit=frontend.get("commit"),
-        source_hash=source_hash,
-        env={},
-    )
+    workspace_head_matches_runtime = commits_match(workspace_head, runtime_release.get("commit")) is True
+    workspace_head_matches_frontend = commits_match(workspace_head, frontend_effective.get("commit")) is True
+    frontend_matches_runtime = commits_match(frontend_effective.get("commit"), runtime_release.get("commit")) is True
+    contracts_match = frontend_identity_contracts_match(frontend_build_contract, frontend_public_contract)
 
-    if frontend.get("source_hash") != source_hash:
-        raise RuntimeError(
-            f"frontend generated source_hash {frontend.get('source_hash')} != backend computed source_hash {source_hash}"
-        )
-
-    dependency_hash = compute_dependency_manifest_hash(repo_root)
-    migration_hash = compute_migration_manifest_hash(repo_root)
-    manifest_hash = compute_release_gate_manifest_hash(repo_root)
-    if frontend.get("dependency_manifest_hash") != dependency_hash:
-        raise RuntimeError("frontend dependency manifest hash mismatch")
-    if frontend.get("migration_manifest_hash") != migration_hash:
-        raise RuntimeError("frontend migration manifest hash mismatch")
-    if frontend.get("release_gate_manifest_hash") != manifest_hash:
-        raise RuntimeError("frontend release gate manifest hash mismatch")
-
-    workspace_dirty = bool(workspace_snapshot.get("dirty"))
-    if workspace_dirty and frontend.get("workspace_dirty") is False:
-        raise RuntimeError("frontend generated build identity falsely claims a clean workspace")
-
-    if workspace_head_commit and frontend.get("commit") and not commits_match(workspace_head_commit, frontend.get("commit")):
-        raise RuntimeError(
-            f"workspace HEAD {workspace_head_commit} != frontend generated commit {frontend.get('commit')}"
-        )
-
-    if workspace_head_commit and not commits_match(workspace_head_commit, runtime_commit):
-        raise RuntimeError(f"workspace HEAD {workspace_head_commit} != runtime commit {runtime_commit}")
-
-    if frontend.get("commit") and not workspace_dirty and not commits_match(runtime_commit, frontend.get("commit")):
-        raise RuntimeError(
-            f"frontend generated commit {frontend.get('commit')} != runtime commit {runtime_commit}"
-        )
-
-    canonical_release_commit = workspace_head_commit or runtime_commit or frontend.get("commit")
-    if canonical_release_commit and frontend.get("commit") and not commits_match(canonical_release_commit, frontend.get("commit")):
-        raise RuntimeError(
-            f"canonical release commit {canonical_release_commit} != frontend generated commit {frontend.get('commit')}"
-        )
-
-    scope_paths = read_release_fingerprint_relative_paths(repo_root)
-    missing_scope_files = [rel for rel in scope_paths if not (repo_root / rel).exists()]
-    scope_file_present = (repo_root / "release_identity_scope.json").exists()
-    if strict and not scope_file_present:
-        raise RuntimeError("release_identity_scope.json missing")
-    if strict and missing_scope_files:
-        raise RuntimeError("release identity scope references missing files: " + ", ".join(missing_scope_files))
-
-    assert_release_identity_parity(
-        backend_commit=runtime_commit,
-        backend_source_hash=source_hash,
-        frontend_commit=frontend.get("commit"),
-        frontend_source_hash=frontend.get("source_hash"),
-    )
+    errors = []
+    if runtime_release.get("identity_mismatch"):
+        errors.append(str(runtime_release.get("identity_mismatch_detail") or "runtime release identity mismatch"))
+    if not contracts_match:
+        errors.append("frontend release identity contracts disagree")
+    if frontend_build_contract.get("tracked_commit_embed_allowed"):
+        errors.append("tracked frontend build contract still allows embedded commit")
+    if frontend_build_contract.get("post_save_source_mutation_required"):
+        errors.append("frontend build contract still requires post-save tracked source mutation")
+    if frontend_build_contract.get("identity_mode") != "runtime-api-version":
+        errors.append("frontend build contract is not runtime-api-version")
+    if not frontend_matches_runtime:
+        errors.append("frontend effective identity does not match runtime commit")
+    if workspace_head_available and not workspace_head_matches_runtime:
+        errors.append("workspace HEAD does not match runtime commit")
+    if workspace_head_available and not workspace_head_matches_frontend:
+        errors.append("workspace HEAD does not match frontend effective commit")
+    if not workspace_head_available and workspace_dirty:
+        errors.append("workspace HEAD unavailable while workspace is dirty")
+    if not manifest.get("manifest_sha256"):
+        errors.append("release fingerprint manifest unavailable")
 
     payload = {
-        "ok": True,
-        "canonical_release_commit": canonical_release_commit,
-        "runtime_commit": runtime_commit,
-        "workspace_head_commit": workspace_head_commit,
-        "workspace_candidate": workspace_candidate,
-        "workspace_candidate_source": workspace_source,
+        "ok": not errors,
+        "canonical_release_commit": runtime_release.get("commit"),
+        "canonical_release_source_hash": runtime_release.get("source_hash"),
+        "workspace_head_commit": workspace_head,
+        "workspace_head_available": workspace_head_available,
         "workspace_dirty": workspace_dirty,
-        "frontend_commit": frontend.get("commit"),
-        "workspace_head_matches_runtime": commits_match(workspace_head_commit, runtime_commit),
-        "workspace_head_matches_frontend": commits_match(workspace_head_commit, frontend.get("commit")),
-        "frontend_matches_runtime": commits_match(frontend.get("commit"), runtime_commit),
-        "source_hash": source_hash,
-        "dependency_manifest_hash": dependency_hash,
-        "migration_manifest_hash": migration_hash,
-        "release_gate_manifest_hash": manifest_hash,
-        "frontend_built_at": frontend.get("built_at"),
-        "scope_file_present": scope_file_present,
-        "missing_scope_files": missing_scope_files,
-        "branch": os.popen("git branch --show-current 2>/dev/null").read().strip() or None,
+        "frontend_commit": frontend_effective.get("commit"),
+        "runtime_commit": runtime_release.get("commit"),
+        "workspace_head_matches_runtime": workspace_head_matches_runtime,
+        "workspace_head_matches_frontend": workspace_head_matches_frontend,
+        "frontend_matches_runtime": frontend_matches_runtime,
+        "frontend_contracts_match": contracts_match,
+        "frontend_identity_mode": frontend_effective.get("identity_mode"),
+        "frontend_identity_endpoint": frontend_effective.get("identity_endpoint"),
+        "release_manifest_sha256": manifest.get("manifest_sha256"),
+        "release_manifest_entry_count": manifest.get("entry_count"),
+        "errors": errors,
     }
     print(json.dumps(payload, indent=2))
-    return 0
+    return 0 if not errors else 1
 
 
 if __name__ == "__main__":

@@ -1,5 +1,25 @@
 # PRD
 
+## 2026-08-12 — MASCI OPS 9 release-governance repaired
+
+- Governing release state is now the proven **UNSAVED_FINAL_CANDIDATE** for exactly one owner Save; **Deploy / Training & Qualifications / C10** remain blocked.
+- Fresh proven release-governance evidence for this exact candidate:
+  - preview release gate: **PASS**;
+  - Product Quality v4 runtime screenshot ledger: **300 / 300 PASS**;
+  - deterministic release-content fingerprint reproducibility: **PASS** before write, at write, and after write; the canonical manifest value is recorded only in `memory/PRE_SAVE_CONTENT_FINGERPRINT.json`.
+  - frontend runtime identity / backend runtime identity / parity / clean-dirty semantics: **PASS**;
+  - runtime environment separation fail-closed contract: **PASS**;
+  - independent frontend verification: **21 / 21 PASS**;
+  - independent backend verification: **23 / 23 PASS**.
+- PRE-C10 remains preserved at **216 / 216 = 100%** under the accepted user authority baseline.
+- Unknown workspace artifacts are now **0** under the governed pre-save candidate policy.
+- Release-governance/source-authority repair scope proved in this batch:
+  - canonical fingerprint owner + governed exclusion/normalization contract;
+  - fingerprint self-reference defect eliminated;
+  - `.emergent/emergent.yml` normalized only for proven volatile `created_at`, while meaningful config changes still move the aggregate;
+  - frontend runtime identity now binds to `/api/version` without tracked post-save SHA mutation;
+  - backend/runtime environment separation now hard-fails preview/production resource mismatches instead of warning and continuing.
+
 ## 2026-08-11 — MASCI OPS 9 pre-save release-hardening completion
 
 - Governing state now superseding earlier milestone snapshots: **PRE-C10 remains closed at 216 / 216 = 100%** under the user’s accepted authority baseline.

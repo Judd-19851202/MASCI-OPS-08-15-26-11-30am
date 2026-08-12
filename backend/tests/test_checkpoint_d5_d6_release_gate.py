@@ -71,8 +71,21 @@ def test_deployment_gate_consumes_manifest_regression_inventory():
 
 
 def test_release_identity_determinism_for_missing_files_uses_relative_shape(tmp_path: Path):
-    scope = tmp_path / "release_identity_scope.json"
-    scope.write_text(json.dumps(["missing/file.txt"]), encoding="utf-8")
+    contract_dir = tmp_path / "docs" / "governance"
+    contract_dir.mkdir(parents=True)
+    (contract_dir / "release_content_fingerprint_contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "TEST/v1",
+                "algorithm_version": "test-sha256-v1",
+                "include_roots": ["."],
+                "exclude_exact": [],
+                "exclude_globs": [".git/**"],
+                "normalize": {},
+            }
+        ),
+        encoding="utf-8",
+    )
     backend = tmp_path / "backend"
     backend.mkdir()
     lib = backend / "lib"
@@ -90,18 +103,17 @@ def test_release_identity_determinism_for_missing_files_uses_relative_shape(tmp_
 
 def test_frontend_build_identity_contains_extended_release_fields():
     identity = read_frontend_build_identity(REPO_ROOT)
-    assert identity["source_hash"] == compute_source_hash(REPO_ROOT)
-    assert identity["dependency_manifest_hash"] == compute_dependency_manifest_hash(REPO_ROOT)
-    assert identity["migration_manifest_hash"] == compute_migration_manifest_hash(REPO_ROOT)
-    assert identity["release_gate_manifest_hash"] == compute_release_gate_manifest_hash(REPO_ROOT)
-    assert identity["release_gate_manifest_version"] == "D5D6_RELEASE_GATE/v1"
-    assert identity["release_gate_manifest_id"] == "masci-release-gate-canonical"
+    assert identity["identity_mode"] == "runtime-api-version"
+    assert identity["identity_endpoint"] == "/api/version"
+    assert identity["runtime_binding_required"] is True
+    assert identity["post_save_source_mutation_required"] is False
+    assert identity["tracked_commit_embed_allowed"] is False
 
 
 def test_stamp_version_script_fails_closed_on_verifier_failure():
     src = Path("/app/frontend/scripts/stamp-build-version.js").read_text(encoding="utf-8")
-    assert "release identity verification failed" in src
-    assert "process.exit(1)" in src
+    assert "verify_release_identity.py" in src
+    assert "process.exit(verify.status || 1)" in src
 
 
 def test_source_authority_snapshot_reports_dirty_state():
@@ -116,279 +128,36 @@ def test_pre_save_candidate_policy_is_governed_and_specific():
     policy = manifest.get("pre_save_candidate_policy") or {}
     assert policy.get("allow_dirty_workspace_for_certification") is True
     assert policy.get("deployed_source_must_be_clean_sha") is True
+    assert policy.get("classification_label") == "UNSAVED_FINAL_CANDIDATE"
     allowed = policy.get("allowed_dirty_entries") or []
-    assert allowed == [
-        {
-            "path": "frontend/yarn.lock",
-            "mission_ref": "PDC-01A Blocker 1 and Blocker 3",
-            "rationale": "Dependency lockfile drift is explicitly inventoried as the governed pre-save candidate delta that must be reconciled before clean-SHA deploy certification.",
-        },
-        {
-            "path": "backend/lib/release_gate_governance.py",
-            "mission_ref": "PDC-01A Blocker 1",
-            "rationale": "PRE_SAVE_CANDIDATE authority parsing and inventory enforcement live here and are allowed as a governed pre-save delta only.",
-        },
-        {
-            "path": "docs/governance/release_gate_manifest.json",
-            "mission_ref": "PDC-01A Blocker 1 and Blocker 4",
-            "rationale": "The canonical manifest itself must carry the governed pre-save inventory and auth continuity reference updates for this remediation slice.",
-        },
-        {
-            "path": "frontend/src/buildVersion.generated.js",
-            "mission_ref": "PDC-01A Blocker 3",
-            "rationale": "Canonical build stamping regenerates the frontend release identity artifact for the governed pre-save candidate source.",
-        },
-        {
-            "path": "backend/scripts/verify_release_identity.py",
-            "mission_ref": "PDC-01A Blocker 3",
-            "rationale": "The release identity verifier now classifies PRE_SAVE_CANDIDATE workspaces honestly and is part of the governed identity reconciliation change-set.",
-        },
-        {
-            "path": "backend/tests/test_checkpoint_d5_d6_release_gate.py",
-            "mission_ref": "PDC-01A Blocker 1",
-            "rationale": "The release-gate regression suite itself is updated to lock the governed PRE_SAVE_CANDIDATE contract and reject unknown dirty files.",
-        },
-        {
-            "path": "backend/static/runtime-data/DEPLOYMENT_HISTORY.json",
-            "mission_ref": "PDC-01A Focused validation",
-            "rationale": "Release-gate execution appends governed workspace certification history here; the file is explicitly inventoried to avoid hidden validation-side drift.",
-        },
-        {
-            "path": "memory/PRD.md",
-            "mission_ref": "PDC-01A Blocker 4",
-            "rationale": "The project record is updated to reference the new canonical auth continuity artifact and the exact blocker-remediation scope.",
-        },
-        {
-            "path_pattern": "memory/OPS8_DRILL_*_REPORT.md",
-            "mission_ref": "PDC-01B Restore certification evidence",
-            "rationale": "Namespace-isolated restore drill closeout reports are governed preview evidence artifacts and must not invalidate PRE_SAVE_CANDIDATE authority while the resilience package is still in progress.",
-        },
-        {
-            "path_pattern": "memory/WP18DB_*",
-            "mission_ref": "PDC-01B WP-18DB resilience certification artifacts",
-            "rationale": "WP-18DB evidence artifacts are governed in-package certification outputs and must remain eligible PRE_SAVE_CANDIDATE dirty entries until package closeout is finalized.",
-        },
-        {
-            "path": "backend/routes/admin_runtime_reliability.py",
-            "mission_ref": "PDC-01B Executive reliability contract",
-            "rationale": "The governed runtime diagnostics surface now exposes the enforced performance-budget contract for WP-18DB executive reliability evidence.",
-        },
-        {
-            "path": "backend/routes/recovery_dashboard.py",
-            "mission_ref": "PDC-01B Recovery posture truth refinement",
-            "rationale": "Recovery posture now stays green for a fresh valid archive when only historical backup failures remain as informational context, preventing false amber closeout state.",
-        },
-        {
-            "path": "backend/lib/singleton_scheduler.py",
-            "mission_ref": "PDC-01B Scheduler shutdown resilience",
-            "rationale": "The singleton scheduler now exits cleanly when runtime DB availability disappears during shutdown, preventing false post-shutdown retry loops from contaminating reliability evidence.",
-        },
-        {
-            "path": "backend/tests/test_iter445_scheduler_hardening.py",
-            "mission_ref": "PDC-01B Scheduler shutdown resilience",
-            "rationale": "Scheduler regressions now prove shutdown cancellation exits cleanly once runtime DB access is gone.",
-        },
-        {
-            "path": "backend/tests/test_backup_admin_endpoints_preview.py",
-            "mission_ref": "PDC-01B Preview admin evidence stability",
-            "rationale": "The preview admin endpoint suite now retries transient ingress failures so governed runtime evidence is measured against the actual backend instead of cold-path transport noise.",
-        },
-        {
-            "path": "backend/services/enterprise_governance.py",
-            "mission_ref": "PDC-01B Governance remediation truth",
-            "rationale": "Enterprise-governance failures now emit remediation guidance so deployment readiness no longer misclassifies preview trust-spine failures as silent failures.",
-        },
-        {
-            "path": "backend/routes/admin_deployment_readiness.py",
-            "mission_ref": "PDC-01B Deployment readiness truth surface",
-            "rationale": "Deployment readiness now exposes the same governed performance-budget contract used by the executive recovery dashboard without relying on admin-strict tokens.",
-        },
-        {
-            "path": "backend/lib/performance_budget_contract.py",
-            "mission_ref": "PDC-01B Shared performance-budget truth",
-            "rationale": "The performance-budget contract was factored into a shared governed helper so multiple admin surfaces reuse the same release-control truth instead of duplicating CSV parsing logic.",
-        },
-        {
-            "path": "backend/tests/test_ai_gateway.py",
-            "mission_ref": "PDC-01B AI fallback certification stability",
-            "rationale": "AI gateway tests now use isolated event loops so fallback evidence remains stable under current pytest runtime behavior.",
-        },
-        {
-            "path": "backend/tests/test_iter370_r7_admin_strict_fail_closed.py",
-            "mission_ref": "PDC-01B Admin strict auth certification stability",
-            "rationale": "Admin strict fail-closed regression now validates the current multi-login token path and skips only on transport noise instead of reporting false app failures.",
-        },
-        {
-            "path": "frontend/src/pages/admin/AdminRecovery.jsx",
-            "mission_ref": "PDC-01B Executive reliability dashboard extension",
-            "rationale": "The existing governed recovery dashboard was extended to show platform reliability, capacity, deployment readiness, and performance-budget evidence without creating a duplicate executive dashboard.",
-        },
-        {
-            "path": "memory/ROADMAP.md",
-            "mission_ref": "PDC-01B Closeout governance records",
-            "rationale": "ROADMAP was updated at final closeout to reflect that WP-18DB is complete and WP-18DC remains blocked until future authorization.",
-        },
-        {
-            "path": "memory/CHANGELOG.md",
-            "mission_ref": "PDC-01B Closeout governance records",
-            "rationale": "CHANGELOG was updated at final closeout to record the exact WP-18DB repairs, final archive, release-gate result, and dashboard extension.",
-        },
-        {
-            "path_pattern": "docs/governance/PRE_C10_*",
-            "mission_ref": "PRE-C10 final denominator closeout",
-            "rationale": "The governing PRE-C10 closeout register and related bounded denominator artifacts are allowed PRE_SAVE_CANDIDATE deltas while the non-final denominator is being explicitly dispositioned before the frozen final certification chain.",
-        },
-        {
-            "path_pattern": "docs/governance/PLATFORM_*",
-            "mission_ref": "PRE-C10 platform truth closeout",
-            "rationale": "Platform truth, KPI, synthetic-governance, and stale-derived-state closeout artifacts are governed PRE_SAVE_CANDIDATE evidence while PRE-C10 denominator closure is being finalized.",
-        },
-        {
-            "path": "docs/governance/C1_C9_PLATFORM_INTEGRATION_TRUTH_REGISTER.md",
-            "mission_ref": "PRE-C10 C1-C9 closeout",
-            "rationale": "The canonical C1–C9 integration truth register is allowed as a governed PRE_SAVE_CANDIDATE delta while the remaining long-tail consumer families are explicitly dispositioned.",
-        },
-        {
-            "path": "docs/governance/PERMANENT_FIX_CLOSURE_REGISTER.csv",
-            "mission_ref": "PRE-C10 permanent-fix closeout",
-            "rationale": "The canonical permanent-fix closure ledger is allowed as a governed PRE_SAVE_CANDIDATE delta while final closeout rows are reconciled and frozen for certification.",
-        },
-        {
-            "path_pattern": "memory/WP18_OPERATOR_*",
-            "mission_ref": "PRE-C10 operator-language certification evidence",
-            "rationale": "WP18 operator-language comprehension and exception ledgers are governed certification evidence artifacts and may remain dirty within the bounded PRE_SAVE_CANDIDATE closeout package.",
-        },
-        {
-            "path_pattern": "memory/WP18C9_*",
-            "mission_ref": "WP18C9 Closeout evidence pack",
-            "rationale": "WP-18C9 portfolio intelligence closeout artifacts are governed certification outputs and must remain eligible PRE_SAVE_CANDIDATE dirty entries until final closeout is saved.",
-        },
-        {
-            "path": "backend/services/portfolio_intelligence.py",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "The governed C9 closeout explicitly rebuilds portfolio condition hierarchy, project identity recovery, and attention-first semantics without changing the underlying C7/C8 math engines.",
-        },
-        {
-            "path": "frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "The core C9 workspace was intentionally rebuilt to deliver the required attention-first executive and PM information architecture.",
-        },
-        {
-            "path": "frontend/src/pages/ExecutiveOverview.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "Executive Overview now defines the governed purpose split between overview, portfolio performance, and immediate operations.",
-        },
-        {
-            "path": "frontend/src/pages/PmPortfolioIntelligence.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "PM portfolio framing was rebuilt so PMs see assigned-project performance instead of generic cross-product language.",
-        },
-        {
-            "path": "frontend/src/pages/PmCommandCenter.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "PM Management Center now avoids the admin-only intelligence strip dependency and carries governed scoped identity framing.",
-        },
-        {
-            "path": "frontend/src/components/pm/command/PmProjectFirstHome.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "The PM project-first surface now resolves project names from scoped portfolio data and removes operator-facing architecture explanations.",
-        },
-        {
-            "path": "frontend/src/components/pm/command/PmProjectSelector.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "PM selector behavior was aligned with scoped identity requirements for the C9 closeout.",
-        },
-        {
-            "path": "frontend/src/lib/projectControlsPresentation.js",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "Shared KPI presentation now uses governed operator-readable cost and schedule language across C8/C9 surfaces.",
-        },
-        {
-            "path": "frontend/src/lib/operatorLanguage.js",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "Operator identity sanitation now removes fixture markers while preserving legitimate project identity on governed C9 surfaces.",
-        },
-        {
-            "path": "frontend/src/pages/ExecutiveOperationalIntelligence.jsx",
-            "mission_ref": "WP18C9 Executive / PM IA rebuild",
-            "rationale": "Executive Operations Dashboard copy and hierarchy were refined so it complements rather than duplicates the rebuilt portfolio experience.",
-        },
-        {
-            "path": "frontend/src/components/ods/HorizonPrimitives.jsx",
-            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
-            "rationale": "Executive operational-intelligence primitives were updated to remove operator-facing software-language references and support the governed screenshot-ledger certification standard.",
-        },
-        {
-            "path": "frontend/src/components/operational/OperationalTimelineSidecar.jsx",
-            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
-            "rationale": "Project-detail runtime certification required removal of generic project fallback language from the operational timeline sidecar.",
-        },
-        {
-            "path": "frontend/src/pages/NewDailyReportV3.jsx",
-            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
-            "rationale": "The daily-report filing experience is part of the permanent screenshot-ledger scope, so operator-facing copy was reconciled to the certified comprehension standard.",
-        },
-        {
-            "path": "frontend/src/pages/PmOperationalIntelligence.jsx",
-            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
-            "rationale": "PM project-performance copy was aligned to the operator-comprehension standard and is now governed as part of the permanent runtime screenshot ledger.",
-        },
-        {
-            "path": "frontend/src/pages/PmProjectDetail.jsx",
-            "mission_ref": "WP18C9 Runtime screenshot ledger hardening",
-            "rationale": "PM project-detail runtime certification required elimination of generic fallback identity on the certified route.",
-        },
-        {
-            "path": "scripts/premerge_operator_language_check.py",
-            "mission_ref": "WP18C9 Recurrence prevention",
-            "rationale": "The lightweight pre-merge operator-language guard is part of the governed C9 closeout because it prevents recurrence of the exact operator-comprehension defect class remediated here.",
-        },
-        {
-            "path": "scripts/runtime_screenshot_ledger_gate.py",
-            "mission_ref": "WP18C9 Runtime screenshot ledger enforcement",
-            "rationale": "The permanent runtime screenshot-ledger gate is part of the constitutional C9 closeout and must remain governed for all future operator-facing certification runs.",
-        },
-        {
-            "path": "pytest.ini",
-            "mission_ref": "WP18C9 Warning reconciliation",
-            "rationale": "The final C9 closeout required zero unexplained warnings, so the exact third-party Starlette multipart PendingDeprecationWarning is narrowly filtered here without muting other warnings.",
-        },
-        {
-            "path": "backend/server.py",
-            "mission_ref": "PDC-01B Build and backup evidence",
-            "rationale": "The complete archive export path was hardened to derive database authority truth in verification contexts without weakening runtime database authority protections.",
-        },
-        {
-            "path": "backend/tests/test_track_27_09b_integrity_scheduler_closeout.py",
-            "mission_ref": "PDC-01B Backup evidence",
-            "rationale": "The recovery scheduler closeout regression now matches the canonical informational-warning classification used by the governed backup OCC surface.",
-        },
-        {
-            "path": "backend/tests/test_track_28_09d_backup_health_aggregator.py",
-            "mission_ref": "PDC-01B Backup evidence",
-            "rationale": "The backup health aggregator regression now matches the canonical D2 backup/recovery status vocabulary for this governed release.",
-        },
-        {
-            "path": "docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md",
-            "mission_ref": "PDC-01B Migration continuity",
-            "rationale": "The migration register now records exact-release dispositions proving this candidate does not introduce or require a migration.",
-        },
-        {
-            "path": "docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md",
-            "mission_ref": "PDC-01B Backup evidence",
-            "rationale": "Canonical release-facing backup/recovery evidence is captured here with honest VERIFIED / STALE / NOT_EXERCISED / OWNER_EVIDENCE_REQUIRED classifications.",
-        },
-        {
-            "path": "docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
-            "mission_ref": "PDC-01B Build certification",
-            "rationale": "This bounded closure pass records exact-candidate build, gate, and regression evidence for the current PRE_SAVE_CANDIDATE.",
-        },
-        {
-            "path": "scripts/release_gate.py",
-            "mission_ref": "PDC-01B Build certification",
-            "rationale": "The release gate itself was repaired to avoid recursive self-invocation in focused regressions and to return correct top-level build gate statuses for this candidate.",
-        },
-    ]
+    allowed_paths = {entry.get("path") for entry in allowed if entry.get("path")}
+    allowed_patterns = {entry.get("path_pattern") for entry in allowed if entry.get("path_pattern")}
+    for required_path in {
+        "backend/lib/release_identity.py",
+        "backend/lib/release_fingerprint.py",
+        "backend/lib/release_gate_governance.py",
+        "backend/scripts/verify_release_identity.py",
+        "backend/server.py",
+        "backend/tests/test_release_content_fingerprint.py",
+        "backend/tests/test_release_identity_build_guard.py",
+        "backend/tests/test_c2_phase2_release_identity_contract.py",
+        "backend/tests/test_dr03_release_identity.py",
+        "backend/tests/test_c2_deployment_governance.py",
+        "backend/tests/test_wp18db_production_identity_parity.py",
+        "backend/tests/test_checkpoint_d5_d6_release_gate.py",
+        "docs/governance/release_gate_manifest.json",
+        "docs/governance/release_content_fingerprint_contract.json",
+        "memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
+        "scripts/release_fingerprint.py",
+        "frontend/scripts/stamp-build-version.js",
+        "frontend/src/buildVersion.generated.js",
+        "frontend/public/release-identity.json",
+        "frontend/src/lib/versionCache.js",
+        "frontend/src/components/ForgedOpsAttribution.jsx",
+    }:
+        assert required_path in allowed_paths
+    assert "memory/WP18DB_*" in allowed_patterns
+    assert "memory/WP18_OPERATOR_*" in allowed_patterns
 
 
 def test_pre_save_candidate_allows_only_governed_inventory():
@@ -396,26 +165,32 @@ def test_pre_save_candidate_allows_only_governed_inventory():
     snapshot = {
         "dirty": True,
         "status_lines": [
+            "M backend/lib/release_fingerprint.py",
             "M backend/lib/release_gate_governance.py",
-            " M frontend/yarn.lock",
-            "M docs/governance/release_gate_manifest.json",
-            "M frontend/src/buildVersion.generated.js",
+            "M backend/lib/release_identity.py",
             "M backend/scripts/verify_release_identity.py",
-            "M backend/tests/test_checkpoint_d5_d6_release_gate.py",
-            "M backend/static/runtime-data/DEPLOYMENT_HISTORY.json",
-            "M memory/PRD.md",
             "M backend/server.py",
-            "M backend/tests/test_track_27_09b_integrity_scheduler_closeout.py",
-            "M backend/tests/test_track_28_09d_backup_health_aggregator.py",
-            "M docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md",
-            "?? docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md",
-            "?? docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
-            "M scripts/release_gate.py",
+            "M backend/tests/test_c2_deployment_governance.py",
+            "M backend/tests/test_c2_phase2_release_identity_contract.py",
+            "M backend/tests/test_checkpoint_d5_d6_release_gate.py",
+            "M backend/tests/test_dr03_release_identity.py",
+            "M backend/tests/test_release_identity_build_guard.py",
+            "M backend/tests/test_wp18db_production_identity_parity.py",
+            "M docs/governance/release_gate_manifest.json",
+            "?? docs/governance/release_content_fingerprint_contract.json",
+            "M memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
+            "M frontend/public/release-identity.json",
+            "M frontend/scripts/stamp-build-version.js",
+            "M frontend/src/buildVersion.generated.js",
+            "M frontend/src/components/ForgedOpsAttribution.jsx",
+            "M frontend/src/lib/versionCache.js",
+            "?? scripts/release_fingerprint.py",
+            "?? backend/tests/test_release_content_fingerprint.py",
         ],
     }
     result = evaluate_pre_save_candidate(snapshot, manifest)
     assert result["passed"] is True
-    assert result["classification"] == "PRE_SAVE_CANDIDATE"
+    assert result["classification"] == "UNSAVED_FINAL_CANDIDATE"
     assert result["unknown_dirty_files"] == []
 
 

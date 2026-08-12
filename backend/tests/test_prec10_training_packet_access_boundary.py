@@ -37,9 +37,12 @@ def admin_token(session):
         timeout=120,
     )
     assert response.status_code == 200, response.text[:400]
-    token = (response.json().get("portal_tokens") or {}).get("admin")
+    payload = response.json()
+    token = (payload.get("portal_tokens") or {}).get("admin")
     assert token, "admin portal token missing from multi-login response"
-    return token
+    session_token = payload.get("session_token")
+    assert session_token, "directory session token missing from multi-login response"
+    return {"admin": token, "session_token": session_token}
 
 
 @pytest.fixture(scope="session")
@@ -90,7 +93,10 @@ def test_hr_packet_accepts_admin_token(session, admin_token):
     response = session.get(
         f"{API}/training/packet.pdf",
         params={"track": "hr", "lang": "en"},
-        headers={"X-Admin-Token": admin_token},
+        headers={
+            "X-Admin-Token": admin_token["admin"],
+            "X-Directory-Token": admin_token["session_token"],
+        },
         timeout=120,
     )
     assert response.status_code == 200, response.text[:300]

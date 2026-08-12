@@ -15,11 +15,14 @@
     ]
   },
   "release_identity_files": {
-    "scope": "release_identity_scope.json",
+    "scope": "docs/governance/release_content_fingerprint_contract.json",
     "backend_authority": "backend/lib/release_identity.py",
+    "backend_fingerprint_owner": "backend/lib/release_fingerprint.py",
     "backend_verifier": "backend/scripts/verify_release_identity.py",
+    "fingerprint_cli": "scripts/release_fingerprint.py",
     "frontend_stamp": "frontend/scripts/stamp-build-version.js",
-    "frontend_generated": "frontend/src/buildVersion.generated.js"
+    "frontend_generated": "frontend/src/buildVersion.generated.js",
+    "frontend_public_contract": "frontend/public/release-identity.json"
   },
   "deployment_source_authority": {
     "platform": "Emergent",
@@ -35,8 +38,8 @@
   "pre_save_candidate_policy": {
     "allow_dirty_workspace_for_certification": true,
     "deployed_source_must_be_clean_sha": true,
-    "classification_label": "PRE_SAVE_CANDIDATE",
-    "mission_scope": "PDC-01A pre-deployment blocker remediation only",
+    "classification_label": "UNSAVED_FINAL_CANDIDATE",
+    "mission_scope": "MASCI OPS 9 release-governance repair only",
     "allowed_dirty_entries": [
       {
         "path": "frontend/yarn.lock",
@@ -55,18 +58,148 @@
       },
       {
         "path": "frontend/src/buildVersion.generated.js",
-        "mission_ref": "PDC-01A Blocker 3",
-        "rationale": "Canonical build stamping regenerates the frontend release identity artifact for the governed pre-save candidate source."
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The tracked frontend build contract now declares runtime identity binding semantics only and must remain governed within the unsaved final candidate repair set."
+      },
+      {
+        "path": "frontend/public/release-identity.json",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The public frontend release identity file is now a static runtime-binding contract rather than a stale SHA carrier and must remain governed within this repair set."
       },
       {
         "path": "backend/scripts/verify_release_identity.py",
-        "mission_ref": "PDC-01A Blocker 3",
-        "rationale": "The release identity verifier now classifies PRE_SAVE_CANDIDATE workspaces honestly and is part of the governed identity reconciliation change-set."
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The release identity verifier now validates the runtime-bound SHA chain and is part of the governed release-governance repair set."
+      },
+      {
+        "path": "backend/lib/release_identity.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The backend release identity owner now binds runtime/frontend parity to the live saved SHA without tracked post-save source mutation."
+      },
+      {
+        "path": "backend/lib/runtime_identity.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The fail-closed runtime environment-separation contract now blocks preview/production resource mismatches at startup and deployment truth surfaces."
+      },
+      {
+        "path": "backend/lib/release_fingerprint.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The canonical deterministic release-content fingerprint owner is introduced here and governs normalization, self-exclusion, and historical comparison."
+      },
+      {
+        "path": "docs/governance/release_content_fingerprint_contract.json",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The explicit inclusion, exclusion, and normalization contract for release-content fingerprints is governed here with no hidden exclusions."
+      },
+      {
+        "path": "memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The canonical pre-save fingerprint record is an intentional governed output of this repair and must remain an eligible unsaved-candidate artifact without altering the aggregate it records."
+      },
+      {
+        "path": "scripts/release_fingerprint.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The canonical CLI wrapper for deterministic manifest generation and historical comparison is governed here."
+      },
+      {
+        "path": "frontend/scripts/stamp-build-version.js",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The frontend stamp script now writes static runtime-binding contracts only and must not reintroduce tracked SHA recursion."
+      },
+      {
+        "path": "frontend/src/lib/versionCache.js",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Frontend runtime identity now publishes a browser-visible release identity sourced from the canonical backend runtime contract."
+      },
+      {
+        "path": "frontend/src/components/ForgedOpsAttribution.jsx",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The user-facing build stamp now renders runtime-bound release identity instead of stale tracked generated values."
+      },
+      {
+        "path": "backend/tests/test_release_content_fingerprint.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Permanent fingerprint reproducibility regressions A-G are governed here."
+      },
+      {
+        "path": "backend/tests/test_runtime_identity_contract.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Permanent runtime environment-separation, credential-binding, and fail-closed release identity regressions are governed here."
+      },
+      {
+        "path": "backend/tests/test_runtime_identity_startup_enforcement.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Startup hard-fail enforcement for preview/production resource mismatches is governed here."
+      },
+      {
+        "path": "backend/tests/test_d1_runtime_identity_http.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The live HTTP runtime identity oracle now proves canonical preview isolation and non-secret version payloads."
+      },
+      {
+        "path": "backend/tests/test_release_identity_build_guard.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Permanent release-identity build guard regressions are governed here."
+      },
+      {
+        "path": "backend/tests/test_c2_phase2_release_identity_contract.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Static frontend contract and runtime SHA-binding parity regressions are governed here."
+      },
+      {
+        "path": "backend/tests/test_dr03_release_identity.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Runtime release identity, dirty/clean semantics, env injection, and parity regressions are governed here."
+      },
+      {
+        "path": "backend/tests/test_c2_deployment_governance.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Deployment governance runtime contract checks are updated to the repaired frontend runtime identity model."
+      },
+      {
+        "path": "backend/tests/test_wp18db_production_identity_parity.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Production identity parity regressions now lock the runtime contract semantics instead of stale static SHA artifacts."
       },
       {
         "path": "backend/tests/test_checkpoint_d5_d6_release_gate.py",
-        "mission_ref": "PDC-01A Blocker 1",
-        "rationale": "The release-gate regression suite itself is updated to lock the governed PRE_SAVE_CANDIDATE contract and reject unknown dirty files."
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The release-gate regression suite itself is updated to lock the governed UNSAVED_FINAL_CANDIDATE contract and reject unknown dirty files."
+      },
+      {
+        "path": "backend/tests/test_track_28_09a_environment_separation.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The preview/production environment-separation oracle is updated to assert current fail-closed truth instead of stale scheduler or endpoint assumptions."
+      },
+      {
+        "path": "backend/tests/test_prec10_platform_truth_integrity.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Platform-truth integrity probes now use the current portal-session contract and verify that release-governance repairs did not reopen contamination regressions."
+      },
+      {
+        "path": "backend/tests/test_prec10_training_packet_access_boundary.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Training packet access-boundary proofs were updated to the current admin plus directory-token contract without enabling Training & Qualifications."
+      },
+      {
+        "path": "backend/tests/test_track_28_05_fleet_dispatch_e2e.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Fleet and dispatch dependency-impact proofs now use the current portal-session contract while preserving release-governance boundaries."
+      },
+      {
+        "path": "backend/tests/test_track_28_06_safety_e2e.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Safety dependency-impact proofs now use the current portal-session contract and local backend authority to avoid ingress-only false negatives."
+      },
+      {
+        "path": "backend/tests/test_bcss_s1_2_s1_3_verification.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "Backup verification oracles now assert the current authoritative recoverable artifact instead of stale historical filenames."
+      },
+      {
+        "path": "scripts/release_gate.py",
+        "mission_ref": "MASCI OPS 9 Release governance repair",
+        "rationale": "The release-gate runner now executes governed sub-checks with the active interpreter and canonical runtime contracts."
       },
       {
         "path": "backend/static/runtime-data/DEPLOYMENT_HISTORY.json",
@@ -302,11 +435,6 @@
         "path": "docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
         "mission_ref": "PDC-01B Build certification",
         "rationale": "This bounded closure pass records exact-candidate build, gate, and regression evidence for the current PRE_SAVE_CANDIDATE."
-      },
-      {
-        "path": "scripts/release_gate.py",
-        "mission_ref": "PDC-01B Build certification",
-        "rationale": "The release gate itself was repaired to avoid recursive self-invocation in focused regressions and to return correct top-level build gate statuses for this candidate."
       }
     ]
   },
@@ -579,7 +707,7 @@
     {
       "gate_id": "focused-regressions",
       "description": "Run focused A\u2013D regressions plus D5/D6 gate tests.",
-      "command_or_verifier": "python3 -m pytest -q backend/tests/test_runtime_identity_contract.py backend/tests/test_checkpoint_d2_runtime_truth_normalization.py backend/tests/test_checkpoint_d3_database_authority.py backend/tests/test_checkpoint_d4_dependency_governance.py backend/tests/test_checkpoint_d5_d6_release_gate.py",
+      "command_or_verifier": "python3 -m pytest -q backend/tests/test_runtime_identity_contract.py backend/tests/test_runtime_identity_startup_enforcement.py backend/tests/test_checkpoint_d2_runtime_truth_normalization.py backend/tests/test_checkpoint_d3_database_authority.py backend/tests/test_checkpoint_d4_dependency_governance.py backend/tests/test_checkpoint_d5_d6_release_gate.py",
       "execution_environment": "workspace",
       "blocking_status": "BLOCK",
       "timeout_seconds": 1800,
@@ -663,6 +791,7 @@
       "description": "Checkpoint A\u2013D plus D5/D6 focused slice",
       "paths": [
         "backend/tests/test_runtime_identity_contract.py",
+        "backend/tests/test_runtime_identity_startup_enforcement.py",
         "backend/tests/test_checkpoint_d2_runtime_truth_normalization.py",
         "backend/tests/test_checkpoint_d3_database_authority.py",
         "backend/tests/test_checkpoint_d4_dependency_governance.py",
@@ -734,6 +863,7 @@
     "authority": "backend/lib/runtime_identity.py",
     "proof_tests": [
       "backend/tests/test_runtime_identity_contract.py",
+      "backend/tests/test_runtime_identity_startup_enforcement.py",
       "backend/tests/test_d1_runtime_identity_http.py"
     ]
   },

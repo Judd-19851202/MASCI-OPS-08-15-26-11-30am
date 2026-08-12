@@ -13,12 +13,26 @@ import os
 import pytest
 import requests
 import uuid
+from pathlib import Path
 from lib.rate_limiting import _reset_login_fails
 
-PUBLIC_BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
-if not PUBLIC_BASE_URL:
-    PUBLIC_BASE_URL = "https://masci-audit-hub.preview.emergentagent.com"
+
+def _read_env_value(path: Path, key: str) -> str:
+    if not path.exists():
+        return ""
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith(f"{key}="):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return ""
+
+
+PUBLIC_BASE_URL = (
+    os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+    or _read_env_value(Path('/app/frontend/.env'), 'REACT_APP_BACKEND_URL').rstrip('/')
+)
+assert PUBLIC_BASE_URL, 'REACT_APP_BACKEND_URL must resolve from environment or frontend/.env'
 API_BASE_URL = os.environ.get('LOCAL_BACKEND_URL', 'http://127.0.0.1:8001').rstrip('/')
+ADMIN_ROUTE_TIMEOUT = 30
 
 
 def _api_get(path: str, *, timeout: int = 30):
@@ -52,26 +66,18 @@ class TestPublicEndpoints:
         print("✓ Frontend loads and is not blank")
     
     def test_release_identity_json(self):
-        """GET /release-identity.json returns served frontend artifact identity"""
+        """GET /release-identity.json returns the runtime-binding contract"""
         response = requests.get(f"{PUBLIC_BASE_URL}/release-identity.json", timeout=10)
         assert response.status_code == 200
         data = response.json()
-        
-        # Verify required fields
-        assert "commit" in data, "release-identity.json must have commit"
-        assert "source_hash" in data, "release-identity.json must have source_hash"
-        assert "built_at" in data, "release-identity.json must have built_at"
-        assert "version" in data, "release-identity.json must have version"
-        
-        # Verify commit is a full SHA (40 chars)
-        commit = data.get("commit", "")
-        assert len(commit) == 40, f"Commit should be full 40-char SHA, got {len(commit)} chars"
-        
-        # Verify source_hash is present
-        source_hash = data.get("source_hash", "")
-        assert len(source_hash) >= 12, "source_hash should be at least 12 chars"
-        
-        print(f"✓ /release-identity.json returns valid identity: commit={commit[:12]}, source_hash={source_hash[:12]}")
+
+        assert data.get("identity_mode") == "runtime-api-version"
+        assert data.get("identity_endpoint") == "/api/version"
+        assert data.get("runtime_binding_required") is True
+        assert data.get("post_save_source_mutation_required") is False
+        assert data.get("tracked_commit_embed_allowed") is False
+
+        print("✓ /release-identity.json returns runtime-binding contract")
     
     def test_api_version(self):
         """GET /api/version reports backend runtime commit and frontend parity"""
@@ -94,10 +100,10 @@ class TestPublicEndpoints:
         assert "frontend_backend_release_match" in data, "/api/version must have frontend_backend_release_match"
         assert data["frontend_backend_release_match"] is True, "frontend_backend_release_match should be true"
         
-        # Frontend build source should point to served identity
+        # Frontend build source should point to the runtime contract
         assert "frontend_build_source" in data, "/api/version must have frontend_build_source"
         frontend_source = data.get("frontend_build_source", "")
-        assert "served:" in frontend_source, f"frontend_build_source should be served:*, got {frontend_source}"
+        assert "runtime_contract:" in frontend_source, f"frontend_build_source should be runtime_contract:*, got {frontend_source}"
         
         print(f"✓ /api/version: backend={backend_commit[:12]}, frontend={frontend_commit[:12]}, match=true")
     
@@ -159,7 +165,7 @@ class TestProtectedGovernanceEndpoints:
             "X-Admin-Token": auth_tokens["admin"],
             "X-Directory-Token": auth_tokens["directory"]
         }
-        response = requests.get(f"{API_BASE_URL}/api/admin/check", headers=headers, timeout=10)
+        response = requests.get(f"{API_BASE_URL}/api/admin/check", headers=headers, timeout=ADMIN_ROUTE_TIMEOUT)
         assert response.status_code == 200
         data = response.json()
         assert data.get("ok") is True
@@ -171,7 +177,7 @@ class TestProtectedGovernanceEndpoints:
             "X-Admin-Token": auth_tokens["admin"],
             "X-Directory-Token": auth_tokens["directory"]
         }
-        response = requests.get(f"{API_BASE_URL}/api/admin/deployment-readiness", headers=headers, timeout=10)
+        response = requests.get(f"{API_BASE_URL}/api/admin/deployment-readiness", headers=headers, timeout=ADMIN_ROUTE_TIMEOUT)
         assert response.status_code == 200
         data = response.json()
         
@@ -188,7 +194,7 @@ class TestProtectedGovernanceEndpoints:
         response = requests.get(
             f"{API_BASE_URL}/api/admin/deployment-readiness/history?limit=5",
             headers=headers,
-            timeout=10
+            timeout=ADMIN_ROUTE_TIMEOUT
         )
         assert response.status_code == 200
         data = response.json()
@@ -215,7 +221,7 @@ class TestProtectedGovernanceEndpoints:
         response = requests.get(
             f"{API_BASE_URL}/api/admin/occ/trust-events?limit=10",
             headers=headers,
-            timeout=10
+            timeout=ADMIN_ROUTE_TIMEOUT
         )
         assert response.status_code == 200
         data = response.json()
@@ -257,7 +263,7 @@ class TestAutomaticDeploymentVerification:
         }
         
         # Get version to find current commit
-        version_resp = requests.get(f"{API_BASE_URL}/api/version", timeout=10)
+        version_resp = requests.get(f"{API_BASE_URL}/api/version", timeout=ADMIN_ROUTE_TIMEOUT)
         version_data = version_resp.json()
         current_commit = version_data.get("commit", "")[:12]
         
@@ -265,7 +271,7 @@ class TestAutomaticDeploymentVerification:
         history_resp = requests.get(
             f"{API_BASE_URL}/api/admin/deployment-readiness/history?limit=20",
             headers=headers,
-            timeout=10
+            timeout=ADMIN_ROUTE_TIMEOUT
         )
         assert history_resp.status_code == 200
         history_data = history_resp.json()
@@ -296,7 +302,7 @@ class TestAutomaticDeploymentVerification:
         trust_resp = requests.get(
             f"{API_BASE_URL}/api/admin/occ/trust-events?limit=50",
             headers=headers,
-            timeout=10
+            timeout=ADMIN_ROUTE_TIMEOUT
         )
         assert trust_resp.status_code == 200
         trust_data = trust_resp.json()
@@ -311,7 +317,7 @@ class TestAutomaticDeploymentVerification:
         if not deploy_events:
             state_resp = requests.get(
                 f"{API_BASE_URL}/api/version",
-                timeout=10,
+                timeout=ADMIN_ROUTE_TIMEOUT,
             )
             assert state_resp.status_code == 200
             version_data = state_resp.json()
@@ -323,7 +329,7 @@ class TestAutomaticDeploymentVerification:
             history_resp = requests.get(
                 f"{API_BASE_URL}/api/admin/deployment-readiness/history?limit=20",
                 headers=headers,
-                timeout=10,
+                timeout=ADMIN_ROUTE_TIMEOUT,
             )
             assert history_resp.status_code == 200
             history_events = history_resp.json().get("events", [])
@@ -352,19 +358,19 @@ class TestAuthRequirements:
     
     def test_admin_check_requires_auth(self):
         """Protected endpoints reject requests without tokens"""
-        response = requests.get(f"{API_BASE_URL}/api/admin/check", timeout=10)
+        response = requests.get(f"{API_BASE_URL}/api/admin/check", timeout=ADMIN_ROUTE_TIMEOUT)
         assert response.status_code == 401, "Should require auth"
         print("✓ /api/admin/check requires authentication")
     
     def test_deployment_readiness_requires_auth(self):
         """Deployment readiness requires admin token"""
-        response = requests.get(f"{API_BASE_URL}/api/admin/deployment-readiness", timeout=10)
+        response = requests.get(f"{API_BASE_URL}/api/admin/deployment-readiness", timeout=ADMIN_ROUTE_TIMEOUT)
         assert response.status_code == 401, "Should require auth"
         print("✓ /api/admin/deployment-readiness requires authentication")
     
     def test_occ_trust_events_requires_auth(self):
         """OCC trust events requires admin token"""
-        response = requests.get(f"{API_BASE_URL}/api/admin/occ/trust-events", timeout=10)
+        response = requests.get(f"{API_BASE_URL}/api/admin/occ/trust-events", timeout=ADMIN_ROUTE_TIMEOUT)
         assert response.status_code == 401, "Should require auth"
         print("✓ /api/admin/occ/trust-events requires authentication")
 

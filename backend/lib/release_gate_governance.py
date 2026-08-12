@@ -8,6 +8,8 @@ import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
+from lib.release_identity import parse_frontend_build_identity_text as canonical_parse_frontend_build_identity_text
+
 try:
     import yaml
 except Exception:  # pragma: no cover
@@ -301,6 +303,7 @@ def evaluate_pre_save_candidate(snapshot: dict[str, Any], manifest: dict[str, An
 
     allowed = bool(policy.get("allow_dirty_workspace_for_certification"))
     classification = "DIRTY_UNGOVERNED"
+    dirty_candidate_label = str(policy.get("classification_label") or "UNSAVED_FINAL_CANDIDATE").strip() or "UNSAVED_FINAL_CANDIDATE"
     passed = False
     errors = list(inventory_errors)
     if parse_failures:
@@ -314,7 +317,7 @@ def evaluate_pre_save_candidate(snapshot: dict[str, Any], manifest: dict[str, An
         classification = "CLEAN_SHA"
         passed = True
     elif allowed and not errors and matched_files:
-        classification = "PRE_SAVE_CANDIDATE"
+        classification = dirty_candidate_label
         passed = True
 
     return {
@@ -381,17 +384,31 @@ def evaluate_workspace_state_source_authority(
 
 def workflow_inventory(repo_root: Path = REPO_ROOT) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    if not WORKFLOW_ROOT.exists() or yaml is None:
+    if not WORKFLOW_ROOT.exists():
         return rows
     for path in sorted(WORKFLOW_ROOT.glob("*.yml")):
         raw = _read(path)
-        parsed = yaml.safe_load(raw)
-        on_block = parsed.get("on") if "on" in parsed else parsed.get(True)
+        if yaml is not None:
+            parsed = yaml.safe_load(raw) or {}
+            on_block = parsed.get("on") if "on" in parsed else parsed.get(True)
+            name = parsed.get("name")
+            triggers = sorted((on_block or {}).keys()) if isinstance(on_block, dict) else []
+        else:
+            parsed = {}
+            name_match = re.search(r"^name:\s*(.+)$", raw, re.MULTILINE)
+            name = name_match.group(1).strip() if name_match else None
+            triggers = []
+            if re.search(r"^\s*push:\s*$", raw, re.MULTILINE):
+                triggers.append("push")
+            if re.search(r"^\s*pull_request:\s*$", raw, re.MULTILINE):
+                triggers.append("pull_request")
+            if re.search(r"^\s*workflow_dispatch:\s*$", raw, re.MULTILINE):
+                triggers.append("workflow_dispatch")
         rows.append(
             {
                 "path": str(path.relative_to(repo_root)),
-                "name": parsed.get("name"),
-                "triggers": sorted((on_block or {}).keys()) if isinstance(on_block, dict) else [],
+                "name": name,
+                "triggers": triggers,
                 "continue_on_error_present": "continue-on-error: true" in raw,
                 "uses_manifest_gate": "release_gate.py" in raw,
             }
@@ -401,8 +418,6 @@ def workflow_inventory(repo_root: Path = REPO_ROOT) -> list[dict[str, Any]]:
 
 def validate_workflows(repo_root: Path = REPO_ROOT) -> list[str]:
     errors: list[str] = []
-    if yaml is None:
-        return ["PyYAML unavailable"]
     for row in workflow_inventory(repo_root):
         if row["continue_on_error_present"]:
             errors.append(f"workflow {row['path']} uses continue-on-error")
@@ -508,27 +523,7 @@ def validate_release_gate_manifest(manifest: dict[str, Any], repo_root: Path = R
 
 
 def parse_frontend_build_identity_text(text: str) -> dict[str, Any]:
-    patterns = {
-        "version": r'BUILD_VERSION\s*=\s*"([^"]+)"',
-        "commit": r'BUILD_COMMIT\s*=\s*"([^"]+)"',
-        "built_at": r'BUILT_AT_ISO\s*=\s*"([^"]+)"',
-        "source_hash": r'BUILD_SOURCE_HASH\s*=\s*"([^"]+)"',
-        "dependency_manifest_hash": r'BUILD_DEPENDENCY_MANIFEST_HASH\s*=\s*"([^"]+)"',
-        "migration_manifest_hash": r'BUILD_MIGRATION_MANIFEST_HASH\s*=\s*"([^"]+)"',
-        "release_gate_manifest_hash": r'RELEASE_GATE_MANIFEST_HASH\s*=\s*"([^"]+)"',
-        "release_gate_manifest_version": r'RELEASE_GATE_MANIFEST_VERSION\s*=\s*"([^"]+)"',
-        "release_gate_manifest_id": r'RELEASE_GATE_MANIFEST_ID\s*=\s*"([^"]+)"',
-        "repository": r'BUILD_REPOSITORY\s*=\s*"([^"]+)"',
-        "branch": r'BUILD_BRANCH\s*=\s*"([^"]+)"',
-        "workspace_dirty": r'BUILD_WORKSPACE_DIRTY\s*=\s*(true|false)',
-    }
-    out: dict[str, Any] = {}
-    for key, pattern in patterns.items():
-        match = re.search(pattern, text)
-        if match:
-            value = match.group(1)
-            out[key] = value if key != "workspace_dirty" else value == "true"
-    return out
+    return canonical_parse_frontend_build_identity_text(text)
 
 
 def read_frontend_build_identity(repo_root: Path = REPO_ROOT) -> dict[str, Any]:

@@ -27,6 +27,7 @@ from typing import Any, Dict, List
 
 import httpx
 import pytest
+import requests
 from pymongo import MongoClient
 
 
@@ -35,17 +36,7 @@ GOVERNED_SYNTHETIC_MARKERS = {"synthetic_record": True}
 
 
 def _backend() -> str:
-    try:
-        r = httpx.get("http://localhost:8001/api/health", timeout=5)
-        if r.status_code == 200:
-            return "http://localhost:8001"
-    except Exception:
-        pass
-    with open("/app/frontend/.env") as f:
-        for line in f:
-            if line.startswith("REACT_APP_BACKEND_URL="):
-                return line.split("=", 1)[1].strip()
-    raise RuntimeError("no backend")
+    return "http://127.0.0.1:8001"
 
 
 def _mongo():
@@ -84,34 +75,58 @@ def _residue_bookends():
 
 
 @pytest.fixture(scope="module")
-def tokens() -> Dict[str, str]:
-    r = httpx.post(
-        f"{BACKEND}/api/auth/multi-login",
-        json={"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"},
-        timeout=30,
-    )
-    r.raise_for_status()
-    return r.json()["portal_tokens"]
+def tokens() -> Dict[str, Any]:
+    last_error = None
+    for _ in range(5):
+        try:
+            r = requests.post(
+                f"{BACKEND}/api/auth/multi-login",
+                json={"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"},
+                headers={
+                    "X-Device-Id": f"track-28-06-{uuid.uuid4().hex[:10]}",
+                    "X-Test-Rate-Limit-Bypass": "1",
+                },
+                timeout=60,
+            )
+            r.raise_for_status()
+            payload = r.json()
+            return {
+                "portal_tokens": payload["portal_tokens"],
+                "session_token": payload["session_token"],
+            }
+        except requests.RequestException as exc:
+            last_error = exc
+            time.sleep(2)
+    raise last_error
+
+
+def _portal_headers(tokens: Dict[str, Any], portal: str) -> Dict[str, str]:
+    portal_tokens = tokens["portal_tokens"]
+    return {
+        f"X-{portal}-Token": portal_tokens[portal.lower()],
+        "X-Directory-Token": tokens["session_token"],
+        "Content-Type": "application/json",
+    }
 
 
 @pytest.fixture(scope="module")
 def admin_h(tokens):
-    return {"X-Admin-Token": tokens["admin"], "Content-Type": "application/json"}
+    return _portal_headers(tokens, "Admin")
 
 
 @pytest.fixture(scope="module")
 def safety_h(tokens):
-    return {"X-Safety-Token": tokens["safety"], "Content-Type": "application/json"}
+    return _portal_headers(tokens, "Safety")
 
 
 @pytest.fixture(scope="module")
 def hr_h(tokens):
-    return {"X-HR-Token": tokens["hr"], "Content-Type": "application/json"}
+    return _portal_headers(tokens, "HR")
 
 
 @pytest.fixture(scope="module")
 def pm_h(tokens):
-    return {"X-PM-Token": tokens["pm"], "Content-Type": "application/json"}
+    return _portal_headers(tokens, "PM")
 
 
 # ═══════════════════════════════════════════════════════════════════

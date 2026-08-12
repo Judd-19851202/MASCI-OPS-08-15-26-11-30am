@@ -1,3 +1,19 @@
+# 2026-08-12 — MASCI OPS 9 release-governance repaired
+
+- Finished the canonical release-content fingerprint implementation and proved the full A–G contract: repeatability, self-exclusion, mtime immunity, meaningful source sensitivity, normalized platform-metadata handling, meaningful config sensitivity, and runtime-injected env exclusion from source-promotion identity.
+- Repaired runtime/frontend release identity so the UI binds to `/api/version` without tracked post-save SHA mutation; backend/frontend parity, UNSAVED_FINAL_CANDIDATE clean/dirty semantics, and release-identity build guards now pass.
+- Added fail-closed preview/production environment-separation enforcement for storage, credentials, integration endpoints, and preview-only surfaces/backfill behavior; startup now blocks dangerous mismatches.
+- Corrected stale high-blast-radius proof oracles only where the live contract had changed legitimately: deployment governance, runtime identity HTTP expectations, fleet/dispatch/safety portal session fixtures, training packet access boundary, backup lineage assertions, and environment-separation truth checks.
+- Cleared a real temporary contamination finding introduced during probing, then re-verified platform truth integrity to green.
+- Fresh proof captured for this exact candidate:
+  - runtime screenshot ledger / Product Quality v4: `300 / 300 PASS`
+  - release gate preview candidate: `PASS`
+  - independent frontend verification: `21 / 21 PASS`
+  - independent backend verification: `23 / 23 PASS`
+  - governed release-governance pack: `99 pass / 1 deselected`
+  - environment-separation + deployment proof pack: `42 / 42 PASS`
+  - dependency-impact packs revalidated across auth/runtime/trust/schedule/platform/safety/dispatch/ops-intelligence lanes.
+
 # 2026-08-11 — MASCI OPS 9 pre-save release-hardening completion
 
 - Completed the pre-save release-diff inventory, removed proven release garbage, and reconciled runtime/source/test evidence before governance-document updates.
