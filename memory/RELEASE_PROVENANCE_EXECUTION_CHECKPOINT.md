@@ -110,3 +110,17 @@ Parts-detail 401 ROOT CAUSE = AUTHORIZATION (not malformed data, not key constru
   /api/equipment-parts/{unit} uses require_shop_or_admin -> accepts admin only via stricter _is_valid_directory_admin_token_async; standard admin-portal token (passes require_admin -> /api/admin/equipment-parts/status=200) does NOT satisfy it; path not under /api/admin/ so falls through to shop branch -> 401. %23 encoding handled fine.
 589/15 verdict: NOT governed. "589-unit fleet" is a HARDCODED UI string in PartsCatalog.jsx (lines 15,269). Real eligible=357 -> 604-357=247 (fully explained). The "15" has no governed basis (stale UI copy drift).
 equipment_parts collection has only 2 unit catalogs on file (/api/admin/equipment-parts/status count=2).
+
+## EQUIPMENT PARTS 401 — PROVEN CODE DEFECT (frontend auth-scope), 2026-08-13
+Trace: record id 647b1857... (canonical id valid) -> displayed unit "#71 in Masci Equip list"
+ -> app request GET /api/equipment-parts/{unit_number} -> api client applyScopedAuthHeaders ->
+ inferPortalsForApiPath("/equipment-parts/..","admin") returns [] because "/equipment-parts" is NOT in
+ portalAuthScope allowlists (grep count=0) -> NO X-Admin/X-Directory token attached ->
+ backend require_shop_or_admin: no admin token satisfying _is_valid_directory_admin_token_async, path not /api/admin/,
+ no shop token -> 401 "Shop login required". Auth dependency runs BEFORE unit_number is used => malformed data irrelevant.
+Proof: admin-only 401; admin+directory 200 (returns parts doc); clean unit EXC-8614 behaves identically.
+CLASSIFICATION = AUTHORIZATION via FRONTEND header-scoping omission. Reproduced in preview (no-token -> 401 "Shop login required").
+Proposed repair (NOT applied): add "/equipment-parts" to ADMIN_SHARED_API_PREFIXES in frontend/src/lib/portalAuthScope.js
+ so admin (directory-compatible) requests attach X-Admin-Token + X-Directory-Token. Preview-first, no Save/Deploy.
+Counts (prod canonical): total 604 (active 604, archived 0); parts-eligible 357; ineligible 247 (empty unit_number);
+ malformed 4 (subset of eligible); duplicates 0. "589-unit fleet" is a HARDCODED UI string, not a live count -> no real 15-delta.
