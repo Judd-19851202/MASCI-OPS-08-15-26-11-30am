@@ -41,7 +41,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from lib.queue_transport_compat import legacy_transport_before_validator
 
 # Valid request kinds for Phase Alpha
 ALLOWED_KINDS = {"new_hire", "termination"}
@@ -77,8 +79,23 @@ def _employee_request_kpi_metadata(status: Optional[str]) -> Dict[str, Any]:
 
 
 class EmployeeRequestCreate(BaseModel):
-    """Submission body. Public-tolerant — required fields are minimal."""
+    """Submission body. Public-tolerant — required fields are minimal.
+
+    OFFLINE-QUEUE-COMPAT (P0-QUEUE-2026-08-13): this is a device-queued,
+    offline-capable PUBLIC submission model. Records can be autosaved on a
+    device under an OLD app version and replayed days later. The legacy client
+    wrote the transport helper ``_track_15_60_client_idempotency_key`` into the
+    body; a strict ``extra="forbid"`` model rejected it with
+    "Extra inputs are not permitted" and stranded real operator work.
+
+    NARROW fix: we KEEP ``extra="forbid"`` so genuinely unknown BUSINESS fields
+    are still rejected truthfully, and add a ``mode="before"`` validator that
+    strips ONLY the explicitly-allowlisted known transport keys (canonical
+    idempotency is the ``Idempotency-Key`` header). HR admin models stay strict.
+    """
     model_config = ConfigDict(extra="forbid")
+
+    _strip_legacy_transport = model_validator(mode="before")(legacy_transport_before_validator)
 
     kind: str = Field(..., description="new_hire | termination")
     # Identity context — captured for HR review traceability

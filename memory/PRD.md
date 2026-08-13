@@ -1681,4 +1681,66 @@ Gate 16 untouched. No tracked source modified. Read-only helper scripts only: pr
 
 Gate 16 remains OWNER-DEFERRED / NOT PASSED.
 
+
+
+---
+
+## 2026-08-13 — P0 LEGACY SUBMISSION-QUEUE RECOVERY + STORAGE TRUTH (READY FOR OWNER SAVE)
+
+### Queue P0 — root cause (confirmed live, non-mutating)
+- Production `POST /api/employee-requests` returns HTTP 422 `extra_forbidden` on `_track_15_60_client_idempotency_key`. `EmployeeCombo.jsx` sends that client-only idempotency helper in the body; `EmployeeRequestCreate` used `extra="forbid"`. The shared resiliency queue (single IndexedDB store `masci.resiliency.queue.v1`) surfaces the failing item on ANY portal (incl. Field Leadership) — matching the "Pending Uploads / Retry 5 of 5 / Attention Required" screenshots.
+- Classification: **Class A obsolete client-only transport metadata** (canonical idempotency travels on the `Idempotency-Key` HTTP header). Carries zero operator-entered data.
+
+### Fix (zero data loss, shared compatibility owner)
+- **Backend:** `EmployeeRequestCreate` → `extra="ignore"` (device-queued public model must tolerate cross-version payloads; every declared business field preserved; HR admin Approve/Reject stay `extra="forbid"`).
+- **Frontend:** new shared `queuePayloadMigration.js` — STRIP-ONLY, versioned (`QUEUE_SCHEMA_VERSION=2`), deep-clone (persisted original never mutated → recovery copy intact), strips only allowlisted client-only transport keys, injects nothing (cannot create a new extra_forbidden). Wired into BOTH queue engines (`resiliencyQueue.js` + `offlineQueue.js`).
+- **Auto-recovery (Phase 14):** `resiliencyQueue._load()` re-arms already-`failed` device records once after deploy; migration runs on next drain; per-item `Idempotency-Key` de-dupes server-side → no duplicate reports. Scales to 100+ devices, no per-device surgery.
+- **UX (Phase 11):** schema-compat 422s show "Saved report needs synchronization … Do not delete it." instead of raw Pydantic.
+
+### Evidence
+- BEFORE (prod, old code): 422 `extra_forbidden` reproduced non-destructively.
+- AFTER (local fixed backend): `ok:true` + id; business fields preserved; client field ignored.
+- Idempotency: same key twice → same id (no duplicate). Probe records cleaned from preview.
+- Regressions: backend 13/13 (10 capacity + 3 queue), frontend 7/7 queue-migration. Frontend compiles.
+
+### Capacity truth (Phase 16 — same batch, from prior work)
+- Real dynamic physical Atlas capacity now authoritative (fsTotalSize/fsUsedSize; live 63.7% HEALTHY); `ATLAS_QUOTA_MB` demoted to optional labeled operating budget; employee/public banner removed; admin storage card + hysteresis admin email alerting (80/90/95/98 + recovery). Production still shows the old banner only because it runs pre-fix code — resolved on redeploy.
+
+### Hardening
+- `verify_release_identity --strict` errors:[]; frontend==runtime parity TRUE; pre-save candidate passed (all dirty entries governed in `release_gate_manifest.json`); deterministic fingerprint regenerated into `memory/PRE_SAVE_CONTENT_FINGERPRINT.json`.
+- Gate 16 remains OWNER-DEFERRED / NOT PASSED. Physical preview/prod Atlas separation still a deferred P0 infra item.
+- **Owner next steps:** Save once → confirm saved-tree fingerprint matches → SHA-bound certification → controlled redeploy → verify `/api/version` parity → existing device queues auto-recover on next app load.
+
+### NON-NEGOTIABLE RESULT status
+Existing days-old queued field reports survive the upgrade and sync automatically (auto re-arm + migration + idempotency). No operator data or attachments discarded (strip-only, client metadata only; nested business objects untouched). No duplicate reports (idempotency-key). No device-by-device JSON surgery.
+
+
+
+---
+
+## 2026-08-13 — NARROWED QUEUE FIX + MASTER-DATA SELECTOR CERTIFICATION (READY FOR OWNER SAVE)
+
+### Narrowed backend queue fix (owner directive — no global weakening)
+- Reverted `EmployeeRequestCreate` to `extra="forbid"` and added a shared `mode="before"` validator (`backend/lib/queue_transport_compat.py`) that strips ONLY allowlisted known client transport keys (`_track_15_60_client_idempotency_key`). Semantics now: KNOWN transport → stripped; UNKNOWN business field → still rejected (extra_forbidden). Live-verified: known transport accepted (ok:true), unknown business field rejected. HR admin models stay strict.
+
+### Queue-target model audit (both engines)
+- Queue engines: 2 (resiliencyQueue = IndexedDB; offlineQueue = localStorage).
+- Queue writers → endpoints: EmployeeCombo→/employee-requests, NewIncident→/incidents, NewDailyReportV3→/daily-reports, FieldLeadershipFormPage→/field-leadership, NewInspection→/api/inspections, DriverShift→/dispatch/driver/.../transition.
+- **Only EmployeeCombo sends a transport-metadata field** (`_track_15_60_client_idempotency_key`) → sole stranding endpoint. Other create models are tolerant: IncidentCreate `extra="allow"`, DailyReportCreate `extra="allow"`, FieldLeadershipCreate default-ignore (business data in `details` Dict). Transition models stay `extra="forbid"` (receive no transport metadata; frontend strip-only migration protects them universally anyway).
+
+### Master-data selector certification (EMPLOYEE family — CERTIFIED with live evidence)
+- Shared canonical picker `EmployeeCombo` → `GET /api/hr/employee-roster` ("HR is gospel", Track 19.03), live `hr:roster-changed` bus, active-only for new selections, typeahead search. Used by Safety Meeting attendees (repeated rows), NewIncident, etc.
+- **Cross-portal reconciliation (production, live):** roster=239, public roster=239, field-leadership/employees=239, master status=296 total/239 active. Consistent 239 active = 296 − 57 inactive (legitimate active filter). **No population drift defect.**
+- Request-to-Add is a fallback INSIDE the canonical picker (only after a canonical roster search) → not a compensation for broken loading; backend `with_idempotency` prevents duplicate requests.
+- Field Leadership uses portal-scoped `/field-leadership/employees` (same canonical 239) with its own inline picker — canonical DATA; component consolidation to EmployeeCombo is a tracked follow-up (not a data defect).
+- `/api/master-lookup/employees` and `/api/employees/competent-persons` return 0 without a query term (search/filtered-subset endpoints), not defects.
+
+### Other selector families (inventoried at component level; full form-by-form live matrix PENDING — honest scope)
+- Equipment: shared `UnitCombo` (daily-report-v3) + `EquipmentMasterPanel`, canonical equipment-master. Vendor/Supplier: shared `SupplierCombo` + `SupplierMasterPanel`. Job/Project: shared project pickers across QA/QC, Meeting, Incident, Inspection, PO, daily-report. Component-level canonical binding confirmed; exhaustive live per-form matrix across all portals NOT yet run.
+
+### Status
+- Regressions: backend 4/4 queue-compat (+10 capacity), frontend 7/7 queue-migration + 5/5 master-data binding. `verify_release_identity --strict` errors:[]; pre-save gate passed (all dirty entries governed).
+- **ALL MASTER-DATA SELECTORS CANONICALLY BOUND: EMPLOYEE = YES (certified). Equipment/Vendor/Job = component-canonical, full live matrix pending (honest — not yet exhaustively certified form-by-form).**
+- Gate 16 remains OWNER-DEFERRED / NOT PASSED. Physical Atlas preview/prod separation still a deferred P0.
+
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.

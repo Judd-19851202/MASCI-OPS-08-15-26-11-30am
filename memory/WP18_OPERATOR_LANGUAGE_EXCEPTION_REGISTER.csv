@@ -8,7 +8,8 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminAnalytics,Admin,API calls,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminAnalytics.jsx:36,EXEMPT
 /AdminComplianceFindings,Admin,Governance Health,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminComplianceFindings.jsx:154,EXEMPT
 /AdminComplianceFindings,Admin,"Each finding maps to a specific detector rule (CAPA overdue, identity drift, expired CDL, etc). A clean board here means cross-portal accountability is healthy.",ETC,TECHNICAL_ADMIN_EXCEPTION,estimated cost to finish,static_scan::frontend/src/pages/admin/AdminComplianceFindings.jsx:168,EXEMPT
-/AdminDatabase,Admin,"Read-only operational observability. Live cluster snapshot, 30-day storage trend, runway estimate.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDatabase.jsx:128,EXEMPT
+/AdminDatabase,Admin,"Read-only operational observability. Live cluster snapshot, 30-day storage trend, runway estimate.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDatabase.jsx:145,EXEMPT
+/AdminDatabase,Admin,Physical capacity: UNKNOWN (telemetry unavailable),telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/AdminDatabase.jsx:93,EXEMPT
 /AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:111,EXEMPT
 /AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:111,EXEMPT
 /AdminDiagnostics,Admin,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:121,EXEMPT

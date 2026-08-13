@@ -455,6 +455,76 @@
         "path": "test_result.md",
         "mission_ref": "P0-CAPACITY-2026-08-13 audit-artifact removal",
         "rationale": "Proven release garbage (previously removed in commit f8686dc5) re-added by an audit auto-commit; removed again to restore a clean production candidate."
+      },
+      {
+        "path": "backend/lib/storage_capacity_truth.py",
+        "mission_ref": "P0-CAPACITY-2026-08-13 real storage-capacity truth",
+        "rationale": "New canonical storage-capacity truth owner: real physical Atlas utilization drives severity; ATLAS_QUOTA_MB is demoted to an optional logical operating budget; targeted admin alerting with hysteresis lives here."
+      },
+      {
+        "path": "backend/routes/cluster_capacity.py",
+        "mission_ref": "P0-CAPACITY-2026-08-13 real storage-capacity truth",
+        "rationale": "The /api/cluster/capacity endpoint now returns real physical capacity, separate logical footprint, and an optional labeled operating budget, and wires hysteresis admin alerting into the snapshot recorder."
+      },
+      {
+        "path": "backend/tests/test_p0_capacity_real_storage_truth.py",
+        "mission_ref": "P0-CAPACITY-2026-08-13 real storage-capacity truth",
+        "rationale": "Permanent regressions proving physical-driven severity, dynamic capacity, UNKNOWN-not-faked fallback, operating-budget labeling, alert hysteresis/recovery, and employee-banner removal."
+      },
+      {
+        "path": "frontend/src/App.js",
+        "mission_ref": "P0-CAPACITY-2026-08-13 remove employee-facing infrastructure banner",
+        "rationale": "The platform-wide ClusterCapacityBanner mount and import were removed so ordinary employees never see infrastructure-capacity warnings they cannot act on."
+      },
+      {
+        "path": "frontend/src/app/routing/AppRoutes.jsx",
+        "mission_ref": "P0-CAPACITY-2026-08-13 remove employee-facing infrastructure banner",
+        "rationale": "Removed the unused ClusterCapacityBanner import from the public routing tree."
+      },
+      {
+        "path": "frontend/src/pages/admin/AdminDatabase.jsx",
+        "mission_ref": "P0-CAPACITY-2026-08-13 admin storage health card",
+        "rationale": "Admin storage card now renders real physical Atlas capacity, separate logical footprint, and a clearly-labeled optional operating budget with the canonical severity vocabulary."
+      },
+      {
+        "path": "backend/routes/employee_requests.py",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy submission-queue compatibility",
+        "rationale": "The device-queued public EmployeeRequestCreate model now ignores unknown client-transport helper fields (e.g. _track_15_60_client_idempotency_key) so days-old queued submissions sync instead of failing with extra_forbidden; HR admin models stay strict."
+      },
+      {
+        "path": "backend/tests/test_p0_queue_employee_request_compat.py",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy submission-queue compatibility",
+        "rationale": "Permanent regressions proving the queued create model tolerates the client idempotency helper, preserves declared business fields, and keeps HR admin models strict."
+      },
+      {
+        "path": "frontend/src/lib/resiliency/queuePayloadMigration.js",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy submission-queue compatibility",
+        "rationale": "New shared, versioned, strip-only legacy-payload migration applied to every queued body before send; removes proven client-only transport metadata without mutating the persisted original or discarding operator data."
+      },
+      {
+        "path": "frontend/src/lib/resiliency/resiliencyQueue.js",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy submission-queue compatibility",
+        "rationale": "Wires the shared queue migration into every attempt, adds operator-friendly text for schema-compat 422s, and auto-re-arms already-failed device records once after deploy (idempotency-key de-duplicated)."
+      },
+      {
+        "path": "frontend/src/lib/resiliency/offlineQueue.js",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy submission-queue compatibility",
+        "rationale": "Applies the same strip-only migration to the localStorage offline queue (Inspections/DriverShift) so the compatibility owner is shared across both queue engines."
+      },
+      {
+        "path": "frontend/src/lib/resiliency/__tests__/queuePayloadMigration.test.js",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy submission-queue compatibility",
+        "rationale": "Permanent regressions proving strip-only behavior, original-body preservation, no injected fields, unknown business-field preservation, and idempotency of the queue migration."
+      },
+      {
+        "path": "backend/lib/queue_transport_compat.py",
+        "mission_ref": "P0-QUEUE-2026-08-13 narrow legacy-transport sanitizer",
+        "rationale": "Shared allowlist + before-validator that strips ONLY known client transport metadata before strict validation, so unknown business fields are still rejected truthfully (no global weakening)."
+      },
+      {
+        "path": "frontend/src/lib/__tests__/masterDataSelectorBinding.test.js",
+        "mission_ref": "P0-MASTERDATA-2026-08-13 canonical selector certification",
+        "rationale": "Permanent regressions proving the shared employee picker binds to the canonical HR roster authority and that attendee/incident/field-leadership forms consume canonical employee sources (no page-local employee arrays)."
       }
     ]
   },

@@ -32,6 +32,8 @@
 // as thin shims over `enqueue / replayQueue` to preserve every
 // behaviour bit (cap=3, oldest-first replay, 401 preservation).
 
+import { migrateQueuedBody } from "./queuePayloadMigration";
+
 const STORAGE_PREFIX = "masci.offline-queue.";
 const DEFAULT_MAX = 3;
 const _listeners = new Map(); // formKey → Set<cb>
@@ -117,9 +119,14 @@ async function _attempt(entry) {
     },
   };
   if (entry.body != null) {
-    opts.body = typeof entry.body === "string"
-      ? entry.body
-      : JSON.stringify(entry.body);
+    // P0-QUEUE-2026-08-13 · shared strip-only legacy-payload migration.
+    let outBody = entry.body;
+    if (typeof outBody !== "string") {
+      try {
+        outBody = migrateQueuedBody(outBody, entry.meta?.formKey || "").body;
+      } catch { /* migration best-effort; never block a send */ }
+    }
+    opts.body = typeof outBody === "string" ? outBody : JSON.stringify(outBody);
   }
   return fetch(url, opts);
 }

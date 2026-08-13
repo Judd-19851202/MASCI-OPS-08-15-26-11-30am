@@ -17,9 +17,12 @@ import { HelpTip } from "@/components/ui/HelpTip";
 import { buildKpiHelpContent } from "@/lib/kpiMetadata";
 
 const SEVERITY = {
-  ok:       { cls: "border-emerald-300 bg-emerald-50", Icon: CheckCircle2, label: "OK" },
-  warning:  { cls: "border-amber-300 bg-amber-50",     Icon: AlertTriangle, label: "WARN" },
-  critical: { cls: "border-red-400 bg-red-50",         Icon: XCircle,       label: "CRITICAL" },
+  HEALTHY:   { cls: "border-emerald-300 bg-emerald-50", Icon: CheckCircle2, label: "HEALTHY" },
+  WARNING:   { cls: "border-amber-300 bg-amber-50",     Icon: AlertTriangle, label: "WARNING" },
+  HIGH:      { cls: "border-orange-400 bg-orange-50",   Icon: AlertTriangle, label: "HIGH" },
+  CRITICAL:  { cls: "border-red-400 bg-red-50",         Icon: XCircle,       label: "CRITICAL" },
+  EMERGENCY: { cls: "border-red-600 bg-red-100",        Icon: XCircle,       label: "EMERGENCY" },
+  UNKNOWN:   { cls: "border-slate-300 bg-slate-50",     Icon: Database,      label: "UNKNOWN" },
 };
 
 function CapacityNow() {
@@ -46,20 +49,23 @@ function CapacityNow() {
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
-  const sev = data?.severity || "ok";
-  const cfg = SEVERITY[sev] || SEVERITY.ok;
-  const help = buildKpiHelpContent(data?.kpi_metadata, "Atlas Capacity Current Snapshot");
+  const sev = data?.severity || "UNKNOWN";
+  const cfg = SEVERITY[sev] || SEVERITY.UNKNOWN;
+  const help = buildKpiHelpContent(data?.kpi_metadata, "Atlas Physical Capacity Snapshot");
+  const ph = data?.physical || {};
+  const lg = data?.logical || {};
+  const budget = data?.operating_budget || {};
 
   return (
     <section
       className={`border-2 ${cfg.cls} rounded-md p-4`}
       data-testid="capacity-now-card"
-      aria-label={`Atlas capacity — ${cfg.label}`}
+      aria-label={`Atlas physical capacity — ${cfg.label}`}
     >
       <header className="flex items-center gap-2 mb-2">
         <cfg.Icon className="w-4 h-4" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold">
-          Atlas Capacity · {cfg.label}
+          Atlas Physical Storage · {cfg.label}
         </span>
         {help ? <HelpTip label={help.label} body={help.body} testId="capacity-now-help" /> : null}
         {loading && (
@@ -73,29 +79,40 @@ function CapacityNow() {
       ) : !data ? (
         <p className="text-xs text-slate-400 font-mono">loading…</p>
       ) : (
-        <div className="space-y-1">
-          <div className="text-sm font-mono" data-testid="capacity-now-usage">
-            {Number(data.storage_used_mb || 0).toFixed(1)} MB
-            {data.tier_quota_mb ? ` / ${data.tier_quota_mb} MB` : ""}
-            {typeof data.storage_used_pct === "number" && data.tier_quota_mb
-              ? ` · ${data.storage_used_pct.toFixed(1)}%`
-              : ""}
+        <div className="space-y-2">
+          {/* A. Physical (authoritative) */}
+          <div className="text-sm font-mono" data-testid="capacity-physical">
+            {ph.status === "MEASURED" ? (
+              <>
+                {Number(ph.physical_used_mb || 0).toFixed(0)} MB used
+                {" / "}{Number(ph.physical_total_mb || 0).toFixed(0)} MB total
+                {" · "}{typeof ph.physical_utilization_percent === "number" ? `${ph.physical_utilization_percent}%` : "—"}
+                {" · "}{Number(ph.physical_free_mb || 0).toFixed(0)} MB free
+              </>
+            ) : (
+              <span data-testid="capacity-physical-unknown">Physical capacity: UNKNOWN (telemetry unavailable)</span>
+            )}
           </div>
-          {data.dbs && (
-            <div
-              className="text-[10px] text-slate-500 font-mono"
-              data-testid="capacity-now-dbs"
-            >
-              {Object.entries(data.dbs)
-                .map(([k, v]) => `${k}: ${Number(v).toFixed(1)} MB`)
+          {/* B. Logical footprint */}
+          {lg.dbs && (
+            <div className="text-[10px] text-slate-500 font-mono" data-testid="capacity-now-dbs">
+              Logical footprint · {Object.entries(lg.dbs)
+                .map(([k, v]) => `${k}: ${Number(v).toFixed(0)} MB`)
                 .join(" · ")}
             </div>
           )}
-          {Array.isArray(data?.kpi_metadata?.exception_notes) && data.kpi_metadata.exception_notes.length ? (
-            <div className="text-[10px] text-slate-500" data-testid="capacity-now-note">
-              {data.kpi_metadata.exception_notes[0]}
+          {/* C. Optional operating budget (clearly labeled — NOT disk capacity) */}
+          {budget.configured && (
+            <div className="text-[10px] text-slate-500 font-mono" data-testid="capacity-operating-budget">
+              Operating budget (planning target): {lg.total_mb} MB of {budget.operating_budget_mb} MB
+              {typeof budget.logical_pct_of_budget === "number" ? ` · ${budget.logical_pct_of_budget}%` : ""}
             </div>
-          ) : null}
+          )}
+          {data.shared_cluster && (
+            <div className="text-[10px] text-amber-700 font-mono" data-testid="capacity-shared-cluster">
+              Shared cluster: preview + production share this physical volume.
+            </div>
+          )}
         </div>
       )}
     </section>

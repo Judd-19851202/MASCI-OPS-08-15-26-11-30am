@@ -45,6 +45,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from lib.database_authority import managed_database_names
 from lib.runtime_identity import runtime_identity_public_payload
+from lib.storage_capacity_truth import build_capacity_truth, maybe_send_capacity_alert
 from lib.wp17a_kpi_governance import capacity_prediction_quality, standardize_prediction_metadata
 
 logger = logging.getLogger(__name__)
@@ -218,67 +219,52 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
         if _CACHE["payload"] is not None and (now - _CACHE["ts"]) < _CACHE_TTL_S:
             return _CACHE["payload"]
 
-        quota_mb = _quota_mb()
         client: AsyncIOMotorClient = get_client()
-        dbs: Dict[str, float] = {}
-        total_storage_mb = 0.0
-
-        # List candidate DB names (the two MASCI databases). We never
-        # touch other Atlas projects.
         runtime_identity = get_runtime_identity() if callable(get_runtime_identity) else None
-        candidates = managed_database_names(runtime_identity or {})
-        seen = set()
-        for db_name in candidates:
-            if not db_name or db_name in seen:
-                continue
-            seen.add(db_name)
-            try:
-                stats = await client[db_name].command("dbStats")
-                storage_mb = (stats.get("storageSize", 0) or 0) / (1024 * 1024)
-                index_mb = (stats.get("indexSize", 0) or 0) / (1024 * 1024)
-                # Storage + indexes both count toward Atlas quota
-                dbs[db_name] = round(storage_mb + index_mb, 2)
-                total_storage_mb += dbs[db_name]
-            except Exception as e:  # noqa: BLE001 — DB may not exist
-                logger.debug(f"cluster_capacity: skip {db_name} ({e})")
 
-        used_pct = (total_storage_mb / quota_mb * 100.0) if quota_mb > 0 else 0.0
-
-        if quota_mb == 0:
-            severity = "ok"
-        elif used_pct >= 95.0:
-            severity = "critical"
-        elif used_pct >= 80.0:
-            severity = "warning"
-        else:
-            severity = "ok"
+        # P0-CAPACITY-2026-08-13 — canonical truth owner. Severity is derived
+        # from REAL physical Atlas utilization (dynamic), NOT from the legacy
+        # ATLAS_QUOTA_MB (now an optional logical operating budget).
+        truth = await build_capacity_truth(client, runtime_identity or {})
+        physical = truth.get("physical") or {}
+        logical = truth.get("logical") or {}
+        budget = truth.get("operating_budget") or {}
 
         payload = {
             "ok": True,
-            "tier_quota_mb": quota_mb,
-            "storage_used_mb": round(total_storage_mb, 2),
-            "storage_used_pct": round(used_pct, 1),
-            "severity": severity,
-            "dbs": dbs,
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "physical": physical,
+            "logical": logical,
+            "operating_budget": budget,
+            "severity": truth.get("severity"),
+            "severity_basis": truth.get("severity_basis"),
+            "shared_cluster": truth.get("shared_cluster"),
+            "shared_cluster_note": truth.get("shared_cluster_note"),
+            # ---- backward-compatible fields (deprecated) ----
+            # `storage_used_mb`/`tier_quota_mb` describe the LOGICAL budget,
+            # not physical disk. Retained so old consumers keep parsing.
+            "tier_quota_mb": budget.get("operating_budget_mb"),
+            "storage_used_mb": logical.get("total_mb"),
+            "storage_used_pct": budget.get("logical_pct_of_budget"),
+            "dbs": logical.get("dbs") or {},
+            "ts": truth.get("measured_at"),
             "kpi_metadata": standardize_prediction_metadata(
                 identifier="WP17A-KPI-021-current",
-                display_name="Atlas Capacity Current Snapshot",
-                description="Current Atlas capacity posture for the active environment.",
-                formula={"storage_used_pct": "storage_used_mb / tier_quota_mb * 100", "severity_thresholds": {"warning": 80, "critical": 95}},
+                display_name="Atlas Physical Capacity Snapshot",
+                description="Real physical Atlas storage utilization for the active cluster.",
+                formula={"physical_utilization_percent": "fsUsedSize / fsTotalSize * 100", "severity_thresholds": {"WARNING": 80, "HIGH": 90, "CRITICAL": 95, "EMERGENCY": 98}},
                 owner="storage-reliability",
                 refresh_interval="60 second cache",
-                confidence="HIGH",
+                confidence="HIGH" if physical.get("status") == "MEASURED" else "LOW",
                 validation_status="VALIDATED",
-                dependencies=["dbStats", "managed database names", "ATLAS_QUOTA_MB"],
+                dependencies=["dbStats.fsTotalSize", "dbStats.fsUsedSize", "managed database names"],
                 data_freshness="Current request snapshot",
-                consumer_portals=["Admin", "Storage & Recovery", "Public shell banner"],
-                exception_notes=["This current snapshot is paired with the retained history endpoint for trend prediction."],
+                consumer_portals=["Super Admin", "Admin Trust Center", "Storage & Recovery"],
+                exception_notes=["Physical utilization is authoritative. ATLAS_QUOTA_MB is an optional logical operating budget only.", "Employee/public surfaces do not render infrastructure capacity banners."],
                 extra={
-                    "source_of_truth": ["dbStats", "managed_database_names"],
+                    "source_of_truth": ["dbStats.fsTotalSize", "dbStats.fsUsedSize"],
                     "api_endpoint": "/api/cluster/capacity",
                     "drilldown_source": "/admin/database",
-                    "status_reason": "Public-safe point-in-time capacity signal intended to fail closed when quota pressure rises.",
+                    "status_reason": "Physical capacity truth from live infrastructure telemetry; dynamic on tier expansion.",
                 },
             ),
         }
@@ -435,6 +421,15 @@ async def record_capacity_snapshot(client) -> Optional[Dict[str, Any]]:
         target_db = client[target_name]
         await ensure_history_indexes(target_db)
         await target_db[HISTORY_COLLECTION].insert_one(record)
+        # P0-CAPACITY-2026-08-13 — targeted admin capacity alerting on REAL
+        # physical utilization with threshold-cross hysteresis (never emails
+        # ordinary employees). Best-effort; never blocks the snapshot.
+        try:
+            runtime_identity = {"identity": {"db_name": target_name}}
+            truth = await build_capacity_truth(client, runtime_identity)
+            await maybe_send_capacity_alert(target_db, truth)
+        except Exception as _alert_exc:  # noqa: BLE001
+            logger.warning("[cluster_capacity] capacity alert eval failed: %s", _alert_exc)
         # Strip _id for return
         record.pop("_id", None)
         return record

@@ -1,21 +1,35 @@
 {
-  "generated_at": "2026-08-13T10:19:19+00:00",
+  "generated_at": "2026-08-13T11:22:50+00:00",
   "candidate_label": "UNSAVED_FINAL_WORKSPACE_CANDIDATE",
-  "git_head_before_owner_save": "d4d37f7989bfe4517bee427d925ab6613b335891",
+  "git_head_before_owner_save": "db47c810a9d9f26372a988ba13a12318750486ca",
   "workspace_status_lines": [
+    " M backend/routes/cluster_capacity.py",
+    " M backend/routes/employee_requests.py",
     " M docs/governance/release_gate_manifest.json",
+    " M frontend/src/App.js",
+    " M frontend/src/app/routing/AppRoutes.jsx",
+    " M frontend/src/lib/resiliency/offlineQueue.js",
+    " M frontend/src/lib/resiliency/resiliencyQueue.js",
+    " M frontend/src/pages/admin/AdminDatabase.jsx",
+    " M frontend/src/pages/admin/AdminRecovery.jsx",
     " M memory/PRD.md",
     " M memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
-    "D  prod_acceptance_readonly.py",
-    "D  production_audit_final.py",
-    "D  production_backend_audit.py",
-    "D  test_result.md"
+    " M memory/WP18_OPERATOR_COMPREHENSION_INVENTORY.csv",
+    " M memory/WP18_OPERATOR_LANGUAGE_EXCEPTION_REGISTER.csv",
+    " M memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv",
+    "?? backend/lib/queue_transport_compat.py",
+    "?? backend/lib/storage_capacity_truth.py",
+    "?? backend/tests/test_p0_capacity_real_storage_truth.py",
+    "?? backend/tests/test_p0_queue_employee_request_compat.py",
+    "?? frontend/src/lib/__tests__/masterDataSelectorBinding.test.js",
+    "?? frontend/src/lib/resiliency/__tests__/queuePayloadMigration.test.js",
+    "?? frontend/src/lib/resiliency/queuePayloadMigration.js"
   ],
   "algorithm_version": "masci-release-content-sha256-v1",
   "schema_version": "MASCI_RELEASE_CONTENT_FINGERPRINT_CONTRACT/v1",
   "contract_path": "docs/governance/release_content_fingerprint_contract.json",
-  "content_manifest_sha256": "ee3ce20ea3a766403e321d5e399fa0fc8d7f7f069c0fb5ae58e4091791e9ae94",
-  "tracked_and_untracked_content_file_count": 4314,
+  "content_manifest_sha256": "05bff069bd3be74fce87f0712641a5453ab7c2b9916a0477d5206bbfa8920ddf",
+  "tracked_and_untracked_content_file_count": 4321,
   "contract": {
     "include_roots": [
       "backend",
@@ -1227,6 +1241,13 @@
       "bytes": 38076
     },
     {
+      "path": "backend/lib/queue_transport_compat.py",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "c5f395fcc2976054cd6a718bf43a9cc1b8d6dc267f90709463edbed2f6bde121",
+      "bytes": 2325
+    },
+    {
       "path": "backend/lib/r2_retention.py",
       "file_type": "file",
       "mode": "0o644",
@@ -1358,6 +1379,13 @@
       "mode": "0o644",
       "sha256": "ef849435bc1f2984928530c0525b0ff2697decaa20e03480385d0be062ed10ee",
       "bytes": 7913
+    },
+    {
+      "path": "backend/lib/storage_capacity_truth.py",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "fd7ffc650996e3a584f0fc987926f707efa849f09fffe66ebb1202561d3b51ce",
+      "bytes": 13786
     },
     {
       "path": "backend/lib/storage_ownership.py",
@@ -2070,8 +2098,8 @@
       "path": "backend/routes/cluster_capacity.py",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "98ffbe0e3d84f85fb97b951c18252abb88fc0f9a94eadd7fcea81e27e6939e52",
-      "bytes": 20209
+      "sha256": "79ac71ed4ed1da65221f4887d7b6940c4d247759988592d007089ce17537942c",
+      "bytes": 20801
     },
     {
       "path": "backend/routes/command_center.py",
@@ -2266,8 +2294,8 @@
       "path": "backend/routes/employee_requests.py",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "f20ea8e085dfdbc026229bd24b49b2d9d6f703663a61bd22334fb3a7e3ba6496",
-      "bytes": 34259
+      "sha256": "c6108a40a4151ebb76d344162a713797c4cf607cd3ecea7a8c93c98eeea72308",
+      "bytes": 35206
     },
     {
       "path": "backend/routes/enterprise_governance.py",
@@ -8780,11 +8808,25 @@
       "bytes": 12174
     },
     {
+      "path": "backend/tests/test_p0_capacity_real_storage_truth.py",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "fd18bc6779e765ab0370429fd22fd62d9ba51bb35aa806cf05fdbf19672507ca",
+      "bytes": 6897
+    },
+    {
       "path": "backend/tests/test_p0_daily_report_reliability.py",
       "file_type": "file",
       "mode": "0o644",
       "sha256": "2eabd5d0e1800215e009b615296eafa8fff28ee3df7b06ad8cdbcae9a500442f",
       "bytes": 7391
+    },
+    {
+      "path": "backend/tests/test_p0_queue_employee_request_compat.py",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "04eaa49d1e936e7814440b29f4b29b4ccf15b1410e54035de4c08a43bd7377ba",
+      "bytes": 2929
     },
     {
       "path": "backend/tests/test_payroll_variance_iter72.py",
@@ -13375,8 +13417,8 @@
       "path": "docs/governance/release_gate_manifest.json",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "a72798b34356c0104f0a44a6af5f58ed4a36178785202861fe973873463923cb",
-      "bytes": 54996
+      "sha256": "997bba06f61f0fd9ab90ee89cbea0c6b9d12cfe1dfdfa914f132e4f28bd256b6",
+      "bytes": 60210
     },
     {
       "path": "docs/governance/repository_content_inventory.json",
@@ -13893,8 +13935,8 @@
       "path": "frontend/src/App.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "26cd274c0cf67daf49c3b4cf7366959c4d29f62fa45e0c4026c2e8a1d4f8e59c",
-      "bytes": 4764
+      "sha256": "cc9be3a71f97120a55e6e6c8917e8f6bc89cdb03bf011023e2bcea964d881ccf",
+      "bytes": 4660
     },
     {
       "path": "frontend/src/app/admin/domainMapV3.js",
@@ -13907,8 +13949,8 @@
       "path": "frontend/src/app/routing/AppRoutes.jsx",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "375a3a25c46100e57c0ad3f4bc743872d94e3e68672caf820724e8940c6bc71c",
-      "bytes": 110326
+      "sha256": "86a16d701f279abc0fb3ac795b93d508e0a873120387b247dac7a58becb054ef",
+      "bytes": 110254
     },
     {
       "path": "frontend/src/app/routing/__tests__/AppRoutes.trust-spine.test.jsx",
@@ -17215,6 +17257,13 @@
       "bytes": 1467
     },
     {
+      "path": "frontend/src/lib/__tests__/masterDataSelectorBinding.test.js",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "985a72afa40469494205fed13b9b38f7f538794bbb299fcc3aa5833c879cf5e2",
+      "bytes": 2335
+    },
+    {
       "path": "frontend/src/lib/__tests__/operatorLanguage.qaqc.test.js",
       "file_type": "file",
       "mode": "0o644",
@@ -18132,6 +18181,13 @@
       "bytes": 1938
     },
     {
+      "path": "frontend/src/lib/resiliency/__tests__/queuePayloadMigration.test.js",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "a7140fbf874c0ca10ffd1e6bce2078adf7679712eaf42245b7d4c94761e28ec9",
+      "bytes": 3130
+    },
+    {
       "path": "frontend/src/lib/resiliency/__tests__/stableActorIdentity.test.js",
       "file_type": "file",
       "mode": "0o644",
@@ -18191,8 +18247,8 @@
       "path": "frontend/src/lib/resiliency/offlineQueue.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "bbeba0f8182af1d030c2ef9f5a00b2a7259bcb88f600759ed422507087f7c446",
-      "bytes": 5536
+      "sha256": "0fc5f8a10cc758a896bf4dab39f72e8cdfa2533857901b78cb7e75ea3ab44297",
+      "bytes": 5882
     },
     {
       "path": "frontend/src/lib/resiliency/photoDraftStore.js",
@@ -18223,6 +18279,13 @@
       "bytes": 2977
     },
     {
+      "path": "frontend/src/lib/resiliency/queuePayloadMigration.js",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "f8a059cdab8b1856b3b6e4565d56698997377cf501b32fe2c170aedffb02aa4b",
+      "bytes": 4055
+    },
+    {
       "path": "frontend/src/lib/resiliency/quotaProbe.js",
       "file_type": "file",
       "mode": "0o644",
@@ -18233,8 +18296,8 @@
       "path": "frontend/src/lib/resiliency/resiliencyQueue.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "b7d969e10ee02f225a7d404bc75c1b5e820cdb83792acd33890b22db6ecdaa37",
-      "bytes": 12622
+      "sha256": "a649d4579cc9edf1f737a07571b2aebb9bf5a1df7c620107a8d80a49575efbf2",
+      "bytes": 14910
     },
     {
       "path": "frontend/src/lib/resiliency/resiliencyQueue.test.js",
@@ -20508,8 +20571,8 @@
       "path": "frontend/src/pages/admin/AdminDatabase.jsx",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "601a264196f3973daea825da88334d1bb81702f53edb41ad4def815ec76694e2",
-      "bytes": 5543
+      "sha256": "5c37c7e90db7cfe1a9ab6e75639d9ede2d5caad0a8cc8b56439c2e480d57793c",
+      "bytes": 6775
     },
     {
       "path": "frontend/src/pages/admin/AdminDiagnostics.jsx",
@@ -20816,8 +20879,8 @@
       "path": "frontend/src/pages/admin/AdminRecovery.jsx",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "002795718b92275c64953177de0cf41a724d0413cc4e1af29ab5a2563aa0ac8f",
-      "bytes": 36594
+      "sha256": "e5e619d07c4f75243121aa4e406cf10f85b770bd1568f756e4d9bafdb7574305",
+      "bytes": 36615
     },
     {
       "path": "frontend/src/pages/admin/AdminRecoveryStream.jsx",
@@ -22958,8 +23021,8 @@
       "path": "memory/PRD.md",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "09495472e873a9e18901de4d56bafcadffe42f0faaf6bd93374640c7fe6e9cd5",
-      "bytes": 183282
+      "sha256": "344185f7b43608d160a6aa2c4b38bba344149591f6a38b12ef8307c1132fe44b",
+      "bytes": 190547
     },
     {
       "path": "memory/PRE_DEPLOYMENT_CERTIFICATION.md",
@@ -26808,22 +26871,22 @@
       "path": "memory/WP18_OPERATOR_COMPREHENSION_INVENTORY.csv",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "1d4607e4a59ab8ae1c0b5aa7deaedcc24c568859c14ec38a9ac2220c4164540c",
-      "bytes": 75601
+      "sha256": "b865dda2750f9026014d43623bb330290c0feb95af848b18ede27e59f800bee4",
+      "bytes": 75793
     },
     {
       "path": "memory/WP18_OPERATOR_LANGUAGE_EXCEPTION_REGISTER.csv",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "1d4607e4a59ab8ae1c0b5aa7deaedcc24c568859c14ec38a9ac2220c4164540c",
-      "bytes": 75601
+      "sha256": "b865dda2750f9026014d43623bb330290c0feb95af848b18ede27e59f800bee4",
+      "bytes": 75793
     },
     {
       "path": "memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "1d4607e4a59ab8ae1c0b5aa7deaedcc24c568859c14ec38a9ac2220c4164540c",
-      "bytes": 75601
+      "sha256": "b865dda2750f9026014d43623bb330290c0feb95af848b18ede27e59f800bee4",
+      "bytes": 75793
     },
     {
       "path": "memory/WP18_ROADMAP_RECONCILIATION_REPORT.md",

@@ -21,6 +21,7 @@
 import { get, set, del } from "idb-keyval";
 import { api } from "@/lib/api";
 import { normalizeDailyReportPayload, formatUnrepairableErrors } from "../dailyReportPayloadRepair";
+import { migrateQueuedBody } from "./queuePayloadMigration";
 import { getStableActorIdentity } from "./actorId";
 
 const QUEUE_KEY = "masci.resiliency.queue.v1";
@@ -40,7 +41,39 @@ async function _load() {
   } catch {
     _queue = [];
   }
+  _rearmLegacyFailuresOnce();
   return _queue;
+}
+
+// P0-QUEUE-2026-08-13 · Phase 14 automatic legacy recovery.
+// After the compatibility migration deploys, records already exhausted at
+// `status: "failed"` (e.g. the classic "Retry 5 of 5" schema-compat strandings)
+// would otherwise never auto-retry. On the FIRST load under this app version we
+// re-arm every failed item back to `pending` exactly once (marked so it cannot
+// loop). The shared strip-only payload migration then runs on the next drain,
+// and the per-item `Idempotency-Key` guarantees a record already accepted
+// server-side is de-duplicated rather than duplicated.
+const _REARM_TAG = "rearmV2_2026_08_13";
+function _rearmLegacyFailuresOnce() {
+  if (!Array.isArray(_queue) || _queue.length === 0) return;
+  let changed = false;
+  for (const it of _queue) {
+    if (!it) continue;
+    if (it.status === "failed" && it[_REARM_TAG] !== true) {
+      it.status = "pending";
+      it.tries = 0;
+      it.lastError = null;
+      it[_REARM_TAG] = true;
+      changed = true;
+    } else if (it[_REARM_TAG] !== true) {
+      it[_REARM_TAG] = true; // mark non-failed items so we only pass once
+      changed = true;
+    }
+  }
+  if (changed) {
+    _persist();
+    _scheduleDrain();
+  }
 }
 
 async function _persist() {
@@ -180,6 +213,13 @@ async function _attempt(entry) {
     }
     bodyToSend = repair.body;
   }
+  // P0-QUEUE-2026-08-13 · Shared legacy-payload compatibility migration for
+  // EVERY queued workflow. STRIP-ONLY (drops proven client-only transport
+  // metadata such as `_track_*` idempotency helpers that stranded records
+  // with "Extra inputs are not permitted"). Operates on a clone; the persisted
+  // entry body is never mutated, so recovery/rollback remains possible and no
+  // operator-entered field is discarded.
+  bodyToSend = migrateQueuedBody(bodyToSend, entry.formKey || "").body;
   const config = {
     method: entry.method,
     url: entry.url,
@@ -222,6 +262,13 @@ function _errMsg(e) {
   // FastAPI 422: detail is an array of { loc, msg, type, input }
   const detail = e.response?.data?.detail;
   if (Array.isArray(detail)) {
+    // P0-QUEUE-2026-08-13 · Operator-friendly text for schema-compat 422s.
+    // Never expose raw Pydantic "Extra inputs are not permitted" to a field
+    // employee — the record is safely on-device and will sync after the
+    // compatibility migration deploys.
+    if (detail.some((d) => d && d.type === "extra_forbidden")) {
+      return "Saved report needs synchronization — it is safely stored on this device and will retry after a compatibility update. Do not delete it.";
+    }
     const pretty = _prettyPydantic(detail);
     if (pretty) return pretty.slice(0, 240);
   }

@@ -437,7 +437,6 @@ import BackendStatusBanner from "@/components/BackendStatusBanner";
 // a rejection — so a cascade of failing card-loaders never produces
 // a multi-card storm or a misleading "SERVER UNREACHABLE" banner.
 import SessionStatusOverlay from "@/components/SessionStatusOverlay";
-import ClusterCapacityBanner from "@/components/ClusterCapacityBanner";
 import BannerStrip from "@/components/BannerStrip";
 import EnvBanner from "@/components/EnvBanner";
 import SplashOverlay from "@/components/SplashOverlay";

@@ -125,8 +125,8 @@ function Sparkline({ data, width = 600, height = 80 }) {
 
 function normalizeStatus(value) {
   const raw = String(value || "").trim().toUpperCase();
-  if (["RED", "FAIL", "FAILED", "CRITICAL", "ERROR", "BLOCKED"].includes(raw)) return "RED";
-  if (["AMBER", "WARN", "WARNING", "DEGRADED", "YELLOW", "MISMATCH", "UNAVAILABLE", "UNKNOWN"].includes(raw)) return "AMBER";
+  if (["RED", "FAIL", "FAILED", "CRITICAL", "ERROR", "BLOCKED", "EMERGENCY"].includes(raw)) return "RED";
+  if (["AMBER", "WARN", "WARNING", "HIGH", "DEGRADED", "YELLOW", "MISMATCH", "UNAVAILABLE", "UNKNOWN"].includes(raw)) return "AMBER";
   return "GREEN";
 }
 
