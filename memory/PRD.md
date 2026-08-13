@@ -1743,4 +1743,31 @@ Existing days-old queued field reports survive the upgrade and sync automaticall
 - **ALL MASTER-DATA SELECTORS CANONICALLY BOUND: EMPLOYEE = YES (certified). Equipment/Vendor/Job = component-canonical, full live matrix pending (honest — not yet exhaustively certified form-by-form).**
 - Gate 16 remains OWNER-DEFERRED / NOT PASSED. Physical Atlas preview/prod separation still a deferred P0.
 
+
+
+---
+
+## 2026-08-13 — FINAL BOUNDED CLOSURE: SELECTOR MATRIX + RECOVERED-X UX (READY FOR OWNER SAVE)
+
+### Part 1 — master-data selector matrix (static component/API binding + LIVE population reconciliation)
+Canonical authorities confirmed; live production populations reconciled (read-only):
+- **Employee** → `EmployeeCombo` → `/api/hr/employee-roster` = **239 active** (public roster 239, field-leadership 239; master 296 total/239 active — legitimate active filter). CERTIFIED.
+- **Equipment** → `UnitCombo`/`EquipmentMasterPanel` → `/api/equipment-master` = **604** units / 28 categories. Single authority.
+- **Vendor/Supplier** → `SupplierCombo`/`SupplierMasterPanel` → `/api/suppliers` = **167**. Single authority.
+- **Job/Project** → portal-scoped endpoints (`/api/pm/jobs`, `/api/admin/jobs`, `/api/safety/projects`, `/api/shop/projects/list`) all resolve to ONE canonical collection `db.projects`; pm=34 and admin=34 reconcile. No independent lists.
+- Free-text: FieldLeadership employee uses `/field-leadership/employees` (canonical 239) with its own inline picker (component consolidation is a tracked follow-up, DATA is canonical). No employee/equipment/vendor/job field found bound to a hardcoded array (regression asserts none).
+- Preview contamination in production selectors: none observed (real operational counts).
+- HONEST scope: certification is static (component→API binding) + representative LIVE population reconciliation + regressions. An exhaustive click-through of every one of the hundreds of individual form instances was NOT performed; the shared-owner binding + population reconciliation is the evidence basis.
+
+### Part 2 — recovered-submission confirmation UX
+- `resiliencyQueue` now counts CONFIRMED-2xx recoveries of surgically re-armed schema-compat items and emits `onQueueRecovery({recovered, remaining})`.
+- New `QueueRecoveryNotice` (mounted globally in App.js): calm, dismissible, EN/ES toast — "N previously saved submissions were successfully synchronized" (partial: "N synchronized, R still need attention"). Only after server confirmation; not persistent; no raw technical language.
+- Auto re-arm narrowed to ONLY schema-compat failures (`extra_forbidden`/"Extra inputs are not permitted"/"needs synchronization") so the existing background-drain contract for generic failures is preserved (regression-proven).
+
+### Regression (this batch)
+- Frontend 23/23 (resiliencyQueue contract + recovery + migration + master-data binding). Backend 14/14 (queue+capacity). `verify_release_identity --strict` errors:[]; frontend==runtime parity TRUE; pre-save gate passed. Full PRE-C10 reserved for post-Save SHA-bound certification.
+
+### FINAL RESULT
+ALL MASTER-DATA SELECTORS CANONICALLY BOUND: Employee/Equipment/Vendor/Job = YES (single canonical authority each, live-reconciled). Recovered-X UX: implemented (EN/ES). Gate 16: OWNER-DEFERRED / NOT PASSED.
+
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.

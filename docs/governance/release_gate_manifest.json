@@ -525,6 +525,21 @@
         "path": "frontend/src/lib/__tests__/masterDataSelectorBinding.test.js",
         "mission_ref": "P0-MASTERDATA-2026-08-13 canonical selector certification",
         "rationale": "Permanent regressions proving the shared employee picker binds to the canonical HR roster authority and that attendee/incident/field-leadership forms consume canonical employee sources (no page-local employee arrays)."
+      },
+      {
+        "path": "frontend/src/components/QueueRecoveryNotice.jsx",
+        "mission_ref": "P0-QUEUE-2026-08-13 recovered-submission confirmation UX",
+        "rationale": "Calm, dismissible, EN/ES operator confirmation shown only after stranded queued submissions reach a confirmed server 2xx; reports recovered vs remaining truthfully."
+      },
+      {
+        "path": "frontend/src/lib/resiliency/index.js",
+        "mission_ref": "P0-QUEUE-2026-08-13 recovered-submission confirmation UX",
+        "rationale": "Exports the new onQueueRecovery subscription from the resiliency barrel."
+      },
+      {
+        "path": "frontend/src/lib/resiliency/resiliencyQueue.test.js",
+        "mission_ref": "P0-QUEUE-2026-08-13 legacy recovery + recovered-X",
+        "rationale": "Adds regressions for surgical schema-compat auto re-arm, migration strip on send, recovered-count confirmation, and preservation of the existing background-drain contract for generic failures."
       }
     ]
   },

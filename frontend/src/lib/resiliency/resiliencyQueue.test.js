@@ -332,3 +332,51 @@ describe("resiliencyQueue · DR-QUEUE-RETRY-001 contract", () => {
     expect(mod.getQueueItems()[0].idempotencyKey).toBe("idem-b");
   });
 });
+
+// ── P0-QUEUE-2026-08-13 · Legacy auto-recovery + recovered-X confirmation ──
+describe("resiliencyQueue · P0-QUEUE-2026-08-13 legacy recovery", () => {
+  beforeEach(() => { jest.useFakeTimers(); });
+  afterEach(() => { jest.useRealTimers(); });
+
+  test("schema-compat failure is auto re-armed once, recovers, and fires recovered=1", async () => {
+    const mod = await freshModule();
+    mockIdb["masci.resiliency.queue.v1"] = [{
+      id: "compat-1", method: "POST", url: "/api/employee-requests", headers: {},
+      body: { kind: "new_hire", name: "Ana", _track_15_60_client_idempotency_key: "k" },
+      idempotencyKey: "idem-compat-1", formKey: "employee-request-inline",
+      tries: 5, status: "failed", enqueuedAt: Date.now(),
+      lastError: "Extra inputs are not permitted",
+    }];
+    mockRequest.mockResolvedValue({ data: { ok: true, id: "srv-1" } });
+    const events = [];
+    mod.onQueueRecovery((e) => events.push(e));
+
+    await mod.drainQueue(); // load → surgical re-arm → attempt → success → recovery
+
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+    // Migration stripped the transport helper from the SENT body.
+    const sent = mockRequest.mock.calls[0][0];
+    expect(sent.data._track_15_60_client_idempotency_key).toBeUndefined();
+    expect(sent.data.name).toBe("Ana");
+    // Item cleared from queue; recovered confirmation fired with count 1.
+    expect(mod.getQueueItems()).toHaveLength(0);
+    expect(events.length).toBeGreaterThanOrEqual(1);
+    expect(events[events.length - 1].recovered).toBe(1);
+    expect(events[events.length - 1].remaining).toBe(0);
+  });
+
+  test("NON-schema-compat failure is NOT auto re-armed (existing contract preserved)", async () => {
+    const mod = await freshModule();
+    mockIdb["masci.resiliency.queue.v1"] = [{
+      id: "generic-1", method: "POST", url: "/api/daily_reports", headers: {},
+      body: { project_number: "26-01" }, idempotencyKey: "idem-generic-1",
+      formKey: "daily-report-new", tries: 5, status: "failed",
+      enqueuedAt: Date.now(), lastError: "boom network 500",
+    }];
+    mockRequest.mockResolvedValue({ data: { ok: true } });
+    await mod.drainQueue();
+    expect(mockRequest).not.toHaveBeenCalled();
+    expect(mod.getQueueItems()[0].status).toBe("failed");
+  });
+});
+

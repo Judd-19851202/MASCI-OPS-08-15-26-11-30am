@@ -1,35 +1,21 @@
 {
-  "generated_at": "2026-08-13T11:22:50+00:00",
+  "generated_at": "2026-08-13T11:34:16+00:00",
   "candidate_label": "UNSAVED_FINAL_WORKSPACE_CANDIDATE",
-  "git_head_before_owner_save": "db47c810a9d9f26372a988ba13a12318750486ca",
+  "git_head_before_owner_save": "f0215ebade3f7173b92c02bc3a6f0a009fdf537f",
   "workspace_status_lines": [
-    " M backend/routes/cluster_capacity.py",
-    " M backend/routes/employee_requests.py",
     " M docs/governance/release_gate_manifest.json",
     " M frontend/src/App.js",
-    " M frontend/src/app/routing/AppRoutes.jsx",
-    " M frontend/src/lib/resiliency/offlineQueue.js",
+    " M frontend/src/lib/resiliency/index.js",
     " M frontend/src/lib/resiliency/resiliencyQueue.js",
-    " M frontend/src/pages/admin/AdminDatabase.jsx",
-    " M frontend/src/pages/admin/AdminRecovery.jsx",
+    " M frontend/src/lib/resiliency/resiliencyQueue.test.js",
     " M memory/PRD.md",
-    " M memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
-    " M memory/WP18_OPERATOR_COMPREHENSION_INVENTORY.csv",
-    " M memory/WP18_OPERATOR_LANGUAGE_EXCEPTION_REGISTER.csv",
-    " M memory/WP18_OPERATOR_LANGUAGE_HARD_FAIL_REGISTER.csv",
-    "?? backend/lib/queue_transport_compat.py",
-    "?? backend/lib/storage_capacity_truth.py",
-    "?? backend/tests/test_p0_capacity_real_storage_truth.py",
-    "?? backend/tests/test_p0_queue_employee_request_compat.py",
-    "?? frontend/src/lib/__tests__/masterDataSelectorBinding.test.js",
-    "?? frontend/src/lib/resiliency/__tests__/queuePayloadMigration.test.js",
-    "?? frontend/src/lib/resiliency/queuePayloadMigration.js"
+    "?? frontend/src/components/QueueRecoveryNotice.jsx"
   ],
   "algorithm_version": "masci-release-content-sha256-v1",
   "schema_version": "MASCI_RELEASE_CONTENT_FINGERPRINT_CONTRACT/v1",
   "contract_path": "docs/governance/release_content_fingerprint_contract.json",
-  "content_manifest_sha256": "05bff069bd3be74fce87f0712641a5453ab7c2b9916a0477d5206bbfa8920ddf",
-  "tracked_and_untracked_content_file_count": 4321,
+  "content_manifest_sha256": "8c892755d270929862729dd9daffffe378cfa0b7ab299cc6c52d0d1091099dba",
+  "tracked_and_untracked_content_file_count": 4322,
   "contract": {
     "include_roots": [
       "backend",
@@ -13417,8 +13403,8 @@
       "path": "docs/governance/release_gate_manifest.json",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "997bba06f61f0fd9ab90ee89cbea0c6b9d12cfe1dfdfa914f132e4f28bd256b6",
-      "bytes": 60210
+      "sha256": "a72330aae5fb715e51162e41a1bbabbfd6c7ce0c7b7d5ab1b94f357094274e43",
+      "bytes": 61197
     },
     {
       "path": "docs/governance/repository_content_inventory.json",
@@ -13935,8 +13921,8 @@
       "path": "frontend/src/App.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "cc9be3a71f97120a55e6e6c8917e8f6bc89cdb03bf011023e2bcea964d881ccf",
-      "bytes": 4660
+      "sha256": "1f1d84afc0377a2882e956bec655adfad84037ad429ee7de213bf1ba3bf81644",
+      "bytes": 4902
     },
     {
       "path": "frontend/src/app/admin/domainMapV3.js",
@@ -15071,6 +15057,13 @@
       "mode": "0o644",
       "sha256": "5957a185e50bf3ccd25da857412a3c35d6aa5494035d7b84f80d372f80d2f553",
       "bytes": 23144
+    },
+    {
+      "path": "frontend/src/components/QueueRecoveryNotice.jsx",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "a4fac606743f7b0fa4ec0e546c8dbf7cb62a33558001ebab98550be5aae7f00d",
+      "bytes": 1494
     },
     {
       "path": "frontend/src/components/QueueStatusPill.jsx",
@@ -18240,8 +18233,8 @@
       "path": "frontend/src/lib/resiliency/index.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "70421ef060151c072c7a272ffeaaf56188cbf9752ac0bdcf97bc55216eaa65dd",
-      "bytes": 3014
+      "sha256": "97589820826a815b19ce50cc4788f00494dcc1c037d99428b6d55e9d0049ce9e",
+      "bytes": 3031
     },
     {
       "path": "frontend/src/lib/resiliency/offlineQueue.js",
@@ -18296,15 +18289,15 @@
       "path": "frontend/src/lib/resiliency/resiliencyQueue.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "a649d4579cc9edf1f737a07571b2aebb9bf5a1df7c620107a8d80a49575efbf2",
-      "bytes": 14910
+      "sha256": "365c4148eadf3068580f03b66759b4e78cd7da54eba6ada543fb9121396e2138",
+      "bytes": 16175
     },
     {
       "path": "frontend/src/lib/resiliency/resiliencyQueue.test.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "2ae4f2ba9b1d0d5c0e41a34d0a595775bee49f83f16cfd533ac1b210fa984780",
-      "bytes": 12266
+      "sha256": "205110a4611db6951fd7aaacd56811613f6bfef19443c9f23201224c82572547",
+      "bytes": 14560
     },
     {
       "path": "frontend/src/lib/resiliency/useDraft.js",
@@ -23021,8 +23014,8 @@
       "path": "memory/PRD.md",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "344185f7b43608d160a6aa2c4b38bba344149591f6a38b12ef8307c1132fe44b",
-      "bytes": 190547
+      "sha256": "82cc547f6d980573244ced84c5e907a4d7bcfc1c062919659aae7d9591b51505",
+      "bytes": 193466
     },
     {
       "path": "memory/PRE_DEPLOYMENT_CERTIFICATION.md",

@@ -33,6 +33,25 @@ let _draining = false;
 const _listeners = new Set();
 const _itemListeners = new Map(); // idempotencyKey → Set<{onSuccess,onFail}>
 let _retryTimer = null;
+// P0-QUEUE-2026-08-13 · Recovered-submission confirmation tracking.
+// Counts re-armed legacy items that reach a CONFIRMED server 2xx this session,
+// so the UI can show a calm "N saved submissions synchronized" notice.
+let _recoveredCount = 0;
+const _recoveryListeners = new Set();
+
+export function onQueueRecovery(cb) {
+  if (typeof cb !== "function") return () => {};
+  _recoveryListeners.add(cb);
+  return () => _recoveryListeners.delete(cb);
+}
+
+function _notifyRecovery() {
+  const remaining = (_queue || []).filter((it) => it && it.status === "failed").length;
+  const payload = { recovered: _recoveredCount, remaining };
+  for (const cb of _recoveryListeners) {
+    try { cb(payload); } catch { /* ignore */ }
+  }
+}
 
 async function _load() {
   if (_queue !== null) return _queue;
@@ -45,28 +64,28 @@ async function _load() {
   return _queue;
 }
 
-// P0-QUEUE-2026-08-13 · Phase 14 automatic legacy recovery.
+// P0-QUEUE-2026-08-13 · Phase 14 automatic legacy recovery — SURGICAL.
 // After the compatibility migration deploys, records already exhausted at
-// `status: "failed"` (e.g. the classic "Retry 5 of 5" schema-compat strandings)
-// would otherwise never auto-retry. On the FIRST load under this app version we
-// re-arm every failed item back to `pending` exactly once (marked so it cannot
-// loop). The shared strip-only payload migration then runs on the next drain,
-// and the per-item `Idempotency-Key` guarantees a record already accepted
-// server-side is de-duplicated rather than duplicated.
+// `status: "failed"` SPECIFICALLY because of a schema-compatibility rejection
+// (e.g. the classic "Extra inputs are not permitted" / "Retry 5 of 5") would
+// otherwise never auto-retry. On the FIRST load under this app version we
+// re-arm ONLY those schema-compat failures back to `pending` exactly once
+// (marked so they cannot loop). Failures for any OTHER reason keep the existing
+// contract (background drain does not retry them). The shared strip-only
+// payload migration then runs on the next drain, and the per-item
+// `Idempotency-Key` de-duplicates a record already accepted server-side.
 const _REARM_TAG = "rearmV2_2026_08_13";
+const _SCHEMA_COMPAT_ERR = /extra inputs are not permitted|extra_forbidden|needs synchronization|could not synchronize/i;
 function _rearmLegacyFailuresOnce() {
   if (!Array.isArray(_queue) || _queue.length === 0) return;
   let changed = false;
   for (const it of _queue) {
-    if (!it) continue;
-    if (it.status === "failed" && it[_REARM_TAG] !== true) {
+    if (!it || it[_REARM_TAG] === true) continue;
+    if (it.status === "failed" && _SCHEMA_COMPAT_ERR.test(String(it.lastError || ""))) {
       it.status = "pending";
       it.tries = 0;
       it.lastError = null;
       it[_REARM_TAG] = true;
-      changed = true;
-    } else if (it[_REARM_TAG] !== true) {
-      it[_REARM_TAG] = true; // mark non-failed items so we only pass once
       changed = true;
     }
   }
@@ -393,6 +412,7 @@ export async function drainQueue() {
     return;
   }
   _draining = true;
+  let _recoveredAny = false;
   try {
     const remaining = [];
     for (const it of _queue) {
@@ -404,6 +424,12 @@ export async function drainQueue() {
         const data = await _attempt(it);
         // success → drop from queue + notify any listener so the
         // caller can finally commit() / discard the IDB draft.
+        // P0-QUEUE-2026-08-13 · count CONFIRMED recoveries of re-armed legacy
+        // items so the operator sees a calm "synchronized" confirmation.
+        if (it[_REARM_TAG] === true) {
+          _recoveredCount += 1;
+          _recoveredAny = true;
+        }
         if (it.idempotencyKey) {
           _notifyItem(it.idempotencyKey, { ok: true, data });
         }
@@ -424,6 +450,7 @@ export async function drainQueue() {
     _queue = remaining;
     await _persist();
     _notify();
+    if (_recoveredAny) _notifyRecovery();
     if (_queue.some((it) => it.status !== "failed")) {
       _scheduleDrain();
     }

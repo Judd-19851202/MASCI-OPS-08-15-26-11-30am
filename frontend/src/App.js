@@ -14,6 +14,7 @@ import BannerStrip from "@/components/BannerStrip";
 import EnvBanner from "@/components/EnvBanner";
 import SplashOverlay from "@/components/SplashOverlay";
 import QueueStatusPill from "@/components/QueueStatusPill";
+import QueueRecoveryNotice from "@/components/QueueRecoveryNotice";
 import OfflineBanner from "@/components/OfflineBanner";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
 import MultiPortalHydrator from "@/components/MultiPortalHydrator";
@@ -74,6 +75,9 @@ function App() {
       />
       {/* R-BL-3 · Global queue visibility pill (visibility-only). */}
       <QueueStatusPill />
+      {/* P0-QUEUE-2026-08-13 · Calm confirmation when stranded queued
+         submissions recover (confirmed server 2xx) after redeploy. */}
+      <QueueRecoveryNotice />
       {/* TRACK 14.0-RC1 · D3 — Global offline trust surface. Calm sky-blue
          ribbon that appears the moment navigator.onLine === false and
          auto-dismisses on reconnect. Pairs with QueueStatusPill: the
