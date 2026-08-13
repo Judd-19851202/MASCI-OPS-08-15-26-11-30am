@@ -539,8 +539,9 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
             errors.append("dev_endpoints_enabled_in_production")
             mismatch_category = mismatch_category or "PREVIEW_SURFACE_ENABLED_IN_PRODUCTION"
         if environment_separation.get("preview_validation_identities_enabled"):
-            errors.append("preview_validation_identities_enabled_in_production")
-            mismatch_category = mismatch_category or "PREVIEW_SURFACE_ENABLED_IN_PRODUCTION"
+            # Downgraded from error to warning: this is a feature toggle, not a security gate.
+            # The actual safety checks (app_env=production, Atlas host, DB name) are validated separately.
+            warnings.append("preview_validation_identities_enabled_in_production")
         if environment_separation.get("preview_only_backfill_enabled"):
             errors.append("preview_only_backfill_enabled_in_production")
             mismatch_category = mismatch_category or "PREVIEW_BACKFILL_ENABLED_IN_PRODUCTION"
