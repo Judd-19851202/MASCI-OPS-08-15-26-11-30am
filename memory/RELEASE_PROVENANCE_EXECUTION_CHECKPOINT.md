@@ -207,3 +207,15 @@ strict verifier: ok=True, workspace_dirty=False, errors:[].
 Isolation regressions (attested build): same-principal hit PASS; legacy v1 purge PASS; logout purge PASS; unauth 401 fail-closed no-leak PASS; User B/role replacement 401 no-leak PASS; SW-restart/CLEAR_ALL fail-closed 401 no-leak PASS. LRU cap code-correct (trim on SW 200-write path; synthetic direct-write test bypassed it -> 406 is test artifact, not defect).
 Note: transient frontend FATAL during parallel yarn build (resource contention) -> restarted RUNNING; not a code issue (guard passes, compiles clean).
 READY FOR OWNER DEPLOY. No second Save; no Deploy; no production changes.
+
+## LIVE PROD THUMBNAIL ISOLATION DEPLOYMENT VERIFIED (2026-08-13, read-only)
+Prod SHA=3dc83374...; FP=dcf-180236ab... (authorized=build=expected); digest c-eb267860...; release_provenance=VERIFIED;
+ runtime_matches_intended_release=true; FE_BE_match=true; app_env=production; DB=masci_safety; zero contamination.
+Deployed SW = sw-thumbs.js v3 (CACHE_PREFIX masci-thumbs-v3:).
+Live invariants (Super Admin browser session): namespace masci-thumbs-v3:<opaque id> (no secret in name);
+ same-principal hit PASS; legacy v1/v2 absent PASS; logout purge PASS; unauth 401 no-leak PASS;
+ principal replacement (User B) 401 no-leak PASS; SW-restart/CLEAR_ALL fail-closed 401 no-leak PASS.
+Cross-user note: proven via namespace-separation/purge mechanics + synthetic seed (single legitimate Super Admin account;
+ no second prod account used; no synthetic prod records; no real photo loaded to avoid production writes). Honest limitation.
+Parts regression: parts-catalog loads; authorized /equipment-parts GET 200; unauthorized 401. Console 401s = deliberate test probes, no SW fatal.
+Production writes: NONE. Source changes: NONE.
