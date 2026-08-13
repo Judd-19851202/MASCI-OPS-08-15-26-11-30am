@@ -40,6 +40,70 @@ fs.mkdirSync(path.dirname(publicFile), { recursive: true });
 fs.writeFileSync(srcFile, versionModule);
 fs.writeFileSync(publicFile, `${JSON.stringify(publicContract, null, 2)}\n`);
 
+// ── STAGE 4/5 · canonical deployable-content provenance (pure JS) ─────────
+// Recompute the DEPLOYABLE_CONTENT_FINGERPRINT from the source present at build
+// time and stamp it into a generated, non-tracked, gitignored provenance file
+// that both the served frontend and the backend runtime consume. If an
+// owner-Save attestation (AUTHORIZED_RELEASE.json) is present, the build
+// fingerprint MUST equal the authorized fingerprint or the build fails closed —
+// this catches deployment from an unsaved/wrong/stale/modified source snapshot.
+(function stampDeployableProvenance() {
+  const dcf = require("./deployable_content_fingerprint.js");
+  const provenanceFile = path.join(repoRoot, "frontend", "public", "release-provenance.json");
+  const attestationPath = path.join(repoRoot, dcf.ATTESTATION_REL);
+
+  let buildFingerprint;
+  let contractDigest;
+  try {
+    buildFingerprint = dcf.computeDeployableFingerprint(repoRoot, { strict: true });
+    contractDigest = dcf.contractDigest(repoRoot);
+  } catch (err) {
+    console.error(`[deployable-provenance] fail-closed: ${err.message}`);
+    process.exit(1);
+  }
+
+  let attestation = null;
+  if (fs.existsSync(attestationPath)) {
+    try {
+      attestation = JSON.parse(fs.readFileSync(attestationPath, "utf8"));
+    } catch (err) {
+      console.error(`[deployable-provenance] fail-closed: unreadable ${dcf.ATTESTATION_REL}: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
+  if (attestation) {
+    if (attestation.fingerprint_contract_digest && attestation.fingerprint_contract_digest !== contractDigest) {
+      console.error("[deployable-provenance] fail-closed: CONTRACT_MISMATCH — authorized contract digest != build contract digest");
+      process.exit(1);
+    }
+    if (attestation.authorized_deployable_fingerprint !== buildFingerprint) {
+      console.error(
+        `[deployable-provenance] fail-closed: MISMATCH — build source does not match authorized release.\n` +
+        `  authorized_deployable_fingerprint = ${attestation.authorized_deployable_fingerprint}\n` +
+        `  build_deployable_fingerprint      = ${buildFingerprint}`
+      );
+      process.exit(1);
+    }
+  }
+
+  const provenance = {
+    schema_version: "MASCI_DEPLOYABLE_RELEASE_PROVENANCE/v1",
+    provenance_format_version: "1",
+    fingerprint_algorithm_version: dcf.FINGERPRINT_ALGORITHM_VERSION,
+    fingerprint_contract_digest: contractDigest,
+    build_deployable_fingerprint: buildFingerprint,
+    authorized_saved_sha: attestation ? attestation.authorized_saved_sha || null : null,
+    authorized_deployable_fingerprint: attestation ? attestation.authorized_deployable_fingerprint || null : null,
+    attestation_present: Boolean(attestation),
+  };
+  fs.writeFileSync(provenanceFile, `${JSON.stringify(provenance, null, 2)}\n`);
+  console.log(
+    `[deployable-provenance] build_deployable_fingerprint=${buildFingerprint} ` +
+    `attestation_present=${Boolean(attestation)}`
+  );
+})();
+
 function verifyGeneratedRuntimeContract() {
   const generatedSource = fs.readFileSync(srcFile, 'utf8');
   const generatedPublic = JSON.parse(fs.readFileSync(publicFile, 'utf8'));

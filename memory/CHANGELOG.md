@@ -1,3 +1,19 @@
+# 2026-06 — Canonical release-provenance repair (READY FOR OWNER SAVE — not saved)
+
+Implemented the owner-locked canonical deployable-content provenance architecture (checkpoint `memory/RELEASE_PROVENANCE_EXECUTION_CHECKPOINT.md`). Additive; does not alter existing release_identity gating.
+
+- STAGE 1 — `DEPLOYABLE_CONTENT_FINGERPRINT` over a NEW governed narrow `deployable_source_inputs` contract section (behavior-affecting source only: FE src, BE lib/routes/services/scripts/server.py, build scripts + config, package.json, yarn.lock, requirements.txt, scripts). Excludes docs/memory/evidence/caches/logs/tests/generated stamps/attestation. 1744 entries. `contract_digest` = normalized whole-file hash (zero JSON-canonicalization risk).
+- STAGE 2 — pre-save recompute-twice proof: identical (`dcf-7f0458dc…`).
+- STAGE 3 — generated `AUTHORIZED_RELEASE.json` (gitignored, fingerprint-excluded, non-self-referential, no second Save).
+- STAGE 4 — pure-JS build recompute in `frontend/scripts/deployable_content_fingerprint.js`, proven BYTE-IDENTICAL to Python (fingerprint + digest + 1744 count). Build fails closed on authorized≠build or contract-digest mismatch (unsaved/wrong/stale/modified snapshot).
+- STAGE 5 — build stamp `frontend/public/release-provenance.json` (gitignored) carries authorized_saved_sha, authorized/build fingerprints, contract digest, algo/format versions.
+- STAGE 6 — runtime `/api/version.deployable_release_provenance` consumes the stamp only (no source-tree recompute); fail-closed states proven live: VERIFIED (bound to genuine saved SHA), MISMATCH, CONTRACT_MISMATCH, ARTIFACT_IDENTITY_MISMATCH, UNPROVEN.
+- Naming cleanup: retired `commit_source=source_hash_prefix` → `workspace_diagnostic_manifest_prefix`; broad manifest surfaced as `workspace_diagnostic_manifest_sha256` (legacy `release_manifest_sha256` alias kept). Source hashes never labeled git commits.
+- Files: NEW `backend/lib/deployable_content_fingerprint.py`, `frontend/scripts/deployable_content_fingerprint.js`, `backend/tests/test_release_provenance_contract.py` (24-case matrix). EDITED contract, `.gitignore`, `stamp-build-version.js`, `verify_release_identity.py`, `server.py`, `release_identity.py`, `release_gate_manifest.json` (allowlist).
+
+Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions pass; `verify_release_identity --strict` → errors:[]; pre-save governance gate PASS (UNSAVED_FINAL_CANDIDATE, no unknown/uninventoried files, no drift). Generated attestation/stamp cleaned up post-proof; workspace holds exactly the intended source-repair set. NOT saved, NOT deployed. Gate 16 untouched (OWNER-DEFERRED / NOT PASSED).
+
+
 # 2026-08-12 — MASCI OPS 9 release-governance repaired
 
 - Finished the canonical release-content fingerprint implementation and proved the full A–G contract: repeatability, self-exclusion, mtime immunity, meaningful source sensitivity, normalized platform-metadata handling, meaningful config sensitivity, and runtime-injected env exclusion from source-promotion identity.

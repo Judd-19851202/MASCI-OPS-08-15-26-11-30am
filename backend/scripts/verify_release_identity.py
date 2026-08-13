@@ -8,6 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "backend"))
 
 from lib.release_fingerprint import build_release_manifest  # noqa: E402
+from lib import deployable_content_fingerprint as dcf  # noqa: E402
 from lib.release_identity import (  # noqa: E402
     build_frontend_effective_identity,
     commits_match,
@@ -60,6 +61,23 @@ def main() -> int:
     if not manifest.get("manifest_sha256"):
         errors.append("release fingerprint manifest unavailable")
 
+    # ── Canonical deployable-content source-input contract (fail-closed) ──
+    deployable_contract_digest = None
+    deployable_fingerprint = None
+    deployable_missing_roots: list[str] = []
+    try:
+        dcf.load_contract(REPO_ROOT)
+        deployable_contract_digest = dcf.contract_digest(REPO_ROOT)
+        _entries, deployable_missing_roots = dcf.enumerate_source_inputs(REPO_ROOT)
+        if deployable_missing_roots:
+            errors.append(
+                "deployable source-input roots missing: " + ", ".join(deployable_missing_roots)
+            )
+        else:
+            deployable_fingerprint = dcf.compute_deployable_fingerprint(REPO_ROOT, strict=True)
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"deployable source-input contract invalid: {type(exc).__name__}: {exc}")
+
     payload = {
         "ok": not errors,
         "canonical_release_commit": runtime_release.get("commit"),
@@ -75,8 +93,14 @@ def main() -> int:
         "frontend_contracts_match": contracts_match,
         "frontend_identity_mode": frontend_effective.get("identity_mode"),
         "frontend_identity_endpoint": frontend_effective.get("identity_endpoint"),
+        "workspace_diagnostic_manifest_sha256": manifest.get("manifest_sha256"),
+        "workspace_diagnostic_manifest_entry_count": manifest.get("entry_count"),
+        # Legacy alias retained for existing consumers; same value, honest name above.
         "release_manifest_sha256": manifest.get("manifest_sha256"),
         "release_manifest_entry_count": manifest.get("entry_count"),
+        "deployable_content_fingerprint": deployable_fingerprint,
+        "deployable_fingerprint_contract_digest": deployable_contract_digest,
+        "deployable_fingerprint_algorithm_version": dcf.FINGERPRINT_ALGORITHM_VERSION,
         "errors": errors,
     }
     print(json.dumps(payload, indent=2))

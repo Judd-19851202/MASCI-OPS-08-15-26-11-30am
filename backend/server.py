@@ -1973,6 +1973,34 @@ def _current_instance_fingerprint(runtime_release: Dict[str, Any]) -> str:
     )
 
 
+_DEPLOYABLE_PROVENANCE_STAMP_FILE = _REPO_ROOT / "frontend" / "public" / "release-provenance.json"
+
+
+def _read_local_deployable_build_stamp() -> Optional[Dict[str, Any]]:
+    """Read the generated, non-tracked build stamp (STAGE 5 output). Runtime
+    consumes this stamp; it NEVER recomputes the source tree."""
+    try:
+        return json.loads(_DEPLOYABLE_PROVENANCE_STAMP_FILE.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _resolve_deployable_release_provenance() -> Dict[str, Any]:
+    """STAGE 6 — canonical deployable-content provenance for /api/version.
+
+    Fail-closed. Consumes the build stamp + owner-Save attestation only; does
+    not reconstruct intentionally-omitted production source files."""
+    from lib import deployable_content_fingerprint as _dcf  # noqa: PLC0415
+
+    stamp = _read_local_deployable_build_stamp()
+    build_fp = (stamp or {}).get("build_deployable_fingerprint")
+    result = _dcf.evaluate_provenance(_REPO_ROOT, build_fingerprint=build_fp)
+    result["build_stamp_present"] = bool(stamp)
+    result["build_stamp_attestation_present"] = bool((stamp or {}).get("attestation_present"))
+    return result
+
+
+
 def _empty_frontend_identity(source: str, *, error: Optional[str] = None) -> Dict[str, Any]:
     return {
         "version": None,
@@ -2335,6 +2363,13 @@ def api_version():
         "workspace_dirty": runtime_release.get("workspace_dirty"),
         "release_identity_mismatch": runtime_release.get("identity_mismatch"),
         "release_identity_mismatch_detail": runtime_release.get("identity_mismatch_detail"),
+        # ── Canonical deployable-content provenance (owner-locked) ──────────
+        # Distinct identity universe from the workspace diagnostic manifest.
+        # commit/source_hash below are the broad WORKSPACE DIAGNOSTIC manifest
+        # (never a real git commit unless env/git supplies one); the deployable
+        # release identity is bound to the owner-saved SHA via the build stamp.
+        "workspace_diagnostic_manifest_sha256": runtime_release.get("source_hash"),
+        "deployable_release_provenance": _resolve_deployable_release_provenance(),
         "session_timeouts": sess,
         "sentry": {"enabled": sentry["enabled"]},
         # iter436 (2026-05-26) — environment / database identity for the

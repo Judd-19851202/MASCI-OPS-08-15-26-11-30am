@@ -1,8 +1,13 @@
 # MASCI OPS — CANONICAL RELEASE PROVENANCE — EXECUTION CHECKPOINT (RESUME HERE)
 
-STATUS: NOT STARTED (implementation). Architecture LOCKED. No source modified.
-Saved SHA: 9b6b8e41e8b628ce004aef91028f5cbc024a65bc. Workspace clean. Gate 16: DEFERRED/NOT PASSED.
-Production: FUNCTIONALLY HEALTHY / PROVENANCE UNBOUND. Final cert: HOLD.
+STATUS: IMPLEMENTED + FULLY PROVEN — READY FOR OWNER SAVE (agent did NOT Save/Deploy). Architecture LOCKED.
+Saved SHA at implementation: 40a16150c87a6a1f9a4b0b43d9d47fd55a468707. Gate 16: DEFERRED/NOT PASSED.
+Production: FUNCTIONALLY HEALTHY / PROVENANCE UNBOUND (until this candidate is saved+redeployed+proven live).
+Canonical F (this candidate) = dcf-7f0458dc2060c44100e255553c59ba332c1b86d755789365b2aac315bb1b2d72
+Contract digest = c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533
+POST-SAVE STEP (owner/agent, after Save): capture real saved SHA S, run
+`PYTHONPATH=backend python -m lib.deployable_content_fingerprint attest <S> > AUTHORIZED_RELEASE.json`
+(gitignored), then normal build stamps + runtime evaluates VERIFIED. No second Save required.
 
 ## ROOT CAUSE (established)
 `backend/lib/release_identity.py::compute_source_hash` → `release_fingerprint.py::build_release_manifest`

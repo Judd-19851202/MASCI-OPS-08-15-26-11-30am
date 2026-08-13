@@ -1,4 +1,48 @@
 {
+  "deployable_source_inputs": {
+    "schema_version": "MASCI_DEPLOYABLE_SOURCE_INPUT_CONTRACT/v1",
+    "algorithm_version": "dcf-1",
+    "purpose": "Canonical DEPLOYABLE_CONTENT_FINGERPRINT scope: only repository-controlled source inputs that can materially alter deployed MASCI behavior. This is a distinct identity universe from the broad workspace diagnostic manifest below and MUST NEVER be compared against it.",
+    "include_roots": [
+      "backend/lib",
+      "backend/routes",
+      "backend/services",
+      "backend/scripts",
+      "backend/server.py",
+      "backend/requirements.txt",
+      "frontend/src",
+      "frontend/public",
+      "frontend/scripts",
+      "frontend/package.json",
+      "frontend/yarn.lock",
+      "frontend/craco.config.js",
+      "frontend/postcss.config.js",
+      "frontend/tailwind.config.js",
+      "frontend/jsconfig.json",
+      "frontend/eslint.config.js",
+      "frontend/components.json",
+      "scripts"
+    ],
+    "exclude_exact": [
+      "AUTHORIZED_RELEASE.json"
+    ],
+    "exclude_globs": [
+      "**/__pycache__/**",
+      "**/*.pyc",
+      "**/*.log",
+      "backend/tests/**",
+      "frontend/src/**/__tests__/**",
+      "frontend/src/**/*.test.js",
+      "frontend/src/**/*.test.jsx",
+      "frontend/src/buildVersion.generated.js",
+      "frontend/public/release-identity.json",
+      "frontend/public/release-provenance.json",
+      "**/.DS_Store"
+    ],
+    "normalize": {
+      "line_endings": "lf"
+    }
+  },
   "schema_version": "MASCI_RELEASE_CONTENT_FINGERPRINT_CONTRACT/v1",
   "algorithm_version": "masci-release-content-sha256-v1",
   "include_roots": [

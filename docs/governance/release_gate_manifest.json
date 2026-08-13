@@ -42,6 +42,31 @@
     "mission_scope": "MASCI OPS 9 release-governance repair only",
     "allowed_dirty_entries": [
       {
+        "path": "backend/lib/deployable_content_fingerprint.py",
+        "mission_ref": "MASCI OPS release-provenance repair (canonical deployable-content fingerprint)",
+        "rationale": "STAGE 1/3/6 owner: canonical DEPLOYABLE_CONTENT_FINGERPRINT over the governed source-input scope, build attestation generation, and fail-closed runtime provenance evaluation."
+      },
+      {
+        "path": "backend/tests/test_release_provenance_contract.py",
+        "mission_ref": "MASCI OPS release-provenance repair (fail-closed regression matrix)",
+        "rationale": "Permanent fail-closed regression matrix for the canonical deployable-content provenance contract (determinism, scope, fail-closed states, no fake-commit semantics)."
+      },
+      {
+        "path": "frontend/scripts/deployable_content_fingerprint.js",
+        "mission_ref": "MASCI OPS release-provenance repair (STAGE 4 pure-JS build recompute)",
+        "rationale": "Pure-JS byte-identical mirror of the Python deployable-content fingerprint owner; cloud frontend builds may have no python, so STAGE 4 build recomputation must be JS."
+      },
+      {
+        "path": ".gitignore",
+        "mission_ref": "MASCI OPS release-provenance repair (non-tracked attestation + build stamp)",
+        "rationale": "Adds AUTHORIZED_RELEASE.json and frontend/public/release-provenance.json as non-tracked generated artifacts so the attestation/build-stamp never dirty tracked source or force a second Save."
+      },
+      {
+        "path": "frontend/public/release-provenance.json",
+        "mission_ref": "MASCI OPS release-provenance repair (generated build stamp)",
+        "rationale": "Generated, gitignored build stamp consumed by the served frontend and backend runtime; listed defensively in case a local build materializes it before governance evaluation."
+      },
+      {
         "path": "frontend/yarn.lock",
         "mission_ref": "PDC-01A Blocker 1 and Blocker 3",
         "rationale": "Dependency lockfile drift is explicitly inventoried as the governed pre-save candidate delta that must be reconciled before clean-SHA deploy certification."

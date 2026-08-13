@@ -249,7 +249,7 @@ def resolve_runtime_release_identity(repo_root: Path, *, env: Optional[Dict[str,
     snapshot = collect_workspace_snapshot(repo_root)
     mismatch = bool(env_commit and git_commit and commits_match(env_commit, git_commit) is False)
     commit = env_commit or git_commit or source_hash[:12]
-    commit_source = env_source or git_source or "source_hash_prefix"
+    commit_source = env_source or git_source or "workspace_diagnostic_manifest_prefix"
     return {
         "commit": commit,
         "commit_source": commit_source,
