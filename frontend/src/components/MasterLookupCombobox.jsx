@@ -20,10 +20,16 @@
 //   - "Use exactly: '…'" option preserves freetext-only when no match
 //   - Selected pick shows a green check + label; click X to clear
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { Search, X, Check, Loader2, AlertCircle } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// Canonical public fallback per kind — used when the authenticated
+// /master-lookup/{kind} endpoint rejects the current portal session (401)
+// so the picker is ALWAYS master-backed instead of a silent empty list.
+const PUBLIC_FALLBACK = {
+  employees: "/hr/employee-roster/public",
+  equipment: "/public/equipment-master-lookup",
+};
 
 const FORMAT = {
   equipment: (i) =>
@@ -51,6 +57,7 @@ export default function MasterLookupCombobox({
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchErr, setFetchErr] = useState(false);
 
   // Sync displayValue → q so the user sees what's currently bound
   useEffect(() => { setQ(displayValue || ""); }, [displayValue]);
@@ -62,7 +69,7 @@ export default function MasterLookupCombobox({
     let alive = true;
     (async () => {
       try {
-        const r = await axios.get(`${API}/master-lookup/${kind}/by-id/${value}`);
+        const r = await api.get(`/master-lookup/${kind}/by-id/${value}`, { skipSessionStatus: true });
         if (!alive || !r.data?.found) return;
         const fn = FORMAT[kind] || ((i) => i.id);
         const label = fn(r.data.item);
@@ -90,10 +97,25 @@ export default function MasterLookupCombobox({
     let alive = true;
     const t = setTimeout(async () => {
       setLoading(true);
+      const params = { q, limit: 20 };
+      const fetchItems = async (path) => {
+        const r = await api.get(path, { params, skipSessionStatus: true });
+        return Array.isArray(r.data?.items) ? r.data.items : (Array.isArray(r.data) ? r.data : []);
+      };
       try {
-        const r = await axios.get(`${API}/master-lookup/${kind}`, { params: { q, limit: 20 } });
-        if (alive) setItems(r.data?.items || []);
-      } catch { /* swallow */ }
+        let list = [];
+        try {
+          list = await fetchItems(`/master-lookup/${kind}`);
+        } catch (e) {
+          list = [];
+        }
+        if (!list.length && PUBLIC_FALLBACK[kind]) {
+          list = await fetchItems(PUBLIC_FALLBACK[kind]);
+        }
+        if (alive) { setItems(list); setFetchErr(false); }
+      } catch (e) {
+        if (alive) { setItems([]); setFetchErr(true); }
+      }
       finally { if (alive) setLoading(false); }
     }, 200);
     return () => { alive = false; clearTimeout(t); };
@@ -172,7 +194,10 @@ export default function MasterLookupCombobox({
               <Loader2 className="w-3 h-3 animate-spin" /> Searching…
             </div>
           )}
-          {!loading && items.length === 0 && q.trim() && (
+          {!loading && fetchErr && (
+            <div className="wp17-picker-empty italic text-red-600" data-testid={`${testIdPrefix}-error`}>Master list unavailable — retry.</div>
+          )}
+          {!loading && !fetchErr && items.length === 0 && q.trim() && (
             <div className="wp17-picker-empty italic">No matches in master.</div>
           )}
           {!loading && items.length === 0 && !q.trim() && (

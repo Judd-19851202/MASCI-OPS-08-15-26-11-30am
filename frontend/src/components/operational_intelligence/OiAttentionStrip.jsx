@@ -38,6 +38,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Activity, ArrowRight } from "lucide-react";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { useT } from "@/lib/i18n";
 import GuidanceCard from "./GuidanceCard";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -112,6 +113,7 @@ export default function OiAttentionStrip({
   portal = "default",
   timeoutMs = 15000,
 }) {
+  const { t } = useT();
   const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [], reason: "" });
   const productIdsKey = React.useMemo(
     () => (Array.isArray(productIds) ? productIds.join("|") : ""),
@@ -155,12 +157,12 @@ export default function OiAttentionStrip({
     const fallbackCopy = PORTAL_FALLBACK_COPY[portal] || PORTAL_FALLBACK_COPY.default;
     const isAdminPortal = portal === "admin";
     const message = isAuth && isAdminPortal
-      ? "Admin token required to view OI signals · request access from your administrator."
+      ? t("Admin token required to view OI signals · request access from your administrator.")
       : isTimeout
-        ? fallbackCopy + " (timed out)"
+        ? t(fallbackCopy) + t(" (timed out)")
         : isNetwork
-          ? fallbackCopy + " (network error)"
-          : fallbackCopy;
+          ? t(fallbackCopy) + t(" (network error)")
+          : t(fallbackCopy);
     return (
       <section
         data-testid={rootTestId}
@@ -185,7 +187,7 @@ export default function OiAttentionStrip({
                 data-testid={`${rootTestId}-retry`}
                 className="text-[11px] font-mono uppercase tracking-widest font-bold text-slate-600 hover:text-slate-900"
               >
-                Retry
+                {t("Retry")}
               </button>
             )}
           </div>
@@ -211,7 +213,7 @@ export default function OiAttentionStrip({
           data-testid={`${rootTestId}-open-cockpit`}
           className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-widest font-bold text-slate-600 hover:text-slate-900"
         >
-          Open in Cockpit <ArrowRight className="w-3 h-3" />
+          {t("Open in Cockpit")} <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
       <div
@@ -251,6 +253,7 @@ export default function OiAttentionStrip({
 }
 
 function OiProductTile({ product, rootTestId, onOpen }) {
+  const { t } = useT();
   const tone = toneFor(product.attention_level);
   const hasScore = typeof product.score === "number";
   const label = product.top_attention_label;
@@ -304,12 +307,12 @@ function OiProductTile({ product, rootTestId, onOpen }) {
           data-testid={`${tileTestId}-error`}
           className="mt-1 text-[11px] text-slate-500 italic"
         >
-          Insufficient data · consult Cockpit.
+          {t("Insufficient data · consult Cockpit.")}
         </div>
       )}
       {!label && !hasError && hasScore && (
         <div className="mt-1 text-[12px] text-slate-500 italic">
-          No attention items — portal is calm.
+          {t("No attention items — portal is calm.")}
         </div>
       )}
     </button>

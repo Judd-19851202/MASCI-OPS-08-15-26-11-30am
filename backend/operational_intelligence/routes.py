@@ -115,6 +115,11 @@ def register_operational_intelligence_routes(
             return True
         if role == "safety_or_admin":
             return actor_kind in {"safety", "dispatch", "shop"}
+        # Least-privilege HR read: HR may see ONLY its own workforce products on
+        # the summary strip (product contract stays admin_only for every other
+        # gate — send/generate/recipients remain admin-only).
+        if actor_kind == "hr":
+            return str(getattr(product, "product_id", "")) in {"hr_intelligence", "training_intelligence"}
         return False
 
     @api_router.get("/operational-intelligence/recipients")

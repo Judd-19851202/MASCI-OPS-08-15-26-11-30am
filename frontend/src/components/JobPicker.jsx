@@ -39,26 +39,33 @@ async function loadJobs({ publicFallback = false } = {}) {
   if (!publicFallback && _jobsCache) return _jobsCache;
   if (publicFallback && _publicJobsPromise) return _publicJobsPromise;
   if (!publicFallback && _jobsPromise) return _jobsPromise;
-  const promise = api
-    .get(publicFallback ? "/public/jobs-lookup" : "/jobs", { skipSessionStatus: true })
-    .then((r) => {
-      const items = Array.isArray(r.data?.items) ? r.data.items : [];
-      const resolved = items.length ? items : STATIC_LIBRARY;
-      if (publicFallback) {
-        _publicJobsCache = resolved;
-      } else {
-        _jobsCache = resolved;
-      }
-      return resolved;
-    })
-    .catch(() => {
-      // Network error — fall back to the static seed so the picker still works.
-      if (publicFallback) {
-        _publicJobsCache = STATIC_LIBRARY;
-      } else {
-        _jobsCache = STATIC_LIBRARY;
-      }
+  const fetchList = async (path) => {
+    const r = await api.get(path, { skipSessionStatus: true });
+    return Array.isArray(r.data?.items) ? r.data.items : [];
+  };
+  const run = async () => {
+    if (publicFallback) {
+      try { const it = await fetchList("/public/jobs-lookup"); if (it.length) return it; }
+      catch { /* fall through */ }
       return STATIC_LIBRARY;
+    }
+    // Authenticated: some portal sessions (e.g. PM) are not accepted by /jobs
+    // (401). Fall back to the canonical public lookup (live jobs) BEFORE the
+    // hardcoded seed, so a picker never silently serves stale jobs.
+    try {
+      const it = await fetchList("/jobs");
+      if (it.length) return it;
+    } catch { /* fall through to public lookup */ }
+    try {
+      const it = await fetchList("/public/jobs-lookup");
+      if (it.length) return it;
+    } catch { /* fall through to static seed */ }
+    return STATIC_LIBRARY;
+  };
+  const promise = run()
+    .then((resolved) => {
+      if (publicFallback) { _publicJobsCache = resolved; } else { _jobsCache = resolved; }
+      return resolved;
     })
     .finally(() => {
       if (publicFallback) {

@@ -244,15 +244,15 @@ export default function HrHubV2() {
         <section className="wp17-mission-banner" data-testid="hr-page-shell-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="wp17-kicker text-white/70">Today’s focus</div>
-              <h2 className="mt-2 font-display text-xl font-black text-white">Keep the workforce ready by showing attention, next actions, and the shortest path to real records.</h2>
+              <div className="wp17-kicker text-white/70">{t("Today’s focus")}</div>
+              <h2 className="mt-2 font-display text-xl font-black text-white">{t("Keep the workforce ready by showing attention, next actions, and the shortest path to real records.")}</h2>
               <p className="mt-2 max-w-3xl text-sm text-white/80">
-                See requests, renewals, and record issues in one place so HR can act fast.
+                {t("See requests, renewals, and record issues in one place so HR can act fast.")}
               </p>
             </div>
             <div className="wp17-chip-row">
-              <RealLink to="/hr/employees" testid="hr-hub-v2-next-employees-chip" intent="primary">Employees</RealLink>
-              <RealLink to="/hr/employee-accountability" testid="hr-hub-v2-next-accountability-chip">Accountability</RealLink>
+              <RealLink to="/hr/employees" testid="hr-hub-v2-next-employees-chip" intent="primary">{t("Employees")}</RealLink>
+              <RealLink to="/hr/employee-accountability" testid="hr-hub-v2-next-accountability-chip">{t("Accountability")}</RealLink>
             </div>
           </div>
         </section>
@@ -265,7 +265,7 @@ export default function HrHubV2() {
         <OiAttentionStrip
           portal="hr"
           productIds={["hr_intelligence", "training_intelligence"]}
-          title="Workforce attention right now"
+          title={t("Workforce attention right now")}
           testId="hr-hub-v2-oi-strip"
         />
 

@@ -41,20 +41,34 @@ async function loadMaster({ publicFallback = false } = {}) {
     return cache;
   }
   if (cachePromise) return cachePromise;
-  const promise = api
-    .get(publicFallback ? "/public/equipment-master-lookup" : "/equipment-master", { timeout: 30000, skipSessionStatus: true })
-    .then((r) => {
-      if (r?.data && Array.isArray(r.data.items) && r.data.items.length > 0) {
-        if (publicFallback) {
-          _publicCache = r.data;
-          return _publicCache;
-        }
-        _cache = r.data;
-        return _cache;
-      }
-      return { categories: [], items: [], grouped: {} };
+  const empty = { categories: [], items: [], grouped: {} };
+  const fetchPath = async (path) => {
+    const r = await api.get(path, { timeout: 30000, skipSessionStatus: true });
+    return r?.data && Array.isArray(r.data.items) && r.data.items.length > 0 ? r.data : null;
+  };
+  const run = async () => {
+    if (publicFallback) {
+      try { return (await fetchPath("/public/equipment-master-lookup")) || empty; }
+      catch { return empty; }
+    }
+    // Authenticated: some portal sessions are not accepted by /equipment-master
+    // (returns 401). Fall back to the canonical public lookup so the picker is
+    // ALWAYS master-backed instead of silently empty.
+    try {
+      const d = await fetchPath("/equipment-master");
+      if (d) return d;
+    } catch { /* fall through to public lookup */ }
+    try {
+      const d = await fetchPath("/public/equipment-master-lookup");
+      if (d) return d;
+    } catch { /* fall through to empty */ }
+    return empty;
+  };
+  const promise = run()
+    .then((data) => {
+      if (publicFallback) { _publicCache = data; } else { _cache = data; }
+      return data;
     })
-    .catch(() => ({ categories: [], items: [], grouped: {} }))
     .finally(() => {
       if (publicFallback) {
         _publicCachePromise = null;

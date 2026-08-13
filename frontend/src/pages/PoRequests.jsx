@@ -462,7 +462,7 @@ function AddDialog({ open, setOpen, onSaved }) {
           <Plus className="w-3.5 h-3.5 mr-1" /> {t("Request PO")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" data-testid="po-add-dialog">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden" data-testid="po-add-dialog">
         <DialogHeader><DialogTitle>{t("Request PO")}</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div>

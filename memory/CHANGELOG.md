@@ -1,3 +1,26 @@
+# 2026-06 — Final pre-save acceptance batch (HR insights + localization + exhaustive selectors + count reconciliation)
+
+Bounded PREVIEW acceptance batch (owner-scoped; production untouched; NOT saved).
+
+HR INSIGHTS ACCESS (least privilege) — root cause: OI summary gate `_make_oi_require_summary_actor` had no HR branch and `_can_view_summary_product` didn't grant HR its products. Fix: added an `X-HR-Token` branch (validates via existing `hr_users.is_valid_hr_user_token_async`) and allowlisted HR to view ONLY `hr_intelligence` + `training_intelligence` on the summary endpoint (no change to the product contract or any mutation gate). Certified live: HR→200 for its 2 products; HR+non-HR product→filtered out; HR no-filter→403; invalid token→401; HR Hub 'Workforce attention right now' strip now renders.
+
+LOCALIZATION EN/ES — closed all sweep-discovered operator-facing gaps: public hero subtitle + 3 CTAs, QueueStatusPill labels, HR Hub mission banner + chips + OI strip title, Compliance-at-risk chips, and OiAttentionStrip static + degraded-state copy (Open in Cockpit, portal-is-calm, admin-token/timeout/network fallback copy, Retry). Verified 9/9 + OI strip ES.
+
+EXHAUSTIVE MASTER-SELECTOR CLICK-THROUGH — root cause of empties/stale: pickers used bare `axios` (no auth) and swallowed 401s, or hit authenticated endpoints some portals reject. Fix: EquipmentCombo, JobPicker, MasterLookupCombobox, EmployeeRosterField now fall back to the canonical PUBLIC lookup on 401/empty (and MasterLookupCombobox uses the shared api client + shows a visible error state). Retest iteration_22: 7/7 PASS — DRv3 equipment 766 (foreman+anon), employee typeaheads 8/'mar' (issuance/training/CA filter/training-record), PM JobPicker 43 live (was 31 hardcoded), SupplierCombo 162, PO dialog no longer clips. Inventory accounted; retired NewIncident.jsx + daily-report-v2 sections noted as unrouted/dead.
+
+MASTER-DATA COUNT RECONCILIATION (canonical endpoints, both environments): the prior 239/167/604/34 were PRODUCTION; current preview shows 233/162/766/43 — the delta is simply the separate logical databases (masci_safety vs masci_safety_preview):
+| source | preview | production |
+| employees (hr/employee-roster/public) | 233 | 239 |
+| suppliers | 162 | 167 |
+| equipment (public/equipment-master-lookup) | 766 | 604 |
+| jobs (public/jobs-lookup) | 43 | 35 |
+FlUserCombo (/field-leadership-roster) = 31 supervisors — a DISTINCT master (field-leadership users), not the employee roster; not a defect.
+
+Regressions: provenance matrix 23/23; verify_release_identity --strict errors:[]; recompute-twice MATCH. New pre-save candidate deployable fingerprint dcf-17db0c0e6698ee93677fd63090cffe4e26092d657b4e1e51fc49eae4e8cdbf34 (contract digest unchanged). Files this batch: backend/server.py, backend/operational_intelligence/routes.py, frontend {EmployeeRosterField, EquipmentCombo, JobPicker, MasterLookupCombobox, OiAttentionStrip, i18n, HrHubV2, PoRequests}. NOT saved, NOT deployed.
+
+Deferred (optional/out-of-scope): native date inputs vs shadcn calendar (design), empty unit_number em-dash (cosmetic), OiAttentionStrip CRITICAL-badge-with-0-score semantics (backend OI engine), product digest titles/level badges i18n (backend-sourced). Gate 16 remains OWNER-DEFERRED / NOT PASSED.
+
+
 # 2026-06 — Post-deploy production provenance verified + preview acceptance round
 
 Production (https://mascidocs.com) release-provenance repair went live and was VERIFIED against the actual endpoint:

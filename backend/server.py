@@ -4105,6 +4105,7 @@ def _make_oi_require_summary_actor():
         x_safety_token: Optional[str] = _OiHeader(default=None, alias="X-Safety-Token"),
         x_dispatch_token: Optional[str] = _OiHeader(default=None, alias="X-Dispatch-Token"),
         x_shop_token: Optional[str] = _OiHeader(default=None, alias="X-Shop-Token"),
+        x_hr_token: Optional[str] = _OiHeader(default=None, alias="X-HR-Token"),
         x_admin_token: Optional[str] = _OiHeader(default=None, alias="X-Admin-Token"),
     ):
         if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
@@ -4121,6 +4122,11 @@ def _make_oi_require_summary_actor():
             u = await _oi_shop_valid(db, x_shop_token)
             if u:
                 return {**u, "_actor": "shop"}
+        if x_hr_token:
+            from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+            u = await is_valid_hr_user_token_async(db, x_hr_token)
+            if u:
+                return {**u, "_actor": "hr"}
         raise _OiHTTPException(401, detail={"code": "unauthorized", "detail": "Operational intelligence auth required"})
 
     return _dep

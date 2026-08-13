@@ -18,12 +18,10 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Search, User, AlertCircle, CheckCircle2 } from "lucide-react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
-
-const API_BASE = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /**
  * Props:
@@ -70,16 +68,25 @@ export default function EmployeeRosterField({
     if (!trimmed) { setResults([]); return; }
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
+      const params = { q: trimmed, limit: 8 };
+      const fetchItems = async (endpoint) => {
+        const r = await api.get(endpoint, { params, skipSessionStatus: true });
+        return Array.isArray(r.data?.items) ? r.data.items :
+               Array.isArray(r.data) ? r.data : [];
+      };
       try {
-        const usePublicEndpoint = !hasAnyPortalAuthToken();
-        const endpoint = usePublicEndpoint
-          ? `${API_BASE}/hr/employee-roster/public`
-          : `${API_BASE}/master-lookup/employees`;
-        const r = await axios.get(endpoint, {
-          params: { q: trimmed, limit: 8 },
-        });
-        const items = Array.isArray(r.data?.items) ? r.data.items :
-                      Array.isArray(r.data) ? r.data : [];
+        let items = [];
+        if (hasAnyPortalAuthToken()) {
+          // Authenticated: use the master-lookup endpoint (auth attached via the
+          // shared api client). If the session isn't accepted (401) or returns
+          // nothing, fall back to the canonical public roster so the field is
+          // never silently empty.
+          try { items = await fetchItems("/master-lookup/employees"); }
+          catch { items = []; }
+        }
+        if (!items.length) {
+          items = await fetchItems("/hr/employee-roster/public");
+        }
         setResults(items);
       } catch {
         setResults([]);
