@@ -61,3 +61,17 @@ Recompute fingerprint twice for equality. verify_release_identity --strict must 
 ## PARALLEL LIVE ACCEPTANCE (separate, read-only — outstanding)
 exhaustive per-form selector click-through; Safety-role session proof (/api/safety/overview 401 under admin token);
 full KPI/portal matrix (12/13 done); real-device queue recovery (SERVER READY / DEVICE PROOF PENDING).
+
+## FINAL DEFECT-CLOSURE ATTESTATION (2026-06 — agent-tested, read-only)
+Saved SHA S = aa842953f2e126b048cb057f46f2febdf59f7449 (HEAD, workspace clean).
+Canonical FP recompute = dcf-27b86fc225a3da074e3e77fa292d9b17fc0abb0f5af4d39b05b67852b0419114 (EXACT MATCH).
+Contract digest = c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533 (UNCHANGED).
+AUTHORIZED_RELEASE.json: authorized_saved_sha=S, authorized FP=required FP, digest match; gitignored/non-tracked.
+Build provenance path (stamp-build-version.js): build_deployable_fingerprint == authorized FP, attestation_present=true, errors:[].
+Runtime /api/version: release_provenance=VERIFIED, runtime_matches_intended_release=true,
+  provenance_method=build_content_fingerprint_bound_to_saved_sha, authorized_saved_sha=S,
+  frontend_backend_release_match=true, frontend_generated_vs_served_match=true.
+Strict verifier: ok=true, errors:[], all commits==S.
+Post-attestation: git status clean (0 lines), HEAD unchanged, no second Save, no Deploy, production untouched.
+RESULT: FINAL DEFECT-CLOSURE RELEASE ATTESTED — READY FOR OWNER DEPLOY.
+Provenance of this record: agent-tested via shell/curl; not user-confirmed.
