@@ -1,0 +1,58 @@
+# MASCI OPS — CANONICAL RELEASE PROVENANCE — EXECUTION CHECKPOINT (RESUME HERE)
+
+STATUS: NOT STARTED (implementation). Architecture LOCKED. No source modified.
+Saved SHA: 9b6b8e41e8b628ce004aef91028f5cbc024a65bc. Workspace clean. Gate 16: DEFERRED/NOT PASSED.
+Production: FUNCTIONALLY HEALTHY / PROVENANCE UNBOUND. Final cert: HOLD.
+
+## ROOT CAUSE (established)
+`backend/lib/release_identity.py::compute_source_hash` → `release_fingerprint.py::build_release_manifest`
+hashes files PHYSICALLY PRESENT under contract scope. Local frozen tree = 4314 entries; prod container
+= 2058. Different file sets → runtime source-tree recompute can never equal freeze. Fix = build-time
+recompute + stamp; runtime consumes the stamp, NOT the source tree.
+
+## LOCKED ARCHITECTURE (implement exactly — do NOT redesign)
+- STAGE1 canonical DEPLOYABLE_CONTENT_FINGERPRINT over governed SOURCE-INPUT contract
+  (FE src, BE src, shared libs, models/schemas, business logic, build scripts, repo runtime/build config,
+   frontend/package.json, frontend/yarn.lock, backend/requirements.txt, release-critical config).
+  Exclude: .git, caches, logs, screenshots, evidence, generated build output, temp, generated attestation.
+  Contract gets fingerprint_contract_digest + version. AUDIT existing contract
+  `docs/governance/release_content_fingerprint_contract.json` before finalizing.
+- STAGE2 pre-save F_candidate (recompute twice equal); post-save F_saved==F_candidate; bind S<->F.
+- STAGE3 generated attestation AUTHORIZED_RELEASE.json: authorized_saved_sha, authorized_deployable_fingerprint,
+  fingerprint_algorithm_version, fingerprint_contract_digest, attestation_format_version. MUST be
+  non-tracked, gitignored, EXCLUDED from fingerprint, non-self-referential, NO second Save.
+- STAGE4 build recompute F_build in real build context (add to `frontend/scripts/stamp-build-version.js`
+  pure-JS path — NOTE: no python in cloud build) → compare F_build==F_authorized; catches unsaved/wrong snapshot.
+- STAGE5 stamp FE + BE identically: authorized_saved_sha, authorized_deployable_fingerprint,
+  build_deployable_fingerprint, fingerprint_contract_digest, fingerprint_algorithm_version.
+  FE stamp file: frontend/src/buildVersion.generated.js + frontend/public/release-identity.json.
+- STAGE6 runtime (release_identity.py public payload builder ~L248-267) consumes stamp; NO source-tree recompute,
+  NO MISSING sentinels for intentional omissions. VERIFIED when F_build==F_authorized && contract_digest match
+  && FE/BE agree → runtime_matches_intended_release=true, release_provenance=VERIFIED,
+  provenance_method=build_content_fingerprint_bound_to_saved_sha, authorized_saved_sha=S. Never synthesize git SHA.
+- STAGE7 optional runtime_artifact_fingerprint (separate hash space; never compared to source-input identity).
+- FAIL-CLOSED: UNPROVEN (no attestation) / MISMATCH / CONTRACT_MISMATCH / ARTIFACT_IDENTITY_MISMATCH / VERIFIED.
+- RENAME/RETIRE: `commit_source=source_hash_prefix` (retire fake-commit); demote
+  release_manifest_sha256 -> workspace_diagnostic_manifest_sha256 (diagnostic only, never equality).
+  Explicit fields: authorized_saved_sha, deployable_content_fingerprint, build_deployable_content_fingerprint,
+  workspace_diagnostic_manifest_sha256, runtime_artifact_fingerprint, fingerprint_contract_digest.
+
+## KEY FILES
+- backend/lib/release_identity.py (compute_source_hash L97-98; identity payload L121-267; UNSAVED label L131-132)
+- backend/lib/release_fingerprint.py (build_release_manifest; contract loader; CONTRACT_PATH L14)
+- backend/scripts/verify_release_identity.py (expose canonical + contract digest; demote manifest)
+- docs/governance/release_content_fingerprint_contract.json (scope + add digest/version; exclude AUTHORIZED_RELEASE.json)
+- frontend/scripts/stamp-build-version.js (STAGE4 recompute + STAGE5 stamp; PURE JS — no python)
+- frontend/public/release-identity.json, frontend/src/buildVersion.generated.js (stamp targets)
+- backend/routes: /api/version payload source (search "runtime_identity_public_payload")
+- .gitignore + release_gate_manifest.json allowlist: add AUTHORIZED_RELEASE.json (generated, non-tracked)
+- NEW backend/tests/test_release_provenance_contract.py (~22-case fail-closed matrix per owner spec)
+
+## GOVERNANCE
+Every new/changed tracked file MUST be added to docs/governance/release_gate_manifest.json allowed_dirty_entries
+(else pre-save gate fails). Verify: PYTHONPATH=backend python -c evaluate_pre_save_candidate (see prior turns).
+Recompute fingerprint twice for equality. verify_release_identity --strict must be errors:[]. Do NOT Save.
+
+## PARALLEL LIVE ACCEPTANCE (separate, read-only — outstanding)
+exhaustive per-form selector click-through; Safety-role session proof (/api/safety/overview 401 under admin token);
+full KPI/portal matrix (12/13 done); real-device queue recovery (SERVER READY / DEVICE PROOF PENDING).
