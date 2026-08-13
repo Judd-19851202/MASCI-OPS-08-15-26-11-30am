@@ -152,3 +152,17 @@ Fixture id bec8e9b3... "RC1-POST-REDEPLOY-VERIFY-1781535563" (Cert/Post-Redeploy
  reachable dependency check: equipment history 404, parts=empty default (no catalog), not a registered trench box.
  -> SAFE CONTROLLED DELETE — CERTIFICATION FIXTURE (final delete-safety check at execution time). NOT deleted.
 247 missing unit_number = governed unnumbered assets/tools (legitimate exclusion, NOT a defect). No fake numbers.
+
+## EQUIPMENT PARTS AUTH RELEASE — ATTESTED (2026-08-13, agent-tested, read-only)
+Saved SHA = 8a08454fa16fe6e257ea01be08bd3b7ec159f1fe (HEAD, workspace clean).
+Canonical FP recompute (twice) = dcf-862c5a53a36863f9d690514a46f2e287bb6a8b672ea4b3136b6cd7732f109538 (EXACT MATCH).
+Contract digest = c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533 (MATCH).
+AUTHORIZED_RELEASE.json regenerated for saved SHA; gitignored; authorized FP/digest match; workspace clean.
+Build path: build_deployable_fingerprint = authorized FP; attestation_present=true; errors:[].
+Runtime /api/version: release_provenance=VERIFIED; runtime_matches_intended_release=true;
+ provenance_method=build_content_fingerprint_bound_to_saved_sha; authorized_saved_sha=8a08454f...;
+ FE_BE_match=true; FE_generated_vs_served=true.
+verify_release_identity --strict: ok=True, workspace_dirty=False, errors:[].
+Parts auth regression (attested build, server-truth): Admin GET 200; Admin update 200+persisted+restored;
+ Shop(shop+dir) 200; unauthorized 401; unrelated HR 401.
+No second Save; no Deploy; no production data changes. READY FOR OWNER DEPLOY.
