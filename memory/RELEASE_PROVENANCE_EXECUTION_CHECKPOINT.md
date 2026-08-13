@@ -75,3 +75,24 @@ Strict verifier: ok=true, errors:[], all commits==S.
 Post-attestation: git status clean (0 lines), HEAD unchanged, no second Save, no Deploy, production untouched.
 RESULT: FINAL DEFECT-CLOSURE RELEASE ATTESTED — READY FOR OWNER DEPLOY.
 Provenance of this record: agent-tested via shell/curl; not user-confirmed.
+
+## LIVE PROD OPERATIONAL HEALTH — SUPER ADMIN BROWSER SESSION (2026-08-13, read-only)
+Auth: real Super Admin browser login jaymn.judd@mascigc.com at https://mascidocs.com -> /admin OK.
+Strict admin endpoints returned 200 (NOT 401) => NOT owner-only. Earlier 401 was automation-token only.
+- system-health: overall GREEN/VERIFIED (9/9). runtime env=production db=masci_safety.
+- Motive: VERIFIED · Live · webhook armed · last_successful_sync=2026-08-13T20:36:36.750281Z · last_failed=2026-07-20T17:37:35Z · failed_syncs_24h=0.
+- integrations/health: Motive ok(live), Mongo ok, R2 ok, Resend ok, MaintainX disabled(NOT_APPLICABLE/mocked), Emergent LLM ok.
+- Backup: recovery pill GREEN; last backup MASCI_complete_backup_2026-08-13_200040Z.zip; recovery point 2026-08-13T20:08:45Z; age 38.2m (target <=60m); integrity PASS/COMPLETE/AVAILABLE.
+- backup-verification cron: enabled; schedule Mon 14:00 UTC; next_fire=2026-08-17T14:00:00Z; last_run=2026-08-10T14:00Z.
+- Transportation<->HR (hr-sync/report): health=warning; employees_checked=36; sync_mismatches=1; actions_created=0.
+  * The 1 mismatch: employee_id 143acca5-31c4-4528-8a7b-0df524672d97, code hr_active_no_linkage, severity info,
+    "Active driver-relevant HR employee has no Transportation link", transport_person_id=null.
+  * actions_created=0 root cause: automation last_run items_scanned=0/actions_created=0; finding severity=info AND
+    TRANSPORT_HR_SYNC_MONITOR_ALERT is in routes_dry_run (not routes_live) -> info advisory creates 0 actions by design
+    (manual link recommended). Expected behavior, not a defect.
+- Admin Equipment Parts list: parts-catalog renders; Pick-a-Unit fleet populated (100 rendered / "589-unit fleet" searchable);
+  no "Could not load fleet list"; /equipment-master 401 -> fallback /public/equipment-master-lookup 200 (fallback fix live);
+  picking a unit opens parts editor. Note: parts-detail 401 for first row due to malformed unit_number data ("#71 in Masci Equip list"),
+  not a feature break.
+REMOVED FROM OWNER-ONLY: Operational Health dashboard, Motive health, backup scheduler, Transportation<->HR mismatch.
+STILL OPEN (genuinely): real stranded operator-device queue recovery (device-only); Gate 16 OWNER-DEFERRED/NOT PASSED.
