@@ -166,3 +166,22 @@ verify_release_identity --strict: ok=True, workspace_dirty=False, errors:[].
 Parts auth regression (attested build, server-truth): Admin GET 200; Admin update 200+persisted+restored;
  Shop(shop+dir) 200; unauthorized 401; unrelated HR 401.
 No second Save; no Deploy; no production data changes. READY FOR OWNER DEPLOY.
+
+## SW AUTH-CACHE SECURITY AUDIT (2026-08-13, read-only, NO DEFECT)
+Alleged "cached 200" for /api/equipment-parts after no-token fetch = TEST-METHODOLOGY ARTIFACT, not a cache.
+Root cause: app installs global auth-injection wrappers at startup (frontend/src/index.js):
+  installPortalFetchAuth() patches window.fetch; installPortalXhrAuth() patches XMLHttpRequest.
+  Both auto-attach scoped portal tokens (buildScopedPortalAuthHeaders) to every same-origin /api/* request
+  using the ACTIVE session. So any in-page fetch/XHR is silently authenticated with the logged-in user's tokens.
+Evidence (preview, definitive):
+  logged in: fetch 200, XHR 200 (both auth-injected).
+  after clearing all masci.* tokens (logout): fetch 200->401; fetch nocache/no-store unique-URL ->401.
+  server-truth curl (outside browser, no tokens) -> 401 "Shop login required".
+  protected response headers: cache-control: no-store, no-cache, must-revalidate.
+Service workers registered: ONLY /sw-thumbs.js, scoped strictly to /api/job-photos/*/thumb(-signed)? (images).
+  No CRA/workbox precache SW. grep caches.put/open outside thumb SW = 0. No protected /api/* JSON is cached.
+Findings: cross-logout NO, cross-user NO, cross-role NO. Protected API responses never cached.
+Residual (owner awareness, NOT P0): job-photo thumbnail SW uses URL-normalized key + stale-while-revalidate;
+  on a SHARED physical device a previously-cached thumbnail IMAGE could be served briefly to a later session
+  before background revalidation. Images-only, bounded (LRU 400, version purge, kill-switch), documented offline design.
+CODE DEFECT: NO. No repair. No tracked source changed -> no new fingerprint. Workspace remains attested-clean (SHA 8a08454f).
