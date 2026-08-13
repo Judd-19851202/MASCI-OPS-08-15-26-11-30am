@@ -28,7 +28,7 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 - Truth surfaces fully reconciled: 7 / 547
 - Population sites classified: 0 / 1,042
 - Defects proven: 2 (release-identity display; governance STALE->CRITICAL semantics [suspected])
-- Shared-root defects repaired (preview): 2 (release identity SO-01; governance health SO-06 — critical requires critical-severity>=1)  [was 1: release identity — 5 files, shared owner versionCache.canonicalReleaseShaShort)
+- Shared-root defects repaired (preview): 2 (SO-01 release identity; SO-06 governance health — GD-0004 tests 6/6 PASS)  [prior: — 5 files, shared owner versionCache.canonicalReleaseShaShort)
 - Unexplained contradictions remaining: tracked in TRUTH_DEFECT_REGISTER.csv
 
 ## PROVEN / REPAIRED THIS PROGRAM

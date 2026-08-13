@@ -158,6 +158,30 @@ def _governance_freshness(last_scan: Optional[Dict[str, Any]], *, now: Optional[
     }
 
 
+def _derive_governance_health_label(score: int, sev_counts: Dict[str, Any]) -> str:
+    """Governed governance-health contract (SHARED OWNER SO-06).
+
+    Truth rules:
+    - "critical" health REQUIRES >=1 genuine critical-severity finding.
+    - A backlog of high/medium *governed advisory* findings (e.g.
+      EMP_LINK_UNRESOLVABLE, PPE_MISSING) is truthfully "degraded", never
+      "critical" — advisory backlog must not masquerade as an active critical
+      system condition.
+    - Freshness (STALE/UNKNOWN/FAILED) is a SEPARATE axis (see
+      _governance_freshness) and must NOT be folded into this severity label.
+    """
+    if score >= 90:
+        return "healthy"
+    if score >= 70:
+        return "fair"
+    if int(sev_counts.get("critical", 0) or 0) == 0:
+        return "degraded"
+    if score >= 40:
+        return "degraded"
+    return "critical"
+
+
+
 def _finding_id(rule_id: str, entity_kind: str, entity_id: str) -> str:
     raw = f"{rule_id}|{entity_kind}|{entity_id or ''}"
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:24]
@@ -1575,24 +1599,8 @@ def build_governance_router(db, require_admin_strict, require_admin_read=None):
         score -= 1 * sev_counts.get("low", 0)
         score = max(0, min(100, score))
 
-        # Health label — governed contract:
-        # "critical" health REQUIRES at least one genuine critical-severity
-        # finding. A large backlog of high/medium *governed advisory* findings
-        # (e.g. EMP_LINK_UNRESOLVABLE, PPE_MISSING) is truthfully "degraded",
-        # NOT "critical" — otherwise advisory backlog masquerades as an active
-        # critical system condition. Freshness (STALE/UNKNOWN) is a SEPARATE
-        # axis carried in `freshness` and must not be folded into severity here.
-        if score >= 90:
-            health_label = "healthy"
-        elif score >= 70:
-            health_label = "fair"
-        elif sev_counts.get("critical", 0) == 0:
-            # No active critical-severity finding -> cap at "degraded".
-            health_label = "degraded"
-        elif score >= 40:
-            health_label = "degraded"
-        else:
-            health_label = "critical"
+        # Health label — governed contract (see _derive_governance_health_label).
+        health_label = _derive_governance_health_label(score, sev_counts)
 
         return {
             "ok": True,
