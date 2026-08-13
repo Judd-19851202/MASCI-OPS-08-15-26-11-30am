@@ -96,3 +96,17 @@ Strict admin endpoints returned 200 (NOT 401) => NOT owner-only. Earlier 401 was
   not a feature break.
 REMOVED FROM OWNER-ONLY: Operational Health dashboard, Motive health, backup scheduler, Transportation<->HR mismatch.
 STILL OPEN (genuinely): real stranded operator-device queue recovery (device-only); Gate 16 OWNER-DEFERRED/NOT PASSED.
+
+## PROD EQUIPMENT MASTER RECONCILIATION (2026-08-13, read-only, no writes)
+Authoritative /api/admin/equipment-master/status: total active=604, archived=0.
+Parts eligibility (from canonical public lookup): eligible(non-empty unit_number)=357; missing unit_number=247; malformed=4; duplicates=0.
+247 missing = unnumbered tools/small equip identified by make/model only (largest bucket Misc Equipment 165) -> legitimately excluded from Parts (parts key on unit_number).
+4 malformed unit_number records:
+  1) 647b1857-e466-4bea-882f-5427bca84201  "#71 in Masci Equip list"  Cat AIR COMPRESSOR/PORTABLE  Air Compressors
+  2) 775801b0-2c5a-4287-8b37-bfbfcd95344e  "#107 MASCI LIST"          MUSTANG LF88               Compactors
+  3) 3f0c53f8-2b8e-4ed5-84dd-7db595e79e8b  "#98 MASCI EQUIP"          Magnum PRO MLT6S           Light Towers
+  4) bec8e9b3-0925-4163-8de6-799006f7d01c  "RC1-POST-REDEPLOY-VERIFY-1781535563"  Cert Post-Redeploy  Trench Safety  (STRAY certification test fixture)
+Parts-detail 401 ROOT CAUSE = AUTHORIZATION (not malformed data, not key construction): clean unit EXC-8614 ALSO 401 "Shop login required".
+  /api/equipment-parts/{unit} uses require_shop_or_admin -> accepts admin only via stricter _is_valid_directory_admin_token_async; standard admin-portal token (passes require_admin -> /api/admin/equipment-parts/status=200) does NOT satisfy it; path not under /api/admin/ so falls through to shop branch -> 401. %23 encoding handled fine.
+589/15 verdict: NOT governed. "589-unit fleet" is a HARDCODED UI string in PartsCatalog.jsx (lines 15,269). Real eligible=357 -> 604-357=247 (fully explained). The "15" has no governed basis (stale UI copy drift).
+equipment_parts collection has only 2 unit catalogs on file (/api/admin/equipment-parts/status count=2).
