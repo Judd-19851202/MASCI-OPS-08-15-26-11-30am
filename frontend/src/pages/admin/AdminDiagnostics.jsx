@@ -2,6 +2,7 @@
 import React from "react";
 import { Activity, Database, Gauge, ClipboardList } from "lucide-react";
 import DomainLandingShell from "@/components/admin/trust/DomainLandingShell";
+import { canonicalReleaseShaShort } from "@/lib/versionCache";
 
 function _api_health(probes) {
   const p = probes.health;
@@ -19,7 +20,7 @@ function _version_diag(probes) {
   const up = Number(b.uptime_s || 0);
   const h = Math.floor(up / 3600); const m = Math.floor((up % 3600) / 60);
   return { status: "green",
-    summary: `Build ${String(b.commit || "—").slice(0, 8)} · uptime ${h}h ${m}m`,
+    summary: `Build ${canonicalReleaseShaShort(b) || "unverified"} · uptime ${h}h ${m}m`,
     checked_at: b.started_at,
     evidence: b };
 }

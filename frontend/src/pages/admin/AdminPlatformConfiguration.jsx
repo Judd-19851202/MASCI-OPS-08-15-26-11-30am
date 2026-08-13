@@ -7,6 +7,7 @@
 import React from "react";
 import { Palette, Plug, Sparkles, Mail, Cog } from "lucide-react";
 import DomainLandingShell from "@/components/admin/trust/DomainLandingShell";
+import { canonicalReleaseShaShort } from "@/lib/versionCache";
 
 function _branding(probes) {
   const p = probes.branding;
@@ -71,7 +72,7 @@ function _version_config(probes) {
   if (!p?.ok) return { status: "unknown", summary: "Version endpoint unreachable." };
   const b = p.body || {};
   return { status: "green",
-    summary: `Build ${String(b.commit || "—").slice(0, 8)} · release ${b.release || "—"} · service ${b.service || "—"}`,
+    summary: `Build ${canonicalReleaseShaShort(b) || "unverified"} · release ${b.release || "—"} · service ${b.service || "—"}`,
     checked_at: b.started_at,
     evidence: { commit: b.commit, release: b.release, started_at: b.started_at,
       service: b.service, session_timeouts: b.session_timeouts,

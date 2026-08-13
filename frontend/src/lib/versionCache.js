@@ -71,3 +71,18 @@ export function _resetVersionCache() {
   _cached = null;
   _inflight = null;
 }
+
+// SHARED release-identity owner: derive the human-visible production SHA
+// from the AUTHORITATIVE deployable provenance (authorized_saved_sha) — the
+// genuine saved Git SHA. It MUST never fall back to the demoted workspace
+// diagnostic manifest hash (`commit`/`source_hash`), which is diagnostic-only
+// and must not be labelled as the production SHA/build.
+// Returns a short (8-char) canonical SHA, or null when no authoritative SHA
+// is available (callers then show an explicit "unverified" label — never a
+// diagnostic hash masquerading as the SHA).
+export function canonicalReleaseShaShort(versionBody) {
+  const prov = versionBody?.deployable_release_provenance || {};
+  const sha = prov.authorized_saved_sha || versionBody?.authorized_saved_sha || null;
+  if (typeof sha === "string" && /^[0-9a-f]{7,40}$/i.test(sha)) return sha.slice(0, 8);
+  return null;
+}

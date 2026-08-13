@@ -2,6 +2,7 @@
 import React from "react";
 import { ShieldCheck, ClipboardCheck, History } from "lucide-react";
 import DomainLandingShell from "@/components/admin/trust/DomainLandingShell";
+import { canonicalReleaseShaShort } from "@/lib/versionCache";
 
 function _governance(probes) {
   const p = probes.governance;
@@ -45,7 +46,7 @@ function _version(probes) {
   const up = Number(b.uptime_s || 0);
   const h = Math.floor(up / 3600); const m = Math.floor((up % 3600) / 60);
   return { status: "green",
-    summary: `Build ${String(b.commit || "").slice(0, 8)} · uptime ${h}h ${m}m`,
+    summary: `Build ${canonicalReleaseShaShort(b) || "unverified"} · uptime ${h}h ${m}m`,
     checked_at: b.started_at,
     evidence: { commit: b.commit, release: b.release, started_at: b.started_at, session_timeouts: b.session_timeouts } };
 }

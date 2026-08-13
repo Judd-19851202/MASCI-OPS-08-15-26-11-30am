@@ -250,3 +250,10 @@ Gate 16: OWNER-DEFERRED / NOT PASSED (separate; not counted). C10/Training NOT a
 8 Maintenance: system-health overall=green VERIFIED; 16 ops/5 attention sub-ops not enumerated (need maintenance registry endpoint). Deployment Maintenance UNKNOWN likely tied to trust-spine not-exercised.
 9 Trust gaps: trust-reconciliation 0 P0 findings; P1/P2 = NON-BLOCKING GOVERNED backlog (Blocks prod? no).
 Genuine issues: (5) misleading release identity = BLOCKER; (1) stale governance scan freshness. Others expected/advisory/aggregation. NO FIXES applied. STOP for owner review.
+
+## ADMIN OS BLOCKER REMEDIATION — LANE A DONE (2026-08-13, PREVIEW, NOT SAVED)
+Files (5): versionCache.js (+canonicalReleaseShaShort shared owner), ForgedOpsAttribution.jsx (footer binds authorized_saved_sha; diagnostic labelled),
+ AdminDiagnostics.jsx, AdminGovernanceTrust.jsx, AdminPlatformConfiguration.jsx (Build&Uptime cards use canonical SHA).
+Root: human-visible Build/SHA used demoted workspace_diagnostic_manifest_prefix (28d3a8b9). Now all bound to deployable_release_provenance.authorized_saved_sha; null->"unverified" (never diagnostic-as-SHA).
+Verified preview: footer stamp "SHA-3DC83374"; tooltip "Saved SHA 3dc83374... | Diagnostic manifest (not the SHA) 3379f378...". Compile clean; strict verifier ok errors:[]; fingerprint dcf-711c8866085a5ad97b0f82ea5b05383fb666a98455bebdb62a4707e16d40ff33 (x2).
+Lane B/C NOT completed this pass (budget): 8 critical events enumeration, OCC MISMATCH exact field derivation, storage ownership 15.1 formula/endpoint, maintenance 5-attention op IDs, governance STALE->CRITICAL semantics contract change — all still REQUIRE a dedicated tracing+repair pass. Classifications from prior recon stand (mostly aggregation/freshness/advisory). NO fixes applied to those. NOT resuming v4. STOP for owner.

@@ -26,14 +26,25 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
     let alive = true;
     fetchVersionCached().then((payload) => {
       if (!alive) return;
+      const prov = payload?.deployable_release_provenance || {};
+      const savedSha = prov.authorized_saved_sha || payload?.authorized_saved_sha || null;
+      const canonicalSha = (typeof savedSha === "string" && /^[0-9a-f]{7,40}$/i.test(savedSha))
+        ? savedSha.slice(0, 8)
+        : null;
       setRelease({
-        version: payload?.frontend_build_version || payload?.release || BUILD_VERSION_LABEL,
+        version: canonicalSha
+          ? `SHA-${canonicalSha.toUpperCase()}`
+          : (payload?.frontend_build_version || payload?.release || BUILD_VERSION_LABEL),
         builtAt: payload?.frontend_build_built_at || payload?.built_at || null,
-        sourceHash: payload?.frontend_build_source_hash || payload?.source_hash || null,
+        // Authoritative saved SHA for the human-visible identity; the demoted
+        // workspace diagnostic manifest hash is shown only as a labelled
+        // diagnostic in the tooltip — never as the production SHA.
+        sourceHash: savedSha || null,
+        diagnosticHash: payload?.frontend_build_source_hash || payload?.source_hash || null,
       });
     }).catch(() => {
       if (!alive) return;
-      setRelease({ version: BUILD_VERSION_LABEL, builtAt: null, sourceHash: null });
+      setRelease({ version: BUILD_VERSION_LABEL, builtAt: null, sourceHash: null, diagnosticHash: null });
     });
     return () => {
       alive = false;
@@ -67,6 +78,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
   const versionLabel = release?.version || BUILD_VERSION_LABEL;
   const builtAt = release?.builtAt || "runtime-bound";
   const sourceHash = release?.sourceHash || "runtime-api-version";
+  const diagnosticHash = release?.diagnosticHash || null;
   return (
     <div
       className={`text-center ${className}`}
@@ -102,7 +114,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         </Link>{" "}
         ·{" "}
         <span
-          title={`Built ${builtAt}\nSource ${sourceHash}`}
+          title={`Built ${builtAt}\nSaved SHA ${sourceHash}${diagnosticHash ? `\nDiagnostic manifest (not the SHA) ${diagnosticHash}` : ""}`}
           data-testid="build-version-stamp"
           className="cursor-help select-all"
         >
