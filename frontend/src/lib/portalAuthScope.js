@@ -80,6 +80,7 @@ const ACTIVE_PORTAL_SHARED_API_PREFIXES = [
 
 const ADMIN_SHARED_API_PREFIXES = [
   "/equipment-status-board",
+  "/equipment-parts",
   "/ai/health",
   "/auto-email",
   "/jha-acknowledgements",

@@ -4349,8 +4349,8 @@ const ES = {
   "Search unit, make, model, category…": "Buscar unidad, marca, modelo, categoría…",
   "No matching units.": "No hay unidades que coincidan.",
   "Pick a unit to view its parts catalog": "Elija una unidad para ver su catálogo de partes",
-  "Search the 589-unit fleet above. Each unit has filters, cutting edges, wiper blades, tires, and other wear items.":
-    "Busque la flota de 589 unidades. Cada unidad tiene filtros, cuchillas, plumas, llantas y otros artículos de desgaste.",
+  "Search the fleet above. Each unit has filters, cutting edges, wiper blades, tires, and other wear items.":
+    "Busque la flota arriba. Cada unidad tiene filtros, cuchillas, plumas, llantas y otros artículos de desgaste.",
   "Last updated": "Última actualización",
   "Save Catalog": "Guardar Catálogo",
   "Catalog saved.": "Catálogo guardado.",

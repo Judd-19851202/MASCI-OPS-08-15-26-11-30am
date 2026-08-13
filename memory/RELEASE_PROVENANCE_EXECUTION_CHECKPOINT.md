@@ -124,3 +124,31 @@ Proposed repair (NOT applied): add "/equipment-parts" to ADMIN_SHARED_API_PREFIX
  so admin (directory-compatible) requests attach X-Admin-Token + X-Directory-Token. Preview-first, no Save/Deploy.
 Counts (prod canonical): total 604 (active 604, archived 0); parts-eligible 357; ineligible 247 (empty unit_number);
  malformed 4 (subset of eligible); duplicates 0. "589-unit fleet" is a HARDCODED UI string, not a live count -> no real 15-delta.
+
+## EQUIPMENT PARTS AUTH REPAIR (2026-08-13, PREVIEW ONLY, NOT SAVED/DEPLOYED)
+Files changed (3, tracked, dirty pre-save candidate):
+ - frontend/src/lib/portalAuthScope.js  (+"/equipment-parts" in ADMIN_SHARED_API_PREFIXES; admin-gated only)
+ - frontend/src/components/PartsCatalog.jsx  (removed static "589-unit fleet" copy)
+ - frontend/src/lib/i18n.js  (EN key + ES translation updated to match)
+Root cause: /equipment-parts absent from portalAuthScope allowlists -> inferPortalsForApiPath returned [] ->
+ api client attached no admin/directory token -> backend require_shop_or_admin 401. Fix scopes admin only.
+Preview e2e proof (app + server-truth curl):
+ Admin Parts GET 200 (was 401); save 200 + persisted + restored (preview left clean);
+ Shop legit (shop-token+directory) 200 unchanged; unauthorized no-token 401; HR-only 401; admin-only(no dir) 401.
+ Equipment picker search EXC-8614->1; pop-independent search truck->98/excavator->35/none->0.
+ Frontend compiled successfully (webpack). verify_release_identity --strict ok=True errors:[] (workspace_dirty expected).
+New canonical fingerprint (recomputed twice, deterministic): dcf-862c5a53a36863f9d690514a46f2e287bb6a8b672ea4b3136b6cd7732f109538
+Contract digest unchanged: c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533
+NOTE: yarn test/build blocked by fail-closed stamp guard (candidate != authorized dcf-27b86fc2) — expected pre-save; resolves after owner Save + AUTHORIZED_RELEASE.json regen. AUTHORIZED_RELEASE.json NOT regenerated pre-save (by design).
+
+## EQUIPMENT DATA CLEANUP PLAN (prepared, NOT executed; no production writes)
+604 = seed(589) + 15 runtime Trench Safety records. "589" was the seed row count -> origin of stale UI copy.
+15 extras: 14 LEGITIMATE (TB-01..TB-10, TB-5187, TB-5188 trench boxes; HS-001/HS-002 shoring) + 1 FIXTURE.
+3 malformed unit_numbers ORIGINATE IN SEED (equipment_master.json), not runtime corruption:
+ - id 647b1857... "#71 in Masci Equip list" Cat AIR COMPRESSOR/PORTABLE (active) -> candidate "71" UNPROVEN -> REQUIRES OWNER REVIEW
+ - id 775801b0... "#107 MASCI LIST" MUSTANG LF88 (active) -> candidate "107" UNPROVEN -> REQUIRES OWNER REVIEW
+ - id 3f0c53f8... "#98 MASCI EQUIP" Magnum PRO MLT6S (active) -> candidate "98" UNPROVEN -> REQUIRES OWNER REVIEW
+Fixture id bec8e9b3... "RC1-POST-REDEPLOY-VERIFY-1781535563" (Cert/Post-Redeploy, Trench Safety, active, runtime-inserted):
+ reachable dependency check: equipment history 404, parts=empty default (no catalog), not a registered trench box.
+ -> SAFE CONTROLLED DELETE — CERTIFICATION FIXTURE (final delete-safety check at execution time). NOT deleted.
+247 missing unit_number = governed unnumbered assets/tools (legitimate exclusion, NOT a defect). No fake numbers.

@@ -266,7 +266,7 @@ export default function PartsCatalog() {
         <div className="text-center text-slate-500 py-12 bg-white border-2 border-dashed border-slate-300 rounded-md" data-testid="parts-empty-state">
           <Wrench className="w-10 h-10 mx-auto text-slate-400 mb-2" />
           <p className="font-display text-xl font-bold text-slate-700">{t("Pick a unit to view its parts catalog")}</p>
-          <p className="text-sm mt-1">{t("Search the 589-unit fleet above. Each unit has filters, cutting edges, wiper blades, tires, and other wear items.")}</p>
+          <p className="text-sm mt-1">{t("Search the fleet above. Each unit has filters, cutting edges, wiper blades, tires, and other wear items.")}</p>
         </div>
       )}
 
