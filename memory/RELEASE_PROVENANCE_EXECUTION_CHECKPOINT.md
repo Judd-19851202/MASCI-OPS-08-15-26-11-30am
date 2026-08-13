@@ -238,3 +238,15 @@ REMAINING BLOCKER for 216/216 per register's own GLOBAL GATE (lines 26-27,13,107
  - Final consolidated certification chain.
 These are agent-executable (not owner/device-only) but have NOT been run on the current SHA. Therefore PRE-C10 cannot truthfully = 216/216 yet.
 Gate 16: OWNER-DEFERRED / NOT PASSED (separate; not counted). C10/Training NOT authorized.
+
+## LIVE ADMIN OS TRUTH RECONCILIATION (2026-08-13, read-only, NO FIXES)
+1 Standards: governance/summary high=46 (all EMP_LINK_UNRESOLVABLE), medium=312 (PPE 234+EMP_LINK_MISSING_ID 78), critical severity=0; open=357; freshness=STALE (last scan 2026-07-11, age ~33d vs 1440m SLA). health_label=critical driven by STALE+high, not active critical. Class: NON-BLOCKING GOVERNED master-data backlog + REAL FRESHNESS/SEMANTICS (stale scan labeled critical). Remedy: rerun governance scan; treat 46 link findings as governed advisory.
+5 Release identity: UI Build/SHA-28d3a8b9 = commit_source workspace_diagnostic_manifest_prefix; intended_release_commit UNSAVED_FINAL_CANDIDATE:UNPROVEN. Authoritative saved SHA=3dc83374; deployable prov VERIFIED. Class: REAL human-visible MISLEADING IDENTITY (AGGREGATION/SEMANTICS) -> BLOCKS PRE-C10. Remedy: UI must show authorized_saved_sha/fingerprint not diagnostic prefix.
+3 Operations Control MISMATCH: platform/status canonical=VERIFIED (C2.11); trust-reconciliation PASS finding_count=0 p0=0 21/21 surfaces. MISMATCH not corroborated by canonical owners -> likely AGGREGATION/STALE-DERIVED; need exact OCC status source.
+4 Ops Readiness amber: trust_spine platform_band=yellow/amber canonical=DEGRADED, derivation=expected_stage_rollup_over_last_24h (verified4/not-exercised12/stale8, 0 certified). deployment-readiness decision=PASS blocking_gates=[] (advisories: 247 equip no unit_number, 200 emp no employee_id). Class: EXPECTED post-deploy FRESHNESS (workflows not exercised in 24h) not defect; not bound to deployed SHA.
+6 Draft health: 0 failed, 6 stale(1-24h open drafts), 146 abandoned(>24h). Class: EXPECTED OPERATIONAL ADVISORY, non-blocking.
+2 Recent events: occ events count 33 mostly severity=info (daily_report.submitted processed). 8-critical detail not fully enumerable from truncated pull -> need targeted query; visible ones info/processed suggest historical/aggregation.
+7 Storage lifecycle: /api/admin/r2/lifecycle 404 (wrong route); need correct endpoint for ownership=15.1 driver. Likely governed object-ownership-tag advisory (capacity100/orphan100 healthy).
+8 Maintenance: system-health overall=green VERIFIED; 16 ops/5 attention sub-ops not enumerated (need maintenance registry endpoint). Deployment Maintenance UNKNOWN likely tied to trust-spine not-exercised.
+9 Trust gaps: trust-reconciliation 0 P0 findings; P1/P2 = NON-BLOCKING GOVERNED backlog (Blocks prod? no).
+Genuine issues: (5) misleading release identity = BLOCKER; (1) stale governance scan freshness. Others expected/advisory/aggregation. NO FIXES applied. STOP for owner review.
