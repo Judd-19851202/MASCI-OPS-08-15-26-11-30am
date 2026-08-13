@@ -313,8 +313,7 @@ export default function FieldLeadershipPortalLogin() {
                 </button>
               </div>
               <Button
-                type="button"
-                onClick={(e) => e.currentTarget.form?.requestSubmit()}
+                type="submit"
                 disabled={submitting}
                 className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
                 data-testid="fl-submit"

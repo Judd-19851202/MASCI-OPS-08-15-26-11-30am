@@ -1004,8 +1004,16 @@ function StepPanel({ step, draft, setField, testIdPrefix, ctx, autoMap }) {
       <div className="space-y-4">
         {(step.fields || [])
           .filter((f) => (typeof f.showIf === "function" ? f.showIf(draft) : true))
-          .map((f) => (
+          .map((f) => {
+            // Avoid a duplicated section heading when a single-field step's
+            // field label repeats the step title (e.g. the Witnesses step).
+            const dupHeading =
+              t(f.label) === t(step.label) &&
+              !f.required &&
+              !(autoMap && autoMap[f.key]);
+            return (
             <div key={f.key} className="space-y-1" data-testid={`${testIdPrefix}-field-${f.key}`}>
+              {!dupHeading && (
               <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
                 {t(f.label)}
                 {f.required && <span className="text-red-700">*</span>}
@@ -1020,6 +1028,7 @@ function StepPanel({ step, draft, setField, testIdPrefix, ctx, autoMap }) {
                   </span>
                 ) : null}
               </label>
+              )}
               <FieldRenderer
                 field={f}
                 value={draft[f.key]}
@@ -1028,7 +1037,8 @@ function StepPanel({ step, draft, setField, testIdPrefix, ctx, autoMap }) {
                 ctx={ctx}
               />
             </div>
-          ))}
+            );
+          })}
       </div>
     </div>
   );

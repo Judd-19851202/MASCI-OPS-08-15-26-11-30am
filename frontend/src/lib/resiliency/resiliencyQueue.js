@@ -49,7 +49,7 @@ function _notifyRecovery() {
   const remaining = (_queue || []).filter((it) => it && it.status === "failed").length;
   const payload = { recovered: _recoveredCount, remaining };
   for (const cb of _recoveryListeners) {
-    try { cb(payload); } catch { /* ignore */ }
+    try { cb(payload); } catch (e) { console.error("[resiliency] queue-recovery listener failed", e); }
   }
 }
 

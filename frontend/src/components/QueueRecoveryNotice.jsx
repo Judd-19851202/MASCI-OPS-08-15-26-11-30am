@@ -8,7 +8,7 @@ import { useT } from "@/lib/i18n";
 import { onQueueRecovery } from "@/lib/resiliency";
 
 export default function QueueRecoveryNotice() {
-  const t = useT();
+  const { t } = useT();
   const lastShown = useRef(0);
 
   useEffect(() => {
@@ -23,11 +23,14 @@ export default function QueueRecoveryNotice() {
         .replace("{n}", String(recovered))
         .replace("{r}", String(remaining));
       toast.success(title, {
-        description: remaining > 0 ? partialMsg : okMsg,
+        description: (
+          <span data-testid="queue-recovery-notice">
+            {remaining > 0 ? partialMsg : okMsg}
+          </span>
+        ),
         duration: 8000,
         dismissible: true,
         closeButton: true,
-        "data-testid": "queue-recovery-notice",
       });
     });
     return unsub;

@@ -1,3 +1,22 @@
+# 2026-06 — Post-deploy production provenance verified + preview acceptance round
+
+Production (https://mascidocs.com) release-provenance repair went live and was VERIFIED against the actual endpoint:
+- authorized_saved_sha=7cc53d6cf8534b2a5c87e7ff27efab094a9878a2; authorized=build deployable fingerprint dcf-7f0458dc…; contract digest c-eb267860…; release_provenance=VERIFIED; runtime_matches_intended_release=true; provenance_method=build_content_fingerprint_bound_to_saved_sha; FE served /release-provenance.json == BE runtime stamp; app_env=production; db=masci_safety (cluster masci-prod, enforce_db_isolation=true); zero preview binding (one benign pre-existing warning preview_validation_identities_enabled_in_production).
+- Live regressions reconfirmed (zero writes): physical Atlas capacity truth (fsTotalSize/fsUsed; 64.1%; HEALTHY; ATLAS_QUOTA_MB demoted to advisory operating_budget) → no capacity banner state; queue compatibility live (legacy _track field stripped, only missing 'kind' remains; unknown business fields still rejected extra_forbidden).
+
+Preview acceptance round (iteration_19 → iteration_20, frontend, PREVIEW only):
+- Affected-device offline-queue recovery proven end-to-end in a REAL preview browser (IndexedDB injection → re-arm → migrate → POST 200 → queue drains → no duplicate via Idempotency-Key). NOTE: this is a preview-browser simulation, NOT a real operator's physical device (agent cannot access operator IndexedDB).
+- CRITICAL bug found + fixed: QueueRecoveryNotice never rendered (used `const t = useT()` instead of `const { t } = useT()`), so the recovered-count confirmation was silently broken in EN and ES. Fixed + added ES dictionary keys ('Envíos guardados sincronizados', etc.) + log swallowed listener errors. Retest: toast now shows in EN and ES with truthful count, no duplicate.
+- Fixed Enter-key submit on ALL 6 portal logins (PM/Safety/FieldLeadership/HR/Dispatch/Admin were type="button"+requestSubmit → now type="submit"; Safety self-tested PASS).
+- Hid 'BULK ADD FROM ROSTER' on the public/anonymous meeting form (was opening a misleading Session Expired modal); inline public picker still works.
+- Fixed Field Leadership employee Select duplicate-key React warning (composite key); de-duplicated the Incident wizard Witnesses step heading; moved queue-recovery toast testid onto a description node.
+- Cleaned up all QA-created preview employee_requests (StrandedDevice + RETEST QueueNotice) — 0 remaining.
+
+New pre-save candidate after these frontend fixes: deployable fingerprint dcf-2928390c60e6f054ceb4e367bd11def9d6c934e3b306c5867decdcca4b41bc26 (recompute-twice MATCH; contract digest unchanged; verify_release_identity --strict errors:[]). Owner must Save → attest → redeploy to push these fixes (esp. the CRITICAL queue-notice fix) to production.
+
+Deferred/backlog (documented, NOT done): HR intelligence 401 on /api/operational-intelligence/summary (the OI summary gate has admin/safety/dispatch/shop branches but NO HR branch, and _can_view_summary_product doesn't grant HR the hr_intelligence/training_intelligence products — this is an auth/authorization change requiring the integration protocol); ES i18n gaps (public home hero/CTAs, queue status pill, HR TODAY'S FOCUS); design nits (native date/severity pickers, badge gap, witnesses empty space); master-data count reconciliation (roster 233, suppliers 162, equipment 766 — internally consistent, handoff numbers were stale, not a defect); exhaustive per-form selector click-through beyond 6 verified locations; real operator-device queue proof; PRE-C10 216/216 final; Gate 16 remains OWNER-DEFERRED / NOT PASSED.
+
+
 # 2026-06 — Canonical release-provenance repair (READY FOR OWNER SAVE — not saved)
 
 Implemented the owner-locked canonical deployable-content provenance architecture (checkpoint `memory/RELEASE_PROVENANCE_EXECUTION_CHECKPOINT.md`). Additive; does not alter existing release_identity gating.

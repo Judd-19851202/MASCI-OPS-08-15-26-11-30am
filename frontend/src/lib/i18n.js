@@ -7302,6 +7302,10 @@ const ES = {
   "1 update waiting to sync": "1 actualización esperando sincronizar",
   "{n} updates waiting to sync": "{n} actualizaciones esperando sincronizar",
   "Operational update pending": "Actualización operacional pendiente",
+  // P0-QUEUE-2026-08-13 · stranded-device recovery confirmation (operator-facing)
+  "Saved submissions synchronized": "Envíos guardados sincronizados",
+  "{n} previously saved submissions were successfully synchronized.": "{n} envíos guardados anteriormente se sincronizaron correctamente.",
+  "{n} saved submissions synchronized. {r} still need attention — please keep them on this device.": "{n} envíos guardados sincronizados. {r} aún necesitan atención; consérvelos en este dispositivo.",
   // iter418/421 · errors stay operational, not technical
   "Could not record that. Try again.": "No se pudo registrar. Intente de nuevo.",
   "Connection failed — try again.": "Falló la conexión — intente de nuevo.",

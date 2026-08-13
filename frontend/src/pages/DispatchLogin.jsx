@@ -174,8 +174,7 @@ export default function DispatchLogin() {
               </Link>
             </div>
             <Button
-              type="button"
-              onClick={(e) => e.currentTarget.form?.requestSubmit()}
+              type="submit"
               disabled={busy || !email.trim() || !password}
               className="w-full h-12 bg-orange-700 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-orange-900 disabled:opacity-60"
               data-testid="dispatch-login-submit"

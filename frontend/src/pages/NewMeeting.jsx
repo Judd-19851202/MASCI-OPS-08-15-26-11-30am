@@ -1163,16 +1163,21 @@ export default function NewMeeting({ publicMode = false }) {
           </Button>
           {/* TRACK 15.46 · FR-07 · Bulk multi-select from the certified
               employees roster. Removes ~5-10 clicks per meeting for
-              typical 10-person crews. */}
-          <AttendeeBulkAddDialog
-            existing={data.attendees}
-            onAdd={(additions) =>
-              setData((p) => ({
-                ...p,
-                attendees: [...p.attendees, ...additions],
-              }))
-            }
-          />
+              typical 10-person crews. Hidden on the public/anonymous link:
+              the roster endpoint requires auth, so it would otherwise open a
+              misleading "Session Expired" modal (the inline picker keeps its
+              public fallback). */}
+          {!publicMode && (
+            <AttendeeBulkAddDialog
+              existing={data.attendees}
+              onAdd={(additions) =>
+                setData((p) => ({
+                  ...p,
+                  attendees: [...p.attendees, ...additions],
+                }))
+              }
+            />
+          )}
         </Section>
 
         <Section number="04" title={t("Photos")}>

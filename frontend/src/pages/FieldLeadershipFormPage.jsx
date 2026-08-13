@@ -880,8 +880,8 @@ export default function FieldLeadershipFormPage() {
                 <Select value={employeeId} onValueChange={(v) => { setEmployeeId(v); setEmployeeNameOverride(""); }}>
                   <SelectTrigger className={inputCls} data-testid="field-employee"><SelectValue placeholder={t("Select an employee…")} /></SelectTrigger>
                   <SelectContent>
-                    {filteredEmployees.map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
+                    {filteredEmployees.map((e, idx) => (
+                      <SelectItem key={e.id || e.employee_id || `${e.name}-${idx}`} value={e.id}>
                         {e.name}{e.trade ? ` · ${e.trade}` : ""}
                       </SelectItem>
                     ))}
