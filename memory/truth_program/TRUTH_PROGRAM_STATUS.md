@@ -13,7 +13,7 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 
 ## WAVE STATE
 - WAVE 1 Denominator discovery: DONE (counts above)
-- WAVE 2 Shared truth engines + unresolved live items: IN_PROGRESS
+- WAVE 2 Shared truth engines + unresolved live items: IN_PROGRESS (5/6 items open; governance health-contract TD-0004 REPAIRED preview)
 - WAVE 3 Enterprise master population truth: PARTIAL (employees/equipment/jobs/suppliers reconciled live; users/vehicles/drivers pending)
 - WAVE 4 Classify all 1,042 population sites: NOT_STARTED (0/1042)
 - WAVE 5 KPI formula canonicalization: NOT_STARTED
@@ -25,10 +25,10 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 - WAVE 11 Permanent automated truth guards: NOT_STARTED
 
 ## SUMMARY COUNTERS (update each wave)
-- Truth surfaces fully reconciled: 6 / 547
+- Truth surfaces fully reconciled: 7 / 547
 - Population sites classified: 0 / 1,042
 - Defects proven: 2 (release-identity display; governance STALE->CRITICAL semantics [suspected])
-- Shared-root defects repaired (preview): 1 (release identity — 5 files, shared owner versionCache.canonicalReleaseShaShort)
+- Shared-root defects repaired (preview): 2 (release identity SO-01; governance health SO-06 — critical requires critical-severity>=1)  [was 1: release identity — 5 files, shared owner versionCache.canonicalReleaseShaShort)
 - Unexplained contradictions remaining: tracked in TRUTH_DEFECT_REGISTER.csv
 
 ## PROVEN / REPAIRED THIS PROGRAM

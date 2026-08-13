@@ -1575,11 +1575,20 @@ def build_governance_router(db, require_admin_strict, require_admin_read=None):
         score -= 1 * sev_counts.get("low", 0)
         score = max(0, min(100, score))
 
-        # Health label
+        # Health label — governed contract:
+        # "critical" health REQUIRES at least one genuine critical-severity
+        # finding. A large backlog of high/medium *governed advisory* findings
+        # (e.g. EMP_LINK_UNRESOLVABLE, PPE_MISSING) is truthfully "degraded",
+        # NOT "critical" — otherwise advisory backlog masquerades as an active
+        # critical system condition. Freshness (STALE/UNKNOWN) is a SEPARATE
+        # axis carried in `freshness` and must not be folded into severity here.
         if score >= 90:
             health_label = "healthy"
         elif score >= 70:
             health_label = "fair"
+        elif sev_counts.get("critical", 0) == 0:
+            # No active critical-severity finding -> cap at "degraded".
+            health_label = "degraded"
         elif score >= 40:
             health_label = "degraded"
         else:

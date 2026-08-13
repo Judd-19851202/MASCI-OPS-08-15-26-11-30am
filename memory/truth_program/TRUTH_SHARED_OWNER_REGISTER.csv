@@ -4,7 +4,7 @@ SO-02,health/status color derivation,backend/routes/admin_operational_health.py 
 SO-03,trust_spine / readiness,backend/routes/admin_operations_trust_center.py,cert posture band,readiness cards,AUDIT_PENDING,"activity-window 24h rollup; not bound to deployed SHA"
 SO-04,platform_status canonical truth,backend/lib/platform_status.py + /api/admin/platform/status,platform VERIFIED/MISMATCH,OCC,AUDIT_PENDING,"canonical VERIFIED; reconcile with OCC MISMATCH derivation"
 SO-05,occ_trust_events aggregator,backend/routes/operations_control.py,recent platform events severity counts,OCC recent events card,AUDIT_PENDING,"historical vs current; severity mapping"
-SO-06,governance findings health,backend enterprise_governance summary,standards health+freshness,standards cards,AUDIT_PENDING,"separate STALE from severity"
+SO-06,governance findings health,backend/routes/governance.py:governance_summary,standards health+freshness,standards cards,REPAIRED,"critical requires critical-severity>=1; advisory backlog=degraded; freshness separate (correct). Regression test PENDING (guard GD-0004)"
 SO-07,storage lifecycle score,backend admin r2 lifecycle,ownership/orphan/capacity scores,storage cards,AUDIT_PENDING,"find real endpoint; formula"
 SO-08,maintenance ops registry,backend maintenance registry,maintenance op statuses,maintenance cards,AUDIT_PENDING,"enumerate ops"
 SO-09,population server-side search,backend suppliers/equipment/jobs/employees endpoints + frontend combos,master population truth,all selectors,PARTIAL_RECONCILED,"employees/equip/jobs/suppliers done; users/vehicles/drivers pending Wave3"

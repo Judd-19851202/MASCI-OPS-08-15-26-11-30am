@@ -3,3 +3,4 @@ guard_id,concept,canonical_source,calculator,api,ui,downstream,detects,implement
 GD-0001,release_identity,authorized_saved_sha,canonicalReleaseShaShort,/api/version,footer+cards,-,"diagnostic-as-SHA;identity contradiction",partial,PLANNED,"add regression test asserting no surface shows diagnostic hash as SHA"
 GD-0002,employee_population,HR master,server-side q,roster endpoints,selectors,-,"population drift;truncation",no,PLANNED,""
 GD-0003,equipment_population,equipment master,search,lookup endpoints,selectors,-,"population drift;truncation",no,PLANNED,""
+GD-0004,governance_health_semantics,governance findings,governance_summary,/api/admin/governance/summary,standards cards,-,"critical-health-without-critical-severity;stale-as-critical",no,PLANNED,"assert: sev_counts.critical==0 => health_label != 'critical'; freshness independent of severity"
