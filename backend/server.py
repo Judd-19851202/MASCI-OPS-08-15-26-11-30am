@@ -5276,7 +5276,7 @@ async def list_jobs_public_lookup(search: Optional[str] = None):
     public form selection and confirmation. No PM emails, co-PM lists,
     budget/schedule metadata, or cost-code payloads are exposed.
     """
-    jq: Dict[str, Any] = {"active": {"$ne": False}}
+    jq: Dict[str, Any] = {"active": {"$ne": False}, "deleted_at": {"$in": [None, ""]}}
     if search and search.strip():
         sre = {"$regex": re.escape(search.strip()), "$options": "i"}
         jq["$or"] = [{"project_number": sre}, {"project_name": sre}, {"name": sre}, {"client": sre}]

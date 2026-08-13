@@ -1,3 +1,15 @@
+# 2026-06 — Agent-reachable live defects closed (pre-freeze)
+
+- DISPATCH 3 uncaught errors: root cause = production Motive telematics live-feed init when its upstream is UNREACHABLE; Sentry rate-limited (429) so no stack captured. No non-Error throw exists in dispatch code; not preview-reproducible. Classified OWNER/ENV (Motive connectivity) — no blind hot-patch.
+- PO /po-requests 401: EXPECTED pre-fallback probe. /api/jobs (no portal auth) = 401; JobPicker falls back to /api/public/jobs-lookup = 200 → picker populates. Zero user-facing degradation. Not a defect.
+- /leadership 401: legitimate X-FL-Token auth-gate enforcement on portal entry (every field_leadership endpoint requires FL token). Zero user-facing degradation. Not a defect.
+- JOBS 35 vs 36: GENUINE small defect — public /jobs-lookup lacked the deleted_at guard that authed /jobs has, so it surfaced 1 soft-deleted job. FIXED: public lookup now filters deleted_at ∈ {None,''}. Verified public 42 == authed 42.
+- EQUIPMENT 604 vs 264: intentional scope, not a cap. PartsCatalog requires a unit_number (parts must attach to an identified unit) → narrower set; equipment pickers (EquipmentCombo) server-search the FULL population under the new population-independent architecture → every eligible unit remains searchable.
+
+Preserved: all master-data selector server-side-search fixes, PartsCatalog fallback repair, Non-MASCI/Subcontractor copy.
+Gates: recompute-twice MATCH, verify_release_identity --strict errors:[], frontend compiles. New candidate dcf-27b86fc225a3da074e3e77fa292d9b17fc0abb0f5af4d39b05b67852b0419114. Files this turn: backend/server.py. NOT saved.
+
+
 # 2026-06 — Population-independent canonical master-data resolution (no total-population caps)
 
 Owner correction: master-data selectors must resolve against the COMPLETE eligible population via server-side search, not a capped first page. Audited all caps; UI page size kept, total-population truncation removed.
