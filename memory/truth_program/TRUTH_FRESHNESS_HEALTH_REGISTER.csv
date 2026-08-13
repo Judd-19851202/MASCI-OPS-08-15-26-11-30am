@@ -1,0 +1,4 @@
+truth_surface_id,concept,freshness_source,freshness_sla,last_refresh,freshness_state,health_source,health_states_defined,state,notes
+# Wave 6/7. governed freshness enum: CURRENT|AGING|STALE|UNKNOWN|SCAN_FAILED
+TS-0010,governance findings,enterprise_governance scan,1440min,2026-07-11,STALE,severity+freshness,partial,DEFECT_PROVEN,"STALE(33d) must not render CRITICAL when critical-severity=0"
+TS-0014,cert posture,trust_spine 24h rollup,24h,rolling,AGING,band derivation,defined,NON_BLOCKING_ADVISORY,"post-deploy not-exercised expected"

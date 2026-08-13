@@ -1,0 +1,5 @@
+guard_id,concept,canonical_source,calculator,api,ui,downstream,detects,implemented,state,notes
+# Wave 11. Permanent automated drift detection so this is not a one-time cleanup.
+GD-0001,release_identity,authorized_saved_sha,canonicalReleaseShaShort,/api/version,footer+cards,-,"diagnostic-as-SHA;identity contradiction",partial,PLANNED,"add regression test asserting no surface shows diagnostic hash as SHA"
+GD-0002,employee_population,HR master,server-side q,roster endpoints,selectors,-,"population drift;truncation",no,PLANNED,""
+GD-0003,equipment_population,equipment master,search,lookup endpoints,selectors,-,"population drift;truncation",no,PLANNED,""

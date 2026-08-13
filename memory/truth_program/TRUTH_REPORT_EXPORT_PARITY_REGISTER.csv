@@ -1,0 +1,3 @@
+parity_id,concept,ui_surface,pdf,csv_export,email_digest,notification,reconciled,state,notes
+# Wave 10. Same concept+scope must reconcile across all channels.
+PX-0001,PLACEHOLDER,,,,,,,NOT_STARTED,"populate Wave 10 (daily reports, compliance, PO, executive summaries, digests)"

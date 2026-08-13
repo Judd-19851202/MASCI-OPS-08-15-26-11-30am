@@ -1,0 +1,8 @@
+site_id,file,line,pattern,concept,classification,is_population_kpi,shared_owner,state,notes
+# 1,042 total sites to classify: frontend .slice(0,=595 · backend to_list(N)=317 · backend limit==130
+# classification enum: DISPLAY_PAGE_SIZE | QUERY_BATCH_SIZE | LEGITIMATE_TOP_N | ILLEGAL_TOTAL_POPULATION_TRUNCATION
+# Wave 4 populates every row. Prior-verified full-population selectors (server-side search) already safe:
+PA-0001,frontend/src/components/PartsCatalog.jsx,~,slice(0,N) display,equipment parts fleet,DISPLAY_PAGE_SIZE,no,SO-09,CLASSIFIED,"server-side search covers full canonical population"
+PA-0002,backend/server.py,suppliers list,to_list(200 if q else 2000),suppliers,QUERY_BATCH_SIZE,no,SO-09,CLASSIFIED,"q searches full collection"
+PA-0003,backend/server.py,equipment-master-lookup,to_list(5000),equipment,QUERY_BATCH_SIZE,no,SO-09,CLASSIFIED,"active non-synthetic full set 604"
+PA-0004,backend/server.py,hr employee roster,server-side q,employees,QUERY_BATCH_SIZE,no,SO-09,CLASSIFIED,"full-pop q search 239"
