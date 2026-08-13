@@ -13,6 +13,7 @@ import { setShopToken } from "./shopAuth";
 import { setSafetyToken } from "./safetyAuth";
 import { setDispatchToken } from "./dispatchAuth";
 import { setFlToken } from "./flAuth";
+import { setThumbCachePrincipal } from "./thumbCache";
 
 const DIR_TOKEN_KEY = "masci.directory.token";
 const DIR_USER_KEY = "masci.directory.user";
@@ -129,6 +130,9 @@ export function clearDirectorySession() {
   cacheDirectoryToken("");
   setDirectoryToken("");
   setDirectoryUser(null);
+  // Fail the thumbnail cache closed on logout: unset the principal so
+  // the SW serves nothing from a prior identity's namespace.
+  try { setThumbCachePrincipal(null); } catch { /* ignore */ }
   try {
     localStorage.removeItem(DIR_REMEMBER_KEY);
     sessionStorage.removeItem(DIR_REMEMBER_KEY);
@@ -150,6 +154,9 @@ export function applyMultiLoginResponse(response, rememberMe = true) {
   if (!response?.ok) return;
   setDirectoryToken(response.session_token, rememberMe);
   setDirectoryUser(response.user, rememberMe);
+  // Bind the thumbnail cache to this authenticated principal (opaque
+  // user id, never a token) so cached photos are session-isolated.
+  try { setThumbCachePrincipal(response.user?.id || null); } catch { /* ignore */ }
   const t = response.portal_tokens || {};
   // The per-portal token setters have inconsistent signatures: PM/Shop/Admin
   // take an `opts = {}` object while HR takes a plain boolean. Normalize.

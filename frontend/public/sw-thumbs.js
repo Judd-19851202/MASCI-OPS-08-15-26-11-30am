@@ -1,52 +1,78 @@
 /* eslint-disable no-restricted-globals */
-// MASCI Hub — Photo thumbnail Service Worker
+// MASCI Hub — Photo thumbnail Service Worker (session-isolated)
 // =================================================================
 // PURPOSE
-// Cache the last ~200 /api/job-photos/*/thumb responses on-device so
-// returning to the photos page on flaky trailer Wi-Fi feels instant
-// (and previously-loaded weeks still render fully offline).
+// Cache the last ~400 /api/job-photos/*/thumb responses on-device so
+// returning to the photos page on flaky trailer Wi-Fi feels instant.
+//
+// SESSION ISOLATION (hardening)
+// Thumbnails are cached in a namespace derived from the authenticated
+// principal id: `masci-thumbs-v3:<principal>`. A thumbnail cached by
+// one identity can never be served to another user, another role, an
+// unauthenticated session, or a replaced/downgraded session, because
+// each identity reads/writes ONLY its own namespace.
+//
+// FAIL-CLOSED
+// If no principal is currently established (logout, SW restart before
+// the client re-identifies, or unauthenticated), the SW does NOT read
+// or write the cache at all — every request goes straight to the
+// network so backend authorization stays authoritative. Offline with
+// no established principal fails safely (no prior-session image bytes).
 //
 // SAFETY GUARANTEES
-// 1. SCOPE-LIMITED: only GET requests whose pathname matches
-//    /api/job-photos/<id>/thumb are touched. Every other request
-//    (auth, daily reports, PMs, admin endpoints, app shell) falls
-//    straight through to the network.
-// 2. AUTH-LEAK PROOF: cache key includes the Vary: Accept header so
-//    AVIF/WebP/JPEG variants don't cross-contaminate. Auth is enforced
-//    by the server before the response is generated; a cached response
-//    that the browser already received once is the same response that
-//    user is allowed to see.
-// 3. LRU-BOUNDED: max 200 entries. Old entries auto-evicted FIFO.
-// 4. SAFE UPGRADES: cache name carries a version. When this file is
-//    edited and a new SW takes over, the old cache is purged and the
-//    new SW activates immediately (skipWaiting + clients.claim).
-// 5. KILL-SWITCH: window code can postMessage({type:'CLEAR_THUMB_CACHE'})
-//    or unregister the SW outright — both wipe the cache and resume
-//    network-first behavior.
-// 6. NO HTML CACHING. The app shell is never cached here, so a deploy
-//    of new index.html / JS bundles is always fetched fresh.
+// 1. SCOPE-LIMITED to /api/job-photos/<id>/thumb(-signed)?. Everything
+//    else (auth, JSON APIs, app shell, HTML) falls through to network.
+// 2. NO SECRETS in cache names/keys — only an opaque principal id.
+// 3. LRU-BOUNDED per namespace (max 400). Orphan namespaces are purged
+//    on principal change / logout so abandoned caches can't grow.
+// 4. SAFE UPGRADES: version-tagged; old versions purged on activate.
+// 5. MESSAGES: SET_THUMB_CACHE_PRINCIPAL, CLEAR_THUMB_CACHE,
+//    CLEAR_ALL_THUMB_CACHES.
+// 6. NO HTML CACHING.
 
-const CACHE_VERSION = "v2";
-const CACHE_NAME = `masci-thumbs-${CACHE_VERSION}`;
+const CACHE_VERSION = "v3";
+const CACHE_PREFIX = `masci-thumbs-${CACHE_VERSION}:`;
+const LEGACY_PREFIX = "masci-thumbs-";
 const MAX_ENTRIES = 400;
-// Cache both the legacy auth-header endpoint and the new signed-URL
-// endpoint. The signed endpoint is the hot path (gallery <img src>),
-// the legacy one stays for lightbox preloads + native shells.
 const THUMB_URL_RE = /\/api\/job-photos\/[^/]+\/thumb(-signed)?(\?|$)/;
 
-self.addEventListener("install", (event) => {
-  // Take over from the previous SW immediately on first load.
+// In-memory only. Lost on SW restart -> fail-closed until the client
+// re-establishes it via SET_THUMB_CACHE_PRINCIPAL.
+let currentPrincipal = null;
+
+function sanitizePrincipal(p) {
+  if (!p) return null;
+  // Opaque id only. Strip anything that could smuggle a token/URL.
+  const s = String(p).trim();
+  if (!s) return null;
+  return s.replace(/[^A-Za-z0-9_.:-]/g, "").slice(0, 128) || null;
+}
+
+function currentCacheName() {
+  return currentPrincipal ? CACHE_PREFIX + currentPrincipal : null;
+}
+
+async function purgeOtherNamespaces(keepName) {
+  const names = await caches.keys();
+  await Promise.all(
+    names
+      .filter((n) => n.startsWith(LEGACY_PREFIX) && n !== keepName)
+      .map((n) => caches.delete(n)),
+  );
+}
+
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // Drop any old cache versions left behind by previous deploys.
+      // Drop legacy (v1/v2, non-namespaced) caches from prior deploys.
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((n) => n.startsWith("masci-thumbs-") && n !== CACHE_NAME)
+          .filter((n) => n.startsWith(LEGACY_PREFIX) && !n.startsWith(CACHE_PREFIX))
           .map((n) => caches.delete(n)),
       );
       await self.clients.claim();
@@ -55,42 +81,41 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data?.type === "CLEAR_THUMB_CACHE") {
-    event.waitUntil(caches.delete(CACHE_NAME));
+  const data = event.data || {};
+  if (data.type === "SET_THUMB_CACHE_PRINCIPAL") {
+    const next = sanitizePrincipal(data.principal);
+    currentPrincipal = next;
+    // Isolate: keep only the active principal's namespace, purge others
+    // (prior users, orphans). If unset -> purge everything.
+    event.waitUntil(purgeOtherNamespaces(currentCacheName()));
+  } else if (data.type === "CLEAR_THUMB_CACHE") {
+    // Logout / role switch: wipe the active namespace and fail closed.
+    const name = currentCacheName();
+    currentPrincipal = null;
+    event.waitUntil(
+      (async () => {
+        if (name) await caches.delete(name);
+      })(),
+    );
+  } else if (data.type === "CLEAR_ALL_THUMB_CACHES") {
+    currentPrincipal = null;
+    event.waitUntil(purgeOtherNamespaces(null));
   }
 });
 
 async function trimCache(cache) {
   const keys = await cache.keys();
   if (keys.length <= MAX_ENTRIES) return;
-  // Oldest first (insertion order is preserved by Cache API).
   const overflow = keys.length - MAX_ENTRIES;
   for (let i = 0; i < overflow; i++) {
-    // best-effort; not awaited so we don't slow down the response.
     cache.delete(keys[i]);
   }
 }
 
-/**
- * Stale-while-revalidate: return the cached thumbnail instantly if we
- * have one, then refresh it in the background. If nothing is cached we
- * fall through to a normal network fetch and cache the result.
- *
- * Cache key normalization: signed-URL thumbs include a 1h-rotating
- * ``?t=<token>`` parameter. Without normalization every page reload
- * after the token TTL would re-fetch every photo from the network.
- * We strip ``t`` (and any other ephemeral params) from the cache key
- * so the same ``photo_id`` shares one entry across token rotations.
- *
- * Errors at every step are swallowed — the user always gets the
- * default browser/network behaviour as the safety net.
- */
 function thumbCacheKey(req) {
   try {
     const u = new URL(req.url);
-    u.searchParams.delete("t");
-    // Build a stable Request matching the original method/headers but
-    // with the normalized URL. Cache API matches by URL string + method.
+    u.searchParams.delete("t"); // strip rotating signed-URL token
     return new Request(u.toString(), { method: "GET" });
   } catch {
     return req;
@@ -100,22 +125,25 @@ function thumbCacheKey(req) {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
-  // Only same-origin /api/job-photos/*/thumb(-signed)? requests.
   let url;
   try { url = new URL(req.url); } catch { return; }
   if (url.origin !== self.location.origin) return;
   if (!THUMB_URL_RE.test(url.pathname + url.search)) return;
 
+  // FAIL-CLOSED: with no established principal we never read or write
+  // the cache — the network (backend auth) decides, and offline fails
+  // safely instead of leaking a prior session's image bytes.
+  const cacheName = currentCacheName();
+  if (!cacheName) return; // default browser/network behavior
+
   event.respondWith(
     (async () => {
       try {
-        const cache = await caches.open(CACHE_NAME);
+        const cache = await caches.open(cacheName);
         const key = thumbCacheKey(req);
-        // ignoreVary:false so AVIF/WebP/JPEG variants stay separate.
         const cached = await cache.match(key, { ignoreVary: false });
         const networkPromise = fetch(req)
           .then(async (res) => {
-            // Only cache successful, complete responses.
             if (res && res.ok && res.status === 200) {
               try {
                 await cache.put(key, res.clone());
@@ -127,7 +155,6 @@ self.addEventListener("fetch", (event) => {
           .catch(() => null);
 
         if (cached) {
-          // Kick off background refresh, return cached now.
           event.waitUntil(networkPromise);
           return cached;
         }

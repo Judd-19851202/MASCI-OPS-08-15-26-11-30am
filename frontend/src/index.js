@@ -7,7 +7,7 @@ import { initSentryIfConfigured } from "@/lib/sentryInit";
 import { installPortalFetchAuth } from "@/lib/fetchPortalAuth";
 import { installPortalAxiosAuth } from "@/lib/axiosPortalAuth";
 import { installPortalXhrAuth } from "@/lib/xhrPortalAuth";
-import { getDirectoryToken } from "@/lib/directoryAuth";
+import { getDirectoryToken, getDirectoryUser } from "@/lib/directoryAuth";
 
 // TRACK 15.39A · Suppress the benign "ResizeObserver loop completed with
 // undelivered notifications" warning that Radix primitives (Select, Sheet,
@@ -65,7 +65,13 @@ root.render(
 // Failures are silent — the app still works with no SW, just no
 // offline photo cache.
 if (typeof window !== "undefined") {
-  window.addEventListener("load", () => {
-    registerThumbCache();
+  window.addEventListener("load", async () => {
+    await registerThumbCache();
+    // Re-establish the thumbnail cache principal for an already-signed-in
+    // session (page reload / browser reopen). Fail-closed if none.
+    try {
+      const u = getDirectoryUser();
+      setThumbCachePrincipal(u?.id || null);
+    } catch { /* ignore */ }
   });
 }

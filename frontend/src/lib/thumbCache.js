@@ -18,6 +18,30 @@ function isSupported() {
 
 let registration = null;
 
+// Post a message to the active thumbnail SW, waiting for it to be ready
+// so first-load / restart races don't drop the principal.
+async function postToThumbSw(message) {
+  if (!isSupported()) return;
+  try {
+    const ready = await navigator.serviceWorker.ready.catch(() => null);
+    const reg = ready || registration || (await navigator.serviceWorker.getRegistration("/"));
+    const ctrl = reg?.active || navigator.serviceWorker.controller;
+    if (ctrl) ctrl.postMessage(message);
+  } catch {
+    /* swallow — never break the page on cache messaging */
+  }
+}
+
+/**
+ * Establish (or clear) the authenticated principal namespace for the
+ * thumbnail cache. `principal` MUST be a non-secret opaque id (e.g. the
+ * directory user id) — never a token/session secret. Passing a falsy
+ * value fails the SW closed (no cached thumbnails served).
+ */
+export async function setThumbCachePrincipal(principal) {
+  await postToThumbSw({ type: "SET_THUMB_CACHE_PRINCIPAL", principal: principal || null });
+}
+
 export async function registerThumbCache() {
   if (!isSupported()) return null;
   try {

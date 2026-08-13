@@ -185,3 +185,13 @@ Residual (owner awareness, NOT P0): job-photo thumbnail SW uses URL-normalized k
   on a SHARED physical device a previously-cached thumbnail IMAGE could be served briefly to a later session
   before background revalidation. Images-only, bounded (LRU 400, version purge, kill-switch), documented offline design.
 CODE DEFECT: NO. No repair. No tracked source changed -> no new fingerprint. Workspace remains attested-clean (SHA 8a08454f).
+
+## THUMBNAIL CACHE SESSION ISOLATION HARDENING (2026-08-13, PREVIEW, NOT SAVED)
+Files (4): frontend/public/sw-thumbs.js, frontend/src/lib/thumbCache.js, frontend/src/lib/directoryAuth.js, frontend/src/index.js
+Model: cache namespace masci-thumbs-v3:<directory_user_id> (opaque, non-secret). Fail-closed when no principal.
+Wiring: login applyMultiLoginResponse -> setThumbCachePrincipal(user.id); logout clearDirectorySession -> setThumbCachePrincipal(null);
+ boot index.js re-establishes principal from getDirectoryUser(); clearThumbCache still purges.
+SW messages: SET_THUMB_CACHE_PRINCIPAL, CLEAR_THUMB_CACHE, CLEAR_ALL_THUMB_CACHES. LRU 400 per ns; other-principal ns purged on SET; legacy v1/v2 purged on activate.
+Proven (preview browser): A same-user hit IMG_A_SECRET; logout -> ns purged + refetch 401 no leak; B different principal -> 401, B_leaked_A=false, A ns gone; no token in cache name; SW restart -> in-memory principal null -> fail-closed by design.
+Backend auth UNCHANGED (no backend files). New fingerprint dcf-180236ab4410bebe73abd6eae0ab38143b4afc3d505bbe3b29f814d315b5f033 (twice). strict verifier ok errors:[].
+NOTE: yarn test blocked by fail-closed stamp guard (candidate != authorized dcf-862c5a53) — expected pre-save.
