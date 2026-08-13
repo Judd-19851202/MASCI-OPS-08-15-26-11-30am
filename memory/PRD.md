@@ -1593,4 +1593,30 @@
   - it affected application storage architecture and preview certification safety, not business-rule truth classification
   - it was repaired with deterministic environment-owned keys, legacy read compatibility, delete/overwrite ownership guards, and focused regression proof
   - current disposition remains **CLOSED — FIXED IN CODE AND VERIFIED**
+
+
+---
+
+## 2026-08-13 — LIVE PRODUCTION AUDIT (evidence-only, no tracked-source changes)
+
+Target: https://mascidocs.com. Auth: Super Admin (from test_credentials.md). All checks read-only.
+
+### VERIFIED / RESOLVED
+- **`PREVIEW_SURFACE_ENABLED_IN_PRODUCTION` startup refusal — RESOLVED.** `backend/lib/runtime_identity.py` L541-544 downgrades `preview_validation_identities_enabled` from error → warning. Live `/api/version` + `/api/health` report `runtime_identity.status=VERIFIED, valid=true`; mongo/scheduler/backup all OK; uptime stable (~4h). Production is UP and healthy.
+- **Production environment identity CORRECT:** app_env=production, db=masci_safety, Atlas host masci-prod.1nduwmg.mongodb.net, user masci_prod_user, enforce_db_isolation=true, backup prefix backups/production/auto-90d/. No preview contamination in env identity.
+- **Backend KPI / master-data / truth surfaces = REAL DATA (not empty, not mocked):** executive-summary (coverage/trust %), safety-kpis (36 projects w/ signal), daily-reports list (275 reports), employees status (296 total / 239 active), equipment-master status (604 units / 28 categories), dispatch command summary, trust-spine (25 workflows), operations-trust-center, storage-summary (R2-backed), backup-verification enabled.
+- **Daily Report detail read + async PDF pipeline WORKS end-to-end** (job queued → processing → completed "PDF ready").
+- **Frontend renders correctly; EN/ES toggle works.** Minor advisory: one hero subheading paragraph + "QA/QC" card remain English under ES (partial i18n).
+
+### P0 — OWNER ACTION REQUIRED (not code-fixable; no production hot-patching)
+1. **Release identity mismatch.** Production runs content fingerprint `52152cb817864c30...` labeled `UNSAVED_FINAL_CANDIDATE:UNPROVEN` (`intended_release_source=workspace:unsaved_final_candidate`, `runtime_matches_intended_release=false`). This does NOT equal the authorized saved commit `a0420f4c` (release-manifest sha `d206fd1c...`). The running bytes were never saved to git → not reproducible/certifiable. **Remedy:** owner Saves the intended candidate, then does one controlled redeploy so runtime maps to a proven SHA; then re-run SHA-bound certification.
+2. **Shared-cluster storage / environment-isolation risk.** Preview backend `MONGO_URL` points to the SAME production Atlas cluster (`masci-prod.1nduwmg.mongodb.net`). `/api/cluster/capacity` (measured 2026-08-13): tier 10240 MB, used 9478 MB (**92.6%, severity=warning, critical at 95%**). Breakdown: `masci_safety` (prod) = **1628 MB** (healthy) vs `masci_safety_preview` = **7850 MB** (~83% of quota). Preview bloat drives the **public production homepage "DATABASE APPROACHING CAPACITY" banner** and risks production write availability if the shared quota crosses 95%. No historical capacity samples retained (history samples=0) → growth prediction unavailable. **Remedy (owner/ops):** relocate/prune the preview DB off the production cluster OR upgrade the Atlas tier. Do not delete data on the shared cluster without owner authorization.
+
+### AUDIT SAFETY STOP
+Because preview writes land on the same near-full (92.6%) production Atlas cluster, **write-heavy preview acceptance testing (create/submit flows) is UNSAFE** until the storage condition is resolved — it could push the shared quota to the 95% critical threshold and impact production writes. Write-heavy sweep halted per stop criteria. Read-only acceptance above stands as evidence.
+
+### UNCHANGED
+- **Gate 16 Storage/Recovery — remains OWNER-DEFERRED / NOT PASSED** (untouched). Finding #2 above sits squarely in Gate 16's domain.
+- No tracked source modified. Untracked read-only helper scripts only: `production_audit_final.py`, `prod_acceptance_readonly.py`. No production business data altered.
+
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.
