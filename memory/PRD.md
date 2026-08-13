@@ -1619,4 +1619,66 @@ Because preview writes land on the same near-full (92.6%) production Atlas clust
 - **Gate 16 Storage/Recovery — remains OWNER-DEFERRED / NOT PASSED** (untouched). Finding #2 above sits squarely in Gate 16's domain.
 - No tracked source modified. Untracked read-only helper scripts only: `production_audit_final.py`, `prod_acceptance_readonly.py`. No production business data altered.
 
+
+
+---
+
+## 2026-08-13 — P0 ATLAS CAPACITY FORENSICS (Phases 1,2,4,5,6 — READ-ONLY, no mutations)
+
+### Phase 1 — growth suspended
+No write-heavy preview activity run. All investigation read-only (dbStats/collStats/find sort). Production undisturbed.
+
+### Phase 2 — capacity truth reconciled (do NOT infer the tier from "~10 GB")
+- App `/api/cluster/capacity` measures against a **self-imposed logical budget `ATLAS_QUOTA_MB=10240` (10 GB)**: prod `masci_safety`=1628 MB + preview `masci_safety_preview`=7850 MB = 9478 MB = **92.6%** → drives the public homepage banner.
+- **Physical Atlas volume (mongod dbStats): fsTotalSize ≈ 31,644 MB (~31 GB), fsUsedSize ≈ 23,893 MB (~75.5%).** The disk is larger than 10 GB — likely Atlas storage auto-scaling already expanded it (possible recurring cost).
+- **CANNOT confirm** Atlas tier name / cloud / region / auto-scaling / cost without Atlas Project Admin API keys (only the DB connection string is available). Preview backend `MONGO_URL` = `masci-prod.1nduwmg.mongodb.net` (SAME physical cluster as production).
+
+### Phase 4 — PREVIEW DATABASE SIZE LEDGER (`masci_safety_preview`, 7850 MB, 977 collections, 13.5M docs)
+- **Transient restore-drill artifacts `ops8_drill_*`: 641 collections, 7.5M docs, 3642 MB (46.4%).** 5 drill runs (20260731_040111/044623/094505/104120, 20260804_183246), each a full snapshot copy of operational_facts (~1M docs), notification_capture_v1, dr_v1_photo_intel_jobs, meetings, incidents, audit_events, etc.
+- **Base collections: 336 collections, 4208 MB (53.6%).** Top: notification_capture_v1 955 MB (435 docs, avg 2.2 MB — embedded blobs), operational_facts 643 MB, audit_events 509 MB, project_controls_authority_audit 364 MB, operational_ingestion_runs 301 MB, project_forecasting_snapshots 280 MB, dr_v1_photo_intel_jobs 211 MB (avg 113 KB embedded photos), usage_events 206 MB (9 indexes), enterprise_governance_* 143 MB.
+
+### Phase 5 — root cause
+1. **OPS8 restore drills** (`scripts/ops8_namespace_restore_drill.py`) left 5 full namespace snapshots (3642 MB). Code (`server.py` L7509-7514, `restore_certification_evidence.py` L107-112) classifies `ops8_drill_`/`restore_drill_`/`preview_restore_`/`ops8_restore_` as **transient namespaces excluded from authoritative backups**; NO runtime code reads them → disposable.
+2. **In-Mongo blobs** — notification_capture_v1 (955 MB) and dr_v1_photo_intel_jobs (211 MB) store large base64/photo payloads inside Mongo instead of R2.
+3. **Unbounded telemetry/audit/session logs** with no/ineffective TTL — operational_facts, operational_ingestion_runs, audit_events, usage_events, trust_spine_events, session_activity, directory_sessions, admin_audit, motive_events, integration_sync_logs.
+
+### Phase 6 — classification
+- **SAFE DELETE (3642 MB):** all 641 `ops8_drill_*` collections. Zero consumer, code-classified transient. → reclaims 46.4%; app logical budget 9478→**5836 MB (57.0%)**; clears public banner. Does NOT touch `masci_safety` or any business record.
+- **KEEP BUT TRIM / TTL CANDIDATE:** operational_facts, operational_ingestion_runs, audit_events, usage_events, project_controls_authority_audit, project_forecasting_snapshots, trust_spine_events, session_activity, directory_sessions, admin_audit, motive_events, integration_sync_logs, enterprise_governance_*.
+- **INVESTIGATE BLOB STORAGE:** notification_capture_v1, dr_v1_photo_intel_jobs (should offload payloads to R2).
+- **KEEP / MIGRATE:** daily_reports, meetings, incidents, master data (employees/equipment), user_directory + portal users, projects.
+
+### BLOCKED — require owner action (hard gates, cannot proceed autonomously)
+1. **Destructive authorization** to delete the 641 `ops8_drill_*` transient collections (immediate capacity relief to 57%). Operates on the shared production Atlas cluster → needs explicit owner OK per Phase 12/13.
+2. **Physical separation (Phases 7-9)** requires EITHER Atlas Project Admin API keys (public+private) + Project ID to provision a new preview cluster, OR an owner-provisioned new preview Atlas cluster URI. Cannot create Atlas infrastructure from the pod.
+
+Gate 16 untouched. No tracked source modified. Read-only helper scripts only: preview_forensic_inventory.py, preview_drill_aggregate.py.
+
+
+
+---
+
+## 2026-08-13 — P0 CAPACITY CLOSURE + PHASE 17 SOURCE BINDING (owner-authorized)
+
+### Capacity recovery (Decision 1 = A, executed)
+- Deleted 641 `ops8_drill_*` transient restore-drill collections (7,502,306 docs, 3642 MB) from `masci_safety_preview` ONLY. Rollback ledger: `/root/masci_ops8_drill_deletion_ledger_20260813.json`.
+- **Result:** app logical budget 9478 MB (92.6%, warning) → **5844 MB (57.1%, ok)**; public "DATABASE APPROACHING CAPACITY" banner CLEARED (screenshot-confirmed). Preview 977→336 collections. `masci_safety` untouched (1635 MB). 0 transient remaining.
+- **Physical disk** (Atlas fsTotalSize ≈ 31,644 MB / fsUsed ≈ 23,819 MB = 75.3%) held steady post-delete — expected WiredTiger behavior; freed 3.6 GB is now reusable internally. No blind compaction run.
+
+### Remaining preview base footprint (~4.2 GB) — investigated, NOT deleted (semantics not proven safe)
+- Embedded blobs: `notification_capture_v1` 955 MB (435 docs, ~1.8 MB `html` each, NO TTL); `dr_v1_photo_intel_jobs` 211 MB.
+- Unbounded no-TTL telemetry: operational_facts 643 MB, operational_ingestion_runs 301 MB, project_controls_authority_audit 364 MB, project_forecasting_snapshots 280 MB, trust_spine_events, directory_sessions, enterprise_governance_*.
+- Have working TTL: audit_events (30d), usage_events (90d), session_activity (30d), admin_audit (365d).
+- Hardening recommendations (future, non-urgent): add TTL to no-TTL telemetry; offload notification/photo blobs to R2.
+
+### Decision 2 = C — physical preview/production Atlas separation DEFERRED (still a required P0 infra item; does not block release work).
+
+### Phase 17 — source/release-identity binding (READY FOR OWNER SAVE)
+- Running production = content `52152cb817864…` (`UNSAVED_FINAL_CANDIDATE:UNPROVEN`, older unsaved state, scope 2052 entries). Not bound to a saved SHA.
+- Hardened the intended candidate: removed audit garbage the platform auto-committed (prod_acceptance_readonly.py, production_audit_final.py, production_backend_audit.py, test_result.md) and inventoried the removals in `release_gate_manifest.json` allowed_dirty_entries.
+- **Verification (workspace HEAD d4d37f79):** `verify_release_identity --strict` → **errors: []**; frontend == runtime == HEAD parity TRUE; backend `import server` OK; pre-save candidate → **passed, errors: []**; deterministic content fingerprint regenerated into `memory/PRE_SAVE_CONTENT_FINGERPRINT.json` (verifier release_manifest_sha256, 4314 entries).
+- **Owner next steps:** Save once → capture new SHA → confirm saved-tree fingerprint matches PRE_SAVE_CONTENT_FINGERPRINT.json → run SHA-bound certification → controlled production redeploy → confirm `/api/version` `runtime_matches_intended_release=true` and SHA parity → resume full write-heavy live acceptance (Phase 18).
+
+Gate 16 remains OWNER-DEFERRED / NOT PASSED.
+
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.

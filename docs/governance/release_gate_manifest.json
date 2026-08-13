@@ -435,6 +435,26 @@
         "path": "docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
         "mission_ref": "PDC-01B Build certification",
         "rationale": "This bounded closure pass records exact-candidate build, gate, and regression evidence for the current PRE_SAVE_CANDIDATE."
+      },
+      {
+        "path": "prod_acceptance_readonly.py",
+        "mission_ref": "P0-CAPACITY-2026-08-13 audit-artifact removal",
+        "rationale": "Read-only production acceptance helper auto-committed by the platform during the 2026-08-13 capacity audit; removed to restore a clean production candidate (never runtime source)."
+      },
+      {
+        "path": "production_audit_final.py",
+        "mission_ref": "P0-CAPACITY-2026-08-13 audit-artifact removal",
+        "rationale": "Read-only production audit helper auto-committed by the platform during the audit; removed to restore a clean production candidate (never runtime source)."
+      },
+      {
+        "path": "production_backend_audit.py",
+        "mission_ref": "P0-CAPACITY-2026-08-13 audit-artifact removal",
+        "rationale": "Read-only backend audit helper auto-committed by the platform during the audit; removed to restore a clean production candidate (never runtime source)."
+      },
+      {
+        "path": "test_result.md",
+        "mission_ref": "P0-CAPACITY-2026-08-13 audit-artifact removal",
+        "rationale": "Proven release garbage (previously removed in commit f8686dc5) re-added by an audit auto-commit; removed again to restore a clean production candidate."
       }
     ]
   },

@@ -1,47 +1,20 @@
 {
-  "generated_at": "2026-08-12T04:49:57+00:00",
+  "generated_at": "2026-08-13T10:19:19+00:00",
   "candidate_label": "UNSAVED_FINAL_WORKSPACE_CANDIDATE",
-  "git_head_before_owner_save": "af05183662fe3f40cb69b5d68c0e3970f7b3b5f8",
+  "git_head_before_owner_save": "d4d37f7989bfe4517bee427d925ab6613b335891",
   "workspace_status_lines": [
-    " M backend/lib/release_gate_governance.py",
-    " M backend/lib/release_identity.py",
-    " M backend/lib/runtime_identity.py",
-    " M backend/scripts/verify_release_identity.py",
-    " M backend/server.py",
-    " M backend/tests/test_bcss_s1_2_s1_3_verification.py",
-    " M backend/tests/test_c2_deployment_governance.py",
-    " M backend/tests/test_c2_phase2_release_identity_contract.py",
-    " M backend/tests/test_checkpoint_d5_d6_release_gate.py",
-    " M backend/tests/test_d1_runtime_identity_http.py",
-    " M backend/tests/test_dr03_release_identity.py",
-    " M backend/tests/test_prec10_platform_truth_integrity.py",
-    " M backend/tests/test_prec10_training_packet_access_boundary.py",
-    " M backend/tests/test_release_identity_build_guard.py",
-    " M backend/tests/test_runtime_identity_contract.py",
-    " M backend/tests/test_runtime_identity_startup_enforcement.py",
-    " M backend/tests/test_track_28_05_fleet_dispatch_e2e.py",
-    " M backend/tests/test_track_28_06_safety_e2e.py",
-    " M backend/tests/test_track_28_09a_environment_separation.py",
-    " M backend/tests/test_wp18db_production_identity_parity.py",
-    " M docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
     " M docs/governance/release_gate_manifest.json",
-    " M frontend/scripts/stamp-build-version.js",
-    " M frontend/src/components/ForgedOpsAttribution.jsx",
-    " M frontend/src/lib/versionCache.js",
-    " M memory/CHANGELOG.md",
     " M memory/PRD.md",
     " M memory/PRE_SAVE_CONTENT_FINGERPRINT.json",
-    " M memory/ROADMAP.md",
-    " M scripts/release_gate.py",
-    "?? backend/lib/release_fingerprint.py",
-    "?? backend/tests/test_release_content_fingerprint.py",
-    "?? docs/governance/release_content_fingerprint_contract.json",
-    "?? scripts/release_fingerprint.py"
+    "D  prod_acceptance_readonly.py",
+    "D  production_audit_final.py",
+    "D  production_backend_audit.py",
+    "D  test_result.md"
   ],
   "algorithm_version": "masci-release-content-sha256-v1",
   "schema_version": "MASCI_RELEASE_CONTENT_FINGERPRINT_CONTRACT/v1",
   "contract_path": "docs/governance/release_content_fingerprint_contract.json",
-  "content_manifest_sha256": "2b18d0d39acf169227239dca483820db5d3b345560b243941069367dc70b462a",
+  "content_manifest_sha256": "ee3ce20ea3a766403e321d5e399fa0fc8d7f7f069c0fb5ae58e4091791e9ae94",
   "tracked_and_untracked_content_file_count": 4314,
   "contract": {
     "include_roots": [
@@ -148,6 +121,13 @@
       "bytes": 136
     },
     {
+      "path": ".emergent/markers/.restore-complete",
+      "file_type": "file",
+      "mode": "0o644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
       "path": ".emergent/summary.txt",
       "file_type": "file",
       "mode": "0o644",
@@ -218,25 +198,18 @@
       "bytes": 52911
     },
     {
-      "path": "backend/backups/MASCI_lite_backup_2026-08-08_020445Z.zip",
+      "path": "backend/backups/MASCI_lite_backup_2026-08-12_180500Z.zip",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "f4eba598951bd16e468c186d492e0d8599083cda9928c7769c57375b8e5c23de",
-      "bytes": 7121813
+      "sha256": "190cb4c890933527a6e346d4751d05ed44350a3d6fbdcf4431d8cc694953c2b1",
+      "bytes": 7759385
     },
     {
-      "path": "backend/backups/MASCI_lite_backup_2026-08-08_180356Z.zip",
+      "path": "backend/backups/MASCI_lite_backup_2026-08-13_020303Z.zip",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "b1c72c2afaba74d32c4bd42a41d91382f6f40ea67b212f64921692a1c7965d88",
-      "bytes": 7124624
-    },
-    {
-      "path": "backend/backups/MASCI_lite_backup_2026-08-09_020408Z.zip",
-      "file_type": "file",
-      "mode": "0o644",
-      "sha256": "a239f6aa2e1efc97439b85423cf3d851a1e10449916ef2dee6ac412ab4aaa7d3",
-      "bytes": 7575814
+      "sha256": "c5bada3e94fb70fa5a1d013163f176feede0f66daedb01c935df1ec27fc01e3a",
+      "bytes": 7759385
     },
     {
       "path": "backend/branded_portal_emails.py",
@@ -1341,8 +1314,8 @@
       "path": "backend/lib/runtime_identity.py",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "d00dcea9928314bc848311820510a6f1b167a28c7f6b51e339d984f2d39d8d46",
-      "bytes": 33014
+      "sha256": "983f1a42eb8ee32da33d20786def0a095e76e07539a36f91a625c72f0fbc35d0",
+      "bytes": 33125
     },
     {
       "path": "backend/lib/runtime_reliability.py",
@@ -9041,8 +9014,8 @@
       "path": "backend/tests/test_production_ci_build_contract.py",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "b3e25ad8c5ed716ac38239013f564700c6209558a639b4e43b5a29b49bc2664d",
-      "bytes": 1235
+      "sha256": "e1e6fcc2b7b999617ed8b844d80e13206aed6be7dbeacdf222b7de291fa99542",
+      "bytes": 1399
     },
     {
       "path": "backend/tests/test_project_identity_compliance.py",
@@ -9209,8 +9182,8 @@
       "path": "backend/tests/test_release_identity_build_guard.py",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "bc3302a069a1badf347aa5c8d95b5c3ba62b8d2568c8faf6e0fc88c10bb6c14b",
-      "bytes": 1060
+      "sha256": "6927c22f3d401c8518c5d56d0f3a0d72971d675f0124d5e8f770d48da9c44fd1",
+      "bytes": 3539
     },
     {
       "path": "backend/tests/test_restore_certification_evidence.py",
@@ -13402,8 +13375,8 @@
       "path": "docs/governance/release_gate_manifest.json",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "9ab46ede8745d50a7f36af0d02b0331b9df9ae2203d5348515ff21a428f10c60",
-      "bytes": 53736
+      "sha256": "a72798b34356c0104f0a44a6af5f58ed4a36178785202861fe973873463923cb",
+      "bytes": 54996
     },
     {
       "path": "docs/governance/repository_content_inventory.json",
@@ -13906,8 +13879,8 @@
       "path": "frontend/scripts/stamp-build-version.js",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "d0c237c80c4ae7d86ce7558c233b9c9c230a53a8208ac7b419b527035b01e152",
-      "bytes": 1596
+      "sha256": "a6982f1c2ed4041df24f00c7a7e8d179fd5d1ce0b488b23a1dafa95685bc0f8d",
+      "bytes": 4008
     },
     {
       "path": "frontend/src/App.css",
@@ -22985,8 +22958,8 @@
       "path": "memory/PRD.md",
       "file_type": "file",
       "mode": "0o644",
-      "sha256": "a3700db83210f204f9aedcca23c3ef7b0126af1bd1bb4069f73076958966b8e6",
-      "bytes": 169394
+      "sha256": "09495472e873a9e18901de4d56bafcadffe42f0faaf6bd93374640c7fe6e9cd5",
+      "bytes": 183282
     },
     {
       "path": "memory/PRE_DEPLOYMENT_CERTIFICATION.md",
