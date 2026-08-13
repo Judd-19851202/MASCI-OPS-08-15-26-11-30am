@@ -219,3 +219,22 @@ Cross-user note: proven via namespace-separation/purge mechanics + synthetic see
  no second prod account used; no synthetic prod records; no real photo loaded to avoid production writes). Honest limitation.
 Parts regression: parts-catalog loads; authorized /equipment-parts GET 200; unauthorized 401. Console 401s = deliberate test probes, no SW fatal.
 Production writes: NONE. Source changes: NONE.
+
+## REAL-DEVICE QUEUE RECOVERY — CLOSED (OWNER-ATTESTED, 2026-08-13)
+Owner personally ran the live test on the genuine affected production device: previously-stranded pending submissions
+auto-synchronized on loading current prod (SHA 3dc83374); green successful-sync confirmation displayed.
+Read-only server-side correlation (no contradiction): /api/admin/recovery/snapshot pill=GREEN (backup 8.5m, integrity PASS);
+/api/admin/integrations/health overall=ok (Mongo/R2/Resend LIVE ok). Deployed client recovery code present + unit tests 18/18 PASS
+(migrateQueuedBody strips _track_15_60_client_idempotency_key, preserves canonical Idempotency-Key; _rearmLegacyFailuresOnce rearmV2_2026_08_13).
+Server has no dedicated queue-health endpoint (offline queue is client/IDB; recovered items POST to normal endpoints; idempotency prevents duplicates by design). No contradiction to owner observation. -> CLOSED PASS / OWNER-ATTESTED.
+
+## FINAL PRE-C10 RECONCILIATION (2026-08-13) — honest state
+Authoritative registers: PRE_C10_MASTER_REMEDIATION_REGISTER.md (status "PRE-C10 CLOSED / FINAL CERTIFICATION PENDING")
+and PRE_C10_OWNER_OBSERVED_DEFECT_DENOMINATOR.md (all owner-observed rows PASS; overall OPEN until other lanes close).
+CLOSED now: all remediation lanes (TRUTH/TRUST/COACH/UX/SAFETY/ADMIN/CROSS-ENTITY/MASTER etc.); owner-observed 001-005;
+owner-session operational health (Motive/backup/Transportation-HR — live-verified 2026-08-13); real-device queue recovery (owner-attested).
+REMAINING BLOCKER for 216/216 per register's own GLOBAL GATE (lines 26-27,13,107):
+ - Fresh FULL Product Quality v4 screenshot ledger on the CURRENT frozen candidate (SHA 3dc83374) — NOT PROVEN (prior passes are inherited/historical; not rerun on this SHA).
+ - Final consolidated certification chain.
+These are agent-executable (not owner/device-only) but have NOT been run on the current SHA. Therefore PRE-C10 cannot truthfully = 216/216 yet.
+Gate 16: OWNER-DEFERRED / NOT PASSED (separate; not counted). C10/Training NOT authorized.
