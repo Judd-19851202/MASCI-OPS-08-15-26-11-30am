@@ -77,15 +77,23 @@ export default function PartsCatalog() {
     }
   };
 
-  // Load 589-unit fleet for the picker
+  // Load fleet for the picker. /equipment-master rejects some authenticated
+  // sessions (401); fall back to the canonical public lookup so the admin list
+  // is never empty — same pattern as the field pickers.
   useEffect(() => {
     (async () => {
-      try {
-        const r = await api.get("/equipment-master");
+      const fetchItems = async (path) => {
+        const r = await api.get(path, { skipSessionStatus: true });
         // Drop entries with no unit_number — they'd resolve to /equipment-parts/
         // (trailing slash) which the K8s ingress 307s to plain http and the
         // browser blocks as Mixed Content.
-        const items = (r.data?.items || []).filter((u) => (u.unit_number || "").trim());
+        return (r.data?.items || []).filter((u) => (u.unit_number || "").trim());
+      };
+      try {
+        let items = [];
+        try { items = await fetchItems("/equipment-master"); }
+        catch { items = []; }
+        if (!items.length) items = await fetchItems("/public/equipment-master-lookup");
         setFleet(items);
       } catch {
         toast.error(t("Could not load fleet list"));

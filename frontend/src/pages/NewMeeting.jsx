@@ -1029,7 +1029,7 @@ export default function NewMeeting({ publicMode = false }) {
                     data-testid={`attendee-nonmasci-${i}`}
                   />
                   <span className="font-mono uppercase tracking-wide text-slate-600">
-                    {t("Non-OurCo / Subcontractor")}
+                    {t("Non-MASCI / Subcontractor")}
                   </span>
                 </label>
               </div>

@@ -1,3 +1,22 @@
+# 2026-06 — Final LIVE production acceptance closure (read-only browser gates)
+
+Ran read-only Playwright gates against live https://mascidocs.com (provenance already VERIFIED at b318d08a — not reopened). No production writes.
+
+LIVE PASS: Super Admin portal smoke (0 console errors); all portal dashboards render real data (via Super Admin scope); canonical selectors populate LIVE via the public-lookup fallback (PO job 35, vendor 167, QAQC supplier 167/job 36, meeting job 36, DVIR employee 200 + equipment 89, incident personnel 200, public-meeting attendee 200, DR v3 equipment 604); PO dialog no clip @1440; WITNESSES single heading; /meetings/submit hides BULK ADD (inline picker 200) while /meetings/new shows it; EN/ES render live (HR banner + OI strip + hero/CTAs Spanish); responsive 390/768/1024/1440 no overflow; Enter-key login works. PRE-C10 cross-surface parity 7/7 (preview).
+
+Two PROVEN code defects found live + FIXED in preview (new pre-save candidate dcf-b17fc214…, strict verifier errors:[], recompute-twice MATCH):
+- HIGH: /admin/equipment 'Could not load fleet list' — PartsCatalog.jsx fetched /equipment-master with no fallback; added the canonical /public/equipment-master-lookup fallback (verified live-preview: banner gone, 264 rows). 
+- MED: NewMeeting.jsx used t("Non-OurCo / Subcontractor") (unmatched key → template token leaked); corrected to t("Non-MASCI / Subcontractor") (matches ES dict).
+
+NOT PASS / classified:
+- OWNER SESSION REQUIRED (in-app activated admin session): Admin→Operational Health, Motive health, backup scheduler, Transportation↔HR mismatch detail (API multi-login admin token is rejected by strict admin gates).
+- REAL AFFECTED DEVICE REQUIRED: stranded queue re-arm→migrate→POST→confirm→no-duplicate→pending-disappears→recovery notice (component wiring confirmed present; refused to manufacture a production record).
+- OWNER DECISION: the 5 cert.* portal accounts are preview-only; per-role live acceptance (HR-session least-privilege OI 401 check, per-portal scoping) is NOT certifiable on production until they exist there (a production write).
+- INVESTIGATE (backlog): /dispatch-portal 3 uncaught non-Error throws (Mapbox/location-feed init; Sentry 429) + Motive/telematics connectivity UNREACHABLE (prod integration/env); transient 403 cross-portal guard race; 401 probe noise on /leadership + pre-fallback /api/jobs; design nits (native date inputs, 200-row picker cap hint, empty unit em-dash).
+
+216/216 CANNOT truthfully close: agent-reachable acceptance passes, but owner-session + real-device evidence remain outstanding. Gate 16 remains OWNER-DEFERRED / NOT PASSED.
+
+
 # 2026-06 — Final pre-save acceptance batch (HR insights + localization + exhaustive selectors + count reconciliation)
 
 Bounded PREVIEW acceptance batch (owner-scoped; production untouched; NOT saved).
