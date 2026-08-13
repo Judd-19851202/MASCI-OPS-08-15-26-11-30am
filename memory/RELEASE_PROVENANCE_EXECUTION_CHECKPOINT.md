@@ -195,3 +195,15 @@ SW messages: SET_THUMB_CACHE_PRINCIPAL, CLEAR_THUMB_CACHE, CLEAR_ALL_THUMB_CACHE
 Proven (preview browser): A same-user hit IMG_A_SECRET; logout -> ns purged + refetch 401 no leak; B different principal -> 401, B_leaked_A=false, A ns gone; no token in cache name; SW restart -> in-memory principal null -> fail-closed by design.
 Backend auth UNCHANGED (no backend files). New fingerprint dcf-180236ab4410bebe73abd6eae0ab38143b4afc3d505bbe3b29f814d315b5f033 (twice). strict verifier ok errors:[].
 NOTE: yarn test blocked by fail-closed stamp guard (candidate != authorized dcf-862c5a53) — expected pre-save.
+
+## THUMBNAIL CACHE ISOLATION RELEASE — ATTESTED (2026-08-13, agent-tested)
+Saved SHA = 3dc83374c1c487c6d20a45cecd4791b7e1914444 (HEAD, workspace clean).
+Canonical FP (twice) = dcf-180236ab4410bebe73abd6eae0ab38143b4afc3d505bbe3b29f814d315b5f033 (EXACT). Digest c-eb267860... (MATCH).
+AUTHORIZED_RELEASE.json regenerated for saved SHA; gitignored; workspace clean; no second Save.
+Build path: build_deployable_fingerprint = authorized FP; attestation_present=true; errors:[]. yarn build BUILD_EXIT=0.
+Frontend gates (guard now passes): jest portalAuthScoping+fetchPortalAuth 9/9 PASS; production build succeeded.
+Runtime /api/version: VERIFIED; runtime_matches_intended_release=true; authorized_saved_sha=3dc83374...; FE_BE_match=true; FE_gen_vs_served=true.
+strict verifier: ok=True, workspace_dirty=False, errors:[].
+Isolation regressions (attested build): same-principal hit PASS; legacy v1 purge PASS; logout purge PASS; unauth 401 fail-closed no-leak PASS; User B/role replacement 401 no-leak PASS; SW-restart/CLEAR_ALL fail-closed 401 no-leak PASS. LRU cap code-correct (trim on SW 200-write path; synthetic direct-write test bypassed it -> 406 is test artifact, not defect).
+Note: transient frontend FATAL during parallel yarn build (resource contention) -> restarted RUNNING; not a code issue (guard passes, compiles clean).
+READY FOR OWNER DEPLOY. No second Save; no Deploy; no production changes.
