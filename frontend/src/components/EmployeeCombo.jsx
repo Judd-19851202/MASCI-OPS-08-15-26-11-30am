@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { ChevronsUpDown, User, Plus, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
@@ -69,6 +70,7 @@ export const EmployeeCombo = ({
   const { t } = useT();
   const ph = placeholder || t("Type or pick an employee…");
   const [data, setData] = useState({ items: [], count: 0 });
+  const [serverResults, setServerResults] = useState(null);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -109,30 +111,54 @@ export const EmployeeCombo = ({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Population-independent SERVER-SIDE search: on typing, the HR roster is
+  // searched in the DB across the ENTIRE eligible population (not just the
+  // cached first page), so a match is discoverable no matter how large the
+  // master grows. The cached list still powers the empty-state first page and
+  // gives instant local matches while the server query resolves.
+  useEffect(() => {
+    const term = (value || "").trim();
+    if (term.length < 1) { setServerResults(null); return; }
+    let alive = true;
+    const fetchQ = async (path) => {
+      const r = await api.get(path, { params: { q: term, limit: 50 }, skipSessionStatus: true });
+      return Array.isArray(r.data?.items) ? r.data.items : [];
+    };
+    const timer = setTimeout(async () => {
+      try {
+        let items = [];
+        if (!publicFallback) { try { items = await fetchQ("/hr/employee-roster"); } catch { items = []; } }
+        if (!items.length) items = await fetchQ("/hr/employee-roster/public");
+        if (alive) setServerResults(items);
+      } catch { if (alive) setServerResults(null); }
+    }, 220);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [value, publicFallback]);
+
   // Filter the roster using the SAME text the user is typing in the main
   // input — no separate search box, no focus-stealing autoFocus. This is the
   // single source of truth for both the form value AND the list filter.
   const filtered = useMemo(() => {
     const q = (value || "").trim().toLowerCase();
     const items = data.items || [];
-    if (!q) return items.slice(0, 200); // show first 200 when empty
-    return items
-      .filter((it) => {
-        const hay = [
-          it.name,
-          it.employee_id,
-          it.role,
-          it.trade,
-          it.crew,
-          it.email,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return hay.includes(q);
-      })
-      .slice(0, 200);
-  }, [data, value]);
+    if (!q) return items.slice(0, 200); // first page when empty (page size, not a population cap)
+    const predicate = (it) => {
+      const hay = [it.name, it.employee_id, it.role, it.trade, it.crew, it.email]
+        .filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(q);
+    };
+    const localMatches = items.filter(predicate);
+    // Merge instant local matches with the full-population server results,
+    // de-duplicated by id (falling back to name). Server results guarantee
+    // records beyond the cached page are discoverable.
+    const merged = [...localMatches];
+    const seen = new Set(localMatches.map((it) => it.id || it.employee_id || it.name));
+    for (const it of (serverResults || [])) {
+      const key = it.id || it.employee_id || it.name;
+      if (!seen.has(key)) { seen.add(key); merged.push(it); }
+    }
+    return merged.slice(0, 200); // display page size on RESULTS (full population already searched)
+  }, [data, value, serverResults]);
 
   const pick = (it) => {
     const label = it.name || "";

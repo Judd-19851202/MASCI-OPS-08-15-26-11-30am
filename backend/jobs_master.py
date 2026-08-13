@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -127,12 +128,17 @@ async def seed_jobs_master(db) -> None:
         logger.info(f"jobs_master backfill linked pm_email on {backfilled} jobs")
 
 
-async def list_jobs(db, only_active: bool = True) -> List[Dict[str, Any]]:
+async def list_jobs(db, only_active: bool = True, search: str = None) -> List[Dict[str, Any]]:
     q: Dict[str, Any] = {"deleted_at": {"$in": [None, ""]}}
     if only_active:
         q["active"] = True
+    # Population-independent server-side search across the FULL canonical
+    # project master, so any job is discoverable regardless of master size.
+    if search and str(search).strip():
+        sre = {"$regex": re.escape(str(search).strip()), "$options": "i"}
+        q["$or"] = [{"project_number": sre}, {"name": sre}, {"project_name": sre}, {"client": sre}]
     cursor = db.jobs_master.find(q, {"_id": 0}).sort("project_number", 1)
-    return await cursor.to_list(2000)
+    return await cursor.to_list(200 if (search and str(search).strip()) else 5000)
 
 
 async def list_archived_jobs(db) -> List[Dict[str, Any]]:

@@ -5121,6 +5121,7 @@ class EquipmentMasterItem(BaseModel):
 @api_router.get("/equipment-master")
 async def list_equipment_master(
     category: Optional[str] = None,
+    search: Optional[str] = None,
     _actor: Dict[str, Any] = Depends(_require_any_portal_read),
 ):
     from lib.synthetic_fleet_filter import apply_synthetic_equipment_exclusion  # noqa: PLC0415
@@ -5131,10 +5132,18 @@ async def list_equipment_master(
     # TRACK 28.05 · exclude TEST_28_05_ / SYNTHETIC_ synthetic fleet
     # rows from every operator-facing equipment picker.
     q = apply_synthetic_equipment_exclusion(q)
+    # Population-independent server-side search: regex runs against the FULL
+    # canonical fleet so any unit is discoverable regardless of fleet size.
+    if search and search.strip():
+        sre = {"$regex": re.escape(search.strip()), "$options": "i"}
+        q["$and"] = q.get("$and", []) + [{"$or": [
+            {"unit_number": sre}, {"make": sre}, {"model": sre},
+            {"make_model": sre}, {"display_label": sre}, {"category": sre},
+        ]}]
     cursor = db.equipment_master.find(q, {"_id": 0}).sort(
         [("category", 1), ("unit_number", 1), ("make_model", 1)]
     )
-    docs = await cursor.to_list(2000)
+    docs = await cursor.to_list(200 if (search and search.strip()) else 5000)
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for d in docs:
         grouped.setdefault(d.get("category", "Misc Equipment"), []).append(d)
@@ -5148,7 +5157,7 @@ async def list_equipment_master(
 
 
 @api_router.get("/public/equipment-master-lookup")
-async def list_equipment_master_public(category: Optional[str] = None):
+async def list_equipment_master_public(category: Optional[str] = None, search: Optional[str] = None):
     """Anonymous-safe equipment lookup for public Field/Safety workflows.
 
     Exposes only the minimum unit selection data required to complete
@@ -5161,6 +5170,12 @@ async def list_equipment_master_public(category: Optional[str] = None):
     if category:
         q["category"] = category
     q = apply_synthetic_equipment_exclusion(q)
+    if search and search.strip():
+        sre = {"$regex": re.escape(search.strip()), "$options": "i"}
+        q["$and"] = q.get("$and", []) + [{"$or": [
+            {"unit_number": sre}, {"make": sre}, {"model": sre},
+            {"make_model": sre}, {"display_label": sre}, {"category": sre},
+        ]}]
     projection = {
         "_id": 0,
         "id": 1,
@@ -5176,7 +5191,7 @@ async def list_equipment_master_public(category: Optional[str] = None):
     cursor = db.equipment_master.find(q, projection).sort(
         [("category", 1), ("unit_number", 1), ("make_model", 1)]
     )
-    docs = await cursor.to_list(2000)
+    docs = await cursor.to_list(200 if (search and search.strip()) else 5000)
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for d in docs:
         grouped.setdefault(d.get("category", "Misc Equipment"), []).append(d)
@@ -5243,26 +5258,30 @@ class JobCoPMsBody(BaseModel):
 
 # -------------------- Project Managers (admin-managed roster) --------------------
 @api_router.get("/jobs")
-async def list_jobs_public(_actor: Dict[str, Any] = Depends(_require_any_portal_read)):
+async def list_jobs_public(search: Optional[str] = None, _actor: Dict[str, Any] = Depends(_require_any_portal_read)):
     """Authenticated internal job list.
 
     Public/no-login workflows must use `/api/public/jobs-lookup`, which
     exposes only the anonymous-safe project identity contract.
     """
     from jobs_master import list_jobs
-    return {"items": await list_jobs(db, only_active=True)}
+    return {"items": await list_jobs(db, only_active=True, search=search)}
 
 
 @api_router.get("/public/jobs-lookup")
-async def list_jobs_public_lookup():
+async def list_jobs_public_lookup(search: Optional[str] = None):
     """Anonymous-safe project lookup for public workflows only.
 
     Restricts the response to the minimum project identity needed for
     public form selection and confirmation. No PM emails, co-PM lists,
     budget/schedule metadata, or cost-code payloads are exposed.
     """
+    jq: Dict[str, Any] = {"active": {"$ne": False}}
+    if search and search.strip():
+        sre = {"$regex": re.escape(search.strip()), "$options": "i"}
+        jq["$or"] = [{"project_number": sre}, {"project_name": sre}, {"name": sre}, {"client": sre}]
     cursor = db.jobs_master.find(
-        {"active": {"$ne": False}},
+        jq,
         {
             "_id": 0,
             "id": 1,
@@ -5272,7 +5291,7 @@ async def list_jobs_public_lookup():
             "client": 1,
         },
     ).sort("project_number", 1)
-    items = await cursor.to_list(2000)
+    items = await cursor.to_list(200 if (search and search.strip()) else 5000)
     return {
         "items": items,
         "count": len(items),
@@ -6699,14 +6718,17 @@ EMPLOYEES_SEED_FILE = ROOT_DIR / "data" / "employees_seed.json"
 
 
 @api_router.get("/suppliers")
-async def list_suppliers():
-    """Public — returns the full MASCI supplier / subcontractor list."""
+async def list_suppliers(q: Optional[str] = None):
+    """Public — MASCI supplier / subcontractor list. Supports population-
+    independent server-side search: when `q` is provided the regex runs against
+    the FULL canonical collection (results paged), so a supplier is discoverable
+    regardless of how large the master grows. No `q` returns the first page."""
     await _purge_expired("suppliers")
-    cursor = db.suppliers.find(
-        {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]},
-        {"_id": 0},
-    ).sort("name", 1)
-    docs = await cursor.to_list(2000)
+    query: Dict[str, Any] = {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]}
+    if q and q.strip():
+        query["$and"].append({"name": {"$regex": re.escape(q.strip()), "$options": "i"}})
+    cursor = db.suppliers.find(query, {"_id": 0}).sort("name", 1)
+    docs = await cursor.to_list(200 if (q and q.strip()) else 2000)
     return {"items": docs, "count": len(docs)}
 
 

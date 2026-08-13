@@ -74,6 +74,7 @@ export const SupplierCombo = ({
   const testIdBase = dataTestId || testId;
   const ph = placeholder || t("Type or pick a supplier…");
   const [data, setData] = useState({ items: [], count: 0 });
+  const [serverResults, setServerResults] = useState(null);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -107,16 +108,37 @@ export const SupplierCombo = ({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Population-independent SERVER-SIDE search: on typing, the supplier master is
+  // searched in the DB across the ENTIRE canonical population (not just the
+  // cached first page), so a vendor is discoverable regardless of master size.
+  useEffect(() => {
+    const term = (value || "").trim();
+    if (term.length < 1) { setServerResults(null); return; }
+    let alive = true;
+    const timer = setTimeout(async () => {
+      try {
+        const r = await api.get("/suppliers", { params: { q: term, limit: 50 }, skipSessionStatus: true });
+        if (alive) setServerResults(Array.isArray(r.data?.items) ? r.data.items : []);
+      } catch { if (alive) setServerResults(null); }
+    }, 220);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [value]);
+
   // Filter the list using the SAME text the user is typing in the main
   // input — no separate search box, no autoFocus stealing focus.
   const filtered = useMemo(() => {
     const q = (value || "").trim().toLowerCase();
     const items = data.items || [];
-    if (!q) return items.slice(0, 200);
-    return items
-      .filter((it) => (it.name || "").toLowerCase().includes(q))
-      .slice(0, 200);
-  }, [data, value]);
+    if (!q) return items.slice(0, 200); // first page when empty (page size, not a population cap)
+    const localMatches = items.filter((it) => (it.name || "").toLowerCase().includes(q));
+    const merged = [...localMatches];
+    const seen = new Set(localMatches.map((it) => it.id || it.name));
+    for (const it of (serverResults || [])) {
+      const key = it.id || it.name;
+      if (!seen.has(key)) { seen.add(key); merged.push(it); }
+    }
+    return merged.slice(0, 200); // display page size on RESULTS (full population already searched)
+  }, [data, value, serverResults]);
 
   const pick = (it) => {
     onChange?.(it.name || "");

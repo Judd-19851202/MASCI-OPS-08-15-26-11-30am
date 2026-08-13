@@ -1,3 +1,24 @@
+# 2026-06 — Population-independent canonical master-data resolution (no total-population caps)
+
+Owner correction: master-data selectors must resolve against the COMPLETE eligible population via server-side search, not a capped first page. Audited all caps; UI page size kept, total-population truncation removed.
+
+Caps found + classified:
+- Employee roster limit=5000, Suppliers to_list(2000), Equipment to_list(2000), Jobs to_list(2000) → total-population TRUNCATION (DEFECT). MasterLookupCombobox /master-lookup/{kind} already server-side top-20 (OK). Frontend slice(0,200) = display page size (OK).
+
+Fix (server-side search across full DB; page size on RESULTS):
+- Backend: /suppliers, /equipment-master(+public), /jobs(+public), jobs_master.list_jobs now accept q/search → regex over canonical fields against the FULL collection; no-q returns first page (5000/2000). /hr/employee-roster already had server-side q.
+- Frontend: EmployeeCombo, SupplierCombo, EquipmentCombo, JobPicker now issue a debounced server query on typing and MERGE full-population results with the cached first page (dedup by id/number). EmployeeRosterField + MasterLookupCombobox were already server-side.
+
+Lifecycle preserved: new-selection pickers use active/eligible population; historical records still resolve entities that later go inactive (no identity destruction).
+
+Scale proof (deterministic preview fixtures, then cleaned; residual 0):
+- Seeded 250 suppliers/jobs/equipment sorting LAST (abs position ~412, beyond the 200 display page): record #0250 discoverable via server search for ALL three (1 result each).
+- Seeded 1000 employees: #201, #500, #1000 all discoverable via /hr/employee-roster/public?q=.
+- Live: JobPicker returns 38 results on type in preview; endpoints verified (suppliers?q, equipment?search, jobs?search).
+
+Architecture is count-independent: population may change tomorrow with no frontend/config change. New pre-save candidate dcf-84cafe1dfa17afd7d583c4f4f34bf1f38e55f0d62fa7e5bed5cdfc71c981fd66; verify_release_identity --strict errors:[]; recompute-twice MATCH. Files: backend/server.py, backend/jobs_master.py, frontend/src/components/{EmployeeCombo,SupplierCombo,EquipmentCombo,JobPicker}.jsx. NOT saved (owner said do not Save yet).
+
+
 # 2026-06 — Final LIVE production acceptance closure (read-only browser gates)
 
 Ran read-only Playwright gates against live https://mascidocs.com (provenance already VERIFIED at b318d08a — not reopened). No production writes.

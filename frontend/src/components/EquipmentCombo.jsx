@@ -106,6 +106,7 @@ export const EquipmentCombo = ({
   const testIdBase = dataTestId || testId;
   const ph = placeholder || t("Type or pick a unit…");
   const [data, setData] = useState({ categories: [], items: [], grouped: {} });
+  const [serverItems, setServerItems] = useState(null);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -137,36 +138,59 @@ export const EquipmentCombo = ({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Population-independent SERVER-SIDE search: on typing, the equipment master
+  // is searched in the DB across the ENTIRE fleet (not just the cached page),
+  // so any unit is discoverable regardless of fleet size.
+  useEffect(() => {
+    const term = (value || "").trim();
+    if (term.length < 1) { setServerItems(null); return; }
+    let alive = true;
+    const fetchQ = async (path) => {
+      const r = await api.get(path, { params: { search: term }, skipSessionStatus: true });
+      return Array.isArray(r.data?.items) ? r.data.items : [];
+    };
+    const timer = setTimeout(async () => {
+      try {
+        let items = [];
+        if (!publicFallback) { try { items = await fetchQ("/equipment-master"); } catch { items = []; } }
+        if (!items.length) items = await fetchQ("/public/equipment-master-lookup");
+        if (alive) setServerItems(items);
+      } catch { if (alive) setServerItems(null); }
+    }, 220);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [value, publicFallback]);
+
   // Filter the fleet using the SAME text the user types in the main input.
   // No separate search box, no autoFocus stealing focus.
   const grouped = useMemo(() => {
-    const src = data.grouped || {};
-    const cats = filterCategories
-      ? Object.keys(src).filter((c) => filterCategories.includes(c))
-      : Object.keys(src);
     const q = (value || "").trim().toLowerCase();
+    const predicate = (it, c) => {
+      const hay = [it.unit_number, it.make_model, String(it.year || ""), it.vin_serial_number, it.plate, it.display_label, it.category || c]
+        .filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(q);
+    };
+    // Build the working item set: when searching, merge cached matches with the
+    // full-population server results (dedup by id/unit_number).
+    let working;
+    if (!q) {
+      working = data.items || [];
+    } else {
+      const local = (data.items || []).filter((it) => predicate(it, it.category));
+      const seen = new Set(local.map((it) => it.id || it.unit_number));
+      working = [...local];
+      for (const it of (serverItems || [])) {
+        const k = it.id || it.unit_number;
+        if (!seen.has(k)) { seen.add(k); working.push(it); }
+      }
+    }
     const out = {};
-    for (const c of cats.sort()) {
-      const list = (src[c] || []).filter((it) => {
-        if (!q) return true;
-        const hay = [
-          it.unit_number,
-          it.make_model,
-          String(it.year || ""),
-          it.vin_serial_number,
-          it.plate,
-          it.display_label,
-          c,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return hay.includes(q);
-      });
-      if (list.length) out[c] = list;
+    for (const it of working) {
+      const c = it.category || "Misc Equipment";
+      if (filterCategories && !filterCategories.includes(c)) continue;
+      (out[c] = out[c] || []).push(it);
     }
     return out;
-  }, [data, value, filterCategories]);
+  }, [data, value, serverItems, filterCategories]);
 
   const totalShown = useMemo(
     () => Object.values(grouped).reduce((n, l) => n + l.length, 0),

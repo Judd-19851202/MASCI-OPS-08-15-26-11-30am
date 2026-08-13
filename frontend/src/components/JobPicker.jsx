@@ -94,6 +94,8 @@ export function JobPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [library, setLibrary] = useState(STATIC_LIBRARY);
+  const [serverJobs, setServerJobs] = useState([]);
+  const [search, setSearch] = useState("");
   const { t } = useT();
 
   useEffect(() => {
@@ -106,17 +108,46 @@ export function JobPicker({
     };
   }, [publicFallback]);
 
+  // Population-independent SERVER-SIDE search: the project master is searched
+  // in the DB across the ENTIRE eligible population (not just the cached page),
+  // so any job is discoverable regardless of how large the master grows.
+  useEffect(() => {
+    const term = (search || "").trim();
+    if (term.length < 2) { setServerJobs([]); return; }
+    let alive = true;
+    const path = publicFallback ? "/public/jobs-lookup" : "/jobs";
+    const timer = setTimeout(async () => {
+      try {
+        const r = await api.get(path, { params: { search: term }, skipSessionStatus: true });
+        if (alive) setServerJobs(Array.isArray(r.data?.items) ? r.data.items : []);
+      } catch { if (alive) setServerJobs([]); }
+    }, 220);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [search, publicFallback]);
+
+  // Union of the cached first page and the full-population server results,
+  // de-duplicated by canonical project_number.
+  const renderList = useMemo(() => {
+    const seen = new Set((library || []).map((j) => j.project_number || j.id || j.project_name));
+    const merged = [...(library || [])];
+    for (const j of serverJobs) {
+      const k = j.project_number || j.id || j.project_name;
+      if (!seen.has(k)) { seen.add(k); merged.push(j); }
+    }
+    return merged;
+  }, [library, serverJobs]);
+
   // Match by project_number first (canonical key), then by exact name.
   const matched = useMemo(() => {
     if (projectNumber) {
-      const byNum = library.find((j) => j.project_number === projectNumber);
+      const byNum = renderList.find((j) => j.project_number === projectNumber);
       if (byNum) return byNum;
     }
     if (projectName) {
-      return library.find((j) => j.project_name === projectName) || null;
+      return renderList.find((j) => j.project_name === projectName) || null;
     }
     return null;
-  }, [projectName, projectNumber, library]);
+  }, [projectName, projectNumber, renderList]);
 
   const triggerLabel = matched
     ? `${matched.project_name}  ·  #${matched.project_number}`
@@ -170,6 +201,8 @@ export function JobPicker({
             placeholder={t("Search by job #, name, route, or city...")}
             className="h-12 border-b border-slate-200 bg-transparent text-base text-slate-900 placeholder:text-slate-400"
             data-testid="job-picker-search"
+            value={search}
+            onValueChange={setSearch}
           />
           <CommandList className="max-h-[62vh] overscroll-contain p-1.5 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
             <CommandEmpty className="wp17-picker-empty">
@@ -211,8 +244,8 @@ export function JobPicker({
             </CommandGroup>
             )}
 
-            <CommandGroup heading={`${t("MASCI Current Jobs")} · ${library.length}`} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-slate-500">
-              {library.map((j, jIdx) => (
+            <CommandGroup heading={`${t("MASCI Current Jobs")} · ${renderList.length}`} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-slate-500">
+              {renderList.map((j, jIdx) => (
                 <CommandItem
                   key={j.id || `${j.project_number || "job"}-${jIdx}`}
                   value={`${j.project_number} ${j.project_name} ${j.location || ""} ${j.project_manager || ""} ${j.client || ""}`}
