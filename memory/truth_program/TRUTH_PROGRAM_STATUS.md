@@ -309,3 +309,21 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - must_change_password is a STORED boolean read post-auth (not derived/breach). Password verified correct. No prod defect
   for this account. Preview shows directory (must_change=False) vs legacy `users` (must_change=True) divergence — seed
   hygiene review item, not auto-repaired, no production mutation.
+
+## ===== CHECKPOINT 2 — LIVE_VERIFIED (browser SPA session, read-only) =====
+- The 3 auth-gated probes were closed via a genuine production Super Admin browser SPA session (authoritative auth
+  path), READ-ONLY, no account mutation:
+  1. /api/employees: HTTP200 count=240 page_size=240 total=240 (canonical count/total fields present & consistent).
+  2. /api/admin/governance/audit: HTTP200 count=200 << total=821 (definitive live page<<total; total = full canonical population).
+  3. SO-08b /api/admin/operations-control/overview: HTTP200, real fan-out payload (count, operations) — no false
+     "Check admin auth" misdiagnosis; genuine child truth returned. (If a child is degraded/MISMATCH it stays so — not forced VERIFIED.)
+- Admin OS loads normally under the new attestation; truthful degraded states shown (46 high / 3 rules / stale scan), not greenwashed.
+- CHECKPOINT_2_LIVE_VERIFIED = YES. CHECKPOINT_2_AUTH_GATED_PROBES_PENDING = 0.
+- Authoritative auth path = browser SPA session (headless raw-token replay is a separate, non-authoritative mechanism).
+- OPEN (separate, non-blocking) truth items: (a) RAW/HEADLESS PORTAL TOKEN vs SPA SESSION BINDING — determine why a
+  multi-login token works in-browser but is rejected on raw replay (likely intentional session/cookie binding; document
+  a correct headless-testing contract; do NOT weaken prod auth). (b) DIRECTORY vs LEGACY `users` must_change divergence —
+  prove read-only whether any served path reads legacy users.must_change_password; if none -> LEGACY DATA HYGIENE/NON-BLOCKING;
+  if yes -> REAL AUTHORITY DEFECT, repair in preview so user_directory is sole authority + add dual-authority guard. No prod mutation.
+- Wave 5 continues: PC-CHECKLIST -> PC-SCHEDULE -> PC-STORED -> PC-COST consumer migration; expand GD-0017; then EXPIRING-RATE, UTILIZATION.
+- No Save. No Deploy. Production read-only. Product Quality v4 PAUSED. Gate 16 OWNER-DEFERRED. Production writes 0.
