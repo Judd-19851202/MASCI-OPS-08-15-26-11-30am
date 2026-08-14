@@ -17,6 +17,7 @@ from lib.release_identity import (  # noqa: E402
     read_frontend_public_identity,
     resolve_runtime_release_identity,
 )
+from lib.truth_population_guard import gate_violations as truth_population_gate_violations  # noqa: E402
 
 
 def main() -> int:
@@ -78,6 +79,16 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         errors.append(f"deployable source-input contract invalid: {type(exc).__name__}: {exc}")
 
+    # ── Truth-Program population-truth pre-Save enforcement (fail-closed) ──
+    # GD-0014 population/truncation contract sentinel + GD-0015 items/total filter
+    # drift. Invokes the ONE canonical implementation in lib.truth_population_guard.
+    truth_population_violations: list[str] = []
+    try:
+        truth_population_violations = truth_population_gate_violations(REPO_ROOT)
+        errors.extend(truth_population_violations)
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"GD-0014/GD-0015 population-truth guard failed to run: {type(exc).__name__}: {exc}")
+
     payload = {
         "ok": not errors,
         "canonical_release_commit": runtime_release.get("commit"),
@@ -101,6 +112,8 @@ def main() -> int:
         "deployable_content_fingerprint": deployable_fingerprint,
         "deployable_fingerprint_contract_digest": deployable_contract_digest,
         "deployable_fingerprint_algorithm_version": dcf.FINGERPRINT_ALGORITHM_VERSION,
+        "truth_population_gate_ok": not truth_population_violations,
+        "truth_population_gate_violations": truth_population_violations,
         "errors": errors,
     }
     print(json.dumps(payload, indent=2))

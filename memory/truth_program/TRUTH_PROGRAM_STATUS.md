@@ -234,3 +234,39 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
   (Checkpoint-1 authorized = dcf-a94173320ac3b70ed55b4cebd45d5ad842b001a86ffb146e9d2af88095330517 — MISMATCH expected pre-save.)
 - Backend boots healthy on preview (db=masci_safety_preview, isolation OK). Production writes = 0. Save: NO. Deploy: NO.
 - WAVE 5 = DISCOVERY STARTED / REPAIR PAUSED for Checkpoint 2 (register + scanner preserved).
+
+## ===== CHECKPOINT 2 FINAL — PRE-SAVE ENFORCEMENT WIRED (this session) =====
+- TRUNCATION SENTINEL ENFORCEMENT = PRE-SAVE REQUIRED. FILTER DRIFT ENFORCEMENT = PRE-SAVE REQUIRED.
+- ONE GUARD OWNER: backend/lib/truth_population_guard.py is the single canonical implementation of GD-0014
+  (offenders_in / scan_population_contract) and GD-0015 (filter_drift_in / scan_filter_drift), plus the governed
+  machine-readable EXCEPTIONS registry. The pytest guards (test_gd0014_*, test_gd0015_*) and the pre-Save release
+  gate all import from it — no duplicated/divergent scanner.
+- PRE-SAVE GATE WIRING: backend/scripts/verify_release_identity.py::main() now calls
+  truth_population_guard.gate_violations(REPO_ROOT) and FAILS CLOSED, appending actionable messages:
+    "GD-0014 POPULATION CONTRACT VIOLATION: <source::site> — <reason>"
+    "GD-0015 TOTAL FILTER DRIFT: <source::site> — <reason>"
+  Verifier payload now carries truth_population_gate_ok + truth_population_gate_violations. Live run:
+  ok=True, truth_population_gate_ok=True, violations=[] (real served code is clean).
+- FAILURE INJECTION (GD-0016, in-memory fixtures, nothing to restore):
+    BAD truncation (to_list(200)+count:=len, no total) -> GATE FAIL (GD-0014)  ✓
+    BAD filter drift (items active=true, total {})       -> GATE FAIL (GD-0015)  ✓
+    GOOD paginated (count + total=count_documents(same))  -> PASS  ✓
+    EXACT bounded (to_list(len(ids)))                     -> PASS  ✓
+    end-to-end wired gate with injected bad route         -> surfaces GD-0014  ✓
+- GOVERNED EXCEPTIONS (explicit, justified, no wildcard/silent skips): operations_actions/api::list ($count total),
+  trench reports::open_repairs (count_documents), governance::match_count (per-name cardinality), control_plane::
+  capture_count (recent-10 bundle), oppc_execution::report_count (single-week window streamed), master_lookup::
+  backfill_equipment + backfill_employees (total = full-collection backfill denominator; find() is the needing-
+  backfill working subset — distinct named metrics).
+- REGRESSION (zero unexpected failures): GD-0004/0013/0014/0015/0016 + TD-0003/0005/0006/0009/0010/0011 + occ
+  aggregator = 65 passed / 13 skipped; release gate test_checkpoint_d5_d6 = 39 passed; Wave-4 live contract suite
+  = 62 passed; strict verify_release_identity = ok:true. Expected pre-save state unchanged: the 4
+  test_release_identity_build_guard tests fail only because the frontend prebuild fail-closes on the stale
+  Checkpoint-1 attestation vs diverged source (correct; resolves on owner Save). Not bypassed.
+- ENFORCEMENT-WIRING FILES (5): NEW backend/lib/truth_population_guard.py, NEW
+  backend/tests/test_gd0016_presave_gate_enforcement.py; MODIFIED backend/scripts/verify_release_identity.py,
+  backend/tests/test_gd0014_truncation_sentinel.py, backend/tests/test_gd0015_filter_drift_audit.py.
+- FINAL candidate deployable fingerprint (deterministic x2):
+  dcf-3009d36800011d0762b5299396cb3359c3991ac48d69ce29a45074dfa9dd55ec
+- Wave 4 FULLY PROVEN (1,042/1,042 · 735/735 · unrepaired D 0). Backend healthy (preview). Production writes 0.
+  Save: NO. Deploy: NO. Wave 5 remains PAUSED.

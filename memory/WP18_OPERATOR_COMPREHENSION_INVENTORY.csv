@@ -10,12 +10,12 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminComplianceFindings,Admin,"Each finding maps to a specific detector rule (CAPA overdue, identity drift, expired CDL, etc). A clean board here means cross-portal accountability is healthy.",ETC,TECHNICAL_ADMIN_EXCEPTION,estimated cost to finish,static_scan::frontend/src/pages/admin/AdminComplianceFindings.jsx:168,EXEMPT
 /AdminDatabase,Admin,"Read-only operational observability. Live cluster snapshot, 30-day storage trend, runway estimate.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDatabase.jsx:145,EXEMPT
 /AdminDatabase,Admin,Physical capacity: UNKNOWN (telemetry unavailable),telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/AdminDatabase.jsx:93,EXEMPT
-/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:111,EXEMPT
-/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:111,EXEMPT
-/AdminDiagnostics,Admin,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:121,EXEMPT
-/AdminDiagnostics,Admin,OCC Trust Snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:127,EXEMPT
-/AdminDiagnostics,Admin,Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:135,EXEMPT
-/AdminDiagnostics,Admin,"Per-probe health cards, deeper than the OCC snapshot.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:143,EXEMPT
+/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:112,EXEMPT
+/AdminDiagnostics,Admin,Runtime health · system probes · OCC snapshot · scheduler · certification.,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:112,EXEMPT
+/AdminDiagnostics,Admin,API Health,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:122,EXEMPT
+/AdminDiagnostics,Admin,OCC Trust Snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:128,EXEMPT
+/AdminDiagnostics,Admin,Runtime,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:136,EXEMPT
+/AdminDiagnostics,Admin,"Per-probe health cards, deeper than the OCC snapshot.",snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminDiagnostics.jsx:144,EXEMPT
 /AdminEmail,Admin,Auto-routing rules · distribution lists · route catalog.,route,TECHNICAL_ADMIN_EXCEPTION,page,static_scan::frontend/src/pages/admin/AdminEmail.jsx:16,EXEMPT
 /AdminForecastingCommitments,Admin,Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/AdminForecastingCommitments.jsx:64,EXEMPT
 /AdminGeofenceReconciliation,Admin,Motive Geofence Reconciliation,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/admin/AdminGeofenceReconciliation.jsx:169,EXEMPT
@@ -75,16 +75,18 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminLegacyImports,Admin,collection:,collection,TECHNICAL_ADMIN_EXCEPTION,record list,static_scan::frontend/src/pages/AdminLegacyImports.jsx:457,EXEMPT
 /AdminLegacyImports,Admin,OCR/AI-assisted reconciliation queue · humans approve every promotion.,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:85,EXEMPT
 /AdminLegacyImports,Admin,Historical Records · Reconciliation Queue,reconciliation,TECHNICAL_ADMIN_EXCEPTION,review,static_scan::frontend/src/pages/AdminLegacyImports.jsx:98,EXEMPT
-/AdminOS,Admin,"Runtime probes, database capacity, workers, and deployment-readiness diagnostics on request.",runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:1087,EXEMPT
+/AdminMaintenance,Admin,Governance · Queues,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminMaintenance.jsx:105,EXEMPT
+/AdminMaintenance,Admin,Governance Maintenance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminMaintenance.jsx:89,EXEMPT
+/AdminOS,Admin,"Runtime probes, database capacity, workers, and deployment-readiness diagnostics on request.",runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:1091,EXEMPT
 /AdminOS,Admin,Resolve governance and readiness findings,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:329,EXEMPT
 /AdminOS,Admin,Inspect runtime diagnostics and worker health,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:343,EXEMPT
 /AdminOS,Admin,"Trusted platform posture — readiness, attestation, and runtime command signal.",runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminOS.jsx:459,EXEMPT
 /AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:652,EXEMPT
 /AdminOS,Admin,"Governance rules, audit log, compliance findings, deploy readiness.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:656,EXEMPT
-/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:915,EXEMPT
-/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:918,EXEMPT
-/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:937,EXEMPT
-/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:942,EXEMPT
+/AdminOS,Admin,Download a Markdown snapshot of the current platform trust state,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:919,EXEMPT
+/AdminOS,Admin,Export snapshot,snapshot,TECHNICAL_ADMIN_EXCEPTION,saved update,static_scan::frontend/src/pages/admin/AdminOS.jsx:922,EXEMPT
+/AdminOS,Admin,"Start with posture, open the domain that needs attention, and keep maintenance/governance actions separated from business operations noise.",governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:941,EXEMPT
+/AdminOS,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOS.jsx:946,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient/group CRUD is served by the admin API (,API,TECHNICAL_ADMIN_EXCEPTION,admin settings,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Recipient Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:489,EXEMPT
 /AdminOperationalIntelligence,Admin,Canonical English PDF export · legacy + modern records in one list · management access only,canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminOperationalIntelligence.jsx:658,EXEMPT
@@ -106,7 +108,7 @@ route/surface,role,visible text,banned term,classification,replacement,runtime p
 /AdminOperationalLanguage,Admin,Governance & Trust,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminOperationalLanguage.jsx:588,EXEMPT
 /AdminOperationalLanguage,Admin,Single source of operational truth · EN + ES parity · versioned in code.,truth,TECHNICAL_ADMIN_EXCEPTION,approved record,static_scan::frontend/src/pages/admin/AdminOperationalLanguage.jsx:604,EXEMPT
 /AdminOperationsDashboard,Admin,Read-only operational visibility. Derived from Motive telemetry + Verified geofences.,telemetry,TECHNICAL_ADMIN_EXCEPTION,activity details,static_scan::frontend/src/pages/admin/AdminOperationsDashboard.jsx:106,EXEMPT
-/AdminPlatformConfiguration,Admin,Runtime & Build,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminPlatformConfiguration.jsx:121,EXEMPT
+/AdminPlatformConfiguration,Admin,Runtime & Build,runtime,TECHNICAL_ADMIN_EXCEPTION,current view,static_scan::frontend/src/pages/admin/AdminPlatformConfiguration.jsx:122,EXEMPT
 /AdminProjectIdentityGovernance,Admin,Project Identity Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:294,EXEMPT
 /AdminProjectIdentityGovernance,Admin,Project Identity Governance,governance,TECHNICAL_ADMIN_EXCEPTION,oversight,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:305,EXEMPT
 /AdminProjectIdentityGovernance,Admin,"• Future grouping uses canonical identity, so resolving each conflict prevents future duplicate folders.",canonical,TECHNICAL_ADMIN_EXCEPTION,approved,static_scan::frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:331,EXEMPT
