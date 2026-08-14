@@ -127,3 +127,12 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - Wave 4 status: CLASSIFIED 1042/1042; QUERY_BATCH strict-verified 586/735 (585 + TD-0012); NOT YET FULLY PROVEN (target 735/735).
 - Guards: GD-0004..GD-0012 all PASS (backend 34 + frontend 12).
 - WAVE 5 (KPI reconciliation): NOT STARTED (blocked on remaining budget; resume next).
+
+## ===== WAVE 4 DENOMINATOR — EXACT RECONCILIATION =====
+- QUERY_BATCH denominator = 735 (invariant: verified + unresolved = 735 at every checkpoint).
+- Verified = 586 (A_PAGE_ONLY 428 + B_TRUE_TOTAL 155 + C_BOUNDED_EXACT 3).
+- Unresolved D_DEFECT = 149.
+- 586 + 149 = 735 ✓. Buckets sum = 735 ✓.
+- 150→149 delta explained EXACTLY: TD-0012 hardened backend/server.py list_employees (GET /api/employees), moving that site D_DEFECT → B_TRUE_TOTAL (added total=count_documents). Recorded in WAVE4_SITE_CLASSIFICATION.json exact_reconciliation.
+- Wave 4 status: CLASSIFIED 1,042/1,042; QUERY_BATCH 586/735; NOT FULLY PROVEN (149 D remaining).
+- REMAINING WORK (genuine multi-turn, budget-bounded): per-consumer dataflow proof + count_documents hardening + parameterized scale guard for the 149 D-class sites (systemic {items,count:=len()} fixed-cap pattern across server.py + route files). Then Wave 5.

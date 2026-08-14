@@ -1015,6 +1015,20 @@
       "cause": "stale backup / recovery posture in the PREVIEW environment data (latest backup older than target)",
       "classification": "PREVIEW-ENVIRONMENT-ONLY stale operational state \u2014 NOT a production defect",
       "production_note": "production runs the deployed Checkpoint-1 code (6s timeout, TD-0011 not yet deployed), so prod operations_registry still shows honest UNVERIFIABLE until a future deploy includes TD-0011. Do NOT force VERIFIED. MISMATCH from genuine child conditions is the correct verifiable result."
+    },
+    "exact_reconciliation": {
+      "denominator": 735,
+      "buckets_exact": {
+        "A_PAGE_ONLY": 428,
+        "B_TRUE_TOTAL": 155,
+        "C_BOUNDED_EXACT": 3,
+        "D_DEFECT": 149
+      },
+      "verified": 586,
+      "unresolved": 149,
+      "invariant_check": "586 + 149 == 735",
+      "reconciliation_note": "Prior turn reported 150 D-candidates BEFORE the TD-0012 repair. TD-0012 hardened GET /api/employees (backend/server.py list_employees), moving that exact site from D_DEFECT to B_TRUE_TOTAL (total=count_documents added). Therefore D remainder = 150 - 1 = 149. Invariant verified+unresolved=735 holds (586+149).",
+      "moved_site": "backend/server.py:list_employees GET /api/employees (D_DEFECT -> B_TRUE_TOTAL via TD-0012)"
     }
   }
 }
