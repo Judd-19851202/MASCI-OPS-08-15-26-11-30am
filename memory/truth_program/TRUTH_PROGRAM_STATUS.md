@@ -856,3 +856,30 @@ DEFERRED POST-SAVE BROWSER PROOFS: PM Monday-Review variance favorable coloring;
 ## ===== MASCI OPS — TRUTH & TRUST — WAVES 5-11 COMPLETE — FINAL CANDIDATE READY FOR OWNER SAVE =====
 No Save · No Deploy · production writes 0 · Checkpoints 1/2/3 FROZEN. Deferred post-Save browser proofs: 85
 (POST_SAVE_BROWSER_PROOF_REGISTER.csv). Final regression + fingerprint recorded in the finish summary / below.
+
+## ===== FINAL RELEASE PROOF — SAVE ATTESTED; ACCEPTANCE FOUND REAL DEFECTS → STOP (this run) =====
+SAVE PROVEN: saved SHA 88a54127387f6c4c1d8a13d2407b7baa7d5ef6a4; canonical+authorized+build fingerprint
+dcf-5c4ddc95fe7ca095bfe10ea0940bc5a0513117671dff9f36fd1fa32d3793d0a9 (deterministic x2); contract digest
+c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533 (unchanged); release_provenance=VERIFIED;
+runtime_matches_intended_release=true; release_identity_mismatch=false; frontend_matches_runtime=true; workspace CLEAN;
+AUTHORIZED_RELEASE.json regenerated via canonical attest path (gitignored, no tracked change). Frontend fail-close
+DISAPPEARED under genuine attestation: HTTP 200, compiled, errors=[]. population gate + truth-surface gate PASS.
+IMPORTANT operational note: preview backend does NOT hot-reload service modules; it served STALE pre-Wave-5 code
+until restarted. Restarted -> saved code now live (boots clean).
+
+85 BROWSER PROOFS — executed via shared-component lineage (iteration_28). Result: NOT 85/85 PASS. Real defects found.
+PASS (governed color/state confirmed): PM Monday-Review variance FAVORABLE semantic (FLAGSHIP — positive SCHEDULE
+variance renders RED/unfavorable and negative productivity RED/unfavorable, DISPROVING raw-sign coloring; favorable
+green branch not observable due to no positive production variance in preview data); OperationsTrustCenter ScoreRing
+(59 red band); PlatformTrustDashboard bands (idle NOT green); AdminComplianceFindings severity/status badges;
+TrenchSafetyReports headline compliance (governed Pct + state); SafetyOperationalKpisCard band; EquipmentStatusBoard pills.
+REAL DEFECTS (STOP — do not Deploy):
+- TD-0014 (Wave 5 compliance+utilization): trench MiniTable per-type/per-yard rows render raw ${pct}% -> FAKE 0% at
+  total=0 (N/A-as-0), bypassing governed Pct. Root: backend rows lack per-row state + frontend bypasses shared helper.
+- TD-0015 (Wave 8/9): /api/equipment-master 401 for admin Super Admin swallowed into false "0 units / fleet empty".
+- TD-0016 (register mislabel): BP-0057 AdminComplianceFindings has NO compliance-rate surface; retire/relabel.
+BLOCKED: 47/50 oppc projects return project_scope_denied for the system_administrator Super Admin (pm-portal projection
+lacks system_administrator bypass) — OWNER DECISION: correct least-privilege or false-deny blocking PM truth proof?
+NOT COVERED: expiring-rate badge component (4 proofs) not yet located.
+DECISION: STOP for owner. Do NOT Deploy. Do NOT second-Save. Defects are owner-gated (repair requires source change +
+a new Save cycle). No defect hidden to preserve one-Save/one-Deploy.
