@@ -1811,3 +1811,10 @@ ALL MASTER-DATA SELECTORS CANONICALLY BOUND: Employee/Equipment/Vendor/Job = YES
 - Runtime rule: preview backend doesn't hot-reload service modules -> restart-after-change mandated; boots clean.
 - Truth-surface denominator governed reconciliation 396->397 (repair added one governed surface); GD-0025/0030 green.
 - Regression 215 passed / 0 unexpected; strict verifier ok (pop+surface gates PASS). New deterministic fingerprint dcf-80253472...; 47 files changed since Checkpoint 3. Save NO / Deploy NO. Frontend fail-closes pre-reSave (expected). READY FOR OWNER RE-SAVE; 85 browser proofs execute post-reSave.
+
+## 2026-06 — LIVE APPLICATION MASTER-DATA CENSUS COMPLETE (Class B, read-only)
+- Collected via legitimate Super Admin session on the LIVE production app https://mascidocs.com (env=production, db=masci_safety, release 8aa764c69e73). NO direct prod Mongo; NO business writes (0); Save NO / Deploy NO.
+- Live snapshots (SNAPSHOTS, not fixed truth): Employees 297 (active roster 240) · Equipment Master 604 · Numbered equip 357 · Equip Parts 2 · Trucks 96 · Trailers 53 · Transport-capable fleet 136 · Eligible CDL drivers 40 · Suppliers/Vendors/Subcontractors 167 (single unified master; vendor_type subtype unpopulated) · Transport carriers 0 · Jobs 35/34-active · Users 44. (Fleet-units 149 = backend-only Phase-A, NOT human-visible.)
+- 766/951 RESOLVED: production Equipment Master == Status Board == 604 -> SAME_LIVE_POPULATION. 766/951 were preview synthetic-row artifacts; NON-AUTHORITATIVE. Proven dynamic in preview (766->767 add ->766 delete).
+- All 12/12 human-visible populations reconciled (count vs count_documents total; pickers stable across limits). GD-0014/GD-0015 + truth-surface guards: 0 violations. No hard-coded totals, no silent caps, no shadow populations. Live contradictions: 0. Source repairs: NO.
+- Artifact: memory/truth_program/LIVE_APPLICATION_MASTER_DATA_CENSUS.md. EVIDENCE_AUTHORITY_MODEL.md corrected (census NOT blocked). Candidate fingerprint unchanged dcf-b9da31c9... (no tracked source edited).
