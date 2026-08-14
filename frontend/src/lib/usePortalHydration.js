@@ -143,6 +143,28 @@ export function usePortalHydration(portal, hasToken) {
     };
   }, [state, portal]);
 
+  // Anti-hang (CRITICAL): the guard must NEVER remain in "hydrating" forever.
+  // A re-entry after ranOnce, or a child 401 that clears the freshly-issued
+  // token, previously left an untimed spinner. This absolute deadline forces a
+  // governed "deny" (login bounce / AccessDenied) so the user always reaches a
+  // resolvable state.
+  useEffect(() => {
+    if (state !== "hydrating") return undefined;
+    const hardId = window.setTimeout(() => setState("deny"), HYDRATION_TIMEOUT_MS + 1500);
+    return () => window.clearTimeout(hardId);
+  }, [state]);
+
+  // If a just-issued portal token is immediately rejected/cleared (child gets
+  // 401 -> interceptor clears it -> hasToken flips false after we reached
+  // "ready"), surface a governed denial. Debounced so the normal handshake
+  // window (parent `hasToken` prop catching up right after issue-portal-token)
+  // does not trip it.
+  useEffect(() => {
+    if (state !== "ready" || hasToken) return undefined;
+    const id = window.setTimeout(() => setState("deny"), 1200);
+    return () => window.clearTimeout(id);
+  }, [state, hasToken]);
+
   // When `hasToken` flips true due to an outside setter, jump to ready.
   useEffect(() => {
     if (hasToken && state !== "ready") setState("ready");

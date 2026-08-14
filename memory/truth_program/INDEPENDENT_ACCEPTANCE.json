@@ -31,9 +31,9 @@
       "detail": {
         "total": 336,
         "by_status": {
-          "pending_review": 68,
+          "inactive": 1,
           "active": 267,
-          "inactive": 1
+          "pending_review": 68
         }
       }
     },

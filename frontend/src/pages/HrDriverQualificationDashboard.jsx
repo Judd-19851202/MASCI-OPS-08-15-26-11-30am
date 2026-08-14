@@ -156,10 +156,10 @@ export default function HrDriverQualificationDashboard() {
       {/* Tiny summary cards — operational gut-check */}
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 my-4" data-testid="dq-summary-cards">
-          <SummaryCard testid="dq-card-cdl-expiring" icon={Clock} tint="border-amber-500 bg-amber-50" label={t("CDL Expiring 30d")} count={summary.cdl_expiring_30d} />
-          <SummaryCard testid="dq-card-med-expiring" icon={Clock} tint="border-rose-500 bg-rose-50" label={t("Medical Card Expiring 30d")} count={summary.medical_card_expiring_30d} />
-          <SummaryCard testid="dq-card-restricted" icon={AlertTriangle} tint="border-amber-600 bg-amber-100/60" label={t("Restricted")} count={summary.restricted} />
-          <SummaryCard testid="dq-card-suspended" icon={Ban} tint="border-red-500 bg-red-50" label={t("Suspended")} count={summary.suspended} />
+          <SummaryCard testid="dq-card-cdl-expiring" icon={Clock} tint={summary.cdl_expiring_30d > 0 ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-slate-50"} label={t("CDL Expiring 30d")} count={summary.cdl_expiring_30d} />
+          <SummaryCard testid="dq-card-med-expiring" icon={Clock} tint={summary.medical_card_expiring_30d > 0 ? "border-rose-500 bg-rose-50" : "border-slate-200 bg-slate-50"} label={t("Medical Card Expiring 30d")} count={summary.medical_card_expiring_30d} />
+          <SummaryCard testid="dq-card-restricted" icon={AlertTriangle} tint={summary.restricted > 0 ? "border-amber-600 bg-amber-100/60" : "border-slate-200 bg-slate-50"} label={t("Restricted")} count={summary.restricted} />
+          <SummaryCard testid="dq-card-suspended" icon={Ban} tint={summary.suspended > 0 ? "border-red-500 bg-red-50" : "border-slate-200 bg-slate-50"} label={t("Suspended")} count={summary.suspended} />
           <SummaryCard testid="dq-card-tanker-capable" icon={Truck} tint="border-emerald-500 bg-emerald-50" label={t("Tanker-Capable")} count={summary.tanker_capable} />
         </div>
       )}

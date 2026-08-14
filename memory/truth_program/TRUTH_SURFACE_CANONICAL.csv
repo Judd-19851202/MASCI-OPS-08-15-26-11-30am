@@ -200,11 +200,11 @@ frontend/src/components/EquipmentPartsPanel.jsx:17,EquipmentPartsPanel,equipment
 frontend/src/components/EquipmentReturnLines.jsx:158,EquipmentReturnLines,equipment-return-serial-input,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentReturnLines.jsx:183,EquipmentReturnLines,equipment-return-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentStatusBoard.jsx:105,EquipmentStatusBoard,equipment-status-board,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/components/EquipmentStatusBoard.jsx:148,EquipmentStatusBoard,status-board-toggle,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentStatusBoard.jsx:159,EquipmentStatusBoard,equipment-status-board-count-label,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentStatusBoard.jsx:162,EquipmentStatusBoard,equipment-status-board-scope-note,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentStatusBoard.jsx:211,EquipmentStatusBoard,status-empty-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentStatusBoard.jsx:215,EquipmentStatusBoard,status-board-list,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/components/EquipmentStatusBoard.jsx:152,EquipmentStatusBoard,status-board-toggle,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentStatusBoard.jsx:163,EquipmentStatusBoard,equipment-status-board-count-label,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentStatusBoard.jsx:166,EquipmentStatusBoard,equipment-status-board-scope-note,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentStatusBoard.jsx:215,EquipmentStatusBoard,status-empty-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentStatusBoard.jsx:219,EquipmentStatusBoard,status-board-list,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/components/EquipmentTrendsPanel.jsx:42,EquipmentTrendsPanel,equipment-trends-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentTrendsPanel.jsx:57,EquipmentTrendsPanel,trends-window-select,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentTrendsPanel.jsx:69,EquipmentTrendsPanel,trends-refresh-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,

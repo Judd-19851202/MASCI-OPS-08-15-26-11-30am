@@ -413,7 +413,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           className="font-display text-4xl font-black text-slate-900"
           data-testid="equipment-master-total"
         >
-          {total}
+          {loading ? "…" : total}
         </span>
         )}
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500" data-testid="equipment-master-total-label">

@@ -116,7 +116,7 @@ export default function ExecutiveOperationalIntelligence() {
 
     api.get("/oppc/enterprise/monday-briefing")
       .then((r) => {
-        if (alive) setBriefing(r.data?.briefing || null);
+        if (alive) setBriefing(r.data?.briefing || r.data || null);
       })
       .catch(() => {
         if (alive) setBriefing(null);
@@ -128,7 +128,7 @@ export default function ExecutiveOperationalIntelligence() {
 
   const kpis = dash?.company_kpis || {};
   const atRisk = health?.top_at_risk || [];
-  const totalProjects = health?.total_projects || 0;
+  const totalProjects = health?.total_projects ?? null;
   const items = attention?.items || {};
   const oppcSummary = oppc?.summary || {};
   const approvalHistory = briefing?.approval_history || [];
@@ -248,14 +248,14 @@ export default function ExecutiveOperationalIntelligence() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3" data-testid="exec-intel-kpis">
               <KpiTile
                 label="Total labor hours"
-                value={kpis.labor_hours ?? 0}
+                value={kpis.labor_hours ?? null}
                 unit="hrs"
                 testid="exec-kpi-labor"
                 footnote="Crew time captured from operational reporting."
               />
               <KpiTile
                 label="Total equipment hours"
-                value={kpis.equipment_hours ?? 0}
+                value={kpis.equipment_hours ?? null}
                 unit="hrs"
                 testid="exec-kpi-equipment"
                 footnote="Live equipment use recorded in the selected period."
@@ -268,13 +268,13 @@ export default function ExecutiveOperationalIntelligence() {
               />
               <KpiTile
                 label="Photos captured"
-                value={kpis.photo_count ?? 0}
+                value={kpis.photo_count ?? null}
                 testid="exec-kpi-photos"
                 footnote="Field photos added by crews and supervisors."
               />
               <KpiTile
                 label="Open executive variances"
-                value={oppcSummary.open_variances ?? 0}
+                value={oppcSummary.open_variances ?? null}
                 testid="exec-kpi-oppc-variances"
                 footnote="Variance items still open in the enterprise operations center."
               />

@@ -126,13 +126,17 @@ export default function EquipmentStatusBoard() {
   }
 
   const { units, summary } = data;
+  // GOVERNED single derivation for "overdue / never" — a unit is overdue if it
+  // was never inspected OR last inspected >= 7 days ago. Counting distinct units
+  // (never-inspected units carry days_ago=null) guarantees the bucket can never
+  // exceed total_units, and keeps the header chip and the filter label identical.
+  const isOverdue = (u) =>
+    u.last_status === "never" ||
+    (u.last_inspected_days_ago !== null && u.last_inspected_days_ago >= 7);
+  const overdueCount = units.filter(isOverdue).length;
   const filtered = units.filter((u) => {
     if (filter === "fail") return u.last_status === "fail";
-    if (filter === "overdue")
-      return (
-        u.last_status === "never" ||
-        (u.last_inspected_days_ago !== null && u.last_inspected_days_ago >= 7)
-      );
+    if (filter === "overdue") return isOverdue(u);
     return true;
   });
 
@@ -170,12 +174,12 @@ export default function EquipmentStatusBoard() {
               <AlertOctagon className="w-3 h-3" /> {summary.out_of_service} Out of Service
             </span>
           )}
-          {summary.stale_7d > 0 && (
+          {overdueCount > 0 && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 text-amber-800 border border-amber-300 font-mono text-[10px] uppercase tracking-[0.15em] font-bold">
-              <Clock className="w-3 h-3" /> {summary.stale_7d} Overdue
+              <Clock className="w-3 h-3" /> {overdueCount} Overdue
             </span>
           )}
-          {summary.out_of_service === 0 && summary.stale_7d === 0 && (
+          {summary.out_of_service === 0 && overdueCount === 0 && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-300 font-mono text-[10px] uppercase tracking-[0.15em] font-bold">
               <CheckCircle2 className="w-3 h-3" /> All Clear
             </span>
@@ -189,7 +193,7 @@ export default function EquipmentStatusBoard() {
             {[
               { key: "all", label: `All (${units.length})` },
               { key: "fail", label: `Out of Service (${summary.out_of_service})` },
-              { key: "overdue", label: `Overdue / Never (${summary.stale_7d + summary.never_inspected})` },
+              { key: "overdue", label: `Overdue / Never (${overdueCount})` },
             ].map((f) => (
               <button
                 key={f.key}
