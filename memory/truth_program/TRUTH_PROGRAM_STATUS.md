@@ -270,3 +270,15 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
   dcf-3009d36800011d0762b5299396cb3359c3991ac48d69ce29a45074dfa9dd55ec
 - Wave 4 FULLY PROVEN (1,042/1,042 · 735/735 · unrepaired D 0). Backend healthy (preview). Production writes 0.
   Save: NO. Deploy: NO. Wave 5 remains PAUSED.
+
+## ===== CHECKPOINT 2 — ATTESTED — READY FOR OWNER DEPLOY (post-Save) =====
+- Owner Save COMPLETE. Genuine saved SHA = 2fc6a1340bb7b7588b8f969cda2bb02023d9ec43 (== runtime HEAD == intended_release_commit).
+- Canonical deployable fingerprint (deterministic x2 from saved tree) = dcf-3009d36800011d0762b5299396cb3359c3991ac48d69ce29a45074dfa9dd55ec (matches required).
+- Contract digest = c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533 (stable; contract unchanged).
+- AUTHORIZED_RELEASE.json regenerated (untracked/gitignored) -> authorized_saved_sha + authorized_deployable_fingerprint + contract digest all match the saved candidate.
+- Production build stamp path now PASSES (exit 0); build_deployable_fingerprint == authorized_deployable_fingerprint.
+- Runtime provenance: release_provenance=VERIFIED, runtime_matches_intended_release=TRUE, frontend_backend_release_match=True, release_identity_mismatch=False. Frontend + backend RUNNING; frontend boots cleanly under new attestation (prior fail-closed resolved — NOT bypassed).
+- verify_release_identity --strict: ok=true, errors=[], truth_population_gate_ok=true, violations=[].
+- Regression (zero unexpected failures): fast guard suite (GD-0004/0013/0014/0015/0016 + TD-0003/0005/0006/0009/0010/0011) 65 passed; release/build-guard + provenance + fingerprint + dr03 48 passed (the previously-expected 4 pre-Save build-guard failures are GONE under the new attestation); Wave-4 live contract suite 62 passed; release gate test_checkpoint_d5_d6 39 passed (run earlier).
+- Wave 4 = FULLY PROVEN (1,042/1,042 · 735/735 · unrepaired D 0). GD-0014/GD-0015 = PRE-SAVE ENFORCED (one guard owner).
+- Workspace tracked source CLEAN. Source changes after Save = 0. Production writes = 0. Second Save = NO. Deploy = NO. Wave 5 PAUSED.
