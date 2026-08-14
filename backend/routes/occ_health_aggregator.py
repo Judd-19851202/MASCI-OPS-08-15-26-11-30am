@@ -558,11 +558,20 @@ def _eval_governance(body, err, checked_at):
         return _mk("UNVERIFIABLE", "Governance summary unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     sev = body.get("severity_counts") or {}
-    highs = int(sev.get("high", 0) or 0) + int(sev.get("critical", 0) or 0)
+    criticals = int(sev.get("critical", 0) or 0)
+    highs = int(sev.get("high", 0) or 0) + criticals
     health = str(body.get("health_label") or "").lower()
-    if health == "critical" or highs > 20:
+    # TD-0003 / SO-06 alignment: a red MISMATCH on the OCC governance card
+    # requires a GENUINE critical condition — >=1 critical-severity finding
+    # or a governed "critical" health label (which itself now requires a
+    # real critical-severity finding). A backlog of high/medium *advisory*
+    # governed findings (PPE_MISSING, EMP_LINK_*) with zero critical-severity
+    # is truthfully DEGRADED (needs attention), never a platform red. The
+    # prior `highs > 20 -> MISMATCH` heuristic forced advisory backlog to
+    # render as a false platform-level MISMATCH, contradicting SO-06.
+    if criticals > 0 or health == "critical":
         status = "MISMATCH"
-    elif health == "warning" or highs > 0:
+    elif highs > 0 or health in ("warning", "degraded", "fair"):
         status = "DEGRADED"
     else:
         status = "VERIFIED"

@@ -13,8 +13,8 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 
 ## WAVE STATE
 - WAVE 1 Denominator discovery: DONE (counts above)
-- WAVE 2 Shared truth engines + unresolved live items: IN_PROGRESS (5/6 items open; governance health-contract TD-0004 REPAIRED preview)
-- WAVE 3 Enterprise master population truth: PARTIAL (employees/equipment/jobs/suppliers reconciled live; users/vehicles/drivers pending)
+- WAVE 2 Shared truth engines + unresolved live items: DONE (all 4 items resolved; SO-06 blast radius closed across all consumers)
+- WAVE 3 Enterprise master population truth: IN_PROGRESS (employees 239/equipment 604/jobs/suppliers reconciled prior; users 44 + vehicles 149 + drivers 43 reconciled LIVE this session. Remaining: exhaustive per-entity edge audits + Wave-4 classify all 1,042 sites)
 - WAVE 4 Classify all 1,042 population sites: NOT_STARTED (0/1042)
 - WAVE 5 KPI formula canonicalization: NOT_STARTED
 - WAVE 6 Freshness/time/history: NOT_STARTED
@@ -25,11 +25,20 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 - WAVE 11 Permanent automated truth guards: NOT_STARTED
 
 ## SUMMARY COUNTERS (update each wave)
-- Truth surfaces fully reconciled: 7 / 547
-- Population sites classified: 0 / 1,042
-- Defects proven: 2 (release-identity display; governance STALE->CRITICAL semantics [suspected])
-- Shared-root defects repaired (preview): 2 (SO-01 release identity; SO-06 governance health — GD-0004 tests 6/6 PASS)  [prior: — 5 files, shared owner versionCache.canonicalReleaseShaShort)
-- Unexplained contradictions remaining: tracked in TRUTH_DEFECT_REGISTER.csv
+- Truth surfaces fully reconciled: 13 / 547
+- Population sites classified: 7 / 1,042
+- Defects proven: 8 (TD-0001..TD-0008)
+- Shared-root defects repaired (preview): 6 (SO-01 release identity; SO-05 trust-events; SO-06 governance health incl. frontend consumers; SO-07 storage ownership; SO-08 maintenance mapping; SO-10 OCC governance card)
+- Executable regression guards passing: GD-0004 6/6, GD-0005 6/6, GD-0006 4/4, GD-0007 5/5, GD-0008 5/5, GD-0009 5/5 (backend 21 + frontend 15)
+- Unexplained Wave-2 contradictions remaining: 0
+
+## WAVE 2 CLOSURE (all criteria met)
+- TD-0003 OCC MISMATCH: RESOLVED. Root = governance card (advisory backlog, 0 critical) via SO-06 false-critical + SO-10 highs>20 heuristic. Both repaired. GD-0005 6/6. Prod shape -> DEGRADED (honest).
+- TD-0005 8 critical events: RESOLVED. Root = historical deployment_verification restart audit rows counted as current critical + counts over pre-truncation population. SO-05 repaired. GD-0006 4/4.
+- TD-0006 storage ownership 15.1: RESOLVED. Root = exempt objects in ownership denominator. SO-07 repaired (attributable). GD-0007 5/5. Real endpoint /api/admin/r2/lifecycle/health.
+- TD-0007 maintenance 16/5/Deployment-UNKNOWN: RESOLVED. Root = dead category 'deployment' + orphaned governance/queues ops. SO-08 repaired. GD-0008 5/5. All 16 ops covered once.
+- TD-0008 SO-06 frontend blast radius: RESOLVED. AdminGovernanceTrust + AdminOS governance evaluators aligned to TC-0002. GD-0009 5/5.
+- NOTE (low-pri follow-up SO-08b): prod OCC operations_registry card shows honest UNVERIFIABLE due to internal fan-out auth (endpoint works directly). Honest UNKNOWN, not false-green — deferred, not a Wave-2 blocker.
 
 ## PROVEN / REPAIRED THIS PROGRAM
 - Release identity (Phase 11): footer + Build&Uptime cards now bind authorized_saved_sha (canonicalReleaseShaShort). Verified preview footer "SHA-3DC83374"; diagnostic hash labelled "not the SHA". Files: frontend/src/lib/versionCache.js, components/ForgedOpsAttribution.jsx, pages/admin/AdminDiagnostics.jsx, AdminGovernanceTrust.jsx, AdminPlatformConfiguration.jsx. strict verifier ok errors:[]; candidate fingerprint (will drift as more fixes land).

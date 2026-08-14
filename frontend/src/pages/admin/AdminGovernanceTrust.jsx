@@ -10,10 +10,15 @@ function _governance(probes) {
   const b = p.body || {};
   const sev = b.severity_counts || {};
   const highs = Number(sev.high || 0) + Number(sev.critical || 0);
+  const criticals = Number(sev.critical || 0);
   const health = String(b.health_label || "").toLowerCase();
   const freshness = b.freshness || {};
   const freshState = String(freshness.state || "UNKNOWN").toUpperCase();
-  const status = freshState === "SCAN_FAILED" || health === "critical" || highs > 20 ? "red"
+  // SO-06 contract: red requires a GENUINE critical condition — a
+  // critical-severity finding, a governed 'critical' health label, or a
+  // failed scan (data untrustworthy). A backlog of high/medium *advisory*
+  // rules with zero critical-severity is 'yellow' (attention), never a false red.
+  const status = freshState === "SCAN_FAILED" || health === "critical" || criticals > 0 ? "red"
     : freshState === "STALE" || freshState === "AGING" || highs > 0 ? "yellow" : "green";
   const scanStamp = freshness.last_scan_at || b.last_scan?.finished_at || b.last_scan?.started_at || null;
   return { status,

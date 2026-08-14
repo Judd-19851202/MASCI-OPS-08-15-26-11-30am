@@ -105,8 +105,19 @@ def _classify_audit(row: Dict[str, Any]) -> Dict[str, Any]:
     if outcome in ("fail", "failed", "error"):
         severity = "critical"
     if action in _DEPLOY_ACTIONS or action.startswith("deployment_verification"):
+        # TD-0005 (historical-as-current): deployment_verification audit rows are
+        # HISTORICAL point-in-time records of the automatic startup check, and one
+        # is written on every backend start (so a single condition produces many
+        # near-identical rows). Current deploy readiness is canonically owned by
+        # /api/admin/deployment-readiness and is surfaced in this feed as
+        # `deploy_blocker` CRITICAL events. A past (often repeated) NO-GO/fail
+        # startup-verification row must therefore NOT be counted as a current
+        # critical platform event — doing so inflates the "critical" count and
+        # contradicts the canonical deploy-readiness pass. Preserve the row as
+        # historical evidence at `info`; genuine current blockers flow via
+        # deploy_blocker from the canonical owner.
         kind = "deploy"
-        severity = "critical" if outcome in ("fail", "failed", "error", "no-go") else "info"
+        severity = "info"
     summary = f"{row.get('actor_email') or row.get('actor_id') or 'system'} · {action or 'admin action'}"
     return _mk(
         ts=row.get("ts") or row.get("at"),
@@ -194,6 +205,30 @@ def _collapse_duplicate_events(events: List[Dict[str, Any]]) -> tuple[List[Dict[
 def _latest_event_timestamp(events: List[Dict[str, Any]], fallback: str) -> str:
     stamped = [str(event.get("ts") or "") for event in events if event.get("ts")]
     return max(stamped) if stamped else fallback
+
+
+def _tally_window(events: List[Dict[str, Any]], limit: int) -> tuple[List[Dict[str, Any]], Dict[str, int], Dict[str, int], int]:
+    """TD-0005: per-severity counts MUST describe exactly the events returned.
+
+    The feed is bounded to ``limit`` for presentation. Previously ``counts`` was
+    tallied over the full pre-truncation merged population while ``events`` was
+    returned as ``events[:limit]`` — so the card could claim "8 critical" while
+    only 6 were enumerable in the list. Counts are now computed over the SAME
+    window that is returned, keeping the headline number reconcilable with the
+    visible events.
+    """
+    window = events[: max(1, int(limit or 1))]
+    counts = {"info": 0, "warning": 0, "critical": 0}
+    by_kind: Dict[str, int] = {}
+    auth_failures = 0
+    for e in window:
+        sev = e.get("severity") or "info"
+        counts[sev] = counts.get(sev, 0) + 1
+        kind = e.get("kind") or "audit"
+        by_kind[kind] = by_kind.get(kind, 0) + 1
+        if kind == "auth" and sev in ("warning", "critical"):
+            auth_failures += 1
+    return window, counts, by_kind, auth_failures
 
 
 def _build_truth_binding(
@@ -410,14 +445,9 @@ def register_occ_trust_events_routes(api_router: APIRouter, require_admin: Calla
         events.sort(key=_key, reverse=True)
 
         # Aggregates per kind — cheap surface for domain landing cards.
-        counts = {"info": 0, "warning": 0, "critical": 0}
-        by_kind: Dict[str, int] = {}
-        auth_failures = 0
-        for e in events:
-            counts[e["severity"]] = counts.get(e["severity"], 0) + 1
-            by_kind[e["kind"]] = by_kind.get(e["kind"], 0) + 1
-            if e["kind"] == "auth" and e["severity"] in ("warning", "critical"):
-                auth_failures += 1
+        # TD-0005: counts are tallied over the RETURNED window so "N critical"
+        # is always enumerable in `events` below.
+        window, counts, by_kind, auth_failures = _tally_window(events, limit)
 
         truth_binding = _build_truth_binding(
             now_iso=now_iso,
@@ -434,7 +464,9 @@ def register_occ_trust_events_routes(api_router: APIRouter, require_admin: Calla
             "by_kind": by_kind,
             "auth_failures_in_window": auth_failures,
             "unresolved_blockers": blockers,
-            "events": events[:limit],
+            "events": window,
+            "window_event_count": len(window),
+            "total_events_in_feed": len(events),
             "probe_errors": errors,
             "duplicate_suppression_count": duplicate_suppression_count,
             **truth_binding,

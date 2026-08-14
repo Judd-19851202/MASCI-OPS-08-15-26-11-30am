@@ -61,6 +61,26 @@ def _clamp(v: float) -> float:
     return max(0.0, min(100.0, v))
 
 
+def compute_ownership_score(owned: int, total: int, protected: int) -> float:
+    """TD-0006 — ownership coverage over ATTRIBUTABLE objects only.
+
+    Ownership coverage must be measured against objects that are ELIGIBLE for
+    owner attribution. Protected/exempt objects (SYSTEM_RESERVED,
+    RETENTION_PROTECTED, BACKUP_PROTECTED, LEGAL_HOLD, HISTORICAL) are governed
+    classifications that are legitimately never owner-attributed, so counting
+    them in the denominator falsely deflates the score (live prod:
+    owned=1639/total=10821 -> 15.1% while 45.4% were exempt and confirmed-orphan
+    risk was 0.0%). AMBIGUOUS/PENDING objects REMAIN in the denominator because
+    they genuinely require ownership resolution (real backlog, not exempt).
+    """
+    attributable = max(0, int(total) - int(protected))
+    if attributable <= 0:
+        # Every classified object is definitively exempt -> nothing left to
+        # attribute; coverage is not a deficiency (honest 100, not fake).
+        return 100.0
+    return 100.0 * (int(owned) / attributable)
+
+
 def _freshness_state(age_minutes: Optional[float]) -> str:
     if age_minutes is None:
         return "UNKNOWN"
@@ -153,7 +173,7 @@ async def compute_storage_health(
 
     # ── Sub-scores ─────────────────────────────────────────────────────
     capacity_score = _capacity_score(gb, warn_gb, alert_gb)
-    ownership_score = 100.0 * (owned / total) if total else 0.0
+    ownership_score = compute_ownership_score(owned, total, protected)
     orphan_pct = 100.0 * (orphans / total) if total else 0.0
     orphan_score = _clamp(100.0 - orphan_pct * 5.0)  # 20 % → 0
     retention_score = 100.0  # No accidental-delete signal wired yet.
@@ -198,6 +218,8 @@ async def compute_storage_health(
             "classification_total": total,
             "classification_coverage_pct": round(lifecycle_pct, 1),
             "verified_owner_pct": round((100.0 * owned / total), 1) if total else 0.0,
+            "attributable_total": max(0, total - protected),
+            "verified_owner_pct_of_attributable": round(ownership_score, 1),
             "confirmed_orphan_pct": round(orphan_pct, 2),
             "ownership_unknown_pct": round((100.0 * unknown / total), 1) if total else 0.0,
             "ownership_unresolved_pct": round((100.0 * (ambiguous + pending) / total), 1) if total else 0.0,

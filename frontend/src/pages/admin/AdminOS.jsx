@@ -667,14 +667,18 @@ const DOMAINS = [
       }
       const severity = r.body.severity_counts || {};
       const highs = Number(severity.high || 0) + Number(severity.critical || 0);
+      const criticals = Number(severity.critical || 0);
       const health = String(r.body.health_label || "").toLowerCase();
       const freshnessState = String(r.body.freshness?.state || "UNKNOWN").toUpperCase();
+      // SO-06 contract: 'critical' requires a genuine critical condition
+      // (critical-severity finding, governed 'critical' label, or failed scan).
+      // High/medium advisory backlog with zero critical-severity is 'warning'.
       const status =
-        freshnessState === "SCAN_FAILED" || health === "critical" || highs > 0
+        freshnessState === "SCAN_FAILED" || health === "critical" || criticals > 0
           ? "critical"
           : freshnessState === "STALE" || freshnessState === "AGING"
           ? "warning"
-          : health === "warning"
+          : health === "warning" || highs > 0
           ? "warning"
           : "healthy";
       const score = r.body.convergence_score;

@@ -11,10 +11,24 @@ import DomainLandingShell from "@/components/admin/trust/DomainLandingShell";
 // Small helper: each maintenance card is really a "shortcut" whose
 // status is derived from the OCC overview endpoint. We map card ->
 // list of operation-id prefixes to summarise health.
-function _byCategory(probes, categories) {
+//
+// TD-0007: the matcher now supports id-prefix selection and exclusion in
+// addition to category. The "Deployment Maintenance" card previously filtered
+// by category "deployment", which does not exist in OperationCategory (deploy
+// ops are registered under category "health"), so it always rendered a false
+// UNKNOWN. Governance maintenance ops had no card at all and were invisible.
+export function matchMaintenanceOps(probes, opts = {}) {
+  const { categories = [], idPrefixes = [], excludePrefixes = [] } = opts;
   const p = probes.occ;
   if (!p?.ok) return { status: "unknown", summary: "OCC overview unreachable.", evidence: { error: p?.error } };
-  const ops = (p.body?.operations || []).filter((o) => categories.includes(o.category));
+  const all = p.body?.operations || [];
+  const ops = all.filter((o) => {
+    const id = String(o.id || "");
+    if (excludePrefixes.some((pre) => id.startsWith(pre))) return false;
+    const catMatch = categories.length ? categories.includes(o.category) : false;
+    const idMatch = idPrefixes.some((pre) => id.startsWith(pre));
+    return catMatch || idMatch;
+  });
   const critical = ops.filter((o) => (o.status_snapshot?.status || "") === "critical").length;
   const warning = ops.filter((o) => (o.status_snapshot?.status || "") === "warning").length;
   const status = critical > 0 ? "red" : warning > 0 ? "yellow" : ops.length ? "green" : "unknown";
@@ -22,6 +36,10 @@ function _byCategory(probes, categories) {
     summary: `${ops.length} operation(s) · ${critical} critical · ${warning} attention`,
     recommended_action: critical || warning ? "Open OCC to run the affected operation." : "",
     evidence: { operations_summary: ops.map((o) => ({ id: o.id, status: (o.status_snapshot||{}).status })) } };
+}
+
+function _byCategory(probes, categories) {
+  return matchMaintenanceOps(probes, { categories });
 }
 
 const manifest = {
@@ -61,13 +79,21 @@ const manifest = {
       drilldown: "/admin/identity-security",
       evaluator: (p) => _byCategory(p, ["security"]) },
     { id: "deployment-maint", section: "trust-security", title: "Deployment Maintenance",
-      endpoint: "/api/admin/operations-control/overview (category=deployment)",
+      endpoint: "/api/admin/operations-control/overview (deploy.* operations)",
       drilldown: "/admin/governance-trust",
-      evaluator: (p) => _byCategory(p, ["deployment"]) },
+      evaluator: (p) => matchMaintenanceOps(p, { idPrefixes: ["deploy."] }) },
     { id: "health-maint", section: "trust-security", title: "Health / Diagnostics Maintenance",
-      endpoint: "/api/admin/operations-control/overview (category=health)",
+      endpoint: "/api/admin/operations-control/overview (category=health, excl. deploy.*)",
       drilldown: "/admin/diagnostics",
-      evaluator: (p) => _byCategory(p, ["health"]) },
+      evaluator: (p) => matchMaintenanceOps(p, { categories: ["health"], excludePrefixes: ["deploy."] }) },
+    { id: "governance-maint", section: "data-governance", title: "Governance Maintenance",
+      endpoint: "/api/admin/operations-control/overview (category=governance)",
+      drilldown: "/admin/governance-trust",
+      evaluator: (p) => _byCategory(p, ["governance"]) },
+    { id: "queues-maint", section: "data-governance", title: "Queues & Schedulers Maintenance",
+      endpoint: "/api/admin/operations-control/overview (category=queues)",
+      drilldown: "/admin/operations-control",
+      evaluator: (p) => _byCategory(p, ["queues"]) },
   ],
   sections: [
     { id: "storage-backups", label: "Storage · Backups · R2", icon: Archive,
@@ -76,6 +102,8 @@ const manifest = {
       cards: ["email-maint", "ai-maint", "daily-report-maint"] },
     { id: "trust-security", label: "Security · Deployment · Health", icon: ShieldCheck,
       cards: ["security-maint", "deployment-maint", "health-maint"] },
+    { id: "data-governance", label: "Governance · Queues", icon: Users,
+      cards: ["governance-maint", "queues-maint"] },
   ],
   maintenance_actions: [
     { id: "occ-console", title: "Full Maintenance Operations Console",
